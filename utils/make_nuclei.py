@@ -79,6 +79,10 @@ parser.add_option( "--concentration-in", type="float",
                    help="concentration in interior region" )
 parser.add_option( "--concentration-out", type="float", 
                    help="concentration in outside region" )
+parser.add_option( "--temperature-in", type="float",
+                   help="temperature in interior region" )
+parser.add_option( "--temperature-out", type="float",
+                   help="temperature in outside region" )
 parser.add_option( "--jitter-factor", type="float", default=1.0, 
                    help="jitter factor" )
 parser.add_option( "-s", "--crystal_sym", action="store_true", dest="crystal_sym", default=False)
@@ -141,6 +145,9 @@ conc_inside   = options.concentration_in
 conc_outside  = options.concentration_out
 if conc_inside is None :
   conc_inside = nomconc
+
+temperature_inside   = options.temperature_in
+temperature_outside  = options.temperature_out
 
 # generate quaternions corresponding to random orientations
 random.seed( 11234 )
@@ -438,6 +445,9 @@ if double_precision:
   print 'Data in double precision...'
   if not(nomconc is None) or not(conc_inside is None):
     ncconc  = f.createVariable( 'concentration', 'd', ('z','y','x') )
+  if not(temperature_outside is None) or not(temperature_inside is None):
+    nctemp  = f.createVariable( 'temperature', 'd', ('z','y','x') )
+    temperature  = N.ones( (nz,ny,nx), N.float64 )
   ncphase = f.createVariable( 'phase',         'd', ('z','y','x') )
   if( options.three ):
     nceta = f.createVariable( 'eta',         'd', ('z','y','x') )
@@ -457,6 +467,9 @@ else:
   print 'Data in single precision...'
   if not(nomconc is None) or not(conc_inside is None):
     ncconc  = f.createVariable( 'concentration', 'f', ('z','y','x') )
+  if not(temperature_outside is None) or not(temperature_inside is None):
+    nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
+    temperature  = N.ones( (nz,ny,nx), N.float32 )
   ncphase = f.createVariable( 'phase',         'f', ('z','y','x') )
   if( options.three ):
     nceta = f.createVariable( 'eta',         'f', ('z','y','x') )
@@ -614,8 +627,9 @@ for g in range(n_spheres):
             distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
             d = distance_sq - r_sq
             if( width>0. ):
-              if( d<2. ):
-                phase[k,j,i] = phase_inside*0.5*(1.-tanh(0.5*d/width))
+              sq=N.sqrt(abs(d))
+              if( sq<2.*width or d<0. ):
+                phase[k,j,i] = phase_inside*0.5*(1.+N.tanh(0.5*sq/width))
                 vs=vs+phase[k,j,i]
                 if( options.three ):
                   eta[k,j,i] = g%2
@@ -702,12 +716,48 @@ if not(nomconc is None):
               if( d<0. ):
                 conc[k,j,i]  = conc_inside
 
+  for g in range(n_spheres):
+    for k in range( nz ) :
+      for j in range( ny ) :
+        for i in range( nx ) :
+          conc[k,j,i]  = conc_inside*phase[k,j,i]+conc_outside*(1.-phase[k,j,i])
+
+if not(temperature_inside is None):
+  print 'Fill temperature values'
+  print 'temperature_inside =',temperature_inside
+  print 'temperature_outside=',temperature_outside
+  for k in range( nz ) :
+    for j in range( ny ) :
+      for i in range( nx ) :
+        temperature[k,j,i]  = temperature_outside
+
+  for g in range(n_spheres):
+    r_sq = r[g]**2
+    print 'grain ',g
+    for k in range( nz ) :
+      z = k + 0.5
+      dz2=distance2_1d_z(z,cz[g])
+      if dz2<r_sq :
+        for j in range( ny ) :
+          y = j + 0.5
+          dy2=distance2_1d_y(y,cy[g])
+          if dy2<r_sq :
+            for i in range( nx ) :
+              x = i + 0.5
+         
+              distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
+              d = distance_sq - r_sq
+              if( d<0. ):
+                temperature[k,j,i]  = temperature_inside
+
 #-----------------------------------------------------------------------
 # Write data to file and close
 
 print 'Write data to file'
 if not(nomconc is None):
   ncconc.assignValue( conc )
+if not(temperature_inside is None):
+  nctemp.assignValue( temperature )
 ncphase.assignValue( phase )
 if( options.three ):
   nceta.assignValue( eta )
