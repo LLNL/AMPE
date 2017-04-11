@@ -31,15 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CompositionStrategyMobilities.h"
-#include "QuatParams.h"
-#include "ConcFort.h"
-#include "QuatFort.h"
 #include "CALPHADFunctions.h"
 
-#include "SAMRAI/tbox/InputManager.h"
-#include "SAMRAI/geom/CartesianPatchGeometry.h"
-#include "SAMRAI/pdat/CellData.h"
-#include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 #include <cassert>
@@ -49,36 +42,17 @@ const double m2toum2 = 1.e12;
 
 CompositionStrategyMobilities::CompositionStrategyMobilities(
    boost::shared_ptr<tbox::Database> input_db,
-   const int phase_scratch_id,
-   const int eta_scratch_id,
+   const bool with_third_phase,
    const unsigned short ncompositions,
-   const int temperature_scratch_id,
-   const int Mq_id,
-   const vector<double>& Q_heat_transport,
    FreeEnergyStrategy* free_energy_strategy
    ):d_free_energy_strategy(free_energy_strategy)
 {
    assert( ncompositions==1 );
-   assert( temperature_scratch_id>=0 );
    assert( d_free_energy_strategy!=NULL );
-   
-   if( Mq_id>=0 ){
-      assert( Q_heat_transport.size()>0 );
-      tbox::plog<<"CompositionStrategyMobilities with thermal diffusion"<<endl;
-   }else{
-      tbox::plog<<"CompositionStrategyMobilities without thermal diffusion"<<endl;
-   }
    
    d_ncompositions=ncompositions;
    
-   d_phase_scratch_id = phase_scratch_id;
-   d_eta_scratch_id = phase_scratch_id;
-   
-   d_Mq_id=Mq_id;
-   
-   d_temperature_scratch_id = temperature_scratch_id;
-
-   d_with_third_phase = ( eta_scratch_id>=0 );
+   d_with_third_phase = with_third_phase;
    
    string calphad_filename = input_db->getString( "filename" );
 
@@ -113,7 +87,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 
    CALPHADMobility calphad_mobility0_phaseB("MobilitySpecies0");
    CALPHADMobility calphad_mobility1_phaseB("MobilitySpecies1");
-   if( eta_scratch_id>-1 ){
+   if( d_with_third_phase ){
       calphad_mobility0_phaseB.initialize(species0_db->getDatabase( "PhaseB" ));
       calphad_mobility1_phaseB.initialize(species1_db->getDatabase( "PhaseB" ));
 
@@ -125,13 +99,23 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 
 //-----------------------------------------------------------------------
 
-void CompositionStrategyMobilities::printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
+void CompositionStrategyMobilities::printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+                                                     const int temperature_scratch_id)
 {
    tbox::plog<<"CompositionRHSStrategy::printDiagnostics()"<<endl;
    
    math::HierarchyCellDataOpsReal<double> cell_ops(hierarchy, 0, 0);
-   const double Tmax=cell_ops.max(d_temperature_scratch_id);
-   const double Tmin=cell_ops.min(d_temperature_scratch_id);
+   const double Tmax=cell_ops.max(temperature_scratch_id);
+   const double Tmin=cell_ops.min(temperature_scratch_id);
+   
+   printDiagnostics(Tmin,Tmax);
+}
+
+//-----------------------------------------------------------------------
+
+void CompositionStrategyMobilities::printDiagnostics(const double Tmin, const double Tmax)
+{
+   tbox::plog<<"CompositionRHSStrategy::printDiagnostics()"<<endl;
    
    assert( Tmin>0. );
    assert( Tmax>0. );

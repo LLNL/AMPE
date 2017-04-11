@@ -597,12 +597,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          d_composition_strategy_mobilities = 
             new CompositionStrategyMobilities(
                d_calphad_db,
-               d_phase_scratch_id,
-               d_eta_scratch_id,
+               (d_eta_scratch_id>-1),
                d_ncompositions,
-               d_temperature_scratch_id,
-               d_conc_Mq_id,
-               d_model_parameters.Q_heat_transport(),
                d_free_energy_strategy );
          d_diffusion_for_conc_in_phase=
             new DiffusionForConcInPhaseStrategy(

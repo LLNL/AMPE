@@ -33,9 +33,10 @@
 #ifndef included_CompositionStrategyMobilities
 #define included_CompositionStrategyMobilities 
 
-#include "CompositionRHSStrategy.h"
 #include "CALPHADMobility.h"
-#include "CALPHADFreeEnergyStrategy.h"
+#include "FreeEnergyStrategy.h"
+
+#include "SAMRAI/tbox/InputManager.h"
 
 #include <string>
 
@@ -44,18 +45,16 @@ class CompositionStrategyMobilities
 public:
    CompositionStrategyMobilities(
       boost::shared_ptr<tbox::Database> input_db,
-      const int phase_scratch_id,
-      const int eta_scratch_id,
+      const bool,
       const unsigned short ncompositions,
-      const int temperature_scratch_id,
-      const int Mq_id,
-      const std::vector<double>& Q_heat_transport,
       FreeEnergyStrategy* free_energy_strategy
    );
    
    virtual ~CompositionStrategyMobilities(){};
 
-   void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
+   void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+                         const int temperature_scratch_id);
+   void printDiagnostics(const double Tmin, const double Tmax);
 
    void computeDiffusionMobilityPhaseL(
       const std::vector<double>& c,
@@ -85,12 +84,6 @@ protected:
 private:
    unsigned short d_ncompositions;
 
-   int d_phase_scratch_id;
-   int d_eta_scratch_id;
-
-   int d_Mq_id;
-   int d_temperature_scratch_id;
-   
    bool d_with_third_phase;
    
    std::vector<CALPHADMobility> d_calphad_mobilities_phaseL;
@@ -135,7 +128,7 @@ private:
             break;
             
          default:
-            tbox::pout<<"EBSCompositionRHSStrategy::computeDiffusionMobilityPhase(), Error: phase="<<phase<<"!!!"<<std::endl;
+            tbox::pout<<"CompositionStrategyMobilities::computeDiffusionMobilityPhase(), Error: phase="<<phase<<"!!!"<<std::endl;
             tbox::SAMRAI_MPI::abort();
       }
    }
