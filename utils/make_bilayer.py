@@ -92,13 +92,13 @@ parser.add_option( "--angle-in-two", type="float",
                    help="grain angle in interior region of grain 2" )
 parser.add_option( "--angle-out", type="float",
                    help="grain angle in exterior region" )
-parser.add_option( "-c", "--nomconc", type="float", 
+parser.add_option( "-c", "--nomconc", type="string", # something like "0.1,0.2",
                    help="nominal concentration" )
-parser.add_option( "--concentration-in", type="float",
+parser.add_option( "--concentration-in", type="string",
                    help="concentration in interior region" )
-parser.add_option( "--concentration-out", type="float", 
+parser.add_option( "--concentration-out", type="string", 
                    help="concentration in exterior region" )
-parser.add_option( "--eta-in", type="float", default=0.,
+parser.add_option( "--eta-in", type="float",
                    help="eta in interior region [default: %default]" )
 parser.add_option( "--eta-out", type="float", default=0.,
                    help="eta in exterior region [default: %default]" )
@@ -413,6 +413,26 @@ if ( use_simple_rotation ) :
         quat_outside = Q.makeNormalizedQuat2( q0, q1 )
 
 #-----------------------------------------------------------------------
+nspecies=0
+if ( not ( nomconc is None ) ):
+  c = map( float, string.split( options.nomconc, ',' ) )
+  nspecies=len(c)
+if ( not ( conc_inside is None ) ):
+  ci = map( float, string.split( options.concentration_in, ',' ) )
+  if nspecies==0:
+    nspecies=len(ci)
+else:
+  ci = N.zeros( nspecies, N.float32 )
+if ( not ( conc_outside is None ) ):
+  co = map( float, string.split( options.concentration_out, ',' ) )
+else:
+  co = N.zeros( nspecies, N.float32 )
+
+print "Nominal composition=",c
+print "Composition inside=",ci
+print "Composition outside=",co
+
+#-----------------------------------------------------------------------
 # Open and define file
 
 f = NetCDF.NetCDFFile( filename, 'w' )
@@ -421,40 +441,50 @@ f.createDimension( 'x', nx )
 f.createDimension( 'y', ny )
 f.createDimension( 'z', nz )
 f.createDimension( 'qlen', QLEN )
+f.createDimension( 'ns', nspecies )
 ncquat = []
+ncconc = []
 
 if double_precision:
   ncphase       = f.createVariable( 'phase', 'd', ('z','y','x') )
-  nceta         = f.createVariable( 'eta', 'd', ('z','y','x') )
+  if( not eta_inside is None ):
+    nceta         = f.createVariable( 'eta', 'd', ('z','y','x') )
   nctemperature = f.createVariable( 'temperature', 'd', ('z','y','x') )
   for n in range( QLEN ) :
     q_comp = f.createVariable( 'quat%d' % (n+1), 'd', ('z','y','x') )
     ncquat.append( q_comp )
   if ( not ( nomconc is None ) ):
-    ncconc = f.createVariable( 'concentration', 'd', ('z','y','x') )
+    for s in range(nspecies):
+      c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
+      ncconc.append(c_comp)
 else:
   ncphase       = f.createVariable( 'phase', 'f', ('z','y','x') )
-  nceta         = f.createVariable( 'eta', 'f', ('z','y','x') )
+  if( not eta_inside is None ):
+    nceta         = f.createVariable( 'eta', 'f', ('z','y','x') )
   nctemperature = f.createVariable( 'temperature', 'f', ('z','y','x') )
   for n in range( QLEN ) :
     q_comp = f.createVariable( 'quat%d' % (n+1), 'f', ('z','y','x') )
     ncquat.append( q_comp )
   if ( not ( nomconc is None ) ):
-    ncconc = f.createVariable( 'concentration', 'f', ('z','y','x') )
+    for s in range(nspecies):
+      c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
+      ncconc.append(c_comp)
 
 
 
 if double_precision:
   phase = N.ones( (nz,ny,nx), N.float64 )
-  eta   = N.ones( (nz,ny,nx), N.float64 )
+  if( not eta_inside is None ):
+    eta   = N.ones( (nz,ny,nx), N.float64 )
   quat  = N.zeros( (QLEN,nz,ny,nx), N.float64 )
-  conc  = N.ones( (nz,ny,nx), N.float64 )
+  conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
   temperature = N.zeros( (nz,ny,nx), N.float64 )
 else:
   phase = N.ones( (nz,ny,nx), N.float32 )
-  eta   = N.ones( (nz,ny,nx), N.float32 )
+  if( not eta_inside is None ):
+    eta   = N.ones( (nz,ny,nx), N.float32 )
   quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
-  conc  = N.ones( (nz,ny,nx), N.float32 )
+  conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
   temperature = N.zeros( (nz,ny,nx), N.float32 )
 
 r_sq = radius**2
@@ -532,24 +562,24 @@ vl=vol-vs
 print "Volume           = ",vol
 print "Volume of solid  = ",vs
 print "Volume of liquid = ",vl
-if ( not ( nomconc is None ) ):
-  print "Nominal composition=",nomconc
+
+  
 if ( not ( conc_inside is None ) ):
-  print "Composition inside=",conc_inside
   if ( not ( nomconc is None ) and vl>0 ):
-    conc_outside = (nomconc*vol-conc_inside*vs)/vl
-    print "Calculated composition outside=",conc_inside
-if ( not ( conc_outside is None ) ):
-  print "Composition outside=",conc_outside
+    for s in range(nspecies):
+      co[s] = (c[s]*vol-ci[s]*vs)/vl
+    print "Calculated composition outside=",co
+if ( not ( options.concentration_out is None ) ):
   if ( not ( nomconc is None ) and vs>0 ):
-    conc_inside = (nomconc*vol-conc_outside*vl)/vs
+    conc_inside = (c[0]*vol-conc_outside*vl)/vs
     print "Calculated composition inside=",conc_inside
 if( ( conc_outside is None ) and ( conc_inside is None ) ):
   conc_inside = nomconc
   conc_outside = nomconc
 
 if ( not ( conc_outside is None ) and not ( conc_inside is None ) ):
-  print "Calculated nominal Composition=",(vl*conc_outside+vs*conc_inside)/vol
+  for s in range(nspecies):
+    print "Calculated nominal Composition=",(vl*co[s]+vs*ci[s])/vol
 
 if( delta>0. ):
   invdelta = 1./delta
@@ -578,9 +608,9 @@ for k in range( nz ) :
         v = 0.5*(1.+math.tanh(-0.5*d*invdelta))
       else :
         if( d>0. ):
-          v=0.;
+          v=0.; #outside
         else:
-          v=1.;
+          v=1.; #inside
 
       if ( not temperature0 is None ) :
         temperature[k,j,i] = temperature0
@@ -589,17 +619,20 @@ for k in range( nz ) :
         if ( not gaussT is None ) :
           d2=(x - cx_one)**2
           temperature[k,j,i] = temperature[k,j,i] + gaussT*math.exp(-distance_sq1/(0.0625*nx*nx))
+      
       #smooth interface
       phase[k,j,i] = v*phase_inside+(1.-v)*phase_outside
       
       if ( d<0. ) :  #inside grain 1
-        eta[k,j,i]   = eta_inside
-        if ( not ( conc_inside is None ) ):
-          conc[k,j,i] = conc_inside
+        if( not eta_inside is None ):
+          eta[k,j,i]   = eta_inside
+        if ( nspecies>0 ):
+          c = ci
       else : #outside
-        eta[k,j,i]   = eta_outside
-        if ( not ( conc_outside is None ) ):
-          conc[k,j,i] = conc_outside
+        if( not eta_inside is None ):
+          eta[k,j,i]   = eta_outside
+        if ( nspecies>0 ):
+          c = co
       if ( QLEN == 1 ) :
         q = angle_inside
       else :
@@ -623,8 +656,9 @@ for k in range( nz ) :
 
         if ( d<delta ) : #inside grain 2
           phase[k,j,i] = v*phase_inside+(1.-v)*phase_outside
-          eta[k,j,i]   = eta_inside
-          conc[k,j,i] = conc_inside
+          if( not eta_inside is None ):
+            eta[k,j,i]   = eta_inside
+          c = ci
         
         if ( distance_sq2<distance_sq1 ) : 
           if ( QLEN == 1 ) :
@@ -649,18 +683,23 @@ for k in range( nz ) :
       else :
         for n in range( QLEN ) :
           quat[n,k,j,i] = q[n]
+      if ( nspecies>0 ):
+        for s in range(nspecies):
+          conc[s,k,j,i] = c[s]
 
 #-----------------------------------------------------------------------
 # Write data to file and close
 
 ncphase.assignValue( phase )
-nceta.assignValue( eta )
+if( not eta_inside is None ):
+  nceta.assignValue( eta )
 nctemperature.assignValue( temperature )
 
 for n in range( QLEN ) :
   ncquat[n].assignValue( quat[n,...] )
 
-if ( not ( nomconc is None ) ):
-  ncconc.assignValue( conc )
+if ( nspecies>0 ):
+  for s in range(nspecies):
+    ncconc[s].assignValue( conc[s,...] )
 
 f.close()

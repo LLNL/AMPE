@@ -1355,12 +1355,17 @@ void QuatModel::initializeLevelFromData(
    }
    NcVar** ncConcComponents=NULL;
    if ( d_model_parameters.with_concentration() ){
+      tbox::pout << "QuatModel with "<<d_ncompositions<<" composition fields"<<endl;
       ncConcComponents = new NcVar*[d_ncompositions];
       for ( int ii = 0; ii < d_ncompositions; ii++ ) {
          std::ostringstream o;
          o << "concentration";
-         if( d_ncompositions>1 )o << ii+1;
+         if( d_ncompositions>1 )o << ii;
          ncConcComponents[ii] = ncf.get_var( o.str().c_str() );
+         if ( ncConcComponents[ii] == NULL && d_ncompositions==1) {
+            o << 0;
+            ncConcComponents[ii] = ncf.get_var( o.str().c_str() );
+         }
          if ( ncConcComponents[ii] == NULL ) {
             TBOX_ERROR( "Could not read variable " << o.str() <<
                         " from input data" << endl );
