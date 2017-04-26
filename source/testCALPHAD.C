@@ -247,9 +247,7 @@ int main( int argc, char *argv[] )
          1,
          &free_energy_strategy );
 
-   const double tempmin=temperature*0.5;
-   const double tempmax=temperature*2.;
-   composition_strategy_mobilities.printDiagnostics(tempmin,tempmax);
+   composition_strategy_mobilities.printDiagnostics(temperature,temperature);
 
 
    cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
