@@ -70,10 +70,23 @@ void CALPHADMobility::initialize(
                                        it++ )
    {
       if( db->keyExists( *it ) ){
-         double tmp[2];
-         db->getDoubleArray(*it,&tmp[0],2);
+         int n=db->getArraySize(*it);
+         assert(n>=2);
+         assert(n<=4);
+
+         double tmp[4];
+         db->getDoubleArray(*it,&tmp[0],n);
          double_pair tmpp(tmp[0],tmp[1]);
          d_q[index_map[*(it->c_str()+1)]]=tmpp;
+         
+         if(n>2){
+            if( d_q_extra.empty() )
+               d_q_extra.resize( d_nspecies );
+            double_pair tmpp_extra(tmp[2],tmp[3]);
+            cout<<tmpp_extra.first<<endl;
+            cout<<tmpp_extra.second<<endl;
+            d_q_extra[index_map[*(it->c_str()+1)]]=tmpp_extra;
+         }
       }
    }
    

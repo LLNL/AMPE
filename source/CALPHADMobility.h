@@ -59,6 +59,7 @@ private :
    // each "double_pair" contains the two coefficients 
    // (a0,a1) for the expansion a(T)=a0+R*T*ln(a1)
    std::vector<double_pair> d_q;
+   std::vector<double_pair> d_q_extra; // for T*ln(T) and 1/T terms
    std::vector< std::vector< double_pair > > d_qq0;
    std::vector< std::vector< double_pair > > d_qq1;
    std::vector< std::vector< double_pair > > d_qq2;
@@ -70,8 +71,15 @@ private :
       assert( isp0<(unsigned short)d_q.size() );
       assert( d_q[isp0].second>0. );
       
-      return d_q[isp0].first
-            +gas_constant_R_JpKpmol*temperature*log(d_q[isp0].second);
+      double val = d_q[isp0].first
+                  +gas_constant_R_JpKpmol*temperature*log(d_q[isp0].second);
+   
+      if( !d_q_extra.empty() )
+      {
+         val += d_q_extra[isp0].first*temperature*log(temperature)
+               +d_q_extra[isp0].second/temperature;
+      }
+      return val;
    }
 
    double getQQ0(const unsigned short isp0,
