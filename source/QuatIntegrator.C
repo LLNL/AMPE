@@ -3135,9 +3135,12 @@ void QuatIntegrator::computeQuatGradients(
    if (recompute_quat_sidegrad) {
    
       math::HierarchySideDataOpsReal<double> sideops( hierarchy );
+      
+      //update d_quat_grad_side_copy_id to be used for D_q(phi)/|nabla q|
       sideops.copyData( d_quat_grad_side_copy_id, d_quat_grad_side_id, false );
 
       // Compute modulus of cell-centered gradients
+      // to be used in phi r.h.s.
       if( d_model_parameters.quat_grad_modulus_from_cells() ){
          //tbox::pout<<"computeGradModulus()..."<<endl;
          d_quat_grad_strategy->computeGradModulus(

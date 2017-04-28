@@ -486,9 +486,9 @@ QuatSysSolver::evaluateRHS(
    const double      epsilon_q,
    const double quat_grad_floor,
    const string quat_floor_type,
-   const int  diffusion_coef_id,
+   const int  diffusion_coef_id, // D_q(phi)
    const int         grad_q_id,
-   const int    grad_q_copy_id,
+   const int    grad_q_copy_id,// for computation of diffusion coefficient
    const int       mobility_id,
    const int       solution_id,
    int                  rhs_id,

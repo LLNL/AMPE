@@ -812,7 +812,7 @@ QuatFACOps::computeFaceCoefs(
    const int         grad_q_id,
    const double gradient_floor,
    const string grad_floor_type,
-   const int      face_coef_id )
+   const int      face_coef_id ) // output
 {
 
   // Check for negative diffusion coefficients.  We don't like them.
@@ -1580,7 +1580,7 @@ QuatFACOps::computeFaceCoefsOnPatch(
    const double                           epsilon_q,
    pdat::SideData<double> & diffusion_coef_data,
    pdat::SideData<double> &         grad_q_data,
-   pdat::SideData<double> &      face_coef_data,
+   pdat::SideData<double> &      face_coef_data, // output
    const double                      gradient_floor,
    const string                     grad_floor_type) const
 {
@@ -1616,8 +1616,8 @@ QuatFACOps::computeFaceCoefsOnPatch(
       diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0]  , dcglower[1], dcgupper[1]+1,
       grad_q_data.getPointer(0), gqlower[0], gqupper[0]+1, gqlower[1], gqupper[1]  ,
       grad_q_data.getPointer(1), gqlower[0], gqupper[0]  , gqlower[1], gqupper[1]+1,
-      face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  ,
-      face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1,
+      face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , // output
+      face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, // output
       gradient_floor, grad_floor_type.c_str() );
 #endif
 #if NDIM==3
@@ -2137,7 +2137,7 @@ QuatFACOps::evaluateRHS(
    const double        epsilon_q,
    const int   diffusion_coef_id,
    const int           grad_q_id,
-   const int           grad_q_copy_id,
+   const int           grad_q_copy_id, // for computation of diffusion coefficient
    const double   gradient_floor,
    const string   gradient_floor_type,
    const int         mobility_id,

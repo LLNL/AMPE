@@ -1355,7 +1355,7 @@ void QuatModel::initializeLevelFromData(
    }
    NcVar** ncConcComponents=NULL;
    if ( d_model_parameters.with_concentration() ){
-      tbox::pout << "QuatModel with "<<d_ncompositions<<" composition fields"<<endl;
+      tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
       ncConcComponents = new NcVar*[d_ncompositions];
       for ( int ii = 0; ii < d_ncompositions; ii++ ) {
          std::ostringstream o;
