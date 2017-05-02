@@ -69,84 +69,6 @@ public:
       delete d_solver;
    };
    
-   double lmix0Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix0PhaseL( temperature );
-         case phaseA:
-            return lmix0PhaseA( temperature );
-         case phaseB:
-            return lmix0PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix1Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix1PhaseL( temperature );
-         case phaseA:
-            return lmix1PhaseA( temperature );
-         case phaseB:
-            return lmix1PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix1Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix2Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix2PhaseL( temperature );
-         case phaseA:
-            return lmix2PhaseA( temperature );
-         case phaseB:
-            return lmix2PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix2Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix3Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix3PhaseL( temperature );
-         case phaseA:
-            return lmix3PhaseA( temperature );
-         case phaseB:
-            return lmix3PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix3Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   // energy of species "is" in phase L,A,B
-   double getFenergyPhaseL(const short is, const double temperature )
-   {
-      return d_g_species_phaseL[is].fenergy( temperature );
-   }
-   double getFenergyPhaseA(const short is, const double temperature )
-   {
-      return d_g_species_phaseA[is].fenergy( temperature );
-   }
-   double getFenergyPhaseB(const short is, const double temperature )
-   {
-      return d_g_species_phaseB[is].fenergy( temperature );
-   }
-
    virtual double computeFreeEnergy(
       const double temperature,
       const double conc,
@@ -161,15 +83,6 @@ public:
       const std::vector<double>& conc,
       const PHASE_INDEX pi,
       std::vector<double>& d2fdc2);
-
-   void setupValuesForTwoPhasesSolver(const double temperature,
-                                      double* L0, double* L1, double* L2, double* L3,
-                                      double* fA, double* fB,
-                                      const PHASE_INDEX pi0, const PHASE_INDEX pi1);
-
-   void setupValuesForThreePhasesSolver(const double temperature,
-                                        double* L0, double* L1, double* L2, double* L3,
-                                        double* fA, double* fB);
 
    virtual bool computeCeqT(
       const double temperature,
@@ -246,6 +159,15 @@ protected:
 
    void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
 
+   void setupValuesForTwoPhasesSolver(const double temperature,
+                                      double* L0, double* L1, double* L2, double* L3,
+                                      double* fA, double* fB,
+                                      const PHASE_INDEX pi0, const PHASE_INDEX pi1);
+
+   void setupValuesForThreePhasesSolver(const double temperature,
+                                        double* L0, double* L1, double* L2, double* L3,
+                                        double* fA, double* fB);
+
 private:
 
    std::string d_fenergy_diag_filename;
@@ -277,6 +199,84 @@ private:
 
    void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
 
+   // energy of species "is" in phase L,A,B
+   double getFenergyPhaseL(const short is, const double temperature )
+   {
+      return d_g_species_phaseL[is].fenergy( temperature );
+   }
+   double getFenergyPhaseA(const short is, const double temperature )
+   {
+      return d_g_species_phaseA[is].fenergy( temperature );
+   }
+   double getFenergyPhaseB(const short is, const double temperature )
+   {
+      return d_g_species_phaseB[is].fenergy( temperature );
+   }
+
+   double lmix0Phase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix0PhaseL( temperature );
+         case phaseA:
+            return lmix0PhaseA( temperature );
+         case phaseB:
+            return lmix0PhaseB( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+   
+   double lmix1Phase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix1PhaseL( temperature );
+         case phaseA:
+            return lmix1PhaseA( temperature );
+         case phaseB:
+            return lmix1PhaseB( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix1Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+   
+   double lmix2Phase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix2PhaseL( temperature );
+         case phaseA:
+            return lmix2PhaseA( temperature );
+         case phaseB:
+            return lmix2PhaseB( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix2Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+   
+   double lmix3Phase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix3PhaseL( temperature );
+         case phaseA:
+            return lmix3PhaseA( temperature );
+         case phaseB:
+            return lmix3PhaseB( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix3Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+   
    double lmix0PhaseL( const double temperature )
    {
       return d_LmixPhaseL[0][0] + d_LmixPhaseL[0][1] * temperature;
