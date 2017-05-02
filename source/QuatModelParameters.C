@@ -161,7 +161,9 @@ void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
 void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 {
    d_with_concentration = true;
-   d_ncompositions=1; // two species
+   
+   int nspecies = conc_db->getIntegerWithDefault( "nspecies", 1 );
+   d_ncompositions=nspecies-1;
    
    string conc_model =
       conc_db->getStringWithDefault( "model", "calphad" );
