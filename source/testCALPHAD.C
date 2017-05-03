@@ -125,10 +125,10 @@ int main( int argc, char *argv[] )
       tbox::PIO::logOnlyNodeZero( log_file_name );
    }
 
-#ifdef SVNVERSION
+#ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog<<" AMPE: svn_version "<<xstr(x)<<endl;
-    LOG(SVNVERSION);
+#define LOG(x) tbox::plog<<" AMPE: git version "<<xstr(x)<<endl;
+    LOG(GITVERSION);
     tbox::plog<<endl;
 #endif
 

@@ -37,8 +37,8 @@ VPATH		= @SOURCE_DIR@
 
 NETCDF         = @netcdf_PREFIX@
 
-SVNVERSION := $(shell svnversion $(VPATH) )
-CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DSVNVERSION="$(SVNVERSION)"
+GITVERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DGITVERSION="$(GITVERSION)"
 
 CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
