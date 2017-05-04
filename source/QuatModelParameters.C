@@ -162,7 +162,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 {
    d_with_concentration = true;
    
-   int nspecies = conc_db->getIntegerWithDefault( "nspecies", 1 );
+   //if concentration is ON, it means we have at least two species
+   int nspecies = conc_db->getIntegerWithDefault( "nspecies", 2 );
    d_ncompositions=nspecies-1;
    
    string conc_model =
