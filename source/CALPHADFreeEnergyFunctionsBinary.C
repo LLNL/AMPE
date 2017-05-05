@@ -88,7 +88,7 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
 void CALPHADFreeEnergyFunctionsBinary::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
 {
    tbox::pout << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
-   d_solver = new CALPHADConcentrationSolver( d_with_third_phase );
+   d_solver = new CALPHADConcentrationSolverBinary( d_with_third_phase );
 
    readNewtonparameters(newton_db);
 }

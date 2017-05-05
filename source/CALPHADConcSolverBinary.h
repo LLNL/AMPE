@@ -35,15 +35,15 @@
 
 #include "DampedNewtonSolver.h"
 
-class CALPHADConcentrationSolver :
+class CALPHADConcentrationSolverBinary :
    public DampedNewtonSolver
 {
 public :
 
-   CALPHADConcentrationSolver(
+   CALPHADConcentrationSolverBinary(
       const bool with_third_phase );
       
-   virtual ~CALPHADConcentrationSolver() {};
+   virtual ~CALPHADConcentrationSolverBinary() {};
       
    int ComputeConcentration(
       double* const conc,

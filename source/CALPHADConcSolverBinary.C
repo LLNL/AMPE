@@ -44,7 +44,7 @@ static const double s_inv_smallc = 1./s_smallc;
 
 //=======================================================================
 
-CALPHADConcentrationSolver::CALPHADConcentrationSolver(
+CALPHADConcentrationSolverBinary::CALPHADConcentrationSolverBinary(
    const bool with_third_phase )
 {
    d_with_third_phase = with_third_phase;
@@ -59,9 +59,9 @@ CALPHADConcentrationSolver::CALPHADConcentrationSolver(
 
 //=======================================================================
 
-void CALPHADConcentrationSolver::computeXi(const double* const c, double xi[3])const
+void CALPHADConcentrationSolverBinary::computeXi(const double* const c, double xi[3])const
 {
-   //std::cout<<"CALPHADConcentrationSolver::computeXi()"<<endl;
+   //std::cout<<"CALPHADConcentrationSolverBinary::computeXi()"<<endl;
    for ( int ii = 0; ii < d_N; ii++ ) {
 
       double omega = CALPHADcomputeFMix_derivBinary(d_L0[ii],d_L1[ii],d_L2[ii],d_L3[ii],c[ii]);
@@ -76,7 +76,7 @@ void CALPHADConcentrationSolver::computeXi(const double* const c, double xi[3])c
 //=======================================================================
 
 // solve for c=(c_L, c_A, c_B)
-void CALPHADConcentrationSolver::RHS(
+void CALPHADConcentrationSolverBinary::RHS(
    const double* const c,
    double* const fvec )
 {
@@ -128,9 +128,9 @@ void CALPHADConcentrationSolver::RHS(
 
 //=======================================================================
 
-void CALPHADConcentrationSolver::computeDxiDc(const double* const c, double xi[3], double dxidc[3])const
+void CALPHADConcentrationSolverBinary::computeDxiDc(const double* const c, double xi[3], double dxidc[3])const
 {
-   //std::cout<<"CALPHADConcentrationSolver::computeDxiDc()"<<endl;
+   //std::cout<<"CALPHADConcentrationSolverBinary::computeDxiDc()"<<endl;
    computeXi(c,xi);
    
    for ( int ii = 0; ii < d_N; ii++ ) {
@@ -140,7 +140,7 @@ void CALPHADConcentrationSolver::computeDxiDc(const double* const c, double xi[3
 
 //=======================================================================
 
-void CALPHADConcentrationSolver::Jacobian(
+void CALPHADConcentrationSolverBinary::Jacobian(
    const double* const c,
    double** const fjac )
 {
@@ -215,7 +215,7 @@ void CALPHADConcentrationSolver::Jacobian(
 
 //=======================================================================
 
-int CALPHADConcentrationSolver::ComputeConcentration(
+int CALPHADConcentrationSolverBinary::ComputeConcentration(
    double* const conc,
    const double c0,
    const double hphi,
@@ -228,7 +228,7 @@ int CALPHADConcentrationSolver::ComputeConcentration(
    const double* const fA,
    const double* const fB )
 {
-   //std::cout<<"CALPHADConcentrationSolver::ComputeConcentration()"<<endl;
+   //std::cout<<"CALPHADConcentrationSolverBinary::ComputeConcentration()"<<endl;
    d_c0 = c0;
    d_hphi = hphi;
    d_heta = heta;

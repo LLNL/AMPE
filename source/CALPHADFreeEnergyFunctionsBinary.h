@@ -145,7 +145,7 @@ public:
    
 protected:
 
-   CALPHADConcentrationSolver* d_solver;
+   CALPHADConcentrationSolverBinary* d_solver;
 
    double d_ceq_l;
    double d_ceq_a;

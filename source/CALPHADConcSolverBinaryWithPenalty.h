@@ -38,12 +38,12 @@
 #include <vector>
 
 class CALPHADConcentrationSolverBinaryWithPenalty :
-   public CALPHADConcentrationSolver
+   public CALPHADConcentrationSolverBinary
 {
 public :
    CALPHADConcentrationSolverBinaryWithPenalty(
       const bool with_third_phase, const std::vector< std::vector<double> >& penalty_parameters)
-      :CALPHADConcentrationSolver(with_third_phase),
+      :CALPHADConcentrationSolverBinary(with_third_phase),
        d_penalty_parameters(penalty_parameters)
    {};
 
