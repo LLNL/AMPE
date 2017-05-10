@@ -5563,6 +5563,10 @@ void QuatModel::computeQuatGradSide(
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
+         if( !d_model_parameters.useWideStencil4Quat() ){
+         
+         //tbox::pout<<"compute quat grad at sides..."<<endl;
+         
          FORT_QUATGRAD_SIDE_SYMM(
             ifirst(0), ilast(0), 
             ifirst(1), ilast(1),
@@ -5600,6 +5604,47 @@ void QuatModel::computeQuatGradSide(
             NGHOSTS
             );
 
+         }else{
+      
+         //tbox::pout<<"compute quat grad at sides using wide stencil..."<<endl;
+         
+         FORT_QUATGRAD_SIDE_SYMM_WIDE(
+            ifirst(0), ilast(0), 
+            ifirst(1), ilast(1),
+#if (NDIM == 3)
+            ifirst(2), ilast(2),
+#endif
+            d_qlen, dx,
+            diff_data->getPointer( 0, 0 ),
+            diff_data->getPointer( 1, 0 ),
+#if (NDIM == 3)
+            diff_data->getPointer( 2, 0 ),
+#endif
+            NGHOSTS,
+            grad_side_data->getPointer( 0, 0 * d_qlen ), // grad_x, xside
+            grad_side_data->getPointer( 0, 1 * d_qlen ), // grad_y, xside
+#if (NDIM == 3)
+            grad_side_data->getPointer( 0, 2 * d_qlen ), // grad_z, xside
+#endif
+            grad_side_data->getPointer( 1, 0 * d_qlen ), // grad_x, yside
+            grad_side_data->getPointer( 1, 1 * d_qlen ), // grad_y, yside
+#if (NDIM == 3)
+            grad_side_data->getPointer( 1, 2 * d_qlen ), // grad_z, yside
+#endif
+#if (NDIM == 3)
+            grad_side_data->getPointer( 2, 0 * d_qlen ),
+            grad_side_data->getPointer( 2, 1 * d_qlen ),
+            grad_side_data->getPointer( 2, 2 * d_qlen ),
+#endif
+            0,
+            rotation_index->getPointer(0),
+            rotation_index->getPointer(1),
+#if (NDIM == 3)
+            rotation_index->getPointer(2),
+#endif
+            NGHOSTS
+            );
+         }
       }
       else {
 

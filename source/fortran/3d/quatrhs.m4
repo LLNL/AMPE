@@ -89,6 +89,80 @@ c
       end
 
 c***********************************************************************
+      subroutine gradient_flux_wide(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   h, epsilon,
+     &   phase, ngphase,
+     &   flux0, flux1, flux2, ngflux)
+
+      implicit none
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &     ngphase, ngflux
+      double precision 
+     &     phase(CELL3d(ifirst,ilast,ngphase)),
+     &     flux0(SIDE3d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE3d1(ifirst,ilast,ngflux)),
+     &     flux2(SIDE3d2(ifirst,ilast,ngflux)),
+     &     h(3)
+
+c     local variables
+      integer i, j, k
+      double precision dxinv, dyinv, dzinv, epsilon
+
+      double precision epsilon2
+c
+      epsilon2 = epsilon * epsilon
+
+      dxinv = epsilon2 / h(1)
+      dyinv = epsilon2 / h(2)
+      dzinv = epsilon2 / h(3)
+
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0+1
+               flux0(i,j,k) = 0.0625d0*dxinv*( 
+     &              (phase(i,j-1,k) - phase(i-1,j-1,k)) 
+     &            + (phase(i,j  ,k) - phase(i-1,j  ,k))*6.d0 
+     &            + (phase(i,j+1,k) - phase(i-1,j+1,k)) 
+     &            + (phase(i,j,k-1) - phase(i-1,j,k-1))
+     &            + (phase(i,j,k)   - phase(i-1,j,k  ))*6.d0 
+     &            + (phase(i,j,k+1) - phase(i-1,j,k+1)) )
+            enddo
+         enddo
+      enddo
+
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1+1
+            do i = ifirst0, ilast0
+               flux1(i,j,k) = 0.0625d0*dyinv*(
+     &              (phase(i-1,j,k) - phase(i-1,j-1,k)) 
+     &            + (phase(i,  j,k) - phase(i,  j-1,k))*6.d0 
+     &            + (phase(i+1,j,k) - phase(i+1,j-1,k))
+     &            + (phase(i,j,k-1) - phase(i,j-1,k-1)) 
+     &            + (phase(i,j,k  ) - phase(i,j-1,k  ))*6.d0 
+     &            + (phase(i,j,k+1) - phase(i,j-1,k+1)) )
+            enddo
+         enddo
+      enddo
+
+      do k = ifirst2, ilast2+1
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
+               flux2(i,j,k) = 0.0625d0*dzinv*(
+     &              (phase(i-1,j,k) - phase(i-1,j,k-1)) 
+     &            + (phase(i,  j,k) - phase(i,  j,k-1))*6.d0 
+     &            + (phase(i+1,j,k) - phase(i+1,j,k-1))
+     &            + (phase(i,j-1,k) - phase(i,j-1,k-1)) 
+     &            + (phase(i,j,  k) - phase(i,j,  k-1))*6.d0 
+     &            + (phase(i,j+1,k) - phase(i,j+1,k-1)) )
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
       subroutine anisotropic_gradient_flux(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   h, epsilon, e4, knumber,

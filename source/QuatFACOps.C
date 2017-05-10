@@ -1710,6 +1710,8 @@ QuatFACOps::computeFluxOnPatch(
    assert( face_coef_data.getDepth() == d_qlen );
 #endif
 
+   //tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q data..."<<endl;
+
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
                                                                   boost::detail::dynamic_cast_tag() );
    const double * dx = patch_geom->getDx();
@@ -1778,6 +1780,8 @@ QuatFACOps::computeFluxOnPatch(
    assert( flux_data.getDepth() == d_qlen );
    assert( face_coef_data.getDepth() == d_qlen );
 #endif
+
+   //tbox::pout<<"QuatFACOps::computeFluxOnPatch() using grad_q data..."<<endl;
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
                                                                   boost::detail::dynamic_cast_tag() );

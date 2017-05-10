@@ -51,6 +51,7 @@
 #define FORT_QUATGRAD_CELL_SYMM quatgrad_cell_symm_
 #define FORT_QUATGRAD_SIDE quatgrad_side_
 #define FORT_QUATGRAD_SIDE_SYMM quatgrad_side_symm_
+#define FORT_QUATGRAD_SIDE_SYMM_WIDE quatgrad_side_symm_wide_
 #define FORT_QUATGRAD_MODULUS quatgrad_modulus_
 #define FORT_QUATGRAD_MODULUS_FROM_SIDES quatgrad_modulus_from_sides_
 #define FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT quatgrad_modulus_from_sides_compact_
@@ -469,6 +470,41 @@ extern "C" {
       );
 
    void FORT_QUATGRAD_SIDE_SYMM(
+      const int& lo0, const int& hi0,
+      const int& lo1, const int& hi1,
+#if (NDIM == 3)
+      const int& lo2, const int& hi2,
+#endif
+      const int& depth,
+      const double* h,
+      const double* diff_x,
+      const double* diff_y,
+#if (NDIM == 3)
+      const double* diff_z,
+#endif
+      const int& ngdiff,
+      const double* grad_x_x,
+      const double* grad_y_x,
+#if (NDIM == 3)
+      const double* grad_z_x,
+#endif
+      const double* grad_x_y,
+      const double* grad_y_y,
+#if (NDIM == 3)
+      const double* grad_z_y,
+      const double* grad_x_z,
+      const double* grad_y_z,
+      const double* grad_z_z,
+#endif
+      const int& nggrad,
+      const int* iqrot_x,
+      const int* iqrot_y,
+#if (NDIM == 3)
+      const int* iqrot_z,
+#endif
+      const int& ngiq
+      );
+   void FORT_QUATGRAD_SIDE_SYMM_WIDE(
       const int& lo0, const int& hi0,
       const int& lo1, const int& hi1,
 #if (NDIM == 3)

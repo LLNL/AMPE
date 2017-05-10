@@ -193,6 +193,8 @@ public:
    { return d_with_velocity;  }
    bool use_diffs_to_compute_flux()const
    { return d_use_diffs_to_compute_flux; }
+   bool useWideStencil4Quat()const
+   { return d_quat_stencil_type.compare("wide")==0; }
 
    double quatMobilityScaleFactor()const;
    
@@ -385,6 +387,11 @@ private:
     * Specify use of grad q at sides to compute fluxes in dq/dt equation
     */
    bool d_use_diffs_to_compute_flux;
+   
+   /*!
+    * Specify stencil type to use for grad q at sides ("normal" or "wide")
+    */
+   std::string d_quat_stencil_type;
 
    bool d_extra_visit_output;
    bool d_rhs_visit_output;

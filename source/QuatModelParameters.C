@@ -580,6 +580,8 @@ void QuatModelParameters::initializeOrientation(
    
    d_use_diffs_to_compute_flux =
       model_db->getBoolWithDefault( "use_diffs_to_compute_flux", false );      
+   d_quat_stencil_type =
+      model_db->getStringWithDefault( "quat_stencil", "normal");
 }
 
 //=======================================================================
