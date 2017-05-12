@@ -1321,6 +1321,10 @@ void QuatModel::initializeLevelFromData(
    int qlen_file = 999;
    if ( d_model_parameters.with_orientation() ) {
       ncQlen = ncf.get_dim( "qlen" );
+      if ( ncQlen == NULL ) {
+         TBOX_ERROR( "Could not read variable 'qlen' " <<
+                     "from input data" << endl );
+      }
       qlen_file = ncQlen->size();
    }
 
