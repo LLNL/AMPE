@@ -39,17 +39,16 @@
 
 using namespace std;
 
-//#include "SAMRAI/tbox/PIO.h"
-//using namespace SAMRAI;
-
 //=======================================================================
 
 void CALPHADEqConcentrationSolverBinary::RHS(
-   const double* const c,
+   const double* const c, //composition of species A in various phases 
    double* const fvec )
 {
    //tbox::pout<<"Compute RHS for CALPHAD..."<<endl;
    double dfdci[2];
+   
+   //loop over phases
    for ( int ii = 0; ii < 2; ii++ ) {
 
       dfdci[ii] = d_fA[ii] - d_fB[ii]

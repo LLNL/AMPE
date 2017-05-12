@@ -105,4 +105,40 @@ double CALPHADcompute2ndDerivPenalty(
    const double alpha1, const double p12, const double p13,
    const double alpha2, const double p22, const double p23,
    const double conc);
+
+double CALPHADcomputeFMixTernary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB );
+double CALPHADcomputeFIdealMixTernary(
+   const double rt,
+   const double conc0,
+   const double conc1 );
+void CALPHADcomputeFIdealMix_derivTernary(
+   const double rt,
+   const double cA,
+   const double cB,
+   double* deriv );
+void CALPHADcomputeFIdealMix_deriv2Ternary(
+   const double rt,
+   const double cA,
+   const double cB,
+   double* deriv );
+
+void CALPHADcomputeFMix_derivTernary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB,
+   double* deriv );
+void CALPHADcomputeFMix_deriv2Ternary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB,
+   double* deriv );
 #endif

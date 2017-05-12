@@ -192,6 +192,20 @@ double CALPHADcomputeFIdealMix_deriv2Binary(
    return fmix_deriv2;
 }
 
+void CALPHADcomputeFIdealMix_deriv2Ternary(
+   const double rt,
+   const double cA,
+   const double cB,
+   double* deriv )
+{
+   deriv[0] =
+      rt * ( xlogx_deriv2( cA ) 
+           + xlogx_deriv2( 1.0 - cA - cB ) );
+   deriv[1] =
+      rt * ( xlogx_deriv2( cB ) 
+           + xlogx_deriv2( 1.0 - cA - cB ) );
+}
+
 void CALPHADcomputeFIdealMix_deriv2(
    const double rt,
    const vector<double>& conc,
@@ -213,28 +227,6 @@ void CALPHADcomputeFIdealMix_deriv2(
       d2fdc2[ic+nc*jc]= val;
       d2fdc2[jc+nc*ic]= val;
    }
-}
-
-// 3 components
-double CALPHADcomputeFIdealMix_deriv2(
-   const double rt,
-   const double conc0,
-   const double conc1 )
-{
-   double fmix_deriv2 =
-      rt * ( xlogx_deriv2( conc0 ) + xlogx_deriv2( 1.-conc0-conc1 ) );
-
-   return fmix_deriv2;
-}
-
-double CALPHADcomputeFIdealMix_mixDeriv2(
-   const double rt,
-   const double conc0,
-   const double conc1 )
-{
-   double fmix_deriv2 = rt * xlogx_deriv2(1.-conc0-conc1);
-
-   return fmix_deriv2;
 }
 
 double CALPHADcomputeGMix_mixDeriv2(
@@ -370,4 +362,265 @@ double CALPHADcompute2ndDerivPenalty(
       return (2.*p22+6.*p23*dd);
    }
    return 0.;
+}
+
+double CALPHADcomputeFMixTernary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB )
+{
+   double cC=1.-cA-cB;
+   
+   double fmix =
+      cA*cB*
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   fmix +=
+      cA*cC*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
+
+   fmix +=
+      cB*cC*
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   return fmix;
+}   
+
+double CALPHADcomputeFIdealMixTernary(
+   const double rt,
+   const double conc0,
+   const double conc1 )
+{
+   double fmix =
+      rt * ( xlogx( conc0 ) 
+           + xlogx( conc1 ) 
+           + xlogx( 1.0 - conc0-conc1 ) );
+
+   return fmix;
+}
+
+void CALPHADcomputeFMix_derivTernary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB,
+   double* deriv )
+{
+   double cC=1.-cA-cB;
+   
+   deriv[0] =
+      cB*
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[0] +=
+      cA*cB*
+      ( lAB[1] +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[0] +=
+      cC*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
+
+   deriv[0] +=
+      cA*cC*
+      ( lAC[1] +
+        lAC[2] * 2. *(cA-cC) +
+        lAC[3] * 3. *(cA-cC)*(cA-cC) );
+
+
+   deriv[1] =
+      cA*
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[1] +=
+      -1.*cA*cB*
+      ( lAB[1] +
+        lAB[2] * 2. *(cA-cB) +
+        lAB[3] * 3. *(cA-cB)*(cA-cB) );
+
+   deriv[1] +=
+      cC*
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   deriv[1] +=
+      cB*cC*
+      ( lBC[1]  +
+        lBC[2] * 2. *(cB-cC) +
+        lBC[3] * 3. *(cB-cC)*(cB-cC) );
+}
+
+void CALPHADcomputeFMix_deriv2Ternary(
+   const double* lAB,
+   const double* lAC,
+   const double* lBC,
+   const double cA,
+   const double cB,
+   double* deriv )
+{
+   double cC=1.-cA-cB;
+   
+   // /dcA*dcA
+   deriv[0] =
+      cB*
+      ( lAB[1] +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[0] +=
+      cB*
+      ( lAB[1] +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[0] +=
+      cA*cB*
+      ( lAB[2] * 2. +
+        lAB[3] * 6.*(cA-cB) );
+
+   deriv[0] +=
+      cC*
+      ( lAC[1]  +
+        lAC[2] * 2.*(cA-cC) +
+        lAC[3] * 3.*(cA-cC)*(cA-cC) );
+
+   deriv[0] +=
+      cC*
+      ( lAC[1] +
+        lAC[2] * 2. *(cA-cC) +
+        lAC[3] * 3. *(cA-cC)*(cA-cC) );
+
+   deriv[0] +=
+      cA*cC*
+      ( lAC[2] * 2.  +
+        lAC[3] * 6. *(cA-cC) );
+
+   // /dcA*dcB
+   deriv[1] =
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[1] +=
+      cB*
+      ( -lAB[1]  +
+        -lAB[2] * 2.*(cA-cB) +
+        -lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[1] +=
+      cA*
+      ( lAB[1] +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[1] +=
+      cA*cB*
+      ( -lAB[2] * 2. +
+        -lAB[3] * 6.*(cA-cB) );
+
+   // /dcB*dcA
+   deriv[2] =
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[2] +=
+      cA*
+      ( lAB[1]  +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+
+   deriv[2] +=
+      -1.*cB*
+      ( lAB[1] +
+        lAB[2] * 2. *(cA-cB) +
+        lAB[3] * 3. *(cA-cB)*(cA-cB) );
+
+   deriv[2] +=
+      -1.*cA*cB*
+      ( lAB[2] * 2.  +
+        lAB[3] * 6. *(cA-cB) );
+
+   deriv[2] +=
+      cC*
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+   
+   // /dcB*dcB
+
+   deriv[3] =
+      cA*
+      ( -lAB[1] +
+        -lAB[2] * 2.*(cA-cB) +
+        -lAB[3] * 3.*(cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[3] +=
+      -1.*cA*
+      ( lAB[1] +
+        lAB[2] * 2. *(cA-cB) +
+        lAB[3] * 3. *(cA-cB)*(cA-cB) );
+
+   deriv[3] +=
+      -1.*cA*cB*
+      ( -lAB[2] * 2. +
+        -lAB[3] * 6. *(cA-cB) );
+
+   deriv[3] +=
+      cC*
+      ( lBC[1]  +
+        lBC[2] * 2.*(cB-cC) +
+        lBC[3] * 3.*(cB-cC)*(cB-cC) );
+
+   deriv[3] +=
+      cC*
+      ( lBC[1]  +
+        lBC[2] * 2. *(cB-cC) +
+        lBC[3] * 3. *(cB-cC)*(cB-cC) );
+
+   deriv[3] +=
+      cB*cC*
+      ( lBC[2] * 2. +
+        lBC[3] * 6. *(cB-cC) );
+}
+
+void CALPHADcomputeFIdealMix_derivTernary(
+   const double rt,
+   const double cA,
+   const double cB,
+   double* deriv )
+{
+   deriv[0] =
+      rt * ( xlogx_deriv( cA ) - xlogx_deriv( 1.0 - cA-cB ) );
+
+   deriv[1] =
+      rt * ( xlogx_deriv( cB ) - xlogx_deriv( 1.0 - cA-cB ) );
+
 }

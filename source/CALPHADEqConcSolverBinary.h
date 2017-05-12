@@ -69,6 +69,8 @@ protected :
    double d_c0;
    double d_hphi;
    double d_heta;
+
+   //energies of 2 species, in three phase each
    double d_fA[3];
    double d_fB[3];
    
