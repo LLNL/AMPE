@@ -1,0 +1,10 @@
+#!/bin/sh
+./configure --enable-debug \
+            --with-CXX=/usr/local/bin/mpig++-4.4.6 \
+            --with-CC=/usr/local/bin/mpigcc-4.4.6 \
+            --with-F77=/usr/local/bin/mpigfortran-4.4.6 \
+            --with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0 \
+            --with-hdf5=/usr/local/tools/hdf5-gnu-parallel-1.8.8 \
+            --with-netcdf=/usr/local/tools/netcdf-gnu-4.3.3.1 \
+            --with-hypre=/usr/gapps/phasefield/hypre/2.11.1-gnu \
+            --prefix=$PWD/build
