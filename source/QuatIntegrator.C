@@ -217,7 +217,8 @@ QuatIntegrator::QuatIntegrator(
      d_quat_diffusion_deriv_coarsen(tbox::Dimension(NDIM)),
      d_conc_diffusion_coarsen(tbox::Dimension(NDIM)),
      d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
-     d_coarsen_alg(tbox::Dimension(NDIM))
+     d_coarsen_alg(tbox::Dimension(NDIM)),
+     d_all_refine_patch_strategy( NULL )
 {
    assert( db );
    assert( grid_geom );
@@ -3197,6 +3198,7 @@ void QuatIntegrator::fillScratch(
    if ( d_with_phase ) {
       int y_phase_id =
          y->getComponentDescriptorIndex( d_phase_component_index );
+      assert( y_phase_id>-1 );
       copy_to_scratch.registerRefine(
          d_phase_scratch_id,  // destination
          y_phase_id,          // source
@@ -3217,6 +3219,7 @@ void QuatIntegrator::fillScratch(
    if ( d_with_orientation ) {
       const int y_quat_id =
          y->getComponentDescriptorIndex( d_quat_component_index );
+      assert( y_quat_id>-1 );
       copy_to_scratch.registerRefine(
          d_quat_scratch_id,  // destination
          y_quat_id,          // source
@@ -3232,6 +3235,8 @@ void QuatIntegrator::fillScratch(
       assert( d_temperature_scratch_id>=0 );
       int y_temp_id =
          y->getComponentDescriptorIndex( d_temperature_component_index );
+      assert( y_temp_id>-1 );
+      assert( d_temperature_scratch_id>-1 );
       copy_to_scratch.registerRefine(
          d_temperature_scratch_id,  // destination
          y_temp_id,                 // source

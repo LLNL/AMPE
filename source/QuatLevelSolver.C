@@ -471,7 +471,7 @@ void QuatLevelSolver::allocateHypreData()
    }
 
    // Set the variable type and number of variables on each part.
-   HYPRE_SStructVariable * vartypes = new HYPRE_SStructVariable;
+   HYPRE_SStructVariable * vartypes = new HYPRE_SStructVariable[1];
    if (vartypes==NULL ) {
       TBOX_ERROR(d_object_name<< ": Could not allocate vartypes\n");
    }
