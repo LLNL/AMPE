@@ -31,6 +31,7 @@ c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 c POSSIBILITY OF SUCH DAMAGE.
 c 
 define(NDIM,3)dnl
+define(REAL,`double precision')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 
       subroutine source_temperature(
@@ -158,6 +159,11 @@ c     local variables
       integer i, j, k, p
       REAL c, t, cpvals(2)
 
+c      print*,'heat_capacity_nkr, npowers=',npowers,', ncoeffs=',ncoeffs
+c      print*,'cpcoeffs(1)=',cpcoeffs(1)
+c      print*,'cpcoeffs(2)=',cpcoeffs(2)
+c      print*,'cp_powers(1)=',cp_powers(1)
+
       do k = ifirst2, ilast2
          do j = ifirst1, ilast1
             do i = ifirst0, ilast0
@@ -174,6 +180,11 @@ c     local variables
                enddo
                cp(i,j,k) = ( cpvals(1)*c
      &                 +cpvals(2)*(1.d0-c) )
+c               if(cp(i,j,k).lt.1.E-8)then
+c                  print*,'cp=',cp(i,j,k),', c=',c,', T=',t
+c                  print*,'cpvals(1)=',cpvals(1),', cpvals(2)=',cpvals(2)
+c                  stop
+c               endif
             enddo
          enddo
       enddo
@@ -260,7 +271,7 @@ c***********************************************************************
       integer ngt, ngc
       REAL tref,cref,slope
 c
-c variables in 2d cell indexed         
+c variables in 3d cell indexed         
       REAL conc(CELL3d(ifirst,ilast,ngc))
       REAL temp(CELL3d(ifirst,ilast,ngt))
 c
