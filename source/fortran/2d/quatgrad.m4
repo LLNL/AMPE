@@ -254,6 +254,85 @@ c                 Y component of gradient at "Y" side
 
 c-----------------------------------------------------------------------
 
+      subroutine quatgrad_side_isotropic(
+     &   lo0, hi0, lo1, hi1,
+     &   depth, h,
+     &   diff_x, diff_y, ngdiff,
+     &   grad_x_xside, grad_y_xside,
+     &   grad_x_yside, grad_y_yside,
+     &   nggrad
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1,
+     &   depth, ngdiff, nggrad
+
+      double precision diff_x(SIDE2d0(lo,hi,ngdiff),depth)
+      double precision diff_y(SIDE2d1(lo,hi,ngdiff),depth)
+      double precision grad_x_xside(SIDE2d0(lo,hi,nggrad),depth)
+      double precision grad_x_yside(SIDE2d1(lo,hi,nggrad),depth)
+      double precision grad_y_xside(SIDE2d0(lo,hi,nggrad),depth)
+      double precision grad_y_yside(SIDE2d1(lo,hi,nggrad),depth)
+      double precision h(2)
+
+c        local variables:
+      integer i, j, m
+      double precision dxinv, dyinv
+      double precision p25_dxinv, p25_dyinv, p12_dxinv, p12_dyinv
+
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
+      p25_dxinv = 0.25d0 * dxinv
+      p12_dxinv = dxinv/12.d0
+      p12_dyinv = dyinv/12.d0
+      p25_dyinv = 0.25d0 * dyinv
+
+c        Loop over the quaternion components
+      do m = 1, depth
+
+c           Compute gradients on the "X" side of the cell
+         do j = lo1, hi1
+            do i = lo0, hi0+1
+
+c                 X component of gradient at "X" side
+               grad_x_xside(i,j,m) =p12_dxinv 
+     &            *(10.d0*diff_x(i,j,m)+diff_x(i,j-1,m)+diff_x(i,j+1,m))
+
+c                 Y component of gradient at "X" side
+               grad_y_xside(i,j,m) = p25_dyinv * (
+     &            diff_y(i-1,j+1,m) + diff_y(i-1,j,m) +
+     &            diff_y(i,  j+1,m) + diff_y(i,  j,m)
+     &            ) 
+
+            enddo
+         enddo
+
+c           Compute gradients on the "Y" side of the cell
+         do j = lo1, hi1+1
+            do i = lo0, hi0
+
+c                 X component of gradient at "Y" side
+               grad_x_yside(i,j,m) = p25_dxinv * (
+     &            diff_x(i+1,j-1,m) + diff_x(i,j-1,m) +
+     &            diff_x(i+1,j,  m) + diff_x(i,j,  m)
+     &            ) 
+
+c                 Y component of gradient at "Y" side
+               grad_y_yside(i,j,m) = p12_dyinv 
+     &            *(10.d0*diff_y(i,j,m)+diff_y(i-1,j,m)+diff_y(i+1,j,m))
+
+            enddo
+         enddo
+
+      enddo
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
       subroutine quatgrad_side_symm(
      &   lo0, hi0, lo1, hi1,
      &   depth, h,
@@ -394,8 +473,10 @@ c                 Y component of gradient at "Y" side
       end
 
 c-----------------------------------------------------------------------
-
-      subroutine quatgrad_side_symm_wide(
+c Isotropic scheme for dx on face x and dy on face y
+c see Shukla and Giri, J. Comput. Phys. 276 (2014), p.259
+c
+      subroutine quatgrad_side_symm_isotropic(
      &   lo0, hi0, lo1, hi1,
      &   depth, h,
      &   diff_x, diff_y, ngdiff,
@@ -425,7 +506,7 @@ c-----------------------------------------------------------------------
 c        local variables:
       integer i, j, m, iq
       double precision dxinv, dyinv
-      double precision p25_dxinv, p25_dyinv
+      double precision p25_dxinv, p25_dyinv, p12_dxinv, p12_dyinv
       double precision d1(depth), d1prime(depth)
       double precision d2(depth), d2prime(depth)
       double precision d3(depth)
@@ -437,6 +518,8 @@ c      print*,'call quatgrad_side_symm_wide'
       dyinv = 1.d0 / h(2)
       p25_dxinv = 0.25d0 * dxinv
       p25_dyinv = 0.25d0 * dyinv
+      p12_dxinv = dxinv/12.d0
+      p12_dyinv = dyinv/12.d0
 
 c        All diffs must be rotated to be consistent with the
 c        local quaternion.
@@ -504,8 +587,8 @@ c                 Y component of gradient at "X" side
             do m = 1, depth
 
 c                 X component of gradient at "X" side
-               grad_x_xside(i,j,m) = dxinv 
-     &           * 0.125d0*(6.d0*diff_x(i,j,m)+d1prime(m)+d2prime(m))
+               grad_x_xside(i,j,m) = p12_dxinv 
+     &           * (10.d0*diff_x(i,j,m)+d1prime(m)+d2prime(m))
 
             enddo
 
@@ -575,8 +658,8 @@ c                 X component of gradient at "Y" side
             do m = 1, depth
 
 c                 Y component of gradient at "Y" side
-               grad_y_yside(i,j,m) = dyinv 
-     &           * 0.125d0*(6.d0*diff_y(i,j,m)+d1prime(m)+d2prime(m))
+               grad_y_yside(i,j,m) = p12_dyinv 
+     &           * (10.d0*diff_y(i,j,m)+d1prime(m)+d2prime(m))
 
             enddo
 

@@ -577,11 +577,6 @@ void QuatModelParameters::initializeOrientation(
          printDeprecated( "exp_scale_quat_mobility", "exp_scale_orient_mobility" );
       }
    }
-   
-   d_use_diffs_to_compute_flux =
-      model_db->getBoolWithDefault( "use_diffs_to_compute_flux", false );      
-   d_quat_stencil_type =
-      model_db->getStringWithDefault( "quat_stencil", "normal");
 }
 
 //=======================================================================
@@ -757,6 +752,11 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
         d_diffq_avg_func_type[0] != 'h' ) {
       TBOX_ERROR( "Error: invalid value for avg_func_type" );
    }
+   
+   d_use_diffs_to_compute_flux =
+      model_db->getBoolWithDefault( "use_diffs_to_compute_flux", false );      
+   d_stencil_type =
+      model_db->getStringWithDefault( "stencil_type", "normal");
 
    d_with_third_phase =
       model_db->getBoolWithDefault( "three_phase", false );

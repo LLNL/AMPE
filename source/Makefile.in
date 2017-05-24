@@ -61,7 +61,7 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 UniformPartitionCoefficientStrategy.o \
                 PartitionPhaseConcentrationsStrategy.o \
                 NKRHeatCapacityStrategy.o \
-                PhaseFluxStrategySimple.o PhaseFluxStrategyAnisotropy.o \
+                PhaseFluxStrategySimple.o PhaseFluxStrategyIsotropic.o PhaseFluxStrategyAnisotropy.o \
                 TemperatureStrategyFactory.o QuatModel.o QuatRefinePatchStrategy.o \
 		ran2.o BiasDoubleWellFreeEnergyStrategy.o \
                 SimpleGradStrategy.o \

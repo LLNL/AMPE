@@ -153,6 +153,88 @@ c              Y component of gradient at "Y" side
       end
 
 c-----------------------------------------------------------------------
+c see Shukla and Giri, J. Comput. Phys. 276 (2014), p.259
+c
+      subroutine grad_side_isotropic(
+     &   lo0, hi0, lo1, hi1,
+     &   diff_x, diff_y,
+     &   dlo0, dhi0, dlo1, dhi1,
+     &   h,
+     &   grad_x_xside, grad_y_xside,
+     &   grad_x_yside, grad_y_yside,
+     &   glo0, ghi0, glo1, ghi1
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1,
+     &   dlo0, dhi0, dlo1, dhi1,
+     &   glo0, ghi0, glo1, ghi1
+
+      double precision
+     &   diff_x(dlo0:dhi0+1,dlo1:dhi1),
+     &   diff_y(dlo0:dhi0,dlo1:dhi1+1),
+     &   h(2),
+     &   grad_x_xside(glo0:ghi0+1,glo1:ghi1),
+     &   grad_y_xside(glo0:ghi0+1,glo1:ghi1),
+     &   grad_x_yside(glo0:ghi0,glo1:ghi1+1),
+     &   grad_y_yside(glo0:ghi0,glo1:ghi1+1)
+
+c        local variables:
+      integer i, j
+      double precision dxinv, dyinv
+      double precision p25_dxinv, p25_dyinv, p12_dxinv, p12_dyinv
+
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
+      p25_dxinv = 0.25d0 * dxinv
+      p25_dyinv = 0.25d0 * dyinv
+      p12_dxinv = dxinv/12.d0
+      p12_dyinv = dyinv/12.d0
+
+c        Compute gradients on the "X" side of the cell
+      do j = lo1, hi1
+         do i = lo0, hi0+1
+
+c              X component of gradient at "X" side
+            grad_x_xside(i,j) = p12_dxinv * (
+     &          diff_x(i,j-1) +
+     &          diff_x(i,j)*10.d0 +
+     &          diff_x(i,j+1) )
+
+c              Y component of gradient at "X" side
+            grad_y_xside(i,j) = p25_dyinv * (
+     &         diff_y(i-1,j+1) + diff_y(i-1,j) +
+     &         diff_y(i,  j+1) + diff_y(i,  j)
+     &         ) 
+
+         enddo
+      enddo
+
+c        Compute gradients on the "Y" side of the cell
+      do j = lo1, hi1+1
+         do i = lo0, hi0
+
+c              X component of gradient at "Y" side
+            grad_x_yside(i,j) = p25_dxinv * (
+     &         diff_x(i+1,j-1) + diff_x(i,j-1) +
+     &         diff_x(i+1,j  ) + diff_x(i,j  )
+     &         ) 
+
+c              Y component of gradient at "Y" side
+            grad_y_yside(i,j) = p12_dyinv * (
+     &          diff_y(i,j-1) +
+     &          diff_y(i,j)*10.d0 +
+     &          diff_y(i,j+1) )
+
+         enddo
+      enddo
+
+      return
+      end
+
+c-----------------------------------------------------------------------
 
       subroutine velocity(
      &   lo0, hi0, lo1, hi1,

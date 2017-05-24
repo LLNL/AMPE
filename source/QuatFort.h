@@ -35,6 +35,7 @@
 //      C/C++ code            Fortran code
 //      ----------            ------------
 #define FORT_GRADIENT_FLUX gradient_flux_ 
+#define FORT_COMPUTE_FLUX_ISOTROPIC compute_flux_isotropic_ 
 #define FORT_ANISOTROPIC_GRADIENT_FLUX anisotropic_gradient_flux_ 
 #define FORT_COMP_RHS_PBG computerhspbg_
 #define FORT_COMP_RHS_TEMP computerhstemp_
@@ -43,6 +44,7 @@
 #define FORT_DIFFS diffs_
 #define FORT_GRAD_CELL grad_cell_
 #define FORT_GRAD_SIDE grad_side_
+#define FORT_GRAD_SIDE_ISOTROPIC grad_side_isotropic_
 #define FORT_QUATSYMMROTATION quat_symm_rotation_
 #define FORT_QUATFUNDAMENTAL quat_fundamental_
 #define FORT_QUATDIFFS quatdiffs_
@@ -51,7 +53,8 @@
 #define FORT_QUATGRAD_CELL_SYMM quatgrad_cell_symm_
 #define FORT_QUATGRAD_SIDE quatgrad_side_
 #define FORT_QUATGRAD_SIDE_SYMM quatgrad_side_symm_
-#define FORT_QUATGRAD_SIDE_SYMM_WIDE quatgrad_side_symm_wide_
+#define FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC quatgrad_side_symm_isotropic_
+#define FORT_QUATGRAD_SIDE_ISOTROPIC quatgrad_side_isotropic_
 #define FORT_QUATGRAD_MODULUS quatgrad_modulus_
 #define FORT_QUATGRAD_MODULUS_FROM_SIDES quatgrad_modulus_from_sides_
 #define FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT quatgrad_modulus_from_sides_compact_
@@ -104,6 +107,22 @@ extern "C" {
                   const double* const cpcoeffs, const int&);
 
    void FORT_GRADIENT_FLUX(
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const double* dx,
+      const double& epsilon,
+      double* phase, const int& phaseng,
+      double* flux0,
+      double* flux1,
+#if (NDIM == 3)
+      double* flux2,
+#endif
+      const int& fluxng);
+
+   void FORT_COMPUTE_FLUX_ISOTROPIC(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
@@ -318,6 +337,39 @@ extern "C" {
 #endif
       );
 
+   void FORT_GRAD_SIDE_ISOTROPIC(
+      const int&, const int&,
+      const int&, const int&,
+#if (NDIM == 3)
+      const int&, const int&,
+#endif
+      const double*,
+      const double*,
+#if (NDIM == 3)
+      const double*,
+#endif
+      const int&, const int&,
+      const int&, const int&,
+#if (NDIM == 3)
+      const int&, const int&,
+#endif
+      const double*,
+      const double*, const double*,
+#if (NDIM == 3)
+      const double*,
+#endif
+      const double*, const double*,
+#if (NDIM == 3)
+      const double*,
+      const double*, const double*, const double*,
+#endif
+      const int&, const int&,
+      const int&, const int&
+#if (NDIM == 3)
+      , const int&, const int&
+#endif
+      );
+
    void FORT_QUATSYMMROTATION(
       const int& lo0, const int& hi0,
       const int& lo1, const int& hi1,
@@ -469,6 +521,36 @@ extern "C" {
       const int& nggrad
       );
 
+   void FORT_QUATGRAD_SIDE_ISOTROPIC(
+      const int& lo0, const int& hi0,
+      const int& lo1, const int& hi1,
+#if (NDIM == 3)
+      const int& lo2, const int& hi2,
+#endif
+      const int& depth,
+      const double* h,
+      const double* diff_x,
+      const double* diff_y,
+#if (NDIM == 3)
+      const double* diff_z,
+#endif
+      const int& ngdiff,
+      const double* grad_x_x,
+      const double* grad_y_x,
+#if (NDIM == 3)
+      const double* grad_z_x,
+#endif
+      const double* grad_x_y,
+      const double* grad_y_y,
+#if (NDIM == 3)
+      const double* grad_z_y,
+      const double* grad_x_z,
+      const double* grad_y_z,
+      const double* grad_z_z,
+#endif
+      const int& nggrad
+      );
+
    void FORT_QUATGRAD_SIDE_SYMM(
       const int& lo0, const int& hi0,
       const int& lo1, const int& hi1,
@@ -504,7 +586,7 @@ extern "C" {
 #endif
       const int& ngiq
       );
-   void FORT_QUATGRAD_SIDE_SYMM_WIDE(
+   void FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC(
       const int& lo0, const int& hi0,
       const int& lo1, const int& hi1,
 #if (NDIM == 3)

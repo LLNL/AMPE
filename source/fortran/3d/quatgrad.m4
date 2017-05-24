@@ -359,6 +359,45 @@ c                    Z component of gradient at "Z" side
 
 c-----------------------------------------------------------------------
 
+      subroutine quatgrad_side_isotropic(
+     &   lo0, hi0, lo1, hi1, lo2, hi2,
+     &   depth, h,
+     &   diff_x, diff_y, diff_z, ngdiff,
+     &   grad_x_xside, grad_y_xside, grad_z_xside,
+     &   grad_x_yside, grad_y_yside, grad_z_yside,
+     &   grad_x_zside, grad_y_zside, grad_z_zside,
+     &   nggrad
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1, lo2, hi2,
+     &   depth, ngdiff, nggrad
+
+      double precision diff_x(SIDE3d0(lo,hi,ngdiff),depth)
+      double precision diff_y(SIDE3d1(lo,hi,ngdiff),depth)
+      double precision diff_z(SIDE3d2(lo,hi,ngdiff),depth)
+      double precision grad_x_xside(SIDE3d0(lo,hi,nggrad),depth)
+      double precision grad_x_yside(SIDE3d1(lo,hi,nggrad),depth)
+      double precision grad_x_zside(SIDE3d2(lo,hi,nggrad),depth)
+      double precision grad_y_xside(SIDE3d0(lo,hi,nggrad),depth)
+      double precision grad_y_yside(SIDE3d1(lo,hi,nggrad),depth)
+      double precision grad_y_zside(SIDE3d2(lo,hi,nggrad),depth)
+      double precision grad_z_xside(SIDE3d0(lo,hi,nggrad),depth)
+      double precision grad_z_yside(SIDE3d1(lo,hi,nggrad),depth)
+      double precision grad_z_zside(SIDE3d2(lo,hi,nggrad),depth)
+      double precision h(3)
+
+      print*,'ERROR in function quatgrad_side_isotropic()'
+      print*,'Not implemented in 3D!!!'
+      stop
+      
+      return
+      end
+      
+c-----------------------------------------------------------------------
+
       subroutine quatgrad_side_symm(
      &   lo0, hi0, lo1, hi1, lo2, hi2,
      &   depth, h,
@@ -664,7 +703,7 @@ c                 Y component of gradient at "Z" side
 
 c-----------------------------------------------------------------------
 
-      subroutine quatgrad_side_symm_wide(
+      subroutine quatgrad_side_symm_isotropic(
      &   lo0, hi0, lo1, hi1, lo2, hi2,
      &   depth, h,
      &   diff_x, diff_y, diff_z, ngdiff,
@@ -699,7 +738,9 @@ c-----------------------------------------------------------------------
       integer iqrot_y(SIDE3d1(lo,hi,ngiq))
       integer iqrot_z(SIDE3d2(lo,hi,ngiq))
 
-      print*,'function quatgrad_side_symm_wide not implemented in 3D!!!'
+      print*,'ERROR in function quatgrad_side_symm_isotropic()'
+      print*,'Not implemented in 3D!!!'
+      stop
       
       return
       end

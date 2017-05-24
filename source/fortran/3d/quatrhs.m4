@@ -89,7 +89,7 @@ c
       end
 
 c***********************************************************************
-      subroutine gradient_flux_wide(
+      subroutine compute_flux_isotropic(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   h, epsilon,
      &   phase, ngphase,
@@ -111,6 +111,10 @@ c     local variables
 
       double precision epsilon2
 c
+      print*,'compute_flux_isotropic():'
+      print*,'implementation incomplete in 3D!!!'
+      stop
+      
       epsilon2 = epsilon * epsilon
 
       dxinv = epsilon2 / h(1)
@@ -179,7 +183,7 @@ c***********************************************************************
      &     flux0(SIDE3d0(ifirst,ilast,ngflux)),
      &     flux1(SIDE3d1(ifirst,ilast,ngflux)),
      &     flux2(SIDE3d2(ifirst,ilast,ngflux)),
-     &     e4, h(2)
+     &     e4, h(3)
 
 c     local variables
       integer i, j, k

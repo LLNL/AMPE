@@ -125,6 +125,56 @@ c
       end
       
 c***********************************************************************
+c see Shukla and Giri, J. Comput. Phys. 276 (2014), p.259
+c
+      subroutine compute_flux_isotropic(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   h, epsilon,
+     &   phase, ngphase,
+     &   flux0, flux1, ngflux)
+
+      implicit none
+      integer ifirst0, ilast0, ifirst1, ilast1,
+     &     ngphase, ngflux
+      double precision 
+     &     phase(CELL2d(ifirst,ilast,ngphase)),
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux)),
+     &     h(2)
+
+c     local variables
+      integer i, j
+      double precision dxinv, dyinv, epsilon
+
+      double precision epsilon2
+c
+      epsilon2 = epsilon * epsilon
+
+      dxinv = (1.d0/12.d0) * epsilon2 / h(1)
+      dyinv = (1.d0/12.d0) * epsilon2 / h(2)
+      
+      do j = ifirst1, ilast1
+         do i = ifirst0, ilast0+1
+            flux0(i,j) = dxinv*( 
+     &           (phase(i,j-1) - phase(i-1,j-1)) 
+     &         + (phase(i,j)   - phase(i-1,j))*10.d0 
+     &         + (phase(i,j+1) - phase(i-1,j+1)) )
+         enddo
+      enddo
+
+      do j = ifirst1, ilast1+1
+         do i = ifirst0, ilast0
+            flux1(i,j) = dyinv*(
+     &           (phase(i-1,j) - phase(i-1,j-1)) 
+     &         + (phase(i,  j) - phase(i,  j-1))*10.d0 
+     &         + (phase(i+1,j) - phase(i+1,j-1)) ) 
+         enddo
+      enddo
+
+      return
+      end
+      
+c***********************************************************************
       subroutine anisotropic_gradient_flux(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   h, epsilon, nu, knumber,
