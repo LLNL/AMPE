@@ -2735,8 +2735,6 @@ void QuatIntegrator::evaluatePhaseRHS(
          SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
          double l2rhs=ops.L2Norm(phase_rhs,pbox);
          assert( l2rhs==l2rhs );
-         assert( l2rhs>=0. );
-         assert( l2rhs<1000. );
 #endif
 
          // then add component from chemical energy
@@ -2754,8 +2752,6 @@ void QuatIntegrator::evaluatePhaseRHS(
 #ifdef DEBUG_CHECK_ASSERTIONS
          l2rhs=ops.L2Norm(phase_rhs,pbox);
          assert( l2rhs==l2rhs );
-         assert( l2rhs>=0. );
-         assert( l2rhs<1000. );
 #endif
 
          boost::shared_ptr< pdat::CellData<double> > phase_mobility (
