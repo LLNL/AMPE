@@ -1775,8 +1775,9 @@ QuatFACOps::computeFluxOnPatch(
    pdat::SideData<double> &              flux_data ) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
+   tbox::pout<<"check array sizes in QuatFACOps::computeFluxOnPatch()..."<<endl;
    assert( patch.inHierarchy() );
-   assert( gradq_data.getDepth() == d_qlen );
+   assert( gradq_data.getDepth() == d_qlen*NDIM );
    assert( flux_data.getDepth() == d_qlen );
    assert( face_coef_data.getDepth() == d_qlen );
 #endif
