@@ -1,0 +1,8 @@
+set bindir = ../../build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/exec
+
+#setup initial conditions
+python ../../utils/make_nuclei.py -x 128 -y 128 -z 1 -r 20 \
+   --ngrains 1 -q 4 --quat-out "0.,1.,0.,0." circular_grain.nc
+
+#let grain evolve
+srun -ppdebug -n8 $bindir/ampe2d circular_grain.input

@@ -725,9 +725,9 @@ c-----------------------------------------------------------------------
      &   mlo0, mhi0, mlo1, mhi1, mlo2, mhi2
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  glo2:ghi2,  NDIM,depth),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,glo2:ghi2,  NDIM,depth),
-     &   grad_z(glo0:ghi0,  glo1:ghi1,  glo2:ghi2+1,NDIM,depth),
+     &   grad_x(glo0:ghi0+1,glo1:ghi1,  glo2:ghi2,  depth,NDIM),
+     &   grad_y(glo0:ghi0,  glo1:ghi1+1,glo2:ghi2,  depth,NDIM),
+     &   grad_z(glo0:ghi0,  glo1:ghi1,  glo2:ghi2+1,depth,NDIM),
      &   grad_mod(mlo0:mhi0,mlo1:mhi1,mlo2:mhi2)
 
       double precision grad_floor, beta, grad_modulus
@@ -753,27 +753,27 @@ c we average contributions from 4 sides
                grad_modulus = 0.d0
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_x(i,j,k,1,m)*grad_x(i,j,k,1,m)
+     &               grad_x(i,j,k,m,1)*grad_x(i,j,k,m,1)
                enddo
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_x(i+1,j,k,1,m)*grad_x(i+1,j,k,1,m)
+     &               grad_x(i+1,j,k,m,1)*grad_x(i+1,j,k,m,1)
                enddo
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j,k,2,m)*grad_y(i,j,k,2,m)
+     &               grad_y(i,j,k,m,2)*grad_y(i,j,k,m,2)
                enddo
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j+1,k,2,m)*grad_y(i,j+1,k,2,m)
+     &               grad_y(i,j+1,k,m,2)*grad_y(i,j+1,k,m,2)
                enddo
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_z(i,j,k,3,m)*grad_z(i,j,k,3,m)
+     &               grad_z(i,j,k,m,3)*grad_z(i,j,k,m,3)
                enddo
                do m = 1, depth
                   grad_modulus = grad_modulus + 
-     &               grad_z(i,j,k+1,3,m)*grad_z(i,j,k+1,3,m)
+     &               grad_z(i,j,k+1,m,3)*grad_z(i,j,k+1,m,3)
                enddo
 
                grad_mod(i,j,k) = dsqrt(0.5d0*grad_modulus+beta)

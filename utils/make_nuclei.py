@@ -83,6 +83,8 @@ parser.add_option( "--temperature-in", type="float",
                    help="temperature in interior region" )
 parser.add_option( "--temperature-out", type="float",
                    help="temperature in outside region" )
+parser.add_option( "--quat-out", type="string", default=None,
+                   help="quat in outside region" )
 parser.add_option( "--jitter-factor", type="float", default=1.0, 
                    help="jitter factor" )
 parser.add_option( "-s", "--crystal_sym", action="store_true", dest="crystal_sym", default=False)
@@ -148,6 +150,11 @@ if conc_inside is None :
 
 temperature_inside   = options.temperature_in
 temperature_outside  = options.temperature_out
+
+quat_outside  = options.quat_out
+if( not(quat_outside is None) ):
+  qout = map( float, string.split( options.quat_out, ',' ) )
+  print 'qout=',qout
 
 # generate quaternions corresponding to random orientations
 random.seed( 11234 )
@@ -659,15 +666,23 @@ if QLEN>0:
       for k in range( nz ) :
         z = k + 0.5
         d2min=distance2(x,y,z,cx[gmin],cy[gmin],cz[gmin])
-        if d2min>halfmind2:
-          for g in range(n_spheres):
-            distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
-            if distance_sq<d2min:
-              d2min=distance_sq
-              gmin=g
-              if d2min<halfmind2:
-                break
-        qi=quat_inside[gmin]
+        if( not(quat_outside is None)):
+          if( d2min<radius*radius ):
+            qi=quat_inside[gmin]
+          else:
+            qi=[]
+            for m in range(QLEN):
+              qi.append(qout[m])
+        else:
+          if d2min>halfmind2:
+            for g in range(n_spheres):
+              distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
+              if distance_sq<d2min:
+                d2min=distance_sq
+                gmin=g
+                if d2min<halfmind2:
+                  break
+          qi=quat_inside[gmin]
 
         qr = None
         if ( options.symmetry_test ) :
@@ -692,35 +707,12 @@ if not(nomconc is None):
   print 'Fill composition values'
   print 'conc_inside =',conc_inside
   print 'conc_outside=',conc_outside
+
+  print 'set composition...'
   for k in range( nz ) :
     for j in range( ny ) :
       for i in range( nx ) :
-        conc[k,j,i]  = conc_outside
-
-  for g in range(n_spheres):
-    r_sq = r[g]**2
-    print 'grain ',g
-    for k in range( nz ) :
-      z = k + 0.5
-      dz2=distance2_1d_z(z,cz[g])
-      if dz2<r_sq :
-        for j in range( ny ) :
-          y = j + 0.5
-          dy2=distance2_1d_y(y,cy[g])
-          if dy2<r_sq :
-            for i in range( nx ) :
-              x = i + 0.5
-         
-              distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
-              d = distance_sq - r_sq
-              if( d<0. ):
-                conc[k,j,i]  = conc_inside
-
-  for g in range(n_spheres):
-    for k in range( nz ) :
-      for j in range( ny ) :
-        for i in range( nx ) :
-          conc[k,j,i]  = conc_inside*phase[k,j,i]+conc_outside*(1.-phase[k,j,i])
+        conc[k,j,i]  = conc_inside*phase[k,j,i]+conc_outside*(1.-phase[k,j,i])
 
 if not(temperature_inside is None):
   print 'Fill temperature values'
@@ -733,7 +725,7 @@ if not(temperature_inside is None):
 
   for g in range(n_spheres):
     r_sq = r[g]**2
-    print 'grain ',g
+    print 'temperature, grain ',g
     for k in range( nz ) :
       z = k + 0.5
       dz2=distance2_1d_z(z,cz[g])

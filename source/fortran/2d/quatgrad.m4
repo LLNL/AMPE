@@ -607,15 +607,15 @@ c-----------------------------------------------------------------------
      &   mlo0, mhi0, mlo1, mhi1
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  NDIM,depth),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,NDIM,depth),
+     &   grad_x(glo0:ghi0+1,glo1:ghi1,  depth,NDIM),
+     &   grad_y(glo0:ghi0,  glo1:ghi1+1,depth,NDIM),
      &   grad_mod(mlo0:mhi0,mlo1:mhi1)
 
       double precision grad_floor, beta, grad_modulus
 
       character*(*) floor_type
 
-      integer i, j, m, ii, jj, n
+      integer i, j, q, ii, jj, d
       
       if( floor_type(1:1) .eq. 's' )then
          beta = grad_floor*grad_floor
@@ -631,44 +631,44 @@ c-----------------------------------------------------------------------
 c we average contributions from 4 sides
             
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_x(i,j,n,m)*grad_x(i,j,n,m)
+     &               grad_x(i,j,q,d)*grad_x(i,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 0.25*dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_x(i+1,j,n,m)*grad_x(i+1,j,n,m)
+     &               grad_x(i+1,j,q,d)*grad_x(i+1,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 0.25*dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j,n,m)*grad_y(i,j,n,m)
+     &               grad_y(i,j,q,d)*grad_y(i,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 0.25*dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j+1,n,m)*grad_y(i,j+1,n,m)
+     &               grad_y(i,j+1,q,d)*grad_y(i,j+1,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
@@ -701,15 +701,15 @@ c-----------------------------------------------------------------------
      &   mlo0, mhi0, mlo1, mhi1
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  NDIM,depth),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,NDIM,depth),
+     &   grad_x(glo0:ghi0+1,glo1:ghi1,  depth,NDIM),
+     &   grad_y(glo0:ghi0,  glo1:ghi1+1,depth,NDIM),
      &   grad_mod(mlo0:mhi0,mlo1:mhi1)
 
       double precision grad_floor, beta, grad_modulus
 
       character*(*) floor_type
 
-      integer i, j, m, ii, jj, n
+      integer i, j, q, ii, jj, d
       
       if( floor_type(1:1) .eq. 's' )then
          beta = grad_floor*grad_floor
@@ -725,44 +725,44 @@ c-----------------------------------------------------------------------
 c we average contributions from 4 sides
             
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_x(i,j,n,m)*grad_x(i,j,n,m)
+     &               grad_x(i,j,q,d)*grad_x(i,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 1./dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_x(i+1,j,n,m)*grad_x(i+1,j,n,m)
+     &               grad_x(i+1,j,q,d)*grad_x(i+1,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 1./dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j,n,m)*grad_y(i,j,n,m)
+     &               grad_y(i,j,q,d)*grad_y(i,j,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
      &                    + 1./dsqrt(grad_modulus+beta)
 
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
+               do d = 1, NDIM
                   grad_modulus = grad_modulus + 
-     &               grad_y(i,j+1,n,m)*grad_y(i,j+1,n,m)
+     &               grad_y(i,j+1,q,d)*grad_y(i,j+1,q,d)
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
@@ -797,15 +797,15 @@ c-----------------------------------------------------------------------
      &   mlo0, mhi0, mlo1, mhi1
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  NDIM,depth),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,NDIM,depth),
+     &   grad_x(glo0:ghi0+1,glo1:ghi1,  depth,NDIM),
+     &   grad_y(glo0:ghi0,  glo1:ghi1+1,depth,NDIM),
      &   grad_mod(mlo0:mhi0,mlo1:mhi1)
 
       double precision grad_floor, beta, grad_modulus
 
       character*(*) floor_type
 
-      integer i, j, m, n
+      integer i, j, q, d
       
       if( floor_type(1:1) .eq. 's' )then
          beta = grad_floor*grad_floor
@@ -821,21 +821,21 @@ c-----------------------------------------------------------------------
 c we average contributions from 4 sides
             
             grad_modulus = 0.d0
-            do m = 1, depth
+            do q = 1, depth
                grad_modulus = grad_modulus + 
-     &            grad_x(i,j,1,m)*grad_x(i,j,1,m)
+     &            grad_x(i,j,q,1)*grad_x(i,j,q,1)
             enddo
-            do m = 1, depth
+            do q = 1, depth
                grad_modulus = grad_modulus + 
-     &            grad_x(i+1,j,1,m)*grad_x(i+1,j,1,m)
+     &            grad_x(i+1,j,q,1)*grad_x(i+1,j,q,1)
             enddo
-            do m = 1, depth
+            do q = 1, depth
                grad_modulus = grad_modulus + 
-     &            grad_y(i,j,2,m)*grad_y(i,j,2,m)
+     &            grad_y(i,j,q,2)*grad_y(i,j,q,2)
             enddo
-            do m = 1, depth
+            do q = 1, depth
                grad_modulus = grad_modulus + 
-     &            grad_y(i,j+1,2,m)*grad_y(i,j+1,2,m)
+     &            grad_y(i,j+1,q,2)*grad_y(i,j+1,q,2)
             enddo
 
             grad_mod(i,j) = dsqrt(0.5d0*grad_modulus+beta)

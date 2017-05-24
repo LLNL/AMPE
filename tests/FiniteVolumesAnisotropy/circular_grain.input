@@ -1,0 +1,88 @@
+// Input for Hu, Baskes, Stan and Mitchell grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+//model_type = "Quat"
+model_type = "KWCcomplex"
+
+max_timesteps       = 2
+end_time            = 1.
+
+Verbosity {  // optional, block
+}
+
+Visit {
+   interval = 0.35
+   interval_type = "time"
+   extra_output = TRUE  // optional
+   rhs_output = TRUE
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatLevelSolver::*","QuatSysSolver::*",
+                 "QuatUnsplitIntegrator::*","EllipticFACOps::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = 1.
+   epsilon_orient = 0.1
+   orient_mobility  = 200.
+   
+   
+   temperature = 1.
+
+   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
+   phi_mobility     = 200.
+   
+   // free energy parameters:
+   // f(phi) = scale_energy_well*g(phi) + p(phi)*(free_energy_solid-free_energy_liquid)
+   // where g is a double well potential and p an interpolation function s.t.
+   // p(0)=0 and p(1)=1
+   // scale_energy_well set to zero to simulate KWC model
+   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="hbsm"
+   
+   free_energy_liquid = 0.
+   free_energy_solid = 0.
+
+   use_diffs_to_compute_flux = TRUE
+   quat_grad_modulus_type = "sides"
+}
+
+//Symmetry {  // optional block
+//   enabled = TRUE  // optional
+//   Fundamental {  // optional block
+//      interval = 1000000  // optional
+//      interval_type = "step"  // optional
+//   }
+//}
+
+Integrator {
+   rtol = 1.e-15
+   atol = 1.e-4
+   Preconditioner {
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.05
+   interval_type = "time"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+   extra_energy_detail = TRUE
+}   
+
+InitialConditions {
+   filename = "circular_grain.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 128, 128
+   x_lo         = -3.2, -3.2 // lower end of computational domain.
+   x_up         =  3.2,  3.2 // upper end of computational domain.
+}
