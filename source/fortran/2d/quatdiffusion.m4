@@ -122,8 +122,8 @@ c
 c variables in 2d cell indexed
       double precision var(CELL2d(ifirst,ilast,ngvar))
       double precision temperature(CELL2d(ifirst,ilast,tghosts))
-      double precision gradq0(SIDE2d0(ifirst,ilast,nggradq),NDIM,depth)
-      double precision gradq1(SIDE2d1(ifirst,ilast,nggradq),NDIM,depth)
+      double precision gradq0(SIDE2d0(ifirst,ilast,nggradq),depth,NDIM)
+      double precision gradq1(SIDE2d1(ifirst,ilast,nggradq),depth,NDIM)
       double precision diff0(SIDE2d0(ifirst,ilast,ngdiff),depth*2)
       double precision diff1(SIDE2d1(ifirst,ilast,ngdiff),depth*2)
 
@@ -170,9 +170,9 @@ c
      &            deriv_interp_func( phi, interp_type )
 
                grad_norm2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     grad_norm2 = grad_norm2 + gradq0(ic0,ic1,n,m)**2
+               do n = 1, NDIM
+                  do m = 1, depth
+                     grad_norm2 = grad_norm2 + gradq0(ic0,ic1,m,n)**2
                   enddo
                enddo
 
@@ -219,9 +219,9 @@ c
      &            deriv_interp_func( phi, interp_type )
 
                grad_norm2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     grad_norm2 = grad_norm2 + gradq1(ic0,ic1,n,m)**2
+               do n = 1, NDIM
+                  do m = 1, depth
+                     grad_norm2 = grad_norm2 + gradq1(ic0,ic1,m,n)**2
                   enddo
                enddo
 

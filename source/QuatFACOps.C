@@ -157,7 +157,8 @@ QuatFACOps::QuatFACOps(
     d_gamma(tbox::MathUtilities<double>::getSignalingNaN()),
     d_num_components(1),
     d_ewt_id(-1),
-    d_weight_id(-1)
+    d_weight_id(-1),
+    d_rotation_index_id(-1)
 {
   // Since one can't initialize arrays in the initializer list, we do it here
   for (int component=0; component<d_num_components; component++ ) {
@@ -1494,6 +1495,7 @@ QuatFACOps::computeLambdaOnPatch(
    const hier::Patch &                 patch,
    const pdat::SideData<double> &   flux_data,
    const pdat::CellData<double> &      q_data,
+   boost::shared_ptr<pdat::SideData<int> > rotation_index,
    pdat::CellData<double> &       lambda_data ) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1522,6 +1524,16 @@ QuatFACOps::computeLambdaOnPatch(
    const hier::Index& lupper = l_gbox.upper();
 
 #if NDIM==2
+   if( rotation_index )
+   compute_lambda_flux2d_symm_(lower[0], upper[0], lower[1], upper[1],
+                          d_qlen,
+                          flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
+                          flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
+                          q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
+                          dx,
+                          lambda_data.getPointer(0), llower[0], lupper[0], llower[1], lupper[1],
+                          rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0] );
+   else
    compute_lambda_flux2d_(lower[0], upper[0], lower[1], upper[1],
                           d_qlen,
                           flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
@@ -1531,6 +1543,7 @@ QuatFACOps::computeLambdaOnPatch(
                           lambda_data.getPointer(0), llower[0], lupper[0], llower[1], lupper[1]);
 #endif
 #if NDIM==3
+   assert( !rotation_index );
    compute_lambda_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
                           d_qlen,
                           flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
@@ -2041,8 +2054,14 @@ QuatFACOps::computeCompositeResidualOnLevel(
          ( patch->getPatchData( d_sqrt_m_id ), boost::detail::dynamic_cast_tag());
       boost::shared_ptr<pdat::SideData<double> > flux_data
          ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<int> > rotation_index;
+      if( d_rotation_index_id>=0 ){
+         rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,hier::PatchData>
+                      ( patch->getPatchData(d_rotation_index_id) );
+         assert( rotation_index );
+      }
 
-      computeResidualOnPatch(*patch, *flux_data, *sqrt_m_data, *q_data, *q_rhs_data, *q_residual_data);
+      computeResidualOnPatch(*patch, *flux_data, rotation_index, *sqrt_m_data, *q_data, *q_rhs_data, *q_residual_data);
 
       if ( ln > d_ln_min ) {
          /*
@@ -2074,6 +2093,7 @@ void
 QuatFACOps::computeResidualOnPatch(
    const hier::Patch &                      patch,
    const pdat::SideData<double> &        flux_data,
+   boost::shared_ptr<pdat::SideData<int> > rotation_index,
    const pdat::CellData<double> &      sqrt_m_data,
    const pdat::CellData<double> &      q_soln_data,
    const pdat::CellData<double> &       q_rhs_data,
@@ -2107,6 +2127,37 @@ QuatFACOps::computeResidualOnPatch(
    const hier::Index& qrlower = qr_gbox.lower();
    const hier::Index& qrupper = qr_gbox.upper();
 
+   if(rotation_index){
+#if NDIM==2
+   compute_q_residual2d_symm_(
+      lower[0], upper[0], lower[1], upper[1],
+      d_qlen,
+      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
+      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
+      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
+      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
+      dx, d_gamma,
+      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
+      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1],
+      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0]
+      );
+#endif
+#if NDIM==3
+   compute_q_residual3d_symm_(
+      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+      d_qlen,
+      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
+      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
+      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
+      flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
+      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
+      dx, d_gamma,
+      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2],
+      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1], qrlower[2], qrupper[2],
+      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getPointer(2), 
+      rotation_index->getGhostCellWidth()[0]);
+#endif
+   }else{
 #if NDIM==2
    compute_q_residual2d_(
       lower[0], upper[0], lower[1], upper[1],
@@ -2132,7 +2183,7 @@ QuatFACOps::computeResidualOnPatch(
       q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2],
       q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1], qrlower[2], qrupper[2]);
 #endif
-
+   }
 }
 
 
@@ -2146,6 +2197,7 @@ QuatFACOps::evaluateRHS(
    const double   gradient_floor,
    const string   gradient_floor_type,
    const int         mobility_id,
+   const int        rotation_index_id,
    const int                q_id,
    int                    rhs_id,
    const bool use_gradq_for_flux)
@@ -2154,6 +2206,8 @@ QuatFACOps::evaluateRHS(
    
    assert( grad_q_id>=0 );
    assert( grad_q_copy_id>=0 );
+   
+   d_rotation_index_id = rotation_index_id;
    
    const int gq_id = use_gradq_for_flux ? grad_q_id : -1;
 
@@ -2369,10 +2423,17 @@ QuatFACOps::accumulateOperatorOnLevel(
          boost::shared_ptr<pdat::CellData<double> >
             lambda_data (new pdat::CellData<double>(pi->getBox(), 1, hier::IntVector(tbox::Dimension(NDIM),0)));
          assert( lambda_data );
+         
+         boost::shared_ptr<pdat::SideData<int> > rotation_index;
+         if( d_rotation_index_id>=0 ){
+            rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,hier::PatchData>
+                         ( patch->getPatchData( d_rotation_index_id) );
+            assert( rotation_index );
+         }
 
-         computeLambdaOnPatch(*patch, *flux_data, *q_data, *lambda_data );
+         computeLambdaOnPatch(*patch, *flux_data, *q_data, rotation_index, *lambda_data );
 
-         accumulateProjectedOperatorOnPatch(*patch, *flux_data, *mobility_data, *q_data, *lambda_data, *q_rhs_data);
+         accumulateProjectedOperatorOnPatch(*patch, *flux_data, *mobility_data, *q_data, *lambda_data, rotation_index, *q_rhs_data);
       }
       else {
          accumulateOperatorOnPatch(*patch, *flux_data, *mobility_data, *q_rhs_data);
@@ -2409,6 +2470,8 @@ QuatFACOps::accumulateOperatorOnPatch(
    const pdat::CellData<double> &    mobility_data,
    const pdat::CellData<double> &       q_rhs_data ) const
 {
+   assert( d_rotation_index_id==-1 );
+   
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
                                                                   boost::detail::dynamic_cast_tag() );
    const double *dx = patch_geom->getDx();
@@ -2461,6 +2524,7 @@ QuatFACOps::accumulateProjectedOperatorOnPatch(
    const pdat::CellData<double> &    mobility_data,
    const pdat::CellData<double> &      q_soln_data,
    const pdat::CellData<double> & lambda_soln_data,
+   boost::shared_ptr<pdat::SideData<int> > rotation_index,
    const pdat::CellData<double> &       q_rhs_data ) const
 {
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
@@ -2492,6 +2556,20 @@ QuatFACOps::accumulateProjectedOperatorOnPatch(
    const hier::Index& qrhupper = qrh_gbox.upper();
 
 #if NDIM==2
+   if(rotation_index)
+   add_quat_proj_op2d_symm_(
+      lower[0], upper[0], lower[1], upper[1],
+      d_qlen,
+      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
+      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
+      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
+      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
+      lambda_soln_data.getPointer(), llower[0], lupper[0], llower[1], lupper[1],
+      dx,
+      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
+      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0]
+      );
+   else
    add_quat_proj_op2d_(
       lower[0], upper[0], lower[1], upper[1],
       d_qlen,
@@ -2504,6 +2582,7 @@ QuatFACOps::accumulateProjectedOperatorOnPatch(
       q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
 #endif
 #if NDIM==3
+   assert( !rotation_index );
    add_quat_proj_op3d_(
       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
       d_qlen,

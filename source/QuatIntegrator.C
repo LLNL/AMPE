@@ -149,6 +149,7 @@ QuatIntegrator::QuatIntegrator(
      d_f_l_id( -1 ),
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
+     d_modulus_q_rhs_visit_id(-1),
      d_q_rhs_visit_id(-1),
      d_q_rhs1_visit_id(-1),
      d_phase_sol_id( -1 ),
@@ -992,8 +993,18 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          d_local_data.setFlag( d_phase_rhs_visit_id );
       }
       if ( d_with_orientation ) {
+         d_modulus_q_rhs_visit_var.reset (
+            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_modulus_q_rhs_visit_", 1 ));
+         d_modulus_q_rhs_visit_id =
+            variable_db->registerVariableAndContext(
+               d_modulus_q_rhs_visit_var,
+               d_current,
+               hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( d_modulus_q_rhs_visit_id >= 0 );
+         d_local_data.setFlag( d_modulus_q_rhs_visit_id );
+
          d_q_rhs_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_q_rhs_visit_", 1 ));
+            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_q_rhs_visit_", d_qlen ));
          d_q_rhs_visit_id =
             variable_db->registerVariableAndContext(
                d_q_rhs_visit_var,
@@ -1402,13 +1413,20 @@ void QuatIntegrator::RegisterWithVisit(
          "phase_rhs", "SCALAR", d_phase_rhs_visit_id, 0 );
 
       if ( d_with_orientation ) {
-         assert( d_q_rhs_visit_id>0 );
-         string visit_name("q_rhs");
+         assert( d_modulus_q_rhs_visit_id>0 );
+         string visit_nameq("modulus_q_rhs");
          visit_data_writer->registerPlotQuantity(
-            visit_name, "SCALAR", d_q_rhs_visit_id, 0 );
+            visit_nameq, "SCALAR", d_modulus_q_rhs_visit_id, 0 );
+
+         assert( d_q_rhs_visit_id>0 );
+         for(int q=0;q<d_qlen;q++){
+            string visit_namem("q_rhs"+ tbox::Utilities::intToString(q, 1));
+            visit_data_writer->registerPlotQuantity(
+               visit_namem, "SCALAR", d_q_rhs_visit_id, q );
+         }
 
          assert( d_q_rhs1_visit_id>0 );
-         string visit_name1("q_rhs1");
+         string visit_name1("modulus_q_rhs1");
          visit_data_writer->registerPlotQuantity(
             visit_name1, "SCALAR", d_q_rhs1_visit_id, 0 );
       }
@@ -3069,10 +3087,12 @@ void QuatIntegrator::evaluateQuatRHS(
    assert( d_quat_sys_solver );
 
    //tbox::pout<<"QuatIntegrator::evaluateQuatRHS()"<<endl;
+   int quat_symm_rotation_id = d_use_gradq_for_flux ? d_quat_symm_rotation_id : -1;
 
    d_quat_sys_solver->evaluateRHS(
       d_epsilon_q, d_quat_grad_floor, d_quat_smooth_floor_type,
       d_quat_diffusion_id, d_quat_grad_side_id, d_quat_grad_side_copy_id,
+      quat_symm_rotation_id,
       d_quat_mobility_id, quat_id, quat_rhs_id, d_use_gradq_for_flux );
 
 
@@ -3108,29 +3128,33 @@ void QuatIntegrator::evaluateQuatRHS(
       correctRhsForSymmetry( hierarchy, quat_id, quat_rhs_id );
    }
 
-   if( visit_flag && d_model_parameters.with_rhs_visit_output())
-   for ( int ln=0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
+   if( visit_flag && d_model_parameters.with_rhs_visit_output()){
+      for ( int ln=0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
+         boost::shared_ptr< hier::PatchLevel > level =
+            hierarchy->getPatchLevel( ln );
 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-         const hier::Box box  (patch->getBox());
+         for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
+            boost::shared_ptr<hier::Patch > patch = *ip;
+            const hier::Box box  (patch->getBox());
 
-         boost::shared_ptr< pdat::CellData<double> > rhs (
-            patch->getPatchData( quat_rhs_id ), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr< pdat::CellData<double> > nrhs (
-            patch->getPatchData( d_q_rhs_visit_id ), boost::detail::dynamic_cast_tag());
+            boost::shared_ptr< pdat::CellData<double> > rhs (
+               patch->getPatchData( quat_rhs_id ), boost::detail::dynamic_cast_tag());
+            boost::shared_ptr< pdat::CellData<double> > nrhs (
+               patch->getPatchData( d_modulus_q_rhs_visit_id ), boost::detail::dynamic_cast_tag());
 
-         pdat::CellIterator cend(box, false);
-         for (pdat::CellIterator c(box,true); c!=cend; c++) {
-            pdat::CellIndex cell = *c;
-            (*nrhs)(cell) = 0.;
-            for(int m=0;m<d_qlen;m++)
-               (*nrhs)(cell) += (*rhs)(cell,m)*(*rhs)(cell,m);
-            (*nrhs)(cell)=sqrt( (*nrhs)(cell) );
+            pdat::CellIterator cend(box, false);
+            for (pdat::CellIterator c(box,true); c!=cend; c++) {
+               pdat::CellIndex cell = *c;
+               (*nrhs)(cell) = 0.;
+               for(int m=0;m<d_qlen;m++){
+                  (*nrhs)(cell) += (*rhs)(cell,m)*(*rhs)(cell,m);
+               }
+               (*nrhs)(cell)=sqrt( (*nrhs)(cell) );
+            }         
          }
       }
+      math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+      cellops.copyData( d_q_rhs_visit_id, quat_rhs_id, false );
    }
 }
 

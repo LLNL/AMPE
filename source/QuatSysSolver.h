@@ -324,6 +324,7 @@ public:
    void evaluateRHS(
       const double epsilon_q, const double quat_grad_floor, const string quat_smooth_floor_type,
       const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
+      const int        rotations_id,
       const int mobility_id, const int solution_id, int rhs_id,
       const bool use_gradq_for_flux=false);
 

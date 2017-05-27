@@ -342,7 +342,7 @@ public:
 
    void evaluateRHS(const double epsilon_q, const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
 		    const double gradient_floor, const string gradient_floor_type,
-		    const int mobility_id, const int q_id, int rhs_id,
+		    const int mobility_id, const int rotations_id, const int q_id, int rhs_id,
           const bool use_gradq_for_flux);
 
    void accumulateOperatorOnLevel(const int mobility_id, const int face_coef_id, const int q_id, 
@@ -359,7 +359,7 @@ public:
       d_ewt_id = ewt_id;
       d_weight_id = weight_id;
    }
-
+   
    void multiplyMobilitySqrt(const int id);
 
    void divideMobilitySqrt(const int id);
@@ -421,6 +421,7 @@ private:
    void computeLambdaOnPatch(const hier::Patch & patch,
 			     const pdat::SideData<double> & flux_data,
 			     const pdat::CellData<double> & q_data,
+              boost::shared_ptr<pdat::SideData<int> > rotation_index,
 			     pdat::CellData<double> & lambda_data) const;
 
    void computeFaceCoefs(const double epsilon_q,
@@ -501,6 +502,7 @@ private:
     */
    void computeResidualOnPatch(const hier::Patch & patch,
 			       const pdat::SideData<double> & flux_data,
+					 boost::shared_ptr<pdat::SideData<int> > rotations,
 			       const pdat::CellData<double> & sqrt_m_data,
 			       const pdat::CellData<double> & q_soln_data,
 			       const pdat::CellData<double> & q_rhs_data,
@@ -516,6 +518,7 @@ private:
 					   const pdat::CellData<double> & mobility_data,
 					   const pdat::CellData<double> & q_soln_data,
 					   const pdat::CellData<double> & lambda_soln_data,
+					   boost::shared_ptr<pdat::SideData<int> > rotations,
 					   const pdat::CellData<double> & q_rhs_data) const;
 
    void takeSquareRootOnPatch(pdat::CellData<double> & data);
@@ -964,6 +967,14 @@ private:
 
    int d_ewt_id;
    int d_weight_id;
+   
+   /*!
+    * rotation indexes used to rotate gradient on sides if 
+    * (i) fluxes are computed using gradients
+    * (ii) symmetry is ON
+    * Otherwise id set to -1 when calling evaluateRHS() function
+    */
+   int d_rotation_index_id;
 };
 
 #include "QuatFACOps.I"

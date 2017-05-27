@@ -77,9 +77,9 @@ c
       double precision eta(CELL3d(lo,hi,ngeta))
       double precision temperature(CELL3d(lo,hi,tghosts))
       
-      double precision gqx(SIDE3d0(lo,hi,gqghosts),NDIM,depth)
-      double precision gqy(SIDE3d1(lo,hi,gqghosts),NDIM,depth)
-      double precision gqz(SIDE3d2(lo,hi,gqghosts),NDIM,depth)
+      double precision gqx(SIDE3d0(lo,hi,gqghosts),depth,NDIM)
+      double precision gqy(SIDE3d1(lo,hi,gqghosts),depth,NDIM)
+      double precision gqz(SIDE3d2(lo,hi,gqghosts),depth,NDIM)
       double precision fl(CELL3d(lo,hi,0))
       double precision fa(CELL3d(lo,hi,0))
       double precision fb(CELL3d(lo,hi,0))
@@ -220,7 +220,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqx(i,j,k,n,m) * gqx(i,j,k,n,m)
+                        o2 = o2 + gqx(i,j,k,m,n) * gqx(i,j,k,m,n)
                      enddo
                   enddo
                   o2 = o2 + floor2
@@ -231,7 +231,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqx(i+1,j,k,n,m) * gqx(i+1,j,k,n,m)
+                        o2 = o2 + gqx(i+1,j,k,m,n) * gqx(i+1,j,k,m,n)
                      enddo
                   enddo
                   o2 = o2 + floor2
@@ -242,7 +242,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqy(i,j,k,n,m) * gqy(i,j,k,n,m)
+                        o2 = o2 + gqy(i,j,k,m,n) * gqy(i,j,k,m,n)
                      enddo
                   enddo
                   o2 = o2 + floor2
@@ -253,7 +253,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqy(i,j+1,k,n,m) * gqy(i,j+1,k,n,m)
+                        o2 = o2 + gqy(i,j+1,k,m,n) * gqy(i,j+1,k,m,n)
                      enddo
                   enddo
                   e = e + sqrt(o2) * p_phi
@@ -264,7 +264,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqz(i,j,k,n,m) * gqz(i,j,k,n,m)
+                        o2 = o2 + gqz(i,j,k,m,n) * gqz(i,j,k,m,n)
                      enddo
                   enddo
                   o2 = o2 + floor2

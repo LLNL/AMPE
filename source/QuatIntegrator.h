@@ -781,6 +781,9 @@ private :
    boost::shared_ptr< pdat::CellVariable<double> > d_q_rhs_visit_var;
    int d_q_rhs_visit_id;
 
+   boost::shared_ptr< pdat::CellVariable<double> > d_modulus_q_rhs_visit_var;
+   int d_modulus_q_rhs_visit_id;
+
    boost::shared_ptr< pdat::CellVariable<double> > d_q_rhs1_visit_var;
    int d_q_rhs1_visit_id;
 

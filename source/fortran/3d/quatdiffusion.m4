@@ -147,9 +147,9 @@ c
 c variables in 3d cell indexed
       double precision var(CELL3d(ifirst,ilast,ngvar))
       double precision temperature(CELL3d(ifirst,ilast,tghosts))
-      double precision gradq0(SIDE3d0(ifirst,ilast,nggradq),NDIM,depth)
-      double precision gradq1(SIDE3d1(ifirst,ilast,nggradq),NDIM,depth)
-      double precision gradq2(SIDE3d2(ifirst,ilast,nggradq),NDIM,depth)
+      double precision gradq0(SIDE3d0(ifirst,ilast,nggradq),depth,NDIM)
+      double precision gradq1(SIDE3d1(ifirst,ilast,nggradq),depth,NDIM)
+      double precision gradq2(SIDE3d2(ifirst,ilast,nggradq),depth,NDIM)
       double precision diff0(SIDE3d0(ifirst,ilast,ngdiff),depth*2)
       double precision diff1(SIDE3d1(ifirst,ilast,ngdiff),depth*2)
       double precision diff2(SIDE3d2(ifirst,ilast,ngdiff),depth*2)
@@ -198,10 +198,10 @@ c
      &               deriv_interp_func( phi, diff_type )
 
                   grad_norm2 = 0.d0
-                  do m = 1, depth
-                     do n = 1, NDIM
+                  do n = 1, NDIM
+                     do m = 1, depth
                         grad_norm2 = grad_norm2 + 
-     &                       gradq0(ic0,ic1,ic2,n,m)**2
+     &                       gradq0(ic0,ic1,ic2,m,n)**2
                      enddo
                   enddo
 
@@ -249,10 +249,10 @@ c
      &               deriv_interp_func( phi, diff_type )
 
                   grad_norm2 = 0.d0
-                  do m = 1, depth
-                     do n = 1, NDIM
+                  do n = 1, NDIM
+                     do m = 1, depth
                         grad_norm2 = grad_norm2 +
-     &                       gradq1(ic0,ic1,ic2,n,m)**2
+     &                       gradq1(ic0,ic1,ic2,m,n)**2
                      enddo
                   enddo
 
@@ -301,10 +301,10 @@ c
      &               deriv_interp_func( phi, diff_type )
 
                   grad_norm2 = 0.d0
-                  do m = 1, depth
-                     do n = 1, NDIM
+                  do n = 1, NDIM
+                     do m = 1, depth
                         grad_norm2 = grad_norm2 +
-     &                       gradq2(ic0,ic1,ic2,n,m)**2
+     &                       gradq2(ic0,ic1,ic2,m,n)**2
                      enddo
                   enddo
                   

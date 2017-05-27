@@ -63,8 +63,8 @@ c
 
       character*(*)         floor_type
       double precision
-     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,NDIM,depth),
-     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,NDIM,depth),
+     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,depth,NDIM),
+     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,depth,NDIM),
      &           dx(dxlo0:dxhi0,dxlo1:dxhi1),
      &           dy(dylo0:dyhi0,dylo1:dyhi1),
      &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,depth),
@@ -91,11 +91,11 @@ c     x faces
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
-c loop over quaternion components
-            do m = 1, depth
 c loop over components of nabla q_m
-               do n = 1, NDIM
-                  grad_norm2 = grad_norm2 + gqx(i,j,n,m)**2
+            do n = 1, NDIM
+c loop over quaternion components
+               do m = 1, depth
+                  grad_norm2 = grad_norm2 + gqx(i,j,m,n)**2
                enddo
             enddo
             grad_normi = eval_grad_normi(grad_norm2, floor_type, 
@@ -115,9 +115,9 @@ c     y faces
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
-            do m = 1, depth
-               do n = 1, NDIM
-                  grad_norm2 = grad_norm2 + gqy(i,j,n,m)**2
+            do n = 1, NDIM
+               do m = 1, depth
+                  grad_norm2 = grad_norm2 + gqy(i,j,m,n)**2
                enddo
             enddo
             grad_normi = eval_grad_normi(grad_norm2, floor_type, 
@@ -220,9 +220,9 @@ c     x faces
 
       hinv = 1.d0 / h(1)
 
-      do j = lo1, hi1
-         do i = lo0, hi0+1
-            do m = 1, depth
+      do m = 1, depth
+         do j = lo1, hi1
+            do i = lo0, hi0+1
                fx(i,j,m) = fcx(i,j,m) * hinv * 
      &              (q(i,j,m) - q(i-1,j,m))
             enddo
@@ -233,9 +233,9 @@ c     y faces
 
       hinv = 1.d0 / h(2)
 
-      do j = lo1, hi1+1
-         do i = lo0, hi0
-            do m = 1, depth
+      do m = 1, depth
+         do j = lo1, hi1+1
+            do i = lo0, hi0
                fy(i,j,m) = fcy(i,j,m) * hinv *
      &              (q(i,j,m) - q(i,j-1,m))
             enddo
@@ -276,9 +276,9 @@ c     local variables:
 
 c     x faces
 
-      do j = lo1, hi1
-         do i = lo0, hi0+1
-            do m = 1, depth
+      do m = 1, depth
+         do j = lo1, hi1
+            do i = lo0, hi0+1
                fx(i,j,m) = fcx(i,j,m) * grad_x_xside(i,j,m)
             enddo
          enddo
@@ -286,9 +286,9 @@ c     x faces
 
 c     y faces
 
-      do j = lo1, hi1+1
-         do i = lo0, hi0
-            do m = 1, depth
+      do m = 1, depth
+         do j = lo1, hi1+1
+            do i = lo0, hi0
                fy(i,j,m) = fcy(i,j,m) * grad_y_yside(i,j,m)
             enddo
          enddo
@@ -394,6 +394,8 @@ c     local variables:
       double precision dxinv, dyinv, right, left, up, down,
      &                 divergence
 
+c      print*,'compute_q_residual2d'
+
       dxinv = 1.d0 / h(1)
       dyinv = 1.d0 / h(2)
 
@@ -411,6 +413,85 @@ c     local variables:
 
                residual(i,j,m) = rhs(i,j,m) - q(i,j,m)
      &              - gamma * sqrt_m(i,j) * divergence
+
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+
+      subroutine compute_q_residual2d_symm(
+     &     lo0, hi0, lo1, hi1,
+     &     depth,
+     &     sqrt_m, mlo0, mhi0, mlo1, mhi1,
+     &     fx, fxlo0, fxhi0, fxlo1, fxhi1,
+     &     fy, fylo0, fyhi0, fylo1, fyhi1,
+     &     q, qlo0, qhi0, qlo1, qhi1,
+     &     h, gamma,
+     &     rhs, rhlo0, rhhi0, rhlo1, rhhi1,
+     &     residual, rlo0, rhi0, rlo1, rhi1,
+     &     iqrot_x, iqrot_y, ngiq
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1,
+     &        depth, ngiq,
+     &        mlo0, mhi0, mlo1, mhi1,
+     &        fxlo0, fxhi0, fxlo1, fxhi1,
+     &        fylo0, fyhi0, fylo1, fyhi1,
+     &        qlo0, qhi0, qlo1, qhi1,
+     &        rhlo0, rhhi0, rhlo1, rhhi1,
+     &        rlo0, rhi0, rlo1, rhi1
+      double precision 
+     &        sqrt_m(mlo0:mhi0,mlo1:mhi1),
+     &        fx(fxlo0:fxhi0,fxlo1:fxhi1,depth),
+     &        fy(fylo0:fyhi0,fylo1:fyhi1,depth),
+     &        q(qlo0:qhi0,qlo1:qhi1,depth),
+     &        h(2), gamma,
+     &        rhs(rhlo0:rhhi0,rhlo1:rhhi1,depth),
+     &        residual(rlo0:rhi0,rlo1:rhi1,depth)
+      integer iqrot_x(SIDE2d0(lo,hi,ngiq))
+      integer iqrot_y(SIDE2d1(lo,hi,ngiq))
+
+c     local variables:
+      integer i, j, m, iq
+      double precision dxinv, dyinv, 
+     &                   right(depth), left(depth), 
+     &                   up(depth), down(depth),
+     &                   divergence(depth)
+      double precision dtmp(depth)
+
+c      print*,'compute_q_residual2d_symm'
+
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+                  
+            do m = 1, depth
+               dtmp(m) = fx(i+1,j,m)
+               left(m) = fx(i  ,j,m)
+            enddo
+            iq = -1 * iqrot_x(i+1,j)
+            call quatsymmrotate( dtmp, iq, right, depth )
+
+            do m = 1, depth
+               dtmp(m) = fy(i,j+1,m)
+               down(m) = fy(i,j  ,m)
+            enddo
+            iq = -1 * iqrot_y(i,j+1)
+            call quatsymmrotate( dtmp, iq, up, depth )
+            
+            do m = 1, depth
+               divergence(m) = (right(m) - left(m)) * dxinv
+     &                       + (up(m)    - down(m)) * dyinv
+            enddo
+
+            do m = 1, depth
+               residual(i,j,m) = rhs(i,j,m) - q(i,j,m)
+     &              - gamma * sqrt_m(i,j) * divergence(m)
 
             enddo
          enddo
@@ -447,6 +528,8 @@ c     local variables:
       integer i, j, m
       double precision dxinv, dyinv, right, left, up, down,
      &                 divergence
+
+c      print*,'add_quat_op2d'
 
       dxinv = 1.d0 / h(1)
       dyinv = 1.d0 / h(2)
@@ -507,6 +590,8 @@ c     local variables:
       double precision dxinv, dyinv, right, left, up, down,
      &                 divergence
 
+c      print*,'add_quat_proj_op2d'
+
       dxinv = 1.d0 / h(1)
       dyinv = 1.d0 / h(2)
 
@@ -524,6 +609,85 @@ c     local variables:
 
                rhs(i,j,m) = rhs(i,j,m)
      &              - mobility(i,j) * (divergence
+     &              + 2.d0 * q(i,j,m) * lambda(i,j))
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+
+       subroutine add_quat_proj_op2d_symm(
+     &     lo0, hi0, lo1, hi1,
+     &     depth,
+     &     mobility, mlo0, mhi0, mlo1, mhi1,
+     &     fx, fxlo0, fxhi0, fxlo1, fxhi1,
+     &     fy, fylo0, fyhi0, fylo1, fyhi1,
+     &     q, qlo0, qhi0, qlo1, qhi1,
+     &     lambda, llo0, lhi0, llo1, lhi1,
+     &     h,
+     &     rhs, rhlo0, rhhi0, rhlo1, rhhi1,
+     &     iqrot_x, iqrot_y, ngiq
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1,
+     &        depth, ngiq,
+     &        mlo0, mhi0, mlo1, mhi1,
+     &        fxlo0, fxhi0, fxlo1, fxhi1,
+     &        fylo0, fyhi0, fylo1, fyhi1,
+     &        qlo0, qhi0, qlo1, qhi1,
+     &        llo0, lhi0, llo1, lhi1,
+     &        rhlo0, rhhi0, rhlo1, rhhi1
+      double precision 
+     &        mobility(mlo0:mhi0,mlo1:mhi1),
+     &        fx(fxlo0:fxhi0,fxlo1:fxhi1,depth),
+     &        fy(fylo0:fyhi0,fylo1:fyhi1,depth),
+     &        q(qlo0:qhi0,qlo1:qhi1,depth),
+     &        lambda(llo0:lhi0,llo1:lhi1),
+     &        h(2),
+     &        rhs(rhlo0:rhhi0,rhlo1:rhhi1,depth)
+      integer iqrot_x(SIDE2d0(lo,hi,ngiq))
+      integer iqrot_y(SIDE2d1(lo,hi,ngiq))
+
+c     local variables:
+      integer i, j, m, iq
+      double precision dxinv, dyinv, 
+     &                 right(depth), left(depth), 
+     &                 up(depth), down(depth),
+     &                 divergence(depth)
+      double precision dtmp(depth)
+
+c      print*,'add_quat_proj_op2d_symm'
+
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+
+            do m = 1, depth
+               dtmp(m) = fx(i+1,j,m)
+               left(m) = fx(i  ,j,m)
+            enddo
+            iq = -1 * iqrot_x(i+1,j)
+            call quatsymmrotate( dtmp, iq, right, depth )
+
+            do m = 1, depth
+               dtmp(m) = fy(i,j+1,m)
+               down(m) = fy(i,j  ,m)
+            enddo
+            iq = -1 * iqrot_y(i,j+1)
+            call quatsymmrotate( dtmp, iq, up, depth )
+            
+            do m = 1, depth
+               divergence(m) = (right(m) - left(m)) * dxinv
+     &                       + (up(m)    - down(m)) * dyinv
+            enddo
+
+            do m = 1, depth
+               rhs(i,j,m) = rhs(i,j,m)
+     &              - mobility(i,j) * (divergence(m)
      &              + 2.d0 * q(i,j,m) * lambda(i,j))
             enddo
          enddo
@@ -559,6 +723,8 @@ c     local variables:
       integer i, j, m
       double precision xfac, yfac, left, right, down, up, sumq2
 
+c      print*,'compute_lambda_flux2d'
+      
       xfac = 0.5d0 / h(1)
       yfac = 0.5d0 / h(2)
 
@@ -576,6 +742,77 @@ c     local variables:
 
                lambda(i,j) = lambda(i,j) - q(i,j,m) *
      &                 ((right - left) * xfac + (up - down) * yfac)
+               sumq2 = sumq2 + q(i,j,m)**2
+            enddo
+            lambda(i,j) = lambda(i,j) / sumq2
+         enddo
+      enddo
+
+      return
+      end
+
+      subroutine compute_lambda_flux2d_symm(
+     &     lo0, hi0, lo1, hi1,
+     &     depth,
+     &     fx, fxlo0, fxhi0, fxlo1, fxhi1,
+     &     fy, fylo0, fyhi0, fylo1, fyhi1,
+     &     q, qlo0, qhi0, qlo1, qhi1,
+     &     h,
+     &     lambda, llo0, lhi0, llo1, lhi1,
+     &     iqrot_x, iqrot_y, ngiq
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1,
+     &        depth, ngiq,
+     &        fxlo0, fxhi0, fxlo1, fxhi1,
+     &        fylo0, fyhi0, fylo1, fyhi1,
+     &        qlo0, qhi0, qlo1, qhi1,
+     &        llo0, lhi0, llo1, lhi1
+      double precision fx(fxlo0:fxhi0,fxlo1:fxhi1,depth),
+     &                 fy(fylo0:fyhi0,fylo1:fyhi1,depth),
+     &                 q(qlo0:qhi0,qlo1:qhi1,depth),
+     &                 h(NDIM),
+     &                 lambda(llo0:lhi0,llo1:lhi1)
+      integer iqrot_x(SIDE2d0(lo,hi,ngiq))
+      integer iqrot_y(SIDE2d1(lo,hi,ngiq))
+
+c     local variables:
+      integer i, j, m, iq
+      double precision xfac, yfac, sumq2
+      double precision right(depth), left(depth), 
+     &                 up(depth), down(depth)
+      double precision dtmp(depth)
+
+c      print*,'compute_lambda_flux2d_symm'
+      
+      xfac = 0.5d0 / h(1)
+      yfac = 0.5d0 / h(2)
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+
+            do m = 1, depth
+               dtmp(m) = fx(i+1,j,m)
+               left(m) = fx(i  ,j,m)
+            enddo
+            iq = -1 * iqrot_x(i+1,j)
+            call quatsymmrotate( dtmp, iq, right, depth )
+
+            do m = 1, depth
+               dtmp(m) = fy(i,j+1,m)
+               down(m) = fy(i,j  ,m)
+            enddo
+            iq = -1 * iqrot_y(i,j+1)
+            call quatsymmrotate( dtmp, iq, up, depth )
+            
+            lambda(i,j) = 0.d0
+            sumq2 = 0.d0
+            do m = 1, depth
+
+               lambda(i,j) = lambda(i,j) - q(i,j,m) *
+     &                 ((right(m) - left(m)) * xfac 
+     &                + (up(m) - down(m)) * yfac)
                sumq2 = sumq2 + q(i,j,m)**2
             enddo
             lambda(i,j) = lambda(i,j) / sumq2

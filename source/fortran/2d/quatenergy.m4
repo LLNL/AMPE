@@ -77,8 +77,8 @@ c
       double precision eta(CELL2d(lo,hi,ngeta))
       double precision temperature(CELL2d(lo,hi,tghosts))
       
-      double precision gqx(SIDE2d0(lo,hi,gqghosts),NDIM,depth)
-      double precision gqy(SIDE2d1(lo,hi,gqghosts),NDIM,depth)
+      double precision gqx(SIDE2d0(lo,hi,gqghosts),depth,NDIM)
+      double precision gqy(SIDE2d1(lo,hi,gqghosts),depth,NDIM)
       double precision fl(CELL2d(lo,hi,0))
       double precision fa(CELL2d(lo,hi,0))
       double precision fb(CELL2d(lo,hi,0))
@@ -201,9 +201,9 @@ c
                aphi = average_func( phi(i-1,j), phi(i,j), avg_type)
                p_phi = interp_func( aphi, orient_interp_type )
                o2 = 0.d0               
-               do m = 1, depth
-                  do n = 1, NDIM
-                     o2 = o2 + gqx(i,j,n,m) * gqx(i,j,n,m)
+               do n = 1, NDIM
+                  do m = 1, depth
+                     o2 = o2 + gqx(i,j,m,n) * gqx(i,j,m,n)
                   enddo
                enddo
                o2 = o2 + floor2
@@ -212,9 +212,9 @@ c
                aphi = average_func( phi(i,j), phi(i+1,j), avg_type)
                p_phi = interp_func( aphi, orient_interp_type )
                o2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     o2 = o2 + gqx(i+1,j,n,m) * gqx(i+1,j,n,m)
+               do n = 1, NDIM
+                  do m = 1, depth
+                     o2 = o2 + gqx(i+1,j,m,n) * gqx(i+1,j,m,n)
                   enddo
                enddo
                o2 = o2 + floor2
@@ -223,9 +223,9 @@ c
                aphi = average_func( phi(i,j-1), phi(i,j), avg_type)
                p_phi = interp_func( aphi, orient_interp_type )
                o2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     o2 = o2 + gqy(i,j,n,m) * gqy(i,j,n,m)
+               do n = 1, NDIM
+                  do m = 1, depth
+                     o2 = o2 + gqy(i,j,m,n) * gqy(i,j,m,n)
                   enddo
                enddo
                o2 = o2 + floor2
@@ -234,9 +234,9 @@ c
                aphi = average_func( phi(i,j), phi(i,j+1), avg_type)
                p_phi = interp_func( aphi, orient_interp_type )
                o2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     o2 = o2 + gqy(i,j+1,n,m) * gqy(i,j+1,n,m)
+               do n = 1, NDIM
+                  do m = 1, depth
+                     o2 = o2 + gqy(i,j+1,m,n) * gqy(i,j+1,m,n)
                   enddo
                enddo
                o2 = o2 + floor2
@@ -261,13 +261,13 @@ c
          do j = lo1, hi1
             do i = lo0, hi0
                e = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
+               do n = 1, NDIM
+                  do m = 1, depth
                      e = e + (
-     &                  gqx(i,  j,n,m) * gqx(i,  j,n,m)
-     &                + gqx(i+1,j,n,m) * gqx(i+1,j,n,m)
-     &                + gqy(i,j  ,n,m) * gqy(i,j  ,n,m)
-     &                + gqy(i,j+1,n,m) * gqy(i,j+1,n,m)
+     &                  gqx(i,  j,m,n) * gqx(i,  j,m,n)
+     &                + gqx(i+1,j,m,n) * gqx(i+1,j,m,n)
+     &                + gqy(i,j  ,m,n) * gqy(i,j  ,m,n)
+     &                + gqy(i,j+1,m,n) * gqy(i,j+1,m,n)
      &                )
                   enddo
                enddo

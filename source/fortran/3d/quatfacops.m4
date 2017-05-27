@@ -63,9 +63,9 @@ c
      &        fczlo0, fczhi0, fczlo1, fczhi1, fczlo2, fczhi2
       character*(*)        floor_type
       double precision
-     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,gqxlo2:gqxhi2,NDIM,depth),
-     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,gqylo2:gqyhi2,NDIM,depth),
-     &           gqz(gqzlo0:gqzhi0,gqzlo1:gqzhi1,gqzlo2:gqzhi2,NDIM,depth),
+     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,gqxlo2:gqxhi2,depth,NDIM),
+     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,gqylo2:gqyhi2,depth,NDIM),
+     &           gqz(gqzlo0:gqzhi0,gqzlo1:gqzhi1,gqzlo2:gqzhi2,depth,NDIM),
      &           dx(dxlo0:dxhi0,dxlo1:dxhi1,dxlo2:dxhi2),
      &           dy(dylo0:dyhi0,dylo1:dyhi1,dylo2:dyhi2),
      &           dz(dzlo0:dzhi0,dzlo1:dzhi1,dzlo2:dzhi2),
@@ -95,9 +95,9 @@ c     x faces
 
 c              compute reciprocal of gradient L2 norm on this face
                grad_norm2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     grad_norm2 = grad_norm2 + gqx(i,j,k,n,m)**2
+               do n = 1, NDIM
+                  do m = 1, depth
+                     grad_norm2 = grad_norm2 + gqx(i,j,k,m,n)**2
                   enddo
                enddo
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
@@ -120,9 +120,9 @@ c     y faces
 
 c              compute reciprocal of gradient L2 norm on this face
                grad_norm2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     grad_norm2 = grad_norm2 + gqy(i,j,k,n,m)**2
+               do n = 1, NDIM
+                  do m = 1, depth
+                     grad_norm2 = grad_norm2 + gqy(i,j,k,m,n)**2
                   enddo
                enddo
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
@@ -145,9 +145,9 @@ c     z faces
 
 c              compute reciprocal of gradient L2 norm on this face
                grad_norm2 = 0.d0
-               do m = 1, depth
-                  do n = 1, NDIM
-                     grad_norm2 = grad_norm2 + gqz(i,j,k,n,m)**2
+               do n = 1, NDIM
+                  do m = 1, depth
+                     grad_norm2 = grad_norm2 + gqz(i,j,k,m,n)**2
                   enddo
                enddo
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
@@ -564,6 +564,49 @@ c     local variables:
          enddo
       enddo
 
+      return
+      end
+
+      subroutine compute_q_residual3d_symm(
+     &     lo0, hi0, lo1, hi1, lo2, hi2,
+     &     depth,
+     &     sqrt_m, mlo0, mhi0, mlo1, mhi1, mlo2, mhi2,
+     &     fx, fxlo0, fxhi0, fxlo1, fxhi1, fxlo2, fxhi2,
+     &     fy, fylo0, fyhi0, fylo1, fyhi1, fylo2, fyhi2,
+     &     fz, fzlo0, fzhi0, fzlo1, fzhi1, fzlo2, fzhi2,
+     &     q, qlo0, qhi0, qlo1, qhi1, qlo2, qhi2,
+     &     h, gamma,
+     &     rhs, rhlo0, rhhi0, rhlo1, rhhi1, rhlo2, rhhi2,
+     &     residual, rlo0, rhi0, rlo1, rhi1, rlo2, rhi2,
+     &     iqrot_x, iqrot_y, iqrot_z, ngiq
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1, lo2, hi2,
+     &        depth, ngiq,
+     &        mlo0, mhi0, mlo1, mhi1, mlo2, mhi2,
+     &        fxlo0, fxhi0, fxlo1, fxhi1, fxlo2, fxhi2,
+     &        fylo0, fyhi0, fylo1, fyhi1, fylo2, fyhi2,
+     &        fzlo0, fzhi0, fzlo1, fzhi1, fzlo2, fzhi2,
+     &        qlo0, qhi0, qlo1, qhi1, qlo2, qhi2,
+     &        rhlo0, rhhi0, rhlo1, rhhi1, rhlo2, rhhi2,
+     &        rlo0, rhi0, rlo1, rhi1, rlo2, rhi2
+      double precision 
+     &        sqrt_m(mlo0:mhi0,mlo1:mhi1,mlo2:mhi2),
+     &        fx(fxlo0:fxhi0,fxlo1:fxhi1,fxlo2:fxhi2,depth),
+     &        fy(fylo0:fyhi0,fylo1:fyhi1,fylo2:fyhi2,depth),
+     &        fz(fzlo0:fzhi0,fzlo1:fzhi1,fzlo2:fzhi2,depth),
+     &        q(qlo0:qhi0,qlo1:qhi1,qlo2:qhi2,depth),
+     &        h(NDIM), gamma,
+     &        rhs(rhlo0:rhhi0,rhlo1:rhhi1,rhlo2:rhhi2,depth),
+     &        residual(rlo0:rhi0,rlo1:rhi1,rlo2:rhi2,depth)
+      integer iqrot_x(SIDE3d0(lo,hi,ngiq))
+      integer iqrot_y(SIDE3d1(lo,hi,ngiq))
+      integer iqrot_z(SIDE3d2(lo,hi,ngiq))
+
+      print*,'compute_q_residual3d_symm not implemented'
+      stop
+      
       return
       end
 
