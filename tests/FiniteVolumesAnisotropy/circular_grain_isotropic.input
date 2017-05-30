@@ -35,6 +35,7 @@ ModelParameters {
    temperature = 1.
 
    epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
    phi_mobility     = 200.
    
    phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
@@ -43,8 +44,9 @@ ModelParameters {
    
    free_energy_liquid = 0.
    free_energy_solid = 0.
-
+   
    use_diffs_to_compute_flux = TRUE
+   stencil_type = "isotropic"
    quat_grad_modulus_type = "sides"
 }
 
