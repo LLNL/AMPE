@@ -267,18 +267,18 @@ c-----------------------------------------------------------------------
             grad2 =
      &            grad_x(i,j) * grad_x(i,j) +
      &            grad_y(i,j) * grad_y(i,j)
-            if( isnan(grad2) )stop '"grad2" is a NaN'
+c            if( isnan(grad2) )stop '"grad2" is a NaN'
             
-            if( grad2>threshold2 )then
-               vel(i,j) = phi_dot(i,j)/dsqrt(grad2)
+c            if( grad2>threshold2 )then
+             vel(i,j) = phi_dot(i,j)/dsqrt(grad2+threshold2)
 c               vel(i,j) = phi_dot(i,j)
-            else
-               vel(i,j) = phi_dot(i,j)*invthreshold
+c            else
+c               vel(i,j) = phi_dot(i,j)*invthreshold
 c               if( abs(vel(i,j)) .gt. 10. )then
 c                  print*,'vel=',vel(i,j),', phi_dot(i,j)=',phi_dot(i,j)
 c               endif
 c               vel(i,j) = phi_dot(i,j)
-            endif
+c            endif
             if( isnan(vel(i,j)) )then
                print*,'phi_dot(i,j)=',phi_dot(i,j)
                print*,'vel=',vel(i,j)

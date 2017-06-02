@@ -255,13 +255,13 @@ c-----------------------------------------------------------------------
      &            grad_y(i,j,k) * grad_y(i,j,k) +
      &            grad_z(i,j,k) * grad_z(i,j,k)
             
-               if( grad2>threshold2 )then
-                  vel(i,j,k) = phi_dot(i,j,k)/dsqrt(grad2)
+c               if( grad2>threshold2 )then
+                vel(i,j,k) = phi_dot(i,j,k)/dsqrt(grad2+threshold2)
 c                  vel(i,j,k) = phi_dot(i,j,k)
-               else
-                  vel(i,j,k) = phi_dot(i,j,k)*invthreshold
+c               else
+c                  vel(i,j,k) = phi_dot(i,j,k)*invthreshold
 c                  vel(i,j,k) = phi_dot(i,j,k)
-               endif
+c               endif
 
             enddo
          enddo
