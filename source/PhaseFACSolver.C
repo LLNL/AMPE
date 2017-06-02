@@ -42,6 +42,8 @@ PhaseFACSolver::PhaseFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("PhaseFACSolver::setOperatorCoefficients");
+   
    return;
 }
 
@@ -57,6 +59,8 @@ void PhaseFACSolver::setOperatorCoefficients(
    const double eta_well_scale,
    const string eta_well_func_type )
 {
+   t_set_op_coef->start();
+
    PhaseFACOps* phase_fac_ops = dynamic_cast<PhaseFACOps*>( d_fac_ops );
 
    phase_fac_ops->setOperatorCoefficients(
@@ -72,4 +76,6 @@ void PhaseFACSolver::setOperatorCoefficients(
       eta_well_func_type );
 
    finalizeCoefficients();
+
+   t_set_op_coef->stop();
 }

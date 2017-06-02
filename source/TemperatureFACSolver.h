@@ -56,6 +56,8 @@ public:
       const double,
       const double );
 
+private:
+   boost::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 
 #endif  // included_TemperatureFACSolver

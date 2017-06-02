@@ -63,6 +63,8 @@ public:
       const double eta_well_scale,
       const std::string eta_well_func_type );
 
+private:
+   boost::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 
 #endif  // included_PhaseFACSolver

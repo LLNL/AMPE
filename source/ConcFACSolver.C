@@ -41,6 +41,8 @@ ConcFACSolver::ConcFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("ConcFACSolver::setOperatorCoefficients");
+   
    return;
 }
 
@@ -49,6 +51,8 @@ void ConcFACSolver::setOperatorCoefficients(
    const int diffusion_id,
    const double mobility )
 {
+   t_set_op_coef->start();
+
    ConcFACOps* conc_fac_ops = dynamic_cast<ConcFACOps*>( d_fac_ops );
 
    conc_fac_ops->setOperatorCoefficients(
@@ -57,5 +61,7 @@ void ConcFACSolver::setOperatorCoefficients(
       mobility );
    
    finalizeCoefficients();
+
+   t_set_op_coef->stop();
 }
 

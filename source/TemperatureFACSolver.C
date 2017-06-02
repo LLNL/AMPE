@@ -42,6 +42,8 @@ TemperatureFACSolver::TemperatureFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("TemperatureFACSolver::setOperatorCoefficients");
+   
    return;
 }
 
@@ -53,9 +55,13 @@ void TemperatureFACSolver::setOperatorCoefficients(
 {
    assert( d<0. );
 
+   t_set_op_coef->start();
+
    TemperatureFACOps* Temperature_fac_ops = dynamic_cast<TemperatureFACOps*>( d_fac_ops );
 
    Temperature_fac_ops->setOperatorCoefficients( m, c, d );
 
    finalizeCoefficients();
+
+   t_set_op_coef->stop();
 }
