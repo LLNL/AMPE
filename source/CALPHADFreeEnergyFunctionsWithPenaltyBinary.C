@@ -119,7 +119,7 @@ double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeFreeEnergy(
    double extra_energy = computePenalty(pi,conc[0]);
    
    // subtract -mu*c to get grand potential
-   if( gp )fe -= computeDerivFreeEnergy(temperature,conc[0],pi)*conc[0];
+   if( gp )fe -= computeDerivFreeEnergy(temperature,conc,pi)*conc[0];
    
    return fe+extra_energy;
 }
@@ -128,13 +128,13 @@ double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeFreeEnergy(
 
 double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeDerivFreeEnergy(
    const double temperature,
-   const double conc,
+   const double* const conc,
    const PHASE_INDEX pi )
 {
    double fe = CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(temperature,
       conc,pi);
 
-   double extra_energy = computeDerivPenalty(pi,conc);
+   double extra_energy = computeDerivPenalty(pi,conc[0]);
    
    return fe+extra_energy;
 }

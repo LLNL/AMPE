@@ -63,7 +63,13 @@ public:
       const double temperature,
       const double* const conc,
       const PHASE_INDEX pi,
-      const bool gp=false  )=0;   
+      const bool gp=false  )=0;
+   virtual double computeDerivFreeEnergy(
+      const double temperature,
+      const double* const conc,
+      const PHASE_INDEX pi )=0;
+      
+   virtual void preRunDiagnostics(std::ostream& os)=0;
 };
 
 #endif

@@ -275,7 +275,7 @@ double CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(
          conc[0] );
 
    // subtract -mu*c to get grand potential
-   if( gp )fe -= computeDerivFreeEnergy(temperature,conc[0],pi)*conc[0];
+   if( gp )fe -= computeDerivFreeEnergy(temperature,conc,pi)*conc[0];
    
    return fe;
 }
@@ -284,7 +284,7 @@ double CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(
 
 double CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(
    const double temperature,
-   const double conc,
+   const double* const conc,
    const PHASE_INDEX pi )
 {
    const double l0 = lmix0Phase( pi, temperature );
@@ -313,11 +313,11 @@ double CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(
    double mu =
       ( g_species[0].fenergy( temperature ) - g_species[1].fenergy( temperature ) ) 
       +
-      CALPHADcomputeFMix_derivBinary( l0, l1, l2, l3, conc )
+      CALPHADcomputeFMix_derivBinary( l0, l1, l2, l3, conc[0] )
       +
       CALPHADcomputeFIdealMix_derivBinary(
          gas_constant_R_JpKpmol * temperature,
-         conc );
+         conc[0] );
 
    return mu;
 }

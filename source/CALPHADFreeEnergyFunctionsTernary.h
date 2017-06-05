@@ -34,8 +34,7 @@ public:
       const bool gp=false  );   
    virtual void computeDerivFreeEnergy(
       const double temperature,
-      const double conc0,
-      const double conc1,
+      const double* const conc,
       const PHASE_INDEX pi,
       double* deriv );
    virtual void computeSecondDerivativeFreeEnergy(

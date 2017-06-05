@@ -170,7 +170,7 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    // subtract -mu*c to get grand potential
    if( gp ){
       double deriv[2];
-      computeDerivFreeEnergy(temperature,conc0,conc1,pi,deriv);
+      computeDerivFreeEnergy(temperature,conc,pi,deriv);
       fe -= deriv[0]*conc0;
       fe -= deriv[1]*conc1;
    }
@@ -182,8 +182,7 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
 
 void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
    const double temperature,
-   const double conc0,
-   const double conc1,
+   const double* const conc,
    const PHASE_INDEX pi,
    double* deriv )
 {
@@ -215,7 +214,7 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
       return;
    }
    
-   CALPHADcomputeFMix_derivTernary( lAB, lAC, lBC, conc0, conc1, deriv );
+   CALPHADcomputeFMix_derivTernary( lAB, lAC, lBC, conc[0], conc[1], deriv );
 
    deriv[0] += g_species[0].fenergy( temperature );
    deriv[1] += g_species[1].fenergy( temperature );
@@ -223,7 +222,7 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
    double tmp[2];
    CALPHADcomputeFIdealMix_derivTernary(
       gas_constant_R_JpKpmol * temperature,
-      conc0, conc1, tmp );
+      conc[0], conc[1], tmp );
    deriv[0]+=tmp[0];
    deriv[1]+=tmp[1];
 }

@@ -74,9 +74,12 @@ public:
       std::vector<double>& d2fdc2,
       const bool use_internal_units)
    {
-      d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_l,phaseL,d2fdc2);
+      CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
+      assert( calphad_fenergy );
       
-      double extra_energy = d_calphad_fenergy->compute2ndDerivPenalty(phaseL, c_l[0]);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_l,phaseL,d2fdc2);
+      
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseL, c_l[0]);
       
       d2fdc2[0]+= extra_energy;
   
@@ -94,9 +97,11 @@ public:
       std::vector<double>& d2fdc2,
       const bool use_internal_units)
    {
-      d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_a,phaseA,d2fdc2);
+      CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      double extra_energy = d_calphad_fenergy->compute2ndDerivPenalty(phaseA, c_a[0]);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_a,phaseA,d2fdc2);
+      
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseA, c_a[0]);
       
       d2fdc2[0]+= extra_energy;
       
@@ -114,9 +119,11 @@ public:
       std::vector<double>& d2fdc2,
       const bool use_internal_units)
    {
-      d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_b,phaseB,d2fdc2);
+      CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      double extra_energy = d_calphad_fenergy->compute2ndDerivPenalty(phaseB, c_b[0]);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_b,phaseB,d2fdc2);
+      
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseB, c_b[0]);
       
       d2fdc2[0]+= extra_energy;
       
