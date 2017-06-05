@@ -59,7 +59,7 @@ public:
 
    virtual double computeFreeEnergy(
       const double temperature,
-      const double conc,
+      const double* const conc,
       const PHASE_INDEX pi,
       const bool gp=false  );
    virtual double computeDerivFreeEnergy(

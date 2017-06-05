@@ -229,15 +229,15 @@ protected:
       const bool use_internal_units);
 
    double defaultComputeFreeEnergyLiquid(
-      const double temperature, const double conc,
+      const double temperature, const double* const conc,
       const bool gp );
 
    double defaultComputeFreeEnergySolidA(
-      const double temperature, const double conc,
+      const double temperature, const double* const conc,
       const bool gp );
 
    double defaultComputeFreeEnergySolidB(
-      const double temperature, const double conc,
+      const double temperature, const double* const conc,
       const bool gp );
 
 protected:

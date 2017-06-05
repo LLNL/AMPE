@@ -295,33 +295,33 @@ void CALPHADFreeEnergyStrategy::computeFreeEnergySolidB(
 
 double CALPHADFreeEnergyStrategy::defaultComputeFreeEnergyLiquid(
    const double temperature,
-   const double conc,
+   const double* const conc,
    const bool gp )
 {
    double fe = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseL,gp);
-   fe *= d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseL);
+   fe *= d_mv_strategy->computeInvMolarVolume(temperature,conc,phaseL);
 
    return fe;
 }
 
 double CALPHADFreeEnergyStrategy::defaultComputeFreeEnergySolidA(
    const double temperature,
-   const double conc,
+   const double* const conc,
    const bool gp )
 {
    double fe = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseA,gp);
-   fe *= d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseA);
+   fe *= d_mv_strategy->computeInvMolarVolume(temperature,conc,phaseA);
 
    return fe;
 }
 
 double CALPHADFreeEnergyStrategy::defaultComputeFreeEnergySolidB(
    const double temperature,
-   const double conc,
+   const double* const conc,
    const bool gp )
 {
    double fe = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseB,gp);
-   fe *= d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseB);
+   fe *= d_mv_strategy->computeInvMolarVolume(temperature,conc,phaseB);
 
    return fe;
 }
@@ -519,7 +519,7 @@ void CALPHADFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = d_calphad_fenergy->computeFreeEnergy(t,c_i,pi,gp);
+            ptr_f[idx_f] = d_calphad_fenergy->computeFreeEnergy(t,&c_i,pi,gp);
             ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
          }
       }

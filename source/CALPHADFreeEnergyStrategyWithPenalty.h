@@ -68,40 +68,6 @@ public:
       const PHASE_INDEX pi0, const PHASE_INDEX pi1,
       double* ceq );
 
-   virtual double computeValFreeEnergyLiquid(
-      const double temperature,
-      const double conc,
-      const bool gp = false )
-   {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseL,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseL, conc);
-      
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseL); 
-   }
-
-   virtual double computeValFreeEnergySolidA(
-      const double temperature,
-      const double conc,
-      const bool gp = false )
-   {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseA,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseA, conc);
-      
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseA); 
-   }
-
-   virtual double computeValFreeEnergySolidB(
-      const double temperature,
-      const double conc,
-      const bool gp = false )
-   {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseB,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseB, conc);
-      
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseB);  
-   }
-
-
    void computeSecondDerivativeEnergyPhaseL(
       const double temperature,
       const std::vector<double>& c_l,

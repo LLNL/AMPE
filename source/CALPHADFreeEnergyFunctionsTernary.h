@@ -29,8 +29,7 @@ public:
    
    virtual double computeFreeEnergy(
       const double temperature,
-      const double conc0,
-      const double conc1,
+      const double* const conc,
       const PHASE_INDEX pi,
       const bool gp=false  );   
    virtual void computeDerivFreeEnergy(
@@ -77,8 +76,7 @@ public:
    double fenergy(
       const double phi,
       const double eta,
-      const double conc0,
-      const double conc1,
+      const double* const conc,
       const double temperature );
    void printEnergyVsPhiHeader(
       const double temperature,
@@ -91,8 +89,7 @@ public:
       const double c1max,
       std::ostream& os )const;
    void printEnergyVsPhi(
-      const double conc0,
-      const double conc1,
+      const double* const conc,
       const double temperature,
       const int npts,
       std::ostream& os );

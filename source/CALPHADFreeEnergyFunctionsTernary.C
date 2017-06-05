@@ -122,11 +122,13 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
 
 double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    const double temperature,
-   const double conc0,
-   const double conc1,
+   const double* const conc,
    const PHASE_INDEX pi,
    const bool gp )
 {
+   const double conc0=conc[0];
+   const double conc1=conc[1];
+   
    double lAB[4] = {lmix0ABPhase( pi, temperature ),
                     lmix1ABPhase( pi, temperature ),
                     lmix2ABPhase( pi, temperature ),
@@ -448,10 +450,12 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
    }
 
    assert( conc0>=0. );
-   fl = computeFreeEnergy(temperature,cauxilliary[0],cauxilliary[2],phaseL,false);
+   double concl[2]={cauxilliary[0],cauxilliary[2]};
+   fl = computeFreeEnergy(temperature,concl,phaseL,false);
 
    assert( conc1>=0. );
-   fa = computeFreeEnergy(temperature,cauxilliary[1],cauxilliary[3],phaseA,false);
+   double conca[2]={cauxilliary[1],cauxilliary[3]};
+   fa = computeFreeEnergy(temperature,conca,phaseA,false);
 }
 
 //-----------------------------------------------------------------------
@@ -563,8 +567,8 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
       // compute slope of f between equilibrium concentrations
       // to add slopec*conc to energy later on
    
-      fc0 = computeFreeEnergy(temperature,ceqL[0],ceqL[1],phaseL);
-      fc1 = computeFreeEnergy(temperature,ceqA[0],ceqA[1],phaseA);
+      fc0 = computeFreeEnergy(temperature,&ceqL[0],phaseL);
+      fc1 = computeFreeEnergy(temperature,&ceqA[0],phaseA);
       slopec = -(fc1-fc0)/(ceqL[1]-ceqL[0]);
       
    }
@@ -601,7 +605,8 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
 
       for ( int i0 = 0; i0 < npts_c; i0++ ) {
       for ( int i1 = 0; i1 < npts_c; i1++ ) {
-         printEnergyVsPhi( c0min+deltac0*i0, c1min+deltac1*i1, temperature, npts_phi,
+         double conc[2]={c0min+deltac0*i0, c1min+deltac1*i1};
+         printEnergyVsPhi( conc, temperature, npts_phi,
                            tfile );
       }
       }
@@ -642,8 +647,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhiHeader(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
-   const double conc0,
-   const double conc1,
+   const double* conc,
    const double temperature,
    const int npts,
    std::ostream& os )
@@ -658,7 +662,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
    for ( int i = 0; i < npts; i++ ) {
       const double phi = i*dphi;
 
-      double e = fenergy( phi, eta, conc0, conc1, temperature );
+      double e = fenergy( phi, eta, conc, temperature );
       os << e << endl;
    }
    //os << endl;
@@ -669,10 +673,12 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
 double CALPHADFreeEnergyFunctionsTernary::fenergy(
    const double phi,
    const double eta,
-   const double conc0,
-   const double conc1,
+   const double* const conc,
    const double temperature )
 {
+   const double conc0=conc[0];
+   const double conc1=conc[1];
+   
    const double hphi =
       FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
    double heta = 0.0;
@@ -688,9 +694,9 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
    }else{
       if( phi<=tol )
       {
-         fl=computeFreeEnergy(temperature,conc0,conc1,phaseL);
+         fl=computeFreeEnergy(temperature,conc,phaseL);
       }else{
-         fa=computeFreeEnergy(temperature,conc0,conc1,phaseA);
+         fa=computeFreeEnergy(temperature,conc,phaseA);
       }
    }
    const double well =
@@ -725,7 +731,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 0., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 0., 0., conc, temperature );
       os << conc <<"\t"<< e << endl;
    }
    os << endl;
@@ -736,7 +742,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 1., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 1., 0., conc, temperature );
       os << conc <<"\t"<< e << endl;
    }
    
