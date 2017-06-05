@@ -38,7 +38,7 @@ class MolarVolumeStrategy
 public:
    virtual double computeInvMolarVolume(
       const double temperature,
-      const double conc,
+      const double* const conc,
       const PHASE_INDEX pi )=0;   
 };
 

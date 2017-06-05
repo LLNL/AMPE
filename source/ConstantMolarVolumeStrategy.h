@@ -51,7 +51,7 @@ public:
    
    virtual double computeInvMolarVolume(
       const double temperature,
-      const double conc,
+      const double* const conc,
       const PHASE_INDEX pi ) 
    {
        return d_inv_vm[pi];
