@@ -326,7 +326,7 @@ double CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(
 
 void CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(
    const double temp,
-   const std::vector<double>& conc,
+   const double* const conc,
    const PHASE_INDEX pi,
    std::vector<double>& d2fdc2)
 {

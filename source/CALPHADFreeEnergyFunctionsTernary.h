@@ -39,8 +39,7 @@ public:
       double* deriv );
    virtual void computeSecondDerivativeFreeEnergy(
       const double temp,
-      const double conc0,
-      const double conc1,
+      const double* const conc,
       const PHASE_INDEX pi,
       std::vector<double>& d2fdc2);
 

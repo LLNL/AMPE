@@ -244,7 +244,7 @@ protected:
 
    bool d_with_third_phase;
 
-   CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
+   FreeEnergyFunctions* d_calphad_fenergy;
    
    std::string d_phase_interp_func_type;
    std::string d_eta_interp_func_type;

@@ -77,7 +77,7 @@ public:
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       assert( calphad_fenergy );
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_l,phaseL,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_l[0],phaseL,d2fdc2);
       
       double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseL, c_l[0]);
       
@@ -99,7 +99,7 @@ public:
    {
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_a,phaseA,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_a[0],phaseA,d2fdc2);
       
       double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseA, c_a[0]);
       
@@ -121,7 +121,7 @@ public:
    {
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,c_b,phaseB,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_b[0],phaseB,d2fdc2);
       
       double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseB, c_b[0]);
       

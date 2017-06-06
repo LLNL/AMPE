@@ -148,7 +148,7 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeSecondDerivativeFreeEne
    std::vector<double>& d2fdc2)
 {
    CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(temp,
-      conc,pi,d2fdc2);
+      &conc[0],pi,d2fdc2);
 
    double extra_energy = compute2ndDerivPenalty(pi, conc[0]);
       

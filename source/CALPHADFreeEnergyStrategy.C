@@ -1110,7 +1110,7 @@ void CALPHADFreeEnergyStrategy::defaultComputeSecondDerivativeEnergyPhaseL(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,c_l,phaseL,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_l[0],phaseL,d2fdc2);
    
    if( use_internal_units )
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_l[0],phaseL);
@@ -1124,7 +1124,7 @@ void CALPHADFreeEnergyStrategy::defaultComputeSecondDerivativeEnergyPhaseA(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,c_a,phaseA,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_a[0],phaseA,d2fdc2);
    
    if( use_internal_units )
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_a[0],phaseA);
@@ -1138,7 +1138,7 @@ void CALPHADFreeEnergyStrategy::defaultComputeSecondDerivativeEnergyPhaseB(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,c_b,phaseB,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_b[0],phaseB,d2fdc2);
 
    if( use_internal_units )
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_b[0],phaseB);

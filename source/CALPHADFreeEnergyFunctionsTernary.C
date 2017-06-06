@@ -231,15 +231,14 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
 
 void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
    const double temp,
-   const double conc0,
-   const double conc1,
+   const double* const conc,
    const PHASE_INDEX pi,
    std::vector<double>& d2fdc2)
 {
-   assert( conc0>=0. );
-   assert( conc0<=1. );
-   assert( conc1>=0. );
-   assert( conc1<=1. );
+   assert( conc[0]>=0. );
+   assert( conc[0]<=1. );
+   assert( conc[1]>=0. );
+   assert( conc[1]<=1. );
    
    double lAB[4] = {lmix0ABPhase( pi, temp ),
                     lmix1ABPhase( pi, temp ),
@@ -255,14 +254,14 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
                     lmix3BCPhase( pi, temp )};
    const double rt = gas_constant_R_JpKpmol * temp;
 
-   vector<double> conc(2);
-   conc[0]=conc0;
-   conc[1]=conc1;
-   CALPHADcomputeFIdealMix_deriv2(rt,conc, d2fdc2 );
+   vector<double> concv(2);
+   concv[0]=conc[0];
+   concv[1]=conc[1];
+   CALPHADcomputeFIdealMix_deriv2(rt,concv, d2fdc2 );
 
    std::vector<double> deriv;
    
-   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc0, conc1, &deriv[0]);
+   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc[0], conc[1], &deriv[0]);
 }
 
 //=======================================================================

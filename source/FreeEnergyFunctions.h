@@ -68,6 +68,11 @@ public:
       const double temperature,
       const double* const conc,
       const PHASE_INDEX pi )=0;
+   virtual void computeSecondDerivativeFreeEnergy(
+      const double temp,
+      const double* const conc,
+      const PHASE_INDEX pi,
+      std::vector<double>& d2fdc2)=0;
       
    virtual void preRunDiagnostics(std::ostream& os)=0;
 };
