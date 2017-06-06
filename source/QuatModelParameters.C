@@ -113,7 +113,7 @@ QuatModelParameters::QuatModelParameters()
    d_temperature_type = SCALAR;
 
    d_with_concentration = false;
-   d_ncompositions=0;
+   d_ncompositions=-1;
 
    d_with_orientation = false;
    d_with_third_phase = false;
@@ -771,6 +771,8 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    if ( model_db->keyExists( "ConcentrationModel" ) ) {      
       boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
       readConcDB(conc_db);
+   }else{
+      d_ncompositions=0;
    }
 }
 

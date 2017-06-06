@@ -92,7 +92,7 @@ const double um2tom2 = 1.e-12;
 
 QuatModel::QuatModel( int ql ) :
    d_qlen( ql ),
-   d_ncompositions( 1 )
+   d_ncompositions( -1 )
 {
    d_symmetry_aware = false;
 
@@ -403,6 +403,8 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
 
 void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryDatabase>& input_db)
 {
+   assert( d_ncompositions>=0 );
+   
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
@@ -484,6 +486,9 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy"
                        << endl;
+            
+            assert( d_ncompositions==1 );
+            
             d_free_energy_strategy =
                new CALPHADFreeEnergyStrategyWithPenalty(
                   calphad_db, newton_db,
@@ -572,6 +577,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_ref_id,
                   d_conc_a_ref_id,
                   d_conc_b_ref_id,
+                  d_ncompositions,
                   d_model_parameters.phase_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
@@ -726,6 +732,8 @@ void QuatModel::Initialize(
       input_db->getDatabase("ModelParameters");
 
    d_model_parameters.readModelParameters(model_db);
+
+   d_ncompositions=d_model_parameters.ncompositions();
 
    d_tag_phase = false;
    d_tag_eta = false;
@@ -3033,9 +3041,11 @@ bool QuatModel::computeCeq(const double temperature,
    double ceq_init0=max(cmin,0.01);
    double ceq_init1=min(cmax,0.99);
    
-   double lceq[2];
-   lceq[0]=ceq_init0;
-   lceq[1]=ceq_init1;
+   double lceq[2*d_ncompositions];
+   for(short i=0;i<d_ncompositions;i++){
+      lceq[2*i]  =ceq_init0;
+      lceq[2*i+1]=ceq_init1;
+   }
    
    // compute equilibrium concentrations
    bool found_ceq = false;

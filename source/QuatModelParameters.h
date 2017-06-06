@@ -113,6 +113,11 @@ public:
       return d_cp;
    }
    
+   int ncompositions()const
+   {
+      assert( d_ncompositions>=0 );
+      return d_ncompositions;
+   }
    double meltingT()const{ return d_meltingT; }
    double vd()const{
       assert( d_vd>0. );

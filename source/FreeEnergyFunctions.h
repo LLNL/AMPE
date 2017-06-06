@@ -74,6 +74,9 @@ public:
       const double* const conc,
       const PHASE_INDEX pi,
       std::vector<double>& d2fdc2)=0;
+   virtual int computePhaseConcentrations(
+      const double temperature, const double* const conc, const double phi, const double eta,
+      double* x)=0;
       
    virtual void preRunDiagnostics(std::ostream& os)=0;
 };

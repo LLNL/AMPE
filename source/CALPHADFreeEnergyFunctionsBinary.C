@@ -544,7 +544,7 @@ void CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies(
 //-----------------------------------------------------------------------
 
 int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
-   const double temperature, const double conc, const double phi, const double eta,
+   const double temperature, const double* const conc, const double phi, const double eta,
    double* x)
 
 {
@@ -552,6 +552,8 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    assert( x[1]>=0. );
    assert( x[0]<=1. );
    assert( x[1]<=1. );
+   
+   const double conc0 = conc[0];
    
    const double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    
@@ -601,7 +603,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    }
    
    // conc could be outside of [0.,1.] in a trial step
-   double c0 = conc>=0. ? conc : 0.;
+   double c0 = conc0>=0. ? conc0 : 0.;
    c0 = c0<=1. ? c0 : 1.;
    int ret = d_solver->ComputeConcentration(
       x,
@@ -612,7 +614,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       d_fA, d_fB );
    if( ret==-1 )
    {
-      cerr<<"ERROR, CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() failed for conc="<<conc
+      cerr<<"ERROR, CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() failed for conc="<<conc0
                                                                                    <<", hphi="<<hphi
                                                                                    <<", heta="<<heta<<endl;
       sleep(5);

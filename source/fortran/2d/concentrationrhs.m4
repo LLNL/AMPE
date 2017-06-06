@@ -147,11 +147,6 @@ c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
-      integer maxncomp
-      parameter ( maxncomp=1 )
-c max matrix depth (should be ncomp*ncomp)
-      integer mdepth
-      parameter ( mdepth=1 )
       integer ifirst0, ilast0, ifirst1, ilast1, ngflux
       double precision dx(0:1)
       integer ncomp
@@ -160,13 +155,13 @@ c max matrix depth (should be ncomp*ncomp)
 c
 c variables in 2d cell indexed
       double precision 
-     &     flux0(SIDE2d0(ifirst,ilast,ngflux),maxncomp),
-     &     flux1(SIDE2d1(ifirst,ilast,ngflux),maxncomp)
-      double precision conc(CELL2d(ifirst,ilast,ngconc),maxncomp)
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux),ncomp),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux),ncomp)
+      double precision conc(CELL2d(ifirst,ilast,ngconc),ncomp)
       double precision diffconc0(SIDE2d0(ifirst,ilast,ngdiff),
-     &                            mdepth)
+     &                            ncomp*ncomp)
       double precision diffconc1(SIDE2d1(ifirst,ilast,ngdiff),
-     &                            mdepth)
+     &                            ncomp*ncomp)
 c
       double precision dxinv, dyinv
       integer          ic0, ic1, ic, jc, ijc

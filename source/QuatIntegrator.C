@@ -223,7 +223,8 @@ QuatIntegrator::QuatIntegrator(
 {
    assert( db );
    assert( grid_geom );
-   assert( ncompositions<=1 );
+   assert( ncompositions<=2 );
+   assert( ncompositions>=0 );
    
    #include <sstream>
    

@@ -76,7 +76,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
       d_diffusion_for_conc_in_phase(diffusion_for_conc_in_phase),
       d_free_energy_strategy(free_energy_strategy)
 {
-   assert( ncompositions==1 );
    assert( diffusion_l_id>=0 );
    assert( diffusion_coeff_l_id>=0 );
    assert( temperature_scratch_id>=0 );

@@ -550,7 +550,7 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
 //-----------------------------------------------------------------------
 
 int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
-   const double temperature, const double conc, const double phi, const double eta,
+   const double temperature, const double* const conc, const double phi, const double eta,
    double* x)
 
 {
@@ -611,12 +611,14 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    //x[1] = ( d_ceq_a>=0. ) ? d_ceq_a : 0.5;
 
    // conc could be outside of [0.,1.] in a trial step
-   double c0 = conc>=0. ? conc : 0.;
+   double c0 = conc[0]>=0. ? conc[0] : 0.;
    c0 = c0<=1. ? c0 : 1.;
+   double c1 = conc[1]>=0. ? conc[1] : 0.;
+   c1 = c1<=1. ? c1 : 1.;
    int ret = d_solver->ComputeConcentration(
       x,
-      c0,
-      hphi, heta,
+      c0,c1,
+      hphi,
       RTinv,
       d_L_AB_L, d_L_AC_L, d_L_BC_L,
       d_L_AB_A, d_L_AC_A, d_L_BC_A,

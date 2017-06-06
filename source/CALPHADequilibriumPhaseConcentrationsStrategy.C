@@ -31,6 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 
 using namespace std;
 
@@ -41,6 +43,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       const int conc_l_ref_id,
       const int conc_a_ref_id,
       const int conc_b_ref_id,
+      const int ncompositions,
       const string& phase_interp_func_type,
       const string& eta_interp_func_type,
       const string& avg_func_type,
@@ -58,8 +61,17 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       with_third_phase),
    d_conc_l_ref_id(conc_l_ref_id),
    d_conc_a_ref_id(conc_a_ref_id),
-   d_conc_b_ref_id(conc_b_ref_id)
+   d_conc_b_ref_id(conc_b_ref_id),
+   d_ncompositions(ncompositions)
 {
+   if( d_ncompositions>1 )
+   d_calphad_fenergy = new
+      CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
+                                 phase_interp_func_type,
+                                 avg_func_type,
+                                 phase_well_scale,
+                                 phase_well_func_type);  
+   else
    d_calphad_fenergy = new
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  phase_interp_func_type,
@@ -85,6 +97,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    assert( cd_c_l );
    assert( cd_c_a );
    assert( d_calphad_fenergy!=NULL );
+   assert( d_ncompositions==cd_concentration->getDepth() );
 
    const hier::Box& pbox = patch->getBox();
 
@@ -161,9 +174,9 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    kmax = pbox.upper(2);
 #endif
          
-   int N = 2;
+   int N = 2*d_ncompositions;
    if ( d_with_third_phase ) {
-      N = 3;
+      N+=d_ncompositions;
    }
 
    double* x = new double[N];
@@ -204,6 +217,8 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
                eta = ptr_eta[idx_pf];
             }
             
+            vector<double> c(d_ncompositions);
+            
             // loop over atomic species
             for(int ic=0;ic<cd_concentration->getDepth();ic++)
             {
@@ -215,28 +230,31 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
                   ptr_c_b_ref = cd_c_b_ref->getPointer(ic);
                }
 
-               const double c = ptr_conc[idx_pf];
-               x[0] = ptr_c_l_ref[idx_c_i];
-               x[1] = ptr_c_a_ref[idx_c_i];
+               c[ic] = ptr_conc[idx_pf];
+               x[ic] = ptr_c_l_ref[idx_c_i];
+               x[ic+d_ncompositions] = ptr_c_a_ref[idx_c_i];
 
                if ( d_with_third_phase ) {
-                  x[2] = ptr_c_b_ref[idx_c_i];
+                  x[ic+d_ncompositions*2] = ptr_c_b_ref[idx_c_i];
 
                }
+            }
 
-               d_calphad_fenergy->computePhaseConcentrations(
-                  t,c,phi,eta,x);
+            d_calphad_fenergy->computePhaseConcentrations(
+                  t,&c[0],phi,eta,x);
 
+            for(int ic=0;ic<cd_concentration->getDepth();ic++)
+            {
                double* ptr_c_l = cd_c_l->getPointer(ic);
                double* ptr_c_a = cd_c_a->getPointer(ic);
                double* ptr_c_b = NULL;
                if ( d_with_third_phase ) {
                   ptr_c_b = cd_c_b->getPointer(ic);
                }
-               ptr_c_l[idx_c_i] = x[0];
-               ptr_c_a[idx_c_i] = x[1];
+               ptr_c_l[idx_c_i] = x[ic];
+               ptr_c_a[idx_c_i] = x[ic+d_ncompositions];
                if ( d_with_third_phase ) {
-                  ptr_c_b[idx_c_i] = x[2];
+                  ptr_c_b[idx_c_i] = x[ic+d_ncompositions*2];
                }
             } // ic
          }

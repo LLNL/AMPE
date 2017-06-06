@@ -104,7 +104,7 @@ public:
    }
 
    int computePhaseConcentrations(
-      const double temperature, const double conc, const double phi, const double eta,
+      const double temperature, const double* const conc, const double phi, const double eta,
       double* x);
    void energyVsPhiAndC(const double temperature, 
                         const double* const ceq,
