@@ -76,6 +76,8 @@ private :
 
    bool CheckTolerance( const double* const fvec );
    bool CheckToleranceFirstEq( const double* const fvec );
+   double Determinant3( double** const m );
+   double Determinant4( double** const m );
 
    int d_N;
    int d_max_iters;

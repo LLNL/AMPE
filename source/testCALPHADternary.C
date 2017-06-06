@@ -232,6 +232,7 @@ int main( int argc, char *argv[] )
                0,
                1,
                2,
+               2, // nb. compositions
                model_parameters.with_third_phase(),
                model_parameters.phase_well_scale(),
                model_parameters.eta_well_scale(),
@@ -241,7 +242,7 @@ int main( int argc, char *argv[] )
    tbox::plog<<"CompositionStrategyMobilities... "<<endl;
    CompositionStrategyMobilities composition_strategy_mobilities(dcalphad_db,
          false,
-         1,
+         2, // 2 compositions for 3 species
          &free_energy_strategy );
 
    composition_strategy_mobilities.printDiagnostics(temperature,temperature);

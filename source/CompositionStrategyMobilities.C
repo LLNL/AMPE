@@ -49,7 +49,6 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
    FreeEnergyStrategy* free_energy_strategy
    ):d_free_energy_strategy(free_energy_strategy)
 {
-   assert( ncompositions==1 );
    assert( d_free_energy_strategy!=NULL );
    
    d_ncompositions=ncompositions;
@@ -67,13 +66,17 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
       = mobility_db->getDatabase( "Species0" );
    boost::shared_ptr<tbox::Database> species1_db
       = mobility_db->getDatabase( "Species1" );
+   boost::shared_ptr<tbox::Database> species2_db;
+   if( d_ncompositions>1 ){
+      species2_db = mobility_db->getDatabase( "Species2" );
+   }
 
    CALPHADMobility calphad_mobility0_phaseL("MobilitySpecies0");   
    calphad_mobility0_phaseL.initialize(species0_db->getDatabase( "PhaseL" ));
 
    CALPHADMobility calphad_mobility1_phaseL("MobilitySpecies1");
    calphad_mobility1_phaseL.initialize(species1_db->getDatabase( "PhaseL" ));
-
+   
    d_calphad_mobilities_phaseL.push_back(calphad_mobility0_phaseL);
    d_calphad_mobilities_phaseL.push_back(calphad_mobility1_phaseL);
 
@@ -86,8 +89,20 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
    d_calphad_mobilities_phaseA.push_back(calphad_mobility0_phaseA);
    d_calphad_mobilities_phaseA.push_back(calphad_mobility1_phaseA);
 
+   if( d_ncompositions>1 ){
+      CALPHADMobility calphad_mobility2_phaseL("MobilitySpecies2");   
+      calphad_mobility2_phaseL.initialize(species2_db->getDatabase( "PhaseL" ));
+      
+      CALPHADMobility calphad_mobility2_phaseA("MobilitySpecies2");
+      calphad_mobility2_phaseA.initialize(species2_db->getDatabase( "PhaseA" ));
+
+      d_calphad_mobilities_phaseL.push_back(calphad_mobility2_phaseL);
+      d_calphad_mobilities_phaseA.push_back(calphad_mobility2_phaseA);
+   }
+
    CALPHADMobility calphad_mobility0_phaseB("MobilitySpecies0");
    CALPHADMobility calphad_mobility1_phaseB("MobilitySpecies1");
+
    if( d_with_third_phase ){
       calphad_mobility0_phaseB.initialize(species0_db->getDatabase( "PhaseB" ));
       calphad_mobility1_phaseB.initialize(species1_db->getDatabase( "PhaseB" ));

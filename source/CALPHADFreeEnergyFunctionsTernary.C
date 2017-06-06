@@ -74,7 +74,15 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
    d_g_species_phaseL[1].initialize( name, speciesB_db->getDatabase( dbnameL ) );
    d_g_species_phaseA[1].initialize( name, speciesB_db->getDatabase( dbnameA ) );
 
+   boost::shared_ptr<tbox::Database> speciesC_db = calphad_db->getDatabase( "SpeciesC" );
+   name = speciesC_db->getStringWithDefault( "name", "unknown" );
+   d_g_species_phaseL[2].initialize( name, speciesC_db->getDatabase( dbnameL ) );
+   d_g_species_phaseA[2].initialize( name, speciesC_db->getDatabase( dbnameA ) );
+
    // read Lmix coefficients
+   
+   //AB
+   {
    string dbnamemixL("LmixABPhaseL");
    string dbnamemixA("LmixABPhaseA");
    boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
@@ -112,8 +120,91 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
       d_LmixABPhaseA[3][0] = 0.0;
       d_LmixABPhaseA[3][1] = 0.0;
    }
+   }
 
-   // print database just read
+   //AC
+   {
+   string dbnamemixL("LmixACPhaseL");
+   string dbnamemixA("LmixACPhaseA");
+   boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
+   Lmix0_db->getDoubleArray( "L0", &d_LmixACPhaseL[0][0], 2 );
+   Lmix0_db->getDoubleArray( "L1", &d_LmixACPhaseL[1][0], 2 );
+   if ( Lmix0_db->keyExists( "L2" ) ) {
+      Lmix0_db->getDoubleArray( "L2", &d_LmixACPhaseL[2][0], 2 );
+   }
+   else {
+      d_LmixACPhaseL[2][0] = 0.0;
+      d_LmixACPhaseL[2][1] = 0.0;
+   }
+   if ( Lmix0_db->keyExists( "L3" ) ) {
+      Lmix0_db->getDoubleArray( "L3", &d_LmixACPhaseL[3][0], 2 );
+   }
+   else {
+      d_LmixACPhaseL[3][0] = 0.0;
+      d_LmixACPhaseL[3][1] = 0.0;
+   }
+
+   boost::shared_ptr<tbox::Database> Lmix1_db = calphad_db->getDatabase(dbnamemixA);
+   Lmix1_db->getDoubleArray( "L0", &d_LmixACPhaseA[0][0], 2 );
+   Lmix1_db->getDoubleArray( "L1", &d_LmixACPhaseA[1][0], 2 );
+   if ( Lmix1_db->keyExists( "L2" ) ) {
+      Lmix1_db->getDoubleArray( "L2", &d_LmixACPhaseA[2][0], 2 );
+   }
+   else {
+      d_LmixACPhaseA[2][0] = 0.0;
+      d_LmixACPhaseA[2][1] = 0.0;
+   }
+   if ( Lmix1_db->keyExists( "L3" ) ) {
+      Lmix1_db->getDoubleArray( "L3", &d_LmixACPhaseA[3][0], 2 );
+   }
+   else {
+      d_LmixACPhaseA[3][0] = 0.0;
+      d_LmixACPhaseA[3][1] = 0.0;
+   }
+   }
+
+   //BC
+   {
+   string dbnamemixL("LmixBCPhaseL");
+   string dbnamemixA("LmixBCPhaseA");
+   boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
+   Lmix0_db->getDoubleArray( "L0", &d_LmixBCPhaseL[0][0], 2 );
+   Lmix0_db->getDoubleArray( "L1", &d_LmixBCPhaseL[1][0], 2 );
+   if ( Lmix0_db->keyExists( "L2" ) ) {
+      Lmix0_db->getDoubleArray( "L2", &d_LmixBCPhaseL[2][0], 2 );
+   }
+   else {
+      d_LmixBCPhaseL[2][0] = 0.0;
+      d_LmixBCPhaseL[2][1] = 0.0;
+   }
+   if ( Lmix0_db->keyExists( "L3" ) ) {
+      Lmix0_db->getDoubleArray( "L3", &d_LmixBCPhaseL[3][0], 2 );
+   }
+   else {
+      d_LmixBCPhaseL[3][0] = 0.0;
+      d_LmixBCPhaseL[3][1] = 0.0;
+   }
+
+   boost::shared_ptr<tbox::Database> Lmix1_db = calphad_db->getDatabase(dbnamemixA);
+   Lmix1_db->getDoubleArray( "L0", &d_LmixBCPhaseA[0][0], 2 );
+   Lmix1_db->getDoubleArray( "L1", &d_LmixBCPhaseA[1][0], 2 );
+   if ( Lmix1_db->keyExists( "L2" ) ) {
+      Lmix1_db->getDoubleArray( "L2", &d_LmixBCPhaseA[2][0], 2 );
+   }
+   else {
+      d_LmixBCPhaseA[2][0] = 0.0;
+      d_LmixBCPhaseA[2][1] = 0.0;
+   }
+   if ( Lmix1_db->keyExists( "L3" ) ) {
+      Lmix1_db->getDoubleArray( "L3", &d_LmixBCPhaseA[3][0], 2 );
+   }
+   else {
+      d_LmixBCPhaseA[3][0] = 0.0;
+      d_LmixBCPhaseA[3][1] = 0.0;
+   }
+   }
+
+  // print database just read
    tbox::plog << "CALPHAD database..." << endl;
    calphad_db->printClassData( tbox::plog );
 }
@@ -259,7 +350,7 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
    concv[1]=conc[1];
    CALPHADcomputeFIdealMix_deriv2(rt,concv, d2fdc2 );
 
-   std::vector<double> deriv;
+   std::vector<double> deriv(4);
    
    CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc[0], conc[1], &deriv[0]);
 }

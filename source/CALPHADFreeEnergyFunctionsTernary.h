@@ -118,9 +118,9 @@ private:
 
    std::string d_fenergy_diag_filename;
    
-   // size 2 for species 0 and 1
-   CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseL[2];
-   CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseA[2];
+   // size 3 for species A, B, C
+   CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseL[3];
+   CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseA[3];
    
    // size 4 for L0, L1, L2, L3, with 2 coefficient for linear expansion in T
    double d_LmixABPhaseL[4][2];

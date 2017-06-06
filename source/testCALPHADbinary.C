@@ -203,6 +203,7 @@ int main( int argc, char *argv[] )
                0,
                1,
                2,
+               1, // 2 species -> 1 composition
                model_parameters.with_third_phase(),
                model_parameters.phase_well_scale(),
                model_parameters.eta_well_scale(),

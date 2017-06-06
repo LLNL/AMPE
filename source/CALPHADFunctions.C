@@ -482,6 +482,8 @@ void CALPHADcomputeFMix_deriv2Ternary(
    const double cB,
    double* deriv )
 {
+   assert( deriv!=NULL );
+   
    double cC=1.-cA-cB;
    
    // /dcA*dcA

@@ -79,6 +79,9 @@ void NewtonSolver::CopyMatrix(
    double** const dst,
    double** const src )
 {
+   assert( src!=NULL );
+   assert( dst!=NULL );
+
    for ( int jj = 0; jj < d_N; jj++ ) {
       for ( int ii = 0; ii < d_N; ii++ ) {
          dst[jj][ii] = src[jj][ii];
@@ -88,22 +91,74 @@ void NewtonSolver::CopyMatrix(
    
 //=======================================================================
 
-double NewtonSolver::Determinant(
+double NewtonSolver::Determinant3(
    double** const m )
 {
-   assert( d_N == 2 || d_N == 3 );
-
-   double d;
-
-   if ( d_N == 3 ) {
-
-      d =
+   double d =
          m[0][0] * m[1][1] * m[2][2] -
          m[0][0] * m[1][2] * m[2][1] -
          m[0][1] * m[1][0] * m[2][2] +
          m[0][1] * m[1][2] * m[2][0] +
          m[0][2] * m[1][0] * m[2][1] -
          m[0][2] * m[1][1] * m[2][0];
+
+   return d;
+}
+
+//=======================================================================
+
+double NewtonSolver::Determinant4(
+   double** const m )
+{
+   double d = 
+         m[0][0] * (m[1][1] * m[2][2] * m[3][3] -
+                    m[1][1] * m[2][3] * m[3][2] -
+                    m[1][2] * m[2][1] * m[3][3] +
+                    m[1][2] * m[2][3] * m[3][1] +
+                    m[1][3] * m[2][1] * m[3][2] -
+                    m[1][3] * m[2][2] * m[3][1])
+         
+      - m[0][1] * (m[1][0] * m[2][2] * m[3][3] -
+                   m[1][0] * m[2][3] * m[3][2] -
+                   m[1][2] * m[2][0] * m[3][3] +
+                   m[1][2] * m[2][3] * m[3][0] +
+                   m[1][3] * m[2][0] * m[3][2] -
+                   m[1][3] * m[2][2] * m[3][0] )
+         
+      + m[0][2] * (m[1][0] * m[2][1] * m[3][3] -
+                   m[1][0] * m[2][3] * m[3][1] -
+                   m[1][1] * m[2][0] * m[3][3] +
+                   m[1][1] * m[2][3] * m[3][0] +
+                   m[1][3] * m[2][0] * m[3][1] -
+                   m[1][3] * m[2][1] * m[3][0] )
+         
+      - m[0][3] * (m[1][0] * m[2][1] * m[3][2] -
+                   m[1][0] * m[2][2] * m[3][1] -
+                   m[1][1] * m[2][0] * m[3][2] +
+                   m[1][1] * m[2][2] * m[3][0] +
+                   m[1][2] * m[2][0] * m[3][1] -
+                   m[1][2] * m[2][1] * m[3][0] );
+
+   return d;
+}
+
+//=======================================================================
+
+double NewtonSolver::Determinant(
+   double** const m )
+{
+   assert( d_N == 2 || d_N == 3 || d_N == 4 );
+
+   double d;
+
+   if ( d_N == 4 ) {
+
+      d = Determinant4(m);
+
+   }
+   if ( d_N == 3 ) {
+
+      d = Determinant3(m);
 
    }
    else if ( d_N == 2 ) {
@@ -192,11 +247,17 @@ int NewtonSolver::ComputeSolution(
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
 #endif
-   static double fvec[3];
-   static double* fjac[3];
-   static double ftmp[9];
-   for ( int ii = 0; ii < d_N ; ii++ ) {
-      fjac[ii] = &ftmp[ii*d_N];
+
+   static double* fvec=NULL;
+   static double** fjac;
+   static double* ftmp=NULL;
+   if( ftmp==NULL){
+      fvec=new double[N];
+      fjac=new double*[N];
+      ftmp=new double[N*N];
+      for ( int ii = 0; ii < d_N ; ii++ ) {
+         fjac[ii] = &ftmp[ii*d_N];
+      }
    }
 
    int iterations = 0;
