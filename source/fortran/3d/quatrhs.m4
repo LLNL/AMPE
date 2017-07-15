@@ -256,7 +256,7 @@ c y faces
                dphidy = (phase(i,j,k) - phase(i,j-1,k)) * dyinv
                dphidz = 0.25*(phase(i,j-1,k+1) - phase(i,j-1,k-1)
      &                      + phase(i,j  ,k+1) - phase(i,j  ,k-1)) 
-     &                      * dxinv 
+     &                      * dzinv 
             
                gphi2=dphidx*dphidx+dphidy*dphidy+dphidz*dphidz
                
@@ -284,8 +284,7 @@ c y faces
                gamma=(1.-3.*e4)*(1.+4.*e4*(np(2)**4+np(3)**4+np(4)**4)
      &                          /(1.-3.*e4))
                
-
-               flux1(i,j,k) = epsilon2*dphidx 
+               flux1(i,j,k) = epsilon2*dphidy 
      &              + gphi2*epsilon2*gamma*e4*16.*np(3)*np(3)*np(3)
             enddo
          enddo
@@ -329,8 +328,9 @@ c z faces
                gamma=(1.-3.*e4)*(1.+4.*e4*(np(2)**4+np(3)**4+np(4)**4)
      &                          /(1.-3.*e4))
                
-               flux2(i,j,k) = epsilon2*dphidy
+               flux2(i,j,k) = epsilon2*dphidz
      &              + gphi2*epsilon2*gamma*e4*16.*np(4)*np(4)*np(4)
+
             enddo
          enddo
       enddo
