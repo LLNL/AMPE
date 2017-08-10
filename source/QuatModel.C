@@ -846,12 +846,13 @@ void QuatModel::Initialize(
             d_quat_scratch_id,
             d_conc_scratch_id,
             d_temperature_scratch_id );
-   
-      d_partition_coeff_refine_patch_strategy =
-         new PartitionCoeffRefinePatchStrategy(
-            "PartitionCoeffRefinePatchStrategy",
-            bc_db,
-            d_partition_coeff_scratch_id );
+  
+      if( d_partition_coeff_strategy!=NULL ) 
+         d_partition_coeff_refine_patch_strategy =
+            new PartitionCoeffRefinePatchStrategy(
+               "PartitionCoeffRefinePatchStrategy",
+               bc_db,
+               d_partition_coeff_scratch_id );
             
       d_phase_concentration_refine_patch_strategy =
          new PhaseConcentrationRefinePatchStrategy(
