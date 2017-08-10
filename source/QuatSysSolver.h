@@ -449,8 +449,8 @@ public:
     * num_pre_sweeps:  Number of presmoothing sweeps
     * num_post_sweeps: Number of postsmoothing sweeps
     */
-   void setPresmoothingSweeps(int num_pre_sweeps);
-   void setPostsmoothingSweeps(int num_post_sweeps);
+   //void setPresmoothingSweeps(int num_pre_sweeps);
+   //void setPostsmoothingSweeps(int num_post_sweeps);
 
    /*
     * Set the maximum number of FAC iterations (cycles) to use per solve.

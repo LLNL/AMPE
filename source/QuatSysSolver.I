@@ -79,16 +79,6 @@ QuatSysSolver::setCoarseFineDiscretization(const std::string & coarsefine_method
 }
 
 SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setPresmoothingSweeps(int num_pre_sweeps) {
-  d_fac_solver.setPresmoothingSweeps(num_pre_sweeps);
-}
-
-SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setPostsmoothingSweeps(int num_post_sweeps) {
-  d_fac_solver.setPostsmoothingSweeps(num_post_sweeps);
-}
-
-SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setMaxCycles(int max_cycles) {
   d_fac_solver.setMaxCycles(max_cycles);
 }
@@ -120,7 +110,6 @@ QuatSysSolver::getFACConvergenceFactors(double &   avg_factor,
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setLogging(bool logging)
 {
-  d_fac_solver.enableLogging(logging);
   d_fac_ops.enableLogging(logging);
 }
 

@@ -86,11 +86,8 @@ QuatSysSolver::QuatSysSolver(
     Set some default parameters.  These may be overridden by the respective
     values in the input database (if supplied).
   */
-  setLogging(false);
   setMaxCycles(d_precond_maxiters);
   setResidualTolerance(1.e-6);
-  setPresmoothingSweeps(1);
-  setPostsmoothingSweeps(1);
   setCoarseFineDiscretization("Ewing");
   setLevelSolverTolerance(1.e-2);
   setLevelSolverMaxIterations(20);
@@ -156,14 +153,6 @@ QuatSysSolver::~QuatSysSolver()
 void
 QuatSysSolver::getFromInput(const boost::shared_ptr<tbox::Database>& input_db )
 {
-   if ( input_db->isBool("enable_logging") ) {
-     bool logging = input_db->getBool("enable_logging");
-     /*
-       Controls logging for the FAC solver and operator contains
-       in this wrapper class
-     */
-     setLogging(logging);
-   }
    if ( input_db->isBool("verbose") ) {
      bool verbose = input_db->getBool("verbose");
      /*
@@ -171,20 +160,6 @@ QuatSysSolver::getFromInput(const boost::shared_ptr<tbox::Database>& input_db )
        to the screen
      */
      setVerbose(verbose);
-   }
-   if ( input_db->isInteger("max_cycles") ) {
-     // Sets maximum number of iterations for the FAC solver
-     d_precond_maxiters = input_db->getInteger("max_cycles");
-   }
-   if ( input_db->isInteger("num_pre_sweeps") ) {
-     int num_pre_sweeps = input_db->getInteger("num_pre_sweeps");
-     // Sets the number of presmooth sweeps for the FAC solver
-     setPresmoothingSweeps(num_pre_sweeps);
-   }
-   if ( input_db->isInteger("num_post_sweeps") ) {
-     int num_post_sweeps = input_db->getInteger("num_post_sweeps");
-     // Sets the number of postsmooth sweeps for the FAC solver
-     setPostsmoothingSweeps(num_post_sweeps);
    }
    if ( input_db->isString("coarse_fine_discretization") ) {
      string s = input_db->getString("coarse_fine_discretization");
