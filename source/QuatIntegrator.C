@@ -2687,8 +2687,8 @@ void QuatIntegrator::evaluatePhaseRHS(
             patch->getPatchData( d_f_a_id ), boost::detail::dynamic_cast_tag());
          assert( fa );
 
-         boost::shared_ptr<pdat::SideData<double> >
-            phase_flux ( patch->getPatchData( d_flux_id ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::SideData<double> > phase_flux (
+            patch->getPatchData( d_flux_id ), boost::detail::dynamic_cast_tag());
          assert( phase_flux );
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
