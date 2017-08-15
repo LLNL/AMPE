@@ -47,7 +47,14 @@
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 
 // Other package headers
+#define HAVE_NETCDF4
+
+#ifdef HAVE_NETCDF3
 #include "netcdfcpp.h"
+#endif
+#ifdef HAVE_NETCDF4
+#include <netcdf>
+#endif
 
 #include "PFModel.h"
 #include "QuatIntegrator.h"
@@ -155,11 +162,20 @@ public :
    template <typename T>
    void initializePatchFromData(
       boost::shared_ptr<hier::Patch > patch, int islice,
-      NcVar* ncPhase,
-      NcVar* ncEta,
-      NcVar* ncTemp,
-      NcVar** ncQuatComponents,
-      NcVar** ncConcComponent,
+#ifdef HAVE_NETCDF3
+      netCDF::NcVar* ncPhase,
+      netCDF::NcVar* ncEta,
+      netCDF::NcVar* ncTemp,
+      netCDF::NcVar** ncQuatComponents,
+      netCDF::NcVar** ncConcComponent,
+#endif
+#ifdef HAVE_NETCDF4
+      netCDF::NcVar& ncPhase,
+      netCDF::NcVar& ncEta,
+      netCDF::NcVar& ncTemp,
+      netCDF::NcVar* ncQuatComponents,
+      netCDF::NcVar* ncConcComponent,
+#endif
       T* vals );
 
    void computeMinMaxQModulus(

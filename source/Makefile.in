@@ -112,7 +112,8 @@ F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 
 CXXFLAGS += -I$(NETCDF)/include
 LDFLAGS += -L $(NETCDF)/lib
-LDLIBS += -lnetcdf_c++ -lnetcdf 
+
+LDLIBS += -lnetcdf_c++4 -lnetcdf 
 
 default:        ampe2d
 

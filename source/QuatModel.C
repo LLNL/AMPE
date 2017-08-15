@@ -79,7 +79,6 @@
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 
-#include "netcdfcpp.h"
 #include "tools.h"
 
 #include "PhysicalConstants.h"
@@ -87,8 +86,11 @@
 #include <set>
 #include <map>
 using namespace std;
+using namespace netCDF;
 
 const double um2tom2 = 1.e-12;
+
+static const int NC_ERR = 2;
 
 QuatModel::QuatModel( int ql ) :
    d_qlen( ql ),
@@ -1306,17 +1308,26 @@ void QuatModel::initializeLevelFromData(
                  << ln << endl;
    }
 
+#ifdef HAVE_NETCDF3
    // We take care of NetCDF error checking and messages
    NcError ncerr( NcError::silent_nonfatal );
    //NcError ncerr( NcError::verbose_fatal );
 
    NcFile ncf( d_init_data_filename.c_str() );
-   //NcFile* f=new NcFile( d_init_data_filename.c_str() );
-   //NcFile& ncf=(*f);
    if ( ! ncf.is_valid() ) {
       TBOX_ERROR( "Cannot open file " << d_init_data_filename << endl );
    }
+#endif
+#ifdef HAVE_NETCDF4
+   NcFile ncf( d_init_data_filename, NcFile::read );
+   if( ncf.isNull() ){
+      TBOX_ERROR( "Cannot open file " << d_init_data_filename << endl );
+   }
+   int nvar=ncf.getVarCount();
+   tbox::plog << "Number of variables in NcFile: "<<nvar<<endl;
+#endif
 
+#ifdef HAVE_NETCDF3 
    NcVar* ncPhase = ncf.get_var( "phase" );
    if ( ncPhase == NULL ) {
       TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
@@ -1353,10 +1364,53 @@ void QuatModel::initializeLevelFromData(
       }
       qlen_file = ncQlen->size();
    }
+#endif
+#ifdef HAVE_NETCDF4
+   NcVar ncPhase = ncf.getVar( "phase" );
+   if(ncPhase.isNull())
+      TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
 
+   NcVar ncEta;
+   if ( d_model_parameters.with_third_phase() ) {
+      ncEta = ncf.getVar( "eta" );
+      if(ncEta.isNull())
+         TBOX_ERROR( "Could not read variable 'eta' from input data" << endl );
+   }
+
+   NcVar ncTemp;
+   if ( d_model_parameters.isTemperatureConstant() ) {
+      ncTemp = ncf.getVar( "temperature" );
+      if(ncTemp.isNull())
+         TBOX_ERROR( "Could not read variable 'temperature' " <<
+                     "from input data" << endl );
+   }
+   int qlen_file = 0;
+   if ( d_model_parameters.with_orientation() ) {
+      for ( int ii = 0; ii < d_qlen; ii++ ) {
+         std::ostringstream o;
+         o << "quat" << ii+1;
+         NcVar ncv=ncf.getVar( o.str() );
+         if( ncv.isNull() )break;
+         qlen_file++;
+      }
+   }
+#endif
+
+#ifdef HAVE_NETCDF3
    int nx_file = ncPhase->get_dim(2)->size();
    int ny_file = ncPhase->get_dim(1)->size();
    int nz_file = ncPhase->get_dim(0)->size();
+#endif
+#ifdef HAVE_NETCDF4
+   vector<NcDim> dims;
+   dims.push_back(ncPhase.getDim(2));
+   dims.push_back(ncPhase.getDim(1));
+   dims.push_back(ncPhase.getDim(0));
+   int nx_file = dims[0].getSize();
+   int ny_file = dims[1].getSize();
+   int nz_file = dims[2].getSize();
+#endif
+
    int islice = 0;
 #if (NDIM == 2)
    if ( d_slice_index < 0 ) {
@@ -1367,8 +1421,11 @@ void QuatModel::initializeLevelFromData(
    }
 #endif
 
+//#ifdef HAVE_NETCDF3
    checkInputFileDimensions( nx_file, ny_file, nz_file, qlen_file );
+//#endif
 
+#ifdef HAVE_NETCDF3
    NcVar** ncQuatComponents=NULL;
    if ( d_model_parameters.with_orientation() ) {
       ncQuatComponents = new NcVar*[d_qlen];
@@ -1383,7 +1440,24 @@ void QuatModel::initializeLevelFromData(
       }
       //assert( ncQuatComponents[0]->type() == ncFloat );
    }
-   NcVar** ncConcComponents=NULL;
+#endif
+#ifdef HAVE_NETCDF4
+   NcVar* ncQuatComponents=NULL;
+   if ( d_model_parameters.with_orientation() ) {
+      ncQuatComponents = new NcVar[d_qlen];
+      for ( int ii = 0; ii < d_qlen; ii++ ) {
+         std::ostringstream o;
+         o << "quat" << ii+1;
+         ncQuatComponents[ii] = ncf.getVar( o.str() );
+         if(ncQuatComponents[ii].isNull())
+            TBOX_ERROR( "Could not read variable " << o.str() <<
+                        " from input data" << endl );
+      }
+   }
+#endif
+
+#ifdef HAVE_NETCDF3
+  NcVar** ncConcComponents=NULL;
    if ( d_model_parameters.with_concentration() ){
       tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
       ncConcComponents = new NcVar*[d_ncompositions];
@@ -1403,12 +1477,38 @@ void QuatModel::initializeLevelFromData(
       }
       //assert( ncConcComponents[0]->type() == ncFloat );
    }
+#endif
+#ifdef HAVE_NETCDF4
+   NcVar* ncConcComponents=NULL;
+   if ( d_model_parameters.with_concentration() ){
+      tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
+      ncConcComponents = new NcVar[d_ncompositions];
+      for ( int ii = 0; ii < d_ncompositions; ii++ ) {
+         std::ostringstream o;
+         o << "concentration";
+         if( d_ncompositions>1 )o << ii;
+         ncConcComponents[ii] = ncf.getVar( o.str() );
+         if ( ncConcComponents[ii].isNull() && d_ncompositions==1) {
+            o << 0;
+            ncConcComponents[ii] = ncf.getVar( o.str() );
+         }
+         if ( ncConcComponents[ii].isNull())
+            TBOX_ERROR( "Could not read variable " << o.str() <<
+                        " from input data" << endl );
+      }
+   }
+#endif
 
    for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p ) {
 
       const hier::Box& patch_box = (*p)->getBox();
-
+#ifdef HAVE_NETCDF3
       if( ncPhase->type() == ncFloat ){
+#endif
+#ifdef HAVE_NETCDF4
+      NcType type=ncPhase.getType();
+      if( type.getTypeClassName() == "nc_FLOAT" ){
+#endif
          float* vals = new float[patch_box.size()];
       
          initializePatchFromData(*p,islice, ncPhase,
@@ -1427,13 +1527,12 @@ void QuatModel::initializeLevelFromData(
 
    }  // for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p )
 
-   int status=ncf.close();  // NcVar memory deletion handled by this call
-   //if (status != NC_NOERR){
-   //   cerr<<nc_strerror(status)<<endl;
-   //   TBOX_ERROR( "Cannot close file " << d_init_data_filename << endl );
-   //}
+#ifdef HAVE_NETCDF3
+   ncf.close();  // NcVar memory deletion handled by this call
+#endif
+
    if ( d_model_parameters.with_orientation() ) {
-      delete[] ncQuatComponents;  // but this is a pointer array
+      delete[] ncQuatComponents; 
    }
    if ( d_model_parameters.with_concentration() ){
       delete[] ncConcComponents;
@@ -1445,11 +1544,20 @@ void QuatModel::initializeLevelFromData(
 template <typename T>
 void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                                         int islice,
+#ifdef HAVE_NETCDF3
                                         NcVar* ncPhase,
                                         NcVar* ncEta,
                                         NcVar* ncTemp,
                                         NcVar** ncQuatComponents,
                                         NcVar** ncConcComponents,
+#endif
+#ifdef HAVE_NETCDF4
+                                        NcVar& ncPhase,
+                                        NcVar& ncEta,
+                                        NcVar& ncTemp,
+                                        NcVar* ncQuatComponents,
+                                        NcVar* ncConcComponents,
+#endif
                                         T* vals)
 {
       const hier::Box& patch_box = patch->getBox();
@@ -1471,10 +1579,23 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          boost::detail::dynamic_cast_tag());
       assert( phase_data );
 
+#ifdef HAVE_NETCDF3
       ncPhase->set_cur( z_lower, y_lower, x_lower );
       if ( ! ncPhase->get( vals, nz, ny, nx ) ) {
          TBOX_ERROR( "Could not read 'phase' data from input data" << endl );
       }
+#endif
+#ifdef HAVE_NETCDF4
+      vector<size_t> startp(3);
+      startp[0]=z_lower;
+      startp[1]=y_lower;
+      startp[2]=x_lower;
+      vector<size_t> countp(3);
+      countp[0]=nz;
+      countp[1]=ny;
+      countp[2]=nx;
+      ncPhase.getVar(startp, countp, vals);
+#endif
       
       pdat::CellIterator iend(patch_box, false);
       for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
@@ -1497,10 +1618,15 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
             boost::detail::dynamic_cast_tag());
          assert( eta_data );
 
+#ifdef HAVE_NETCDF3
          ncEta->set_cur( z_lower, y_lower, x_lower );
          if ( ! ncEta->get( vals, nz, ny, nx ) ) {
             TBOX_ERROR( "Could not read 'eta' data from input data" << endl );
          }
+#endif
+#ifdef HAVE_NETCDF4
+         ncEta.getVar(startp, countp, vals);
+#endif
 
          pdat::CellIterator iend(patch_box, false);
          for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
@@ -1518,19 +1644,26 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       }
 
       // initialize temperature
-
+#ifdef HAVE_NETCDF3
       if ( ncTemp != NULL ) {
-
+#endif
+#ifdef HAVE_NETCDF4
+      if ( !ncTemp.isNull() ){
+#endif
          boost::shared_ptr< pdat::CellData<double> > temp_data (
             patch->getPatchData( d_temperature_id ),
             boost::detail::dynamic_cast_tag());
          assert( temp_data );
 
+#ifdef HAVE_NETCDF3
          ncTemp->set_cur( z_lower, y_lower, x_lower );
          if ( ! ncTemp->get( vals, nz, ny, nx ) ) {
             TBOX_ERROR( "Could not read 'temperature' data from input data" << endl );
          }
-
+#endif
+#ifdef HAVE_NETCDF4
+         ncTemp.getVar(startp, countp, vals);
+#endif
          pdat::CellIterator iend(patch_box, false);
          for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
@@ -1554,6 +1687,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          assert( quat_data );
 
          for ( int qq = 0; qq < d_qlen; qq++ ) {
+#ifdef HAVE_NETCDF3
             NcVar* ncQuat = ncQuatComponents[qq];
 
             ncQuat->set_cur( z_lower, y_lower, x_lower );
@@ -1562,7 +1696,12 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                TBOX_ERROR( "Could not read " << ncQuat->name() <<
                            " data from input data" << endl );
             }
-
+#endif
+#ifdef HAVE_NETCDF4
+            NcVar& ncQuat = ncQuatComponents[qq];
+            ncQuat.getVar(startp, countp, vals);
+#endif
+ 
             pdat::CellIterator iend(patch_box, false);
             for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
                const pdat::CellIndex ccell = *i;
@@ -1587,6 +1726,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          assert( conc_data );
 
          for ( int cc = 0; cc < d_ncompositions; cc++ ) {
+#ifdef HAVE_NETCDF3
             NcVar* ncConc = ncConcComponents[cc];
             assert( ncConc!=0 );
             
@@ -1595,6 +1735,11 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                TBOX_ERROR( "Could not read " << ncConc->name() <<
                            " data from input data" << endl );
             }
+#endif
+#ifdef HAVE_NETCDF4
+            NcVar& ncConc = ncConcComponents[cc];
+            ncConc.getVar(startp, countp, vals);
+#endif
 
             pdat::CellIterator iend(patch_box, false);
             for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
@@ -4315,6 +4460,8 @@ void QuatModel::checkInputFileDimensions(
 
 void QuatModel::WriteInitialConditionsFile( void )
 {
+   tbox::plog<<"Write initial conditions file..."<<endl;
+
    // get new PatchLevel with uniform mesh at level "d_initial_conditions_level"
    boost::shared_ptr<hier::PatchLevel > flattened_level = 
       FlattenHierarchy(
@@ -4339,25 +4486,43 @@ void QuatModel::WriteInitialConditionsFile( void )
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    const int npp = mpi.getSize();
 
-   // We take care of NetCDF error checking and messages
-   NcError ncerr( NcError::silent_nonfatal );
-
    for ( int pp = 0; pp < npp; pp++ ) {
       if ( mpi.getRank() == pp ) {
 
+#ifdef HAVE_NETCDF3
          NcFile* f;
          NcVar* nc_phase;
          NcVar* nc_eta=NULL;
          NcVar** nc_conc =new NcVar*[d_ncompositions];
          NcVar** nc_qcomp=new NcVar*[d_qlen];
          NcVar* nc_temp=NULL;
+#endif
+#ifdef HAVE_NETCDF4
+         NcFile f;
+         NcVar nc_phase;
+         NcVar nc_eta;
+         NcVar* nc_conc =new NcVar[d_ncompositions];
+         NcVar* nc_qcomp=new NcVar[d_qlen];
+         NcVar nc_temp;
+#endif
 
          if ( pp == 0 ) {
+#ifdef HAVE_NETCDF3
             f = new NcFile( d_initial_conditions_file_name.c_str(), NcFile::Replace );
             if ( ! f->is_valid() ) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }
-
+#endif
+#ifdef HAVE_NETCDF4
+            f.open( d_initial_conditions_file_name, NcFile::replace );
+            if( f.isNull()) {
+               TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
+            }else{
+               tbox::plog<<"Open/replace file "<<d_initial_conditions_file_name<<endl;
+            }
+#endif
+ 
+#ifdef HAVE_NETCDF3
             NcDim* nc_nx = f->add_dim( "x", nx_prob );
             NcDim* nc_ny = f->add_dim( "y", ny_prob );
             NcDim* nc_nz = f->add_dim( "z", nz_prob );
@@ -4390,13 +4555,66 @@ void QuatModel::WriteInitialConditionsFile( void )
 
             nc_temp = f->add_var( "temperature", ncFloat, nc_nz, nc_ny, nc_nx );
 
+#endif
+#ifdef HAVE_NETCDF4
+            //cout<<"add variables from PE 0..."<<endl;
+            NcDim nc_nx = f.addDim( "x", nx_prob );
+            NcDim nc_ny = f.addDim( "y", ny_prob );
+            NcDim nc_nz = f.addDim( "z", nz_prob );
+            f.addDim( "qlen", d_qlen );
+
+            vector<NcDim> dims;
+            dims.push_back(nc_nz);
+            dims.push_back(nc_ny);
+            dims.push_back(nc_nx);
+            nc_phase = f.addVar("phase", ncFloat, dims);
+            if( nc_phase.isNull() ){
+               TBOX_ERROR( "Could add variable 'phase'" << endl );
+            }
+            if ( d_model_parameters.with_third_phase() ) {
+               nc_eta = f.addVar( "eta", ncFloat, dims);
+            }
+
+            if ( d_model_parameters.with_orientation() ) {
+               for ( int ii = 0; ii < d_qlen; ii++ ) {
+                  std::ostringstream o;
+                  o << "quat" << ii+1;
+                  nc_qcomp[ii] =
+                     f.addVar( o.str(), ncFloat, dims);
+               }
+            }
+
+            if ( d_model_parameters.with_concentration() ) {
+               for ( int ii = 0; ii < d_ncompositions; ii++ ) {
+                  std::ostringstream o;
+                  o << "concentration";
+                  if( d_ncompositions>1 )o << ii+1;
+                  nc_conc[ii] =
+                     f.addVar( o.str(), ncFloat, dims);
+               }
+            }
+
+            nc_temp = f.addVar( "temperature", ncFloat, dims);
+            //cout<<"variables added on PE 0..."<<endl;
+#endif
          }
-         else {
+         else { // pp!=0
+#ifdef HAVE_NETCDF3
             f = new NcFile( d_initial_conditions_file_name.c_str(), NcFile::Write );
             if ( ! f->is_valid() ) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }
+#endif
+#ifdef HAVE_NETCDF4
+            f.open( d_initial_conditions_file_name, NcFile::write );
+            if ( f.isNull() ) {
+               TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
+            }else{
+               tbox::plog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
+            }
+#endif
 
+#ifdef HAVE_NETCDF3
             nc_phase = f->get_var( "phase" );
 
             if ( d_model_parameters.with_third_phase() ) {
@@ -4421,8 +4639,37 @@ void QuatModel::WriteInitialConditionsFile( void )
             }
 
             nc_temp = f->get_var( "temperature" );
+#endif
+#ifdef HAVE_NETCDF4
+            tbox::plog<<"add variables from PE >0..."<<endl;
+            nc_phase = f.getVar( "phase" );
+
+            if ( d_model_parameters.with_third_phase() ) {
+               nc_eta = f.getVar( "eta" );
+            }
+
+            if ( d_model_parameters.with_orientation() ) {
+               for ( int ii = 0; ii < d_qlen; ii++ ) {
+                  std::ostringstream o;
+                  o << "quat" << ii+1;
+                  nc_qcomp[ii] = f.getVar( o.str() );
+               }
+            }
+
+            if ( d_model_parameters.with_concentration() ) {
+               for ( int ii = 0; ii < d_ncompositions; ii++ ) {
+                  std::ostringstream o;
+                  o << "concentration";
+                  if( d_ncompositions>1 )o << ii+1;
+                  nc_conc[ii] = f.getVar( o.str() );
+               }
+            }
+
+            nc_temp = f.getVar( "temperature" );
+#endif
          } // pp==0 or not        
 
+#ifdef HAVE_NETCDF3
          if ( nc_phase == NULL ) {
             TBOX_ERROR("Could not create variable 'phase'" << endl);
          }
@@ -4455,8 +4702,47 @@ void QuatModel::WriteInitialConditionsFile( void )
          if ( nc_temp == NULL ) {
             TBOX_ERROR( "Could not create variable 'temperature'" << endl );
          }
+#endif
 
-         for ( hier::PatchLevel::Iterator p(flattened_level->begin()); p != flattened_level->end(); ++p ) {
+#ifdef HAVE_NETCDF4
+         if ( nc_phase.isNull() ){
+            TBOX_ERROR("Could not create variable 'phase'" << endl);
+         }
+
+         if ( d_model_parameters.with_third_phase() && nc_eta.isNull() ){
+            TBOX_ERROR("Could not create variable 'eta'" << endl);
+         }
+
+         if ( d_model_parameters.with_orientation() ) {
+            for ( int ii = 0; ii < d_qlen; ii++ ) {
+               std::ostringstream o;
+               o << "quat" << ii+1;
+               if ( nc_qcomp[ii].isNull() ) {
+                  TBOX_ERROR( "Could not create variable "<< o.str() << endl );
+               }
+            }
+         }
+
+         if ( d_model_parameters.with_concentration() ) {
+            for ( int ii = 0; ii < d_ncompositions; ii++ ) {
+               std::ostringstream o;
+               o << "concentration";
+               if( d_ncompositions>1 )o << ii+1;
+               if ( nc_conc[ii].isNull() ) {
+                  TBOX_ERROR( "Could not create variable "<< o.str() << endl );
+               }
+            }
+         }
+
+         if ( nc_temp.isNull() ) {
+            TBOX_ERROR( "Could not create variable 'temperature'" << endl );
+         }
+#endif
+
+         //cout<<"Write data into variable objects..."<<endl;
+         for ( hier::PatchLevel::Iterator p(flattened_level->begin()); 
+                                          p != flattened_level->end(); 
+                                        ++p ) {
             boost::shared_ptr<hier::Patch > patch = *p;
 
             boost::shared_ptr< pdat::CellData<double> > phase_data (
@@ -4476,17 +4762,38 @@ void QuatModel::WriteInitialConditionsFile( void )
             lowz=this_b.lower(2);
 #endif
 
+#ifdef HAVE_NETCDF3
             nc_phase->set_cur( lowz, this_b.lower(1), this_b.lower(0) );
             nc_phase->put( phase_data->getPointer(), nz, ny, nx );
+#endif
+#ifdef HAVE_NETCDF4
+            std::vector<size_t> startp(3);
+            startp[0]=lowz;
+            startp[1]=this_b.lower(1);
+            startp[2]=this_b.lower(0);
+            std::vector<size_t> countp(3);
+            countp[0]=nz;
+            countp[1]=ny;
+            countp[2]=nx;
 
+            //cout<<"Write data into variable 'phase'"<<endl;
+            //cout<<"nx="<<countp[0]<<", ny="<<countp[1]<<", nz="<<countp[2]<<endl;
+            nc_phase.putVar(startp, countp, phase_data->getPointer());
+            //cout<<"Data written into variable 'phase'"<<endl;
+#endif
             if ( d_model_parameters.with_third_phase() ) {
                boost::shared_ptr< pdat::CellData<double> > eta_data (
                   patch->getPatchData( d_eta_id ),
                   boost::detail::dynamic_cast_tag());
                assert( eta_data );
 
+#ifdef HAVE_NETCDF3
                nc_eta->set_cur( lowz, this_b.lower(1), this_b.lower(0) );
                nc_eta->put( eta_data->getPointer(), nz, ny, nx );
+#endif
+#ifdef HAVE_NETCDF4
+               nc_eta.putVar(startp, countp, eta_data->getPointer());
+#endif
             }
 
             boost::shared_ptr< pdat::CellData<double> > temp_data (
@@ -4494,8 +4801,14 @@ void QuatModel::WriteInitialConditionsFile( void )
                boost::detail::dynamic_cast_tag());
             assert( temp_data );
 
+#ifdef HAVE_NETCDF3
             nc_temp->set_cur( lowz, this_b.lower(1), this_b.lower(0) );
             nc_temp->put( temp_data->getPointer(), nz, ny, nx );
+#endif
+#ifdef HAVE_NETCDF4
+            //cout<<"Write data into variable 'temperature'"<<endl;
+            nc_temp.putVar(startp, countp, temp_data->getPointer());
+#endif
 
             if ( d_model_parameters.with_orientation() ){
                boost::shared_ptr< pdat::CellData<double> > quat_data (
@@ -4504,8 +4817,13 @@ void QuatModel::WriteInitialConditionsFile( void )
                assert( quat_data );
 
                for ( int dd = 0; dd < d_qlen; dd++ ) {
+#ifdef HAVE_NETCDF3
                   nc_qcomp[dd]->set_cur( lowz, this_b.lower(1), this_b.lower(0) );
                   nc_qcomp[dd]->put( quat_data->getPointer( dd ), nz, ny, nx );
+#endif
+#ifdef HAVE_NETCDF4
+                  nc_qcomp[dd].putVar(startp, countp, quat_data->getPointer( dd ));
+#endif               
                }
             }
 
@@ -4516,14 +4834,21 @@ void QuatModel::WriteInitialConditionsFile( void )
                assert( conc_data );
 
                for ( int dd = 0; dd < d_ncompositions; dd++ ) {
+#ifdef HAVE_NETCDF3
                   nc_conc[dd]->set_cur( lowz, this_b.lower(1), this_b.lower(0) );
                   nc_conc[dd]->put( conc_data->getPointer( dd ), nz, ny, nx );
+#endif
+#ifdef HAVE_NETCDF4
+                  nc_conc[dd].putVar(startp, countp, conc_data->getPointer( dd ));
+#endif
                }
             }
             
          }
-
+         //cout<<"Close file..."<<endl;
+#ifdef HAVE_NETCDF3
          f->close();
+#endif
          delete[] nc_qcomp;
          delete[] nc_conc;
       }
@@ -6087,6 +6412,8 @@ void QuatModel::computeUniformPhaseMobility(
    int& mobility_id,
    const double time )
 {
+   (void)time;
+
    if ( phase_id < 0 ) phase_id = d_phase_scratch_id;
    if ( mobility_id < 0 ) mobility_id = d_phase_mobility_id;
 
@@ -6214,6 +6541,8 @@ void QuatModel::computeEtaMobility(
    int& mobility_id,
    const double time )
 {
+   (void)time;
+
    if ( phase_id < 0 ) phase_id = d_phase_scratch_id;
    if ( mobility_id < 0 ) mobility_id = d_eta_mobility_id;
 
@@ -6377,6 +6706,8 @@ void QuatModel::computeQuatMobility(
    int& mobility_id,
    const double time )
 {
+   (void)time;
+
    if ( phase_id < 0 ) phase_id = d_phase_scratch_id;
    if ( mobility_id < 0 ) mobility_id = d_quat_mobility_id;
 
@@ -6994,6 +7325,8 @@ void QuatModel::makeQuatFundamental(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const double time )
 {
+   (void)time;
+
    assert( d_quat_id>=0 );
    
    if ( d_verbosity->notSilent() ) {
