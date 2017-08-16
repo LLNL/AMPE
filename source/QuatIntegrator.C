@@ -1998,11 +1998,9 @@ void QuatIntegrator::updateDependentVariables(
       const boost::shared_ptr<hier::Patch>& patch = *ip;
 
       boost::shared_ptr<hier::PatchData> src_data(
-         patch->getPatchData(d_temperature_var, src_context),
-         boost::detail::dynamic_cast_tag());
+         patch->getPatchData(d_temperature_var, src_context));
       boost::shared_ptr<hier::PatchData> dst_data(
-         patch->getPatchData(d_temperature_var, dst_context),
-         boost::detail::dynamic_cast_tag());
+         patch->getPatchData(d_temperature_var, dst_context));
 
       dst_data->copy(*src_data);
    }
