@@ -37,16 +37,17 @@
 #generate initial conditions: grain of radius 100 cells in 256 x 256 square
 python ../../utils/make_sphere.py -x 256 -y 256 -z 1 -r 100 --qlen 1 initial256.nc
 
-set exe = /usr/gapps/phasefield/bin/ampe2d
+set exe = ampe2d
 
-srun -ppdebug -N1 -n16 $exe gg2d_256.input
+srun -ppdebug -n16 $exe gg2d_256.input
 
-python dtvst.py gg2d_256.log > 256.dat
+python dtvst.py gg2d_256.log > dtvst.dat
 
+gnuplot dtvst.plt
 
 #increase resolution: 512 x 512 mesh
 python ../../utils/make_sphere.py -x 512 -y 512 -z 1 -r 200 --qlen 1 initial512.nc
 
 srun -ppdebug -N1 -n16 $exe gg2d_512.input
 
-python dtvst.py gg2d_512.log > 512.dat
+python dtvst.py gg2d_512.log > dtvst.dat
