@@ -5,7 +5,10 @@ if test "@DEBUG@" = "opt"; then
    debug="--enable-opt";
 fi
 
-mpi_include=`echo '@MPIINCLUDE@' | sed 's/-I//g'`
+mpicc=""
+if test "@WITHMPICCSET@" = "yes"; then
+   mpicc="--with-mpicc=@MPICCARG@"
+fi
 
 ./configure $debug \
     CC=@CC@ \
@@ -14,6 +17,6 @@ mpi_include=`echo '@MPIINCLUDE@' | sed 's/-I//g'`
     CXXFLAGS="@CXX_FLAGS@" \
     F77=@F77@ \
     FFLAGS="@F77_FLAGS@" \
-    --with-MPI-include="$mpi_include" \
+    $mpicc \
     --prefix=@BASE_BUILD_DIR@/sundials
 

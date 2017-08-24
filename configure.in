@@ -91,14 +91,16 @@ dnl
 CASC_GUESS_ARCH
 BTNG_AC_LOG_VAR(ARCH)
 
-
 dnl
 dnl Get machine or cluster name
 dnl
 
 machname=`hostname | sed -e 's/\..*//g' -e 's/[[0-9]]//g'`
 BTNG_AC_LOG_VAR(machname)
-
+titan=`echo $machname | grep -c 'titan' `
+if test "$titan" -eq 1; then
+   MPICCARG=cc
+fi
 
 dnl
 dnl Set up the C++ compiler.  By default, try to choose KCC.
@@ -122,37 +124,6 @@ AC_PROG_CXX($CCC)
 BTNG_AC_LOG_VAR(with_CXX CXX CCC, after running compiler search)
 
 
-dnl
-dnl If KCC is being used force the cc from KAI unless
-dnl user specifies it themselves.
-dnl
-dnl NOTE there is an issue here with mpKCC.  What should we use
-dnl then?
-dnl 
-
-enable_KCC_C_compiler=no
-if test -z "$with_CC"; then
-   if test "$CXX" = "KCC"; then
-	$CXX -v 2> conftest.out
-	KCC_PATH=`sed 's/driver.*$//' conftest.out | head -1`
-        KCC_PATH=`echo $KCC_PATH | sed 's/ \t//g'`
-	KCC_CC=""
-        if test -f "$KCC_PATH"cc; then
-           KCC_CC="$KCC_PATH"cc		
-	fi
-        if test -f "$KCC_PATH"gcc; then
-           KCC_CC="$KCC_PATH"gcc		
-	fi
-	if test -n "$KCC_CC"; then
-           with_CC=$KCC_CC
-           enable_KCC_C_compiler=yes
-	fi
-   fi
-   if test "$CXX" = "mpKCC"; then
-      with_CC=mpcc
-   fi
-fi
- 
 dnl
 dnl Set up the C compiler.  This macro must come first and be followed
 dnl AC_ISC_POSIX before other compiler tests are run.  See the autoconfig
@@ -635,6 +606,9 @@ AC_LANG_POP([C++])
 #  if test "${dl_LIBS}"; then
 #    LIBS="$dl_LIBS $LIBS"
 #    SAMRAI_SPLIT_LIBS_STRING(dl_LIBS,dl_LIB_PATH,dl_LIB_NAME)
+#    LIB_PATH="$dl_LIB_PATH $LIB_PATH"
+#    LIB_NAME="$dl_LIB_NAME $LIB_NAME"
+#    INC_PATH="$dl_INCLUDES $INC_PATH"
 #  fi
 #fi
 
@@ -755,7 +729,7 @@ dnl
 dnl Hypre support
 dnl
 BTNG_SUPPORT_HYPRE
-if test "${netcdf_PREFIX+set}" = set; then
+if test "${hypre_PREFIX+set}" = set; then
    SAMRAI_SPLIT_LIBS_STRING(hypre_LIBS,hypre_LIB_PATH,hypre_LIB_NAME)
    LIB_PATH="$hypre_LIB_PATH $LIB_PATH"
    LIB_NAME="$hypre_LIB_NAME $LIB_NAME"
@@ -845,6 +819,17 @@ if test -n "$with_base"; then
 else
    BASE_BUILD_DIR=$INSTDIR/base
 fi
+if test -n "$with_mpi_lib_dirs"; then
+   WITHMPILIBDIRS=yes
+else
+   WITHMPILIBDIRS=no
+fi
+if test -n "$with_MPICC"; then
+   WITHMPICCSET=yes
+else
+   WITHMPICCSET=no
+fi
+
 CONFIG_DIR=$INSTDIR/config
 SAM_CONFIG_DIR=$BASE_BUILD_DIR/SAMRAI/config
 
@@ -855,6 +840,9 @@ dnl
 
 AC_SUBST(DEBUG)
 AC_SUBST(ZLIB)
+AC_SUBST(WITHMPILIBDIRS)
+AC_SUBST(WITHMPICCSET)
+AC_SUBST(MPICCARG)
 AC_SUBST(CC)
 AC_SUBST(C_FLAGS)
 AC_SUBST(CXX)

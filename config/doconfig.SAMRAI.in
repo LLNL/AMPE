@@ -10,11 +10,17 @@ if test "@ZLIB@" = "no"; then
    zlib="--without-zlib"
 fi
 
+mpilibdirs=""
+if test "@WITHMPILIBDIRS@" = "yes"; then
+   mpilibdirs="--with-mpi-lib-dirs=@MPILIBDIRS@"
+fi
+
 ../SAMRAI/configure CFLAGS="@C_FLAGS@" CXXFLAGS="@CXX_FLAGS@" \
                     $debug \
                     --with-CC=@CC@ \
                     --with-CXX=@CXX@ \
                     --with-F77=@F77@ \
+                    $mpilibdirs \
                     --without-petsc \
                     --without-x \
                     --disable-shared \
