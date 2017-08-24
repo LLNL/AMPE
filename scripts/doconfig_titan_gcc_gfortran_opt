@@ -1,0 +1,18 @@
+#!/bin/tcsh
+module purge
+module load PrgEnv-gnu
+module load cray-mpich
+module load netcdf
+module load hdf5
+
+./configure --build=x86_64 --host=x86_64-linux --disable-debug --enable-opt \
+            --with-CXX=CC \
+            --with-CC=cc \
+            --with-F77=ftn \
+            --with-MPICC=cc \
+            --with-mpi-lib-dirs=$MPICH_DIR \
+            --with-boost=$HOME/lib/boost/1.45.0 \
+            --with-hdf5=$HDF5_DIR \
+            --with-netcdf=$NETCDF_DIR \
+            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre \
+            --prefix=$PWD/build
