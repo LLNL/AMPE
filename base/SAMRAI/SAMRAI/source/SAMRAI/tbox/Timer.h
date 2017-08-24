@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Timer class to track elapsed time in portions of a program.
  *
  ************************************************************************/
@@ -16,13 +16,13 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/PIO.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <vector>
 
 #ifdef HAVE_TAU
 #if (PROFILING_ON || TRACING_ON)
-#include <Profile/Profiler.h>
+#include "Profile/Profiler.h"
 #endif
 #endif
 
@@ -56,7 +56,7 @@ class TimerManager;
  * Note that the constructor is protected so that timer objects can only
  * be created by the TimerManager class.
  *
- * @see tbox::TimerManager
+ * @see TimerManager
  */
 
 class Timer
@@ -80,7 +80,7 @@ public:
    /**
     * Start the timer if active.
     *
-    * It is an error to start a timer that is already started.
+    * @pre !isActive() || !isRunning()
     */
    void
    start();
@@ -88,7 +88,7 @@ public:
    /**
     * Stop the timer if active.
     *
-    * It is an error to stop a timer that is already stopped.
+    * @pre !isActive() || isRunning()
     */
    void
    stop();
@@ -131,8 +131,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_system_total / Clock::getClockCycle();
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -144,8 +146,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_user_total / Clock::getClockCycle();
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -157,8 +161,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_wallclock_total;
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -170,8 +176,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_max_wallclock;
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -183,8 +191,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_system_exclusive / Clock::getClockCycle();
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -196,8 +206,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_user_exclusive / Clock::getClockCycle();
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -209,8 +221,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_wallclock_exclusive;
+
 #else
       return 0.0;
+
 #endif
    }
 
@@ -222,8 +236,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_is_active;
+
 #else
       return false;
+
 #endif
    }
 
@@ -235,8 +251,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_is_running;
+
 #else
       return false;
+
 #endif
    }
 
@@ -249,8 +267,10 @@ public:
    {
 #ifdef ENABLE_SAMRAI_TIMERS
       return d_accesses;
+
 #else
       return 0;
+
 #endif
    }
 
@@ -268,19 +288,22 @@ public:
    computeMaxWallclock();
 
    /**
-    * Write timer data members to database.
+    * Write timer data members to restart database.
+    *
+    * @pre restart_db
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<Database>& restart_db) const;
 
    /**
-    * Read restarted times from restart database.  When assertion checking
-    * is on, the database pointer must be non-null.
+    * Read restarted times from restart database.
+    *
+    * @pre restart_db
     */
    void
    getFromRestart(
-      const boost::shared_ptr<Database>& db);
+      const boost::shared_ptr<Database>& restart_db);
 
 protected:
    /**
@@ -324,6 +347,18 @@ protected:
       const Timer& timer) const;
 
 private:
+   // Unimplemented default constructor.
+   Timer();
+
+   // Unimplemented copy constructor.
+   Timer(
+      const Timer& other);
+
+   // Unimplemented assignment operator.
+   Timer&
+   operator = (
+      const Timer& rhs);
+
    /*
     * Class name, id, and concurrent timer flag.
     */

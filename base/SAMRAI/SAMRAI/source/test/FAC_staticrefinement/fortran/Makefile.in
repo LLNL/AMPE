@@ -1,0 +1,39 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for SAMRAI FAC Poisson solver
+##                example
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/FAC_staticrefinement/fortran
+VPATH         = @srcdir@
+OBJECT        = ../../../..
+
+default: main
+
+include $(OBJECT)/config/Makefile.config
+
+OBJS= 	facpoisson2d.o facpoisson3d.o
+
+main:	$(OBJS)
+
+clean:
+	$(CLEAN_COMMON_TEST_FILES)
+
+include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+facpoisson2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/facpoisson2d.m4 > facpoisson2d.f
+	$(F77) $(FFLAGS) -c facpoisson2d.f -o $@
+
+facpoisson3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/facpoisson3d.m4 > facpoisson3d.f
+	$(F77) $(FFLAGS) -c facpoisson3d.f -o $@

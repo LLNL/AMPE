@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utility routines for manipulating Cartesian 2d boundary data
  *
  ************************************************************************/
@@ -19,11 +19,11 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 
 namespace SAMRAI {
 namespace appu {
@@ -38,6 +38,8 @@ namespace appu {
  * capabilities, or use the input reading, boundary setting, and error
  * checking routines independently.
  *
+ * <b> Input Parameters </b>
+ *
  * To use the boundary condition input reading capabilities, the format
  * of the input file section containing the boundary information must
  * be as described next.  Boundary node and edge entries are only
@@ -46,38 +48,32 @@ namespace appu {
  *
  * The boundary condition for edge "*" is provided in a section as follows:
  *
- * \verbatim
- *
+ * @code
  *    boundary_edge_* {
- *       boundary_condition  = ...  // boundary condition std::string identifier
- *       // Any problem-specific boundary data read by user routines
- *       // is placed here...
+ *       boundary_condition  = ...  // boundary condition string identifier
  *    }
+ * @endcode
  *
- * Allowable edge identifiers (i.e., values for "*") are:
- *       xlo, xhi, ylo, yhi
- * Supported edge boundary_condition strin values are:
+ * Allowable edge identifiers (i.e., values for "*") are: <br>
+ *       xlo, xhi, ylo, yhi <br>
+ * Supported edge boundary_condition string values are: <br>
  *       "FLOW", "REFLECT", "DIRICHLET", "NEUMANN"
- *
- * \endverbatim
  *
  * The boundary condition for node "*" is provided in a section as follows:
  *
- * \verbatim
- *
+ * @code
  *    boundary_node_* {
- *       boundary_condition  = ...  // boundary condition std::string identifier
+ *       boundary_condition  = ...  // boundary condition string identifier
  *    }
+ * @endcode
  *
- * Allowable node identifiers (i.e., values for "*") are:
- *       xlo_ylo, xhi_ylo, xlo_yhi, xhi_yhi
- * Supported node boundary_condition std::string values are:
+ * Allowable node identifiers (i.e., values for "*") are: <br>
+ *       xlo_ylo, xhi_ylo, xlo_yhi, xhi_yhi <br>
+ * Supported node boundary_condition string values are: <br>
  *       "XFLOW", "YFLOW",
  *       "XREFLECT", "YREFLECT",
  *       "XDIRICHLET", "YDIRICHLET",
  *       "XNEUMANN", "YNEUMANN"
- *
- * \endverbatim
  *
  * Note that node conditions must be consistent with adjacent edge conditions.
  *
@@ -91,7 +87,7 @@ namespace appu {
  * inconsistencies between C++ and FORTRAN usage.  Please see the
  * FORTRAN include file cartbdryparams2d.i for details.
  *
- * @see appu::BoundaryUtilityStrategy2
+ * @see BoundaryUtilityStrategy2
  */
 
 struct CartesianBoundaryUtilities2 {
@@ -119,21 +115,27 @@ public:
     *
     * @param bdry_strategy user-defined object that reads DIRICHLET or NEUMANN
     *                      conditions
-    * @param bdry_db       input database containing all boundary data
-    * @param edge_conds    array into which integer edge boundary condition types
-    *                      are read
-    * @param node_conds    array into which integer node boundary condition types
-    *                      are read
+    * @param input_db      input database containing all boundary data
+    * @param edge_conds    array into which integer edge boundary condition
+    *                      types are read
+    * @param node_conds    array into which integer node boundary condition
+    *                      types are read
     * @param periodic      integer vector specifying which coordinate
     *                      directions are periodic (e.g., value returned from
     *                      GridGeometry2::getPeriodicShift())
+    *
+    * @pre input_db
+    * @pre periodic.getDim() == tbox::Dimension(2)
+    * @pre bdry_strategy != 0
+    * @pre edge_conds.size() == NUM_2D_EDGES
+    * @pre node_conds.size() == NUM_2D_NODES
     */
    static void
-   readBoundaryInput(
+   getFromInput(
       BoundaryUtilityStrategy* bdry_strategy,
-      const boost::shared_ptr<tbox::Database>& bdry_db,
-      tbox::Array<int>& edge_conds,
-      tbox::Array<int>& node_conds,
+      const boost::shared_ptr<tbox::Database>& input_db,
+      std::vector<int>& edge_conds,
+      std::vector<int>& node_conds,
       const hier::IntVector& periodic);
 
    /*!
@@ -147,8 +149,18 @@ public:
     * @param vardata             Cell-centered patch data object to fill.
     * @param patch               hier::Patch on which data object lives.
     * @param ghost_width_to_fill Width of ghost region to fill.
-    * @param bdry_edge_conds     tbox::Array of boundary condition types for patch edges.
-    * @param bdry_edge_values    tbox::Array of boundary values for patch edges.
+    * @param bdry_edge_conds     tbox::Array of boundary condition types for
+    *                            patch edges.
+    * @param bdry_edge_values    tbox::Array of boundary values for patch
+    *                            edges.
+    *
+    * @pre !varname.empty());
+    * @pre vardata
+    * @pre bdry_edge_conds.size() == NUM_2D_EDGES
+    * @pre bdry_edge_values.size() == NUM_2D_EDGES * (vardata->getDepth())
+    * @pre ghost_fill_width.getDim() == tbox::Dimension(2)
+    * @pre (vardata->getDim() == patch.getDim()) &&
+    *      (vardata->getDim() == ghost_fill_width.getDim())
     */
    static void
    fillEdgeBoundaryData(
@@ -156,8 +168,8 @@ public:
       const boost::shared_ptr<pdat::CellData<double> >& vardata,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& bdry_edge_conds,
-      const tbox::Array<double>& bdry_edge_values);
+      const std::vector<int>& bdry_edge_conds,
+      const std::vector<double>& bdry_edge_values);
 
    /*!
     * Function to fill 2d node boundary values for a patch.
@@ -170,8 +182,18 @@ public:
     * @param vardata             Cell-centered patch data object to fill.
     * @param patch               hier::Patch on which data object lives.
     * @param ghost_width_to_fill Width of ghost region to fill.
-    * @param bdry_node_conds     tbox::Array of boundary condition types for patch nodes.
-    * @param bdry_edge_values    tbox::Array of boundary values for patch edges.
+    * @param bdry_node_conds     tbox::Array of boundary condition types for
+    *                            patch nodes.
+    * @param bdry_edge_values    tbox::Array of boundary values for patch
+    *                            edges.
+    *
+    * @pre !varname.empty()
+    * @pre vardata
+    * @pre bdry_node_conds.size() == NUM_2D_NODES
+    * @pre bdry_edge_values.size() == NUM_2D_EDGES * (vardata->getDepth())
+    * @pre ghost_fill_width.getDim() == tbox::Dimension(2)
+    * @pre (vardata->getDim() == patch.getDim()) &&
+    *      (vardata->getDim() == ghost_fill_width.getDim())
     */
    static void
    fillNodeBoundaryData(
@@ -179,8 +201,8 @@ public:
       const boost::shared_ptr<pdat::CellData<double> >& vardata,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& bdry_node_conds,
-      const tbox::Array<double>& bdry_edge_values);
+      const std::vector<int>& bdry_node_conds,
+      const std::vector<double>& bdry_edge_values);
 
    /*!
     * Function that returns the integer edge boundary location
@@ -191,10 +213,20 @@ public:
     * or the boundary condition type is inconsistant with the node location
     * an error results.
     *
-    * @return Integer edge location for node location and boundary condition type.
+    * @return Integer edge location for node location and boundary condition
+    *         type.
     *
     * @param node_loc   Integer location for node.
     * @param node_btype Integer boundary condition type for node.
+    *
+    * @pre (node_btype == BdryCond::XFLOW) ||
+    *      (node_btype == BdryCond::XREFLECT) ||
+    *      (node_btype == BdryCond::XDIRICHLET) ||
+    *      (node_btype == BdryCond::XNEUMANN) ||
+    *      (node_btype == BdryCond::YFLOW) ||
+    *      (node_btype == BdryCond::YREFLECT) ||
+    *      (node_btype == BdryCond::YDIRICHLET) ||
+    *      (node_btype == BdryCond::YNEUMANN)
     */
    static int
    getEdgeLocationForNodeBdry(
@@ -219,7 +251,27 @@ public:
     * @param gcw_to_check  Width of ghost region to check.
     * @param bbox          Boundary box to check.
     * @param bcase         Boundary condition type for given edge or node.
-    * @param bstate        Boundary value that applies in DIRICHLET or NEUMANN case.
+    * @param bstate        Boundary value that applies in DIRICHLET or NEUMANN
+    *                      case.
+    *
+    * @pre !varname.empty()
+    * @pre data_id >= 0
+    * @pre depth >= 0
+    * @pre gcw_to_check.getDim() == tbox::Dimension(2)
+    * @pre (patch.getDim() == gcw_to_check.getDim()) &&
+    *      (patch.getDim() == bbox.getDim())
+    * @pre (bbox.getBoundaryType() == Bdry::EDGE2D) ||
+    *      (bbox.getBoundaryType() == Bdry::NODE2D)
+    * @pre ((bbox.getBoundaryType() == Bdry::EDGE2D) &&
+    *       ((bcase == BdryCond::FLOW) || (bcase == BdryCond::REFLECT) ||
+    *        (bcase == BdryCond::DIRICHLET) ||
+    *        (bcase == BdryCond::NEUMANN))) ||
+    *      ((bbox.getBoundaryType() == Bdry::NODE2D) &&
+    *       ((bcase == BdryCond::XFLOW) || (bcase == BdryCond::YFLOW) ||
+    *        (bcase == BdryCond::XREFLECT) || (bcase == BdryCond::YREFLECT) ||
+    *        (bcase == BdryCond::XDIRICHLET) ||
+    *        (bcase == BdryCond::YDIRICHLET) ||
+    *        (bcase == BdryCond::XNEUMANN) || (bcase == BdryCond::YNEUMANN)))
     */
    static int
    checkBdryData(
@@ -230,7 +282,7 @@ public:
       const hier::IntVector& gcw_to_check,
       const hier::BoundaryBox& bbox,
       int bcase,
-      double bstate);
+      const double& bstate);
 
 private:
    static bool s_fortran_constants_stuffed;
@@ -238,20 +290,20 @@ private:
    static void
    read2dBdryEdges(
       BoundaryUtilityStrategy* bdry_strategy,
-      const boost::shared_ptr<tbox::Database>& bdry_db,
-      tbox::Array<int>& edge_conds,
+      const boost::shared_ptr<tbox::Database>& input_db,
+      std::vector<int>& edge_conds,
       const hier::IntVector& periodic);
 
    static void
    read2dBdryNodes(
-      const boost::shared_ptr<tbox::Database>& bdry_db,
-      const tbox::Array<int>& edge_conds,
-      tbox::Array<int>& node_conds,
+      const boost::shared_ptr<tbox::Database>& input_db,
+      const std::vector<int>& edge_conds,
+      std::vector<int>& node_conds,
       const hier::IntVector& periodic);
 
    static void
    get2dBdryDirectionCheckValues(
-      int& idir,
+      tbox::Dimension::dir_t& idir,
       int& offsign,
       int btype,
       int bloc,

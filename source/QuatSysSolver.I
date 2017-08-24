@@ -39,43 +39,43 @@ SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setVerbose(const bool verbose)
 {
   d_verbose = verbose;
-  d_fac_ops.setVerbose(verbose);
+  d_fac_ops->setVerbose(verbose);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setProlongationMethod(const std::string & prolongation_method)
 {
-  d_fac_ops.setProlongationMethod(prolongation_method);
+  d_fac_ops->setProlongationMethod(prolongation_method);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setLevelSolverTolerance(double tol)
 {
-  d_fac_ops.setLevelSolverTolerance(tol);
+  d_fac_ops->setLevelSolverTolerance(tol);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setLevelSolverMaxIterations(int max_iterations)
 {
-  d_fac_ops.setLevelSolverMaxIterations(max_iterations);
+  d_fac_ops->setLevelSolverMaxIterations(max_iterations);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setCoarsestLevelSolverTolerance(double tol)
 {
-  d_fac_ops.setCoarsestLevelSolverTolerance(tol);
+  d_fac_ops->setCoarsestLevelSolverTolerance(tol);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setCoarsestLevelSolverMaxIterations(int max_iterations)
 {
-  d_fac_ops.setCoarsestLevelSolverMaxIterations(max_iterations);
+  d_fac_ops->setCoarsestLevelSolverMaxIterations(max_iterations);
 }
 
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setCoarseFineDiscretization(const std::string & coarsefine_method)
 {
-  d_fac_ops.setCoarseFineDiscretization(coarsefine_method);
+  d_fac_ops->setCoarseFineDiscretization(coarsefine_method);
 }
 
 SAMRAI_INLINE_KEYWORD void
@@ -110,6 +110,6 @@ QuatSysSolver::getFACConvergenceFactors(double &   avg_factor,
 SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setLogging(bool logging)
 {
-  d_fac_ops.enableLogging(logging);
+  d_fac_ops->enableLogging(logging);
 }
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Iterator for face centered patch data types
  *
  ************************************************************************/
@@ -37,23 +37,14 @@ namespace pdat {
  * on your compiler.  Many compilers are not smart enough to optimize the
  * looping constructs and indexing operations.
  *
- * @see pdat::FaceData
- * @see pdat::FaceGeometry
- * @see pdat::FaceIndex
+ * @see FaceData
+ * @see FaceGeometry
+ * @see FaceIndex
  */
 
 class FaceIterator
 {
 public:
-   /**
-    * Constructor for the face iterator.  The iterator will enumerate
-    * the indices in the argument box.
-    */
-   FaceIterator(
-      const hier::Box& box,
-      const int axis,
-      bool begin);
-
    /**
     * Copy constructor for the face iterator
     */
@@ -90,7 +81,7 @@ public:
     * Extract a pointer to the face index corresponding to the iterator
     * position in the box.
     */
-   const FaceIndex*
+   const FaceIndex *
    operator -> () const
    {
       return &d_index;
@@ -116,6 +107,8 @@ public:
    operator == (
       const FaceIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index == iterator.d_index;
    }
 
@@ -126,10 +119,33 @@ public:
    operator != (
       const FaceIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index != iterator.d_index;
    }
 
 private:
+   friend FaceIterator
+   FaceGeometry::begin(
+      const hier::Box& box,
+      tbox::Dimension::dir_t axis);
+   friend FaceIterator
+   FaceGeometry::end(
+      const hier::Box& box,
+      tbox::Dimension::dir_t axis);
+
+   /**
+    * Constructor for the face iterator.  The iterator will enumerate
+    * the indices in the argument box.
+    */
+   FaceIterator(
+      const hier::Box& box,
+      const tbox::Dimension::dir_t axis,
+      bool begin);
+
+   // Unimplemented default constructor.
+   FaceIterator();
+
    FaceIndex d_index;
    hier::Box d_box;
 };

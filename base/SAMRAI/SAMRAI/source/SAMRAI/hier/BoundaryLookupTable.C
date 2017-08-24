@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Lookup table to aid in BoundaryBox construction
  *
  ************************************************************************/
-
-#ifndef included_hier_BoundaryLookupTable_C
-#define included_hier_BoundaryLookupTable_C
-
 #include "SAMRAI/hier/BoundaryLookupTable.h"
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 
@@ -26,8 +22,7 @@ namespace SAMRAI {
 namespace hier {
 
 BoundaryLookupTable *
-BoundaryLookupTable::s_lookup_table_instance[tbox::Dimension::MAXIMUM_DIMENSION_VALUE
-] = { (BoundaryLookupTable *)NULL };
+BoundaryLookupTable::s_lookup_table_instance[SAMRAI::MAX_DIM_VAL] = { 0 };
 
 tbox::StartupShutdownManager::Handler
 BoundaryLookupTable::s_finalize_handler(
@@ -49,31 +44,34 @@ BoundaryLookupTable::BoundaryLookupTable(
    const tbox::Dimension& dim):
    d_dim(dim)
 {
-   if (d_table[0].isNull()) {
-      int factrl[tbox::Dimension::MAXIMUM_DIMENSION_VALUE + 1];
+   if (d_table[0].empty()) {
+      const tbox::Dimension::dir_t dim_val = d_dim.getValue();
+      int factrl[SAMRAI::MAX_DIM_VAL + 1];
       factrl[0] = 1;
-      for (int i = 1; i <= d_dim.getValue(); i++) factrl[i] = i * factrl[i - 1];
-      d_ncomb.resizeArray(d_dim.getValue());
-      d_max_li.resizeArray(d_dim.getValue());
-      for (int codim = 1; codim <= d_dim.getValue(); codim++) {
-         int cdm1 = codim - 1;
-         d_ncomb[cdm1] = factrl[d_dim.getValue()]
-            / (factrl[codim] * factrl[d_dim.getValue() - codim]);
+      for (int i = 1; i <= dim_val; ++i) {
+         factrl[i] = i * factrl[i - 1];
+      }
 
-         tbox::Array<int> work;
-         work.resizeArray(codim * d_ncomb[cdm1]);
+      d_ncomb.resize(dim_val);
+      d_max_li.resize(dim_val);
+      for (tbox::Dimension::dir_t codim = 1; codim <= dim_val; ++codim) {
+         tbox::Dimension::dir_t cdm1 = static_cast<tbox::Dimension::dir_t>(codim - 1);
+         d_ncomb[cdm1] = factrl[dim_val]
+            / (factrl[codim] * factrl[dim_val - codim]);
 
-         int recursive_work[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+         std::vector<int> work(codim * d_ncomb[cdm1]);
+
+         int recursive_work[SAMRAI::MAX_DIM_VAL];
          int recursive_work_lvl = 0;
          int* recursive_work_ptr;
-         buildTable(work.getPointer(), codim, 1, recursive_work,
-            recursive_work_lvl, recursive_work_ptr);
+         buildTable(&work[0], recursive_work,
+            recursive_work_lvl, recursive_work_ptr, codim, 1);
 
-         d_table[cdm1].resizeArray(d_ncomb[cdm1]);
-         for (int j = 0; j < d_ncomb[cdm1]; j++) {
-            d_table[cdm1][j].resizeArray(codim);
-            for (int k = 0; k < codim; k++) {
-               d_table[cdm1][j][k] = work[j * codim + k] - 1;
+         d_table[cdm1].resize(d_ncomb[cdm1]);
+         for (tbox::Dimension::dir_t j = 0; j < d_ncomb[cdm1]; ++j) {
+            d_table[cdm1][j].resize(codim);
+            for (tbox::Dimension::dir_t k = 0; k < codim; ++k) {
+               d_table[cdm1][j][k] = static_cast<tbox::Dimension::dir_t>(work[j * codim + k] - 1);
             }
          }
 
@@ -100,27 +98,29 @@ BoundaryLookupTable::~BoundaryLookupTable()
 void
 BoundaryLookupTable::buildTable(
    int* table,
-   int codim,
-   int ibeg,
-   int(&work)[tbox::Dimension::MAXIMUM_DIMENSION_VALUE],
-   int& lvl,
-   int *& ptr)
+   int(&work)[SAMRAI::MAX_DIM_VAL],
+   int& rec_level,
+   int *& ptr,
+   const int codim,
+   const int ibeg)
 {
-   lvl++;
-   if (lvl == 1) ptr = table;
-   int iend = d_dim.getValue() - codim + lvl;
-   for (int i = ibeg; i <= iend; i++) {
-      work[lvl - 1] = i;
-      if (lvl != codim) {
-         buildTable(ptr, codim, i + 1, work, lvl, ptr);
+   ++rec_level;
+   if (rec_level == 1) {
+      ptr = table;
+   }
+   int iend = d_dim.getValue() - codim + rec_level;
+   for (int i = ibeg; i <= iend; ++i) {
+      work[rec_level - 1] = i;
+      if (rec_level != codim) {
+         buildTable(ptr, work, rec_level, ptr, codim, i + 1);
       } else {
-         for (int j = 0; j < codim; j++) {
+         for (int j = 0; j < codim; ++j) {
             *(ptr + j) = work[j];
          }
          ptr += codim;
       }
    }
-   lvl--;
+   --rec_level;
 }
 
 /*
@@ -136,16 +136,16 @@ void
 BoundaryLookupTable::buildBoundaryDirectionVectors()
 {
 
-   d_bdry_dirs.resizeArray(d_dim.getValue());
+   d_bdry_dirs.resize(d_dim.getValue());
 
-   for (int i = 0; i < d_dim.getValue(); i++) {
-      d_bdry_dirs[i].resizeArray(d_max_li[i], IntVector::getZero(d_dim));
-      int codim = i + 1;
+   for (tbox::Dimension::dir_t i = 0; i < d_dim.getValue(); ++i) {
+      d_bdry_dirs[i].resize(d_max_li[i], IntVector::getZero(d_dim));
+      tbox::Dimension::dir_t codim = static_cast<tbox::Dimension::dir_t>(i + 1);
 
-      for (int loc = 0; loc < d_max_li[i]; loc++) {
-         const tbox::Array<int>& dirs = getDirections(loc, codim);
+      for (int loc = 0; loc < d_max_li[i]; ++loc) {
+         const std::vector<tbox::Dimension::dir_t>& dirs = getDirections(loc, codim);
 
-         for (int d = 0; d < dirs.size(); d++) {
+         for (int d = 0; d < static_cast<int>(dirs.size()); ++d) {
 
             if (isUpper(loc, codim, d)) {
 
@@ -171,11 +171,11 @@ BoundaryLookupTable::buildBoundaryDirectionVectors()
 void
 BoundaryLookupTable::finalizeCallback()
 {
-   for (int i = 0; i < tbox::Dimension::MAXIMUM_DIMENSION_VALUE; ++i) {
+   for (int i = 0; i < SAMRAI::MAX_DIM_VAL; ++i) {
       if (s_lookup_table_instance[i]) {
          delete s_lookup_table_instance[i];
       }
-      s_lookup_table_instance[i] = ((BoundaryLookupTable *)NULL);
+      s_lookup_table_instance[i] = 0;
    }
 
 }
@@ -189,6 +189,4 @@ BoundaryLookupTable::finalizeCallback()
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

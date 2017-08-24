@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Norm operations for complex side-centered data.
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace math {
@@ -48,7 +48,7 @@ namespace math {
  * Note that a similar set of norm operations is implemented for real
  * patch data (double and float) in the class PatchSideDataNormOpsReal.
  *
- * @see math::ArrayDataNormOpsComplex
+ * @see ArrayDataNormOpsComplex
  */
 
 class PatchSideDataNormOpsComplex
@@ -65,6 +65,9 @@ public:
     * Return the number of data values for the side-centered data object
     * in the given box.  Note that it is assumed that the box refers to
     * the cell-centered index space corresponding to the patch hierarchy.
+    *
+    * @pre data
+    * @pre data->getDim() == box.getDim()
     */
    int
    numberOfEntries(
@@ -73,6 +76,9 @@ public:
 
    /**
     * Return sum of control volume entries for the side-centered data object.
+    *
+    * @pre data && cvol
+    * @pre data->getDirectionVector() == hier::IntVector::min(data->getDirectionVector(), cvol->getDirectionVector())
     */
    double
    sumControlVolumes(
@@ -84,6 +90,10 @@ public:
     * Set destination component to norm of source component.  That is,
     * each destination entry is set to
     * \f$d_i = \sqrt{ {real(s_i)}^2 + {imag(s_i)}^2 }\f$.
+    *
+    * @pre dst && src
+    * @pre dst->getDirectionVector() == src->getDirectionVector()
+    * @pre (dst->getDim() == src->getDim()) && (dst->getDim() == box.getDim())
     */
    void
    abs(
@@ -97,6 +107,11 @@ public:
     * return value is the sum \f$\sum_i ( \sqrt{data_i * \bar{data_i}}*cvol_i )\f$.
     * If the control volume is NULL, the return value is
     * \f$\sum_i ( \sqrt{data_i * \bar{data_i}} )\f$.
+    *
+    * @pre data
+    * @pre data->getDim() == box.getDim()
+    * @pre !cvol || (data->getDirectionVector() ==  hier::IntVector::min(data->getDirectionVector(), cvol->getDirectionVector()))
+    * @pre !cvol || (data->getDim() == cvol->getDim())
     */
    double
    L1Norm(
@@ -112,6 +127,11 @@ public:
     * \f$\sqrt{ \sum_i ( data_i * \bar{data_i} cvol_i ) }\f$.
     * If the control volume is NULL, the return value is
     * \f$\sqrt{ \sum_i ( data_i * \bar{data_i} ) }\f$.
+    *
+    * @pre data
+    * @pre data->getDim() == box.getDim()
+    * @pre !cvol || (data->getDirectionVector() ==  hier::IntVector::min(data->getDirectionVector(), cvol->getDirectionVector()))
+    * @pre !cvol || (data->getDim() == cvol->getDim())
     */
    double
    L2Norm(
@@ -127,6 +147,13 @@ public:
     * (data_i * wgt_i) * \bar{(data_i * wgt_i)} cvol_i ) }\f$.  If the control
     * volume is NULL, the return value is
     * \f$\sqrt{ \sum_i ( (data_i * wgt_i) * \bar{(data_i * wgt_i)} cvol_i ) }\f$.
+    *
+    * @pre data && weight
+    * @pre (data->getDim() == weight->getDim()) &&
+    *      (data->getDim() == box.getDim())
+    * @pre data->getDirectionVector() ==  hier::IntVector::min(data->getDirectionVector(), weight->getDirectionVector())
+    * @pre !cvol || (data->getDirectionVector() ==  hier::IntVector::min(data->getDirectionVector(), cvol->getDirectionVector()))
+    * @pre !cvol || (data->getDim() == cvol->getDim())
     */
    double
    weightedL2Norm(
@@ -142,6 +169,8 @@ public:
     * the square root of the sum of the control volumes.  Otherwise, the
     * return value is the \f$L_2\f$-norm divided by the square root of the
     * number of data entries.
+    *
+    * @pre data
     */
    double
    RMSNorm(
@@ -154,8 +183,10 @@ public:
     * Return discrete weighted root mean squared norm of the data.  If the
     * control volume is not NULL, the return value is the weighted \f$L_2\f$-norm
     * divided by the square root of the sum of the control volumes.  Otherwise,
-    * the return value is the weighted \f$L_2\f$-norm divided by the square root
-    * of the number of data entries.
+    * the return value is the weighted \f$L_2\f$-norm divided by the square
+    * root of the number of data entries.
+    *
+    * @pre data && weight
     */
    double
    weightedRMSNorm(
@@ -171,6 +202,9 @@ public:
     * value is \f$\max_i ( \sqrt{data_i * \bar{data_i}} )\f$, where the max is
     * over the data elements where \f$cvol_i > 0\f$.  If the control volume is
     * NULL, it is ignored during the computation of the maximum.
+    *
+    * @pre data
+    * @pre !cvol || (data->getDirectionVector() == hier::IntVector::min(data->getDirectionVector(), cvol->getDirectionVector()))
     */
    double
    maxNorm(
@@ -184,6 +218,10 @@ public:
     * to weight the contribution of each product to the sum.  That is, the
     * return value is the sum \f$\sum_i ( data1_i * \bar{data2_i} * cvol_i )\f$.
     * If the control volume is NULL, it is ignored during the summation.
+    *
+    * @pre data1 && data2
+    * @pre data1->getDirectionVector() == data2->getDirectionVector()
+    * @pre !cvol || (data1->getDirectionVector() == hier::IntVector::min(data1->getDirectionVector(), cvol->getDirectionVector()))
     */
    dcomplex
    dot(
@@ -196,6 +234,9 @@ public:
    /**
     * Return the integral of the function represented by the data array.
     * The return value is the sum \f$\sum_i ( data_i * vol_i )\f$.
+    *
+    * @pre data
+    * @pre data->getDirectionVector() == hier::IntVector::min(data->getDirectionVector(), vol->getDirectionVector())
     */
    dcomplex
    integral(
@@ -207,7 +248,7 @@ private:
    // The following are not implemented:
    PatchSideDataNormOpsComplex(
       const PatchSideDataNormOpsComplex&);
-   void
+   PatchSideDataNormOpsComplex&
    operator = (
       const PatchSideDataNormOpsComplex&);
 

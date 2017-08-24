@@ -66,7 +66,7 @@ extern "C" {
 #pragma warning (disable:1419)
 #endif
 
-void F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (
+void SAMRAI_F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (
    double* data,
    const int& difirst, const int& dilast,
    const int& djfirst, const int& djlast,
@@ -77,12 +77,12 @@ void F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (
    const int& jbeg, const int& jend,
    const int& face, const int& ghos, const int& inte, const int& location,
    const double& h, const int& zerog);
-void F77_FUNC(settype2cells2d, SETTYPE2CELLS2D) (
+void SAMRAI_F77_FUNC(settype2cells2d, SETTYPE2CELLS2D) (
    double* data,
    const int& difirst, const int& dilast,
    const int& djfirst, const int& djlast,
    const int* lower, const int* upper, const int& location);
-void F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (
+void SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (
    double* data,
    const int& difirst, const int& dilast,
    const int& djfirst, const int& djlast,
@@ -96,13 +96,13 @@ void F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (
    const int& kbeg, const int& kend,
    const int& face, const int& ghos, const int& inte, const int& location,
    const double& h, const int& zerog);
-void F77_FUNC(settype2cells3d, SETTYPE2CELLS3D) (
+void SAMRAI_F77_FUNC(settype2cells3d, SETTYPE2CELLS3D) (
    double* data,
    const int& difirst, const int& dilast,
    const int& djfirst, const int& djlast,
    const int& dkfirst, const int& dklast,
    const int* lower, const int* upper, const int& location);
-void F77_FUNC(settype3cells3d, SETTYPE3CELLS3D) (
+void SAMRAI_F77_FUNC(settype3cells3d, SETTYPE3CELLS3D) (
    double* data,
    const int& difirst, const int& dilast,
    const int& djfirst, const int& djlast,
@@ -122,10 +122,10 @@ CartesianRobinBcHelperWithDepth::CartesianRobinBcHelperWithDepth(
    const tbox::Dimension& dim,
    std::string object_name,
    solv::RobinBcCoefStrategy* coef_strategy):
-   xfer::RefinePatchStrategy(dim),
+   xfer::RefinePatchStrategy(),
    d_dim(dim),
    d_object_name(object_name),
-   d_coef_strategy(NULL),
+   d_coef_strategy(0),
    d_target_data_id(-1),
    d_homogeneous_bc(false)
 {
@@ -162,9 +162,11 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
    int target_data_id,
    bool homogeneous_bc) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, patch, ghost_width_to_fill);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(patch, ghost_width_to_fill);
 
    NULL_USE(fill_time);
+
+   const tbox::Dimension& dim(patch.getDim());
 
    t_set_boundary_values_in_cells->start();
 
@@ -175,7 +177,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
    }
 #endif
 
-   if (d_dim == tbox::Dimension(1)) {
+   if (patch.getDim() == tbox::Dimension(1)) {
       TBOX_ERROR(d_object_name << ": dim = 1 not supported");
    }
    math::PatchCellDataOpsReal<double> cops;
@@ -183,39 +185,28 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
    /*
     * Get info on the data.
     */
-   hier::VariableDatabase* vdb =
-      hier::VariableDatabase::getDatabase();
+   hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
    boost::shared_ptr<hier::Variable> variable_ptr;
    vdb->mapIndexToVariable(target_data_id, variable_ptr);
-   boost::shared_ptr<pdat::CellVariable<double> > cell_variable_ptr(
-      variable_ptr,
-      boost::detail::dynamic_cast_tag());
    if (!variable_ptr) {
       TBOX_ERROR(d_object_name << ": No variable for index "
                                << target_data_id);
    }
-   if (!cell_variable_ptr) {
-      TBOX_ERROR(d_object_name << ": hier::Patch data index " << target_data_id
-                               << " does not correspond to\n"
-                               << "a cell-centered double variable.\n");
-   }
+   boost::shared_ptr<pdat::CellVariable<double> > cell_variable_ptr(
+      BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable_ptr));
+   TBOX_ASSERT(cell_variable_ptr);
 
    /*
     * Get the data.
     */
    boost::shared_ptr<hier::PatchData> data_ptr(
       patch.getPatchData(target_data_id));
-   boost::shared_ptr<pdat::CellData<double> > cell_data_ptr(
-      data_ptr,
-      boost::detail::dynamic_cast_tag());
    if (!data_ptr) {
       TBOX_ERROR(d_object_name << ": No data for index " << target_data_id);
    }
-   if (!cell_data_ptr) {
-      TBOX_ERROR(d_object_name << ": hier::Patch data index " << target_data_id
-                               << " does not correspond to\n"
-                               << "cell-centered double data.\n");
-   }
+   boost::shared_ptr<pdat::CellData<double> > cell_data_ptr(
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(data_ptr));
+   TBOX_ASSERT(cell_data_ptr);
    pdat::CellData<double>& data = *cell_data_ptr;
 
    const hier::IntVector& ghost_cells =
@@ -241,13 +232,13 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
        * They are kept her for debugging.
        */
       boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-         patch.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
+      TBOX_ASSERT(pg);
 
-      const tbox::Array<hier::BoundaryBox>& codim1_boxes =
+      const std::vector<hier::BoundaryBox>& codim1_boxes =
          pg->getCodimensionBoundaries(1);
 
-      const int n_codim1_boxes = codim1_boxes.getSize();
+      const int n_codim1_boxes = static_cast<int>(codim1_boxes.size());
 
       const hier::Box& ghost_box = data.getGhostBox();
       const double* h = pg->getDx();
@@ -306,7 +297,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iint = igho + 1;
                   jbeg = lower[1];
                   jend = upper[1];
-                  F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
@@ -326,7 +317,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iint = igho - 1;
                   jbeg = lower[1];
                   jend = upper[1];
-                  F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
@@ -346,7 +337,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   jint = jgho + 1;
                   ibeg = lower[0];
                   iend = upper[0];
-                  F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
@@ -366,7 +357,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   jint = jgho - 1;
                   ibeg = lower[0];
                   iend = upper[0];
-                  F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells2d, SETTYPE1CELLS2D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
@@ -395,7 +386,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   jend = upper[1];
                   kbeg = lower[2];
                   kend = upper[2];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -419,7 +410,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   jend = upper[1];
                   kbeg = lower[2];
                   kend = upper[2];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -443,7 +434,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iend = upper[0];
                   kbeg = lower[2];
                   kend = upper[2];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -467,7 +458,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iend = upper[0];
                   kbeg = lower[2];
                   kend = upper[2];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -491,7 +482,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iend = upper[0];
                   jbeg = lower[1];
                   jend = upper[1];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -515,7 +506,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   iend = upper[0];
                   jbeg = lower[1];
                   jend = upper[1];
-                  F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
+                  SAMRAI_F77_FUNC(settype1cells3d, SETTYPE1CELLS3D) (data.getPointer(depth),
                   ghost_box.lower()[0], ghost_box.upper()[0],
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   ghost_box.lower()[2], ghost_box.upper()[2],
@@ -551,9 +542,9 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
           * This data may be used by refinement operators to do interpolation.
           */
 
-         const tbox::Array<hier::BoundaryBox>& node_boxes =
+         const std::vector<hier::BoundaryBox>& node_boxes =
             pg->getNodeBoundaries();
-         const int n_node_boxes = node_boxes.getSize();
+         const int n_node_boxes = static_cast<int>(node_boxes.size());
          for(int depth=0;depth<data.getDepth();depth++)
          for (int n = 0; n < n_node_boxes; ++n) {
             const hier::BoundaryBox& bb = node_boxes[n];
@@ -562,7 +553,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
             const hier::Index& lower = bb_box.lower();
             const hier::Index& upper = bb_box.upper();
             const int location_index = bb.getLocationIndex();
-            F77_FUNC(settype2cells2d, SETTYPE2CELLS2D) (data.getPointer(depth),
+            SAMRAI_F77_FUNC(settype2cells2d, SETTYPE2CELLS2D) (data.getPointer(depth),
                ghost_box.lower()[0], ghost_box.upper()[0],
                ghost_box.lower()[1], ghost_box.upper()[1],
                &lower[0], &upper[0], location_index);
@@ -573,9 +564,9 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
           * through the nearest interior cell and the two nearest side values.
           * This data may be used by refinement operators to do interpolation.
           */
-         const tbox::Array<hier::BoundaryBox>& edge_boxes =
+         const std::vector<hier::BoundaryBox>& edge_boxes =
             pg->getEdgeBoundaries();
-         const int n_edge_boxes = edge_boxes.getSize();
+         const int n_edge_boxes = static_cast<int>(edge_boxes.size());
          for(int depth=0;depth<data.getDepth();depth++)
          for (int n = 0; n < n_edge_boxes; ++n) {
             const int location_index = edge_boxes[n].getLocationIndex();
@@ -589,7 +580,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
             TBOX_ASSERT(boundary_box.getBoundaryType() == 2);
             const hier::Index& lower = boundary_box.getBox().lower();
             const hier::Index& upper = boundary_box.getBox().upper();
-            F77_FUNC(settype2cells3d, SETTYPE2CELLS3D) (data.getPointer(depth),
+            SAMRAI_F77_FUNC(settype2cells3d, SETTYPE2CELLS3D) (data.getPointer(depth),
                ghost_box.lower()[0], ghost_box.upper()[0],
                ghost_box.lower()[1], ghost_box.upper()[1],
                ghost_box.lower()[2], ghost_box.upper()[2],
@@ -601,8 +592,8 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
           * through the nearest interior cell and the three nearest edge values.
           * This data may be used by refinement operators to do interpolation.
           */
-         const tbox::Array<hier::BoundaryBox>& node_boxes = pg->getNodeBoundaries();
-         const int n_node_boxes = node_boxes.getSize();
+         const std::vector<hier::BoundaryBox>& node_boxes = pg->getNodeBoundaries();
+         const int n_node_boxes = static_cast<int>(node_boxes.size());
          for(int depth=0;depth<data.getDepth();depth++)
          for (int n = 0; n < n_node_boxes; ++n) {
             const hier::BoundaryBox& bb = node_boxes[n];
@@ -612,7 +603,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
             const hier::Index& upper = bb_box.upper();
             TBOX_ASSERT(lower == upper);
             const int location_index = bb.getLocationIndex();
-            F77_FUNC(settype3cells3d, SETTYPE3CELLS3D) (data.getPointer(depth),
+            SAMRAI_F77_FUNC(settype3cells3d, SETTYPE3CELLS3D) (data.getPointer(depth),
                ghost_box.lower()[0], ghost_box.upper()[0],
                ghost_box.lower()[1], ghost_box.upper()[1],
                ghost_box.lower()[2], ghost_box.upper()[2],
@@ -642,7 +633,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
    int target_data_id,
    bool homogeneous_bc) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, level, ghost_width_to_fill);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(level, ghost_width_to_fill);
 
    for (hier::PatchLevel::iterator p(level.begin());
         p != level.end(); ++p) {
@@ -668,8 +659,6 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesAtNodes(
    int target_data_id,
    bool homogeneous_bc) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, patch);
-
    NULL_USE(patch);
    NULL_USE(fill_time);
    NULL_USE(target_data_id);
@@ -696,7 +685,7 @@ CartesianRobinBcHelperWithDepth::setPhysicalBoundaryConditions(
    const double fill_time,
    const hier::IntVector& ghost_width_to_fill)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, patch, ghost_width_to_fill);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(patch, ghost_width_to_fill);
 
    setBoundaryValuesInCells(patch,
       fill_time,
@@ -706,9 +695,9 @@ CartesianRobinBcHelperWithDepth::setPhysicalBoundaryConditions(
 }
 
 hier::IntVector
-CartesianRobinBcHelperWithDepth::getRefineOpStencilWidth() const
+CartesianRobinBcHelperWithDepth::getRefineOpStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(d_dim);
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -791,7 +780,7 @@ CartesianRobinBcHelperWithDepth::trimBoundaryBox(
    const hier::BoundaryBox& boundary_box,
    const hier::Box& limit_box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, boundary_box, limit_box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(boundary_box, limit_box);
 
    if (boundary_box.getBoundaryType() == d_dim.getValue()) {
       // This is a node boundary box and cannot be trimmed anymore.
@@ -856,8 +845,6 @@ hier::Box
 CartesianRobinBcHelperWithDepth::makeFaceBoundaryBox(
    const hier::BoundaryBox& boundary_box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, boundary_box);
-
    if (boundary_box.getBoundaryType() != 1) {
       TBOX_ERROR(d_object_name << ": makeFaceBoundaryBox called with\n"
                                << "improper boundary box\n"
@@ -886,8 +873,6 @@ hier::Box
 CartesianRobinBcHelperWithDepth::makeNodeBoundaryBox(
    const hier::BoundaryBox& boundary_box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, boundary_box);
-
    if (boundary_box.getBoundaryType() != 1) {
       TBOX_ERROR(d_object_name << ": makeNodeBoundaryBox called with\n"
                                << "improper boundary box\n"
@@ -901,7 +886,7 @@ CartesianRobinBcHelperWithDepth::makeNodeBoundaryBox(
        * than the boundary cell indices, in the direction normal
        * to the boundary.
        */
-      node_indices.shift(location_index / 2, 1);
+      node_indices.shift(static_cast<tbox::Dimension::dir_t>(location_index / 2), 1);
    }
    /*
     * The node indices range one higher than the cell indices,

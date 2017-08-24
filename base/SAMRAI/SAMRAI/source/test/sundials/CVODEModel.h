@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Example demonstrating use of CVODE vectors.
  *
  ************************************************************************/
@@ -43,7 +43,6 @@ using namespace std;
 /*
  * Header file for SAMRAI classes referenced in this class.
  */
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -72,7 +71,9 @@ using namespace std;
 #include "SAMRAI/solv/SundialsAbstractVector.h"
 #include "SAMRAI/solv/Sundials_SAMRAIVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
 
 using namespace SAMRAI;
 using namespace tbox;
@@ -133,9 +134,10 @@ public:
     */
    CVODEModel(
       const string& object_name,
-      const tbox::Dimension& dim,
-      boost::shared_ptr<tbox::Database> input_db,
-      boost::shared_ptr<geom::CartesianGridGeometry> grid_geom);
+      const Dimension& dim,
+      boost::shared_ptr<CellPoissonFACSolver> fac_solver,
+      boost::shared_ptr<Database> input_db,
+      boost::shared_ptr<CartesianGridGeometry> grid_geom);
 
    /**
     * Empty destructor for CVODEModel.
@@ -287,9 +289,9 @@ public:
     * data interpolation operations.  Default is to return
     * zero, assuming no user-defined operations provided.
     */
-   virtual IntVector getRefineOpStencilWidth() const
+   virtual IntVector getRefineOpStencilWidth(const Dimension& dim) const
    {
-      return IntVector(d_dim, 0);
+      return IntVector(dim, 0);
    }
 
 /*************************************************************************
@@ -331,9 +333,17 @@ public:
     * data interpolation operations.  Default is to return
     * zero, assuming no user-defined operations provided.
     */
-   virtual IntVector getCoarsenOpStencilWidth() const
+   virtual IntVector getCoarsenOpStencilWidth(const Dimension& dim) const
    {
-      return IntVector(d_dim, 0);
+      return IntVector(dim, 0);
+   }
+
+   /*!
+    * @brief Return the dimension of this object.
+    */
+   const Dimension& getDim() const
+   {
+      return d_dim;
    }
 
 /*************************************************************************
@@ -420,17 +430,17 @@ public:
     */
    void
    getCounters(
-      tbox::Array<int>& counters);
+      std::vector<int>& counters);
 
    /**
-    * Writes state of CVODEModel object to the specified database.
+    * Writes state of CVODEModel object to the specified restart database.
     *
     * This routine is a concrete implementation of the function
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<Database>& restart_db) const;
 
    /**
     * This routine is a concrete implementation of the virtual function
@@ -442,13 +452,13 @@ public:
     */
    void
    readDirichletBoundaryDataEntry(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<Database>& db,
       string& db_name,
       int bdry_location_index);
 
    void
    readNeumannBoundaryDataEntry(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<Database>& db,
       string& db_name,
       int bdry_location_index);
 
@@ -471,7 +481,7 @@ private:
     */
    virtual void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<Database> input_db,
       bool is_from_restart);
 
    virtual void
@@ -479,10 +489,10 @@ private:
 
    void
    readStateDataEntry(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<Database> db,
       const string& db_name,
       int array_indx,
-      tbox::Array<double>& uval);
+      std::vector<double>& uval);
 
    /*
     * Object name used for error/warning reporting and as a label
@@ -490,7 +500,7 @@ private:
     */
    string d_object_name;
 
-   const tbox::Dimension d_dim;
+   const Dimension d_dim;
 
    /*
     * Pointer to solution vector
@@ -522,17 +532,13 @@ private:
    int d_diff_id;
    int d_flag_id;
    int d_neuf_id;
-   int d_bdry_types[2 * tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   int d_bdry_types[2 * MAX_DIM_VAL];
 
-   solv::CellPoissonFACSolver d_FAC_solver;
+   boost::shared_ptr<CellPoissonFACSolver> d_FAC_solver;
    bool d_FAC_solver_allocated;
    bool d_level_solver_allocated;
    bool d_use_neumann_bcs;
 
-   int d_max_fac_its;
-   double d_fac_tol;
-   int d_max_hypre_its;
-   double d_hypre_tol;
    double d_current_soln_time;
 #endif
 
@@ -544,7 +550,7 @@ private:
    /*
     * Grid geometry
     */
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   boost::shared_ptr<CartesianGridGeometry> d_grid_geometry;
 
    /*
     * Initial value
@@ -568,24 +574,24 @@ private:
     *
     * Input file values are read into these arrays.
     */
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_scalar_bdry_face_conds; // Only used for 3D.
+   std::vector<int> d_scalar_bdry_edge_conds;
+   std::vector<int> d_scalar_bdry_node_conds;
+   std::vector<int> d_scalar_bdry_face_conds; // Only used for 3D.
 
    /*
     * Boundary condition cases for scalar and vector (i.e., depth > 1)
     * variables.  These are post-processed input values and are passed
     * to the boundary routines.
     */
-   tbox::Array<int> d_node_bdry_edge; // Only used for 2D.
-   tbox::Array<int> d_edge_bdry_face; // Only used for 3D.
-   tbox::Array<int> d_node_bdry_face; // Only used for 3D.
+   std::vector<int> d_node_bdry_edge; // Only used for 2D.
+   std::vector<int> d_edge_bdry_face; // Only used for 3D.
+   std::vector<int> d_node_bdry_face; // Only used for 3D.
 
    /*
     * Arrays of face (3d) or edge (2d) boundary values for DIRICHLET case.
     */
-   tbox::Array<double> d_bdry_edge_val; // Only used for 2D
-   tbox::Array<double> d_bdry_face_val; // Only used for 3D
+   std::vector<double> d_bdry_edge_val; // Only used for 2D
+   std::vector<double> d_bdry_face_val; // Only used for 3D
 
 };
 #endif // HAVE_SUNDIALS

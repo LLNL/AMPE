@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract base class for patch data objects
  *
  ************************************************************************/
@@ -47,11 +47,11 @@ namespace hier {
  * on a particular processor.  Patch data factories are guaranteed to
  * exist on all processors independent of the patch-to-processor mapping.
  *
- * @see hier::BoxOverlap
- * @see hier::BoxGeometry
- * @see hier::Patch
- * @see hier::PatchDataFactory
- * @see hier::PatchDescriptor
+ * @see BoxOverlap
+ * @see BoxGeometry
+ * @see Patch
+ * @see PatchDataFactory
+ * @see PatchDescriptor
  */
 
 class PatchData
@@ -61,6 +61,8 @@ public:
     * The constructor for a patch data object.  Patch data objects will
     * manage the interior box over which they are defined and the associated
     * ghost cell width.
+    *
+    * @pre domain.getDim() == ghosts.getDim()
     */
    PatchData(
       const Box& domain,
@@ -190,7 +192,7 @@ public:
     * will be allocated according to these values, and excess buffer
     * space will waste memory resources.
     */
-   virtual int
+   virtual size_t
    getDataStreamSize(
       const BoxOverlap& overlap) const = 0;
 
@@ -216,42 +218,27 @@ public:
 
    /**
     * Checks that class version and restart file version are equal.  If so,
-    * reads in the data members common to all patch data types from database.
-    * This method then calls the getSpecializedFromDatabase() method
-    * to retrieve the data special to the concrete patch data type.
+    * reads in the data members common to all patch data types from restart
+    * database.
+    *
+    * @pre restart_db
     */
    virtual void
-   getFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /**
-    * Writes out the class version number to the database.  Then,
-    * writes the data members common to all patch data types from database.
-    * After the common data is written to the database, the
-    * putSpecializedToDatabase() method is invoked.
+    * Writes out the class version number to the restart database.  Then,
+    * writes the data members common to all patch data types to database.
+    *
+    * @pre restart_db
     */
    virtual void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
-    * This pure abstract method is used by concrete patch data subclasses
-    * to retrieve from the database data special to the concrete class.
-    */
-   virtual void
-   getSpecializedFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database) = 0;
-
-   /**
-    * This pure abstract method is used by concrete patch data subclasses
-    * to put to the database data special to the concrete class.
-    */
-   virtual void
-   putSpecializedToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const = 0;
-
-   /**
-    * Return the dimension of this object.
+    * @brief Return the dimension of this object.
     */
    const tbox::Dimension&
    getDim() const
@@ -269,12 +256,15 @@ protected:
     *
     * This function is included to treat some special cases for concrete
     * patch data types and should be used with caution.
+    *
+    * @pre getDim() == ghost_box.getDim()
+    * @pre (ghost_box * getBox()).isSpatiallyEqual(getBox())
     */
    void
    setGhostBox(
       const Box& ghost_box)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(d_box, ghost_box);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(d_box, ghost_box);
       TBOX_ASSERT((ghost_box * d_box).isSpatiallyEqual(d_box));
       d_ghost_box = ghost_box;
    }
@@ -287,7 +277,7 @@ private:
 
    PatchData(
       const PatchData&);        // not implemented
-   void
+   PatchData&
    operator = (
       const PatchData&);                // not implemented
 

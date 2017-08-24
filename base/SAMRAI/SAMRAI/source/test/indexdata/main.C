@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   $Description
  *
  ************************************************************************/
@@ -13,20 +13,17 @@
 
 #include "SAMRAI/pdat/IndexVariable.h"
 #include "SAMRAI/pdat/IndexVariable.C"
-#include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/tbox/Array.C"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/pdat/CellData.C"
-#include "SAMRAI/pdat/CellGeometry.C"
 #include "SAMRAI/pdat/IndexData.h"
 #include "SAMRAI/pdat/IndexData.C"
 #include "SAMRAI/pdat/IndexDataFactory.h"
 #include "SAMRAI/pdat/IndexDataFactory.C"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <list>
 
 using namespace SAMRAI;
@@ -57,7 +54,7 @@ public:
    {
       NULL_USE(idx);
       NULL_USE(src_offset);
-      for (int n = 0; n < NN; n++) {
+      for (int n = 0; n < NN; ++n) {
          x[n] = src_item.x[n];
       }
    }
@@ -81,12 +78,12 @@ public:
       NULL_USE(offset);
    }
 
-   void putUnregisteredToDatabase(
+   void putToRestart(
       boost::shared_ptr<tbox::Database> dbase)
    {
       NULL_USE(dbase);
    }
-   void getFromDatabase(
+   void getFromRestart(
       boost::shared_ptr<tbox::Database> dbase)
    {
       NULL_USE(dbase);
@@ -94,31 +91,6 @@ public:
 
    double x[NN];
 };
-
-/*
- * SGH: BG{L,P} et. al. do not like to have explicit template instantiations
- * outside of the namespace in which the template is defined.  This causes
- * a compile-time error, so we'll just avoid this on BG{L,P} platforms.
- *
- * Reference:  XL C/C++ V9.0 for Linux documentation, i
- * section: Templates
- * subsection: Explicit instantiation
- * URL:
- * http://publib.boulder.ibm.com/infocenter/lnxpcomp/v9v111/index.jsp?topic=/com.ibm.xlcpp9.linux.doc/language_ref/templates.htm
- *
- */
-#ifndef __xlC__
-template class pdat::IndexData<Item, pdat::CellGeometry>;
-template class pdat::IndexDataFactory<Item, pdat::CellGeometry>;
-template class pdat::IndexDataNode<Item, pdat::CellGeometry>;
-template class pdat::IndexIterator<Item, pdat::CellGeometry>;
-template class pdat::IndexVariable<Item, pdat::CellGeometry>;
-
-template class tbox::Array<pdat::IndexDataNode<Item, pdat::CellGeometry> >;
-template class boost::shared_ptr<pdat::IndexData<Item, pdat::CellGeometry> >;
-template class boost::shared_ptr<pdat::IndexVariable<Item, pdat::CellGeometry> >;
-template class boost::shared_ptr<pdat::IndexDataFactory<Item, pdat::CellGeometry> >;
-#endif
 
 int main(
    int argc,
@@ -282,8 +254,8 @@ int main(
          Index hi(v);
 
          Box box1(lo, hi, BlockId(0));
-         hier::Box::iterator biend(box1, false);
-         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+         hier::Box::iterator biend(box1.end());
+         for (Box::iterator bi(box1.begin()); bi != biend; ++bi) {
 
             Index idx = *bi;
 
@@ -291,7 +263,7 @@ int main(
 
          }
 
-         assert(idx_data.getNumberOfItems() == box1.size());
+         assert(static_cast<size_t>(idx_data.getNumberOfItems()) == box1.size());
 
          idx_data.removeInsideBox(box1);
 
@@ -310,8 +282,8 @@ int main(
          Index hi(v);
 
          Box box1(lo, hi, BlockId(0));
-         hier::Box::iterator biend(box1, false);
-         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+         hier::Box::iterator biend(box1.end());
+         for (Box::iterator bi(box1.begin()); bi != biend; ++bi) {
 
             Index idx = *bi;
 
@@ -319,7 +291,7 @@ int main(
 
          }
 
-         assert(idx_data.getNumberOfItems() == box1.size());
+         assert(static_cast<size_t>(idx_data.getNumberOfItems()) == box1.size());
 
          idx_data.removeAllItems();
 
@@ -341,13 +313,13 @@ int main(
          Index hi(v);
 
          Box box1(lo, hi, BlockId(0));
-         hier::Box::iterator biend(box1, false);
-         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+         hier::Box::iterator biend(box1.end());
+         for (Box::iterator bi(box1.begin()); bi != biend; ++bi) {
             src.addItemPointer(*bi, new Item);
          }
 
-         assert(src.getNumberOfItems() == box1.size());
-         assert(dst.getNumberOfItems() == 0);
+         assert(static_cast<size_t>(src.getNumberOfItems()) == box1.size());
+         assert(static_cast<size_t>(dst.getNumberOfItems()) == 0);
 
          dst.copy(src);
 
@@ -571,7 +543,7 @@ int main(
          IndexIterator<Item, pdat::CellGeometry> itend(data, false);
          for (IndexIterator<Item, pdat::CellGeometry> it(data, true);
               it != itend; ++it) {
-            count++;
+            ++count;
          }
          assert(3 == count);
       }
@@ -603,7 +575,7 @@ int main(
             }
          }
 
-         int numberOfItems = idx_data.getNumberOfItems();
+         size_t numberOfItems = idx_data.getNumberOfItems();
          timer->stop();
 
          tbox::plog << numberOfItems << endl;
@@ -670,7 +642,7 @@ int main(
 
          timer->start();
 
-         for (int n = 0; n < num_inserts; n++) {
+         for (int n = 0; n < num_inserts; ++n) {
             int i = rand() % size;
             int j = rand() % size;
 
@@ -682,7 +654,7 @@ int main(
             idx_data.appendItem(idx, new_item);
          }
 
-         int numberOfItems = idx_data.getNumberOfItems();
+         size_t numberOfItems = idx_data.getNumberOfItems();
          timer->stop();
 
          tbox::plog << numberOfItems << endl;
@@ -710,7 +682,7 @@ int main(
 
          timer->start();
 
-         for (int n = 0; n < num_inserts; n++) {
+         for (int n = 0; n < num_inserts; ++n) {
             int i = rand() % size;
             int j = rand() % size;
 
@@ -749,7 +721,7 @@ int main(
 
          timer->start();
 
-         for (int n = 0; n < num_inserts; n++) {
+         for (int n = 0; n < num_inserts; ++n) {
             int i = rand() % size;
             int j = rand() % size;
 

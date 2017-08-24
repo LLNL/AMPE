@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An abstract base class for objects to be serialized
  *
  ************************************************************************/
@@ -14,7 +14,7 @@
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace tbox {
@@ -24,11 +24,11 @@ namespace tbox {
  * database serialization for objects.
  *
  * Objects needing to serialize their data to a database implement the
- * function putToDatabase(boost::shared_ptr<tbox::Database>) specifying
+ * function putToRestart(boost::shared_ptr<Database>) specifying
  * how to put its data members into the database instance.
  *
  * @note The interface asymmetric in that is no corresponding
- * "getFromDatabase" function.  This stems from SAMRAI's historical
+ * "getFromRestart" function.  This stems from SAMRAI's historical
  * restart procedure and object creation is object initialization
  * pattern.  Thus restarting is done in the constructors for classes
  * implementing Serializable not by an additional method.  The
@@ -51,12 +51,22 @@ public:
 
    /*!
     * @brief Serializes the object by writing necessary state to the
-    * specified database.
+    * specified restart database.
     *
     */
    virtual void
-   putToDatabase(
-      const boost::shared_ptr<Database>& database) const = 0;
+   putToRestart(
+      const boost::shared_ptr<Database>& restart_db) const = 0;
+
+private:
+   // Unimplemented copy constructor.
+   Serializable(
+      const Serializable& other);
+
+   // Unimplemented default constructor.
+   Serializable&
+   operator = (
+      const Serializable& rhs);
 
 };
 

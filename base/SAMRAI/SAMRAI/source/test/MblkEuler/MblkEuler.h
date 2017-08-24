@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in linear advection ex.
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/TimeInterpolateOperator.h"
 #include "SAMRAI/pdat/CellVariable.h"
@@ -22,12 +21,13 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 
 #include <string>
+#include <vector>
 using namespace std;
 #define included_String
 
 #include "MblkGeometry.h"
-#include "MblkHyperbolicLevelIntegrator.h"
-#include "MblkHyperbolicPatchStrategy.h"
+#include "test/testlib/MblkHyperbolicLevelIntegrator.h"
+#include "test/testlib/MblkHyperbolicPatchStrategy.h"
 
 // ----------------------------------------------------------------------
 
@@ -35,7 +35,8 @@ using namespace SAMRAI;
 
 class MblkEuler:
    public tbox::Serializable,
-   public MblkHyperbolicPatchStrategy
+   public MblkHyperbolicPatchStrategy,
+   public xfer::SingularityPatchStrategy
 {
 public:
    //
@@ -182,8 +183,7 @@ public:
    fillSingularityBoundaryConditions(
       hier::Patch& patch,
       const hier::PatchLevel& encon_level,
-      const hier::Connector& dst_to_encon,
-      const double fill_time,
+      boost::shared_ptr<const hier::Connector> dst_to_encon,
       const hier::Box& fill_box,
       const hier::BoundaryBox& boundary_box,
       const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry);
@@ -209,8 +209,8 @@ public:
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    hier::IntVector
    getMultiblockRefineOpStencilWidth() const;
@@ -237,17 +237,14 @@ public:
 
 private:
    /*
-    * These private member functions read data from input and restart.
-    * When beginning a run from a restart file, all data members are read
-    * from the restart file.  If the boolean flag is true when reading
-    * from input, some restart values may be overridden by those in the
-    * input file.
+    * This private member function reads data from input.  If the boolean flag
+    * is true all input must be present in input database.
     *
     * An assertion results if the database pointer is null.
     */
    void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
 
    void
@@ -261,7 +258,7 @@ private:
       int btype,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& scalar_bconds) const;
+      const std::vector<int>& scalar_bconds) const;
 
    /*
     * The object name is used for error/warning reporting and also as a
@@ -272,7 +269,7 @@ private:
    const tbox::Dimension d_dim;
 
    /*
-    * We cache pointers to the grid geometry and Vizamrai data writer
+    * We cache pointers to the grid geometry and VisIt data writer
     * object to set up initial data, set physical boundary conditions,
     * and register plot variables.
     */
@@ -288,7 +285,7 @@ private:
    bool d_use_nonuniform_workload;
 
    //
-   // =========================== State and Variable definitions (private) ============================
+   // =============== State and Variable definitions (private) ================
    //
 
    //
@@ -311,31 +308,30 @@ private:
    // boost::shared_ptr to grid - [xyz]
    //
    boost::shared_ptr<pdat::NodeVariable<double> > d_xyz;
-   int d_xyz_id;
 
    //
-   // ======================================= Initial Conditions (private) ============================
+   // =========================== Initial Conditions (private) ================
    //
 
    /// center of the sphere or revolution origin
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[SAMRAI::MAX_DIM_VAL];
 
    /// revolution axis
-   double d_axis[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_axis[SAMRAI::MAX_DIM_VAL];
 
    /// revolution radius and pos on axis of radius
-   tbox::Array<tbox::Array<double> > d_rev_rad;
-   tbox::Array<tbox::Array<double> > d_rev_axis;
+   std::vector<std::vector<double> > d_rev_rad;
+   std::vector<std::vector<double> > d_rev_axis;
 
    ///
    /// Rayleigh Taylor Shock tube experiments
    ///
    double d_dt_ampl;
-   tbox::Array<double> d_amn;
-   tbox::Array<double> d_m_mode;
-   tbox::Array<double> d_n_mode;
-   tbox::Array<double> d_phiy;
-   tbox::Array<double> d_phiz;
+   std::vector<double> d_amn;
+   std::vector<double> d_m_mode;
+   std::vector<double> d_n_mode;
+   std::vector<double> d_phiy;
+   std::vector<double> d_phiz;
 
    ///
    /// input for all the geometries
@@ -346,7 +342,7 @@ private:
    //
    int d_advection_test;      // run the linear advection unit test
    int d_advection_vel_type;  // type of velocity to use
-   double d_advection_velocity[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_advection_velocity[SAMRAI::MAX_DIM_VAL];
 
    //
    // sizing of zonal, flux, and nodal ghosts
@@ -364,13 +360,13 @@ private:
    // region initialization inputs
    //
    int d_number_of_regions;
-   tbox::Array<double> d_front_position;
+   std::vector<double> d_front_position;
 
    //
    // array of initial conditions and their names [region][state]
    //
-   tbox::Array<tbox::Array<double> > d_state_ic;
-   tbox::Array<string> d_state_names;
+   std::vector<std::vector<double> > d_state_ic;
+   std::vector<string> d_state_names;
 
    //
    // This class stores geometry information used for constructing the
@@ -381,29 +377,30 @@ private:
    /// the bound on the index space for the current block
    int d_dom_current_bounds[6];
 
-   /// the number of boxes needed to describe the index space for the current block
+   /// the number of boxes needed to describe the index space
+   /// for the current block
    int d_dom_current_nboxes;
 
    /// the blocks bounding the current patch
-   int d_dom_local_blocks[6];
+   hier::BlockId::block_t d_dom_local_blocks[6];
 
    //
-   // ======================================= Refinement Data (private) ============================
+   // ====================== Refinement Data (private) =======================
    //
 
-   tbox::Array<string> d_refinement_criteria;
+   std::vector<string> d_refinement_criteria;
 
    /// history variable gradient tagging tolerance
-   tbox::Array<tbox::Array<double> > d_state_grad_tol;
-   tbox::Array<string> d_state_grad_names;
-   tbox::Array<int> d_state_grad_id;
+   std::vector<std::vector<double> > d_state_grad_tol;
+   std::vector<string> d_state_grad_names;
+   std::vector<int> d_state_grad_id;
 
    //
-   // ======================================= Boundary Conditions (private) ============================
+   // ==================== Boundary Conditions (private) ======================
    //
 
    /// factors for the boundary conditions
-   tbox::Array<int> d_wall_factors;
+   std::vector<int> d_wall_factors;
 
    //
    // Operators to be used with GridGeometry

@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface for factory objects that create transactions for
  *                refine schedules.
  *
  ************************************************************************/
-
-#ifndef included_xfer_RefineTransactionFactory_C
-#define included_xfer_RefineTransactionFactory_C
-
 #include "SAMRAI/xfer/RefineTransactionFactory.h"
 
 namespace SAMRAI {
@@ -50,4 +46,3 @@ RefineTransactionFactory::setTransactionTime(
 
 }
 }
-#endif

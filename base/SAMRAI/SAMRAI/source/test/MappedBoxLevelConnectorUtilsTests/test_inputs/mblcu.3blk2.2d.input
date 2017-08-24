@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing Connector modify algorithm.
  *
  ************************************************************************/
@@ -35,14 +35,6 @@ GridGeometry {
    domain_boxes_0 = [ (0,0) , (20,13) ]
    domain_boxes_1 = [ (0,0) , (25,13) ]
    domain_boxes_2 = [ (0,0) , (20,25) ]
-
-   Singularity0 {
-      blocks = 0,1,2
-
-      sing_box_0 = [(21,14),(21,14)]
-      sing_box_1 = [(-1,14),(-1,14)]
-      sing_box_2 = [(21,-1),(21,-1)]
-   }
 
    BlockNeighbors0 {
       block_a = 0

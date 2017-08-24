@@ -3,15 +3,12 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_NodeGeometry_C
-#define included_pdat_NodeGeometry_C
-
 #include "SAMRAI/pdat/NodeGeometry.h"
+#include "SAMRAI/pdat/NodeIterator.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -32,7 +29,7 @@ NodeGeometry::NodeGeometry(
    d_box(box),
    d_ghosts(ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(box, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(box, ghosts);
    TBOX_ASSERT(ghosts.min() >= 0);
 }
 
@@ -66,7 +63,7 @@ NodeGeometry::calculateOverlap(
    const bool retry,
    const hier::BoxContainer& dst_restrict_boxes) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_box, src_mask);
 
    const NodeGeometry* t_dst =
       dynamic_cast<const NodeGeometry *>(&dst_geometry);
@@ -74,7 +71,7 @@ NodeGeometry::calculateOverlap(
       dynamic_cast<const NodeGeometry *>(&src_geometry);
 
    boost::shared_ptr<hier::BoxOverlap> over;
-   if ((t_src != NULL) && (t_dst != NULL)) {
+   if ((t_src != 0) && (t_dst != 0)) {
       over = doOverlap(*t_dst, *t_src, src_mask, fill_box, overwrite_interior,
             transformation, dst_restrict_boxes);
    } else if (retry) {
@@ -89,7 +86,7 @@ NodeGeometry::calculateOverlap(
 /*
  *************************************************************************
  *
- * Compute the boxes that will be used to contstruct an overlap object
+ * Compute the boxes that will be used to construct an overlap object
  *
  *************************************************************************
  */
@@ -107,7 +104,7 @@ NodeGeometry::computeDestinationBoxes(
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
    const hier::IntVector& src_offset(transformation.getOffset());
 #endif
-   TBOX_DIM_ASSERT_CHECK_ARGS2(src_mask, src_offset);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(src_mask, src_offset);
 
    // Translate the source box and grow the destination box by the ghost cells
 
@@ -134,9 +131,9 @@ NodeGeometry::computeDestinationBoxes(
       }
    }
 
-   if (dst_restrict_boxes.size() && dst_boxes.size()) {
+   if (!dst_restrict_boxes.empty() && !dst_boxes.empty()) {
       hier::BoxContainer node_restrict_boxes;
-      for (hier::BoxContainer::const_iterator b(dst_restrict_boxes);
+      for (hier::BoxContainer::const_iterator b = dst_restrict_boxes.begin();
            b != dst_restrict_boxes.end(); ++b) {
          node_restrict_boxes.pushBack(toNodeBox(*b));
       }
@@ -158,7 +155,8 @@ NodeGeometry::setUpOverlap(
 {
    hier::BoxContainer dst_boxes;
 
-   for (hier::BoxContainer::const_iterator b(boxes); b != boxes.end(); ++b) {
+   for (hier::BoxContainer::const_iterator b = boxes.begin();
+        b != boxes.end(); ++b) {
       hier::Box node_box(NodeGeometry::toNodeBox(*b));
       dst_boxes.pushBack(node_box);
    }
@@ -187,9 +185,9 @@ NodeGeometry::transform(
    }
 
    if (!box.empty()) {
-      box.upper() -= hier::IntVector::getOne(box.getDim());
+      box.setUpper(box.upper() - hier::IntVector::getOne(box.getDim()));
       transformation.transform(box);
-      box.upper() += hier::IntVector::getOne(box.getDim());
+      box.setUpper(box.upper() + hier::IntVector::getOne(box.getDim()));
    }
 }
 
@@ -215,12 +213,25 @@ NodeGeometry::transform(
 
    const hier::Transformation::RotationIdentifier& rotation =
       transformation.getRotation();
-   if (dim.getValue() == 2) {
+   if (dim.getValue() == 1) {
       const int rotation_num = static_cast<int>(rotation);
+      if (rotation_num > 1) {
+         TBOX_ERROR("NodeGeometry::transform invalid 1D RotationIdentifier.");
+      }
+
+      if (rotation_num) {
+         NodeIndex tmp_index(index);
+         index(0) = -tmp_index(0);
+      }
+   } else if (dim.getValue() == 2) {
+      const int rotation_num = static_cast<int>(rotation);
+      if (rotation_num > 3) {
+         TBOX_ERROR("NodeGeometry::transform invalid 2D RotationIdentifier.");
+      }
 
       if (rotation_num) {
          NodeIndex tmp_index(dim);
-         for (int r = 0; r < rotation_num; r++) {
+         for (int r = 0; r < rotation_num; ++r) {
             tmp_index = index;
             index(0) = tmp_index(1);
             index(1) = -tmp_index(0);
@@ -359,13 +370,26 @@ NodeGeometry::rotateAboutAxis(NodeIndex& index,
    const int b = (axis + 2) % dim.getValue();
 
    NodeIndex tmp_index(dim);
-   for (int j = 0; j < num_rotations; j++) {
+   for (int j = 0; j < num_rotations; ++j) {
       tmp_index = index;
       index(a) = tmp_index(b);
       index(b) = -tmp_index(a);
    }
 }
 
+NodeIterator
+NodeGeometry::begin(
+   const hier::Box& box)
+{
+   return NodeIterator(box, true);
+}
+
+NodeIterator
+NodeGeometry::end(
+   const hier::Box& box)
+{
+   return NodeIterator(box, false);
+}
+
 }
 }
-#endif

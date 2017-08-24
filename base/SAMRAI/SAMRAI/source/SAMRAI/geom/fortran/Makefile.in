@@ -3,30 +3,63 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for fortran files for geom directory 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/SAMRAI/geom/fortran
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 OBJECT        = ../../../..
-
-# For classes that are non-dimensional.
-OBJS= 	 geom_cartcoarsen1d.o geom_cartcoarsen3d.o\
-	geom_cartrefine2d.o geom_cartcoarsen2d.o\
-	geom_cartrefine1d.o geom_cartrefine3d.o\
-
 
 default: library
 
 include $(OBJECT)/config/Makefile.config
 
-library: $(OBJS)
+OBJS= 	geom_cartcoarsen1d.o \
+	geom_cartcoarsen2d.o \
+	geom_cartcoarsen3d.o \
+	geom_cartcoarsen4d.o \
+	geom_cartrefine1d.o \
+	geom_cartrefine2d.o \
+	geom_cartrefine3d.o
+
+library:	$(OBJS)
 
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
+	$(RM) *.f
 
 include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+geom_cartcoarsen1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartcoarsen1d.m4 > geom_cartcoarsen1d.f
+	$(F77) $(FFLAGS) -c geom_cartcoarsen1d.f -o $@
+
+geom_cartcoarsen2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartcoarsen2d.m4 > geom_cartcoarsen2d.f
+	$(F77) $(FFLAGS) -c geom_cartcoarsen2d.f -o $@
+
+geom_cartcoarsen3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartcoarsen3d.m4 > geom_cartcoarsen3d.f
+	$(F77) $(FFLAGS) -c geom_cartcoarsen3d.f -o $@
+
+geom_cartcoarsen4d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartcoarsen4d.m4 > geom_cartcoarsen4d.f
+	$(F77) $(FFLAGS) -c geom_cartcoarsen4d.f -o $@
+
+geom_cartrefine1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartrefine1d.m4 > geom_cartrefine1d.f
+	$(F77) $(FFLAGS) -c geom_cartrefine1d.f -o $@
+
+geom_cartrefine2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartrefine2d.m4 > geom_cartrefine2d.f
+	$(F77) $(FFLAGS) -c geom_cartrefine2d.f -o $@
+
+geom_cartrefine3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/geom_cartrefine3d.m4 > geom_cartrefine3d.f
+	$(F77) $(FFLAGS) -c geom_cartrefine3d.f -o $@

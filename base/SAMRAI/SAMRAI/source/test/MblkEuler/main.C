@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Run multiblock Euler AMR
  *
  ************************************************************************/
@@ -24,6 +24,7 @@ using namespace std;
 
 // Headers for basic SAMRAI objects
 
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -40,8 +41,12 @@ using namespace std;
 
 // Header for application-specific algorithm/data structure object
 
-#include "MblkHyperbolicLevelIntegrator.h"
+#include "test/testlib/MblkHyperbolicLevelIntegrator.h"
 #include "MblkEuler.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace SAMRAI;
 
@@ -102,6 +107,14 @@ int main(
    } else {
       tbox::PIO::logOnlyNodeZero(log_file_name);
    }
+
+#ifdef _OPENMP
+   tbox::plog << "Compiled with OpenMP version " << _OPENMP
+              << ".  Running with " << omp_get_max_threads() << " threads."
+              << std::endl;
+#else
+   tbox::plog << "Compiled without OpenMP.\n";
+#endif
 
    tbox::plog << "input_filename       = " << input_filename << endl;
    tbox::plog << "restart_read_dirname = " << restart_read_dirname << endl;
@@ -255,7 +268,6 @@ int main(
          input_db->getDatabase("HyperbolicLevelIntegrator"),
          euler_model,
          mblk_patch_hierarchy,
-         true,
          use_refined_timestepping));
 
    //
@@ -263,19 +275,20 @@ int main(
    //
    boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
       new mesh::StandardTagAndInitialize(
-         dim,
          "StandardTagAndInitialize",
          mblk_hyp_level_integrator.get(),
          input_db->getDatabase("StandardTagAndInitialize")));
 
    boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-      new mesh::BergerRigoutsos(dim));
+      new mesh::BergerRigoutsos(dim,
+         input_db->getDatabase("BergerRigoutsos")));
 
    boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
       new mesh::TreeLoadBalancer(
          dim,
          "TreeLoadBalancer",
-         input_db->getDatabase("TreeLoadBalancer")));
+         input_db->getDatabase("TreeLoadBalancer"),
+         boost::shared_ptr<tbox::RankTreeStrategy>(new tbox::BalancedDepthFirstTree)));
    load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    boost::shared_ptr<mesh::GriddingAlgorithm> mblk_gridding_algorithm(
@@ -468,9 +481,7 @@ void setupHierarchy(
    boost::shared_ptr<hier::BaseGridGeometry>& geometry,
    boost::shared_ptr<hier::PatchHierarchy>& mblk_hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(main_input_db);
-#endif
 
    boost::shared_ptr<tbox::Database> mult_db(
       main_input_db->getDatabase("PatchHierarchy"));
@@ -497,7 +508,6 @@ void setupHierarchy(
       new hier::PatchHierarchy(
          "PatchHierarchy",
          geometry,
-         mult_db,
-         true));
+         mult_db));
 
 }

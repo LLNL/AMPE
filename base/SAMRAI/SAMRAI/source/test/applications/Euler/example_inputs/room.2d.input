@@ -3,35 +3,51 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for SAMRAI Euler example problem (2d room) 
  *
  ************************************************************************/
+
+// Refer to ../test_inputs/test2d.input for full description of all input
+// parameters specific to this problem.
+
+AutoTester {
+   // No input--this is an example and does not test results.
+}
+
 Euler {
-   gamma            = 1.4      // gamma = Ratio of specific heats
+   // Ratio of specific heats
+   gamma            = 1.4
 
-   godunov_order    = 4        // order of Goduov slopes (1, 2, or 4)
+   // order of Goduov slopes (1, 2, or 4)
+   godunov_order    = 4
 
-   riemann_solve        = "APPROX_RIEM_SOLVE"
-//   riemann_solve        = "EXACT_RIEM_SOLVE"
-//   riemann_solve        = "HLLC_RIEM_SOLVE"
+   // Riemann solver used in flux calculation
+   riemann_solve    = "APPROX_RIEM_SOLVE"
+//   riemann_solve    = "EXACT_RIEM_SOLVE"
+//   riemann_solve    = "HLLC_RIEM_SOLVE"
 
+   // General type of problem and its initial conditions.
    data_problem         = "SPHERE"
 
    Initial_data {
       radius            = 6.0
-      center            = 34.0 , 28.0
+      center            = 34.0 , 28.0 // vector of length dim
 
       density_inside    = 8.0
-      velocity_inside   = 0.0 , 0.0  
+      velocity_inside   = 0.0 , 0.0 // vector of length dim
       pressure_inside   = 40.0
 
       density_outside    = 1.0
-      velocity_outside   = 0.0 , 0.0 
+      velocity_outside   = 0.0 , 0.0 // vector of length dim
       pressure_outside   = 1.0
 
    }
 
+   // Refinement criteria and, for each, the parameters controling it.
+   // Refinement criteria may be one or more of DENSITY_DEVIATION,
+   // DENSITY_GRADIENT, DENSITY_SHOCK, DENSITY_RICHARDSON, PRESSURE_DEVIATION,
+   // PRESSURE_GRADIENT, PRESSURE_SHOCK, or PRESSURE_RICHARDSON.
    Refinement_data {
       refine_criteria = "PRESSURE_GRADIENT", "PRESSURE_SHOCK"
  
@@ -40,12 +56,13 @@ Euler {
       }
 
       PRESSURE_SHOCK {
-         shock_tol = 10.0
+         shock_tol   = 10.0
          shock_onset = 0.85 
       }
    }
 
-   // valid boundary_condition values are "FLOW", "REFLECT", "DIRICHLET"
+   // Boundary condition data following the format defined in
+   // appu::CartesianBoundaryUtility[2,3]
    Boundary_data {
       boundary_edge_xlo {
          boundary_condition      = "REFLECT"
@@ -83,21 +100,30 @@ Euler {
 }
 
 Main {
+   // dimension of problem
    dim = 2
+
+   // base name of log file
    base_name = "room.2d"
-// log file parameters 
+
+   // if true all nodes will log to individual files
+   // if false only node 0 will log
    log_all_nodes    = TRUE
 
-// visualization dump parameters
-   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
-   viz_dump_interval     = 1          // zero to turn off
-   viz_dump_dirname      = "viz_room2d"
-   visit_file_cluster_size = 1        // not used by Vizamrai
+   // visualization dump parameters
+   // frequency at which to dump viz output--zero to turn off
+   viz_dump_interval    = 1
+   // directory in which to place viz output
+   viz_dump_dirname     = "viz_room2d"
+   // number of processors which write to each viz file
+   visit_number_procs_per_file = 1
 
-// restart dump parameters
-   restart_interval       = 1         // zero to turn off
+   // restart dump parameters 
+   // frequency at which to dump restart output--zero to turn off
+   restart_interval     = 1
 }
 
+// Refer to tbox::TimerManager for input
 TimerManager{
    print_exclusive      = TRUE   // output exclusive time
    timer_list               = "apps::main::*",
@@ -106,6 +132,7 @@ TimerManager{
                               "algs::HyperbolicLevelIntegrator::*"
 }
 
+// Refer to geom::CartesianGridGeometry and its base classes for input
 CartesianGeometry{
    domain_boxes	= [(0,9),(14,20)],
                   [(0,21),(19,35)],
@@ -119,17 +146,19 @@ CartesianGeometry{
    x_up = 65.e0 , 55.e0 // upper end of computational domain.
 }
 
+// Refer to mesh::StandardTagAndInitialize for input
 StandardTagAndInitialize{
    tagging_method = "GRADIENT_DETECTOR"
 }
 
+// Refer to hier::PatchHierarchy for input
 PatchHierarchy {
    max_levels = 3         // Maximum number of levels in hierarchy.
 
-   ratio_to_coarser {      // vector ratio to next coarser level
-      level_1 = 4 , 4
-      level_2 = 4 , 4
-      level_3 = 4 , 4
+   ratio_to_coarser {              // vector ratio to next coarser level
+      level_1            = 4 , 4
+      level_2            = 4 , 4
+      level_3            = 4 , 4
    }
 
    largest_patch_size {
@@ -144,28 +173,35 @@ PatchHierarchy {
    }
 
 }
-
-GriddingAlgorithm{
-
-   efficiency_tolerance    = 0.70e0   // min % of tag cells in new patch level
-   combine_efficiency      = 0.85e0   // chop box if sum of volumes of smaller
+  
+// Refer to mesh::BergerRigoutsos for input
+BergerRigoutsos {
+   efficiency_tolerance   = 0.70e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
 }
 
+// Refer to mesh::GriddingAlgorithm for input
+GriddingAlgorithm{
+}
+
+// Refer to algs::HyperbolicLevelIntegrator for input
 HyperbolicLevelIntegrator{
-   cfl                       = 0.9e0    // max cfl factor used in problem
-   cfl_init                  = 0.1e0    // initial cfl factor
+   cfl                       = 0.9e0   // max cfl factor used in problem
+   cfl_init                  = 0.1e0   // initial cfl factor
    lag_dt_computation        = TRUE
    use_ghosts_to_compute_dt  = TRUE
 }
 
+// Refer to algs::TimeRefinementIntegrator for input
 TimeRefinementIntegrator{
-   start_time           = 0.e0     // initial simulation time
-   end_time             = 100.e0   // final simulation time
-   grow_dt              = 1.1e0    // growth factor for timesteps
-   max_integrator_steps = 301      // max number of simulation timesteps
+   start_time           = 0.e0    // initial simulation time
+   end_time             = 100.e0  // final simulation time
+   grow_dt              = 1.1e0   // growth factor for timesteps
+   max_integrator_steps = 301     // max number of simulation timesteps
 }
 
+// Refer to mesh::TreeLoadBalancer for input
 LoadBalancer {
-// using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
+   // using default TreeLoadBalancer configuration
 }

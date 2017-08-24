@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Staged peer-to-peer communication.
  *
  ************************************************************************/
@@ -59,6 +59,19 @@ template<class TYPE>
 class AsyncCommPeer:public AsyncCommStage::Member
 {
 
+private:
+   //! @brief Operations users would want to do.
+   enum BaseOp { undefined,
+                 send,
+                 recv };
+   //! @brief Tasks used to complete a base operation.
+   enum TaskOp { send_start,
+                 send_check,
+                 recv_start,
+                 recv_check0,
+                 recv_check1,
+                 none };
+
 public:
    /*!
     * @brief Default constructor does not set up anything.
@@ -73,10 +86,12 @@ public:
     */
    explicit AsyncCommPeer(
       AsyncCommStage* stage,
-      AsyncCommStage::Handler* handler = NULL);
+      AsyncCommStage::Handler* handler = 0);
 
    /*!
     * @brief Destructor.
+    *
+    * @pre isDone()
     */
    virtual ~AsyncCommPeer();
 
@@ -87,11 +102,13 @@ public:
     *
     * @param stage The stage handling communicaiton requests for the object.
     * @param handler Optional pointer to user-defined data.
+    *
+    * @pre isDone()
     */
    void
    initialize(
       AsyncCommStage* stage,
-      AsyncCommStage::Handler* handler = NULL);
+      AsyncCommStage::Handler* handler = 0);
 
    //@{
    //! @name Define the peer relationship.
@@ -103,11 +120,18 @@ public:
     * a complementary call using this processor as its peer.
     * If this assumption is wrong, there will likely be
     * communication errors.
+    *
+    * @param peer_rank
+    *
+    * @pre isDone()
     */
    void
    setPeerRank(
       int peer_rank);
 
+   /*!
+    * @brief Rank of peer process.
+    */
    int
    getPeerRank() const
    {
@@ -153,6 +177,11 @@ public:
     * select the correct messages.  Please specify appropriate values
     * for the MPI communicator and tag.  Very elusive bugs can occur
     * if incorrect messages are received.
+    *
+    * @param primary_tag
+    * @param secondary_tag
+    *
+    * @pre isDone()
     */
    void
    setMPITag(
@@ -169,10 +198,59 @@ public:
     * if incorrect messages are received.  To be safe, it is best
     * to create a new communicator to avoid interference with other
     * communications within SAMRAI.
+    *
+    * @param mpi
+    *
+    * @pre isDone()
     */
    void
    setMPI(
       const SAMRAI_MPI& mpi);
+
+   /*!
+    * @brief Gets the MPI object used for communications.
+    */
+   const SAMRAI_MPI&
+   getMPI() const
+   {
+      return d_mpi;
+   }
+
+   /*!
+    * @brief Next task in a current communication operation.
+    */
+   TaskOp
+   getNextTaskOp() const
+   {
+      return d_next_task_op;
+   }
+
+   /*!
+    * @brief Operation being performed.
+    */
+   BaseOp
+   getBaseOp() const
+   {
+      return d_base_op;
+   }
+
+   /*!
+    * @brief Primary tag for the first message.
+    */
+   int
+   getPrimaryTag() const
+   {
+      return d_tag0;
+   }
+
+   /*!
+    * @brief Secondary tag for the first message.
+    */
+   int
+   getSecondaryTag() const
+   {
+      return d_tag1;
+   }
 
    //@{
 
@@ -188,12 +266,22 @@ public:
     * On return, the data in @b buffer would have been copied so it is
     * safe to deallocate or modify @c buffer.
     *
+    * @param buffer
+    * @param size
+    *
+    * @param automatic_push_to_completion_queue Whether to automatically
+    * push this member onto the completion queue of its stage (where you
+    * can retrieve it using the stage's popFromCompletionQueue() method.
+    *
     * @return Whether operation is completed.
+    *
+    * @pre getNextTaskOp() == none
     */
    bool
    beginSend(
       const TYPE* buffer,
-      int size);
+      int size,
+      bool automatic_push_to_completion_queue = false);
 
    /*!
     * @brief Check the current broadcast communication and complete
@@ -201,10 +289,15 @@ public:
     *
     * If no communication is in progress, this call does nothing.
     *
+    * @param automatic_push_to_completion_queue See beginSend().
+    *
     * @return Whether operation is completed.
+    *
+    * @pre getBaseOp() == send
     */
    bool
-   checkSend();
+   checkSend(
+      bool automatic_push_to_completion_queue = false);
 
    /*!
     * @brief Begin a receive communication.
@@ -220,6 +313,8 @@ public:
     * The actual length of data received by the last receive operation
     * is returned by getRecvSize().
     *
+    * @param automatic_push_to_completion_queue See beginSend().
+    *
     * @return Whether operation is completed.
     *
     * @internal Once everthing is working, we should implement a
@@ -227,27 +322,39 @@ public:
     * need to copy from the internal to an external buffer.  But it
     * requires some thought about size checking, especially with
     * regards to how to use the limit on the first message size.
+    *
+    * @pre getNextTaskOp() == none
     */
    bool
-   beginRecv();
+   beginRecv(
+      bool automatic_push_to_completion_queue = false);
 
    /*!
     * @brief Check the current receive communication and complete the
     * receive if the MPI request has been fulfilled.
     *
     * @return Whether operation is completed.
+    *
+    * @param automatic_push_to_completion_queue See beginSend().
+    *
+    * @pre getBaseOp() == recv
     */
    bool
-   checkRecv();
+   checkRecv(
+      bool automatic_push_to_completion_queue = false);
 
    /*!
     * @brief Return the size of received data.
+    *
+    * @pre getBaseOp() == recv
     */
    int
    getRecvSize() const;
 
    /*!
     * @brief Get access to the received data.
+    *
+    * @pre getBaseOp() == recv
     */
    const TYPE *
    getRecvData() const;
@@ -261,6 +368,8 @@ public:
     *
     * It is an error to clear the receive buffer in the middle of a
     * communication operation.
+    *
+    * @pre getNextTaksOp() == none
     */
    void
    clearRecvData();
@@ -290,8 +399,21 @@ public:
    void
    completeCurrentOperation();
 
-   //@}
+   /*!
+    * @brief Whether the current (or last) operation was a send.
+    */
+   bool isSender() {
+      return d_base_op == send;
+   }
 
+   /*!
+    * @brief Whether the current (or last) operation was a receive.
+    */
+   bool isReceiver() {
+      return d_base_op == recv;
+   }
+
+   //@}
 
    //@{
    //! @name Timers for MPI calls
@@ -301,31 +423,33 @@ public:
     *
     * Set the timer for non-blocking sends.
     * If the timer is null, revert to the default timer named
-    * ""tbox::AsyncCommPeer::MPI_ISend".
+    * "tbox::AsyncCommPeer::MPI_Isend()".
     *
     * @param [in] send_timer
     */
-   void setSendTimer(
-      const boost::shared_ptr<Timer> &send_timer );
+   void
+   setSendTimer(
+      const boost::shared_ptr<Timer>& send_timer);
 
    /*!
     * @brief Set the receive-timer.
     *
     * Set the timer for non-blocking receives.
     * If the timer is null, revert to the default timer named
-    * ""tbox::AsyncCommPeer::MPI_IRecv".
+    * "tbox::AsyncCommPeer::MPI_Irecv()".
     *
     * @param [in] recv_timer
     */
-   void setRecvTimer(
-      const boost::shared_ptr<Timer> &recv_timer );
+   void
+   setRecvTimer(
+      const boost::shared_ptr<Timer>& recv_timer);
 
    /*!
     * @brief Set the wait-timer.
     *
     * Set the timer for blocking waits.
     * If the timer is null, revert to the default timer named
-    * ""tbox::AsyncCommPeer::wait_all()".
+    * "tbox::AsyncCommPeer::MPI_Waitall()".
     *
     * This timer is used when in this class and is not the same
     * as the timer given to AsyncCommStage (unless the user sets
@@ -333,8 +457,9 @@ public:
     *
     * @param [in] wait_timer
     */
-   void setWaitTimer(
-      const boost::shared_ptr<Timer> &wait_timer );
+   void
+   setWaitTimer(
+      const boost::shared_ptr<Timer>& wait_timer);
 
    //@}
 
@@ -358,6 +483,11 @@ private:
 
    /*
     * @brief Assert that user-set MPI parameters are valid.
+    *
+    * @pre getPrimaryTag() >= 0 && getSecondaryTag() >= 0
+    * @pre getMPI().getCommunicator() != MPI_COMM_NULL
+    * @pre getPeerRank() >= 0
+    * @pre getPeerRank() != getMPI().getRank() || SAMRAI_MPI::usingMPI()
     */
    void
    checkMPIParams();
@@ -382,18 +512,6 @@ private:
    AsyncCommPeer&
    operator = (
       const AsyncCommPeer& r);
-
-   //! @brief Operations users would want to do.
-   enum BaseOp { undefined,
-                 send,
-                 recv };
-   //! @brief Tasks used to complete a base operation.
-   enum TaskOp { send_start,
-                 send_check,
-                 recv_start,
-                 recv_check0,
-                 recv_check1,
-                 none };
 
    void
    resetStatus(
@@ -519,7 +637,7 @@ private:
    static boost::shared_ptr<Timer> t_default_recv_timer;
    static boost::shared_ptr<Timer> t_default_wait_timer;
 
-   static tbox::StartupShutdownManager::Handler
+   static StartupShutdownManager::Handler
       s_initialize_finalize_handler;
 
 };

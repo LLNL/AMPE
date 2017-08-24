@@ -46,7 +46,7 @@ PhaseConcentrationRefinePatchStrategy::PhaseConcentrationRefinePatchStrategy(
    const int conc_l_id,
    const int conc_a_id,
    const int conc_b_id )
-   : xfer::RefinePatchStrategy(tbox::Dimension(NDIM)),
+   : xfer::RefinePatchStrategy(),
      d_object_name( object_name ),
      d_conc_l_id( conc_l_id ),
      d_conc_a_id( conc_a_id ),

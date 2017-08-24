@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A class to manage groups of processor ranks
  *
  ************************************************************************/
@@ -85,7 +85,7 @@ RankGroup::RankGroup(
  */
 
 RankGroup::RankGroup(
-   const Array<int>& rank_group,
+   const std::vector<int>& rank_group,
    const SAMRAI_MPI& samrai_mpi):
    d_min(-1),
    d_max(-1),
@@ -99,13 +99,13 @@ RankGroup::RankGroup(
    samrai_mpi.Comm_size(&nodes);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(rank_group.size() <= nodes);
+   TBOX_ASSERT(static_cast<int>(rank_group.size()) <= nodes);
 
    /*
     * Check that each entry in the array has a unique value and is increasing
     * order
     */
-   for (int i = 0; i < rank_group.size(); i++) {
+   for (int i = 0; i < static_cast<int>(rank_group.size()); ++i) {
       TBOX_ASSERT(rank_group[i] >= 0);
       TBOX_ASSERT(rank_group[i] < nodes);
       if (i > 0) {
@@ -117,10 +117,25 @@ RankGroup::RankGroup(
    /*
     * If array is the full set of ranks, then switch to "using_all" mode.
     */
-   if (rank_group.size() == nodes) {
-      d_ranks.resizeArray(0);
+   if (static_cast<int>(rank_group.size()) == nodes) {
+      d_ranks.resize(0);
       d_storage = USING_ALL;
    }
+}
+
+/*
+ ***********************************************************************
+ * Copy constructor.
+ ***********************************************************************
+ */
+RankGroup::RankGroup(
+   const RankGroup& other):
+   d_min(other.d_min),
+   d_max(other.d_max),
+   d_ranks(other.d_ranks),
+   d_storage(other.d_storage),
+   d_samrai_mpi(other.d_samrai_mpi)
+{
 }
 
 /*
@@ -131,6 +146,23 @@ RankGroup::RankGroup(
 
 RankGroup::~RankGroup()
 {
+}
+
+/*
+ ***********************************************************************
+ * Assignment operator.
+ ***********************************************************************
+ */
+RankGroup&
+RankGroup::operator = (
+   const RankGroup& rhs)
+{
+   d_min = rhs.d_min;
+   d_max = rhs.d_max;
+   d_ranks = rhs.d_ranks;
+   d_storage = rhs.d_storage;
+   d_samrai_mpi = rhs.d_samrai_mpi;
+   return *this;
 }
 
 /*
@@ -154,7 +186,7 @@ RankGroup::isMember(
       case USING_ARRAY:
       {
          int lo = 0;
-         int hi = d_ranks.size() - 1;
+         int hi = static_cast<int>(d_ranks.size()) - 1;
          while (!is_member && hi >= lo) {
             int i = (lo + hi) / 2;
             if (rank < d_ranks[i]) {
@@ -199,7 +231,7 @@ RankGroup::size() const
          break;
 
       case USING_ARRAY:
-         size = d_ranks.size();
+         size = static_cast<int>(d_ranks.size());
          break;
 
       case USING_MIN_MAX:
@@ -208,6 +240,7 @@ RankGroup::size() const
 
       default:
          TBOX_ERROR("RankGroup has not been set with a valid storage method");
+         break;
    }
 
    return size;
@@ -243,6 +276,7 @@ RankGroup::getMappedRank(
 
       default:
          TBOX_ERROR("RankGroup has not been set with a valid storage method");
+         break;
    }
 
    return mapped_rank;
@@ -277,7 +311,7 @@ RankGroup::getMapIndex(
       case USING_ARRAY:
       {
          int lo = 0;
-         int hi = d_ranks.size() - 1;
+         int hi = static_cast<int>(d_ranks.size()) - 1;
          while (hi >= lo) {
             int i = (lo + hi) / 2;
             if (rank < d_ranks[i]) {
@@ -298,6 +332,7 @@ RankGroup::getMapIndex(
 
       default:
          TBOX_ERROR("RankGroup has not been set with a valid storage method");
+         break;
    }
 
    return map_id;

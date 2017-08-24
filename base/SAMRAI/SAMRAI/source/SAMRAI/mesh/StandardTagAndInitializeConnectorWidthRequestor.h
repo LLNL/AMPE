@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   StandardTagAndInitialize's implementation of PatchHierarchy
  *
  ************************************************************************/
@@ -70,10 +70,13 @@ private:
     * @param[in] ratios_to_coarser Refinement ratios in a hierarchy.
     * @c ratios_to_coarser[ln] is the ratio between level ln and level
     * ln-1.
+    *
+    * @pre (ratios_to_coarser[1](0) % 2 == 0) ||
+    *      (ratios_to_coarser[1](0) % 3 == 0)
     */
    int
    computeCoarsenRatio(
-      const tbox::Array<hier::IntVector>& ratio_to_coarser) const;
+      const std::vector<hier::IntVector>& ratios_to_coarser) const;
 
 };
 

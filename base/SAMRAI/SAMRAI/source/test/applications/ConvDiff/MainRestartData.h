@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Concrete subclass of tbox
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Concrete subclass of tbox::Serializable
  *
  ************************************************************************/
 
@@ -19,7 +19,7 @@
 #define included_String
 #endif
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace std;
 using namespace SAMRAI;
@@ -130,11 +130,12 @@ public:
 
    /**
     * Writes out d_max_timesteps, d_start_time, d_end_time,
-    * d_regrid_step, d_tag_buffer, d_loop_time, d_iteration_number.
+    * d_regrid_step, d_tag_buffer, d_loop_time, d_iteration_number
+    * to the restart database.
     */
    virtual void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
 private:
    /**

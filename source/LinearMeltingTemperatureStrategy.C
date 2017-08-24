@@ -63,9 +63,9 @@ void LinearMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
    const hier::Index ilast  = patch.getBox().upper();
 
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      patch.getPatchData( d_equilibrium_temperature_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_equilibrium_temperature_id) ) );
    boost::shared_ptr< pdat::CellData<double> > concentration (
-      patch.getPatchData( d_concentration_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_concentration_id) ) );
    
    assert( temperature );
    assert( concentration );

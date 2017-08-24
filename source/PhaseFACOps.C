@@ -124,7 +124,7 @@ void PhaseFACOps::setC(
          const hier::Box& patch_box = patch->getBox();
       
          boost::shared_ptr< pdat::CellData<double> > phi_data (
-            patch->getPatchData( phi_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phi_id) ) );
          
          boost::shared_ptr< pdat::CellData<double> > eta_data;
          if ( d_with_third_phase ) {
@@ -134,10 +134,10 @@ void PhaseFACOps::setC(
          }
          
          boost::shared_ptr< pdat::CellData<double> > local_m_data (
-            patch->getPatchData( d_m_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_m_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cdata (
-            patch->getPatchData( d_c_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_c_id) ) );
 
          setCOnPatchPrivate(
             phi_data,

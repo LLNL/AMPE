@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating side data objects
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Complex.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -35,39 +35,55 @@ namespace pdat {
  * and manage data for cell sides associated with a single coordinate
  * direction only.  See the constructor for more information.
  *
- * @see pdat::SideData
- * @see pdat::PatchDataFactory
+ * @see SideData
+ * @see PatchDataFactory
  */
 
 template<class TYPE>
 class SideDataFactory:public hier::PatchDataFactory
 {
 public:
-   /**
-    * The constructor for the side data factory class.  The ghost cell
-    * width, depth (number of components), and fine boundary representation arguments
-    * give the defaults for all edge data objects created with this factory.
-    * Also, the default data allocation scheme is to generate storage for sides
-    * in all coordinate directions (default integer vector of all 1's).  To
-    * use this factory to manage side data objects for sides associated
-    * with a single direction only, provide the directions vector argument.
-    * A zero entry indicates that data for that direction is not wanted.
-    * Otherwise, data will be created for that direction.  See the
-    * SideVariable<DIM> class header file for more information.
-    */
-   SideDataFactory(
-      int depth,
-      const hier::IntVector& ghosts,
-      bool fine_boundary_represents_var);
-
-   /**
-    * Same as previous constructor but with directions vector of 1's
+   /*!
+    * @brief The constructor for the side data factory class.
+    *
+    * The ghost cell width, depth (number of components), and fine boundary
+    * representation arguments give the defaults for all edge data objects
+    * created with this factory.
+    *
+    * The directions vector describes the coordinate directions for which
+    * data will be allocated on the sides of cells in the grid. A value of
+    * 1 indicates that data will be allocated for that coordinate direction,
+    * while a value of zero means data for that direction is not wanted.
+    * To allocate data in all directions, provide an IntVector that is
+    * 1 in all directions, or use the other constructor, which assumes by
+    * default that all directions are desired.  See the
+    * SideVariable<TYPE> class header file for more information.
+    *
+    * @pre depth > 0
+    * @pre ghosts.min() >= 0
+    * @pre directions.min() >= 0
     */
    SideDataFactory(
       int depth,
       const hier::IntVector& ghosts,
       bool fine_boundary_represents_var,
       const hier::IntVector& directions);
+
+   /*!
+    * @brief Constructor for the side data factory class setting up allocation
+    * of data in all coordinate directions.
+    *
+    * This constructor works the same as the other constructor, but
+    * it takes no direcions argument, meaning that all directions are going
+    * to be allocated.
+    *
+    * @pre depth > 0
+    * @pre ghosts.min() >= 0
+    */
+   SideDataFactory(
+      int depth,
+      const hier::IntVector& ghosts,
+      bool fine_boundary_represents_var);
 
    /**
     * Virtual destructor for the side data factory class.
@@ -83,6 +99,8 @@ public:
     *
     * @param ghosts default ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    virtual boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
@@ -92,6 +110,8 @@ public:
     * Virtual factory function to allocate a concrete side data object.
     * The default information about the object (e.g., ghost cell width)
     * is taken from the factory.
+    *
+    * @pre getDim() == patch.getDim()
     */
    virtual boost::shared_ptr<hier::PatchData>
    allocate(
@@ -101,6 +121,8 @@ public:
     * Allocate the box geometry object associated with the patch data.
     * This information will be used in the computation of intersections
     * and data dependencies between objects.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
@@ -127,6 +149,8 @@ public:
    /**
     * Calculate the amount of memory needed to store the side data object,
     * including object data and dynamically allocated data.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual size_t
    getSizeOfMemory(
@@ -135,7 +159,7 @@ public:
    /**
     * Return a boolean value indicating how data for the side quantity will be
     * treated on coarse-fine interfaces.  This value is passed into the
-    * constructor.  See the FaceVariable<DIM> class header file for more
+    * constructor.  See the FaceVariable<TYPE> class header file for more
     * information.
     */
    bool
@@ -152,6 +176,8 @@ public:
     * Return whether it is valid to copy this SideDataFactory to the
     * supplied destination patch data factory.  It will return true if
     * dst_pdf is SideDataFactory or OutersideDataFactory, false otherwise.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(

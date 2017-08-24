@@ -45,7 +45,7 @@ using namespace SAMRAI;
 using namespace std;
 
 MinIntCoarsen::MinIntCoarsen()
-   : hier::CoarsenOperator(tbox::Dimension(NDIM), "BASE_MIN_COARSEN")
+   : hier::CoarsenOperator("BASE_MIN_COARSEN")
 {
    d_name_id = "MINIMUM_COARSEN";
 }
@@ -59,8 +59,7 @@ bool MinIntCoarsen::findCoarsenOperator(
    const string &op_name) const
 {
    const boost::shared_ptr< pdat::CellVariable<int> > cast_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellVariable<int>, hier::Variable >( var ) );
    if ( cast_var && (op_name == d_name_id) ) {
       return(true);
    } else {
@@ -80,8 +79,8 @@ int MinIntCoarsen::getOperatorPriority() const
 }
 
 hier::IntVector
-MinIntCoarsen::getStencilWidth() const {
-   return(hier::IntVector(tbox::Dimension(NDIM),0));
+MinIntCoarsen::getStencilWidth(const tbox::Dimension& dim) const {
+   return(hier::IntVector(dim,0));
 }
 
 
@@ -97,20 +96,18 @@ void MinIntCoarsen::coarsen(
    const hier::Box& coarse_box,
    const hier::IntVector& ratio) const
 {
-   boost::shared_ptr< pdat::CellData<int> >
-      fdata ( fine.getPatchData(src_component),
-         boost::detail::dynamic_cast_tag());
-   boost::shared_ptr< pdat::CellData<int> >
-      cdata ( coarse.getPatchData(dst_component),
-         boost::detail::dynamic_cast_tag());
+   boost::shared_ptr< pdat::CellData<int> > fdata (
+      BOOST_CAST< pdat::CellData<int>, hier::PatchData>( fine.getPatchData(src_component) ) );
+   boost::shared_ptr< pdat::CellData<int> > cdata (
+      BOOST_CAST< pdat::CellData<int>, hier::PatchData>( coarse.getPatchData(dst_component) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(fdata);
    assert(cdata);
    assert(cdata->getDepth() == fdata->getDepth());
 #endif
 
-   pdat::CellIterator cend(coarse_box, false);
-   for ( pdat::CellIterator ci(coarse_box, true); ci != cend; ++ci ) {
+   pdat::CellIterator cend(pdat::CellGeometry::end(coarse_box));
+   for ( pdat::CellIterator ci(pdat::CellGeometry::begin(coarse_box)); ci != cend; ++ci ) {
       pdat::CellIndex coarse_cell = *ci;
       hier::Index fine_lower = coarse_cell * ratio;
       hier::Index fine_upper = fine_lower + ratio - 1;
@@ -119,8 +116,8 @@ void MinIntCoarsen::coarsen(
       
       (*cdata)(coarse_cell) = -1;
 
-      pdat::CellIterator fend(fine_box, false);
-      for ( pdat::CellIterator fi(fine_box, true); fi != fend; ++fi ) {
+      pdat::CellIterator fend(pdat::CellGeometry::end(fine_box));
+      for ( pdat::CellIterator fi(pdat::CellGeometry::begin(fine_box)); fi != fend; ++fi ) {
          pdat::CellIndex fine_cell = *fi;
        
          int fine_val = (*fdata)(fine_cell);

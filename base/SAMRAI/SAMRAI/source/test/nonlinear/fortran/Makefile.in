@@ -1,0 +1,202 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for SAMRAI nonlinear solver
+##                test
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/nonlinear/fortran
+VPATH         = @srcdir@
+OBJECT        = ../../../..
+
+default: main
+
+include $(OBJECT)/config/Makefile.config
+
+OBJS= 	FACjacobian1d.o bcFluxCopy1d.o bcFluxFix1d.o bratufunc1d.o err1d.o \
+	evalBratu1d.o evalDiffusionCoef1d.o evalExponential1d.o evalF1d.o \
+	evalFaceFluxes1d.o evalJv1d.o evalSource1d.o setbc1d.o \
+	adjcrsfineoffdiag1d.o \
+	FACjacobian2d.o bcFluxCopy2d.o bcFluxFix2d.o bratufunc2d.o err2d.o \
+	evalBratu2d.o evalDiffusionCoef2d.o evalExponential2d.o evalF2d.o \
+	evalFaceFluxes2d.o evalJv2d.o evalSource2d.o setbc2d.o \
+	FACjacobian3d.o bcFluxCopy3d.o bcFluxFix3d.o bratufunc3d.o err3d.o \
+	evalBratu3d.o evalDiffusionCoef3d.o evalExponential3d.o evalF3d.o \
+	evalFaceFluxes3d.o evalJv3d.o evalSource3d.o setbc3d.o
+
+main:	$(OBJS)
+
+clean:
+	$(CLEAN_COMMON_TEST_FILES)
+
+include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+FACjacobian1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/FACjacobian1d.m4 > FACjacobian1d.f
+	$(F77) $(FFLAGS) -c FACjacobian1d.f -o $@
+
+adjcrsfineoffdiag1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/adjcrsfineoffdiag1d.m4 > adjcrsfineoffdiag1d.f
+	$(F77) $(FFLAGS) -c adjcrsfineoffdiag1d.f -o $@
+
+bcFluxCopy1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxCopy1d.m4 > bcFluxCopy1d.f
+	$(F77) $(FFLAGS) -c bcFluxCopy1d.f -o $@
+
+bcFluxFix1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxFix1d.m4 > bcFluxFix1d.f
+	$(F77) $(FFLAGS) -c bcFluxFix1d.f -o $@
+
+bratufunc1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bratufunc1d.m4 > bratufunc1d.f
+	$(F77) $(FFLAGS) -c bratufunc1d.f -o $@
+
+err1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/err1d.m4 > err1d.f
+	$(F77) $(FFLAGS) -c err1d.f -o $@
+
+evalBratu1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalBratu1d.m4 > evalBratu1d.f
+	$(F77) $(FFLAGS) -c evalBratu1d.f -o $@
+
+evalDiffusionCoef1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalDiffusionCoef1d.m4 > evalDiffusionCoef1d.f
+	$(F77) $(FFLAGS) -c evalDiffusionCoef1d.f -o $@
+
+evalExponential1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalExponential1d.m4 > evalExponential1d.f
+	$(F77) $(FFLAGS) -c evalExponential1d.f -o $@
+
+evalF1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalF1d.m4 > evalF1d.f
+	$(F77) $(FFLAGS) -c evalF1d.f -o $@
+
+evalFaceFluxes1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalFaceFluxes1d.m4 > evalFaceFluxes1d.f
+	$(F77) $(FFLAGS) -c evalFaceFluxes1d.f -o $@
+
+evalJv1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalJv1d.m4 > evalJv1d.f
+	$(F77) $(FFLAGS) -c evalJv1d.f -o $@
+
+evalSource1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalSource1d.m4 > evalSource1d.f
+	$(F77) $(FFLAGS) -c evalSource1d.f -o $@
+
+setbc1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/setbc1d.m4 > setbc1d.f
+	$(F77) $(FFLAGS) -c setbc1d.f -o $@
+
+
+FACjacobian2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/FACjacobian2d.m4 > FACjacobian2d.f
+	$(F77) $(FFLAGS) -c FACjacobian2d.f -o $@
+
+bcFluxCopy2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxCopy2d.m4 > bcFluxCopy2d.f
+	$(F77) $(FFLAGS) -c bcFluxCopy2d.f -o $@
+
+bcFluxFix2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxFix2d.m4 > bcFluxFix2d.f
+	$(F77) $(FFLAGS) -c bcFluxFix2d.f -o $@
+
+bratufunc2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bratufunc2d.m4 > bratufunc2d.f
+	$(F77) $(FFLAGS) -c bratufunc2d.f -o $@
+
+err2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/err2d.m4 > err2d.f
+	$(F77) $(FFLAGS) -c err2d.f -o $@
+
+evalBratu2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalBratu2d.m4 > evalBratu2d.f
+	$(F77) $(FFLAGS) -c evalBratu2d.f -o $@
+
+evalDiffusionCoef2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalDiffusionCoef2d.m4 > evalDiffusionCoef2d.f
+	$(F77) $(FFLAGS) -c evalDiffusionCoef2d.f -o $@
+
+evalExponential2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalExponential2d.m4 > evalExponential2d.f
+	$(F77) $(FFLAGS) -c evalExponential2d.f -o $@
+
+evalF2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalF2d.m4 > evalF2d.f
+	$(F77) $(FFLAGS) -c evalF2d.f -o $@
+
+evalFaceFluxes2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalFaceFluxes2d.m4 > evalFaceFluxes2d.f
+	$(F77) $(FFLAGS) -c evalFaceFluxes2d.f -o $@
+
+evalJv2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalJv2d.m4 > evalJv2d.f
+	$(F77) $(FFLAGS) -c evalJv2d.f -o $@
+
+evalSource2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalSource2d.m4 > evalSource2d.f
+	$(F77) $(FFLAGS) -c evalSource2d.f -o $@
+
+setbc2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/setbc2d.m4 > setbc2d.f
+	$(F77) $(FFLAGS) -c setbc2d.f -o $@
+
+
+FACjacobian3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/FACjacobian3d.m4 > FACjacobian3d.f
+	$(F77) $(FFLAGS) -c FACjacobian3d.f -o $@
+
+bcFluxCopy3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxCopy3d.m4 > bcFluxCopy3d.f
+	$(F77) $(FFLAGS) -c bcFluxCopy3d.f -o $@
+
+bcFluxFix3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bcFluxFix3d.m4 > bcFluxFix3d.f
+	$(F77) $(FFLAGS) -c bcFluxFix3d.f -o $@
+
+bratufunc3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/bratufunc3d.m4 > bratufunc3d.f
+	$(F77) $(FFLAGS) -c bratufunc3d.f -o $@
+
+err3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/err3d.m4 > err3d.f
+	$(F77) $(FFLAGS) -c err3d.f -o $@
+
+evalBratu3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalBratu3d.m4 > evalBratu3d.f
+	$(F77) $(FFLAGS) -c evalBratu3d.f -o $@
+
+evalDiffusionCoef3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalDiffusionCoef3d.m4 > evalDiffusionCoef3d.f
+	$(F77) $(FFLAGS) -c evalDiffusionCoef3d.f -o $@
+
+evalExponential3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalExponential3d.m4 > evalExponential3d.f
+	$(F77) $(FFLAGS) -c evalExponential3d.f -o $@
+
+evalF3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalF3d.m4 > evalF3d.f
+	$(F77) $(FFLAGS) -c evalF3d.f -o $@
+
+evalFaceFluxes3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalFaceFluxes3d.m4 > evalFaceFluxes3d.f
+	$(F77) $(FFLAGS) -c evalFaceFluxes3d.f -o $@
+
+evalJv3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalJv3d.m4 > evalJv3d.f
+	$(F77) $(FFLAGS) -c evalJv3d.f -o $@
+
+evalSource3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/evalSource3d.m4 > evalSource3d.f
+	$(F77) $(FFLAGS) -c evalSource3d.f -o $@
+
+setbc3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/setbc3d.m4 > setbc3d.f
+	$(F77) $(FFLAGS) -c setbc3d.f -o $@

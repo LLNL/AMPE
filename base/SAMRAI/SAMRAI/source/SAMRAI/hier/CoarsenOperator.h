@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract base class for spatial coarsening operators.
  *
  ************************************************************************/
@@ -16,8 +16,9 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/tbox/OpenMPUtilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <map>
 
@@ -25,7 +26,7 @@ namespace SAMRAI {
 namespace hier {
 
 /**
- * Class CoarsenOperator<DIM> is an abstract base class for each
+ * Class CoarsenOperator is an abstract base class for each
  * spatial coarsening operator used in the SAMRAI framework.  This class
  * defines the interface between numerical coarsening routines and the
  * rest of the framework.  Each concrete coarsening operator subclass
@@ -52,13 +53,13 @@ namespace hier {
  * from the getStencilWidth() and getOperatorPriority() functions,
  * respectively.  Then, the new operator must be added to the
  * operator list for the appropriate transfer geometry object using the
- * Geometry<DIM>::addCarsenOperator() function.
+ * BaseGridGeometry::addCarsenOperator() function.
  *
  * Since spatial coarsening operators usually depend on patch data centering
  * and data type as well as the mesh coordinate system, they are defined
  * in the <EM>geometry</EM> package.
  *
- * @see hier::TransferOperatorRegistry
+ * @see TransferOperatorRegistry
  */
 
 class CoarsenOperator
@@ -66,15 +67,14 @@ class CoarsenOperator
 public:
    /*!
     * @brief Construct the object with a name to allow the
-    * hier::TransferOperatorRegistry class to look up the object using a
+    * TransferOperatorRegistry class to look up the object using a
     * string.
     *
     * The constructor must be given a name.  The object will be
-    * registered under this name with the hier::TransferOperatorRegistry class.
+    * registered under this name with the TransferOperatorRegistry class.
     * The name must be unique, as duplicate names are not allowed.
     */
    CoarsenOperator(
-      const tbox::Dimension& dim,
       const std::string& name);
 
    /**
@@ -106,9 +106,12 @@ public:
     * The SAMRAI transfer routines guarantee that the source patch will
     * contain sufficient ghost cell data surrounding the interior to
     * satisfy the stencil width requirements for each coarsening operator.
+    * If your implementation doesn't work with the given dimension, return
+    * zero.
     */
    virtual IntVector
-   getStencilWidth() const = 0;
+   getStencilWidth(
+      const tbox::Dimension& dim) const = 0;
 
    /**
     * Coarsen the source component on the fine patch to the destination
@@ -136,19 +139,10 @@ public:
    getMaxCoarsenOpStencilWidth(
       const tbox::Dimension& dim);
 
-   /**
-    * Return the dimension of this object.
-    */
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
-   }
-
 private:
    CoarsenOperator(
       const CoarsenOperator&);                  // not implemented
-   void
+   CoarsenOperator&
    operator = (
       const CoarsenOperator&);                  // not implemented
 
@@ -165,11 +159,7 @@ private:
     */
    void
    registerInLookupTable(
-      const std::string& name)
-   {
-      s_lookup_table.insert(
-         std::pair<std::string, CoarsenOperator *>(name, this));
-   }
+      const std::string& name);
 
    /*!
     * @brief Remove the operator with the given name.
@@ -180,18 +170,21 @@ private:
       const std::string& name);
 
    /*!
+    * @brief Method registered with ShutdownRegister to initialize statics.
+    */
+   static void
+   initializeCallback();
+
+   /*!
     * @brief Method registered with ShutdownRegister to cleanup statics.
     */
    static void
-   finalizeCallback()
-   {
-      s_lookup_table.clear();
-   }
+   finalizeCallback();
 
    const std::string d_name;
-   const tbox::Dimension d_dim;
 
    static std::multimap<std::string, CoarsenOperator *> s_lookup_table;
+   static TBOX_omp_lock_t l_lookup_table;
 
    static tbox::StartupShutdownManager::Handler s_finalize_handler;
 

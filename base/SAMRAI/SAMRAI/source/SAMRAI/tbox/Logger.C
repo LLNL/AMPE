@@ -3,18 +3,19 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utility functions for logging
  *
  ************************************************************************/
 
 #include "SAMRAI/tbox/Logger.h"
 #include "SAMRAI/tbox/PIO.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 namespace SAMRAI {
 namespace tbox {
 
-Logger * Logger::s_instance = NULL;
+Logger * Logger::s_instance = 0;
 
 StartupShutdownManager::Handler
 Logger::s_finalize_handler(
@@ -130,18 +131,36 @@ Logger::finalizeCallback()
 {
    if (s_instance) {
       delete s_instance;
-      s_instance = static_cast<Logger *>(NULL);
+      s_instance = 0;
    }
 }
 
-Logger*
+Logger *
 Logger::getInstance()
 {
-   if (s_instance == static_cast<Logger *>(NULL)) {
+   if (s_instance == 0) {
       s_instance = new Logger();
    }
 
    return s_instance;
+}
+
+Logger::Appender::Appender()
+{
+}
+
+Logger::Appender::Appender(
+   const Appender& other)
+{
+   NULL_USE(other);
+}
+
+Logger::Appender&
+Logger::Appender::operator = (
+   const Appender& rhs)
+{
+   NULL_USE(rhs);
+   return *this;
 }
 
 Logger::Appender::~Appender()

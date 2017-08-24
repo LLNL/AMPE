@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Multiblock binary trees of Boxes for overlap searches.
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 
 #include "SAMRAI/hier/BoxTree.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <vector>
 #include <map>
 
@@ -38,29 +38,31 @@ class BoxContainer;
 class MultiblockBoxTree
 {
 
-friend class BoxContainer;
+   friend class BoxContainer;
 
 public:
-
    /*!
     * @brief Destructor.
     */
    ~MultiblockBoxTree();
 
 private:
-
    /*!
     * @brief Constructs a MultiblockBoxTree from set of Boxes.
     *
-    * @param[in] boxes.  No empty boxes are allowed.
+    * @param[in] boxes  No empty boxes are allowed.
+    *
+    * @param[in] grid_geometry GridGeometry associated with boxes in tree.
     *
     * @param[in] min_number Split up sets of boxes while the number of
     * boxes in a subset is greater than this value.  Setting to a
     * larger value tends to make tree building faster but tree
     * searching slower, and vice versa.  @b Default: 10
+    *
+    * @pre for each box in boxes, box.getBlockId().isValid()
     */
    MultiblockBoxTree(
-      const BoxContainer& boxes, 
+      const BoxContainer& boxes,
       const BaseGridGeometry* grid_geometry,
       const int min_number = 10);
 
@@ -90,7 +92,7 @@ private:
       return static_cast<int>(d_single_block_trees.size());
    }
 
-   const BaseGridGeometry*
+   const BaseGridGeometry *
    getGridGeometry() const
    {
       return d_grid_geometry;
@@ -107,7 +109,6 @@ private:
       d_single_block_trees.clear();
    }
 
-
    //@{
 
    //! @name Overlap checks
@@ -117,10 +118,13 @@ private:
     * tree.
     *
     * @param[in] box The box must have the same BlockId as all Boxes in the
-    * tree. 
+    * tree.
+    *
+    * @pre getNumberBlocksInTree() == 1
     */
    bool
-   hasOverlap(const Box& box) const; 
+   hasOverlap(
+      const Box& box) const;
 
    /*!
     * @brief Find all boxes that intersect with a given box.
@@ -135,10 +139,12 @@ private:
     * @param[out] overlap_boxes
     *
     * @param[in] box
+    *
+    * @pre getNumberBlocksInTree() == 1
     */
    void
    findOverlapBoxes(
-      std::vector<const Box*>& overlap_boxes,
+      std::vector<const Box *>& overlap_boxes,
       const Box& box) const;
 
    /*!
@@ -156,13 +162,18 @@ private:
     * @param[in]  box
     *
     * @param[in]  refinement_ratio  All boxes in this BoxContainer
-    * are assumed to exist in index space that has this refinement ratio 
+    * are assumed to exist in index space that has this refinement ratio
     * relative to the coarse-level domain stored in the grid geometry.
     *
     * @param[in]  include_singularity_block_neighbors  If true, intersections
     * with neighboring blocks that touch only across an enhanced connectivity
     * singularity will be added to output.  If false, those intersections are
     * ignored.
+    *
+    * @pre (getGridGeometry().getDim() == box.getDim()) &&
+    *      (getGridGeometry().getDim() == refinement_ratio.getDim())
+    * @pre (box.getBlockId().getBlockValue() >= 0) &&
+    *      (box.getBlockId().getBlockValue() < getGridGeometry()->getNumberBlocks())
     */
    void
    findOverlapBoxes(
@@ -185,6 +196,8 @@ private:
     * @param[out] overlap_boxes
     *
     * @param[in] box
+    *
+    * @pre getNumberBlocksInTree() == 1
     */
    void
    findOverlapBoxes(
@@ -207,13 +220,18 @@ private:
     * @param[in]  box
     *
     * @param[in]  refinement_ratio  All boxes in this BoxContainer
-    * are assumed to exist in index space that has this refinement ratio 
+    * are assumed to exist in index space that has this refinement ratio
     * relative to the coarse-level domain stored in the grid geometry.
     *
     * @param[in]  include_singularity_block_neighbors  If true, intersections
     * with neighboring blocks that touch only across an enhanced connectivity
     * singularity will be added to output.  If false, those intersections are
     * ignored.
+    *
+    * @pre (getGridGeometry().getDim() == box.getDim()) &&
+    *      (getGridGeometry().getDim() == refinement_ratio.getDim())
+    * @pre (box.getBlockId().getBlockValue() >= 0) &&
+    *      (box.getBlockId().getBlockValue() < getGridGeometry()->getNumberBlocks())
     */
    void
    findOverlapBoxes(

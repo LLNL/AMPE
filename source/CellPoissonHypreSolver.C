@@ -56,10 +56,10 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
-//#include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 #include <boost/make_shared.hpp>
 #include <cstdlib>
@@ -284,7 +284,7 @@ extern "C" {
 }
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
-CellPoissonHypreSolver::s_Ak0_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+CellPoissonHypreSolver::s_Ak0_var[3];
 
 #ifndef NULL
 #define NULL (0)
@@ -530,7 +530,7 @@ void CellPoissonHypreSolver::initializeSolverState(
    int ln )
 {
    TBOX_ASSERT(hierarchy);
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, *hierarchy);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, *hierarchy);
 
    assert( d_msqrt_id>=0 );
    assert( d_Ak0_id>=0 );
@@ -599,13 +599,12 @@ void CellPoissonHypreSolver::allocateHypreData()
 
    boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(d_ln));
    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
    const hier::IntVector ratio = level->getRatioToLevelZero();
    hier::IntVector periodic_shift =
       grid_geometry->getPeriodicShift(ratio);
 
-   int periodic_flag[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   int periodic_flag[3];
    bool is_periodic = false;
    for (int d=0; d<NDIM; ++d ) {
       periodic_flag[d] = periodic_shift[d] != 0;
@@ -621,31 +620,39 @@ void CellPoissonHypreSolver::allocateHypreData()
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( is_periodic ) {
+   tbox::Dimension::dir_t d;
+   if (is_periodic) {
       const hier::BoxContainer& level_domain =
          level->getPhysicalDomain(hier::BlockId::zero());
       hier::Box domain_bound(level_domain.front());
-      for (hier::BoxContainer::const_iterator i(level_domain);
+      for (hier::BoxContainer::const_iterator i = level_domain.begin();
            i != level_domain.end(); ++i) {
-         domain_bound.lower().min(i->lower());
-         domain_bound.upper().max(i->upper());
+         domain_bound.setLower(
+            hier::Index::min(domain_bound.lower(), i->lower()));
+         domain_bound.setUpper(
+            hier::Index::min(domain_bound.upper(), i->upper()));
       }
-      for (int d=0; d<NDIM; ++d ) {
-         if ( periodic_flag[d] == true ) {
-            int tmpi=1;
+      for (d = 0; d < d_dim.getValue(); ++d) {
+         if (periodic_flag[d] == true) {
+            int tmpi = 1;
             unsigned int p_of_two;
-            for ( p_of_two=0; p_of_two<8*sizeof(p_of_two)-1; ++p_of_two ) {
-               if ( tmpi == domain_bound.numberCells(d) ) {
+            for (p_of_two = 0; p_of_two < 8 * sizeof(p_of_two) - 1;
+                 ++p_of_two) {
+               if (tmpi == domain_bound.numberCells(d)) {
                   break;
                }
-               if ( tmpi > domain_bound.numberCells(d) ) {
-                  TBOX_ERROR(d_object_name << ": Hypre currently requires\n"
-                             <<"that grid size in periodic directions be\n"
-                             <<"powers of two.  (This requirement may go\n"
-                             <<"away in future versions of hypre.)\n"
-                             <<"Size problem in direction " << d << "\n"
-                             <<"Domain bound is " << domain_bound << ",\n"
-                             <<"Size of " << domain_bound.numberCells() << "\n");
+               if (tmpi > domain_bound.numberCells(d)) {
+                  TBOX_ERROR(
+                     d_object_name << ": Hypre currently requires\n"
+                                   << "that grid size in periodic directions be\n"
+                                   << "powers of two.  (This requirement may go\n"
+                                   << "away in future versions of hypre.)\n"
+                                   << "Size problem in direction "
+                                   << d << "\n"
+                                   << "Domain bound is "
+                                   << domain_bound << ",\n"
+                                   << "Size of "
+                                   << domain_bound.numberCells() << "\n");
                }
                tmpi = tmpi ? tmpi << 1 : 1;
             }
@@ -826,10 +833,10 @@ CellPoissonHypreSolver::copyToHypre(
    int depth,
    const hier::Box& box)
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS2(d_dim, src, box);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, src, box);
 
-   pdat::CellIterator cend(box, false);
-   for (pdat::CellIterator c(box, true); c != cend; ++c) {
+   pdat::CellIterator cend(pdat::CellGeometry::end(box));
+   for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c != cend; ++c) {
       hier::IntVector ic = *c;
       HYPRE_StructVectorSetValues(vector, &ic[0], src(*c, depth));
    }
@@ -850,10 +857,10 @@ CellPoissonHypreSolver::copyFromHypre(
    HYPRE_StructVector vector,
    const hier::Box box)
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS2(d_dim, dst, box);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, dst, box);
 
-   pdat::CellIterator cend(box, false);
-   for (pdat::CellIterator c(box, true); c != cend; ++c) {
+   pdat::CellIterator cend(pdat::CellGeometry::end(box));
+   for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c != cend; ++c) {
       double value;
       hier::IntVector ic = *c;
       HYPRE_StructVectorGetValues(vector, &ic[0], &value);
@@ -932,8 +939,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       hier::Patch& patch = **pi;
 
       boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-         patch.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
+      TBOX_ASSERT(pg);
 
       const double* h = pg->getDx();
 
@@ -942,37 +949,28 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       const hier::Index patch_up = patch_box.upper();
 
       if ( spec.cIsVariable() ) {
-         C_data = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>(patch.getPatchData(spec.getCPatchDataId()));
-         if ( !C_data ) {
-            TBOX_ERROR(d_object_name << ": Invalid cell variable index "
-                       <<  spec.getCPatchDataId()
-                       <<" for the C parameter.  It is not\n"
-                       <<"cell-centered double data." );
-         }
+         C_data = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch.getPatchData(spec.getCPatchDataId()));
+         TBOX_ASSERT(C_data);
       }
 
       if ( ! spec.dIsConstant() ) {
-         D_data = boost::dynamic_pointer_cast<pdat::SideData<double>,
-                                              hier::PatchData>(patch.getPatchData(spec.getDPatchDataId()));
-         if ( !D_data ) {
-            TBOX_ERROR(d_object_name << ": Invalid cell variable index "
-                       <<  spec.getDPatchDataId()
-                       << " for diffusion coefficient.  It is not\n"
-                       << "side-centered double data." );
-         }
+         D_data = BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch.getPatchData(spec.getDPatchDataId()));
+         TBOX_ASSERT(D_data);
       }
 
       if ( ! spec.mIsConstant() ) {
-         M_data = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>(patch.getPatchData( spec.getMPatchDataId()));
+         M_data = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+             patch.getPatchData( spec.getMPatchDataId()) );
+         TBOX_ASSERT(M_data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+         math::ArrayDataNormOpsReal<double> ops;
+         const double norm_u = ops.maxNorm(M_data->getArrayData(),M_data->getArrayData().getBox());
+         assert( norm_u==norm_u );
+         assert( norm_u>0. );
+#endif
          d_msqrt_transform=true;
-         if ( !M_data ) {
-            TBOX_ERROR(d_object_name << ": Invalid cell variable index "
-                       <<  spec.getMPatchDataId()
-                       << " for mobility coefficient.  It is not\n"
-                       << "cell-centered double data." );
-         }
       }
 
       Ak0 = boost::dynamic_pointer_cast<pdat::OutersideData<double>,
@@ -1085,8 +1083,10 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
             // To do: This loop uses inefficient high-level syntax.
             // See if it can be replaced by a Fortran loop.
-            pdat::CellIterator icend(patch_box, false);
-            for (pdat::CellIterator ic(patch_box, true) ; ic!=icend; ++ic) {
+            pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box));
+            pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));
+
+            for ( ; ic != icend; ++ic) {
 
                const pdat::CellIndex& icell( *ic );
                pdat::SideIndex  ixlower(icell,
@@ -1135,6 +1135,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          assert( spec.getCPatchDataId()>=0 );
          if ( spec.mIsConstant() ) {
             double mscale = spec.getMConstant();
+            assert( fabs(mscale)>0. );
             for ( i=0; i<NDIM; ++i ) {
                hier::Box sbox(patch_box);
                sbox.growUpper( i, 1 );
@@ -1157,7 +1158,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
                              patch_box );
          }
          else { // M not constant
-            //tbox::pout<<"Multiply entries by diagonal matrix M^1/2 (left and right)"<<endl;
+            //tbox::plog<<"Multiply entries by diagonal matrix M^1/2 (left and right)"<<endl;
             assert( !spec.mIsConstant() );
             assert( msqrt );
             assert( M_data );
@@ -1169,8 +1170,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
               To do: This loop uses inefficient high-level syntax.
               See if it can be replaced by a Fortran loop.
              */
-            pdat::CellIterator icend(patch_box, false);
-            for (pdat::CellIterator ic(patch_box, true) ; ic!=icend; ++ic) {
+            pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));
+            for (pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box)) ; ic!=icend; ++ic) {
 
                const pdat::CellIndex& icell( *ic );
                pdat::SideIndex  ixlower(*ic,
@@ -1237,9 +1238,9 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
        */
       //tbox::pout<<"Walk physical domain boundaries and adjust off-diagonals"<<endl;
       {
-         const tbox::Array< hier::BoundaryBox >& surface_boxes =
+         const std::vector< hier::BoundaryBox >& surface_boxes =
             pg->getCodimensionBoundaries(1);
-         const int n_bdry_boxes = surface_boxes.getSize();
+         const int n_bdry_boxes = surface_boxes.size();
          for ( int n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox &boundary_box = surface_boxes[n];
@@ -1288,7 +1289,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
           * There are potentially coarse-fine boundaries to deal with.
           */
 
-         tbox::Array< hier::BoundaryBox > surface_boxes;
+         std::vector< hier::BoundaryBox > surface_boxes;
 
          if (NDIM == 2) {
             surface_boxes = d_cf_boundary->getEdgeBoundaries(pi->getGlobalId());
@@ -1296,7 +1297,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             surface_boxes = d_cf_boundary->getFaceBoundaries(pi->getGlobalId());
          } 
 
-         const int n_bdry_boxes = surface_boxes.getSize();
+         const int n_bdry_boxes = surface_boxes.size();
          for ( int n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox &boundary_box = surface_boxes[n];
@@ -1353,8 +1354,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
       for ( i=0; i<stencil_size; i++ ) stencil_indices[i] = i;
 
-      pdat::CellIterator ic(patch_box, true);
-      pdat::CellIterator icend(patch_box, false);
+      pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box));
+      pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));
 
       /*
         To do: This loop uses inefficient high-level syntax.
@@ -1368,7 +1369,6 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
                                  pdat::SideIndex::X,
                                  pdat::SideIndex::Lower);
         mat_entries[0] = (off_diagonal)(ixlower);
-   
         if (NDIM > 1) {
            pdat::SideIndex  iylower(*ic,
                                          pdat::SideIndex::Y,
@@ -1424,11 +1424,11 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
 void CellPoissonHypreSolver::add_gAk0_toRhs(
    const hier::Patch &patch,
-   const tbox::Array< hier::BoundaryBox > &bdry_boxes,
+   const std::vector< hier::BoundaryBox > &bdry_boxes,
    const solv::RobinBcCoefStrategy *robin_bc_coef,
    pdat::CellData<double> &rhs )
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS2(d_dim, patch, rhs);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, patch, rhs);
 
    /*
     * g*A*k0(a) is the storage for adjustments to be made to the rhs
@@ -1438,10 +1438,9 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
     * to rhs.
     */
    boost::shared_ptr<pdat::OutersideData<double> >Ak0(
-      patch.getPatchData(d_Ak0_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch.getPatchData(d_Ak0_id) ) );
 
-   const int n_bdry_boxes = bdry_boxes.getSize();
+   const int n_bdry_boxes = bdry_boxes.size();
    for ( int n=0; n<n_bdry_boxes; ++n ) {
 
       const hier::BoundaryBox& boundary_box = bdry_boxes[n];
@@ -1603,8 +1602,8 @@ void CellPoissonHypreSolver::destroyHypreSolver()
 */
 
 int CellPoissonHypreSolver::solveSystem( const int u ,
-                                               const int f ,
-                                               bool homogeneous_bc )
+                                         const int f ,
+                                         bool homogeneous_bc )
 {
    //tbox::pout<<"CellPoissonHypreSolver::solveSystem()"<<endl;
    if ( d_physical_bc_coef_strategy == NULL ) {
@@ -1617,12 +1616,19 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
 
    t_solve_system->start();
 
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(d_ln);
+   boost::shared_ptr< hier::PatchLevel > level ( d_hierarchy->getPatchLevel(d_ln) );
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(u >= 0);
    assert(u < level->getPatchDescriptor()->getMaxNumberRegisteredComponents());
    assert(f >= 0);
    assert(f < level->getPatchDescriptor()->getMaxNumberRegisteredComponents());
+
+   math::HierarchyCellDataOpsReal<double> mathops(d_hierarchy);
+   const double norm_u = mathops.L2Norm( u );
+   assert( norm_u==norm_u );
+
+   const double norm_f = mathops.L2Norm( f );
+   assert( norm_f==norm_f );
 #endif
 
 
@@ -1662,8 +1668,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
        * Set up variable data needed to prepare linear system solver.
        */
       boost::shared_ptr<pdat::CellData<double> > u_data_(
-         patch->getPatchData(u),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(u) ) );
       TBOX_ASSERT(u_data_);
       pdat::CellData<double>& u_data = *u_data_;
       pdat::CellData<double> rhs_data(box, 1, no_ghosts);
@@ -1680,7 +1685,13 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       // divide rhs by M^1/2 if M was used to construct matrix
       if( d_msqrt_transform ){
          boost::shared_ptr<pdat::CellData<double> > msqrt ( 
-            patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_msqrt_id) ) );
+#ifdef DEBUG_CHECK_ASSERTIONS
+         math::ArrayDataNormOpsReal<double> ops;
+         double nb=ops.maxNorm(msqrt->getArrayData(),box);
+         assert( nb==nb );
+         assert( nb>0. );
+#endif
          math::ArrayDataBasicOps<double> array_math;
          array_math.divide(rhs_data.getArrayData(), rhs_data.getArrayData(), 
                                                     msqrt->getArrayData(), box);
@@ -1758,6 +1769,8 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
                                                    &d_relative_residual_norm);
    }
 
+   assert( d_relative_residual_norm==d_relative_residual_norm );
+
    /*
     * Pull the solution vector out of the HYPRE structures
     */
@@ -1765,8 +1778,9 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
         ip != level->end(); ++ip) {
       const boost::shared_ptr<hier::Patch>& patch = *ip;
       boost::shared_ptr<pdat::CellData<double> > u_data_(
-         patch->getPatchData(u),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(u) ) );
+      TBOX_ASSERT(u_data_);
+
       pdat::CellData<double>& u_data = *u_data_;
       copyFromHypre(u_data,
          d_soln_depth,
@@ -1776,7 +1790,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       // multiply solution by M^1/2 if M was used to build matrix
       if( d_msqrt_transform ){
          boost::shared_ptr<pdat::CellData<double> > msqrt ( 
-            patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_msqrt_id) ) );
          math::ArrayDataBasicOps<double> array_math;
          array_math.multiply(u_data.getArrayData(), u_data.getArrayData(), 
                                                     msqrt->getArrayData(), patch->getBox());
@@ -1784,7 +1798,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
    }
 
    t_solve_system->stop();
-   
+  
    d_converged = ( d_relative_residual_norm <= d_relative_residual_tol );
 
    return d_converged;
@@ -1979,7 +1993,7 @@ CellPoissonHypreSolver::printConvergenceFactors(ostream& os)
 void
 CellPoissonHypreSolver::freeVariables()
 {
-   for (int d = 0; d < tbox::Dimension::MAXIMUM_DIMENSION_VALUE; ++d) {
+   for (int d = 0; d < 3; ++d) {
       s_Ak0_var[d].reset();
    }
 }

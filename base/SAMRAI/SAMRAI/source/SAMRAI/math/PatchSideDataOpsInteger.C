@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for integer side-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchSideDataOpsInteger_C
-#define included_math_PatchSideDataOpsInteger_C
-
 #include "SAMRAI/math/PatchSideDataOpsInteger.h"
 #include "SAMRAI/pdat/SideGeometry.h"
 
@@ -39,17 +35,17 @@ PatchSideDataOpsInteger::numberOfEntries(
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    int dimVal = box.getDim().getValue();
    int retval = 0;
    const hier::Box ibox = box * data->getGhostBox();
    const hier::IntVector& directions = data->getDirectionVector();
    const int data_depth = data->getDepth();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       if (directions(d)) {
          retval +=
-            ((pdat::SideGeometry::toSideBox(ibox, d).size()) * data_depth);
+            static_cast<int>((pdat::SideGeometry::toSideBox(ibox, d).size()) * data_depth);
       }
    }
    return retval;
@@ -71,11 +67,11 @@ void PatchSideDataOpsInteger::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::SideData<int> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<int>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::SideData<int> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<int>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -94,7 +90,7 @@ PatchSideDataOpsInteger::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -109,11 +105,11 @@ PatchSideDataOpsInteger::copyData(
 {
    TBOX_ASSERT(dst && src);
    TBOX_ASSERT(dst->getDirectionVector() == src->getDirectionVector());
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
-   int dimVal = box.getDim().getValue();
+   tbox::Dimension::dir_t dimVal = box.getDim().getValue();
    const hier::IntVector& directions = dst->getDirectionVector();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       if (directions(d)) {
          dst->getArrayData(d).copy(src->getArrayData(d),
             pdat::SideGeometry::toSideBox(box, d));
@@ -128,11 +124,11 @@ PatchSideDataOpsInteger::abs(
 {
    TBOX_ASSERT(dst && src);
    TBOX_ASSERT(dst->getDirectionVector() == src->getDirectionVector());
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
    const hier::IntVector& directions = dst->getDirectionVector();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       if (directions(d)) {
          d_array_ops.abs(dst->getArrayData(d),
             src->getArrayData(d),
@@ -143,4 +139,3 @@ PatchSideDataOpsInteger::abs(
 
 }
 }
-#endif

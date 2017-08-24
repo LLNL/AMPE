@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Time integration manager for AMR with local time stepping.
  *
  ************************************************************************/
-
-#ifndef included_algs_TimeRefinementIntegrator_C
-#define included_algs_TimeRefinementIntegrator_C
-
 #include "SAMRAI/algs/TimeRefinementIntegrator.h"
 
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -23,6 +19,8 @@
 
 #include <cstdlib>
 #include <fstream>
+
+#include <cmath>
 
 // #define DEBUG_TIMES
 
@@ -64,8 +62,19 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
    const boost::shared_ptr<tbox::Database>& input_db,
    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
    const boost::shared_ptr<TimeRefinementLevelStrategy>& level_integrator,
-   const boost::shared_ptr<mesh::GriddingAlgorithmStrategy>& gridding_algorithm,
-   bool register_for_restart):
+   const boost::shared_ptr<mesh::GriddingAlgorithmStrategy>& gridding_algorithm):
+   d_object_name(object_name),
+   d_patch_hierarchy(hierarchy),
+   d_refine_level_integrator(level_integrator),
+   d_gridding_algorithm(gridding_algorithm),
+   d_start_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_end_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_grow_dt(1.0),
+   d_integrator_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_just_regridded(false),
+   d_level_0_advanced(false),
+   d_hierarchy_advanced(false),
+   d_connector_width_requestor(),
    d_barrier_and_time(false)
 {
    TBOX_ASSERT(!object_name.empty());
@@ -73,46 +82,25 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
    TBOX_ASSERT(level_integrator);
    TBOX_ASSERT(gridding_algorithm);
 
-   d_object_name = object_name;
-   d_registered_for_restart = register_for_restart;
-
-   if (d_registered_for_restart) {
-      tbox::RestartManager::getManager()->
-      registerRestartItem(d_object_name, this);
-   }
-
-   d_patch_hierarchy = hierarchy;
-   d_refine_level_integrator = level_integrator;
-   d_gridding_algorithm = gridding_algorithm;
+   tbox::RestartManager::getManager()->registerRestartItem(d_object_name,
+      this);
 
    d_use_refined_timestepping = level_integrator->usingRefinedTimestepping();
 
-   /*
-    * Set default values for debugging.
-    */
-
-   d_start_time = tbox::MathUtilities<double>::getSignalingNaN();
-   d_end_time = tbox::MathUtilities<double>::getSignalingNaN();
-   d_integrator_time = tbox::MathUtilities<double>::getSignalingNaN();
-   d_integrator_step = tbox::MathUtilities<int>::getMax();
-   d_grow_dt = 1.0;
-   d_max_integrator_steps = tbox::MathUtilities<int>::getMax();
-
    const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
+   d_regrid_interval.resize(max_levels);
 
-   d_regrid_interval.resizeArray(max_levels);
-
-   d_level_old_old_time.resizeArray(max_levels);
-   d_level_old_time.resizeArray(max_levels);
-   d_level_sim_time.resizeArray(max_levels);
-   d_dt_max_level.resizeArray(max_levels);
-   d_dt_actual_level.resizeArray(max_levels);
-   d_step_level.resizeArray(max_levels);
-   d_max_steps_level.resizeArray(max_levels);
+   d_level_old_old_time.resize(max_levels);
+   d_level_old_time.resize(max_levels);
+   d_level_sim_time.resize(max_levels);
+   d_dt_max_level.resize(max_levels);
+   d_dt_actual_level.resize(max_levels);
+   d_step_level.resize(max_levels);
+   d_max_steps_level.resize(max_levels);
 
    int level_number;
 
-   for (level_number = 0; level_number < max_levels; level_number++) {
+   for (level_number = 0; level_number < max_levels; ++level_number) {
       d_regrid_interval[level_number] = tbox::MathUtilities<int>::getMax();
       d_level_old_old_time[level_number] =
          tbox::MathUtilities<double>::getSignalingNaN();
@@ -135,7 +123,7 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
    if (d_use_refined_timestepping) {
       if (max_levels > 1) {
 
-         for (level_number = 1; level_number < max_levels; level_number++) {
+         for (level_number = 1; level_number < max_levels; ++level_number) {
             const hier::IntVector ratio(d_patch_hierarchy->
                                         getRatioToCoarserLevel(level_number));
 
@@ -148,7 +136,8 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
                   TBOX_ERROR(
                      d_object_name << ":  "
                                    << " integrator cannot set regrid interval"
-                                   << " based on ratios between levels.");
+                                   << " based on ratios between levels."
+                                   << std::endl);
                }
             }
          }
@@ -156,7 +145,7 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
          d_regrid_interval[0] = d_regrid_interval[1];
 
       } else {
-         for (level_number = 0; level_number < max_levels; level_number++) {
+         for (level_number = 0; level_number < max_levels; ++level_number) {
             d_regrid_interval[level_number] = 1;
          }
       }
@@ -172,23 +161,30 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
     * from input and restart databases.
     */
    bool is_from_restart = tbox::RestartManager::getManager()->isFromRestart();
-   if (is_from_restart && d_registered_for_restart) {
+   if (is_from_restart) {
       getFromRestart();
    }
    getFromInput(input_db, is_from_restart);
+
+   d_connector_width_requestor.setTagBuffer(d_tag_buffer);
+   hierarchy->registerConnectorWidthRequestor(
+      d_connector_width_requestor);
 
    /*
     * Initialize remaining integrator data members.
     */
 
-   d_just_regridded = false;
-
    if (!is_from_restart) {
       d_integrator_time = d_start_time;
-      d_integrator_step = 0;
+      d_step_level[0] = 0;
       d_last_finest_level = 0;
    }
 
+   tbox::plog << "TimeRefinementIntegrator constructor setting regrid intervals:";
+   for (size_t i = 0; i < d_regrid_interval.size(); ++i) {
+      tbox::plog << "  [" << i << "]=" << d_regrid_interval[i];
+   }
+   tbox::plog << "\n";
 }
 
 /*
@@ -202,9 +198,7 @@ TimeRefinementIntegrator::TimeRefinementIntegrator(
 
 TimeRefinementIntegrator::~TimeRefinementIntegrator()
 {
-   if (d_registered_for_restart) {
-      tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
-   }
+   tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
 }
 
 /*
@@ -224,9 +218,6 @@ TimeRefinementIntegrator::~TimeRefinementIntegrator()
 double
 TimeRefinementIntegrator::initializeHierarchy()
 {
-
-   TBOX_DIM_ASSERT_CHECK_ARGS1(*d_patch_hierarchy);
-
    if (d_barrier_and_time) {
       t_initialize_hier->barrierAndStart();
    }
@@ -235,14 +226,13 @@ TimeRefinementIntegrator::initializeHierarchy()
 
    if (tbox::RestartManager::getManager()->isFromRestart()) {
 
-      d_patch_hierarchy->getFromRestart();
+      d_patch_hierarchy->initializeHierarchy();
 
       d_gridding_algorithm->
       getTagAndInitializeStrategy()->
       resetHierarchyConfiguration(d_patch_hierarchy,
          0,
-         d_patch_hierarchy->
-         getFinestLevelNumber());
+         d_patch_hierarchy->getFinestLevelNumber());
 
    } else {
 
@@ -265,12 +255,14 @@ TimeRefinementIntegrator::initializeHierarchy()
          // "true" argument: const bool initial_time = true;
          d_refine_level_integrator->synchronizeNewLevels(d_patch_hierarchy,
             0,
-            d_patch_hierarchy->
-            getFinestLevelNumber(),
+            d_patch_hierarchy->getFinestLevelNumber(),
             d_start_time,
             true);
       }
    }
+
+   d_level_0_advanced = true;
+   d_hierarchy_advanced = true;
 
    if (d_barrier_and_time) {
       t_initialize_hier->stop();
@@ -368,8 +360,10 @@ TimeRefinementIntegrator::initializeRefinedTimesteppingLevelData(
     * Then, query level strategy for proper time step.
     */
 
-   d_step_level[level_number] = 0;
-   d_max_steps_level[level_number] = 1;
+   if (level_number > 0) {
+      d_step_level[level_number] = 0;
+      d_max_steps_level[level_number] = 1;
+   }
    d_level_sim_time[level_number] = d_start_time;
 
    bool initial_time = true;
@@ -395,8 +389,7 @@ TimeRefinementIntegrator::initializeRefinedTimesteppingLevelData(
             d_refine_level_integrator->getMaxFinerLevelDt(
                level_number,
                d_dt_actual_level[level_number - 1],
-               d_patch_hierarchy->
-               getRatioToCoarserLevel(level_number)));
+               d_patch_hierarchy->getRatioToCoarserLevel(level_number)));
    }
 
    d_dt_max_level[level_number] = d_dt_actual_level[level_number] = dt_level;
@@ -407,20 +400,22 @@ TimeRefinementIntegrator::initializeRefinedTimesteppingLevelData(
 
    if (d_patch_hierarchy->levelCanBeRefined(level_number)) {
 
-      int buffer;
-      if (d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
-         buffer = d_regrid_interval[level_number];
+      int tag_buffer;
+      if (d_gridding_algorithm->getTagAndInitializeStrategy()->
+          usesTimeIntegration(d_step_level[0], d_integrator_time)) {
+         tag_buffer = d_regrid_interval[level_number];
       } else {
-         buffer = d_tag_buffer[level_number];
+         tag_buffer = d_tag_buffer[level_number];
       }
 
       double regrid_start_time =
          d_level_sim_time[level_number] - d_dt_actual_level[level_number];
       // "true" argument: const bool initial_time = true;
       d_gridding_algorithm->makeFinerLevel(
-         d_level_sim_time[level_number],
+         tag_buffer,
          true,
-         buffer,
+         d_step_level[0],
+         d_level_sim_time[level_number],
          regrid_start_time);
 
       /*
@@ -441,7 +436,8 @@ TimeRefinementIntegrator::initializeRefinedTimesteppingLevelData(
           * regridding on the finer level.
           */
          if (d_patch_hierarchy->levelCanBeRefined(level_number + 1) &&
-             d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+             d_gridding_algorithm->getTagAndInitializeStrategy()->
+             usesTimeIntegration(d_step_level[0], d_integrator_time)) {
 
             if (d_barrier_and_time) {
                t_advance_level->barrierAndStart();
@@ -476,7 +472,8 @@ TimeRefinementIntegrator::initializeRefinedTimesteppingLevelData(
           */
 
          if (d_patch_hierarchy->levelCanBeRefined(level_number + 1) &&
-             d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+             d_gridding_algorithm->getTagAndInitializeStrategy()->
+             usesTimeIntegration(d_step_level[0], d_integrator_time)) {
             d_refine_level_integrator->
             resetDataToPreadvanceState(patch_level);
          }
@@ -499,8 +496,10 @@ TimeRefinementIntegrator::initializeSynchronizedTimesteppingLevelData(
     * Then, query level strategy for proper time step.
     */
 
-   d_step_level[level_number] = 0;
-   d_max_steps_level[level_number] = 1;
+   if (level_number > 0) {
+      d_step_level[level_number] = 0;
+      d_max_steps_level[level_number] = 1;
+   }
    d_level_sim_time[level_number] = d_start_time;
    d_level_old_time[level_number] = d_start_time;
 
@@ -518,7 +517,7 @@ TimeRefinementIntegrator::initializeSynchronizedTimesteppingLevelData(
    }
    d_dt_max_level[level_number] = d_dt_actual_level[level_number] = d_dt;
 
-   for (int i = 0; i < level_number; i++) {
+   for (int i = 0; i < level_number; ++i) {
       if (d_dt_max_level[i] > d_dt_max_level[level_number]) {
          d_dt_max_level[i] = d_dt_actual_level[i] =
                d_dt_max_level[level_number];
@@ -531,20 +530,22 @@ TimeRefinementIntegrator::initializeSynchronizedTimesteppingLevelData(
 
    if (d_patch_hierarchy->levelCanBeRefined(level_number)) {
 
-      int buffer;
-      if (d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
-         buffer = d_regrid_interval[level_number];
+      int tag_buffer;
+      if (d_gridding_algorithm->getTagAndInitializeStrategy()->
+          usesTimeIntegration(d_step_level[0], d_integrator_time)) {
+         tag_buffer = d_regrid_interval[level_number];
       } else {
-         buffer = d_tag_buffer[level_number];
+         tag_buffer = d_tag_buffer[level_number];
       }
 
       double regrid_start_time =
          d_level_sim_time[level_number] - d_dt_actual_level[level_number];
       // "true" argument: const bool initial_time = true;
       d_gridding_algorithm->makeFinerLevel(
-         d_level_sim_time[level_number],
+         tag_buffer,
          true,
-         buffer,
+         d_step_level[0],
+         d_level_sim_time[level_number],
          regrid_start_time);
 
       /*
@@ -565,7 +566,8 @@ TimeRefinementIntegrator::initializeSynchronizedTimesteppingLevelData(
           * regridding on the finer level.
           */
          if (d_patch_hierarchy->levelCanBeRefined(level_number + 1) &&
-             d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+             d_gridding_algorithm->getTagAndInitializeStrategy()->
+             usesTimeIntegration(d_step_level[0], d_integrator_time)) {
 
             if (d_barrier_and_time) {
                t_advance_level->barrierAndStart();
@@ -600,7 +602,8 @@ TimeRefinementIntegrator::initializeSynchronizedTimesteppingLevelData(
           * may require a different initial time increment size.
           */
          if (d_patch_hierarchy->levelCanBeRefined(level_number + 1) &&
-             d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+             d_gridding_algorithm->getTagAndInitializeStrategy()->
+             usesTimeIntegration(d_step_level[0], d_integrator_time)) {
             d_refine_level_integrator->
             resetDataToPreadvanceState(patch_level);
          }
@@ -670,8 +673,13 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
     * the max time increment for the level.
     */
 
-   d_step_level[level_number] = 0;
-   d_max_steps_level[level_number] = 1;
+   if (level_number > 0) {
+      d_step_level[level_number] = 0;
+      d_max_steps_level[level_number] = 1;
+   } else {
+      d_level_0_advanced = false;
+      d_hierarchy_advanced = false;
+   }
    double time_remaining = 0.0;
 
    if (level_number > 0) {
@@ -690,8 +698,7 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
                d_refine_level_integrator->getMaxFinerLevelDt(
                   level_number,
                   d_dt_actual_level[level_number - 1],
-                  d_patch_hierarchy->
-                  getRatioToCoarserLevel(level_number)));
+                  d_patch_hierarchy->getRatioToCoarserLevel(level_number)));
 
          if (d_patch_hierarchy->levelCanBeRefined(level_number)) {
             d_dt_max_level[level_number] =
@@ -781,12 +788,20 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
        * Update step count information.  Then, advance all finer levels.
        */
 
-      if (level_number == 0) d_integrator_step++;
-      d_step_level[level_number]++;
+      if (level_number == 0) {
+         d_level_0_advanced = true;
+      } else {
+         ++d_step_level[level_number];
+      }
 
       if (d_patch_hierarchy->finerLevelExists(level_number)) {
          advanceRecursivelyForRefinedTimestepping(level_number + 1,
             new_level_time);
+      }
+
+      if (level_number == 0) {
+         ++d_step_level[level_number];
+         d_hierarchy_advanced = true;
       }
 
       /*
@@ -844,8 +859,7 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
                resetTimeDependentData(d_patch_hierarchy->
                   getPatchLevel(finest_level_number),
                   new_level_time,
-                  d_patch_hierarchy->
-                  levelCanBeRefined(finest_level_number));
+                  d_patch_hierarchy->levelCanBeRefined(finest_level_number));
             }
          }
 
@@ -888,17 +902,17 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
              * gridding algorithm does not used time integration, reset data
              * on all levels.
              */
-            if (d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+            if (d_gridding_algorithm->getTagAndInitializeStrategy()->
+                usesTimeIntegration(d_step_level[0], d_integrator_time)) {
                if (!d_patch_hierarchy->
                    levelCanBeRefined(finest_level_number)) {
                   d_refine_level_integrator->resetTimeDependentData(
                      d_patch_hierarchy->getPatchLevel(finest_level_number),
                      new_level_time,
-                     d_patch_hierarchy->
-                     levelCanBeRefined(finest_level_number));
+                     d_patch_hierarchy->levelCanBeRefined(finest_level_number));
                }
             } else {
-               for (int ln = level_number; ln <= finest_level_number; ln++) {
+               for (int ln = level_number; ln <= finest_level_number; ++ln) {
                   d_refine_level_integrator->resetTimeDependentData(
                      d_patch_hierarchy->getPatchLevel(ln),
                      d_level_sim_time[ln],
@@ -923,12 +937,14 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
              * to throw an assertion if it is accessed.
              */
 
-            tbox::Array<double> regrid_start_time;
-            if (!d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+            std::vector<double> regrid_start_time;
+            if (!d_gridding_algorithm->getTagAndInitializeStrategy()->
+                usesTimeIntegration(d_step_level[0], d_integrator_time)) {
 
                int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
-               regrid_start_time.resizeArray(max_levels);
-               for (int i = 0; i < regrid_start_time.getSize(); i++) {
+               regrid_start_time.resize(max_levels);
+               int array_size = static_cast<int>(regrid_start_time.size());
+               for (int i = 0; i < array_size; ++i) {
                   regrid_start_time[i] = 0.;
                }
 
@@ -955,8 +971,9 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
             d_gridding_algorithm->
             regridAllFinerLevels(
                level_number,
-               d_level_sim_time[level_number],
                d_tag_buffer,
+               d_step_level[0],
+               d_level_sim_time[level_number],
                regrid_start_time,
                (coarsest_sync_level >= level_number));
 
@@ -987,8 +1004,7 @@ TimeRefinementIntegrator::advanceRecursivelyForRefinedTimestepping(
             d_refine_level_integrator->resetTimeDependentData(
                patch_level,
                d_level_sim_time[level_number],
-               d_patch_hierarchy->
-               levelCanBeRefined(level_number));
+               d_patch_hierarchy->levelCanBeRefined(level_number));
          }
 
          if (d_just_regridded) {
@@ -1034,14 +1050,19 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
    int finest_level_number = d_patch_hierarchy->getFinestLevelNumber();
    double dt_new = tbox::MathUtilities<double>::getMax();
 
+   d_level_0_advanced = false;
+   d_hierarchy_advanced = false;
+
    int level_num;
-   for (level_num = 0; level_num <= finest_level_number; level_num++) {
+   for (level_num = 0; level_num <= finest_level_number; ++level_num) {
 
       boost::shared_ptr<hier::PatchLevel> patch_level(
          d_patch_hierarchy->getPatchLevel(level_num));
 
-      d_step_level[level_num] = 1;
-      d_max_steps_level[level_num] = 1;
+      if (level_num > 0) {
+         d_step_level[level_num] = 1;
+         d_max_steps_level[level_num] = 1;
+      }
       d_dt_max_level[level_num] = dt;
       d_level_sim_time[level_num] = d_integrator_time;
 
@@ -1067,6 +1088,10 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
             true,
             false);
 
+      if (level_num == 0) {
+         d_level_0_advanced = true;
+      }
+
       if (d_barrier_and_time) {
          t_advance_level->stop();
       }
@@ -1076,12 +1101,13 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
 
    dt_new = tbox::MathUtilities<double>::Min(dt_new, d_grow_dt * dt);
 
-   for (level_num = 0; level_num <= finest_level_number; level_num++) {
+   for (level_num = 0; level_num <= finest_level_number; ++level_num) {
       d_dt_max_level[level_num] = d_dt_actual_level[level_num] = dt_new;
    }
 
    d_integrator_time += dt;
-   d_integrator_step++;
+   ++d_step_level[0];
+   d_hierarchy_advanced = true;
 
    int coarse_level_number = 0;
 
@@ -1091,8 +1117,8 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
       tbox::plog << "\nSynchronizing levels " << coarse_level_number
                  << " to " << finest_level_number << std::endl;
 #endif
-      tbox::Array<double> old_times(finest_level_number+1,
-                                    d_integrator_time-dt);
+      std::vector<double> old_times(finest_level_number + 1,
+                                    d_integrator_time - dt);
 
       d_refine_level_integrator->standardLevelSynchronization(
          d_patch_hierarchy,
@@ -1107,7 +1133,7 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
     * array.  This information may be used during the re-gridding
     * process, if time integration is used during error estimation.
     */
-   for (level_num = 0; level_num <= finest_level_number; level_num++) {
+   for (level_num = 0; level_num <= finest_level_number; ++level_num) {
       d_level_old_old_time[level_num] = d_level_old_time[level_num];
       d_level_old_time[level_num] = d_level_sim_time[level_num];
    }
@@ -1115,7 +1141,7 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
    /*
     * Are we ready to re-grid??
     */
-   bool regrid_now = (d_integrator_step % d_regrid_interval[0] == 0);
+   bool regrid_now = (d_step_level[0] % d_regrid_interval[0] == 0);
 
    if (!regrid_now) {
 
@@ -1124,7 +1150,7 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
        * reset the time dependent data on all the levels to
        * prepare for the next advance.
        */
-      for (int ln = 0; ln <= finest_level_number; ln++) {
+      for (int ln = 0; ln <= finest_level_number; ++ln) {
          d_refine_level_integrator->resetTimeDependentData(
             d_patch_hierarchy->getPatchLevel(ln),
             d_integrator_time,
@@ -1150,17 +1176,16 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
        * this is properly done in the level integrator.
        */
 
-      if (d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
-         if (!d_patch_hierarchy->
-             levelCanBeRefined(finest_level_number)) {
+      if (d_gridding_algorithm->getTagAndInitializeStrategy()->
+          usesTimeIntegration(d_step_level[0], d_integrator_time)) {
+         if (!d_patch_hierarchy->levelCanBeRefined(finest_level_number)) {
             d_refine_level_integrator->resetTimeDependentData(
                d_patch_hierarchy->getPatchLevel(finest_level_number),
                d_integrator_time,
-               d_patch_hierarchy->
-               levelCanBeRefined(finest_level_number));
+               d_patch_hierarchy->levelCanBeRefined(finest_level_number));
          }
       } else {
-         for (int ln = 0; ln <= finest_level_number; ln++) {
+         for (int ln = 0; ln <= finest_level_number; ++ln) {
             d_refine_level_integrator->resetTimeDependentData(
                d_patch_hierarchy->getPatchLevel(ln),
                d_integrator_time,
@@ -1184,12 +1209,14 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
        * to throw an assertion if it is accessed.
        */
 
-      tbox::Array<double> regrid_start_time;
-      if (!d_gridding_algorithm->getTagAndInitializeStrategy()->usesTimeIntegration()) {
+      std::vector<double> regrid_start_time;
+      if (!d_gridding_algorithm->getTagAndInitializeStrategy()->
+          usesTimeIntegration(d_step_level[0], d_integrator_time)) {
 
          int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
-         regrid_start_time.resizeArray(max_levels);
-         for (int i = 0; i < regrid_start_time.getSize(); i++) {
+         regrid_start_time.resize(max_levels);
+         int array_size = static_cast<int>(regrid_start_time.size());
+         for (int i = 0; i < array_size; ++i) {
             regrid_start_time[i] = 0.;
          }
 
@@ -1215,8 +1242,9 @@ TimeRefinementIntegrator::advanceForSynchronizedTimestepping(
       d_gridding_algorithm->
       regridAllFinerLevels(
          coarse_level_number,
-         d_integrator_time,
          d_tag_buffer,
+         d_step_level[0],
+         d_integrator_time,
          regrid_start_time);
 
       /*
@@ -1290,7 +1318,7 @@ TimeRefinementIntegrator::findNextDtAndStepsRemaining(
       tbox::MathUtilities<double>::Min(dt_bound,
          d_dt_max_level[level_number] * d_grow_dt);
 
-   if (d_step_level[level_number] < d_max_steps_level[level_number]) {
+   if (stepsRemaining(level_number)) {
 
       /*
        * If we have not exceeded the max number of steps, the max number
@@ -1306,11 +1334,13 @@ TimeRefinementIntegrator::findNextDtAndStepsRemaining(
 
       if (time_remaining - dt_temp >
           sqrt(tbox::MathUtilities<double>::getEpsilon()) * time_remaining) {
-         number_steps_remaining++;
+         ++number_steps_remaining;
       }
 
-      d_max_steps_level[level_number] =
-         d_step_level[level_number] + number_steps_remaining;
+      if (level_number > 0) {
+         d_max_steps_level[level_number] =
+            d_step_level[level_number] + number_steps_remaining;
+      }
 
       /*
        * If we are not on the coarsest hierarchy level, there must be
@@ -1329,24 +1359,23 @@ TimeRefinementIntegrator::findNextDtAndStepsRemaining(
             d_max_steps_level[level_number] / d_regrid_interval[level_number];
 
          if (d_max_steps_level[level_number]
-             % d_regrid_interval[level_number]) number_regrids++;
+             % d_regrid_interval[level_number]) ++number_regrids;
 
          d_max_steps_level[level_number] =
             number_regrids * d_regrid_interval[level_number];
 
-      }
-
-      if (d_step_level[level_number] >= d_max_steps_level[level_number]) {
-         TBOX_ERROR(
-            d_object_name << ":  "
-                          << "no steps left to divide remaining time ...\n"
-                          << "level_number = " << level_number
-                          << std::endl
-                          << "time_remaining = " << time_remaining
-                          << "\ndt_bound = " << dt_bound
-                          << "\nnumber_steps_remaining = "
-                          << number_steps_remaining
-                          << std::endl);
+         if (d_step_level[level_number] >= d_max_steps_level[level_number]) {
+            TBOX_ERROR(
+               d_object_name << ":  "
+                             << "no steps left to divide remaining time ...\n"
+                             << "level_number = " << level_number
+                             << std::endl
+                             << "time_remaining = " << time_remaining
+                             << "\ndt_bound = " << dt_bound
+                             << "\nnumber_steps_remaining = "
+                             << number_steps_remaining
+                             << std::endl);
+         }
       }
 
       /*
@@ -1355,16 +1384,24 @@ TimeRefinementIntegrator::findNextDtAndStepsRemaining(
        * steps remaining.
        */
 
-      d_dt_actual_level[level_number] =
-         time_remaining / double(d_max_steps_level[level_number]
-                                 - d_step_level[level_number]);
+      if (level_number == 0) {
+         d_dt_actual_level[level_number] = time_remaining;
+      } else {
+         d_dt_actual_level[level_number] =
+            time_remaining / double(d_max_steps_level[level_number]
+                                    - d_step_level[level_number]);
+      }
 
    } else {
       d_dt_actual_level[level_number] = d_dt_max_level[level_number];
    }
 
-   return (d_max_steps_level[level_number]
-           - d_step_level[level_number]) <= 1;
+   if (level_number == 0) {
+      return true;
+   } else {
+      return (d_max_steps_level[level_number]
+              - d_step_level[level_number]) <= 1;
+   }
 
 }
 
@@ -1384,8 +1421,23 @@ TimeRefinementIntegrator::atRegridPoint(
    TBOX_ASSERT((level_number >= 0) &&
       (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
 
-   int step_number = ((level_number == 0) ? d_integrator_step
-                      : d_step_level[level_number]);
+   int step_number;
+   if (level_number == 0) {
+      // If the entire hierarchy has advanced then so has level 0.
+      // d_step_level[0] will have advanced by one step and reflects level 0's
+      // step number.  However, if the hierarchy has not yet advanced then
+      // we're in the middle of a recursive hierarchy advancement and
+      // d_step_level[0] has not yet been incremented.  However, level 0 will
+      // have advanced by 1 step.  So d_step_level[0] + 1 reflects level 0's
+      // step number.
+      if (d_hierarchy_advanced) {
+         step_number = d_step_level[0];
+      } else {
+         step_number = d_step_level[0] + 1;
+      }
+   } else {
+      step_number = d_step_level[level_number];
+   }
 
    return (step_number > 0)
           && d_patch_hierarchy->levelCanBeRefined(level_number)
@@ -1412,6 +1464,28 @@ TimeRefinementIntegrator::coarserLevelRegridsToo(
 
 /*
  *************************************************************************
+ *************************************************************************
+ */
+
+void
+TimeRefinementIntegrator::setRegridInterval(
+   const int regrid_interval)
+{
+   TBOX_ASSERT(!d_use_refined_timestepping);
+   int array_size = static_cast<int>(d_regrid_interval.size());
+   for (int i = 0; i < array_size; ++i) {
+      d_regrid_interval[i] = regrid_interval;
+   }
+
+   tbox::plog << "TimeRefinementIntegrator::setRegridInterval setting regrid intervals:";
+   for (size_t i = 0; i < d_regrid_interval.size(); ++i) {
+      tbox::plog << "  [" << i << "]=" << d_regrid_interval[i];
+   }
+   tbox::plog << "\n";
+}
+
+/*
+ *************************************************************************
  *
  * Print all data member for TimeRefinementIntegrator object.
  *
@@ -1429,8 +1503,8 @@ TimeRefinementIntegrator::printClassData(
    os << "d_integrator_time = " << d_integrator_time << "\n"
       << "d_start_time = " << d_start_time << "\n"
       << "d_end_time = " << d_end_time << "\n"
-      << "d_integrator_step = " << d_integrator_step << "\n"
-      << "d_max_integrator_steps = " << d_max_integrator_steps << "\n"
+      << "d_integrator_step = " << d_step_level[0] << "\n"
+      << "d_max_integrator_steps = " << d_max_steps_level[0] << "\n"
       << "d_grow_dt = " << d_grow_dt << std::endl;
    os << "d_just_regridded = " << d_just_regridded << std::endl;
    os << "d_last_finest_level = " << d_last_finest_level << std::endl;
@@ -1441,7 +1515,7 @@ TimeRefinementIntegrator::printClassData(
       << d_gridding_algorithm.get() << std::endl;
 
    const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
-   for (int level_number = 0; level_number < max_levels; level_number++) {
+   for (int level_number = 0; level_number < max_levels; ++level_number) {
       printDataForLevel(os, level_number);
    }
 }
@@ -1481,31 +1555,32 @@ TimeRefinementIntegrator::printDataForLevel(
 /*
  *************************************************************************
  *
- * Write the class version number and data members to database object.
+ * Write the class version number and data members to restart database object.
  *
  *************************************************************************
  */
 
 void
-TimeRefinementIntegrator::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+TimeRefinementIntegrator::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("ALGS_TIME_REFINEMENT_INTEGRATOR_VERSION",
+   restart_db->putInteger("ALGS_TIME_REFINEMENT_INTEGRATOR_VERSION",
       ALGS_TIME_REFINEMENT_INTEGRATOR_VERSION);
 
-   db->putDouble("d_start_time", d_start_time);
-   db->putDouble("d_end_time", d_end_time);
-   db->putDouble("d_grow_dt", d_grow_dt);
-   db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
-   db->putIntegerArray("d_regrid_interval", d_regrid_interval);
-   db->putIntegerArray("d_tag_buffer", d_tag_buffer);
-   db->putDouble("d_integrator_time", d_integrator_time);
-   db->putInteger("d_integrator_step", d_integrator_step);
-   db->putInteger("d_last_finest_level", d_last_finest_level);
-   db->putDoubleArray("d_dt_max_level", d_dt_max_level);
-   db->putDoubleArray("d_dt_actual_level", d_dt_actual_level);
+   restart_db->putDouble("start_time", d_start_time);
+   restart_db->putDouble("end_time", d_end_time);
+   restart_db->putDouble("grow_dt", d_grow_dt);
+   restart_db->putInteger("max_integrator_steps", d_max_steps_level[0]);
+   restart_db->putIntegerVector("regrid_interval", d_regrid_interval);
+   restart_db->putIntegerVector("tag_buffer", d_tag_buffer);
+   restart_db->putBool("DEV_barrier_and_time", d_barrier_and_time);
+   restart_db->putDouble("d_integrator_time", d_integrator_time);
+   restart_db->putInteger("d_integrator_step", d_step_level[0]);
+   restart_db->putInteger("d_last_finest_level", d_last_finest_level);
+   restart_db->putDoubleVector("d_dt_max_level", d_dt_max_level);
+   restart_db->putDoubleVector("d_dt_actual_level", d_dt_actual_level);
 }
 
 /*
@@ -1520,118 +1595,145 @@ TimeRefinementIntegrator::putToDatabase(
 
 void
 TimeRefinementIntegrator::getFromInput(
-   const boost::shared_ptr<tbox::Database>& db,
+   const boost::shared_ptr<tbox::Database>& input_db,
    bool is_from_restart)
 {
-   TBOX_ASSERT(is_from_restart || db);
+   if (!is_from_restart && !input_db) {
+      TBOX_ERROR(": TimeRefinementIntegrator::getFromInput()\n"
+         << "no input database supplied" << std::endl);
+   }
 
-   if (is_from_restart) {
-      if (db) {
-         if (!d_use_refined_timestepping) {
-            int regrid_interval =
-               db->getIntegerWithDefault("regrid_interval", 1);
-            setRegridInterval(regrid_interval);
-         }
-
-         if (db->keyExists("end_time")) {
-            d_end_time = db->getDouble("end_time");
-         }
-
-         if (db->keyExists("grow_dt")) {
-            d_grow_dt = db->getDouble("grow_dt");
-         }
-
-         if (db->keyExists("max_integrator_steps")) {
-            d_max_integrator_steps = db->getInteger("max_integrator_steps");
-         }
-
-         if (db->keyExists("tag_buffer")) {
-            tbox::Array<int> temp_tag_buffer =
-               db->getIntegerArray("tag_buffer");
-            if (temp_tag_buffer.getSize() <
-                (d_patch_hierarchy->getMaxNumberOfLevels() - 1)) {
-               int tsize = temp_tag_buffer.getSize();
-               temp_tag_buffer.resizeArray(
-                  d_patch_hierarchy->getMaxNumberOfLevels() - 1);
-               for (int i = tsize;
-                    i < temp_tag_buffer.getSize(); i++) {
-                  temp_tag_buffer[i] = temp_tag_buffer[tsize - 1];
-               }
-            }
-            d_tag_buffer = temp_tag_buffer;
-         }
-      }
-   } else {
-
+   if (!is_from_restart) {
       /*
        * If not from restart, read in all data members from input database.
        */
 
       if (!d_use_refined_timestepping) {
-         int regrid_interval = db->getIntegerWithDefault("regrid_interval", 1);
+         int regrid_interval =
+            input_db->getIntegerWithDefault("regrid_interval", 1);
+         if (!(regrid_interval >= 1)) {
+            INPUT_RANGE_ERROR("regrid_interval");
+         }
          setRegridInterval(regrid_interval);
+      } else if (input_db->keyExists("regrid_interval")) {
+         TBOX_WARNING("TimeRefinementIntegrator::getFromInput() warning...\n"
+            << "regrid_interval input parameter not applicable with\n"
+            << "refined timestepping and will be ignored." << std::endl);
       }
 
-      if (db->keyExists("start_time")) {
-         d_start_time = db->getDouble("start_time");
-      } else {
-         TBOX_ERROR(
-            d_object_name << ":  "
-                          << "Key data `start_time' not found in input.");
+      d_start_time = input_db->getDouble("start_time");
+      if (!(d_start_time >= 0)) {
+         INPUT_RANGE_ERROR("start_time");
       }
 
-      if (db->keyExists("end_time")) {
-         d_end_time = db->getDouble("end_time");
-      } else {
-         TBOX_ERROR(d_object_name << ":  "
-                                  << "Key data `end_time' not found in input.");
+      d_end_time = input_db->getDouble("end_time");
+      if (!(d_end_time >= d_start_time)) {
+         INPUT_RANGE_ERROR("end_time");
       }
 
-      if (db->keyExists("grow_dt")) {
-         d_grow_dt = db->getDouble("grow_dt");
-      } else {
-         TBOX_ERROR(d_object_name << ":  "
-                                  << "Key data `grow_dt' not found in input.");
+      d_grow_dt = input_db->getDoubleWithDefault("grow_dt", 1.0);
+      if (!(d_grow_dt > 0)) {
+         INPUT_RANGE_ERROR("grow_dt");
       }
 
-      if (db->keyExists("max_integrator_steps")) {
-         d_max_integrator_steps = db->getInteger("max_integrator_steps");
-      } else {
-         TBOX_ERROR(
-            d_object_name << ":  "
-                          << "Key data `max_integrator_steps' not found in input.");
+      d_max_steps_level[0] = input_db->getInteger("max_integrator_steps");
+      if (!(d_max_steps_level[0] >= 0)) {
+         INPUT_RANGE_ERROR("max_integrator_steps");
       }
 
-      if (db->keyExists("tag_buffer")) {
-         d_tag_buffer = db->getIntegerArray("tag_buffer");
-         if (d_tag_buffer.getSize() <
+      if (input_db->keyExists("tag_buffer")) {
+         d_tag_buffer = input_db->getIntegerVector("tag_buffer");
+         if (static_cast<int>(d_tag_buffer.size()) <
              (d_patch_hierarchy->getMaxNumberOfLevels() - 1)) {
-            int tsize = d_tag_buffer.getSize();
-            d_tag_buffer.resizeArray(
-               d_patch_hierarchy->getMaxNumberOfLevels() - 1);
-            for (int i = tsize;
-                 i < d_patch_hierarchy->getMaxNumberOfLevels() - 1; i++) {
-               d_tag_buffer[i] = d_tag_buffer[tsize - 1];
-            }
+            int tsize = static_cast<int>(d_tag_buffer.size());
+            d_tag_buffer.resize(
+               d_patch_hierarchy->getMaxNumberOfLevels() - 1,
+               d_tag_buffer[tsize - 1]);
          }
       } else {
          int level_number;
 
-         d_tag_buffer.resizeArray(d_patch_hierarchy->getMaxNumberOfLevels());
+         d_tag_buffer.resize(d_patch_hierarchy->getMaxNumberOfLevels());
          for (level_number = 0;
               level_number < d_patch_hierarchy->getMaxNumberOfLevels();
-              level_number++) {
+              ++level_number) {
             d_tag_buffer[level_number] = d_regrid_interval[level_number];
          }
 
-         TBOX_WARNING(
-            d_object_name << ":  "
-                          << "Key data `tag_buffer' not found in input.  "
-                          << "Default values used.  See class header for details.");
+         TBOX_WARNING("TimeRefinementIntegrator::getFromInput() warning...\n"
+            << "Key data `tag_buffer' not found in input.  "
+            << "Default values used.  See class header for details."
+            << std::endl);
       }
 
       d_barrier_and_time =
-         db->getBoolWithDefault("barrier_and_time", d_barrier_and_time);
+         input_db->getBoolWithDefault("DEV_barrier_and_time", false);
+   } else if (input_db) {
+      bool read_on_restart =
+         input_db->getBoolWithDefault("read_on_restart", false);
+
+      if (read_on_restart) {
+         if (!d_use_refined_timestepping) {
+            int regrid_interval =
+               input_db->getIntegerWithDefault("regrid_interval", 1);
+            if (regrid_interval < 1) {
+               TBOX_ERROR("TimeRefinementIntegrator::getFromInput() error...\n"
+                  << "regrid_interval must be >=1." << std::endl);
+            }
+            setRegridInterval(regrid_interval);
+         } else if (input_db->keyExists("regrid_interval")) {
+            TBOX_WARNING("TimeRefinementIntegrator::getFromInput() warning...\n"
+               << "regrid_interval input parameter not applicable with\n"
+               << "refined timestepping and will be ignored." << std::endl);
+         }
+
+         if (input_db->keyExists("start_time")) {
+            double tmp = input_db->getDouble("start_time");
+            if (tmp != d_start_time) {
+               TBOX_WARNING("TimeRefinementIntegrator::getFromInput warning...\n"
+                  << "start_time may not be changed on restart." << std::endl);
+            }
+         }
+
+         d_end_time = input_db->getDoubleWithDefault("end_time", d_end_time);
+         if (d_end_time < d_start_time) {
+            TBOX_ERROR("TimeRefinementIntegrator::getFromInput() error...\n"
+               << "end_time must be >= start_time." << std::endl);
+         }
+
+         d_grow_dt = input_db->getDoubleWithDefault("grow_dt", d_grow_dt);
+         if (d_grow_dt <= 0) {
+            TBOX_ERROR("TimeRefinementIntegrator::getFromInput() error...\n"
+               << "grow_dt must be > 0." << std::endl);
+         }
+
+         d_max_steps_level[0] =
+            input_db->getIntegerWithDefault("max_integrator_steps",
+               d_max_steps_level[0]);
+         if (d_max_steps_level[0] < 0) {
+            TBOX_ERROR("TimeRefinementIntegrator::getFromInput() error...\n"
+               << "max_integrator_steps must be >= 0." << std::endl);
+         } else if (d_max_steps_level[0] < d_step_level[0]) {
+            TBOX_ERROR("TimeRefinementIntegrator::getFromInput() error...\n"
+               << "max_integrator_steps must be >= current integrator step."
+               << std::endl);
+         }
+
+         if (input_db->keyExists("tag_buffer")) {
+            d_tag_buffer = input_db->getIntegerVector("tag_buffer");
+            if (static_cast<int>(d_tag_buffer.size()) <
+                (d_patch_hierarchy->getMaxNumberOfLevels() - 1)) {
+               int tsize = static_cast<int>(d_tag_buffer.size());
+               d_tag_buffer.resize(
+                  d_patch_hierarchy->getMaxNumberOfLevels() - 1,
+                  d_tag_buffer[tsize - 1]);
+            }
+         }
+
+         d_barrier_and_time =
+            input_db->getBoolWithDefault("DEV_barrier_and_time",
+               d_barrier_and_time);
+      }
    }
 }
 
@@ -1645,8 +1747,8 @@ TimeRefinementIntegrator::getFromInput(
  * database.
  *
  * Data read from restart database: d_start_time, d_end_time, d_grow_dt,
- * d_max_integrator_step, d_regrid_interval, d_tag_buffer,
- * d_integrator_step, d_dt_max_level, d_dt_actual_level.
+ * d_max_steps_level[0], d_regrid_interval, d_tag_buffer,
+ * d_step_level[0], d_dt_max_level, d_dt_actual_level.
  *
  *************************************************************************
  */
@@ -1658,32 +1760,33 @@ TimeRefinementIntegrator::getFromRestart()
    boost::shared_ptr<tbox::Database> restart_db(
       tbox::RestartManager::getManager()->getRootDatabase());
 
-   boost::shared_ptr<tbox::Database> db;
-   if (restart_db->isDatabase(d_object_name)) {
-      db = restart_db->getDatabase(d_object_name);
-   } else {
+   if (!restart_db->isDatabase(d_object_name)) {
       TBOX_ERROR("Restart database corresponding to "
-         << d_object_name << " not found in restart file.");
+         << d_object_name << " not found in restart file." << std::endl);
    }
+   boost::shared_ptr<tbox::Database> db(
+      restart_db->getDatabase(d_object_name));
 
    int ver = db->getInteger("ALGS_TIME_REFINEMENT_INTEGRATOR_VERSION");
    if (ver != ALGS_TIME_REFINEMENT_INTEGRATOR_VERSION) {
       TBOX_ERROR(
          d_object_name << ":  "
-                       << "Restart file version different than class version.");
+                       << "Restart file version different than class version."
+                       << std::endl);
    }
 
-   d_start_time = db->getDouble("d_start_time");
-   d_end_time = db->getDouble("d_end_time");
-   d_grow_dt = db->getDouble("d_grow_dt");
-   d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
-   d_regrid_interval = db->getIntegerArray("d_regrid_interval");
-   d_tag_buffer = db->getIntegerArray("d_tag_buffer");
+   d_start_time = db->getDouble("start_time");
+   d_end_time = db->getDouble("end_time");
+   d_grow_dt = db->getDouble("grow_dt");
+   d_max_steps_level[0] = db->getInteger("max_integrator_steps");
+   d_regrid_interval = db->getIntegerVector("regrid_interval");
+   d_tag_buffer = db->getIntegerVector("tag_buffer");
+   d_barrier_and_time = db->getBool("DEV_barrier_and_time");
    d_integrator_time = db->getDouble("d_integrator_time");
-   d_integrator_step = db->getInteger("d_integrator_step");
+   d_step_level[0] = db->getInteger("d_integrator_step");
    d_last_finest_level = db->getInteger("d_last_finest_level");
-   d_dt_max_level = db->getDoubleArray("d_dt_max_level");
-   d_dt_actual_level = db->getDoubleArray("d_dt_actual_level");
+   d_dt_max_level = db->getDoubleVector("d_dt_max_level");
+   d_dt_actual_level = db->getDoubleVector("d_dt_actual_level");
 }
 
 /*
@@ -1715,4 +1818,3 @@ TimeRefinementIntegrator::finalizeCallback()
 
 }
 }
-#endif

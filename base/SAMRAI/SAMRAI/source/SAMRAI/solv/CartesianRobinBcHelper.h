@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Robin boundary condition support on cartesian grids.
  *
  ************************************************************************/
@@ -22,7 +22,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -66,7 +66,7 @@ public:
    explicit CartesianRobinBcHelper(
       const tbox::Dimension& dim,
       std::string object_name = std::string(),
-      RobinBcCoefStrategy* coef_strategy = NULL);
+      RobinBcCoefStrategy* coef_strategy = 0);
 
    /*!
     * @brief Destructor.
@@ -82,7 +82,8 @@ public:
       const double fill_time,
       const hier::IntVector& ghost_width_to_fill);
    hier::IntVector
-   getRefineOpStencilWidth() const;
+   getRefineOpStencilWidth(
+      const tbox::Dimension& dim) const;
    virtual void
    preprocessRefineBoxes(
       hier::Patch& fine,
@@ -107,15 +108,6 @@ public:
       const hier::Patch& coarse,
       const hier::Box& fine_box,
       const hier::IntVector& ratio);
-   virtual void
-   fillSingularityBoundaryConditions(
-      hier::Patch& patch,
-      const hier::PatchLevel& encon_level,
-      const hier::Connector& dst_to_encon,
-      const double fill_time,
-      const hier::Box& fill_box,
-      const hier::BoundaryBox& boundary_box,
-      const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry);
 
    //@}
 
@@ -205,6 +197,10 @@ public:
     *        This data must be a cell-centered double.
     * @param homogeneous_bc Set a homogeneous boundary condition.
     *    This means g=0 for the boundary.
+    *
+    * @pre patch.getDim() == ghost_width_to_fill.getDim()
+    * @pre d_coef_strategy
+    * @pre patch.getDim().getValue() != 1
     */
    void
    setBoundaryValuesInCells(
@@ -232,6 +228,8 @@ public:
     *        This data must be a cell-centered double.
     * @param homogeneous_bc Set a homogeneous boundary condition.
     *    This means g=0 for the boundary.
+    *
+    * @pre level.getDim() == ghost_width_to_fill.getDim()
     */
    void
    setBoundaryValuesInCells(
@@ -304,14 +302,15 @@ public:
     *
     * @param coef_strategy Pointer to a concrete inmplementation of
     *        the coefficient strategy.
+    *
+    * @pre coef_strategy
     */
    void
    setCoefImplementation(
       const RobinBcCoefStrategy* coef_strategy)
    {
       if (!coef_strategy) {
-         TBOX_ERROR(d_object_name << ": Invalid pointer value"
-                                  << std::endl);
+         TBOX_ERROR(d_object_name << ": Invalid pointer value" << std::endl);
       }
       d_coef_strategy = coef_strategy;
    }
@@ -363,6 +362,14 @@ public:
       return d_object_name;
    }
 
+   /*!
+    * @brief Return the dimension of this object.
+    */
+   const tbox::Dimension& getDim() const
+   {
+      return d_dim;
+   }
+
 private:
    /*!
     * @brief Trim a boundary box so that it does not stick out
@@ -380,6 +387,8 @@ private:
     * @param limit_box hier::Box to not stick past
     *
     * @return New trimmed boundary box.
+    *
+    * @pre boundary_box.getDim() == limit_box.getDim()
     */
    hier::BoundaryBox
    trimBoundaryBox(
@@ -400,6 +409,8 @@ private:
     * @param boundary_box input boundary box
     * @return a box to define the node indices corresponding to
     *   boundary_box
+    *
+    * @pre boundary_box.getBoundaryType() == 1
     */
    hier::Box
    makeNodeBoundaryBox(
@@ -422,14 +433,16 @@ private:
     * @param boundary_box input boundary box
     * @return a box to define the face indices corresponding to
     *    boundary_box
+    *
+    * @pre boundary_box.getBoundaryType() == 1
     */
    hier::Box
    makeFaceBoundaryBox(
       const hier::BoundaryBox& boundary_box) const;
 
-   const tbox::Dimension d_dim;
-
    std::string d_object_name;
+
+   const tbox::Dimension d_dim;
 
    /*!
     * @brief Coefficient strategy giving a way to get to

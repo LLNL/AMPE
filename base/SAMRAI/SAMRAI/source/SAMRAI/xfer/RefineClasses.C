@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple structure for managing refinement data in equivalence classes.
  *
  ************************************************************************/
-
-#ifndef included_xfer_RefineClasses_C
-#define included_xfer_RefineClasses_C
-
 #include <typeinfo>
 
 #include "SAMRAI/xfer/RefineClasses.h"
@@ -34,10 +30,9 @@ int RefineClasses::s_default_refine_item_array_size = 20;
  *************************************************************************
  */
 
-RefineClasses::RefineClasses():
-   d_num_refine_items(0)
+RefineClasses::RefineClasses()
 {
-   d_refine_classes_data_items.resizeArray(s_default_refine_item_array_size);
+   d_refine_classes_data_items.reserve(s_default_refine_item_array_size);
 }
 
 /*
@@ -77,22 +72,15 @@ RefineClasses::insertEquivalenceClassItem(
       int eq_index = getEquivalenceClassIndex(data, descriptor);
 
       if (eq_index < 0) {
-         eq_index = d_equivalence_class_indices.size();
-         d_equivalence_class_indices.resizeArray(eq_index + 1);
+         eq_index = static_cast<int>(d_equivalence_class_indices.size());
+         d_equivalence_class_indices.resize(eq_index + 1);
       }
 
       data.d_class_index = eq_index;
 
-      if (d_num_refine_items >= d_refine_classes_data_items.size()) {
-         d_refine_classes_data_items.resizeArray(
-            d_num_refine_items + s_default_refine_item_array_size);
-      }
-
-      d_refine_classes_data_items[d_num_refine_items] = data;
-
-      d_equivalence_class_indices[eq_index].push_back(d_num_refine_items);
-
-      d_num_refine_items++;
+      d_equivalence_class_indices[eq_index].push_back(static_cast<int>(d_refine_classes_data_items.
+                                                                       size()));
+      d_refine_classes_data_items.push_back(data);
 
    }
 
@@ -152,6 +140,8 @@ RefineClasses::itemIsValid(
    boost::shared_ptr<hier::PatchDataFactory> scratch_fact(
       pd->getPatchDataFactory(scratch_id));
 
+   const tbox::Dimension& dim = dst_fact->getDim();
+
    if (item_good && !(src_fact->validCopyTo(scratch_fact))) {
       item_good = false;
       TBOX_ERROR("Bad data given to RefineClasses...\n"
@@ -185,13 +175,13 @@ RefineClasses::itemIsValid(
 
    boost::shared_ptr<hier::RefineOperator> refop(data_item.d_oprefine);
    if (item_good && refop) {
-      if (refop->getStencilWidth() > scratch_gcw) {
+      if (refop->getStencilWidth(dim) > scratch_gcw) {
          item_good = false;
          TBOX_ERROR("Bad data given to RefineClasses...\n"
             << "Refine operator " << refop->getOperatorName()
             << "\nhas larger stencil width than ghost cell width"
             << "of `Scratch' patch data" << pd->mapIndexToName(scratch_id)
-            << "\noperator stencil width = " << refop->getStencilWidth()
+            << "\noperator stencil width = " << refop->getStencilWidth(scratch_gcw.getDim())
             << "\n`Scratch'  ghost width = " << scratch_gcw << std::endl);
       }
    }
@@ -202,7 +192,7 @@ RefineClasses::itemIsValid(
       if (fill_pattern->getPatternName() != "BOX_GEOMETRY_FILL_PATTERN") {
          if (fill_pattern->getStencilWidth() > scratch_gcw) {
             item_good = false;
-            TBOX_ERROR("Bad data given to RefineClasses<DIM>...\n"
+            TBOX_ERROR("Bad data given to RefineClasses...\n"
                << "VariableFillPattern " << fill_pattern->getPatternName()
                << "\nhas larger stencil width than ghost cell width"
                << "of `Scratch' patch data" << pd->mapIndexToName(
@@ -315,7 +305,7 @@ RefineClasses::classesMatch(
 
          } // if number of items in equivalence class match
 
-         eq_index++;
+         ++eq_index;
 
       } // while equivalence classes match
 
@@ -346,6 +336,7 @@ RefineClasses::itemsAreEquivalent(
    if (!pd) {
       pd = hier::VariableDatabase::getDatabase()->getPatchDescriptor();
    }
+   const tbox::Dimension& dim = pd->getPatchDataFactory(data1.d_dst)->getDim();
 
    equivalent = patchDataMatch(data1.d_dst, data2.d_dst, pd);
 
@@ -363,8 +354,8 @@ RefineClasses::itemsAreEquivalent(
 
    equivalent &= (!data1.d_oprefine == !data2.d_oprefine);
    if (equivalent && data1.d_oprefine) {
-      equivalent &= (data1.d_oprefine->getStencilWidth() ==
-                     data2.d_oprefine->getStencilWidth());
+      equivalent &= (data1.d_oprefine->getStencilWidth(dim) ==
+                     data2.d_oprefine->getStencilWidth(dim));
    }
 
    equivalent &= (!data1.d_var_fill_pattern ==
@@ -391,19 +382,19 @@ RefineClasses::printClassData(
 {
    stream << "RefineClasses::printClassData()\n";
    stream << "--------------------------------------\n";
-   for (int i = 0; i < d_equivalence_class_indices.size(); i++) {
+   for (int i = 0; i < static_cast<int>(d_equivalence_class_indices.size()); ++i) {
       stream << "EQUIVALENCE CLASS # " << i << std::endl;
       int j = 0;
       const std::list<int>& indices = d_equivalence_class_indices[i];
       for (std::list<int>::const_iterator li(indices.begin());
-           li != indices.end(); li++) {
+           li != indices.end(); ++li) {
 
          stream << "Item # " << j << std::endl;
          stream << "-----------------------------\n";
 
          printRefineItem(stream, d_refine_classes_data_items[*li]);
 
-         j++;
+         ++j;
       }
       stream << std::endl;
    }
@@ -437,7 +428,8 @@ RefineClasses::printRefineItem(
              << data.d_oprefine->getOperatorPriority()
              << std::endl;
       stream << "operator stencil width: "
-             << data.d_oprefine->getStencilWidth()
+             << data.d_oprefine->getStencilWidth(
+         hier::VariableDatabase::getDatabase()->getPatchDescriptor()->getPatchDataDim(data.d_dst))
              << std::endl;
    }
    if (!data.d_time_interpolate) {
@@ -514,7 +506,7 @@ RefineClasses::getEquivalenceClassIndex(
    const RefineClasses::Data& data,
    const boost::shared_ptr<hier::PatchDescriptor>& descriptor) const
 {
-  NULL_USE(descriptor);
+   NULL_USE(descriptor);
 
    int eq_index = -1;
 
@@ -531,7 +523,7 @@ RefineClasses::getEquivalenceClassIndex(
          eq_index = check_index;
       }
 
-      check_index++;
+      ++check_index;
    }
 
    return eq_index;
@@ -540,4 +532,3 @@ RefineClasses::getEquivalenceClassIndex(
 
 }
 }
-#endif

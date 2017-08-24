@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -22,16 +22,16 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * Class CellVariable<DIM> is a templated variable class used to define
+ * Class CellVariable<TYPE> is a templated variable class used to define
  * cell-centered quantities on an AMR mesh.   It is a subclass of
  * hier::Variable and is templated on the type of the underlying data
  * (e.g., double, int, bool, etc.).
  *
- * See header file for CellData<DIM> class for a more detailed
+ * See header file for CellData<TYPE> class for a more detailed
  * description of the data layout.
  *
- * @see pdat::CellData
- * @see pdat::CellDataFactory
+ * @see CellData
+ * @see CellDataFactory
  * @see hier::Variable
  */
 
@@ -79,11 +79,14 @@ public:
    getDepth() const;
 
 private:
+   // Unimplemented copy constructor
    CellVariable(
-      const CellVariable<TYPE>&);          // not implemented
-   void
+      const CellVariable&);
+
+   // Unimplemented assignment operator
+   CellVariable&
    operator = (
-      const CellVariable<TYPE>&);               // not implemented
+      const CellVariable&);
 };
 
 }

@@ -1,0 +1,75 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright
+## information, see COPYRIGHT and COPYING.LESSER.
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for timer and statistician main programs
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/Connector
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+main:  main.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main.o $(LIBSAMRAI) $(LDLIBS) -o main
+
+NUM_TESTS = 3
+
+TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
+
+checkcompile: main
+
+check:  checkcompile
+	@for i in test_inputs/*.input ; do	\
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"OverlapConnectorAlgorithm\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
+
+check2d:
+	$(MAKE) check
+
+check3d:
+	$(MAKE) check
+
+checktest:
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
+
+examples:
+
+perf:
+
+everything:
+	$(MAKE) checkcompile
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
+
+include $(SRCDIR)/Makefile.depend

@@ -3,23 +3,22 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Block identifier in multiblock domain.
  *
  ************************************************************************/
-
-#ifndef included_hier_BlockId_C
-#define included_hier_BlockId_C
-
 #include "SAMRAI/hier/BlockId.h"
 #include "SAMRAI/tbox/MathUtilities.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 #include <iostream>
 
 namespace SAMRAI {
 namespace hier {
 
-const BlockId BlockId::s_invalid_id(tbox::MathUtilities<int>::getMax());
+const BlockId
+BlockId::s_invalid_id(
+   tbox::MathUtilities<int>::getMax());
 const BlockId BlockId::s_zero_id(0);
 
 /*
@@ -46,9 +45,20 @@ BlockId::BlockId(
  *******************************************************************************
  */
 BlockId::BlockId(
-   const int& value):
+   const unsigned int& value):
    d_value(value)
 {
+}
+
+/*
+ *******************************************************************************
+ *******************************************************************************
+ */
+BlockId::BlockId(
+   const int& value):
+   d_value(static_cast<unsigned int>(value))
+{
+   TBOX_ASSERT(value >=0);
 }
 
 /*
@@ -64,4 +74,3 @@ BlockId::~BlockId()
 
 }
 }
-#endif

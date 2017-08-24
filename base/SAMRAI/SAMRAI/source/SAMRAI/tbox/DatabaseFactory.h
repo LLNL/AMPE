@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An abstract base class for a DatabaseFactory
  *
  ************************************************************************/
@@ -28,22 +28,32 @@ namespace tbox {
 class DatabaseFactory
 {
 public:
-  /**
-   * Default constructor
-   */
-  DatabaseFactory();
+   /**
+    * Default constructor
+    */
+   DatabaseFactory();
 
-  /**
+   /**
     * Destructor
     */
-  virtual ~DatabaseFactory();
+   virtual ~DatabaseFactory();
 
-  /**
+   /**
     * Build a new Database instance.
     */
-  virtual boost::shared_ptr<Database>
-  allocate(
-     const std::string& name) = 0;
+   virtual boost::shared_ptr<Database>
+   allocate(
+      const std::string& name) = 0;
+
+private:
+   // Unimplemented copy constructor.
+   DatabaseFactory(
+      const DatabaseFactory& other);
+
+   // Unimplemented assignment operator.
+   DatabaseFactory&
+   operator = (
+      const DatabaseFactory& rhs);
 };
 
 }

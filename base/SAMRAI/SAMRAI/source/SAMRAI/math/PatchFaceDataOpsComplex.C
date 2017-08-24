@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for complex face-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchFaceDataOpsComplex_C
-#define included_math_PatchFaceDataOpsComplex_C
-
 #include "SAMRAI/math/PatchFaceDataOpsComplex.h"
 #include "SAMRAI/pdat/FaceGeometry.h"
 
@@ -42,11 +38,11 @@ PatchFaceDataOpsComplex::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::FaceData<dcomplex> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::FaceData<dcomplex> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -64,7 +60,7 @@ PatchFaceDataOpsComplex::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -78,10 +74,10 @@ PatchFaceDataOpsComplex::copyData(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       dst->getArrayData(d).copy(src->getArrayData(d),
          pdat::FaceGeometry::toFaceBox(box, d));
    }
@@ -89,4 +85,3 @@ PatchFaceDataOpsComplex::copyData(
 
 }
 }
-#endif

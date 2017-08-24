@@ -6,12 +6,15 @@
 #define INCLUDED_SAMRAI_CONFIG_H
 
 #define SAMRAI_VERSION_MAJOR 3
-#define SAMRAI_VERSION_MINOR 4
-#define SAMRAI_VERSION_PATCHLEVEL 1
+#define SAMRAI_VERSION_MINOR 11
+#define SAMRAI_VERSION_PATCHLEVEL 2
 
 
 /* Define if bool type is not properly supported */
 #undef BOOL_IS_BROKEN
+
+/* Enable Box counting */
+#undef BOX_TELEMETRY
 
 /* Define if std::fill_n returns void */
 #undef CASC_STD_FILL_N_RETURNS_VOID
@@ -43,10 +46,10 @@
 
 /* Define to a macro mangling the given C identifier (in lower and upper
    case), which must not contain underscores, for linking with Fortran. */
-#undef F77_FUNC
+#undef SAMRAI_F77_FUNC
 
-/* As F77_FUNC, but for C identifiers containing underscores. */
-#undef F77_FUNC_
+/* As SAMRAI_F77_FUNC, but for C identifiers containing underscores. */
+#undef SAMRAI_F77_FUNC_
 
 /* Define if F77 and FC dummy `main' functions are identical. */
 #undef FC_DUMMY_MAIN_EQ_F77
@@ -129,11 +132,17 @@
 /* HAVE_NEW_PLACEMENT_OPERATOR */
 #undef HAVE_NEW_PLACEMENT_OPERATOR
 
+/* OPENMP is available */
+#undef HAVE_OPENMP
+
 /* PETSC library is available so use it */
 #undef HAVE_PETSC
 
 /* HAVE_PRAGMA_STATIC_DATA_SPECIALIZATION */
 #undef HAVE_PRAGMA_STATIC_DATA_SPECIALIZATION
+
+/* PTSCOTCH headers are available to use */
+#undef HAVE_PTSCOTCH
 
 /* SILO library is available so use it */
 #undef HAVE_SILO
@@ -203,9 +212,6 @@
 
 /* "Compiling without deprecated features" */
 #undef INCLUDE_DEPRECATED
-
-/* INCLUDE_TEMPLATE_IMPLEMENTATION */
-#undef INCLUDE_TEMPLATE_IMPLEMENTATION
 
 /* Header file for iomanip */
 #undef IOMANIP_HEADER_FILE
@@ -297,6 +303,9 @@
 /* Define if NAN is not in float.h */
 #undef NAN_IS_BROKEN
 
+/* Optimized build */
+#undef OPT_BUILD
+
 /* The type ostringstream is broken */
 #undef OSTRINGSTREAM_TYPE_IS_BROKEN
 
@@ -343,6 +352,10 @@
 #undef __BGL_FAMILY__
 
 
+
+namespace SAMRAI {
+   static const unsigned short MAX_DIM_VAL = SAMRAI_MAXIMUM_DIMENSION;
+}
 
 /*
  * Prevent inclusion of mpi C++ bindings in mpi.h includes.

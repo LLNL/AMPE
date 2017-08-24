@@ -1,3 +1,10 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 2d flux calculation.
+c
 define(riemann_solve,`dnl
 c     write(6,*) "checking onedr sol in riemann solve  "
 c     write(6,*) "         dt= ",dt

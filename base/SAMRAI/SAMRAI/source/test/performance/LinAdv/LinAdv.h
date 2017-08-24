@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in linear advection ex.
  *
  ************************************************************************/
@@ -13,8 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
-#include "SAMRAI/appu/BoundaryUtilityStrategy.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/pdat/CellVariable.h"
@@ -28,15 +26,16 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Serializable.h"
 #include <string>
+#include <vector>
 using namespace std;
 #define included_String
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 #include "SAMRAI/appu/VisDerivedDataStrategy.h"
 
-#include "SinusoidalFrontTagger.h"
+#include "test/testlib/MeshGenerationStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 /**
  * The LinAdv class provides routines for a sample application code that
@@ -62,7 +61,6 @@ using namespace SAMRAI;
 class LinAdv:
    public tbox::Serializable,
    public algs::HyperbolicPatchStrategy,
-   public appu::BoundaryUtilityStrategy,
    public appu::VisDerivedDataStrategy
 {
 public:
@@ -82,7 +80,8 @@ public:
       const tbox::Dimension& dim,
       boost::shared_ptr<tbox::Database> input_db,
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geom,
-      SinusoidalFrontTagger* analytical_tagger = NULL);
+      const boost::shared_ptr<MeshGenerationStrategy>& sine_wall =
+         boost::shared_ptr<MeshGenerationStrategy>());
 
    /**
     * The destructor for LinAdv does nothing.
@@ -207,13 +206,20 @@ public:
       const int tag_index,
       const bool uses_gradient_detector_too);
 
+   //@{
+   //! @name Required implementations of HyperbolicPatchStrategy pure virtuals.
+
    ///
    ///  The following routines:
    ///
    ///      setPhysicalBoundaryConditions()
+   ///      getRefineOpStencilWidth(),
+   ///      preprocessRefine()
+   ///      postprocessRefine()
    ///
    ///  are concrete implementations of functions declared in the
-   ///  RefinePatchStrategy abstract base class.
+   ///  RefinePatchStrategy abstract base class.  Some are trivial
+   ///  because this class doesn't do any pre/postprocessRefine.
    ///
 
    /**
@@ -228,6 +234,78 @@ public:
       const hier::IntVector&
       ghost_width_to_fill);
 
+   hier::IntVector
+   getRefineOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getZero(dim);
+   }
+
+   void
+   preprocessRefine(
+      hier::Patch& fine,
+      const hier::Patch& coarse,
+      const hier::Box& fine_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(fine);
+      NULL_USE(coarse);
+      NULL_USE(fine_box);
+      NULL_USE(ratio);
+   }
+
+   void
+   postprocessRefine(
+      hier::Patch& fine,
+      const hier::Patch& coarse,
+      const hier::Box& fine_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(fine);
+      NULL_USE(coarse);
+      NULL_USE(fine_box);
+      NULL_USE(ratio);
+   }
+
+   ///
+   ///  The following routines:
+   ///
+   ///      getCoarsenOpStencilWidth(),
+   ///      preprocessCoarsen()
+   ///      postprocessCoarsen()
+   ///
+   ///  are concrete implementations of functions declared in the
+   ///  CoarsenPatchStrategy abstract base class.  They are trivial
+   ///  because this class doesn't do any pre/postprocessCoarsen.
+   ///
+
+   hier::IntVector
+   getCoarsenOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getZero(dim);
+   }
+
+   void
+   preprocessCoarsen(
+      hier::Patch& coarse,
+      const hier::Patch& fine,
+      const hier::Box& coarse_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(coarse);
+      NULL_USE(fine);
+      NULL_USE(coarse_box);
+      NULL_USE(ratio);
+   }
+
+   void
+   postprocessCoarsen(
+      hier::Patch& coarse,
+      const hier::Patch& fine,
+      const hier::Box& coarse_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(coarse);
+      NULL_USE(fine);
+      NULL_USE(coarse_box);
+      NULL_USE(ratio);
+   }
+
+   //@}
+
    /**
     * Write state of LinAdv object to the given database for restart.
     *
@@ -235,33 +313,8 @@ public:
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
-
-   /**
-    * This routine is a concrete implementation of the virtual function
-    * in the base class BoundaryUtilityStrategy.  It reads DIRICHLET
-    * boundary state values from the given database with the
-    * given name string idenifier.  The integer location index
-    * indicates the face (in 3D) or edge (in 2D) to which the boundary
-    * condition applies.
-    */
-   void
-   readDirichletBoundaryDataEntry(
-      const boost::shared_ptr<tbox::Database>& db,
-      string& db_name,
-      int bdry_location_index);
-
-   /**
-    * This routine is a concrete implementation of the virtual function
-    * in the base class BoundaryUtilityStrategy.  It is a blank implementation
-    * for the purposes of this class.
-    */
-   void
-   readNeumannBoundaryDataEntry(
-      const boost::shared_ptr<tbox::Database>& db,
-      string& db_name,
-      int bdry_location_index);
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
 #ifdef HAVE_HDF5
    /**
@@ -275,25 +328,11 @@ public:
 #endif
 
    /**
-    * Reset physical boundary values in special cases, such as when
-    * using symmetric (i.e., reflective) boundary conditions.
-    */
-   void
-   boundaryReset(
-      hier::Patch& patch,
-      pdat::FaceData<double>& traced_left,
-      pdat::FaceData<double>& traced_right) const;
-
-   /**
     * Print all data members for LinAdv class.
     */
    void
    printClassData(
       ostream& os) const;
-
-   void
-   setAnalyticalTaggerTime(
-      double time);
 
    //@{ @name SAMRAI::appu::VisDerivedDataStrategy virtuals
 
@@ -303,7 +342,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const string& variable_name,
-      int depth_id) const;
+      int depth_id,
+      double simulation_time) const;
 
 private:
    /*
@@ -317,7 +357,7 @@ private:
     */
    void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
 
    void
@@ -328,17 +368,7 @@ private:
       boost::shared_ptr<tbox::Database> db,
       const string& db_name,
       int array_indx,
-      tbox::Array<double>& uval);
-
-   /*
-    * Private member function to check correctness of boundary data.
-    */
-   void
-   checkBoundaryData(
-      int btype,
-      const hier::Patch& patch,
-      const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& scalar_bconds) const;
+      std::vector<double>& uval);
 
    /*
     * Three-dimensional flux computation routines corresponding to
@@ -362,7 +392,7 @@ private:
 
    const tbox::Dimension d_dim;
 
-   SinusoidalFrontTagger* d_analytical_tagger;
+   boost::shared_ptr<MeshGenerationStrategy> d_mesh_gen;
 
    /*
     * We cache pointers to the grid geometry
@@ -370,10 +400,6 @@ private:
     * and register plot variables.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
-
-#ifdef HAVE_HDF5
-   boost::shared_ptr<appu::VisItDataWriter> d_visit_writer;
-#endif
 
    /*
     * Data items used for nonuniform load balance, if used.
@@ -395,7 +421,7 @@ private:
    /**
     * linear advection velocity vector
     */
-   double d_advection_velocity[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_advection_velocity[SAMRAI::MAX_DIM_VAL];
 
    /*
     *  Parameters for numerical method:
@@ -417,77 +443,30 @@ private:
    hier::IntVector d_fluxghosts;
 
    /*
-    * Indicator for problem type and initial conditions
-    */
-   string d_data_problem;
-   int d_data_problem_int;
-
-   /*
-    * Input for SPHERE problem
-    */
-   double d_radius;
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   double d_uval_inside;
-   double d_uval_outside;
-
-   /*
-    * Input for FRONT problem
-    */
-   int d_number_of_intervals;
-   tbox::Array<double> d_front_position;
-   tbox::Array<double> d_interval_uval;
-
-   /*
-    * Boundary condition cases and boundary values.
-    * Options are: FLOW, REFLECT, DIRICHLET
-    * and variants for nodes and edges.
-    *
-    * Input file values are read into these arrays.
-    */
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_scalar_bdry_face_conds; // 3D only.
-
-   /*
-    * Boundary condition cases for scalar and vector (i.e., depth > 1)
-    * variables.  These are post-processed input values and are passed
-    * to the boundary routines.
-    */
-   tbox::Array<int> d_node_bdry_edge; // 2D only.
-   tbox::Array<int> d_edge_bdry_face; // 3D only.
-   tbox::Array<int> d_node_bdry_face; // 3D only.
-
-   /*
     * Arrays of face (3d) or edge (2d) boundary values for DIRICHLET case.
     */
-   tbox::Array<double> d_bdry_edge_uval; // 2D only.
-   tbox::Array<double> d_bdry_face_uval; // 3D only.
-
-   /*
-    * Input for Sine problem initialization
-    */
-   double d_amplitude;
-   double d_period[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   std::vector<double> d_bdry_edge_uval; // 2D only.
+   std::vector<double> d_bdry_face_uval; // 3D only.
 
    /*
     * Refinement criteria parameters for gradient detector and
     * Richardson extrapolation.
     */
-   tbox::Array<string> d_refinement_criteria;
-   tbox::Array<double> d_dev_tol;
-   tbox::Array<double> d_dev;
-   tbox::Array<double> d_dev_time_max;
-   tbox::Array<double> d_dev_time_min;
-   tbox::Array<double> d_grad_tol;
-   tbox::Array<double> d_grad_time_max;
-   tbox::Array<double> d_grad_time_min;
-   tbox::Array<double> d_shock_onset;
-   tbox::Array<double> d_shock_tol;
-   tbox::Array<double> d_shock_time_max;
-   tbox::Array<double> d_shock_time_min;
-   tbox::Array<double> d_rich_tol;
-   tbox::Array<double> d_rich_time_max;
-   tbox::Array<double> d_rich_time_min;
+   std::vector<string> d_refinement_criteria;
+   std::vector<double> d_dev_tol;
+   std::vector<double> d_dev;
+   std::vector<double> d_dev_time_max;
+   std::vector<double> d_dev_time_min;
+   std::vector<double> d_grad_tol;
+   std::vector<double> d_grad_time_max;
+   std::vector<double> d_grad_time_min;
+   std::vector<double> d_shock_onset;
+   std::vector<double> d_shock_tol;
+   std::vector<double> d_shock_time_max;
+   std::vector<double> d_shock_time_min;
+   std::vector<double> d_rich_tol;
+   std::vector<double> d_rich_time_max;
+   std::vector<double> d_rich_time_min;
 
    boost::shared_ptr<tbox::Timer> t_analytical_tag;
    boost::shared_ptr<tbox::Timer> t_init;

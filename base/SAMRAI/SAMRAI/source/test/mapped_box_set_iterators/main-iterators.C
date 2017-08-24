@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for testing BoxContainer iterators
  *
  ************************************************************************/
@@ -75,7 +75,7 @@ int main(
             if (bi->getBlockId() != bid) {
                tbox::perr << "FAILED: - Test #1: box id " << bi->getBlockId()
                           << " should have BlockId " << bid << endl;
-               fail_count++;
+               ++fail_count;
             }
 
          }
@@ -91,14 +91,14 @@ int main(
             if (bi->getOwnerRank() != owner_rank) {
                tbox::perr << "FAILED: - Test #2: box id " << bi->getBlockId()
                           << " should have rank " << owner_rank << endl;
-               fail_count++;
+               ++fail_count;
             }
 
          }
       }
 
       if (fail_count == 0) {
-         tbox::pout << "\nPASSED:  testmappedboxsetiterator" << endl;
+         tbox::pout << "\nPASSED:  testboxcontaineriterator" << endl;
       }
    }
 

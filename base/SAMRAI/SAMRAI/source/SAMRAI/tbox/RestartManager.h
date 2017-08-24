@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An restart manager singleton class
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/DatabaseFactory.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <list>
 
@@ -49,7 +49,7 @@ namespace tbox {
  *
  * It is important to note in the initialization process, some objects
  * will need to be constructed in the "empty" state and filled in later
- * using some sort of getFromDatabase() method.
+ * using some sort of getFromRestart() method.
  *
  * The process for writing out state to a restart file is somewhat more
  * complicated.  The following things need to be taken care of.
@@ -57,7 +57,7 @@ namespace tbox {
  *
  * \li Each object that has state that needs to be saved for restart
  *       must be derived from the Serializable class (which
- *       responds to the putToDatabase() method).
+ *       responds to the putToRestart() method).
  * \li Any object that needs to save its state to the restart file
  *       must be registered with the restart manager using the
  *       registerRestartItem() method.   NOTE THAT NO TWO RESTARTABLE
@@ -73,7 +73,7 @@ namespace tbox {
  * both a restart directory name and a restore number for its arguments.
  * See comments for member functions for more details.
  *
- * @see tbox::Database
+ * @see Database
  */
 
 class RestartManager
@@ -107,6 +107,8 @@ public:
     * If there is no error opening the file, then the restart manager
     * mounts the restart file.
     * Returns true if open is successful; false otherwise.
+    *
+    * @pre hasDatabaseFactory()
     */
    bool
    openRestartFile(
@@ -127,6 +129,15 @@ public:
    getRootDatabase()
    {
       return d_database_root;
+   }
+
+   /*!
+    * @brief Returns true if the root of the database has been set.
+    */
+   bool
+   hasRootDatabase()
+   {
+      return d_database_root.get();
    }
 
    /**
@@ -157,12 +168,20 @@ public:
       d_database_factory = database_factory;
    }
 
+   /*!
+    * @brief Returns true if the database for restore or dumps has been set.
+    */
+   bool
+   hasDatabaseFactory()
+   {
+      return d_database_factory.get();
+   }
+
    /**
     * Registers an object for restart with the given name.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if either the string is empty or the serializable
-    * object pointer is null.
+    * @pre !name.empty()
+    * @pre obj != 0
     */
    void
    registerRestartItem(
@@ -173,8 +192,7 @@ public:
     * Removes the object with the specified name from the list of
     * restartable items.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if the string is empty.
+    * @pre !name.empty()
     */
    void
    unregisterRestartItem(
@@ -209,6 +227,8 @@ public:
     * restart database.  The string argument is the name of the
     * root of restart directory.  The integer argument is the
     * identification number associated with the restart files generated.
+    *
+    * @pre hasDatabaseFactory()
     */
    void
    writeRestartFile(
@@ -218,6 +238,8 @@ public:
    /**
     * Write all objects registered to as restart objects to the
     * restart database.
+    *
+    * @pre hasRootDatabase()
     */
    void
    writeRestartToDatabase();
@@ -243,15 +265,28 @@ protected:
     * Initialize Singleton instance with instance of subclass.  This function
     * is used to make the singleton object unique when inheriting from this
     * base class.
+    *
+    * @pre !s_manager_instance
     */
    void
    registerSingletonSubclassInstance(
-      RestartManager* subclass_instance);
+      RestartManager * subclass_instance);
 
 private:
+   // Unimplemented copy constructor.
+   RestartManager(
+      const RestartManager& other);
+
+   // Unimplemented assignment operator.
+   RestartManager&
+   operator = (
+      const RestartManager& rhs);
+
    /**
     * Write all objects registered to as restart objects to the
     * restart database.
+    *
+    * @pre database
     */
    void
    writeRestartFile(

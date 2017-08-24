@@ -355,7 +355,7 @@ private:
     * boundary being worked on.
     */
    void add_gAk0_toRhs(const hier::Patch & patch,
-                       const tbox::Array< hier::BoundaryBox > & bdry_boxes,
+                       const std::vector< hier::BoundaryBox > & bdry_boxes,
                        const solv::RobinBcCoefStrategy * robin_bc_coef,
                        pdat::CellData<double> & rhs );
 

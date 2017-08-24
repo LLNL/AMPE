@@ -1,7 +1,7 @@
 dnl
 dnl File:        $HeadURL$ 
 dnl Package:     SAMRAI build system
-dnl Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
+dnl Copyright:   (c) 1997-2016 Lawrence Livermore National Security, LLC
 dnl Revision:    $LastChangedRevision$
 dnl Description: autoconfig configuration file
 dnl
@@ -16,10 +16,14 @@ AH_TOP([
 #define INCLUDED_SAMRAI_CONFIG_H
 
 #define SAMRAI_VERSION_MAJOR 3
-#define SAMRAI_VERSION_MINOR 4
-#define SAMRAI_VERSION_PATCHLEVEL 1
+#define SAMRAI_VERSION_MINOR 11
+#define SAMRAI_VERSION_PATCHLEVEL 2
 ])
 AH_BOTTOM([
+
+namespace SAMRAI {
+   static const unsigned short MAX_DIM_VAL = SAMRAI_MAXIMUM_DIMENSION;
+}
 
 /*
  * Prevent inclusion of mpi C++ bindings in mpi.h includes.
@@ -146,6 +150,12 @@ AC_ARG_ENABLE([bgl],
       [Identify this platform as one of the bgl family (default is disable)])],
    [enable_bgl=$enableval],
    [enable_bgl=no]
+   )
+AC_ARG_ENABLE([threading],
+   [AS_HELP_STRING([--enable-threading],
+      [build with threading on (default is disabled)])],
+   ,
+   [enable_threading="no"]
    )
 AC_ARG_WITH([CC],
    [AS_HELP_STRING([--with-CC=ARG],[manually set C compiler to ARG])]
@@ -374,6 +384,62 @@ case "$with_extra_ld_flags" in
   ;;
 esac
 
+dnl
+dnl A way to manually add flags to the c compiler command.
+dnl
+AC_ARG_WITH([extra-cc-flags],
+[AS_HELP_STRING([--with-extra-cc-flags=STRING],
+   [Specify additional flags for the c compiler.])],
+,with_extra_cc_flags='no')
+case "$with_extra_cc_flags" in
+  no)
+    : No op
+  ;;
+  yes)
+    : No op
+  ;;
+  *)
+    C_FLAGS="$C_FLAGS $with_extra_cc_flags"
+  ;;
+esac
+
+dnl
+dnl A way to manually add flags to the c++ compiler command.
+dnl
+AC_ARG_WITH([extra-cxx-flags],
+[AS_HELP_STRING([--with-extra-cxx-flags=STRING],
+   [Specify additional flags for the c++ compiler.])],
+,with_extra_cxx_flags='no')
+case "$with_extra_cxx_flags" in
+  no)
+    : No op
+  ;;
+  yes)
+    : No op
+  ;;
+  *)
+    CXX_FLAGS="$CXX_FLAGS $with_extra_cxx_flags"
+  ;;
+esac
+
+dnl
+dnl A way to manually add flags to the f77 compiler command.
+dnl
+AC_ARG_WITH([extra-f77-flags],
+[AS_HELP_STRING([--with-extra-f77-flags=STRING],
+   [Specify additional flags for the f77 compiler.])],
+,with_extra_f77_flags='no')
+case "$with_extra_f77_flags" in
+  no)
+    : No op
+  ;;
+  yes)
+    : No op
+  ;;
+  *)
+    F77_FLAGS="$F77_FLAGS $with_extra_f77_flags"
+  ;;
+esac
 
 dnl
 dnl Find ar for archiving
@@ -381,7 +447,7 @@ dnl
 
 AC_CHECK_PROGS(AR, $with_AR ar,)
 if test -z "$AR"; then
-   AC_MSG_ERROR([ar archiver not found - specify with --with-m4=ARG])
+   AC_MSG_ERROR([ar archiver not found - specify with --with-AR=ARG])
 fi
 
 dnl
@@ -439,7 +505,13 @@ CASC_CXX_IOMANIP_LEFT
 CASC_CXX_NEW_PLACEMENT_OPERATOR
 CASC_CXX_MEMBER_FUNCTION_SPECIALIZATION
 CASC_CXX_STATIC_DATA_INSTANTIATION
-CASC_CXX_EXCEPTION_HANDLING
+case $CXX in
+   *insure*)
+            ;;
+   *)
+            CASC_CXX_EXCEPTION_HANDLING
+            ;;
+esac
 CASC_CXX_STANDARD_STATIC_DATA_SPECIALIZATION
 if test "$casc_cv_cxx_have_standard_static_data_specialization" = "no"; then
    CASC_CXX_PRAGMA_STATIC_DATA_SPECIALIZATION
@@ -467,6 +539,7 @@ esac
 case $CXX_ID in
    gnu)
       CXX_FLAGS="-Wall -Wextra -Wconversion $CXX_FLAGS"
+
       case $ARCH in
          IRIX64)
             CXX_FLAGS="-mabi=64 $CXX_FLAGS"
@@ -507,11 +580,28 @@ case $CXX_ID in
 esac
 
 dnl
-dnl The standard requires that implementation be present when compiling a template.
+dnl Add necessary compiler flag for threading.
 dnl
-AC_DEFINE([INCLUDE_TEMPLATE_IMPLEMENTATION],[1],[INCLUDE_TEMPLATE_IMPLEMENTATION])
-DEPENDS_ON_TEMPLATE_IMPLEMENTATION="yes"
-AC_SUBST(DEPENDS_ON_TEMPLATE_IMPLEMENTATION)
+if test "$enable_threading" = "yes"; then
+   case $CXX_ID in
+      gnu)
+         CXX_FLAGS="$CXX_FLAGS -fopenmp"
+         ;;
+      xlc)
+         CXX_FLAGS="$CXX_FLAGS -qsmp=omp"
+         ;;
+      intel)
+         CXX_FLAGS="$CXX_FLAGS -openmp"
+         ;;
+      *)
+         AC_MSG_WARN([
+Use CFLAGS and CXXFLAGS to specify compiler
+threading directive for this compiler.
+]);
+         ;;
+   esac
+   AC_DEFINE(HAVE_OPENMP,1,OPENMP is available)
+fi
 
 dnl
 dnl Set the compile mode flag for the kind of target to build
@@ -574,6 +664,7 @@ AC_ARG_ENABLE([opt],
 [case "$enable_opt" in
    no) opt_switches= ;;
    yes)
+      AC_DEFINE([OPT_BUILD],[1],[Optimized build])
       case $CXX_ID in
          gnu)   opt_switches="-O2" ;;
          intel) opt_switches="-O3" ;;
@@ -671,7 +762,7 @@ dnl
 
 if test -n "$with_F77"; then
    dnl If user specifies full path then don't search in path
-   if test -f $with_F77; then
+   if test -f "$with_F77"; then
       F77=$with_F77
    else
       AC_CHECK_PROGS(F77, $with_F77)
@@ -750,6 +841,13 @@ AC_ARG_ENABLE([fortran-mangling-override],
   mv confdefs1.h confdefs.h
 esac],
 AC_MSG_RESULT(no))
+
+dnl
+dnl Rename the F77_FUNC macros SAMRAI_F77_FUNC to avoid conflicts
+dnl with client code using a different version of AC_F77_WRAPPERS.
+dnl
+sed 's/F77_FUNC/SAMRAI_F77_FUNC/' confdefs.h > confdefs1.h
+mv confdefs1.h confdefs.h
 
 dnl
 dnl Find the X11 include directory, library directory, and associated
@@ -991,11 +1089,11 @@ fi
 dnl dnl
 dnl dnl Set up the Fortran libraries.
 dnl dnl
-AC_F77_LIBRARY_LDFLAGS
-SAMRAI_SPLIT_LIBS_STRING(FLIBS,FLIBS_PATH,FLIBS_NAME)
-LIB_NAME="${LIB_NAME} ${FLIBS_NAME}"
-LIB_PATH="${LIB_PATH} ${FLIBS_PATH}"
-CASC_AC_LOG_VAR([FLIBS FLIBS_PATH FLIBS_NAME], [after using ac_f77_library_ldflags])
+dnl AC_F77_LIBRARY_LDFLAGS
+dnl SAMRAI_SPLIT_LIBS_STRING(FLIBS,FLIBS_PATH,FLIBS_NAME)
+dnl LIB_NAME="${LIB_NAME} ${FLIBS_NAME}"
+dnl LIB_PATH="${LIB_PATH} ${FLIBS_PATH}"
+dnl CASC_AC_LOG_VAR([FLIBS FLIBS_PATH FLIBS_NAME], [after using ac_f77_library_ldflags])
 dnl dnl
 dnl dnl Set fortran library.
 dnl dnl
@@ -1062,26 +1160,37 @@ dnl
 AC_ARG_WITH([mpi],
    [AS_HELP_STRING([--without-mpi],[Compile without MPI library.])])
 if test "$with_mpi" = no; then
-   AC_MSG_NOTICE([NOTIFICATION: SAMRAI configured without the MPI library])
-   AC_DEFINE([LACKS_MPI],[1],[MPI library is missing])
+   if test -z "`echo $CXX:t | grep mpi`" ; then
+      AC_MSG_NOTICE([NOTIFICATION: SAMRAI configured without the MPI library])
+      AC_DEFINE([LACKS_MPI],[1],[MPI library is missing])
+   else
+      AC_MSG_ERROR([You have specified a non-mpi build but are using an mpi compiler wrapper with is contradictory.])
+   fi
 else
 
-   case $ARCH in
-      alpha)
-         CASC_FIND_MPI_ALPHA
-      ;;
-      *)
-         CASC_FIND_MPI
-      ;;
-   esac
+   if test -z "`echo $CXX:t | grep mpi`" ; then
+      case $ARCH in
+         alpha)
+            CASC_FIND_MPI_ALPHA
+         ;;
+         *)
+            CASC_FIND_MPI
+         ;;
+      esac
 
-   if test -n "$MPIINCLUDE" -o -n "$MPILIBS" -o -n "$MPILIBDIRS"; then
+      if test -n "$MPIINCLUDE" -o -n "$MPILIBS" -o -n "$MPILIBDIRS"; then
+         with_mpi=yes
+         AC_DEFINE([HAVE_MPI],[1],[MPI library is present])
+         INC_PATH="$MPIINCLUDE $INC_PATH"
+         LIB_NAME="$MPILIBS $LIB_NAME"
+         LIB_PATH="$MPILIBDIRS $LIB_PATH"
+         CASC_AC_LOG_VAR(MPIINCLUDE MPILIBS MPILIBDIRS, After successfully finding MPI using casc_find_mpi)
+         CONFIGURED_WITH_MPI="with_mpi"
+         AC_SUBST(CONFIGURED_WITH_MPI)
+      fi
+   else
       with_mpi=yes
       AC_DEFINE([HAVE_MPI],[1],[MPI library is present])
-      INC_PATH="$MPIINCLUDE $INC_PATH"
-      LIB_NAME="$MPILIBS $LIB_NAME"
-      LIB_PATH="$MPILIBDIRS $LIB_PATH"
-      CASC_AC_LOG_VAR(MPIINCLUDE MPILIBS MPILIBDIRS, After successfully finding MPI using casc_find_mpi)
       CONFIGURED_WITH_MPI="with_mpi"
       AC_SUBST(CONFIGURED_WITH_MPI)
    fi
@@ -1140,6 +1249,54 @@ else
 fi
 CASC_AC_LOG_VAR(
 [boost_INCLUDES INC_PATH boost_LIBS LIB_PATH LIB_NAME])dnl
+
+# Defines ptscotch_PREFIX ptscotch_INCLUDES and ptscotch_LIBS.
+AC_ARG_WITH(ptscotch,
+[  --with-ptscotch[=PATH]  Use PT-SCOTCH and specify where PT-SCOTCH is installed.],
+, with_ptscotch=no)
+
+case "$with_ptscotch" in
+  no)
+    : Do nothing
+  ;;
+  yes)
+    # PT-SCOTCH install path was not specified.
+    # Look in a couple of standard locations to probe if
+    # PT-SCOTCH header files are there.
+    AC_MSG_CHECKING([for PT-SCOTCH installation])
+    for dir in /usr /usr/local; do
+      if test -f ${dir}/ptscotch/include/ptscotch.h; then
+        ptscotch_PREFIX=${dir}
+        break
+      fi
+    done
+    AC_MSG_RESULT([$ptscotch_PREFIX])
+  ;;
+  *)
+    # PT-SCOTCH install path was specified.
+    AC_MSG_CHECKING([for PT-SCOTCH installation])
+
+    if test -f ${with_ptscotch}/include/ptscotch.h; then
+        ptscotch_PREFIX=$with_ptscotch
+        ptscotch_INCLUDES="-I${ptscotch_PREFIX}/include"
+        ptscotch_LIBS="-L${ptscotch_PREFIX}/lib -lptscotch -lptscotcherr -lscotch -lscotcherr"
+        AC_MSG_RESULT([$ptscotch_PREFIX])
+    else
+        AC_MSG_RESULT([$ptscotch_PREFIX])
+        AC_MSG_ERROR([PT-SCOTCH not found in $with_ptscotch])
+    fi
+  ;;
+esac
+if test "${ptscotch_PREFIX+set}" = set; then
+   SAMRAI_SPLIT_LIBS_STRING(ptscotch_LIBS,ptscotch_LIB_PATH,ptscotch_LIB_NAME)
+   LIB_PATH="$ptscotch_LIB_PATH $LIB_PATH"
+   LIB_NAME="$ptscotch_LIB_NAME $LIB_NAME"
+   INC_PATH="$ptscotch_INCLUDES $INC_PATH"
+   AC_DEFINE([HAVE_PTSCOTCH],[1],[PTSCOTCH headers are available to use])
+fi
+CASC_AC_LOG_VAR(
+[ptscotch_INCLUDES INC_PATH ptscotch_LIBS LIB_PATH LIB_NAME])dnl
+
 
 dnl
 dnl Thread Building Blocks support
@@ -1239,11 +1396,11 @@ if test "${PETSC_DIR+set}" = set; then
   LIB_NAME="$petsc_LIB_NAME $LIB_NAME"
   INC_PATH="$petsc_INCLUDES $INC_PATH"
   AC_DEFINE(HAVE_PETSC,1,PETSC library is available so use it)
-  if test $PETSC_VERSION_MAJOR -ne 2 || \
-     test $PETSC_VERSION_MINOR -ne 3 || \
-     test $PETSC_VERSION_SUBMINOR -ne 3 ; then
+  if test $PETSC_VERSION_MAJOR -ne 3 || \
+     test $PETSC_VERSION_MINOR -ne 2 || \
+     test $PETSC_VERSION_SUBMINOR -ne 0 ; then
      AC_MSG_WARN([
-SAMRAI requires PETSc-2.3.3.  You have specified version $PETSC_VERSION_MAJOR.$PETSC_VERSION_MINOR.$PETSC_VERSION_SUBMINOR
+SAMRAI requires PETSc-3.2.0.  You have specified version $PETSC_VERSION_MAJOR.$PETSC_VERSION_MINOR.$PETSC_VERSION_SUBMINOR
 which may not work properly!
 ])
   fi
@@ -1325,7 +1482,7 @@ else
    fi
    AC_DEFINE([HAVE_SUNDIALS],[1],[HAVE_SUNDIALS])
    LIB_PATH="$LIB_PATH -L$sundials_dir/lib"
-   LIB_NAME="$LIB_NAME -lsundials_cpodes -lsundials_cvode -lsundials_kinsol"
+   LIB_NAME="$LIB_NAME -lsundials_cvode -lsundials_kinsol"
    INC_PATH="-I$sundials_dir/include $INC_PATH"
 fi
 AC_SUBST(SUNDIALS_C_FILES)
@@ -1468,7 +1625,7 @@ dnl Specify how many processors to use in testing.
 dnl
 case $CONFIGURED_WITH_MPI in
   with_mpi)
-    TEST_NPROCS='1,2'
+    TEST_NPROCS='1,2,4'
   ;;
   *)
     TEST_NPROCS='0'
@@ -1514,6 +1671,8 @@ AC_SUBST(SRCDIR_COMPILE_PREFIX)
 AC_SUBST(INC_PATH)
 AC_SUBST(LIB_PATH)
 AC_SUBST(LIB_NAME)
+AC_SUBST(ac_pwd)
+AC_SUBST(btng_rpath_beginning)
 
 dnl Define a macro that links files from the compile tree to the source tree.
 dnl The links have the same name as the the target.  Nothing is done if 
@@ -1565,11 +1724,6 @@ then
      define(samrai_test_inputs,[ '(' -type d -name '*inputs*' '!' -path '*/*inputs*/*' ')' ])
      SAMRAI_LINK_FILES([ esyscmd(find source/test samrai_test_inputs | sort --ignore-case) ])
 
-     dnl
-     dnl Special directories in test that are not caught as part of the previous fined.
-     dnl 
-     SAMRAI_LINK_FILES([ source/test/applications/Euler/RP_test ])
-
 fi
 
 dnl Undefine the m4 symbols not needed anymore.
@@ -1609,11 +1763,11 @@ dnl
 if test `pwd` != `cd "$srcdir" && pwd`
 then 
      $INSTALL  $srcdir/COPYRIGHT COPYRIGHT
+     $INSTALL  $srcdir/COPYING.LESSER COPYING.LESSER
      $INSTALL  $srcdir/RELEASE-NOTES RELEASE-NOTES 
      $INSTALL  $srcdir/INSTALL-NOTES INSTALL-NOTES 
      $MKDIR_P source/test/testtools
      $INSTALL  $srcdir/source/test/testtools/* source/test/testtools
-     $INSTALL  $srcdir/source/test/inputdb/*.input  source/test/inputdb
 
      dnl
      dnl Copy README files

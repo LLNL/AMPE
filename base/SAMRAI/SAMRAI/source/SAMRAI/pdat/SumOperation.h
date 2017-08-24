@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Sum operation on single array data elements templated on data type
  *
  ************************************************************************/
@@ -45,10 +45,10 @@ public:
 
 private:
    SumOperation(
-      const SumOperation<TYPE>&);             // not implemented
-   void
+      const SumOperation&);             // not implemented
+   SumOperation&
    operator = (
-      const SumOperation<TYPE>&);              // not implemented
+      const SumOperation&);              // not implemented
 };
 
 }

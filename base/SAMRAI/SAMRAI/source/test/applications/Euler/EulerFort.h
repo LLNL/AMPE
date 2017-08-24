@@ -3,14 +3,14 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   F77 external declarations for SAMRAI Euler gas dynamics ex.
  *
  ************************************************************************/
 
 extern "C" {
 
-void F77_FUNC(eulerinit2d, EULERINIT2D) (
+void SAMRAI_F77_FUNC(eulerinit2d, EULERINIT2D) (
    const int&, const double *, const double *, const double *,
    const int&, const int&,
    const int&, const int&,
@@ -22,7 +22,7 @@ void F77_FUNC(eulerinit2d, EULERINIT2D) (
    const double *,
    const double *, const double *, const double *);
 
-void F77_FUNC(eulerinit3d, EULERINIT3D) (
+void SAMRAI_F77_FUNC(eulerinit3d, EULERINIT3D) (
    const int&, const double *, const double *, const double *,
    const int&, const int&,
    const int&, const int&,
@@ -36,7 +36,7 @@ void F77_FUNC(eulerinit3d, EULERINIT3D) (
    const double *,
    const double *, const double *, const double *);
 
-void F77_FUNC(eulerinitsphere2d, EULERINITSPHERE2D) (
+void SAMRAI_F77_FUNC(eulerinitsphere2d, EULERINITSPHERE2D) (
    const int&, const double *, const double *, const double *,
    const int&, const int&,
    const int&, const int&,
@@ -48,7 +48,7 @@ void F77_FUNC(eulerinitsphere2d, EULERINITSPHERE2D) (
    const double&, const double *, const double&,
    const double *, const double&);
 
-void F77_FUNC(eulerinitsphere3d, EULERINITSPHERE3D) (
+void SAMRAI_F77_FUNC(eulerinitsphere3d, EULERINITSPHERE3D) (
    const int&, const double *, const double *, const double *,
    const int&, const int&,
    const int&, const int&,
@@ -62,7 +62,7 @@ void F77_FUNC(eulerinitsphere3d, EULERINITSPHERE3D) (
    const double&, const double *, const double&,
    const double *, const double&);
 
-void F77_FUNC(stabledt2d, STABLEDT2D) (
+void SAMRAI_F77_FUNC(stabledt2d, STABLEDT2D) (
    const double *,
    const int&, const int&,
    const int&, const int&,
@@ -71,7 +71,7 @@ void F77_FUNC(stabledt2d, STABLEDT2D) (
    const double&,
    const double *, const double *, const double *, double&);
 
-void F77_FUNC(stabledt3d, STABLEDT3D) (
+void SAMRAI_F77_FUNC(stabledt3d, STABLEDT3D) (
    const double *,
    const int&, const int&,
    const int&, const int&,
@@ -82,14 +82,14 @@ void F77_FUNC(stabledt3d, STABLEDT3D) (
    const double&,
    const double *, const double *, const double *, double&);
 
-void F77_FUNC(inittraceflux2d, INITTRACEFLUX2D) (
+void SAMRAI_F77_FUNC(inittraceflux2d, INITTRACEFLUX2D) (
    const int&, const int&,
    const int&, const int&,
    const double *, const double *, const double *,
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(inittraceflux3d, INITTRACEFLUX3D) (
+void SAMRAI_F77_FUNC(inittraceflux3d, INITTRACEFLUX3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -98,14 +98,14 @@ void F77_FUNC(inittraceflux3d, INITTRACEFLUX3D) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(computesound2d, COMPUTESOUND2D) (
+void SAMRAI_F77_FUNC(computesound2d, COMPUTESOUND2D) (
    const int&, const int&,
    const int&, const int&,
    const double&,
    const double *, const double *, const double *,
    double *);
 
-void F77_FUNC(computesound3d, COMPUTESOUND3D) (
+void SAMRAI_F77_FUNC(computesound3d, COMPUTESOUND3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -113,7 +113,7 @@ void F77_FUNC(computesound3d, COMPUTESOUND3D) (
    const double *, const double *, const double *,
    double *);
 
-void F77_FUNC(chartracing2d0, CHARTRACING2D0) (
+void SAMRAI_F77_FUNC(chartracing2d0, CHARTRACING2D0) (
    const double&,
    const int&, const int&,
    const int&, const int&,
@@ -124,30 +124,7 @@ void F77_FUNC(chartracing2d0, CHARTRACING2D0) (
    double *,
    double *, double *);
 
-void F77_FUNC(chartracing3d0, CHARTRACING3D0) (
-   const double&,
-   const int&, const int&,
-   const int&, const int&,
-   const int&, const int&,
-   const int&, const double&, const double&, const int&,
-   const double *,
-   double *, double *,
-   double *, double *,
-   double *,
-   double *, double *);
-
-void F77_FUNC(chartracing2d1, CHARTRACING2D1) (
-   const double&,
-   const int&, const int&,
-   const int&, const int&,
-   const int&, const double&, const double&, const int&,
-   const double *,
-   double *, double *,
-   double *, double *,
-   double *,
-   double *, double *);
-
-void F77_FUNC(chartracing3d1, CHARTRACING3D1) (
+void SAMRAI_F77_FUNC(chartracing3d0, CHARTRACING3D0) (
    const double&,
    const int&, const int&,
    const int&, const int&,
@@ -159,7 +136,18 @@ void F77_FUNC(chartracing3d1, CHARTRACING3D1) (
    double *,
    double *, double *);
 
-void F77_FUNC(chartracing3d2, CHARTRACING3D2) (
+void SAMRAI_F77_FUNC(chartracing2d1, CHARTRACING2D1) (
+   const double&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const double&, const double&, const int&,
+   const double *,
+   double *, double *,
+   double *, double *,
+   double *,
+   double *, double *);
+
+void SAMRAI_F77_FUNC(chartracing3d1, CHARTRACING3D1) (
    const double&,
    const int&, const int&,
    const int&, const int&,
@@ -171,7 +159,19 @@ void F77_FUNC(chartracing3d2, CHARTRACING3D2) (
    double *,
    double *, double *);
 
-void F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D) (
+void SAMRAI_F77_FUNC(chartracing3d2, CHARTRACING3D2) (
+   const double&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const double&, const double&, const int&,
+   const double *,
+   double *, double *,
+   double *, double *,
+   double *,
+   double *, double *);
+
+void SAMRAI_F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D) (
    const double&, const int&,
    const int&,
    const double *,
@@ -183,7 +183,7 @@ void F77_FUNC(fluxcalculation2d, FLUXCALCULATION2D) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxcalculation3d, FLUXCALCULATION3D) (
+void SAMRAI_F77_FUNC(fluxcalculation3d, FLUXCALCULATION3D) (
    const double&, const int&,
    const int&,
    const int&,
@@ -198,7 +198,7 @@ void F77_FUNC(fluxcalculation3d, FLUXCALCULATION3D) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxcorrec2d, FLUXCORREC2D) (
+void SAMRAI_F77_FUNC(fluxcorrec2d, FLUXCORREC2D) (
    const double&,
    const int&, const int&, const int&, const int&, const int&, const int&,
    const double *, const double&, const int&,
@@ -211,7 +211,7 @@ void F77_FUNC(fluxcorrec2d, FLUXCORREC2D) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxcorrec3d, FLUXCORREC3D) (
+void SAMRAI_F77_FUNC(fluxcorrec3d, FLUXCORREC3D) (
    const double&,
    const int&, const int&, const int&, const int&, const int&, const int&,
    const double *, const double&,
@@ -221,7 +221,7 @@ void F77_FUNC(fluxcorrec3d, FLUXCORREC3D) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxcorrec, FLUXCORREC) (
+void SAMRAI_F77_FUNC(fluxcorrec, FLUXCORREC) (
    const double&,
    const int&, const int&, const int&, const int&,
    const double *, const double&,
@@ -230,7 +230,7 @@ void F77_FUNC(fluxcorrec, FLUXCORREC) (
    double *, double *,
    double *, double *);
 
-void F77_FUNC(consdiff2d, CONSDIFF2D) (
+void SAMRAI_F77_FUNC(consdiff2d, CONSDIFF2D) (
    const int&, const int&,
    const int&, const int&,
    const double *,
@@ -239,7 +239,7 @@ void F77_FUNC(consdiff2d, CONSDIFF2D) (
    const double&,
    double *, double *, double *);
 
-void F77_FUNC(consdiff3d, CONSDIFF3D) (
+void SAMRAI_F77_FUNC(consdiff3d, CONSDIFF3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -250,7 +250,7 @@ void F77_FUNC(consdiff3d, CONSDIFF3D) (
    const double&,
    double *, double *, double *);
 
-void F77_FUNC(onethirdstate, onethirdstate) (
+void SAMRAI_F77_FUNC(onethirdstate, ONETHIRDSTATE) (
    const double&, const double *, const int&,
    const int&, const int&, const int&, const int&, const int&, const int&,
    const double&,
@@ -258,7 +258,7 @@ void F77_FUNC(onethirdstate, onethirdstate) (
    const double *, const double *, const double *,
    double *);
 
-void F77_FUNC(fluxthird, fluxthird) (
+void SAMRAI_F77_FUNC(fluxthird, FLUXTHIRD) (
    const double&, const double *, const int&,
    const int&, const int&, const int&, const int&, const int&, const int&,
    const double&,
@@ -266,7 +266,7 @@ void F77_FUNC(fluxthird, fluxthird) (
    const double *, const double *, const double *, const double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxcorrecjt, fluxcorrecjt) (
+void SAMRAI_F77_FUNC(fluxcorrecjt, FLUXCORRECJT) (
    const double&, const double *, const int&,
    const int&, const int&, const int&, const int&, const int&, const int&,
    const double&,
@@ -275,7 +275,7 @@ void F77_FUNC(fluxcorrecjt, fluxcorrecjt) (
    double *, double *, double *,
    double *, double *, double *);
 
-void F77_FUNC(conservlinint2d, conservlinint2d) (
+void SAMRAI_F77_FUNC(conservlinint2d, CONSERVLININT2D) (
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
@@ -290,7 +290,7 @@ void F77_FUNC(conservlinint2d, conservlinint2d) (
    double *, double *,
    double *, double *, double *, double *);
 
-void F77_FUNC(conservavg2d, conservavg2d) (
+void SAMRAI_F77_FUNC(conservavg2d, CONSERVAVG2D) (
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
@@ -300,7 +300,7 @@ void F77_FUNC(conservavg2d, conservavg2d) (
    const double *, const double *,
    double *, double *,
    double *);
-void F77_FUNC(conservlinint3d, conservlinint3d) (
+void SAMRAI_F77_FUNC(conservlinint3d, CONSERVLININT3D) (
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -319,7 +319,7 @@ void F77_FUNC(conservlinint3d, conservlinint3d) (
    double *, double *, double *,
    double *, double *, double *, double *, double *, double *);
 
-void F77_FUNC(conservavg3d, conservavg3d) (
+void SAMRAI_F77_FUNC(conservavg3d, CONSERVAVG3D) (
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -334,7 +334,7 @@ void F77_FUNC(conservavg3d, conservavg3d) (
    double *, double *,
    double *);
 
-void F77_FUNC(detectgrad2d, detectgrad2d) (
+void SAMRAI_F77_FUNC(detectgrad2d, DETECTGRAD2D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&, const int&,
@@ -345,7 +345,7 @@ void F77_FUNC(detectgrad2d, detectgrad2d) (
    const double *,
    int *, int *);
 
-void F77_FUNC(detectgrad3d, detectgrad3d) (
+void SAMRAI_F77_FUNC(detectgrad3d, DETECTGRAD3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -358,7 +358,7 @@ void F77_FUNC(detectgrad3d, detectgrad3d) (
    const double *,
    int *, int *);
 
-void F77_FUNC(detectshock2d, detectshock2d) (
+void SAMRAI_F77_FUNC(detectshock2d, DETECTSHOCK2D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&, const int&,
@@ -369,7 +369,7 @@ void F77_FUNC(detectshock2d, detectshock2d) (
    const double *,
    int *, int *);
 
-void F77_FUNC(detectshock3d, detectshock3d) (
+void SAMRAI_F77_FUNC(detectshock3d, DETECTSHOCK3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -382,7 +382,7 @@ void F77_FUNC(detectshock3d, detectshock3d) (
    const double *,
    int *, int *);
 
-void F77_FUNC(stufprobc, stufprobc) (
+void SAMRAI_F77_FUNC(stufprobc, STUFPROBC) (
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&,

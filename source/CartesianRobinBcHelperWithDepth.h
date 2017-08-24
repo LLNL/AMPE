@@ -113,7 +113,7 @@ public:
       const double fill_time,
       const hier::IntVector& ghost_width_to_fill);
    hier::IntVector
-   getRefineOpStencilWidth() const;
+   getRefineOpStencilWidth(const tbox::Dimension &dim) const;
    virtual void
    preprocessRefineBoxes(
       hier::Patch& fine,

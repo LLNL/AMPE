@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for complex node-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchNodeDataOpsComplex_C
-#define included_math_PatchNodeDataOpsComplex_C
-
 #include "SAMRAI/math/PatchNodeDataOpsComplex.h"
 #include "SAMRAI/pdat/NodeGeometry.h"
 
@@ -42,11 +38,11 @@ PatchNodeDataOpsComplex::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::NodeData<dcomplex> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::NodeData<dcomplex> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -64,7 +60,7 @@ PatchNodeDataOpsComplex::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -73,4 +69,3 @@ PatchNodeDataOpsComplex::printData(
 
 }
 }
-#endif

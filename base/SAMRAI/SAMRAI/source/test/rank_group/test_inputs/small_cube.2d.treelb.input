@@ -3,79 +3,66 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Performance input file for TreeLoadBalancer 
  *
  ************************************************************************/
 
-
+// Refer to rect.2d.treelb.input for full description of all input parameters
+// specific to this problem.
 
 Main {
+   // Dimension of problem.
    dim = 2
 
+   // Base name for log file.
    base_name = "small_cube.2d.treelb"
+
+   // If true all processes generate log files.  Otherwise only process 0 does.
    log_all_nodes = FALSE
 
-   // Balancer types: TreeLoadBalancer, ChopAndPackLoadBalancer
+   // Load balancer choice.  One of TreeLoadBalancer, ChopAndPackLoadBalancer.
    load_balancer_type = "TreeLoadBalancer"
 
-   /*
-     Specify domain as a box array in the reference index space.
-   */
+   // Specify domain as a box array in the reference index space.
    domain_boxes = [(0,0),(199,199)]
 
-   /*
-     Specify anchor layer as a box array in the reference index space.
-     The anchor layer will be partitioned but its partitioning is not
-     used in the performance test.
-
-     If omitted, the anchor layer is the same as the domain.
-   */
+   // Specify anchor layer as a box array in the reference index space.
+   // The anchor layer will be partitioned but its partitioning is not
+   // used in the performance test.
    anchor_boxes = [(0,0),(199,199)]
-   /*
-     If anchor is not contained in domain, you can use this flag
-     to remove the parts that are outside the domain.
-   */
-   autonest_anchor = TRUE
 
-   /*
-     Specify ghost-cell-width between anchor and unbalanced.
-   */
+   // Specify ghost-cell-width between anchor and unbalanced.
    ghost_cell_width = 4, 4
 
-   /*
-     Specify the min patch size.
-   */
+   // Specify the min patch size.
    min_size = 4, 4
 
    PrebalanceByUserBoxes {
-      /*
-        Specify unbalanced layer as a box array in the reference index space.
-
-        initial_owners are the ranks of the owners of all the initial balance boxes.
-        By default, processor 0 owns all the initial balance boxes.
-      */
+      // Specify unbalanced layer as a box array in the reference index space.
       balance_boxes = [(10,10),(189,189)]
+
+      // initial_owners are the ranks of the owners of all the initial balance
+      // boxes.
       initial_owners = 0
    }
 
 }
 
 TreeLoadBalancer {
-  report_load_balance = TRUE // Reported in main
-  n_root_cycles = -1
-  balance_penalty_wt = 1.0
-  surface_penalty_wt = 1.0
-  slender_penalty_wt = 1.0
-  precut_penalty_wt = 1.0
+  DEV_report_load_balance = TRUE // Reported in main
+  DEV_balance_penalty_wt = 1.0
+  DEV_surface_penalty_wt = 1.0
+  DEV_slender_penalty_wt = 1.0
+  DEV_precut_penalty_wt = 1.0
 
   // Debugging options
-  check_map = FALSE
-  check_connectivity = FALSE
-  print_steps = TRUE
-  print_swap_steps = FALSE
-  print_break_steps = FALSE
-  print_edge_steps = FALSE
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = TRUE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
 }
 
 TimerManager {

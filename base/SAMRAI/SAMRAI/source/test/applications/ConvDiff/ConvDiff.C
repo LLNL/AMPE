@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in convection
  *                diffusion example.
  *
@@ -35,7 +35,6 @@ using namespace std;
 
 #include <float.h>
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -91,7 +90,7 @@ ConvDiff::ConvDiff(
    const tbox::Dimension& dim,
    boost::shared_ptr<tbox::Database> input_db,
    boost::shared_ptr<geom::CartesianGridGeometry> grid_geom):
-   algs::MethodOfLinesPatchStrategy::MethodOfLinesPatchStrategy(dim),
+   algs::MethodOfLinesPatchStrategy::MethodOfLinesPatchStrategy(),
    d_object_name(object_name),
    d_dim(dim),
    d_grid_geometry(grid_geom),
@@ -124,10 +123,10 @@ ConvDiff::ConvDiff(
     *     mu    = diffusion coefficient
     *     gamma = source coefficient
     */
-   for (k = 0; k < d_dim.getValue(); k++) d_convection_coeff[k] = 0.;
+   for (k = 0; k < d_dim.getValue(); ++k) d_convection_coeff[k] = 0.;
 
    // Physics parameters
-   for (k = 0; k < NEQU; k++) d_tolerance[k] = 0.;
+   for (k = 0; k < NEQU; ++k) d_tolerance[k] = 0.;
 
    /*
     * Defaults for problem type and initial data.  Set initial
@@ -145,45 +144,44 @@ ConvDiff::ConvDiff(
     * Boundary condition initialization.
     */
    if (d_dim == tbox::Dimension(2)) {
-      d_scalar_bdry_edge_conds.resizeArray(NUM_2D_EDGES);
-      for (int ei = 0; ei < NUM_2D_EDGES; ei++) {
+      d_scalar_bdry_edge_conds.resize(NUM_2D_EDGES);
+      for (int ei = 0; ei < NUM_2D_EDGES; ++ei) {
          d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
       }
 
-      d_scalar_bdry_node_conds.resizeArray(NUM_2D_NODES);
-      d_node_bdry_edge.resizeArray(NUM_2D_NODES);
+      d_scalar_bdry_node_conds.resize(NUM_2D_NODES);
+      d_node_bdry_edge.resize(NUM_2D_NODES);
 
-      for (int ni = 0; ni < NUM_2D_NODES; ni++) {
+      for (int ni = 0; ni < NUM_2D_NODES; ++ni) {
          d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
          d_node_bdry_edge[ni] = BOGUS_BDRY_DATA;
       }
 
-      d_bdry_edge_val.resizeArray(NUM_2D_EDGES);
-      tbox::MathUtilities<double>::setArrayToSignalingNaN(d_bdry_edge_val);
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      d_scalar_bdry_face_conds.resizeArray(NUM_3D_FACES);
-      for (int fi = 0; fi < NUM_3D_FACES; fi++) {
+      d_bdry_edge_val.resize(NUM_2D_EDGES);
+      tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_edge_val);
+   } else if (d_dim == tbox::Dimension(3)) {
+      d_scalar_bdry_face_conds.resize(NUM_3D_FACES);
+      for (int fi = 0; fi < NUM_3D_FACES; ++fi) {
          d_scalar_bdry_face_conds[fi] = BOGUS_BDRY_DATA;
       }
 
-      d_scalar_bdry_edge_conds.resizeArray(NUM_3D_EDGES);
-      d_edge_bdry_face.resizeArray(NUM_3D_EDGES);
-      for (int ei = 0; ei < NUM_3D_EDGES; ei++) {
+      d_scalar_bdry_edge_conds.resize(NUM_3D_EDGES);
+      d_edge_bdry_face.resize(NUM_3D_EDGES);
+      for (int ei = 0; ei < NUM_3D_EDGES; ++ei) {
          d_scalar_bdry_edge_conds[ei] = BOGUS_BDRY_DATA;
          d_edge_bdry_face[ei] = BOGUS_BDRY_DATA;
       }
 
-      d_scalar_bdry_node_conds.resizeArray(NUM_3D_NODES);
-      d_node_bdry_face.resizeArray(NUM_3D_NODES);
+      d_scalar_bdry_node_conds.resize(NUM_3D_NODES);
+      d_node_bdry_face.resize(NUM_3D_NODES);
 
-      for (int ni = 0; ni < NUM_3D_NODES; ni++) {
+      for (int ni = 0; ni < NUM_3D_NODES; ++ni) {
          d_scalar_bdry_node_conds[ni] = BOGUS_BDRY_DATA;
          d_node_bdry_face[ni] = BOGUS_BDRY_DATA;
       }
 
-      d_bdry_face_val.resizeArray(NUM_3D_FACES);
-      tbox::MathUtilities<double>::setArrayToSignalingNaN(d_bdry_face_val);
+      d_bdry_face_val.resize(NUM_3D_FACES);
+      tbox::MathUtilities<double>::setVectorToSignalingNaN(d_bdry_face_val);
    }
 
    /*
@@ -215,13 +213,13 @@ ConvDiff::ConvDiff(
     * so we reset them to FLOW.
     */
    if (d_dim == tbox::Dimension(2)) {
-      for (int i = 0; i < NUM_2D_EDGES; i++) {
+      for (int i = 0; i < NUM_2D_EDGES; ++i) {
          if (d_scalar_bdry_edge_conds[i] == BdryCond::REFLECT) {
             d_scalar_bdry_edge_conds[i] = BdryCond::FLOW;
          }
       }
 
-      for (int i = 0; i < NUM_2D_NODES; i++) {
+      for (int i = 0; i < NUM_2D_NODES; ++i) {
          if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) {
             d_scalar_bdry_node_conds[i] = BdryCond::XFLOW;
          }
@@ -235,15 +233,14 @@ ConvDiff::ConvDiff(
                   i, d_scalar_bdry_node_conds[i]);
          }
       }
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      for (int i = 0; i < NUM_3D_FACES; i++) {
+   } else if (d_dim == tbox::Dimension(3)) {
+      for (int i = 0; i < NUM_3D_FACES; ++i) {
          if (d_scalar_bdry_face_conds[i] == BdryCond::REFLECT) {
             d_scalar_bdry_face_conds[i] = BdryCond::FLOW;
          }
       }
 
-      for (int i = 0; i < NUM_3D_EDGES; i++) {
+      for (int i = 0; i < NUM_3D_EDGES; ++i) {
          if (d_scalar_bdry_edge_conds[i] == BdryCond::XREFLECT) {
             d_scalar_bdry_edge_conds[i] = BdryCond::XFLOW;
          }
@@ -261,7 +258,7 @@ ConvDiff::ConvDiff(
          }
       }
 
-      for (int i = 0; i < NUM_3D_NODES; i++) {
+      for (int i = 0; i < NUM_3D_NODES; ++i) {
          if (d_scalar_bdry_node_conds[i] == BdryCond::XREFLECT) {
             d_scalar_bdry_node_conds[i] = BdryCond::XFLOW;
          }
@@ -343,7 +340,7 @@ void ConvDiff::registerModelVariables(
    const int size = static_cast<int>(dump_name.length()) + 16;
    char* buffer = new char[size];
 
-   for (int n = 0; n < NEQU; n++) {
+   for (int n = 0; n < NEQU; ++n) {
       sprintf(buffer, "%s%01d", dump_name.c_str(), n);
       string variable_name(buffer);
 #ifdef HAVE_HDF5
@@ -355,7 +352,7 @@ void ConvDiff::registerModelVariables(
       if (!d_visit_writer) {
          TBOX_WARNING(
             d_object_name << ": registerModelVariables()\n"
-                          << "Visit data writer was not registered.\n"
+                          << "VisIt data writer was not registered.\n"
                           << "Consequently, no plot data will\n"
                           << "be written." << endl);
       }
@@ -389,31 +386,28 @@ void ConvDiff::initializeDataOnPatch(
    if (initial_time) {
 
       const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-         patch.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+            patch.getPatchGeometry()));
+      TBOX_ASSERT(patch_geom);
 
       const double* dx = patch_geom->getDx();
       const double* xlo = patch_geom->getXLower();
       const double* xhi = patch_geom->getXUpper();
 
       boost::shared_ptr<pdat::CellData<double> > primitive_vars(
-         patch.getPatchData(d_primitive_vars, getInteriorContext()),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            patch.getPatchData(d_primitive_vars, getInteriorContext())));
 
-#ifdef DEBUG_CHECK_ASSERTIONS
       TBOX_ASSERT(primitive_vars);
-#endif
+
       hier::IntVector ghost_cells = primitive_vars->getGhostCellWidth();
 
-      hier::Box pbox = patch.getBox();
-      boost::shared_ptr<pdat::CellData<double> > temp_var(
-         new pdat::CellData<double>(pbox, 1, ghost_cells));
-
-      const hier::Index ifirst = patch.getBox().lower();
-      const hier::Index ilast = patch.getBox().upper();
+      const hier::Box& pbox = patch.getBox();
+      const hier::Index ifirst = pbox.lower();
+      const hier::Index ilast = pbox.upper();
 
       if (d_dim == tbox::Dimension(2)) {
-         F77_FUNC(initsphere2d, INITSPHERE2D) (dx, xlo, xhi,
+         SAMRAI_F77_FUNC(initsphere2d, INITSPHERE2D) (dx, xlo, xhi,
             ifirst(0), ilast(0), ifirst(1), ilast(1),
             ghost_cells(0), ghost_cells(1),
             primitive_vars->getPointer(),
@@ -421,9 +415,8 @@ void ConvDiff::initializeDataOnPatch(
             d_val_outside,
             d_center, d_radius,
             NEQU);
-      }
-      if (d_dim == tbox::Dimension(3)) {
-         F77_FUNC(initsphere3d, INITSPHERE3D) (dx, xlo, xhi,
+      } else if (d_dim == tbox::Dimension(3)) {
+         SAMRAI_F77_FUNC(initsphere3d, INITSPHERE3D) (dx, xlo, xhi,
             ifirst(0), ilast(0), ifirst(1), ilast(1),
             ifirst(2), ilast(2),
             ghost_cells(0), ghost_cells(1),
@@ -437,7 +430,7 @@ void ConvDiff::initializeDataOnPatch(
 
       // tbox::plog << "Level:" << patch.getPatchLevelNumber() << "\n" << endl;
       // tbox::plog << "Patch:" << endl;
-      // primitive_vars->print(patch.getBox(),tbox::plog);
+      // primitive_vars->print(pbox,tbox::plog);
    }
 }
 
@@ -456,16 +449,14 @@ double ConvDiff::computeStableDtOnPatch(
    NULL_USE(time);
 
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
    const double* dx = patch_geom->getDx();
 
-   const hier::Index ifirst = patch.getBox().lower();
-   const hier::Index ilast = patch.getBox().upper();
-
-   boost::shared_ptr<pdat::CellData<double> > primitive_vas(
-      patch.getPatchData(d_primitive_vars, getInteriorContext()),
-      boost::detail::dynamic_cast_tag());
+   const hier::Box& pbox = patch.getBox();
+   const hier::Index ifirst = pbox.lower();
+   const hier::Index ilast = pbox.upper();
 
    double stabdt = 0.0;
 
@@ -476,8 +467,7 @@ double ConvDiff::computeStableDtOnPatch(
 
    if (d_dim == tbox::Dimension(2)) {
       stabdt = d_cfl * ((*dx) * (*dx));
-   }
-   if (d_dim == tbox::Dimension(3)) {
+   } else if (d_dim == tbox::Dimension(3)) {
       stabdt = d_cfl * ((*dx) * (*dx) * (*dx));
    }
 
@@ -514,23 +504,28 @@ void ConvDiff::singleStep(
 {
 
    boost::shared_ptr<pdat::CellData<double> > prim_var_updated(
-      patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext()),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext())));
 
    boost::shared_ptr<pdat::CellData<double> > prim_var_fixed(
-      patch.getPatchData(d_primitive_vars, getInteriorContext()),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_primitive_vars, getInteriorContext())));
 
    boost::shared_ptr<pdat::CellData<double> > function_eval(
-      patch.getPatchData(d_function_eval, getInteriorContext()),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_function_eval, getInteriorContext())));
+   TBOX_ASSERT(prim_var_updated);
+   TBOX_ASSERT(prim_var_fixed);
+   TBOX_ASSERT(function_eval);
 
-   const hier::Index ifirst = patch.getBox().lower();
-   const hier::Index ilast = patch.getBox().upper();
+   const hier::Box& pbox = patch.getBox();
+   const hier::Index ifirst = pbox.lower();
+   const hier::Index ilast = pbox.upper();
 
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
    const double* dx = patch_geom->getDx();
 
 //      tbox::plog << "----primitive_var_current" << endl;
@@ -541,7 +536,7 @@ void ConvDiff::singleStep(
 // Evaluate Right hand side F(prim_var_scratch)
 //
    if (d_dim == tbox::Dimension(2)) {
-      F77_FUNC(computerhs2d, COMPUTERHS2D) (ifirst(0), ilast(0), ifirst(1),
+      SAMRAI_F77_FUNC(computerhs2d, COMPUTERHS2D) (ifirst(0), ilast(0), ifirst(1),
          ilast(1),
          d_nghosts(0), d_nghosts(1),
          dx,
@@ -551,9 +546,8 @@ void ConvDiff::singleStep(
          prim_var_updated->getPointer(),
          function_eval->getPointer(),
          NEQU);
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      F77_FUNC(computerhs3d, COMPUTERHS3D) (ifirst(0), ilast(0), ifirst(1),
+   } else if (d_dim == tbox::Dimension(3)) {
+      SAMRAI_F77_FUNC(computerhs3d, COMPUTERHS3D) (ifirst(0), ilast(0), ifirst(1),
          ilast(1),
          ifirst(2), ilast(2),
          d_nghosts(0), d_nghosts(1),
@@ -573,7 +567,7 @@ void ConvDiff::singleStep(
 // Take RK step
 //
    if (d_dim == tbox::Dimension(2)) {
-      F77_FUNC(rkstep2d, RKSTEP2D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
+      SAMRAI_F77_FUNC(rkstep2d, RKSTEP2D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
          d_nghosts(0), d_nghosts(1),
          dt, alpha_1, alpha_2, beta,
          d_convection_coeff,
@@ -583,9 +577,8 @@ void ConvDiff::singleStep(
          prim_var_fixed->getPointer(),
          function_eval->getPointer(),
          NEQU);
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      F77_FUNC(rkstep3d, RKSTEP3D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
+   } else if (d_dim == tbox::Dimension(3)) {
+      SAMRAI_F77_FUNC(rkstep3d, RKSTEP3D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
          ifirst(2), ilast(2),
          d_nghosts(0), d_nghosts(1),
          d_nghosts(2),
@@ -623,28 +616,30 @@ void ConvDiff::tagGradientDetectorCells(
    NULL_USE(uses_richardson_extrapolation_too);
 
    boost::shared_ptr<pdat::CellData<int> > tags(
-      patch.getPatchData(tag_index),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         patch.getPatchData(tag_index)));
    boost::shared_ptr<pdat::CellData<double> > primitive_vars(
-      patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext()),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext())));
+   TBOX_ASSERT(tags);
+   TBOX_ASSERT(primitive_vars);
 
-   const hier::Index ifirst = patch.getBox().lower();
-   const hier::Index ilast = patch.getBox().upper();
+   const hier::Box& pbox = patch.getBox();
+   const hier::Index ifirst = pbox.lower();
+   const hier::Index ilast = pbox.upper();
 
    const hier::IntVector var_ghosts = primitive_vars->getGhostCellWidth();
 
    if (d_dim == tbox::Dimension(2)) {
-      F77_FUNC(tagcells2d, TAGCELLS2D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
+      SAMRAI_F77_FUNC(tagcells2d, TAGCELLS2D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
          var_ghosts(0), var_ghosts(1),
          tags->getPointer(),
          primitive_vars->getPointer(),
          true,
          d_tolerance,
          NEQU);
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      F77_FUNC(tagcells3d, TAGCELLS3D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
+   } else if (d_dim == tbox::Dimension(3)) {
+      SAMRAI_F77_FUNC(tagcells3d, TAGCELLS3D) (ifirst(0), ilast(0), ifirst(1), ilast(1),
          ifirst(2), ilast(2),
          var_ghosts(0), var_ghosts(1),
          var_ghosts(2),
@@ -654,54 +649,6 @@ void ConvDiff::tagGradientDetectorCells(
          d_tolerance,
          NEQU);
    }
-}
-
-void ConvDiff::preprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio)
-{
-   NULL_USE(fine);
-   NULL_USE(coarse);
-   NULL_USE(fine_box);
-   NULL_USE(ratio);
-}
-
-void ConvDiff::postprocessRefine(
-   hier::Patch& fine,
-   const hier::Patch& coarse,
-   const hier::Box& fine_box,
-   const hier::IntVector& ratio)
-{
-   NULL_USE(fine);
-   NULL_USE(coarse);
-   NULL_USE(fine_box);
-   NULL_USE(ratio);
-}
-
-void ConvDiff::preprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio)
-{
-   NULL_USE(coarse);
-   NULL_USE(fine);
-   NULL_USE(coarse_box);
-   NULL_USE(ratio);
-}
-
-void ConvDiff::postprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio)
-{
-   NULL_USE(coarse);
-   NULL_USE(fine);
-   NULL_USE(coarse_box);
-   NULL_USE(ratio);
 }
 
 /*
@@ -722,16 +669,11 @@ void ConvDiff::setPhysicalBoundaryConditions(
    NULL_USE(fill_time);
 
    boost::shared_ptr<pdat::CellData<double> > primitive_vars(
-      patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext()),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_primitive_vars, getInteriorWithGhostsContext())));
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(primitive_vars);
-#endif
-   hier::IntVector ghost_cells = primitive_vars->getGhostCellWidth();
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(primitive_vars->getGhostCellWidth() == d_nghosts);
-#endif
 
    if (d_dim == tbox::Dimension(2)) {
 
@@ -771,8 +713,7 @@ void ConvDiff::setPhysicalBoundaryConditions(
 #endif
 
    } // d_dim == tbox::Dimension(2))
-
-   if (d_dim == tbox::Dimension(3)) {
+   else if (d_dim == tbox::Dimension(3)) {
 
       /*
        *  Set boundary conditions for cells corresponding to patch faces.
@@ -841,9 +782,7 @@ void ConvDiff::setPhysicalBoundaryConditions(
 void ConvDiff::registerVisItDataWriter(
    boost::shared_ptr<appu::VisItDataWriter> viz_writer)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(viz_writer);
-#endif
    d_visit_writer = viz_writer;
 }
 #endif
@@ -867,7 +806,7 @@ void ConvDiff::printClassData(
       << d_grid_geometry.get() << endl;
 
    os << "Coefficients..." << endl;
-   for (j = 0; j < d_dim.getValue(); j++) os << "d_convection_coeff[" << j << "] = "
+   for (j = 0; j < d_dim.getValue(); ++j) os << "d_convection_coeff[" << j << "] = "
                                              << d_convection_coeff[j] << endl;
    os << "d_diffusion_coeff = " << d_diffusion_coeff << endl;
    os << "d_source_coeff = " << d_source_coeff << endl;
@@ -877,18 +816,18 @@ void ConvDiff::printClassData(
 
    os << "       d_radius = " << d_radius << endl;
    os << "       d_center = ";
-   for (j = 0; j < d_dim.getValue(); j++) os << d_center[j] << " ";
+   for (j = 0; j < d_dim.getValue(); ++j) os << d_center[j] << " ";
    os << endl;
    os << "       d_val_inside = ";
-   for (j = 0; j < NEQU; j++) os << d_val_inside[j] << " ";
+   for (j = 0; j < NEQU; ++j) os << d_val_inside[j] << " ";
    os << endl;
    os << "       d_val_outside = ";
-   for (j = 0; j < NEQU; j++) os << d_val_outside[j] << " ";
+   for (j = 0; j < NEQU; ++j) os << d_val_outside[j] << " ";
    os << endl;
 
    os << "Boundary Condition data..." << endl;
    if (d_dim == tbox::Dimension(2)) {
-      for (j = 0; j < d_scalar_bdry_edge_conds.getSize(); j++) {
+      for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j) {
          os << "       d_scalar_bdry_edge_conds[" << j << "] = "
             << d_scalar_bdry_edge_conds[j] << endl;
          if (d_scalar_bdry_edge_conds[j] == BdryCond::DIRICHLET) {
@@ -897,15 +836,14 @@ void ConvDiff::printClassData(
          }
       }
       os << endl;
-      for (j = 0; j < d_scalar_bdry_node_conds.getSize(); j++) {
+      for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j) {
          os << "       d_scalar_bdry_node_conds[" << j << "] = "
             << d_scalar_bdry_node_conds[j] << endl;
          os << "       d_node_bdry_edge[" << j << "] = "
             << d_node_bdry_edge[j] << endl;
       }
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      for (j = 0; j < d_scalar_bdry_face_conds.getSize(); j++) {
+   } else if (d_dim == tbox::Dimension(3)) {
+      for (j = 0; j < static_cast<int>(d_scalar_bdry_face_conds.size()); ++j) {
          os << "       d_scalar_bdry_face_conds[" << j << "] = "
             << d_scalar_bdry_face_conds[j] << endl;
          if (d_scalar_bdry_face_conds[j] == BdryCond::DIRICHLET) {
@@ -914,14 +852,14 @@ void ConvDiff::printClassData(
          }
       }
       os << endl;
-      for (j = 0; j < d_scalar_bdry_edge_conds.getSize(); j++) {
+      for (j = 0; j < static_cast<int>(d_scalar_bdry_edge_conds.size()); ++j) {
          os << "       d_scalar_bdry_edge_conds[" << j << "] = "
             << d_scalar_bdry_edge_conds[j] << endl;
          os << "       d_edge_bdry_face[" << j << "] = "
             << d_edge_bdry_face[j] << endl;
       }
       os << endl;
-      for (j = 0; j < d_scalar_bdry_node_conds.getSize(); j++) {
+      for (j = 0; j < static_cast<int>(d_scalar_bdry_node_conds.size()); ++j) {
          os << "       d_scalar_bdry_node_conds[" << j << "] = "
             << d_scalar_bdry_node_conds[j] << endl;
          os << "       d_node_bdry_face[" << j << "] = "
@@ -942,39 +880,37 @@ void ConvDiff::printClassData(
  *************************************************************************
  */
 void ConvDiff::getFromInput(
-   boost::shared_ptr<tbox::Database> db,
+   boost::shared_ptr<tbox::Database> input_db,
    bool is_from_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(db);
-#endif
+   TBOX_ASSERT(input_db);
 
-   if (db->keyExists("convection_coeff")) {
-      db->getDoubleArray("convection_coeff",
+   if (input_db->keyExists("convection_coeff")) {
+      input_db->getDoubleArray("convection_coeff",
          d_convection_coeff, d_dim.getValue());
    } else {
       TBOX_ERROR(
          d_object_name << ":  "
                        << "Key data `convection_coeff' not found in input.");
    }
-   if (db->keyExists("diffusion_coeff")) {
-      d_diffusion_coeff = db->getDouble("diffusion_coeff");
+   if (input_db->keyExists("diffusion_coeff")) {
+      d_diffusion_coeff = input_db->getDouble("diffusion_coeff");
    } else {
       TBOX_ERROR(
          d_object_name << ":  "
                        << "Key data `diffusion_coeff' not found in input.");
    }
-   if (db->keyExists("source_coeff")) {
-      d_source_coeff = db->getDouble("source_coeff");
+   if (input_db->keyExists("source_coeff")) {
+      d_source_coeff = input_db->getDouble("source_coeff");
    } else {
       TBOX_ERROR(d_object_name << ":  "
                                << "Key data `source_coeff' not found in input.");
    }
 
-   d_cfl = db->getDoubleWithDefault("cfl", d_cfl);
+   d_cfl = input_db->getDoubleWithDefault("cfl", d_cfl);
 
-   if (db->keyExists("cell_tagging_tolerance")) {
-      db->getDoubleArray("cell_tagging_tolerance",
+   if (input_db->keyExists("cell_tagging_tolerance")) {
+      input_db->getDoubleArray("cell_tagging_tolerance",
          d_tolerance, NEQU);
    } else {
       TBOX_ERROR(
@@ -984,8 +920,8 @@ void ConvDiff::getFromInput(
 
    if (!is_from_restart) {
 
-      if (db->keyExists("data_problem")) {
-         d_data_problem = db->getString("data_problem");
+      if (input_db->keyExists("data_problem")) {
+         d_data_problem = input_db->getString("data_problem");
       } else {
          TBOX_ERROR(
             d_object_name << ": "
@@ -993,13 +929,13 @@ void ConvDiff::getFromInput(
                           << endl);
       }
 
-      if (!db->keyExists("Initial_data")) {
+      if (!input_db->keyExists("Initial_data")) {
          TBOX_ERROR(
             d_object_name << ": "
                           << "No `Initial_data' database found in input." << endl);
       }
       boost::shared_ptr<tbox::Database> init_data_db(
-         db->getDatabase("Initial_data"));
+         input_db->getDatabase("Initial_data"));
 
       bool found_problem_data = false;
 
@@ -1045,26 +981,25 @@ void ConvDiff::getFromInput(
                           << endl);
       }
 
-      const hier::IntVector one_vec = hier::IntVector::getOne(d_dim);
+      const hier::IntVector& one_vec(hier::IntVector::getOne(d_dim));
       hier::IntVector periodic = d_grid_geometry->getPeriodicShift(one_vec);
       int num_per_dirs = 0;
-      for (int id = 0; id < d_dim.getValue(); id++) {
-         if (periodic(id)) num_per_dirs++;
+      for (int id = 0; id < d_dim.getValue(); ++id) {
+         if (periodic(id)) ++num_per_dirs;
       }
 
-      if (db->keyExists("Boundary_data")) {
+      if (input_db->keyExists("Boundary_data")) {
          boost::shared_ptr<tbox::Database> boundary_db(
-            db->getDatabase("Boundary_data"));
+            input_db->getDatabase("Boundary_data"));
 
          if (d_dim == tbox::Dimension(2)) {
-            appu::CartesianBoundaryUtilities2::readBoundaryInput(this,
+            appu::CartesianBoundaryUtilities2::getFromInput(this,
                boundary_db,
                d_scalar_bdry_edge_conds,
                d_scalar_bdry_node_conds,
                periodic);
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            appu::CartesianBoundaryUtilities3::readBoundaryInput(this,
+         } else if (d_dim == tbox::Dimension(3)) {
+            appu::CartesianBoundaryUtilities3::getFromInput(this,
                boundary_db,
                d_scalar_bdry_face_conds,
                d_scalar_bdry_edge_conds,
@@ -1089,38 +1024,40 @@ void ConvDiff::getFromInput(
  *************************************************************************
  */
 
-void ConvDiff::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+void ConvDiff::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(db);
-#endif
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("CONV_DIFF_VERSION", CONV_DIFF_VERSION);
+   restart_db->putInteger("CONV_DIFF_VERSION", CONV_DIFF_VERSION);
 
-   db->putDouble("d_diffusion_coeff", d_diffusion_coeff);
-   db->putDoubleArray("d_convection_coeff", d_convection_coeff, d_dim.getValue());
-   db->putDouble("d_source_coeff", d_source_coeff);
-   db->putIntegerArray("d_nghosts", &d_nghosts[0], d_dim.getValue());
+   restart_db->putDouble("d_diffusion_coeff", d_diffusion_coeff);
+   restart_db->putDoubleArray("d_convection_coeff",
+      d_convection_coeff,
+      d_dim.getValue());
+   restart_db->putDouble("d_source_coeff", d_source_coeff);
+   restart_db->putIntegerArray("d_nghosts", &d_nghosts[0], d_dim.getValue());
 
-   db->putString("d_data_problem", d_data_problem);
+   restart_db->putString("d_data_problem", d_data_problem);
 
-   db->putDouble("d_radius", d_radius);
-   db->putDoubleArray("d_center", d_center, d_dim.getValue());
-   db->putDoubleArray("d_val_inside", d_val_inside, NEQU);
-   db->putDoubleArray("d_val_outside", d_val_outside, NEQU);
+   restart_db->putDouble("d_radius", d_radius);
+   restart_db->putDoubleArray("d_center", d_center, d_dim.getValue());
+   restart_db->putDoubleArray("d_val_inside", d_val_inside, NEQU);
+   restart_db->putDoubleArray("d_val_outside", d_val_outside, NEQU);
 
-   db->putDouble("d_cfl", d_cfl);
+   restart_db->putDouble("d_cfl", d_cfl);
 
-   db->putIntegerArray("d_scalar_bdry_edge_conds", d_scalar_bdry_edge_conds);
-   db->putIntegerArray("d_scalar_bdry_node_conds", d_scalar_bdry_node_conds);
+   restart_db->putIntegerVector("d_scalar_bdry_edge_conds",
+      d_scalar_bdry_edge_conds);
+   restart_db->putIntegerVector("d_scalar_bdry_node_conds",
+      d_scalar_bdry_node_conds);
 
    if (d_dim == tbox::Dimension(2)) {
-      db->putDoubleArray("d_bdry_edge_val", d_bdry_edge_val);
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      db->putIntegerArray("d_scalar_bdry_face_conds", d_scalar_bdry_face_conds);
-      db->putDoubleArray("d_bdry_face_val", d_bdry_face_val);
+      restart_db->putDoubleVector("d_bdry_edge_val", d_bdry_edge_val);
+   } else if (d_dim == tbox::Dimension(3)) {
+      restart_db->putIntegerVector("d_scalar_bdry_face_conds",
+         d_scalar_bdry_face_conds);
+      restart_db->putDoubleVector("d_bdry_face_val", d_bdry_face_val);
    }
 
 }
@@ -1164,16 +1101,16 @@ void ConvDiff::getFromRestart()
 
    d_cfl = db->getDouble("d_cfl");
 
-   d_scalar_bdry_edge_conds = db->getIntegerArray("d_scalar_bdry_edge_conds");
-   d_scalar_bdry_node_conds = db->getIntegerArray("d_scalar_bdry_node_conds");
+   d_scalar_bdry_edge_conds = db->getIntegerVector("d_scalar_bdry_edge_conds");
+   d_scalar_bdry_node_conds = db->getIntegerVector("d_scalar_bdry_node_conds");
 
    if (d_dim == tbox::Dimension(2)) {
-      d_bdry_edge_val = db->getDoubleArray("d_bdry_edge_val");
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      d_scalar_bdry_face_conds = db->getIntegerArray("d_scalar_bdry_face_conds");
+      d_bdry_edge_val = db->getDoubleVector("d_bdry_edge_val");
+   } else if (d_dim == tbox::Dimension(3)) {
+      d_scalar_bdry_face_conds =
+         db->getIntegerVector("d_scalar_bdry_face_conds");
 
-      d_bdry_face_val = db->getDoubleArray("d_bdry_face_val");
+      d_bdry_face_val = db->getDoubleVector("d_bdry_face_val");
    }
 
 }
@@ -1191,17 +1128,15 @@ void ConvDiff::readDirichletBoundaryDataEntry(
    string& db_name,
    int bdry_location_index)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(db);
    TBOX_ASSERT(!db_name.empty());
-#endif
+
    if (d_dim == tbox::Dimension(2)) {
       readStateDataEntry(db,
          db_name,
          bdry_location_index,
          d_bdry_edge_val);
-   }
-   if (d_dim == tbox::Dimension(3)) {
+   } else if (d_dim == tbox::Dimension(3)) {
       readStateDataEntry(db,
          db_name,
          bdry_location_index,
@@ -1214,17 +1149,15 @@ void ConvDiff::readNeumannBoundaryDataEntry(
    string& db_name,
    int bdry_location_index)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(db);
    TBOX_ASSERT(!db_name.empty());
-#endif
+
    if (d_dim == tbox::Dimension(2)) {
       readStateDataEntry(db,
          db_name,
          bdry_location_index,
          d_bdry_edge_val);
-   }
-   if (d_dim == tbox::Dimension(3)) {
+   } else if (d_dim == tbox::Dimension(3)) {
       readStateDataEntry(db,
          db_name,
          bdry_location_index,
@@ -1236,14 +1169,12 @@ void ConvDiff::readStateDataEntry(
    boost::shared_ptr<tbox::Database> db,
    const string& db_name,
    int array_indx,
-   tbox::Array<double>& val)
+   std::vector<double>& val)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(db);
    TBOX_ASSERT(!db_name.empty());
    TBOX_ASSERT(array_indx >= 0);
-   TBOX_ASSERT(val.getSize() > array_indx);
-#endif
+   TBOX_ASSERT(static_cast<int>(val.size()) > array_indx);
 
    if (db->keyExists("val")) {
       val[array_indx] = db->getDouble("val");
@@ -1267,14 +1198,13 @@ void ConvDiff::checkBoundaryData(
    int btype,
    const hier::Patch& patch,
    const hier::IntVector& ghost_width_to_check,
-   const tbox::Array<int>& scalar_bconds) const
+   const std::vector<int>& scalar_bconds) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    if (d_dim == tbox::Dimension(2)) {
       TBOX_ASSERT(btype == Bdry::EDGE2D ||
          btype == Bdry::NODE2D);
-   }
-   if (d_dim == tbox::Dimension(3)) {
+   } else if (d_dim == tbox::Dimension(3)) {
       TBOX_ASSERT(btype == Bdry::FACE3D ||
          btype == Bdry::EDGE3D ||
          btype == Bdry::NODE3D);
@@ -1282,53 +1212,46 @@ void ConvDiff::checkBoundaryData(
 #endif
 
    const boost::shared_ptr<geom::CartesianPatchGeometry> pgeom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
-   const tbox::Array<hier::BoundaryBox> bdry_boxes =
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(pgeom);
+   const std::vector<hier::BoundaryBox>& bdry_boxes =
       pgeom->getCodimensionBoundaries(btype);
 
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
 
-   for (int i = 0; i < bdry_boxes.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(bdry_boxes.size()); ++i) {
       hier::BoundaryBox bbox = bdry_boxes[i];
-#ifdef DEBUG_CHECK_ASSERTIONS
       TBOX_ASSERT(bbox.getBoundaryType() == btype);
-#endif
       int bloc = bbox.getLocationIndex();
 
       int bscalarcase = 0, refbdryloc = 0;
       if (d_dim == tbox::Dimension(2)) {
          if (btype == Bdry::EDGE2D) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(scalar_bconds.getSize() == NUM_2D_EDGES);
-#endif
+            TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
+               NUM_2D_EDGES);
             bscalarcase = scalar_bconds[bloc];
             refbdryloc = bloc;
          } else { // btype == Bdry::NODE2D
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(scalar_bconds.getSize() == NUM_2D_NODES);
-#endif
+            TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
+               NUM_2D_NODES);
             bscalarcase = scalar_bconds[bloc];
             refbdryloc = d_node_bdry_edge[bloc];
          }
-      }
-      if (d_dim == tbox::Dimension(3)) {
+      } else if (d_dim == tbox::Dimension(3)) {
          if (btype == Bdry::FACE3D) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(scalar_bconds.getSize() == NUM_3D_FACES);
-#endif
+            TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
+               NUM_3D_FACES);
             bscalarcase = scalar_bconds[bloc];
             refbdryloc = bloc;
          } else if (btype == Bdry::EDGE3D) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(scalar_bconds.getSize() == NUM_3D_EDGES);
-#endif
+            TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
+               NUM_3D_EDGES);
             bscalarcase = scalar_bconds[bloc];
             refbdryloc = d_edge_bdry_face[bloc];
          } else { // btype == Bdry::NODE3D
-#ifdef DEBUG_CHECK_ASSERTIONS
-            TBOX_ASSERT(scalar_bconds.getSize() == NUM_3D_NODES);
-#endif
+            TBOX_ASSERT(static_cast<int>(scalar_bconds.size()) ==
+               NUM_3D_NODES);
             bscalarcase = scalar_bconds[bloc];
             refbdryloc = d_node_bdry_face[bloc];
          }
@@ -1348,8 +1271,7 @@ void ConvDiff::checkBoundaryData(
                bbox,
                bscalarcase,
                d_bdry_edge_val[refbdryloc]);
-      }
-      if (d_dim == tbox::Dimension(3)) {
+      } else if (d_dim == tbox::Dimension(3)) {
          num_bad_values =
             appu::CartesianBoundaryUtilities3::checkBdryData(
                d_primitive_vars->getName(),

@@ -3,136 +3,112 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for the multiblock linear advector for
  *                advecting a blob through a spherical shell
  *
  ************************************************************************/
 
-// -------------------------------------------------------------------
-//  problem setup
-// -------------------------------------------------------------------
-
-// ----------------- define the size of each block
-NRAD    = 20 // 4
-NRADM   = NRAD - 1
-MLEVELS = 2
-
 MblkGeometry {
+
+   //Choices are CARTESIAN, WEDGE, and SPHERICAL_SHELL.  Only SPHERICAL_SHELL
+   //sets up a multiblock problem.
    problem_type = "SPHERICAL_SHELL"
 
+   //Define the parameters of the shell
    ShellGeometry {
+      //Minimum and maximum sperical radii, no default
       rmin = 1.e0 
       rmax = 2.e0 
 
+      //Choices are SOLID and OCTANT, no default
       shell_type = "OCTANT"
    }
 
-
-   // The refinement boxes are specified here because the MultiblockGriddingAlg does not have any
-   // way to take in refinement boxes for multiple blocks.  The format is "refine_boxes[block][lev]".
-   // level 0
-   // refine_boxes_0_0 = [(5,0,0),(5,9,9)]
-   // refine_boxes_1_0 = [(5,0,0),(5,9,9)]
-   // refine_boxes_2_0 = [(5,0,0),(5,9,9)]
-   // level 1
-   // refine_boxes_0_1 = [(20,0,0),(20,39,39)]
-   // refine_boxes_1_1 = [(20,0,0),(20,39,39)]
-   // refine_boxes_2_1 = [(20,0,0),(20,39,39)]
 }
-
-// -------------- some calculations for placing the blob in the middle of each octant
-r    = 1.5
-pi   = 3.14159265358979
-pio8 = pi/8
-pio4 = pi/4
-phi1 = 3.0*pi/8.0
-xx   = r*cos(pio8)*cos(pio8)
-yy   = r*sin(pio8)*cos(pio8)
-zz   = r*sin(pio8)
-
-xxx   = r*cos(pio4)*cos(phi1)
-yyy   = r*sin(pio4)*cos(phi1)
-zzz   = r*sin(phi1)
 
 MblkEuler {
 
-   advection_test     = 1
-
-   // 0, cartesian, 1 R translation, 2 rigid body theta rotation, 4, rigid body phi rotation
+   // advection velocity type, no default
+   // 0 - cartesian
+   // 1 - R translation
+   // 2 - rigid body theta rotation
+   // 4 - rigid body phi rotation
    advection_vel_type = 1
-	
-   // advection_velocity = 2.0e0 , 0.0e0 , 0.0e0
-   // advection_velocity = 0.0e0 , 2.0e0 , 0.0e0
+
+   // advection velocity vector--vector of length dim.
+   // No default
    advection_velocity = 0.0e0 , 0.0e0 , 2.0e0
 
+   // General type of problem and its initial conditions.  Options are
+   // "SPHERE", "PIECEWISE_CONSTANT_X", "PIECEWISE_CONSTANT_"Y,
+   // "PIECEWISE_CONSTANT_Z"
+   //  Specific Initial_data inputs vary by problem type.
+   // No default.
    data_problem      = "SPHERE"
 
-   // center            = xx, yy, zz     // middle of block 0
-   // center            = yy, xx, zz  // middle of block 1
-   // center               = xxx, yyy, zzz  // middle of block 2
-   // center            = 0.75 , 0.75, 0.75 // middle of the shell
-   // front_position    = 0.0, 0.2, 1.e20
-   
+   // Position of the middle of the shell--vector of length dim
    center            = 0.0, 0.0, 0.0 // middle of the shell
+
+   // Position of the front--vector of length dim 
    front_position    = 0.0, 1.5, 1.e20
 
+   // List names of state data to initialize 
    state_names = "rho"
 
+   // Initial values for rho in each region
    state_data {
       rho = 1.0, 2.0
    }
 
-/*
-   state_names = "rho", "u", "v", "w", "p", "ss"
-
-   state_data {
-      rho = 1.0, 2.0
-      u   = 1.0, 0.0
-      v   = 1.0, 4.0
-      w   = 1.0, 0.0
-      p   = 1.0, 6.0
-      ss  = 1.0, 0.0
-   }
-*/
-
+   // Control of how to refine.
    Refinement_data {
-      refine_criteria = "GRADIENT"
+     // Can be GRADIENT or USER_DEFINED.  No default 
+     refine_criteria = "GRADIENT"
 
-      GRADIENT {
-         names = "rho"
-         rho   = 0.5
-      }
+     // Identify name of variable and a gradient tolerance.  Tagging will
+     // occur where the gradient is greater than the tolerance.
+     GRADIENT {
+        names = "rho"
+        rho   = 0.5  // gradient tolerance for rho
+     }
    }
 
 }
 
 
-// -------------------------------------------------------------------
-//  hydro blocks
-// -------------------------------------------------------------------
 
 Main {
+
+   // Dimension of problem.  No default.
    dim = 3
-// log file parameters 
-   log_file_name    = "octant.log"
-   log_all_nodes    = TRUE
 
-// visualization dump parameters 
-   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
+   // Visualization dump parameters.
+
+   // Frequency at which to dump viz output--zero to turn off
+   // Default is 0.
    viz_dump_interval     = 1          // zero to turn off
+
+   // Directory in which to place viz output.
+   // No default, error will occur if viz_dump_interval > 0 and
+   // this directory name is not specified.
    viz_dump_dirname      = "viz_octant-3blk"
-   viz_dump_filename     = "octant"    // not used by VisIt
-   visit_number_procs_per_file = 1    // not used by Vizamrai
 
+   // Number of processors that write to each viz file, default is 1.
+   visit_number_procs_per_file = 1
 
-// restart dump parameters
+   // Frequency at which to dump restart output--zero to turn off
+   // Default is 0.
    restart_interval       = 0         // zero to turn off
+
+   // Directory in which to place restart output.
+   // No default, error will occur if restart_interval > 0 and
+   // this directory name is not specified.
    restart_write_dirname  = "restart_octant"
 
 }
 
-
+// Refer to tbox::TimerManager for input
 TimerManager {
 //   timer_list               = "apps::*::*",
 //                              "algs::*::*",
@@ -144,30 +120,34 @@ TimerManager {
    print_threshold        = 0.0
 }
 
-
-GriddingAlgorithm{
+// Refer to mesh::BergerRigoutsos for input
+BergerRigoutsos {
    efficiency_tolerance    = 0.7e0   // min % of tag cells in new patch level
    combine_efficiency      = 0.7e0   // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
+                                     // boxes < efficiency * vol of large box
+}
 
+// Refer to mesh::GriddingAlgorithm for input
+GriddingAlgorithm{
    sequentialize_patch_indices = TRUE
 
 }
 
-
+// Refer to mesh::StandardTagAndInitialize for input
 StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR"
 }
 
-
+// Refer to algs::HyperbolicLevelIntegrator for input
 HyperbolicLevelIntegrator{
    cfl                       = 0.5e0    // max cfl factor used in problem
    cfl_init                  = 0.5e0    // initial cfl factor
    lag_dt_computation        = TRUE
    use_ghosts_to_compute_dt  = TRUE
+   do_coarsening             = FALSE
 }
 
-
+// Refer to algs::TimeRefinementIntegrator for input
 TimeRefinementIntegrator{
    tag_buffer           = 2, 2, 2 // number of zones used in the tag buffer
    start_time           = 0.e0     // initial simulation time
@@ -176,38 +156,24 @@ TimeRefinementIntegrator{
    max_integrator_steps = 10 // 2 // 100    // max number of simulation timesteps
 }
 
-
+// Refer to mesh::TreeLoadBalancer for input
 TreeLoadBalancer {
 }
 
-
-// -------------------------------------------------------------------
-//  The mesh
-// -------------------------------------------------------------------
-
-
-// Geometries of the hierachy blocks
+// Refer to hier::BaseGridGeometry and geom::GridGeometry for input
 BlockGeometry {
    num_blocks = 3
 
-   domain_boxes_0 = [ (0,0,0) , (NRADM,NRADM,NRADM) ]
-   domain_boxes_1 = [ (0,0,0) , (NRADM,NRADM,NRADM) ]
-   domain_boxes_2 = [ (0,0,0) , (NRADM,NRADM,NRADM) ]
-
-   // Singularity defn and neighbors
-   Singularity0 {
-      blocks = 0 , 1 , 2
-      sing_box_0 = [ (0,NRAD,NRAD), (NRADM,NRAD,NRAD) ]
-      sing_box_1 = [ (0,-1,  NRAD), (NRADM,-1,  NRAD) ]
-      sing_box_2 = [ (0,NRAD,NRAD), (NRADM,NRAD,NRAD) ]
-   }
+   domain_boxes_0 = [ (0,0,0) , (19,19,19) ]
+   domain_boxes_1 = [ (0,0,0) , (19,19,19) ]
+   domain_boxes_2 = [ (0,0,0) , (19,19,19) ]
 
    BlockNeighbors0 {
       block_a = 0
       block_b = 1
 
       rotation_b_to_a = "I_UP", "J_UP", "K_UP" 
-      point_in_a_space = 0, NRAD, 0
+      point_in_a_space = 0, 20, 0
       point_in_b_space = 0, 0,    0
    }
 
@@ -217,8 +183,8 @@ BlockGeometry {
 
       // j index in block a is k up in block b index
       rotation_b_to_a = "I_UP", "K_UP" , "J_DOWN"
-      point_in_a_space = 0, 0, NRAD
-      point_in_b_space = 0, NRADM, 0
+      point_in_a_space = 0, 0, 20
+      point_in_b_space = 0, 19, 0
    }
 
    BlockNeighbors2 {
@@ -226,14 +192,14 @@ BlockGeometry {
       block_b = 2
 
       rotation_b_to_a = "I_UP", "J_DOWN" , "K_DOWN"
-      point_in_a_space = 0, 0, NRAD
-      point_in_b_space = 0, NRADM , NRADM
+      point_in_a_space = 0, 0, 20
+      point_in_b_space = 0, 19 , 19
    }
 }
 
-
+// Refer to hier::PatchHierarchy for input
 PatchHierarchy {
-   max_levels = MLEVELS       // Maximum number of levels in hierarchy.
+   max_levels = 2       // Maximum number of levels in hierarchy.
    ratio_to_coarser {      // vector ratio to next coarser level
       level_1 = 2 , 2 , 2
    }

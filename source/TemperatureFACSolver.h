@@ -47,7 +47,7 @@ public:
 
    TemperatureFACSolver(
       const std::string &object_name,
-      TemperatureFACOps* fac_ops,
+      boost::shared_ptr<TemperatureFACOps> fac_ops,
       const boost::shared_ptr<tbox::Database> database =
          boost::shared_ptr<tbox::Database>() );
 

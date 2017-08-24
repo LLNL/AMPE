@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -16,7 +16,7 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -36,7 +36,7 @@ CellVariable<TYPE>::CellVariable(
    int depth):
    hier::Variable(name,
                   boost::make_shared<CellDataFactory<TYPE> >(depth,
-                     hier::IntVector::getZero(dim))) // default zero ghost cells
+                                                             hier::IntVector::getZero(dim))) // default zero ghost cells
 {
 }
 
@@ -50,7 +50,8 @@ int
 CellVariable<TYPE>::getDepth() const
 {
    boost::shared_ptr<CellDataFactory<TYPE> > cell_factory(
-      getPatchDataFactory());
+      BOOST_CAST<CellDataFactory<TYPE>, hier::PatchDataFactory>(
+         getPatchDataFactory()));
    TBOX_ASSERT(cell_factory);
    return cell_factory->getDepth();
 }
@@ -87,33 +88,6 @@ bool
 CellVariable<TYPE>::dataLivesOnPatchBorder() const
 {
    return false;
-}
-
-/*
- *************************************************************************
- *
- * These are private and should not be used.  They are defined here
- * because some template instantiation methods fail if some member
- * functions are left undefined.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-CellVariable<TYPE>::CellVariable(
-   const CellVariable<TYPE>& foo):
-   hier::Variable(NULL,
-                  boost::shared_ptr<hier::PatchDataFactory>())
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-CellVariable<TYPE>::operator = (
-   const CellVariable<TYPE>& foo)
-{
-   NULL_USE(foo);
 }
 
 }

@@ -3,10 +3,12 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing communication of SAMRAI node data. 
  *
  ************************************************************************/
+// Refer to cell.2d.input for full description of all input parameters
+// specific to this problem.
 
 Main {
     dim = 3
@@ -19,7 +21,7 @@ Main {
 //
 // Testing information, including number of times to perform schedule
 // creation and communication processes, name of particular patch data
-// test, and refine and coarsen test information
+// test
 //    
     ntimes_run = 1  // default is 1
 
@@ -31,21 +33,6 @@ Main {
 //    test_to_run = "FaceMultiblockTest"
     test_to_run = "NodeMultiblockTest"
 //  test_to_run = "SideMultiblockTest"
-//  test_to_run = "MultiVariableMultiblockTest"
-
-//  
-// Either refine test or coarsen test can be run, but not both.  This 
-// ensures proper validation of communicated data.  Default test is 
-// to refine refine data with interior patch data filled from same level.
-// If `do_refine' is true, then refine test will occur and coarsen test
-// will not.  Refine test also allows option of filling patch interiors 
-// from coarser levels.  Coarsen test has no options as coarse patch 
-// interiors will always be filled with coarsened data from finer level.
-//
-    do_refine = TRUE
-    refine_option = "INTERIOR_FROM_SAME_LEVEL"
- 
-    do_coarsen = FALSE
 }
 
 TimerManager {
@@ -64,20 +51,6 @@ TimerManager {
 NodeMultiblockTest {
 
    //
-   // Anything specific to the test goes here...
-   //
-   // e.g., coefficients for linear function to interpolate
-   //          Ax + By + Cz + D = f(x,y,z)
-   //          (NOTE: f(x,y,z) is the value assigned to each 
-   //                 array value at initialization and 
-   //                 against which interpolation is tested) 
-   //   
-   Acoef = 2.1
-   Bcoef = 3.2
-   Ccoef = 4.3
-   Dcoef = 5.4
-
-   //
    // The VariableData database is read in by the PatchMultiblockTestStrategy
    // base class.  Each sub-database must contain variable parameter data.
    // The name of the sub-databases for each variable is arbitrary.  But
@@ -87,7 +60,6 @@ NodeMultiblockTest {
    //    Optional input:  depth              (default = 1)
    //                     src_ghosts         (default = 0,0,0)
    //                     dst_ghosts         (default = 0,0,0)
-   //                     coarsen_operator   (default = "NO_COARSEN")
    //                     refine_operator    (default = "NO_REFINE")
    //
    VariableData {
@@ -98,7 +70,6 @@ NodeMultiblockTest {
          depth = 1
          src_ghosts = 0,0,0
          dst_ghosts = 1,1,1
-         coarsen_operator = "NO_COARSEN"
          refine_operator = "NO_REFINE"
       }
    }
@@ -114,14 +85,6 @@ BlockGridGeometry {
    domain_boxes_1 = [ (0,0,0) , (25,13,15) ]
    domain_boxes_2 = [ (0,0,0) , (15,25,20) ]
 
-   Singularity0 {
-      blocks = 0,1,2
-
-      sing_box_0 = [(21,14,0),(21,14,15)]
-      sing_box_1 = [(-1,14,0),(-1,14,15)]
-      sing_box_2 = [(0,-1,-1),(15,-1,-1)]
-   }
- 
    BlockNeighbors0 {
       block_a = 0
       block_b = 1
@@ -168,24 +131,23 @@ PatchHierarchy {
    }
 }
 
-
-GriddingAlgorithm {
-
+BergerRigoutsos {
    efficiency_tolerance     = 0.70e0   // min % of tag cells in new patch level
    combine_efficiency       = 0.85e0   // chop box if sum of volumes of smaller
                                        // boxes < efficiency * vol of large box
 }
 
+GriddingAlgorithm {
+}
+
 TreeLoadBalancer {
-// processors      = 1 , 1 
-   use_spatial_bin_pack = TRUE
 }
 
 StandardTaggingAndInitializer {
    tagging_method = "REFINE_BOXES"
-
-   RefineBoxes {
-      level_0 = [ (5,5,5) , (6,7,7) ]
+   level_0 {
+      block_0 {
+         boxes = [ (5,5,5) , (6,7,7) ]
+      }
    }
-
 }

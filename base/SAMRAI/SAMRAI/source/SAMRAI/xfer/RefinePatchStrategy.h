@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface to user routines for refining AMR data.
  *
  ************************************************************************/
@@ -13,10 +13,12 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/hier/Box.h"
+#include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "SAMRAI/xfer/RefineClasses.h"
 
 #include <set>
 
@@ -50,8 +52,11 @@ namespace xfer {
  * process an entire patch at one time.  By default, the box list version
  * loops over all of the boxes in the box list and calls the single box version.
  *
- * @see xfer::RefineAlgorithm
- * @see xfer::RefineSchedule
+ * For operations on a mesh with block-singularities, implementations of this
+ * class must also inherit and implement SingularityPatchStrategy.
+ *
+ * @see RefineAlgorithm
+ * @see RefineSchedule
  */
 
 class RefinePatchStrategy
@@ -65,9 +70,7 @@ public:
     * getRefineOpStencilWidth() for every RefinePatchStrategy of the
     * given Dimension used in an application.
     *
-    * @param[in] dim   Only objects with this dimension will be used to
-    *                  calculate the max.  If a RefinePatchStrategy with
-    *                  another dimension is registered, it will be ignored.
+    * @param[in] dim
     */
    static hier::IntVector
    getMaxRefineOpStencilWidth(
@@ -79,8 +82,7 @@ public:
     * The constructor will register the constructed object with a static
     * set that manages all RefinePatchStrategy objects in an application.
     */
-   explicit RefinePatchStrategy(
-      const tbox::Dimension& dim);
+   RefinePatchStrategy();
 
    /*!
     * @brief Destructor
@@ -109,41 +111,6 @@ public:
       const hier::IntVector& ghost_width_to_fill) = 0;
 
    /*!
-    * @brief Set the ghost data at a multiblock singularity.
-    *
-    * This virtual method allows for a user-defined implemenation to fill
-    * ghost data at ghost regions located at reduced or enhanced connectivity
-    * multiblock singularities.  The method is virtual so that it need not
-    * be overridden in single-block applications.  The encon_level and
-    * dst_to_encon arguments may be ignored if the patch touches
-    * no enhanced connectivity singularities.
-    *
-    * The patches in encon level are in the coordinate system of the blocks
-    * where they originated, not in that of the destination patch, so the
-    * filling operation must take into account the transformation between
-    * blocks.
-    *
-    * @param patch The patch containing the data to be filled
-    * @param encon_level  Level representing enhanced connectivity ghost
-    *                     regions
-    * @param dst_to_encon  Connector from destination level to encon_level
-    * @param fill_time Simulation time at which data is filled
-    * @param fill_box Box covering maximum amount of ghost cells to be filled
-    * @param boundary_box BoundaryBox describing location of singularity in
-    *                     relation to patch
-    * @param[in] grid_geometry
-    */
-   virtual void
-   fillSingularityBoundaryConditions(
-      hier::Patch& patch,
-      const hier::PatchLevel& encon_level,
-      const hier::Connector& dst_to_encon,
-      const double fill_time,
-      const hier::Box& fill_box,
-      const hier::BoundaryBox& boundary_box,
-      const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry);
-
-   /*!
     * @brief Return maximum stencil width needed for user-defined
     * data refinement operations performed by this object.
     *
@@ -153,9 +120,12 @@ public:
     * For any user-defined interpolation operations implemented in the
     * preprocess or postprocess methods, return the maximum stencil needed
     * on a coarse patch to refine data to a fine patch.
+    * If your implementation doesn't work with the given dimension, return
+    * zero.
     */
    virtual hier::IntVector
-   getRefineOpStencilWidth() const = 0;
+   getRefineOpStencilWidth(
+      const tbox::Dimension& dim) const = 0;
 
    /*!
     * @brief Perform user-defined patch data refinement operations.
@@ -216,6 +186,9 @@ public:
     * @param[in] fine_boxes  List of box regions on fine patch into which data
     *                        is refined.
     * @param[in] ratio     Refinement ratio between coarse and fine patches.
+    *
+    * @pre (fine.getDim() == coarse.getDim()) &&
+    *      (fine.getDim() == ratio.getDim())
     */
    virtual void
    preprocessRefineBoxes(
@@ -224,8 +197,8 @@ public:
       const hier::BoxContainer& fine_boxes,
       const hier::IntVector& ratio)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS3(fine, coarse, ratio);
-      for (hier::BoxContainer::const_iterator b(fine_boxes);
+      TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
+      for (hier::BoxContainer::const_iterator b = fine_boxes.begin();
            b != fine_boxes.end(); ++b) {
          preprocessRefine(fine, coarse, *b, ratio);
       }
@@ -245,6 +218,9 @@ public:
     * @param[in] fine_boxes  List of box regions on fine patch into which data
     *                        is refined.
     * @param[in] ratio     Refinement ratio between coarse and fine patches.
+    *
+    * @pre (fine.getDim() == coarse.getDim()) &&
+    *      (fine.getDim() == ratio.getDim())
     */
    virtual void
    postprocessRefineBoxes(
@@ -253,20 +229,67 @@ public:
       const hier::BoxContainer& fine_boxes,
       const hier::IntVector& ratio)
    {
-      TBOX_DIM_ASSERT_CHECK_DIM_ARGS3(d_dim, fine, coarse, ratio);
-      for (hier::BoxContainer::const_iterator b(fine_boxes);
+      TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
+      for (hier::BoxContainer::const_iterator b = fine_boxes.begin();
            b != fine_boxes.end(); ++b) {
          postprocessRefine(fine, coarse, *b, ratio);
       }
    }
 
    /*!
-    * @brief Return the dimension of this object.
+    * @brief Perform user-defined patch data pre-refinement operations
+    * on a PatchLevel.
+    *
+    * This member function is called before standard refine operations
+    * (expressed using concrete subclasses of the RefineOperator base class).
+    *
+    * @param[out] fine_level     Fine patch level containing destination data.
+    * @param[in] coarse_level    Coarse patch level containing source data.
+    * @param[in] coarse_to_fine      Connector coarse to fine
+    * @param[in] coarse_to_unfilled  Connector coarse to level representing
+    *                                boxes that need to be filled.
+    * @param[in] overlaps
+    * @param[in] refine_items
     */
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
+   virtual void
+   preprocessRefineLevel(
+      hier::PatchLevel& fine_level,
+      const hier::PatchLevel& coarse_level,
+      const hier::Connector& coarse_to_fine,
+      const hier::Connector& coarse_to_unfilled,
+      const std::vector<std::vector<boost::shared_ptr<hier::BoxOverlap> > >& overlaps,
+      const RefineClasses::Data** refine_items) {
+      NULL_USE(fine_level);
+      NULL_USE(coarse_level);
+      NULL_USE(coarse_to_fine);
+      NULL_USE(coarse_to_unfilled);
+      NULL_USE(overlaps);
+      NULL_USE(refine_items);
+   }
+
+   /*!
+    * @brief Perform user-defined patch data post-refinement
+    * operations on a PatchLevel.
+    *
+    * This member function is called after standard refine operations
+    * (expressed using concrete subclasses of the RefineOperator base class).
+    *
+    * @param[out] fine_level     Fine patch level containing destination data.
+    * @param[in] coarse_level    Coarse patch level containing source data.
+    * @param[in] coarse_to_fine      Connector coarse to fine
+    * @param[in] coarse_to_unfilled  Connector coarse to level representing
+    *                                boxes that need to be filled.
+    */
+   virtual void
+   postprocessRefineLevel(
+      hier::PatchLevel& fine_level,
+      const hier::PatchLevel& coarse_level,
+      const hier::Connector& coarse_to_fine,
+      const hier::Connector& coarse_to_unfilled) {
+      NULL_USE(fine_level);
+      NULL_USE(coarse_level);
+      NULL_USE(coarse_to_fine);
+      NULL_USE(coarse_to_unfilled);
    }
 
 private:
@@ -282,11 +305,6 @@ private:
    }
 
    /*!
-    * @brief Dimension of the object.
-    */
-   const tbox::Dimension d_dim;
-
-   /*!
     * @brief Register the object with a set of all RefinePatchStrategy
     * objects used in an application.
     */
@@ -295,7 +313,6 @@ private:
    {
       std::set<RefinePatchStrategy *>& current_objects =
          RefinePatchStrategy::getCurrentObjects();
-      TBOX_DIM_ASSERT_CHECK_DIM(d_dim);
       current_objects.insert(this);
    }
 
@@ -307,7 +324,6 @@ private:
    {
       std::set<RefinePatchStrategy *>& current_objects =
          RefinePatchStrategy::getCurrentObjects();
-      TBOX_DIM_ASSERT_CHECK_DIM(d_dim);
       current_objects.erase(this);
    }
 

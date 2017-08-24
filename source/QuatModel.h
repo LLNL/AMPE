@@ -444,7 +444,7 @@ public :
    //
    // Methods inherited from Serializable (through PFModel)
    //
-   virtual void putToDatabase(const boost::shared_ptr<tbox::Database>& db )const;
+   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db )const;
 
    //-----------------------------------------------------------------------
    //
@@ -777,7 +777,7 @@ private :
    boost::shared_ptr<xfer::RefineAlgorithm > d_curr_to_curr_refine_alg;
    boost::shared_ptr<xfer::RefineAlgorithm > d_curr_to_scr_refine_alg;
 
-   tbox::Array< boost::shared_ptr< xfer::RefineSchedule > >
+   std::vector< boost::shared_ptr< xfer::RefineSchedule > >
       d_curr_to_scr_refine_sched;
 
    QuatGradStrategy* d_quat_grad_strategy;

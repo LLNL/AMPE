@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   set geometry for multiblock domain
  *
  ************************************************************************/
@@ -17,6 +17,9 @@
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
+
+#include <cmath>
+#include <vector>
 
 #define POLY3(i, j, k, imin, jmin, kmin, nx, nxny) \
    ((i - imin) + (j - jmin) * (nx) + (k - kmin) * (nxny))
@@ -33,21 +36,19 @@ MblkGeometry::MblkGeometry(
    const std::string& object_name,
    const tbox::Dimension& dim,
    boost::shared_ptr<tbox::Database> input_db,
-   const int nblocks):
+   const size_t nblocks):
    d_dim(dim)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!object_name.empty());
    TBOX_ASSERT(input_db);
-#endif
 
    d_object_name = object_name;
    //tbox::RestartManager::getManager()->registerRestartItem(d_object_name, this);
 
    d_nblocks = nblocks;
 
-   d_metrics_set.resizeArray(10);
-   for (int i = 0; i < 10; i++) {
+   d_metrics_set.resize(10);
+   for (int i = 0; i < 10; ++i) {
       d_metrics_set[i] = false;
    }
 
@@ -96,12 +97,12 @@ std::string MblkGeometry::getGeometryType()
  */
 bool MblkGeometry::getRefineBoxes(
    hier::BoxContainer& refine_boxes,
-   const int block_number,
+   const hier::BlockId::block_t block_number,
    const int level_number)
 {
    bool boxes_exist = false;
-   if (block_number < d_refine_boxes.getSize()) {
-      if (level_number < d_refine_boxes[level_number].getSize()) {
+   if (block_number < d_refine_boxes.size()) {
+      if (level_number < static_cast<int>(d_refine_boxes[level_number].size())) {
          boxes_exist = true;
          refine_boxes = d_refine_boxes[block_number][level_number];
       }
@@ -123,15 +124,14 @@ void MblkGeometry::tagOctantCells(
    const double regrid_time,
    const int refine_tag_val)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(d_geom_problem == "SPHERICAL_SHELL" &&
       d_sshell_type == "OCTANT");
    TBOX_ASSERT(temp_tags);
-#endif
 
    boost::shared_ptr<pdat::NodeData<double> > xyz(
-      patch.getPatchData(xyz_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<double>, hier::PatchData>(
+         patch.getPatchData(xyz_id)));
+   TBOX_ASSERT(xyz);
 
    if (d_dim == tbox::Dimension(3)) {
       /*
@@ -143,9 +143,9 @@ void MblkGeometry::tagOctantCells(
          + (regrid_time * d_tag_velocity) + (0.5 * d_tag_width);
 
       hier::Box pbox = patch.getBox();
-      for (int k = pbox.lower(2); k <= pbox.upper(2) + 1; k++) {
-         for (int j = pbox.lower(1); j <= pbox.upper(1) + 1; j++) {
-            for (int i = pbox.lower(0); i <= pbox.upper(0) + 1; i++) {
+      for (int k = pbox.lower(2); k <= pbox.upper(2) + 1; ++k) {
+         for (int j = pbox.lower(1); j <= pbox.upper(1) + 1; ++j) {
+            for (int i = pbox.lower(0); i <= pbox.upper(0) + 1; ++i) {
                hier::Index ic(i, j, k);
                pdat::NodeIndex node(ic, pdat::NodeIndex::LLL);
                hier::Index icm1(i - 1, j - 1, k - 1);
@@ -176,9 +176,7 @@ void MblkGeometry::getFromInput(
    boost::shared_ptr<tbox::Database> input_db,
    bool is_from_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(input_db);
-#endif
 
    NULL_USE(is_from_restart);
 
@@ -187,9 +185,9 @@ void MblkGeometry::getFromInput(
    d_geom_problem = db->getString("problem_type");
 
    bool found = false;
-   int i, nb;
+   int i;
    char block_name[128];
-   double temp_domain[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double temp_domain[SAMRAI::MAX_DIM_VAL];
 
    /*
     * Cartesian geometry
@@ -199,10 +197,10 @@ void MblkGeometry::getFromInput(
       boost::shared_ptr<tbox::Database> cart_db(
          db->getDatabase("CartesianGeometry"));
 
-      d_cart_xlo.resizeArray(d_nblocks);
-      d_cart_xhi.resizeArray(d_nblocks);
+      d_cart_xlo.resize(d_nblocks);
+      d_cart_xhi.resize(d_nblocks);
 
-      for (nb = 0; nb < d_nblocks; nb++) {
+      for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
 
          // xlo
          sprintf(block_name, "domain_xlo_%d", nb);
@@ -212,9 +210,9 @@ void MblkGeometry::getFromInput(
                                      << "' domain_xlo for block " << nb
                                      << " not found in input." << std::endl);
          }
-         d_cart_xlo[nb].resizeArray(d_dim.getValue());
+         d_cart_xlo[nb].resize(d_dim.getValue());
          cart_db->getDoubleArray(block_name, temp_domain, d_dim.getValue());
-         for (i = 0; i < d_dim.getValue(); i++) {
+         for (i = 0; i < d_dim.getValue(); ++i) {
             d_cart_xlo[nb][i] = temp_domain[i];
          }
 
@@ -226,9 +224,9 @@ void MblkGeometry::getFromInput(
                                      << "' domain_xhi for block " << nb
                                      << " not found in input." << std::endl);
          }
-         d_cart_xhi[nb].resizeArray(d_dim.getValue());
+         d_cart_xhi[nb].resize(d_dim.getValue());
          cart_db->getDoubleArray(block_name, temp_domain, d_dim.getValue());
-         for (i = 0; i < d_dim.getValue(); i++) {
+         for (i = 0; i < d_dim.getValue(); ++i) {
             d_cart_xhi[nb][i] = temp_domain[i];
          }
 
@@ -244,10 +242,10 @@ void MblkGeometry::getFromInput(
       boost::shared_ptr<tbox::Database> wedge_db(
          db->getDatabase("WedgeGeometry"));
 
-      d_wedge_rmin.resizeArray(d_nblocks);
-      d_wedge_rmax.resizeArray(d_nblocks);
+      d_wedge_rmin.resize(d_nblocks);
+      d_wedge_rmax.resize(d_nblocks);
 
-      for (nb = 0; nb < d_nblocks; nb++) {
+      for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
 
          // rmin
          sprintf(block_name, "rmin_%d", nb);
@@ -337,8 +335,8 @@ void MblkGeometry::getFromInput(
    /*
     * Block rotation
     */
-   d_block_rotation.resizeArray(d_nblocks);
-   for (nb = 0; nb < d_nblocks; nb++) {
+   d_block_rotation.resize(d_nblocks);
+   for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
       d_block_rotation[nb] = 0;
       sprintf(block_name, "rotation_%d", nb);
       if (db->keyExists(block_name)) {
@@ -359,24 +357,26 @@ void MblkGeometry::getFromInput(
     * would specify the refinement region on block 2, level 0.
     *
     */
-   d_refine_boxes.resizeArray(d_nblocks);
-   for (nb = 0; nb < d_nblocks; nb++) {
+   d_refine_boxes.resize(d_nblocks);
+   for (hier::BlockId::block_t nb = 0; nb < d_nblocks; ++nb) {
 
       // see what the max number of levels is
       int max_ln = 0;
       int ln;
-      for (ln = 0; ln < 10; ln++) {
+      for (ln = 0; ln < 10; ++ln) {
          sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
-            max_ln++;
+            ++max_ln;
          }
       }
-      d_refine_boxes[nb].resizeArray(max_ln);
+      d_refine_boxes[nb].resize(max_ln);
 
-      for (ln = 0; ln < max_ln; ln++) {
+      for (ln = 0; ln < max_ln; ++ln) {
          sprintf(block_name, "refine_boxes_%d_%d", nb, ln);
          if (db->keyExists(block_name)) {
-            d_refine_boxes[nb][ln] = db->getDatabaseBoxArray(block_name);
+            std::vector<tbox::DatabaseBox> db_box_vector =
+               db->getDatabaseBoxVector(block_name);
+            d_refine_boxes[nb][ln] = db_box_vector;
          } else {
             TBOX_ERROR(
                d_object_name << ": input entry `"
@@ -401,7 +401,7 @@ void MblkGeometry::buildGridOnPatch(
    const hier::Box& domain,
    const int xyz_id,
    const int level_number,
-   const int block_number)
+   const hier::BlockId::block_t block_number)
 {
 
    if (d_geom_problem == "CARTESIAN") {
@@ -492,7 +492,7 @@ void MblkGeometry::getDx(
                        << "takes in the domain." << std::endl);
    }
 
-   for (int i = 0; i < d_dim.getValue(); i++) {
+   for (int i = 0; i < d_dim.getValue(); ++i) {
       dx[i] = d_dx[level_number][i];
    }
 
@@ -507,7 +507,7 @@ void MblkGeometry::getDx(
  */
 
 int MblkGeometry::getBlockRotation(
-   const int block_number)
+   const hier::BlockId::block_t block_number)
 
 {
    return d_block_rotation[block_number];
@@ -529,16 +529,16 @@ void MblkGeometry::setCartesianMetrics(
    hier::Index upper(domain.upper());
    hier::Index diff(upper - lower + hier::Index(lower.getDim(), 1));
 
-   if (d_dx.getSize() < (level_number + 1)) {
-      d_dx.resizeArray(level_number + 1);
-      d_dx[level_number].resizeArray(d_dim.getValue());
+   if (static_cast<int>(d_dx.size()) < (level_number + 1)) {
+      d_dx.resize(level_number + 1);
+      d_dx[level_number].resize(d_dim.getValue());
    }
 
    /*
     * Compute dx from first grid geometry block only.  Its assumed
     * to be uniform across the multiple blocks.
     */
-   for (int i = 0; i < d_dim.getValue(); i++) {
+   for (int i = 0; i < d_dim.getValue(); ++i) {
       d_dx[level_number][i] =
          (d_cart_xhi[0][i] - d_cart_xlo[0][i]) / (double)diff(i);
    }
@@ -559,19 +559,18 @@ void MblkGeometry::buildCartesianGridOnPatch(
    const hier::Patch& patch,
    const int xyz_id,
    const int level_number,
-   const int block_number)
+   const hier::BlockId::block_t block_number)
 {
 
    boost::shared_ptr<pdat::NodeData<double> > xyz(
-      patch.getPatchData(xyz_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<double>, hier::PatchData>(
+         patch.getPatchData(xyz_id)));
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(xyz);
-#endif
 
-   pdat::NodeIterator niend(patch.getBox(), false);
-   for (pdat::NodeIterator ni(patch.getBox(), true); ni != niend; ++ni) {
+   pdat::NodeIterator niend(pdat::NodeGeometry::end(patch.getBox()));
+   for (pdat::NodeIterator ni(pdat::NodeGeometry::begin(patch.getBox()));
+        ni != niend; ++ni) {
       pdat::NodeIndex node = *ni;
       if (d_block_rotation[block_number] == 0) {
 
@@ -626,8 +625,8 @@ void MblkGeometry::setWedgeMetrics(
    //
    // Set dx (dr, dth, dz) for the level
    //
-   d_dx.resizeArray(level_number + 1);
-   d_dx[level_number].resizeArray(d_dim.getValue());
+   d_dx.resize(level_number + 1);
+   d_dx[level_number].resize(d_dim.getValue());
 
    double nr = (domain.upper(0) - domain.lower(0) + 1);
    double nth = (domain.upper(1) - domain.lower(1) + 1);
@@ -654,12 +653,12 @@ void MblkGeometry::buildWedgeGridOnPatch(
    const hier::Patch& patch,
    const int xyz_id,
    const int level_number,
-   const int block_number)
+   const hier::BlockId::block_t block_number)
 {
 
    boost::shared_ptr<pdat::NodeData<double> > xyz(
-      patch.getPatchData(xyz_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<double>, hier::PatchData>(
+         patch.getPatchData(xyz_id)));
 
    TBOX_ASSERT(xyz);
 
@@ -677,7 +676,7 @@ void MblkGeometry::buildWedgeGridOnPatch(
    int nd_nxny = nd_nx * nd_ny;
    //int nd_nel  = nd_nx*nd_ny*nd_nz;
 
-   double dx[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double dx[SAMRAI::MAX_DIM_VAL];
    dx[0] = d_dx[level_number][0];
    dx[1] = d_dx[level_number][1];
 
@@ -687,7 +686,7 @@ void MblkGeometry::buildWedgeGridOnPatch(
    int nd_kmin;
    int nd_kmax;
    dx[2] = d_dx[level_number][2];
-   double* z = NULL;
+   double* z = 0;
    if (d_dim == tbox::Dimension(3)) {
       nd_kmin = ifirst(2) - nghost_cells(2);
       nd_kmax = ilast(2) + 1 + nghost_cells(2);
@@ -702,9 +701,9 @@ void MblkGeometry::buildWedgeGridOnPatch(
    // ----------- set the wedge nodal positions
    //
 
-   for (int k = nd_kmin; k <= nd_kmax; k++) {
-      for (int j = nd_jmin; j <= nd_jmax; j++) {
-         for (int i = nd_imin; i <= nd_imax; i++) {
+   for (int k = nd_kmin; k <= nd_kmax; ++k) {
+      for (int j = nd_jmin; j <= nd_jmax; ++j) {
+         for (int i = nd_imin; i <= nd_imax; ++i) {
 
             int ind = POLY3(i, j, k, nd_imin, nd_jmin, nd_kmin, nd_nx, nd_nxny);
 
@@ -742,8 +741,8 @@ void MblkGeometry::setSShellMetrics(
    //
    // Set dx (drad, dth, dphi) for the level
    //
-   d_dx.resizeArray(level_number + 1);
-   d_dx[level_number].resizeArray(d_dim.getValue());
+   d_dx.resize(level_number + 1);
+   d_dx[level_number].resize(d_dim.getValue());
 
    double nrad = (domain.upper(0) - domain.lower(0) + 1);
    double nth = (domain.upper(1) - domain.lower(1) + 1);
@@ -793,7 +792,7 @@ void MblkGeometry::buildSShellGridOnPatch(
    const hier::Box& domain,
    const int xyz_id,
    const int level_number,
-   const int block_number)
+   const hier::BlockId::block_t block_number)
 {
 
    bool xyz_allocated = patch.checkAllocated(xyz_id);
@@ -803,12 +802,10 @@ void MblkGeometry::buildSShellGridOnPatch(
    }
 
    boost::shared_ptr<pdat::NodeData<double> > xyz(
-      patch.getPatchData(xyz_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<double>, hier::PatchData>(
+         patch.getPatchData(xyz_id)));
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(xyz);
-#endif
 
    if (d_dim == tbox::Dimension(3)) {
 
@@ -863,8 +860,8 @@ void MblkGeometry::buildSShellGridOnPatch(
          // step in a radial direction in x and set y and z appropriately
          // for a solid angle we go -th to th and -phi to phi
          //
-         for (int k = nd_kmin; k <= nd_kmax; k++) {
-            for (int j = nd_jmin; j <= nd_jmax; j++) {
+         for (int k = nd_kmin; k <= nd_kmax; ++k) {
+            for (int j = nd_jmin; j <= nd_jmax; ++j) {
 
                double theta = d_sangle_thmin + j * d_dx[level_number][1]; // dx used for dth
                double phi = d_sangle_thmin + k * d_dx[level_number][2];
@@ -873,7 +870,7 @@ void MblkGeometry::buildSShellGridOnPatch(
                double yface = sin(theta) * cos(phi);
                double zface = sin(phi);
 
-               for (int i = nd_imin; i <= nd_imax; i++) {
+               for (int i = nd_imin; i <= nd_imax; ++i) {
 
                   int ind = POLY3(i,
                         j,
@@ -913,8 +910,8 @@ void MblkGeometry::buildSShellGridOnPatch(
          // the block we are in.  This is contained in the dispOctant.m
          // matlab code.
          //
-         for (int k = nd_kmin; k <= nd_kmax; k++) {
-            for (int j = nd_jmin; j <= nd_jmax; j++) {
+         for (int k = nd_kmin; k <= nd_kmax; ++k) {
+            for (int j = nd_jmin; j <= nd_jmax; ++j) {
 
                //
                // compute the position on the unit sphere for our radial line
@@ -923,7 +920,7 @@ void MblkGeometry::buildSShellGridOnPatch(
                computeUnitSphereOctant(block_number, nth, j, k,
                   &xface, &yface, &zface);
 
-               for (int i = nd_imin; i <= nd_imax; i++) {
+               for (int i = nd_imin; i <= nd_imax; ++i) {
                   int ind = POLY3(i,
                         j,
                         k,
@@ -973,7 +970,7 @@ void MblkGeometry::buildSShellGridOnPatch(
  *************************************************************************
  */
 void MblkGeometry::computeUnitSphereOctant(
-   int nblock,
+   hier::BlockId::block_t nblock,
    int nth,
    int j,
    int k,
@@ -1026,7 +1023,7 @@ void MblkGeometry::computeUnitSphereOctant(
    //
    // nblock = 1, xface = 2, yface, = 3, zface
 
-   int tb = nblock;
+   int tb = static_cast<int>(nblock);
    int tj = j;
    int tk = k;
 

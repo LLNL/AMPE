@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Coarsening algorithm for data transfer between AMR levels
  *
  ************************************************************************/
@@ -21,7 +21,7 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
@@ -89,9 +89,9 @@ namespace xfer {
  * as long as the levels involved in the communication process do not change;
  * thus, they can be used for multiple data communication cycles.
  *
- * @see xfer::CoarsenSchedule
- * @see xfer::CoarsenPatchStrategy
- * @see xfer::CoarsenClasses
+ * @see CoarsenSchedule
+ * @see CoarsenPatchStrategy
+ * @see CoarsenClasses
  */
 
 class CoarsenAlgorithm
@@ -181,6 +181,8 @@ public:
     *                             constructed.  If the NULL default is used,
     *                             then class BoxGeometryVariableFillPattern
     *                             will be used internally.
+    *
+    * @pre !d_schedule_created
     */
    void
    registerCoarsen(
@@ -219,9 +221,6 @@ public:
     * fine level.  To avoid potentially erroneous behavior, the coarse level
     * domain should cover the domain of the fine level.
     *
-    * Neither patch level can be null and when assertion checking is active,
-    * passing a null level pointer will produce an unrecoverable assertion.
-    *
     * Note that the schedule remains valid as long as the levels do not
     * change; thus, it can be used for multiple data communication cycles.
     *
@@ -241,12 +240,16 @@ public:
     *                                pointer is null default state), then a
     *                                StandardCoarsenTransactionFactory object
     *                                will be used.
+    *
+    * @pre crse_level && fine_level
+    * @pre (getDim() == crse_level->getDim()) &&
+    *      (getDim() == fine_level->getDim())
     */
    boost::shared_ptr<CoarsenSchedule>
    createSchedule(
       const boost::shared_ptr<hier::PatchLevel>& crse_level,
       const boost::shared_ptr<hier::PatchLevel>& fine_level,
-      CoarsenPatchStrategy * coarsen_strategy = ((CoarsenPatchStrategy *)NULL),
+      CoarsenPatchStrategy* coarsen_strategy = 0,
       const boost::shared_ptr<CoarsenTransactionFactory>& transaction_factory =
          boost::shared_ptr<CoarsenTransactionFactory>());
 
@@ -265,6 +268,8 @@ public:
     *
     * @param[in] schedule  boost::shared_ptr to coarsen schedule, which cannot
     *                      be null.
+    *
+    * @pre schedule
     */
    bool
    checkConsistency(
@@ -288,6 +293,9 @@ public:
     *
     * @param[in,out] schedule  boost::shared_ptr to coarsen schedule, which
     *                          cannot be null.
+    *
+    * @pre schedule
+    * @pre d_coarsen_classes->classesMatch(schedule->getEquivalenceClasses())
     */
    void
    resetSchedule(
@@ -314,14 +322,9 @@ public:
 private:
    CoarsenAlgorithm(
       const CoarsenAlgorithm&);               // not implemented
-   void
+   CoarsenAlgorithm&
    operator = (
       const CoarsenAlgorithm&);                   // not implemented
-
-   //! @brief Shorthand typedef.
-   typedef hier::Box MBox;
-   //! @brief Shorthand typedef.
-   typedef hier::BoxLevel BoxLevel;
 
    /*!
     * @brief Dimension of the object.

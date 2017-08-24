@@ -130,26 +130,6 @@ QuatFACOps::QuatFACOps(
     d_physical_bc_coef(NULL) ,
     d_flux_scratch_id(-1),
     d_oflux_scratch_id(-1),
-    //d_sqrt_m_refine_operator(),
-    //d_sqrt_m_refine_algorithm(),
-    d_prolongation_refine_operator(),
-    d_prolongation_refine_algorithm(),
-    d_prolongation_refine_schedules(),
-    d_urestriction_coarsen_operator(),
-    d_urestriction_coarsen_algorithm(),
-    d_urestriction_coarsen_schedules(),
-    d_rrestriction_coarsen_operator(),
-    d_rrestriction_coarsen_algorithm(),
-    d_rrestriction_coarsen_schedules(),
-    d_flux_coarsen_operator(),
-    d_flux_coarsen_algorithm(),
-    d_flux_coarsen_schedules(),
-    d_ghostfill_refine_operator(),
-    d_ghostfill_refine_algorithm(),
-    d_ghostfill_refine_schedules(),
-    d_ghostfill_nocoarse_refine_operator(),
-    d_ghostfill_nocoarse_refine_algorithm(),
-    d_ghostfill_nocoarse_refine_schedules(),
     d_bc_helper( tbox::Dimension(NDIM), d_object_name+"::bc helper" ),
     d_enable_logging(false),
     d_verbose(false),
@@ -424,8 +404,8 @@ QuatFACOps::initializeOperatorState(
          TBOX_ERROR(d_object_name << ": RHS component " << component << " does not\n"
                     << "correspond to a variable.\n");
        }
-       boost::shared_ptr<pdat::CellVariable<double> > cell_var ( 
-          var, boost::detail::dynamic_cast_tag());
+       boost::shared_ptr<pdat::CellVariable<double> > cell_var (
+          BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) ); 
        if ( !cell_var ) {
          TBOX_ERROR(d_object_name
                     << ": RHS component " << component << " variable is not cell-centered double\n");
@@ -441,7 +421,7 @@ QuatFACOps::initializeOperatorState(
                     << "correspond to a variable.\n");
        }
        boost::shared_ptr<pdat::CellVariable<double> > cell_var ( 
-          var, boost::detail::dynamic_cast_tag());
+          BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
        if ( !cell_var ) {
          TBOX_ERROR(d_object_name
                     << ": Solution component " << component << " variable is not cell-centered double\n");
@@ -461,8 +441,8 @@ QuatFACOps::initializeOperatorState(
              /*
                Some data checks can only be done if the data already exists.
              */
-             boost::shared_ptr<pdat::CellData<double> > cd ( 
-                fd, boost::detail::dynamic_cast_tag());
+             boost::shared_ptr<pdat::CellData<double> > cd (
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd) ); 
              if ( !cd ) {
                TBOX_ERROR(d_object_name
                           << ": RHS data component " << component << " is not cell-centered double\n");
@@ -478,7 +458,8 @@ QuatFACOps::initializeOperatorState(
              /*
                Some data checks can only be done if the data already exists.
              */
-             boost::shared_ptr<pdat::CellData<double> > cd ( ud, boost::detail::dynamic_cast_tag());
+             boost::shared_ptr<pdat::CellData<double> > cd (
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud) );
              if ( !cd ) {
                TBOX_ERROR(d_object_name
                           << ": Solution data component " << component << " is not cell-centered double\n");
@@ -512,7 +493,7 @@ QuatFACOps::initializeOperatorState(
     * Initialize the coarse-fine boundary description for the
     * hierarchy.
     */
-   d_cf_boundary.resizeArray(d_hierarchy->getNumberOfLevels());
+   d_cf_boundary.resize(d_hierarchy->getNumberOfLevels());
 
    hier::IntVector max_gcw(tbox::Dimension(NDIM),1);
    for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
@@ -556,8 +537,9 @@ QuatFACOps::initializeOperatorState(
     *   acceptable strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry,hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
+   TBOX_ASSERT(geometry);
+
    boost::shared_ptr< hier::Variable > variable;
 
    //vdb->mapIndexToVariable( d_sqrt_m_id, variable );
@@ -567,9 +549,9 @@ QuatFACOps::initializeOperatorState(
 
    for (int component=0; component<d_num_components; component++) {
      vdb->mapIndexToVariable( d_cell_scratch_id[component], variable );
-     d_prolongation_refine_operator[component] =
+     d_prolongation_refine_operator.push_back(
        geometry->lookupRefineOperator( variable,
-                                       d_prolongation_method );
+                                       d_prolongation_method ) );
      d_urestriction_coarsen_operator[component] =
      d_rrestriction_coarsen_operator[component] =
        geometry->lookupCoarsenOperator(variable,
@@ -626,7 +608,8 @@ QuatFACOps::initializeOperatorState(
          allocatePatchData(d_oflux_scratch_id);
    }
 
-   //d_sqrt_m_refine_algorithm.reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+   //d_sqrt_m_refine_algorithm.reset;
+
    //d_sqrt_m_refine_algorithm->
    //   registerRefine( d_sqrt_m_id ,
    //                   d_sqrt_m_id ,
@@ -639,20 +622,20 @@ QuatFACOps::initializeOperatorState(
      because we have deallocated the solver state above.
    */
    for (int component=0; component<d_num_components; component++) {
-     d_prolongation_refine_schedules[component].resizeArray(d_ln_max+1);
-     d_urestriction_coarsen_schedules[component].resizeArray(d_ln_max+1);
-     d_rrestriction_coarsen_schedules[component].resizeArray(d_ln_max+1);
+     d_prolongation_refine_schedules[component].resize(d_ln_max+1);
+     d_urestriction_coarsen_schedules[component].resize(d_ln_max+1);
+     d_rrestriction_coarsen_schedules[component].resize(d_ln_max+1);
    }
    /*
      The following schedules are only needed for component 0,
      since component 1 does not involve fluxes or ghost cells.
    */
-   d_ghostfill_refine_schedules.resizeArray(d_ln_max+1);
-   d_ghostfill_nocoarse_refine_schedules.resizeArray(d_ln_max+1);
-   d_flux_coarsen_schedules.resizeArray(d_ln_max+1);
+   d_ghostfill_refine_schedules.resize(d_ln_max+1);
+   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max+1);
+   d_flux_coarsen_schedules.resize(d_ln_max+1);
 
    for (int component=0; component<d_num_components; component++) {
-     d_prolongation_refine_algorithm[component].reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+     d_prolongation_refine_algorithm[component].reset( new xfer::RefineAlgorithm() );
      d_urestriction_coarsen_algorithm[component].reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
      d_rrestriction_coarsen_algorithm[component].reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
    }
@@ -661,8 +644,9 @@ QuatFACOps::initializeOperatorState(
      since component 1 does not involve fluxes or ghost cells.
    */
    d_flux_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-   d_ghostfill_refine_algorithm.reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
-   d_ghostfill_nocoarse_refine_algorithm.reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+   d_ghostfill_refine_algorithm.reset( new xfer::RefineAlgorithm() );
+   d_ghostfill_nocoarse_refine_algorithm.reset( new xfer::RefineAlgorithm() );
+
 
    /*
      Register the transfer operations
@@ -693,6 +677,8 @@ QuatFACOps::initializeOperatorState(
       registerCoarsen( ( ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id ) ,
                        d_oflux_scratch_id ,
                        d_flux_coarsen_operator );
+
+   assert( d_ghostfill_nocoarse_refine_operator );
    d_ghostfill_nocoarse_refine_algorithm->
       registerRefine( solution.getComponentDescriptorIndex(0) ,
                       solution.getComponentDescriptorIndex(0) ,
@@ -837,12 +823,12 @@ QuatFACOps::computeFaceCoefs(
     for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
       
-      boost::shared_ptr< pdat::SideData<double> > diffusion_coef_data
-        ( patch->getPatchData(diffusion_coef_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr< pdat::SideData<double> > grad_q_data
-        ( patch->getPatchData(grad_q_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data
-        ( patch->getPatchData(face_coef_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr< pdat::SideData<double> > diffusion_coef_data (
+        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(diffusion_coef_id) ) );
+      boost::shared_ptr< pdat::SideData<double> > grad_q_data (
+        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(grad_q_id) ) );
+      boost::shared_ptr< pdat::SideData<double> > face_coef_data (
+        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_id) ) );
        
       assert( diffusion_coef_data->getDepth() == 1 );
       computeFaceCoefsOnPatch(*patch, epsilon_q, *diffusion_coef_data, *grad_q_data,
@@ -871,12 +857,12 @@ QuatFACOps::computeDQuatDPhiFaceCoefs(
     for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
       
-      boost::shared_ptr< pdat::SideData<double> > dprime_data
-        ( patch->getPatchData(dprime_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr< pdat::CellData<double> > phi_data
-        ( patch->getPatchData(phi_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data
-        ( patch->getPatchData(face_coef_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr< pdat::SideData<double> > dprime_data(
+        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(dprime_id) ) );
+      boost::shared_ptr< pdat::CellData<double> > phi_data(
+        BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(phi_id) ) );
+      boost::shared_ptr< pdat::SideData<double> > face_coef_data(
+        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_id) ) );
        
       computeDQuatDPhiFaceCoefsOnPatch(*patch, *dprime_data, *phi_data, *face_coef_data);
     }
@@ -944,19 +930,19 @@ QuatFACOps::setOperatorCoefficients(
       
       // Copy q solution to "local" array member
 
-      boost::shared_ptr<pdat::CellData<double> > q_data
-        ( patch->getPatchData(q_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> > q_local_data
-        ( patch->getPatchData(d_q_local_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > q_data(
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(q_id) ) );
+      boost::shared_ptr<pdat::CellData<double> > q_local_data(
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_q_local_id) ) );
       
       q_local_data->copy(*q_data);
 
       // Copy mobility to local array
 
-      boost::shared_ptr<pdat::CellData<double> > mobility_data
-        ( patch->getPatchData(mobility_id), boost::detail::dynamic_cast_tag() );
-      boost::shared_ptr<pdat::CellData<double> > sqrt_m_data
-        ( patch->getPatchData(d_sqrt_m_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > mobility_data(
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(mobility_id) ) );
+      boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_sqrt_m_id) ) );
       
       sqrt_m_data->copy(*mobility_data);
       takeSquareRootOnPatch(*sqrt_m_data);
@@ -965,10 +951,10 @@ QuatFACOps::setOperatorCoefficients(
 
          // Copy mobility derivatives to local array
 
-         boost::shared_ptr< pdat::CellData<double> > mobility_deriv_data
-            ( patch->getPatchData(mobility_deriv_id), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr< pdat::CellData<double> > m_deriv_data
-            ( patch->getPatchData(d_m_deriv_id), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr< pdat::CellData<double> > mobility_deriv_data(
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(mobility_deriv_id) ) );
+         boost::shared_ptr< pdat::CellData<double> > m_deriv_data(
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_m_deriv_id) ) );
       
          m_deriv_data->copy(*mobility_deriv_data);
       }
@@ -977,10 +963,10 @@ QuatFACOps::setOperatorCoefficients(
 
          // Copy face coef derivatives to local array
 
-         boost::shared_ptr< pdat::SideData<double> > face_coef_deriv_data
-            ( patch->getPatchData(face_coef_deriv_id), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr< pdat::SideData<double> > local_face_coef_deriv_data
-            ( patch->getPatchData(d_face_coef_deriv_id), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr< pdat::SideData<double> > face_coef_deriv_data(
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_deriv_id) ) );
+         boost::shared_ptr< pdat::SideData<double> > local_face_coef_deriv_data(
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(d_face_coef_deriv_id) ) );
       
          local_face_coef_deriv_data->copy(*face_coef_deriv_data);
 
@@ -1028,7 +1014,7 @@ QuatFACOps::deallocateOperatorState()
         level_ptr->deallocatePatchData(d_face_coef_deriv_id);
         level_ptr->deallocatePatchData(d_face_coef_id);
       }
-      d_cf_boundary.resizeArray(0);
+      d_cf_boundary.resize(0);
 #ifdef DEBUG_CHECK_ASSERTIONS
       assert( d_quat_level_solver.size()>0 );
 #endif
@@ -1049,15 +1035,6 @@ QuatFACOps::deallocateOperatorState()
       d_flux_coarsen_algorithm.reset();
       d_ghostfill_refine_algorithm.reset();
       d_ghostfill_nocoarse_refine_algorithm.reset();
-
-      for (int component=0; component<d_num_components; component++) {
-        d_prolongation_refine_schedules[component].setNull();
-        d_urestriction_coarsen_schedules[component].setNull();
-        d_rrestriction_coarsen_schedules[component].setNull();
-      }
-      d_flux_coarsen_schedules.setNull();
-      d_ghostfill_refine_schedules.setNull();
-      d_ghostfill_nocoarse_refine_schedules.setNull();
    }
 }
 
@@ -1340,14 +1317,13 @@ QuatFACOps::ewingFixFlux(
    const int patch_ln = patch.getPatchLevelNumber();
    const int pn = patch.getPatchNumber();
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
    const hier::Box & patch_box( patch.getBox() );
    const hier::Index & plower = patch_box.lower();
    const hier::Index & pupper = patch_box.upper();
 
-   const tbox::Array< hier::BoundaryBox > & bboxes = d_cf_boundary[patch_ln].getBoundaries(pn,1);
+   const std::vector< hier::BoundaryBox > & bboxes = d_cf_boundary[patch_ln].getBoundaries(pn,1);
    int nboxes=bboxes.getSize();
 
    for (int bn=0; bn<nboxes; ++bn ) {
@@ -1509,7 +1485,7 @@ QuatFACOps::computeLambdaOnPatch(
 #endif
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -1576,7 +1552,7 @@ QuatFACOps::checkFluxPatchDataIndex() const
       boost::shared_ptr<hier::Variable > var;
       vdb.mapIndexToVariable(d_flux_id, var);
       boost::shared_ptr<pdat::SideVariable<double> > flux_var ( 
-         var, boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< pdat::SideVariable<double>, hier::Variable >(var));
 #ifdef DEBUG_CHECK_ASSERTIONS
       assert( flux_var );
 #endif
@@ -1732,7 +1708,7 @@ QuatFACOps::computeFluxOnPatch(
    //tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q data..."<<endl;
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -1807,10 +1783,6 @@ QuatFACOps::computeFluxOnPatch(
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & q_gbox = gradq_data.getGhostBox();
-   const hier::Index& qlower = q_gbox.lower();
-   const hier::Index& qupper = q_gbox.upper();
-
    const hier::Box & d_gbox = face_coef_data.getGhostBox();
    const hier::Index& dlower = d_gbox.lower();
    const hier::Index& dupper = d_gbox.upper();
@@ -1863,7 +1835,7 @@ QuatFACOps::computeSymmetricFluxOnPatch(
 #endif
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -2018,13 +1990,13 @@ QuatFACOps::computeCompositeResidualOnLevel(
       boost::shared_ptr< hier::Patch > patch = *pi;
 
       boost::shared_ptr<pdat::CellData<double> > q_data(
-         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(solution.getComponentPatchData ( 0 , *patch )));
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       boost::shared_ptr< pdat::SideData<double> > face_coef_data(
-         patch->getPatchData( d_face_coef_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_face_coef_id) ) );
       boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-         patch->getPatchData( d_sqrt_m_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_sqrt_m_id) ) );
 
       computeSymmetricFluxOnPatch(
                          *patch ,
@@ -2049,15 +2021,15 @@ QuatFACOps::computeCompositeResidualOnLevel(
    for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
       boost::shared_ptr<pdat::CellData<double> > q_data (
-         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(solution.getComponentPatchData ( 0 , *patch )));
       boost::shared_ptr<pdat::CellData<double> > q_rhs_data ( 
-         rhs.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(rhs.getComponentPatchData ( 0 , *patch )));
       boost::shared_ptr<pdat::CellData<double> > q_residual_data (
-         residual.getComponentPatchData( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData( 0 , *patch )));
       boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-         patch->getPatchData( d_sqrt_m_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_sqrt_m_id) ) );
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       boost::shared_ptr<pdat::SideData<int> > rotation_index;
       if( d_rotation_index_id>=0 ){
          rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,hier::PatchData>
@@ -2076,7 +2048,7 @@ QuatFACOps::computeCompositeResidualOnLevel(
           *  avoid writing another loop for it.
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          assert( oflux_data );
 #endif
@@ -2104,7 +2076,7 @@ QuatFACOps::computeResidualOnPatch(
    pdat::CellData<double> &        q_residual_data) const
 {
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
 
    const double *dx = patch_geom->getDx();
 
@@ -2251,9 +2223,9 @@ QuatFACOps::multiplyDQuatDPhiBlock(
          hier::Patch & patch = **pi;
 
          boost::shared_ptr<pdat::CellData<double> > out_data ( 
-            patch.getPatchData(out_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(out_id) ) );
          boost::shared_ptr<pdat::CellData<double> > phi_data ( 
-            patch.getPatchData(phase_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
 
          const hier::Box & box = patch.getBox();
          const hier::Index& lower = box.lower();
@@ -2375,13 +2347,13 @@ QuatFACOps::accumulateOperatorOnLevel(
       boost::shared_ptr< hier::Patch > patch = *pi;
 
       boost::shared_ptr<pdat::SideData<double> > flux_data (
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       boost::shared_ptr< pdat::SideData<double> > face_coef_data(
-         patch->getPatchData( face_coef_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( face_coef_id) ) );
       
       if( grad_q_id==-1 ){
          boost::shared_ptr<pdat::CellData<double> > q_data (
-            patch->getPatchData(q_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(q_id) ) );
 
          computeFluxOnPatch(*patch ,
                             level->getRatioToCoarserLevel() ,
@@ -2391,7 +2363,7 @@ QuatFACOps::accumulateOperatorOnLevel(
       }else{
          //tbox::pout<<"call computeFluxOnPatch()..."<<endl;
          boost::shared_ptr<pdat::SideData<double> > grad_q_data (
-            patch->getPatchData(grad_q_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData(grad_q_id) ) );
          computeFluxOnPatch(*patch ,
                             level->getRatioToCoarserLevel() ,
                             *face_coef_data ,
@@ -2415,16 +2387,16 @@ QuatFACOps::accumulateOperatorOnLevel(
       boost::shared_ptr< hier::Patch > patch = *pi;
       
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       boost::shared_ptr< pdat::CellData<double> > mobility_data(
-         patch->getPatchData( mobility_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
       boost::shared_ptr<pdat::CellData<double> > q_rhs_data(
-         patch->getPatchData(rhs_q_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(rhs_q_id) ) );
 
       if (project && d_qlen != 1) {
 
          boost::shared_ptr<pdat::CellData<double> > q_data (
-            patch->getPatchData(q_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(q_id) ) );
 
          // Temporary to store lambda
          boost::shared_ptr<pdat::CellData<double> > 
@@ -2455,7 +2427,7 @@ QuatFACOps::accumulateOperatorOnLevel(
           *  avoid writing another loop for it.
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          assert( oflux_data );
 #endif
@@ -2480,7 +2452,7 @@ QuatFACOps::accumulateOperatorOnPatch(
    assert( d_rotation_index_id==-1 );
    
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
 
    const double *dx = patch_geom->getDx();
 
@@ -2536,7 +2508,7 @@ QuatFACOps::accumulateProjectedOperatorOnPatch(
    const pdat::CellData<double> &       q_rhs_data ) const
 {
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
 
    const double *dx = patch_geom->getDx();
 
@@ -2618,9 +2590,9 @@ QuatFACOps::multiplyMobilitySqrt(const int id)
          hier::Patch & patch = **pi;
 
          boost::shared_ptr<pdat::CellData<double> > data ( 
-            patch.getPatchData(id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(id) ) );
          boost::shared_ptr<pdat::CellData<double> > sqrt_m_data ( 
-            patch.getPatchData(d_sqrt_m_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_sqrt_m_id) ) );
          int ncomp = data->getDepth();
 
          const hier::Box & gbox = data->getGhostBox();
@@ -2661,9 +2633,9 @@ QuatFACOps::divideMobilitySqrt(const int id)
          hier::Patch & patch = **pi;
 
          boost::shared_ptr<pdat::CellData<double> > data ( 
-            patch.getPatchData(id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(id) ) );
          boost::shared_ptr<pdat::CellData<double> > sqrt_m_data ( 
-            patch.getPatchData(d_sqrt_m_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_sqrt_m_id) ) );
          int ncomp = data->getDepth();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2717,11 +2689,11 @@ QuatFACOps::applyProjectionOnLevel(
       hier::Patch & patch = **pi;
 
       boost::shared_ptr<pdat::CellData<double> > q_data ( 
-         patch.getPatchData(q_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(q_id) ) );
       boost::shared_ptr<pdat::CellData<double> > corr_data ( 
-         patch.getPatchData(corr_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(corr_id) ) );
       boost::shared_ptr<pdat::CellData<double> > err_data ( 
-         patch.getPatchData(err_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(err_id) ) );
 
       const hier::Box & box = patch.getBox();
       const hier::Index& lower = box.lower();
@@ -2775,10 +2747,13 @@ QuatFACOps::xeqScheduleProlongation(
    int scr_id,
    int dest_ln )
 {
+   //tbox::plog<<"xeqScheduleProlongation for component "<<component<<", dest_ln="<<dest_ln<<endl;
+
    if ( ! d_prolongation_refine_schedules[component][dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm refiner;
+
    refiner.
       registerRefine( dst_id ,
                       src_id ,
@@ -2868,10 +2843,12 @@ QuatFACOps::xeqScheduleGhostFill(
    int dst_id,
    int dest_ln )
 {
+   //tbox::plog<<"QuatFACOps::xeqScheduleGhostFill() for dest_ln="<<dest_ln<<endl;
    if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm refiner;
+
    refiner.
       registerRefine( dst_id ,
                       dst_id ,
@@ -2885,17 +2862,21 @@ QuatFACOps::xeqScheduleGhostFill(
 }
 
 
-
+/*
+ * Function called even with single level
+ */
 void
 QuatFACOps::xeqScheduleGhostFillNoCoarse(
    int dst_id,
    int dest_ln )
 {
-   //tbox::pout<<"QuatFACOps::xeqScheduleGhostFillNoCoarse()..."<<endl;
+   //tbox::plog<<"QuatFACOps::xeqScheduleGhostFillNoCoarse()..."<<endl;
    if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   assert( d_ghostfill_nocoarse_refine_operator );
+
+   xfer::RefineAlgorithm refiner;
    refiner.
       registerRefine( dst_id ,
                       dst_id ,

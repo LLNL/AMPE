@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract base class for spatial refinement operators.
  *
  ************************************************************************/
@@ -17,6 +17,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/Variable.h"
+#include "SAMRAI/tbox/OpenMPUtilities.h"
 
 #include <string>
 #include <map>
@@ -25,7 +26,7 @@ namespace SAMRAI {
 namespace hier {
 
 /**
- * Class RefineOperator<DIM> is an abstract base class for each
+ * Class RefineOperator is an abstract base class for each
  * spatial refinement operator used in the SAMRAI framework.  This class
  * defines the interface between numerical refinement routines and the
  * rest of the framework.  Each concrete refinement operator subclass
@@ -58,7 +59,7 @@ namespace hier {
  * and data type as well as the mesh coordinate system, they are defined
  * in the <EM>geometry</EM> package.
  *
- * @see hier::TransferOperatorRegistry
+ * @see TransferOperatorRegistry
  */
 
 class RefineOperator
@@ -66,15 +67,14 @@ class RefineOperator
 public:
    /*!
     * @brief Construct the object with a name to allow the
-    * hier::TransferOperatorRegistry class to look up the object using a
+    * TransferOperatorRegistry class to look up the object using a
     * string.
     *
     * The constructor must be given a name.  The object will be
-    * registered under this name with the hier::TransferOperatorRegistry class.
+    * registered under this name with the TransferOperatorRegistry class.
     * The name must be unique, as duplicate names are not allowed.
     */
    RefineOperator(
-      const tbox::Dimension& dim,
       const std::string& name);
 
    /**
@@ -106,9 +106,12 @@ public:
     * The SAMRAI transfer routines guarantee that the source patch will
     * contain sufficient ghost cell data surrounding the interior to
     * satisfy the stencil width requirements for each refinement operator.
+    * If your implementation doesn't work with the given dimension, return
+    * zero.
     */
    virtual IntVector
-   getStencilWidth() const = 0;
+   getStencilWidth(
+      const tbox::Dimension& dim) const = 0;
 
    /**
     * Refine the source component on the coarse patch to the destination
@@ -136,19 +139,10 @@ public:
    getMaxRefineOpStencilWidth(
       const tbox::Dimension& dim);
 
-   /**
-    * Return the dimension of this object.
-    */
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
-   }
-
 private:
    RefineOperator(
       const RefineOperator&);                   // not implemented
-   void
+   RefineOperator&
    operator = (
       const RefineOperator&);                           // not implemented
 
@@ -165,11 +159,7 @@ private:
     */
    void
    registerInLookupTable(
-      const std::string& name)
-   {
-      s_lookup_table.insert(
-         std::pair<std::string, RefineOperator *>(name, this));
-   }
+      const std::string& name);
 
    /*!
     * @brief Remove the operator with the given name.
@@ -180,19 +170,21 @@ private:
       const std::string& name);
 
    /*!
+    * @brief Method registered with ShutdownManager to initialize statics.
+    */
+   static void
+   initializeCallback();
+
+   /*!
     * @brief Method registered with ShutdownManager to cleanup statics.
     */
    static void
-   finalizeCallback()
-   {
-      s_lookup_table.clear();
-   }
+   finalizeCallback();
 
    const std::string d_name;
 
-   const tbox::Dimension d_dim;
-
    static std::multimap<std::string, RefineOperator *> s_lookup_table;
+   static TBOX_omp_lock_t l_lookup_table;
 
    static tbox::StartupShutdownManager::Handler
       s_finalize_handler;

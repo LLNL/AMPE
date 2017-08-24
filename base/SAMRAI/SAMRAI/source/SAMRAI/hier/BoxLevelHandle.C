@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Registry of BoxLevelHandles incident from a common BoxLevel.
  *
  ************************************************************************/
-#ifndef included_hier_BoxLevelHandle_C
-#define included_hier_BoxLevelHandle_C
-
 #include "SAMRAI/hier/BoxLevelHandle.h"
 #include "SAMRAI/hier/BoxLevel.h"
 
@@ -42,7 +39,7 @@ BoxLevelHandle::~BoxLevelHandle()
 const BoxLevel&
 BoxLevelHandle::getBoxLevel() const
 {
-   if (d_box_level == NULL) {
+   if (d_box_level == 0) {
       TBOX_ERROR(
          "BoxLevelHandle::getBoxLevel Attempted to access a BoxLevel\n"
          << "that has been detached from its handle.  Detachment happens\n"
@@ -61,4 +58,3 @@ BoxLevelHandle::getBoxLevel() const
 
 }
 }
-#endif

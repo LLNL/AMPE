@@ -49,17 +49,17 @@ void PhaseFluxStrategyAnisotropy::computeFluxes(const boost::shared_ptr<hier::Pa
       boost::shared_ptr< hier::Patch > patch = *ip;
 
       const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
       const double* dx  = patch_geom->getDx();
 
-      boost::shared_ptr<pdat::CellData<double> >
-         phase ( patch->getPatchData(phase_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > phase (
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(phase_id) ) );
 
-      boost::shared_ptr<pdat::SideData<double> >
-         phase_flux ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<double> > phase_flux (
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>( patch->getPatchData( flux_id) ) );
       
-      boost::shared_ptr< pdat::CellData<double> >
-         quat( patch->getPatchData( quat_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr< pdat::CellData<double> > quat( 
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData( quat_id) ) );
 
       const hier::Box& pbox = patch->getBox();
       const hier::Index& ifirst = pbox.lower();

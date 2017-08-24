@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for patch data communication tests.
  *
  ************************************************************************/
@@ -16,7 +16,7 @@ using namespace std;
 #include "SAMRAI/tbox/SAMRAIManager.h"
 
 #include "CommTester.h"
-#include "VisItDerivedData.h"
+#include "test/testlib/DerivedVisOwnerData.h"
 
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
@@ -41,7 +41,11 @@ using namespace std;
 #include "OuterfaceDataTest.h"
 //#include "MultiVariableDataTest.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace SAMRAI;
 
@@ -258,6 +262,14 @@ int main(
          tbox::PIO::logOnlyNodeZero(log_file_name);
       }
 
+#ifdef _OPENMP
+      tbox::plog << "Compiled with OpenMP version " << _OPENMP
+                 << ".  Running with " << omp_get_max_threads() << " threads."
+                 << std::endl;
+#else
+      tbox::plog << "Compiled without OpenMP.\n";
+#endif
+
       int ntimes_run = 1;
       if (main_db->keyExists("ntimes_run")) {
          ntimes_run = main_db->getInteger("ntimes_run");
@@ -298,7 +310,7 @@ int main(
        * Create communication tester and patch data test object
        */
 
-      PatchDataTestStrategy* patch_data_test = NULL;
+      PatchDataTestStrategy* patch_data_test = 0;
 
       if (test_to_run == "CellDataTest") {
          patch_data_test = new CellDataTest("CellDataTest",
@@ -376,7 +388,6 @@ int main(
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> cell_tagger(
          new mesh::StandardTagAndInitialize(
-            dim,
             "StandardTaggingAndInitializer",
             comm_tester.get(),
             input_db->getDatabase("StandardTaggingAndInitializer")));
@@ -404,7 +415,7 @@ int main(
          time_man->getTimer("test::main::performCoarsenOperations"));
 
       const bool plot = main_db->getBoolWithDefault("plot", false);
-      VisItDerivedData vdd;
+      DerivedVisOwnerData vdd;
       if (plot) {
 #ifdef HAVE_HDF5
          const std::string visit_filename = base_name + ".visit";
@@ -442,13 +453,13 @@ int main(
 
       if (do_refine) {
 
-         for (int n = 0; n < ntimes_run; n++) {
+         for (int n = 0; n < ntimes_run; ++n) {
 
             /*
              * Create communication schedules for data refine tests.
              */
             refine_create_time->start();
-            for (int i = 0; i < nlevels; i++) {
+            for (int i = 0; i < nlevels; ++i) {
                comm_tester->createRefineSchedule(i);
             }
             refine_create_time->stop();
@@ -457,7 +468,7 @@ int main(
              * Perform refine data communication operations.
              */
             refine_comm_time->start();
-            for (int j = 0; j < nlevels; j++) {
+            for (int j = 0; j < nlevels; ++j) {
                comm_tester->performRefineOperations(j);
             }
             refine_comm_time->stop();
@@ -468,13 +479,13 @@ int main(
 
       if (do_coarsen) {
 
-         for (int n = 0; n < ntimes_run; n++) {
+         for (int n = 0; n < ntimes_run; ++n) {
 
             /*
              * Create communication schedules for data coarsen tests.
              */
             coarsen_create_time->start();
-            for (int i = nlevels - 1; i > 0; i--) {
+            for (int i = nlevels - 1; i > 0; --i) {
                comm_tester->createCoarsenSchedule(i);
             }
             coarsen_create_time->stop();
@@ -483,7 +494,7 @@ int main(
              * Perform coarsen data communication operations.
              */
             coarsen_comm_time->start();
-            for (int j = nlevels - 1; j > 0; j--) {
+            for (int j = nlevels - 1; j > 0; --j) {
                comm_tester->performCoarsenOperations(j);
             }
             coarsen_comm_time->stop();
@@ -492,17 +503,25 @@ int main(
 
       }
 
+      bool composite_test_passed = true;
+      if (do_refine) {
+         for (int i = 0; i < nlevels; ++i) {
+            composite_test_passed = comm_tester->performCompositeBoundaryComm(i);
+         }
+      }
+
+
       bool test1_passed = comm_tester->verifyCommunicationResults();
 
       if (do_refine) {
 
-         for (int n = 0; n < ntimes_run; n++) {
+         for (int n = 0; n < ntimes_run; ++n) {
 
             /*
              * Create communication schedules for data refine tests.
              */
             refine_create_time->start();
-            for (int i = 0; i < nlevels; i++) {
+            for (int i = 0; i < nlevels; ++i) {
                comm_tester->resetRefineSchedule(i);
             }
             refine_create_time->stop();
@@ -511,7 +530,7 @@ int main(
              * Perform refine data communication operations.
              */
             refine_comm_time->start();
-            for (int j = 0; j < nlevels; j++) {
+            for (int j = 0; j < nlevels; ++j) {
                comm_tester->performRefineOperations(j);
             }
             refine_comm_time->stop();
@@ -522,13 +541,13 @@ int main(
 
       if (do_coarsen) {
 
-         for (int n = 0; n < ntimes_run; n++) {
+         for (int n = 0; n < ntimes_run; ++n) {
 
             /*
              * Create communication schedules for data coarsen tests.
              */
             coarsen_create_time->start();
-            for (int i = nlevels - 1; i > 0; i--) {
+            for (int i = nlevels - 1; i > 0; --i) {
                comm_tester->resetCoarsenSchedule(i);
             }
             coarsen_create_time->stop();
@@ -537,7 +556,7 @@ int main(
              * Perform coarsen data communication operations.
              */
             coarsen_comm_time->start();
-            for (int j = nlevels - 1; j > 0; j--) {
+            for (int j = nlevels - 1; j > 0; --j) {
                comm_tester->performCoarsenOperations(j);
             }
             coarsen_comm_time->stop();
@@ -559,7 +578,7 @@ int main(
       tbox::plog << "\nInput file data at end of run is ...." << endl;
       input_db->printClassData(tbox::plog);
 
-      if (test1_passed && test2_passed) {
+      if (test1_passed && test2_passed && composite_test_passed) {
          tbox::pout << "\nPASSED:  communication" << endl;
          return_val = 0;
       }

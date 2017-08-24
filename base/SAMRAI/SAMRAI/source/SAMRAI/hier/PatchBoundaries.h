@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Describes boundaries for a patch
  *
  ************************************************************************/
@@ -14,10 +14,10 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/hier/BoundaryBox.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <map>
+#include <vector>
 
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
 /*
@@ -34,7 +34,7 @@ namespace hier {
  * @brief Class PatchBoundaries is a container class for storing
  * BoundaryBox objects for a single patch.
  *
- * @see hier::BoundaryBox
+ * @see BoundaryBox
  */
 
 class PatchBoundaries
@@ -61,75 +61,77 @@ public:
     *
     * @param[in] r  Patchboundaries object to be copied in assignment.
     */
-   const PatchBoundaries&
+   PatchBoundaries&
    operator = (
       const PatchBoundaries& r)
    {
-      for (unsigned int d = 0; d < d_dim.getValue(); ++d) {
+      for (unsigned int d = 0; d < getDim().getValue(); ++d) {
          d_array_of_bboxes[d] = r.d_array_of_bboxes[d];
       }
       return *this;
    }
 
    /*!
-    * @brief Array access operator.
+    * @brief Vector access operator.
     *
-    * @param[in] i  Array index.
+    * @param[in] i  Vector index.
+    *
+    * @pre i < getDim().getValue()
     */
-   tbox::Array<BoundaryBox>&
+   std::vector<BoundaryBox>&
    operator [] (
       unsigned int i)
    {
-      TBOX_ASSERT(i < d_dim.getValue());
+      TBOX_ASSERT(i < getDim().getValue());
       return d_array_of_bboxes[i];
    }
 
    /*!
-    * @brief Const Array access operator.
+    * @brief Const Vector access operator.
     *
-    * @param[in] i  Array index.
+    * @param[in] i  Vector index.
+    *
+    * @pre i < getDim().getValue()
     */
-   const tbox::Array<BoundaryBox>&
+   const std::vector<BoundaryBox>&
    operator [] (
       unsigned int i) const
    {
-      TBOX_ASSERT(i < d_dim.getValue());
+      TBOX_ASSERT(i < getDim().getValue());
       return d_array_of_bboxes[i];
    }
 
    /*!
-    * @brief Get copy of the internal arrays.
+    * @brief Get copy of the internal vectors.
     *
-    * @return  Copy of the internal arrays.
+    * @return  Copy of the internal vectors.
     */
-   tbox::Array<tbox::Array<BoundaryBox> >
-   getArrays()
+   std::vector<std::vector<BoundaryBox> >&
+   getVectors()
    {
       return d_array_of_bboxes;
    }
 
    /*!
-    * @brief Get const copy of the internal arrays.
+    * @brief Get const copy of the internal vectors.
     *
-    * @return  Const copy of the internal arrays.
+    * @return  Const copy of the internal vectors.
     */
-   const tbox::Array<tbox::Array<BoundaryBox> >
-   getArrays() const
+   const std::vector<std::vector<BoundaryBox> >&
+   getVectors() const
    {
       return d_array_of_bboxes;
    }
 
-   /*!
-    * @brief friend declaration
-    */
-   friend class::std::map<int, PatchBoundaries>;
+   const tbox::Dimension&
+   getDim() const
+   {
+      return d_dim;
+   }
 
 private:
-   /*!
-    * @brief Private default constructor.
-    *
-    * This constructor is need by the brain dead STL and should not be used
-    * for any other purpose.
+   /*
+    * Unimplemented default constructor.
     */
    PatchBoundaries();
 
@@ -141,7 +143,7 @@ private:
    /*
     * @brief Internal arrays of BoundaryBox
     */
-   tbox::Array<tbox::Array<BoundaryBox> > d_array_of_bboxes;
+   std::vector<std::vector<BoundaryBox> > d_array_of_bboxes;
 };
 
 } // SAMRAI namespace

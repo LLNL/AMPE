@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   AMR communication tests for node-centered patch data
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -30,7 +29,7 @@ using namespace std;
 #endif
 #include "SAMRAI/hier/Variable.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 
@@ -181,8 +180,8 @@ private:
    std::string d_refine_option;
    int d_finest_level_number;
 
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_variables_src;
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_variables_dst;
+   std::vector<boost::shared_ptr<hier::Variable> > d_variables_src;
+   std::vector<boost::shared_ptr<hier::Variable> > d_variables_dst;
 
 };
 

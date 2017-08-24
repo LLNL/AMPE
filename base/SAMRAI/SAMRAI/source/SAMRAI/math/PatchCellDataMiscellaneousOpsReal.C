@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated miscellaneous operations for real cell-centered data.
  *
  ************************************************************************/
@@ -30,31 +30,6 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::~PatchCellDataMiscellaneousOpsReal()
 /*
  *************************************************************************
  *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchCellDataMiscellaneousOpsReal<TYPE>::PatchCellDataMiscellaneousOpsReal(
-   const PatchCellDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchCellDataMiscellaneousOpsReal<TYPE>::operator = (
-   const PatchCellDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-/*
- *************************************************************************
- *
  * Templated miscellaneous operations for real cell-centered data.
  *
  *************************************************************************
@@ -69,7 +44,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::computeConstrProdPos(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(data1 && data2);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*data1, *data2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*data1, *data2, box);
 
    int retval;
    if (!cvol) {
@@ -77,7 +52,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::computeConstrProdPos(
             data2->getArrayData(),
             box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data1, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data1, *cvol);
 
       retval = d_array_ops.computeConstrProdPosWithControlVolume(
             data1->getArrayData(),
@@ -98,7 +73,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::compareToScalar(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    if (!cvol) {
       d_array_ops.compareToScalar(dst->getArrayData(),
@@ -106,7 +81,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::compareToScalar(
          alpha,
          box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*dst, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst, *cvol);
       d_array_ops.compareToScalarWithControlVolume(dst->getArrayData(),
          src->getArrayData(),
          alpha,
@@ -124,7 +99,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::testReciprocal(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int retval;
    if (!cvol) {
@@ -132,7 +107,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::testReciprocal(
             src->getArrayData(),
             box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*dst, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst, *cvol);
 
       retval = d_array_ops.testReciprocalWithControlVolume(
             dst->getArrayData(),
@@ -151,7 +126,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::maxPointwiseDivide(
    const hier::Box& box) const
 {
    TBOX_ASSERT(numer && denom);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*numer, *denom, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*numer, *denom, box);
 
    TYPE retval;
    retval = d_array_ops.maxPointwiseDivide(numer->getArrayData(),
@@ -169,7 +144,7 @@ PatchCellDataMiscellaneousOpsReal<TYPE>::minPointwiseDivide(
 {
 
    TBOX_ASSERT(numer && denom);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*numer, *denom, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*numer, *denom, box);
 
    TYPE retval;
    retval = d_array_ops.minPointwiseDivide(numer->getArrayData(),

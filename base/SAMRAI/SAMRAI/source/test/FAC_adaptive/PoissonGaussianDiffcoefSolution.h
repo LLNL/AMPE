@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   PoissonGaussianDiffcoefSolution class declaration
  *
  ************************************************************************/
@@ -75,9 +75,9 @@ public:
       , /*! Input database */
       tbox::Database& database
       , /*! Standard output stream */
-      std::ostream * out_stream = NULL
+      std::ostream * out_stream = 0
       , /*! Log output stream */
-      std::ostream * log_stream = NULL);
+      std::ostream * log_stream = 0);
 
    virtual ~PoissonGaussianDiffcoefSolution();
 
@@ -166,8 +166,8 @@ private:
    SinusoidFcn d_sccomp;
    //@{
    double d_lambda;
-   double d_k[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   double d_p[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_k[SAMRAI::MAX_DIM_VAL];
+   double d_p[SAMRAI::MAX_DIM_VAL];
    double d_k2;
    //@}
 

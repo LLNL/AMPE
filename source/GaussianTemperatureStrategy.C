@@ -156,11 +156,11 @@ void GaussianTemperatureStrategy::setCurrentTemperature(
             boost::shared_ptr<hier::Patch > patch = *p;
 
             boost::shared_ptr< pdat::CellData<double> > t_data (
-               patch->getPatchData( d_temperature_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
             setCurrentTemperaturePrivatePatch(*patch, t_data, tgaussian);
 
             boost::shared_ptr< pdat::CellData<double> > ts_data (
-               patch->getPatchData( d_temperature_scratch_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_scratch_id) ) );
             setCurrentTemperaturePrivatePatch(*patch, ts_data, tgaussian);
          }
 
@@ -182,8 +182,7 @@ void GaussianTemperatureStrategy::setCurrentTemperaturePrivatePatch(
    const double tgaussian )
 {
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
 
    const double* dx = patch_geom->getDx();
    const double* xlo = patch_geom->getXLower();

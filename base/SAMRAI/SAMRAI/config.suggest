@@ -2,7 +2,7 @@
 ##
 ## File:        $URL$
 ## Package:     SAMRAI
-## Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:   (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Revision:    $LastChangedRevision$
 ## Description: script to suggest ways to configure SAMRAI
 ##
@@ -28,7 +28,7 @@
 # 6. After adding a case, run this script without arguments to make
 #    sure the help message correctly lists your new addition.
 # 7. Try to list the configure options for each entry in the following order:
-#       C++ compiler       
+#       C++ compiler
 #       C compiler
 #       FORTRAN compiler
 #       compiler options
@@ -56,128 +56,54 @@ case $1 in
 #-----------------------------------------------------------------------------
 # LC machines
 #-----------------------------------------------------------------------------
-atlas_mpiicpc) # Atlas, using Intel MPI wrappers
-cat <<-EOF
-	--with-CXX=/usr/local/bin/mpiicpc-12.0.191
-	--with-CC=/usr/local/bin/mpiicc-12.0.191
-	--with-F77=/usr/local/bin/mpiifort-12.0.191
-	--with-silo=/usr/gapps/silo/4.6.2/chaos_4_x86_64_ib
-	--with-hdf5=/usr/local/tools/hdf5-intel-parallel-1.8.1
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
-	--with-zlib
-	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.6.0b.opt
-	--without-sundials
-	--without-petsc
-	--without-x
-	--enable-rpath=-Wl,-R
-EOF
-# Maintained by Brian Gunney
-;;
 
-atlas_mpipath) 
-# Atlas, using Pathscale MPI wrappers
-cat <<-EOF
-	--with-CXX=/usr/local/bin/mpipathCC
-	--with-CC=/usr/local/bin/mpipathcc
-	--with-F77=/usr/local/bin/mpipathf90
-	--with-silo=/usr/gapps/silo/4.6.2/chaos_4_x86_64_pathcc
-	--with-hdf5=/usr/local/tools/hdf5-pathscale-serial-1.8.1
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
-	--without-hypre
-	--without-sundials
-	--without-petsc
-	--without-x
-	--enable-rpath=-Wl,-R
-EOF
-# Maintained by Steven Smith
-;;
-
-
-atlas_mpipg) 
-# Atlas, using PGI MPI wrappers
-cat <<-EOF
-	--with-CXX=/usr/local/bin/mpipgCC
-	--with-CC=/usr/local/bin/mpipgcc
-	--with-F77=/usr/local/bin/mpipgf77
-	--with-silo=/usr/gapps/silo/4.6.2/chaos_4_x86_64_ib_pgcc
-	--with-hdf5=/usr/local/tools/hdf5-gnu-serial-1.8.1
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
-	--without-hypre
-	--without-sundials
-	--without-petsc
-	--without-x
-	--enable-rpath=-Wl,-R
-EOF
-# Maintained by Steven Smith
-;;
-
-dawn_mpixlcxx) # Dawn, using mpixlcxx
+bgq_mpixlcxx) # BG/Q, using mpixlcxx
 cat <<-EOF
 	--with-CXX=mpixlcxx
 	--with-CC=mpixlc
+	--with-F77=mpixlf77
+	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.5/parallel
+	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.55.0
+	--with-hypre=no
+	--without-sundials
+	--without-petsc
+	--without-x
+	--enable-rpath=no
+EOF
+# Maintained by Brian Gunney
+;;
+
+seq_mpixlcxx) # Sequoia, using mpixlcxx
+cat <<-EOF
+	--with-CXX=mpixlcxx-fastmpi
+	--with-CC=mpixlc-fastmpi
 	--with-F77=mpif77
-	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.1/parallel
-	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.45.0
+	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.5/parallel
+	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.55.0
 	--with-hypre=no
 	--without-sundials
 	--without-petsc
 	--without-x
 	--enable-rpath=no
 EOF
-# Maintained by Brian Gunney
+#
 ;;
 
-
-ubgl_mpcc) # BGL, using mpCC (may be outdated)
+seq_thread_mpixlcxx) # Sequoia, threaded using mpixlcxx
 cat <<-EOF
-	--with-CXX=mpCC
-	--with-CC=mpcc
-	--with-F77=mpxlf
-	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.1/parallel
-	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.45.0
+	--with-CXX=/usr/local/tools/compilers/ibm/mpixlcxx_r-lompbeta2-fastmpi
+	--with-CC=/usr/local/tools/compilers/ibm/mpixlc_r-lompbeta2-fastmpi
+	--with-F77=mpif77
+	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.5/parallel
+	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.55.0
 	--with-hypre=no
 	--without-sundials
 	--without-petsc
 	--without-x
 	--enable-rpath=no
-	--enable-bgl
+	--enable-threading
 EOF
-# Maintained by Brian Gunney
-;;
-
-ubgl_mpxlc) # uBGL, using mpxlC
-cat <<-EOF
-	--with-CXX=/usr/local/tools/compilers/ibm/mpxlC-9.0.0.3a
-	--with-CC=mpxlc
-	--with-F77=mpxlf
-	--with-hdf5=/usr/local/tools/hdf5/hdf5-1.8.1/parallel
-	--with-boost=/collab/usr/gapps/samrai/apps/sles/boost/1.45.0
-	--with-hypre=no
-	--without-sundials
-	--without-petsc
-	--without-x
-	--enable-rpath=no
-	--enable-bgl
-EOF
-# Maintained by Brian Gunney and Susan Hazlett
-;;
-
-zeus_mpiicpc) # Zeus, Intel compilers with LLNL mpiicpc front ends
-cat <<-EOF
-	--with-CXX=/usr/local/bin/mpiicpc-12.0.191
-	--with-CC=/usr/local/bin/mpiicc-12.0.191
-	--with-F77=/usr/local/bin/mpiifort-12.0.191
-	--with-silo=/usr/gapps/silo/4.6.2/chaos_4_x86_64_ib
-	--with-hdf5=/usr/local/tools/hdf5-intel-parallel-1.8.1
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
-	--with-zlib
-	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.6.0b.opt
-	--without-sundials
-	--without-petsc
-	--without-x
-	--enable-rpath=-Wl,-R
-EOF
-# Maintained by Brian Gunney
+#
 ;;
 
 chaos5_mpiicc) # CHAOS5, Intel compilers with LLNL mpiicpc front ends
@@ -189,15 +115,82 @@ cat <<-EOF
 	--without-x
 	--without-sundials
 	--disable-shared
-	--disable-rpath
+	--enable-rpath=-Wl,-R
 	--with-zlib
-	--with-hdf5=/usr/local/tools/hdf5-intel-parallel-1.8.8
+	--with-hdf5=/usr/local/tools/hdf5-intel-parallel-1.8.5
 	--with-silo=/usr/gapps/silo/4.8/chaos_5_x86_64_ib
-	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.6.0b.opt
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
-	--without-tbb 
+	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.10.0b.opt
+	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.55.0
+	--without-tbb
 EOF
 # Maintained by Noah Elliott
+;;
+
+chaos5_mpiicc14_cxx11_mpi2) # CHAOS5, Intel v. 14 compilers with LLNL mpiicpc front ends, using C++ 11 standard and MPI2
+cat <<-EOF
+	CXXFLAGS="-mpi=mvapich2-intel-1.9 -std=c++11"
+	CFLAGS=-mpi=mvapich2-intel-1.9
+        FFLAGS=-mpi=mvapich2-intel-1.9
+        --with-mpi-include=/usr/local/tools/mvapich2-intel-1.9/include
+        --with-mpi-lib-dirs=/usr/local/tools/mvapich2-intel-1.9/lib
+        --with-mpi-libs="mpich fmpich"
+	--with-CC=mpiicc
+	--with-CXX=mpiicpc
+	--with-F77=mpiifort
+	--without-petsc
+	--without-x
+	--without-sundials
+	--disable-shared
+	--enable-rpath=-Wl,-R
+	--with-zlib
+	--with-hdf5=/collab/usr/gapps/samrai/apps/chaos/hdf5/1.8.5p1-serial
+	--with-silo=/usr/gapps/silo/4.8/chaos_5_x86_64_ib
+	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.10.0b.opt-mvapich2
+	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.58.0
+	--without-tbb
+EOF
+# Maintained by Noah Elliott
+;;
+# With the above configure options, these "use" commands must precede the
+# use of configure
+# % use ic-14.0.174
+# % use gcc-4.6.1
+
+chaos5_clang) # CHAOS5, clang compilers and MPI2
+cat <<-EOF
+	--with-CC=/usr/apps/gnu/clang/bin/clang
+	--with-CXX=/usr/apps/gnu/clang/bin/clang++
+	--with-F77=/usr/local/bin/gfortran-4.6.1
+	--without-petsc
+        --without-blas
+        --without-lapack
+	--without-hypre
+	--without-x
+	--without-sundials
+	--disable-shared
+	--enable-rpath
+        --enable-debug
+        --disable-opt
+	--with-hdf5=/collab/usr/gapps/samrai/apps/chaos/hdf5/1.8.5p1-serial
+	--with-silo=/usr/gapps/silo/4.8/chaos_5_x86_64_ib
+	--with-zlib
+	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.55.0
+        --with-mpi-include=/usr/local/tools/mvapich2-intel/include
+        --with-mpi-lib-dirs=/usr/local/tools/mvapich2-intel/lib
+        --with-mpi-libs="mpichcxx mpich opa mpl pmi"
+EOF
+# Maintained by Bob Anderson
+;;
+
+surface_pgi_15) # Surface using pgi accelerator compilers
+cat <<-EOF
+        --with-CXX=/usr/local/tools/pgi-15.5-accelerator/linux86-64/15.5/bin/pgCC
+        --with-CC=/usr/local/tools/pgi-15.5-accelerator/linux86-64/15.5/bin/pgcc
+        --with-F77=/usr/local/tools/pgi-15.5-accelerator/linux86-64/15.5/bin/pgf77
+        --with-hdf5=/collab/usr/gapps/samrai/apps/chaos/hdf5/1.8.5p1-serial
+        --with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.58.0
+EOF
+# Maintained by Bob Anderson
 ;;
 
 edge_gcc) # Edge with default GNU GCC compilers
@@ -208,9 +201,9 @@ cat <<-EOF
 	--with-silo=/usr/gapps/silo/4.6.2/chaos_4_x86_64
 	--with-hdf5=/usr/gapps/silo/hdf5/1.8.4/chaos_4_x86_64
 	--with-szlib=/usr/gapps/silo/szip/2.1/chaos_4_x86_64
-	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0
+	--with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.55.0
 	--with-zlib
-	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.6.0b.opt
+	--with-hypre=/collab/usr/gapps/samrai/devapps/chaos/hypre/2.10.0b.opt
 EOF
 # Maintained by Steven Smith
 ;;
@@ -219,9 +212,9 @@ EOF
 # CASC machines
 #-----------------------------------------------------------------------------
 
-cygwin) 
+cygwin)
 # Cygwin compile
-cat <<-EOF 
+cat <<-EOF
 	--with-CXX=mpicxx
 	--with-CC=mpicc
 	--with-F77=mpif77
@@ -231,9 +224,9 @@ EOF
 # Maintained by Steven Smith
 ;;
 
-cygwin_ccache) 
+cygwin_ccache)
 # Cygwin compile
-cat <<-EOF 
+cat <<-EOF
 	--with-CXX="ccache mpicxx"
 	--with-CC="ccache mpicc"
 	--with-F77=mpif77
@@ -249,48 +242,48 @@ cat <<-EOF
 	--with-CC=/usr/bin/gcc
 	--with-F77=/usr/bin/gfortran
 	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
-	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.45.0
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
 	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
 	--with-mpi-include=/usr/apps/mpich2/1.3.2/include
 	--with-mpi-lib-dirs=/usr/apps/mpich2/1.3.2/lib
-	--with-mpi-libs="mpich mpl pthread"
+	--with-mpi-libs="mpich mpl rt pthread"
 	--with-parallel-run-bin=/usr/apps/mpich2/1.3.2/bin/mpirun
-	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.6.0b.gcc.4.1.2.opt
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.gcc.4.1.2.opt
 	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
 	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -llapack"
 	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
 	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -lf77blas -lcblas -latlas"
-	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-2.3.3-p11.gcc.4.1.2
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7.gcc.4.1.2
 	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0_gcc.4.1.2
 	--enable-rpath=-Wl,-R
 EOF
-# 
+#
 ;;
 
-# TODO Need to add in other support libraries in order to get complete 
+# TODO Need to add in other support libraries in order to get complete
 # coverage
-casc_rh5_insure) # CASC RedHat 5, Insure++ with default GNU compilers, 
+casc_rh5_insure) # CASC RedHat 5, Insure++ with default GNU compilers,
 cat <<-EOF
 	--with-CXX="/usr/apps/insure++/7.1.7/bin/insure /usr/bin/g++"
 	--with-CC="/usr/apps/insure++/7.1.7/bin/insure /usr/bin/gcc"
 	--with-F77=/usr/bin/gfortran
 	--with-hdf5=/nfs/casc/samrai/apps/rh5/hdf5/1.8.5p1
-	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.45.0
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
 	--with-silo=/nfs/casc/samrai/apps/rh5/silo/4.7.2_opt
 	--with-mpi-include=/usr/apps/mpich2/1.3.2/include
 	--with-mpi-lib-dirs=/usr/apps/mpich2/1.3.2/lib
-	--with-mpi-libs="mpich mpl pthread"
+	--with-mpi-libs="mpich mpl rt pthread"
 	--with-parallel-run-bin=/usr/apps/mpich2/1.3.2/bin/mpirun
-	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.6.0b.insure
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.gcc.4.1.2.opt
 	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
 	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -llapack"
 	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
 	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -lf77blas -lcblas -latlas"
-	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-2.3.3-p11.gcc.4.1.2
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7.gcc.4.1.2
 	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0_gcc.4.1.2
 	--enable-rpath=-Wl,-R
 EOF
-# 
+#
 ;;
 
 casc_rh5_icc_x64) # CASC RedHat 5, Intel v12.0 compilers, x86_64
@@ -301,11 +294,11 @@ cat <<-EOF
 	--with-extra-ld-flags="-shared-intel"
 	--enable-rpath=-Wl,-R
 	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
-	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.45.0
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
 	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
 	--with-mpi-include=/usr/apps/mpich2/latest/include
 	--with-mpi-lib-dirs=/usr/apps/mpich2/latest/lib
-	--with-mpi-libs="mpich mpl pthread"
+	--with-mpi-libs="mpich mpl rt pthread"
 	--with-parallel-run-bin=/usr/apps/mpich2/latest/bin/mpirun
 	--with-hypre=no
 	--without-petsc
@@ -320,19 +313,18 @@ cat <<-EOF
 	--with-CC=/nfs/apps/gcc/4.5.0/bin/gcc
 	--with-F77=/nfs/apps/gcc/4.5.0/bin/gfortran
 	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
-	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.45.0
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
 	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
 	--with-mpi-include=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/include
 	--with-mpi-lib-dirs=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/lib
 	--with-mpi-libs="mpi rt"
 	--with-parallel-run-bin=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/bin/mpirun
-	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.6.0b.opt
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.opt
 	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
 	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0/lib -llapack"
 	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
 	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0/lib -lf77blas -lcblas -latlas"
-	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-2.3.3-p11
-	--with-petsc-arch=linux_gcc_openmpi
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7
 	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0
 	--with-x
 EOF
@@ -351,13 +343,12 @@ cat <<-EOF
 	--with-mpi-lib-dirs=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/lib
 	--with-mpi-libs="mpi rt"
 	--with-parallel-run-bin=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/bin/mpirun
-	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.6.0b.opt
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.opt
 	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
 	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0/lib -llapack"
 	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
 	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0/lib -lf77blas -lcblas -latlas"
-	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-2.3.3-p11
-	--with-petsc-arch=linux_gcc_openmpi
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7
 	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0
 	--with-x
 EOF
@@ -370,15 +361,14 @@ cat <<-EOF
 	--with-CC=/usr/casc/samrai/apps/rh5/gcc/4.6.0/bin/gcc
 	--with-F77=/usr/casc/samrai/apps/rh5/gcc/4.6.0/bin/gfortran
 	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
-	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.45.0
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
 	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
 	--with-mpi-include=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/include
 	--with-mpi-lib-dirs=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/lib
 	--with-parallel-run-bin=/nfs/casc/samrai/apps/rh5/openmpi/1.5-gcc-4.5.0.opt/bin/mpirun
 	--with-mpi-libs="mpi rt"
-	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.6.0b.opt
-	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-2.3.3-p11
-	--with-petsc-arch=linux_gcc_openmpi
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.opt
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7
 	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
 	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0/lib -llapack"
 	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.5.0
@@ -389,20 +379,75 @@ EOF
 # Maintained by Steven Smith
 ;;
 
+# CASC RedHat 6, default GNU compilers, x86_64. The only reason this
+# is different from Redhat 5 is that things hosted on /usr/apps have
+# different versions installed.
+
+casc_rh6_gnu_x64)  # CASC RedHat 6, default GNU compilers
+cat <<-EOF
+	--with-CXX=/usr/bin/g++
+	--with-CC=/usr/bin/gcc
+	--with-F77=/usr/bin/gfortran
+	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
+	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
+	--with-mpi-include=/usr/apps/mpich2/latest/include
+	--with-mpi-lib-dirs=/usr/apps/mpich2/latest/lib
+	--with-mpi-libs="mpich mpl rt pthread"
+	--with-parallel-run-bin=/usr/apps/mpich2/latest/bin/mpirun
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.gcc.4.1.2.opt
+	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
+	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -llapack"
+	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
+	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -lf77blas -lcblas -latlas"
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7.gcc.4.1.2
+	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0_gcc.4.1.2
+	--enable-rpath=-Wl,-R
+EOF
+#
+;;
+
+
+casc_rh6_gnu48_x64)   # CASC RedHat 6, GNU-4.8.1 compilers
+cat <<-EOF
+	--with-CXX=/usr/apps/gcc/4.8.1/bin/g++
+	--with-CC=/usr/apps/gcc/4.8.1/bin/gcc	
+	--with-extra-cxx-flags="-Wno-unused-local-typedefs"
+	--with-F77=/usr/apps/gcc/4.8.1/bin/gfortran
+	--with-hdf5=/usr/casc/samrai/apps/rh5/hdf5/1.8.5p1
+	--with-boost=/usr/casc/samrai/apps/rh5/boost/1.55.0
+	--with-silo=/usr/casc/samrai/apps/rh5/silo/4.7.2_opt
+	--with-mpi-include=/usr/apps/mpich2/latest/include
+	--with-mpi-lib-dirs=/usr/apps/mpich2/latest/lib
+	--with-mpi-libs="mpich mpl rt pthread"
+	--with-parallel-run-bin=/usr/apps/mpich2/latest/bin/mpirun
+	--with-hypre=/usr/casc/samrai/apps/rh5/hypre/2.10.0b.gcc.4.1.2.opt
+	--with-lapack=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
+	--with-lapack-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -llapack"
+	--with-blas=/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2
+	--with-blas-libs="-L/usr/casc/samrai/apps/rh5/lapack/3.2.2-gcc.4.1.2/lib -lf77blas -lcblas -latlas"
+	--with-petsc=/usr/casc/samrai/apps/rh5/petsc/petsc-3.2-p7.gcc.4.1.2
+	--with-sundials=/usr/casc/samrai/apps/rh5/sundials/2.3.0_gcc.4.1.2
+	--enable-rpath=-Wl,-R
+EOF
+#
+;;
+
+
 #-----------------------------------------------------------------------------
 # Misc other machines
 #-----------------------------------------------------------------------------
 
-macosx_gnu) 
+macosx_gnu)
 # Apple Mac OS/X, gnu 4.2 compilers from DawrwinPorts
 cat <<-EOF
 	--with-CXX=g++-mp-4.3
 	--with-CC=gcc-mp-4.3
 	--with-F77=gfortran-mp-4.3
-	--with-hdf5=/opt/local 
-	--with-mpi-include=/usr/include 
-	--with-mpi-lib-dirs=/usr/lib 
-	--with-mpi-libs="mpi" 
+	--with-hdf5=/opt/local
+	--with-mpi-include=/usr/include
+	--with-mpi-lib-dirs=/usr/lib
+	--with-mpi-libs="mpi"
 	--with-parallel-run-bin=/usr/bin/mpirun
 EOF
 # Maintained by Steven Smith
@@ -463,5 +508,5 @@ esac
 shift
 echo "$@"
 
-# 
+#
 

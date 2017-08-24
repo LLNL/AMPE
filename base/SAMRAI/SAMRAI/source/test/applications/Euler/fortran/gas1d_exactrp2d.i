@@ -1,3 +1,11 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file defining routine to compute solution to 2d
+c                Riemann problem.
+c
 define(rarefvel,`dnl
       $3= ($1*two/(gamma-one))*(one- exp(log($2)*tau))
 ')dnl
@@ -159,7 +167,7 @@ c-----------------------------------------------------------------
 c     SOLVE RIEMANN PROBLEM
 
       if ((leftwave.eq.2).and.(rightwave.eq.1)) then
-c 	LEFT RAREF , RIGHT SHOCK
+c       LEFT RAREF , RIGHT SHOCK
          pstar = rpres
          pxl = pstar/lpres
          pxr = pstar/rpres
@@ -191,7 +199,7 @@ dersvel(cxr,pxr,dfright)dnl
          rstarl = lrho*exp(log(pxl)/gamma)
          rstarr = rrho*(1+beta*pxr)/(beta+pxr)
       elseif ((leftwave.eq.1).and.(rightwave.eq.2)) then
-c 	LEFT SHOCK ,RIGHT RAREF
+c       LEFT SHOCK ,RIGHT RAREF
          pstar = lpres
          pxl = pstar/lpres
          pxr = pstar/rpres
@@ -223,7 +231,7 @@ derrvel(cxr,pxr,dfright)dnl
          rstarl = lrho*(1+beta*pxl)/(beta+pxl)
          rstarr = rrho*exp(log(pxr)/gamma)
       elseif ((leftwave.eq.1).and.(rightwave.eq.1)) then
-c 	RIGHT SHOCK, LEFT SHOCK
+c       RIGHT SHOCK, LEFT SHOCK
          pstar = max(rpres,lpres)
          pxl = pstar/lpres
          pxr = pstar/rpres
@@ -255,7 +263,7 @@ dersvel(cxr,pxr,dfright)dnl
          rstarl = lrho*(1+beta*pxl)/(beta+pxl)
          rstarr = rrho*(1+beta*pxr)/(beta+pxr)
       else
-c 	RIGHT RAREF, LEFT RAREF
+c       RIGHT RAREF, LEFT RAREF
          pstarl =  exp(tau*log(lpres))
          pstarr =  exp(tau*log(rpres))
          pstar = (half*(gamma-1)*(lvel-rvel)+cxl+cxr)/
@@ -301,7 +309,7 @@ c     PICK STATE FOR FLUXES
       cstar=sqrt(gamma*pstar/rstar)
       dummy=pstar-po
       if (dummy.ge.zero) then
-c		shock
+c               shock
          wo=sqrt(gamma*ro*po*( one +gp1g2i*dummy/po))
          ushok=sein*ustar+wo/rstar
          if (ushok.ge.zero) then
@@ -314,7 +322,7 @@ c		shock
             striem(3)=po
          endif
       else
-c		rarefaction
+c               rarefaction
          co=sqrt(po*gamma/ro)
          wso=sein*uo+co
          wsi=sein*ustar+cstar

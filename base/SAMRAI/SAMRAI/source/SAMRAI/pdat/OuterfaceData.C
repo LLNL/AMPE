@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated outerface centered patch data type
  *
  ************************************************************************/
@@ -46,47 +46,21 @@ OuterfaceData<TYPE>::OuterfaceData(
 
    TBOX_ASSERT(depth > 0);
 
-   for (int d = 0; d < getDim().getValue(); d++) {
+   for (tbox::Dimension::dir_t d = 0; d < getDim().getValue(); ++d) {
       const hier::Box& ghosts = getGhostBox();
       const hier::Box facebox = FaceGeometry::toFaceBox(ghosts, d);
       hier::Box outerfacebox = facebox;
-      outerfacebox.upper(0) = facebox.lower(0);
-      d_data[d][0].initializeArray(outerfacebox, depth);
-      outerfacebox.lower(0) = facebox.upper(0);
-      outerfacebox.upper(0) = facebox.upper(0);
-      d_data[d][1].initializeArray(outerfacebox, depth);
+      outerfacebox.setUpper(0, facebox.lower(0));
+      d_data[d][0].reset(new ArrayData<TYPE>(outerfacebox, depth));
+      outerfacebox.setLower(0, facebox.upper(0));
+      outerfacebox.setUpper(0, facebox.upper(0));
+      d_data[d][1].reset(new ArrayData<TYPE>(outerfacebox, depth));
    }
 }
 
 template<class TYPE>
 OuterfaceData<TYPE>::~OuterfaceData()
 {
-}
-
-/*
- *************************************************************************
- *
- * The following are private and cannot be used, but they are defined
- * here for compilers that require that every template declaration have
- * a definition (a stupid requirement, if you ask me).
- *
- *************************************************************************
- */
-
-template<class TYPE>
-OuterfaceData<TYPE>::OuterfaceData(
-   const OuterfaceData<TYPE>& foo):
-   hier::PatchData(foo.getBox(), foo.getGhostCellWidth())
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-OuterfaceData<TYPE>::operator = (
-   const OuterfaceData<TYPE>& foo)
-{
-   NULL_USE(foo);
 }
 
 template<class TYPE>
@@ -97,7 +71,7 @@ OuterfaceData<TYPE>::getDepth() const
 }
 
 template<class TYPE>
-TYPE*
+TYPE *
 OuterfaceData<TYPE>::getPointer(
    int face_normal,
    int side,
@@ -107,11 +81,11 @@ OuterfaceData<TYPE>::getPointer(
    TBOX_ASSERT((side == 0) || (side == 1));
    TBOX_ASSERT((d >= 0) && (d < d_depth));
 
-   return d_data[face_normal][side].getPointer(d);
+   return d_data[face_normal][side]->getPointer(d);
 }
 
 template<class TYPE>
-const TYPE*
+const TYPE *
 OuterfaceData<TYPE>::getPointer(
    int face_normal,
    int side,
@@ -121,7 +95,7 @@ OuterfaceData<TYPE>::getPointer(
    TBOX_ASSERT((side == 0) || (side == 1));
    TBOX_ASSERT((d >= 0) && (d < d_depth));
 
-   return d_data[face_normal][side].getPointer(d);
+   return d_data[face_normal][side]->getPointer(d);
 }
 
 template<class TYPE>
@@ -133,7 +107,7 @@ OuterfaceData<TYPE>::getArrayData(
    TBOX_ASSERT((face_normal >= 0) && (face_normal < getDim().getValue()));
    TBOX_ASSERT((side == 0) || (side == 1));
 
-   return d_data[face_normal][side];
+   return *(d_data[face_normal][side]);
 }
 
 template<class TYPE>
@@ -145,7 +119,7 @@ OuterfaceData<TYPE>::getArrayData(
    TBOX_ASSERT((face_normal >= 0) && (face_normal < getDim().getValue()));
    TBOX_ASSERT((side == 0) || (side == 1));
 
-   return d_data[face_normal][side];
+   return *(d_data[face_normal][side]);
 }
 
 template<class TYPE>
@@ -161,7 +135,7 @@ OuterfaceData<TYPE>::operator () (
    TBOX_ASSERT((side == 0) || (side == 1));
    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
 
-   return d_data[axis][side](i, depth);
+   return (*(d_data[axis][side]))(i, depth);
 }
 
 template<class TYPE>
@@ -171,7 +145,7 @@ OuterfaceData<TYPE>::operator () (
    int side,
    int depth) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, i);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, i);
 
    const int axis = i.getAxis();
 
@@ -179,7 +153,7 @@ OuterfaceData<TYPE>::operator () (
    TBOX_ASSERT((side == 0) || (side == 1));
    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
 
-   return d_data[axis][side](i, depth);
+   return (*(d_data[axis][side]))(i, depth);
 }
 
 /*
@@ -196,17 +170,17 @@ void
 OuterfaceData<TYPE>::copy(
    const hier::PatchData& src)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, src);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, src);
 
    const FaceData<TYPE> * const t_src =
-      dynamic_cast<const FaceData<TYPE> *>(&src);
+      CPP_CAST<const FaceData<TYPE> *>(&src);
 
-   TBOX_ASSERT(t_src != NULL);
+   TBOX_ASSERT(t_src != 0);
 
-   for (int axis = 0; axis < getDim().getValue(); axis++) {
+   for (int axis = 0; axis < getDim().getValue(); ++axis) {
       const ArrayData<TYPE>& face_array = t_src->getArrayData(axis);
-      for (int loc = 0; loc < 2; loc++) {
-         ArrayData<TYPE>& oface_array = d_data[axis][loc];
+      for (int loc = 0; loc < 2; ++loc) {
+         ArrayData<TYPE>& oface_array = *(d_data[axis][loc]);
          oface_array.copy(face_array, oface_array.getBox());
       }
    }
@@ -217,16 +191,15 @@ void
 OuterfaceData<TYPE>::copy2(
    hier::PatchData& dst) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, dst);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, dst);
 
-   FaceData<TYPE>* t_dst =
-      dynamic_cast<FaceData<TYPE> *>(&dst);
+   FaceData<TYPE>* t_dst = CPP_CAST<FaceData<TYPE> *>(&dst);
 
-   TBOX_ASSERT(t_dst != NULL);
+   TBOX_ASSERT(t_dst != 0);
 
-   for (int d = 0; d < getDim().getValue(); d++) {
-      t_dst->getArrayData(d).copy(d_data[d][0], d_data[d][0].getBox());
-      t_dst->getArrayData(d).copy(d_data[d][1], d_data[d][1].getBox());
+   for (int d = 0; d < getDim().getValue(); ++d) {
+      t_dst->getArrayData(d).copy(*(d_data[d][0]), d_data[d][0]->getBox());
+      t_dst->getArrayData(d).copy(*(d_data[d][1]), d_data[d][1]->getBox());
    }
 }
 
@@ -245,11 +218,42 @@ OuterfaceData<TYPE>::copy(
    const hier::PatchData& src,
    const hier::BoxOverlap& overlap)
 {
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, src);
 
-   NULL_USE(src);
-   NULL_USE(overlap);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&overlap);
 
-   TBOX_ERROR("Copy with outerface as destination is not defined yet...");
+   TBOX_ASSERT(t_overlap != 0);
+
+   const OuterfaceData<TYPE>* t_oface_src =
+      dynamic_cast<const OuterfaceData<TYPE> *>(&src);
+   const FaceData<TYPE>* t_face_src =
+      dynamic_cast<const FaceData<TYPE> *>(&src);
+
+   TBOX_ASSERT(t_oface_src == 0 || t_face_src == 0);
+   TBOX_ASSERT(t_oface_src != 0 || t_face_src != 0);
+
+   const hier::IntVector& src_offset = t_overlap->getSourceOffset();
+   if (t_oface_src != 0) {
+      for (int d = 0; d < getDim().getValue(); ++d) {
+         const hier::BoxContainer& box_list =
+            t_overlap->getDestinationBoxContainer(d);
+         d_data[d][0]->copy(t_oface_src->getArrayData(d, 0), box_list, src_offset);
+         d_data[d][0]->copy(t_oface_src->getArrayData(d, 1), box_list, src_offset);
+         d_data[d][1]->copy(t_oface_src->getArrayData(d, 0), box_list, src_offset);
+         d_data[d][1]->copy(t_oface_src->getArrayData(d, 1), box_list, src_offset);
+      }
+   } else if (t_face_src != 0) {
+      for (int d = 0; d < getDim().getValue(); ++d) {
+         const hier::BoxContainer& box_list =
+            t_overlap->getDestinationBoxContainer(d);
+         d_data[d][0]->copy(t_face_src->getArrayData(d), box_list, src_offset);
+         d_data[d][1]->copy(t_face_src->getArrayData(d), box_list, src_offset);
+      }
+   } else {
+      TBOX_ERROR("OuterfaceData<TYPE>::copy error...\n"
+         << " : Cannot copy from type other than FaceData or OuterfaceData " << std::endl);
+   }
+
 }
 
 template<class TYPE>
@@ -258,24 +262,22 @@ OuterfaceData<TYPE>::copy2(
    hier::PatchData& dst,
    const hier::BoxOverlap& overlap) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, dst);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, dst);
 
-   FaceData<TYPE>* t_dst =
-      dynamic_cast<FaceData<TYPE> *>(&dst);
-   const FaceOverlap* t_overlap =
-      dynamic_cast<const FaceOverlap *>(&overlap);
+   FaceData<TYPE>* t_dst = CPP_CAST<FaceData<TYPE> *>(&dst);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&overlap);
 
-   TBOX_ASSERT(t_dst != NULL);
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_dst != 0);
+   TBOX_ASSERT(t_overlap != 0);
 
    const hier::Transformation& transformation = t_overlap->getTransformation();
    TBOX_ASSERT(transformation.getRotation() == hier::Transformation::NO_ROTATE);
 
    const hier::IntVector& src_offset = transformation.getOffset();
-   for (int d = 0; d < getDim().getValue(); d++) {
+   for (int d = 0; d < getDim().getValue(); ++d) {
       hier::IntVector face_offset(src_offset);
       if (d > 0) {
-         for (int i = 0; i < getDim().getValue(); i++) {
+         for (int i = 0; i < getDim().getValue(); ++i) {
             face_offset(i) = src_offset((d + i) % getDim().getValue());
          }
       }
@@ -283,10 +285,10 @@ OuterfaceData<TYPE>::copy2(
                                           face_offset,
                                           getBox().getBlockId(),
                                           t_dst->getBox().getBlockId());
- 
+
       const hier::BoxContainer& box_list = t_overlap->getDestinationBoxContainer(d);
-      t_dst->getArrayData(d).copy(d_data[d][0], box_list, face_transform);
-      t_dst->getArrayData(d).copy(d_data[d][1], box_list, face_transform);
+      t_dst->getArrayData(d).copy(*(d_data[d][0]), box_list, face_transform);
+      t_dst->getArrayData(d).copy(*(d_data[d][1]), box_list, face_transform);
    }
 }
 
@@ -306,12 +308,12 @@ OuterfaceData<TYPE>::copyDepth(
    const FaceData<TYPE>& src,
    int src_depth)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, src);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, src);
 
-   for (int axis = 0; axis < getDim().getValue(); axis++) {
+   for (int axis = 0; axis < getDim().getValue(); ++axis) {
       const ArrayData<TYPE>& src_face_array = src.getArrayData(axis);
-      for (int loc = 0; loc < 2; loc++) {
-         ArrayData<TYPE>& dst_oface_array = d_data[axis][loc];
+      for (int loc = 0; loc < 2; ++loc) {
+         ArrayData<TYPE>& dst_oface_array = *(d_data[axis][loc]);
          dst_oface_array.copyDepth(dst_depth,
             src_face_array,
             src_depth,
@@ -336,12 +338,12 @@ OuterfaceData<TYPE>::copyDepth2(
    FaceData<TYPE>& dst,
    int src_depth) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, dst);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, dst);
 
-   for (int axis = 0; axis < getDim().getValue(); axis++) {
+   for (int axis = 0; axis < getDim().getValue(); ++axis) {
       ArrayData<TYPE>& dst_face_array = dst.getArrayData(axis);
-      for (int loc = 0; loc < 2; loc++) {
-         const ArrayData<TYPE>& src_oface_array = d_data[axis][loc];
+      for (int loc = 0; loc < 2; ++loc) {
+         const ArrayData<TYPE>& src_oface_array = *(d_data[axis][loc]);
          dst_face_array.copyDepth(dst_depth,
             src_oface_array,
             src_depth,
@@ -367,28 +369,27 @@ OuterfaceData<TYPE>::canEstimateStreamSizeFromBox() const
 }
 
 template<class TYPE>
-int
+size_t
 OuterfaceData<TYPE>::getDataStreamSize(
    const hier::BoxOverlap& overlap) const
 {
-   const FaceOverlap* t_overlap =
-      dynamic_cast<const FaceOverlap *>(&overlap);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    const hier::IntVector& offset = t_overlap->getSourceOffset();
 
-   int size = 0;
-   for (int d = 0; d < getDim().getValue(); d++) {
+   size_t size = 0;
+   for (int d = 0; d < getDim().getValue(); ++d) {
       const hier::BoxContainer& boxlist = t_overlap->getDestinationBoxContainer(d);
       hier::IntVector face_offset(offset);
       if (d > 0) {
-         for (int i = 0; i < getDim().getValue(); i++) {
+         for (int i = 0; i < getDim().getValue(); ++i) {
             face_offset(i) = offset((d + i) % getDim().getValue());
          }
       }
-      size += d_data[d][0].getDataStreamSize(boxlist, face_offset);
-      size += d_data[d][1].getDataStreamSize(boxlist, face_offset);
+      size += d_data[d][0]->getDataStreamSize(boxlist, face_offset);
+      size += d_data[d][1]->getDataStreamSize(boxlist, face_offset);
    }
    return size;
 }
@@ -408,19 +409,18 @@ OuterfaceData<TYPE>::packStream(
    tbox::MessageStream& stream,
    const hier::BoxOverlap& overlap) const
 {
-   const FaceOverlap* t_overlap =
-      dynamic_cast<const FaceOverlap *>(&overlap);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    const hier::IntVector& offset = t_overlap->getSourceOffset();
-   for (int d = 0; d < getDim().getValue(); d++) {
+   for (int d = 0; d < getDim().getValue(); ++d) {
       const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer(d);
 
-      if (boxes.size() > 0) {
+      if (!boxes.empty()) {
          hier::IntVector face_offset(offset);
          if (d > 0) {
-            for (int i = 0; i < getDim().getValue(); i++) {
+            for (int i = 0; i < getDim().getValue(); ++i) {
                face_offset(i) = offset((d + i) % getDim().getValue());
             }
          }
@@ -430,15 +430,15 @@ OuterfaceData<TYPE>::packStream(
                                              getBox().getBlockId(),
                                              boxes.begin()->getBlockId());
 
-         for (hier::BoxContainer::const_iterator b(boxes);
+         for (hier::BoxContainer::const_iterator b = boxes.begin();
               b != boxes.end(); ++b) {
             hier::Box src_box(*b);
             face_transform.inverseTransform(src_box);
-            for (int f = 0; f < 2; f++) {
-               hier::Box intersect(src_box * d_data[d][f].getBox());
+            for (int f = 0; f < 2; ++f) {
+               hier::Box intersect(src_box * d_data[d][f]->getBox());
                if (!intersect.empty()) {
-                  face_transform.transform(intersect); 
-                  d_data[d][f].packStream(stream,
+                  face_transform.transform(intersect);
+                  d_data[d][f]->packStream(stream,
                      intersect,
                      face_transform);
                }
@@ -455,27 +455,26 @@ OuterfaceData<TYPE>::unpackStream(
    tbox::MessageStream& stream,
    const hier::BoxOverlap& overlap)
 {
-   const FaceOverlap* t_overlap =
-      dynamic_cast<const FaceOverlap *>(&overlap);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    const hier::IntVector& offset = t_overlap->getSourceOffset();
-   for (int d = 0; d < getDim().getValue(); d++) {
+   for (int d = 0; d < getDim().getValue(); ++d) {
       const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer(d);
       hier::IntVector face_offset(offset);
       if (d > 0) {
-         for (int i = 0; i < getDim().getValue(); i++) {
+         for (int i = 0; i < getDim().getValue(); ++i) {
             face_offset(i) = offset((d + i) % getDim().getValue());
          }
       }
 
-      for (hier::BoxContainer::const_iterator b(boxes);
+      for (hier::BoxContainer::const_iterator b = boxes.begin();
            b != boxes.end(); ++b) {
-         for (int f = 0; f < 2; f++) {
-            const hier::Box intersect = (*b) * d_data[d][f].getBox();
+         for (int f = 0; f < 2; ++f) {
+            const hier::Box intersect = (*b) * d_data[d][f]->getBox();
             if (!intersect.empty()) {
-               d_data[d][f].unpackStream(stream, intersect, face_offset);
+               d_data[d][f]->unpackStream(stream, intersect, face_offset);
             }
          }
       }
@@ -500,11 +499,11 @@ OuterfaceData<TYPE>::getSizeOfData(
    TBOX_ASSERT(depth > 0);
 
    size_t size = 0;
-   for (int d = 0; d < box.getDim().getValue(); d++) {
+   for (tbox::Dimension::dir_t d = 0; d < box.getDim().getValue(); ++d) {
       hier::Box lower = FaceGeometry::toFaceBox(box, d);
       hier::Box upper = FaceGeometry::toFaceBox(box, d);
-      lower.upper(d) = box.lower(d);
-      upper.lower(d) = box.upper(d);
+      lower.setUpper(d, box.lower(d));
+      upper.setLower(d, box.upper(d));
       size += ArrayData<TYPE>::getSizeOfData(lower, depth);
       size += ArrayData<TYPE>::getSizeOfData(upper, depth);
    }
@@ -527,9 +526,9 @@ OuterfaceData<TYPE>::fill(
 {
    TBOX_ASSERT((d >= 0) && (d < d_depth));
 
-   for (int i = 0; i < getDim().getValue(); i++) {
-      d_data[i][0].fill(t, d);
-      d_data[i][1].fill(t, d);
+   for (int i = 0; i < getDim().getValue(); ++i) {
+      d_data[i][0]->fill(t, d);
+      d_data[i][1]->fill(t, d);
    }
 }
 
@@ -540,12 +539,12 @@ OuterfaceData<TYPE>::fill(
    const hier::Box& box,
    int d)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
    TBOX_ASSERT((d >= 0) && (d < d_depth));
 
-   for (int i = 0; i < getDim().getValue(); i++) {
-      d_data[i][0].fill(t, FaceGeometry::toFaceBox(box, i), d);
-      d_data[i][1].fill(t, FaceGeometry::toFaceBox(box, i), d);
+   for (int i = 0; i < getDim().getValue(); ++i) {
+      d_data[i][0]->fill(t, FaceGeometry::toFaceBox(box, i), d);
+      d_data[i][1]->fill(t, FaceGeometry::toFaceBox(box, i), d);
    }
 }
 
@@ -554,9 +553,9 @@ void
 OuterfaceData<TYPE>::fillAll(
    const TYPE& t)
 {
-   for (int i = 0; i < getDim().getValue(); i++) {
-      d_data[i][0].fillAll(t);
-      d_data[i][1].fillAll(t);
+   for (int i = 0; i < getDim().getValue(); ++i) {
+      d_data[i][0]->fillAll(t);
+      d_data[i][1]->fillAll(t);
    }
 }
 
@@ -566,11 +565,11 @@ OuterfaceData<TYPE>::fillAll(
    const TYPE& t,
    const hier::Box& box)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
-   for (int i = 0; i < getDim().getValue(); i++) {
-      d_data[i][0].fillAll(t, FaceGeometry::toFaceBox(box, i));
-      d_data[i][1].fillAll(t, FaceGeometry::toFaceBox(box, i));
+   for (int i = 0; i < getDim().getValue(); ++i) {
+      d_data[i][0]->fillAll(t, FaceGeometry::toFaceBox(box, i));
+      d_data[i][1]->fillAll(t, FaceGeometry::toFaceBox(box, i));
    }
 }
 
@@ -589,9 +588,9 @@ OuterfaceData<TYPE>::print(
    std::ostream& os,
    int prec) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
-   for (int d = 0; d < d_depth; d++) {
+   for (int d = 0; d < d_depth; ++d) {
       print(box, d, os, prec);
    }
 }
@@ -604,12 +603,13 @@ OuterfaceData<TYPE>::print(
    std::ostream& os,
    int prec) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
 
-   for (int face_normal = 0; face_normal < getDim().getValue(); face_normal++) {
+   for (tbox::Dimension::dir_t face_normal = 0;
+        face_normal < getDim().getValue(); ++face_normal) {
       os << "Array face normal = " << face_normal << std::endl;
-      for (int side = 0; side < 2; side++) {
+      for (int side = 0; side < 2; ++side) {
          os << "side = " << ((side == 0) ? "lower" : "upper") << std::endl;
          printAxisFace(face_normal, side, box, depth, os, prec);
       }
@@ -619,17 +619,17 @@ OuterfaceData<TYPE>::print(
 template<class TYPE>
 void
 OuterfaceData<TYPE>::printAxisFace(
-   int face_normal,
+   tbox::Dimension::dir_t face_normal,
    int side,
    const hier::Box& box,
    std::ostream& os,
    int prec) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
-   TBOX_ASSERT((face_normal >= 0) && (face_normal < getDim().getValue()));
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
+   TBOX_ASSERT(face_normal < getDim().getValue());
    TBOX_ASSERT((side == 0) || (side == 1));
 
-   for (int d = 0; d < d_depth; d++) {
+   for (int d = 0; d < d_depth; ++d) {
       os << "Array depth = " << d << std::endl;
       printAxisFace(face_normal, side, box, d, os, prec);
    }
@@ -638,27 +638,27 @@ OuterfaceData<TYPE>::printAxisFace(
 template<class TYPE>
 void
 OuterfaceData<TYPE>::printAxisFace(
-   int face_normal,
+   tbox::Dimension::dir_t face_normal,
    int side,
    const hier::Box& box,
    int depth,
    std::ostream& os,
    int prec) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
-   TBOX_ASSERT((face_normal >= 0) && (face_normal < getDim().getValue()));
+   TBOX_ASSERT(face_normal < getDim().getValue());
    TBOX_ASSERT((side == 0) || (side == 1));
 
    const hier::Box facebox =
       FaceGeometry::toFaceBox(box, face_normal);
    const hier::Box region =
-      facebox * d_data[face_normal][side].getBox();
+      facebox * d_data[face_normal][side]->getBox();
    os.precision(prec);
-   hier::Box::iterator iend(region, false);
-   for (hier::Box::iterator i(region, true); i != iend; ++i) {
+   hier::Box::iterator iend(region.end());
+   for (hier::Box::iterator i(region.begin()); i != iend; ++i) {
       os << "array" << *i << " = "
-         << d_data[face_normal][side](*i, depth) << std::endl;
+         << (*(d_data[face_normal][side]))(*i, depth) << std::endl;
       os << std::flush;
    }
 }
@@ -667,7 +667,7 @@ OuterfaceData<TYPE>::printAxisFace(
  *************************************************************************
  *
  * Checks that class version and restart file version are equal.  If so,
- * reads in d_depth from the database.  Then has each item in d_data
+ * reads in d_depth from the restart database.  Then has each item in d_data
  * read in its data from the database.
  *
  *************************************************************************
@@ -675,37 +675,39 @@ OuterfaceData<TYPE>::printAxisFace(
 
 template<class TYPE>
 void
-OuterfaceData<TYPE>::getSpecializedFromDatabase(
-   const boost::shared_ptr<tbox::Database>& database)
+OuterfaceData<TYPE>::getFromRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db)
 {
-   TBOX_ASSERT(database);
+   TBOX_ASSERT(restart_db);
 
-   int ver = database->getInteger("PDAT_OUTERFACEDATA_VERSION");
+   hier::PatchData::getFromRestart(restart_db);
+
+   int ver = restart_db->getInteger("PDAT_OUTERFACEDATA_VERSION");
    if (ver != PDAT_OUTERFACEDATA_VERSION) {
       TBOX_ERROR(
-         "OuterfaceData<getDim()>::getSpecializedFromDatabase error...\n"
+         "OuterfaceData<getDim()>::getFromRestart error...\n"
          << " : Restart file version different than class version" << std::endl);
    }
 
-   d_depth = database->getInteger("d_depth");
+   d_depth = restart_db->getInteger("d_depth");
 
    boost::shared_ptr<tbox::Database> array_database;
-   for (int i = 0; i < getDim().getValue(); i++) {
+   for (int i = 0; i < getDim().getValue(); ++i) {
       std::string array_name = "d_data" + tbox::Utilities::intToString(i)
          + "_1";
-      array_database = database->getDatabase(array_name);
-      (d_data[i][0]).getFromDatabase(array_database);
+      array_database = restart_db->getDatabase(array_name);
+      d_data[i][0]->getFromRestart(array_database);
 
       array_name = "d_data" + tbox::Utilities::intToString(i) + "_2";
-      array_database = database->getDatabase(array_name);
-      (d_data[i][1]).getFromDatabase(array_database);
+      array_database = restart_db->getDatabase(array_name);
+      d_data[i][1]->getFromRestart(array_database);
    }
 }
 
 /*
  *************************************************************************
  *
- * Writes out class version number, d_depth to the database.
+ * Writes out class version number, d_depth to the restart database.
  * Then has each item in d_data write out its data to the database.
  *
  *************************************************************************
@@ -713,27 +715,29 @@ OuterfaceData<TYPE>::getSpecializedFromDatabase(
 
 template<class TYPE>
 void
-OuterfaceData<TYPE>::putSpecializedToDatabase(
-   const boost::shared_ptr<tbox::Database>& database) const
+OuterfaceData<TYPE>::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
 
-   TBOX_ASSERT(database);
+   TBOX_ASSERT(restart_db);
 
-   database->putInteger("PDAT_OUTERFACEDATA_VERSION",
+   hier::PatchData::putToRestart(restart_db);
+
+   restart_db->putInteger("PDAT_OUTERFACEDATA_VERSION",
       PDAT_OUTERFACEDATA_VERSION);
 
-   database->putInteger("d_depth", d_depth);
+   restart_db->putInteger("d_depth", d_depth);
 
    boost::shared_ptr<tbox::Database> array_database;
-   for (int i = 0; i < getDim().getValue(); i++) {
+   for (int i = 0; i < getDim().getValue(); ++i) {
       std::string array_name = "d_data" + tbox::Utilities::intToString(i)
          + "_1";
-      array_database = database->putDatabase(array_name);
-      (d_data[i][0]).putUnregisteredToDatabase(array_database);
+      array_database = restart_db->putDatabase(array_name);
+      d_data[i][0]->putToRestart(array_database);
 
       array_name = "d_data" + tbox::Utilities::intToString(i) + "_2";
-      array_database = database->putDatabase(array_name);
-      (d_data[i][1]).putUnregisteredToDatabase(array_database);
+      array_database = restart_db->putDatabase(array_name);
+      d_data[i][1]->putToRestart(array_database);
    }
 }
 

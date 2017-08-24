@@ -1,8 +1,10 @@
 #ifdef __GNUC__
+#ifndef __INTEL_COMPILER
 #if __GNUC__ > 4 ||               (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 ||                                  (__GNUC_MINOR__ == 2 &&                                   __GNUC_PATCHLEVEL__ > 0)))
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wextra"
 #pragma GCC diagnostic ignored "-Wconversion"
+#endif
 #endif
 #endif
 
@@ -40,7 +42,9 @@
 #define YY_FLEX_MINOR_VERSION 5
 
 #include <stdio.h>
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
 
 
 /* cfront 1.2 defines "c_plusplus" instead of "__cplusplus" */
@@ -486,7 +490,7 @@ char *yytext;
 //
 // File:	$URL$
 // Package:	SAMRAI toolbox
-// Copyright:	(c) 1997-2012 Lawrence Livermore National Security, LLC
+// Copyright:	(c) 1997-2016 Lawrence Livermore National Security, LLC
 
 // Description:	Lex scanner description for the SAMRAI input database
 //
@@ -907,7 +911,7 @@ YY_RULE_SETUP
 
 {
    Parser::getParser()->advanceCursor(yytext);
-   SAMRAI_yylval.u_integer = atol(yytext);
+   SAMRAI_yylval.u_integer = atoi(yytext);
    return(T_INTEGER);
 }
 	YY_BREAK
@@ -971,7 +975,7 @@ YY_RULE_SETUP
    } else {
       if (Parser::getParser()->pushIncludeFile(filename)) {
          s_include_stack[s_include_stack_top++] = YY_CURRENT_BUFFER;
-         yy_switch_to_buffer(yy_create_buffer(NULL,YY_BUF_SIZE));
+         yy_switch_to_buffer(yy_create_buffer(0,YY_BUF_SIZE));
       }
    }
 }

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface for box generation routines.
  *
  ************************************************************************/
@@ -43,28 +43,38 @@ public:
 
    /*!
     * @brief Cluster tags using the DLBG interfaces.
+    *
+    * @param tag_to_new_width [in] Width that tag_to_new should have.
+    * If implementation does not provide this width for tag_to_new,
+    * then it should set the width to zero.
+    *
+    * @param[out] new_box_level BoxLevel containing Boxes of clustered tagged
+    * cells.
+    * @param[out] tag_to_new Connector from the tagged to the new BoxLevels.
+    * @param[in] tag_level Tagged PatchLevel.
+    * @param[in] tag_data_index Index of PatchData used to denote tagging.
+    * @param[in] tag_val Value of PatchData indicating a tagged cell.
+    * @param[in] bound_boxes Collection of Boxes describing the bounding box
+    * of each block in the tag level.
+    * @param[in] min_box Smallest box size resulting from clustering.
+    * @param[in] tag_to_new_width Width of tag_to_new Connector.
     */
    virtual void
    findBoxesContainingTags(
-      hier::BoxLevel& new_mapped_box_level,
-      hier::Connector& tag_to_new,
-      hier::Connector& new_to_tag,
+      boost::shared_ptr<hier::BoxLevel>& new_box_level,
+      boost::shared_ptr<hier::Connector>& tag_to_new,
       const boost::shared_ptr<hier::PatchLevel>& tag_level,
       const int tag_data_index,
       const int tag_val,
-      const hier::Box& bound_box,
+      const hier::BoxContainer& bound_boxes,
       const hier::IntVector& min_box,
-      const double efficiency_tol,
-      const double combine_tol,
-      const hier::IntVector& max_gcw,
-      const hier::BlockId& block_id,
-      const hier::LocalId& first_local_id) const = 0;
+      const hier::IntVector& tag_to_new_width) = 0;
 
 private:
    // The following are not implemented:
    BoxGeneratorStrategy(
       const BoxGeneratorStrategy&);
-   void
+   BoxGeneratorStrategy&
    operator = (
       const BoxGeneratorStrategy&);
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Example program to demonstrate boundary utilities.
  *
  ************************************************************************/
@@ -31,7 +31,7 @@ using namespace std;
 // Headers for classes specific to this example
 #include "BoundaryDataTester.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -63,26 +63,6 @@ int main(
                        << endl);
          return -1;
       }
-
-      /*
-       * This test only is valid on 1 processor.
-       * This should be removed.
-       */
-      if (mpi.getSize() != 1) {
-         tbox::pout << "This test is valid for 1 processor only" << endl;
-         tbox::pout << "\nPASSED:  boundary" << endl;
-         tbox::SAMRAIManager::shutdown();
-         tbox::SAMRAIManager::finalize();
-         tbox::SAMRAI_MPI::finalize();
-         return 0;
-      }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-      /*
-       * This should never be true.
-       */
-      TBOX_ASSERT(mpi.getSize() == 1);
-#endif
 
       string input_filename = argv[1];
 
@@ -163,8 +143,7 @@ int main(
 
       tbox::plog << "\nBuilding patch hierarchy..." << endl;
 
-      const hier::BoxContainer& domain =
-         grid_geometry->getPhysicalDomain();
+      const hier::BoxContainer& domain = grid_geometry->getPhysicalDomain();
       hier::BoxContainer boxes(domain);
       boxes.unorder();
       if ((domain.size() == 1) &&
@@ -181,16 +160,21 @@ int main(
             bad_interval,
             domain);
       }
-      hier::BoxContainer patch_boxes(boxes);
 
       hier::BoxLevelConnectorUtils edge_utils;
-      hier::BoxLevel layer0(hier::IntVector(dim, 1), grid_geometry);
-      hier::BoxContainer::const_iterator domain_boxes(domain);
-      for (hier::LocalId ib(0); ib < patch_boxes.size(); ib++, ++domain_boxes) {
-         layer0.addBox(hier::Box(*domain_boxes, ib, 0));
+      boost::shared_ptr<hier::BoxLevel> layer0(
+         boost::make_shared<hier::BoxLevel>(
+            hier::IntVector(dim, 1), grid_geometry));
+      hier::BoxContainer::const_iterator domain_boxes = domain.begin();
+      int rank = mpi.getRank();
+      int size = mpi.getSize();
+      for (hier::LocalId ib(0); ib < boxes.size(); ++ib, ++domain_boxes) {
+         if (ib % size == rank) {
+            layer0->addBox(hier::Box(*domain_boxes, ib, rank));
+         }
       }
       edge_utils.addPeriodicImages(
-         layer0,
+         *layer0,
          patch_hierarchy->getGridGeometry()->getDomainSearchTree(),
          hier::IntVector(dim, 2));
 
@@ -199,10 +183,7 @@ int main(
       // Add Connector required for schedule construction.
       boost::shared_ptr<hier::PatchLevel> level0(
          patch_hierarchy->getPatchLevel(0));
-      level0->getBoxLevel()->getPersistentOverlapConnectors().
-      createConnector(
-         *level0->getBoxLevel(),
-         hier::IntVector(dim, 2));
+      level0->createConnector(*level0, hier::IntVector(dim, 2));
 
       /*
        * Allocate data on hierarchy and set variable data on patch interiors

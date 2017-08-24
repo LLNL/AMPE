@@ -3,50 +3,10 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   vizamrai_cat.sh
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   Contents of tools/scripts.
 ##
 #########################################################################
-vizamrai_cat.sh:
-
-Shell script which constructs a single vizamrai file from files 
-constructed on multiple processors 
-
-usage: sh vizamrai_cat.sh <filename>
-    
-       Where <filename> is the rootname of the .vis file collection.
-
-       example:  vizamrai_cat.sh euler.00000
-
-          will collect euler.00000.vis.00000 euler.00000.vis.00001 
-          into euler.vis for a 2 processor run."
-
-
----------------------------------------------------------------------
-vizamrai_multistep.pl:
-
-Perl script which invokes vizamrai_cat.sh on a series of different
-timesteps 
-
-usage: %> perl vizamrai_multistep.pl
-       %> <enter basename> (e.g. euler.<step>.vis.<proc>, enter 'euler')
-       %> <enter start timestep>
-       %> <enter end timestep>
-
-       example:  perl vizamrai_multistep.pl
-                 euler
-                 0000
-                 0025
-
-          will collect euler.[0000-0025].vis.[procs] and construct
-          euler.[0000-0025].vis
-
-NOTE:  vizamrai_multistep.pl invokes vizamrai_cat.sh so it must be 
-       able to find this file.  By default, it looks in the directory 
-       you are running from. You may change the $vizamrai_cat_dir variable 
-       in the file to point to a different location.
-
----------------------------------------------------------------------
 insure++.psrc
 
 Config file for Insure++ to unsuppress warnings/errors that should 

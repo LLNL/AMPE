@@ -19,33 +19,39 @@ To use the tool, one must first have a set of restart files that was dumped
 from a run of a SAMRAI-based application.  The restart files will be in a
 directory tree that looks something like:
 
-restart-dir/restore.00005/nodes.00008/proc.00000
-                                     /proc.00001
-                                     /proc.00002
-                                     /proc.00003
-                                     /proc.00004
-                                     /proc.00005
-                                     /proc.00006
-                                     /proc.00007
+restart-dir/restore.000005/nodes.0000008/proc.0000000
+                                        /proc.0000001
+                                        /proc.0000002
+                                        /proc.0000003
+                                        /proc.0000004
+                                        /proc.0000005
+                                        /proc.0000006
+                                        /proc.0000007
 
 'restart-dir' is the directory containing all of the restart dumps.
 The name of this directory is specified in the input file for the
 application.  'restart-dir' contains a set of subdirectories with
-names in the format of 'restore.DDDDD',where the DDDDD is a a 5-digit
-integer that identifies the timestep of the dump. The 'restore.DDDDD'
-subdirectory contains a subdirectory 'nodes.NNNNN', where NNNNN is a 5
+names in the format of 'restore.DDDDDD',where the DDDDDD is a a 6-digit
+integer that identifies the timestep of the dump. The 'restore.DDDDDD'
+subdirectory contains a subdirectory 'nodes.NNNNNNN', where NNNNNNN is a 7
 digit integer that specifies the number of processors on which the
-application ran.  The 'nodes.NNNNN' subdirectory then contains the set
+application ran.  The 'nodes.NNNNNNN' subdirectory then contains the set
 of HDF files containing the restart data.  The HDF files are named
-with the format 'proc.PPPPP', where PPPPP is a 5-digit integer that
+with the format 'proc.PPPPPPP', where PPPPPPP is a 7-digit integer that
 indicates the MPI rank of the the processor that wrote the file.
 
-NOTE: If there is more than one 'nodes.NNNNN' subdirectory the
+NOTE: If there is more than one 'nodes.NNNNNNN' subdirectory the
 resdistribute utility will fail.
 
-The usage of the restart redistribute tool is:
+The restart-redistribute tool is a parallel tool.  It is parallelized on the
+smaller of the number of input files--original number of processors--and the
+number of output files--new desired number of processors.  Therefore, you may
+run on any number of processors up to, but not greater than, this number.
+Running parallel programs is platform dependent.  The following example showing
+the usage of the restart-redistribute tool assumes the use of mpirun to launch
+parallel programs:
 
-restart-redistribute INPUT-DIR OUTPUT-DIR TIMESTEP NUM_PROCS_IN NUM_PROCS_OUT
+mpirun -np N restart-redistribute INPUT-DIR OUTPUT-DIR TIMESTEP NUM_PROCS_OUT
 
 INPUT-DIR        - the directory containing the restart dumps from a run
 
@@ -57,9 +63,10 @@ TIMESTEP         - integer identifier of the timestep of the restart
 NUM_PROCS_OUT    - the number of processors desired for a new restarted
                    run of the application.
 
-To run the tool on the example given above to redistribute 8 processor restart files to a 16 processor restart file, one would use:
+To run the tool on the example given above to redistribute 8 processor restart
+files to 16 processor restart file at timestep 5, one could use:
 
-restart-redistribute restart-dir new-restart-dir 5 16
+mpirun -np 8 restart-redistribute restart-dir new-restart-dir 5 16
 
 The resulting restart files could then be used to restart the run on
 16 procsessors.

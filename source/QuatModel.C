@@ -78,6 +78,8 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
+#include "SAMRAI/tbox/RestartManager.h"
+#include "SAMRAI/hier/PatchDataRestartManager.h"
 
 #include "tools.h"
 
@@ -896,7 +898,8 @@ void QuatModel::Initialize(
    else {
       const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
 
-      d_patch_hierarchy->getFromRestart();
+      d_patch_hierarchy->initializeHierarchy();
+      //d_patch_hierarchy->getFromRestart();
 
       for (int ll = 0; ll < max_levels; ll++) {
          d_tag_buffer_array[ll] = 1;
@@ -1092,8 +1095,10 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
             "LINEAR_REFINE" );
    }
 
-   d_curr_to_curr_refine_alg.reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)) );
-   d_curr_to_scr_refine_alg.reset(  new xfer::RefineAlgorithm(tbox::Dimension(NDIM)) );
+   d_curr_to_curr_refine_alg.reset( new xfer::RefineAlgorithm() );
+
+   d_curr_to_scr_refine_alg.reset( new xfer::RefineAlgorithm() );
+
 
    // curr to curr
    d_curr_to_curr_refine_alg->registerRefine(
@@ -1326,7 +1331,9 @@ void QuatModel::initializeLevelFromData(
    int nvar=ncf.getVarCount();
    tbox::plog << "Number of variables in NcFile: "<<nvar<<endl;
 #endif
+   tbox::plog<<"Opened NetCDF file "<<d_init_data_filename<<endl;
 
+   int qlen_file = 999;
 #ifdef HAVE_NETCDF3 
    NcVar* ncPhase = ncf.get_var( "phase" );
    if ( ncPhase == NULL ) {
@@ -1355,7 +1362,6 @@ void QuatModel::initializeLevelFromData(
    }
 
    NcDim* ncQlen;
-   int qlen_file = 999;
    if ( d_model_parameters.with_orientation() ) {
       ncQlen = ncf.get_dim( "qlen" );
       if ( ncQlen == NULL ) {
@@ -1384,7 +1390,6 @@ void QuatModel::initializeLevelFromData(
          TBOX_ERROR( "Could not read variable 'temperature' " <<
                      "from input data" << endl );
    }
-   int qlen_file = 0;
    if ( d_model_parameters.with_orientation() ) {
       for ( int ii = 0; ii < d_qlen; ii++ ) {
          std::ostringstream o;
@@ -1575,8 +1580,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       
       // initialize phase
       boost::shared_ptr< pdat::CellData<double> > phase_data (
-         patch->getPatchData( d_phase_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
       assert( phase_data );
 
 #ifdef HAVE_NETCDF3
@@ -1597,8 +1601,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       ncPhase.getVar(startp, countp, vals);
 #endif
       
-      pdat::CellIterator iend(patch_box, false);
-      for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+      pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+      for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
          const pdat::CellIndex ccell = *i;
          int ix = ccell(0) - x_lower;
          int iy = ccell(1) - y_lower;
@@ -1614,8 +1618,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       // initialize eta
       if ( d_model_parameters.with_third_phase() ) {
          boost::shared_ptr< pdat::CellData<double> > eta_data (
-            patch->getPatchData( d_eta_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_eta_id) ) );
          assert( eta_data );
 
 #ifdef HAVE_NETCDF3
@@ -1628,8 +1631,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          ncEta.getVar(startp, countp, vals);
 #endif
 
-         pdat::CellIterator iend(patch_box, false);
-         for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
             int ix = ccell(0) - x_lower;
             int iy = ccell(1) - y_lower;
@@ -1651,8 +1654,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       if ( !ncTemp.isNull() ){
 #endif
          boost::shared_ptr< pdat::CellData<double> > temp_data (
-            patch->getPatchData( d_temperature_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
          assert( temp_data );
 
 #ifdef HAVE_NETCDF3
@@ -1664,8 +1666,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
 #ifdef HAVE_NETCDF4
          ncTemp.getVar(startp, countp, vals);
 #endif
-         pdat::CellIterator iend(patch_box, false);
-         for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
             int ix = ccell(0) - x_lower;
             int iy = ccell(1) - y_lower;
@@ -1682,8 +1684,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       // initialize quaternion
       if ( d_model_parameters.with_orientation() ){
          boost::shared_ptr< pdat::CellData<double> > quat_data (
-            patch->getPatchData( d_quat_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_id) ) );
          assert( quat_data );
 
          for ( int qq = 0; qq < d_qlen; qq++ ) {
@@ -1702,8 +1703,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
             ncQuat.getVar(startp, countp, vals);
 #endif
  
-            pdat::CellIterator iend(patch_box, false);
-            for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
                const pdat::CellIndex ccell = *i;
                int ix = ccell(0) - x_lower;
                int iy = ccell(1) - y_lower;
@@ -1721,8 +1722,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       // initialize concentration
       if ( d_model_parameters.with_concentration() ){
          boost::shared_ptr< pdat::CellData<double> > conc_data (
-            patch->getPatchData( d_conc_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_id) ) );
          assert( conc_data );
 
          for ( int cc = 0; cc < d_ncompositions; cc++ ) {
@@ -1741,8 +1741,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
             ncConc.getVar(startp, countp, vals);
 #endif
 
-            pdat::CellIterator iend(patch_box, false);
-            for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
                const pdat::CellIndex ccell = *i;
                int ix = ccell(0) - x_lower;
                int iy = ccell(1) - y_lower;
@@ -2419,28 +2419,25 @@ void QuatModel::registerOrientationVariables( void )
 
 void QuatModel::registerPatchDataForRestart( void )
 {
-   hier::VariableDatabase* variable_db =
-      hier::VariableDatabase::getDatabase();
-
-   variable_db->registerPatchDataForRestart( d_phase_id );
+   hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_phase_id );
 
    if ( d_model_parameters.with_third_phase() ) {
-      variable_db->registerPatchDataForRestart( d_eta_id );
+      hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_eta_id );
    }
 
-   variable_db->registerPatchDataForRestart( d_temperature_id );
+   hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_temperature_id );
 
    if ( d_model_parameters.with_orientation() ){
-      variable_db->registerPatchDataForRestart( d_quat_id );
+      hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_quat_id );
    }
    if ( d_model_parameters.with_concentration() ){
-      variable_db->registerPatchDataForRestart( d_conc_id );
+      hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_conc_id );
       if ( d_model_parameters.concentrationModelNeedsPhaseConcentrations() )
       {
-         variable_db->registerPatchDataForRestart( d_conc_l_id );
-         variable_db->registerPatchDataForRestart( d_conc_a_id );
+         hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_conc_l_id );
+         hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_conc_a_id );
          if ( d_model_parameters.with_third_phase() )
-            variable_db->registerPatchDataForRestart( d_conc_b_id );
+            hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_conc_b_id );
       }
    }
 }
@@ -3447,8 +3444,7 @@ void QuatModel::computeMinMaxQModulus(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > y (
-            patch->getPatchData( d_quat_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_id) ) );
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<double> > q_norm_err;
@@ -3457,8 +3453,8 @@ void QuatModel::computeMinMaxQModulus(
                          ( patch->getPatchData(d_quat_norm_error_id) );
          }
 
-         pdat::CellIterator iend(pbox, false);
-         for (pdat::CellIterator i(pbox, true); i!= iend; ++i) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for (pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!= iend; ++i) {
             pdat::CellIndex cell = *i;
             double qnorm2 = 0.;
             for ( int q = 0 ; q < d_qlen ; q++ ) {
@@ -3489,7 +3485,7 @@ void QuatModel::computeMinMaxQModulus(
 void QuatModel::Regrid(
    const boost::shared_ptr<hier::PatchHierarchy > hierarchy )
 {
-   d_regrid_refine_alg.reset( new xfer::RefineAlgorithm(tbox::Dimension(NDIM)) );
+   d_regrid_refine_alg.reset( new xfer::RefineAlgorithm() );
 
    d_regrid_refine_alg->registerRefine(
       d_phase_id,          // destination
@@ -3620,10 +3616,10 @@ void QuatModel::Regrid(
 // Methods inherited from Serializable
 //
 
-void QuatModel::putToDatabase(
+void QuatModel::putToRestart(
    const boost::shared_ptr<tbox::Database>& db )const
 {
-   PFModel::putToDatabase( db );
+   PFModel::putToRestart( db );
 }
 
 //=======================================================================
@@ -3773,21 +3769,18 @@ void QuatModel::initializeLevelData(
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          boost::shared_ptr< pdat::CellData<double> > fl (
-            patch->getPatchData( d_f_l_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
          assert( fl );
          fl->fillAll( d_model_parameters.free_energy_liquid() );
 
          boost::shared_ptr< pdat::CellData<double> > fa (
-            patch->getPatchData( d_f_a_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          assert( fa );
          fa->fillAll( d_model_parameters.free_energy_solid_A() );
 
          if ( d_model_parameters.with_third_phase() ) {
             boost::shared_ptr< pdat::CellData<double> > fb (
-               patch->getPatchData( d_f_b_id ),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_b_id) ) );
             assert( fb );
             fb->fillAll( d_model_parameters.free_energy_solid_B() );
          }
@@ -4102,8 +4095,7 @@ void QuatModel::AllocateAndZeroData(
    if ( zero_data ) {
       for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p ) {
          boost::shared_ptr<T> data (
-            p->getPatchData( data_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< T, hier::PatchData>(p->getPatchData( data_id ) ) );
          data->fillAll( 0 );
       }
    }
@@ -4146,7 +4138,7 @@ void QuatModel::resetHierarchyConfiguration(
          hierarchy->getPatchLevel( ln );
       hier::BoxContainer bl( level->getBoxes() );
       if ( bl.boxesIntersect() ) {
-         for ( hier::BoxContainer::iterator bli(bl);
+         for ( hier::BoxContainer::iterator bli=bl.begin();
                bli != bl.end();
                ++bli ) {
             tbox::pout << *bli << endl;
@@ -4164,7 +4156,7 @@ void QuatModel::resetHierarchyConfiguration(
       d_integrator_quat_only->resetHierarchyConfiguration(
          hierarchy, coarsest_level, finest_level );
 
-   d_curr_to_scr_refine_sched.resizeArray( nlev );
+   d_curr_to_scr_refine_sched.resize( nlev );
    
    for ( int ln = coarsest_level; ln <= finest_level; ln++ ) {
       boost::shared_ptr<hier::PatchLevel > level =
@@ -4276,9 +4268,8 @@ void QuatModel::tagGradientDetectorCells(
    (void) initial_error;
    (void) uses_richardson_extrapolation_too;
 
-   boost::shared_ptr< pdat::CellData<int> >
-      tags ( patch.getPatchData( tag_index ),
-             boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< pdat::CellData<int> > tags(
+      BOOST_CAST< pdat::CellData<int>, hier::PatchData>( patch.getPatchData( tag_index) ) );
    assert( tags );
    tags->fillAll( 0 );
 
@@ -4290,14 +4281,14 @@ void QuatModel::tagGradientDetectorCells(
    const hier::Index& tag_gbox_upper = tag_ghost_box.upper();
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+   TBOX_ASSERT(patch_geom);
 
    const double * dx = patch_geom->getDx();
 
    if ( d_tag_phase ) {
       boost::shared_ptr< pdat::CellData<double> > phase_grad (
-         patch.getPatchData( d_phase_grad_cell_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_grad_cell_id) ) );
       assert( phase_grad );
 
       const hier::Box& gbox = phase_grad->getGhostBox();
@@ -4333,8 +4324,7 @@ void QuatModel::tagGradientDetectorCells(
 
    if ( d_tag_eta ) {
       boost::shared_ptr< pdat::CellData<double> > eta_grad (
-         patch.getPatchData( d_eta_grad_cell_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_eta_grad_cell_id) ) );
       assert( eta_grad );
 
       const hier::Box& gbox = eta_grad->getGhostBox();
@@ -4371,8 +4361,7 @@ void QuatModel::tagGradientDetectorCells(
    if ( d_tag_quat ) {
 
       boost::shared_ptr< pdat::CellData<double> > quat_grad (
-         patch.getPatchData( d_quat_grad_cell_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_quat_grad_cell_id) ) );
       assert( quat_grad );
 
       const hier::Box& gbox = quat_grad->getGhostBox();
@@ -4498,7 +4487,7 @@ void QuatModel::WriteInitialConditionsFile( void )
          NcVar* nc_temp=NULL;
 #endif
 #ifdef HAVE_NETCDF4
-         NcFile f;
+         NcFile* f;
          NcVar nc_phase;
          NcVar nc_eta;
          NcVar* nc_conc =new NcVar[d_ncompositions];
@@ -4514,8 +4503,8 @@ void QuatModel::WriteInitialConditionsFile( void )
             }
 #endif
 #ifdef HAVE_NETCDF4
-            f.open( d_initial_conditions_file_name, NcFile::replace );
-            if( f.isNull()) {
+            f=new NcFile( d_initial_conditions_file_name, NcFile::replace );
+            if( f->isNull()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }else{
                tbox::plog<<"Open/replace file "<<d_initial_conditions_file_name<<endl;
@@ -4558,21 +4547,21 @@ void QuatModel::WriteInitialConditionsFile( void )
 #endif
 #ifdef HAVE_NETCDF4
             //cout<<"add variables from PE 0..."<<endl;
-            NcDim nc_nx = f.addDim( "x", nx_prob );
-            NcDim nc_ny = f.addDim( "y", ny_prob );
-            NcDim nc_nz = f.addDim( "z", nz_prob );
-            f.addDim( "qlen", d_qlen );
+            NcDim nc_nx = f->addDim( "x", nx_prob );
+            NcDim nc_ny = f->addDim( "y", ny_prob );
+            NcDim nc_nz = f->addDim( "z", nz_prob );
+            f->addDim( "qlen", d_qlen );
 
             vector<NcDim> dims;
             dims.push_back(nc_nz);
             dims.push_back(nc_ny);
             dims.push_back(nc_nx);
-            nc_phase = f.addVar("phase", ncFloat, dims);
+            nc_phase = f->addVar("phase", ncFloat, dims);
             if( nc_phase.isNull() ){
                TBOX_ERROR( "Could add variable 'phase'" << endl );
             }
             if ( d_model_parameters.with_third_phase() ) {
-               nc_eta = f.addVar( "eta", ncFloat, dims);
+               nc_eta = f->addVar( "eta", ncFloat, dims);
             }
 
             if ( d_model_parameters.with_orientation() ) {
@@ -4580,7 +4569,7 @@ void QuatModel::WriteInitialConditionsFile( void )
                   std::ostringstream o;
                   o << "quat" << ii+1;
                   nc_qcomp[ii] =
-                     f.addVar( o.str(), ncFloat, dims);
+                     f->addVar( o.str(), ncFloat, dims);
                }
             }
 
@@ -4590,11 +4579,11 @@ void QuatModel::WriteInitialConditionsFile( void )
                   o << "concentration";
                   if( d_ncompositions>1 )o << ii+1;
                   nc_conc[ii] =
-                     f.addVar( o.str(), ncFloat, dims);
+                     f->addVar( o.str(), ncFloat, dims);
                }
             }
 
-            nc_temp = f.addVar( "temperature", ncFloat, dims);
+            nc_temp = f->addVar( "temperature", ncFloat, dims);
             //cout<<"variables added on PE 0..."<<endl;
 #endif
          }
@@ -4606,8 +4595,8 @@ void QuatModel::WriteInitialConditionsFile( void )
             }
 #endif
 #ifdef HAVE_NETCDF4
-            f.open( d_initial_conditions_file_name, NcFile::write );
-            if ( f.isNull() ) {
+            f=new NcFile( d_initial_conditions_file_name, NcFile::write );
+            if ( f->isNull() ) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }else{
                tbox::plog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
@@ -4642,17 +4631,17 @@ void QuatModel::WriteInitialConditionsFile( void )
 #endif
 #ifdef HAVE_NETCDF4
             tbox::plog<<"add variables from PE >0..."<<endl;
-            nc_phase = f.getVar( "phase" );
+            nc_phase = f->getVar( "phase" );
 
             if ( d_model_parameters.with_third_phase() ) {
-               nc_eta = f.getVar( "eta" );
+               nc_eta = f->getVar( "eta" );
             }
 
             if ( d_model_parameters.with_orientation() ) {
                for ( int ii = 0; ii < d_qlen; ii++ ) {
                   std::ostringstream o;
                   o << "quat" << ii+1;
-                  nc_qcomp[ii] = f.getVar( o.str() );
+                  nc_qcomp[ii] = f->getVar( o.str() );
                }
             }
 
@@ -4661,11 +4650,11 @@ void QuatModel::WriteInitialConditionsFile( void )
                   std::ostringstream o;
                   o << "concentration";
                   if( d_ncompositions>1 )o << ii+1;
-                  nc_conc[ii] = f.getVar( o.str() );
+                  nc_conc[ii] = f->getVar( o.str() );
                }
             }
 
-            nc_temp = f.getVar( "temperature" );
+            nc_temp = f->getVar( "temperature" );
 #endif
          } // pp==0 or not        
 
@@ -4746,8 +4735,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             boost::shared_ptr<hier::Patch > patch = *p;
 
             boost::shared_ptr< pdat::CellData<double> > phase_data (
-               patch->getPatchData( d_phase_id ),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
             assert( phase_data );
 
             const hier::Box& this_b = patch->getBox();
@@ -4783,8 +4771,7 @@ void QuatModel::WriteInitialConditionsFile( void )
 #endif
             if ( d_model_parameters.with_third_phase() ) {
                boost::shared_ptr< pdat::CellData<double> > eta_data (
-                  patch->getPatchData( d_eta_id ),
-                  boost::detail::dynamic_cast_tag());
+                  BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_eta_id) ) );
                assert( eta_data );
 
 #ifdef HAVE_NETCDF3
@@ -4797,8 +4784,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             }
 
             boost::shared_ptr< pdat::CellData<double> > temp_data (
-               patch->getPatchData( d_temperature_id ),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
             assert( temp_data );
 
 #ifdef HAVE_NETCDF3
@@ -4812,8 +4798,7 @@ void QuatModel::WriteInitialConditionsFile( void )
 
             if ( d_model_parameters.with_orientation() ){
                boost::shared_ptr< pdat::CellData<double> > quat_data (
-                  patch->getPatchData( d_quat_id ),
-                  boost::detail::dynamic_cast_tag());
+                  BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_id) ) );
                assert( quat_data );
 
                for ( int dd = 0; dd < d_qlen; dd++ ) {
@@ -4829,8 +4814,7 @@ void QuatModel::WriteInitialConditionsFile( void )
 
             if ( d_model_parameters.with_concentration() ){
                boost::shared_ptr< pdat::CellData<double> > conc_data (
-                  patch->getPatchData( d_conc_id ),
-                  boost::detail::dynamic_cast_tag());
+                  BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_id) ) );
                assert( conc_data );
 
                for ( int dd = 0; dd < d_ncompositions; dd++ ) {
@@ -4892,7 +4876,7 @@ QuatModel::FlattenHierarchy(
    //boxes.print(cout);
 
    
-   hier::BoxContainer::const_iterator boxes_itr(boxes);
+   hier::BoxContainer::const_iterator boxes_itr=boxes.begin();
    for (int ib=0; ib < boxes.size(); ib++, boxes_itr++) {
       layer0.addBox(hier::Box(*boxes_itr, hier::LocalId(ib), layer0.getMPI().getRank()));
    }
@@ -4903,8 +4887,7 @@ QuatModel::FlattenHierarchy(
    hier::PatchHierarchy tmp_hierarchy(
       "tmpPatchHierarchy",
       d_grid_geometry,
-      boost::shared_ptr<tbox::Database>(),
-      false );
+      boost::shared_ptr<tbox::Database>() );
    tmp_hierarchy.makeNewPatchLevel(level_number, layer0);
 
    boost::shared_ptr<hier::PatchLevel > flattened_level = 
@@ -5000,19 +4983,17 @@ void QuatModel::computePhaseDiffs(
          const hier::Box& box = patch->getBox();
 
          boost::shared_ptr< pdat::SideData<double> > diff_data (
-            patch->getPatchData( phase_diffs_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( phase_diffs_id) ) );
          assert( diff_data );
          assert( diff_data->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
          boost::shared_ptr< pdat::CellData<double> > cell_diffs_data (
-            patch->getPatchData( d_phase_diffs_cell_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_diffs_cell_id) ) );
          assert( cell_diffs_data );
 
-         pdat::CellIterator iend(box, false);
-         for ( pdat::CellIterator i(box,true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(box));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(box)); i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
             const pdat::SideIndex xside(
                ccell, pdat::SideIndex::X, pdat::SideIndex::Lower );
@@ -5106,29 +5087,25 @@ void QuatModel::smoothQuat(
       const hier::Index& ilast = box.upper();
 
       boost::shared_ptr< pdat::CellData<double> > quat (
-         patch->getPatchData( d_quat_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_id) ) );
       assert( quat );
       assert( quat->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
 
       boost::shared_ptr< pdat::CellData<double> > quat_scratch (
-         patch->getPatchData( d_quat_scratch_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_scratch_id) ) );
       assert( quat_scratch );
       assert( quat_scratch->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( d_quat_diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_quat_diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::CellData<double> > phase (
-         patch->getPatchData( d_phase_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
       assert( phase );
       assert( phase->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -5198,15 +5175,13 @@ void QuatModel::computeVarDiffs(
       const hier::Index& ilast = box.upper();
 
       boost::shared_ptr< pdat::CellData<double> > var_data (
-         patch->getPatchData( var_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( var_id) ) );
       assert( var_data );
       assert( var_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -5372,15 +5347,13 @@ void QuatModel::computeVarGradCell(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::CellData<double> > grad_cell_data (
-         patch->getPatchData( grad_cell_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( grad_cell_id) ) );
       assert( grad_cell_data );
       assert( grad_cell_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -5394,7 +5367,8 @@ void QuatModel::computeVarGradCell(
       const hier::Index& g_upper = grad_gbox.upper();
 
       boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
-         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+      TBOX_ASSERT(patch_geom);
 
       const double * dx = patch_geom->getDx();
 
@@ -5476,15 +5450,13 @@ void QuatModel::computeVarGradSide(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::SideData<double> > grad_side_data (
-         patch->getPatchData( grad_side_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( grad_side_id) ) );
       assert( grad_side_data );
       assert( grad_side_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -5498,7 +5470,8 @@ void QuatModel::computeVarGradSide(
       const hier::Index& g_upper = grad_gbox.upper();
 
       boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+      TBOX_ASSERT(patch_geom);
 
       const double * dx = patch_geom->getDx();
 
@@ -5597,16 +5570,14 @@ void QuatModel::computeQuatDiffs(
       const hier::Index& ilast = box.upper();
 
       boost::shared_ptr< pdat::CellData<double> > quat_data (
-         patch->getPatchData( quat_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_id) ) );
       assert( quat_data );
       assert( quat_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
       assert( quat_data->getDepth() == d_qlen );
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( quat_diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( quat_diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -5637,8 +5608,7 @@ void QuatModel::computeQuatDiffs(
 
          assert( d_quat_symm_rotation_id>=0 );
          boost::shared_ptr< pdat::SideData<int> > rotation_index (
-            patch->getPatchData( d_quat_symm_rotation_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_id) ) );
          assert( rotation_index );
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -5669,17 +5639,15 @@ void QuatModel::computeQuatDiffs(
 
       if ( d_model_parameters.with_extra_visit_output() ) {
          boost::shared_ptr< pdat::CellData<double> > cell_diffs_data (
-            patch->getPatchData( d_quat_diffs_cell_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_diffs_cell_id) ) );
          assert( cell_diffs_data );
 
          boost::shared_ptr< pdat::CellData<double> > nonsymm_cell_diffs_data (
-            patch->getPatchData( d_quat_nonsymm_diffs_cell_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_nonsymm_diffs_cell_id) ) );
          assert( nonsymm_cell_diffs_data );
 
-         pdat::CellIterator iend(box, false);
-         for ( pdat::CellIterator i(box,true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(box));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(box)); i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
             const pdat::SideIndex xside(
                ccell, pdat::SideIndex::X, pdat::SideIndex::Lower );
@@ -5759,30 +5727,28 @@ void QuatModel::computeQuatGradCell(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( quat_diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( quat_diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::CellData<double> > grad_cell_data (
-         patch->getPatchData( grad_cell_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( grad_cell_id) ) );
       assert( grad_cell_data );
       assert( grad_cell_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( grad_cell_data->getDepth() == NDIM * d_qlen );
 
       boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+      TBOX_ASSERT(patch_geom);
 
       const double * dx = patch_geom->getDx();
 
       if ( d_symmetry_aware ) {
 
          boost::shared_ptr< pdat::SideData<int> > rotation_index (
-            patch->getPatchData( d_quat_symm_rotation_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_id) ) );
          assert( rotation_index );
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -5892,30 +5858,28 @@ void QuatModel::computeQuatGradSide(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::SideData<double> > diff_data (
-         patch->getPatchData( quat_diffs_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( quat_diffs_id) ) );
       assert( diff_data );
       assert( diff_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::SideData<double> > grad_side_data (
-         patch->getPatchData( grad_side_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( grad_side_id) ) );
       assert( grad_side_data );
       assert( grad_side_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( grad_side_data->getDepth() == NDIM * d_qlen );
 
       boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+      TBOX_ASSERT(patch_geom);
 
       const double * dx = patch_geom->getDx();
 
       if ( d_symmetry_aware ) {
 
          boost::shared_ptr< pdat::SideData<int> > rotation_index (
-            patch->getPatchData( d_quat_symm_rotation_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::SideData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_id) ) );
          assert( rotation_index );
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -6149,15 +6113,13 @@ void QuatModel::computeQuatGradModulus(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::CellData<double> > grad_cell_data (
-         patch->getPatchData( grad_cell_id),
-         boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( grad_cell_id) ) );
       assert( grad_cell_data );
       assert( grad_cell_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
 
       boost::shared_ptr< pdat::CellData<double> > grad_modulus_data (
-         patch->getPatchData( grad_modulus_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( grad_modulus_id) ) );
       assert( grad_modulus_data );
       assert( grad_modulus_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -6221,15 +6183,13 @@ void QuatModel::computeQuatGradModulusFromSides(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::SideData<double> > grad_side_data (
-         patch->getPatchData( grad_side_id),
-         boost::detail::dynamic_cast_tag() );
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( grad_side_id) ) );
       assert( grad_side_data );
       assert( grad_side_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
 
       boost::shared_ptr< pdat::CellData<double> > grad_modulus_data (
-         patch->getPatchData( grad_modulus_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( grad_modulus_id) ) );
       assert( grad_modulus_data );
       assert( grad_modulus_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -6305,15 +6265,14 @@ void QuatModel::normalizeQuat(
       boost::shared_ptr<hier::Patch > patch = *p;
 
       boost::shared_ptr< pdat::CellData<double> > quat (
-         patch->getPatchData( quat_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_id) ) );
       assert( quat );
       const hier::Box& gbox = quat->getGhostBox();
 
       // issue:mew: Potentially replace this loop with fortran kernel.
 
-      pdat::CellIterator iend(gbox, false);
-      for (pdat::CellIterator i(gbox, true); i!=iend; ++i) {
+      pdat::CellIterator iend(pdat::CellGeometry::end(gbox));
+      for (pdat::CellIterator i(pdat::CellGeometry::begin(gbox)); i!=iend; ++i) {
          pdat::CellIndex cell = *i;
          double qnorm2 = 0.;
          for ( int q = 0; q < d_qlen; q++ ) {
@@ -6354,20 +6313,18 @@ void QuatModel::applyPolynomial(
       boost::shared_ptr<hier::Patch > patch = *p;
 
       boost::shared_ptr< pdat::CellData<double> > sdata (
-         patch->getPatchData( src_cell_data_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( src_cell_data_id) ) );
       assert( sdata );
       const hier::Box& gbox = sdata->getGhostBox();
 
       boost::shared_ptr< pdat::CellData<double> > ddata (
-         patch->getPatchData( dst_cell_data_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( dst_cell_data_id) ) );
       assert( ddata );
 
       // issue:mew: Potentially replace this loop with fortran kernel.
 
-      pdat::CellIterator iend(gbox, false);
-      for (pdat::CellIterator i(gbox, true); i!=iend; ++i) {
+      pdat::CellIterator iend(pdat::CellGeometry::end(gbox));
+      for (pdat::CellIterator i(pdat::CellGeometry::begin(gbox)); i!=iend; ++i) {
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
          const double hphi =
@@ -6424,13 +6381,11 @@ void QuatModel::computeUniformPhaseMobility(
       const hier::Box& pbox = patch->getBox();
 
       boost::shared_ptr< pdat::CellData<double> > temp_data (
-         patch->getPatchData( d_temperature_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
       assert( temp_data );
 
       boost::shared_ptr< pdat::CellData<double> > mobility_data (
-         patch->getPatchData( mobility_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
       assert( mobility_data );
       assert( mobility_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -6552,18 +6507,15 @@ void QuatModel::computeEtaMobility(
       const hier::Box& pbox = patch->getBox();
       
       boost::shared_ptr< pdat::CellData<double> > temp_data (
-         patch->getPatchData( d_temperature_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
       assert( temp_data );
 
       boost::shared_ptr< pdat::CellData<double> > phase_data (
-         patch->getPatchData( phase_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
       assert( phase_data );
 
       boost::shared_ptr< pdat::CellData<double> > mobility_data (
-         patch->getPatchData( mobility_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
       assert( mobility_data );
 
       if ( d_model_parameters.min_eta_mobility() == d_model_parameters.eta_mobility() &&
@@ -6721,15 +6673,13 @@ void QuatModel::computeQuatMobility(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::CellData<double> > phase_data (
-         patch->getPatchData( phase_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
       assert( phase_data );
       assert( phase_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::CellData<double> > mobility_data (
-         patch->getPatchData( mobility_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
       assert( mobility_data );
       assert( mobility_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -6800,15 +6750,13 @@ void QuatModel::computeQuatMobilityDeriv(
       const hier::Index& ilast =  pbox.upper();
 
       boost::shared_ptr< pdat::CellData<double> > phase_data (
-         patch->getPatchData( phase_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
       assert( phase_data );
       assert( phase_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
       boost::shared_ptr< pdat::CellData<double> > mobility_deriv_data (
-         patch->getPatchData( mobility_deriv_id ),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_deriv_id) ) );
       assert( mobility_deriv_data );
       assert( mobility_deriv_data->getGhostCellWidth() ==
               hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -6853,12 +6801,11 @@ void QuatModel::checkQuatNorm(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > y (
-            patch->getPatchData(d_quat_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_quat_id) ) );
          const hier::Box& pbox = patch->getBox();
 
-         pdat::CellIterator icend(pbox, false);
-         for (pdat::CellIterator ic(pbox, true); ic != icend; ++ic) {
+         pdat::CellIterator icend(pdat::CellGeometry::end(pbox));
+         for (pdat::CellIterator ic(pdat::CellGeometry::begin(pbox)); ic != icend; ++ic) {
             pdat::CellIndex cell = *ic;
             double qnorm2 = 0.;
             for ( int q = 0; q < d_qlen; q++ ) {
@@ -6923,8 +6870,9 @@ void QuatModel::computeVectorWeights(
       for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p ) {
          boost::shared_ptr< hier::Patch > patch = *p;
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geometry (
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+         TBOX_ASSERT(patch_geometry);
+
          const double* dx = patch_geometry->getDx();
          double cell_vol = dx[0];
 	 if (NDIM > 1) {
@@ -6935,8 +6883,7 @@ void QuatModel::computeVectorWeights(
 	 }
 
          boost::shared_ptr< pdat::CellData<double> > w (
-            patch->getPatchData(d_weight_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_weight_id) ) );
          if ( !w ) {
             TBOX_ERROR(d_object_name
                        << ": weight id must refer to a pdat::CellVariable");
@@ -6973,15 +6920,14 @@ void QuatModel::computeVectorWeights(
          for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p ) {
 
             boost::shared_ptr< hier::Patch > patch = *p;
-            for (hier::BoxContainer::const_iterator i(coarsened_boxes);
+            for (hier::BoxContainer::const_iterator i=coarsened_boxes.begin();
                  i != coarsened_boxes.end(); ++i) {
 
                hier::Box coarse_box = *i;
                hier::Box intersection = coarse_box*( patch->getBox() );
                if ( !intersection.empty() ) {
                   boost::shared_ptr< pdat::CellData<double> > w (
-                     patch->getPatchData(d_weight_id),
-                     boost::detail::dynamic_cast_tag());
+                     BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_weight_id) ) );
                   w->fillAll(0.0, intersection);
 
                }  // assignment only in non-empty intersection
@@ -7089,8 +7035,9 @@ void QuatModel::evaluateEnergy(
 
          boost::shared_ptr<hier::Patch > patch = *p;
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-            patch->getPatchGeometry(),
-                         boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+         TBOX_ASSERT(patch_geom);
+
          const double * dx = patch_geom->getDx();
 
          const hier::Box& pbox = patch->getBox();
@@ -7100,8 +7047,7 @@ void QuatModel::evaluateEnergy(
          double* pgrad_quat[NDIM];
          if ( d_model_parameters.with_orientation() ){
             boost::shared_ptr< pdat::SideData<double> > grad_quat (
-               patch->getPatchData( d_quat_grad_side_id ),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_quat_grad_side_id) ) );
             assert( grad_quat );
             assert( grad_quat->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
             for ( int d = 0; d < NDIM; d++ ) {
@@ -7115,20 +7061,15 @@ void QuatModel::evaluateEnergy(
          }
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            patch->getPatchData( d_phase_scratch_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
          boost::shared_ptr< pdat::CellData<double> > weight (
-            patch->getPatchData( d_weight_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_weight_id) ) );
          boost::shared_ptr< pdat::CellData<double> > fl (
-            patch->getPatchData( d_f_l_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
          boost::shared_ptr< pdat::CellData<double> > fa (
-            patch->getPatchData( d_f_a_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( d_temperature_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
 
          int three_phase = 0;
          double* ptr_fb = NULL;
@@ -7136,12 +7077,10 @@ void QuatModel::evaluateEnergy(
          if ( d_model_parameters.with_third_phase() ) {
             three_phase = 1;
             boost::shared_ptr< pdat::CellData<double> > fb (
-               patch->getPatchData( d_f_b_id ),
-               boost::detail::dynamic_cast_tag() );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_b_id) ) );
             ptr_fb = fb->getPointer();
             boost::shared_ptr< pdat::CellData<double> > eta (
-               patch->getPatchData( d_eta_scratch_id ),
-               boost::detail::dynamic_cast_tag() );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_eta_scratch_id) ) );
             ptr_eta = eta->getPointer();
          }
 
@@ -7150,8 +7089,7 @@ void QuatModel::evaluateEnergy(
          if ( d_model_parameters.with_visit_energy_output() ) {
             per_cell = 1; 
             boost::shared_ptr< pdat::CellData<double> > energy (
-               patch->getPatchData( d_energy_diag_id ),
-               boost::detail::dynamic_cast_tag() );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_energy_diag_id) ) );
             ptr_energy = energy->getPointer();
          }
 
@@ -7260,15 +7198,13 @@ void QuatModel::computeSymmetryRotations(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > quat (
-            patch->getPatchData( d_quat_scratch_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_scratch_id) ) );
          assert( quat );
          assert( quat->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
          boost::shared_ptr< pdat::SideData<int> > rotation_index (
-            patch->getPatchData( d_quat_symm_rotation_id ),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_id) ) );
          assert( rotation_index );
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -7293,12 +7229,11 @@ void QuatModel::computeSymmetryRotations(
          if ( d_model_parameters.with_extra_visit_output() ) {
             assert( d_quat_symm_rotation_cell_id>=0 );
             boost::shared_ptr< pdat::CellData<int> > cell_rot_data (
-               patch->getPatchData( d_quat_symm_rotation_cell_id ),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_cell_id) ) );
             assert( cell_rot_data );
 
-            pdat::CellIterator iend(pbox, false);
-            for ( pdat::CellIterator i(pbox, true); i!= iend; ++i ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!= iend; ++i ) {
                const pdat::CellIndex ccell = *i;
                const pdat::SideIndex xside(
                   ccell, pdat::SideIndex::X, pdat::SideIndex::Lower );
@@ -7346,8 +7281,7 @@ void QuatModel::makeQuatFundamental(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > quat (
-            patch->getPatchData( d_quat_id ),
-            boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_id) ) );
          assert( quat );
          const hier::Box & quat_gbox = quat->getGhostBox();
          const hier::Index& q_lower = quat_gbox.lower();
@@ -7449,7 +7383,8 @@ void QuatModel::fillPhaseConcentrationGhosts( void )
    
    //tbox::pout<<"QuatModel::fillPhaseConcentrationGhosts"<<endl;
    
-   xfer::RefineAlgorithm copy_to_scratch(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm copy_to_scratch;
+
 
    boost::shared_ptr<hier::RefineOperator > refine_op =
       d_grid_geometry->lookupRefineOperator(
@@ -7501,7 +7436,8 @@ void QuatModel::fillPartitionCoeffGhosts( void )
    
    //tbox::pout<<"QuatModel::fillPartitionCoeffGhosts"<<endl;
    
-   xfer::RefineAlgorithm copy_to_scratch(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm copy_to_scratch;
+
 
    boost::shared_ptr<hier::RefineOperator > refine_op =
       d_grid_geometry->lookupRefineOperator(
@@ -7597,16 +7533,13 @@ void QuatModel::computeVelocity(boost::shared_ptr<hier::Patch > patch,
    const hier::Index& ilast =  pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > grad_cell_data (
-      patch->getPatchData( d_phase_grad_cell_id),
-      boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_grad_cell_id) ) );
 
    boost::shared_ptr< pdat::CellData<double> > phi_dot_data (
-      patch->getPatchData( phi_dot_id),
-      boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phi_dot_id) ) );
 
    boost::shared_ptr< pdat::CellData<double> > velocity_data (
-      patch->getPatchData( d_velocity_id),
-      boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_velocity_id) ) );
 
    assert( grad_cell_data );
    assert( phi_dot_data );
@@ -7617,8 +7550,9 @@ void QuatModel::computeVelocity(boost::shared_ptr<hier::Patch > patch,
    assert( velocity_data->getGhostCellWidth()[0]==0 );
 
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      patch->getPatchGeometry(),
-                   boost::detail::dynamic_cast_tag() );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+   TBOX_ASSERT(patch_geom);
+
    const double * dx = patch_geom->getDx();
    const double threshold = 0.02/dx[0];
    //tbox::pout<<"QuatModel::computeVelocity() with threshold "<<threshold<<endl;

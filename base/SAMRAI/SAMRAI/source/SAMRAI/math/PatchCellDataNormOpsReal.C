@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated norm operations for real cell-centered patch data.
  *
  ************************************************************************/
@@ -13,6 +13,8 @@
 
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/Utilities.h"
+
+#include <cmath>
 
 namespace SAMRAI {
 namespace math {
@@ -30,47 +32,22 @@ PatchCellDataNormOpsReal<TYPE>::~PatchCellDataNormOpsReal()
 /*
  *************************************************************************
  *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchCellDataNormOpsReal<TYPE>::PatchCellDataNormOpsReal(
-   const PatchCellDataNormOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchCellDataNormOpsReal<TYPE>::operator = (
-   const PatchCellDataNormOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-/*
- *************************************************************************
- *
  * Compute the number of data entries on a patch in the given box.
  *
  *************************************************************************
  */
 
 template<class TYPE>
-int
+size_t
 PatchCellDataNormOpsReal<TYPE>::numberOfEntries(
    const boost::shared_ptr<pdat::CellData<TYPE> >& data,
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    const hier::Box ibox = box * data->getGhostBox();
-   int retval = (ibox.size() * data->getDepth());
+   size_t retval = (ibox.size() * data->getDepth());
    return retval;
 }
 
@@ -90,7 +67,7 @@ PatchCellDataNormOpsReal<TYPE>::sumControlVolumes(
    const hier::Box& box) const
 {
    TBOX_ASSERT(data && cvol);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    return d_array_ops.sumControlVolumes(data->getArrayData(),
       cvol->getArrayData(),
@@ -105,7 +82,7 @@ PatchCellDataNormOpsReal<TYPE>::abs(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    d_array_ops.abs(dst->getArrayData(),
       src->getArrayData(),
@@ -120,13 +97,13 @@ PatchCellDataNormOpsReal<TYPE>::L1Norm(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    double retval;
    if (!cvol) {
       retval = d_array_ops.L1Norm(data->getArrayData(), box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
       retval = d_array_ops.L1NormWithControlVolume(data->getArrayData(),
             cvol->getArrayData(),
@@ -143,13 +120,13 @@ PatchCellDataNormOpsReal<TYPE>::L2Norm(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    double retval;
    if (!cvol) {
       retval = d_array_ops.L2Norm(data->getArrayData(), box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
       retval = d_array_ops.L2NormWithControlVolume(data->getArrayData(),
             cvol->getArrayData(),
@@ -167,7 +144,7 @@ PatchCellDataNormOpsReal<TYPE>::weightedL2Norm(
    const boost::shared_ptr<pdat::CellData<double> >& cvol) const
 {
    TBOX_ASSERT(data && weight);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*data, *weight, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*data, *weight, box);
 
    double retval;
    if (!cvol) {
@@ -175,7 +152,7 @@ PatchCellDataNormOpsReal<TYPE>::weightedL2Norm(
             weight->getArrayData(),
             box);
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
       retval = d_array_ops.weightedL2NormWithControlVolume(
             data->getArrayData(),

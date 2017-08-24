@@ -1,5 +1,13 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routine to evaluate face-centered diffusion coefficients
+c                in 3d.
+c
 define(NDIM,3)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 
       subroutine evalExponential3d(
      & lo0, hi0, lo1, hi1, lo2, hi2,

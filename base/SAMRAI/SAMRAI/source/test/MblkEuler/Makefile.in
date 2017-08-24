@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for multiblock sample application 
 ##
 #########################################################################
@@ -14,58 +14,72 @@ SUBDIR        = source/test/MblkEuler
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
+TESTLIBDIR    = $(OBJECT)/source/test/testlib
+TESTLIB       = $(TESTLIBDIR)/libSAMRAI_test$(LIB_SUFFIX)
 
 default:      check
 
 include $(OBJECT)/config/Makefile.config
 
-CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=1
+CPPFLAGS_EXTRA= -DTESTING=1
 
 NUM_TESTS     = 1
 
 TEST_NPROCS   = @TEST_NPROCS@
+QUOTE = \"
 
-CXX_OBJS      = MblkGeometry.o main.o MblkEuler.o MblkHyperbolicLevelIntegrator.o \
-                MblkHyperbolicPatchStrategy.o Pointer-MblkHyperbolicLevelIntegrator.o
+CXX_OBJS      = MblkGeometry.o main.o MblkEuler.o
 
-F_OBJS      = upfluxsum.o boundaryconditions.o
+F_OBJS        = boundaryconditions.o
 
-main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND) $(TESTLIB)
+	(cd $(TESTLIBDIR) && $(MAKE) library) || exit 1 
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) $(TESTLIB) \
 	$(LIBSAMRAI) $(LDLIBS) -o $@
+
+# Prevents "No rule to make target" error.  Built in the rule for main.
+$(TESTLIB):
 
 check:
 	$(MAKE) check3d
 
 check3d:	main
 	@for i in test_inputs/*.3d.input ; do	\
-	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-		./main $${i};	\
-	done
-
-examples3d: main
-	@for i in test_inputs/*.3d.input ; do	\
-	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-		./main $${i};	\
-	done
-
-examples:
-	$(MAKE) examples3d	
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"MblkEuler\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
 
 checkcompile: main
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean-check:
-	$(SAMCLEAN)
+examples:
 
-clean: 
-	$(SAMCLEAN)
-	$(RM) *.f main viz*
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) viz*
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
 
 redo: 
 	$(RM) main
@@ -74,7 +88,3 @@ include $(SRCDIR)/Makefile.depend
 
 boundaryconditions.o:	$(SRCDIR)/boundaryconditions.f $(SRCDIR)/bc_common.f
 	$(F77) $(FFLAGS) -c $(SRCDIR)/boundaryconditions.f -o $@
-
-upfluxsum.o:	$(SRCDIR)/upfluxsum.f
-	$(F77) $(FFLAGS) -c $(SRCDIR)/upfluxsum.f -o $@
-

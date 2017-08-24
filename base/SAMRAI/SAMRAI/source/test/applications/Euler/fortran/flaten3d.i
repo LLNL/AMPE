@@ -1,3 +1,11 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file defining routine to compute flattening
+c                coefficient for 3d euler equation.
+c
 c***********************************************************************
       subroutine flaten3d(ifirst,ilast,i,mc,idir,
      &                  tracest,sound,flattn)

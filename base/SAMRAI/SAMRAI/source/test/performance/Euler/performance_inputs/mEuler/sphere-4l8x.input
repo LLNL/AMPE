@@ -1,36 +1,15 @@
 /*************************************************************************
  *
- * This file is part of the SAMRAI distribution.  For full copyright 
- * information, see COPYRIGHT and COPYING.LESSER. 
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Input file for SAMRAI Euler example problem (3d sphere) 
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Input file for SAMRAI Euler example problem (3d sphere)
  *
  ************************************************************************/
 
 // 4-level Euler strong scaling performance test.
 // The 1x version is set up to do about 28.4 cell updates.
-
-log_actions = 'n'
-check_input_connectors = 'n'
-check_output_connectors = 'n'
-check_connectors = 'n'
-print_layer_hierarchy = 'n'
-DistributedLoadBalancer_print_steps = 'n'
-DistributedLoadBalancer_check_connectivity = 'n'
-check_map = 'n'
-check_connectivity = 'n'
-print_steps = 'n'
-print_swap_steps = 'n'
-print_break_steps = 'n'
-print_edge_steps = 'n'
-
-
-GlobalInputs {
-   //use_new_comm_sched = FALSE  // uncomment to turn on OLD
-   use_newest_comm_sched = TRUE // uncomment to turn on NEW
-   //use_old_method_for_clustering = TRUE // uncomment to turn on OLD
-}
 
 Euler {
    gamma            = 1.4      // gamma = Ratio of specific heats
@@ -55,18 +34,18 @@ Euler {
       pressure_inside   = 1140.35
 
       density_outside    = 1.0
-      velocity_outside   = 0.0 , 0.0, 0.0 
+      velocity_outside   = 0.0 , 0.0, 0.0
       pressure_outside   = 0.00001
 
    }
 
    Refinement_data {
       refine_criteria = "PRESSURE_GRADIENT"
- 
+
       PRESSURE_GRADIENT {
          grad_tol = 100.0
       }
- 
+
       PRESSURE_SHOCK {
          shock_tol = 10.0
          shock_onset = 0.85
@@ -74,7 +53,7 @@ Euler {
 
       PRESSURE_DEVIATION {
          dev_tol = 0.01
-        pressure_dev = 0.01
+         pressure_dev = 0.01
       }
    }
 
@@ -168,65 +147,110 @@ Euler {
 
 
 BergerRigoutsos {
-   algo_advance_mode = "ADVANCE_SOME"
-   owner_mode = "MOST_OVERLAP"
-   log_node_history = FALSE
-   use_level_boxes = FALSE
-   use_private_communicator = TRUE
    sort_output_nodes = TRUE
-   log_cluster_summary = TRUE
+   max_box_size = 100, 100, 100
+   combine_efficiency = 0.90
+   efficiency_tolerance = 0.90
+   DEV_algo_advance_mode = "ADVANCE_SOME"
+   DEV_owner_mode = "MOST_OVERLAP"
+   DEV_inflection_cut_threshold_ar = 4
+   DEV_log_node_history = FALSE
+   DEV_log_cluster_summary = TRUE
+   DEV_log_cluster = FALSE
+   DEV_barrier_before = TRUE
+   DEV_barrier_after = TRUE
 }
 
-// BaselineMain is used only by the baseline code.
-BaselineMain {
-   base_name = "spbsl-4l8x"
-   log_all_nodes = TRUE
-
-// visualization dump parameters 
-   viz_writer            = "VisIt"
-   viz_dump_interval     = 0          // zero to turn off
-   visit_number_procs_per_file = 1    // not used by Vizamrai
-
-// restart dump parameters 
-   restart_interval        = 0        // zero to turn off
-   restart_write_dirname   = "restart_sphere3d"
-
-   // which_br: 'o' = old, 'n' = new
-   which_br = 'o'
+TileClustering {
+   tile_size = 3,3,3
+   DEV_log_cluster_summary = TRUE
+   DEV_log_cluster = FALSE
+   DEV_barrier_and_time = TRUE
 }
+
+ChopAndPackLoadBalancer{
+  // bin_pack_method = "GREEDY"
+  bin_pack_method = "SPATIAL"
+  ignore_level_box_union_is_single_box = TRUE
+}
+
+CascadePartitioner {
+  tile_size = 12,12,12
+  flexible_load_tolerance = 0.05
+  max_spread_procs = 500
+  DEV_reset_obligations = TRUE
+  // Debugging options
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = TRUE
+  DEV_print_child_steps = TRUE
+  DEV_summarize_map = FALSE
+}
+
+TreeLoadBalancer {
+  tile_size = 12,12,12
+  flexible_load_tolerance = 0.05
+  max_cycle_spread_procs = 1000
+  DEV_voucher_mode = FALSE
+  DEV_report_load_balance = TRUE
+  DEV_allow_box_breaking = TRUE
+  // Debugging options
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = FALSE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
+  DEV_summarize_map = FALSE
+}
+
+
+BoxTransitSet {
+  DEV_print_steps = FALSE
+  DEV_print_pop_steps = FALSE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
+}
+
 
 // Main is used only by the new code.
 Main {
-   base_name = "spnew-4l8x"
+   dim = 3
+   base_name = "sphere-4l8x"
    log_all_nodes = TRUE
 
-// visualization dump parameters 
-   viz_writer            = "VisIt"
-   viz_dump_interval     = 0          // zero to turn off
-   visit_number_procs_per_file = 1    // not used by Vizamrai
+   clustering_type = "TileClustering" // TileClustering || BergerRigoutsos
+   partitioner_type = "CascadePartitioner" // CascadePartitioner || TreeLoadBalancer || ChopAndPackLoadBalancer
 
-// restart dump parameters 
+// visualization dump parameters
+   viz_dump_interval     = 1          // zero to turn off
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
    restart_interval        = 0        // zero to turn off
    restart_write_dirname   = "restart_sphere3d"
 }
 
 
 TimerManager{
-  // timer_list = "*::*::*"
-  timer_list = "hier::*::*", "mesh::*::*", "xfer::*::*", "algs::*::*", "apps::*::*"
-  print_user = TRUE
-  // print_timer_overhead = TRUE
-  print_threshold = 0
-  print_summed = TRUE
-  print_max = TRUE
+   // timer_list = "*::*::*"
+   // timer_list = "hier::*::*", "mesh::*::*", "xfer::*::*", "algs::*::*", "apps::*::*"
+   timer_list = "appu::main::all"
+   print_user = TRUE
+   // print_timer_overhead = TRUE
+   print_threshold = 0
+   print_summed = TRUE
+   print_max = TRUE
 }
 
 CartesianGeometry {
    // domain_boxes  = [ (0, 0, 0) , (49, 49, 49) ]
-   domain_boxes  = [ (0, 0, 0) , (63, 63, 63) ]
+   // domain_boxes  = [ (0, 0, 0) , (63, 63, 63) ]
+   domain_boxes  = [ (0, 0, 0) , (7, 7, 7) ]
    // domain_boxes  = [ (0, 0, 0) , (7, 7, 7) ]
    x_lo          = 0.e0, 0.e0, 0.e0     // lower end of computational domain.
-   x_up          = 4.e0, 4.e0, 4.e0  // upper end of computational domain.
+   x_up          = 2.e0, 2.e0, 2.e0  // upper end of computational domain.
 }
 
 StandardTagAndInitialize {
@@ -236,20 +260,21 @@ StandardTagAndInitialize {
 PatchHierarchy {
    max_levels             = 4        // Maximum number of levels in hierarchy.
    ratio_to_coarser {            // vector ratio to next coarser level
-      level_1             = 4 , 4 , 4 
-      level_2             = 4 , 4 , 4 
-      level_3             = 4 , 4 , 4 
+      level_1             = 4 , 4 , 4
+      level_2             = 4 , 4 , 4
+      level_3             = 4 , 4 , 4
    }
 
    largest_patch_size {
-      level_0 =  19, 19, 19  // largest patch allowed in hierarchy
+      // level_0 =  32, 32, 32  // largest patch allowed in hierarchy
+      level_0 =  -1, -1, -1  // No limit on largest patch.
            // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  8, 8, 8 
-      level_1 =  8, 8, 8 
-      level_2 =  8, 8, 8 
+      level_0 =  3, 3, 3
+      level_1 =  6, 6, 6
+      level_2 =  8, 8, 8
       // all finer levels will use same values as level_0...
    }
 
@@ -257,11 +282,7 @@ PatchHierarchy {
 }
 
 GriddingAlgorithm {
-   efficiency_tolerance   = 0.90e0    // min % of tag cells in new patch level
-   combine_efficiency     = 0.90e0    // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
-   barrier_before_clustering = FALSE
-   sequentialize_patch_indices = FALSE
+   sequentialize_patch_indices = TRUE
    check_nonrefined_tags = "IGNORE"
 }
 
@@ -270,7 +291,7 @@ HyperbolicLevelIntegrator {
    cfl_init                 = 0.1e0    // initial cfl factor
    lag_dt_computation       = TRUE
    use_ghosts_to_compute_dt = TRUE
-   distinguish_mpi_reduction_costs = TRUE
+   // DEV_distinguish_mpi_reduction_costs = TRUE
 }
 
 TimeRefinementIntegrator {
@@ -279,21 +300,4 @@ TimeRefinementIntegrator {
    grow_dt               = 1.1e0    // growth factor for timesteps
    max_integrator_steps  = 19    // max number of simulation timesteps
    // max_integrator_steps  = 1     // max number of simulation timesteps
-}
-
-// DistributedLoadBalancer is used by the new code.
-DistributedLoadBalancer {
-  report_load_balance = FALSE
-}
-
-TreeLoadBalancer {
-  report_load_balance = FALSE
-  barrier_before = TRUE
-  barrier_after = TRUE
-  n_root_cycles = 2
-}
-
-// LoadBalancer is used by the new code.
-LoadBalancer {
-// using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
 }

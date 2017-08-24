@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   IEEE routines to set up handlers and get signaling NaNs
  *
  ************************************************************************/
@@ -13,9 +13,10 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/MathUtilities.h"
+
+#include <vector>
 
 namespace SAMRAI {
 namespace tbox {
@@ -35,14 +36,14 @@ namespace tbox {
  *            SAMRAIManager::startup() routine.
  *
  * Note that all operations provided by this class (except for setting
- * up exception handling) are implemented in @see tbox::MathUtilities.
+ * up exception handling) are implemented in @see MathUtilities.
  * Operations are provided by this class since it is not templated on
  * data type and so calling the operations provided here may be easier
  * in some cases, such as in codes built based on earlier versions
- * of SAMRAI.  See the tbox::MathUtilities header file for details
+ * of SAMRAI.  See the MathUtilities header file for details
  * about the routines.
  *
- * @see tbox::MathUtilities
+ * @see MathUtilities
  */
 
 struct IEEE {
@@ -118,42 +119,42 @@ struct IEEE {
    }
 
    /*!
-    * Initialize an array of floats to signaling NaNs.  Before using this
+    * Initialize a vector of floats to signaling NaNs.  Before using this
     * array in any operation, the NaN value should be reset.  Otherwise,
     * an unrecoverable exception will result (as long as floating point
     * exception handling is supported by the compiler).
     */
    static void
-   initializeArrayToSignalingNaN(
-      Array<float>& array)
+   initializeVectorToSignalingNaN(
+      std::vector<float>& vector)
    {
-      MathUtilities<float>::setArrayToSignalingNaN(array);
+      MathUtilities<float>::setVectorToSignalingNaN(vector);
    }
 
    /*!
-    * Initialize an array of doubles to signaling NaNs.  Before using this
+    * Initialize a vector of doubles to signaling NaNs.  Before using this
     * array in any operation, the NaN value should be reset.  Otherwise,
     * an unrecoverable exception will result (as long as floating point
     * exception handling is supported by the compiler).
     */
    static void
-   initializeArrayToSignalingNaN(
-      Array<double>& array)
+   initializeVectorToSignalingNaN(
+      std::vector<double>& vector)
    {
-      MathUtilities<double>::setArrayToSignalingNaN(array);
+      MathUtilities<double>::setVectorToSignalingNaN(vector);
    }
 
    /*!
-    * Initialize an array of dcomplex to signaling NaNs.  Before using this
+    * Initialize a vector of dcomplex to signaling NaNs.  Before using this
     * array in any operation, the NaN value should be reset.  Otherwise,
     * an unrecoverable exception will result (as long as floating point
     * exception handling is supported by the compiler).
     */
    static void
-   initializeArrayToSignalingNaN(
-      Array<dcomplex>& array)
+   initializeVectorToSignalingNaN(
+      std::vector<dcomplex>& vector)
    {
-      MathUtilities<dcomplex>::setArrayToSignalingNaN(array);
+      MathUtilities<dcomplex>::setVectorToSignalingNaN(vector);
    }
 
    /*!

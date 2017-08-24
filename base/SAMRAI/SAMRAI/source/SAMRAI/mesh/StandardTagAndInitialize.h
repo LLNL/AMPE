@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Gridding routines and params for Richardson Extrapolation.
  *
  ************************************************************************/
@@ -16,7 +16,9 @@
 #include "SAMRAI/mesh/StandardTagAndInitializeConnectorWidthRequestor.h"
 #include "SAMRAI/mesh/TagAndInitializeStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
 
 namespace SAMRAI {
 namespace mesh {
@@ -25,7 +27,7 @@ namespace mesh {
  * Class StandardTagAndInitialize defines an implementation
  * for level initialization and cell tagging routines needed by
  * the GriddingAlgorithm class.  This class is derived from
- * the abstract base class TagAndInitializeStrategy. It invokes
+ * the abstract base class TagAndInitializeStrategy.  It invokes
  * problem-specific level initialization routines after AMR patch
  * hierarchy levels change and routines for tagging cells for refinement
  * using one (or more) of the following methods:
@@ -34,42 +36,128 @@ namespace mesh {
  *   - Richardson Extrapolation
  *   - Explicitly defined refine boxes
  *
+ * Tagging methods may be activated at specific cycles and/or times.
  * It is possible to use combinations of these three methods (e.g.,
  * use gradient detection, Richardson extrapolation, and static refine boxes
- * at the same time). The order in which they are executed is fixed (
- * Richardson extrapolation first, gradient detection second, and refine
+ * at the same cycle/time).  The order in which they are executed is fixed
+ * (Richardson extrapolation first, gradient detection second, and refine
  * boxes third).  An input entry for this class is optional.
- * If none is provided, the class will by default not use any criteria
- * to tag cells for refinement.
+ * If none is provided, the class will, by default, not use any criteria
+ * to tag cells for refinement and issue a warning.
  *
- * Required input keys and data types: NONE
+ * <b> Input Parameters </b>
  *
- * Optional input keys, data types, and defaults:
+ * <b> Definitions: </b> <br>
+ * The general input syntax is as follows:
  *
+ *    - \b    at_0
+ *      input section describing a set of tagging methods to apply to a
+ *      cycle or time
+ *         - \b cycle = integer cycle at which the set of tagging methods is
+ *                      activated
+ *                      one of cycle or time must be supplied
+ *         - \b time = double time at which the set of tagging methods is
+ *                     activated
+ *                     one of cycle or time must be supplied
+ *         - \b tag_0
+ *           first tagging method in this set of tagging methods
+ *              - \b tagging_method = one of RICHARDSON_EXTRAPOLATION,
+ *                                    GRADIENT_DETECTOR, REFINE_BOXES, NONE
+ *              - \b level_m
+ *                required if tagging_method is REFINE_BOXES, the static boxes
+ *                for the mth level
+ *                   - \b block_m
+ *                     required description of refine boxes in the mth block
+ *                     of the level just specified
+ *                        - \b boxes = required box array specifying refine
+ *                                     boxes
+ *                   - \b . . .
+ *                   - \b block_n
+ *              - \b . . .
+ *              - \b level_n
+ *         - \b . . .
+ *         - \b tag_n
+ *    - \b . . .
+ *    - \b    at_n
  *
- *    - \b    tagging_method
- *       std::string array specification of the type of cell-tagging used.  Valid
- *       choices include:
- *          - ``GRADIENT_DETECTOR''
- *          - ``RICHARDSON_EXTRAPOLATION''
- *          - ``REFINE_BOXES''
- *          - ``RICHARDSON_EXTRAPOLATION'', ``GRADIENT_DETECTOR'',
- *                ``REFINE_BOXES''
- *       (i.e. a combination of any or all of the above - the choices may
- *       be placed in any order). If no input is given, no tagging will be
- *       performed.
+ *       If both @b time or @b cycle entries are supplied, at any point
+ *       where both a time and a cycle entry are active, the time entry
+ *       takes precedence.
  *
- *    - \b    input section describing the refine boxes for each level.
- *      (@see mesh::TagAndInitializeStrategy for details on format)
+ *       If the problem is single block one may omit the "block_0" database
+ *       enclosing the boxes and simply include the boxes directly inside the
+ *       "level_m" database.
  *
- * A sample input file entry might look like:
+ *       It is possible to use a "shortcut" input syntax for extremely
+ *       simple tagging criteria.  If you only want RICHARDSON_EXTRAPOLATION
+ *       or GRADIENT_DETECTOR on for the entire simulation then an input
+ *       of the following form may be used:
  *
- * \verbatim
+ * @code
+ *    tagging_method = RICHARDSON_EXTRAPOLATION
+ * @endcode
  *
- *    tagging_method = "GRADIENT_DETECTOR", "REFINE_BOXES"
- *    <refine boxes input> (@see mesh::TagAndInitializeStrategy)
+ * A sample input file entry for a multi-block problem might look like:
  *
- * \endverbatim
+ * @code
+ *    at_0 {
+ *       cycle = 0
+ *       tag_0 {
+ *          tagging_method = REFINE_BOXES
+ *          level_0 {
+ *             block_1 {
+ *                boxes = [(5,5),(9,9)],[(12,15),(18,19)]
+ *             }
+ *          }
+ *          level_1 {
+ *             block_1 {
+ *                boxes = [(25,30),(29,35)]
+ *             }
+ *          }
+ *          level_2 {
+ *             block_1 {
+ *                boxes = [(60,70),(70,80)]
+ *             }
+ *          }
+ *       }
+ *    }
+ *
+ *    at_1 {
+ *       cycle = 10
+ *       tag_0 {
+ *          tagging_method = REFINE_BOXES
+ *          level_0 {
+ *             block_2 {
+ *                boxes = [(7,7),(11,11)],[(14,17),(20,21)]
+ *             }
+ *          }
+ *       }
+ *    }
+ *
+ *    at_2 {
+ *       time = 0.05
+ *       tag_0 {
+ *          tagging_method = REFINE_BOXES
+ *          level_1 {
+ *             block_0 {
+ *                boxes = [(30,35),(34,40)]
+ *             }
+ *          }
+ *       }
+ *    }
+ *
+ *    at_3 {
+ *       time = 0.10
+ *       tag_0 {
+ *          tagging_method = REFINE_BOXES
+ *          level_1 {
+ *             block_1 {
+ *                boxes = [(35,40),(39,45)]
+ *             }
+ *          }
+ *       }
+ *    }
+ * @endcode
  *
  * This class supplies the routines for tagging cells
  * and invoking problem-specific level initialization routines after AMR
@@ -77,9 +165,9 @@ namespace mesh {
  * are performed in the StandardTagAndInitStrategy
  * data member, for which methods are specified in a derived subclass.
  *
- * @see mesh::TagAndInitializeStrategy
- * @see mesh::GriddingAlgorithm
- * @see mesh::StandardTagAndInitStrategy
+ * @see TagAndInitializeStrategy
+ * @see GriddingAlgorithm
+ * @see StandardTagAndInitStrategy
  */
 
 class StandardTagAndInitialize:
@@ -91,9 +179,10 @@ public:
     * may read inputs from the provided input_db.  If no input
     * database is provided, the class interprets that no tagging
     * is desired so no cell-tagging will be performed.
+    *
+    * @pre !object_name.empty()
     */
    StandardTagAndInitialize(
-      const tbox::Dimension& dim,
       const std::string& object_name,
       StandardTagAndInitStrategy* tag_strategy,
       const boost::shared_ptr<tbox::Database>& input_db =
@@ -106,11 +195,72 @@ public:
 
    /*!
     * Specifies whether the chosen method advances the solution data
-    * in the regridding process (Richardson extrapolation does, the
-    * others will not).
+    * in the regridding process at any cycle or time (Richardson
+    * extrapolation does, the others will not).
     */
    bool
-   usesTimeIntegration() const;
+   everUsesTimeIntegration() const;
+
+   /*!
+    * Specifies whether the chosen method advances the solution data
+    * in the regridding process at the supplied cycle or time (Richardson
+    * extrapolation does, the others will not).
+    */
+   bool
+   usesTimeIntegration(
+      int cycle,
+      double time);
+
+   /*!
+    * Returns true if Richardson extrapolation is used at any cycle or
+    * time.
+    */
+   bool
+   everUsesRichardsonExtrapolation() const;
+
+   /*!
+    * Returns true if Richardson extrapolation is used at the supplied cycle
+    * and time.
+    *
+    * @pre !d_use_cycle_criteria || !d_use_time_criteria
+    */
+   bool
+   usesRichardsonExtrapolation(
+      int cycle,
+      double time);
+
+   /*!
+    * Returns true if gradient detector is used at any cycle or time.
+    */
+   bool
+   everUsesGradientDetector() const;
+
+   /*!
+    * Returns true if gradient detector is used at the supplied cycle and time.
+    *
+    * @pre !d_use_cycle_criteria || !d_use_time_criteria
+    */
+   bool
+   usesGradientDetector(
+      int cycle,
+      double time);
+
+   /*!
+    * Returns true if user supplied refine boxes is used at any cycle or time.
+    */
+   bool
+   everUsesRefineBoxes() const;
+
+   /*!
+    * Returns true if user supplied refine boxes is used at the supplied cycle
+    * and time.
+    *
+    * @pre !d_use_cycle_criteria || !d_use_time_criteria
+    */
+   bool
+   usesRefineBoxes(
+      int cycle,
+      double time);
 
    /*!
     * Return coarsen ratio used for applying cell tagging. An error
@@ -125,7 +275,7 @@ public:
     */
    void
    checkCoarsenRatios(
-      const tbox::Array<hier::IntVector>& ratio_to_coarser);
+      const std::vector<hier::IntVector>& ratio_to_coarser);
 
    /*!
     * Pass the request to initialize the data on a new level in the
@@ -138,6 +288,12 @@ public:
     * must first be allocated.  For more information on the operations that
     * must be performed, see the
     * TagAndInitializeStrategy::initializeLevelData() method.
+    *
+    * @pre hierarchy
+    * @pre (level_number >= 0) &&
+    *      (level_number <= hierarchy->getFinestLevelNumber())
+    * @pre !old_level || (level_number == old_level->getLevelNumber())
+    * @pre hierarchy->getPatchLevel(level_number)
     */
    void
    initializeLevelData(
@@ -156,6 +312,10 @@ public:
     * For more information on the operations that must be performed, see
     * the TagAndInitializeStrategy::resetHierarchyConfiguration()
     * method.
+    *
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level <= finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
     */
    void
    resetHierarchyConfiguration(
@@ -168,12 +328,18 @@ public:
     * before tagging cells, which is handled by this method.  For more
     * information on the operations that must be performed, see the
     * TagAndInitializeStrategy::preprocessErrorEstimation()
-    * method
+    * method.
+    *
+    * @pre hierarchy
+    * @pre (level_number >= 0) &&
+    *      (level_number <= hierarchy->getFinestLevelNumber())
+    * @pre hierarchy->getPatchLevel(level_number)
     */
    void
    preprocessErrorEstimation(
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
+      const int cycle,
       const double regrid_time,
       const double regrid_start_time,
       const bool initial_time);
@@ -185,11 +351,18 @@ public:
     *
     * For more information on the operations that must be performed, see the
     * TagAndInitializeStrategy::tagCellsForRefinement() routine.
+    *
+    * @pre level
+    * @pre (level_number >= 0) &&
+    *      (level_number <= level->getFinestLevelNumber())
+    * @pre level->getPatchLevel(level_number)
+    * @pre tag_index >= 0
     */
    void
    tagCellsForRefinement(
       const boost::shared_ptr<hier::PatchHierarchy>& level,
       const int level_number,
+      const int regrid_cycle,
       const double regrid_time,
       const int tag_index,
       const bool initial_time,
@@ -202,6 +375,8 @@ public:
     * for gridding strategy.  Otherwise, return false.  If false is returned,
     * it is useful to provide a detailed explanatory message describing the
     * problems with the boxes.
+    *
+    * @pre !boxes.empty()
     */
    bool
    coarsestLevelBoxesOK(
@@ -213,76 +388,198 @@ public:
     * tagging, this will return false.
     */
    bool
-   refineUserBoxInputOnly() const;
-
-   /*!
-    * Turn on gradient detector to tag cells for refinement.
-    */
-   void
-   turnOnGradientDetector()
-   {
-      d_use_gradient_detector = true;
-   }
-
-   /*!
-    * Turn off gradient detector.
-    */
-   void
-   turnOffGradientDetector()
-   {
-      d_use_gradient_detector = false;
-   }
-
-   /*!
-    * Turn on Richardson extrapolation to tag cells for refinement.
-    */
-   void
-   turnOnRichardsonExtrapolation()
-   {
-      d_use_richardson_extrapolation = true;
-   }
-
-   /*!
-    * Turn off Richardson extrapolation.
-    */
-   void
-   turnOffRichardsonExtrapolation()
-   {
-      d_use_richardson_extrapolation = false;
-   }
-
-   /*!
-    * Turn on static refine box regions where refinement should occur.
-    */
-   void
-   turnOnRefineBoxes()
-   {
-      d_use_refine_boxes = true;
-   }
-
-   /*!
-    * Turn off static refine box regions.
-    */
-   void
-   turnOffRefineBoxes()
-   {
-      d_use_refine_boxes = false;
-   }
-
-   /*!
-    * Read input values, indicated above, from given database.
-    *
-    * When assertion checking is active, the database pointer must be non-null.
-    */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& db);
+   refineUserBoxInputOnly(
+      int cycle,
+      double time);
 
    const StandardTagAndInitializeConnectorWidthRequestor&
    getConnectorWidthRequestor() const
    {
       return d_staicwri;
    }
+
+   /*!
+    * Return user supplied set of refine boxes for specified level number
+    * and time.  The boolean return value specifies whether the boxes
+    * have been reset from the last time this method was called.  If they
+    * have been reset, it returns true.  If they are unchanged, it returns
+    * false.
+    *
+    * @pre refine_boxes.empty()
+    * @pre level_num >= 0
+    * @pre time >= 0.0
+    * @pre !d_use_cycle_criteria || !d_use_time_criteria
+    */
+   bool
+   getUserSuppliedRefineBoxes(
+      hier::BoxContainer& refine_boxes,
+      const int level_number,
+      const int cycle,
+      const double time);
+
+   /*!
+    * Reset the static refine boxes for the specified level number in the
+    * hierarchy.  The level number must be greater than or equal to zero.
+    *
+    * @pre level_num >= 0
+    */
+   void
+   resetRefineBoxes(
+      const hier::BoxContainer& refine_boxes,
+      const int level_number);
+
+   /*!
+    * Turn on refine boxes criteria at the specified time programmatically.
+    *
+    * @param time Time to turn refine boxes criteria on.
+    */
+   void
+   turnOnRefineBoxes(
+      double time);
+
+   /*!
+    * Turn off refine boxes criteria at the specified time programmatically.
+    *
+    * @param time Time to turn refine boxes criteria off.
+    */
+   void
+   turnOffRefineBoxes(
+      double time);
+
+   /*!
+    * Turn on gradient detector criteria at the specified time
+    * programmatically.
+    *
+    * @param time Time to turn gradient detector criteria on.
+    *
+    * @pre d_tag_strategy
+    */
+   void
+   turnOnGradientDetector(
+      double time);
+
+   /*!
+    * Turn off gradient detector criteria at the specified time
+    * programmatically.
+    *
+    * @param time Time to turn gradient detector criteria off.
+    */
+   void
+   turnOffGradientDetector(
+      double time);
+
+   /*!
+    * Turn on Richardson extrapolation criteria at the specified time
+    * programmatically.
+    *
+    * @param time Time to turn Richardson extrapolation on.
+    *
+    * @pre d_tag_strategy
+    */
+   void
+   turnOnRichardsonExtrapolation(
+      double time);
+
+   /*!
+    * Turn off Richardson extrapolation criteria at the specified time
+    * programmatically.
+    *
+    * @param time Time to turn Richardson extrapolation off.
+    */
+   void
+   turnOffRichardsonExtrapolation(
+      double time);
+
+   /*!
+    * @brief Process a hierarchy before swapping old and new levels during
+    * regrid.
+    *
+    * During regrid, if user code needs to do any application-specific
+    * operations on the PatchHierarchy before a new level is added or
+    * an old level is swapped for a new level, this method provides a callback
+    * for the user to define such operations.  The PatchHierarchy is provided
+    * in its state with the old level, if it exists, still in place, while the
+    * new BoxLevel is also provided so that the user code can know the boxes
+    * that will make up the new level.
+    *
+    * @param hierarchy The PatchHierarchy being modified.
+    * @param level_number The number of the PatchLevel in hierarchy being
+    *                     added or regridded.
+    * @param new_box_level BoxLevel containing the boxes for the new level
+    *
+    */
+   virtual void
+   processHierarchyBeforeAddingNewLevel(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const boost::shared_ptr<hier::BoxLevel>& new_box_level);
+
+   /*!
+    * In some cases user code may wish to process a PatchLevel before it is
+    * removed from the hierarchy.  For example, data may exist only on a given
+    * PatchLevel such as the finest level.  If that level were to be removed
+    * before this data is moved off of it then the data will be lost.  This
+    * method is a user defined callback used by GriddingAlgorithm when a
+    * PatchLevel is to be removed.  The callback performs any user actions on
+    * the level about to be removed.  It is implemented by classes derived from
+    * StandardTagAndInitStrategy.
+    *
+    * @param hierarchy The PatchHierarchy being modified.
+    * @param level_number The number of the PatchLevel in hierarchy about to be
+    *                     removed.
+    * @param old_level The level in hierarchy about to be removed.
+    *
+    * @see GriddingAlgorithm
+    * @see StandardTagAndInitStrategy
+    */
+   void
+   processLevelBeforeRemoval(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const boost::shared_ptr<hier::PatchLevel>& old_level =
+         boost::shared_ptr<hier::PatchLevel>());
+
+   /*!
+    * @brief Check the tags on a tagged level.
+    *
+    * This is a callback that is used to check the values held in
+    * user tag PatchData.  The tag data will contain the tags created
+    * by application code in tagCellsForRefinement as well as
+    * any tags added internally by the GriddingAlgorithm (for
+    * example, buffering).
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number  Level number of the tagged level
+    * @param[in] regrid_cycle
+    * @param[in] regrid_time
+    * @param[in] tag_index     Patch data index for user tags
+    */
+   void
+   checkUserTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int regrid_cycle,
+      const double regrid_time,
+      const int tag_index);
+
+   /*!
+    * @brief Check the tags on a newly-created level.
+    *
+    * This is a callback that allow for checking tag values that
+    * have been saved on a new level that has been created during
+    * initialization or regridding.  The tag values will be the values
+    * of the user tags on the coarser level, constant-refined onto the
+    * cells of the new level.
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number   Level number of the new level
+    * @param[in] tag_index      Patch data index for the new tags.
+    */
+   void
+   checkNewLevelTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int tag_index);
 
 private:
    /*
@@ -303,6 +600,7 @@ private:
    tagCellsUsingRichardsonExtrapolation(
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
+      const int regrid_cycle,
       const double regrid_time,
       const double regrid_start_time,
       const int tag_index,
@@ -311,12 +609,21 @@ private:
       const bool can_be_refined);
 
    /*
-    * Booleans specifying the tagging method.  Any combination of the
-    * three methods may be used.
+    * Set the tagging criteria for the supplied time and cycle.  If there
+    * are both cycle and time criteria for this cycle/time combination the
+    * time criteria has precedence.
     */
-   bool d_use_refine_boxes;
-   bool d_use_gradient_detector;
-   bool d_use_richardson_extrapolation;
+   void
+   setCurrentTaggingCriteria(
+      int cycle,
+      double time);
+
+   /*
+    * Read input values, indicated above, from given database.
+    */
+   void
+   getFromInput(
+      const boost::shared_ptr<tbox::Database>& input_db);
 
    /*
     * Concrete object that supplies problem-specific initialization
@@ -336,10 +643,114 @@ private:
     * tbox::Array of patch levels containing coarsened versions of the patch
     * levels, for use with Richardson extrapolation.
     */
-   tbox::Array<boost::shared_ptr<hier::PatchLevel> > d_rich_extrap_coarsened_levels;
+   std::vector<boost::shared_ptr<hier::PatchLevel> > d_rich_extrap_coarsened_levels;
 
    StandardTagAndInitializeConnectorWidthRequestor d_staicwri;
 
+   /*
+    * Arrays to hold boxes that are specifically reset by the user (via the
+    * resetRefineBoxes() method).  The boolean array specifies which levels
+    * have been reset while the box array specifies the new set of refine
+    * boxes for the level.
+    */
+   std::vector<bool> d_refine_boxes_reset;
+   std::vector<hier::BoxContainer> d_reset_refine_boxes;
+
+   struct TagCriteria {
+      std::string d_tagging_method;
+      std::map<int, hier::BoxContainer> d_level_refine_boxes;
+   };
+
+   struct CycleTagCriteria {
+      int d_cycle;
+      std::vector<TagCriteria> d_tag_criteria;
+   };
+
+   struct TimeTagCriteria {
+      double d_time;
+      std::vector<TagCriteria> d_tag_criteria;
+   };
+
+   struct cycle_tag_criteria_less {
+      bool
+      operator () (const CycleTagCriteria& c1, const CycleTagCriteria& c2) const
+      {
+         return c1.d_cycle < c2.d_cycle;
+      }
+   };
+
+   struct time_tag_criteria_less {
+      bool
+      operator () (const TimeTagCriteria& c1, const TimeTagCriteria& c2) const
+      {
+         return c1.d_time < c2.d_time;
+      }
+   };
+
+   /*
+    * User defined tagging criteria to be applied at specific cycles ordered
+    * by the application cycle.
+    */
+   std::set<CycleTagCriteria, cycle_tag_criteria_less> d_cycle_criteria;
+
+   /*
+    * User defined tagging criteria to be applied at specific times ordered
+    * by the application time.
+    */
+   std::set<TimeTagCriteria, time_tag_criteria_less> d_time_criteria;
+
+   /*
+    * Iterator pointing to the cycle tagging criteria in use if
+    * d_use_cycle_criteria is true.
+    */
+   std::set<CycleTagCriteria, cycle_tag_criteria_less>::iterator
+      d_cur_cycle_criteria;
+
+   /*
+    * Iterator pointing to the time tagging criteria in use if
+    * d_use_time_criteria is true.
+    */
+   std::set<TimeTagCriteria, time_tag_criteria_less>::iterator
+      d_cur_time_criteria;
+
+   /*
+    * Flag indicating if a cycle tagging criteria is now being used.  At most
+    * one of d_use_cycle_criteria and d_use_time_criteria can be true.
+    */
+   bool d_use_cycle_criteria;
+
+   /*
+    * Flag indicating if a time tagging criteria is now being used.  At most
+    * one of d_use_cycle_criteria and d_use_time_criteria can be true.
+    */
+   bool d_use_time_criteria;
+
+   /*
+    * Flag indicating if any tagging criteria is RICHARDSON_EXTRAPOLATION.
+    */
+   bool d_ever_uses_richardson_extrapolation;
+
+   /*
+    * Flag indicating if any tagging criteria is GRADIENT_DETECTOR.
+    */
+   bool d_ever_uses_gradient_detector;
+
+   /*
+    * Flag indicating if any tagging criteria is REFINE_BOXES.
+    */
+   bool d_ever_uses_refine_boxes;
+
+   /*
+    * Flag indicating if the tagged boxes have changed due to a change in the
+    * tagging criteria.
+    */
+   bool d_boxes_changed;
+
+   /*
+    * New tagging criteria are set only when the cycle advances.  This tracks
+    * the last cycle so the code can tell when the cycle has advanced.
+    */
+   int d_old_cycle;
 };
 
 }

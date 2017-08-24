@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   FAC algorithm for solving linear equations on a hierarchy
  *
  ************************************************************************/
@@ -16,13 +16,12 @@
 #include "SAMRAI/math/HierarchyDataOpsReal.h"
 #include "SAMRAI/solv/FACOperatorStrategy.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <algorithm>
 #include <cctype>
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -57,6 +56,72 @@ namespace solv {
  * -# After solving, get solver statistics by viewing the log information
  *    and calling getNumberOfIterations(), getResidualNorm() functions
  *    if desired.
+ *
+ * <b> Input Parameters </b>
+ *
+ * <b> Definitions: </b>
+ *    - \b    max_cycles
+ *
+ *    - \b    residual_tol
+ *
+ *    - \b    relative_residual_tol
+ *
+ *    - \b    num_pre_sweeps
+ *
+ *    - \b    num_post_sweeps
+ *
+ * <b> Details:</b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>max_cycles</td>
+ *     <td>int</td>
+ *     <td>10</td>
+ *     <td>>=1</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>residual_tol</td>
+ *     <td>double</td>
+ *     <td>1.0e-6</td>
+ *     <td>>0.0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>relative_residual_tol</td>
+ *     <td>double</td>
+ *     <td>-1.0</td>
+ *     <td>-1.0 or >0.0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>num_pre_sweeps</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>num_post_sweeps</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ * </table>
+ *
  */
 
 class FACPreconditioner
@@ -67,12 +132,12 @@ public:
     *
     * @param name Object name
     * @param user_ops Reference to user-specified FAC operator
-    * @param database Input database with initialization parameters
+    * @param input_db Input database with initialization parameters
     */
    FACPreconditioner(
       const std::string& name,
-      FACOperatorStrategy& user_ops,
-      const boost::shared_ptr<tbox::Database>& database =
+      boost::shared_ptr<FACOperatorStrategy> user_ops,
+      const boost::shared_ptr<tbox::Database>& input_db =
          boost::shared_ptr<tbox::Database>());
 
    /*!
@@ -118,6 +183,8 @@ public:
     * @return whether solver converged to specified level
     *
     * @see initializeSolverState
+    *
+    * @pre !d_patch_hierarchy || checkVectorStateCompatibility(solution, rhs)
     */
    bool
    solveSystem(
@@ -172,6 +239,10 @@ public:
     *
     * @param solution solution vector u
     * @param rhs right hand side vector f
+    *
+    * @post d_patch_hierarchy == rhs.getPatchHierarchy()
+    * @post d_coarsest_ln >= 0
+    * @post d_coarsest_ln <= d_finest_ln
     */
    void
    initializeSolverState(
@@ -213,6 +284,8 @@ public:
     * It is possible that a false compatibility is returned.
     *
     * @return true if vectors are compatible with existing state
+    *
+    * @pre d_patch_hierarchy
     */
    bool
    checkVectorStateCompatibility(
@@ -221,66 +294,6 @@ public:
 
    //@{
    //! @name Functions to set solving parameters.
-
-   /*!
-    * @brief Set the number of pre-smoothing sweeps during
-    * FAC iteration process.
-    *
-    * Presmoothing is applied during the fine-to-coarse phase of the
-    * iteration.  The default is to use one sweep.
-    *
-    * @param num_pre_sweeps Number of presmoothing sweeps
-    */
-   void
-   setPresmoothingSweeps(
-      int num_pre_sweeps)
-   {
-      d_presmoothing_sweeps = num_pre_sweeps;
-   }
-
-   /*!
-    * @brief Set the number of post-smoothing sweeps during
-    * FAC iteration process.
-    *
-    * Postsmoothing is applied during the coarse-to-fine phase of the
-    * iteration.  The default is to use one sweep.
-    *
-    * @param num_post_sweeps Number of postsmoothing sweeps
-    */
-   void
-   setPostsmoothingSweeps(
-      int num_post_sweeps)
-   {
-      d_postsmoothing_sweeps = num_post_sweeps;
-   }
-
-   /*!
-    * @brief Set the max number of iterations (cycles) to use per solve.
-    */
-   void
-   setMaxCycles(
-      int max_cycles)
-   {
-      d_max_iterations = max_cycles;
-   }
-
-   /*!
-    * @brief Set the residual tolerance for stopping.
-    *
-    * The solution is considered converged if ||b-Ax|| <= residual_tol
-    * @b or ||b-Ax|| <= relative_residual_tol*||b||.
-    *
-    * If you want the prescribed maximum number of cycles to always be taken,
-    * set both residual tolerances to negative numbers.
-    */
-   void
-   setResidualTolerance(
-      double residual_tol,
-      double relative_residual_tol = -1.0)
-   {
-      d_residual_tolerance = residual_tol;
-      d_relative_residual_tolerance = relative_residual_tol;
-   }
 
    /*!
     * @brief Set the choice of FAC cycling algorithm to use.
@@ -302,24 +315,6 @@ public:
    void
    setAlgorithmChoice(
       const std::string& choice);
-
-   //@}
-
-   //@{ @name Logging functions
-
-   /*!
-    * @brief Enable or disable logging.
-    *
-    * Set streams to NULL to turn off output.
-    *
-    * @param enabled Logging state.  true=on, false=off.
-    */
-   void
-   enableLogging(
-      bool enabled = true)
-   {
-      d_do_log = enabled;
-   }
 
    //@}
 
@@ -347,6 +342,8 @@ public:
     * @param avg_factor average convergence factor over FAC cycles
     *        from last solve.
     * @param final_factor convergence factor of the last FAC cycle
+    *
+    * @pre d_number_iterations > 0
     */
    void
    getConvergenceFactors(
@@ -371,6 +368,8 @@ public:
     * has been reduced by the FAC cycles.
     * It is (current residual)/( initial residual + epsilon),
     * so it may not be accurate if the initial residual is very small.
+    *
+    * @pre d_number_iterations > 0
     */
    double
    getNetConvergenceFactor() const
@@ -391,6 +390,8 @@ public:
     * The average factor is the net factor to the power of
     * 1/(number of FAC cycles).
     * It may not be accurate if the initial residual is very small.
+    *
+    * @pre d_number_iterations > 0
     */
    double
    getAvgConvergenceFactor() const
@@ -410,6 +411,8 @@ public:
     *
     * The final factor is the factor to which the residual
     * has been reduced by the last FAC cycle.
+    *
+    * @pre d_number_iterations > 0
     */
    double
    getFinalConvergenceFactor() const
@@ -463,7 +466,7 @@ private:
    //! @name Functions not implemented:
    FACPreconditioner(
       const FACPreconditioner&);
-   void
+   FACPreconditioner&
    operator = (
       const FACPreconditioner&);
    //@}
@@ -474,12 +477,12 @@ private:
     * See the class description for the parameters that can be set
     * from a database.
     *
-    * @param database Input database.  If a NULL pointer is given,
+    * @param input_db Input database.  If a NULL pointer is given,
     * nothing is done.
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& database);
+      const boost::shared_ptr<tbox::Database>& input_db);
 
    /*!
     * @brief Compute composite residual on all levels and
@@ -605,7 +608,7 @@ private:
     *
     * Reference is initialized by constructor @em never changes.
     */
-   FACOperatorStrategy& d_fac_operator;
+   boost::shared_ptr<FACOperatorStrategy> d_fac_operator;
 
    //@{
    /*!
@@ -662,16 +665,12 @@ private:
    double d_residual_norm;
 
    /*!
-    * @brief Norm of RHS, for computing relative residual.
-    */
-   double d_rhs_norm;
-   /*!
     * @brief Convergence factor stack.
     *
     * The convergence factor stack is reset for each solve
     * and contains the convergence factors for each FAC cycle.
     */
-   tbox::Array<double> d_convergence_factor;
+   std::vector<double> d_convergence_factor;
    /*!
     * The average convergence factor computed from the current
     * values in d_convergence_factor.
@@ -685,15 +684,10 @@ private:
    //@}
 
    /*!
-    * @brief Flag stating whether to log.
-    */
-   bool d_do_log;
-
-   /*!
     * @brief Objects facilitating operations over a specific range
     * of levels.
     */
-   tbox::Array<boost::shared_ptr<math::HierarchyDataOpsReal<double> > >
+   std::vector<boost::shared_ptr<math::HierarchyDataOpsReal<double> > >
    d_controlled_level_ops;
 
    /*!

@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Generic utilities for boundary box calculus.
  *
  ************************************************************************/
-
-#ifndef included_hier_BoundaryBoxUtils_C
-#define included_hier_BoundaryBoxUtils_C
-
 #include "SAMRAI/hier/BoundaryBoxUtils.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -18,12 +14,6 @@
 
 namespace SAMRAI {
 namespace hier {
-
-BoundaryBoxUtils::BoundaryBoxUtils():
-   d_bbox(tbox::Dimension::getInvalidDimension()),
-   d_outward(tbox::Dimension::getInvalidDimension(), 0)
-{
-}
 
 BoundaryBoxUtils::BoundaryBoxUtils(
    const BoundaryBox& bbox):
@@ -105,6 +95,7 @@ BoundaryBoxUtils::computeOutwardShift()
          TBOX_ERROR("BoundaryBoxUtils cannot compute\n"
          << "boundary direction for type "
          << d_bbox.getBoundaryType() << " in " << dim << "D");
+         break;
    }
 }
 
@@ -113,25 +104,25 @@ BoundaryBoxUtils::stretchBoxToGhostWidth(
    Box& box,
    const IntVector& ghost_cell_width) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_bbox, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_bbox, box);
 
    const tbox::Dimension& dim(d_bbox.getDim());
 
    TBOX_ASSERT(ghost_cell_width >= IntVector::getZero(dim));
 
    box = d_bbox.getBox();
-   for (int d = 0; d < dim.getValue(); ++d) {
+   for (tbox::Dimension::dir_t d = 0; d < dim.getValue(); ++d) {
       /*
-       * If gcw along dimension d is > 1, stretch it out to that width.
-       * If gcw a long dimension d is 0, shrink the box down to nothing
-       * in that dimension.
+       * If gcw along direction d is > 1, stretch it out to that width.
+       * If gcw a long direction d is 0, shrink the box down to nothing
+       * in that direction.
        */
       if (d_outward(d) == -1) {
          if (ghost_cell_width(d) > 1) box.growLower(d, ghost_cell_width(d) - 1);
-         else box.lower() (d) = box.upper() (d) - (ghost_cell_width(d) - 1);
+         else box.setLower(d, box.upper(d) - (ghost_cell_width(d) - 1));
       } else if (d_outward(d) == 1) {
          if (ghost_cell_width(d) > 1) box.growUpper(d, ghost_cell_width(d) - 1);
-         else box.upper() (d) = box.lower() (d) + (ghost_cell_width(d) - 1);
+         else box.setUpper(d, box.lower(d) + (ghost_cell_width(d) - 1));
       }
    }
 }
@@ -141,12 +132,12 @@ BoundaryBoxUtils::extendBoxOutward(
    Box& box,
    const IntVector& extension) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_bbox, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_bbox, box);
 
    const tbox::Dimension& dim(d_bbox.getDim());
 
    box = d_bbox.getBox();
-   for (int d = 0; d < dim.getValue(); ++d) {
+   for (tbox::Dimension::dir_t d = 0; d < dim.getValue(); ++d) {
       if (d_outward(d) == -1) box.growLower(d, extension(d));
       else if (d_outward(d) == 1) box.growUpper(d, extension(d));
    }
@@ -173,7 +164,7 @@ BoundaryBoxUtils::getSurfaceBoxFromBoundaryBox() const
        * than the boundary cell indices, in the direction normal
        * to the boundary.
        */
-      side_index_box.shift(location_index / 2, 1);
+      side_index_box.shift(static_cast<tbox::Dimension::dir_t>(location_index / 2), 1);
    }
    return side_index_box;
 }
@@ -189,7 +180,7 @@ BoundaryBox
 BoundaryBoxUtils::trimBoundaryBox(
    const Box& limit_box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_bbox, limit_box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_bbox, limit_box);
 
    const tbox::Dimension& dim(d_bbox.getDim());
 
@@ -252,5 +243,3 @@ BoundaryBoxUtils::trimBoundaryBox(
 
 }
 }
-
-#endif

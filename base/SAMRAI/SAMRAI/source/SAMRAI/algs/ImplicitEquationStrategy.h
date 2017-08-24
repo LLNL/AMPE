@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface between implicit integrator and equations to solve.
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace algs {
@@ -35,7 +35,7 @@ namespace algs {
  * in the interface are provided in a user-supplied concrete equation class
  * derived from this base class.
  *
- * @see algs::ImplicitIntegrator
+ * @see ImplicitIntegrator
  */
 class ImplicitEquationStrategy
 {

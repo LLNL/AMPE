@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for testing patch data operations 
 ##
 #########################################################################
@@ -14,21 +14,29 @@ SUBDIR        = source/test/dataops
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 default: check	
 
 include $(OBJECT)/config/Makefile.config
 
-CPPFLAGS_EXTRA	= -DDISPLAY -DNDIM=$(PDIM)  -DTESTING=1
+CPPFLAGS_EXTRA	= -DDISPLAY -DTESTING=1
 
-ifneq (,$(findstring libdcomplex, "@SAMRAI_OPTIONAL_LIBS@ "))
-  NUM_TESTS = 17
+ifneq (,$(findstring libdcomplex, $(SAMRAI_LIBRARY_TARGETS)))
+  NUM_TESTS = 24
 else
-  NUM_TESTS = 11
+  NUM_TESTS = 14
 endif
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
+
+SampleIndexData.o:	$(SAMRAI)/source/test/dataops/SampleIndexData.C
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c $(SAMRAI)/source/test/dataops/SampleIndexData.C -o $@
+
+indx_dataops:		indx_dataops.o  SampleIndexData.o $(LIBSAMRAIDEPEND) 
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) indx_dataops.o SampleIndexData.o $(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o $@
 
 cell_patchtest:		cell_patchtest.o  $(LIBSAMRAIDEPEND) 
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) cell_patchtest.o $(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o $@
@@ -72,7 +80,8 @@ TARGETS2D=	cell_patchtest \
 		face_hiertest \
 		node_hiertest \
 		side_hiertest \
-		edge_hiertest
+		edge_hiertest \
+		indx_dataops
 
 ifneq (,$(findstring complex, $(SAMRAI_LIBRARY_TARGETS)))
 TARGETS2D+=	cell_cplxtest \
@@ -87,14 +96,10 @@ checkcompile:   $(TARGETS2D) cell_hiertest
 
 check:
 	$(MAKE) check2d
-	$(MAKE) check3d
 
 check2d:	$(SAMRAI_LIBRARY_TARGETS)
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_patchtest 2;
 
-check3d:	cell_patchtest cell_hiertest
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_patchtest 3;
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_hiertest 3;
+check3d:	$(SAMRAI_LIBRARY_TARGETS)
 
 libbool:
 
@@ -102,17 +107,76 @@ libchar:
 
 libfloat:
 
+# Note that tmp file names need to be distinct between targets
+# libdcomplex and libdefault to prevent race conditions using parallel
+# make.
+
 libdcomplex:	cell_cplxtest \
 		face_cplxtest \
 		node_cplxtest \
 		side_cplxtest \
 		edge_cplxtest
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_cplxtest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_cplxtest 3; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./face_cplxtest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./node_cplxtest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./edge_cplxtest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./side_cplxtest 2
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_cplxtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_cplxtest 2 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_cplxtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_cplxtest 3 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)face_cplxtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./face_cplxtest 2 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)face_cplxtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./face_cplxtest 3 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)node_cplxtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./node_cplxtest 2 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)node_cplxtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./node_cplxtest 3 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)edge_cplxtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./edge_cplxtest 2 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)edge_cplxtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./edge_cplxtest 3 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)side_cplxtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./side_cplxtest 2 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)side_cplxtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./side_cplxtest 3 | $(TEE) foo-cplx; \
+	  if ! grep "PASSED" foo-cplx >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo-cplx
 
 
 libdefault:	cell_patchtest \
@@ -120,27 +184,116 @@ libdefault:	cell_patchtest \
 		face_hiertest \
 		node_hiertest \
 		side_hiertest \
-		edge_hiertest
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_hiertest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_hiertest 3; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_patchtest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./cell_patchtest 3; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./face_hiertest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./node_hiertest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./edge_hiertest 2; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./side_hiertest 2
+		edge_hiertest \
+		indx_dataops
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)indx_dataops 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./indx_dataops 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)indx_dataops 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./indx_dataops 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_hiertest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_hiertest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_hiertest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_hiertest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_patchtest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_patchtest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)cell_patchtest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./cell_patchtest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)face_hiertest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./face_hiertest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)face_hiertest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./face_hiertest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)node_hiertest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./node_hiertest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)node_hiertest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./node_hiertest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)edge_hiertest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./edge_hiertest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)edge_hiertest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./edge_hiertest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)side_hiertest 2d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./side_hiertest 2 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dataops\" name=$(QUOTE)side_hiertest 3d $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./side_hiertest 3 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 checktest:
-		rm -f makecheck.logfile
-		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-		rm -f makecheck.logfile
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean-check:
-		$(SAMCLEAN)
+examples:
 
-clean:		clean-check
-		$(RM) *_hiertest* *_cplxtest* *_patchtest*
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean:	checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) *_hiertest *_cplxtest *_patchtest *_dataops
 
 
 include $(SRCDIR)/Makefile.depend

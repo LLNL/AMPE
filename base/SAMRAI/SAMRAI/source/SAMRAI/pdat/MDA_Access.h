@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Light-weight array class
  *
  ************************************************************************/
@@ -72,12 +72,12 @@ public:
    /*!
     * @brief Type for the dimension counter.
     *
-    * Type dim_t could be "unsigned short" instead of "short",
+    * Type dir_t could be "unsigned short" instead of "short",
     * but using short causes the GNU compiler to issue unneeded
     * warnings about certain comparisons always being false
     * (when instantiating with MDA_DIM of 1).
     */
-   typedef short dim_t;
+   typedef short dir_t;
    /*!
     * @brief Type for the index.
     */
@@ -109,10 +109,10 @@ public:
     * it is for the constructor taking final indices instead of sizes.
     */
    MDA_IndexRange(
-      /*! Array sizes                   */const size_t* sz = ((size_t *)0),
-      /*! Array starting indices        */const index_t* st = ((index_t *)0))
+      /*! Array sizes                   */ const size_t* sz = ((size_t *)0),
+      /*! Array starting indices        */ const index_t* st = ((index_t *)0))
    {
-      dim_t i;
+      dir_t i;
       if (st) {
          for (i = 0; i < MDA_DIM; ++i) {
             d_start[i] = st[i];
@@ -145,8 +145,8 @@ public:
     * If @c sf is @c NULL, sizes are set to zero.
     */
    MDA_IndexRange(
-      /*! Array of initial indices      */const index_t* si,
-      /*! Array of final indices        */const index_t* sf)
+      /*! Array of initial indices      */ const index_t* si,
+      /*! Array of final indices        */ const index_t* sf)
    {
       index_t i;
       if (si) {
@@ -177,8 +177,8 @@ public:
       /*! Starting indices (NULL for no change) */ const index_t* st =
          ((index_t *)0))
    {
-      if (sz) for (dim_t i = 0; i < MDA_DIM; ++i) d_size[i] = sz[i];
-      if (st) for (dim_t i = 0; i < MDA_DIM; ++i) d_start[i] = st[i];
+      if (sz) for (dir_t i = 0; i < MDA_DIM; ++i) d_size[i] = sz[i];
+      if (st) for (dir_t i = 0; i < MDA_DIM; ++i) d_start[i] = st[i];
       setDependentData();
    }
 
@@ -191,17 +191,17 @@ public:
       /*! Final valid indices (NULL for no change) */ const index_t final[
          MDA_DIM])
    {
-      if (first) for (dim_t i = 0; i < MDA_DIM; ++i) d_start[i] = first[i];
-      if (final) for (dim_t i = 0; i < MDA_DIM; ++i) d_size[i] = final[i]
+      if (first) for (dir_t i = 0; i < MDA_DIM; ++i) d_start[i] = first[i];
+      if (final) for (dir_t i = 0; i < MDA_DIM; ++i) d_size[i] = final[i]
                - first[i] + 1;
       setDependentData();
    }
 
    /*!
-    * @brief Adjust the dimensions
+    * @brief Adjust the array sizes
     *
     * Adjust the first and final indices.
-    * Set the dimension to adjust to >= MDA_DIM to adjust @em all dimensions.
+    * Set the direction to adjust to >= MDA_DIM to adjust @em all dimensions.
     * @b Note: The third argument is the increment to the final index
     * and not the size.
     *
@@ -211,12 +211,12 @@ public:
     * @return Adjusted MDA_IndexRange object
     */
    const MDA_IndexRange& adjustDim(
-      /*! Dimension to adjust      */ dim_t d,
+      /*! Direction to adjust      */ dir_t d,
       /*! Increment to first index */ index_t first,
       /*! Increment to final index */ index_t final)
    {
       if (d >= MDA_DIM) {
-         dim_t i;
+         dir_t i;
          for (i = 0; i < MDA_DIM; ++i) {
             d_start[i] += first;
             d_size[i] += final - first;
@@ -239,7 +239,7 @@ public:
    bool operator == (
       const MDA_IndexRange& r) const
    {
-      dim_t d;
+      dir_t d;
       for (d = 0; d < MDA_DIM; ++d) {
          if (d_start[d] != r.d_start[d]) return false;
 
@@ -267,7 +267,7 @@ public:
       std::ostream& os) const
    {
       os << MDA_DIM;
-      for (dim_t i = 0; i < MDA_DIM; ++i)
+      for (dir_t i = 0; i < MDA_DIM; ++i)
          os << ' ' << d_start[i] << ' ' << d_size[i];
       return os;
    }
@@ -277,10 +277,10 @@ public:
    std::istream& streamGet(
       std::istream& is)
    {
-      dim_t dim;
+      dir_t dim;
       is >> dim;
       assert(dim == MDA_DIM);
-      for (dim_t i = 0; i < MDA_DIM; ++i)
+      for (dir_t i = 0; i < MDA_DIM; ++i)
          is >> d_start[i] >> d_size[i];
       return is;
    }
@@ -300,39 +300,39 @@ public:
    //@{ @name Functions to facilitate looping
 
    /*!
-    * @brief Give starting index of a given dimension.
+    * @brief Give starting index of a given direction.
     */
    const index_t& beg(
-      /*! index of dimension */ size_t i) const
+      /*! index of direction */ size_t i) const
    {
       return d_start[i];
    }
 
    /*!
     * @brief Give ending index (one more than the last valid index)
-    * of a given dimension.
+    * of a given direction.
     */
    const index_t& end(
-      /*! index of dimension */ size_t i) const
+      /*! index of direction */ size_t i) const
    {
       return d_stop[i];
    }
 
    /*!
-    * @brief Give size along a given dimension.
+    * @brief Give size along a given direction.
     */
    const size_t& size(
-      /*! index of dimension */ size_t i) const
+      /*! index of direction */ size_t i) const
    {
       return d_size[i];
    }
 
    /*!
-    * @brief Give size for all dimensions.
+    * @brief Give size for all directions.
     */
    size_t totalSize() const
    {
-      dim_t i = 0;
+      dir_t i = 0;
       size_t total_size = d_size[i];
       for (i = 1; i < MDA_DIM; ++i) total_size *= d_size[i];
       return total_size;
@@ -425,7 +425,7 @@ class MDA_OrderRowMajor:private MDA_IndexRange<MDA_DIM>
 public:
    typedef int index_t;
    typedef MDA_IndexRange<MDA_DIM> range_t;
-   typedef typename range_t::dim_t dim_t;
+   typedef typename range_t::dir_t dir_t;
 protected:
    enum { D0 = range_t::D0,
           D1 = range_t::D1,
@@ -496,7 +496,7 @@ public:
    }
    //! @brief Similar to MDA_IndexRange::adjustDim().
    const MDA_OrderRowMajor& adjustDim(
-      dim_t d,
+      dir_t d,
       index_t first,
       index_t final)
    {
@@ -585,7 +585,7 @@ public:
    }
    //@}
 /*!
- * @brief Return the total size of subarray starting with dimension d
+ * @brief Return the total size of subarray starting with direction d
  */
    size_t totalSize(
       unsigned short d) const
@@ -594,7 +594,7 @@ public:
    }
 /*!
  * @brief Computes the order object and offset for reducing the slowest
- * dimension.
+ * direction.
  *
  * A reduced array is the subarray resulting from fixing the slowest
  * (first) index.  The reduced array has one fewer dimension, a different
@@ -629,9 +629,9 @@ private:
  * @brief Total sizes of sub-dimensional arrays.
  *
  * @c d_total_size[i] is the size of the sub-matrix contained in the
- * last (fast) i dimensions of the array.  Incidentally, the stride
- * size of dimension @c i is @c d_total_size[i+1] (and the stride size
- * for dimension @c MDA_DIM-1 is 1.
+ * last (fast) i directions of the array.  Incidentally, the stride
+ * size of direction @c i is @c d_total_size[i+1] (and the stride size
+ * for direction @c MDA_DIM-1 is 1.
  *
  * @c d_total_size[i] is really equal to
  * @f$ \prod_{j=i}^{MDA_DIM-1} size_j @f$
@@ -669,7 +669,7 @@ class MDA_OrderColMajor:private MDA_IndexRange<MDA_DIM>
 public:
    typedef int index_t;
    typedef MDA_IndexRange<MDA_DIM> range_t;
-   typedef typename range_t::dim_t dim_t;
+   typedef typename range_t::dir_t dir_t;
 protected:
    enum { D0 = range_t::D0,
           D1 = range_t::D1,
@@ -741,7 +741,7 @@ public:
    }
    //! @brief Similar to MDA_IndexRange::adjustDim().
    const MDA_OrderColMajor& adjustDim(
-      dim_t d,
+      dir_t d,
       index_t first,
       index_t final)
    {
@@ -833,7 +833,7 @@ public:
    }
 //@}
 /*!
- * @brief Return the total size of subarray starting with dimension d
+ * @brief Return the total size of subarray starting with direction d
  */
    size_t totalSize(
       unsigned short d) const
@@ -842,7 +842,7 @@ public:
    }
 /*!
  * @brief Computes the order object and offset for reducing the slowest
- * dimension.
+ * direction.
  *
  * A reduced array is the subarray resulting from fixing the slowest
  * (last) index.  The reduced array has one fewer dimension, a different
@@ -881,9 +881,9 @@ private:
  * @brief Total sizes of sub-dimensional arrays.
  *
  * @c d_total_size[i] is the size of the sub-matrix contained in the
- * first (fast) i+1 dimensions of the array.  Incidentally, the stride
- * size of dimension @c i is @c d_total_size[i-1] (and the stride size
- * for dimension @c 0 is 1.
+ * first (fast) i+1 directions of the array.  Incidentally, the stride
+ * size of direction @c i is @c d_total_size[i-1] (and the stride size
+ * for direction @c 0 is 1.
  *
  * @c d_total_size[i] is really equal to
  * @f$ \prod_{j=0}^{i} size_j @f$
@@ -951,7 +951,7 @@ public:
     */
    typedef MDA_TYPE value_t;
    typedef MDA_IndexRange<MDA_DIM> range_t;
-   typedef typename range_t::dim_t dim_t;
+   typedef typename range_t::dir_t dir_t;
    typedef typename range_t::index_t index_t;
    typedef OrderType order_t;
    typedef typename OrderType::reduced_order_t reduced_order_t;
@@ -1098,12 +1098,12 @@ public:
    }
 
    /*!
-    * @brief Adjust the dimensions
+    * @brief Adjust the directions
     *
     * @see MDA_IndexRange::adjustDim.
     */
    const range_t& adjustDim(
-      /*! Dimension to adjust      */ dim_t d,
+      /*! Direction to adjust      */ dir_t d,
       /*! Increment to first index */ index_t first,
       /*! Increment to final index */ index_t final)
    {
@@ -1215,7 +1215,7 @@ public:
       index_t i1,
       index_t i2,
       index_t i3) const
-    {
+   {
       return d_ptr[d_order.offset(i0, i1, i2, i3)];
    }
 
@@ -1243,7 +1243,7 @@ public:
 //@{ @name Functions to extract reduced-dimensional arrays.
 
 /*!
- * @brief Fix the index of the slowest dimension and return
+ * @brief Fix the index of the slowest direction and return
  * the corresponding sub-array.
  *
  * This function is meant to facilitate optimization when using
@@ -1252,19 +1252,19 @@ public:
  * constants.  This leads to many many repeated integer arithmetics
  * operations that could be removed from the inner loop (but may
  * not be removed automatically by the compiler optimization).
- * To do this, reduce the array dimensionality one dimension at a time,
- * by fixing index corresponding to the slowest varying dimension.
+ * To do this, reduce the array dimensionality one direction at a time,
+ * by fixing index corresponding to the slowest varying direction.
  * (If you code is written to maximize cache data, this will NOT
  * be the index of the innermost loop.)
  *
- * To reduce multiple dimensions, string these calls together,
+ * To reduce multiple directions, string these calls together,
  * i.e. @c array.reduce(i).reduce(j).  However, since reduction
  * contains loops that cost O(MDA_DIM) and may be difficult for
  * compilers to optimize, you may want to save @c array.reduce(i)
  * and reuse it.
  *
- * @param i Index in slowest dimension, which is the first
- * dimension in a row-major array and the last dimension in a
+ * @param i Index in slowest direction, which is the first
+ * direction in a row-major array and the last direction in a
  * column-major array.
  *
  * @return The sub-array of dimension @c MDA_DIM-1, corresponding to
@@ -1356,7 +1356,7 @@ public:
     */
    typedef const MDA_TYPE value_t;
    typedef MDA_IndexRange<MDA_DIM> range_t;
-   typedef typename range_t::dim_t dim_t;
+   typedef typename range_t::dir_t dir_t;
    typedef typename range_t::index_t index_t;
    typedef OrderType order_t;
 
@@ -1405,7 +1405,8 @@ public:
    /*!
     * @brief Assign value from an object of the non-const version.
     */
-   const MDA_AccessConst& operator = (
+   const MDA_AccessConst&
+   operator = (
       const MDA_Access<MDA_TYPE, MDA_DIM, OrderType>& r) {
       (MDA_Access<MDA_TYPE, MDA_DIM, OrderType>&)(*this) = r;
       return *this;

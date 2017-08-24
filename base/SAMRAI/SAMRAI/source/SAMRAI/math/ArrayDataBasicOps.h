@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Basic templated operations for array data.
  *
  ************************************************************************/
@@ -21,7 +21,7 @@ namespace math {
 
 /**
  * Class ArrayDataBasicOps implements a set of basic operations
- * that apply to numerical data maintained as pdat::ArrayData<DIM> objects.
+ * that apply to numerical data maintained as pdat::ArrayData<TYPE> objects.
  * These operations include simple arithmetic operations as well as min
  * and max, etc.  This class provides a single implementation of these
  * operations that may used to manipulate any of the standard array-based
@@ -29,7 +29,7 @@ namespace math {
  * accepts a box argument which specifies the portion of the array data
  * on which the associated operation is performed.   The actual index
  * region on which the operation occurs is the intersection of this box
- * and the boxes of all the pdat::ArrayData<DIM> objects involved.
+ * and the boxes of all the pdat::ArrayData<TYPE> objects involved.
  *
  * These operations typically apply only to the numerical standard built-in
  * types, such as double, float, and int, and the complex type (which may or
@@ -57,6 +57,11 @@ public:
 
    /**
     * Set dst = alpha * src, elementwise.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (alpha == tbox::MathUtilities<TYPE>::getZero()) ||
+    *      (alpha == tbox::MathUtilities<TYPE>::getOne()) ||
+    *      (dst.getDepth() == src.getDepth())
     */
    void
    scale(
@@ -67,6 +72,10 @@ public:
 
    /**
     * Set dst = src + alpha, elementwise.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (alpha == tbox::MathUtilities<TYPE>::getZero()) ||
+    *      (dst.getDepth() == src.getDepth())
     */
    void
    addScalar(
@@ -77,6 +86,11 @@ public:
 
    /**
     * Set dst = src1 + src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (dst.getDepth() == src1.getDepth()) &&
+    *      (dst.getDepth() == src2.getDepth())
     */
    void
    add(
@@ -87,6 +101,11 @@ public:
 
    /**
     * Set dst = src1 - src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (dst.getDepth() == src1.getDepth()) &&
+    *      (dst.getDepth() == src2.getDepth())
     */
    void
    subtract(
@@ -97,6 +116,11 @@ public:
 
    /**
     * Set dst = src1 * src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (dst.getDepth() == src1.getDepth()) &&
+    *      (dst.getDepth() == src2.getDepth())
     */
    void
    multiply(
@@ -107,6 +131,11 @@ public:
 
    /**
     * Set dst = src1 / src2, elementwise.  No check for division by zero.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (dst.getDepth() == src1.getDepth()) &&
+    *      (dst.getDepth() == src2.getDepth())
     */
    void
    divide(
@@ -117,6 +146,9 @@ public:
 
    /**
     * Set dst = 1 / src, elementwise.  No check for division by zero.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == box.getDim())
+    * @pre dst.getDepth() == src.getDepth()
     */
    void
    reciprocal(
@@ -126,6 +158,11 @@ public:
 
    /**
     * Set dst = alpha * src1 + beta * src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (dst.getDepth() == src1.getDepth()) &&
+    *      (dst.getDepth() == src2.getDepth())
     */
    void
    linearSum(
@@ -138,6 +175,14 @@ public:
 
    /**
     * Set dst = alpha * src1 + src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (alpha == tbox::MathUtilities<TYPE>::getZero()) ||
+    *      (alpha == tbox::MathUtilities<TYPE>::getOne()) ||
+    *      (alpha == -tbox::MathUtilities<TYPE>::getOne()) ||
+    *      ((dst.getDepth() == src1.getDepth()) &&
+    *       (dst.getDepth() == src2.getDepth()))
     */
    void
    axpy(
@@ -149,6 +194,13 @@ public:
 
    /**
     * Set dst = alpha * src1 - src2, elementwise.
+    *
+    * @pre (dst.getDim() == src1.getDim()) &&
+    *      (dst.getDim() == src2.getDim()) && (dst.getDim() == box.getDim())
+    * @pre (alpha == tbox::MathUtilities<TYPE>::getZero()) ||
+    *      (alpha == tbox::MathUtilities<TYPE>::getOne()) ||
+    *      ((dst.getDepth() == src1.getDepth()) &&
+    *       (dst.getDepth() == src2.getDepth()))
     */
    void
    axmy(
@@ -161,6 +213,8 @@ public:
    /**
     * Return the minimum array data entry.  If data is complex, return the
     * array data entry with the minimum norm.
+    *
+    * @pre data.getDim() == box.getDim()
     */
    TYPE
    min(
@@ -170,6 +224,8 @@ public:
    /**
     * Return the maximum array data entry.  If data is complex, return the
     * array data entry with the maximum norm.
+    *
+    * @pre data.getDim() == box.getDim()
     */
    TYPE
    max(
@@ -183,6 +239,8 @@ public:
     * data is complex, each element of dst is set as dst = dcomplex(rval, ival),
     * where rval = real(width) * drand48() + real(low), and
     * ival = imag(width) * drand48() + imag(low).
+    *
+    * @pre dst.getDim() == box.getDim()
     */
    void
    setRandomValues(
@@ -194,10 +252,10 @@ public:
 private:
    // The following are not implemented:
    ArrayDataBasicOps(
-      const ArrayDataBasicOps<TYPE>&);
-   void
+      const ArrayDataBasicOps&);
+   ArrayDataBasicOps&
    operator = (
-      const ArrayDataBasicOps<TYPE>&);
+      const ArrayDataBasicOps&);
 
 };
 

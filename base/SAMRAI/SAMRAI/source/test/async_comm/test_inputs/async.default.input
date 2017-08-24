@@ -3,18 +3,21 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   $Description 
  *
  ************************************************************************/
 
 Main {
 
-        // Number of communication groups in test:
-        num_groups = 10
+        // Base name of log file(s).
+        base_name = "async_test"
 
         // Whether to log all nodes:
         log_all_nodes = TRUE
+
+        // Number of communication groups in test:
+        num_groups = 10
 
         // Number of children per branching of the communication tree:
         // (2 children creates a binary tree.)
@@ -22,7 +25,7 @@ Main {
 
         // Test selection:
         //
-        // Set number of cycles to 0 to disable.
+        // Set number of cycles to 0 to disable a test.
 
         sync_bcast_cycles = 8
         sync_sumreduce_cycles = 8

@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for testing parts of SAMRAI library 
 ##
 #########################################################################
@@ -15,18 +15,11 @@ SUBDIR        = source/test/clustering
 
 SUBDIRS = async_br
 
-# TODO SGS need to add parallel back in
-#SUBDIRS = parallel_br async_br
-
 default: check	
 
 include $(OBJECT)/config/Makefile.config
 
 library:
-lib1d:
-lib2d:
-lib3d:
-libXd:
 
 check:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
@@ -38,10 +31,22 @@ check3d:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
 
 checkcompile:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@) || exit 1; done
 
 checktest:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
 
+examples:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+perf:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+everything:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@) || exit 1; done
+
 clean:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+checkclean:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done

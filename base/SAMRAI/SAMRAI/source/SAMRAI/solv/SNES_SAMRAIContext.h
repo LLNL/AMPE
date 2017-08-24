@@ -3,13 +3,15 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Wrapper for SNES solver for use in a SAMRAI-based application.
  *
  ************************************************************************/
 
 #ifndef included_solv_SNES_SAMRAIContext
 #define included_solv_SNES_SAMRAIContext
+
+#include "SAMRAI/SAMRAI_config.h"
 
 /*
  ************************************************************************
@@ -23,19 +25,13 @@
 #ifdef MPICH_SKIP_MPICXX
 #undef MPICH_SKIP_MPICXX
 #endif
-extern "C" {
-#ifdef PETSC2028
-#include "snes.h"
-#else
-#include "petscsnes.h"
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
 #endif
+extern "C" {
+#include "petscsnes.h"
 }
 #endif
-#endif
-
-#include "SAMRAI/SAMRAI_config.h"
-
-#ifdef HAVE_PETSC
 
 #include "SAMRAI/solv/NonlinearSolverStrategy.h"
 #include "SAMRAI/solv/SNESAbstractFunctions.h"
@@ -63,119 +59,294 @@ namespace solv {
  * The vector objects used within the solver are provided by the
  * PETSc_SAMRAIVectorReal wrapper class.
  *
+ * <b> Input Parameters </b>
+ *
  * If no parameters are read from input, PETSc defaults are used.  See the
  * PETSc documentation (http://www-unix.mcs.anl.gov/petsc/).
  * for more information on default parameters and SNES functionality.
  *
- * Optional input keys and types that can be read by this class are:
+ * <b> Definitions: </b>
+ *    - \b maximum_nonlinear_iterations
+ *       maximum number of nonlinear iterations
  *
- *    - absolute_tolerance
- *        double value for absolute nonlinear convergence tolerance
+ *    - \b maximum_function_evals
+ *       maximum number of nonlinear function evaluations
  *
- *    - relative_tolerance
- *        double value for relative nonlinear convergence tolerance
+ *    - \b uses_preconditioner
+ *       whether or not a preconditioner is used in the solution of the
+ *       Newton equations.
  *
- *    - step_tolerance
- *        double value for minimum tolerance on change in solution norm
- *        between nonlinear iterates
+ *    - \b uses_explicit_jacobian
+ *       whether or not the user provides code to explicitly calculate
+ *       Jacobian-vector products.
  *
- *    - maximum_nonlinear_iterations
- *        integer value for maximum number of nonlinear iterations
+ *    - \b absolute_tolerance
+ *       absolute nonlinear convergence tolerance
  *
- *    - maximum_function_evals
- *        integer value for maximum number of nonlinear function evaluations
+ *    - \b relative_tolerance
+ *       relative nonlinear convergence tolerance
  *
- *    - forcing_term_strategy
- *        integer value for forcing term choice for linear solvers
- *        within the inexact Newton method.  Choices are "CONSTANT" (default),
- *        "EWCHOICE1", and "EWCHOICE2".
+ *    - \b step_tolerance
+ *       minimum tolerance on change in solution norm between nonlinear
+ *       iterations
  *
- *    - constant_forcing_term
- *        double value for constant relative convergence tolerance in
- *        Krylov solver (default case)
+ *    - \b forcing_term_strategy
+ *       forcing term choice for linear solvers within the inexact Newton
+ *       method.
  *
- *    - initial_forcing_term
- *        double value for initial relative convergence tolerance in
- *        Krylov solver (used in Eisenstat-Walker case). Value must
- *        satisfy @f$0 \le \eta_0 < 1@f$.
+ *    - \b constant_forcing_term
+ *       constant relative convergence tolerance in Krylov solver
  *
- *    - maximum_forcing_term
- *        double value for maximum relative convergence tolerance in
- *        Krylov solver (used in Eisenstat-Walker case). Value must
- *        satisfy @f$0 \le \eta_{max} < 1@f$.
+ *    - \b initial_forcing_term
+ *       initial relative convergence tolerance in Krylov solver
+ *       (used in Eisenstat-Walker case).
  *
- *    - EW_choice2_alpha
- *        double value for power used in Eisenstat-Walker choice 2
- *        relative convergence tolerance computation. Value must
- *        satisfy @f$1 < \alpha \le 2@f$.
+ *    - \b maximum_forcing_term
+ *       maximum relative convergence tolerance in Krylov solver
+ *       (used in Eisenstat-Walker case).
  *
- *    - EW_safeguard_exponent
- *        double value for power for safeguard used in Eisenstat-Walker
- *        choice 2
+ *    - \b EW_choice2_alpha
+ *       power used in Eisenstat-Walker choice 2 relative convergence
+ *       tolerance computation.
  *
- *    - EW_choice2_gamma
- *        double value for multiplicative factor used in Eisenstat-Walker
- *        choice 2 relative convergence tolerance computation.  Value
- *        must satisfy @f$0 \le \gamma \le 1@f$.
+ *    - \b EW_choice2_gamma
+ *       multiplicative factor used in Eisenstat-Walker choice 2 relative
+ *       convergence tolerance computation.
  *
- *    - EW_safeguard_disable_threshold
- *        double value for threshold for imposing safeguard in
- *        Eisenstat-Walker choice 2.  Value must
- *        satisfy @f$0 < \eta_{threshold} < 1@f$.
+ *    - \b EW_safeguard_exponent
+ *       power for safeguard used in Eisenstat-Walker choice 2
  *
- *    - linear_solver_type
- *        std::string value for type of linear solver.  See the
- *        <A HREF="http://www-unix.mcs.anl.gov/petsc/">PETSc documentation</A>
- *        for the valid types.
+ *    - \b EW_safeguard_disable_threshold
+ *       threshold for imposing safeguard in Eisenstat-Walker choice 2.
  *
- *    - uses_preconditioner
- *        boolean value for whether or not a preconditioner is used in the
- *        solution of the Newton equations.
+ *    - \b linear_solver_type
+ *       value for type of linear solver.
  *
- *    - linear_solver_absolute_tolerance
- *        double value for absolute convergence tolerance in linear solver
+ *    - \b linear_solver_absolute_tolerance
+ *       absolute convergence tolerance in linear solver
  *
- *    - linear_solver_divergence_tolerance
- *        double value for amount linear solver residual can increase
- *        before solver concludes method is diverging
+ *    - \b linear_solver_divergence_tolerance
+ *       amount linear solver residual can increase before solver concludes
+ *       method is diverging
  *
- *    - maximum_linear_iterations
- *        integer value for maximum number of linear solver iterations
+ *    - \b maximum_linear_iterations
+ *       maximum number of linear solver iterations
  *
- *    - maximum_gmres_krylov_dimension
- *        integer value for maximum dimension of Krylov subspace before
- *        restarting.  Valid only if GMRES is used as the linear solver.
+ *    - \b maximum_gmres_krylov_dimension
+ *       maximum dimension of Krylov subspace before restarting.
+ *       Valid only if GMRES is used as the linear solver.
  *
- *    - gmres_orthogonalization_algorithm
- *        std::string value for algorithm used to incrementally construct the
- *        orthonormal basis of the Krylov subspace used by GMRES.  Valid
- *        only if GMRES is used as the linear solver.  Valid values are:
+ *    - \b gmres_orthogonalization_algorithm
+ *       algorithm used to incrementally construct the orthonormal basis of
+ *       the Krylov subspace used by GMRES.  Valid only if GMRES is used as
+ *       the linear solver
  *
- *             modifiedgramschmidt
- *             gmres_cgs_refine_ifneeded
- *             gmres_cgs_refine_always
+ *    - \b differencing_parameter_strategy
+ *       strategy used for computing the differencing parameter when
+ *       Jacobian-vector products are approximated via finite differences
  *
- *        See the
- *        <A HREF="http://www-unix.mcs.anl.gov/petsc/">PETSc documentation</A>
- *        for more information.
+ *    - \b function_evaluation_error
+ *       square root of the estimated relative error in function evaluation
  *
- *    - uses_explicit_jacobian
- *        boolean value for whether or not the user provides code to
- *        explicitly calculate Jacobian-vector products.
+ * All values read in from a restart database may be overriden by input
+ * database values.  If no new input database value is given, the restart
+ * database value is used.
  *
- *    - differencing_parameter_strategy
- *        std::string value indicating strategy used for computing the differencing
- *        parameter when Jacobian-vector products are approximated via finite
- *        differences.  See the
- *        <A HREF="http://www-unix.mcs.anl.gov/petsc/">PETSc documentation</A>
- *        for valid values.
- *
- *    - function_evaluation_error
- *        double value that is the square root of the estimated relative error
- *        in function evaluation.
- *
- * Note that all input values may override values read in from restart.  If
- * no new input value is given, the restart value is used.
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>maximum_nonliner_iterations</td>
+ *     <td>int</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>maximum_function_evals</td>
+ *     <td>int</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>uses_preconditioner</td>
+ *     <td>bool</td>
+ *     <td>TRUE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>uses_explicit_jacobian</td>
+ *     <td>bool</td>
+ *     <td>TRUE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>absolute_tolerance</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>relative_tolerance</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>step_tolerance</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>forcing_term_strategy</td>
+ *     <td>string</td>
+ *     <td>"CONSTANT"</td>
+ *     <td>"CONSTANT", "EWCHOICE1", "EWCHOICE2"</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>constant_forcing_term</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>initial_forcing_term</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>maximum_forcing_term</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>EW_choice2_alpha</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>EW_choice2_gamma</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>EW_safeguard_exponent</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>EW_safeguard_disable_threshold</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>linear_solver_type</td>
+ *     <td>string</td>
+ *     <td>""</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>linear_solver_absolute_tolerance</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>linear_solver_divergence_tolerance</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>maximum_linear_iterations</td>
+ *     <td>int</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>maximum_gmres_krylov_dimension</td>
+ *     <td>int</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>gmres_orthogonalization_algorithm</td>
+ *     <td>string</td>
+ *     <td>""</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>differencing_parameter_strategy</td>
+ *     <td>string</td>
+ *     <td>MATMFFD_WP</td>
+ *     <td>MATMFFD_WP, MATFFD_DS</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>function_evaluation_error</td>
+ *     <td>double</td>
+ *     <td>PETSC_DEFAULT</td>
+ *     <td>Refer to PETSc documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * A sample input file entry might look like:
  *
@@ -196,8 +367,8 @@ namespace solv {
  * settings/changes will NOT be cached in the solver context, and so
  * will not be written to restart.
  *
- * @see solv::SNESAbstractFunctions
- * @see solv::NonlinearSolverStrategy
+ * @see SNESAbstractFunctions
+ * @see NonlinearSolverStrategy
  */
 
 class SNES_SAMRAIContext:
@@ -211,14 +382,14 @@ public:
     * user-supplied solver components.  Then, it reads solver parameter
     * from input and restart which may override default values.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if the name std::string is empty or the pointer to the
-    * user-defined SNES functions object is null.
+    * @pre !object_name.empty()
+    * @pre my_functions != 0
     */
    SNES_SAMRAIContext(
       const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& input_db,
-      SNESAbstractFunctions* my_functions);
+      SNESAbstractFunctions* my_functions,
+      const boost::shared_ptr<tbox::Database>& input_db =
+         boost::shared_ptr<tbox::Database>());
 
    /*!
     * Destructor for solve_SNES_SAMRAIContext destroys the SNES
@@ -378,6 +549,9 @@ public:
 
    /*!
     *  Set strategy for forcing term.
+    *
+    * @pre (strategy == "CONSTANT") || (strategy == "EWCHOICE1") ||
+    *      (strategy == "EWCHOICE2")
     */
    void
    setForcingTermStrategy(
@@ -738,6 +912,8 @@ public:
     * Initialize the state of the SNES solver based on vector argument
     * representing the solution of the nonlinear system.  In general, this
     * routine must be called before the solve() routine is invoked.
+    *
+    * @pre solution
     */
    void
    initialize(
@@ -791,12 +967,11 @@ public:
    /*!
     * Write solver parameters to restart database matching object name.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if database pointer is null.
+    * @pre restart_db
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
     * Print out all members of integrator instance to given output stream.
@@ -833,7 +1008,7 @@ private:
    {
       NULL_USE(snes);
       ((SNES_SAMRAIContext *)ctx)->getSNESFunctions()->
-         evaluateNonlinearFunction(x, f);
+      evaluateNonlinearFunction(x, f);
       return 0;
    }
 
@@ -861,10 +1036,13 @@ private:
 
    static int
    SNESsetupPreconditioner(
-      void* ctx)                                   // input vector
+      PC pc)
    {
+      int ierr = 0;
       Vec current_solution;
-      int ierr = SNESGetSolution(((SNES_SAMRAIContext *)ctx)->getSNESSolver(),
+      void* ctx;
+      PCShellGetContext(pc, &ctx);
+      ierr = SNESGetSolution(((SNES_SAMRAIContext *)ctx)->getSNESSolver(),
             &current_solution);
       PETSC_SAMRAI_ERROR(ierr);
       return ((SNES_SAMRAIContext *)ctx)->
@@ -873,10 +1051,12 @@ private:
 
    static int
    SNESapplyPreconditioner(
-      void* ctx,                                  // user-defined context
+      PC pc,
       Vec xin,                                    // input vector
       Vec xout)                                   // output vector
    {
+      void* ctx;
+      PCShellGetContext(pc, &ctx);
       return ((SNES_SAMRAIContext *)ctx)->
              getSNESFunctions()->applyPreconditioner(xin, xout);
    }
@@ -904,7 +1084,8 @@ private:
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db);
+      const boost::shared_ptr<tbox::Database>& input_db,
+      bool is_from_restart);
 
    /*!
     * Read solver parameters from restart database matching object name.

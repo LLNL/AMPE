@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An input database structure that stores (key,value) pairs
  *
  ************************************************************************/
@@ -22,11 +22,10 @@ namespace tbox {
  * @brief Class InputDatabase stores (key,value) pairs in a hierarchical
  * database.
  *
- * This is just another name for the MemoryDatabase. @see tbox::MemoryDatabase
+ * This is just another name for the MemoryDatabase. @see MemoryDatabase
  *
- * It is normally filled with data using a tbox::Parser (@see
- * tbox::Parser) and used to pass user supplied input from input files
- * to constructors for problem setup.
+ * It is normally filled with data using a Parser (@see Parser) and used to
+ * pass user supplied input from input file to constructors for problem setup.
  *
  */
 typedef MemoryDatabase InputDatabase;

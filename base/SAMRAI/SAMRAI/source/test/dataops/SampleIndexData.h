@@ -3,8 +3,9 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Boundary cell struct for embedded boundary implementations
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Example user defined index data type used in indx_dataops
+ *                test.
  *
  ************************************************************************/
 
@@ -20,7 +21,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/IOStream.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 /**
  * The SampleClass struct holds some dummy data and methods.  It's intent
@@ -32,27 +33,7 @@ using namespace SAMRAI;
 class SampleIndexData
 {
 public:
-   SampleIndexData(
-      const tbox::Dimension& d);
-   /**
-    * Copy constructor.
-    */
-   SampleIndexData(
-      const SampleIndexData& data);
-
-   /**
-    * Constructor supplying cell index where data is defined.
-    */
-   SampleIndexData(
-      const hier::Index& ic);
-//      const pdat::CellIndex& ic);
-
-   /**
-    * The assignment operator copies the data of the argument cell.
-    */
-   SampleIndexData&
-   operator = (
-      const SampleIndexData& cell);
+   SampleIndexData();
 
    /**
     * The destructor for SampleIndexData.
@@ -66,10 +47,6 @@ public:
    setInt(
       const int dummy);
 
-   void
-   setIndex(
-      const hier::Index& index);
-
    /**
     * Returns a dummy integer in this class.
     */
@@ -77,38 +54,24 @@ public:
    getInt() const;
 
    /**
-    * Returns the cell index where the index data is stored.
-    */
-   //pdat::CellIndex
-   const hier::Index&
-   getIndex() const;
-
-   /**
-    * Print class data representation when an unrecoverable run-time
-    * assertion is thrown. Or, when desired.
-    */
-   void
-   printClassData(
-      std::ostream& os) const;
-
-   /**
     * The copySourceItem() method allows SampleIndexData to be a templated
     * data type for IndexData - i.e. IndexData<SampleIndexData>.  In
     * addition to this method, the other methods that must be defined are
     * getDataStreamSize(), packStream(), unpackStream() for communication,
-    * putToDatabase(), getFromDatabase for restart.  These are described
-    * below.
+    * putToRestart(), getFromRestart() for restart.  These are
+    * described below.
     */
    void
    copySourceItem(
-      hier::Index& index,
-      SampleIndexData& src_item);
+      const hier::Index& index,
+      const hier::IntVector& src_offset,
+      const SampleIndexData& src_item);
 
    /**
-    * The following functions enable parallel communication with SampleIndexDatas.
-    * They are used in SAMRAI communication infrastructure to
-    * specify the number of bytes of data stored in each SampleIndexData object,
-    * and to pack and unpack the data to the specified stream.
+    * The following functions enable parallel communication with
+    * SampleIndexDatas.  They are used in SAMRAI communication infrastructure
+    * to specify the number of bytes of data stored in each SampleIndexData
+    * object, and to pack and unpack the data to the specified stream.
     */
    size_t
    getDataStreamSize();
@@ -125,19 +88,13 @@ public:
     * restart.
     */
    void
-   getFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database);
+   getFromRestart(
+      boost::shared_ptr<tbox::Database>& restart_db);
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      boost::shared_ptr<tbox::Database>& restart_db) const;
 
 private:
-   /*
-    * Cell index where SampleIndexData is defined.
-    */
-   //pdat::CellIndex d_index;
-   hier::Index d_index;
-
    /*
     * Dummy int data
     */

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   $Description
  *
  ************************************************************************/
@@ -12,7 +12,6 @@
 
 #ifdef HAVE_HDF5
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/HDFDatabase.h"
 
 #include <string>
@@ -47,7 +46,7 @@ public:
       const string& input_dirname,
       const int total_input_files,
       const int total_output_files,
-      const tbox::Array<tbox::Array<int> >& file_mapping,
+      const std::vector<std::vector<int> >& file_mapping,
       const int restore_num);
 
 private:
@@ -67,12 +66,12 @@ private:
  */
    static void
    readAndWriteRestartData(
-      tbox::Array<boost::shared_ptr<tbox::Database> >& output_dbs,
-      const tbox::Array<boost::shared_ptr<tbox::Database> >& input_dbs,
+      std::vector<boost::shared_ptr<tbox::Database> >& output_dbs,
+      const std::vector<boost::shared_ptr<tbox::Database> >& input_dbs,
       const string& key,
-      const tbox::Array<tbox::Array<int> >* file_mapping = NULL,
+      const std::vector<std::vector<int> >* file_mapping = 0,
       int num_files_written = -1,
-      int input_proc_num = -1,
+      int which_file_mapping = -1,
       int total_input_files = -1,
       int total_output_files = -1);
 
@@ -83,11 +82,11 @@ private:
  */
    static void
    readAndWritePatchLevelRestartData(
-      tbox::Array<boost::shared_ptr<tbox::Database> >& output_dbs,
-      const tbox::Array<boost::shared_ptr<tbox::Database> >& level_in_dbs,
+      std::vector<boost::shared_ptr<tbox::Database> >& output_dbs,
+      const std::vector<boost::shared_ptr<tbox::Database> >& level_in_dbs,
       const string& key,
       const int num_files_written,
-      const tbox::Array<int>& input_proc_nums,
+      const std::vector<int>& input_proc_nums,
       const int total_output_files);
 
 /*
@@ -97,11 +96,11 @@ private:
  */
    static void
    readAndWriteBoxLevelRestartData(
-      tbox::Array<boost::shared_ptr<tbox::Database> >& output_dbs,
-      const tbox::Array<boost::shared_ptr<tbox::Database> >& level_in_dbs,
+      std::vector<boost::shared_ptr<tbox::Database> >& output_dbs,
+      const std::vector<boost::shared_ptr<tbox::Database> >& level_in_dbs,
       const string& key,
       const int num_files_written,
-      const tbox::Array<int>& input_proc_nums,
+      const std::vector<int>& input_proc_nums,
       const int total_output_files);
 
 /*

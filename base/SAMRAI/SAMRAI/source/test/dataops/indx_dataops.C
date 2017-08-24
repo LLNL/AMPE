@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program to test index data operations
  *
  ************************************************************************/
@@ -18,11 +18,11 @@
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/CellGeometry.h"
 #include "SAMRAI/pdat/CellIterator.h"
 #include "SAMRAI/pdat/IndexData.h"
 #include "SAMRAI/pdat/IndexVariable.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/hier/ProcessorMapping.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Patch.h"
@@ -33,7 +33,7 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/hier/VariableContext.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -41,11 +41,24 @@ int main(
    int argc,
    char* argv[]) {
 
+   int num_failures = 0;
+
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
-// tbox::PIO::logOnlyNodeZero("indx_dataops.log");
-   tbox::PIO::logAllNodes("indx_dataops.log");
+
+   if (argc < 2) {
+      TBOX_ERROR("Usage: " << argv[0] << " [dimension]");
+   }
+
+   const unsigned short d = static_cast<unsigned short>(atoi(argv[1]));
+   TBOX_ASSERT(d > 0);
+   TBOX_ASSERT(d <= SAMRAI::MAX_DIM_VAL);
+   const tbox::Dimension dim(d);
+
+   const std::string log_fn = std::string("indx_dataops.")
+      + tbox::Utilities::intToString(dim.getValue(), 1) + "d.log";
+   tbox::PIO::logAllNodes(log_fn);
 
    /*
     * Create block to force pointer deallocation.  If this is not done
@@ -61,21 +74,55 @@ int main(
  *
  ************************************************************************
  */
-      double lo[2] = { 0.0, 0.0 };
-      double hi[2] = { 1.0, 0.5 };
+      double lo[SAMRAI::MAX_DIM_VAL];
+      double hi[SAMRAI::MAX_DIM_VAL];
 
-      hier::Box coarse0(hier::Index(0, 0), hier::Index(9, 2));
-      hier::Box coarse1(hier::Index(0, 3), hier::Index(9, 4));
-      hier::Box fine0(hier::Index(4, 4), hier::Index(7, 7));
-      hier::Box fine1(hier::Index(8, 4), hier::Index(13, 7));
-      hier::IntVector<NDIM> ratio(2);
+      hier::Index clo0(dim);
+      hier::Index chi0(dim);
+      hier::Index clo1(dim);
+      hier::Index chi1(dim);
+      hier::Index flo0(dim);
+      hier::Index fhi0(dim);
+      hier::Index flo1(dim);
+      hier::Index fhi1(dim);
+
+      for (int i = 0; i < dim.getValue(); ++i) {
+         lo[i] = 0.0;
+         clo0(i) = 0;
+         flo0(i) = 4;
+         fhi0(i) = 7;
+         if (i == 1) {
+            hi[i] = 0.5;
+            chi0(i) = 2;
+            clo1(i) = 3;
+            chi1(i) = 4;
+         } else {
+            hi[i] = 1.0;
+            chi0(i) = 9;
+            clo1(i) = 0;
+            chi1(i) = 9;
+         }
+         if (i == 0) {
+            flo1(i) = 8;
+            fhi1(i) = 13;
+         } else {
+            flo1(i) = flo0(i);
+            fhi1(i) = fhi0(i);
+         }
+      }
+
+      hier::Box coarse0(clo0, chi0, hier::BlockId(0));
+      hier::Box coarse1(clo1, chi1, hier::BlockId(0));
+      hier::Box fine0(flo0, fhi0, hier::BlockId(0));
+      hier::Box fine1(flo1, fhi1, hier::BlockId(0));
+      hier::IntVector ratio(dim, 2);
 
       hier::BoxContainer coarse_domain;
       hier::BoxContainer fine_domain;
-      coarse_domain.appendItem(coarse0);
-      coarse_domain.appendItem(coarse1);
-      fine_domain.appendItem(fine0);
-      fine_domain.appendItem(fine1);
+      coarse_domain.pushBack(coarse0);
+      coarse_domain.pushBack(coarse1);
+      fine_domain.pushBack(fine0);
+      fine_domain.pushBack(fine1);
 
       boost::shared_ptr<geom::CartesianGridGeometry> geometry(
          new geom::CartesianGridGeometry(
@@ -87,36 +134,47 @@ int main(
       boost::shared_ptr<hier::PatchHierarchy> hierarchy(
          new hier::PatchHierarchy("PatchHierarchy", geometry));
 
-      // Note: For these simple tests we allow at most 2 processors.
-      tbox::SAMRAI_MPI mpi(SAMRAIManager::getSAMRAICommWorld());
+      hierarchy->setMaxNumberOfLevels(2);
+      hierarchy->setRatioToCoarserLevel(ratio, 1);
+
+      const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
       const int nproc = mpi.getSize();
-      TBOX_ASSERT(nproc < 3);
 
-      const int n_coarse_boxes = coarse_domain.getNumberOfBoxes();
-      const int n_fine_boxes = fine_domain.getNumberOfBoxes();
-      hier::ProcessorMapping mapping0(n_coarse_boxes);
-      hier::ProcessorMapping mapping1(n_fine_boxes);
+      const int n_coarse_boxes = coarse_domain.size();
+      const int n_fine_boxes = fine_domain.size();
 
-      int ib;
-      for (ib = 0; ib < n_coarse_boxes; ib++) {
+      boost::shared_ptr<hier::BoxLevel> layer0(
+         boost::make_shared<hier::BoxLevel>(
+            hier::IntVector(dim, 1), geometry));
+      boost::shared_ptr<hier::BoxLevel> layer1(
+         boost::make_shared<hier::BoxLevel>(ratio, geometry));
+
+      hier::BoxContainer::iterator coarse_itr = coarse_domain.begin();
+      for (int ib = 0; ib < n_coarse_boxes; ++ib, ++coarse_itr) {
          if (nproc > 1) {
-            mapping0.setProcessorAssignment(ib, ib);
+            if (ib == layer0->getMPI().getRank()) {
+               layer0->addBox(hier::Box(*coarse_itr, hier::LocalId(ib),
+                     layer0->getMPI().getRank()));
+            }
          } else {
-            mapping0.setProcessorAssignment(ib, 0);
+            layer0->addBox(hier::Box(*coarse_itr, hier::LocalId(ib), 0));
          }
       }
 
-      for (ib = 0; ib < n_fine_boxes; ib++) {
+      hier::BoxContainer::iterator fine_itr = fine_domain.begin();
+      for (int ib = 0; ib < n_fine_boxes; ++ib) {
          if (nproc > 1) {
-            mapping1.setProcessorAssignment(ib, ib);
+            if (ib == layer1->getMPI().getRank()) {
+               layer1->addBox(hier::Box(*fine_itr, hier::LocalId(ib),
+                     layer1->getMPI().getRank()));
+            }
          } else {
-            mapping1.setProcessorAssignment(ib, 0);
+            layer1->addBox(hier::Box(*fine_itr, hier::LocalId(ib), 0));
          }
       }
 
-      hierarchy->makeNewPatchLevel(0, hier::IntVector<NDIM>(
-            1), coarse_domain, mapping0);
-      hierarchy->makeNewPatchLevel(1, ratio, fine_domain, mapping1);
+      hierarchy->makeNewPatchLevel(0, layer0);
+      hierarchy->makeNewPatchLevel(1, layer1);
 
       /*
        * Create an IndexData<SampleIndexData> variable and register it with
@@ -125,12 +183,12 @@ int main(
       hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
       boost::shared_ptr<hier::VariableContext> cxt(
          variable_db->getContext("dummy"));
-      const hier::IntVector<NDIM> no_ghosts(0);
+      const hier::IntVector no_ghosts(dim, 0);
 
-      boost::shared_ptr<pdat::IndexVariable<NDIM, SampleIndexData,
+      boost::shared_ptr<pdat::IndexVariable<SampleIndexData,
                                             pdat::CellGeometry> > data(
-         new pdat::IndexVariable<NDIM, SampleIndexData, pdat::CellGeometry>(
-            "sample"));
+         new pdat::IndexVariable<SampleIndexData, pdat::CellGeometry>(
+            dim, "sample"));
       int data_id = variable_db->registerVariableAndContext(
             data, cxt, no_ghosts);
 
@@ -147,7 +205,7 @@ int main(
        */
       int counter = 0;
       std::ostream& os = tbox::plog;
-      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
          boost::shared_ptr<hier::PatchLevel> level(
             hierarchy->getPatchLevel(ln));
 
@@ -158,34 +216,44 @@ int main(
          // loop over patches on level
          for (hier::PatchLevel::iterator ip(level->begin());
               ip != level->end(); ++ip) {
-            boost::shared_ptr<hier::Patch> patch(level->getPatch(ip()));
+            boost::shared_ptr<hier::Patch> patch(*ip);
             os << "Patch: " << patch->getLocalId() << std::endl;
 
             // access sample data from patch
-            boost::shared_ptr<pdat::IndexData<NDIM, SampleIndexData,
-                              pdat::CellGeometry> > sample(
-               patch->getPatchData(data_id));
+            boost::shared_ptr<pdat::IndexData<SampleIndexData,
+                                              pdat::CellGeometry> > sample(
+               BOOST_CAST<pdat::IndexData<SampleIndexData, pdat::CellGeometry>,
+                          hier::PatchData>(
+                  patch->getPatchData(data_id)));
+            TBOX_ASSERT(sample);
 
             // iterate over cells of patch and invoke one "SampleIndexData"
             // instance on each cell (its possible to do more).
-            pdat::CellIterator icend(patch->getBox(), false);
-            for (pdat::CellIterator ic(patch->getBox(), true);
+            pdat::CellIterator icend(pdat::CellGeometry::end(patch->getBox()));
+            for (pdat::CellIterator ic(pdat::CellGeometry::begin(patch->getBox()));
                  ic != icend; ++ic) {
-               SampleIndexData sd(*ic);
+               SampleIndexData sd;
                sd.setInt(counter);
                sample->appendItem(*ic, sd);
-               counter++;
+               ++counter;
             }
 
             // iterate over the "SampleIndexData" index data stored on the patch
             // and dump the integer stored on it.
-            for (pdat::IndexData<NDIM, SampleIndexData,
-                                 pdat::CellGeometry>::Iterator id(*sample);
-                 id;
-                 id++) {
-               os << "   Index: " << id().getIndex()
-                  << "      SampleIndexData data: " << id().getInt()
+            int currData = counter - 1;
+            pdat::IndexData<SampleIndexData, pdat::CellGeometry>::iterator idend(*sample, false);
+            for (pdat::IndexData<SampleIndexData,
+                                 pdat::CellGeometry>::iterator id(*sample, true);
+                 id != idend;
+                 ++id) {
+               os << "      SampleIndexData data: " << id->getInt()
                   << std::endl;
+               if (id->getInt() != currData) {
+                  ++num_failures;
+                  tbox::perr
+                  << "FAILED: - Index data set incorrectly" << std::endl;
+               }
+               --currData;
             }
 
          }
@@ -193,11 +261,15 @@ int main(
 
       geometry.reset();
       hierarchy.reset();
+
+      if (num_failures == 0) {
+         tbox::pout << "\nPASSED:  indx dataops" << std::endl;
+      }
    }
 
    tbox::SAMRAIManager::shutdown();
    tbox::SAMRAIManager::finalize();
    tbox::SAMRAI_MPI::finalize();
 
-   return 0;
+   return num_failures;
 }

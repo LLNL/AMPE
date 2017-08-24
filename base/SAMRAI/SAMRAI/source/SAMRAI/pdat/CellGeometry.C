@@ -3,15 +3,12 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_CellGeometry_C
-#define included_pdat_CellGeometry_C
-
 #include "SAMRAI/pdat/CellGeometry.h"
+#include "SAMRAI/pdat/CellIterator.h"
 #include "SAMRAI/pdat/CellOverlap.h"
 #include "SAMRAI/tbox/Utilities.h"
 
@@ -32,7 +29,7 @@ CellGeometry::CellGeometry(
    d_box(box),
    d_ghosts(ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(box, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(box, ghosts);
    TBOX_ASSERT(ghosts.min() >= 0);
 }
 
@@ -65,7 +62,7 @@ CellGeometry::calculateOverlap(
    const bool retry,
    const hier::BoxContainer& dst_restrict_boxes) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_box, src_mask);
 
    const CellGeometry* t_dst =
       dynamic_cast<const CellGeometry *>(&dst_geometry);
@@ -73,7 +70,7 @@ CellGeometry::calculateOverlap(
       dynamic_cast<const CellGeometry *>(&src_geometry);
 
    boost::shared_ptr<hier::BoxOverlap> over;
-   if ((t_src != NULL) && (t_dst != NULL)) {
+   if ((t_src != 0) && (t_dst != 0)) {
       over = doOverlap(*t_dst, *t_src, src_mask, fill_box, overwrite_interior,
             transformation, dst_restrict_boxes);
    } else if (retry) {
@@ -88,7 +85,7 @@ CellGeometry::calculateOverlap(
 /*
  *************************************************************************
  *
- * Compute the boxes that will be used to contstruct an overlap object
+ * Compute the boxes that will be used to construct an overlap object
  *
  *************************************************************************
  */
@@ -103,7 +100,7 @@ CellGeometry::computeDestinationBoxes(
    const hier::Transformation& transformation,
    const hier::BoxContainer& dst_restrict_boxes) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_box, src_mask);
 
    // Translate the source box and grow the destination box by the ghost cells
 
@@ -116,21 +113,17 @@ CellGeometry::computeDestinationBoxes(
 
    // Convert the boxes into cell space and compute the intersection
 
-   const hier::Box dst_cell(toCellBox(dst_ghost));
-   const hier::Box src_cell(toCellBox(src_box));
-   const hier::Box fill_cell(toCellBox(fill_box));
-   const hier::Box together(dst_cell * src_cell * fill_cell);
+   const hier::Box together(dst_ghost * src_box * fill_box);
 
    if (!together.empty()) {
       if (!overwrite_interior) {
-         const hier::Box int_cell(toCellBox(d_box));
-         dst_boxes.removeIntersections(together, int_cell);
+         dst_boxes.removeIntersections(together, d_box);
       } else {
          dst_boxes.pushBack(together);
       }
    }
 
-   if (dst_boxes.size() && dst_restrict_boxes.size()) {
+   if (!dst_boxes.empty() && !dst_restrict_boxes.empty()) {
       dst_boxes.intersectBoxes(dst_restrict_boxes);
    }
 }
@@ -175,12 +168,25 @@ CellGeometry::transform(
 
    const hier::Transformation::RotationIdentifier& rotation =
       transformation.getRotation();
-   if (dim.getValue() == 2) {
+   if (dim.getValue() == 1) {
       const int rotation_num = static_cast<int>(rotation);
+      if (rotation_num > 1) {
+         TBOX_ERROR("CellGeometry::transform invalid 1D RotationIdentifier.");
+      }
+
+      if (rotation_num) {
+         CellIndex tmp_index(index);
+         index(0) = -tmp_index(0) - 1;
+      }
+   } else if (dim.getValue() == 2) {
+      const int rotation_num = static_cast<int>(rotation);
+      if (rotation_num > 3) {
+         TBOX_ERROR("CellGeometry::transform invalid 2D RotationIdentifier.");
+      }
 
       if (rotation_num) {
          CellIndex tmp_index(dim);
-         for (int r = 0; r < rotation_num; r++) {
+         for (int r = 0; r < rotation_num; ++r) {
             tmp_index = index;
             index(0) = tmp_index(1);
             index(1) = -tmp_index(0) - 1;
@@ -321,13 +327,26 @@ CellGeometry::rotateAboutAxis(CellIndex& index,
    const int b = (axis + 2) % dim.getValue();
 
    CellIndex tmp_index(dim);
-   for (int j = 0; j < num_rotations; j++) {
+   for (int j = 0; j < num_rotations; ++j) {
       tmp_index = index;
       index(a) = tmp_index(b);
       index(b) = -tmp_index(a) - 1;
    }
 }
 
+CellIterator
+CellGeometry::begin(
+   const hier::Box& box)
+{
+   return CellIterator(box, true);
+}
+
+CellIterator
+CellGeometry::end(
+   const hier::Box& box)
+{
+   return CellIterator(box, false);
+}
+
 }
 }
-#endif

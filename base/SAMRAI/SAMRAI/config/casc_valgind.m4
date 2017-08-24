@@ -5,7 +5,7 @@ AC_DEFUN([CASC_SUPPORT_VALGRIND],[
 # Begin CASC_SUPPORT_VALGRIND
 # Defines valgrind_EXE
 AC_ARG_WITH(valgrind,
-[ --with-valgrind[=PATH]  Use VALGRIND and optionally specify where VALGRIND is installed.],
+[  --with-valgrind[=PATH]  Use VALGRIND and optionally specify where VALGRIND is installed.],
 , with_valgrind=no)
 
 case "$with_valgrind" in

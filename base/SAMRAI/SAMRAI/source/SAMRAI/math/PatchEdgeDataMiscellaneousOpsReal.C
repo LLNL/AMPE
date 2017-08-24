@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated miscellaneous operations for real edge-centered data.
  *
  ************************************************************************/
@@ -32,31 +32,6 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::~PatchEdgeDataMiscellaneousOpsReal()
 /*
  *************************************************************************
  *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchEdgeDataMiscellaneousOpsReal<TYPE>::PatchEdgeDataMiscellaneousOpsReal(
-   const PatchEdgeDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchEdgeDataMiscellaneousOpsReal<TYPE>::operator = (
-   const PatchEdgeDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-/*
- *************************************************************************
- *
  * Templated miscellaneous opertions for real edge-centered data.
  *
  *************************************************************************
@@ -76,7 +51,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::computeConstrProdPos(
 
    int retval = 1;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<int>::Min(retval,
@@ -86,7 +61,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::computeConstrProdPos(
                   edge_box));
       }
    } else {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<int>::Min(retval,
@@ -114,7 +89,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::compareToScalar(
    int dimVal = dst->getDim().getValue();
 
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          d_array_ops.compareToScalar(dst->getArrayData(d),
             src->getArrayData(d),
@@ -122,7 +97,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::compareToScalar(
             edge_box);
       }
    } else {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          d_array_ops.compareToScalarWithControlVolume(dst->getArrayData(d),
             src->getArrayData(d),
@@ -147,7 +122,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::testReciprocal(
 
    int retval = 1;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<int>::Min(retval,
@@ -157,7 +132,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::testReciprocal(
                   edge_box));
       }
    } else {
-      for (int d = 0; d < dimVal; d++) {
+      for (int d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<int>::Min(retval,
@@ -183,7 +158,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::maxPointwiseDivide(
    int dimVal = numer->getDim().getValue();
 
    TYPE retval = 0.0;
-   for (int d = 0; d < dimVal; d++) {
+   for (int d = 0; d < dimVal; ++d) {
       const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
       TYPE dirval = d_array_ops.maxPointwiseDivide(numer->getArrayData(d),
             denom->getArrayData(d),
@@ -205,7 +180,7 @@ PatchEdgeDataMiscellaneousOpsReal<TYPE>::minPointwiseDivide(
    int dimVal = numer->getDim().getValue();
 
    TYPE retval = 0.0;
-   for (int d = 0; d < dimVal; d++) {
+   for (int d = 0; d < dimVal; ++d) {
       const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
       TYPE dirval = d_array_ops.minPointwiseDivide(numer->getArrayData(d),
             denom->getArrayData(d),

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Routines for summing edge data at patch boundaries
  *
  ************************************************************************/
@@ -20,8 +20,9 @@
 #include "SAMRAI/xfer/RefineTransactionFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 
 namespace SAMRAI {
 namespace algs {
@@ -112,8 +113,9 @@ public:
     *  state.
     *
     *  @param object_name const std::string reference for name of object used
-    *  in error reporting.  When assertion checking is on, the string
-    *  cannot be empty.
+    *  in error reporting.
+    *
+    *  @pre !object_name.empty()
     */
    explicit PatchBoundaryEdgeSum(
       const std::string& object_name);
@@ -128,8 +130,9 @@ public:
     *
     *  @param edge_data_id  integer patch data index for edge data to sum
     *
-    *  The edge data id must be a valid patch data id (>=0) and must
-    *  correspond to edge-centered double data.  If not, an error will result.
+    *  @pre !d_setup_called
+    *  @pre edge_data_id >= 0
+    *  @pre hier::VariableDatabase::getDatabase()->getPatchDescriptor()->getPatchDataFactory(edge_data_id) is actually a boost::shared_ptr<pdat::EdgeDataFactory<double> >
     */
    void
    registerSum(
@@ -141,7 +144,7 @@ public:
     *
     *  @param level         pointer to level on which to perform edge sum
     *
-    *  When assertion checking is active, the level pointer cannot be null.
+    *  @pre level
     */
    void
    setupSum(
@@ -183,8 +186,8 @@ private:
     */
    static int s_instance_counter;
    // These arrays are indexed [data depth][number of variables with depth]
-   static tbox::Array<tbox::Array<int> > s_oedge_src_id_array;
-   static tbox::Array<tbox::Array<int> > s_oedge_dst_id_array;
+   static std::vector<std::vector<int> > s_oedge_src_id_array;
+   static std::vector<std::vector<int> > s_oedge_dst_id_array;
 
    enum PATCH_BDRY_EDGE_SUM_DATA_ID { ID_UNDEFINED = -1 };
 
@@ -194,23 +197,23 @@ private:
    int d_num_reg_sum;
 
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<int> d_user_edge_data_id;
-   tbox::Array<int> d_user_edge_depth;
+   std::vector<int> d_user_edge_data_id;
+   std::vector<int> d_user_edge_depth;
 
    // These arrays are indexed [data depth]
-   tbox::Array<int> d_num_registered_data_by_depth;
+   std::vector<int> d_num_registered_data_by_depth;
 
    /*
     * Edge-centered variables and patch data indices used as internal work
     * quantities.
     */
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_tmp_oedge_src_variable;
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_tmp_oedge_dst_variable;
+   std::vector<boost::shared_ptr<hier::Variable> > d_tmp_oedge_src_variable;
+   std::vector<boost::shared_ptr<hier::Variable> > d_tmp_oedge_dst_variable;
 
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<int> d_oedge_src_id;
-   tbox::Array<int> d_oedge_dst_id;
+   std::vector<int> d_oedge_src_id;
+   std::vector<int> d_oedge_dst_id;
 
    /*
     * Sets of indices for temporary variables to expedite allocation and

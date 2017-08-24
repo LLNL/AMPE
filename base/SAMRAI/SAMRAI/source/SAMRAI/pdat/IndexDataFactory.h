@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   IndexDataFactory
  *
  ************************************************************************/
@@ -19,18 +19,18 @@
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/hier/PatchDataFactory.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
 
 /**
- * Class IndexDataFactory<DIM> is the factory class used to allocate
- * new instances of IndexData<DIM> objects.  It is a subclass of the
- * hier::PatchDataFactory base class.
+ * Class IndexDataFactory<TYPE, BOX_GEOMETRY> is the factory class used to
+ * allocate new instances of IndexData<TYPE, BOX_GEOMETRY> objects.  It is a
+ * subclass of the hier::PatchDataFactory base class.
  *
- * @see pdat::IndexData
- * @see pdat::IndexVariable
+ * @see IndexData
+ * @see IndexVariable
  * @see hier::PatchDataFactory
  */
 
@@ -39,8 +39,8 @@ class IndexDataFactory:public hier::PatchDataFactory
 {
 public:
    /**
-    * The default constructor for the IndexDataFactory<DIM> class.
-    * The ghost cell width argument gives the default width for all
+    * The default constructor for the IndexDataFactory<TYPE, BOX_GEOMETRY>
+    * class.  The ghost cell width argument gives the default width for all
     * irregular data objects created with this factory.
     */
    explicit IndexDataFactory(
@@ -60,6 +60,8 @@ public:
     *
     * @param ghosts default ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    virtual boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
@@ -69,6 +71,8 @@ public:
     * Virtual factory function to allocate a concrete index data object.
     * The default information about the object (e.g., ghost cell width) is
     * taken from the factory.
+    *
+    * @pre getDim() == patch.getDim()
     */
    virtual boost::shared_ptr<hier::PatchData>
    allocate(
@@ -78,6 +82,8 @@ public:
     * Allocate the box geometry object associated with the patch data.
     * This information will be used in the computation of intersections
     * and data dependencies between objects.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
@@ -89,6 +95,8 @@ public:
     * Because the irregular data list can grow and shrink, it would be
     * impossible to estimate the necessary amount of memory.  Instead,
     * dynamic data is allocated via the standard new/free mechanisms.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual size_t
    getSizeOfMemory(
@@ -97,8 +105,8 @@ public:
    /**
     * Return a boolean true value indicating that the index data quantities
     * will always be treated as though fine values represent them on
-    * coarse-fine interfaces. See the IndexVariable<DIM> class header file for
-    * more information.
+    * coarse-fine interfaces. See the IndexVariable<TYPE, BOX_GEOMETRY> class
+    * header file for more information.
     */
    bool
    fineBoundaryRepresentsVariable() const;
@@ -116,6 +124,8 @@ public:
     * supplied destination patch data factory.  It will return true if
     * dst_pdf is an IndexDataFactory of the same type and dimension,
     * false otherwise.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(
@@ -123,10 +133,10 @@ public:
 
 private:
    IndexDataFactory(
-      const IndexDataFactory<TYPE, BOX_GEOMETRY>&);
-   void
+      const IndexDataFactory&);
+   IndexDataFactory&
    operator = (
-      const IndexDataFactory<TYPE, BOX_GEOMETRY>&);
+      const IndexDataFactory&);
 
 };
 

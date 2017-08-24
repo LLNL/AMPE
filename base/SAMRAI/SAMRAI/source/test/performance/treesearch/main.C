@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Test program for performance of tree search algorithm.
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Performance tests for tree searches.
  *
  ************************************************************************/
 #include "SAMRAI/SAMRAI_config.h"
@@ -40,7 +40,6 @@ using namespace tbox;
  *************************************************************************
  */
 
-typedef std::vector<hier::Box> NodeVec;
 typedef std::vector<hier::Box> BoxVec;
 
 /*
@@ -65,7 +64,6 @@ int main(
    SAMRAIManager::startup();
    tbox::SAMRAI_MPI mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
-   const int rank = mpi.getRank();
    int fail_count = 0;
 
    {
@@ -131,9 +129,6 @@ int main(
       plog << "Input database after initialization..." << std::endl;
       input_db->printClassData(plog);
 
-      const std::string box_gen_method =
-         main_db->getStringWithDefault("box_gen_method", "UNIFORM");
-
       tbox::TimerManager * tm(tbox::TimerManager::getManager());
       const std::string dim_str(tbox::Utilities::intToString(dim.getValue()));
       boost::shared_ptr<tbox::Timer> t_build_tree(
@@ -147,13 +142,9 @@ int main(
        * Generate the boxes.
        */
       BoxVec boxes;
-      if (box_gen_method == "UNIFORM") {
-         generateBoxesUniform(dim,
-            boxes,
-            main_db->getDatabase("UniformBoxGen"));
-      } else {
-         TBOX_ERROR("Unsupported box_gen_method: " << box_gen_method);
-      }
+      generateBoxesUniform(dim,
+         boxes,
+         main_db->getDatabase("UniformBoxGen"));
       tbox::plog << "\n\n\nGenerated boxes (" << boxes.size() << "):\n";
       for (size_t i = 0; i < boxes.size(); ++i) {
          tbox::plog << '\t' << i << '\t' << boxes[i] << '\n';
@@ -192,7 +183,8 @@ int main(
             /*
              * Scale up the box array.
              */
-            int shift_dir = (iscale - 1) % dim.getValue();
+            tbox::Dimension::dir_t shift_dir =
+               static_cast<tbox::Dimension::dir_t>((iscale - 1) % dim.getValue());
             /*
              * Shift distance is less than number of bounding boxes in shift_dir
              * in order to generate some non-trivial overlaps.
@@ -204,9 +196,12 @@ int main(
             for (size_t i = 0; i < old_size; ++i) {
                boxes[i].shift(shift_dir, shift_distance);
             }
-            bounding_box.upper() (shift_dir) += shift_distance;
+            bounding_box.setUpper(shift_dir, shift_distance);
          }
 
+         if (mpi.getRank() == 0) {
+            tbox::pout << "Repetition " << iscale << std::endl;
+         }
          tbox::plog << "Repetition " << iscale << " has "
                     << boxes.size() << " boxes bounded by "
                     << bounding_box << std::endl;
@@ -247,7 +242,7 @@ int main(
           * Build search tree.
           */
          t_build_tree->start();
-         nodes.makeTree(NULL);
+         nodes.makeTree(0);
          t_build_tree->stop();
 
          /*
@@ -268,7 +263,7 @@ int main(
          t_search_tree_for_set->stop();
 
          hier::BoxContainer ordered_overlap;
-         ordered_overlap.order(); 
+         ordered_overlap.order();
          t_search_tree_for_vec->start();
          for (BoxVec::iterator bi = grown_boxes.begin();
               bi != grown_boxes.end();
@@ -281,6 +276,9 @@ int main(
          /*
           * Output normalized timer to plog.
           */
+         tbox::plog << "Timers for repetition " << iscale
+                    << " (normalized by " << node_count << " nodes):\n";
+         tbox::plog.precision(8);
          tbox::plog << t_build_tree->getName() << " = "
                     << t_build_tree->getTotalWallclockTime()
          / static_cast<double>(node_count)
@@ -329,17 +327,8 @@ int main(
     */
    SAMRAIManager::shutdown();
    SAMRAIManager::finalize();
+   SAMRAI_MPI::finalize();
 
-   if (fail_count == 0) {
-      SAMRAI_MPI::finalize();
-   } else {
-      tbox::pout << "Process " << std::setw(5) << rank << " aborting."
-                 << std::endl;
-      tbox::Utilities::abort("Aborting due to nonzero fail count",
-         __FILE__, __LINE__);
-   }
-
-   tbox::plog << "Process " << std::setw(5) << rank << " exiting." << std::endl;
    return fail_count;
 }
 
@@ -357,7 +346,7 @@ void generateBoxesUniform(
    if (db->isInteger("boxsize")) {
       db->getIntegerArray("boxsize", &boxsize[0], dim.getValue());
    } else {
-      TBOX_ERROR("CartesianGridGeometry::getFromInput() error...\n"
+      TBOX_ERROR("generateBoxesUniform() error...\n"
          << "    box size is absent.");
    }
 

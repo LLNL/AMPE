@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -22,16 +22,16 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * Class EdgeVariable<DIM> is a templated variable class used to define
+ * Class EdgeVariable<TYPE> is a templated variable class used to define
  * edge-centered quantities on an AMR mesh.   It is a subclass of
  * hier::Variable and is templated on the type of the underlying data
  * (e.g., double, int, bool, etc.).
  *
- * See header file for EdgeData<DIM> class for a more detailed
+ * See header file for EdgeData<TYPE> class for a more detailed
  * description of the data layout.
  *
- * @see pdat::EdgeData
- * @see pdat::EdgeDataFactory
+ * @see EdgeData
+ * @see EdgeDataFactory
  * @see hier::Variable
  */
 
@@ -86,11 +86,14 @@ public:
 private:
    bool d_fine_boundary_represents_var;
 
+   // Unimplemented copy constructor
    EdgeVariable(
-      const EdgeVariable<TYPE>&);          // not implemented
-   void
+      const EdgeVariable&);
+
+   // Unimplemented assignment operator
+   EdgeVariable&
    operator = (
-      const EdgeVariable<TYPE>&);               // not implemented
+      const EdgeVariable&);
 
 };
 

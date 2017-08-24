@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile dependencies
 ##
 #########################################################################
@@ -14,57 +14,60 @@
 FILE_0=algs_nodeouternodeops2d.o
 DEPENDS_0:=\
 	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
-	algs_nodeouternodeops2d.f
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim2d.i		\
+	algs_nodeouternodeops2d.m4
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_0 +=\
 	
-endif
 
-${FILE_0:X.o=${NDIM}.o}: ${DEPENDS_0}
+
+${FILE_0}: ${DEPENDS_0}
 
 FILE_1=algs_nodeouternodeops3d.o
 DEPENDS_1:=\
 	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
-	algs_nodeouternodeops3d.f
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim3d.i		\
+	algs_nodeouternodeops3d.m4
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_1 +=\
 	
-endif
 
-${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
+
+${FILE_1}: ${DEPENDS_1}
 
 FILE_2=algs_upfluxsum1d.o
 DEPENDS_2:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h algs_upfluxsum1d.f
+	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim1d.i		\
+	algs_upfluxsum1d.m4
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_2 +=\
 	
-endif
 
-${FILE_2:X.o=${NDIM}.o}: ${DEPENDS_2}
+
+${FILE_2}: ${DEPENDS_2}
 
 FILE_3=algs_upfluxsum2d.o
 DEPENDS_3:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h algs_upfluxsum2d.f
+	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim2d.i		\
+	algs_upfluxsum2d.m4
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_3 +=\
 	
-endif
 
-${FILE_3:X.o=${NDIM}.o}: ${DEPENDS_3}
+
+${FILE_3}: ${DEPENDS_3}
 
 FILE_4=algs_upfluxsum3d.o
 DEPENDS_4:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h algs_upfluxsum3d.f
+	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim3d.i		\
+	algs_upfluxsum3d.m4
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_4 +=\
 	
-endif
 
-${FILE_4:X.o=${NDIM}.o}: ${DEPENDS_4}
+
+${FILE_4}: ${DEPENDS_4}
 

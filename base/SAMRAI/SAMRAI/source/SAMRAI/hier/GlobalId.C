@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Globally unique identifier that can be locally determined.
  *
  ************************************************************************/
-#ifndef included_hier_GlobalId_C
-#define included_hier_GlobalId_C
-
 #include "SAMRAI/hier/GlobalId.h"
 
 #include <iostream>
@@ -69,4 +66,3 @@ operator << (
 
 }
 }
-#endif

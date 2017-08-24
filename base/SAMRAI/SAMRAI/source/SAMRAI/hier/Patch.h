@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Patch container class for patch data objects
  *
  ************************************************************************/
@@ -22,11 +22,11 @@
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/hier/VariableDatabase.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -50,12 +50,11 @@ namespace hier {
  * patch data components that live on the patch.  Individual components or sets
  * of components can be created or destroyed via patch member functions.
  *
- * @see hier::Box
- * @see hier::Box
- * @see hier::PatchDescriptor
- * @see hier::PatchData
- * @see hier::PatchDataFactory
- * @see hier::PatchGeometry
+ * @see Box
+ * @see PatchDescriptor
+ * @see PatchData
+ * @see PatchDataFactory
+ * @see PatchGeometry
  */
 class Patch
 {
@@ -66,11 +65,13 @@ public:
     * @note
     * Patch data components are not allocated/instantiated.
     *
-    * @param[in]  mapped_box
+    * @param[in]  box
     * @param[in]  descriptor
+    *
+    * @pre box.getLocalId() >= 0
     */
    Patch(
-      const Box& mapped_box,
+      const Box& box,
       const boost::shared_ptr<PatchDescriptor>& descriptor);
 
    /*!
@@ -90,7 +91,7 @@ public:
    const Box&
    getBox() const
    {
-      return d_mapped_box;
+      return d_box;
    }
 
    /*!
@@ -105,7 +106,7 @@ public:
    const GlobalId&
    getGlobalId() const
    {
-      return d_mapped_box.getGlobalId();
+      return d_box.getGlobalId();
    }
 
    /*!
@@ -119,7 +120,7 @@ public:
    const LocalId&
    getLocalId() const
    {
-      return d_mapped_box.getLocalId();
+      return d_box.getLocalId();
    }
 
    /*!
@@ -148,12 +149,14 @@ public:
     * identifier.
     *
     * @param[in]  id
+    *
+    * @pre (id >= 0) && (id < numPatchData())
     */
    boost::shared_ptr<PatchData>
    getPatchData(
       const int id) const
    {
-      TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+      TBOX_ASSERT((id >= 0) && (id < numPatchData()));
       return d_patch_data[id];
    }
 
@@ -171,16 +174,19 @@ public:
     *
     * @param[in]  variable
     * @param[in]  context
+    *
+    * @pre getDim() == variable->getDim()
+    * @pre (id >= 0) && (id < numPatchData())
     */
    boost::shared_ptr<PatchData>
    getPatchData(
       const boost::shared_ptr<Variable>& variable,
       const boost::shared_ptr<VariableContext>& context) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *variable);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *variable);
       int id = VariableDatabase::getDatabase()->
          mapVariableAndContextToIndex(variable, context);
-      TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+      TBOX_ASSERT((id >= 0) && (id < numPatchData()));
       return d_patch_data[id];
    }
 
@@ -199,14 +205,17 @@ public:
     *
     * @param[in]  id
     * @param[out] data
+    *
+    * @pre getDim() == data->getDim();
+    * @pre (id >= 0) && (id < numPatchData())
     */
    void
    setPatchData(
       const int id,
       const boost::shared_ptr<PatchData>& data)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *data);
-      TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *data);
+      TBOX_ASSERT((id >= 0) && (id < numPatchData()));
       d_patch_data[id] = data;
    }
 
@@ -221,7 +230,7 @@ public:
    checkAllocated(
       const int id) const
    {
-      return (id < d_patch_data.getSize()) && d_patch_data[id];
+      return (id < numPatchData()) && d_patch_data[id];
    }
 
    /*!
@@ -235,8 +244,7 @@ public:
    getSizeOfPatchData(
       const int id) const
    {
-      return d_descriptor->getPatchDataFactory(id)->getSizeOfMemory(
-         d_mapped_box);
+      return getPatchDescriptor()->getPatchDataFactory(id)->getSizeOfMemory(d_box);
    }
 
    /*!
@@ -259,6 +267,8 @@ public:
     *
     * @param[in]  id
     * @param[in]  time
+    *
+    * @pre (id >= 0) && (id < getPatchDescriptor()->getMaxNumberRegisteredComponents())
     */
    void
    allocatePatchData(
@@ -286,14 +296,16 @@ public:
     * This component will need to be reallocated before its next use.
     *
     * @param[in]  id
+    *
+    * @pre (id >= 0) && (id < getPatchDescriptor()->getMaxNumberRegisteredComponents())
     */
    void
    deallocatePatchData(
       const int id)
    {
       TBOX_ASSERT((id >= 0) &&
-         (id < d_descriptor->getMaxNumberRegisteredComponents()));
-      if (id < d_patch_data.getSize()) {
+         (id < getPatchDescriptor()->getMaxNumberRegisteredComponents()));
+      if (id < numPatchData()) {
          d_patch_data[id].reset();
       }
    }
@@ -339,13 +351,16 @@ public:
     *
     * @param[in]  timestamp
     * @param[in]  id
+    *
+    * @pre (id >= 0) && (id < numPatchData())
+    * @pre getPatchData(id)
     */
    void
    setTime(
       const double timestamp,
       const int id)
    {
-      TBOX_ASSERT((id >= 0) && (id < d_patch_data.getSize()));
+      TBOX_ASSERT((id >= 0) && (id < numPatchData()));
       TBOX_ASSERT(d_patch_data[id]);
       d_patch_data[id]->setTime(timestamp);
    }
@@ -437,47 +452,45 @@ public:
    }
 
    /*!
-    * @brief Get the patch data items from the database.
+    * @brief Get the patch data items from the restart database.
     *
     * Patch state is read in from the database and all patch
-    * data objects specified in the component_selector are created.
+    * data objects specified in the PatchDataRestartManager are created.
     *
     * The class version and restart file version must be equal.
     *
     * @par Assertions
-    * Checks that the database is a non-null boost::shared_ptr,
-    * that data retrieved from the database are of the type
+    * Checks that data retrieved from the database are of the type
     * expected, and that the patch_number read in from the database
     * matches the patch number assigned to this Patch.
     * @note
-    * A warning will be printed to the log file if
-    * some patch data components that were requested through the
-    * component_selector are not found in the database.
+    * A warning will be printed to the log file if some patch data components
+    * that were requested through the PatchDataRestartManager are not found in
+    * the database.
     *
-    * @param[in]  database
-    * @param[in]  component_selector
+    * @param[in]  restart_db
+    *
+    * @pre restart_db
     */
    void
-   getFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database,
-      const ComponentSelector& component_selector);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /*!
-    * @brief Write patch data and other patch information to the database.
+    * @brief Write patch data and other patch information to the restart
+    * database.
     *
     * Class version number and the state of the patch object are written.
-    * Patch data objects specified in the component selector are also written.
-    * @par Assertions
-    * Check that database is a non-null boost::shared_ptr.
+    * Patch data objects specified in the PatchDataRestartManager are also
+    * written.
     *
-    * @param[in]  database
-    * @param[in]  patchdata_write_table The ComponentSelector specifying the
-    *             patch data components to write.
+    * @param[in]  restart_db
+    *
+    * @pre restart_db
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database,
-      const ComponentSelector& patchdata_write_table) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
     * @brief Print a patch (for debugging).
@@ -504,7 +517,7 @@ public:
    const tbox::Dimension&
    getDim() const
    {
-      return d_mapped_box.getDim();
+      return d_box.getDim();
    }
 
    /*!
@@ -518,6 +531,15 @@ public:
       std::ostream& s,
       const Patch& patch);
 
+   /*!
+    * @brief Number of PatchData objects defined on this Patch.
+    */
+   int
+   numPatchData() const
+   {
+      return static_cast<int>(d_patch_data.size());
+   }
+
 private:
    /*
     * Static integer constant describing class's version number.
@@ -529,20 +551,20 @@ private:
     */
    Patch(
       const Patch&);
-   void
+   Patch&
    operator = (
       const Patch&);
 
    /*
     * The box defining the extent of this patch.
     */
-   Box d_mapped_box;
+   Box d_box;
 
    boost::shared_ptr<PatchDescriptor> d_descriptor;
 
    boost::shared_ptr<PatchGeometry> d_patch_geometry;
 
-   tbox::Array<boost::shared_ptr<PatchData> > d_patch_data;
+   std::vector<boost::shared_ptr<PatchData> > d_patch_data;
 
    int d_patch_level_number;
 

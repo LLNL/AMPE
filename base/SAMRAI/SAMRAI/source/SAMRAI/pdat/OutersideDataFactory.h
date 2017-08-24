@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating outerside data objects
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Complex.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -31,8 +31,8 @@ namespace pdat {
  * the factory and data classes are templated on the type of the contained
  * object (e.g., double or int).
  *
- * @see pdat::OutersideData
- * @see pdat::PatchDataFactory
+ * @see OutersideData
+ * @see PatchDataFactory
  */
 
 template<class TYPE>
@@ -43,6 +43,8 @@ public:
     * The default constructor for the outerside data factory class.
     * The depth (number of components) gives the default for all of
     * the outerside data objects created with this factory.
+    *
+    * @pre depth > 0
     */
    OutersideDataFactory(
       const tbox::Dimension& dim,
@@ -62,6 +64,8 @@ public:
     *
     * @param ghosts default ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    virtual boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
@@ -71,6 +75,8 @@ public:
     * Virtual factory function to allocate a concrete outerside data object.
     * The default information about the object (e.g., depth) is taken from
     * the factory.
+    *
+    * @pre getDim() == patch.getDim()
     */
    virtual boost::shared_ptr<hier::PatchData>
    allocate(
@@ -80,6 +86,8 @@ public:
     * Allocate the box geometry object associated with the patch data.
     * This information will be used in the computation of intersections
     * and data dependencies between objects.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
@@ -95,6 +103,8 @@ public:
    /**
     * Calculate the amount of memory needed to store the outerside data
     * object, including object data and dynamically allocated data.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual size_t
    getSizeOfMemory(
@@ -103,7 +113,7 @@ public:
    /**
     * Return a boolean true value indicating that fine data for the outerside
     * quantity will take precedence on coarse-fine interfaces.  See the
-    * OutersideVariable<DIM> class header file for more information.
+    * OutersideVariable<TYPE> class header file for more information.
     */
    bool
    fineBoundaryRepresentsVariable() const;
@@ -119,6 +129,8 @@ public:
     * Return whether it is valid to copy this OutersideDataFactory to the
     * supplied destination patch data factory.  It will return true if
     * dst_pdf is SideDataFactory or OutersideDataFactory, false otherwise.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(

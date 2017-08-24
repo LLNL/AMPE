@@ -3,13 +3,13 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An input manager singleton class that parses input files
  *
  ************************************************************************/
 
 #include "SAMRAI/tbox/InputManager.h"
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -22,7 +22,7 @@
 namespace SAMRAI {
 namespace tbox {
 
-InputManager * InputManager::s_manager_instance = NULL;
+InputManager * InputManager::s_manager_instance = 0;
 
 boost::shared_ptr<Database> InputManager::s_input_db;
 
@@ -42,7 +42,7 @@ StartupShutdownManager::Handler InputManager::s_finalize_handler(
  *************************************************************************
  */
 
-InputManager*
+InputManager *
 InputManager::getManager()
 {
    if (!s_manager_instance) {
@@ -66,7 +66,7 @@ InputManager::finalizeCallback()
 {
    if (s_manager_instance) {
       delete s_manager_instance;
-      s_manager_instance = ((InputManager *)NULL);
+      s_manager_instance = 0;
    }
 
    s_input_db.reset();
@@ -120,7 +120,7 @@ InputManager::parseInputFile(
    const std::string& filename,
    const boost::shared_ptr<InputDatabase>& db)
 {
-   FILE* fstream = NULL;
+   FILE* fstream = 0;
    const SAMRAI_MPI& mpi(SAMRAI_MPI::getSAMRAIWorld());
    if (mpi.getRank() == 0) {
       fstream = fopen(filename.c_str(), "r");
@@ -128,7 +128,7 @@ InputManager::parseInputFile(
    int worked = (fstream ? 1 : 0);
    mpi.Bcast(&worked, 1, MPI_INT, 0);
    if (!worked) {
-      TBOX_ERROR("tbox::InputManager: Could not open input file``"
+      TBOX_ERROR("InputManager: Could not open input file``"
          << filename.c_str() << "''\n");
    }
 

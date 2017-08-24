@@ -70,7 +70,6 @@ PFModel::~PFModel()
    d_grid_geometry.reset();
    d_gridding_algorithm.reset();
    d_visit_data_writer.reset();
-   d_tag_buffer_array.setNull();
 }
 
 //=======================================================================
@@ -225,11 +224,11 @@ void PFModel::Initialize(
 
    cart_db->putDatabaseBox( "domain_boxes", domain_box );
 
-   tbox::Array<double> x_lo = geo_db->getDoubleArray( "x_lo" );
-   tbox::Array<double> x_up = geo_db->getDoubleArray( "x_up" );
+   std::vector<double> x_lo = geo_db->getDoubleVector( "x_lo" );
+   std::vector<double> x_up = geo_db->getDoubleVector( "x_up" );
 
-   cart_db->putDoubleArray( "x_lo", x_lo );
-   cart_db->putDoubleArray( "x_up", x_up );
+   cart_db->putDoubleVector( "x_lo", x_lo );
+   cart_db->putDoubleVector( "x_up", x_up );
    
    d_grid_geometry.reset( new geom::CartesianGridGeometry(
       tbox::Dimension(NDIM),
@@ -296,7 +295,7 @@ void PFModel::Initialize(
    }
 
    boost::shared_ptr<mesh::StandardTagAndInitialize > error_detector (
-      new mesh::StandardTagAndInitialize(dim,
+      new mesh::StandardTagAndInitialize(
          "StandardTagAndInitialize",
          this,
          tag_db ) );
@@ -371,7 +370,7 @@ void PFModel::Initialize(
       RegisterWithVisit();
    }
 
-   d_tag_buffer_array = tbox::Array<int>(d_patch_hierarchy->getMaxNumberOfLevels());
+   d_tag_buffer_array = std::vector<int>(d_patch_hierarchy->getMaxNumberOfLevels());
 
 }
 
@@ -433,9 +432,7 @@ void PFModel::setupHierarchy( void )
    for (int ln = 0; d_patch_hierarchy->levelCanBeRefined(ln) && !done;
         ln++) {
       d_gridding_algorithm->makeFinerLevel(
-         init_time,
-         initial_time,  // indicates initial time
-         d_tag_buffer_array[ln] );    // tag buffer
+         d_tag_buffer_array[ln], initial_time, d_cycle, init_time);
       done = !(d_patch_hierarchy->finerLevelExists(ln));
    }
 }
@@ -604,9 +601,7 @@ void PFModel::Regrid(
    int fine_lev_before = d_patch_hierarchy->getFinestLevelNumber();
    
    d_gridding_algorithm->regridAllFinerLevels(
-      0,
-      d_time,
-      d_tag_buffer_array );
+      0, d_tag_buffer_array, d_cycle, d_time);
 
    int fine_lev_after = d_patch_hierarchy->getFinestLevelNumber();
 
@@ -644,7 +639,7 @@ void PFModel::computeGrainDiagnostics( void )
 // Methods inherited from Serializable
 //
 
-void PFModel::putToDatabase(const boost::shared_ptr<tbox::Database>& db )const
+void PFModel::putToRestart(const boost::shared_ptr<tbox::Database>& db )const
 {
    assert( db );
 

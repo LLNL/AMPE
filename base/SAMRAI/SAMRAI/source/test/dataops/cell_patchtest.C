@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program to test cell patch data operations.
  *
  ************************************************************************/
@@ -47,7 +47,9 @@
 
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <cmath>
 
 // using namespace std;
 using namespace SAMRAI;
@@ -75,7 +77,7 @@ int main(
 
    const unsigned short d = static_cast<unsigned short>(atoi(argv[1]));
    TBOX_ASSERT(d > 0);
-   TBOX_ASSERT(d <= tbox::Dimension::MAXIMUM_DIMENSION_VALUE);
+   TBOX_ASSERT(d <= SAMRAI::MAX_DIM_VAL);
    const tbox::Dimension dim(d);
 
    int num_failures = 0;
@@ -91,9 +93,9 @@ int main(
    {
 
       /* Make a dummy mesh domain with one patch */
-      double lo[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-      double hi[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-      for (int i = 0; i < dim.getValue(); i++) {
+      double lo[SAMRAI::MAX_DIM_VAL];
+      double hi[SAMRAI::MAX_DIM_VAL];
+      for (int i = 0; i < dim.getValue(); ++i) {
          lo[i] = 0.0;
          if (i == 1) {
             hi[i] = 0.5;
@@ -105,7 +107,6 @@ int main(
       hier::Index indxhi(dim, 9);
       indxhi(1) = 4;
       hier::Box patch_box(indxlo, indxhi, hier::BlockId(0));
-      patch_box.initialize(patch_box, hier::LocalId(0), 0);
       hier::BoxContainer grid_domain(patch_box);
       hier::IntVector ratio(dim, 1);
 
@@ -212,7 +213,7 @@ int main(
       bool descriptor_test_passed = true;
       bool name_error_indx[6];
       bool factory_error_indx[6];
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
          name_error_indx[desc_id] = false;
          factory_error_indx[desc_id] = false;
       }
@@ -225,7 +226,7 @@ int main(
       std::string cell_int_variable1("cell_int_variable##ghost_width_1");
       std::string cell_int_variable2("cell_int_variable##ghost_width_2");
 
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
          var_ctxt_name =
             hier::VariableDatabase::getDatabase()->getPatchDescriptor()->
             mapIndexToName(desc_id);
@@ -333,11 +334,11 @@ int main(
       }
 
       if (!descriptor_test_passed) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #1: State of PatchDescriptor"
                     << std::endl;
 
-         for (desc_id = 0; desc_id < 6; desc_id++) {
+         for (desc_id = 0; desc_id < 6; ++desc_id) {
             if (name_error_indx[desc_id] == true) {
                tbox::plog << "Name for index = " << desc_id << " incorrect"
                           << std::endl;
@@ -351,13 +352,13 @@ int main(
 
       // Test #2: Check state of hier::Patch before allocating storage
       if (!tpatch->getBox().isSpatiallyEqual(patch_box)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #2a: hier::Patch box incorrectly set\n"
                     << "Expected: d_box = " << patch_box << "\n"
                     << "Set to: d_box = " << tpatch->getBox() << std::endl;
       }
       if (tpatch->getLocalId() != patch_node.getLocalId()) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #2b: hier::Patch number incorrectly set\n"
          << "Expected: d_patch_number = "
@@ -368,14 +369,14 @@ int main(
 /*   HOW TO GET NUMBER OF COMPONENTS ON PATCH
  *   FOR NOW JUST CHECK THAT getPatchData(0) returns NULL
  *
- *   num_failures++;
+ *   ++num_failures;
  *   tbox::perr << "FAILED: - Test #2c: Number of components allocated incorrect\n"
  *   << "Expected: number of components = 0\n"
  *   << "Got: number of components = 0\n"
  */
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
          if (tpatch->checkAllocated(desc_id)) {
-            num_failures++;
+            ++num_failures;
             tbox::perr << "FAILED: - Test #2c." << desc_id
                        << ": Descriptor slot " << desc_id
                        << " should not be allocated but is!" << std::endl;
@@ -387,13 +388,13 @@ int main(
 
       // Test #3: Check state of hier::Patch after allocating storage
       if (!tpatch->getBox().isSpatiallyEqual(patch_box)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #3a: hier::Patch box incorrectly set\n"
                     << "Expected: d_box = " << patch_box << "\n"
                     << "Set to: d_box = " << tpatch->getBox() << std::endl;
       }
       if (tpatch->getLocalId() != patch_node.getLocalId()) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #3b: hier::Patch number incorrectly set\n"
          << "Expected: d_patch_number = "
@@ -402,10 +403,10 @@ int main(
          << tpatch->getLocalId() << std::endl;
       }
 /* SAME ISSUE AS ABOVE FOR NUMBER OF COMPONENTS */
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
 
          if (!tpatch->checkAllocated(desc_id)) {
-            num_failures++;
+            ++num_failures;
             tbox::perr << "FAILED: - Test #3c.0: Descriptor index " << desc_id
                        << " should be allocated but isn't!" << std::endl;
          } else {
@@ -420,14 +421,14 @@ int main(
                case 0:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.0.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 1)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.0.b: Ghost width incorrect\n"
                      << "Expected: (1,1)\n"
@@ -438,14 +439,14 @@ int main(
                case 1:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.1.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 2)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.1.b: Ghost width incorrect\n"
                      << "Expected: (2,2)\n"
@@ -456,14 +457,14 @@ int main(
                case 2:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.2.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 3)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.2.b: Ghost width incorrect\n"
                      << "Expected: (3,3)\n"
@@ -474,14 +475,14 @@ int main(
                case 3:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.3.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 0)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.3.b: Ghost width incorrect\n"
                      << "Expected: (0,0)\n"
@@ -492,14 +493,14 @@ int main(
                case 4:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<int>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.4.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<int >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 1)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.4.b: Ghost width incorrect\n"
                      << "Expected: (1,1)\n"
@@ -510,14 +511,14 @@ int main(
                case 5:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<int>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.5.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<int >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 2)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #3c.5.b: Ghost width incorrect\n"
                      << "Expected: (2,2)\n"
@@ -532,13 +533,14 @@ int main(
       // Initialize control volume data for cell-centered data
       const double* dx = geometry.getDx();
       double cell_vol = dx[0];
-      for (int i = 1; i < dim.getValue(); i++) {
+      for (int i = 1; i < dim.getValue(); ++i) {
          cell_vol *= dx[i];
       }
 
       boost::shared_ptr<pdat::CellData<double> > weight(
-         tpatch->getPatchData(cwgt_id),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            tpatch->getPatchData(cwgt_id)));
+      TBOX_ASSERT(weight);
       weight->fillAll(cell_vol);
 
       // Simple tests of cell data operations
@@ -547,28 +549,25 @@ int main(
 
       // Get pointers to patch data objects
       boost::shared_ptr<pdat::CellData<double> > cddata0(
-         tpatch->getPatchData(cdvindx[0]),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            tpatch->getPatchData(cdvindx[0])));
       boost::shared_ptr<pdat::CellData<double> > cddata1(
-         tpatch->getPatchData(cdvindx[1]),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            tpatch->getPatchData(cdvindx[1])));
       boost::shared_ptr<pdat::CellData<double> > cddata2(
-         tpatch->getPatchData(cdvindx[2]),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            tpatch->getPatchData(cdvindx[2])));
 
-      boost::shared_ptr<pdat::CellData<int> > cidata0(
-         tpatch->getPatchData(civindx[0]),
-         boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<int> > cidata1(
-         tpatch->getPatchData(civindx[1]),
-         boost::detail::dynamic_cast_tag());
+      TBOX_ASSERT(cddata0);
+      TBOX_ASSERT(cddata1);
+      TBOX_ASSERT(cddata2);
 
       // Test #4a: math::PatchCellDataOpsReal::setToScalar()
       // Expected: cddata0 = 0.0
       cdops_double.setToScalar(cddata0, 0.0, cddata0->getGhostBox());
       double val0 = 0.0;
       if (!doubleDataSameAsValue(cdvindx[0], val0, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #4a: math::PatchCellDataOpsReal::setToScalar()\n"
          << "Expected: cddata0 = " << val0 << std::endl;
@@ -580,7 +579,7 @@ int main(
       cdops_double.setToScalar(cddata1, 1.0, cddata1->getGhostBox());
       double val1 = 1.0;
       if (!doubleDataSameAsValue(cdvindx[1], val1, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #4b: math::PatchCellDataOpsReal::setToScalar()\n"
          << "Expected: cddata1 = " << val1 << std::endl;
@@ -592,7 +591,7 @@ int main(
       cdops_double.setToScalar(cddata2, 2.0, cddata2->getGhostBox());
       double val2 = 2.0;
       if (!doubleDataSameAsValue(cdvindx[2], val2, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #4b: math::PatchCellDataOpsReal::setToScalar()\n"
          << "Expected: cddata2 = " << val2 << std::endl;
@@ -604,7 +603,7 @@ int main(
       cdops_double.add(cddata0, cddata1, cddata2, tpatch->getBox());
       double val_add = 3.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_add, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #5: math::PatchCellDataOpsReal::add()\n"
                     << "Expected: cddata0 = " << val_add << std::endl;
          cdops_double.printData(cddata0, cddata0->getGhostBox(), tbox::plog);
@@ -623,11 +622,13 @@ int main(
       double val_inbox = 1.0;
       double val_not_inbox = 3.0;
       boost::shared_ptr<pdat::CellData<double> > cvdata(
-         tpatch->getPatchData(cdvindx[0]),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            tpatch->getPatchData(cdvindx[0])));
 
-      pdat::CellIterator cend(cvdata->getBox(), false);
-      for (pdat::CellIterator c(cvdata->getBox(), true);
+      TBOX_ASSERT(cvdata);
+
+      pdat::CellIterator cend(pdat::CellGeometry::end(cvdata->getBox()));
+      for (pdat::CellIterator c(pdat::CellGeometry::begin(cvdata->getBox()));
            c != cend && subtract_inbox_test_passed; ++c) {
          pdat::CellIndex cell_index = *c;
 
@@ -645,7 +646,7 @@ int main(
       }
 
       if (!subtract_inbox_test_passed) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #6: math::PatchCellDataOpsReal::subtract() on [(3,1),(5,2)]\n"
          << "Expected: cddata0 = 1.0 in [(3,1),(5,2)]\n"
@@ -658,7 +659,7 @@ int main(
       cdops_double.scale(cddata0, 0.4, cddata2, tpatch->getBox());
       double val_scale = 0.8;
       if (!doubleDataSameAsValue(cdvindx[0], val_scale, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #7: math::PatchCellDataOpsReal::scale()\n"
          << "Expected: cddata0 = " << val_scale << std::endl;
@@ -670,7 +671,7 @@ int main(
       cdops_double.multiply(cddata0, cddata0, cddata2, tpatch->getBox());
       double val_mult = 1.6;
       if (!doubleDataSameAsValue(cdvindx[0], val_mult, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #8: math::PatchCellDataOpsReal::multiply()\n"
          << "Expected: cddata0 = " << val_mult << std::endl;
@@ -684,12 +685,13 @@ int main(
       bool divide_inbox_test_passed = true;
       val_inbox = 0.8;
       val_not_inbox = 1.6;
-      cvdata = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                           hier::PatchData>(tpatch->getPatchData(cdvindx[0]));
+      cvdata = BOOST_CAST<pdat::CellData<double>,
+                          hier::PatchData>(tpatch->getPatchData(cdvindx[0]));
+      TBOX_ASSERT(cvdata);
 
-      pdat::CellIterator ccend(cvdata->getBox(), false);
-      for (pdat::CellIterator cc(cvdata->getBox(), true);
-            cc != ccend && divide_inbox_test_passed; ++cc) {
+      pdat::CellIterator ccend(pdat::CellGeometry::end(cvdata->getBox()));
+      for (pdat::CellIterator cc(pdat::CellGeometry::begin(cvdata->getBox()));
+           cc != ccend && divide_inbox_test_passed; ++cc) {
          pdat::CellIndex cell_index = *cc;
 
          double value;
@@ -706,7 +708,7 @@ int main(
       }
 
       if (!divide_inbox_test_passed) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #9: math::PatchCellDataOpsReal::divide() on [(3,1),(5,2)]\n"
          << "Expected: cddata0 = 1.0 in [(3,1),(5,2)]\n"
@@ -719,7 +721,7 @@ int main(
       cdops_double.reciprocal(cddata0, cddata2, tpatch->getBox());
       double val_rec = 0.5;
       if (!doubleDataSameAsValue(cdvindx[0], val_rec, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #10: math::PatchCellDataOpsReal::reciprocal()\n"
          << "Expected: cddata0 = " << val_rec << std::endl;
@@ -740,7 +742,7 @@ int main(
          tpatch->getBox());
       double val_linearSum = 50.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_linearSum, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #11: math::PatchCellDataOpsReal::linearSum()\n"
          << "Expected: cddata0 = " << val_linearSum << std::endl;
@@ -765,11 +767,12 @@ int main(
       bool restricted_linSum_test_passed = true;
       val_inbox = 50.0;
       val_not_inbox = 0.0;
-      cvdata = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                           hier::PatchData>(tpatch->getPatchData(cdvindx[0]));
+      cvdata = BOOST_CAST<pdat::CellData<double>,
+                          hier::PatchData>(tpatch->getPatchData(cdvindx[0]));
+      TBOX_ASSERT(cvdata);
 
-      pdat::CellIterator cciend(cvdata->getBox(), false);
-      for (pdat::CellIterator cci(cvdata->getBox(), true);
+      pdat::CellIterator cciend(pdat::CellGeometry::end(cvdata->getBox()));
+      for (pdat::CellIterator cci(pdat::CellGeometry::begin(cvdata->getBox()));
            cci != cciend && restricted_linSum_test_passed; ++cci) {
          pdat::CellIndex cell_index = *cci;
 
@@ -787,7 +790,7 @@ int main(
       }
 
       if (!restricted_linSum_test_passed) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #12: math::PatchCellDataOpsReal::linearSum()\n"
          << "Expected: cddata0 = " << val_linearSum
@@ -829,10 +832,11 @@ int main(
       double val_inbox3 = 21.0;
       val_not_inbox = 1.0;
 
-      cvdata = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                           hier::PatchData>(tpatch->getPatchData(cdvindx[1]));
-      pdat::CellIterator ciend(cvdata->getBox(), false);
-      for (pdat::CellIterator ci(cvdata->getBox(), true);
+      cvdata = BOOST_CAST<pdat::CellData<double>,
+                          hier::PatchData>(tpatch->getPatchData(cdvindx[1]));
+      TBOX_ASSERT(cvdata);
+      pdat::CellIterator ciend(pdat::CellGeometry::end(cvdata->getBox()));
+      for (pdat::CellIterator ci(pdat::CellGeometry::begin(cvdata->getBox()));
            ci != ciend && setToScalar_onBox_test_passed; ++ci) {
          pdat::CellIndex cell_index = *ci;
 
@@ -858,7 +862,7 @@ int main(
       }
 
       if (!setToScalar_onBox_test_passed) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #13: math::PatchCellDataOpsReal::setToScalar() on box\n"
          << "Expected: cddata1 = 0.0003 in [(3,1),(3,2)]\n"
@@ -874,7 +878,7 @@ int main(
       indx2(0) = 7;
       double lmax = cdops_double.max(cddata1, hier::Box(indx0, indx2, hier::BlockId(0)));
       if (!tbox::MathUtilities<double>::equalEps(lmax, 21.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #14: math::PatchCellDataOpsReal::max() on box [(3,1),(7,4)]\n"
          << "Expected value = 21.0, Computed value = "
@@ -885,7 +889,7 @@ int main(
       // Expected: lmax = 12345.0
       lmax = cdops_double.max(cddata1, tpatch->getBox());
       if (!tbox::MathUtilities<double>::equalEps(lmax, 12345.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #15: math::PatchCellDataOpsReal::max() in box [(0,0),(9,4)]\n"
          << "Expected value = 12345.0, Computed value = "
@@ -904,7 +908,7 @@ int main(
       cdops_double.axpy(cddata0, 0.5, cddata1, cddata2, tpatch->getBox());
       double val_axpy = 2.5;
       if (!doubleDataSameAsValue(cdvindx[0], val_axpy, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #16: math::PatchCellDataOpsReal::axpy()\n"
          << "Expected: cddata0 = " << val_axpy << std::endl;
@@ -916,7 +920,7 @@ int main(
       cdops_double.axmy(cddata0, 1.5, cddata2, cddata1, tpatch->getBox());
       double val_axmy = 2.0;
       if (!doubleDataSameAsValue(cdvindx[0], val_axmy, tpatch)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #17: math::PatchCellDataOpsReal::axmy()\n"
          << "Expected: cddata0 = " << val_axmy << std::endl;
@@ -931,7 +935,7 @@ int main(
             weight,
             tpatch->getBox());
       if (!tbox::MathUtilities<double>::equalEps(lsum, 0.5)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #18a: math::PatchCellDataOpsReal::sumControlVolumes() for cddata1\n"
          << "Expected value = 0.5, Computed value = "
@@ -942,7 +946,7 @@ int main(
       // Expected: lsum = 0.5
       lsum = cdops_double.sumControlVolumes(cddata2, weight, tpatch->getBox());
       if (!tbox::MathUtilities<double>::equalEps(lsum, 0.5)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #18b: math::PatchCellDataOpsReal::sumControlVolumes() for cddata2\n"
          << "Expected value = 0.5, Computed value = "
@@ -953,7 +957,7 @@ int main(
       // Expected: l1norm = 0.5
       double l1norm = cdops_double.L1Norm(cddata1, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(l1norm, 0.5)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #19a: math::PatchCellDataOpsReal::L1norm() for cddata1\n"
          << "Expected value = 0.5, Computed value = "
@@ -964,7 +968,7 @@ int main(
       // Expected: l1norm = 1.0
       l1norm = cdops_double.L1Norm(cddata2, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(l1norm, 1.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #19b: math::PatchCellDataOpsReal::L1norm() for cddata2\n"
          << "Expected value = 1.0, Computed value = "
@@ -975,7 +979,7 @@ int main(
       // Expected: l2norm = sqrt(2) = 1.4142135623731
       double l2norm = cdops_double.L2Norm(cddata2, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(l2norm, 1.4142135623731)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #20: math::PatchCellDataOpsReal::L2norm() for cddata2\n"
          << "Expected value = sqrt(2) = 1.4142135623731, Computed value = "
@@ -992,7 +996,7 @@ int main(
             tpatch->getBox(),
             weight);
       if (!tbox::MathUtilities<double>::equalEps(wl2norm, 0.70710678118655)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #21: math::PatchCellDataOpsReal::weightedL2norm() for cddata2\n"
          << "Expected value = sqrt(0.5) = 0.70710678118655, Computed value = "
@@ -1003,7 +1007,7 @@ int main(
       // Expected: rmsnorm= L2-Norm/sqrt(control volume) = 2.0
       double rmsnorm = cdops_double.RMSNorm(cddata2, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(rmsnorm, 2.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #22: math::PatchCellDataOpsReal::RMSNorm() for cddata2\n"
          << "Expected value = L2-Norm/sqrt(control volume) = 2.0, "
@@ -1017,7 +1021,7 @@ int main(
             tpatch->getBox(),
             weight);
       if (!tbox::MathUtilities<double>::equalEps(wrmsnorm, 1.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #23: math::PatchCellDataOpsReal::weightedRMSNorm() for cddata2\n"
          << "Expected value = Weighted L2-Norm/sqrt(control volume) = 1.0, "
@@ -1028,7 +1032,7 @@ int main(
       // Expected: maxnorm = 2.0
       double maxnorm = cdops_double.maxNorm(cddata2, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(maxnorm, 2.0)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #24: math::PatchCellDataOpsReal::maxNorm() for cddata2\n"
          << "Expected value = 2.0, Computed value = "
@@ -1043,7 +1047,7 @@ int main(
       // Expected: dotp = 7.5
       double dotp = cdops_double.dot(cddata1, cddata2, tpatch->getBox(), weight);
       if (!tbox::MathUtilities<double>::equalEps(dotp, 7.5)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #25: math::PatchCellDataOpsReal::dotp() - (cddata1) * (cddata2)\n"
          << "Expected value = 7.5, Computed value = "
@@ -1052,13 +1056,13 @@ int main(
 
       // Test #26: Check state of hier::Patch before deallocating storage
       if (!tpatch->getBox().isSpatiallyEqual(patch_box)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #26a: hier::Patch box incorrectly set\n"
                     << "Expected: d_box = " << patch_box << "\n"
                     << "Set to: d_box = " << tpatch->getBox() << std::endl;
       }
       if (tpatch->getLocalId() != patch_node.getLocalId()) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #26b: hier::Patch number incorrectly set\n"
          << "Expected: d_patch_number = "
@@ -1067,10 +1071,10 @@ int main(
          << tpatch->getLocalId() << std::endl;
       }
 /* SAME ISSUE AS ABOVE FOR NUMBER OF COMPONENTS */
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
 
          if (!tpatch->checkAllocated(desc_id)) {
-            num_failures++;
+            ++num_failures;
             tbox::perr << "FAILED: - Test #26c.0: Descriptor index " << desc_id
                        << " should be allocated but isn't!" << std::endl;
          } else {
@@ -1085,14 +1089,14 @@ int main(
                case 0:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.0.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 1)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.0.b: Ghost width incorrect\n"
                      << "Expected: (1,1)\n"
@@ -1103,14 +1107,14 @@ int main(
                case 1:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.1.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 2)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.1.b: Ghost width incorrect\n"
                      << "Expected: (2,2)\n"
@@ -1121,14 +1125,14 @@ int main(
                case 2:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.2.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 3)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.2.b: Ghost width incorrect\n"
                      << "Expected: (3,3)\n"
@@ -1139,14 +1143,14 @@ int main(
                case 3:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<double>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.3.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<double >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 0)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.3.b: Ghost width incorrect\n"
                      << "Expected: (0,0)\n"
@@ -1157,14 +1161,14 @@ int main(
                case 4:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<int>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.4.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<int >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 1)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.4.b: Ghost width incorrect\n"
                      << "Expected: (1,1)\n"
@@ -1175,14 +1179,14 @@ int main(
                case 5:
                   if (typeid(*tpatch->getPatchData(desc_id)) !=
                       typeid(pdat::CellData<int>)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.5.a: hier::Patch Data name incorrect\n"
                      << "Expected: pdat::CellData<int >\n"
                      << "Actual: " << patch_data_name << std::endl;
                   }
                   if (ghost_width != hier::IntVector(dim, 2)) {
-                     num_failures++;
+                     ++num_failures;
                      tbox::perr
                      << "FAILED: - Test #26c.5.b: Ghost width incorrect\n"
                      << "Expected: (2,2)\n"
@@ -1199,13 +1203,13 @@ int main(
 
       // Test #27: Check state of hier::Patch after deallocating storage
       if (!tpatch->getBox().isSpatiallyEqual(patch_box)) {
-         num_failures++;
+         ++num_failures;
          tbox::perr << "FAILED: - Test #27a: hier::Patch box incorrectly set\n"
                     << "Expected: d_box = " << patch_box << "\n"
                     << "Set to: d_box = " << tpatch->getBox() << std::endl;
       }
       if (tpatch->getLocalId() != patch_node.getLocalId()) {
-         num_failures++;
+         ++num_failures;
          tbox::perr
          << "FAILED: - Test #27b: hier::Patch number incorrectly set\n"
          << "Expected: d_patch_number = "
@@ -1214,10 +1218,10 @@ int main(
          << tpatch->getLocalId() << std::endl;
       }
 /* SAME ISSUE AS ABOVE FOR NUMBER OF COMPONENTS */
-      for (desc_id = 0; desc_id < 6; desc_id++) {
+      for (desc_id = 0; desc_id < 6; ++desc_id) {
 
          if (tpatch->checkAllocated(desc_id)) {
-            num_failures++;
+            ++num_failures;
             tbox::perr << "FAILED: - Test #27c: Descriptor index " << desc_id
                        << " should be deallocated but isn't!" << std::endl;
          }
@@ -1252,12 +1256,14 @@ doubleDataSameAsValue(
    bool test_passed = true;
 
    boost::shared_ptr<pdat::CellData<double> > cvdata(
-      patch->getPatchData(desc_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch->getPatchData(desc_id)));
 
-   pdat::CellIterator cend(cvdata->getBox(), false);
-   for (pdat::CellIterator c(cvdata->getBox(), true);
-        c != cend&& test_passed; ++c) {
+   TBOX_ASSERT(cvdata);
+
+   pdat::CellIterator cend(pdat::CellGeometry::end(cvdata->getBox()));
+   for (pdat::CellIterator c(pdat::CellGeometry::begin(cvdata->getBox()));
+        c != cend && test_passed; ++c) {
       pdat::CellIndex cell_index = *c;
       if (!tbox::MathUtilities<double>::equalEps((*cvdata)(cell_index),
              value)) {

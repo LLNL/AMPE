@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Spatial Key used for generating space-filling curves.
  *
  ************************************************************************/
-
-#ifndef included_mesh_SpatialKey_C
-#define included_mesh_SpatialKey_C
-
 #include "SAMRAI/mesh/SpatialKey.h"
 
 #include <stdio.h>
@@ -76,7 +72,7 @@ SpatialKey::SpatialKey(
    const SpatialKey& spatial_key)
 {
    d_bits_per_int = BITS_PER_BYTE * sizeof(unsigned int);
-   for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; i++) {
+   for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; ++i) {
       d_key[i] = spatial_key.d_key[i];
    }
 }
@@ -113,7 +109,7 @@ SpatialKey::operator < (
       } else if (d_key[i] > spatial_key.d_key[i]) {
          return false;
       }
-      i--;
+      --i;
    }
 
    // the two spatial keys are equal, so return false
@@ -140,7 +136,7 @@ operator << (
    char* buf = new char[spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
                         * SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY + 1];
 
-   for (int i = SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY - 1; i >= 0; i--) {
+   for (int i = SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY - 1; i >= 0; --i) {
       sprintf(&(buf[spatial_key.d_bits_per_int / SpatialKey::BITS_PER_HEX_CHAR
                     * ((SpatialKey::NUM_COORDS_MIXED_FOR_SPATIAL_KEY - 1) - i)]),
          "%08x", spatial_key.d_key[i]);
@@ -168,12 +164,11 @@ SpatialKey::blendOneCoord(
 {
    unsigned int shifted_coord = coord;
 
-   int bit_in_int;
-   for (bit_in_int = 0; bit_in_int < d_bits_per_int; bit_in_int++) {
+   for (size_t bit_in_int = 0; bit_in_int < d_bits_per_int; ++bit_in_int) {
       if (shifted_coord & ((unsigned int)1)) {
-         unsigned int bit_index;
-         int int_index;
-         int bit_offset;
+         size_t bit_index;
+         size_t int_index;
+         size_t bit_offset;
 
          bit_index = NUM_COORDS_MIXED_FOR_SPATIAL_KEY * bit_in_int
             + coord_offset;
@@ -230,6 +225,4 @@ SpatialKey::setKey(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

@@ -1,3 +1,10 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 3d corner flux calculation.
+c
 define(st_third,`dnl
       do ic$3=ifirst$3-FLUXG,ilast$3+FLUXG
          do ic$2=ifirst$2-FLUXG,ilast$2+FLUXG
@@ -79,6 +86,7 @@ c            else if (rpchoice.eq.HLLC_RIEM_SOLVE) then
 ')dnl
 define(correc_fluxjt,`dnl
 c   correct the $2-direction with $3-fluxes
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$3=ifirst$3-(FLUXG-1),ilast$3+(FLUXG-1)
         do ic$1=ifirst$1-(FLUXG-1),ilast$1+(FLUXG-1)
            ic$2=ifirst$2-FLUXG
@@ -155,8 +163,10 @@ c   correct the $2-direction with $3-fluxes
            enddo
          enddo
       enddo
+!$OMP END DO
 c
 c   correct the $3-direction with $2-fluxes
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$1=ifirst$1-(FLUXG-1),ilast$1+(FLUXG-1)
         do ic$2=ifirst$2-(FLUXG-1),ilast$2+(FLUXG-1)
            ic$3=ifirst$3-FLUXG
@@ -233,4 +243,5 @@ c   correct the $3-direction with $2-fluxes
            enddo
          enddo
       enddo
+!$OMP END DO
 ')dnl

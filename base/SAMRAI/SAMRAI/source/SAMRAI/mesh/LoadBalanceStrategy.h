@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface for box load balancing routines.
  *
  ************************************************************************/
@@ -14,10 +14,9 @@
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/RankGroup.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace mesh {
@@ -64,18 +63,18 @@ public:
     * patches for the level may be formed and update two Connectors
     * incident on the changed BoxLevel.
     *
-    * The union of the boxes in the balance_mapped_box_level is the same
+    * The union of the boxes in the balance_box_level is the same
     * before and after the the method call.
     *
-    * @param[in,out] balance_mapped_box_level Input BoxLevel.  On input, this is the pre-balance
+    * @param[in,out] balance_box_level Input BoxLevel.  On input, this is the pre-balance
     *  BoxLevel.  On output, it is the balanced BoxLevel.
     *
-    * @param[in,out] balance_to_anchor Connector between the balance_mapped_box_level and
-    *  some given "anchor mapped_box_level".
+    * @param[in,out] balance_to_anchor Connector between the balance_box_level and
+    *  some given "anchor box_level".
     *  This must be accurate on input.  On putput, connects the newly
-    *  balanced balance_mapped_box_level to the anchor mapped_box_level.
-    *
-    * @param[in,out] anchor_to_balance Transpose of balance_to_anchor.
+    *  balanced balance_box_level to the anchor box_level.
+    *  If set to NULL, this parameter is ignored and Connector update
+    *  is skipped.
     *
     * @param[in] hierarchy The hierarchy where the work distribution
     * data lives.
@@ -83,19 +82,11 @@ public:
     * @param[in] level_number The number of the level where the work
     * distribution data lives.
     *
-    * @param[in] unbalanced_to_attractor Connector between the
-    * balance_mapped_box_level and an "attractor" BoxLevel.
-    * This data may be used to indicate preference for data locality.
-    * The implementation should try to maximize overlaps between
-    * attractor and balance cells owned by the same process.
-    *
-    * @param[in] attractor_to_unbalanced Transpose of unbalanced_to_attractor.
-    *
     * @param[in] min_size hier::IntVector representing mimimum box size.
     *
     * @param[in] max_size hier::IntVector representing maximum box size.
     *
-    * @param[in] domain_mapped_box_level Description of the domain.
+    * @param[in] domain_box_level Description of the domain.
     *
     * @param[in] bad_interval
     *  hier::IntVector indicating the length of an interval
@@ -122,24 +113,26 @@ public:
     *
     * @param[in] rank_group
     *  Input tbox::RankGroup indicating a set of ranks on which all boxes
-    *  in the output balance_mapped_box_level will be restricted.  Some
+    *  in the output balance_box_level will be restricted.  Some
     *  child classes may not make use of this argument.
     */
    virtual void
    loadBalanceBoxLevel(
-      hier::BoxLevel& balance_mapped_box_level,
-      hier::Connector& balance_to_anchor,
-      hier::Connector& anchor_to_balance,
+      hier::BoxLevel& balance_box_level,
+      hier::Connector * balance_to_anchor,
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
-      const hier::Connector& unbalanced_to_attractor,
-      const hier::Connector& attractor_to_unbalanced,
       const hier::IntVector& min_size,
       const hier::IntVector& max_size,
-      const hier::BoxLevel& domain_mapped_box_level,
+      const hier::BoxLevel& domain_box_level,
       const hier::IntVector& bad_interval,
-      const hier::IntVector& cut_factor, // Default v 2.x.x = hier::IntVector::getOne(tbox::Dimension(DIM))
+      const hier::IntVector& cut_factor, // Default v 2.x.x = 1
       const tbox::RankGroup& rank_group = tbox::RankGroup()) const = 0;
+
+   virtual void
+   setWorkloadPatchDataIndex(
+      int data_id,
+      int level_number = -1) = 0;
 
 protected:
    /*!
@@ -172,7 +165,7 @@ private:
    LoadBalanceStrategy(
       const LoadBalanceStrategy&);
 
-   void
+   LoadBalanceStrategy&
    operator = (
       const LoadBalanceStrategy&);
 

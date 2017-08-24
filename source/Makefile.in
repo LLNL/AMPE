@@ -88,7 +88,7 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 CompositionRHSStrategy.o \
                 GrainNumberRefinePatchStrategy.o Grains.o \
                 TemperatureFACSolver.o TemperatureFACOps.o \
-                $(CALPHAD_OBJS)
+                FACPreconditioner.o $(CALPHAD_OBJS)
 
 MAIN_OBJ = main.o
 TEST_CALPHAD_BINARY_MAIN_OBJ = testCALPHADbinary.o

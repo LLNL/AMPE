@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for the performance test directory 
 ##
 #########################################################################
@@ -17,17 +17,9 @@ default: library
 
 include $(OBJECT)/config/Makefile.config
 
-SUBDIRS = treesearch MeshGeneration LoadBalancers LinAdv
+SUBDIRS = treesearch multiblock TreeCommunication MeshGeneration LinAdv Euler
 
 library:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
-lib1d:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
-lib2d:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
-lib3d:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
-libXd:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
 check:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
@@ -36,8 +28,17 @@ check2d:
 check3d:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
 checkcompile:
-	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+	(cd $(OBJECT)/source/test/testlib && $(MAKE) $@)
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@) || exit 1; done
 checktest:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+examples:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+perf:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+everything:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@) || exit 1; done
 clean:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+checkclean:
 	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done

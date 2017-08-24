@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Linear time interp operator for complex outerface data.
  *
  ************************************************************************/
-
-#ifndef included_pdat_OuterfaceComplexLinearTimeInterpolateOp_C
-#define included_pdat_OuterfaceComplexLinearTimeInterpolateOp_C
-
 #include "SAMRAI/pdat/OuterfaceComplexLinearTimeInterpolateOp.h"
 #include "SAMRAI/tbox/Complex.h"
 
@@ -21,7 +17,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 /*
  *************************************************************************
@@ -37,7 +33,7 @@ extern "C" {
 #endif
 
 // in lintimint1d.f:
-void F77_FUNC(lintimeintoutfacecmplx1d, LINTIMEINTOUTFACECMPLX1D) (const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx1d, LINTIMEINTOUTFACECMPLX1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
@@ -46,8 +42,8 @@ void F77_FUNC(lintimeintoutfacecmplx1d, LINTIMEINTOUTFACECMPLX1D) (const int&,
    const dcomplex *, const dcomplex *,
    dcomplex *);
 // in lintimint2d.f:
-void F77_FUNC(lintimeintoutfacecmplx2d0,
-              LINTIMEINTOUTFACECMPLX2D0) (const int&, const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx2d0,
+                     LINTIMEINTOUTFACECMPLX2D0) (const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -58,8 +54,8 @@ void F77_FUNC(lintimeintoutfacecmplx2d0,
    const double&,
    const dcomplex *, const dcomplex *,
    dcomplex *);
-void F77_FUNC(lintimeintoutfacecmplx2d1,
-              LINTIMEINTOUTFACECMPLX2D1) (const int&, const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx2d1,
+                     LINTIMEINTOUTFACECMPLX2D1) (const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -71,8 +67,8 @@ void F77_FUNC(lintimeintoutfacecmplx2d1,
    const dcomplex *, const dcomplex *,
    dcomplex *);
 // in lintimint3d.f:
-void F77_FUNC(lintimeintoutfacecmplx3d0,
-              LINTIMEINTOUTFACECMPLX3D0) (const int&, const int&, const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d0,
+                     LINTIMEINTOUTFACECMPLX3D0) (const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -83,8 +79,8 @@ void F77_FUNC(lintimeintoutfacecmplx3d0,
    const double&,
    const dcomplex *, const dcomplex *,
    dcomplex *);
-void F77_FUNC(lintimeintoutfacecmplx3d1,
-              LINTIMEINTOUTFACECMPLX3D1) (const int&, const int&, const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d1,
+                     LINTIMEINTOUTFACECMPLX3D1) (const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -95,8 +91,8 @@ void F77_FUNC(lintimeintoutfacecmplx3d1,
    const double&,
    const dcomplex *, const dcomplex *,
    dcomplex *);
-void F77_FUNC(lintimeintoutfacecmplx3d2,
-              LINTIMEINTOUTFACECMPLX3D2) (const int&, const int&, const int&,
+void SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d2,
+                     LINTIMEINTOUTFACECMPLX3D2) (const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -133,30 +129,30 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
    const tbox::Dimension& dim(where.getDim());
 
    const OuterfaceData<dcomplex>* old_dat =
-      dynamic_cast<const OuterfaceData<dcomplex> *>(&src_data_old);
+      CPP_CAST<const OuterfaceData<dcomplex> *>(&src_data_old);
    const OuterfaceData<dcomplex>* new_dat =
-      dynamic_cast<const OuterfaceData<dcomplex> *>(&src_data_new);
+      CPP_CAST<const OuterfaceData<dcomplex> *>(&src_data_new);
    OuterfaceData<dcomplex>* dst_dat =
-      dynamic_cast<OuterfaceData<dcomplex> *>(&dst_data);
+      CPP_CAST<OuterfaceData<dcomplex> *>(&dst_data);
 
-   TBOX_ASSERT(old_dat != NULL);
-   TBOX_ASSERT(new_dat != NULL);
-   TBOX_ASSERT(dst_dat != NULL);
+   TBOX_ASSERT(old_dat != 0);
+   TBOX_ASSERT(new_dat != 0);
+   TBOX_ASSERT(dst_dat != 0);
    TBOX_ASSERT((where * old_dat->getGhostBox()).isSpatiallyEqual(where));
    TBOX_ASSERT((where * new_dat->getGhostBox()).isSpatiallyEqual(where));
    TBOX_ASSERT((where * dst_dat->getGhostBox()).isSpatiallyEqual(where));
-   TBOX_DIM_ASSERT_CHECK_ARGS4(dst_data, where, src_data_old, src_data_new);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(dst_data, where, src_data_old, src_data_new);
 
-   const hier::Index old_ilo = old_dat->getGhostBox().lower();
-   const hier::Index old_ihi = old_dat->getGhostBox().upper();
-   const hier::Index new_ilo = new_dat->getGhostBox().lower();
-   const hier::Index new_ihi = new_dat->getGhostBox().upper();
+   const hier::Index& old_ilo = old_dat->getGhostBox().lower();
+   const hier::Index& old_ihi = old_dat->getGhostBox().upper();
+   const hier::Index& new_ilo = new_dat->getGhostBox().lower();
+   const hier::Index& new_ihi = new_dat->getGhostBox().upper();
 
-   const hier::Index dst_ilo = dst_dat->getGhostBox().lower();
-   const hier::Index dst_ihi = dst_dat->getGhostBox().upper();
+   const hier::Index& dst_ilo = dst_dat->getGhostBox().lower();
+   const hier::Index& dst_ihi = dst_dat->getGhostBox().upper();
 
-   const hier::Index ifirst = where.lower();
-   const hier::Index ilast = where.upper();
+   const hier::Index& ifirst = where.lower();
+   const hier::Index& ilast = where.upper();
 
    const double old_time = old_dat->getTime();
    const double new_time = new_dat->getTime();
@@ -175,11 +171,11 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
       tfrac = 0.0;
    }
 
-   for (int d = 0; d < dst_dat->getDepth(); d++) {
+   for (int d = 0; d < dst_dat->getDepth(); ++d) {
       // loop over lower and upper outerface arrays
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 2; ++i) {
          if (dim == tbox::Dimension(1)) {
-            F77_FUNC(lintimeintoutfacecmplx1d,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx1d,
                LINTIMEINTOUTFACECMPLX1D) (ifirst(0), ilast(0),
                old_ilo(0), old_ihi(0),
                new_ilo(0), new_ihi(0),
@@ -189,7 +185,7 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
                new_dat->getPointer(0, i, d),
                dst_dat->getPointer(0, i, d));
          } else if (dim == tbox::Dimension(2)) {
-            F77_FUNC(lintimeintoutfacecmplx2d0,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx2d0,
                LINTIMEINTOUTFACECMPLX2D0) (ifirst(0), ifirst(1), ilast(0),
                ilast(1),
                old_ilo(0), old_ilo(1), old_ihi(0), old_ihi(1),
@@ -199,7 +195,7 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
                old_dat->getPointer(0, i, d),
                new_dat->getPointer(0, i, d),
                dst_dat->getPointer(0, i, d));
-            F77_FUNC(lintimeintoutfacecmplx2d1,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx2d1,
                LINTIMEINTOUTFACECMPLX2D1) (ifirst(0), ifirst(1), ilast(0),
                ilast(1),
                old_ilo(0), old_ilo(1), old_ihi(0), old_ihi(1),
@@ -210,7 +206,7 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
                new_dat->getPointer(1, i, d),
                dst_dat->getPointer(1, i, d));
          } else if (dim == tbox::Dimension(3)) {
-            F77_FUNC(lintimeintoutfacecmplx3d0,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d0,
                LINTIMEINTOUTFACECMPLX3D0) (ifirst(0), ifirst(1), ifirst(2),
                ilast(0), ilast(1), ilast(2),
                old_ilo(0), old_ilo(1), old_ilo(2),
@@ -223,7 +219,7 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
                old_dat->getPointer(0, i, d),
                new_dat->getPointer(0, i, d),
                dst_dat->getPointer(0, i, d));
-            F77_FUNC(lintimeintoutfacecmplx3d1,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d1,
                LINTIMEINTOUTFACECMPLX3D1) (ifirst(0), ifirst(1), ifirst(2),
                ilast(0), ilast(1), ilast(2),
                old_ilo(0), old_ilo(1), old_ilo(2),
@@ -236,7 +232,7 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
                old_dat->getPointer(1, i, d),
                new_dat->getPointer(1, i, d),
                dst_dat->getPointer(1, i, d));
-            F77_FUNC(lintimeintoutfacecmplx3d2,
+            SAMRAI_F77_FUNC(lintimeintoutfacecmplx3d2,
                LINTIMEINTOUTFACECMPLX3D2) (ifirst(0), ifirst(1), ifirst(2),
                ilast(0), ilast(1), ilast(2),
                old_ilo(0), old_ilo(1), old_ilo(2),
@@ -260,4 +256,3 @@ OuterfaceComplexLinearTimeInterpolateOp::timeInterpolate(
 
 }
 }
-#endif

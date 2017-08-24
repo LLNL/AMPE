@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Implicit time integration manager class.
  *
  ************************************************************************/
@@ -22,7 +22,7 @@
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/Serializable.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -39,18 +39,55 @@ namespace algs {
  * When a time step is performed, data on all levels is integrated through
  * the same time increment.
  *
- * Initialization of an ImplicitIntegrator object is performed via a
- * combination of default parameters and values read from input.  Data
- * read from input is summarized as follows:
+ * <b> Input Parameters </b>
  *
- * Required input keys and data types:
- * @param initial_time double value for the initial simulation time.
- * @param final_time double value for the final simulation time.
- * @param max_integrator_steps integer value for the maximum number
- * of timesteps allowed.
+ * <b> Definitions: </b>
+ *    - \b initial_time
+ *       initial simulation time.
+ *    - \b final_time
+ *       final simulation time.
+ *    - \b max_integrator_steps
+ *       maximum number of timesteps performed on the coarsest hierarchy level
+ *       during the simulation.
  *
- * All input data items described above, except for initial_time,
- * may be overwritten by new input values when continuing from restart.
+ * All input data items described above, except for initial_time, may be
+ * overridden by new input values when continuing from restart.
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>initial_time</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>>=0</td>
+ *     <td>req</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>final_time</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>final_time >= initial_time</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_integrator_steps</td>
+ *     <td>int</td>
+ *     <td>none</td>
+ *     <td>>=0</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * A sample input file entry might look like:
  *
@@ -60,7 +97,7 @@ namespace algs {
  * max_integrator_steps = 100
  * @endcode
  *
- * @see algs::ImplicitEquationStrategy
+ * @see ImplicitEquationStrategy
  * @see solv::NonlinearSolverStrategy
  */
 class ImplicitIntegrator:
@@ -79,16 +116,16 @@ public:
     * created and the nonlinear solver is initialized in the initialize()
     * member function.
     *
-    * If assertion checking is turned on, an unrecoverable assertion will
-    * result if any of the database, strategy, or hierarchy pointers is
-    * null.  Assertions may also be thrown if any checks for consistency
-    * among input parameters fail.
+    * @pre !object_name.empty()
+    * @pre implicit_equations != 0
+    * @pre nonlinear_solver != 0
+    * @pre hierarchy
     */
    ImplicitIntegrator(
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
-      ImplicitEquationStrategy * implicit_equations,
-      solv::NonlinearSolverStrategy * nonlinear_solver,
+      ImplicitEquationStrategy* implicit_equations,
+      solv::NonlinearSolverStrategy* nonlinear_solver,
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy);
 
    /**
@@ -242,13 +279,13 @@ public:
       std::ostream& os) const;
 
    /**
-    * Write out state of object to given database.
+    * Write out state of object to given restart database.
     *
-    * When assertion checking is active, the database pointer must be non-null.
+    * @pre restart_db
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * Returns the object name.
@@ -269,12 +306,10 @@ private:
     * Read input data from specified database and initialize class members.
     * If run is from restart, a subset of the restart values may be replaced
     * with those read from input.
-    *
-    * When assertion checking is active, the database pointer must be non-null.
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<tbox::Database>& input_db,
       bool is_from_restart);
 
    /*
@@ -322,7 +357,7 @@ private:
    // The following are not implemented:
    ImplicitIntegrator(
       const ImplicitIntegrator&);
-   void
+   ImplicitIntegrator&
    operator = (
       const ImplicitIntegrator&);
 

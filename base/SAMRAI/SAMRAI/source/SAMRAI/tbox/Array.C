@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A simple array template class
  *
  ************************************************************************/
@@ -37,7 +37,7 @@ const typename Array<TYPE>::DoNotInitialize Array<TYPE>::UNINITIALIZED;
  */
 
 template<class TYPE>
-Array<TYPE>::Array() :
+Array<TYPE>::Array():
    d_objects(0),
    d_counter(0),
    d_elements(0)
@@ -46,7 +46,7 @@ Array<TYPE>::Array() :
 
 template<class TYPE>
 Array<TYPE>::Array(
-   const Array<TYPE>& rhs) :
+   const Array<TYPE>& rhs):
    d_objects(rhs.d_objects),
    d_counter(rhs.d_counter),
    d_elements(rhs.d_elements)
@@ -67,13 +67,13 @@ Array<TYPE>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          void* p = &d_objects[i];
          (void)new (p)TYPE(default_value);
       }
    } else {
-      d_objects = (TYPE *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -90,8 +90,8 @@ Array<TYPE>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
    } else {
-      d_objects = (TYPE *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -132,11 +132,13 @@ Array<TYPE>::resizeArray(
    if (n != d_elements) {
       Array<TYPE> array(n, default_value);
       const int s = (d_elements < n ? d_elements : n);
-      for (int i = 0; i < s; i++) {
+      for (int i = 0; i < s; ++i) {
          array.d_objects[i] = d_objects[i];
       }
 
-      this->operator = (array);
+      this->
+      operator = (
+         array);
    }
 }
 
@@ -145,7 +147,7 @@ void
 Array<TYPE>::erase(
    const int position)
 {
-   TBOX_ASSERT(position >= 0 && position < d_elements);
+   TBOX_ASSERT((position >= 0) && (position < size()));
 
    if (d_elements > 1) {
 
@@ -155,13 +157,13 @@ Array<TYPE>::erase(
             malloc(sizeof(TYPE) * new_d_elements));
 
       /* copy lower part of array */
-      for (int j = 0; j < position; j++) {
+      for (int j = 0; j < position; ++j) {
          void* p = &new_d_objects[j];
          (void)new (p)TYPE(d_objects[j]);
       }
 
       /* copy upper part of array */
-      for (int j = position + 1; j < d_elements; j++) {
+      for (int j = position + 1; j < d_elements; ++j) {
          void* p = &new_d_objects[j - 1];
          (void)new (p)TYPE(d_objects[j]);
       }
@@ -178,8 +180,8 @@ Array<TYPE>::erase(
       if (d_counter && d_counter->deleteReference()) {
          deleteObjects();
       }
-      d_objects = (TYPE *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 
@@ -190,15 +192,15 @@ void
 Array<TYPE>::deleteObjects()
 {
    if (d_objects) {
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i].~TYPE();
       }
       free(reinterpret_cast<char *>(d_objects));
       delete d_counter;
    }
 
-   d_objects = (TYPE *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -207,7 +209,7 @@ TYPE&
 Array<TYPE>::operator [] (
    const int i)
 {
-   TBOX_ASSERT((i >= 0) && (i < d_elements));
+   TBOX_ASSERT((i >= 0) && (i < size()));
 
    return d_objects[i];
 }
@@ -217,7 +219,7 @@ const TYPE&
 Array<TYPE>::operator [] (
    const int i) const
 {
-   TBOX_ASSERT((i >= 0) && (i < d_elements));
+   TBOX_ASSERT((i >= 0) && (i < size()));
 
    return d_objects[i];
 }
@@ -229,8 +231,8 @@ Array<TYPE>::setNull()
    if (d_counter && d_counter->deleteReference()) {
       deleteObjects();
    }
-   d_objects = (TYPE *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -241,8 +243,8 @@ Array<TYPE>::clear()
    if (d_counter && d_counter->deleteReference()) {
       deleteObjects();
    }
-   d_objects = (TYPE *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -261,21 +263,21 @@ Array<TYPE>::empty() const
 }
 
 template<class TYPE>
-TYPE*
+TYPE *
 Array<TYPE>::getPointer(
    const int i)
 {
-   TBOX_ASSERT((i >= 0) && (i < d_elements));
+   TBOX_ASSERT((i >= 0) && (i < size()));
 
    return &d_objects[i];
 }
 
 template<class TYPE>
-const TYPE*
+const TYPE *
 Array<TYPE>::getPointer(
    const int i) const
 {
-   TBOX_ASSERT((i >= 0) && (i < d_elements));
+   TBOX_ASSERT((i >= 0) && (i < size()));
 
    return &d_objects[i];
 }
@@ -318,7 +320,7 @@ template<class TYPE>
 const TYPE&
 Array<TYPE>::back()
 {
-   TBOX_ASSERT(d_elements > 0);
+   TBOX_ASSERT(size() > 0);
 
    return d_objects[d_elements - 1];
 }

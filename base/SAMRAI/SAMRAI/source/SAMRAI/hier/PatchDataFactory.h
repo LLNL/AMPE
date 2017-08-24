@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory abstract base class for creating patch data objects
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/PatchData.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace hier {
@@ -61,9 +61,9 @@ class MultiblockDataTranslator;
  * processors independent of the mapping of patches to processors.  Patch
  * data is guaranteed to exist only on those patches local to a processor.
  *
- * @see hier::BoxGeometry
- * @see hier::PatchData
- * @see hier::PatchDescriptor
+ * @see BoxGeometry
+ * @see PatchData
+ * @see PatchDescriptor
  */
 
 class PatchDataFactory
@@ -74,6 +74,8 @@ public:
     *
     * @param ghosts ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre ghosts.min() >= 0
     */
    explicit PatchDataFactory(
       const IntVector& ghosts);
@@ -193,7 +195,7 @@ protected:
 private:
    PatchDataFactory(
       const PatchDataFactory&);               // not implemented
-   void
+   PatchDataFactory&
    operator = (
       const PatchDataFactory&);               // not implemented
    PatchDataFactory();                             // not implemented,

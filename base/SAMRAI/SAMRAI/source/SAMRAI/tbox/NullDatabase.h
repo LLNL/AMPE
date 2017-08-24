@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A null database that does nothing for all database methods.
  *
  ************************************************************************/
@@ -15,8 +15,8 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include "boost/make_shared.hpp"
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace tbox {
@@ -91,9 +91,9 @@ public:
       const std::string& key);
 
    /**
-    * Return an empty Array<string>.
+    * Return an empty std::vector<string>.
     */
-   virtual Array<std::string>
+   virtual std::vector<std::string>
    getAllKeys();
 
    /**
@@ -106,7 +106,7 @@ public:
    /**
     * Always returns 0.
     */
-   virtual int
+   virtual size_t
    getArraySize(
       const std::string& key);
 
@@ -145,13 +145,13 @@ public:
    putBoolArray(
       const std::string& key,
       const bool * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<bool>.
+    * Returns an empty std::vector<bool>.
     */
-   virtual Array<bool>
-   getBoolArray(
+   virtual std::vector<bool>
+   getBoolVector(
       const std::string& key);
 
    /**
@@ -168,13 +168,13 @@ public:
    putDatabaseBoxArray(
       const std::string& key,
       const DatabaseBox * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<box>.
+    * Returns an empty std::vector<box>.
     */
-   virtual Array<DatabaseBox>
-   getDatabaseBoxArray(
+   virtual std::vector<DatabaseBox>
+   getDatabaseBoxVector(
       const std::string& key);
 
    /**
@@ -191,13 +191,13 @@ public:
    putCharArray(
       const std::string& key,
       const char * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<char>.
+    * Returns an empty std::vector<char>.
     */
-   virtual Array<char>
-   getCharArray(
+   virtual std::vector<char>
+   getCharVector(
       const std::string& key);
 
    /**
@@ -214,13 +214,13 @@ public:
    putComplexArray(
       const std::string& key,
       const dcomplex * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<dcomplex>.
+    * Returns an empty std::vector<dcomplex>.
     */
-   virtual Array<dcomplex>
-   getComplexArray(
+   virtual std::vector<dcomplex>
+   getComplexVector(
       const std::string& key);
 
    /**
@@ -237,13 +237,13 @@ public:
    putDoubleArray(
       const std::string& key,
       const double * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<double>.
+    * Returns an empty std::vector<double>.
     */
-   virtual Array<double>
-   getDoubleArray(
+   virtual std::vector<double>
+   getDoubleVector(
       const std::string& key);
 
    /**
@@ -260,13 +260,13 @@ public:
    putFloatArray(
       const std::string& key,
       const float * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<float>.
+    * Returns an empty std::vector<float>.
     */
-   virtual Array<float>
-   getFloatArray(
+   virtual std::vector<float>
+   getFloatVector(
       const std::string& key);
 
    /**
@@ -283,13 +283,13 @@ public:
    putIntegerArray(
       const std::string& key,
       const int * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<int>.
+    * Returns an empty std::vector<int>.
     */
-   virtual Array<int>
-   getIntegerArray(
+   virtual std::vector<int>
+   getIntegerVector(
       const std::string& key);
 
    /**
@@ -306,13 +306,13 @@ public:
    putStringArray(
       const std::string& key,
       const std::string * const data,
-      const int nelements);
+      const size_t nelements);
 
    /**
-    * Returns an empty Array<std::string>.
+    * Returns an empty std::vector<std::string>.
     */
-   virtual Array<std::string>
-   getStringArray(
+   virtual std::vector<std::string>
+   getStringVector(
       const std::string& key);
 
    /**
@@ -332,6 +332,7 @@ public:
    using Database::getBoolArray;
    using Database::putDatabaseBoxArray;
    using Database::getDatabaseBoxArray;
+   using Database::getDatabaseBoxVector;
    using Database::putCharArray;
    using Database::getCharArray;
    using Database::putComplexArray;
@@ -348,9 +349,9 @@ public:
 private:
    NullDatabase(
       const NullDatabase&);             // not implemented
-   void
+   NullDatabase&
    operator = (
-      const NullDatabase&);                     // not implemented
+      const NullDatabase&);             // not implemented
 
 };
 

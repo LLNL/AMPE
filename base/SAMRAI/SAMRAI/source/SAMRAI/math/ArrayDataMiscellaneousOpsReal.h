@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Miscellaneous templated operations for real array data
  *
  ************************************************************************/
@@ -21,9 +21,10 @@ namespace math {
 /**
  * Class ArrayDataMiscellaneousOpsReal provides various operations that
  * may be applied to arrays of real (double and float) numerical data
- * values maintained using pdat::ArrayData<DIM> objects.  These operations are
+ * values maintained using pdat::ArrayData<TYPE> objects.  These operations are
  * sufficiently different from basic arithmetic and norm operations that we
- * chose to implement them in a separate class.  However, as in the case of the  * more common operations, the intent of this class is to provide a single
+ * chose to implement them in a separate class.  However, as in the case of the
+ * more common operations, the intent of this class is to provide a single
  * implementation of the operations as they are needed by objects that
  * manipulate standard array-based patch data types (i.e., cell-centered,
  * face-centered, node-centered).  Each operation is implemented in two
@@ -33,13 +34,14 @@ namespace math {
  * operations are used in vector kernels where the data resides over multiple
  * levels of spatial resolution in an AMR hierarchy.  The actual index
  * region on which each operation occurs is the intersection of this box
- * and the boxes of all the pdat::ArrayData<DIM> objects involved.
+ * and the boxes of all the pdat::ArrayData<TYPE> objects involved.
  *
  * Since these operations are used only by the vector kernels for the KINSOL
  * and CVODE solver packages at this time, they are intended to be instantiated
  * for the standard built-in types double and float (since those solvers only
  * treat double and float data).  To extend this class to other data types or
- * to include other operations, the member functions must be specialized or the  * new operations must be added.
+ * to include other operations, the member functions must be specialized or the
+ * new operations must be added.
  *
  * @see pdat::ArrayData
  */
@@ -58,6 +60,10 @@ public:
    /**
     * Return 1 if \f$\|data2_i\| > 0\f$ and \f$data1_i * data2_i \leq 0\f$, for
     * any \f$i\f$ in the index region, where \f$cvol_i > 0\f$.  Otherwise return 0.
+    * @pre (data1.getDim() == data2.getDim()) &&
+    *      (data1.getDim() == cvol.getDim()) &&
+    *      (data1.getDim() == box.getDim())
+    * @pre data1.getDepth() == data2.getDepth()
     */
    int
    computeConstrProdPosWithControlVolume(
@@ -69,6 +75,9 @@ public:
    /**
     * Return 1 if \f$\|data2_i\| > 0\f$ and \f$data1_i * data2_i \leq 0\f$, for
     * any \f$i\f$ in the index region.  Otherwise return 0.
+    * @pre (data1.getDim() == data2.getDim()) &&
+    *      (data1.getDim() == box.getDim())
+    * @pre data1.getDepth() == data2.getDepth()
     */
    int
    computeConstrProdPos(
@@ -79,6 +88,10 @@ public:
    /**
     * Wherever \f$cvol_i > 0\f$ in the index region, set \f$dst_i = 1\f$
     * if \f$\|src_i\| > \alpha\f$, and \f$dst_i = 0\f$ otherwise.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == cvol.getDim()) &&
+    *      (dst.getDim() == box.getDim())
+    * @pre dst.getDepth() == src.getDepth()
     */
    void
    compareToScalarWithControlVolume(
@@ -90,6 +103,9 @@ public:
 
    /**
     * Set \f$dst_i = 1\f$ if \f$\|src_i\| > \alpha\f$, and \f$dst_i = 0\f$ otherwise.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == box.getDim())
+    * @pre dst.getDepth() == src.getDepth()
     */
    void
    compareToScalar(
@@ -102,6 +118,10 @@ public:
     * Wherever \f$cvol_i > 0\f$ in the index region, set \f$dst_i = 1/src_i\f$ if
     * \f$src_i \neq 0\f$, and \f$dst_i = 0\f$ otherwise.  If \f$dst_i = 0\f$ anywhere,
     * 0 is the return value.  Otherwise 1 is returned.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == cvol.getDim()) &&
+    *      (dst.getDim() == box.getDim())
+    * @pre dst.getDepth() == src.getDepth()
     */
    int
    testReciprocalWithControlVolume(
@@ -113,6 +133,9 @@ public:
    /**
     * Set \f$dst_i = 1/src_i\f$ if \f$src_i \neq 0\f$, and \f$dst_i = 0\f$ otherwise.
     * If \f$dst_i = 0\f$ anywhere, 0 is the return value.  Otherwise 1 is returned.
+    *
+    * @pre (dst.getDim() == src.getDim()) && (dst.getDim() == box.getDim())
+    * @pre dst.getDepth() == src.getDepth()
     */
    int
    testReciprocal(
@@ -132,6 +155,10 @@ public:
     *
     * @b Note: This method is currently intended to support the
     * PETSc-2.1.6 vector wrapper only.  Please do not use it!
+    *
+    * @pre (numer.getDim() == denom.getDim()) &&
+    *      (numer.getDim() == box.getDim())
+    * @pre numer.getDepth() == denom.getDepth()
     */
    TYPE
    maxPointwiseDivide(
@@ -152,6 +179,10 @@ public:
     *
     * @b Note: This method is currently intended to support the
     * SUNDIALS vector wrapper only.  Please do not use it!
+    *
+    * @pre (numer.getDim() == denom.getDim()) &&
+    *      (numer.getDim() == box.getDim())
+    * @pre numer.getDepth() == denom.getDepth()
     */
    TYPE
    minPointwiseDivide(
@@ -162,10 +193,10 @@ public:
 private:
    // The following are not implemented:
    ArrayDataMiscellaneousOpsReal(
-      const ArrayDataMiscellaneousOpsReal<TYPE>&);
-   void
+      const ArrayDataMiscellaneousOpsReal&);
+   ArrayDataMiscellaneousOpsReal&
    operator = (
-      const ArrayDataMiscellaneousOpsReal<TYPE>&);
+      const ArrayDataMiscellaneousOpsReal&);
 
 };
 

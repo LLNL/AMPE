@@ -40,8 +40,8 @@ void AzizPartitionCoefficientStrategy::evaluate(
 {
    const hier::Box& patch_box = patch.getBox();
 
-   pdat::CellIterator iend(patch_box, false);
-   for ( pdat::CellIterator i(patch_box,true); i!=iend; ++i ) {
+   pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+   for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
       const pdat::CellIndex ccell = *i;
 
       double temperature=(*cd_temperature)(ccell);

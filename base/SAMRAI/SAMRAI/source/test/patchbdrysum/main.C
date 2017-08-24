@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for test of hierarchy sum
  *
  ************************************************************************/
@@ -12,6 +12,7 @@
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/SAMRAIManager.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
@@ -32,7 +33,7 @@
 // Header for application-specific algorithm/data structure object
 #include "HierSumTest.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 using namespace tbox;
@@ -216,7 +217,6 @@ int main(
        */
       boost::shared_ptr<StandardTagAndInitialize> tag_and_init_ops(
          new StandardTagAndInitialize(
-            dim,
             "StandardTagAndInitialize",
             hier_sum_test,
             input_db->getDatabase("StandardTagAndInitialize")));
@@ -232,7 +232,8 @@ int main(
        * "wave_eqn_model" problem class to define the user-specific operations.
        */
       boost::shared_ptr<BergerRigoutsos> box_generator(
-         new BergerRigoutsos(dim));
+         new BergerRigoutsos(dim,
+            input_db->getDatabase("BergerRigoutsos")));
 
       boost::shared_ptr<TreeLoadBalancer> load_balancer(
          new TreeLoadBalancer(dim,
@@ -281,21 +282,23 @@ int main(
       ****************************************************************/
 
       double loop_time = 0.;
-      tbox::Array<int> tag_buffer_array(patch_hierarchy->getMaxNumberOfLevels());
-      for (int il = 0; il < patch_hierarchy->getMaxNumberOfLevels(); il++) {
+      int loop_cycle = 0;
+      std::vector<int> tag_buffer_array(patch_hierarchy->getMaxNumberOfLevels());
+      for (int il = 0; il < patch_hierarchy->getMaxNumberOfLevels(); ++il) {
          tag_buffer_array[il] = 1;
       }
       gridding_algorithm->makeCoarsestLevel(loop_time);
 
       bool done = false;
-      bool initial_time = true;
+      bool initial_cycle = true;
       for (int ln = 0;
            patch_hierarchy->levelCanBeRefined(ln) && !done;
-           ln++) {
+           ++ln) {
          gridding_algorithm->makeFinerLevel(
-            loop_time,
-            initial_time,
-            tag_buffer_array[ln]);
+            tag_buffer_array[ln],
+            initial_cycle,
+            loop_cycle,
+            loop_time);
          done = !(patch_hierarchy->finerLevelExists(ln));
       }
 
@@ -311,7 +314,7 @@ int main(
       int nlevels = patch_hierarchy->getNumberOfLevels();
 
       for (int pln = 0; pln <= patch_hierarchy->getFinestLevelNumber();
-           pln++) {
+           ++pln) {
          boost::shared_ptr<PatchLevel> level(
             patch_hierarchy->getPatchLevel(pln));
 
@@ -319,7 +322,7 @@ int main(
 
          for (PatchLevel::iterator ip(level->begin());
               ip != level->end(); ++ip) {
-            tbox::plog << "patch # " << ip->getBox().getId() << " : "
+            tbox::plog << "patch # " << ip->getBox().getBoxId() << " : "
                        << ip->getBox() << endl;
          }
       }
@@ -344,13 +347,13 @@ int main(
          hier_sum_test->setupOuternodeSum(patch_hierarchy);
       }
       if (do_edge_sum) {
-         for (int ln = 0; ln < nlevels; ln++) {
+         for (int ln = 0; ln < nlevels; ++ln) {
             hier_sum_test->setupOuteredgeSum(patch_hierarchy,
                ln);
          }
       }
 
-      for (int i = 0; i < nsteps; i++) {
+      for (int i = 0; i < nsteps; ++i) {
 
          /*
           * In the process of constructing the hierarchy, we set cell values
@@ -361,7 +364,7 @@ int main(
             fail_count += hier_sum_test->setInitialNodeValues(patch_hierarchy);
          }
          if (do_edge_sum) {
-            for (int ln = 0; ln < nlevels; ln++) {
+            for (int ln = 0; ln < nlevels; ++ln) {
                boost::shared_ptr<PatchLevel> level(
                   patch_hierarchy->getPatchLevel(ln));
                fail_count += hier_sum_test->setInitialEdgeValues(level);
@@ -385,7 +388,7 @@ int main(
             hier_sum_test->doOuternodeSum();
          }
          if (do_edge_sum) {
-            for (int ln = 0; ln < nlevels; ln++) {
+            for (int ln = 0; ln < nlevels; ++ln) {
                hier_sum_test->doOuteredgeSum(ln);
             }
          }
@@ -401,7 +404,7 @@ int main(
       tbox::pout << "\n" << endl;
 
       if (do_edge_sum) {
-         for (int ln = 0; ln < nlevels; ln++) {
+         for (int ln = 0; ln < nlevels; ++ln) {
             boost::shared_ptr<PatchLevel> level(
                patch_hierarchy->getPatchLevel(ln));
             fail_count += hier_sum_test->checkEdgeResult(level);

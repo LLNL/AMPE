@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface for params, tagging, init for gridding.
  *
  ************************************************************************/
@@ -16,9 +16,8 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/BoxLevel.h"
-#include "SAMRAI/tbox/Array.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace mesh {
@@ -27,101 +26,26 @@ namespace mesh {
  * Class TagAndInitializeStrategy is a base class that defines a
  * Strategy pattern interface for level initialization and cell tagging
  * routines that are needed by the adaptive meshing algorithms provided
- * by the class GriddingAlgorithm.  The class
- * maintains functionality to construct refined regions based on a
- * user-supplied set of boxes, but its main role is to provide interfaces
- * for level initialization and cell tagging operations.
+ * by the class GriddingAlgorithm.  The class defines an interface to
+ * construct refined regions based on a user-supplied set of boxes, but
+ * its main role is to provide interfaces for level initialization and
+ * cell tagging operations.
  *
- * The operations that identify mesh cells for refinement or initialize
- * data on a new hierarchy level are problem-specific and must be
- * supplied by a concrete sub-class of this base class.
+ * All methods defined by this class with the exception of getObjectName are
+ * abstract and must be supplied by a concrete sub-class of this base class.
  *
  * If user supplied refine boxes are used, they may be supplied through
- * input.  Alternatively, they may be supplied through the "resetRefineBoxes()"
- * method.  If they are supplied through input, the format is as follows:
- *
- *    - \b    RefineBoxes
- *      input section describing the refine boxes for each level.
- *          - \b  level_0
- *             input section providing the hier::Box arrays
- *             describing where user-specified refinement is to occur on
- *             Level 0.
- *          - \b  level_1
- *             input section providing the hier::Box arrays
- *             describing where user-specified refinement is to occur on
- *             Level 1.
- *            \b . . .
- *          - \b  level_n
- *             input section providing the hier::Box arrays
- *             describing where user-specified refinement is to occur on
- *             Level N.
- *
- *       For each level, the input section can have the following entries:
- *
- *               - \b times = optional entry, a double array specifying times
- *                            at which a particular set of boxes is to be used
- *                            as a region of refinement.
- *               - \b cycles = optional entry, an integer array specifying
- *                             regrid cycles at which a particular set of boxes
- *                             is to be used as a region of refinement.
- *               - \b boxes_0 = box array specifying refine boxes for element
- *                              0 of the times or cycles array.
- *               - \b boxes_1 = box array specifying refine boxes for element
- *                              1 of the times or cycles array.
- *               - \b boxes_n = box array specifying refine boxes for element
- *                              n of the times or cycles array.
- *
- *       The @b times and @b cycles entries are optional.  If neither
- *       is provided, a uniform set of refine boxes specified in the
- *       boxes_0 entry will be used over the entire calculation.  If no
- *       boxes_0 entry is provided, no refinement will occur on that level.
- *
- *       If both @b times or @b cycles entries are supplied, the times entry
- *       takes precedence so the cycles entry is ignored. The particular
- *       box array chosen during regridding is determined by a ``greater-than''
- *       convention.  That is, if boxes are accessed at regridding time t,
- *       where t is greater-than the specified times[n] entry, then the array
- *       given for boxes_n is used.  Otherwise, the corresponding previous
- *       box array that satisfies the criteria is used.  The same convention is
- *       followed for regridding cycles.  To avoid errant behavior, the times
- *       and cycles entries should always be supplied in increasing order.
- *
- *       The hier::BoxContainer entries withing each level's input section
- *       must be of the form ``boxes_n'' (where n is the corresponds to the
- *       elements of the times or cycles array), or the input parser will
- *       ignore the entry.  If there is no ``boxes_n'' entry corresponding
- *       to element n of the times or cycles array, then no refinement will
- *       occur on that level at the given time or cycle.
- *
- * A sample input file entry might look like:
- *
- * \verbatim
- *
- *    RefineBoxes {
- *       level_0 {
- *          cycles = 0, 10
- *          boxes_0 = [(5,5),(9,9)],[(12,15),(18,19)]
- *          boxes_1 = [(7,7),(11,11)],[(14,17),(20,21)]
- *       }
- *       level_1 {
- *          times  = 0., 0.05, 0.10
- *          boxes_0 = [(25,30),(29,35)]
- *          boxes_1 = [(30,35),(34,40)]
- *          boxes_2 = [(35,40),(39,45)]
- *       }
- *       level_2 {
- *          boxes_0 = [(60,70),(70,80)]
- *       }
- *    }
- * \endverbatim
+ * input as defined by specific, concrete sub-classes of this base class.
+ * Alternatively, they may be supplied through the "resetRefineBoxes()"
+ * method.
  *
  * The virtual methods in this class may place constraints on the patch
- * hierarchy by the particluar error estimation procedure in use.  Those
+ * hierarchy by the particular error estimation procedure in use.  Those
  * constraints and operations must be honored in the concrete subclass
  * implementations of these methods.  The constraints are discussed in
  * the method descriptions below.
  *
- * @see mesh::GriddingAlgorithm
+ * @see GriddingAlgorithm
  */
 
 class TagAndInitializeStrategy
@@ -131,7 +55,6 @@ public:
     * Empty constructor for TagAndInitializeStrategy.
     */
    TagAndInitializeStrategy(
-      const tbox::Dimension& dim,
       const std::string& object_name);
 
    /*!
@@ -146,20 +69,21 @@ public:
     * have been reset, it returns true.  If they are unchanged, it returns
     * false.
     */
-   bool
+   virtual bool
    getUserSuppliedRefineBoxes(
       hier::BoxContainer& refine_boxes,
       const int level_number,
-      const double time);
+      const int cycle,
+      const double time) = 0;
 
    /*!
     * Reset the static refine boxes for the specified level number in the
     * hierarchy.  The level number must be greater than or equal to zero.
     */
-   void
+   virtual void
    resetRefineBoxes(
       const hier::BoxContainer& refine_boxes,
-      const int level_number);
+      const int level_number) = 0;
 
    /*!
     * Initialize data on a new level after it is inserted into an AMR patch
@@ -255,7 +179,8 @@ public:
    tagCellsForRefinement(
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
-      const double error_data_time,
+      const int regrid_cycle,
+      const double regrid_time,
       const int tag_index,
       const bool initial_time,
       const bool coarsest_sync_level,
@@ -277,16 +202,27 @@ public:
    preprocessErrorEstimation(
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
+      const int cycle,
       const double regrid_time,
       const double regrid_start_time,
       const bool initial_time) = 0;
 
    /*!
     * Return true if regridding process advances the data using some time
-    * integration procedure; otherwise, return false.
+    * integration procedure at the supplied cycle or time; otherwise, return
+    * false.
     */
    virtual bool
-   usesTimeIntegration() const = 0;
+   usesTimeIntegration(
+      int cycle,
+      double time) = 0;
+
+   /*!
+    * Return true if regridding process advances the data using some time
+    * integration procedure at any cycle or time; otherwise, return false.
+    */
+   virtual bool
+   everUsesTimeIntegration() const = 0;
 
    /*!
     * Return true if boxes for coarsest hierarchy level are not appropriate
@@ -313,7 +249,7 @@ public:
     */
    virtual void
    checkCoarsenRatios(
-      const tbox::Array<hier::IntVector>& ratio_to_coarser) = 0;
+      const std::vector<hier::IntVector>& ratio_to_coarser) = 0;
 
    /*!
     * Return whether refinement is being performed using ONLY
@@ -321,24 +257,9 @@ public:
     * tagging, this will return false.
     */
    virtual bool
-   refineUserBoxInputOnly() const = 0;
-
-   /*!
-    * Read user supplied refine boxes from the provided database.  The
-    * database must be non-null, or an unrecoverable assertion will be thrown.
-    */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& db);
-
-   /*!
-    * Return the dimension of this object.
-    */
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
-   }
+   refineUserBoxInputOnly(
+      int cycle,
+      double time) = 0;
 
    /*!
     * Returns the object name.
@@ -349,43 +270,125 @@ public:
       return d_object_name;
    }
 
+   /*!
+    * @brief Process a hierarchy before swapping old and new levels during
+    * regrid.
+    *
+    * During regrid, if user code needs to do any application-specific
+    * operations on the PatchHierarchy before a new level is added or
+    * an old level is swapped for a new level, this method provides a callback
+    * for the user to define such operations.  The PatchHierarchy is provided
+    * in its state with the old level, if it exists, still in place, while
+    * new BoxLevel is also provided so that the user code can know the boxes
+    * that will make up the new level.
+    *
+    * @param hierarchy The PatchHierarchy being modified.
+    * @param level_number The number of the PatchLevel in hierarchy being
+    *                     added or regridded.
+    * @param new_box_level BoxLevel containing the boxes for the new level
+    *
+    */
+   virtual void
+   processHierarchyBeforeAddingNewLevel(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const boost::shared_ptr<hier::BoxLevel>& new_box_level) = 0;
+
+   /*!
+    * @brief Process a level before it is removed from the hierarchy during
+    * regrid.
+    *
+    * In some cases user code may wish to process a PatchLevel before it is
+    * removed from the hierarchy.  For example, data may exist only on a given
+    * PatchLevel such as the finest level.  If that level were to be removed
+    * before this data is moved off of it then the data will be lost.  This
+    * method is a user defined callback used by GriddingAlgorithm when a
+    * PatchLevel is to be removed.  The callback performs any user actions on
+    * the level about to be removed.  It is implemented by classes derived from
+    * StandardTagAndInitStrategy.
+    *
+    * @param hierarchy The PatchHierarchy being modified.
+    * @param level_number The number of the PatchLevel in hierarchy about to be
+    *                     removed.
+    * @param old_level The level in hierarchy about to be removed.
+    *
+    * @see GriddingAlgorithm
+    * @see StandardTagAndInitStrategy
+    */
+   virtual void
+   processLevelBeforeRemoval(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const boost::shared_ptr<hier::PatchLevel>& old_level =
+         boost::shared_ptr<hier::PatchLevel>()) = 0;
+
+   /*!
+    * @brief Check the tags on a tagged level.
+    *
+    * This virtual interface provides application code a callback that
+    * allows for checking the values held in user tag PatchData.  The
+    * tag data will contain the tags created by application code in
+    * tagCellsForRefinement as well as any tags added internally by
+    * the GriddingAlgorithm (for example, buffering).
+    *
+    * A no-op implementation is provided so that only applications that
+    * want to use this method need to implement it.
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number  Level number of the tagged level
+    * @param[in] regrid_cycle
+    * @param[in] regrid_time
+    * @param[in] tag_index     Patch data index for user tags
+    */
+   virtual void
+   checkUserTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int regrid_cycle,
+      const double regrid_time,
+      const int tag_index)
+   {
+      NULL_USE(hierarchy);
+      NULL_USE(level_number);
+      NULL_USE(regrid_cycle);
+      NULL_USE(regrid_time);
+      NULL_USE(tag_index);
+   } 
+
+   /*!
+    * @brief Check the tags on a newly-created level.
+    *
+    * This virtual interface provides application code a callback that
+    * allow for checking tag values that have been saved on a new level
+    * that has been created during initialization or regridding.  The
+    * tag values will be the values of the user tags on the coarser level,
+    * constant-refined onto the cells of the new level.
+    *
+    * A no-op implementation is provided so that only applications that
+    * want to use this method need to implement it.
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number   Level number of the new level
+    * @param[in] tag_index      Patch data index for the new tags.
+    */
+   virtual void
+   checkNewLevelTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int tag_index)
+   {
+      NULL_USE(hierarchy);
+      NULL_USE(level_number);
+      NULL_USE(tag_index);
+   } 
+
 private:
-   const tbox::Dimension d_dim;
-
    std::string d_object_name;
-
-   /*
-    * Arrays of data for user-specified refinement.  The user controls
-    * the particular boxes to be used for refinement by specifying
-    * "cycles" -or- "times" and "refine_boxes".  The arrays below hold
-    * hold entries for each level and seq number.  The boolean array
-    * specifies whether to use time or cycles as the guiding criteria
-    * (by default, time is used).  The integer cycle counter holds
-    * internally the number of times the getRefineBoxes() method has
-    * been accessed for each level.
-    */
-   tbox::Array<tbox::Array<hier::BoxContainer> > d_refine_boxes;
-   tbox::Array<tbox::Array<int> > d_refine_boxes_cycles;
-   tbox::Array<tbox::Array<double> > d_refine_boxes_times;
-   tbox::Array<bool> d_refine_boxes_use_times;
-   tbox::Array<int> d_refine_boxes_cycle_counter;
-
-   /*
-    * Arrays to hold boxes that are specifically reset by the user (via the
-    * resetRefineBoxes() method).  The boolean array specifies which levels
-    * have been reset while the box array specifies the new set of refine
-    * boxes for the level. The int array holds the sequence number from
-    * the last time getRefineBoxes() was called, allowing us to
-    * determine when refine boxes change between steps.
-    */
-   tbox::Array<bool> d_refine_boxes_reset;
-   tbox::Array<hier::BoxContainer> d_reset_refine_boxes;
-   tbox::Array<int> d_refine_boxes_old_seq_num;
 
    // The following are not implemented:
    TagAndInitializeStrategy(
       const TagAndInitializeStrategy&);
-   void
+   TagAndInitializeStrategy&
    operator = (
       const TagAndInitializeStrategy&);
 

@@ -43,7 +43,7 @@ GrainNumberRefinePatchStrategy::GrainNumberRefinePatchStrategy(
    const string& object_name,
    boost::shared_ptr< tbox::Database > input_bc_db,
    const int grain_number_id )
-   : xfer::RefinePatchStrategy(tbox::Dimension(NDIM)),
+   : xfer::RefinePatchStrategy(),
      d_object_name( object_name ),
      d_grain_number_id( grain_number_id )
 {

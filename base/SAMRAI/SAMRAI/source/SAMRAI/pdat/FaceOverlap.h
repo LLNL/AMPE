@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -17,7 +17,8 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+#include <vector>
 
 namespace SAMRAI {
 namespace pdat {
@@ -29,7 +30,7 @@ namespace pdat {
  * with face centered geometry.
  *
  * @see hier::BoxOverlap
- * @see pdat::FaceOverlap
+ * @see FaceOverlap
  */
 
 class FaceOverlap:public hier::BoxOverlap
@@ -41,7 +42,7 @@ public:
     * in the generation of communication schedules.
     */
    FaceOverlap(
-      const tbox::Array<hier::BoxContainer>& boxes,
+      const std::vector<hier::BoxContainer>& boxes,
       const hier::Transformation& transformation);
    /**
     * The virtual destructor does nothing interesting except deallocate
@@ -62,13 +63,33 @@ public:
     * constitute the intersection.  The boxes are given in the
     * destination coordinate space and must be shifted by
     * -(getSourceOffset()) to lie in the source index space.  The axis
-    * argument represents which axis is desired: X=0, Y=1, and
-    * Z=2. This method over-rides the virtual function in the
-    * hier::BoxOverlap base class.
+    * argument represents which axis is desired: X=0, Y=1, and Z=2.
+    *
+    * @pre (axis >= 0) && (axis < d_dst_boxes.size())
     */
    virtual const hier::BoxContainer&
    getDestinationBoxContainer(
       const int axis) const;
+
+   /*!
+    * @brief Get a BoxContainer representing the source boxes of the overlap.
+    *
+    * The src_boxes container will be filled with face-centered source
+    * boxes of the overlap in the source coordinate space.  The given
+    * normal direction is the normal in destination space on input and
+    * in source space on output.
+    *
+    * @param[out] src_boxes
+    * @param[in,out] normal_direction
+    *
+    * @pre src_boxes.empty()
+    * @pre normal_direction >= 0 && normal_direction < d_dst_boxes.size()
+    * @post normal_direction >= 0 && normal_direction < d_dst_boxes.size()
+    */
+   virtual void
+   getSourceBoxContainer(
+      hier::BoxContainer& src_boxes,
+      int& normal_direction) const;
 
    /**
     * Return the offset between the destination and source index spaces.
@@ -84,7 +105,7 @@ public:
 private:
    bool d_is_overlap_empty;
    hier::Transformation d_transformation;
-   tbox::Array<hier::BoxContainer> d_dst_boxes;
+   std::vector<hier::BoxContainer> d_dst_boxes;
 
 };
 

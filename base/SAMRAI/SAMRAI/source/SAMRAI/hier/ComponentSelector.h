@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple bit vector.
  *
  ************************************************************************/
@@ -170,51 +170,54 @@ public:
    /*!
     * @brief Check whether the specified bit vector position is true.
     *
-    * When assertion checking is active, an assertion will result if the
-    * given position is out-of-bounds.
-    *
     * @param[in]  i The position in the bit vector to check.
     *
     * @return True if the bit at position i is set to true.
+    *
+    * @pre (i >= 0)
     */
    bool
    isSet(
       const int i) const
    {
-      TBOX_ASSERT((i >= 0) && (i < getSize()));
-      return d_bit_vector[_index(i)].test(_element(i));
+      TBOX_ASSERT(i >= 0);
+      return i < getSize() && d_bit_vector[_index(i)].test(_element(i));
    }
 
    /*!
     * @brief Set the specified bit vector position to true.
     *
-    * When assertion checking is active, an assertion will result if the
-    * given position is out-of-bounds.
-    *
     * @param[in]  i The position in the bit vector to set to true.
+    *
+    * @pre (i >= 0)
     */
    void
    setFlag(
       const int i)
    {
-      TBOX_ASSERT((i >= 0) && (i < getSize()));
+      TBOX_ASSERT(i >= 0);
+      if (i >= getSize()) {
+         d_bit_vector.resize(d_bit_vector.size() + 1, d_bit_vector[0]);
+         d_bit_vector[d_bit_vector.size()-1].reset();
+      }
       d_bit_vector[_index(i)].set(_element(i));
    }
 
    /*!
     * @brief Set the specified bit vector position to false.
     *
-    * When assertion checking is active, an assertion will result if the
-    * given position is out-of-bounds.
-    *
     * @param[in]  i The position in the bit vector to set to false.
+    *
+    * @pre (i >= 0)
     */
    void
    clrFlag(
       const int i)
    {
-      TBOX_ASSERT((i >= 0) && (i < getSize()));
-      d_bit_vector[_index(i)].reset(_element(i));
+      TBOX_ASSERT(i >= 0);
+      if (i < getSize()) {
+         d_bit_vector[_index(i)].reset(_element(i));
+      } 
       d_max_bit_index = _findMaxIndex(d_bit_vector);
    }
 

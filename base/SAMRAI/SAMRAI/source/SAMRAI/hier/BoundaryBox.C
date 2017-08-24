@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   BoundaryBox representing a portion of the physical boundary
  *
  ************************************************************************/
-
-#ifndef included_hier_BoundaryBox_C
-#define included_hier_BoundaryBox_C
-
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/hier/BoundaryLookupTable.h"
@@ -25,7 +21,6 @@ BoundaryBox::BoundaryBox(
    d_bdry_type(-1),
    d_location_index(-1)
 {
-   TBOX_DIM_ASSERT_CHECK_DIM(d_dim);
 }
 
 BoundaryBox::BoundaryBox(
@@ -46,9 +41,8 @@ BoundaryBox::BoundaryBox(
    d_box(box)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   BoundaryLookupTable* blut =
-      BoundaryLookupTable::getLookupTable(d_dim);
-   const tbox::Array<int>& location_index_max = blut->getMaxLocationIndices();
+   BoundaryLookupTable* blut = BoundaryLookupTable::getLookupTable(d_dim);
+   const std::vector<int>& location_index_max = blut->getMaxLocationIndices();
 
    TBOX_ASSERT((bdry_type >= 1) && (bdry_type <= d_dim.getValue()));
    TBOX_ASSERT(location_index >= 0);
@@ -95,5 +89,3 @@ BoundaryBox::getBoundaryOrientation(
 
 }
 }
-
-#endif

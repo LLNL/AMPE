@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program to test index data operations
  *
  ************************************************************************/
@@ -25,6 +25,7 @@
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/InputDatabase.h"
+#include "SAMRAI/hier/PatchDataRestartManager.h"
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -32,7 +33,7 @@
 #include "SAMRAI/pdat/SparseData.h"
 #include "SAMRAI/pdat/SparseDataVariable.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -87,7 +88,6 @@ int main(
    // Note: For these simple tests we allow at most 2 processors.
    tbox::SAMRAI_MPI mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    const int nproc = mpi.getSize();
-   TBOX_ASSERT(nproc < 3);
 
    // Currently this test only works for 2 dimensions.
    const tbox::Dimension dim(2);
@@ -116,7 +116,6 @@ int main(
       ********************************************************************/
       hier::BoxContainer coarse_domain;
       hier::BoxContainer fine_domain;
-      hier::IntVector ratio(dim, 2);
 
       boost::shared_ptr<geom::CartesianGridGeometry> geometry(
          getGeometry(coarse_domain, fine_domain, dim));
@@ -124,37 +123,41 @@ int main(
       boost::shared_ptr<hier::PatchHierarchy> hierarchy(
          new hier::PatchHierarchy("PatchHierarchy", geometry));
 
+      hier::IntVector ratio(dim, 2);
       hierarchy->setMaxNumberOfLevels(2);
       hierarchy->setRatioToCoarserLevel(ratio, 1);
 
       const int n_coarse_boxes = coarse_domain.size();
       const int n_fine_boxes = fine_domain.size();
 
-      hier::BoxLevel layer0(hier::IntVector(dim, 1), geometry);
-      hier::BoxLevel layer1(ratio, geometry);
+      boost::shared_ptr<hier::BoxLevel> layer0(
+         boost::make_shared<hier::BoxLevel>(
+            hier::IntVector(dim, 1), geometry));
+      boost::shared_ptr<hier::BoxLevel> layer1(
+         boost::make_shared<hier::BoxLevel>(ratio, geometry));
 
-      hier::BoxContainer::iterator coarse_domain_itr(coarse_domain);
-      for (int ib = 0; ib < n_coarse_boxes; ib++, ++coarse_domain_itr) {
+      hier::BoxContainer::iterator coarse_domain_itr = coarse_domain.begin();
+      for (int ib = 0; ib < n_coarse_boxes; ++ib, ++coarse_domain_itr) {
          if (nproc > 1) {
-            if (ib == layer0.getMPI().getRank()) {
-               layer0.addBox(hier::Box(*coarse_domain_itr,
-                     hier::LocalId(ib), layer0.getMPI().getRank()));
+            if (ib == layer0->getMPI().getRank()) {
+               layer0->addBox(hier::Box(*coarse_domain_itr,
+                     hier::LocalId(ib), layer0->getMPI().getRank()));
             }
          } else {
-            layer0.addBox(hier::Box(*coarse_domain_itr,
+            layer0->addBox(hier::Box(*coarse_domain_itr,
                   hier::LocalId(ib), 0));
          }
       }
 
-      hier::BoxContainer::iterator fine_domain_itr(fine_domain);
-      for (int ib = 0; ib < n_fine_boxes; ib++, ++fine_domain_itr) {
+      hier::BoxContainer::iterator fine_domain_itr = fine_domain.begin();
+      for (int ib = 0; ib < n_fine_boxes; ++ib, ++fine_domain_itr) {
          if (nproc > 1) {
-            if (ib == layer1.getMPI().getRank()) {
-               layer1.addBox(hier::Box(*fine_domain_itr,
-                     hier::LocalId(ib), layer1.getMPI().getRank()));
+            if (ib == layer1->getMPI().getRank()) {
+               layer1->addBox(hier::Box(*fine_domain_itr,
+                     hier::LocalId(ib), layer1->getMPI().getRank()));
             }
          } else {
-            layer1.addBox(hier::Box(*fine_domain_itr,
+            layer1->addBox(hier::Box(*fine_domain_itr,
                   hier::LocalId(ib), 0));
          }
       }
@@ -168,8 +171,10 @@ int main(
        */
       hier::VariableDatabase* variable_db =
          hier::VariableDatabase::getDatabase();
+      hier::PatchDataRestartManager* pdrm =
+         hier::PatchDataRestartManager::getManager();
       boost::shared_ptr<hier::VariableContext> cxt(
-            variable_db->getContext("dummy"));
+         variable_db->getContext("dummy"));
       const hier::IntVector no_ghosts(dim, 0);
 
       typedef pdat::SparseData<pdat::CellGeometry> LSparseData;
@@ -191,8 +196,8 @@ int main(
             data2, cxt, no_ghosts);
 
       // set us up for restart.
-      variable_db->registerPatchDataForRestart(data_id1);
-      variable_db->registerPatchDataForRestart(data_id2);
+      pdrm->registerPatchDataForRestart(data_id1);
+      pdrm->registerPatchDataForRestart(data_id2);
 
       for (int i = 0; i < 2; ++i) {
          // allocate "sample" data
@@ -203,7 +208,7 @@ int main(
       /*
        * Loop over hierarchy levels and populate data.
        */
-      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
          boost::shared_ptr<hier::PatchLevel> level(
             hierarchy->getPatchLevel(ln));
 
@@ -214,15 +219,17 @@ int main(
 
             // access sample data from patch
             boost::shared_ptr<LSparseData> sample1(
-               patch->getPatchData(data_id1),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<LSparseData, hier::PatchData>(
+                  patch->getPatchData(data_id1)));
             boost::shared_ptr<LSparseData> sample2(
-               patch->getPatchData(data_id2),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<LSparseData, hier::PatchData>(
+                  patch->getPatchData(data_id2)));
+            TBOX_ASSERT(sample1);
+            TBOX_ASSERT(sample2);
 
             // add items to the sparse data objects.
-            pdat::CellIterator ic(patch->getBox(), true);
-            pdat::CellIterator icend(patch->getBox(), false);
+            pdat::CellIterator ic(pdat::CellGeometry::begin(patch->getBox()));
+            pdat::CellIterator icend(pdat::CellGeometry::end(patch->getBox()));
             for ( ; ic != icend; ++ic) {
                const hier::Index* idx = &(*ic);
                LSparseData::iterator iter1 = sample1->registerIndex(*idx);
@@ -340,7 +347,7 @@ checkIterators(
    int num_failures(0);
 #ifdef HAVE_BOOST_HEADERS
    typedef pdat::SparseData<pdat::CellGeometry> LSparseData;
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
 
       for (hier::PatchLevel::iterator ip(level->begin());
@@ -348,19 +355,20 @@ checkIterators(
          const boost::shared_ptr<hier::Patch>& patch = *ip;
 
          boost::shared_ptr<LSparseData> sample(
-            patch->getPatchData(data_id1),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<LSparseData, hier::PatchData>(
+               patch->getPatchData(data_id1)));
+         TBOX_ASSERT(sample);
 
          // Test #1a: check empty.  This should be false.
          if (sample->empty()) {
-            num_failures++;
+            ++num_failures;
             tbox::perr
             << "FAILED: - sparse data structure reports empty. "
             << std::endl;
          }
 
-         pdat::CellIterator ic(patch->getBox(), true);
-         pdat::CellIterator icend(patch->getBox(), false);
+         pdat::CellIterator ic(pdat::CellGeometry::begin(patch->getBox()));
+         pdat::CellIterator icend(pdat::CellGeometry::end(patch->getBox()));
          for ( ; ic != icend; ++ic) {
             const hier::Index& idx = *ic;
             LSparseData::AttributeIterator it = sample->begin(idx);
@@ -369,17 +377,17 @@ checkIterators(
                // check element access.
                for (int i = 0; i < DSIZE; ++i) {
                   if (it[pdat::DoubleAttributeId(i)] != i) {
-                     num_failures++;
+                     ++num_failures;
                   }
                }
 
                for (int j = 0; j < ISIZE; ++j) {
                   if (it[pdat::IntegerAttributeId(j)] != j) {
-                     num_failures++;
+                     ++num_failures;
                   }
                }
             } // for (; it != ... (attribute iterator)
-         } // for (; ic; ic++) ... (cell iterator)
+         } // for (; ic; ++ic) ... (cell iterator)
       } // for (hier::PatchLevel::iterator...
    } // hierarchy iteration
 #endif
@@ -404,24 +412,27 @@ bool checkCopyOps(
 
 #ifdef HAVE_BOOST_HEADERS
    typedef pdat::SparseData<pdat::CellGeometry> LSparseData;
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
       for (hier::PatchLevel::iterator ip(level->begin());
            ip != level->end(); ++ip) {
          const boost::shared_ptr<hier::Patch>& patch = *ip;
          boost::shared_ptr<LSparseData> control(
-            patch->getPatchData(data_id1),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<LSparseData, hier::PatchData>(
+               patch->getPatchData(data_id1)));
          boost::shared_ptr<LSparseData> copiedTo(
-            patch->getPatchData(data_id1),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<LSparseData, hier::PatchData>(
+               patch->getPatchData(data_id1)));
          boost::shared_ptr<LSparseData> copiedFrom(
-            patch->getPatchData(data_id2),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<LSparseData, hier::PatchData>(
+               patch->getPatchData(data_id2)));
+         TBOX_ASSERT(control);
+         TBOX_ASSERT(copiedTo);
+         TBOX_ASSERT(copiedFrom);
 
          int edit = copiedTo->size() / 2;
          LSparseData::iterator ct_it(copiedTo.get());
-         for ( ; ct_it != copiedTo->end() && edit > 0; ++ct_it, edit--) {
+         for ( ; ct_it != copiedTo->end() && edit > 0; ++ct_it, --edit) {
          }
 
          while (ct_it != copiedTo->end()) {
@@ -478,7 +489,7 @@ bool checkRemoveOps(
 #ifdef HAVE_BOOST_HEADERS
    typedef pdat::SparseData<pdat::CellGeometry> LSparseData;
    int num_failures(0);
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
 
       for (hier::PatchLevel::iterator ip(level->begin());
@@ -486,8 +497,9 @@ bool checkRemoveOps(
          const boost::shared_ptr<hier::Patch>& patch = *ip;
 
          boost::shared_ptr<LSparseData> sample(
-            patch->getPatchData(data_id1),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<LSparseData, hier::PatchData>(
+               patch->getPatchData(data_id1)));
+         TBOX_ASSERT(sample);
 
          LSparseData::iterator it;
          int stop = sample->size() / 2;
@@ -513,7 +525,7 @@ bool checkRemoveOps(
          sample->clear();
 
          if (!sample->empty()) {
-            num_failures++;
+            ++num_failures;
             remove_passed = false;
             tbox::perr << "sample size is " << sample->size() << std::endl;
          }
@@ -547,11 +559,6 @@ getGeometry(
    hier::Box coarse1(hier::Index(0, 3), hier::Index(9, 4), hier::BlockId(0));
    hier::Box fine0(hier::Index(4, 4), hier::Index(7, 7), hier::BlockId(0));
    hier::Box fine1(hier::Index(8, 4), hier::Index(13, 7), hier::BlockId(0));
-
-   coarse0.initialize(coarse0, hier::LocalId(0), 0);
-   coarse1.initialize(coarse1, hier::LocalId(1), 0);
-   fine0.initialize(fine0, hier::LocalId(0), 0);
-   fine1.initialize(fine1, hier::LocalId(1), 0);
 
    coarse_domain.pushBack(coarse0);
    coarse_domain.pushBack(coarse1);

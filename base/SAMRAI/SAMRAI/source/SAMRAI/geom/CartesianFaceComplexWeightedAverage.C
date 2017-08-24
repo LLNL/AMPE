@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Weighted averaging operator for face-centered complex data on
  *                a Cartesian mesh.
  *
  ************************************************************************/
-
-#ifndef included_geom_CartesianFaceComplexWeightedAverage_C
-#define included_geom_CartesianFaceComplexWeightedAverage_C
-
 #include "SAMRAI/geom/CartesianFaceComplexWeightedAverage.h"
 #include "SAMRAI/tbox/Complex.h"
 
@@ -37,28 +33,28 @@ extern "C" {
 #endif
 
 // in cartcoarsen1d.f:
-void F77_FUNC(cartwgtavgfacecplx1d, CARTWGTAVGFACECPLX1D) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx1d, CARTWGTAVGFACECPLX1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen2d.f:
-void F77_FUNC(cartwgtavgfacecplx2d0, CARTWGTAVGFACECPLX2D0) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx2d0, CARTWGTAVGFACECPLX2D0) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 
-void F77_FUNC(cartwgtavgfacecplx2d1, CARTWGTAVGFACECPLX2D1) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx2d1, CARTWGTAVGFACECPLX2D1) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen3d.f:
-void F77_FUNC(cartwgtavgfacecplx3d0, CARTWGTAVGFACECPLX3D0) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx3d0, CARTWGTAVGFACECPLX3D0) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -67,7 +63,7 @@ void F77_FUNC(cartwgtavgfacecplx3d0, CARTWGTAVGFACECPLX3D0) (const int&,
    const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(cartwgtavgfacecplx3d1, CARTWGTAVGFACECPLX3D1) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx3d1, CARTWGTAVGFACECPLX3D1) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -76,13 +72,50 @@ void F77_FUNC(cartwgtavgfacecplx3d1, CARTWGTAVGFACECPLX3D1) (const int&,
    const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(cartwgtavgfacecplx3d2, CARTWGTAVGFACECPLX3D2) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx3d2, CARTWGTAVGFACECPLX3D2) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+// in cartcoarsen4d.f:
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx4d0, CARTWGTAVGFACECPLX4D0) (const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx4d1, CARTWGTAVGFACECPLX4D1) (const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx4d2, CARTWGTAVGFACECPLX4D2) (const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+void SAMRAI_F77_FUNC(cartwgtavgfacecplx4d3, CARTWGTAVGFACECPLX4D3) (const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 }
@@ -92,9 +125,8 @@ namespace geom {
 
 // using namespace std;
 
-CartesianFaceComplexWeightedAverage::CartesianFaceComplexWeightedAverage(
-   const tbox::Dimension& dim):
-   hier::CoarsenOperator(dim, "CONSERVATIVE_COARSEN")
+CartesianFaceComplexWeightedAverage::CartesianFaceComplexWeightedAverage():
+   hier::CoarsenOperator("CONSERVATIVE_COARSEN")
 {
 }
 
@@ -109,9 +141,9 @@ CartesianFaceComplexWeightedAverage::getOperatorPriority() const
 }
 
 hier::IntVector
-CartesianFaceComplexWeightedAverage::getStencilWidth() const
+CartesianFaceComplexWeightedAverage::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -123,38 +155,41 @@ CartesianFaceComplexWeightedAverage::coarsen(
    const hier::Box& coarse_box,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
+   const tbox::Dimension& dim(fine.getDim());
 
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, coarse, fine, coarse_box, ratio);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY3(dim, coarse, coarse_box, ratio);
 
    boost::shared_ptr<pdat::FaceData<dcomplex> > fdata(
-      fine.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<dcomplex>, hier::PatchData>(
+         fine.getPatchData(src_component)));
    boost::shared_ptr<pdat::FaceData<dcomplex> > cdata(
-      coarse.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<dcomplex>, hier::PatchData>(
+         coarse.getPatchData(dst_component)));
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata);
    TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
-   const hier::Index cilo = cdata->getGhostBox().lower();
-   const hier::Index cihi = cdata->getGhostBox().upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cdata->getGhostBox().lower();
+   const hier::Index& cihi = cdata->getGhostBox().upper();
 
    const boost::shared_ptr<CartesianPatchGeometry> fgeom(
-      fine.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         fine.getPatchGeometry()));
    const boost::shared_ptr<CartesianPatchGeometry> cgeom(
-      coarse.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         coarse.getPatchGeometry()));
 
-   const hier::Index ifirstc = coarse_box.lower();
-   const hier::Index ilastc = coarse_box.upper();
+   TBOX_ASSERT(fgeom);
+   TBOX_ASSERT(cgeom);
 
-   for (int d = 0; d < cdata->getDepth(); d++) {
+   const hier::Index& ifirstc = coarse_box.lower();
+   const hier::Index& ilastc = coarse_box.upper();
+
+   for (int d = 0; d < cdata->getDepth(); ++d) {
       if ((dim == tbox::Dimension(1))) {
-         F77_FUNC(cartwgtavgfacecplx1d, CARTWGTAVGFACECPLX1D) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx1d, CARTWGTAVGFACECPLX1D) (ifirstc(0),
             ilastc(0),
             filo(0), fihi(0),
             cilo(0), cihi(0),
@@ -164,7 +199,7 @@ CartesianFaceComplexWeightedAverage::coarsen(
             fdata->getPointer(0, d),
             cdata->getPointer(0, d));
       } else if ((dim == tbox::Dimension(2))) {
-         F77_FUNC(cartwgtavgfacecplx2d0, CARTWGTAVGFACECPLX2D0) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx2d0, CARTWGTAVGFACECPLX2D0) (ifirstc(0),
             ifirstc(1), ilastc(0), ilastc(1),
             filo(0), filo(1), fihi(0), fihi(1),
             cilo(0), cilo(1), cihi(0), cihi(1),
@@ -173,7 +208,7 @@ CartesianFaceComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(0, d),
             cdata->getPointer(0, d));
-         F77_FUNC(cartwgtavgfacecplx2d1, CARTWGTAVGFACECPLX2D1) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx2d1, CARTWGTAVGFACECPLX2D1) (ifirstc(0),
             ifirstc(1), ilastc(0), ilastc(1),
             filo(0), filo(1), fihi(0), fihi(1),
             cilo(0), cilo(1), cihi(0), cihi(1),
@@ -183,7 +218,7 @@ CartesianFaceComplexWeightedAverage::coarsen(
             fdata->getPointer(1, d),
             cdata->getPointer(1, d));
       } else if ((dim == tbox::Dimension(3))) {
-         F77_FUNC(cartwgtavgfacecplx3d0, CARTWGTAVGFACECPLX3D0) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx3d0, CARTWGTAVGFACECPLX3D0) (ifirstc(0),
             ifirstc(1), ifirstc(2),
             ilastc(0), ilastc(1), ilastc(2),
             filo(0), filo(1), filo(2),
@@ -195,7 +230,7 @@ CartesianFaceComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(0, d),
             cdata->getPointer(0, d));
-         F77_FUNC(cartwgtavgfacecplx3d1, CARTWGTAVGFACECPLX3D1) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx3d1, CARTWGTAVGFACECPLX3D1) (ifirstc(0),
             ifirstc(1), ifirstc(2),
             ilastc(0), ilastc(1), ilastc(2),
             filo(0), filo(1), filo(2),
@@ -207,7 +242,7 @@ CartesianFaceComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(1, d),
             cdata->getPointer(1, d));
-         F77_FUNC(cartwgtavgfacecplx3d2, CARTWGTAVGFACECPLX3D2) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx3d2, CARTWGTAVGFACECPLX3D2) (ifirstc(0),
             ifirstc(1), ifirstc(2),
             ilastc(0), ilastc(1), ilastc(2),
             filo(0), filo(1), filo(2),
@@ -219,9 +254,58 @@ CartesianFaceComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(2, d),
             cdata->getPointer(2, d));
+      } else if ((dim == tbox::Dimension(4))) {
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx4d0, CARTWGTAVGFACECPLX4D0) (ifirstc(0),
+            ifirstc(1), ifirstc(2), ifirstc(3),
+            ilastc(0), ilastc(1), ilastc(2), ilastc(3),
+            filo(0), filo(1), filo(2), filo(3),
+            fihi(0), fihi(1), fihi(2), fihi(3),
+            cilo(0), cilo(1), cilo(2), cilo(3),
+            cihi(0), cihi(1), cihi(2), cihi(3),
+            &ratio[0],
+            fgeom->getDx(),
+            cgeom->getDx(),
+            fdata->getPointer(0, d),
+            cdata->getPointer(0, d));
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx4d1, CARTWGTAVGFACECPLX4D1) (ifirstc(0),
+            ifirstc(1), ifirstc(2), ifirstc(3),
+            ilastc(0), ilastc(1), ilastc(2), ilastc(3),
+            filo(0), filo(1), filo(2), filo(3),
+            fihi(0), fihi(1), fihi(2), fihi(3),
+            cilo(0), cilo(1), cilo(2), cilo(3),
+            cihi(0), cihi(1), cihi(2), cihi(3),
+            &ratio[0],
+            fgeom->getDx(),
+            cgeom->getDx(),
+            fdata->getPointer(1, d),
+            cdata->getPointer(1, d));
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx4d2, CARTWGTAVGFACECPLX4D2) (ifirstc(0),
+            ifirstc(1), ifirstc(2), ifirstc(3),
+            ilastc(0), ilastc(1), ilastc(2), ilastc(3),
+            filo(0), filo(1), filo(2), filo(3),
+            fihi(0), fihi(1), fihi(2), fihi(3),
+            cilo(0), cilo(1), cilo(2), cilo(3),
+            cihi(0), cihi(1), cihi(2), cihi(3),
+            &ratio[0],
+            fgeom->getDx(),
+            cgeom->getDx(),
+            fdata->getPointer(2, d),
+            cdata->getPointer(2, d));
+         SAMRAI_F77_FUNC(cartwgtavgfacecplx4d3, CARTWGTAVGFACECPLX4D3) (ifirstc(0),
+            ifirstc(1), ifirstc(2), ifirstc(3),
+            ilastc(0), ilastc(1), ilastc(2), ilastc(3),
+            filo(0), filo(1), filo(2), filo(3),
+            fihi(0), fihi(1), fihi(2), fihi(3),
+            cilo(0), cilo(1), cilo(2), cilo(3),
+            cihi(0), cihi(1), cihi(2), cihi(3),
+            &ratio[0],
+            fgeom->getDx(),
+            cgeom->getDx(),
+            fdata->getPointer(3, d),
+            cdata->getPointer(3, d));
       } else {
          TBOX_ERROR("CartesianFaceComplexWeightedAverage error...\n"
-            << "dim > 3 not supported." << std::endl);
+            << "dim > 4 not supported." << std::endl);
       }
 
    }
@@ -229,4 +313,3 @@ CartesianFaceComplexWeightedAverage::coarsen(
 
 }
 }
-#endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Globally unique identifier that can be locally determined.
  *
  ************************************************************************/
@@ -48,10 +48,6 @@ public:
     *
     * The object can be initialized using the assignment operator or
     * the non-const versions of the getOwnerRank() and getLocalId() methods.
-    */
-   /*
-    * TODO: Replace the magic number with a method returning the
-    * official invalid value.  See artifact artf13924.
     */
    GlobalId();
 

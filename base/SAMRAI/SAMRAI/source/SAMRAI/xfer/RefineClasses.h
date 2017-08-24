@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple structure for managing refinement data in equivalence classes.
  *
  ************************************************************************/
@@ -13,14 +13,14 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/hier/TimeInterpolateOperator.h"
 #include "SAMRAI/xfer/VariableFillPattern.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace xfer {
@@ -132,7 +132,7 @@ public:
    int
    getNumberOfEquivalenceClasses() const
    {
-      return d_equivalence_class_indices.size();
+      return static_cast<int>(d_equivalence_class_indices.size());
    }
 
    /*!
@@ -142,18 +142,19 @@ public:
    int
    getNumberOfRefineItems() const
    {
-      return d_num_refine_items;
+      return static_cast<int>(d_refine_classes_data_items.size());
    }
 
    /*!
     * @brief Get representative item for a given equivalence class index.
     *
-    * When assertion checking is active, the index will be checked for validity.
-    *
     * @return Given index of an existing equivalence class, one item
     * from that class is returned.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    const RefineClasses::Data&
    getClassRepresentative(
@@ -162,7 +163,7 @@ public:
       TBOX_ASSERT((equiv_class_index >= 0) &&
          (equiv_class_index < getNumberOfEquivalenceClasses()));
       return d_refine_classes_data_items[
-         d_equivalence_class_indices[equiv_class_index].front()];
+                d_equivalence_class_indices[equiv_class_index].front()];
    }
 
    /*!
@@ -191,8 +192,7 @@ public:
     *
     * The number of quivalence classes can be determined via the
     * getNumberOfEquivalenceClasses() member function.  Valid integer
-    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.  When
-    * assertion checking is active, the id will be checked for validity.
+    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.
     *
     * @note The list should not be modified through this iterator.
     *
@@ -202,6 +202,9 @@ public:
     * class.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    std::list<int>::iterator
    getIterator(
@@ -218,8 +221,7 @@ public:
     *
     * The number of quivalence classes can be determined via the
     * getNumberOfEquivalenceClasses() member function.  Valid integer
-    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.  When
-    * assertion checking is active, the id will be checked for validity.
+    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.
     *
     * @note The list should not be modified through this iterator.
     *
@@ -229,6 +231,9 @@ public:
     * class.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    std::list<int>::iterator
    getIteratorEnd(
@@ -248,15 +253,14 @@ public:
     * this item.  The integer class index in the data item will set to the
     * index of the equivalence class into which it is inserted.
     *
-    * If assertion checking is active, the data item will be checked for
-    * validity.  See itemIsValid() for explanation of validity.
-    *
     * If a null patch descriptor argument is passed (or ommitted), the
     * descriptor associated with the variable database Singleton object will be
     * used.
     *
     * @param[in,out] data_item
     * @param[in] descriptor
+    *
+    * @pre itemIsValid(data, descriptor)
     */
    void
    insertEquivalenceClassItem(
@@ -361,21 +365,6 @@ public:
          boost::shared_ptr<hier::PatchDescriptor>()) const;
 
    /*!
-    * @brief Get the size that has been allocated for the array storing refine
-    * items.
-    *
-    * Note that this is not necessarily the same as the number of registered
-    * refine items, which can be retrieved using getNumberOfRefineItems().
-    * The refine item array is allocated to a default size and grown when
-    * necessary or when increaseRefineItemArraySize() is called.
-    */
-   int
-   getRefineItemArraySize() const
-   {
-      return d_refine_classes_data_items.size();
-   }
-
-   /*!
     * @brief Increase the allocated size of the array storing refine items.
     *
     * This should be used in cases where there is a large number of refine
@@ -389,8 +378,8 @@ public:
    increaseRefineItemArraySize(
       const int size)
    {
-      if (size > d_refine_classes_data_items.size()) {
-         d_refine_classes_data_items.resizeArray(size);
+      if (size > static_cast<int>(d_refine_classes_data_items.size())) {
+         d_refine_classes_data_items.resize(size);
       }
    }
 
@@ -417,7 +406,7 @@ public:
 private:
    RefineClasses(
       const RefineClasses&);            // not implemented
-   void
+   RefineClasses&
    operator = (
       const RefineClasses&);                     // not implemented
 
@@ -467,7 +456,7 @@ private:
    /*!
     * The array of refine items.
     */
-   tbox::Array<Data> d_refine_classes_data_items;
+   std::vector<Data> d_refine_classes_data_items;
 
    /*!
     * The array managing equivalence classes.  Each element of the array
@@ -475,12 +464,7 @@ private:
     * which items are part of an equivalence class.  The integers index into
     * the array d_refine_classes_data_items.
     */
-   tbox::Array<std::list<int> > d_equivalence_class_indices;
-
-   /*!
-    * The number of refine items that have been registered.
-    */
-   int d_num_refine_items;
+   std::vector<std::list<int> > d_equivalence_class_indices;
 
 };
 

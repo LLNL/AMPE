@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Singleton database class for managing variables and contexts.
  *
  ************************************************************************/
@@ -18,11 +18,11 @@
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
-#include "SAMRAI/tbox/Array.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <iostream>
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -166,10 +166,10 @@ namespace hier {
  * </ul>
  *
  *
- * @see hier::PatchDescriptor
- * @see hier::VariableContext
- * @see hier::Variable
- * @see hier::Patch
+ * @see PatchDescriptor
+ * @see VariableContext
+ * @see Variable
+ * @see Patch
  */
 
 class VariableDatabase
@@ -247,9 +247,9 @@ public:
     * error will be logged and the program will abort.  This prevents
     * multiple Variables being associated with the same name.
     *
-    * @param[in] variable boost::shared_ptr to variable.  When assertion
-    *                 checking is active, an assertion will result if the
-    *                 variable pointer is null.
+    * @param[in] variable boost::shared_ptr to variable
+    *
+    * @pre variable
     */
    virtual void
    addVariable(
@@ -304,8 +304,7 @@ public:
     *
     * @param[in]  variable boost::shared_ptr to @c Variable.  If the variable
     *             is unknown to the database, then an invalid patch data index
-    *             (< 0) will be returned. When assertion checking is active,
-    *             an assertion will result when the variable pointer is null.
+    *             (< 0) will be returned
     * @param[in]  old_id Integer patch data index currently associated with
     *             variable. If this value is not a valid patch data index
     *             (< 0) or does not map to patch data matching the
@@ -314,6 +313,9 @@ public:
     *
     * @return New integer patch data index. If new patch data not added,
     *         return value is an invalid (undefined) patch data index (< 0).
+    *
+    * @pre variable
+    * @pre checkVariablePatchDataIndex(variable, old_id)
     */
    virtual int
    registerClonedPatchDataIndex(
@@ -346,9 +348,7 @@ public:
     *        routine registerInternalSAMRAIVariable() must be used for that
     *        case.
     * </ul>
-    * @param[in]  variable boost::shared_ptr to Variable.  When assertion
-    *                      checking is active, an assertion will result when
-    *                      the variable pointer is null.
+    * @param[in]  variable boost::shared_ptr to Variable
     * @param[in]  data_id  Optional integer patch data index to be added
     *                      (along with variable) to the database.  If the value
     *                      is unspecified (default case), the default variable
@@ -359,6 +359,9 @@ public:
     *
     * @return New integer patch data index.  If new patch data index not
     *         added, return value is an invalid patch data index (< 0).
+    *
+    * @pre variable
+    * @pre data_id == idUndefined() || checkVariablePatchDataIndex(variable, data_id)
     */
    virtual int
    registerPatchDataIndex(
@@ -378,9 +381,7 @@ public:
     * with the integer index.
     *
     * @param[in]  data_id  Integer patch data index to be removed from
-    *                  the database.  When assertion checking is active,
-    *                  an assertion will result when the patch data index
-    *                  is invalid (i.e., < 0).
+    *                  the database
     */
    virtual void
    removePatchDataIndex(
@@ -390,16 +391,15 @@ public:
     * @brief Check whether the given variable is mapped to the given patch data
     * index in the database.
     *
-    * @param[in]  variable  boost::shared_ptr to variable.  When assertion checking
-    *                   is active, an unrecoverable assertion will result if
-    *                   the variable pointer is null.
-    * @param[in]  data_id   Integer patch data index.  When assertion checking
-    *                   is active, an unrecoverable assertion will result if
-    *                   the value is an invalid identifier (either < 0 or
-    *                   larger than the maximum allowed patch data id).
+    * @param[in]  variable  boost::shared_ptr to variable
+    * @param[in]  data_id   Integer patch data index
     *
     * @return  Boolean true if the variable is mapped the given patch
     * data index; false otherwise.
+    *
+    * @pre variable
+    * @pre (data_id >= 0) &&
+    *      (data_id < getPatchDescriptor()->getMaxNumberRegisteredComponents())
     */
    virtual bool
    checkVariablePatchDataIndex(
@@ -410,16 +410,15 @@ public:
     * @brief Check whether the given variable matches the patch data type
     * associated with the given patch data index in the database.
     *
-    * @param[in]  variable  boost::shared_ptr to variable.  When assertion
-    *                   checking is active, an unrecoverable assertion will
-    *                   result if the variable pointer is null.
-    * @param[in] data_id   Integer patch data index.  When assertion checking
-    *                   is active, an unrecoverable assertion will result if
-    *                   the value is an invalid identifier (either < 0 or
-    *                   larger than the maximum allowed patch data id).
+    * @param[in]  variable  boost::shared_ptr to variable
+    * @param[in] data_id   Integer patch data index
     *
     * @return  Boolean true if the type of the variable matches the type of
     *          the patch data at the given patch data index; false otherwise.
+    *
+    * @pre variable
+    * @pre (data_id >= 0) &&
+    *      (data_id < getPatchDescriptor()->getMaxNumberRegisteredComponents())
     */
    virtual bool
    checkVariablePatchDataIndexType(
@@ -455,20 +454,16 @@ public:
     * in this case.
     *
     *
-    * @param[in]  variable  boost::shared_ptr to variable.  When assertion
-    *                   checking is active, an unrecoverable assertion will
-    *                   result if the variable pointer is null.
-    * @param[in] context    boost::shared_ptr to variable context.  When
-    *                   assertion checking is active, an unrecoverable
-    *                   assertion will result if the context pointer is null.
+    * @param[in]  variable  boost::shared_ptr to variable
+    * @param[in] context    boost::shared_ptr to variable context
     * @param[in] ghosts     Optional ghost width for patch data associated
-    *                   with variable-context pair.  If the ghost width
-    *                   is given, all entries of the vector must be >= 0.
-    *                   When assertion checking is active, an unrecoverable
-    *                   assertion will result if the ghost width vector
-    *                   contains a negative entry.
+    *                       with variable-context pair.
     *
     * @return Integer patch data index of variable-context pair in database.
+    *
+    * @pre variable
+    * @pre context
+    * @pre ghosts.min() >= 0
     */
    virtual int
    registerVariableAndContext(
@@ -494,17 +489,15 @@ public:
     * associated with the variable will not be returned.  See the other
     * map...() functions declared in this class.
     *
-    * @param[in]  variable  boost::shared_ptr to variable.  When assertion
-    *                   checking is active, an unrecoverable assertion will
-    *                   result if the variable pointer is null.
-    * @param[in]  context   boost::shared_ptr to variable context.  When
-    *                   assertion checking is active, an unrecoverable
-    *                   assertion will result if the variable context pointer
-    *                   is null.
+    * @param[in]  variable  boost::shared_ptr to variable
+    * @param[in]  context   boost::shared_ptr to variable context
     *
     * @return Integer patch data index of variable-context pair in database.
     *         If the variable-context pair was not registered with the
     *         database, then an invalid data index (< 0) will be returned.
+    *
+    * @pre variable
+    * @pre context
     */
    virtual int
    mapVariableAndContextToIndex(
@@ -515,10 +508,8 @@ public:
     * @brief Map patch data index to variable associated with the data, if
     * possible, and set the variable pointer to the variable in the database.
     *
-    * @param[in]   index  Integer patch data index.  When assertion checking
-    *                 is active, an unrecoverable assertion will if the index
-    *                 is invalid (i.e., < 0).
-    * @param[out]   variable  boost::shared_ptr to variable that maps to patch
+    * @param[in]   index  Integer patch data index
+    * @param[out]  variable  boost::shared_ptr to variable that maps to patch
     *                    data index in database.  If there is no index in the
     *                    database matching the index input value, then the
     *                    variable pointer is set to null.
@@ -562,50 +553,6 @@ public:
       boost::shared_ptr<VariableContext>& context) const;
 
    /*!
-    * @brief Return copy of component selector that holds information about
-    * which patch data entries are written to restart.
-    *
-    * @return Component selector describing patch data items registered
-    *         for restart.  That is, the flags set in the component
-    *         selector will correspond to the patch data indices
-    *         that have been registered for restart.
-    */
-   virtual ComponentSelector
-   getPatchDataRestartTable() const;
-
-   /*!
-    * @brief Check whether given patch data index is registered with database
-    * for restart.
-    *
-    * @param[in]  index  Integer patch data index to check.
-    *
-    * @return Boolean true if the patch data with the given index
-    *         is registered for restart; otherwise false.
-    *
-    */
-   virtual bool
-   isPatchDataRegisteredForRestart(
-      int index) const;
-
-   /*!
-    * @brief Register the given patch data index for restart.
-    *
-    * @param[in]  index  Integer patch data index to set.
-    */
-   virtual void
-   registerPatchDataForRestart(
-      int index);
-
-   /*!
-    * @brief Unregister the given patch data index for restart.
-    *
-    * @param[in]  index  Integer patch data index to unset.
-    */
-   virtual void
-   unregisterPatchDataForRestart(
-      int index);
-
-   /*!
     * @brief Print variable, context, and patch descriptor information
     * contained in the database to the specified output stream.
     *
@@ -646,16 +593,14 @@ public:
     * SAMRAI variables.
     *
     *
-    * @param[in]  variable  boost::shared_ptr to variable.  When assertion
-    *                   checking is active, an unrecoverable assertion will
-    *                   result if the variable pointer is null.
+    * @param[in]  variable  boost::shared_ptr to variable
     * @param[in] ghosts     Ghost width for patch data associated with the
-    *                   variable.  All entries of the vector must be >= 0.
-    *                   When assertion checking is active, an unrecoverable
-    *                   assertion results if the vector contains a negative
-    *                   entry.
+    *                       variable
     * @return Integer patch data index of variable-ghost width pair
     * in database.
+    *
+    * @pre variable
+    * @pre ghosts.min() >= 0
     */
    virtual int
    registerInternalSAMRAIVariable(
@@ -737,6 +682,8 @@ protected:
     * @brief Initialize Singleton instance with instance of subclass.  This
     * function is used to make the singleton object unique when inheriting
     * from this base class.
+    *
+    * @pre !s_variable_database_instance
     */
    void
    registerSingletonSubclassInstance(
@@ -811,9 +758,9 @@ private:
    /*
     * Static data members used to control allocation of arrays.
     */
-   static int s_context_array_alloc_size;
-   static int s_variable_array_alloc_size;
-   static int s_descriptor_array_alloc_size;
+   static const int s_context_array_alloc_size;
+   static const int s_variable_array_alloc_size;
+   static const int s_descriptor_array_alloc_size;
 
    /*
     * Data members that store variable, context, patch data index information.
@@ -825,44 +772,36 @@ private:
    int d_num_registered_patch_data_ids;
 
    /*
-    * Array of VariableContext pointers is indexed as
+    * Vector of VariableContext pointers is indexed as
     * d_contexts[ <context id> ]
     */
    int d_max_context_id;
-   tbox::Array<boost::shared_ptr<VariableContext> > d_contexts;
+   std::vector<boost::shared_ptr<VariableContext> > d_contexts;
 
    /*
-    * Array of Variable pointers is indexed as d_variables[ <variable id> ]
+    * Vector of Variable pointers is indexed as d_variables[ <variable id> ]
     */
    int d_max_variable_id;
-   tbox::Array<boost::shared_ptr<Variable> > d_variables;
+   std::vector<boost::shared_ptr<Variable> > d_variables;
 
    /*
-    * Array of VariableContext to patch descriptor indices is indexed as
+    * Vector of VariableContext to patch descriptor indices is indexed as
     * d_variable_context2index_map[ <context id> ]
     */
-   tbox::Array<tbox::Array<int> > d_variable_context2index_map;
+   std::vector<std::vector<int> > d_variable_context2index_map;
 
    /*
-    * Array of patch descriptor indices to Variables is indexed as
+    * Vector of patch descriptor indices to Variables is indexed as
     * d_index2variable_map[ <descriptor id> ]
     */
    int d_max_descriptor_id;
-   tbox::Array<boost::shared_ptr<Variable> > d_index2variable_map;
+   std::vector<boost::shared_ptr<Variable> > d_index2variable_map;
 
    /*
-    * Array of user variable booleans is indexed as
+    * Vector of user variable booleans is indexed as
     * d_is_user_variable[ <variable id> ]
     */
-   tbox::Array<bool> d_is_user_variable;
-
-   /*
-    * ComponentSelector holds bits that determine which patch data
-    * items need to be written to the restart database.  The
-    * bit in position j corresponds to the patch data associated with
-    * the j-th index of the patch descriptor object.
-    */
-   ComponentSelector d_patchdata_restart_table;
+   std::vector<bool> d_is_user_variable;
 
    static tbox::StartupShutdownManager::Handler
       s_shutdown_handler;

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple Cartesian grid geometry for an AMR hierarchy.
  *
  ************************************************************************/
@@ -30,7 +30,7 @@ namespace geom {
  *
  * @see hier::BoundaryBox
  * @see hier::PatchGeometry
- * @see geom::CartesianGridGeometry
+ * @see CartesianGridGeometry
  */
 
 class CartesianPatchGeometry:
@@ -43,11 +43,15 @@ public:
     * Constructor for CartesianPatchGeometry class.  It simply passes
     * patch boundary information to hier::PatchGeometry base class constructor
     * and allocates storage for spatial coordinates on patch.
+    *
+    * @pre dx != 0
+    * @pre x_lo != 0
+    * @pre x_up != 0
     */
    CartesianPatchGeometry(
       const hier::IntVector& ratio_to_level_zero,
       const TwoDimBool& touches_regular_bdry,
-      const TwoDimBool& touches_periodic_bdry,
+      const hier::BlockId& block_id,
       const double * dx,
       const double * x_lo,
       const double * x_hi);
@@ -96,13 +100,13 @@ private:
    // These are not implemented.
    CartesianPatchGeometry(
       const CartesianPatchGeometry&);
-   void
+   CartesianPatchGeometry&
    operator = (
       const CartesianPatchGeometry&);
 
-   double d_dx[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];           // mesh increments for patch.
-   double d_x_lo[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];         // spatial coords of lower end of patch.
-   double d_x_up[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];         // spatial coords of upper end of patch.
+   double d_dx[SAMRAI::MAX_DIM_VAL];   // mesh increments for patch.
+   double d_x_lo[SAMRAI::MAX_DIM_VAL]; // spatial coords of lower end of patch.
+   double d_x_up[SAMRAI::MAX_DIM_VAL]; // spatial coords of upper end of patch.
 
 };
 

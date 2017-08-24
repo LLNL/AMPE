@@ -2,13 +2,13 @@
 
 # Configure and install Sundials
 pushd @BASE_DIR@/sundials
-doconfig
-doinstall
+./doconfig
+./doinstall
 popd
 
 # Configure and install SAMRAI
 pushd @SAMCONFDIR@
-doconfig
-doinstall
+./doconfig
+./doinstall
 popd
 

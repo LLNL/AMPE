@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -33,7 +33,7 @@ namespace pdat {
  * represent an overlap previously computed.
  *
  * @see hier::BoxOverlap
- * @see pdat::CellOverlap
+ * @see CellOverlap
  */
 
 class CellOverlap:public hier::BoxOverlap
@@ -71,6 +71,20 @@ public:
    virtual const hier::BoxContainer&
    getDestinationBoxContainer() const;
 
+   /*!
+    * @brief Get a BoxContainer representing the source boxes of the overlap.
+    *
+    * The src_boxes container will be filled with the cell-centered source
+    * boxes of the overlap in the source coordinate space.
+    *
+    * @param[out] src_boxes
+    *
+    * @pre src_boxes.empty()
+    */
+   virtual void
+   getSourceBoxContainer(
+      hier::BoxContainer& src_boxes) const;
+
    /**
     * Return the offset between the destination and source index spaces.
     * The destination index space is the source index space shifted
@@ -96,7 +110,6 @@ private:
    bool d_is_overlap_empty;
    hier::Transformation d_transformation;
    hier::BoxContainer d_dst_boxes;
-   int d_count;
 
 };
 

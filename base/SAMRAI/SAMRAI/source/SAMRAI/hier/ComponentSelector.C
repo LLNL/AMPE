@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple bit vector of a fixed length (128 bits)
  *
  ************************************************************************/
-
-#ifndef included_hier_ComponentSelector_C
-#define included_hier_ComponentSelector_C
-
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -26,7 +22,7 @@ ComponentSelector::ComponentSelector(
    int num_mod = pd_entries % C_BITSET_SIZE;
 
    if (num_mod != 0) {
-      num_bitset_elements++;
+      ++num_bitset_elements;
    }
 
    std::bitset<C_BITSET_SIZE> l_bits;
@@ -160,5 +156,3 @@ ComponentSelector::printClassData(
 
 }
 }
-
-#endif

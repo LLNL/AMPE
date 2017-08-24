@@ -3,20 +3,16 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fill pattern class to provide interface for stencils
  *
  ************************************************************************/
-
-#ifndef included_pdat_FirstLayerCellNoCornersVariableFillPattern_C
-#define included_pdat_FirstLayerCellNoCornersVariableFillPattern_C
-
 #include "SAMRAI/pdat/FirstLayerCellNoCornersVariableFillPattern.h"
 
 #include "SAMRAI/pdat/CellGeometry.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -70,7 +66,7 @@ FirstLayerCellNoCornersVariableFillPattern::calculateOverlap(
    const bool overwrite_interior,
    const hier::Transformation& transformation) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(dst_patch_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(dst_patch_box, src_mask);
 
    hier::BoxContainer stencil_boxes;
    computeStencilBoxes(stencil_boxes, dst_patch_box);
@@ -127,15 +123,15 @@ FirstLayerCellNoCornersVariableFillPattern::computeStencilBoxes(
 
    const tbox::Dimension& dim = dst_box.getDim();
 
-   for (unsigned short i = 0; i < dim.getValue(); i++) {
+   for (unsigned short i = 0; i < dim.getValue(); ++i) {
       hier::Box low_box(dst_box);
-      low_box.lower(i) = dst_box.lower(i) - 1;
-      low_box.upper(i) = low_box.lower(i);
+      low_box.setLower(i, dst_box.lower(i) - 1);
+      low_box.setUpper(i, low_box.lower(i));
       stencil_boxes.pushFront(low_box);
 
       hier::Box high_box(dst_box);
-      high_box.lower(i) = dst_box.upper(i) + 1;
-      high_box.upper(i) = high_box.lower(i);
+      high_box.setLower(i, dst_box.upper(i) + 1);
+      high_box.setUpper(i, high_box.lower(i));
       stencil_boxes.pushFront(high_box);
    }
 }
@@ -151,11 +147,13 @@ FirstLayerCellNoCornersVariableFillPattern::computeStencilBoxes(
 boost::shared_ptr<hier::BoxOverlap>
 FirstLayerCellNoCornersVariableFillPattern::computeFillBoxesOverlap(
    const hier::BoxContainer& fill_boxes,
+   const hier::BoxContainer& node_fill_boxes,
    const hier::Box& patch_box,
    const hier::Box& data_box,
    const hier::PatchDataFactory& pdf) const
 {
    NULL_USE(pdf);
+   NULL_USE(node_fill_boxes);
 
    hier::BoxContainer stencil_boxes;
    computeStencilBoxes(stencil_boxes, patch_box);
@@ -165,10 +163,9 @@ FirstLayerCellNoCornersVariableFillPattern::computeFillBoxesOverlap(
    overlap_boxes.intersectBoxes(stencil_boxes);
 
    return boost::make_shared<CellOverlap>(
-         overlap_boxes,
-         hier::Transformation(hier::IntVector::getZero(patch_box.getDim())));
+             overlap_boxes,
+             hier::Transformation(hier::IntVector::getZero(patch_box.getDim())));
 }
 
 }
 }
-#endif

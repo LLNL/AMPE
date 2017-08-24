@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated outeredge centered patch data type
  *
  ************************************************************************/
@@ -22,14 +22,14 @@
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/PIO.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
 namespace pdat {
 
 /*!
- * @brief Class OuteredgeData<DIM> provides an implementation for data defined
+ * @brief Class OuteredgeData<TYPE> provides an implementation for data defined
  * at cell edges on the boundaries of AMR patches.  It is derived from the
  * hier::PatchData interface common to all SAMRAI patch data types.  Given
  * a CELL-centered AMR index space box, an outeredge data object represents
@@ -39,20 +39,20 @@ namespace pdat {
  * between the standard SAMRAI cell-centered AMR index space and
  * outeredge-centered data.
  *
- * Outeredge data is stored in 2*DIM*(DIM-2) arrays, each of which contains data
- * associated with edge indices in a coordinate axis direction, an outward
+ * Outeredge data is stored in 2*DIM*(DIM-2) arrays, each of which contains
+ * data associated with edge indices in a coordinate axis direction, an outward
  * pointing face normal direction, and an upper or lower box face in the
  * face normal direction.  The data layout in the outernode data arrays matches
  * the corresponding array sections provided by the node data implementation.
- * Note that outeredge data is NOT defined when the axis and face normal are equal.
- * This is consistent with the edge data representation.  Where an edge index falls
- * on more than one box face (patch boundary edges and corners), the outeredge
- * data value belongs to only one data array so that there are no redundant data
- * values. Specifically, when DIM > 2, outeredge data boxes are "trimmed" for each
- * axis edge direction so that each edge index that lives on more than one
- * face on the box boundary will be associated with the largest face normal
- * direction and only that face.  Within each array, data is stored in
- * (i,...,k,d) order, where i,...,k indicates a spatial index and the
+ * Note that outeredge data is NOT defined when the axis and face normal are
+ * equal.  This is consistent with the edge data representation.  Where an edge
+ * index falls on more than one box face (patch boundary edges and corners),
+ * the outeredge data value belongs to only one data array so that there are no
+ * redundant data values. Specifically, when DIM > 2, outeredge data boxes are
+ * "trimmed" for each axis edge direction so that each edge index that lives on
+ * more than one face on the box boundary will be associated with the largest
+ * face normal direction and only that face.  Within each array, data is stored
+ * in (i,...,k,d) order, where i,...,k indicates a spatial index and the
  * d indicates the component depth at that location.  Memory allocation is
  * in column-major ordering (e.g., Fortran style) so that the leftmost
  * index runs fastest in memory.
@@ -60,7 +60,8 @@ namespace pdat {
  * To illustrate the outeredge data layout, in particular the "box trimming"
  * that prevents redundant data values, we describe the data for a
  * three-dimensional outeredge data object instantiated over a
- * box [l0:u0,l1:u1,l2:u2] in the standard SAMRAI cell-centered AMR index space.
+ * box [l0:u0,l1:u1,l2:u2] in the standard SAMRAI cell-centered AMR index
+ * space.
  * Note: no boxes are trimmed when DIM < 3.
  *
  * \verbatim
@@ -116,12 +117,12 @@ namespace pdat {
  * The data type TYPE must define a default constructor (that takes no
  * arguments) and also the assignment operator.
  *
- * @see pdat::ArrayData
+ * @see ArrayData
  * @see hier::PatchData
- * @see pdat::OuteredgeDataFactory
- * @see pdat::OuteredgeGeometry
- * @see pdat::EdgeIterator
- * @see pdat::EdgeIndex
+ * @see OuteredgeDataFactory
+ * @see OuteredgeGeometry
+ * @see EdgeIterator
+ * @see EdgeIndex
  */
 
 template<class TYPE>
@@ -142,6 +143,8 @@ public:
     *            Note: the ghost cell width is assumed to be zero.
     * @param depth gives the number of data values for each
     *              spatial location in the array.
+    *
+    * @pre depth > 0
     */
    static size_t
    getSizeOfData(
@@ -158,6 +161,8 @@ public:
     *            outeredge data object will be created.
     * @param depth gives the number of data values for each
     *              spatial location in the array.
+    *
+    * @pre depth > 0
     */
    OuteredgeData(
       const hier::Box& box,
@@ -183,6 +188,9 @@ public:
     *              must satisfy 0 <= axis < DIM
     * @param face_normal  integer face normal direction for data,
     *              must satisfy 0 <= face_normal < DIM
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
     */
    bool
    dataExists(
@@ -220,6 +228,11 @@ public:
     *             data array
     * @param depth integer depth component, must satisfy
     *              0 <= depth < actual depth of data array
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE *
    getPointer(
@@ -241,6 +254,11 @@ public:
     *             data array
     * @param depth integer depth component, must satisfy
     *              0 <= depth < actual depth of data array
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE *
    getPointer(
@@ -257,6 +275,10 @@ public:
     *          an index on the outeredge of the box.
     * @param depth integer depth component, must satisfy
     *              0 <= depth < actual depth of data array
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (i.getAxis() >= 0) && (i.getAxis() < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE&
    operator () (
@@ -271,6 +293,10 @@ public:
     *          an index on the outeredge of the box.
     * @param depth integer depth component, must satisfy
     *              0 <= depth < actual depth of data array
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (i.getAxis() >= 0) && (i.getAxis() < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE&
    operator () (
@@ -288,6 +314,10 @@ public:
     *              must satisfy 0 <= face_normal < DIM
     * @param side integer lower (0) or upper (1) side of outeredge
     *             data array
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    ArrayData<TYPE>&
    getArrayData(
@@ -306,6 +336,10 @@ public:
     *              must satisfy 0 <= face_normal < DIM
     * @param side integer lower (0) or upper (1) side of outeredge
     *             data array
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    const ArrayData<TYPE>&
    getArrayData(
@@ -322,6 +356,10 @@ public:
     * both the source and destination).  Currently, source data must be
     * either EdgeData or OuteredgeData of the same DIM and TYPE.  If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre dynamic_cast<const EdgeData<TYPE> *>(&src) != 0 ||
+    *      dynamic_cast<const OuteredgeData<TYPE> *>(&src) != 0
     */
    virtual void
    copy(
@@ -336,6 +374,10 @@ public:
     * both the source and destination).  Currently, destination data must be
     * either EdgeData or OuteredgeData of the same DIM and TYPE.  If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre dynamic_cast<EdgeData<TYPE> *>(&dst) != 0 ||
+    *      dynamic_cast<OuteredgeData<TYPE> *>(&dst) != 0
     */
    virtual void
    copy2(
@@ -349,6 +391,11 @@ public:
     * of the same DIM and TYPE and the overlap must be an EdgeOverlap
     * of the same DIM.  If not, then an unrecoverable error
     * results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
+    * @pre dynamic_cast<const EdgeData<TYPE> *>(&src) != 0 ||
+    *      dynamic_cast<const OuteredgeData<TYPE> *>(&src) != 0
     */
    virtual void
    copy(
@@ -363,6 +410,11 @@ public:
     * of the same DIM and TYPE and the overlap must be an EdgeOverlap
     * of the same DIM.  If not, then an unrecoverable error
     * results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
+    * @pre dynamic_cast<EdgeData<TYPE> *>(&dst) != 0 ||
+    *      dynamic_cast<OuteredgeData<TYPE> *>(&dst) != 0
     */
    virtual void
    copy2(
@@ -373,6 +425,8 @@ public:
     * @brief Fast copy (i.e., assumes edge and outeredge data objects are
     * defined over the same box) from the given edge source data object to
     * this destination outeredge data object at the specified depths.
+    *
+    * @pre getDim() == src.getDim()
     */
    void
    copyDepth(
@@ -384,6 +438,8 @@ public:
     * @brief Fast copy (i.e., assumes edge and outeredge data objects are
     * defined over the same box) to the given edge destination data object
     * from this source outeredge data object at the specified depths.
+    *
+    * @pre getDim() == dst.getDim()
     */
    void
    copyDepth2(
@@ -398,6 +454,10 @@ public:
     * Currently, source data must be OuteredgeData of the same DIM and
     * TYPE and the overlap must be an EdgeOverlap of the same DIM.
     * If not, then an unrecoverable error results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
+    * @pre dynamic_cast<const OuteredgeData<TYPE> *>(&src) != 0
     */
    virtual void
    sum(
@@ -422,8 +482,10 @@ public:
     *
     * This routine is defined for the standard types (bool, char,
     * double, float, int, and dcomplex).
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
-   virtual int
+   virtual size_t
    getDataStreamSize(
       const hier::BoxOverlap& overlap) const;
 
@@ -431,6 +493,8 @@ public:
     * @brief Pack data in this patch data object lying in the specified
     * box overlap region into the stream.  The overlap must be an
     * EdgeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    packStream(
@@ -441,6 +505,8 @@ public:
     * @brief Unpack data from stream into this patch data object over
     * the specified box overlap region. The overlap must be an
     * EdgeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    unpackStream(
@@ -450,6 +516,8 @@ public:
    /*!
     * @brief Unpack data from stream and add into this patch data object
     * over the specified box overlap region.
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    unpackStreamAndSum(
@@ -458,6 +526,8 @@ public:
 
    /*!
     * @brief Fill all values at depth d with the value t.
+    *
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -466,6 +536,9 @@ public:
 
    /*!
     * @brief Fill all values at depth d within the box with the value t.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -482,6 +555,8 @@ public:
 
    /*!
     * @brief Fill all depth components within the box with value t.
+    *
+    * @pre getDim() == box.getDim()
     */
    void
    fillAll(
@@ -497,10 +572,12 @@ public:
     *        and will be converted to edge index space.
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
-    *        and the default is 6 decimal places floats.  For other types, this
-    *        value is ignored.
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point
+    *        numbers, and the default is 6 decimal places floats.  For other
+    *        types, this value is ignored.
+    *
+    * @pre getDim() == box.getDim()
     */
    void
    print(
@@ -519,10 +596,13 @@ public:
     *              0 <= depth < actual depth of data array
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
-    *        and the default is 6 decimal places floats.  For other types, this
-    *        value is ignored.
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point
+    *        numbers, and the default is 6 decimal places floats.  For other
+    *        types, this value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    void
    print(
@@ -547,10 +627,15 @@ public:
     *        and will be converted to edge index space.
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
-    *        and the default is 6 decimal places floats.  For other types, this
-    *        value is ignored.
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point
+    *        numbers, and the default is 6 decimal places floats.  For other
+    *        types, this value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    void
    printAxisSide(
@@ -578,10 +663,16 @@ public:
     *              0 <= depth < actual depth of data array
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
-    *        and the default is 6 decimal places floats.  For other types, this
-    *        value is ignored.
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point
+    *        numbers, and the default is 6 decimal places floats.  For other
+    *        types, this value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    void
    printAxisSide(
@@ -595,23 +686,23 @@ public:
 
    /*!
     * @brief Check that class version and restart file version are equal.
-    * If so, read data members from the database.
+    * If so, read data members from the restart database.
     *
-    * Assertions: database must be a non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   getSpecializedFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /*!
     * @brief Write out the class version number and other data members to
-    * the database.
+    * the restart database.
     *
-    * Assertions: database must be a non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   putSpecializedToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
 private:
    /*
@@ -619,10 +710,14 @@ private:
     */
    static const int PDAT_OUTEREDGEDATA_VERSION;
 
-   OuteredgeData<TYPE>(const OuteredgeData<TYPE>&); // not implemented
-   void
+   // Unimplemented copy constructor
+   OuteredgeData(
+      const OuteredgeData&);
+
+   // Unimplemented assignment operator
+   OuteredgeData&
    operator = (
-      const OuteredgeData<TYPE>&);                // not implemented
+      const OuteredgeData&);
 
    //@{
    //! @name Internal implementations for data copy operations.
@@ -657,9 +752,9 @@ private:
    //@}
 
    int d_depth;
-   ArrayData<TYPE> d_data[tbox::Dimension::MAXIMUM_DIMENSION_VALUE][tbox::Dimension::
-                                                                    MAXIMUM_DIMENSION_VALUE
-   ][2];
+
+   boost::shared_ptr<ArrayData<TYPE> >
+   d_data[SAMRAI::MAX_DIM_VAL][SAMRAI::MAX_DIM_VAL][2];
 };
 
 }

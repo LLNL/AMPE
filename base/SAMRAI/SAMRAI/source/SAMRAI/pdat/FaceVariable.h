@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -21,23 +21,23 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * Class FaceVariable<DIM> is a templated variable class used to define
+ * Class FaceVariable<TYPE> is a templated variable class used to define
  * face-centered quantities on an AMR mesh.   It is a subclass of
  * hier::Variable and is templated on the type of the underlying data
  * (e.g., double, int, bool, etc.).
  *
  * Note that the indices in the face data arrays are permuted so that
  * the leading index in each array corresponds to the associated face
- * normal coordinate direction. See header file for FaceData<DIM> class
+ * normal coordinate direction. See header file for FaceData<TYPE> class
  * for a more detailed description of the data layout.
  *
- * IMPORTANT: The class SideVariable<DIM> and associated "side data" classes
+ * IMPORTANT: The class SideVariable<TYPE> and associated "side data" classes
  * define the same storage as this face variable class, except that the
  * individual array indices are not permuted in the side data type.
  *
- * @see pdat::FaceData
- * @see pdat::FaceDataFactory
- * @see pdat::FaceGeometry
+ * @see FaceData
+ * @see FaceDataFactory
+ * @see FaceGeometry
  * @see hier::Variable
  */
 
@@ -92,11 +92,14 @@ public:
 private:
    bool d_fine_boundary_represents_var;
 
+   // Unimplemented copy constructor
    FaceVariable(
-      const FaceVariable<TYPE>&);           // not implemented
-   void
+      const FaceVariable&);
+
+   // Unimplemented assignment operator
+   FaceVariable&
    operator = (
-      const FaceVariable<TYPE>&);               // not implemented
+      const FaceVariable&);
 };
 
 }

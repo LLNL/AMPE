@@ -1,12 +1,12 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI patchdata
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: m4 include file for 3d std linear time interpolation operators.
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
 c
-define(SAMRAI_FORTDIR,../../pdat/fortran)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 3d standard linear time interpolation 
+c                operators.
+c
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 define(lin_time_int_subroutine_head_3d,`dnl
      &  ifirst0,ifirst1,ifirst2,ilast0,ilast1,ilast2,
      &  oilo0,oilo1,oilo2,oihi0,oihi1,oihi2,

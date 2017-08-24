@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A class to manage a group of processor ranks
  *
  ************************************************************************/
@@ -13,10 +13,11 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
+
+#include <vector>
 
 namespace SAMRAI {
 namespace tbox {
@@ -60,6 +61,9 @@ public:
     * This constructor creates a RankGroup consisting of all ranks from min
     * to max, inclusive.  min must be >= 0 and max must be less than the
     * total number of available processors.
+    *
+    * @pre min >= 0
+    * @pre min <= max
     */
    RankGroup(
       const int min,
@@ -69,23 +73,36 @@ public:
 
    /*!
     * This constructor creates a RankGroup consisting of ranks corresponding
-    * to the integers in the array.  Each member of the array must be >= 0,
+    * to the integers in the vector.  Each member of the vector must be >= 0,
     * less than the total number of available processors, and unique within
-    * the array.  Due to the use of an array for storage, RankGroups
+    * the vector.  Due to the use of an vector for storage, RankGroups
     * created with this constructor should be expected to be less efficient
     * than those created with the above min/max constructor.
     *
-    * An assertion failure will result if the array is empty.
+    * @pre !rank_group.empty()
     */
    explicit RankGroup(
-      const Array<int>& rank_group,
+      const std::vector<int>& rank_group,
       const SAMRAI_MPI& samrai_mpi =
          SAMRAI_MPI(SAMRAI_MPI::getSAMRAIWorld()));
+
+   /*!
+    * Copy constructor.
+    */
+   RankGroup(
+      const RankGroup& other);
 
    /*!
     * Destructor
     */
    ~RankGroup();
+
+   /*!
+    * Assignment operator.
+    */
+   RankGroup&
+   operator = (
+      const RankGroup& rhs);
 
    /*!
     * Returns true if the RankGroup contains ranks for all available
@@ -108,14 +125,10 @@ public:
       const int min,
       const int max)
    {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      int nodes = 1;
-      d_samrai_mpi.Comm_size(&nodes);
-#endif
       TBOX_ASSERT(min >= 0);
       TBOX_ASSERT(min <= max);
       d_storage = USING_MIN_MAX;
-      d_ranks.resizeArray(0);
+      d_ranks.resize(0);
       d_min = min;
       d_max = max;
    }
@@ -147,6 +160,8 @@ public:
     * contained in the RankGroup, return a unique integer identifier in the
     * set [0,N-1], N being the size of the rank group, according to a 1-to-1
     * mapping.
+    *
+    * @pre rank >= 0
     */
    int
    getMapIndex(
@@ -155,13 +170,12 @@ public:
 private:
    enum StorageType { USING_ALL,
                       USING_ARRAY,
-                      USING_MIN_MAX,
-                      INVALID_STORAGE };
+                      USING_MIN_MAX };
 
    int d_min;
    int d_max;
 
-   Array<int> d_ranks;
+   std::vector<int> d_ranks;
 
    StorageType d_storage;
 

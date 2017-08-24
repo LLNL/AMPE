@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   $Description
  *
  ************************************************************************/
@@ -26,12 +26,6 @@ int main(
 
    SAMRAI_MPI mpi(SAMRAI_MPI::getSAMRAIWorld());
    const Dimension dim(2);
-
-   // for these tests we allow at most 2 procs
-#ifdef DEBUG_CHECK_ASSERTIONS
-   const int nproc = mpi.getSize();
-#endif
-   TBOX_ASSERT(nproc < 3);
 
    //if (argc < 2) {
    //   TBOX_ERROR("Usage: " << argv[0] << " [input file]");
@@ -63,7 +57,7 @@ int main(
             tbox::plog << "PASSED: Restart Test" << std::endl;
          else {
             tbox::perr << "FAILED: Restart Test" << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
       } else {
@@ -72,7 +66,7 @@ int main(
             tbox::plog << "PASSED: Test 1 (construction)" << std::endl;
          else {
             tbox::perr << "FAILED: construction" << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testAdd();
@@ -80,7 +74,7 @@ int main(
             tbox::plog << "PASSED: Test 2 addItems" << std::endl;
          else {
             tbox::perr << "FAILED: addItems" << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testRemove();
@@ -88,7 +82,7 @@ int main(
             tbox::plog << "PASSED: Test 3 removeItems" << std::endl;
          else {
             tbox::perr << "FAILED: remove items" << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testCopy();
@@ -96,7 +90,7 @@ int main(
             tbox::plog << "PASSED: Test 4: copy" << std::endl;
          else {
             tbox::perr << "FAILED: copy items" << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testCopy2();
@@ -104,7 +98,7 @@ int main(
             tbox::plog << "PASSED: Test 5: copy2 " << std::endl;
          else {
             tbox::perr << "FAILED: copy2 " << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testPackStream();
@@ -112,7 +106,7 @@ int main(
             tbox::plog << "PASSED: Test 6: packStream" << std::endl;
          else {
             tbox::perr << "FAILED: packStream " << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          success = tester.testDatabaseInterface();
@@ -120,7 +114,7 @@ int main(
             tbox::plog << "PASSED: Test 7: database interface" << std::endl;
          else {
             tbox::perr << "FAILED: database interface " << std::endl;
-            fail_count++;
+            ++fail_count;
          }
 
          tester.testTiming();

@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Constant refine operator for outerface int data on
  *                a  mesh.
  *
  ************************************************************************/
-
-#ifndef included_pdat_OuterfaceIntegerConstantRefine_C
-#define included_pdat_OuterfaceIntegerConstantRefine_C
-
 #include "SAMRAI/pdat/OuterfaceIntegerConstantRefine.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -33,7 +29,7 @@ extern "C" {
 #endif
 
 // in conrefine1d.f:
-void F77_FUNC(conrefoutfaceintg1d, CONREFOUTFACEINTG1D) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg1d, CONREFOUTFACEINTG1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
@@ -41,7 +37,7 @@ void F77_FUNC(conrefoutfaceintg1d, CONREFOUTFACEINTG1D) (const int&,
    const int *,
    const int *, int *);
 // in conrefine2d.f:
-void F77_FUNC(conrefoutfaceintg2d0, CONREFOUTFACEINTG2D0) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg2d0, CONREFOUTFACEINTG2D0) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
@@ -52,7 +48,7 @@ void F77_FUNC(conrefoutfaceintg2d0, CONREFOUTFACEINTG2D0) (const int&,
    const int&, const int&,
    const int *,
    const int *, int *);
-void F77_FUNC(conrefoutfaceintg2d1, CONREFOUTFACEINTG2D1) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg2d1, CONREFOUTFACEINTG2D1) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
@@ -64,7 +60,7 @@ void F77_FUNC(conrefoutfaceintg2d1, CONREFOUTFACEINTG2D1) (const int&,
    const int *,
    const int *, int *);
 // in conrefine3d.f:
-void F77_FUNC(conrefoutfaceintg3d0, CONREFOUTFACEINTG3D0) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg3d0, CONREFOUTFACEINTG3D0) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -75,7 +71,7 @@ void F77_FUNC(conrefoutfaceintg3d0, CONREFOUTFACEINTG3D0) (const int&,
    const int&, const int&, const int&,
    const int *,
    const int *, int *);
-void F77_FUNC(conrefoutfaceintg3d1, CONREFOUTFACEINTG3D1) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg3d1, CONREFOUTFACEINTG3D1) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -86,7 +82,7 @@ void F77_FUNC(conrefoutfaceintg3d1, CONREFOUTFACEINTG3D1) (const int&,
    const int&, const int&, const int&,
    const int *,
    const int *, int *);
-void F77_FUNC(conrefoutfaceintg3d2, CONREFOUTFACEINTG3D2) (const int&,
+void SAMRAI_F77_FUNC(conrefoutfaceintg3d2, CONREFOUTFACEINTG3D2) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -102,9 +98,8 @@ void F77_FUNC(conrefoutfaceintg3d2, CONREFOUTFACEINTG3D2) (const int&,
 namespace SAMRAI {
 namespace pdat {
 
-OuterfaceIntegerConstantRefine::OuterfaceIntegerConstantRefine(
-   const tbox::Dimension& dim):
-   hier::RefineOperator(dim, "CONSTANT_REFINE")
+OuterfaceIntegerConstantRefine::OuterfaceIntegerConstantRefine():
+   hier::RefineOperator("CONSTANT_REFINE")
 {
 
 }
@@ -120,9 +115,9 @@ OuterfaceIntegerConstantRefine::getOperatorPriority() const
 }
 
 hier::IntVector
-OuterfaceIntegerConstantRefine::getStencilWidth() const
+OuterfaceIntegerConstantRefine::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -134,60 +129,63 @@ OuterfaceIntegerConstantRefine::refine(
    const hier::BoxOverlap& fine_overlap,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
+   const tbox::Dimension& dim(fine.getDim());
 
    boost::shared_ptr<OuterfaceData<int> > cdata(
-      coarse.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<OuterfaceData<int>, hier::PatchData>(
+         coarse.getPatchData(src_component)));
    boost::shared_ptr<OuterfaceData<int> > fdata(
-      fine.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<OuterfaceData<int>, hier::PatchData>(
+         fine.getPatchData(dst_component)));
 
-   const FaceOverlap* t_overlap =
-      dynamic_cast<const FaceOverlap *>(&fine_overlap);
+   const FaceOverlap* t_overlap = CPP_CAST<const FaceOverlap *>(&fine_overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    TBOX_ASSERT(cdata);
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*this, fine, coarse, ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
 
-   const hier::Box cgbox(cdata->getGhostBox());
+   const hier::Box& cgbox(cdata->getGhostBox());
 
-   const hier::Index cilo = cgbox.lower();
-   const hier::Index cihi = cgbox.upper();
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cgbox.lower();
+   const hier::Index& cihi = cgbox.upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
 
-   for (int axis = 0; axis < dim.getValue(); axis++) {
+   for (tbox::Dimension::dir_t axis = 0; axis < dim.getValue(); ++axis) {
       const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer(axis);
 
-      for (hier::BoxContainer::const_iterator b(boxes);
+      for (hier::BoxContainer::const_iterator b = boxes.begin();
            b != boxes.end(); ++b) {
 
          const hier::Box& face_box = *b;
-         TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(dim, face_box);
+         TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(dim, face_box);
 
          hier::Box fine_box(dim);
-         for (int i = 0; i < dim.getValue(); i++) {
-            fine_box.lower((axis + i) % dim.getValue()) = face_box.lower(i);
-            fine_box.upper((axis + i) % dim.getValue()) = face_box.upper(i);
+         for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
+            fine_box.setLower(
+               static_cast<tbox::Dimension::dir_t>((axis + i) % dim.getValue()),
+               face_box.lower(i));
+            fine_box.setUpper(
+               static_cast<tbox::Dimension::dir_t>((axis + i) % dim.getValue()),
+               face_box.upper(i));
          }
 
-         fine_box.upper(axis) -= 1;
+         fine_box.setUpper(axis, fine_box.upper(axis) - 1);
 
          const hier::Box coarse_box = hier::Box::coarsen(fine_box, ratio);
-         const hier::Index ifirstc = coarse_box.lower();
-         const hier::Index ilastc = coarse_box.upper();
-         const hier::Index ifirstf = fine_box.lower();
-         const hier::Index ilastf = fine_box.upper();
+         const hier::Index& ifirstc = coarse_box.lower();
+         const hier::Index& ilastc = coarse_box.upper();
+         const hier::Index& ifirstf = fine_box.lower();
+         const hier::Index& ilastf = fine_box.upper();
 
-         for (int d = 0; d < fdata->getDepth(); d++) {
+         for (int d = 0; d < fdata->getDepth(); ++d) {
             // loop over lower and upper outerface arrays
-            for (int i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; ++i) {
                if (dim == tbox::Dimension(1)) {
-                  F77_FUNC(conrefoutfaceintg1d, CONREFOUTFACEINTG1D) (
+                  SAMRAI_F77_FUNC(conrefoutfaceintg1d, CONREFOUTFACEINTG1D) (
                      ifirstc(0), ilastc(0),
                      ifirstf(0), ilastf(0),
                      cilo(0), cihi(0),
@@ -197,7 +195,7 @@ OuterfaceIntegerConstantRefine::refine(
                      fdata->getPointer(0, i, d));
                } else if (dim == tbox::Dimension(2)) {
                   if (axis == 0) {
-                     F77_FUNC(conrefoutfaceintg2d0, CONREFOUTFACEINTG2D0) (
+                     SAMRAI_F77_FUNC(conrefoutfaceintg2d0, CONREFOUTFACEINTG2D0) (
                         ifirstc(0), ifirstc(1), ilastc(0), ilastc(1),
                         ifirstf(0), ifirstf(1), ilastf(0), ilastf(1),
                         cilo(0), cilo(1), cihi(0), cihi(1),
@@ -206,7 +204,7 @@ OuterfaceIntegerConstantRefine::refine(
                         cdata->getPointer(0, i, d),
                         fdata->getPointer(0, i, d));
                   } else if (axis == 1) {
-                     F77_FUNC(conrefoutfaceintg2d1, CONREFOUTFACEINTG2D1) (
+                     SAMRAI_F77_FUNC(conrefoutfaceintg2d1, CONREFOUTFACEINTG2D1) (
                         ifirstc(0), ifirstc(1), ilastc(0), ilastc(1),
                         ifirstf(0), ifirstf(1), ilastf(0), ilastf(1),
                         cilo(0), cilo(1), cihi(0), cihi(1),
@@ -217,7 +215,7 @@ OuterfaceIntegerConstantRefine::refine(
                   }
                } else if (dim == tbox::Dimension(3)) {
                   if (axis == 0) {
-                     F77_FUNC(conrefoutfaceintg3d0, CONREFOUTFACEINTG3D0) (
+                     SAMRAI_F77_FUNC(conrefoutfaceintg3d0, CONREFOUTFACEINTG3D0) (
                         ifirstc(0), ifirstc(1), ifirstc(2),
                         ilastc(0), ilastc(1), ilastc(2),
                         ifirstf(0), ifirstf(1), ifirstf(2),
@@ -230,7 +228,7 @@ OuterfaceIntegerConstantRefine::refine(
                         cdata->getPointer(0, i, d),
                         fdata->getPointer(0, i, d));
                   } else if (axis == 1) {
-                     F77_FUNC(conrefoutfaceintg3d1, CONREFOUTFACEINTG3D1) (
+                     SAMRAI_F77_FUNC(conrefoutfaceintg3d1, CONREFOUTFACEINTG3D1) (
                         ifirstc(0), ifirstc(1), ifirstc(2),
                         ilastc(0), ilastc(1), ilastc(2),
                         ifirstf(0), ifirstf(1), ifirstf(2),
@@ -243,7 +241,7 @@ OuterfaceIntegerConstantRefine::refine(
                         cdata->getPointer(1, i, d),
                         fdata->getPointer(1, i, d));
                   } else if (axis == 2) {
-                     F77_FUNC(conrefoutfaceintg3d2, CONREFOUTFACEINTG3D2) (
+                     SAMRAI_F77_FUNC(conrefoutfaceintg3d2, CONREFOUTFACEINTG3D2) (
                         ifirstc(0), ifirstc(1), ifirstc(2),
                         ilastc(0), ilastc(1), ilastc(2),
                         ifirstf(0), ifirstf(1), ifirstf(2),
@@ -269,4 +267,3 @@ OuterfaceIntegerConstantRefine::refine(
 
 }
 }
-#endif

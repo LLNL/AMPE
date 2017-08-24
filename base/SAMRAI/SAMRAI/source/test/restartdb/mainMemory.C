@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Tests Memory database in SAMRAI
  *
  ************************************************************************/
@@ -11,7 +11,6 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/DatabaseBox.h"
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -19,7 +18,7 @@
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/RestartManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 using namespace std;
@@ -39,13 +38,13 @@ public:
    virtual ~RestartTester() {
    }
 
-   void putToDatabase(
+   void putToRestart(
       const boost::shared_ptr<tbox::Database>& db) const
    {
       writeTestData(db);
    }
 
-   void getFromDatabase()
+   void getFromRestart()
    {
       boost::shared_ptr<tbox::Database> root_db(
          tbox::RestartManager::getManager()->getRootDatabase());
@@ -99,7 +98,7 @@ int main(
 
       // In this test just read the database stored in memory that
       // was just created.
-      memory_tester.getFromDatabase();
+      memory_tester.getFromRestart();
 
       database->close();
 

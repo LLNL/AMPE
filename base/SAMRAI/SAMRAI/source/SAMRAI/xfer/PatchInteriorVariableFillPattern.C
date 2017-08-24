@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fill pattern class that fills patch interiors only
  *
  ************************************************************************/
-
-#ifndef included_xfer_PatchInteriorVariableFillPattern_C
-#define included_xfer_PatchInteriorVariableFillPattern_C
-
 #include "SAMRAI/xfer/PatchInteriorVariableFillPattern.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -68,7 +64,7 @@ PatchInteriorVariableFillPattern::calculateOverlap(
 {
    NULL_USE(dst_patch_box);
    NULL_USE(overwrite_interior);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(dst_patch_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(dst_patch_box, src_mask);
    hier::BoxContainer dst_restrict_boxes(dst_patch_box);
    return dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box,
       true, transformation,
@@ -86,10 +82,13 @@ PatchInteriorVariableFillPattern::calculateOverlap(
 boost::shared_ptr<hier::BoxOverlap>
 PatchInteriorVariableFillPattern::computeFillBoxesOverlap(
    const hier::BoxContainer& fill_boxes,
+   const hier::BoxContainer& unfilled_node_boxes,
    const hier::Box& patch_box,
    const hier::Box& data_box,
    const hier::PatchDataFactory& pdf) const
 {
+   NULL_USE(unfilled_node_boxes);
+
    /*
     * For this case, the overlap is simply the intersection of
     * fill_boxes, data_box, and patch_box.
@@ -118,4 +117,3 @@ PatchInteriorVariableFillPattern::getPatternName() const
 
 }
 }
-#endif

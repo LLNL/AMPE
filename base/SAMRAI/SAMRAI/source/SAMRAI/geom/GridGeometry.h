@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for geometry management in AMR hierarchy
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/tbox/Dimension.h"
 
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace geom {
@@ -34,14 +34,106 @@ namespace geom {
  * problems and other problems where the physical locations of mesh
  * coordinates are managed by user code.
  *
+ * <b> Input Parameters </b>
+ *
+ * <b> Definitions: </b>
+ *    - @b    num_blocks
+ *       specifies the number of blocks in the mesh configuration.
+ *
+ *    - @b    domain_boxes_
+ *       For each block, an array of boxes representing the index space for the
+ *       entire domain within a block on the coarsest mesh level; i.e., level
+ *       zero.  The key must have an integer value as a suffix
+ *       (domain_boxes_0, domain_boxes_1, etc.), and there must be an entry
+ *       for every block from 0 to num_blocks-1.
+ *
+ *    - @b    periodic_dimension
+ *       An array of integer values (expected number of values is equal to
+ *       the spatial dimension of the mesh) representing the directions in
+ *       which the physical domain is periodic.  A non-zero value indicates
+ *       that the direction is periodic.  A zero value indicates that the
+ *       direction is not periodic.  This key should only be used when the
+ *       number of blocks is 1 (a single block mesh), as periodic boundaries
+ *       are not supported for multiblock meshes.
+ *
+ *    - @b    Singularity
+ *       When there is a reduced or enhanced connectivity singularity, this key
+ *       must be used to identify which blocks touch the singularity and the
+ *       position of the singularity in relation to each block's index space.
+ *       The key for this entry must include a unique trailing integer, and the
+ *       integers for the full set of Singularity keys must be a continuous
+ *       sequence beginning with 0.
+ *
+ *    - @b    BlockNeighbors
+ *       For multiblock grids, a BlockNeighbors entry must be given for every
+ *       pair of blocks that touch each other in any way.  Like Singularity,
+ *       each entry must have a trailing integer beginning with 0.
+ *
+ * No values read in from a restart database may be overridden by input
+ * database values.
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>num_blocks</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=1</td>
+ *     <td>opt</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>domain_boxes_N</td>
+ *     <td>array of DatabaseBoxes</td>
+ *     <td>none</td>
+ *     <td>all Boxes must be non-empty</td>
+ *     <td>req</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>periodic_dimension</td>
+ *     <td>int[]</td>
+ *     <td>all values 0</td>
+ *     <td>any int</td>
+ *     <td>opt</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>Singularity</td>
+ *     <td>see Multiblock.pdf for subentries</td>
+ *     <td>none</td>
+ *     <td>see Multiblock.pdf for subentries</td>
+ *     <td>opt</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>BlockNeighbors</td>
+ *     <td>see Multiblock.pdf for subentries</td>
+ *     <td>none</td>
+ *     <td>see Multiblock.pdf for subentries</td>
+ *     <td>opt</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ * </table>
+ *
+ * A description of the input format for Singularity* and BlockNeighbors*
+ * is included in the Multiblock.pdf document in the docs/userdocs
+ * directory of the SAMRAI distribution.
+ *
  * @see hier::BaseGridGeometry
  */
 
 class GridGeometry:
    public hier::BaseGridGeometry
 {
-   friend class TransferOperatorRegistry;
-
 public:
    /*!
     * @brief Construct a new GridGeometry object and initialize from
@@ -49,52 +141,37 @@ public:
     *
     * This constructor for GridGeometry initializes data members
     * based on parameters read from the specified input database.
-    * The constructor also registers this object for restart using
-    * the specified object name, when the boolean argument is true.
-    * Whether the object will write its state to restart files during
-    * program execution is determined by this argument.
     *
     * This constructor is intended for use when directly constructing a
     * GridGeometry without using a derived child class.  The object will
     * contain all index space grid information for a mesh, but nothing about
     * the physical coordinates of the mesh.
     *
-    * @note
-    * @b Errors: passing in a null database pointer or an empty string
-    * will result in an unrecoverable assertion.
-    *
     * @param[in]  dim
     * @param[in]  object_name
     * @param[in]  input_db
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.  @b Default: true
+    * @param[in]  allow_multiblock set to false if called by inherently single
+    *             block derived class such as CartesianGridGeometry
     */
    GridGeometry(
       const tbox::Dimension& dim,
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
-      bool register_for_restart = true);
+      bool allow_multiblock = true);
 
    /*!
     * @brief Construct a new GridGeometry object based on arguments.
     *
     * This constructor creates a new GridGeometry object based on the
-    * arguments, rather than relying on input or restart data.  The
-    * constructor also registers this object for restart using
-    * the specified object name, when the boolean argument is true.
-    * Whether the object will write its state to restart files during
-    * program execution is determined by this argument.
+    * arguments, rather than relying on input or restart data.
     *
     * @param[in]  object_name
     * @param[in]  domain      Each element of the array describes the index
     *                         space for a block.
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.  @b Default: true
     */
    GridGeometry(
       const std::string& object_name,
-      const hier::BoxContainer& domain,
-      bool register_for_restart = true);
+      hier::BoxContainer& domain);
 
    /*!
     * @brief Construct a new coarsened/refined GridGeometry object with the
@@ -109,14 +186,11 @@ public:
     * @param[in]  domain The coarsened/refined domain.
     * @param[in]  op_reg The same operator registry as the
     *                    uncoarsened/unrefined grid geometry.
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.
     */
    GridGeometry(
       const std::string& object_name,
-      const hier::BoxContainer& domain,
-      const boost::shared_ptr<hier::TransferOperatorRegistry>& op_reg,
-      bool register_for_restart);
+      hier::BoxContainer& domain,
+      const boost::shared_ptr<hier::TransferOperatorRegistry>& op_reg);
 
    /*!
     * @brief Virtual destructor
@@ -132,16 +206,18 @@ public:
     *
     * @param[in]     fine_geom_name std::string name of the geometry object
     * @param[in]     refine_ratio the refinement ratio.
-    * @param[in]     register_for_restart Flag to indicate whether to register
-    *                for restart.
     *
     * @return The pointer to the grid geometry object.
+    *
+    * @pre !fine_geom_name.empty()
+    * @pre fine_geom_name != getObjectName()
+    * @pre getDim() == refine_ratio.getDim()
+    * @pre refine_ratio > hier::IntVector::getZero(getDim())
     */
    virtual boost::shared_ptr<hier::BaseGridGeometry>
    makeRefinedGridGeometry(
       const std::string& fine_geom_name,
-      const hier::IntVector& refine_ratio,
-      bool register_for_restart) const;
+      const hier::IntVector& refine_ratio) const;
 
    /*!
     * @brief Create a pointer to a coarsened version of this grid geometry
@@ -152,42 +228,20 @@ public:
     *
     * @param[in]     coarse_geom_name std::string name of the geometry object
     * @param[in]     coarsen_ratio the coasening ratio
-    * @param[in]     register_for_restart Flag to indicate whether to register
-    *                for restart.
     *
     * @return The pointer to a coarsened version of this grid geometry object.
+    *
+    * @pre !coarse_geom_name.empty()
+    * @pre coarse_geom_name != getObjectName()
+    * @pre getDim() == coarsen_ratio.getDim()
+    * @pre coarsen_ratio > hier::IntVector::getZero(getDim())
     */
    virtual boost::shared_ptr<hier::BaseGridGeometry>
    makeCoarsenedGridGeometry(
       const std::string& coarse_geom_name,
-      const hier::IntVector& coarsen_ratio,
-      bool register_for_restart) const;
+      const hier::IntVector& coarsen_ratio) const;
 
 protected:
-   /*!
-    * @brief To be called from derived class constructor when constructing
-    *        coarsened/refined grid geometry.
-    *
-    * @param [in] dim
-    * @param [in] object_name
-    * @param [in] op_reg
-    */
-   GridGeometry(
-      const tbox::Dimension& dim,
-      const std::string& object_name,
-      const boost::shared_ptr<hier::TransferOperatorRegistry>& op_reg);
-
-   /*!
-    * @brief To be called from derived class constructors except when
-    *        constructing coarsened/refined grid geometry.
-    *
-    * @param [in] dim
-    * @param [in] object_name
-    */
-   GridGeometry(
-      const tbox::Dimension& dim,
-      const std::string& object_name);
-
    /*!
     * @brief Build operators appropriate for a GridGeometry.
     */

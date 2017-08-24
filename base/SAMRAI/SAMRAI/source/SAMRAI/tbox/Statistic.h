@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Class to record statistics during program execution.
  *
  ************************************************************************/
@@ -14,7 +14,6 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include <string>
@@ -71,7 +70,7 @@ class Statistician;
  * on level zero, level 1, etc.  In this case, one can cimply create a
  * separate statistic object for each level.
  *
- * @see tbox::Statistician
+ * @see Statistician
  */
 
 class Statistic
@@ -136,9 +135,9 @@ public:
     * Record double processor statistic value. The optional sequence number
     * argument identifies where in timestep sequence the value should be.
     * If the sequence number is not specified, an internal counter will
-    * determine the appropriate sequence number. When assertion checking
-    * is active, an unrecoverable assertion will result if this function
-    * is called and "PATCH_STAT" was specified in the constructor.
+    * determine the appropriate sequence number.
+    *
+    * @pre getType() == "PROC_STAT"
     */
    void
    recordProcStat(
@@ -151,9 +150,9 @@ public:
     * argument identifies where in timestep sequence the value should be.
     * The sequence number MUST be explicitly specified because the number
     * of patches on each processor will generally be different at
-    * each sequence step.  When assertion checking is active, an
-    * unrecoverable assertion will result if this function is called and
-    * "PROC_STAT" was specified in the constructor.
+    * each sequence step.
+    *
+    * @pre getType() == "PATCH_STAT"
     */
    void
    recordPatchStat(
@@ -173,14 +172,16 @@ public:
    }
 
    /**
-    * Return integer number of bytes needed to stream the statistic data.
+    * Return number of bytes needed to stream the statistic data.
     * This is the amount needed by the stat transaction class.
     */
-   int
+   size_t
    getDataStreamSize();
 
    /**
     * Pack contents of statistic data structure into message stream.
+    *
+    * @pre SAMRAI_MPI::getSAMRAIWorld().getRank() != 0
     */
    void
    packStream(
@@ -188,6 +189,8 @@ public:
 
    /**
     * Unpack contents of statistic data structure from message stream.
+    *
+    * @pre SAMRAI_MPI::getSAMRAIWorld().getRank() == 0
     */
    void
    unpackStream(
@@ -196,6 +199,8 @@ public:
    /**
     * Print statistic data to given output stream.  Floating point precision
     * can be specified (default is 12).
+    *
+    * @pre precision > 0
     */
    void
    printClassData(
@@ -203,20 +208,23 @@ public:
       int precision = 12) const;
 
    /**
-    * Write statistic data members to database. When assertion checking
-    * is on, the database pointer must be non-null.
+    * Write statistic data members to restart database. The restart_db pointer
+    * must be non-null.
+    *
+    * @pre restart_db
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<Database>& restart_db) const;
 
    /**
-    * Read restarted times from restart database.  When assertion checking
-    * is on, the database pointer must be non-null.
+    * Read restarted times from restart database.
+    *
+    * @pre restart_db
     */
    void
    getFromRestart(
-      const boost::shared_ptr<Database>& db);
+      const boost::shared_ptr<Database>& restart_db);
 
    /*
     * These structures are used to store statistic data entries.
@@ -239,6 +247,11 @@ protected:
    /**
     * The constructor for the Statistic class sets the name string
     * and the statistic type for a statistic object.
+    *
+    * @pre !name.empty()
+    * @pre !stat_type.empty()
+    * @pre (stat_type == "PROC_STAT") || (stat_type = "PATCH_STAT")
+    * @pre instance_id > -1
     */
    Statistic(
       const std::string& name,
@@ -248,7 +261,7 @@ protected:
    /**
     * Return const reference to list of processor records.
     */
-   const Array<Statistic::ProcStat>&
+   const std::vector<Statistic::ProcStat>&
    getProcStatSeqArray() const
    {
       return d_proc_array;
@@ -257,7 +270,7 @@ protected:
    /**
     * Return const reference to list of patch records.
     */
-   const Array<Statistic::PatchStat>&
+   const std::vector<Statistic::PatchStat>&
    getPatchStatSeqArray() const
    {
       return d_patch_array;
@@ -284,10 +297,11 @@ private:
    checkArraySizes(
       int seq_num);
 
-   // The following two members are not implemented
+   // The following three members are not implemented
+   Statistic();
    Statistic(
       const Statistic&);
-   void
+   Statistic&
    operator = (
       const Statistic&);
 
@@ -304,12 +318,12 @@ private:
    int d_stat_type;            // see STATISTIC_RECORD_TYPE above.
 
    /*
-    * Arrays of records.  Note that one of these will always be empty.
+    * Vectors of records.  Note that one of these will always be empty.
     * Integer sequence length refers to length of list corresponding
     * to stat type.
     */
-   Array<Statistic::ProcStat> d_proc_array;
-   Array<Statistic::PatchStat> d_patch_array;
+   std::vector<Statistic::ProcStat> d_proc_array;
+   std::vector<Statistic::PatchStat> d_patch_array;
 
    /*
     * Sequence and patch counters (NOTE: patch counter use for patch stats

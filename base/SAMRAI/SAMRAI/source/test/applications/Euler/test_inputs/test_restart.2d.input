@@ -3,53 +3,73 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for SAMRAI Euler example problem (2d room) 
  *
  ************************************************************************/
+
+// Refer to test2d.input for full description of all input parameters specific
+// to this problem.
 
 GlobalInputs {
    call_abort_in_serial_instead_of_exit = FALSE
 }
 
 AutoTester {
-   test_fluxes = FALSE
+   // iteration to carry out test
    test_iter_num = 10
+
+   // expected correct result
    correct_result = 0.602378029044, 0.0118573379806, 0.00131668704346
+
+   // if true will write corrct result--useful for rebaselining
    output_correct = FALSE
 
+   // if true will write correct patch boxes--useful for rebaselining
    write_patch_boxes = FALSE
+
+   // if true will read correct patch boxes--set to FALSE to rebaseline
    read_patch_boxes = TRUE
-   test_patch_boxes_at_steps = 0, 5, 10  // 0 checks initial data
+
+   // time steps for which correctness of patch boxes will be checked
+   test_patch_boxes_at_steps = 0, 5, 10
+
+   // base name of files containing correct patch boxes
    test_patch_boxes_filename = "test_inputs/test_restart.2d.boxes"
-   simplify_test_boxes = TRUE
 }
 
 Euler {
-   gamma            = 1.4      // gamma = Ratio of specific heats
+   // Ratio of specific heats
+   gamma            = 1.4
 
-   godunov_order    = 4        // order of Goduov slopes (1, 2, or 4)
+   // order of Goduov slopes (1, 2, or 4)
+   godunov_order    = 4
 
+   // Riemann solver used in flux calculation
    riemann_solve        = "APPROX_RIEM_SOLVE"
 //   riemann_solve        = "EXACT_RIEM_SOLVE"
 //   riemann_solve        = "HLLC_RIEM_SOLVE"
 
+   // General type of problem and its initial conditions.
    data_problem         = "SPHERE"
-
    Initial_data {
       radius            = 6.0
-      center            = 30.0 , 30.0
+      center            = 30.0 , 30.0 // vector of length dim
 
       density_inside    = 8.0
-      velocity_inside   = 0.0 , 0.0
+      velocity_inside   = 0.0 , 0.0 // vector of length dim
       pressure_inside   = 40.0
 
       density_outside    = 1.0
-      velocity_outside   = 0.0 , 0.0
+      velocity_outside   = 0.0 , 0.0 // vector of length dim
       pressure_outside   = 1.0
 
    }
 
+   // Refinement criteria and, for each, the parameters controling it.
+   // Refinement criteria may be one or more of DENSITY_DEVIATION,
+   // DENSITY_GRADIENT, DENSITY_SHOCK, DENSITY_RICHARDSON, PRESSURE_DEVIATION,
+   // PRESSURE_GRADIENT, PRESSURE_SHOCK, or PRESSURE_RICHARDSON.
    Refinement_data {
       refine_criteria = "PRESSURE_RICHARDSON"
 
@@ -58,7 +78,8 @@ Euler {
       }
    }
 
-   // valid boundary_condition values are "FLOW", "REFLECT", "DIRICHLET"
+   // Boundary condition data following the format defined in
+   // appu::CartesianBoundaryUtility[2,3]
    Boundary_data {
       boundary_edge_xlo {
          boundary_condition      = "REFLECT"
@@ -97,21 +118,28 @@ Euler {
 }
 
 Main {
+   // dimension of problem
    dim = 2
-   base_name = "test_restart.2d"
-// log file parameters
+   
+   // base name of log file
+   base_name = "test_restart.2d" 
+   
+   // if true all nodes will log to individual files
+   // if false only node 0 will log
    log_all_nodes    = TRUE
 
-// visualization dump parameters
-   viz_dump_interval     = 1         // zero to turn off
+   // visualization dump parameters
+   // frequency at which to dump viz output--zero to turn off
+   viz_dump_interval    = 1
+   // directory in which to place viz output
    viz_dump_dirname     = "viz-test-2d-re"
 
-// restart dump parameters
-   restart_interval       = 1         // zero to turn off
-
-   plotting_interval = 0
+   // restart dump parameters
+   // frequency at which to dump restart output--zero to turn off
+   restart_interval     = 1
 }
 
+// Refer to tbox::TimerManager for input
 TimerManager{
    print_exclusive      = TRUE   // output exclusive time
    timer_list               = "apps::main::*",
@@ -120,6 +148,7 @@ TimerManager{
                               "algs::HyperbolicLevelIntegrator::*"
 }
 
+// Refer to geom::CartesianGridGeometry and its base classes for input
 CartesianGeometry{
    domain_boxes	= [(0,0),(59,59)]
 
@@ -127,21 +156,23 @@ CartesianGeometry{
    x_up = 60.e0 , 60.e0 // upper end of computational domain.
 }
 
+// Refer to mesh::StandardTagAndInitialize for input
 StandardTagAndInitialize {
    tagging_method = "RICHARDSON_EXTRAPOLATION"
 }
 
+// Refer to hier::PatchHierarchy for input
 PatchHierarchy {
    max_levels = 3         // Maximum number of levels in hierarchy.
 
-   ratio_to_coarser {      // vector ratio to next coarser level
-      level_1 = 4 , 4
-      level_2 = 4 , 4
-      level_3 = 4 , 4
+   ratio_to_coarser {              // vector ratio to next coarser level
+      level_1            = 4 , 4
+      level_2            = 4 , 4
+      level_3            = 4 , 4
    }
 
    largest_patch_size {
-      level_0 = 48 , 48
+      level_0 = 48 , 48  // largest patch allowed in hierarchy
       // all finer levels will use same values as level_0...
    }
 
@@ -153,18 +184,20 @@ PatchHierarchy {
 
 }
 
+// Refer to mesh::GriddingAlgorithm for input
 GriddingAlgorithm{
-
-   efficiency_tolerance    = 0.70e0   // min % of tag cells in new patch level
-   combine_efficiency      = 0.85e0   // chop box if sum of volumes of smaller
-                                      // boxes < efficiency * vol of large box
    sequentialize_patch_indices = TRUE // Required for plotting.
 }
-
+   
+// Refer to mesh::BergerRigoutsos for input
 BergerRigoutsos {
-  sort_output_nodes = TRUE // Makes results repeatable.
+   sort_output_nodes = TRUE // Makes results repeatable.
+   efficiency_tolerance   = 0.70e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
 }
-
+   
+// Refer to algs::HyperbolicLevelIntegrator for input
 HyperbolicLevelIntegrator{
    cfl                       = 0.9e0    // max cfl factor used in problem
    cfl_init                  = 0.1e0    // initial cfl factor
@@ -172,6 +205,7 @@ HyperbolicLevelIntegrator{
    use_ghosts_to_compute_dt  = TRUE
 }
 
+// Refer to algs::TimeRefinementIntegrator for input
 TimeRefinementIntegrator{
    start_time           = 0.e0     // initial simulation time
    end_time             = 100.e0   // final simulation time
@@ -179,6 +213,7 @@ TimeRefinementIntegrator{
    max_integrator_steps = 10       // max number of simulation timesteps
 }
 
+// Refer to mesh::TreeLoadBalancer for input
 LoadBalancer {
-// using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
+   // using default TreeLoadBalancer configuration
 }

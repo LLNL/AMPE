@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Manager class for patch data communication tests.
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/ComponentSelector.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
@@ -39,7 +38,7 @@ using namespace std;
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 
@@ -147,6 +146,10 @@ public:
    performRefineOperations(
       const int level_number);
 
+   bool
+   performCompositeBoundaryComm(
+      const int level_number);
+
    /**
     * Coarsen data to specified level.
     */
@@ -196,7 +199,8 @@ public:
       const hier::IntVector& gcw);
 
    hier::IntVector
-   getRefineOpStencilWidth() const;
+   getRefineOpStencilWidth(
+      const tbox::Dimension& dim) const;
 
    void
    preprocessRefine(
@@ -213,7 +217,8 @@ public:
       const hier::IntVector& ratio);
 
    hier::IntVector
-   getCoarsenOpStencilWidth() const;
+   getCoarsenOpStencilWidth(
+      const tbox::Dimension& dim) const;
 
    void
    preprocessCoarsen(
@@ -267,6 +272,14 @@ public:
       boost::shared_ptr<tbox::Database> main_input_db,
       boost::shared_ptr<mesh::StandardTagAndInitialize> cell_tagger);
 
+   /*!
+    * @brief Return the dimension of this object.
+    */
+   const tbox::Dimension& getDim() const
+   {
+      return d_dim;
+   }
+
 private:
    const tbox::Dimension d_dim;
 
@@ -304,6 +317,11 @@ private:
    double d_fake_time;
 
    /*
+    * Dummy cycle for all data operations.
+    */
+   int d_fake_cycle;
+
+   /*
     * The CommTester uses two variable contexts for each variable.
     * The "source", and "destination" contexts indicate the source
     * and destination patch data for the transfer operation.
@@ -338,9 +356,9 @@ private:
 
    bool d_is_reset;
 
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> > d_fill_source_schedule;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> > d_refine_schedule;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> > d_coarsen_schedule;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> > d_fill_source_schedule;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> > d_refine_schedule;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> > d_coarsen_schedule;
 
 };
 

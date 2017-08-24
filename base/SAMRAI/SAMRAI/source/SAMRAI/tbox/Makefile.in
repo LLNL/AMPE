@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   primary makefile for compiling the SAMRAI tbox package 
 ##
 #########################################################################
@@ -26,7 +26,10 @@ OBJS = 	\
 	AsyncCommGroup.o \
 	AsyncCommStage.o \
 	BalancedDepthFirstTree.o \
+	BreadthFirstRankTree.o \
+	CenteredRankTree.o \
 	Clock.o \
+	CommGraphWriter.o \
 	Database.o \
 	DatabaseBox.o \
 	DatabaseFactory.o \
@@ -47,6 +50,7 @@ OBJS = 	\
 	ParallelBuffer.o \
 	Parser.o \
 	RankGroup.o \
+	RankTreeStrategy.o \
 	ReferenceCounter.o \
 	RestartManager.o \
 	SAMRAIManager.o \
@@ -69,7 +73,7 @@ OBJS = 	\
 library: $(OBJS)
 	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
 	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 
 include $(SRCDIR)/Makefile.depend

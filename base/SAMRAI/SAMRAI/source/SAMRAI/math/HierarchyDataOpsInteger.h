@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to operations for integer data on hierarchy.
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
@@ -66,7 +66,6 @@ public:
 
    /**
     * Reset range of patch levels over which operations occur.
-    * Typically, levels must exist in hierarchy or an assertion will result.
     */
    virtual void
    resetLevels(
@@ -87,7 +86,7 @@ public:
     * is false, all elements will be counted (including ghost values)
     * over all patches.
     */
-   virtual int
+   virtual size_t
    numberOfEntries(
       const int data_id,
       const bool interior_only = true) const = 0;
@@ -280,7 +279,7 @@ private:
    // The following are not implemented
    HierarchyDataOpsInteger(
       const HierarchyDataOpsInteger&);
-   void
+   HierarchyDataOpsInteger&
    operator = (
       const HierarchyDataOpsInteger&);
 

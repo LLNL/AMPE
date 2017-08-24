@@ -3,61 +3,90 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   README file for LinAdv test.
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   README file for Linear Advection test.
 ##
 #########################################################################
 
-This directory contains a Makefile to build an Automatic testing
-version of the LinAdv application.  It is used in the autotest
-suite of SAMRAI.
+This README explains how to compile and run the Linear Advection application.
+The files in this directory are as follows:
 
-The Makefile operates on the LinAdv code in the applications
-directory.  However, it performs two functions not done in the
-standard LinAdv application.  First, it builds and links the 
-AutoTester class, located in /SAMRAI/source/test/applications.
-This class reads information from input and performs an
-"evaluate" function to assure the computed information is 
-correct.  Second, it sets to TRUE the TESTING preprocessor
-option so that the autotest part of LinAdv is included.
+          main.C         -  application driver program
+          LinAdv.[C,h    -  C++ class containing routines specific to the
+                            Linear Advection example and which are called from
+                            SAMRAI AMR library routines
+          LinAdvFort.h   -  header file defining external fortran routines
+          fortran/2d,3d  -  Fortran numerical routines for 2d,3d problems.
 
-The following segment should be added to the input file 
-to satisfy the input requirements for AutoTester:
+To understand the construction of this application code from pieces
+specific to the Linear Advection model and more generic pieces in the SAMRAI
+library consider the object construction pattern in the main.C file.
+For more details on library classes and the LinAdv class consult the
+the comments in the header files for the library classes and the
+LinAdv.h class header file.
 
-// Automated testing arguments.
-//    test_iter_num  -- (int) iteration number (i.e. coarse-grid
-//                      timestep) for which to check result [10].
-//    test_fluxes    -- (bool) test Riemann solver.
-//                      If TRUE, it outputs primitive variables to a
-//                      file which can then be verified against some
-//                      known "correct" result.  If FALSE, it will
-//                      simply check timesteps in the
-//                      HyperbolicLevelIntegrator. [FALSE]
-//    correct_result -- (double array) specification of correct result
-//                      for the different test performed.  If the
-//                      computed result does not match the specified
-//                      result, the code will report an error [0].
-//    output_correct -- (bool) output computed result.  Useful for
-//                      setting baseline "correct_result" values for a
-//                      new problem.  That is, set to TRUE and run the
-//                      case. Enter the output values in the
-//                      correct_result array in input, and use the
-//                      input file for automated testing. [FALSE]
-AutoTester {
-   test_iter_num = 10
-   test_fluxes = FALSE
-   correct_result = 2.25, 0.0140625, 0.0140625
-   output_correct = FALSE
-}
 
-A 2D and a 3D test input file are included with LinAdv:
-   test-2d.input - contains input and "correct" output data for 2D
-                   test of LinAdv
-   test-3d.input - same, but for 3D test. 
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
+
+   Execution:
+      A 2D and a 3D test input file are included with LinAdv:
+         test.2d.input - contains input and "correct" output data for 2D
+                         test of LinAdv
+         test.3d.input - same, but for 3D test. 
+
+      serial:
+         ./main test_inputs/test.[2,3]d.input
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main test_inputs/test.[2,3]d.input
+
+      Restarted Run:
+         same format as regular run but add <restart dir> <restore num>
+         to end of command.
+            <restart dir> is directory where restart files are stored
+                          (set in input file).
+            <restore num> is the identifier of which restart file to use
+                          (generally the timestep).
+
+         example:  (to start from timestep #5)
+
+         ./main test_inputs/test.2d.input test.2d.restart 5
+         mpirun -np 2 ./main test_inputs/test.2d.input test.2d.restart 5
+
+         NOTE:  The ordinary use of our restart functionality requires that
+                a problem can only be restarted on on the same number of
+                processors on which the problem was originally run.  To restart
+                on a different number of processors, used the
+                restart-redistribute tool in SAMRAI/tools/restart.
+
+   There are also example input files in the subdirectory example_inputs.
+      sine_front.2d.input - advecting 2d sinusoidal front in a box with 3
+                            levels
+      sphere.2d.input - advecting 2d sphere in a box with 3 levels
+                        using UVAL_GRADIENT and UVAL_SHOCK refinement criteria
+      sphere.3d.input - advecting 3d sphere in a box with 3 levels
+                        using UVAL_GRADIENT and UVAL_SHOCK refinement criteria
+      sphere_4levels.2d.input - advecting 2d sphere in a box with 4 levels
+                                using UVAL_GRADIENT and UVAL_SHOCK refinement
+                                criteria
+      sphere_restart.2d.input - advecting 2d sphere in a box with 4 levels
+                                using UVAL_RICHARDSON refinement criteria and
+                                different values for a number of meshing and
+                                tagging parameters from the file above
+
+
+INPUT PARAMETER
+---------------
+Refer to test_inputs/test2d.input for full description of all input parameters
+specific to this problem.
 
 
 RESETTING BASELINES
-
+-------------------
 The tests that are run from this directory include comparisons of the results
 to baseline data that represent expected results.  The tests compare the
 box configuration of the hierarchy, and certain timestep floating point values,
@@ -95,4 +124,3 @@ according to the following steps
    correct_results).
 
 6. make checktest (there should be no more errors).
-

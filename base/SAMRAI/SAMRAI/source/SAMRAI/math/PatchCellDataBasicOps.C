@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Basic templated cell-centered patch data operations.
  *
  ************************************************************************/
@@ -30,31 +30,6 @@ PatchCellDataBasicOps<TYPE>::~PatchCellDataBasicOps()
 /*
  *************************************************************************
  *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchCellDataBasicOps<TYPE>::PatchCellDataBasicOps(
-   const PatchCellDataBasicOps<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchCellDataBasicOps<TYPE>::operator = (
-   const PatchCellDataBasicOps<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-/*
- *************************************************************************
- *
  * Generic templated basic operations for cell-centered patch data.
  *
  *************************************************************************
@@ -69,7 +44,7 @@ PatchCellDataBasicOps<TYPE>::scale(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    d_array_ops.scale(dst->getArrayData(),
       alpha, src->getArrayData(),
@@ -85,7 +60,7 @@ PatchCellDataBasicOps<TYPE>::addScalar(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    d_array_ops.addScalar(dst->getArrayData(),
       src->getArrayData(), alpha,
@@ -101,7 +76,7 @@ PatchCellDataBasicOps<TYPE>::add(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.add(dst->getArrayData(),
       src1->getArrayData(), src2->getArrayData(),
@@ -117,7 +92,7 @@ PatchCellDataBasicOps<TYPE>::subtract(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.subtract(dst->getArrayData(),
       src1->getArrayData(), src2->getArrayData(),
@@ -133,7 +108,7 @@ PatchCellDataBasicOps<TYPE>::multiply(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.multiply(dst->getArrayData(),
       src1->getArrayData(), src2->getArrayData(),
@@ -149,7 +124,7 @@ PatchCellDataBasicOps<TYPE>::divide(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.divide(dst->getArrayData(),
       src1->getArrayData(), src2->getArrayData(),
@@ -164,7 +139,7 @@ PatchCellDataBasicOps<TYPE>::reciprocal(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    d_array_ops.reciprocal(dst->getArrayData(),
       src->getArrayData(),
@@ -182,7 +157,7 @@ PatchCellDataBasicOps<TYPE>::linearSum(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.linearSum(dst->getArrayData(),
       alpha, src1->getArrayData(),
@@ -200,7 +175,7 @@ PatchCellDataBasicOps<TYPE>::axpy(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.axpy(dst->getArrayData(),
       alpha, src1->getArrayData(),
@@ -218,7 +193,7 @@ PatchCellDataBasicOps<TYPE>::axmy(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src1 && src2);
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst, *src1, *src2, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst, *src1, *src2, box);
 
    d_array_ops.axmy(dst->getArrayData(),
       alpha, src1->getArrayData(),
@@ -233,7 +208,7 @@ PatchCellDataBasicOps<TYPE>::min(
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    return d_array_ops.min(data->getArrayData(), box);
 }
@@ -245,7 +220,7 @@ PatchCellDataBasicOps<TYPE>::max(
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    return d_array_ops.max(data->getArrayData(), box);
 }
@@ -259,7 +234,7 @@ PatchCellDataBasicOps<TYPE>::setRandomValues(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*dst, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*dst, box);
 
    d_array_ops.setRandomValues(dst->getArrayData(),
       width, low, box);

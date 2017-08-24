@@ -66,7 +66,7 @@ QuatSysSolver::QuatSysSolver(
    boost::shared_ptr<tbox::Database> database )
   : qlen(ql),
     d_object_name(object_name),
-    d_fac_ops(ql, object_name+"::fac_ops",database),
+    d_fac_ops(new QuatFACOps(ql, object_name+"::fac_ops",database)),
     d_fac_solver(object_name+"::fac_precond",d_fac_ops),
     d_bc_object(NULL),
     d_simple_bc(tbox::Dimension(NDIM),object_name+"::bc"),
@@ -106,13 +106,12 @@ QuatSysSolver::QuatSysSolver(
    * The FAC operator optionally uses (via callback through the pointer
    * being supplied here) the FAC solver object to get data for logging.
    */
-  d_fac_ops.setSolver((const solv::FACPreconditioner*)(&d_fac_solver));
+  d_fac_ops->setSolver((const FACPreconditioner*)(&d_fac_solver));
 
   if ( database ) {
      getFromInput(database);
   }
 }
-
 
 
 /*
@@ -123,7 +122,6 @@ QuatSysSolver::QuatSysSolver(
 *                                                                       *
 *************************************************************************
 */
-
 
 QuatSysSolver::~QuatSysSolver()
 {
@@ -194,8 +192,6 @@ QuatSysSolver::getFromInput(const boost::shared_ptr<tbox::Database>& input_db )
 }
 
 
-
-
 void QuatSysSolver::initializeLevelData(
    const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int level_number,
@@ -206,7 +202,6 @@ void QuatSysSolver::initializeLevelData(
    const bool allocate_data )
 {
 }
-
 
 
 /*
@@ -224,9 +219,9 @@ void QuatSysSolver::initializeLevelData(
 
 void
 QuatSysSolver::initializeSolverState(const int q_soln_id,
-					  const int q_rhs_id,
-                 const int weight_id,
-					  boost::shared_ptr< hier::PatchHierarchy > hierarchy)
+   const int q_rhs_id,
+   const int weight_id,
+   boost::shared_ptr< hier::PatchHierarchy > hierarchy)
 {
    TBOX_ASSERT(hierarchy);
    assert( q_soln_id>=0 );
@@ -239,7 +234,6 @@ QuatSysSolver::initializeSolverState(const int q_soln_id,
    }
 
    if(!d_solver_is_initialized){
-
 #ifdef DEBUG_CHECK_ASSERTIONS
      if ( q_soln_id < 0 || q_rhs_id < 0 || weight_id < 0 ) {
        TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
@@ -350,7 +344,7 @@ QuatSysSolver::setBoundaries(const string& boundary_type,
 #endif
   d_simple_bc.setBoundaries(boundary_type, fluxes, flags, bdry_types);
   d_bc_object = &d_simple_bc;
-  d_fac_ops.setPhysicalBcCoefObject(d_bc_object);
+  d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
 }
 
 
@@ -381,7 +375,7 @@ QuatSysSolver::setOperatorCoefficients(
   }
 #endif
 
-  d_fac_ops.setOperatorCoefficients(
+  d_fac_ops->setOperatorCoefficients(
      time_step, epsilon_q, mobility_id, mobility_deriv_id, diff_coef_id, diff_coef_deriv_id,
      grad_q_id, q_id, quat_grad_floor, quat_smooth_floor_type );
 
@@ -392,8 +386,8 @@ QuatSysSolver::setOperatorCoefficients(
 
  bool
 QuatSysSolver::solveSystem(const int q_soln_id,
-				const int  q_rhs_id,
-				const int  q_ewt_id)
+                           const int q_rhs_id,
+                           const int q_ewt_id)
 {
   t_solve_system->start();
 
@@ -407,10 +401,10 @@ QuatSysSolver::solveSystem(const int q_soln_id,
 
   createVectorWrappers(q_soln_id, q_rhs_id, solution, rhs);
 
-  d_fac_ops.setWeightIds(q_ewt_id, d_weight_id);
+  d_fac_ops->setWeightIds(q_ewt_id, d_weight_id);
 
   // Divide by the square root of the mobility
-  d_fac_ops.divideMobilitySqrt(q_rhs_id);
+  d_fac_ops->divideMobilitySqrt(q_rhs_id);
 
   //  setResidualTolerance(d_precond_tol);
   setMaxCycles(d_precond_maxiters);
@@ -431,7 +425,7 @@ QuatSysSolver::solveSystem(const int q_soln_id,
   bool solver_rval = d_fac_solver.solveSystem( *solution, *rhs );
 
   // Multiply by the square root of the mobility
-  d_fac_ops.multiplyMobilitySqrt(q_soln_id);
+  d_fac_ops->multiplyMobilitySqrt(q_soln_id);
 
   if ( d_bc_object == &d_simple_bc ) {
     /*
@@ -446,7 +440,7 @@ QuatSysSolver::solveSystem(const int q_soln_id,
     printFACConvergenceFactors(solver_rval);
   }
 
-  d_fac_ops.setWeightIds(-1, -1);
+  d_fac_ops->setWeightIds(-1, -1);
 
   destroyVectorWrappers(solution, rhs);
 
@@ -477,9 +471,10 @@ QuatSysSolver::evaluateRHS(
    assert( solution_id>=0 );
    assert( rhs_id>=0 );
 
-   d_fac_ops.evaluateRHS(epsilon_q, diffusion_coef_id, grad_q_id, grad_q_copy_id, quat_grad_floor,
-			 quat_floor_type, mobility_id, rotations_id, solution_id, rhs_id,
-          use_gradq_for_flux);
+   d_fac_ops->evaluateRHS(epsilon_q, diffusion_coef_id, grad_q_id, grad_q_copy_id, 
+                          quat_grad_floor, quat_floor_type, mobility_id, 
+                          rotations_id, solution_id, rhs_id,
+                          use_gradq_for_flux);
 }
 
 
@@ -492,7 +487,7 @@ QuatSysSolver::multiplyDQuatDPhiBlock(
    assert( q_id>=0 );
    assert( operator_q_id>=0 );
 
-   d_fac_ops.multiplyDQuatDPhiBlock(q_id, operator_q_id);
+   d_fac_ops->multiplyDQuatDPhiBlock(q_id, operator_q_id);
 }
 
 
@@ -507,10 +502,9 @@ QuatSysSolver::applyProjection(const int      q_id,
    assert( err_id>=0 );
 
    for (int ln=d_ln_max; ln>=d_ln_min; ln--) {
-      d_fac_ops.applyProjectionOnLevel(q_id, corr_id, err_id, ln);
+      d_fac_ops->applyProjectionOnLevel(q_id, corr_id, err_id, ln);
    }
 }
-
 
 
 void
@@ -528,12 +522,11 @@ QuatSysSolver::printFACConvergenceFactors(const int solver_ret)
 }
 
 
-
 void
 QuatSysSolver::createVectorWrappers(int q_u,
-					 int q_f,
-					 boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-					 boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv)
+			 int q_f,
+			 boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
+			 boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
   assert( d_weight_id!=-1 );
@@ -559,8 +552,7 @@ QuatSysSolver::createVectorWrappers(int q_u,
                                   << q_u << "\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-         variable,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << q_u
                                   << " is not a cell-double variable.\n");
@@ -587,8 +579,7 @@ QuatSysSolver::createVectorWrappers(int q_u,
                                   << q_f << "\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-         variable,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << q_f
                                   << " is not a cell-double variable.\n");
@@ -600,7 +591,6 @@ QuatSysSolver::createVectorWrappers(int q_u,
 }
 
 
-
 /*
 ***********************************************************************
 * Delete the vector wrappers.  Do not freeVectorComponents because    *
@@ -608,8 +598,9 @@ QuatSysSolver::createVectorWrappers(int q_u,
 ***********************************************************************
 */
 void
-QuatSysSolver::destroyVectorWrappers(boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-					  boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv)
+QuatSysSolver::destroyVectorWrappers(
+   boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
+   boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv)
 {
   uv.reset();
   fv.reset();

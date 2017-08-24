@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Test program to demonstrate/test timers.
  *
  ************************************************************************/
@@ -24,7 +24,7 @@
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 using namespace std;
 
@@ -52,7 +52,7 @@ public:
 
    void start()
    {
-      d_accesses++;
+      ++d_accesses;
 
       static struct timeval tp;
       gettimeofday(&tp, (struct timezone *)0);
@@ -86,10 +86,6 @@ private:
    double d_total_time;
    double d_last_start_time;
 };
-#endif
-
-#ifndef NULL
-#define NULL (0)
 #endif
 
 using namespace SAMRAI;
@@ -213,7 +209,7 @@ int main(
       boost::shared_ptr<tbox::Timer> timer_off(
          tbox::TimerManager::getManager()->getTimer("apps::main::timer_off"));
       timer_off->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->timerOff();
       }
       timer_off->stop();
@@ -228,7 +224,7 @@ int main(
          tbox::TimerManager::getManager()->getTimer("apps::Foo::timerOn()"));
       NULL_USE(dummy_timer);
       timer_on->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->timerOn();
       }
       timer_on->stop();
@@ -241,7 +237,7 @@ int main(
       boost::shared_ptr<tbox::Timer> timer_excl(
          tbox::TimerManager::getManager()->getTimer("apps::main::exclusive_timer"));
       timer_excl->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->zero(exclusive_tree_depth);
       }
       timer_excl->stop();
@@ -261,7 +257,7 @@ int main(
        * registered.  That is, time a NULL timer call.
        */
       timer_off->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->timerOff();
       }
       timer_off->stop();
@@ -271,7 +267,7 @@ int main(
        * registered.
        */
       timer_on->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->timerOn();
       }
       timer_on->stop();
@@ -282,7 +278,7 @@ int main(
        * and so forth until we reach specified "exclusive_tree_depth.
        */
       timer_excl->start();
-      for (i = 0; i < ntimes; i++) {
+      for (i = 0; i < ntimes; ++i) {
          foo->zero(exclusive_tree_depth);
       }
       timer_excl->stop();
@@ -294,7 +290,7 @@ int main(
       const int max_timers = 575;
 
       boost::shared_ptr<tbox::Timer> timers[max_timers];
-      for (int timer_number = 0; timer_number < max_timers; timer_number++) {
+      for (int timer_number = 0; timer_number < max_timers; ++timer_number) {
 
          std::string timer_name = "testcount-" + tbox::Utilities::intToString(
                timer_number,
@@ -304,11 +300,11 @@ int main(
             getTimer(timer_name);
 
          if (!timers[timer_number]) {
-            TBOX_ERROR("Failed to allocate timer, max was " + timer_number);
+            TBOX_ERROR("Failed to allocate timer, max was " << timer_number);
          }
       }
 
-      for (int timer_number = 0; timer_number < max_timers; timer_number++) {
+      for (int timer_number = 0; timer_number < max_timers; ++timer_number) {
          timers[timer_number].reset();
       }
 
@@ -320,7 +316,7 @@ int main(
       boost::shared_ptr<tbox::Timer> tarray1[testit];
       boost::shared_ptr<tbox::Timer> tarray2[testit];
 
-      for (int tcnt = 0; tcnt < testit; tcnt++) {
+      for (int tcnt = 0; tcnt < testit; ++tcnt) {
 
          int mfactor = 1;
          for (int i = 0; i < tcnt; ++i) {
@@ -339,14 +335,14 @@ int main(
 
       tbox::pout << "\n\nEstimate SAMRAI Timer overhead..." << endl;
 
-      for (int tcnt = 0; tcnt < testit; tcnt++) {
+      for (int tcnt = 0; tcnt < testit; ++tcnt) {
 
          int ntest = 1;
          for (int i = 0; i < tcnt; ++i) {
             ntest *= 10;
          }
 
-         for (int i = 0; i < ntest; i++) {
+         for (int i = 0; i < ntest; ++i) {
             tarray1[tcnt]->start();
             tarray2[tcnt]->start();
             sleep(nsleepsec);
@@ -373,14 +369,14 @@ int main(
       PTimer Ptarray1[testit];
       PTimer Ptarray2[testit];
 
-      for (int tcnt = 0; tcnt < testit; tcnt++) {
+      for (int tcnt = 0; tcnt < testit; ++tcnt) {
 
          int ntest = 1;
          for (int i = 0; i < tcnt; ++i) {
             ntest *= 10;
          }
 
-         for (int i = 0; i < ntest; i++) {
+         for (int i = 0; i < ntest; ++i) {
             Ptarray1[tcnt].start();
             Ptarray2[tcnt].start();
             sleep(nsleepsec);

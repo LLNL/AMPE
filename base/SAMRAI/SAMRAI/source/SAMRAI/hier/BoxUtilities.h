@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Routines for processing boxes within a domain of index space.
  *
  ************************************************************************/
@@ -16,9 +16,9 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/tbox/Array.h"
 
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -63,15 +63,15 @@ namespace hier {
  *
  *    - \b min_size
  *       min_size is a IntVector that specifies the minimum
- *       allowable box length in each dimension.  For example, if
+ *       allowable box length in each direction.  For example, if
  *       min_size = (10,4,15), then the minimum box length in the
- *       x, y, and z dimensions are 10, 4, and 15 respectively.
+ *       x, y, and z directions are 10, 4, and 15 respectively.
  *
  *    - \b max_size
  *       max_size is a IntVector that specifies the maximum
- *       allowable box length in each dimension.  For example, if
+ *       allowable box length in each direction.  For example, if
  *       max_size = (10,40,50), then the maximum box length in the
- *       x, y, and z dimensions are 10, 40, and 50 respectively.
+ *       x, y, and z directions are 10, 40, and 50 respectively.
  *
  *       It should be noted that the max_size constraint has lower
  *       priority than the other constraints.  In instances where
@@ -80,9 +80,9 @@ namespace hier {
  *
  *    - \b cut_factor
  *       cut_factor is a IntVector that constrains the
- *       dimensions of a box to be multiples of the components of the
+ *       size of a box to be multiples of the components of the
  *       cut_factor.  For instance, if cut_factor = (2,4,5), then the
- *       x, y, and z dimensions of a 8 box that satisfies the cut_factor
+ *       x, y, and z directions of a 8 box that satisfies the cut_factor
  *       constraint would be multiples of 2, 4, and 5 respectively.
  *
  *       This constraint is usually enforced with the cut_factor equal
@@ -123,8 +123,8 @@ namespace hier {
  * than in the box, box list, box array classes to avoid circular dependencies
  * among these classes.
  *
- * @see hier::Box
- * @see hier::BoxContainer
+ * @see Box
+ * @see BoxContainer
  */
 
 struct BoxUtilities {
@@ -158,13 +158,11 @@ struct BoxUtilities {
     *    - \b physical_boxes (input)
     *       box array representing the index space of box list domain
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of min_size and bad_interval must be nonnegative
-    *
-    *    - all components of cut_factor must be positive
-    *
+    * @pre (min_size.getDim() == cut_factor.getDim()) &&
+    *      (min_size.getDim() == bad_interval.getDim())
+    * @pre min_size > IntVector::getZero(min_size.getDim())
+    * @pre cut_factor > IntVector::getZero(min_size.getDim())
+    * @pre bad_interval >= IntVector::getZero(min_size.getDim())
     */
    static void
    checkBoxConstraints(
@@ -218,6 +216,15 @@ struct BoxUtilities {
     *      restricts the cut locations or if the maximum size is not a
     *      multiple of the cut factor.
     *
+    * @pre (max_size.getDim() == min_size.getDim()) &&
+    *      (max_size.getDim() == cut_factor.getDim()) &&
+    *      (max_size.getDim() == bad_interval.getDim())
+    * @pre min_size > IntVector::getZero(min_size.getDim())
+    * @pre max_size >= min_size
+    * @pre cut_factor > IntVector::getZero(min_size.getDim())
+    * @pre bad_interval >= IntVector::getZero(min_size.getDim())
+    * @pre !physical_boxes.empty()
+    * @pre !boxes.isOrdered()
     */
    static void
    chopBoxes(
@@ -242,15 +249,12 @@ struct BoxUtilities {
     *       box which is to be chopped
     *
     *    - \b cut_points (input)
-    *       cut_points is an array of integer lists, each of which
+    *       cut_points is a vector of integer lists, each of which
     *       indicates the indices where the box will be cut in one of
     *       the coordinate directions
     *
     *
     * Assertion checks:
-    *
-    *    - The cut point array must have size equal to the number of
-    *      spatial dimensions for the box.
     *
     *    - The cut points for each direction must be on the list in
     *      increasing order.
@@ -262,12 +266,13 @@ struct BoxUtilities {
     *      operations are performed.  Thus, any boxes on the list when
     *      the function is called will be lost.
     *
+    * @pre cut_points.size() == box.getDim().getValue()
     */
    static void
    chopBox(
       BoxContainer& boxes,
       const Box& box,
-      const tbox::Array<std::list<int> > cut_points);
+      const std::vector<std::list<int> >& cut_points);
 
    /**
     * Extend the box in the list to domain boundary as needed so that
@@ -275,7 +280,7 @@ struct BoxUtilities {
     * the box in an inappropriate manner.  Intersections that are
     * disallowed are those in which a portion of the domain boundary is
     * parallel to a box face and lies strictly in the interior of the ghost
-    * cell mapped_box_level adjacent to that face.  In other words, we eliminate
+    * cell box_level adjacent to that face.  In other words, we eliminate
     * ghost cell regions residing outside of a given domain and which are
     * narrower than the specified ghost width.   The boolean return value
     * is true if the input box was extended to the boundary and thus
@@ -297,13 +302,6 @@ struct BoxUtilities {
     *       ghost cell region
     *
     *
-    * Assertion checks:
-    *
-    *    - domain must not be an empty boxlist.
-    *
-    *    - All components of ext_ghosts must be nonnegative.
-    *
-    *
     * Notes:
     *
     *    - The ext_ghosts argument often corresponds to the bad_interval
@@ -318,6 +316,8 @@ struct BoxUtilities {
     *      far as it can, but will not remedy these degenerate situations
     *      in general.
     *
+    * @pre !domain.empty()
+    * @pre ext_ghosts >= IntVector::getZero(ext_ghosts.getDim())
     */
    static bool
    extendBoxToDomainBoundary(
@@ -332,6 +332,9 @@ struct BoxUtilities {
     * is true if any box in the input box list was extended to the boundary
     * and thus is changed by the routine.  Otherwise, the return value
     * is false.
+    *
+    * @pre !domain.empty()
+    * @pre ext_ghosts >= IntVector::getZero(ext_ghosts.getDim())
     */
    static bool
    extendBoxesToDomainBoundary(
@@ -356,11 +359,6 @@ struct BoxUtilities {
     *       description.
     *
     *
-    * Assertion checks:
-    *
-    *    - The minimum box size argument must have all nonnegative entries.
-    *
-    *
     * Notes:
     *
     *    - Each box that is grown must remain within the union of the
@@ -383,6 +381,8 @@ struct BoxUtilities {
     *
     *      This routine will grow each box as far as it can, but will not
     *      remedy these situations, generally.
+    *
+    * @pre min_size > IntVector::getZero(min_size.getDim())
     */
    static void
    growBoxesWithinDomain(
@@ -390,10 +390,12 @@ struct BoxUtilities {
       const BoxContainer& domain,
       const IntVector& min_size);
 
-   /*
+   /**
     * Similar to growBoxesWithinDomain but works on one box at
     * a time and the domain is specified by the complement of local
     * parts of the domain.
+    *
+    * @pre min_size > IntVector::getZero(min_size.getDim())
     */
    static void
    growBoxWithinDomain(
@@ -417,7 +419,7 @@ struct BoxUtilities {
     * Arguments:
     *
     *    - \b cut_points (output)
-    *       array of list of cut points for the box
+    *       vector of list of cut points for the box
     *
     *    - \b box (input)
     *       box to be cut
@@ -433,21 +435,15 @@ struct BoxUtilities {
     *    - \b cut_factor(input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of min_size must be nonnegative
-    *
-    *    - all components of max_size and cut_factor must be positive
-    *
-    *    - for each i between 0 and (dim-1), the i-th component of
-    *      min_size must be less than or equal to the i-th component
-    *      of max_size
-    *
+    * @pre (max_size.getDim() == min_size.getDim()) &&
+    *      (max_size.getDim() == cut_factor.getDim())
+    * @pre min_size > IntVector::getZero(max_size.getDim())
+    * @pre min_size <= max_size
+    * @pre cut_factor > IntVector::getZero(max_size.getDim())
     */
    static bool
    findBestCutPointsGivenMax(
-      tbox::Array<std::list<int> >& cut_points,
+      std::vector<std::list<int> >& cut_points,
       const Box& box,
       const IntVector& max_size,
       const IntVector& min_size,
@@ -485,19 +481,14 @@ struct BoxUtilities {
     *    - \b cut_factor (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - min_size must be nonnegative
-    *
-    *    - max_size and cut_factor must be positive
-    *
-    *    - min_size must be less than or equal to max_size
-    *
+    * @pre !box.empty()
+    * @pre min_size > 0
+    * @pre max_size >= min_size
+    * @pre cut_factor > 0
     */
    static bool
    findBestCutPointsForDirectionGivenMax(
-      const int idir,
+      const tbox::Dimension::dir_t idir,
       std::list<int>& cut_points,
       const Box& box,
       const int max_size,
@@ -520,7 +511,7 @@ struct BoxUtilities {
     * Arguments:
     *
     *    - \b cut_points (output)
-    *       array of list of cut points for the box
+    *       vector of list of cut points for the box
     *
     *    - \b box (input)
     *       box to be cut
@@ -541,16 +532,16 @@ struct BoxUtilities {
     * Important note: By convention, each integer cut point that is computed
     *                 corresponds to the cell index to the right of cut point.
     *
-    * Assertion checks:
-    *
-    *    - all components of min_size must be nonnegative
-    *
-    *    - all components of cut_factor and number_boxes must be positive
-    *
+    * @pre (number_boxes.getDim() == min_size.getDim()) &&
+    *      (number_boxes.getDim() == cut_factor.getDim())
+    * @pre !box.empty()
+    * @pre min_size > IntVector::getZero(number_boxes.getDim())
+    * @pre number_boxes > IntVector::getZero(number_boxes.getDim())
+    * @pre cut_factor > IntVector::getZero(number_boxes.getDim())
     */
    static bool
    findBestCutPointsGivenNumber(
-      tbox::Array<std::list<int> >& cut_points,
+      std::vector<std::list<int> >& cut_points,
       const Box& box,
       const IntVector& number_boxes,
       const IntVector& min_size,
@@ -589,17 +580,13 @@ struct BoxUtilities {
     *    - \b cut_factor (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - min_size must be nonnegative
-    *
-    *    - cut_factor and num_boxes must be positive
-    *
+    * @pre min_size > 0
+    * @pre num_boxes > 0
+    * @pre cut_factor > 0
     */
    static bool
    findBestCutPointsForDirectionGivenNumber(
-      const int idir,
+      const tbox::Dimension::dir_t idir,
       std::list<int>& cut_points,
       const Box& box,
       const int num_boxes,
@@ -635,11 +622,9 @@ struct BoxUtilities {
     *    - \b bad_interval (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of bad_interval must be nonnegative
-    *
+    * @pre (bad_cut_information.getDim() == box.getDim()) &&
+    *      (bad_cut_information.getDim() == bad_interval.getDim())
+    * @pre bad_interval >= IntVector::getZero(box.getDim())
     */
    static bool
    checkBoxForBadCutPoints(
@@ -671,15 +656,13 @@ struct BoxUtilities {
     *    - \b bad_interval (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of bad_interval must be nonnegative.
-    *
+    * @pre box.getDim() == bad_interval.getDim()
+    * @pre !box.empty()
+    * @pre bad_interval >= IntVector::getZero(box.getDim())
     */
    static bool
    checkBoxForBadCutPointsInDirection(
-      const int dir,
+      const tbox::Dimension::dir_t dir,
       const Box& box,
       const BoxContainer& physical_boxes,
       const IntVector& bad_interval);
@@ -709,17 +692,13 @@ struct BoxUtilities {
     *    - \b bad_interval (input)
     *        See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of bad_interval must be nonnegative
-    *
-    *    - bad_cuts must have size equal to dim
-    *
+    * @pre !box.empty()
+    * @pre bad_cuts.size() == box.getDim().getValue()
+    * @pre bad_interval >= IntVector::getZero(box.getDim())
     */
    static void
    findBadCutPoints(
-      tbox::Array<tbox::Array<bool> >& bad_cuts,
+      std::vector<std::vector<bool> >& bad_cuts,
       const Box& box,
       const BoxContainer& physical_boxes,
       const IntVector& bad_interval);
@@ -737,7 +716,7 @@ struct BoxUtilities {
     *       coordinate direction to be checked for bad cut points
     *
     *    - \b bad_cuts (output)
-    *        boolean arrays whose entries indicates whether
+    *        boolean vector whose entries indicates whether
     *        a potential cut point is bad.
     *
     *    - \b box (input)
@@ -749,16 +728,14 @@ struct BoxUtilities {
     *    - \b bad_interval (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - all components of bad_interval must be nonnegative
-    *
+    * @pre box.getDim() == bad_interval.getDim()
+    * @pre !box.empty()
+    * @pre bad_interval >= IntVector::getZero(box.getDim())
     */
    static void
    findBadCutPointsForDirection(
-      const int dir,
-      tbox::Array<bool>& bad_cuts,
+      const tbox::Dimension::dir_t dir,
+      std::vector<bool>& bad_cuts,
       const Box& box,
       const BoxContainer& physical_boxes,
       const IntVector& bad_interval);
@@ -795,23 +772,22 @@ struct BoxUtilities {
     *
     * Assertion checks:
     *
-    *    - All components of min_size must be nonnegative.
-    *
-    *    - All components of cut_factor must be positive.
-    *
-    *    - cuts and bad_cuts must have size equal to dim
-    *
-    *    - Each array of integers in bad_cuts must have length
-    *      equal to the number of cells for the box in that dimension.
-    *
     *    - The cut points for each direction must be strictly increasing
     *      and all satisfy the cut_factor restriction.
     *
+    * @pre (box.getDim() == min_size.getDim()) &&
+    *      (box.getDim() == cut_factor.getDim())
+    * @pre cuts.size() == box.getDim().getValue()
+    * @pre bad_cuts.size() == box.getDim().getValue()
+    * @pre !box.empty()
+    * @pre min_size > IntVector::getZero(box.getDim())
+    * @pre cut_factor > IntVector::getZero(box.getDim())
+    * @pre for the ith array in bad_cuts, array.size() == box.numberCells(i)
     */
    static void
    fixBadCutPoints(
-      tbox::Array<std::list<int> >& cuts,
-      const tbox::Array<tbox::Array<bool> >& bad_cuts,
+      std::vector<std::list<int> >& cuts,
+      const std::vector<std::vector<bool> >& bad_cuts,
       const Box& box,
       const IntVector& min_size,
       const IntVector& cut_factor);
@@ -847,41 +823,37 @@ struct BoxUtilities {
     *    - \b cut_factor (input)
     *       See class header for description.
     *
-    *
-    * Assertion checks:
-    *
-    *    - min_size must be nonnegative.
-    *
-    *    - cut_factor must be positive.
-    *
-    *    - bad_cut_points must have size equal to the number of
-    *      cells in the box along the specified coordinate direction.
-    *
-    *    - The cut points must be strictly increasing and all
-    *      satisfy the cut_factor constraint.
-    *
+    * @pre bad_cuts.size() == box.numberCells(dir)
+    * @pre !box.empty()
+    * @pre min_size > 0
+    * @pre cut_factor > 0
     */
    static void
    fixBadCutPointsForDirection(
-      const int dir,
+      const tbox::Dimension::dir_t dir,
       std::list<int>& cuts,
-      const tbox::Array<bool>& bad_cuts,
+      const std::vector<bool>& bad_cuts,
       const Box& box,
       const int min_size,
       const int cut_factor);
 
    /**
     *
-    * This static private member function is called by findBadCutPoints(),
+    * This function is called by findBadCutPoints(),
     * and the findBadCutPointsForDirection() member functions.  It sets bad
     * cut points near the lower and upper ends of the border box in the
     * given coordinate direction.
     *
+    * @pre box.getDim() == border.getDim()
+    * @pre (0 <= id) && (id < box.getDim().getValue())
+    * @pre bad_cuts.size() == box.numberCells(id)
+    * @pre bad_interval >= 0
+    *
     */
    static void
    findBadCutPointsForBorderAndDirection(
-      const int id,
-      tbox::Array<bool>& bad_cuts,
+      const tbox::Dimension::dir_t id,
+      std::vector<bool>& bad_cuts,
       const Box& box,
       const Box& border,
       const int bad_interval);
@@ -912,8 +884,46 @@ struct BoxUtilities {
     */
    static void
    makeNonOverlappingBoxContainers(
-      tbox::Array<BoxContainer>& box_list_array,
+      std::vector<BoxContainer>& box_list_array,
       const BoxContainer& boxes);
+
+   /*!
+    * @brief Grow a box and chop it at block boundaries.
+    *
+    * If growing a box will cause it to extend across a block boundary, this
+    * method will chop it into distinct parts that are stored in the output
+    * BoxContainer.
+    *
+    * The output may be coarsened or refined from the input's index space,
+    * controlled by the do_refine and do_coarsen arguments.  These arguments
+    * may both be false, but at most one may be true.
+    *
+    * The boxes in the output container that are intersections with neighboring
+    * blocks will be defined in the index space of those neighboring blocks
+    *
+    * @pre (do_refine != do_coarsen || (!do_refine && !do_coarsen))
+    * @pre ratio_to_level_zero.getBlockSize() == grid_geom.getNumberBlocks()
+    * @pre refine_coarsen_ratio.getBlockSize() == grid_geom.getNumberBlocks()
+    *
+    * @param[out] grown_boxes  Container to hold the results
+    * @param[in]  box          Input box
+    * @param[in]  grid_geom    Grid Geometry
+    * @param[in]  ratio_to_level_zero  Ratio from input box to level 0
+    * @param[in]  refine_coarsen_ratio Ratio to refine or coarsen output
+    * @param[in]  grow_width   Width to grow before chopping
+    * @param[in]  do_refine
+    * @param[in]  do_coarsen
+    */
+   static void growAndAdjustAcrossBlockBoundary(
+      BoxContainer& grown_boxes,
+      const Box& box,
+      const boost::shared_ptr<const BaseGridGeometry>& grid_geom,
+      const IntVector& ratio_to_level_zero,
+      const IntVector& refine_coarsen_ratio,
+      const IntVector& grow_width,
+      bool do_refine,
+      bool do_coarsen);
+
 
 };
 

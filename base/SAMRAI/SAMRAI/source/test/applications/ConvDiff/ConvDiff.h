@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in Heat equation ex.
  *
  ************************************************************************/
@@ -31,7 +31,8 @@ using namespace std;
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+#include <vector>
 
 /**
  * The ConvDiff class provides numerical routines for a sample problem
@@ -162,38 +163,6 @@ public:
       const int tag_index,
       const bool uses_richardson_extrapolation_too);
 
-   /*
-    * Pre- and post-processing routines for implementing user-defined
-    * spatial interpolation routines applied to variables.
-    */
-   virtual void preprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
-
-   virtual void postprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
-
-   /*
-    * Pre- and post-processing routines for implementing user-defined
-    * spatial coarsening routines applied to variables.
-    */
-   virtual void preprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio);
-
-   virtual void postprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio);
-
    ///
    ///  The following routines:
    ///
@@ -215,15 +184,78 @@ public:
       const hier::IntVector&
       ghost_width_to_fill);
 
+   //@{
+   //! @name Required implementations of MethodOfLinesPatchStrategy pure virtuals.
+
+   hier::IntVector
+   getRefineOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getZero(dim);
+   }
+
+   void
+   preprocessRefine(
+      hier::Patch& fine,
+      const hier::Patch& coarse,
+      const hier::Box& fine_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(fine);
+      NULL_USE(coarse);
+      NULL_USE(fine_box);
+      NULL_USE(ratio);
+   }
+
+   void
+   postprocessRefine(
+      hier::Patch& fine,
+      const hier::Patch& coarse,
+      const hier::Box& fine_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(fine);
+      NULL_USE(coarse);
+      NULL_USE(fine_box);
+      NULL_USE(ratio);
+   }
+
+   hier::IntVector
+   getCoarsenOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getZero(dim);
+   }
+
+   void
+   preprocessCoarsen(
+      hier::Patch& coarse,
+      const hier::Patch& fine,
+      const hier::Box& coarse_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(coarse);
+      NULL_USE(fine);
+      NULL_USE(coarse_box);
+      NULL_USE(ratio);
+   }
+
+   void
+   postprocessCoarsen(
+      hier::Patch& coarse,
+      const hier::Patch& fine,
+      const hier::Box& coarse_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(coarse);
+      NULL_USE(fine);
+      NULL_USE(coarse_box);
+      NULL_USE(ratio);
+   }
+
+   //@}
+
    /**
-    * Writes state of ConvDiff object to the specified database.
+    * Writes state of ConvDiff object to the specified restart database.
     *
     * This routine is a concrete implementation of the function
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * This routine is a concrete implementation of the virtual function
@@ -275,7 +307,7 @@ private:
     */
    virtual void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
 
    virtual void
@@ -286,7 +318,7 @@ private:
       boost::shared_ptr<tbox::Database> db,
       const string& db_name,
       int array_indx,
-      tbox::Array<double>& uval);
+      std::vector<double>& uval);
 
    /*
     * Private member function to check correctness of boundary data.
@@ -296,7 +328,7 @@ private:
       int btype,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& scalar_bconds) const;
+      const std::vector<int>& scalar_bconds) const;
 
    /*
     * Object name used for error/warning reporting and as a label
@@ -329,7 +361,7 @@ private:
    /*
     * Convection-diffusion equation constant vectors
     */
-   double d_convection_coeff[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_convection_coeff[SAMRAI::MAX_DIM_VAL];
    double d_diffusion_coeff;
    double d_source_coeff;
 
@@ -361,7 +393,7 @@ private:
     * Input for SPHERE problem
     */
    double d_radius;
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[SAMRAI::MAX_DIM_VAL];
    double d_val_inside[NEQU];
    double d_val_outside[NEQU];
 
@@ -372,24 +404,24 @@ private:
     *
     * Input file values are read into these arrays.
     */
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_scalar_bdry_face_conds; // 3D use only.
+   std::vector<int> d_scalar_bdry_edge_conds;
+   std::vector<int> d_scalar_bdry_node_conds;
+   std::vector<int> d_scalar_bdry_face_conds; // 3D use only.
 
    /*
     * Boundary condition cases for scalar and vector (i.e., depth > 1)
     * variables.  These are post-processed input values and are passed
     * to the boundary routines.
     */
-   tbox::Array<int> d_node_bdry_edge; // 2D use only.
-   tbox::Array<int> d_edge_bdry_face; // 3D use only.
-   tbox::Array<int> d_node_bdry_face; // 3D use only.
+   std::vector<int> d_node_bdry_edge; // 2D use only.
+   std::vector<int> d_edge_bdry_face; // 3D use only.
+   std::vector<int> d_node_bdry_face; // 3D use only.
 
    /*
-    * Arrays of face (3d) or edge (2d) boundary values for DIRICHLET case.
+    * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
     */
-   tbox::Array<double> d_bdry_edge_val; // 2D use only.
-   tbox::Array<double> d_bdry_face_val; // 3D use only.
+   std::vector<double> d_bdry_edge_val; // 2D use only.
+   std::vector<double> d_bdry_face_val; // 3D use only.
 
 };
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple utility class for interfacing with MPI
  *
  ************************************************************************/
@@ -23,10 +23,11 @@
 /*!
  * @brief Enumeration to define MPI constants when compiling without MPI.
  *
- * These are defined in the global namespace, and it does not matter
- * what values these take because they are not used.  (They are just place
- * holders to let code compile without MPI without adding excessive
- * preprocessor guards to the code.)
+ * These are defined in the global namespace because that's where MPI
+ * defines them.  It does not matter what values these take because
+ * they are not used.  (They are just place holders to let code
+ * compile without MPI without requiring excessive preprocessor guards
+ * in the code.)
  *
  * This is not a complete set.  Developers should add as needed to extend
  * SAMRAI_MPI's functionality.
@@ -37,6 +38,7 @@ enum {
    // Special values:
    MPI_SUCCESS = 0,
    MPI_CONGRUENT,
+   MPI_IDENT,
    MPI_REQUEST_NULL,
    MPI_ERR_IN_STATUS,
    MPI_UNDEFINED,
@@ -48,7 +50,8 @@ enum {
    MPI_DOUBLE,
    MPI_FLOAT,
    MPI_INT,
-   MPI_DOUBLE_COMPLEX,
+   MPI_LONG,
+   MPI_C_DOUBLE_COMPLEX,
    MPI_2INT,
    MPI_DOUBLE_INT,
    MPI_FLOAT_INT,
@@ -134,13 +137,12 @@ public:
       int MPI_TAG;
       int MPI_ERROR;
    };
+
 #endif
 
-   /*!
-    * @brief MPI communicator constants
-    */
-   static Comm commWorld;
-   static Comm commNull;
+   // Obsolete and should be removed.
+   static const Comm commWorld; // Should use MPI_COMM_WORLD directly.
+   static const Comm commNull; // Should use MPI_COMM_NULL directly.
 
    /*!
     * @brief Get the primary SAMRAI_MPI object owned by SAMRAI.
@@ -153,6 +155,10 @@ public:
     *
     * The use of this object outside of the SAMRAI library should be
     * carefully limited to avoid mixing messages.
+    *
+    * After SAMRAI_MPI::init() and before SAMRAI_MPI::finalize(), the
+    * object returned is useable.  Otherwise it is intentionally
+    * invalid.
     *
     * @see init()
     */
@@ -193,6 +199,12 @@ public:
     */
    explicit SAMRAI_MPI(
       const Comm& comm);
+
+   /*!
+    * @brief Copy constructor.
+    */
+   SAMRAI_MPI(
+      const SAMRAI_MPI& other);
 
    /*!
     * @brief Get the local process rank from the last time the
@@ -245,6 +257,9 @@ public:
     * be automatically freed.  To manually free communicators, see
     * freeCommunicator().
     *
+    * If SAMRAI isn't configured with MPI, the duplicate is an
+    * identical copy.
+    *
     * @param[in] other  Contains the communicator to be duplicated.
     *
     */
@@ -261,11 +276,52 @@ public:
    freeCommunicator();
 
    /*!
+    * @brief Compare with another SAMRAI_MPI's communicator.
+    *
+    * If MPI is enabled, compare using Comm_compare, and return the result.
+    * Otherwise, return MPI_IDENT if the two communicators are the same
+    * and MPI_CONGRUENT if they are not.  (No other choice makes sense
+    * when MPI is disabled.)
+    *
+    * Performance of this method depends on underlying MPI implementation
+    * and may not scale.
+    */
+   int
+   compareCommunicator(
+      const SAMRAI_MPI& other) const;
+
+   /*!
+    * @brief Whether the communicator is MPI_COMM_NULL.
+    */
+   bool hasNullCommunicator() const
+   {
+      return d_comm == MPI_COMM_NULL;
+   }
+
+   /*!
+    * @brief Whether the communicator is congruent with another's.
+    *
+    * Performance of this method depends on underlying MPI implementation
+    * and may not scale.
+    */
+   bool isCongruentWith(const SAMRAI_MPI& other) const
+   {
+#ifdef HAVE_MPI
+      int compare_result = compareCommunicator(other);
+      return compare_result == MPI_CONGRUENT || compare_result == MPI_IDENT;
+
+#else
+      return d_comm != MPI_COMM_NULL && d_comm == other.d_comm;
+
+#endif
+   }
+
+   /*!
     * @brief Assignment operator.
     *
     * @param[in] rhs
     */
-   const SAMRAI_MPI&
+   SAMRAI_MPI&
    operator = (
       const SAMRAI_MPI& rhs)
    {
@@ -308,9 +364,21 @@ public:
     * The purpose of these wrappers is to provide a single place for
     * compile- and run-time toggling of MPI code.  The signatures and
     * return values of these methods are identical to the MPI C bindings.
-    * Thes methods will throw an assertion if they are called when MPI is
+    * These methods will throw an assertion if they are called when MPI is
     * not enabled.
+    *
+    * @pre s_mpi_is_initialized
     */
+
+   static int
+   Comm_rank(
+      Comm comm,
+      int* rank);
+
+   static int
+   Comm_size(
+      Comm comm,
+      int* size);
 
    static int
    Comm_compare(
@@ -331,6 +399,10 @@ public:
       Status* status,
       Datatype datatype,
       int* count);
+
+   static int
+   Request_free(
+      Request* request);
 
    static int
    Test(
@@ -394,6 +466,8 @@ public:
     * with the SAMRAI_MPI object (typically passed to the constructor).
     * These methods throw an assertion if called while MPI is not enabled,
     * except where noted.
+    *
+    * @pre s_mpi_is_initialized
     */
 
    int
@@ -541,6 +615,28 @@ public:
       int dest,
       int tag) const;
 
+   int
+   Sendrecv(
+      void* sendbuf,
+      int sendcount,
+      Datatype sendtype,
+      int dest,
+      int sendtag,
+      void* recvbuf,
+      int recvcount,
+      Datatype recvtype,
+      int source,
+      int recvtag,
+      Status* status) const;
+
+   int
+   Scan(
+      void* sendbuf,
+      void* recvbuf,
+      int count,
+      Datatype datatype,
+      Op op) const;
+
    //@}
 
    //@{
@@ -561,13 +657,16 @@ public:
     * @param[in]  op     A valid MPI reduce operation.
     * @param[out] ranks_of_extrema  Ranks associated with min or max of x
     *                               (if op indicates min or max operation).
+    *
+    * @pre (op != MPI_MINLOC && op != MPI_MAXLOC) || (ranks_of_extrema != 0)
+    * @pre s_mpi_is_initialized
     */
    int
    AllReduce(
       int* x,
       int count,
       Op op,
-      int* ranks_of_extrema = NULL) const;
+      int* ranks_of_extrema = 0) const;
 
    /*!
     * @brief Specialized Allreduce for doubles.
@@ -581,13 +680,16 @@ public:
     * @param[in]  op     A valid MPI reduce operation.
     * @param[out] ranks_of_extrema  Ranks associated with min or max of x
     *                               (if op indicates min or max operation).
+    *
+    * @pre (op != MPI_MINLOC && op != MPI_MAXLOC) || (ranks_of_extrema != 0)
+    * @pre s_mpi_is_initialized
     */
    int
    AllReduce(
       double* x,
       int count,
       Op op,
-      int* ranks_of_extrema = NULL) const;
+      int* ranks_of_extrema = 0) const;
 
    /*!
     * @brief Specialized Allreduce for floats.
@@ -601,13 +703,16 @@ public:
     * @param[in]  op     A valid MPI reduce operation.
     * @param[out] ranks_of_extrema  Ranks associated with min or max of x
     *                               (if op indicates min or max operation).
+    *
+    * @pre (op != MPI_MINLOC && op != MPI_MAXLOC) || (ranks_of_extrema != 0)
+    * @pre s_mpi_is_initialized
     */
    int
    AllReduce(
       float* x,
       int count,
       Op op,
-      int* ranks_of_extrema = NULL) const;
+      int* ranks_of_extrema = 0) const;
 
    //@}
 
@@ -637,6 +742,29 @@ public:
       int* x,
       int count,
       int tag) const;
+
+   /*!
+    * @brief Check whether there a message waiting to be received.
+    *
+    * This is a convenience (non-essential) interface for use in
+    * debugging communication code.  It checks whether there are any
+    * waiting to be received.  It uses a non-blocking check; a false
+    * doesn't mean no messages are coming; it means no messages have
+    * arrived.  The checking includes barriers, making this a
+    * collective operation.
+    *
+    * @param[in,out] status
+    * @param[in] source
+    * @param[in] tag
+    *
+    * @return Whether any messages matching the source and tag are
+    * waiting to be received.
+    */
+   bool
+   hasReceivableMessage(
+      Status* status = 0,
+      int source = MPI_ANY_SOURCE,
+      int tag = MPI_ANY_TAG) const;
 
    // @}
 
@@ -701,7 +829,8 @@ public:
    disableMPI();
 
    /*!
-    * @brief Whether SAMRAI is using MPI.
+    * @brief Whether SAMRAI is using MPI (configured, compiled and
+    * initialized).
     *
     * @see disableMPI().
     */
@@ -763,6 +892,9 @@ public:
    finalize();
 
 private:
+   // Unimplemented default constructor.
+   SAMRAI_MPI();
+
    //@{
 
    /*!
@@ -806,7 +938,7 @@ private:
    int d_size;
 
    /*!
-    * @brief Whether MPI is initialized.
+    * @brief Whether the actual MPI library (not this wrapper) is initialized.
     */
    static bool s_mpi_is_initialized;
 

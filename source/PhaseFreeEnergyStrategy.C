@@ -100,7 +100,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
          boost::shared_ptr<hier::Patch > patch = *ip;
  
          boost::shared_ptr< pdat::CellData<double> > fl (
-            patch->getPatchData( fl_id ), boost::detail::dynamic_cast_tag()); 
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( fl_id) ) );
          assert( fl );
  
          fl->fillAll( d_f_l );
@@ -119,7 +119,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
    (void) temperature_id;  // unused
  
    boost::shared_ptr< pdat::CellData<double> > fl (
-      patch.getPatchData( fl_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fl_id) ) );
    assert( fl );
  
    fl->fillAll( d_f_l );
@@ -154,7 +154,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(
          boost::shared_ptr<hier::Patch > patch = *ip;
  
          boost::shared_ptr< pdat::CellData<double> > fs (
-            patch->getPatchData( fs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( fs_id) ) );
          assert( fs );
  
          fs->fillAll( d_f_a );
@@ -173,7 +173,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(
    (void) temperature_id;  // unused
 
    boost::shared_ptr< pdat::CellData<double> > fs (
-      patch.getPatchData( fs_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fs_id) ) );
    assert( fs );
  
    fs->fillAll( d_f_a );
@@ -208,7 +208,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(
          boost::shared_ptr<hier::Patch > patch = *ip;
  
          boost::shared_ptr< pdat::CellData<double> > fs (
-            patch->getPatchData( fs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( fs_id) ) );
          assert( fs );
  
          fs->fillAll( d_f_b );
@@ -227,7 +227,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(
    (void) temperature_id;  // unused
 
    boost::shared_ptr< pdat::CellData<double> > fs (
-      patch.getPatchData( fs_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fs_id) ) );
    assert( fs );
  
    fs->fillAll( d_f_b );
@@ -257,19 +257,19 @@ void PhaseFreeEnergyStrategy::addComponentRhsPhi(
    (void) temperature_id;  // unused
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData(phase_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
    assert( phase );
  
    boost::shared_ptr< pdat::CellData<double> > fl (
-      patch.getPatchData( f_l_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
    assert( fl );
  
    boost::shared_ptr< pdat::CellData<double> > fa (
-      patch.getPatchData( f_a_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
    assert( fa );
  
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      patch.getPatchData( rhs_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
    assert( rhs );
  
    assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -280,11 +280,11 @@ void PhaseFreeEnergyStrategy::addComponentRhsPhi(
    if ( d_with_third_phase ) {
       three_phase = 1; 
       boost::shared_ptr< pdat::CellData<double> > eta (
-         patch.getPatchData( eta_id ), boost::detail::dynamic_cast_tag()); 
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( eta_id) ) );
       ptr_eta = eta->getPointer();
 
       boost::shared_ptr< pdat::CellData<double> > fb (
-         patch.getPatchData( f_b_id ), boost::detail::dynamic_cast_tag()); 
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_b_id) ) );
       ptr_fb = fb->getPointer();
    }
  
@@ -332,27 +332,27 @@ void PhaseFreeEnergyStrategy::addComponentRhsEta(
    (void) temperature_id;  // unused
 
    boost::shared_ptr< pdat::CellData<double> > eta (
-      patch.getPatchData( eta_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( eta_id) ) );
    assert( eta );
  
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( phase_id) ) );
    assert( phase );
  
    boost::shared_ptr< pdat::CellData<double> > fl (
-      patch.getPatchData( f_l_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
    assert( fl );
  
    boost::shared_ptr< pdat::CellData<double> > fa (
-      patch.getPatchData( f_a_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
    assert( fa );
  
    boost::shared_ptr< pdat::CellData<double> > fb (
-      patch.getPatchData( f_b_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_b_id) ) );
    assert( fb );
  
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      patch.getPatchData( rhs_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
    assert( rhs );
  
    assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );

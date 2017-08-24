@@ -87,7 +87,7 @@ Example Use
 
 1) Run the code with one of the input files:
 
-      main3d ./RP_input/RP-testY-3d.input
+      ./main RP_input/RP-testY-3d.input
 
 2) go into the visualization dump directory. Data files (*.dat) 
    that contain primitive and conserved variable values at different 

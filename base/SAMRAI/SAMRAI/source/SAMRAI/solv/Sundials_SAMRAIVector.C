@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between SAMRAI vector object and Sundials vector.
  *
  ************************************************************************/
-
-#ifndef included_solv_Sundials_SAMRAIVector_C
-#define included_solv_Sundials_SAMRAIVector_C
-
 #include "SAMRAI/solv/Sundials_SAMRAIVector.h"
 
 #ifdef HAVE_SUNDIALS
@@ -28,7 +24,7 @@ namespace solv {
  *************************************************************************
  */
 
-SundialsAbstractVector*
+SundialsAbstractVector *
 Sundials_SAMRAIVector::createSundialsVector(
    const boost::shared_ptr<SAMRAIVectorReal<double> >& samrai_vec)
 {
@@ -51,7 +47,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> >
 Sundials_SAMRAIVector::getSAMRAIVector(
    SundialsAbstractVector* sundials_vec)
 {
-   TBOX_ASSERT(!(sundials_vec == (SundialsAbstractVector *)NULL));
+   TBOX_ASSERT(sundials_vec != 0);
    return (dynamic_cast<Sundials_SAMRAIVector *>(sundials_vec))->
           getSAMRAIVector();
 }
@@ -60,7 +56,7 @@ boost::shared_ptr<SAMRAIVectorReal<double> >
 Sundials_SAMRAIVector::getSAMRAIVector(
    N_Vector sundials_vec)
 {
-   TBOX_ASSERT(!(sundials_vec == NULL));
+   TBOX_ASSERT(sundials_vec != 0);
 // sgs
    return static_cast<Sundials_SAMRAIVector *>(sundials_vec->content)->
           getSAMRAIVector();
@@ -93,7 +89,7 @@ Sundials_SAMRAIVector::~Sundials_SAMRAIVector()
  *************************************************************************
  */
 
-SundialsAbstractVector*
+SundialsAbstractVector *
 Sundials_SAMRAIVector::makeNewVector()
 {
    Sundials_SAMRAIVector* out_vec =
@@ -252,5 +248,4 @@ Sundials_SAMRAIVector::testReciprocal(
 }
 }
 
-#endif
 #endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Program for poisson solver on adaptive grid using FAC
  *
  ************************************************************************/
@@ -13,14 +13,13 @@
 #include <fstream>
 // using namespace std;
 
-#include "printObject.h"
 #include "AdaptivePoisson.h"
-#include "get-input-filename.h"
+#include "test/testlib/get-input-filename.h"
 
 /*
  * Headers for basic SAMRAI objects used in this code.
  */
-#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -43,7 +42,10 @@
 #include "SAMRAI/mesh/StandardTagAndInitialize.h"
 #include "SAMRAI/solv/FACPreconditioner.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
+#include <string>
 
 using namespace SAMRAI;
 
@@ -52,14 +54,14 @@ int main(
    char* argv[])
 {
 
-   string input_filename;
+   std::string input_filename;
 
    /*
     * Initialize MPI, process argv, and initialize SAMRAI
     */
    tbox::SAMRAI_MPI::init(&argc, &argv);
    if (get_input_filename(&argc, argv, input_filename) == 1) {
-      tbox::pout << "Usage: " << argv[0] << " <input file>." << endl;
+      tbox::pout << "Usage: " << argv[0] << " <input file>." << std::endl;
       tbox::SAMRAI_MPI::finalize();
       return 0;
    }
@@ -78,7 +80,7 @@ int main(
        * Do not run them without hypre.
        */
 #ifdef HAVE_HYPRE
-      tbox::pout << "Input file is " << input_filename << endl;
+      tbox::pout << "Input file is " << input_filename << std::endl;
 
       std::string case_name;
       if (argc > 1) {
@@ -106,14 +108,15 @@ int main(
 
       const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
-      tbox::plog << "Main database:" << endl;
+      tbox::plog << "Main database:" << std::endl;
       main_db->printClassData(tbox::plog);
 
       /*
        * Base filename info.
        */
 
-      string base_name = main_db->getStringWithDefault("base_name", "noname");
+      std::string base_name =
+         main_db->getStringWithDefault("base_name", "noname");
 
       /*
        * Modify basename for this particular run.
@@ -129,7 +132,7 @@ int main(
        * Log file info.
        */
       {
-         string log_filename =
+         std::string log_filename =
             main_db->getStringWithDefault("log_filename", base_name + ".log");
          bool log_all =
             main_db->getBoolWithDefault("log_all", false);
@@ -145,13 +148,13 @@ int main(
        */
       /*
        * Create a grid geometry required for the patchHierarchy object.
-          */
+       */
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
          new geom::CartesianGridGeometry(
             dim,
             "CartesianGridGeometry",
             input_db->getDatabase("CartesianGridGeometry")));
-      tbox::plog << "Grid Geometry:" << endl;
+      tbox::plog << "Grid Geometry:" << std::endl;
       grid_geometry->printClassData(tbox::plog);
       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy(
          new hier::PatchHierarchy(
@@ -163,12 +166,55 @@ int main(
        * Create the problem-specific object implementing the required
        * SAMRAI virtual functions.
        */
-      AdaptivePoisson
-      adaptive_poisson("AdaptivePoisson",
-                       dim,
-                       *(input_db->getDatabase("AdaptivePoisson")),
-                       &tbox::pout,
-                       &tbox::plog);
+
+      std::string adaptive_poisson_name = "AdaptivePoisson";
+      std::string fac_ops_name =
+         adaptive_poisson_name + ":scalar poisson operator";
+      std::string fac_precond_name =
+         "FAC preconditioner for Poisson's equation";
+      std::string hypre_poisson_name = fac_ops_name + "::hypre_solver";
+
+#ifdef HAVE_HYPRE
+      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_poisson(
+         new solv::CellPoissonHypreSolver(
+            dim,
+            hypre_poisson_name,
+            input_db->isDatabase("hypre_solver") ?
+            input_db->getDatabase("hypre_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            hypre_poisson,
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#else
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#endif
+
+      boost::shared_ptr<solv::FACPreconditioner> fac_precond(
+         new solv::FACPreconditioner(
+            fac_precond_name,
+            fac_ops,
+            input_db->isDatabase("fac_precond") ?
+            input_db->getDatabase("fac_precond") :
+            boost::shared_ptr<tbox::Database>()));
+
+      AdaptivePoisson adaptive_poisson(adaptive_poisson_name,
+                                       dim,
+                                       fac_ops,
+                                       fac_precond,
+                                       *(input_db->getDatabase("AdaptivePoisson")),
+                                       &tbox::plog);
 
       /*
        * Create the tag-and-initializer, box-generator and load-balancer
@@ -176,7 +222,6 @@ int main(
        */
       boost::shared_ptr<mesh::StandardTagAndInitialize> tag_and_initializer(
          new mesh::StandardTagAndInitialize(
-            dim,
             "CellTaggingMethod",
             &adaptive_poisson,
             input_db->getDatabase("StandardTagAndInitialize")));
@@ -200,7 +245,7 @@ int main(
       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
          new mesh::GriddingAlgorithm(
             patch_hierarchy,
-            " Gridding Algorithm",
+            "Gridding Algorithm",
             input_db->getDatabase("GriddingAlgorithm"),
             tag_and_initializer,
             box_generator,
@@ -248,22 +293,13 @@ int main(
          /*
           * Solve.
           */
-         string max_cycles_str = "max_cycles";
-         int max_cycles = main_db->getIntegerWithDefault(max_cycles_str, 10);
-         double residual_tol = main_db->getDoubleWithDefault("residual_tol",
-               1e-6);
-         tbox::pout.setf(ios::scientific);
-         int pre_sweeps = main_db->getIntegerWithDefault("pre_sweeps", 5);
-         int post_sweeps = main_db->getIntegerWithDefault("post_sweeps", 5);
-         string initial_u = main_db->getStringWithDefault("initial_u", "0.0");
+         tbox::pout.setf(std::ios::scientific);
+         std::string initial_u =
+            main_db->getStringWithDefault("initial_u", "0.0");
          adaptive_poisson.solvePoisson(patch_hierarchy,
-            max_cycles,
-            residual_tol,
-            pre_sweeps,
-            post_sweeps,
-            adaption_number ? string() : initial_u);
-         tbox::Array<double> l2norms(patch_hierarchy->getNumberOfLevels());
-         tbox::Array<double> linorms(patch_hierarchy->getNumberOfLevels());
+            adaption_number ? std::string() : initial_u);
+         std::vector<double> l2norms(patch_hierarchy->getNumberOfLevels());
+         std::vector<double> linorms(patch_hierarchy->getNumberOfLevels());
          adaptive_poisson.computeError(*patch_hierarchy,
             &l2norm,
             &linorm,
@@ -272,18 +308,18 @@ int main(
          error_ok = l2norm <= target_l2norm;
          tbox::plog << "Err " << (error_ok ? "" : "NOT ")
                     << "ok, err norm/target: "
-                    << scientific << l2norm << '/' << scientific
-                    << target_l2norm << endl;
+                    << std::scientific << l2norm << '/' << std::scientific
+                    << target_l2norm << std::endl;
          tbox::plog << "Err result after " << adaption_number
                     << " adaptions: \n"
-                    << setw(15) << "l2: " << setw(10) << scientific << l2norm
-                    << setw(15) << "li: " << setw(10) << scientific << linorm
+                    << std::setw(15) << "l2: " << std::setw(10) << std::scientific << l2norm
+                    << std::setw(15) << "li: " << std::setw(10) << std::scientific << linorm
                     << "\n";
          for (ln = 0; ln < patch_hierarchy->getNumberOfLevels(); ++ln) {
-            tbox::plog << setw(10) << "l2[" << setw(2) << ln << "]: "
-                       << setw(10) << scientific << l2norms[ln]
-                       << setw(10) << "li[" << setw(2) << ln << "]: "
-                       << setw(10) << scientific << linorms[ln]
+            tbox::plog << std::setw(10) << "l2[" << std::setw(2) << ln << "]: "
+                       << std::setw(10) << std::scientific << l2norms[ln]
+                       << std::setw(10) << "li[" << std::setw(2) << ln << "]: "
+                       << std::setw(10) << std::scientific << linorms[ln]
                        << "\n";
          }
 
@@ -314,14 +350,15 @@ int main(
             ++adaption_number;
             tbox::plog << "Adaption number " << adaption_number << "\n";
 
-            tbox::Array<int> tag_buffer(patch_hierarchy->getMaxNumberOfLevels());
-            for (ln = 0; ln < tag_buffer.getSize(); ++ln) {
+            std::vector<int> tag_buffer(patch_hierarchy->getMaxNumberOfLevels());
+            for (ln = 0; ln < static_cast<int>(tag_buffer.size()); ++ln) {
                tag_buffer[ln] = 1;
             }
             gridding_algorithm->regridAllFinerLevels(
                0,
-               0.0,
-               tag_buffer);
+               tag_buffer,
+               0,
+               0.0);
             tbox::plog << "Newly adapted hierarchy\n";
             patch_hierarchy->recursivePrint(tbox::plog, "    ", 1);
             if (0) {
@@ -342,7 +379,7 @@ int main(
       tbox::plog << "After " << adaption_number << "/" << max_adaptions
                  << " adaptions, residual is " << l2norm << "/"
                  << target_l2norm
-                 << endl;
+                 << std::endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
@@ -351,7 +388,7 @@ int main(
 #endif
 
       if (error_ok) {
-         tbox::pout << "\nPASSED:  FAC" << endl;
+         tbox::pout << "\nPASSED:  FAC" << std::endl;
       } else {
          TBOX_ERROR("Failed to meet accuracy specifications.");
       }

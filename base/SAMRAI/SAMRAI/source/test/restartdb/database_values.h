@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Global values for the restart tests
  *
  ************************************************************************/
@@ -13,14 +13,13 @@
 #include "SAMRAI/hier/IntVector.h"
 
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/DatabaseBox.h"
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/RestartManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 using namespace std;
@@ -77,5 +76,6 @@ int ilo[3] = { 0, 0, 0 };
 int ihi[3] = { 1, 1, 1 };
 tbox::DatabaseBox scalardb_full_thisBox(tbox::Dimension(3), ilo, ihi);
 
+hier::IntVector intVector0(tbox::Dimension(2), 0);
 hier::IntVector intVector1(tbox::Dimension(2), 1);
 hier::IntVector intVector2(tbox::Dimension(2), 1);

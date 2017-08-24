@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between PETSc vector interface and SAMRAI vectors.
  *
  ************************************************************************/
@@ -29,13 +29,16 @@
 #ifdef MPICH_SKIP_MPICXX
 #undef MPICH_SKIP_MPICXX
 #endif
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
 #include "petscvec.h"
 #endif
 
 #include "SAMRAI/solv/PETScAbstractVectorReal.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -63,8 +66,8 @@ namespace solv {
  * (i.e., data of type <TT>double</TT> or <TT>float</TT>.  The class
  * PETSc_SAMRAIVectorComplex must be used for complex data.
  *
- * @see solv::PETScAbstractVectorReal
- * @see solv::SAMRAIVectorReal
+ * @see PETScAbstractVectorReal
+ * @see SAMRAIVectorReal
  */
 
 template<class TYPE>
@@ -79,6 +82,8 @@ public:
     * the vector data.  Data must be allocated through the SAMRAI vector
     * object directly.  For output of the data through PETSc "ViewVec" calls,
     * the output stream to which the SAMRAI vector object writes will be used.
+    *
+    * @pre samrai_vec
     */
    static Vec
    createPETScVector(
@@ -89,6 +94,8 @@ public:
     * Destroy a given PETSc vector object. It is important to note that
     * this function does not deallocate storage for the vector data.
     * Vector data must be deallocated through the SAMRAI vector object.
+    *
+    * @pre !petsc_vec || petsc_vec->data
     */
    static void
    destroyPETScVector(
@@ -97,6 +104,8 @@ public:
    /**
     * Return pointer to the SAMRAI vector object associated with the
     * given PETSc vector.
+    *
+    * @pre petsc_vec && petsc_vec->data
     */
    static boost::shared_ptr<SAMRAIVectorReal<TYPE> >
    getSAMRAIVector(

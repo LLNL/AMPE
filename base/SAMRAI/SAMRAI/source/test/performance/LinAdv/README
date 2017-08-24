@@ -3,12 +3,12 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   Linear Advection Equation Example
 ##
 #########################################################################
 
-This README explains how to use the AMR LinAdv sample application
+This README explains how to use the AMR LinAdv performance test
 code in the SAMRAI library.  The files included in this directory
 are as follows:  
 
@@ -25,64 +25,26 @@ library consider the object construction pattern in the main.C file.
 For more details on these files and the LinAdv class consult the comments
 in those files and the LinAdv.h class header file.
 
-COMPILE and RUN
----------------
-Compile:  make <prog name>   where <prog name> = "main2d" for 2D case
-                                               = "main3d" for 3D case  
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
 
-Run: 
-
-   main2d <input file>                     ... Serial run   (w/o  MPI)
-   mpirun -np <nprocs> main2d <input file> ... Parallel run (with MPI)
-
-      NOTE: <input file> is the FULL-PATH of the input file
-
-   There are sample input files in the subdirectory sample_input.
-      sphere-2d.input - advecting sphere with periodic boundaries
-      sphere-2d-per-4levels.input - same as above but with 4 levels
-      sphere-2d-re.input - advecting sphere using Richardson extrapolation
-      sine-front-2d.input - advecting sphere with sinusoidal front
-      sphere-3d.input - advecting sphere with periodic boundaries
-
-   example:
-      main2d sample_input/sphere-2d.input
-      mpirun -np 2 main2d sample_input/sphere-2d.input
-
-Restarted Run:
-
-      same format as regular run but add <restart dir> <restore num>
-      to end of command.
-         <restart dir> is directory where restart files are stored
-                       (set in input file).
-         <restore num> is the identifier of which restart file to use
-                       (generally the timestep).
-     
-      example:  (to start from timestep #5)
-        
-        main2d sample_input/sphere-2d.input restart_sphere2d 5
-        mpirun -np 2 main2d sample_input/sphere-2d.input restart_sphere2d 5
-
-      NOTE:  The ordinary use of our restart functionality requires that
-             a problem can only be restarted on on the same number of
-             processors on which the problem was originally run.  To restart
-             on a different number of processors, used the
-             restart-redistribute tool in SAMRAI/tools/restart.
+   Execution:
+      For one the following input files:
+         test_inputs/domainexpansion.input
+         test_inputs/domainexpansionb.input
+         test_inputs/domainexpansiont.input
+         performance_inputs/domainexpansionc.input
+      serial:
+         ./main   <input file>
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main <input file>
 
 INPUT FILES:
 ------------
-
-   Two example input files are included with the LinAdv application:
-
-      sample_input/sphere-2d.input ... 2d sphere with large uval
-				       differences at time zero - simulates
-                                       advection of "blob" of fluid in 2D.  
-      sample_input/sphere-2d-re.input ... same as above case but with
-				       Richardson extrapolation applied to 
-                                       resolve solution errors.     
-      sample_input/sphere-3d.input ... 3d sphere with large uval 
-				       differences at time zero - simulates
-                                       advection of "blob" of fluid in 3D.  
-
 
    The LinAdv application code is composed of various classes that implement
    the algorithmic and numerical routines in the AMR solution process (see 
@@ -143,36 +105,23 @@ INPUT FILES:
       //                      writing of visualization files.
       // viz_dump_dirname  -- (char string) directory where viz files are 
       //                      writen (may include a path).  VisIt requires a
-      //                      non-empty string.  Vizamrai permits an empty string,
-      //                      in which case dumps go to directory where main2d/3d
-      //                      exists. If both data writers are used, directory name
-      //                      must be nonempty, and main.C will append _VisIt,
-      //                       _Vizamrai to dirname.
-      // viz_dump_filename -- (char string) Nonempty file prefix required for 
-      //                      vizamrai filenames.  Not used by VisIt.
+      //                      non-empty string.
       // visit_number_procs_per_file
       //                   -- (int >= 1) for parallel runs, number of processors 
       //                      that share a single common dump file. If this parameter
       //                      > number processors being used, all processors share 
-      //                      single dump file.  Not used by Vizamrai.
+      //                      single dump file.
       //
       //                      For example, the following inputs:
       viz_dump_interval     = 1
       viz_dump_dirname      = "viz_sphere-2d"
-      viz_dump_filename     = "sphere-2d"
       //                       would result in the following dump structure:
-      //                         main2d
-      //                         viz_sphere-2d_VisIt/
+      //                         main
+      //                         viz_sphere-2d
       //                           visit_dump.00000/
       //                           visit_dump.00001/
       //                           ...
       //                           dumps.visit
-      //                         viz_sphere-2d_Vizamrai/
-      //                           sphere-2d.00000.vis
-      //                           sphere-2d.00001.vis
-      //                           ...
-      //                       If only one data writer is selected, the
-      //                       _VisIt, _Vizamrai extension will be omitted.
 
       // Restart dump parameters.
       // restart_interval -- (int) the interval in timesteps over coarsest
@@ -409,253 +358,3 @@ INPUT FILES:
 
    }
 
-   "CartesianGeometry" input section
-   ---------------------------------
-   CartesianGeometry {
-      //  Specify lower/upper corners of the computational domain and a
-      //  set of non-overlapping boxes defining domain interior.  If union
-      //  of boxes is not a parallelpiped, lower/upper corner data corresponds
-      //  to min/max corner indices over all boxes given.
-      //  x_lo  -- (double array) lower corner of computational domain [REQD]
-      //  x_up  -- (double array) upper corner of computational domain [REQD]
-      //  domain_boxes  -- (box array) set of boxes that define interior of
-      //                   hysical domain. [REQD]
-      //  periodic_dimension -- (int array) coordinate directions in which
-      //                        domain is periodic.  Zero indicates not
-      //                        periodic, non-zero value indicates periodicity.
-      //                        [0]
-      x_lo = 0.e0 , 0.e0           
-      x_up = 30.e0 , 20.e0       
-      domain_boxes = [(0,0),(59,39)]
-   }
-
-
-   "GriddingAlgorithm" input section
-   ---------------------------------
-   GriddingAlgorithm {
-      // Information used to create patches in AMR hierarchy.
-      // max_levels -- (int) max number of mesh levels in hierarchy [REQD]
-      //
-      // For most of the following parameters, the number of precribed data
-      // values need not match the number of levels in the hierarchy
-      // (determined by max_levels).  If more values are given than number
-      // of levels, extraneous values will be ignored.  If less are give, then
-      // values that correspond to individual levels will apply to those
-      // levels.  Missing values will be taken from those for the finest
-      // level specified.
-      //
-      // ratio_to_coarser {
-      //   level_1 -- (int array) ratio between index spaces on
-      //              level 1 to level 0 [REQD]
-      //   level_2 -- (int array)  ratio between index spaces on
-      //              level 2 to level 1 [REQD]
-      //   etc....
-      // }
-      // largest_patch_size {
-      //   level_0 -- (int array) largest patch allowed on level 0.
-      //              [REQD]
-      //   level_1 -- (int array)    "       "      "   "  level 1
-      //              [level 0 entry]
-      //   etc....
-      // }
-      // smallest_patch_size {
-      //   level_0 -- (int array) smallest patch allowed on level 0.
-      //              [max ghost width for all variables]
-      //   level_1 -- (int array)    "       "      "   "  level 1
-      //              [level 0 entry]
-      //   etc....
-      // }
-      max_levels = 3
-      ratio_to_coarser {
-         level_1 = 4 , 4
-         level_2 = 4 , 4
-         level_3 = 4 , 4
-      }
-      largest_patch_size {
-         level_0 = 40 , 40
-      }
-      smallest_patch_size {
-         level_0 = 16 , 16
-      }
-
-      // Tolerances for gridding efficiency and box chopping operations.
-      // efficiency_tolerance -- (double array) minimum percentage of tagged
-      //                         cells allowed in a box [0.8 for each level]
-      // combine_efficiency   -- (double array) threshold specifying when a
-      //                         box may be chopped into two smaller boxes.
-      //                         If sum of the volumes of smaller boxes is >
-      //                         combine efficiency * volume of larger box,
-      //                         then larger box will not be chopped.
-      //                         [0.8 for each level]
-      // proper_nesting_buffer -- (int array) number of coarse cells by which
-      //                          the next finer level is nested within its
-      //                          interior. [1 for each level]
-      efficiency_tolerance    = 0.85e0
-      combine_efficiency      = 0.95e0
-      proper_nesting_buffer   = 1
-
-      // Option to read or write gridding information
-      // write_regrid_boxes    -- (bool) Output sequence of refine boxes to file
-      // read_regrid_boxes     -- (bool) Read sequence of refine boxes from file
-      // regrid_boxes_filename -- (string) file name used for reading or writing 
-      //                         boxes. 
-      //
-      // Reading and writing options require some user intervention to assure
-      // they work properly.  Please consult Andy Wissink (awissink@llnl.gov)
-      // if you are interested in using these options. 
-      write_regrid_boxes    = TRUE
-      regrid_boxes_filename = TRUE
-       
-   }
-
-   "StandardTagAndInitialize" input section
-   ---------------------------------------------
-   StandardTagAndInitialize {
-      // Specification of the type of tagging to be performed
-      // tagging_method -- (string array) one or more entries specifying
-      //                 the tagging algorithm used.  Options include:
-      //                 "GRADIENT_DETECTOR" 
-      //                 "RICHARDSON_EXTRAPOLATION"
-      //                 "REFINE_BOXES"
-      //
-      // REFINE_BOXES allows you to prescribe where refinement should occur.
-      // If this option is used, you must also supply a RefineBoxes database
-      // entry with the refine boxes on different levels specified.  i.e.
-      //    RefineBoxes{ 
-      //        level_0 -- (BoxArray) Boxes to be refined on level 0
-      //        level_1 -- (BoxArray) Boxes to be refined on level 1
-      //        etc. 
-      //
-      // Gradient detection option.
-      tagging_method = "GRADIENT_DETECTOR"
-      //
-      // Richarson extrapolation option.
-      tagging_method = "RICHARDSON_EXTRAPOLATION"
-      //
-      // Static refine boxes option.
-      tagging_method = "REFINE_BOXES"
-      RefineBoxes {
-        level0_boxes = [(15,0),(29,14)]
-        level1_boxes = [(65,10),(114,40)]
-      }
-      // Combination.
-      tagging_method = "RICHARDSON_EXTRAPOLATION", "GRADIENT_DETECTOR"
-   }
-
-
-   "HyperbolicLevelIntegrator" input section
-   -----------------------------------------
-   HyperbolicLevelIntegrator{
-      //  CFL used to determine timestep on each level.  
-     //  cfl      -- (double) timestep at each level is given by
-      //              dt = cfl*dx/a, where a is max wave speed.  [REQD]
-      //  cfl_init -- (double) cfl factor used for initial step [REQD]
-      cfl                       = 0.9e0
-      cfl_init                  = 0.9e0
-
-      //  Options for timestep computation.
-      //  lag_dt_computation -- (bool) if true, characteristic data on the
-      //                        patch is not recomputed before computing the
-      //                        timestep;  otherwise it uses data from
-      //                        preceding flux calculation [TRUE].
-      //  use_ghosts_to_compute_dt -- (bool) if true, fill ghost data before
-      //                              computing timestep on each patch [TRUE].
-      lag_dt_computation        = TRUE
-      use_ghosts_to_compute_dt  = TRUE
-   }
-
-
-   "TimeRefinementIntegrator" input section
-   -----------------------------------------
-   TimeRefinementIntegrator{
-      // Time stepping specifications. 
-      // start_time -- (double) initial integration time [REQD]
-      // end_time   -- (double) final integration time [REQD]
-      // grow_dt    -- (double) limit factor on maximum growth of timestep
-      //               from one step to the next; useful for ramping up
-      //               timestep size or to prevent rapid growth in timestep
-      //               [REQD]
-      // max_integrator_steps -- max number timesteps on coarsest level [REQD]
-      // tag_buffer -- (int array) amount by which cells tagged for error are
-      //               buffered before new fine patches are created to cover
-      //               tagged regions.  By default, it is the interval of
-      //               timesteps between successive regids on level.
-      //               [regrid_interval]
-      start_time           = 0.e0
-      end_time             = 100.e0
-      grow_dt              = 1.1e0
-      max_integrator_steps = 10
-      tag_buffer           = 1,1,1,1 // max of 4 finer levels in hierarchy
-   }
-
-   "LoadBalancer" input section
-   ----------------------------------
-   LoadBalancer {
-      // using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
-   }
-
-   "DataWriter" input section
-   ----------------------------------
-   DataWriter {
-      // Specify which variables to write to visualization file(s).
-      // Variable_Names -- (string array) list of variable names to
-      //                    write to the viz file.
-      // Variable_Types -- (string array) list of the corresponding
-      //                    variable type to write to the viz file.
-      //                    Must be either "primitive" or "derived".
-      //                    Note that until vizamrai is updated to use
-      //                    HDF5, "derived" must always be used.
-      // Variable_Depths -- (int array) depth, or number of components, of
-      //                    each variable.
-      // Variable_Scales -- (double array) list of scaling factors for each
-      //                    variable to be written to the viz file.
-      Variable_Names  =  "uval"
-      Variable_Types  =  "Derived"
-      Variable_Depths =  1
-      Variable_Scales =  1.0
-   }
-
-   "TimerManager" input section
-   ----------------------------
-   TimerManager{
-      // Specify which timers to invoke
-      // timer_list -- (string array) list of timers to be turned on - for
-      //               complete list of available timers, see
-      //               SAMRAI/docs/userdocs/timing.pdf  [null]
-      timer_list  = "apps::main::*",
-                    "apps::Euler::computeFluxesOnPatch()",
-                    "algs::GriddingAlgorithm::*",
-                    "xfer::*::*"
-
-      // Various output options.
-      // print_total      -- (bool) print total time [TRUE]
-      // print_exclusive  -- (bool) output exclusive time - i.e. time spent
-      //                     exclusively in each routine.  A nice way to
-      //                     identify routines with bottlenecks, but is more
-      //                     expensive than recording total time [FALSE].
-      // print_wall       -- (bool) output wallclock time [TRUE]
-      // print_user       -- (bool) output user time [FALSE]
-      // print_sys        -- (bool) output system time [FALSE]
-      // print_summed     -- (bool) output sum of times measured across all
-      //                     processors during a parallel run [FALSE].
-      // print_max        -- (bool) output maximum time spent on any one
-      //                     processor, along with the processor ID [FALSE]
-      // print_percentage -- (bool) output percentage of total time for each
-      //                     printed timer [TRUE]
-      // print_concurrent -- (bool) in the process of performing exclusive
-      //                     time, a nested call tree is created; print the
-      //                     tree [FALSE]
-      // print_timer_overhead -- (bool) each timer start/stop invocation
-      //                     incurs about one-half a millionth of a second
-      //                     overhead.  This option will output the number of
-      //                     invocations and the total predicted overhead for
-      //                     all the timers [FALSE]
-      // print_threshold  -- (double) do not print any timers that constitute
-      //                     < (print_threshold)% of overall run time.  Useful
-      //                     to prevent gobs of output if many timers are
-      //                     turned on. [0.25]
-      print_exclusive = TRUE
-      print_max = TRUE
-      print_timer_overhead = TRUE
-      print_threshold = 0.0
-   }

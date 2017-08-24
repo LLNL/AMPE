@@ -53,7 +53,6 @@ Grains::Grains(const int qlen,
    d_number_of_grains = -1;
    d_grain_diag_isActive=false;
    d_grain_extend_isActive=false;
-   d_grain_extend_refine_sched.setNull();
    d_grain_refine_strategy=NULL;
    
    d_grain_phase_threshold = 0.85;
@@ -185,6 +184,8 @@ void Grains::initializeRefineCoarsenAlgorithms(
    boost::shared_ptr<geom::CartesianGridGeometry > grid_geom,
    boost::shared_ptr<hier::CoarsenOperator > quat_coarsen_op)
 {
+   tbox::plog<<"Grains::initializeRefineCoarsenAlgorithms()"<<endl;
+
    if ( d_grain_diag_isActive ) {
       assert( d_grain_number_id>=0 );
       assert( grid_geom );
@@ -195,7 +196,7 @@ void Grains::initializeRefineCoarsenAlgorithms(
             "CONSTANT_REFINE" );
       
       d_grain_number_refine_alg.reset(
-         new xfer::RefineAlgorithm(tbox::Dimension(NDIM)) );
+         new xfer::RefineAlgorithm() );
 
       d_grain_number_refine_alg->registerRefine(
          d_grain_number_id,          // destination
@@ -229,7 +230,8 @@ void Grains::initializeRefineCoarsenAlgorithms(
             "CONSTANT_REFINE" );
 
       d_grain_quat_refine_alg.reset(
-         new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+         new xfer::RefineAlgorithm() );
+
       d_grain_quat_refine_alg->registerRefine(
          d_grain_quat_scr_id,      // destination
          d_grain_quat_id,          // source
@@ -237,7 +239,8 @@ void Grains::initializeRefineCoarsenAlgorithms(
          d_grain_quat_refine_op );
 
       d_grain_extend_refine_alg.reset(
-         new xfer::RefineAlgorithm(tbox::Dimension(NDIM)) );
+         new xfer::RefineAlgorithm() );
+
       d_grain_extend_refine_alg->registerRefine(
          d_grain_extend_scr_id,      // destination
          d_grain_extend_id,          // source
@@ -365,16 +368,16 @@ void Grains::findAndNumberGrains(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
 
          boost::shared_ptr< pdat::CellData<int> > g (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
          assert( g );
          
          g->fillAll(-1);
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
 
             if ( (*phase)(cell) >= d_grain_phase_threshold ) {
@@ -421,10 +424,10 @@ void Grains::findAndNumberGrains(
             const hier::Box& pbox (patch->getBox());
 
             boost::shared_ptr< pdat::CellData<int> > g (
-               patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
             boost::shared_ptr< pdat::CellData<double> > w (
-               patch->getPatchData( weight_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( weight_id) ) );
 
 #if 0 // optimized loop...       
             int imin = pbox.lower(0);
@@ -493,8 +496,8 @@ void Grains::findAndNumberGrains(
             }
 
 #else
-            pdat::CellIterator iend(pbox, false);
-            for ( pdat::CellIterator ic(pbox, true); ic!=iend; ++ic ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+            for ( pdat::CellIterator ic(pdat::CellGeometry::begin(pbox)); ic!=iend; ++ic ) {
                const pdat::CellIndex icell = *ic;
                const int n = (*g)(icell);
                const double v = (*w)(icell);
@@ -561,13 +564,13 @@ void Grains::findAndNumberGrains(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<int> > g (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > w (
-            patch->getPatchData( weight_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( weight_id) ) );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
             int n = (*g)(cell);
             double v = (*w)(cell);
@@ -630,10 +633,10 @@ void Grains::findAndNumberGrains(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<int> > g (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
             int n = (*g)(cell);
 
@@ -680,13 +683,13 @@ void Grains::computeGrainVolumes(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<int> > grain (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > wgt (
-            patch->getPatchData( weight_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( weight_id) ) );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
             int n = (*grain)(cell);
             double v = (*wgt)(cell);
@@ -720,13 +723,13 @@ void Grains::computeGrainVolumes(
             const hier::Box& pbox = patch->getBox();
 
             boost::shared_ptr< pdat::CellData<int> > g (
-               patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
             boost::shared_ptr< pdat::CellData<double> > v (
-               patch->getPatchData( d_grain_volume_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_grain_volume_id) ) );
 
-            pdat::CellIterator iend(pbox, false);
-            for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
                pdat::CellIndex cell = *i;
                int n = (*g)(cell);
 
@@ -776,16 +779,16 @@ void Grains::computeGrainConcentrations(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<int> > grain (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > wgt (
-            patch->getPatchData( weight_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( weight_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > conc (
-            patch->getPatchData( conc_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( conc_id) ) );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
             int n = (*grain)(cell);
             double w = (*wgt)(cell);
@@ -838,16 +841,16 @@ void Grains::computeGrainConcentrations(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<int> > grain (
-            patch->getPatchData( d_grain_number_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > wgt (
-            patch->getPatchData( weight_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( weight_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > conc (
-            patch->getPatchData( conc_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( conc_id) ) );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
             int n = (*grain)(cell);
             double w = (*wgt)(cell);
@@ -953,15 +956,15 @@ void Grains::extendGrainOrientation(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
 
          boost::shared_ptr< pdat::CellData<int> > flag (
-            patch->getPatchData( d_grain_extend_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_extend_id) ) );
 
          flag->fillAll( 0 );
 
-         pdat::CellIterator iend(pbox, false);
-         for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
             pdat::CellIndex cell = *i;
 
             if ( (*phase)(cell) >= d_grain_phase_threshold ) {
@@ -998,21 +1001,21 @@ void Grains::extendGrainOrientation(
             const hier::Box& pbox = patch->getBox();
 
             boost::shared_ptr< pdat::CellData<int> > flag (
-               patch->getPatchData( d_grain_extend_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_extend_id) ) );
 
             boost::shared_ptr< pdat::CellData<int> > flag_scr (
-               patch->getPatchData( d_grain_extend_scr_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_extend_scr_id) ) );
 
             boost::shared_ptr< pdat::CellData<double> > quat (
-               patch->getPatchData( d_grain_quat_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_grain_quat_id) ) );
 
             boost::shared_ptr< pdat::CellData<double> > quat_scr (
-               patch->getPatchData( d_grain_quat_scr_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_grain_quat_scr_id) ) );
 
             one_still_unset = 0;
             
-            pdat::CellIterator iend(pbox, false);
-            for ( pdat::CellIterator i(pbox, true); i!=iend; ++i ) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
                pdat::CellIndex cell = *i;
 
                bool this_cell_still_unset = false;
@@ -1102,7 +1105,7 @@ void Grains::resetHierarchyConfiguration(
    
    const int nlev = hierarchy->getNumberOfLevels();
 
-   d_grain_number_refine_sched.resizeArray( nlev );
+   d_grain_number_refine_sched.resize( nlev );
 
    if ( d_grain_diag_isActive )
    for ( int ln = coarsest_level; ln <= finest_level; ln++ ) {
@@ -1120,7 +1123,7 @@ void Grains::resetHierarchyConfiguration(
             d_grain_refine_strategy );
    }
 
-   d_grain_number_coarsen_sched.resizeArray( hierarchy->getNumberOfLevels() );
+   d_grain_number_coarsen_sched.resize( hierarchy->getNumberOfLevels() );
 
    const int ln_beg = coarsest_level - (coarsest_level>0);
    const int ln_end = finest_level;
@@ -1137,8 +1140,8 @@ void Grains::resetHierarchyConfiguration(
             finer_level );
    }
    if ( d_grain_extend_isActive ) {
-      d_grain_extend_refine_sched.resizeArray( nlev );
-      d_grain_quat_refine_sched.resizeArray( nlev );
+      d_grain_extend_refine_sched.resize( nlev );
+      d_grain_quat_refine_sched.resize( nlev );
 
       for ( int ln = coarsest_level; ln <= finest_level; ln++ ) {
          boost::shared_ptr<hier::PatchLevel > level =
@@ -1158,8 +1161,8 @@ void Grains::resetHierarchyConfiguration(
                d_grain_refine_strategy );
       }
 
-      d_grain_extend_coarsen_sched.resizeArray( hierarchy->getNumberOfLevels() );
-      d_grain_quat_coarsen_sched.resizeArray( hierarchy->getNumberOfLevels() );
+      d_grain_extend_coarsen_sched.resize( hierarchy->getNumberOfLevels() );
+      d_grain_quat_coarsen_sched.resize( hierarchy->getNumberOfLevels() );
 
       for ( int ln = ln_beg; ln < ln_end; ln++ ) {
          boost::shared_ptr<hier::PatchLevel > level =

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for application-level variables
  *
  ************************************************************************/
@@ -16,7 +16,7 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -62,7 +62,7 @@ namespace hier {
  * by the fineBoundaryRepresentsVariable() function.  Each concrete variable subclass
  * defines the behavior of this function.
  *
- * @see hier::PatchDataFactory
+ * @see PatchDataFactory
  */
 
 class Variable
@@ -133,12 +133,14 @@ public:
     * Set the patch data factory object.  Normally, the factory is set in
     * the constructor, but this member function enables the factory to be
     * changed later in the lifetime of the variable.
+    *
+    * @pre getDim() == factory->getDim()
     */
    void
    setPatchDataFactory(
       const boost::shared_ptr<PatchDataFactory>& factory)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *factory);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *factory);
       d_factory = factory;
    }
 
@@ -165,7 +167,7 @@ public:
 private:
    Variable(
       const Variable&);         // not implemented
-   void
+   Variable&
    operator = (
       const Variable&);                 // not implemented
 

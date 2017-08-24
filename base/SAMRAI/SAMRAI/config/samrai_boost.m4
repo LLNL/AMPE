@@ -5,7 +5,7 @@ AC_DEFUN([CASC_SUPPORT_BOOST],[
 # Begin CASC_SUPPORT_BOOST
 # Defines boost_PREFIX boost_INCLUDES and boost_LIBS.
 AC_ARG_WITH(boost,
-[ --with-boost[=PATH]  Use BOOST and specify where BOOST is installed.],
+[  --with-boost[=PATH]  Use BOOST and specify where BOOST is installed.],
 , with_boost=no)
 
 case "$with_boost" in

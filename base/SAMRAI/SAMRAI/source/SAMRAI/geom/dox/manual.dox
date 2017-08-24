@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Generation of SAMRAI Doxygen source code manual 
  *
  ************************************************************************/
@@ -20,6 +20,7 @@ namespace SAMRAI {
   operators are also included here although they are independent of the
   mesh description.
   -# @ref package_geometry_cartesian "simple Cartesian mesh (grid geometry and operators)"
+  -# @ref package_geometry_generic "generic meshes (grid geometry only)"
  
   All class names in the Geometry package are in the SAMRAI::geom namespace.
 

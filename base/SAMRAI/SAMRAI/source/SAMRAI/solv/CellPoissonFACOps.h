@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operator class for cell-centered scalar Poisson using FAC
  *
  ************************************************************************/
@@ -45,7 +45,7 @@
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -103,36 +103,120 @@ namespace solv {
  * Hence, it owns none of the solution vectors, error vectors,
  * diffusion coefficient data, or any such things.
  *
- * Input Examples
- * @verbatim
- * coarse_solver_choice = "hypre"    // see setCoarsestLevelSolverChoice()
- * coarse_solver_tolerance = 1e-14   // see setCoarsestLevelSolverTolerance()
- * coarse_solver_max_iterations = 10 // see setCoarsestLevelSolverMaxIterations()
- * smoothing_choice = "redblack"     // see setSmoothingChoice()
- * cf_discretization = "Ewing"       // see setCoarseFineDiscretization()
- * prolongation_method = "LINEAR_REFINE" // see setProlongationMethod()
- * hypre_solver = { ... }            // tbox::Database for initializing Hypre solver
- * @endverbatim
+ * <b> Input Parameters </b>
+ *
+ * <b> Definitions: </b>
+ *    - \b    coarse_solver_choice
+ *
+ *    - \b    coarse_solver_tolerance
+ *
+ *    - \b    coarse_solver_max_iterations
+ *
+ *    - \b    cf_discretization
+ *
+ *    - \b    prolongation_method
+ *
+ *    - \b    enable_logging
+ *
+ * <b> Details:</b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>coarse_solver_choice</td>
+ *     <td>string</td>
+ *     <td>"hypre"</td>
+ *     <td>"hypre", "redblack", "jacobi"</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>coarse_solver_tolerance</td>
+ *     <td>double</td>
+ *     <td>1e-14</td>
+ *     <td>>0.0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>coarse_solver_max_iterations</td>
+ *     <td>int</td>
+ *     <td>10</td>
+ *     <td>>=1</td>
+ *     <td>opt
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>cf_discretization</td>
+ *     <td>string</td>
+ *     <td>"Ewing"</td>
+ *     <td>"Ewing", "CONSTANT_REFINE", "CONSERVATIVE_LINEAR_REFINE", "LINEAR_REFINE"</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>prolongation_method</td>
+ *     <td>string</td>
+ *     <td>"LINEAR_REFINE"</td>
+ *     <td>"CONSTANT_REFINE", "CONSERVATIVE_LINEAR_REFINE", "LINEAR_REFINE"</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>enable_logging</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ * </table>
+ *
  */
 class CellPoissonFACOps:
    public FACOperatorStrategy
 {
 
 public:
+#ifdef HAVE_HYPRE
    /*!
     * @brief Constructor.
     *
     * If you want standard output and logging,
     * pass in valid pointers for those streams.
     * @param dim
-    * @param object_name Ojbect name
-    * @param database Input database
+    * @param object_name Object name
+    * @param hypre_solver underlying hypre solver
+    * @param input_db Input database
     */
-   explicit CellPoissonFACOps(
+   CellPoissonFACOps(
+      const boost::shared_ptr<CellPoissonHypreSolver>& hypre_solver,
       const tbox::Dimension& dim,
       const std::string& object_name = std::string(),
-      const boost::shared_ptr<tbox::Database>& database =
+      const boost::shared_ptr<tbox::Database>& input_db =
          boost::shared_ptr<tbox::Database>());
+#else
+   /*!
+    * @brief Constructor.
+    *
+    * If you want standard output and logging,
+    * pass in valid pointers for those streams.
+    * @param dim
+    * @param object_name Object name
+    * @param input_db Input database
+    */
+   CellPoissonFACOps(
+      const tbox::Dimension& dim,
+      const std::string& object_name = std::string(),
+      const boost::shared_ptr<tbox::Database>& input_db =
+         boost::shared_ptr<tbox::Database>());
+#endif
 
    /*!
     * @brief Destructor.
@@ -151,208 +235,6 @@ public:
       d_poisson_spec = spec;
    }
 
-   /*!
-    * @brief Enable logging.
-    *
-    * By default, logging is disabled.  The logging flag is
-    * propagated to the major components used by this class.
-    */
-   void
-   enableLogging(
-      bool enable_logging)
-   {
-      d_enable_logging = enable_logging;
-   }
-
-   //@{
-   /*!
-    * @name Functions for setting solver mathematic algorithm controls
-    */
-
-   /*!
-    * @brief Set the choice of smoothing algorithms.
-    *
-    * Current smoothing choices are:
-    * - "redblack": Red-black Gauss-Seidel smoothing.
-    */
-   void
-   setSmoothingChoice(
-      const std::string& smoothing_choice)
-   {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (smoothing_choice != "redblack") {
-         TBOX_ERROR(d_object_name << ": Bad smoothing choice '"
-                                  << smoothing_choice
-                                  << "' in CellPoissonFACOps::setSmoothingChoice.");
-      }
-#endif
-      d_smoothing_choice = smoothing_choice;
-   }
-
-   /*!
-    * @brief Set coarse level solver.
-    *
-    * Select from these:
-    * - @c "redblack" (red-black smoothing until convergence--very slow!)
-    * - @c "hypre" (only if the HYPRE library is available).
-    */
-   void
-   setCoarsestLevelSolverChoice(
-      const std::string& choice)
-   {
-#ifdef DEBUG_CHECK_ASSERTIONS
-#ifndef HAVE_HYPRE
-      if (choice == "hypre") {
-         TBOX_ERROR(d_object_name << ": HYPRe library is not available.\n");
-      }
-#endif
-#endif
-      if (choice == "redblack" || choice == "hypre") {
-         d_coarse_solver_choice = choice;
-      } else {
-         TBOX_ERROR(
-            d_object_name << ": Bad coarse level solver choice '"
-                          << choice
-                          << "' in scapCellPoissonOpsX::setCoarseLevelSolver.");
-      }
-   }
-
-   /*!
-    * @brief Set tolerance for coarse level solve.
-    *
-    * If the coarse level solver requires a tolerance (currently, they all do),
-    * the specified value is used.
-    */
-   void
-   setCoarsestLevelSolverTolerance(
-      double tol)
-   {
-      d_coarse_solver_tolerance = tol;
-   }
-
-   /*!
-    * @brief Set max iterations for coarse level solve.
-    *
-    * If the coarse level solver requires a max iteration limit
-    * (currently, they all do), the specified value is used.
-    */
-   void
-   setCoarsestLevelSolverMaxIterations(
-      int max_iterations)
-   {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (max_iterations < 0) {
-         TBOX_ERROR(d_object_name << ": Invalid number of max iterations\n");
-      }
-#endif
-      d_coarse_solver_max_iterations = max_iterations;
-   }
-
-   /*!
-    * @brief Set the coarse-fine boundary discretization method.
-    *
-    * Specify the @c op_name std::string which will be passed to
-    * xfer::Geometry::lookupRefineOperator() to get the operator
-    * for setting fine grid ghost cells from the coarse grid.
-    * Note that chosing this operator implicitly choses the
-    * discretization method at the coarse-fine boundary.
-    *
-    * There is one important instance where this std::string is
-    * @em not passed to xfer::Geometry::lookupRefineOperator.
-    * If this variable is set to "Ewing", Ewing's coarse-fine
-    * discretization is used (a constant refinement is performed,
-    * and the flux is later corrected to result in Ewing's scheme).
-    * For a reference to Ewing's discretization method, see
-    * "Local Refinement Techniques for Elliptic Problems on Cell-Centered
-    * Grids, I. Error Analysis", Mathematics of Computation, Vol. 56, No. 194,
-    * April 1991, pp. 437-461.
-    *
-    * @param coarsefine_method String selecting the coarse-fine discretization method.
-    */
-   void
-   setCoarseFineDiscretization(
-      const std::string& coarsefine_method)
-   {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (d_hierarchy) {
-         TBOX_ERROR(
-            d_object_name << ": Cannot change coarse-fine\n"
-                          << "discretization method while operator state\n"
-                          << "is initialized because that causes a\n"
-                          << "corruption in the state.\n");
-      }
-#endif
-      d_cf_discretization = coarsefine_method;
-   }
-
-   /*!
-    * @brief Set the name of the prolongation method.
-    *
-    * Specify the @c op_name std::string which will be passed to
-    * xfer::Geometry::lookupRefineOperator() to get the operator
-    * for prolonging the coarse-grid correction.
-    *
-    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to
-    * to lead to faster convergence, but it does NOT satisfy the Galerkin
-    * condition.
-    *
-    * Prolonging using linear refinement requires a Robin bc
-    * coefficient implementation that is capable of delivering
-    * coefficients for non-hierarchy data, because linear refinement
-    * requires boundary conditions to be set on temporary levels.
-    *
-    * @param prolongation_method String selecting the coarse-fine
-    *        discretization method.
-    */
-   void
-   setProlongationMethod(
-      const std::string& prolongation_method)
-   {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (d_hierarchy) {
-         TBOX_ERROR(
-            d_object_name << ": Cannot change prolongation method\n"
-                          << "while operator state is initialized because\n"
-                          << "that causes a corruption in the state.\n");
-      }
-#endif
-      d_prolongation_method = prolongation_method;
-   }
-
-#ifdef HAVE_HYPRE
-   /*!
-    * @brief Set whether to use Hypre's PFMG algorithm instead of the
-    * SMG algorithm.
-    *
-    * This flag affects the Hypre solver (used to solve the coarsest level).
-    * The flag is used to select which of HYPRE's linear solver algorithms
-    * to use if true, the semicoarsening multigrid algorithm is used, and if
-    * false, the ``PF'' multigrid algorithm is used.
-    * By default, the SMG algorithm is used.
-    *
-    * This setting has effect only when Hypre is chosen for the coarsest
-    * level solver.  See setCoarsestLevelSolverChoice().
-    *
-    * Changing the algorithm must be done before initializing the solver
-    * state and must NOT be done while the state is initialized
-    * (the program will exit), as that would corrupt the state.
-    */
-   void
-   setUseSMG(
-      bool use_smg)
-   {
-      if (d_hierarchy) {
-         TBOX_ERROR(
-            d_object_name << ": setUseSMG(bool) may NOT be called\n"
-                          << "while the solver state is initialized, as that\n"
-                          << "would lead to a corrupted solver state.\n");
-      }
-      d_hypre_solver.setUseSMG(use_smg);
-   }
-#endif
-
-   //@}
-
    //@{
    /*!
     * @name Functions for setting patch data indices and coefficients
@@ -362,7 +244,7 @@ public:
     * @brief Set the scratch patch data index for the flux.
     *
     * The use of this function is optional.
-    * The patch data index should be a pdat::SideData<DIM> type of variable.
+    * The patch data index should be a pdat::SideData<TYPE> type of variable.
     * If the flux id is -1 (the default initial value), scratch space
     * for the flux is allocated as needed and immediately deallocated
     * afterward, level by level.  If you have space preallocated for
@@ -407,7 +289,7 @@ public:
       d_physical_bc_coef = physical_bc_coef;
       d_bc_helper.setCoefImplementation(physical_bc_coef);
 #ifdef HAVE_HYPRE
-      d_hypre_solver.setPhysicalBcCoefObject(d_physical_bc_coef);
+      d_hypre_solver->setPhysicalBcCoefObject(d_physical_bc_coef);
 #endif
    }
 
@@ -455,6 +337,10 @@ public:
     * @param finest_ln Finest level number.  Must be included
     *        in hierarchy.  Must not be less than @c coarsest_ln.
     *        Default to finest level in @c hierarchy.
+    *
+    * @pre hierarchy
+    * @pre d_dim == hierarchy->getDim()
+    * @pre finest_ln >= coarsest_ln
     */
    void
    computeVectorWeights(
@@ -505,6 +391,12 @@ public:
     *                               is level zero, this is ignored
     * @param w_data cell-centered data
     * @param Dgradw_data side-centered flux data (i.e., D (grad w))
+    *
+    * @pre (d_dim == patch.getDim()) &&
+    *      (d_dim == ratio_to_coarser_level.getDim()) &&
+    *      (d_dim == w_data.getDim()) && (d_dim == Dgradw_data.getDim())
+    * @pre patch.inHierarchy()
+    * @pre w_data.getGhostCellWidth() >= hier::IntVector::getOne(ratio_to_coarser_level.getDim())
     */
    void
    computeFluxOnPatch(
@@ -586,7 +478,22 @@ public:
       return d_object_name;
    }
 
+protected:
+   /*!
+    * @brief Read parameters from input database.
+    *
+    * @param input_db Input Database.
+    */
+   void
+   getFromInput(
+      const boost::shared_ptr<tbox::Database>& input_db);
+
 private:
+   // Internals of both constructors
+   void
+   buildObject(
+      const boost::shared_ptr<tbox::Database>& input_db);
+
    //@{
    /*!
     * @name Private workhorse functions.
@@ -603,6 +510,9 @@ private:
     * @param num_sweeps number of sweeps
     * @param residual_tolerance the maximum residual considered to be
     *        converged
+    *
+    * @pre data.getPatchHierarchy() == d_hierarchy &&
+    *      residual.getPatchHierarchy() == d_hierarchy
     */
    void
    smoothErrorByRedBlack(
@@ -636,10 +546,11 @@ private:
     * @param patch patch
     * @param soln_data cell-centered solution data
     * @param flux_data side-centered flux data
-    * @param diffcoef_data side-centered diffusion coefficient data
-    * @param cfb coarse-fine boundary object for the level
-    *        in which patch resides
     * @param ratio_to_coarser Refinement ratio to the next coarser level.
+    *
+    * @pre (d_dim == patch.getDim()) && (d_dim == soln_data.getDim()) &&
+    *      (d_dim == flux_data.getDim()) &&
+    *      (d_dim == ratio_to_coarser.getDim())
     */
    void
    ewingFixFlux(
@@ -657,6 +568,10 @@ private:
     * @param soln_data cell-centered solution data
     * @param rhs_data cell-centered rhs data
     * @param residual_data cell-centered residual data
+    *
+    * @pre (d_dim = patch.getDim()) && (d_dim == flux_data.getDim()) &&
+    *      (d_dim == soln_data.getDim()) && (d_dim == rhs_data.getDim()) &&
+    *      (d_dim == residual_data.getDim())
     */
    void
    computeResidualOnPatch(
@@ -673,11 +588,13 @@ private:
     * @param patch patch
     * @param flux_data side-centered flux data
     * @param rhs_data cell-centered rhs data
-    * @param scalar_field_data
-    *        cell-centered scalar field data
     * @param soln_data cell-centered solution data
     * @param red_or_black red-black switch.  Set to 'r' or 'b'.
     * @param p_maxres max residual output.  Set to NULL to avoid computing.
+    *
+    * @pre (d_dim == patch.getDim()) && (d_dim == flux_data.getDim()) &&
+    *      (d_dim == soln_data.getDim()) && (d_dim == rhs_data.getDim())
+    * @pre (red_or_black == 'r') || (red_or_black == 'b')
     */
    void
    redOrBlackSmoothingOnPatch(
@@ -686,7 +603,7 @@ private:
       const pdat::CellData<double>& rhs_data,
       pdat::CellData<double>& soln_data,
       char red_or_black,
-      double* p_maxres = NULL) const;
+      double* p_maxres = 0) const;
 
    //@}
 
@@ -740,6 +657,8 @@ private:
     * </ol>
     *
     * @return refinement schedule for prolongation
+    *
+    * @pre d_prolongation_refine_schedules[dest_ln]
     */
    void
    xeqScheduleProlongation(
@@ -755,6 +674,8 @@ private:
     * See general notes for xeqScheduleProlongation().
     *
     * @return coarsening schedule for restriction
+    *
+    * @pre d_urestriction_coarsen_schedules[dest_ln]
     */
    void
    xeqScheduleURestriction(
@@ -769,6 +690,8 @@ private:
     * See general notes for xeqScheduleProlongation().
     *
     * @return coarsening schedule for restriction
+    *
+    * @pre d_rrestriction_coarsen_schedules[dest_ln]
     */
    void
    xeqScheduleRRestriction(
@@ -784,6 +707,8 @@ private:
     *
     * @return coarsening schedule for setting composite grid flux at
     * coarse-fine boundaries.
+    *
+    * @pre d_flux_coarsen_schedules[dest_ln]
     */
    void
    xeqScheduleFluxCoarsen(
@@ -799,6 +724,8 @@ private:
     *
     * @return refine schedule for filling ghost data from coarser level
     * and physical bc.
+    *
+    * @pre d_ghostfill_refine_schedules[dest_ln]
     */
    void
    xeqScheduleGhostFill(
@@ -818,6 +745,8 @@ private:
     *
     * @return refine schedule for filling ghost data from same level
     * and physical bc.
+    *
+    * @pre d_ghostfill_nocoarse_refine_schedules[dest_ln]
     */
    void
    xeqScheduleGhostFillNoCoarse(
@@ -890,7 +819,7 @@ private:
     * hier::CoarseFineBoundary is a light object before
     * it is set for a level.
     */
-   tbox::Array<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
+   std::vector<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
 
    //@}
 
@@ -906,20 +835,12 @@ private:
    PoissonSpecifications d_poisson_spec;
 
    /*!
-    * @brief Smoothing choice.
-    * @see setSmoothingChoice.
-    */
-   std::string d_smoothing_choice;
-
-   /*!
     * @brief Coarse level solver.
-    * @see setCoarsestLevelSolverChoice
     */
    std::string d_coarse_solver_choice;
 
    /*!
     * @brief Coarse-fine discretization method.
-    * @see setCoarseFineDiscretization().
     */
    std::string d_cf_discretization;
 
@@ -928,20 +849,16 @@ private:
     *
     * The name of the refinement operator used to prolong the
     * coarse grid correction.
-    *
-    * @see setProlongationMethod()
     */
    std::string d_prolongation_method;
 
    /*!
     * @brief Tolerance specified to coarse solver
-    * @see setCoarsestLevelSolverTolerance()
     */
    double d_coarse_solver_tolerance;
 
    /*!
     * @brief Coarse level solver iteration limit.
-    * @see setCoarsestLevelSolverMaxIterations()
     */
    int d_coarse_solver_max_iterations;
 
@@ -974,7 +891,7 @@ private:
    /*!
     * @brief HYPRE coarse-level solver object.
     */
-   CellPoissonHypreSolver d_hypre_solver;
+   boost::shared_ptr<CellPoissonHypreSolver> d_hypre_solver;
 #endif
 
    /*!
@@ -989,13 +906,13 @@ private:
    //@{ @name Internal context and scratch data
 
    static boost::shared_ptr<pdat::CellVariable<double> >
-   s_cell_scratch_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   s_cell_scratch_var[SAMRAI::MAX_DIM_VAL];
 
    static boost::shared_ptr<pdat::SideVariable<double> >
-   s_flux_scratch_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   s_flux_scratch_var[SAMRAI::MAX_DIM_VAL];
 
    static boost::shared_ptr<pdat::OutersideVariable<double> >
-   s_oflux_scratch_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   s_oflux_scratch_var[SAMRAI::MAX_DIM_VAL];
 
    /*!
     * @brief Default context of internally maintained hierarchy data.
@@ -1044,37 +961,39 @@ private:
    //! @brief Error prolongation (refinement) operator.
    boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
    boost::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
    d_prolongation_refine_schedules;
 
    //! @brief Solution restriction (coarsening) operator.
    boost::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
    boost::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
    d_urestriction_coarsen_schedules;
 
    //! @brief Residual restriction (coarsening) operator.
    boost::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
    boost::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
    d_rrestriction_coarsen_schedules;
 
    //! @brief Coarsen operator for outerflux-to-flux
    boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
    boost::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
    d_flux_coarsen_schedules;
 
    //! @brief Refine operator for cell-like data from coarser level.
    boost::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
    boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
    d_ghostfill_refine_schedules;
 
    //! @brief Refine operator for cell-like data from same level.
-   boost::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
+   boost::shared_ptr<hier::RefineOperator>
+   d_ghostfill_nocoarse_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm>
+   d_ghostfill_nocoarse_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
    d_ghostfill_nocoarse_refine_schedules;
 
    //@}
@@ -1109,6 +1028,12 @@ private:
    /*!
     * @brief Preconditioner using this object.
     *
+    * This must remain a raw pointer.  Do not attempt to make this a smart
+    * pointer.  The preconditioner and this class have data members referring
+    * to each other.  If this is made into a smart pointer then things will not
+    * tear themselves down properly leading to memory leaks unless there is
+    * explicit action to reset the smart pointer.
+    *
     * See setPreconditioner().
     */
    const FACPreconditioner* d_preconditioner;
@@ -1134,8 +1059,7 @@ private:
    boost::shared_ptr<tbox::Timer> t_compute_composite_residual;
    boost::shared_ptr<tbox::Timer> t_compute_residual_norm;
 
-   static tbox::StartupShutdownManager::Handler
-      s_finalize_handler;
+   static tbox::StartupShutdownManager::Handler s_finalize_handler;
 };
 
 }

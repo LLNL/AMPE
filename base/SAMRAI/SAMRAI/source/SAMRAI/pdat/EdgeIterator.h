@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Iterator for edge centered patch data types
  *
  ************************************************************************/
@@ -37,23 +37,14 @@ namespace pdat {
  * on your compiler.  Many compilers are not smart enough to optimize the
  * looping constructs and indexing operations.
  *
- * @see pdat::EdgeData
- * @see pdat::EdgeGeometry
- * @see pdat::EdgeIndex
+ * @see EdgeData
+ * @see EdgeGeometry
+ * @see EdgeIndex
  */
 
 class EdgeIterator
 {
 public:
-   /**
-    * Constructor for the edge iterator.  The iterator will enumerate
-    * the indices in the argument box.
-    */
-   EdgeIterator(
-      const hier::Box& box,
-      const int axis,
-      bool begin);
-
    /**
     * Copy constructor for the edge iterator
     */
@@ -90,7 +81,7 @@ public:
     * Extract a pointer to the edge index corresponding to the iterator
     * position in the box.
     */
-   const EdgeIndex*
+   const EdgeIndex *
    operator -> () const
    {
       return &d_index;
@@ -116,6 +107,8 @@ public:
    operator == (
       const EdgeIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index == iterator.d_index;
    }
 
@@ -126,10 +119,33 @@ public:
    operator != (
       const EdgeIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index != iterator.d_index;
    }
 
 private:
+   friend EdgeIterator
+   EdgeGeometry::begin(
+      const hier::Box& box,
+      int axis);
+   friend EdgeIterator
+   EdgeGeometry::end(
+      const hier::Box& box,
+      int axis);
+
+   /**
+    * Constructor for the edge iterator.  The iterator will enumerate
+    * the indices in the argument box.
+    */
+   EdgeIterator(
+      const hier::Box& box,
+      const int axis,
+      bool begin);
+
+   // Unimplemented default constructor.
+   EdgeIterator();
+
    EdgeIndex d_index;
    hier::Box d_box;
 };

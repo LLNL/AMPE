@@ -2,7 +2,7 @@
 ##
 ## File:        $URL$
 ## Package:     SAMRAI scripts
-## Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:   (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Revision:    $LastChangedRevision: 1917 $
 ## Description: Create list of classes templated on DIM.  Run in v2 
 ##              directory to generate files.

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to user-specified functions for KINSOL package
  *
  ************************************************************************/
@@ -43,8 +43,8 @@ namespace solv {
  * via boolean arguments to the constructor of the KINSOLSolver
  * class, or using the setKINSOLFunctions() member function of that class.
  *
- * @see solv::KINSOLSolver
- * @see solv::SundialsAbstractVector
+ * @see KINSOLSolver
+ * @see SundialsAbstractVector
  */
 
 class KINSOLAbstractFunctions

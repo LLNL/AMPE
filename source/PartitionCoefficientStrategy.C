@@ -48,7 +48,7 @@ void PartitionCoefficientStrategy::evaluate(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > partition_coeff (
-            patch->getPatchData( d_partition_coeff_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > velocity;
          if( d_velocity_id>=0 ){

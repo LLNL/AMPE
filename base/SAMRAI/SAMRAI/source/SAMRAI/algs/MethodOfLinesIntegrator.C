@@ -3,18 +3,15 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Basic method-of-lines time integration algorithm
  *
  ************************************************************************/
-
-#ifndef included_algs_MethodOfLinesIntegrator_C
-#define included_algs_MethodOfLinesIntegrator_C
-
 #include "SAMRAI/algs/MethodOfLinesIntegrator.h"
 
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchData.h"
+#include "SAMRAI/hier/PatchDataRestartManager.h"
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -40,53 +37,37 @@ const int MethodOfLinesIntegrator::ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION = 2;
 MethodOfLinesIntegrator::MethodOfLinesIntegrator(
    const std::string& object_name,
    const boost::shared_ptr<tbox::Database>& input_db,
-   MethodOfLinesPatchStrategy* patch_strategy,
-   bool register_for_restart)
+   MethodOfLinesPatchStrategy* patch_strategy):
+   d_object_name(object_name),
+   d_order(3),
+   d_patch_strategy(patch_strategy),
+   d_current(hier::VariableDatabase::getDatabase()->getContext("CURRENT")),
+   d_scratch(hier::VariableDatabase::getDatabase()->getContext("SCRATCH"))
 {
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(patch_strategy != ((MethodOfLinesPatchStrategy *)NULL));
+   TBOX_ASSERT(patch_strategy != 0);
 
-   const tbox::Dimension dim(patch_strategy->getDim());
-
-   d_object_name = object_name;
-   d_registered_for_restart = register_for_restart;
-
-   if (d_registered_for_restart) {
-      tbox::RestartManager::getManager()->
-      registerRestartItem(d_object_name, this);
-   }
-
-   d_patch_strategy = patch_strategy;
-
-   /*
-    * Communication algorithms.
-    */
-   d_bdry_fill_advance.reset(new xfer::RefineAlgorithm(dim));
-   d_fill_after_regrid.reset(new xfer::RefineAlgorithm(dim));
-   d_fill_before_tagging.reset(new xfer::RefineAlgorithm(dim));
-   d_coarsen_algorithm.reset(new xfer::CoarsenAlgorithm(dim));
+   tbox::RestartManager::getManager()->registerRestartItem(d_object_name,
+      this);
 
    /*
     * hier::Variable contexts used in algorithm.
     */
-   d_current = hier::VariableDatabase::getDatabase()->getContext("CURRENT");
-   d_scratch = hier::VariableDatabase::getDatabase()->getContext("SCRATCH");
    d_patch_strategy->setInteriorContext(d_current);
    d_patch_strategy->setInteriorWithGhostsContext(d_scratch);
 
    /*
     * Set default to third-order SSP Runge-Kutta method.
     */
-   d_order = 3;
-   d_alpha_1.resizeArray(d_order);
+   d_alpha_1.resize(d_order);
    d_alpha_1[0] = 1.0;
    d_alpha_1[1] = 0.75;
    d_alpha_1[2] = 1.0 / 3.0;
-   d_alpha_2.resizeArray(d_order);
+   d_alpha_2.resize(d_order);
    d_alpha_2[0] = 0.0;
    d_alpha_2[1] = 0.25;
    d_alpha_2[2] = 2.0 / 3.0;
-   d_beta.resizeArray(d_order);
+   d_beta.resize(d_order);
    d_beta[0] = 1.0;
    d_beta[1] = 0.25;
    d_beta[2] = 2.0 / 3.0;
@@ -95,7 +76,7 @@ MethodOfLinesIntegrator::MethodOfLinesIntegrator(
     * Initialize object with data read from input and restart databases.
     */
    bool is_from_restart = tbox::RestartManager::getManager()->isFromRestart();
-   if (is_from_restart && d_registered_for_restart) {
+   if (is_from_restart) {
       getFromRestart();
    }
 
@@ -114,9 +95,7 @@ MethodOfLinesIntegrator::MethodOfLinesIntegrator(
 
 MethodOfLinesIntegrator::~MethodOfLinesIntegrator()
 {
-   if (d_registered_for_restart) {
-      tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
-   }
+   tbox::RestartManager::getManager()->unregisterRestartItem(d_object_name);
 }
 
 /*
@@ -176,7 +155,7 @@ MethodOfLinesIntegrator::getTimestep(
    double dt = tbox::MathUtilities<double>::getMax();
    const int nlevels = hierarchy->getNumberOfLevels();
 
-   for (int l = 0; l < nlevels; l++) {
+   for (int l = 0; l < nlevels; ++l) {
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(l);
 
       TBOX_ASSERT(level);
@@ -238,7 +217,7 @@ MethodOfLinesIntegrator::advanceHierarchy(
     */
    const int nlevels = hierarchy->getNumberOfLevels();
 
-   for (int ln = 0; ln < nlevels; ln++) {
+   for (int ln = 0; ln < nlevels; ++ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
 
       TBOX_ASSERT(level);
@@ -259,13 +238,13 @@ MethodOfLinesIntegrator::advanceHierarchy(
    /*
     * Loop through Runge-Kutta steps
     */
-   for (int rkstep = 0; rkstep < d_order; rkstep++) {
+   for (int rkstep = 0; rkstep < d_order; ++rkstep) {
 
       /*
        * Loop through levels in the patch hierarchy and advance data on
        * each level by a single RK step.
        */
-      for (int ln = 0; ln < nlevels; ln++) {
+      for (int ln = 0; ln < nlevels; ++ln) {
 
          /*
           * Fill ghost cells of all patches in level
@@ -301,7 +280,7 @@ MethodOfLinesIntegrator::advanceHierarchy(
 
    }  // rksteps loop
 
-   for (int ln = 0; ln < nlevels; ln++) {
+   for (int ln = 0; ln < nlevels; ++ln) {
       copyScratchToCurrent(hierarchy->getPatchLevel(ln));
 
       /*
@@ -313,7 +292,7 @@ MethodOfLinesIntegrator::advanceHierarchy(
    /*
     * dallocate U_scratch and rhs data
     */
-   for (int ln = 0; ln < nlevels; ln++) {
+   for (int ln = 0; ln < nlevels; ++ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
       level->deallocatePatchData(d_scratch_data);
       level->deallocatePatchData(d_rhs_data);
@@ -370,9 +349,20 @@ MethodOfLinesIntegrator::registerVariable(
 {
    TBOX_ASSERT(variable);
    TBOX_ASSERT(transfer_geom);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*variable, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*variable, ghosts);
 
    tbox::Dimension dim(ghosts.getDim());
+
+   if (!d_bdry_fill_advance) {
+      /*
+       * One-time set-up for communication algorithms.
+       * We wait until this point to do this because we need a dimension.
+       */
+      d_bdry_fill_advance.reset(new xfer::RefineAlgorithm());
+      d_fill_after_regrid.reset(new xfer::RefineAlgorithm());
+      d_fill_before_tagging.reset(new xfer::RefineAlgorithm());
+      d_coarsen_algorithm.reset(new xfer::CoarsenAlgorithm(dim));
+   }
 
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
@@ -404,7 +394,7 @@ MethodOfLinesIntegrator::registerVariable(
          /*
           * Register variable and context needed for restart.
           */
-         hier::VariableDatabase::getDatabase()->
+         hier::PatchDataRestartManager::getManager()->
          registerPatchDataForRestart(current);
 
          /*
@@ -479,7 +469,8 @@ MethodOfLinesIntegrator::registerVariable(
       default: {
 
          TBOX_ERROR(d_object_name << ":  "
-                                  << "unknown MOL_VAR_TYPE = " << m_v_type);
+                                  << "unknown MOL_VAR_TYPE = " << m_v_type
+                                  << std::endl);
 
       }
 
@@ -513,13 +504,13 @@ MethodOfLinesIntegrator::initializeLevelData(
    NULL_USE(can_be_refined);
    NULL_USE(allocate_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(hierarchy);
    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
    TBOX_ASSERT(level_number >= 0);
+#ifdef DEBUG_CHECK_ASSERTIONS
    if (old_level) {
       TBOX_ASSERT(level_number == old_level->getLevelNumber());
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*hierarchy, *old_level);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*hierarchy, *old_level);
    }
 #endif
 
@@ -580,11 +571,11 @@ MethodOfLinesIntegrator::resetHierarchyConfiguration(
    int finest_hiera_level = hierarchy->getFinestLevelNumber();
 
    //  If we have added or removed a level, resize the schedule arrays
-   d_bdry_sched_advance.resizeArray(finest_hiera_level + 1);
-   d_coarsen_schedule.resizeArray(finest_hiera_level + 1);
+   d_bdry_sched_advance.resize(finest_hiera_level + 1);
+   d_coarsen_schedule.resize(finest_hiera_level + 1);
 
    //  Build coarsen and refine communication schedules.
-   for (int ln = coarsest_level; ln <= finest_hiera_level; ln++) {
+   for (int ln = coarsest_level; ln <= finest_hiera_level; ++ln) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
 
       TBOX_ASSERT(level);
@@ -604,7 +595,7 @@ MethodOfLinesIntegrator::resetHierarchyConfiguration(
             d_coarsen_algorithm->createSchedule(
                coarser_level,
                level,
-               NULL);
+               0);
       }
 
    }
@@ -669,24 +660,23 @@ MethodOfLinesIntegrator::applyGradientDetector(
  *************************************************************************
  *
  * Writes the class version number, order, and
- * alpha array to the database.
+ * alpha array to the restart database.
  *
  *************************************************************************
  */
 
 void
-MethodOfLinesIntegrator::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+MethodOfLinesIntegrator::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION",
+   restart_db->putInteger("ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION",
       ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION);
 
-   db->putInteger("d_order", d_order);
-   db->putDoubleArray("d_alpha_1", d_alpha_1);
-   db->putDoubleArray("d_alpha_2", d_alpha_2);
-   db->putDoubleArray("d_beta", d_beta);
+   restart_db->putDoubleVector("alpha_1", d_alpha_1);
+   restart_db->putDoubleVector("alpha_2", d_alpha_2);
+   restart_db->putDoubleVector("beta", d_beta);
 }
 
 /*
@@ -704,79 +694,58 @@ MethodOfLinesIntegrator::getFromInput(
    const boost::shared_ptr<tbox::Database>& input_db,
    bool is_from_restart)
 {
-   TBOX_ASSERT(is_from_restart || input_db);
+   if (input_db) {
 
-   if (is_from_restart) {
+      bool read_on_restart =
+         input_db->getBoolWithDefault("read_on_restart", false);
+      if (!is_from_restart || read_on_restart) {
 
-      if (input_db) {
-         if (input_db->keyExists("order")) {
-            d_order = input_db->getInteger("order");
-            if (d_order < 0) {
-               TBOX_ERROR(
-                  d_object_name << ":  "
-                                << "Negative `order' value specified in input.");
+         if (input_db->keyExists("alpha_1")) {
+            size_t array_size = input_db->getArraySize("alpha_1");
+            if (array_size > 3) {
+               TBOX_ERROR("MethodOfLinesIntegrator::getFromInput() error...\n"
+                  << "number of alpha_1 entries must be <=3." << std::endl);
             }
-
+            d_alpha_1 = input_db->getDoubleVector("alpha_1");
          }
+
+         if (input_db->keyExists("alpha_2")) {
+            size_t array_size = input_db->getArraySize("alpha_2");
+            if (array_size > 3) {
+               TBOX_ERROR("MethodOfLinesIntegrator::getFromInput() error...\n"
+                  << "number of alpha_2 entries must be <=3." << std::endl);
+            }
+            d_alpha_2 = input_db->getDoubleVector("alpha_2");
+         }
+
+         if (input_db->keyExists("beta")) {
+            size_t array_size = input_db->getArraySize("beta");
+            if (array_size > 3) {
+               TBOX_ERROR("MethodOfLinesIntegrator::getFromInput() error...\n"
+                  << "number of beta entries must be <=3." << std::endl);
+            }
+            d_beta = input_db->getDoubleVector("beta");
+         }
+
+         if (d_alpha_1.size() != d_alpha_2.size() ||
+             d_alpha_2.size() != d_beta.size()) {
+            TBOX_ERROR(
+               d_object_name << ":  "
+                             << "The number of alpha_1, alpha_2, and beta "
+                             << "values specified in input is not consistent");
+         }
+
+         d_order = static_cast<int>(d_alpha_1.size());
       }
-
-   } else {
-
-      d_order = input_db->getIntegerWithDefault("order", d_order);
-
-      if (input_db->keyExists("alpha_1")) {
-         d_alpha_1 = input_db->getDoubleArray("alpha_1");
-      } else {
-         TBOX_WARNING(
-            d_object_name << ":  "
-                          << "Key data `alpha_1' not found in input.  "
-                          << "Using default values.  See class header.");
-      }
-
-      if (input_db->keyExists("alpha_2")) {
-         d_alpha_2 = input_db->getDoubleArray("alpha_2");
-      } else {
-         TBOX_WARNING(
-            d_object_name << ":  "
-                          << "Key data `alpha_2' not found in input.  "
-                          << "Using default values.  See class header.");
-      }
-
-      if (input_db->keyExists("beta")) {
-         d_beta = input_db->getDoubleArray("beta");
-      } else {
-         TBOX_WARNING(
-            d_object_name << ":  "
-                          << "Key data `beta' not found in input.  "
-                          << "Using default values.  See class header.");
-      }
-
    }
-
-   if (d_alpha_1.getSize() != d_alpha_2.getSize() ||
-       d_alpha_2.getSize() != d_beta.getSize()) {
-      TBOX_ERROR(
-         d_object_name << ":  "
-                       << "The number of alpha_1, alpha_2, and beta values "
-                       << "specified in input is not consistent");
-   }
-
-   if (d_alpha_1.getSize() != d_order) {
-      TBOX_WARNING(
-         d_object_name << ":  "
-                       << "The number of alpha values specified in input "
-                       << "does not equal the Runga-Kutta order");
-      d_order = d_alpha_1.getSize();
-   }
-
 }
 
 /*
  *************************************************************************
  *
  * Checks that class and restart file version numbers are equal.  If so,
- * reads in d_order and d_alpha from the database.  Also, does a
- * consistency check to make sure that the number of alpha values
+ * reads in d_alpha_1, d_alpha_2, and d_beta from the database.  Also,
+ * dooes a consistency check to make sure that the number of alpha values
  * specified equals the order of the Runga-Kutta scheme.
  *
  *************************************************************************
@@ -789,32 +758,35 @@ MethodOfLinesIntegrator::getFromRestart()
    boost::shared_ptr<tbox::Database> root_db(
       tbox::RestartManager::getManager()->getRootDatabase());
 
-   boost::shared_ptr<tbox::Database> restart_db;
-   if (root_db->isDatabase(d_object_name)) {
-      restart_db = root_db->getDatabase(d_object_name);
-   } else {
+   if (!root_db->isDatabase(d_object_name)) {
       TBOX_ERROR("Restart database corresponding to "
-         << d_object_name << " not found in restart file.");
+         << d_object_name << " not found in restart file." << std::endl);
    }
+   boost::shared_ptr<tbox::Database> restart_db(
+      root_db->getDatabase(d_object_name));
 
    int ver = restart_db->getInteger("ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION");
    if (ver != ALGS_METHOD_OF_LINES_INTEGRATOR_VERSION) {
       TBOX_ERROR(
          d_object_name << ":  "
-                       << "Restart file version different than class version.");
+                       << "Restart file version different than class version."
+                       << std::endl);
    }
 
-   d_order = restart_db->getInteger("d_order");
-   d_alpha_1 = restart_db->getDoubleArray("d_alpha_1");
-   d_alpha_2 = restart_db->getDoubleArray("d_alpha_2");
-   d_beta = restart_db->getDoubleArray("d_beta");
+   d_alpha_1 = restart_db->getDoubleVector("alpha_1");
+   d_alpha_2 = restart_db->getDoubleVector("alpha_2");
+   d_beta = restart_db->getDoubleVector("beta");
 
-   if (d_alpha_1.getSize() != d_order) {
+   if (d_alpha_1.size() != d_alpha_2.size() ||
+       d_alpha_2.size() != d_beta.size()) {
       TBOX_ERROR(
          d_object_name << ":  "
-                       << "The number of alpha values read from restart "
-                       << "does not equal the Runga-Kutta order");
+                       << "The number of alpha_1, alpha_2, and beta values "
+                       << "specified in restart is not consistent"
+                       << std::endl);
    }
+
+   d_order = static_cast<int>(d_alpha_1.size());
 
 }
 
@@ -846,7 +818,7 @@ MethodOfLinesIntegrator::copyCurrentToScratch(
             patch->getPatchData(*soln_var, d_scratch));
 
          dst_data->copy(*src_data);
-         soln_var++;
+         ++soln_var;
 
       }
 
@@ -882,7 +854,7 @@ MethodOfLinesIntegrator::copyScratchToCurrent(
             patch->getPatchData(*soln_var, d_current));
 
          dst_data->copy(*src_data);
-         soln_var++;
+         ++soln_var;
 
       }
 
@@ -908,7 +880,7 @@ MethodOfLinesIntegrator::printClassData(
    os << "d_object_name = " << d_object_name << std::endl;
    os << "d_order = " << d_order << std::endl;
 
-   for (int j = 0; j < d_order; j++) {
+   for (int j = 0; j < d_order; ++j) {
       os << "d_alpha_1[" << j << "] = " << d_alpha_1[j] << std::endl;
       os << "d_alpha_2[" << j << "] = " << d_alpha_2[j] << std::endl;
       os << "d_beta[" << j << "] = " << d_beta[j] << std::endl;
@@ -920,4 +892,3 @@ MethodOfLinesIntegrator::printClassData(
 
 }
 }
-#endif

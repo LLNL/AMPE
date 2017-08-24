@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Concrete subclass of tbox
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Concrete subclass of tbox::Serializable.
  *
  ************************************************************************/
 
@@ -119,18 +119,18 @@ void MainRestartData::setIterationNumber(
  *
  *************************************************************************
  */
-void MainRestartData::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+void MainRestartData::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("d_max_timesteps", d_max_timesteps);
-   db->putDouble("d_start_time", d_start_time);
-   db->putDouble("d_end_time", d_end_time);
-   db->putInteger("d_regrid_step", d_regrid_step);
-   db->putInteger("d_tag_buffer", d_tag_buffer);
-   db->putDouble("d_loop_time", d_loop_time);
-   db->putInteger("d_iteration_number", d_iteration_number);
+   restart_db->putInteger("d_max_timesteps", d_max_timesteps);
+   restart_db->putDouble("d_start_time", d_start_time);
+   restart_db->putDouble("d_end_time", d_end_time);
+   restart_db->putInteger("d_regrid_step", d_regrid_step);
+   restart_db->putInteger("d_tag_buffer", d_tag_buffer);
+   restart_db->putDouble("d_loop_time", d_loop_time);
+   restart_db->putInteger("d_iteration_number", d_iteration_number);
 }
 
 void MainRestartData::getFromInput(

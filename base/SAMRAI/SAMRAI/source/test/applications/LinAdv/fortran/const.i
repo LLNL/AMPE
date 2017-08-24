@@ -1,3 +1,10 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file defining FORTRAN constants.
+c
       REAL zero,sixth,fourth,third,half,twothird,rt75,one,
      &  onept5,two,three,pi,four,seven,smallr
       parameter (zero=0.d0)

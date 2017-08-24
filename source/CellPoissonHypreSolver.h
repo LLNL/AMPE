@@ -327,7 +327,7 @@ private:
     * boundary being worked on.
     */
    void add_gAk0_toRhs( const hier::Patch &patch,
-                        const tbox::Array< hier::BoundaryBox > &bdry_boxes,
+                        const std::vector< hier::BoundaryBox > &bdry_boxes,
                         const solv::RobinBcCoefStrategy *robin_bc_coef,
                         pdat::CellData<double> &rhs );
 
@@ -470,7 +470,7 @@ private:
    int d_Ak0_id;
 
    static boost::shared_ptr<pdat::OutersideVariable<double> >
-      s_Ak0_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+      s_Ak0_var[3];
 
    /*!
     * @brief Depth of the solution variable.

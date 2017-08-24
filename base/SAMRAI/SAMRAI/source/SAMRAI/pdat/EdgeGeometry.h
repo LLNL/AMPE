@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -20,10 +20,14 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
 
 namespace SAMRAI {
 namespace pdat {
+
+class EdgeIterator;
 
 /*!
  * Class EdgeGeometry manages the mapping between the AMR index space
@@ -31,11 +35,11 @@ namespace pdat {
  * hier::BoxGeometry and it computes intersections between edge-
  * centered box geometries for communication operations.
  *
- * See header file for EdgeData<DIM> class for a more detailed
+ * See header file for EdgeData<TYPE> class for a more detailed
  * description of the data layout.
  *
  * @see hier::BoxGeometry
- * @see pdat::EdgeOverlap
+ * @see EdgeOverlap
  */
 
 class EdgeGeometry:public hier::BoxGeometry
@@ -49,8 +53,10 @@ public:
    /*!
     * @brief Convert an AMR index box space box into an edge geometry box.
     * An edge geometry box extends the given AMR index box space box
-    * by one in upper dimension for each coordinate direction not equal
+    * by one in upper end for each coordinate direction not equal
     * to the axis direction.
+    *
+    * @pre (0 <= axis) && (axis < box.getDim().getValue())
     */
    static hier::Box
    toEdgeBox(
@@ -90,9 +96,22 @@ public:
       EdgeIndex& index,
       const hier::Transformation& transformation);
 
+   static EdgeIterator
+   begin(
+      const hier::Box& box,
+      int axis);
+
+   static EdgeIterator
+   end(
+      const hier::Box& box,
+      int axis);
+
    /*!
     * @brief Construct the edge geometry object given an AMR index
     * space box and ghost cell width.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre ghosts.min() >= 0
     */
    EdgeGeometry(
       const hier::Box& box,
@@ -106,6 +125,8 @@ public:
    /*!
     * @brief Compute the overlap in edge-centered index space between
     * the source box geometry and the destination box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    virtual boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -116,6 +137,23 @@ public:
       const bool overwrite_interior,
       const hier::Transformation& transformation,
       const bool retry,
+      const hier::BoxContainer& dst_restrict_boxes = hier::BoxContainer()) const;
+
+   /*!
+    * @brief Compute the edge-centered destination boxes that represent
+    * the overlap between the source box geometry and the destination
+    * box geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset.getDim()
+    */
+   void
+   computeDestinationBoxes(
+      std::vector<hier::BoxContainer>& dst_boxes,
+      const EdgeGeometry& src_geometry,
+      const hier::Box& src_mask,
+      const hier::Box& fill_box,
+      const bool overwrite_interior,
+      const hier::Transformation& transformation,
       const hier::BoxContainer& dst_restrict_boxes = hier::BoxContainer()) const;
 
    /*!
@@ -171,7 +209,7 @@ private:
 
    EdgeGeometry(
       const EdgeGeometry&);             // not implemented
-   void
+   EdgeGeometry&
    operator = (
       const EdgeGeometry&);                     // not implemented
 

@@ -1,0 +1,112 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for SAMRAI FAC Poisson solver example 
+##
+#########################################################################
+
+SAMRAI	      = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/FAC_staticrefinement
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
+
+default:      check
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+CPPFLAGS_EXTRA= -DTESTING=0
+
+NUM_TESTS = 2
+
+TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
+
+CXX_OBJS      = main.o FACPoisson.o
+F_OBJS        = fortran/facpoisson2d.o fortran/facpoisson3d.o
+
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+	$(LIBSAMRAI3D) $(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o main
+
+# Prevents "No rule to make target" error.  Built in the rule for main.
+fortran/facpoisson2d.o:
+
+fortran/facpoisson3d.o:
+
+check:
+	$(MAKE) check2d
+	$(MAKE) check3d
+
+check2d:	main
+	@for i in test_inputs/*2d.input ; do	\
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"FAC_staticrefinement\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
+
+check3d:	main
+	@for i in test_inputs/*3d.input ; do	\
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"FAC_staticrefinement\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
+
+checkcompile: main
+
+checktest:
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
+
+examples2d: main
+	@for i in example_inputs/*.2d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main $${i};	\
+	done
+
+examples3d: main
+	@for i in example_inputs/*.3d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main $${i};	\
+	done
+
+examples:
+	$(MAKE) examples2d
+	$(MAKE) examples3d
+
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+redo:
+	$(RM) core main
+
+include $(SRCDIR)/Makefile.depend

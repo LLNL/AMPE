@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A factory for building MemoryDatabases
  *
  ************************************************************************/
@@ -24,6 +24,30 @@ namespace tbox {
  */
 class MemoryDatabaseFactory:public DatabaseFactory
 {
+public:
+   /**
+    * Default constructor.
+    */
+   MemoryDatabaseFactory();
+
+   /**
+    * Copy constructor.
+    */
+   MemoryDatabaseFactory(
+      const MemoryDatabaseFactory& other);
+
+   /**
+    * Assignment operator.
+    */
+   MemoryDatabaseFactory&
+   operator = (
+      const MemoryDatabaseFactory& rhs);
+
+   /**
+    * Destructor.
+    */
+   ~MemoryDatabaseFactory();
+
    /**
     * Build a new Database object.
     */

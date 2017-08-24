@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating cell data objects
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 #include "SAMRAI/pdat/CellGeometry.h"
 #include "SAMRAI/hier/Patch.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
 /*
@@ -67,7 +67,7 @@ boost::shared_ptr<hier::PatchDataFactory>
 CellDataFactory<TYPE>::cloneFactory(
    const hier::IntVector& ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, ghosts);
 
    return boost::make_shared<CellDataFactory<TYPE> >(d_depth, ghosts);
 }
@@ -85,12 +85,12 @@ boost::shared_ptr<hier::PatchData>
 CellDataFactory<TYPE>::allocate(
    const hier::Patch& patch) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, patch);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, patch);
 
    return boost::make_shared<CellData<TYPE> >(
-      patch.getBox(),
-      d_depth,
-      d_ghosts);
+             patch.getBox(),
+             d_depth,
+             d_ghosts);
 }
 
 /*
@@ -106,7 +106,7 @@ boost::shared_ptr<hier::BoxGeometry>
 CellDataFactory<TYPE>::getBoxGeometry(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    return boost::make_shared<CellGeometry>(box, d_ghosts);
 }
@@ -131,7 +131,7 @@ size_t
 CellDataFactory<TYPE>::getSizeOfMemory(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    const size_t obj =
       tbox::MemoryUtilities::align(sizeof(CellData<TYPE>));
@@ -154,7 +154,7 @@ bool
 CellDataFactory<TYPE>::validCopyTo(
    const boost::shared_ptr<hier::PatchDataFactory>& dst_pdf) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *dst_pdf);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *dst_pdf);
 
    bool valid_copy = false;
 
@@ -162,8 +162,8 @@ CellDataFactory<TYPE>::validCopyTo(
     * Only valid option is CellData.
     */
    boost::shared_ptr<CellDataFactory<TYPE> > cdf(
-      dst_pdf,
-      boost::detail::dynamic_cast_tag());
+      boost::dynamic_pointer_cast<CellDataFactory<TYPE>,
+                                  hier::PatchDataFactory>(dst_pdf));
    if (cdf) {
       valid_copy = true;
    }

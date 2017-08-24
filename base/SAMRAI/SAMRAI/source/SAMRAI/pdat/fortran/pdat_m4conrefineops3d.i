@@ -1,14 +1,13 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI patchdata
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: m4 include file for 3d Cartesian refine operators
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 3d constant refine operators.
 c
 define(NDIM,3)dnl
-define(SAMRAI_FORTDIR,../../pdat/fortran)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
-include(pdat_m4conopstuff.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4conopstuff.i)dnl
 c
 define(con_refine_op_subroutine_head_3d,`dnl
      &  ifirstc0,ifirstc1,ifirstc2,ilastc0,ilastc1,ilastc2,

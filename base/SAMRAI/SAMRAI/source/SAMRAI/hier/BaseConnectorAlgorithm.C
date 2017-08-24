@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Algorithms for working with mapping Connectors.
  *
  ************************************************************************/
-#ifndef included_hier_BaseConnectorAlgorithm_C
-#define included_hier_BaseConnectorAlgorithm_C
-
 #include "SAMRAI/hier/BaseConnectorAlgorithm.h"
 #include "SAMRAI/hier/BoxContainer.h"
 
@@ -18,8 +15,6 @@ namespace hier {
 
 const int
 BaseConnectorAlgorithm::BASE_CONNECTOR_ALGORITHM_FIRST_DATA_LENGTH = 1000;
-
-char BaseConnectorAlgorithm::s_print_steps = '\0';
 
 /*
  ***********************************************************************
@@ -50,7 +45,8 @@ BaseConnectorAlgorithm::setupCommunication(
    const std::set<int>& incoming_ranks,
    const std::set<int>& outgoing_ranks,
    const boost::shared_ptr<tbox::Timer>& mpi_wait_timer,
-   int& operation_mpi_tag) const
+   int& operation_mpi_tag,
+   bool print_steps) const
 {
    /*
     * Set up communication mechanism (and post receives).  We lump all
@@ -60,7 +56,9 @@ BaseConnectorAlgorithm::setupCommunication(
    comm_stage.setCommunicationWaitTimer(mpi_wait_timer);
    const int n_comm = static_cast<int>(
          incoming_ranks.size() + outgoing_ranks.size());
-   all_comms = new tbox::AsyncCommPeer<int>[n_comm];
+   if (n_comm > 0) {
+      all_comms = new tbox::AsyncCommPeer<int>[n_comm];
+   }
 
    const int tag0 = ++operation_mpi_tag;
    const int tag1 = ++operation_mpi_tag;
@@ -79,7 +77,7 @@ BaseConnectorAlgorithm::setupCommunication(
       incoming_comm.limitFirstDataLength(
          BASE_CONNECTOR_ALGORITHM_FIRST_DATA_LENGTH);
       incoming_comm.beginRecv();
-      if (s_print_steps == 'y') {
+      if (print_steps) {
          tbox::plog << "Receiving from " << incoming_comm.getPeerRank()
                     << std::endl;
       }
@@ -99,7 +97,7 @@ BaseConnectorAlgorithm::setupCommunication(
       outgoing_comm.setMPITag(tag0, tag1);
       outgoing_comm.limitFirstDataLength(
          BASE_CONNECTOR_ALGORITHM_FIRST_DATA_LENGTH);
-      if (s_print_steps == 'y') {
+      if (print_steps) {
          tbox::plog << "Sending to " << outgoing_comm.getPeerRank()
                     << std::endl;
       }
@@ -109,30 +107,29 @@ BaseConnectorAlgorithm::setupCommunication(
 /*
  ***********************************************************************
  * privateBridge/Modify_findOverlapsForOneProcess() cached some discovered
- * remote neighbors into send_mesg.  sendDiscoveryToOneProcess() sends
- * the message.
+ * remote neighbors into send_mesg.  packReferencedNeighbors() packs the
+ * message with this information.
  *
  * privateBridge/Modify_findOverlapsForOneProcess() placed neighbor data
  * in referenced_new_head_nabrs and referenced_new_base_nabrs rather than
- * directly into send_mesg.  This method packs the referenced neighbors
- * and send them.
+ * directly into send_mesg.  This method packs the referenced neighbors.
  ***********************************************************************
  */
 void
-BaseConnectorAlgorithm::sendDiscoveryToOneProcess(
+BaseConnectorAlgorithm::packReferencedNeighbors(
    std::vector<int>& send_mesg,
-   const int idx_offset_to_ref,
-   BoxContainer& referenced_new_head_nabrs,
-   BoxContainer& referenced_new_base_nabrs,
-   tbox::AsyncCommPeer<int>& outgoing_comm,
-   const tbox::Dimension& dim) const
+   int idx_offset_to_ref,
+   const BoxContainer& referenced_new_head_nabrs,
+   const BoxContainer& referenced_new_base_nabrs,
+   const tbox::Dimension& dim,
+   bool print_steps) const
 {
    /*
     * Fill the messages's reference section with all the neighbors
     * that have been referenced.
     */
    const int offset = send_mesg[idx_offset_to_ref] =
-      static_cast<int>(send_mesg.size());
+         static_cast<int>(send_mesg.size());
    const int n_referenced_nabrs = static_cast<int>(
          referenced_new_head_nabrs.size() + referenced_new_base_nabrs.size());
    const int reference_section_size =
@@ -146,34 +143,26 @@ BaseConnectorAlgorithm::sendDiscoveryToOneProcess(
    *(ptr++) = static_cast<int>(referenced_new_head_nabrs.size());
    for (BoxContainer::const_iterator ni = referenced_new_base_nabrs.begin();
         ni != referenced_new_base_nabrs.end(); ++ni) {
-      const Box& mapped_box = *ni;
-      mapped_box.putToIntBuffer(ptr);
+      const Box& box = *ni;
+      box.putToIntBuffer(ptr);
       ptr += Box::commBufferSize(dim);
    }
    for (BoxContainer::const_iterator ni = referenced_new_head_nabrs.begin();
         ni != referenced_new_head_nabrs.end(); ++ni) {
-      const Box& mapped_box = *ni;
-      mapped_box.putToIntBuffer(ptr);
+      const Box& box = *ni;
+      box.putToIntBuffer(ptr);
       ptr += Box::commBufferSize(dim);
    }
-   if (s_print_steps == 'y') {
+   if (print_steps) {
       tbox::plog << "sending " << referenced_new_base_nabrs.size()
-                 << " referenced_new_base_nabrs:"
-                 << referenced_new_base_nabrs.format("\n  ") << std::endl
+                 << " referenced_new_base_nabrs:\n"
+                 << referenced_new_base_nabrs.format("  ") << std::endl
                  << "sending " << referenced_new_head_nabrs.size()
-                 << " referenced_new_head_nabrs:"
-                 << referenced_new_head_nabrs.format("\n  ") << std::endl;
+                 << " referenced_new_head_nabrs:\n"
+                 << referenced_new_head_nabrs.format("  ") << std::endl;
    }
 
    TBOX_ASSERT(ptr == &send_mesg[send_mesg.size() - 1] + 1);
-
-   /*
-    * Send message.
-    */
-   outgoing_comm.beginSend(&send_mesg[0], static_cast<int>(send_mesg.size()));
-   if (s_print_steps == 'y') {
-      tbox::plog << "Sent to " << outgoing_comm.getPeerRank() << std::endl;
-   }
 }
 
 /*
@@ -185,37 +174,37 @@ void
 BaseConnectorAlgorithm::receiveAndUnpack(
    Connector& new_base_to_new_head,
    Connector* new_head_to_new_base,
-   std::set<int>& incoming_ranks,
-   tbox::AsyncCommPeer<int> all_comms[],
+   const std::set<int>& incoming_ranks,
+   tbox::AsyncCommPeer<int>* all_comms,
    tbox::AsyncCommStage& comm_stage,
-   const boost::shared_ptr<tbox::Timer>& receive_and_unpack_timer) const
+   const boost::shared_ptr<tbox::Timer>& receive_and_unpack_timer,
+   bool print_steps) const
 {
    receive_and_unpack_timer->start();
    /*
     * Receive and unpack messages.
     */
-   while ( comm_stage.numberOfCompletedMembers() > 0 ||
-           comm_stage.advanceSome() ) {
+   while (comm_stage.hasCompletedMembers() || comm_stage.advanceSome()) {
 
       tbox::AsyncCommPeer<int>* peer =
-         dynamic_cast<tbox::AsyncCommPeer<int> *>(comm_stage.popCompletionQueue());
+         CPP_CAST<tbox::AsyncCommPeer<int> *>(comm_stage.popCompletionQueue());
 
-      TBOX_ASSERT(peer != NULL);
+      TBOX_ASSERT(peer != 0);
 
       if ((size_t)(peer - all_comms) < incoming_ranks.size()) {
          // Receive from this peer.
-         if (s_print_steps == 'y') {
+         if (print_steps) {
             tbox::plog << "Received from " << peer->getPeerRank()
                        << std::endl;
          }
          unpackDiscoveryMessage(
             peer,
             new_base_to_new_head,
-            new_head_to_new_base);
-      }
-      else {
+            new_head_to_new_base,
+            print_steps);
+      } else {
          // Sent to this peer.  No follow-up needed.
-         if (s_print_steps == 'y') {
+         if (print_steps) {
             tbox::plog << "Sent to " << peer->getPeerRank() << std::endl;
          }
       }
@@ -233,7 +222,8 @@ void
 BaseConnectorAlgorithm::unpackDiscoveryMessage(
    const tbox::AsyncCommPeer<int>* incoming_comm,
    Connector& new_base_to_new_head,
-   Connector* new_head_to_new_base) const
+   Connector* new_head_to_new_base,
+   bool print_steps) const
 {
    const int sender = incoming_comm->getPeerRank();
    const int* ptr = incoming_comm->getRecvData();
@@ -252,7 +242,7 @@ BaseConnectorAlgorithm::unpackDiscoveryMessage(
    /*
     * Content of send_mesg, constructed largely in
     * privateBridge/Modify_findOverlapsForOneProcess() and
-    * sendDiscoveryToOneProcess():
+    * packReferencedNeighbors():
     *
     * -neighbor-removal section cached in neighbor_removal_mesg.
     * - offset to the reference section (see below)
@@ -273,30 +263,33 @@ BaseConnectorAlgorithm::unpackDiscoveryMessage(
     */
 
    // Unpack neighbor-removal section.
+   // TODO: Get rid of 2 unused values, making sure adjustments in message sizes
+   // is correct.
    const int num_removed_boxes = *(ptr++);
    for (int ii = 0; ii < num_removed_boxes; ++ii) {
       const LocalId id_gone(*(ptr++));
-      const BlockId block_id_gone(*(ptr++));
+      // Skip unneeded value.
+      ++ptr;
       const int number_affected = *(ptr++);
       const Box box_gone(dim, GlobalId(id_gone, sender));
-      if (s_print_steps == 'y') {
+      if (print_steps) {
          tbox::plog << "Box " << box_gone
                     << " removed, affecting " << number_affected
                     << " boxes." << std::endl;
       }
-//TODO: Is BoxId usage in this method correct regarding block id?
       for (int iii = 0; iii < number_affected; ++iii) {
          const LocalId id_affected(*(ptr++));
-         const BlockId block_id_affected(*(ptr++));
+         // Skip unneeded block id.
+         ++ptr;
          BoxId affected_nbrhd(id_affected, rank);
-         if (s_print_steps == 'y') {
+         if (print_steps) {
             tbox::plog << " Removing " << box_gone
                        << " from nabr list for " << id_affected
                        << std::endl;
          }
          TBOX_ASSERT(new_base_to_new_head.hasLocalNeighbor(
-            affected_nbrhd,
-            box_gone));
+               affected_nbrhd,
+               box_gone));
          new_base_to_new_head.eraseNeighbor(box_gone, affected_nbrhd);
       }
       TBOX_ASSERT(ptr != ptr_end);
@@ -313,14 +306,13 @@ BaseConnectorAlgorithm::unpackDiscoveryMessage(
    const int n_reference_new_base_boxes = *(ref_box_ptr++);
    const int n_reference_new_head_boxes = *(ref_box_ptr++);
 
-   TBOX_ASSERT(new_head_to_new_base != NULL || n_new_head_boxes == 0);
+   TBOX_ASSERT(new_head_to_new_base != 0 || n_new_head_boxes == 0);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    const int correct_msg_size = offset
       + 2 /* counters of new_head and new_base reference boxes */
       + Box::commBufferSize(dim) * n_reference_new_base_boxes
-      + Box::commBufferSize(dim) * n_reference_new_head_boxes
-   ;
+      + Box::commBufferSize(dim) * n_reference_new_head_boxes;
    TBOX_ASSERT(msg_size == correct_msg_size);
 #endif
 
@@ -341,13 +333,13 @@ BaseConnectorAlgorithm::unpackDiscoveryMessage(
    }
    TBOX_ASSERT(ref_box_ptr == ptr_end);
 
-   if (s_print_steps == 'y') {
+   if (print_steps) {
       tbox::plog << "received " << n_reference_new_base_boxes
-                 << " referenced_new_base_nabrs:"
-                 << referenced_new_base_nabrs.format("\n  ") << std::endl
+                 << " referenced_new_base_nabrs:\n"
+                 << referenced_new_base_nabrs.format("  ") << std::endl
                  << "received " << n_reference_new_head_boxes
-                 << " referenced_new_head_nabrs:"
-                 << referenced_new_head_nabrs.format("\n  ") << std::endl;
+                 << " referenced_new_head_nabrs:\n"
+                 << referenced_new_head_nabrs.format("  ") << std::endl;
    }
 
    /*
@@ -408,4 +400,3 @@ BaseConnectorAlgorithm::unpackDiscoveryMessage(
 
 }
 }
-#endif

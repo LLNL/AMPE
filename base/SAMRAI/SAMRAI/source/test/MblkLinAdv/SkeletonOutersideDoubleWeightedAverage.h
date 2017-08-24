@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Weighted averaging operator for outerside double data on
  *                a Skeleton mesh.
  *
@@ -22,7 +22,7 @@
 #endif
 #include "SAMRAI/hier/CoarsenOperator.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace std;
 using namespace SAMRAI;
@@ -63,7 +63,8 @@ public:
     * zeros.  That is, its stencil does not extend outside the fine box.
     */
    hier::IntVector
-   getStencilWidth() const;
+   getStencilWidth(
+      const tbox::Dimension& dim) const;
 
    /**
     * Coarsen the source component on the fine patch to the destination
@@ -99,7 +100,8 @@ private:
       const int level_number,
       double* dx) const;
 
-   tbox::Array<tbox::Array<double> > d_dx;
+   const tbox::Dimension d_dim;
+   std::vector<std::vector<double> > d_dx;
 
 };
 

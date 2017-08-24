@@ -59,12 +59,12 @@ using namespace std;
 
 EllipticFACSolver::EllipticFACSolver (
    const std::string &object_name,
-   EllipticFACOps * fac_ops,
+   boost::shared_ptr<EllipticFACOps> fac_ops,
    const boost::shared_ptr<tbox::Database>& database )
    :
    d_object_name(object_name),
    d_fac_ops(fac_ops),
-   d_fac_precond(object_name+"::fac_precond",*d_fac_ops),
+   d_fac_precond(object_name+"::fac_precond",d_fac_ops),
    d_bc_object(NULL),
    d_simple_bc(tbox::Dimension(NDIM),object_name+"::bc"),
    d_ln_min(-1),
@@ -105,7 +105,7 @@ EllipticFACSolver::EllipticFACSolver (
     * to get data for logging.
     */
    d_fac_ops->setPreconditioner( 
-      (const solv::FACPreconditioner*)(&d_fac_precond) );
+      (const FACPreconditioner*)(&d_fac_precond) );
 
    if ( database ) {
       getFromInput(database);
@@ -127,7 +127,6 @@ EllipticFACSolver::EllipticFACSolver (
 EllipticFACSolver::~EllipticFACSolver()
 {
    deallocateSolverState();
-   delete d_fac_ops;
    return;
 }
 
@@ -421,14 +420,17 @@ EllipticFACSolver::solveSystem(const int u_id,
 
    d_fac_ops->setWeightIds(ew_id, d_vol_id);
 
-   //d_fac_precond.printClassData(tbox::pout);
+#if 0
+   d_fac_precond.printClassData(tbox::pout);
 
-   //double normf = d_hopscell->weightedRMSNorm(f_id, ew_id, d_vol_id);
-   //tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), f: Weighted RMS norm on composite grid = " << normf << endl;
-   //double normu = d_hopscell->weightedRMSNorm(u_id, ew_id, d_vol_id);
-   //tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), u: Weighted RMS norm on composite grid = " << normu << endl;
-    
-    bool solver_rval = d_fac_precond.solveSystem( *d_uv, *d_fv );
+   math::HierarchyCellDataOpsReal<double> hopscell(d_hierarchy);
+   double normf = hopscell.weightedRMSNorm(f_id, ew_id, d_vol_id);
+   tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), f: Weighted RMS norm on composite grid = " << normf << endl;
+   double normu = hopscell.weightedRMSNorm(u_id, ew_id, d_vol_id);
+   tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), u: Weighted RMS norm on composite grid = " << normu << endl;
+#endif
+
+   bool solver_rval = d_fac_precond.solveSystem( *d_uv, *d_fv );
 
    if ( d_bc_object == &d_simple_bc ) {
       /*
@@ -519,8 +521,7 @@ EllipticFACSolver::createVectorWrappers(int u,
                     << u << "\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
-         variable,
-         boost::detail::dynamic_cast_tag() );
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(variable) );
       if ( !cell_variable ) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << u
                     << " is not a cell-double variable.\n");
@@ -541,8 +542,7 @@ EllipticFACSolver::createVectorWrappers(int u,
                     << f << "\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
-         variable,
-         boost::detail::dynamic_cast_tag() );
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(variable) );
       if ( !cell_variable ) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << f
                     << " is not a cell-double variable.\n");

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   PoissonMultigaussianSolution class implementation
  *
  ************************************************************************/
@@ -116,7 +116,7 @@ double PoissonMultigaussianSolution::sourceFcn(
    d_gauss_const_iterator i;
    for (i = d_gauss_begin; i != d_gauss_end; ++i) {
       const GaussianFcn& gauss = *i;
-      double gauss_ctr[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+      double gauss_ctr[SAMRAI::MAX_DIM_VAL];
       gauss.getCenter(gauss_ctr);
       double tval;
       tval = 4 * gauss.getLambda() * ((x - gauss_ctr[0]) * (x - gauss_ctr[0])
@@ -137,7 +137,7 @@ double PoissonMultigaussianSolution::sourceFcn(
    d_gauss_const_iterator i;
    for (i = d_gauss_begin; i != d_gauss_end; ++i) {
       const GaussianFcn& gauss = *i;
-      double gauss_ctr[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+      double gauss_ctr[SAMRAI::MAX_DIM_VAL];
       gauss.getCenter(gauss_ctr);
       double tval;
       tval = 4 * gauss.getLambda() * ((x - gauss_ctr[0]) * (x - gauss_ctr[0])
@@ -157,8 +157,9 @@ void PoissonMultigaussianSolution::setGridData(
    pdat::CellData<double>& source_data)
 {
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
 
    const double* h = patch_geom->getDx();
    const double* xl = patch_geom->getXLower();
@@ -166,13 +167,13 @@ void PoissonMultigaussianSolution::setGridData(
 
    {
       /* Set cell-centered data. */
-      double sl[tbox::Dimension::MAXIMUM_DIMENSION_VALUE]; // Like XLower, except for cell.
+      double sl[SAMRAI::MAX_DIM_VAL]; // Like XLower, except for cell.
       int j;
       for (j = 0; j < d_dim.getValue(); ++j) {
          sl[j] = xl[j] + 0.5 * h[j];
       }
-      pdat::CellData<double>::iterator iter(patch.getBox(), true);
-      pdat::CellData<double>::iterator iterend(patch.getBox(), false);
+      pdat::CellData<double>::iterator iter(pdat::CellGeometry::begin(patch.getBox()));
+      pdat::CellData<double>::iterator iterend(pdat::CellGeometry::end(patch.getBox()));
       if (d_dim == tbox::Dimension(2)) {
          double x, y;
          for ( ; iter != iterend; ++iter) {
@@ -224,8 +225,9 @@ void PoissonMultigaussianSolution::setBcCoefs(
    }
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
    /*
     * Set to an inhomogeneous Dirichlet boundary condition.
     */
@@ -246,11 +248,11 @@ void PoissonMultigaussianSolution::setBcCoefs(
 
    if (d_dim == tbox::Dimension(2)) {
       hier::Box::iterator boxit(acoef_data ?
-                                acoef_data->getBox() : gcoef_data->getBox(),
-                                true);
+                                acoef_data->getBox().begin() :
+                                gcoef_data->getBox().begin());
       hier::Box::iterator boxitend(acoef_data ?
-                                   acoef_data->getBox() : gcoef_data->getBox(),
-                                   false);
+                                   acoef_data->getBox().end() :
+                                   gcoef_data->getBox().end());
       int i, j;
       double x, y;
       switch (bdry_box.getLocationIndex()) {

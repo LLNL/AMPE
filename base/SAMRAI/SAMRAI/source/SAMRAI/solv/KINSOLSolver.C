@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   C++ Wrapper class for KINSOL solver package
  *
  ************************************************************************/
@@ -29,7 +29,7 @@ KINSOLSolver::KINSOLSolver(
    const int uses_jac_times_vector)
 {
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(!(my_functions == (KINSOLAbstractFunctions *)NULL));
+   TBOX_ASSERT(!(my_functions == 0));
 
    d_object_name = object_name;
    d_KINSOL_functions = my_functions;
@@ -42,12 +42,12 @@ KINSOLSolver::KINSOLSolver(
     * Default parameters to safe values or to KINSOL defaults.
     */
 
-   d_kin_mem = NULL;
-   d_kinsol_log_file = NULL;
-   d_solution_vector = NULL;
-   d_constraints = NULL;
-   d_soln_scale = NULL;
-   d_fval_scale = NULL;
+   d_kin_mem = 0;
+   d_kinsol_log_file = 0;
+   d_solution_vector = 0;
+   d_constraints = 0;
+   d_soln_scale = 0;
+   d_fval_scale = 0;
 
    d_my_soln_scale_vector = false;
    d_my_fval_scale_vector = false;
@@ -95,21 +95,21 @@ KINSOLSolver::freeInternalVectors() {
 
    if (d_my_soln_scale_vector && d_my_fval_scale_vector && d_soln_scale) {
       d_soln_scale->freeVector();
-      d_soln_scale = NULL;
-      d_fval_scale = NULL;
+      d_soln_scale = 0;
+      d_fval_scale = 0;
       d_my_soln_scale_vector = false;
       d_my_fval_scale_vector = false;
    }
 
    if (d_my_soln_scale_vector && d_soln_scale) {
       d_soln_scale->freeVector();
-      d_soln_scale = NULL;
+      d_soln_scale = 0;
       d_my_soln_scale_vector = false;
    }
 
    if (d_my_fval_scale_vector && d_fval_scale) {
       d_fval_scale->freeVector();
-      d_fval_scale = NULL;
+      d_fval_scale = 0;
       d_my_fval_scale_vector = false;
    }
 }
@@ -142,7 +142,7 @@ KINSOLSolver::initialize(
    SundialsAbstractVector* uscale,
    SundialsAbstractVector* fscale)
 {
-   TBOX_ASSERT(!(solution == (SundialsAbstractVector *)NULL));
+   TBOX_ASSERT(!(solution == 0));
 
    d_solution_vector = solution;
 
@@ -177,7 +177,7 @@ KINSOLSolver::initialize(
 void
 KINSOLSolver::initializeKINSOL()
 {
-   TBOX_ASSERT(!(d_solution_vector == (SundialsAbstractVector *)NULL));
+   TBOX_ASSERT(!(d_solution_vector == 0));
 
    if (d_KINSOL_needs_initialization) {
 
@@ -191,22 +191,22 @@ KINSOLSolver::initializeKINSOL()
        * KINSOL function pointers.
        */
 
-      KINSpilsPrecSetupFn precond_set = NULL;
-      KINSpilsPrecSolveFn precond_solve = NULL;
-      KINSpilsJacTimesVecFn jac_times_vec = NULL;
+      KINSpilsPrecSetupFn precond_set = 0;
+      KINSpilsPrecSolveFn precond_solve = 0;
+      KINSpilsJacTimesVecFn jac_times_vec = 0;
 
       if (d_uses_preconditioner) {
          precond_set = KINSOLSolver::KINSOLPrecondSet;
          precond_solve = KINSOLSolver::KINSOLPrecondSolve;
       } else {
-         precond_set = NULL;
-         precond_solve = NULL;
+         precond_set = 0;
+         precond_solve = 0;
       }
 
       if (d_uses_jac_times_vector) {
          jac_times_vec = KINSOLSolver::KINSOLJacobianTimesVector;
       } else {
-         jac_times_vec = NULL;
+         jac_times_vec = 0;
       }
 
       if (d_kin_mem) KINFree(&d_kin_mem);
@@ -272,7 +272,7 @@ KINSOLSolver::initializeKINSOL()
       }
 
       ierr = KINSetConstraints(d_kin_mem,
-            (d_constraints != NULL) ? d_constraints->getNVector() : NULL);
+            (d_constraints != 0) ? d_constraints->getNVector() : 0);
       KINSOL_SAMRAI_ERROR(ierr);
 
       // Keep default unless user specifies one.
@@ -290,7 +290,7 @@ KINSOLSolver::initializeKINSOL()
       KINSOL_SAMRAI_ERROR(ierr);
 
       ierr = KINSetConstraints(d_kin_mem,
-            d_constraints == NULL ? NULL : d_constraints->getNVector());
+            d_constraints == 0 ? 0 : d_constraints->getNVector());
       KINSOL_SAMRAI_ERROR(ierr);
 
       ierr = KINSetNumMaxIters(d_kin_mem, d_max_iter);

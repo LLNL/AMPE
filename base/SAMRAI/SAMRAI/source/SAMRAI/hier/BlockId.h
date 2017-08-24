@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Block identifier in multiblock domain.
  *
  ************************************************************************/
@@ -12,6 +12,7 @@
 #define included_hier_BlockId
 
 #include "SAMRAI/SAMRAI_config.h"
+#include "SAMRAI/tbox/Utilities.h"
 
 #include <iostream>
 
@@ -28,6 +29,10 @@ class BlockId
 {
 
 public:
+
+   //! @brief Primitive type for the number associated with a block.
+   typedef unsigned int block_t;
+
    /*!
     * @brief Default constructor sets the value to invalid.
     */
@@ -40,9 +45,19 @@ public:
       const BlockId& other);
 
    /*!
-    * @brief Construct from a numerical value.
+    * @brief Construct from an unsigned int. 
     *
     * This method is explicit to prevent automatic conversion.
+    */
+   explicit BlockId(
+      const unsigned int& value);
+
+   /*!
+    * @brief Construct from a signed int.
+    *
+    * This method is explicit to prevent automatic conversion.
+    *
+    * @pre value >= 0
     */
    explicit BlockId(
       const int& value);
@@ -76,6 +91,14 @@ public:
    setId(
       const int& rhs)
    {
+      TBOX_ASSERT(rhs >= 0); 
+      d_value = static_cast<block_t>(rhs);
+   }
+
+   void
+   setId(
+      const unsigned int& rhs)
+   {
       d_value = rhs;
    }
 
@@ -91,7 +114,7 @@ public:
    /*!
     * @brief Access the numerical value.
     */
-   const int&
+   const block_t&
    getBlockValue() const
    {
       return d_value;
@@ -146,7 +169,6 @@ public:
    {
       return d_value != rhs.d_value;
    }
-   
 
    /*!
     * @brief Less-than operator.
@@ -219,7 +241,7 @@ public:
     */
    bool
    operator == (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value == rhs;
    }
@@ -233,7 +255,7 @@ public:
     */
    bool
    operator != (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value != rhs;
    }
@@ -247,7 +269,7 @@ public:
     */
    bool
    operator < (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value < rhs;
    }
@@ -261,7 +283,7 @@ public:
     */
    bool
    operator > (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value > rhs;
    }
@@ -275,7 +297,7 @@ public:
     */
    bool
    operator <= (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value <= rhs;
    }
@@ -289,7 +311,7 @@ public:
     */
    bool
    operator >= (
-      const int& rhs) const
+      const block_t& rhs) const
    {
       return d_value >= rhs;
    }
@@ -312,7 +334,7 @@ private:
    /*!
     * @brief Numerical value of the identifier.
     */
-   int d_value;
+   unsigned int d_value;
 
    /*!
     * @brief BlockId with a numerical value of zero.

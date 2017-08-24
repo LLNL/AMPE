@@ -153,15 +153,15 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          const hier::Index& ilast  = pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > cd_phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          assert( cd_phi );
          
          boost::shared_ptr< pdat::SideData<double> > sd_diffusion0 (
-            patch->getPatchData( conc_tilde_diffusion_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_tilde_diffusion_id) ) );
          assert( sd_diffusion0 );
          
          boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
-            patch->getPatchData( partition_coeff_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( partition_coeff_scratch_id) ) );
          assert( cd_partition_coeff );
          
          FORT_CONCENTRATIONDIFFUSIONUTRC(
@@ -198,19 +198,19 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff (
-            patch->getPatchData( conc_phase_coupling_diffusion_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_phase_coupling_diffusion_id) ) );
 
          boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff (
-            patch->getPatchData( conc_tilde_diffusion_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_tilde_diffusion_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_c (
-            patch->getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_scratch_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_k (
-            patch->getPatchData( d_partition_coeff_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
 
          setDiffusionCoeffForPhaseOnPatch(
             sd_phi_diff_coeff,
@@ -447,8 +447,7 @@ void UTRCCompositionRHSStrategy::computeFluxOnPatch(
    const int flux_id)
 {
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -456,23 +455,23 @@ void UTRCCompositionRHSStrategy::computeFluxOnPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > conc (
-      patch.getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_scratch_id) ) );
    assert( conc );
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData( d_phase_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_scratch_id) ) );
    assert( phase );
    
    boost::shared_ptr< pdat::SideData<double> > sd_conc_diffusion0 (
-      patch.getPatchData( d_diffusion0_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion0_id) ) );
    assert( sd_conc_diffusion0 );
 
    boost::shared_ptr< pdat::SideData<double> > sd_conc_phase_coupling_diffusion (
-      patch.getPatchData( d_conc_phase_coupling_diffusion_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_conc_phase_coupling_diffusion_id) ) );
    assert( sd_conc_phase_coupling_diffusion );
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
 
    int three_phase = 0;

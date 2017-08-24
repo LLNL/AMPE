@@ -3,14 +3,13 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Class to record statistics during program execution.
  *
  ************************************************************************/
 
 #include "SAMRAI/tbox/Statistic.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/Utilities.h"
@@ -61,8 +60,7 @@ Statistic::Statistic(
 
    if (stat_type == "PROC_STAT") {
       d_stat_type = PROC_STAT;
-   }
-   if (stat_type == "PATCH_STAT") {
+   } else if (stat_type == "PATCH_STAT") {
       d_stat_type = PATCH_STAT;
    }
 
@@ -91,7 +89,7 @@ Statistic::recordProcStat(
    double value,
    int seq_num)
 {
-   if (d_stat_type != PROC_STAT) {
+   if (getType() != "PROC_STAT") {
       TBOX_ERROR("Statistic::recordProcStat error...\n"
          << "    Statistic type is `PATCH_STAT'" << std::endl);
    }
@@ -121,7 +119,7 @@ Statistic::recordProcStat(
       d_seq_counter = seq_num;
       d_proc_array[d_seq_counter].value = value;
    }
-   d_seq_counter++;
+   ++d_seq_counter;
 }
 
 void
@@ -130,7 +128,7 @@ Statistic::recordPatchStat(
    double value,
    int seq_num)
 {
-   if (d_stat_type != PATCH_STAT) {
+   if (getType() != "PATCH_STAT") {
       TBOX_ERROR("Statistic::recordPatchStat error...\n"
          << "    Statistic type is `PROC_STAT'" << std::endl);
    }
@@ -169,7 +167,7 @@ Statistic::recordPatchStat(
          d_patch_array[seq_num].patch_records;
       bool found_patch_id = false;
       std::list<Statistic::PatchStatRecord>::iterator ir = records.begin();
-      for ( ; ir != records.end(); ir++) {
+      for ( ; ir != records.end(); ++ir) {
          if (ir->patch_id == patch_num) {
             ir->value = value;
             found_patch_id = true;
@@ -180,7 +178,7 @@ Statistic::recordPatchStat(
          patchitem_record.value = value;
          patchitem_record.patch_id = patch_num;
          d_patch_array[seq_num].patch_records.push_back(patchitem_record);
-         d_total_patch_entries++;
+         ++d_total_patch_entries;
       }
 
    }
@@ -190,7 +188,7 @@ Statistic::recordPatchStat(
       patchitem_record.value = value;
       patchitem_record.patch_id = patch_num;
       d_patch_array[seq_num].patch_records.push_back(patchitem_record);
-      d_total_patch_entries++;
+      ++d_total_patch_entries;
       d_seq_counter = seq_num + 1;
    }
 
@@ -216,10 +214,10 @@ Statistic::recordPatchStat(
  *************************************************************************
  */
 
-int
+size_t
 Statistic::getDataStreamSize()
 {
-   int byte_size = MessageStream::getSizeof<int>(4);
+   size_t byte_size = MessageStream::getSizeof<int>(4);
    if (d_stat_type == PROC_STAT) {
       byte_size += MessageStream::getSizeof<double>(d_seq_counter);
    } else { // d_stat_type == PATCH_STAT
@@ -249,8 +247,8 @@ Statistic::packStream(
       num_int += d_seq_counter + d_total_patch_entries;
       num_double = d_total_patch_entries;
    }
-   Array<int> idata(num_int);
-   Array<double> ddata(num_double);
+   std::vector<int> idata(num_int);
+   std::vector<double> ddata(num_double);
 
    idata[0] = mpi.getRank();
    idata[1] = d_instance_id;
@@ -260,7 +258,7 @@ Statistic::packStream(
    int is = 0;
    if (d_stat_type == PROC_STAT) {
 
-      for (is = 0; is < d_seq_counter; is++) {
+      for (is = 0; is < d_seq_counter; ++is) {
          ddata[is] = d_proc_array[is].value;
       }
 
@@ -269,25 +267,25 @@ Statistic::packStream(
       int mark = 4 + d_seq_counter;
       int isr = 0;
 
-      for (is = 0; is < d_seq_counter; is++) {
+      for (is = 0; is < d_seq_counter; ++is) {
          std::list<Statistic::PatchStatRecord>& lrec =
             d_patch_array[is].patch_records;
          idata[4 + is] = static_cast<int>(lrec.size());
 
          std::list<Statistic::PatchStatRecord>::iterator ilr = lrec.begin();
-         for ( ; ilr != lrec.end(); ilr++) {
+         for ( ; ilr != lrec.end(); ++ilr) {
             idata[mark + isr] = ilr->patch_id;
             ddata[isr] = ilr->value;
-            isr++;
+            ++isr;
          }
       }
    }
 
    if (num_int > 0) {
-      stream.pack(idata.getPointer(), num_int);
+      stream.pack(&idata[0], num_int);
    }
    if (num_double > 0) {
-      stream.pack(ddata.getPointer(), num_double);
+      stream.pack(&ddata[0], num_double);
    }
 
 }
@@ -325,11 +323,11 @@ Statistic::unpackStream(
    int is;
    if (d_stat_type == PROC_STAT) {
 
-      Array<double> ddata(seq_len);
+      std::vector<double> ddata(seq_len);
 
       if (seq_len > 0) {
-         stream.unpack(ddata.getPointer(), seq_len);
-         for (is = 0; is < seq_len; is++) {
+         stream.unpack(&ddata[0], seq_len);
+         for (is = 0; is < seq_len; ++is) {
             recordProcStat(ddata[is], is);
          }
       }
@@ -337,25 +335,25 @@ Statistic::unpackStream(
    } else { // d_stat_type == PATCH_STAT
 
       if (seq_len > 0) {
-         Array<int> inum_patches_data(seq_len);
-         stream.unpack(inum_patches_data.getPointer(), seq_len);
+         std::vector<int> inum_patches_data(seq_len);
+         stream.unpack(&inum_patches_data[0], seq_len);
 
          int total_seq_items = 0;
-         for (is = 0; is < seq_len; is++) {
+         for (is = 0; is < seq_len; ++is) {
             total_seq_items += inum_patches_data[is];
          }
 
-         Array<int> ipatch_num_data(total_seq_items);
-         Array<double> ddata(total_seq_items);
+         std::vector<int> ipatch_num_data(total_seq_items);
+         std::vector<double> ddata(total_seq_items);
 
-         stream.unpack(ipatch_num_data.getPointer(), total_seq_items);
-         stream.unpack(ddata.getPointer(), total_seq_items);
+         stream.unpack(&ipatch_num_data[0], total_seq_items);
+         stream.unpack(&ddata[0], total_seq_items);
 
          int isr = 0;
-         for (is = 0; is < seq_len; is++) {
-            for (int ipsr = 0; ipsr < inum_patches_data[is]; ipsr++) {
+         for (is = 0; is < seq_len; ++is) {
+            for (int ipsr = 0; ipsr < inum_patches_data[is]; ++ipsr) {
                recordPatchStat(ipatch_num_data[isr], ddata[isr], is);
-               isr++;
+               ++isr;
             }
          }
       }
@@ -380,20 +378,20 @@ Statistic::printClassData(
 
    int is = 0;
    if (d_stat_type == PROC_STAT) {
-      for (is = 0; is < d_seq_counter; is++) {
+      for (is = 0; is < d_seq_counter; ++is) {
          stream << "     sequence[" << is
                 << "] : value = " << d_proc_array[is].value << std::endl;
       }
    } else {
-      for (is = 0; is < d_seq_counter; is++) {
+      for (is = 0; is < d_seq_counter; ++is) {
          stream << "     sequence[" << is
                 << "]" << std::endl;
 
-         const std::list<Statistic::PatchStatRecord>& psrl = 
+         const std::list<Statistic::PatchStatRecord>& psrl =
             d_patch_array[is].patch_records;
          std::list<Statistic::PatchStatRecord>::const_iterator ilr =
             psrl.begin();
-         for ( ; ilr != psrl.end(); ilr++) {
+         for ( ; ilr != psrl.end(); ++ilr) {
             stream << "        patch # = " << ilr->patch_id
                    << " : value = " << ilr->value << std::endl;
          }
@@ -417,8 +415,8 @@ Statistic::checkArraySizes(
       if (high_mark >= d_proc_stat_array_size) {
          int old_array_size = d_proc_stat_array_size;
          d_proc_stat_array_size += ARRAY_INCREMENT;
-         d_proc_array.resizeArray(d_proc_stat_array_size);
-         for (int i = old_array_size; i < d_proc_stat_array_size; i++) {
+         d_proc_array.resize(d_proc_stat_array_size);
+         for (int i = old_array_size; i < d_proc_stat_array_size; ++i) {
             d_proc_array[i].value = s_empty_seq_tag_entry;
          }
 
@@ -428,7 +426,7 @@ Statistic::checkArraySizes(
 
       if (high_mark >= d_patch_stat_array_size) {
          d_patch_stat_array_size += ARRAY_INCREMENT;
-         d_patch_array.resizeArray(d_patch_stat_array_size);
+         d_patch_array.resize(d_patch_stat_array_size);
       }
 
    }
@@ -436,60 +434,59 @@ Statistic::checkArraySizes(
 }
 
 void
-Statistic::putUnregisteredToDatabase(
-   const boost::shared_ptr<Database>& db) const
+Statistic::putToRestart(
+   const boost::shared_ptr<Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("TBOX_STATISTIC_VERSION",
-      TBOX_STATISTIC_VERSION);
+   restart_db->putInteger("TBOX_STATISTIC_VERSION", TBOX_STATISTIC_VERSION);
 
-   db->putString("object_name", d_object_name);
-   db->putInteger("stat_type", d_stat_type);
-   db->putInteger("instance_id", d_instance_id);
-   db->putInteger("seq_counter", d_seq_counter);
-   db->putInteger("total_patch_entries", d_total_patch_entries);
-   db->putInteger("proc_stat_array_size", d_proc_stat_array_size);
-   db->putInteger("patch_stat_array_size", d_patch_stat_array_size);
+   restart_db->putString("object_name", d_object_name);
+   restart_db->putInteger("stat_type", d_stat_type);
+   restart_db->putInteger("instance_id", d_instance_id);
+   restart_db->putInteger("seq_counter", d_seq_counter);
+   restart_db->putInteger("total_patch_entries", d_total_patch_entries);
+   restart_db->putInteger("proc_stat_array_size", d_proc_stat_array_size);
+   restart_db->putInteger("patch_stat_array_size", d_patch_stat_array_size);
 
    int i;
 
    if (d_stat_type == PROC_STAT) {
-      Array<double> ddata(d_seq_counter);
-      for (i = 0; i < d_seq_counter; i++) {
+      std::vector<double> ddata(d_seq_counter);
+      for (i = 0; i < d_seq_counter; ++i) {
          ddata[i] = d_proc_array[i].value;
       }
 
       if (d_seq_counter > 0) {
-         db->putDoubleArray("ddata", ddata);
+         restart_db->putDoubleVector("ddata", ddata);
       }
 
    }
 
    if (d_stat_type == PATCH_STAT) {
-      Array<int> idata(d_seq_counter + d_total_patch_entries);
-      Array<double> ddata(d_total_patch_entries);
+      std::vector<int> idata(d_seq_counter + d_total_patch_entries);
+      std::vector<double> ddata(d_total_patch_entries);
 
       int il = 0;
       int mark = d_seq_counter;
 
-      for (i = 0; i < d_seq_counter; i++) {
+      for (i = 0; i < d_seq_counter; ++i) {
          const std::list<Statistic::PatchStatRecord>& records =
             d_patch_array[i].patch_records;
          idata[i] = static_cast<int>(records.size());  // # patches at seq num
          std::list<Statistic::PatchStatRecord>::const_iterator ir =
             records.begin();
-         for ( ; ir != records.end(); ir++) {
+         for ( ; ir != records.end(); ++ir) {
             idata[mark + il] = ir->patch_id;
             ddata[il] = ir->value;
-            il++;
+            ++il;
          }
       }
 
       if (d_seq_counter > 0) {
-         db->putIntegerArray("idata", idata);
+         restart_db->putIntegerVector("idata", idata);
          if (d_total_patch_entries > 0) {
-            db->putDoubleArray("ddata", ddata);
+            restart_db->putDoubleVector("ddata", ddata);
          }
       }
    }
@@ -497,31 +494,31 @@ Statistic::putUnregisteredToDatabase(
 
 void
 Statistic::getFromRestart(
-   const boost::shared_ptr<Database>& db)
+   const boost::shared_ptr<Database>& restart_db)
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   int ver = db->getInteger("TBOX_STATISTIC_VERSION");
+   int ver = restart_db->getInteger("TBOX_STATISTIC_VERSION");
    if (ver != TBOX_STATISTIC_VERSION) {
       TBOX_ERROR("Restart file version different than class version.");
    }
 
-   d_object_name = db->getString("object_name");
-   d_stat_type = db->getInteger("stat_type");
-   d_instance_id = db->getInteger("instance_id");
-   int seq_entries = db->getInteger("seq_counter");
-   int total_patches = db->getInteger("total_patch_entries");
-   d_proc_stat_array_size = db->getInteger("proc_stat_array_size");
-   d_patch_stat_array_size = db->getInteger("patch_stat_array_size");
+   d_object_name = restart_db->getString("object_name");
+   d_stat_type = restart_db->getInteger("stat_type");
+   d_instance_id = restart_db->getInteger("instance_id");
+   int seq_entries = restart_db->getInteger("seq_counter");
+   int total_patches = restart_db->getInteger("total_patch_entries");
+   d_proc_stat_array_size = restart_db->getInteger("proc_stat_array_size");
+   d_patch_stat_array_size = restart_db->getInteger("patch_stat_array_size");
 
-   d_proc_array.resizeArray(d_proc_stat_array_size);
-   d_patch_array.resizeArray(d_patch_stat_array_size);
+   d_proc_array.resize(d_proc_stat_array_size);
+   d_patch_array.resize(d_patch_stat_array_size);
 
    int i;
    if (d_stat_type == PROC_STAT) {
       if (seq_entries > 0) {
-         Array<double> ddata = db->getDoubleArray("ddata");
-         for (i = 0; i < seq_entries; i++) {
+         std::vector<double> ddata = restart_db->getDoubleVector("ddata");
+         for (i = 0; i < seq_entries; ++i) {
             recordProcStat(ddata[i], i);
          }
       }
@@ -529,24 +526,24 @@ Statistic::getFromRestart(
 
    if (d_stat_type == PATCH_STAT) {
       if (seq_entries > 0) {
-         Array<int> idata = db->getIntegerArray("idata");
+         std::vector<int> idata = restart_db->getIntegerVector("idata");
 
-         Array<int> inum_patches(seq_entries);
-         for (i = 0; i < seq_entries; i++) {
+         std::vector<int> inum_patches(seq_entries);
+         for (i = 0; i < seq_entries; ++i) {
             inum_patches[i] = idata[i];
          }
 
          if (total_patches > 0) {
-            Array<double> ddata = db->getDoubleArray("ddata");
+            std::vector<double> ddata = restart_db->getDoubleVector("ddata");
 
             int il = 0;
             int mark = seq_entries;
-            for (i = 0; i < seq_entries; i++) {
-               for (int ipsr = 0; ipsr < inum_patches[i]; ipsr++) {
+            for (i = 0; i < seq_entries; ++i) {
+               for (int ipsr = 0; ipsr < inum_patches[i]; ++ipsr) {
                   int patch_num = idata[mark + il];
                   double val = ddata[il];
                   recordPatchStat(patch_num, val, i);
-                  il++;
+                  ++il;
                }
             }
          }

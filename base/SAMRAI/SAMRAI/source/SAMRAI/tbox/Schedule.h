@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Schedule of communication transactions between processors
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/tbox/MessageStream.h"
 #include "SAMRAI/tbox/Transaction.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 #include <map>
 #include <list>
@@ -48,7 +48,7 @@ namespace tbox {
  * order of transaction execution matters.  The transactions will be
  * executed in the order in which they appear in the list.
  *
- * @see tbox::Transaction
+ * @see Transaction
  */
 
 class Schedule
@@ -64,6 +64,8 @@ public:
     *
     * Note that the schedule can not be deleted during a communication
     * phase; this will result in an assertion being thrown.
+    *
+    * @pre !allocatedCommunicationObjects()
     */
    ~Schedule();
 
@@ -145,6 +147,9 @@ public:
     * isolated from other communications, you can specify distinct
     * tags to avoid message mix-ups.  Up to two messages are sent from
     * each communicating pairs.  Specify two distinct tags.
+    *
+    * @pre first_tag >= 0
+    * @pre second_tag >= 0
     */
    void
    setMPITag(
@@ -188,13 +193,15 @@ public:
     * first_message_length defaults to 1000.
     *
     * @param first_message_length length (in bytes) of first message
+    *
+    * @pre first_message_length > 0
     */
    void
    setFirstMessageLength(
       int first_message_length)
    {
       TBOX_ASSERT(first_message_length > 0);
-      d_first_message_length = first_message_length;
+      d_first_message_length = static_cast<size_t>(first_message_length);
    }
 
    /*!
@@ -227,6 +234,21 @@ public:
    finalizeCommunication();
 
    /*!
+    * @brief Set whether to unpack messages in a deterministic order.
+    *
+    * By default message unpacking is ordered by receive time, which
+    * is not deterministic.  If your results are dependent on unpack
+    * ordering and you want deterministic results, set this flag to
+    * true.
+    *
+    * @param [in] flag
+    */
+   void setDeterministicUnpackOrderingFlag(bool flag)
+   {
+      d_unpack_in_deterministic_order = flag;
+   }
+
+   /*!
     * @brief Setup names of timers.
     *
     * By default, timers are named "tbox::Schedule::*",
@@ -247,14 +269,34 @@ public:
    printClassData(
       std::ostream& stream) const;
 
+   /*!
+    * @brief Returns true if the communication objects have been allocated.
+    */
+   bool
+   allocatedCommunicationObjects()
+   {
+      return d_coms != 0;
+   }
+
+   /*!
+    * @brief Get the name of this object.
+    */
+   const std::string
+   getObjectName() const
+   {
+      return "Schedule";
+   }
+
 private:
    void
    allocateCommunicationObjects();
    void
    deallocateCommunicationObjects()
    {
-      delete[] d_coms;
-      d_coms = NULL;
+      if (d_coms) {
+         delete[] d_coms;
+      }
+      d_coms = 0;
    }
 
    void
@@ -270,7 +312,7 @@ private:
 
    Schedule(
       const Schedule&);                 // not implemented
-   void
+   Schedule&
    operator = (
       const Schedule&);                 // not implemented
 
@@ -287,15 +329,10 @@ private:
    }
 
    /*!
-    * Free static timers.
-    *
-    * Only called by StartupShutdownManager.
+    * @brief Read input data from input database and initialize class members.
     */
-   static void
-   finalizeCallback()
-   {
-      s_static_timers.clear();
-   }
+   void
+   getFromInput();
 
    /*
     * @brief Transactions in this schedule.
@@ -356,6 +393,13 @@ private:
     */
    size_t d_first_message_length;
 
+   /*!
+    * @brief Whether to unpack messages in a deterministic order.
+    *
+    * @see setDeterministicUnpackOrderingFlag()
+    */
+   bool d_unpack_in_deterministic_order;
+
    static const int s_default_first_tag;
    static const int s_default_second_tag;
    static const size_t s_default_first_message_length;
@@ -392,6 +436,8 @@ private:
     * @brief Static container of timers that have been looked up.
     */
    static std::map<std::string, TimerStruct> s_static_timers;
+
+   static char s_ignore_external_timer_prefix;
 
    /*!
     * @brief Structure of timers in s_static_timers, matching this

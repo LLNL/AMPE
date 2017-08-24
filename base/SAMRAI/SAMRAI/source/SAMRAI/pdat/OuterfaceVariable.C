@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 #include "SAMRAI/pdat/OuterfaceDataFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -47,35 +47,10 @@ template<class TYPE>
 int OuterfaceVariable<TYPE>::getDepth() const
 {
    boost::shared_ptr<OuterfaceDataFactory<TYPE> > factory(
-      getPatchDataFactory());
+      BOOST_CAST<OuterfaceDataFactory<TYPE>, hier::PatchDataFactory>(
+         getPatchDataFactory()));
    TBOX_ASSERT(factory);
    return factory->getDepth();
-}
-
-/*
- *************************************************************************
- *
- * These are private and should not be used.  They are defined here
- * because some template instantiation methods fail if some member
- * functions are left undefined.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-OuterfaceVariable<TYPE>::OuterfaceVariable(
-   const OuterfaceVariable<TYPE>& foo):
-   hier::Variable(NULL,
-                  boost::shared_ptr<hier::PatchDataFactory>())
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void OuterfaceVariable<TYPE>::operator = (
-   const OuterfaceVariable<TYPE>& foo)
-{
-   NULL_USE(foo);
 }
 
 }

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Sinusoidal function functor in FAC solver test.
  *
  ************************************************************************/
@@ -27,7 +27,7 @@ class SinusoidFcn
 {
 
 public:
-   SinusoidFcn(
+   explicit SinusoidFcn(
       const tbox::Dimension& dim);
 
    /*!
@@ -174,9 +174,9 @@ private:
    //! Amplitude
    double d_amp;
    //! Wave number in half-cycles
-   double d_npi[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_npi[SAMRAI::MAX_DIM_VAL];
    //! Phase shift in half-cycles
-   double d_ppi[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_ppi[SAMRAI::MAX_DIM_VAL];
 
 };
 

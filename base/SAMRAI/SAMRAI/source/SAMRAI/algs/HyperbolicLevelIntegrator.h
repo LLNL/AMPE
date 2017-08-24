@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Integration routines for single level in AMR hierarchy
  *                (basic hyperbolic systems)
  *
@@ -30,9 +30,9 @@
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/tbox/Timer.h"
 
-
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <list>
+#include <vector>
 
 #define HLI_RECORD_STATS
 // #undef DGA_RECORD_STATS
@@ -84,67 +84,83 @@ namespace algs {
  * applyGradientDetector(), applyRichardsonExtrapolation(), and
  * coarsenDataForRichardsonExtrapolation().
  *
- * An object of this class requires numerous parameters to be read from
- * input.  Also, data must be written to and read from files for restart.
- * The input and restart data are summarized as follows.
+ * <b> Input Parameters </b>
  *
- * Required input keys and data types: NONE
- *
- * Optional input keys, data types, and defaults:
- *
- *
- *
- *
+ * <b> Definitions: </b>
  *    - \b    cfl
- *       double value for the CFL factor used for timestep selection
- *       (dt used = CFL * max dt).  If no input value is given, a default
- *       value of 0.9 is used.
+ *       the CFL factor used for timestep selection (dt used = CFL * max dt)
  *
  *    - \b    cfl_init
- *       double value for CFL factor used for initial timestep.
- *       If no input value is given, a default value of 0.9 is used.
+ *       the CFL factor used for initial timestep
  *
  *    - \b    lag_dt_computation
- *       boolean value indicating whether dt is based on current
- *       solution or solution from previous step (possible optimization
- *       in communication for characteristic analysis).  If no input
- *       value is given, a default value of TRUE is used.
- *
+ *       indicates whether dt is based on current solution or solution from
+ *       previous step (possible optimization in communication for
+ *       characteristic analysis)
  *
  *    - \b    use_ghosts_to_compute_dt
- *       boolean value indicating whether ghost data must be filled before
- *       timestep is computed on each patch (possible communication
- *       optimization).  if no input value is given, a default value
- *       of TRUE is used.
+ *       indicates whether ghost data must be filled before timestep is
+ *       computed on each patch (possible communication optimization)
  *
- *    - \b    distinguish_mpi_reduction_costs
- *       boolean specifying whether to separate reduction costs in tbox::MPI
- *       from costs of load imbalances.  By specifying it true, a
- *       barrier is put in place before the reduction call, so an extra
- *       operation is incurred.  For this reason, it is defaulted FALSE.
+ * Note that when continuing from restart, the input parameters in the input
+ * database override all values read in from the restart database.
  *
- *
- *
- *
- *
- * Note that when continuing from restart, the input values in the
- * input file override all values read in from the restart database.
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>cfl</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>any double</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>cfl_init</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>any double</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>lag_dt_computation</td>
+ *     <td>bool</td>
+ *     <td>TRUE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>use_ghosts_to_compute_dt</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * A sample input file entry might look like:
  *
- * \verbatim
- *
+ * @code
  *    cfl = 0.9
  *    cfl_init = 0.9
  *    lag_dt_computation = FALSE
  *    use_ghosts_to_compute_dt = TRUE
- *    distinguish_mpi_reduction_costs = TRUE
+ * @endcode
  *
- * \endverbatim
- *
- * @see algs::TimeRefinementIntegrator
+ * @see TimeRefinementIntegrator
  * @see mesh::StandardTagAndInitStrategy
- * @see algs::HyperbolicPatchStrategy
+ * @see HyperbolicPatchStrategy
  */
 
 class HyperbolicLevelIntegrator:
@@ -189,28 +205,23 @@ public:
     * integration parameters to default values and constructs standard
     * communication algorithms.  Other data members are read in from
     * the specified input database or the restart database corresponding
-    * to the specified object_name.  The constructor also registers
-    * this object for restart using the specified object name when
-    * the boolean argument is true.  Whether object will write its state to
-    * restart files during program execution is determined by this argument.
-    * Note that it has a default state of true.  This class is used by
+    * to the specified object_name.  This class is used by
     * the time refinement integrator for refined timestepping when the
     * use_time_refinement argument is true, and for synchronized
     * timestepping when the boolean is false.
     *
-    * When assertion checking is active, passing in any null pointer
-    * or an empty string will result in an unrecoverable assertion.
+    * @pre !object_name.empty()
+    * @pre patch_strategy != 0
     */
    HyperbolicLevelIntegrator(
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
       HyperbolicPatchStrategy* patch_strategy,
-      bool register_for_restart = true,
       bool use_time_refinement = true);
 
    /**
     * The destructor for HyperbolicLevelIntegrator unregisters
-    * the integrator object with the restart manager when so registered.
+    * the integrator object with the restart manager.
     */
    virtual ~HyperbolicLevelIntegrator();
 
@@ -220,8 +231,7 @@ public:
     *
     * This routine also invokes variable registration in the patch strategy.
     *
-    * Assertion checking will throw unrecoverable assertions if either
-    * pointer is null.
+    * @pre gridding_alg_strategy is actually a boost::dynamic_pointer_cast<mesh::GriddingAlgorithm>
     */
    virtual void
    initializeLevelIntegrator(
@@ -238,8 +248,7 @@ public:
     * integrator. The default true setting means the timestep will be
     * computed if no value is supplied.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the level pointer is null.
+    * @pre level
     */
    virtual double
    getLevelDt(
@@ -255,8 +264,7 @@ public:
     * conservation laws (constrained by a CFL limit), the fine time increment
     * is typically the coarse increment divided by the refinement ratio.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the ratio vector is not acceptable (i.e., all values > 0).
+    * @pre each component of ratio_to_coarser is > 0
     */
    virtual double
    getMaxFinerLevelDt(
@@ -351,12 +359,10 @@ public:
     *    - \b  regrid_advance
     *        = true.
     *
-    *
-    *
-    *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if either the level or hierarchy pointer is null, or the
-    * new time is not greater than the given time.
+    * @pre level
+    * @pre hierarchy
+    * @pre current_time <= new_time
+    * @pre level->getDim() == hierarchy->getDim()
     */
 
    virtual double
@@ -377,11 +383,12 @@ public:
     * coarsest_level.  The array of old time values are used in the
     * re-integration of the time-dependent data.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the hierarchy pointer is null, the level numbers do
-    * not properly match existing levels in the hierarchy (either
-    * coarsest_level > finest_level or some level is null), or
-    * all of the old time values are less than the value of sync_time.
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level < finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
+    * @pre old_times.size() >= finest_level
+    * @pre for each i in [coarsest_level, finest_level) hierarchy->getPatchLevel(i) && sync_time >= old_times[i]
+    * @pre hierarchy->getPatchLevel(finest_level)
     */
    virtual void
    standardLevelSynchronization(
@@ -389,13 +396,20 @@ public:
       const int coarsest_level,
       const int finest_level,
       const double sync_time,
-      const tbox::Array<double>& old_times);
+      const std::vector<double>& old_times);
 
    /**
     * This overloaded version of standardLevelSynchronization implements
     * a routine used for synchronized timestepping.  Only a single
     * value for the old time is needed, since all levels would have the
     * same old time.
+    *
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level < finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
+    * @pre for each i in [coarsest_level, finest_level) hierarchy->getPatchLevel(i)
+    * @pre sync_time >= old_time
+    * @pre hierarchy->getPatchLevel(finest_level)
     */
    virtual void
    standardLevelSynchronization(
@@ -421,10 +435,10 @@ public:
     * no data synchronization after regridding beyond interpolation of
     * data from coarser levels in the hierarchy in some conservative fashion.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the hierarchy pointer is null, the level numbers do
-    * not properly match existing levels in the hierarchy (either
-    * coarsest_level > finest_level or some level is null).
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level < finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
+    * @pre for each i in [coarsest_level, finest_level] hierarchy->getPatchLevel(i)
     */
    virtual void
    synchronizeNewLevels(
@@ -437,8 +451,7 @@ public:
    /**
     * Resets time-dependent data storage and update time for patch level.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the level pointer is null.
+    * @pre level
     */
    virtual void
    resetTimeDependentData(
@@ -450,8 +463,7 @@ public:
     * Deallocate all new simulation data on the given level.  This may
     * be necessary during regridding, or setting up levels initially.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the level pointer is null.
+    * @pre level
     */
    virtual void
    resetDataToPreadvanceState(
@@ -486,10 +498,11 @@ public:
     * the level is the finest level allowed in the hierarchy.  This may or
     * may not affect the data initialization process depending on the problem.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the hierarchy pointer is null, the level number does
-    * not match any level in the hierarchy, or the old level number
-    * does not match the level number (if the old level pointer is non-null).
+    * @pre hierarchy
+    * @pre (level_number >= 0) &&
+    *      (level_number <= hierarchy->getFinestLevelNumber())
+    * @pre !old_level || (level_number == old_level->getLevelNumber())
+    * @pre hierarchy->getPatchLevel(level_number))
     */
    virtual void
    initializeLevelData(
@@ -516,11 +529,10 @@ public:
     * communication schedules every level finer than and including that
     * indexed by the coarsest level number given.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the hierarchy pointer is null, any pointer to a level
-    * in the hierarchy that is coarser than the finest level is null,
-    * or the given level numbers not specified properly; e.g.,
-    * coarsest_level > finest_level.
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level <= finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
+    * @pre for all i <= finest_level hierarchy->getPatchLevel(i) is non-NULL
     */
    virtual void
    resetHierarchyConfiguration(
@@ -545,9 +557,10 @@ public:
     * to the user's patch tagging routines since the application of the
     * gradient detector may be different in each case.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the hierarchy pointer is null or the level number does
-    * not match any existing level in the hierarchy.
+    * @pre hierarchy
+    * @pre (level_number >= 0) &&
+    *      (level_number <= hierarchy->getFinestLevelNumber())
+    * @pre hierarchy->getPatchLevel(level_number)
     */
    virtual void
    applyGradientDetector(
@@ -584,8 +597,7 @@ public:
     * and false otherwise.  This argument helps the user to manage multiple
     * regridding criteria.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the level pointer is null.
+    * @pre level
     */
    virtual void
    applyRichardsonExtrapolation(
@@ -606,8 +618,12 @@ public:
     * (i.e., before it has been advanced) or by coarsening the "new"
     * solution on the fine level (i.e., after it has been advanced).
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if either level pointer is null.
+    * @pre hierarchy
+    * @pre (level_number >= 0) &&
+    *      (level_number <= hierarchy->getFinestLevelNumber())
+    * @pre (hierarchy->getPatchLevel(level_number)
+    * @pre coarse_level
+    * @pre hierarchy->getDim() == coarse_level->getDim()
     */
    virtual void
    coarsenDataForRichardsonExtrapolation(
@@ -625,8 +641,9 @@ public:
     * invoked by calling the function initializeLevelIntegrator() above.
     * In fact, that function should be called before this routine is called.
     *
-    * When assertion checking is active, an unrecoverable assertion will
-    * result if the variable pointer or geometry pointer is null.
+    * @pre var
+    * @pre transfer_geom
+    * @pre ghosts.getDim() == var->getDim()
     */
    virtual void
    registerVariable(
@@ -639,21 +656,19 @@ public:
 
    /**
     * Print class data representation for hyperbolic level integrator object.
-    * This is done automatically, when an unrecoverable run-time assertion
-    * is thrown within some member function of this class.
     */
    virtual void
    printClassData(
       std::ostream& os) const;
 
    /**
-    * Write out object state to the given database.
+    * Write out object state to the given restart database.
     *
-    * When assertion checking is active, database point must be non-null.
+    * @pre restart_db
     */
    virtual void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * Return pointer to "current" variable context used by integrator.
@@ -745,15 +760,15 @@ public:
 
 protected:
    /**
-    * Read input values, indicated above, from given database.  The boolean
+    * Read values, indicated above, from given input database.  The boolean
     * argument is_from_restart should be set to true if the simulation
     * is beginning from restart.  Otherwise it should be set to false.
     *
-    * When assertion checking is active, the database pointer must be non-null.
+    * @pre is_from_restart || input_db
     */
    virtual void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<tbox::Database>& input_db,
       bool is_from_restart);
 
    /**
@@ -788,9 +803,6 @@ protected:
     * how flux and flux integral storage is allocated and initialized.
     * These are needed since the advanceLevel() routine is used for
     * both level integration and time-dependent error estimation.
-    *
-    * When assertion checking is active, the level and schedule pointers
-    * must be non-null and the current time must be less than the new time.
     */
    virtual void
    preprocessFluxData(
@@ -807,8 +819,6 @@ protected:
     * storage is copied and de-allocated. This is needed since the
     * advanceLevel() routine is used for both level integration and
     * time-dependent error estimation.
-    *
-    * When assertion checking is active, the level pointer must be non-null.
     */
    virtual void
    postprocessFluxData(
@@ -819,9 +829,6 @@ protected:
 
    /*
     * Copy time-dependent data from source space to destination space.
-    *
-    * When assertion checking is active, the level and context pointers
-    * must be non-null.
     */
    virtual void
    copyTimeDependentData(
@@ -840,10 +847,11 @@ protected:
     * synchronization, the flux and flux integral data storage is reset on
     * the levels.
     *
-    * When assertion checking is turned on, an unrecoverable assertion
-    * will result if either level pointer is null, the levels are not
-    * consecutive in the AMR hierarchy, or the coarse sim time is not
-    * less than the sync time.
+    * @pre fine_level
+    * @pre coarse_level
+    * @pre coarse_level->getLevelNumber() == (fine_level->getLevelNumber()-1))
+    * @pre fine_level->getDim() == coarse_level->getDim()
+    * @pre sync_time > coarse_sim_time
     */
    virtual void
    synchronizeLevelWithCoarser(
@@ -851,6 +859,44 @@ protected:
       const boost::shared_ptr<hier::PatchLevel>& coarse,
       const double sync_time,
       const double coarse_sim_time);
+
+   /*!
+    * @brief Check the tags on a tagged level.
+    *
+    * This is a callback method that is used to check the values held in
+    * user tag PatchData.  The tag data will contain the tags created
+    * by either a gradient detector or Richardson extrapolation as well as
+    * any tags added internally by the GriddingAlgorithm (for
+    * example, buffering).
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number  Level number of the tagged level
+    * @param[in] tag_index     Patch data index for user tags
+    */
+   virtual void
+   checkUserTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int tag_index) const;
+
+   /*!
+    * @brief Check the tags on a newly-created level.
+    *
+    * This is a callback method that allow for checking tag values that
+    * have been saved on a new level that has been created during
+    * initialization or regridding.  The tag values will be the values
+    * of the user tags on the coarser level, constant-refined onto the
+    * cells of the new level.
+    *
+    * @param[in] hierarchy
+    * @param[in] level_number   Level number of the new level
+    * @param[in] tag_index      Patch data index for the new tags.
+    */
+   virtual void
+   checkNewLevelTagData(
+      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+      const int level_number,
+      const int tag_index) const;
 
 private:
    /*
@@ -867,11 +913,6 @@ private:
       double current_time);
 
    /*
-    * Dimension of the problem.
-    */
-   const tbox::Dimension d_dim;
-
-   /*
     * The patch strategy supplies the application-specific operations
     * needed to treat data on patches in the AMR hierarchy.
     */
@@ -885,12 +926,10 @@ private:
 
    /*
     * The object name is used as a handle to databases stored in
-    * restart files and for error reporting purposes.  The boolean
-    * is used to control restart file writing operations.
+    * restart files and for error reporting purposes.
     */
    std::string d_object_name;
    bool d_use_time_refinement;
-   bool d_registered_for_restart;
 
    /*
     * Courant-Friedrichs-Levy parameters for time increment selection.
@@ -915,9 +954,15 @@ private:
     *                      be consistent with the numerical routines used
     *                      in the hyperbolic patch strategy object to
     *                      calculate the time step size.  The default is true.
+    *
+    * d_use_flux_correction indicates whether the synchronization step
+    *                       will replace coarse fluxes with integrated
+    *                       finer level fluxes and repeat the conservative
+    *                       update.  The default is true.
     */
    bool d_lag_dt_computation;
    bool d_use_ghosts_for_dt;
+   bool d_use_flux_correction;
 
    /*
     * Boolean flags for indicated whether face or side data types are
@@ -943,7 +988,7 @@ private:
     * will be filled with CURRENT_VAR values.
     */
    boost::shared_ptr<xfer::RefineAlgorithm> d_bdry_fill_advance;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> > d_bdry_sched_advance;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> > d_bdry_sched_advance;
 
    /*
     * The "advance new" schedule can be used twice during a time integration
@@ -961,7 +1006,7 @@ private:
     * accompanying HyperbolicLevelIntegrator::advanceLevel.
     */
    boost::shared_ptr<xfer::RefineAlgorithm> d_bdry_fill_advance_new;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
    d_bdry_sched_advance_new;
 
    /*
@@ -1072,6 +1117,11 @@ private:
 
    static bool s_barrier_after_error_bdry_fill_comm;
 
+   /*!
+    * @brief For diagnostics: whether to separate major advanceLevel sections with MPI barriers.
+    */
+   bool d_barrier_advance_level_sections;
+
    /*
     * Timers interspersed throughout the class.
     */
@@ -1091,9 +1141,17 @@ private:
    static boost::shared_ptr<tbox::Timer> t_get_level_dt;
    static boost::shared_ptr<tbox::Timer> t_get_level_dt_sync;
    static boost::shared_ptr<tbox::Timer> t_advance_level;
+   static boost::shared_ptr<tbox::Timer> t_advance_level_integrate;
+   static boost::shared_ptr<tbox::Timer> t_advance_level_pre_integrate;
+   static boost::shared_ptr<tbox::Timer> t_advance_level_post_integrate;
+   static boost::shared_ptr<tbox::Timer> t_advance_level_patch_loop;
    static boost::shared_ptr<tbox::Timer> t_new_advance_bdry_fill_comm;
    static boost::shared_ptr<tbox::Timer> t_patch_num_kernel;
+   static boost::shared_ptr<tbox::Timer> t_preprocess_flux_data;
+   static boost::shared_ptr<tbox::Timer> t_postprocess_flux_data;
    static boost::shared_ptr<tbox::Timer> t_advance_level_sync;
+   static boost::shared_ptr<tbox::Timer> t_advance_level_compute_dt;
+   static boost::shared_ptr<tbox::Timer> t_copy_time_dependent_data;
    static boost::shared_ptr<tbox::Timer> t_std_level_sync;
    static boost::shared_ptr<tbox::Timer> t_sync_new_levels;
    static boost::shared_ptr<tbox::Timer> t_barrier_after_error_bdry_fill_comm;
@@ -1108,9 +1166,9 @@ private:
    /*
     * Statistics on number of cells and patches generated.
     */
-   static tbox::Array<boost::shared_ptr<tbox::Statistic> > s_boxes_stat;
-   static tbox::Array<boost::shared_ptr<tbox::Statistic> > s_cells_stat;
-   static tbox::Array<boost::shared_ptr<tbox::Statistic> > s_timestamp_stat;
+   static std::vector<boost::shared_ptr<tbox::Statistic> > s_boxes_stat;
+   static std::vector<boost::shared_ptr<tbox::Statistic> > s_cells_stat;
+   static std::vector<boost::shared_ptr<tbox::Statistic> > s_timestamp_stat;
 #endif
 
    /*!

@@ -114,11 +114,11 @@ void NKRHeatCapacityStrategy::setCurrentValue(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > conc (
-            patch->getPatchData( d_composition_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_composition_id) ) );
          boost::shared_ptr< pdat::CellData<double> > temp (
-            patch->getPatchData( d_temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cp (
-            patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
          assert( conc );
          assert( temp );
          assert( cp );

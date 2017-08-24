@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface for processing user-defined boundary data in
  *                CartesianBoundaryUtilities classes
  *
@@ -17,7 +17,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -37,8 +37,8 @@ namespace appu {
  * definitions that apply for the various boundary types, locations,
  * and boundary conditions.
  *
- * @see appu::CartesianBoundaryUtilities2
- * @see appu::CartesianBoundaryUtilities3
+ * @see CartesianBoundaryUtilities2
+ * @see CartesianBoundaryUtilities3
  */
 
 class BoundaryUtilityStrategy
@@ -65,7 +65,8 @@ public:
     * @param bdry_location_index Integer index for location of edge (in 2d)
     *                            or face (in 3d) boundary.
     */
-   virtual void readDirichletBoundaryDataEntry(
+   virtual void
+   readDirichletBoundaryDataEntry(
       const boost::shared_ptr<tbox::Database>& db,
       std::string& db_name,
       int bdry_location_index) = 0;
@@ -79,7 +80,8 @@ public:
     * @param bdry_location_index Integer index for location of edge (in 2d)
     *                            or face (in 3d) boundary.
     */
-   virtual void readNeumannBoundaryDataEntry(
+   virtual void
+   readNeumannBoundaryDataEntry(
       const boost::shared_ptr<tbox::Database>& db,
       std::string& db_name,
       int bdry_location_index) = 0;

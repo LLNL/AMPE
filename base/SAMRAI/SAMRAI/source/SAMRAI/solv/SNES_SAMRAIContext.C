@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Wrapper for SNES solver for use in a SAMRAI-based application.
  *
  ************************************************************************/
-
-#ifndef included_solv_SNES_SAMRAIContext_C
-#define included_solv_SNES_SAMRAIContext_C
-
 #include "SAMRAI/solv/SNES_SAMRAIContext.h"
 
 #include "SAMRAI/solv/PETSc_SAMRAIVectorReal.h"
@@ -71,87 +67,58 @@ SNES_SAMRAIContext::SNESJacobianSet(
  */
 SNES_SAMRAIContext::SNES_SAMRAIContext(
    const std::string& object_name,
-   const boost::shared_ptr<tbox::Database>& input_db,
-   SNESAbstractFunctions* my_functions)
+   SNESAbstractFunctions* my_functions,
+   const boost::shared_ptr<tbox::Database>& input_db):
+   d_object_name(object_name),
+   d_context_needs_initialization(true),
+   d_SNES_solver(0),
+   d_krylov_solver(0),
+   d_jacobian(0),
+   d_preconditioner(0),
+   d_solution_vector(0),
+   d_residual_vector(0),
+   d_SNES_functions(my_functions),
+   d_uses_preconditioner(true),
+   d_uses_explicit_jacobian(true),
+   d_maximum_nonlinear_iterations(PETSC_DEFAULT),
+   d_maximum_function_evals(PETSC_DEFAULT),
+   d_absolute_tolerance(PETSC_DEFAULT),
+   d_relative_tolerance(PETSC_DEFAULT),
+   d_step_tolerance(PETSC_DEFAULT),
+   d_forcing_term_strategy("CONSTANT"),
+   d_forcing_term_flag(PETSC_DEFAULT),
+   d_constant_forcing_term(PETSC_DEFAULT),
+   d_initial_forcing_term(PETSC_DEFAULT),
+   d_maximum_forcing_term(PETSC_DEFAULT),
+   d_EW_choice2_alpha(PETSC_DEFAULT),
+   d_EW_choice2_gamma(PETSC_DEFAULT),
+   d_EW_safeguard_exponent(PETSC_DEFAULT),
+   d_EW_safeguard_disable_threshold(PETSC_DEFAULT),
+   d_SNES_completion_code(SNES_CONVERGED_ITERATING),
+   d_linear_solver_absolute_tolerance(PETSC_DEFAULT),
+   d_linear_solver_divergence_tolerance(PETSC_DEFAULT),
+   d_maximum_linear_iterations(PETSC_DEFAULT),
+   d_maximum_gmres_krylov_dimension(PETSC_DEFAULT),
+   d_differencing_parameter_strategy(MATMFFD_WP),
+   d_function_evaluation_error(PETSC_DEFAULT),
+   d_nonlinear_iterations(0)
 {
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(!(my_functions == (SNESAbstractFunctions *)NULL));
+   TBOX_ASSERT(my_functions != 0);
 
-   d_object_name = object_name;
-   d_context_needs_initialization = true;
    tbox::RestartManager::getManager()->registerRestartItem(d_object_name,
       this);
-
-   /*
-    * Set default state.
-    */
-
-   d_SNES_solver = ((SNES)NULL);
-   d_krylov_solver = ((KSP)NULL);
-   d_jacobian = ((Mat)NULL);
-   d_preconditioner = ((PC)NULL);
-   d_solution_vector = ((Vec)NULL);
-   d_residual_vector = ((Vec)NULL);
-
-   d_SNES_functions = my_functions;
-
-   /*
-    * Default nonlinear solver parameters.
-    */
-
-   d_absolute_tolerance = PETSC_DEFAULT;
-   d_relative_tolerance = PETSC_DEFAULT;
-   d_step_tolerance = PETSC_DEFAULT;
-   d_maximum_nonlinear_iterations = PETSC_DEFAULT;
-   d_maximum_function_evals = PETSC_DEFAULT;
-
-   d_forcing_term_strategy = "CONSTANT";
-   d_forcing_term_flag = PETSC_DEFAULT;
-
-   d_constant_forcing_term = PETSC_DEFAULT;
-   d_initial_forcing_term = PETSC_DEFAULT;
-   d_maximum_forcing_term = PETSC_DEFAULT;
-   d_EW_choice2_alpha = PETSC_DEFAULT;
-   d_EW_choice2_gamma = PETSC_DEFAULT;
-   d_EW_safeguard_exponent = PETSC_DEFAULT;
-   d_EW_safeguard_disable_threshold = PETSC_DEFAULT;
-
-   d_SNES_completion_code = SNES_CONVERGED_ITERATING;
-
-   /*
-    * Default linear solver parameters.
-    */
-
-   d_linear_solver_absolute_tolerance = PETSC_DEFAULT;
-   d_linear_solver_divergence_tolerance = PETSC_DEFAULT;
-   d_maximum_linear_iterations = PETSC_DEFAULT;
-
-   d_maximum_gmres_krylov_dimension = PETSC_DEFAULT;
-   d_gmres_orthogonalization_algorithm = PETSC_DEFAULT;
-
-   /*
-    * Default "Matrix-free" parameters.
-    */
-
-   d_function_evaluation_error = PETSC_DEFAULT;
-   d_differencing_parameter_strategy = MATMFFD_WP;
-
-   /*
-    * Default output parameters.
-    */
-
-   d_nonlinear_iterations = 0;
 
    /*
     * Initialize members with data read from the input and restart
     * databases.  Note that PETSc object parameters are set in
     * initialize().
     */
-
-   if (tbox::RestartManager::getManager()->isFromRestart()) {
+   bool is_from_restart = tbox::RestartManager::getManager()->isFromRestart();
+   if (is_from_restart) {
       getFromRestart();
    }
-   getFromInput(input_db);
+   getFromInput(input_db, is_from_restart);
 
 }
 
@@ -263,7 +230,7 @@ SNES_SAMRAIContext::solve()
          &d_SNES_completion_code);
    PETSC_SAMRAI_ERROR(ierr);
 
-   ierr = VecDestroy(initial_guess);
+   ierr = VecDestroy(&initial_guess);
    PETSC_SAMRAI_ERROR(ierr);
 
    return ((int)d_SNES_completion_code > 0) ? 1 : 0;
@@ -301,7 +268,7 @@ SNES_SAMRAIContext::reportCompletionCode(
       case SNES_DIVERGED_MAX_IT:
          os << " Maximum nonlinear iteration count exceeded.\n";
          break;
-      case SNES_DIVERGED_LS_FAILURE:
+      case SNES_DIVERGED_LINE_SEARCH:
          os << " Failure in linesearch procedure.\n";
          break;
       default:
@@ -327,12 +294,10 @@ SNES_SAMRAIContext::createPetscObjects()
     * Create the nonlinear solver, specify linesearch backtracking,
     * and register method for nonlinear residual evaluation.
     */
-   ierr = SNESCreate(PETSC_COMM_SELF,
-         &d_SNES_solver);
+   ierr = SNESCreate(PETSC_COMM_SELF, &d_SNES_solver);
    PETSC_SAMRAI_ERROR(ierr);
 
-   ierr = SNESSetType(d_SNES_solver,
-         SNESLS);
+   ierr = SNESSetType(d_SNES_solver, SNESLS);
    PETSC_SAMRAI_ERROR(ierr);
 
    ierr = SNESSetFunction(d_SNES_solver,
@@ -352,16 +317,13 @@ SNES_SAMRAIContext::createPetscObjects()
 //                     &d_krylov_solver);
 //                     PETSC_SAMRAI_ERROR(ierr);
 
-   ierr = SNESGetKSP(d_SNES_solver,
-         &d_krylov_solver);
+   ierr = SNESGetKSP(d_SNES_solver, &d_krylov_solver);
    PETSC_SAMRAI_ERROR(ierr);
 
-   ierr = KSPSetPreconditionerSide(d_krylov_solver,
-         PC_RIGHT);
+   ierr = KSPSetPCSide(d_krylov_solver, PC_RIGHT);
    PETSC_SAMRAI_ERROR(ierr);
 
-   ierr = KSPGetPC(d_krylov_solver,
-         &d_preconditioner);
+   ierr = KSPGetPC(d_krylov_solver, &d_preconditioner);
    PETSC_SAMRAI_ERROR(ierr);
 
 }
@@ -414,7 +376,9 @@ SNES_SAMRAIContext::initializePetscObjects()
     *
     * First delete any Jacobian object that already has been created.
     */
-   if (d_jacobian) MatDestroy(d_jacobian);
+   if (d_jacobian) {
+      MatDestroy(&d_jacobian);
+   }
    if (d_uses_explicit_jacobian) {
 
       ierr = MatCreateShell(PETSC_COMM_SELF,
@@ -469,8 +433,7 @@ SNES_SAMRAIContext::initializePetscObjects()
     * type of Krylov method that is used and tolerances used by the
     * method.
     */
-   ierr = KSPSetType(d_krylov_solver,
-         (KSPType)d_linear_solver_type.c_str());
+   ierr = KSPSetType(d_krylov_solver, (KSPType)d_linear_solver_type.c_str());
    PETSC_SAMRAI_ERROR(ierr);
 
    if (d_linear_solver_type == "gmres") {
@@ -522,12 +485,10 @@ SNES_SAMRAIContext::initializePetscObjects()
    if (d_uses_preconditioner) {
 
       std::string pc_type = "shell";
-      ierr = PCSetType(d_preconditioner,
-            (PCType)pc_type.c_str());
+      ierr = PCSetType(d_preconditioner, (PCType)pc_type.c_str());
       PETSC_SAMRAI_ERROR(ierr);
 
-      ierr = PCShellSetSetUp(
-            d_preconditioner,
+      ierr = PCShellSetSetUp(d_preconditioner,
             SNES_SAMRAIContext::SNESsetupPreconditioner);
       PETSC_SAMRAI_ERROR(ierr);
 
@@ -541,8 +502,7 @@ SNES_SAMRAIContext::initializePetscObjects()
    } else {
 
       std::string pc_type = "none";
-      ierr = PCSetType(d_preconditioner,
-            (PCType)pc_type.c_str());
+      ierr = PCSetType(d_preconditioner, (PCType)pc_type.c_str());
       PETSC_SAMRAI_ERROR(ierr);
 
    }
@@ -561,15 +521,15 @@ void
 SNES_SAMRAIContext::destroyPetscObjects()
 {
    if (d_jacobian) {
-      MatDestroy(d_jacobian);
-      d_jacobian = ((Mat)NULL);
+      MatDestroy(&d_jacobian);
+      d_jacobian = 0;
    }
 
    if (d_SNES_solver) {
-      SNESDestroy(d_SNES_solver);
-//     if (d_SLES_solver) d_SLES_solver = ((SLES)NULL);
-      if (d_preconditioner) d_preconditioner = ((PC)NULL);
-      if (d_krylov_solver) d_krylov_solver = ((KSP)NULL);
+      SNESDestroy(&d_SNES_solver);
+//     if (d_SLES_solver) d_SLES_solver = 0;
+      if (d_preconditioner) d_preconditioner = 0;
+      if (d_krylov_solver) d_krylov_solver = 0;
    }
 }
 
@@ -583,35 +543,35 @@ SNES_SAMRAIContext::destroyPetscObjects()
 
 void
 SNES_SAMRAIContext::getFromInput(
-   const boost::shared_ptr<tbox::Database>& db)
+   const boost::shared_ptr<tbox::Database>& input_db,
+   bool is_from_restart)
 {
-   if (db) {
-      if (db->keyExists("maximum_nonlinear_iterations")) {
+   if (input_db) {
+      if (!is_from_restart) {
+
          d_maximum_nonlinear_iterations =
-            db->getInteger("maximum_nonlinear_iterations");
-      }
-      if (db->keyExists("maximum_function_evals")) {
-         d_maximum_function_evals = db->getInteger("maximum_function_evals");
-      }
+            input_db->getIntegerWithDefault("maximum_nonlinear_iterations", PETSC_DEFAULT);
 
-      if (db->keyExists("uses_preconditioner")) {
-         d_uses_preconditioner = db->getBool("uses_preconditioner");
-      }
-      if (db->keyExists("uses_explicit_jacobian")) {
-         d_uses_explicit_jacobian = db->getBool("uses_explicit_jacobian");
-      }
-      if (db->keyExists("absolute_tolerance")) {
-         d_absolute_tolerance = db->getDouble("absolute_tolerance");
-      }
-      if (db->keyExists("relative_tolerance")) {
-         d_relative_tolerance = db->getDouble("relative_tolerance");
-      }
-      if (db->keyExists("step_tolerance")) {
-         d_step_tolerance = db->getDouble("step_tolerance");
-      }
+         d_maximum_function_evals =
+            input_db->getIntegerWithDefault("maximum_function_evals", PETSC_DEFAULT);
 
-      if (db->keyExists("forcing_term_strategy")) {
-         d_forcing_term_strategy = db->getString("forcing_term_strategy");
+         d_uses_preconditioner =
+            input_db->getBoolWithDefault("uses_preconditioner", true);
+
+         d_uses_explicit_jacobian =
+            input_db->getBoolWithDefault("uses_explicit_jacobian", true);
+
+         d_absolute_tolerance =
+            input_db->getDoubleWithDefault("absolute_tolerance", PETSC_DEFAULT);
+
+         d_relative_tolerance =
+            input_db->getDoubleWithDefault("relative_tolerance", PETSC_DEFAULT);
+
+         d_step_tolerance =
+            input_db->getDoubleWithDefault("step_tolerance", PETSC_DEFAULT);
+
+         d_forcing_term_strategy =
+            input_db->getStringWithDefault("forcing_term_strategy", "CONSTANT");
          if (d_forcing_term_strategy == "EWCHOICE1") {
             d_forcing_term_flag = 1;
          } else if (d_forcing_term_strategy == "EWCHOICE2") {
@@ -623,63 +583,147 @@ SNES_SAMRAIContext::getFromInput(
                              << d_forcing_term_strategy
                              << " in input not recognized.");
          }
-      }
 
-      if (db->keyExists("constant_forcing_term")) {
-         d_constant_forcing_term = db->getDouble("constant_forcing_term");
-      }
-      if (db->keyExists("initial_forcing_term")) {
-         d_initial_forcing_term = db->getDouble("initial_forcing_term");
-      }
-      if (db->keyExists("maximum_forcing_term")) {
-         d_maximum_forcing_term = db->getDouble("maximum_forcing_term");
-      }
-      if (db->keyExists("EW_choice2_alpha")) {
-         d_EW_choice2_alpha = db->getDouble("EW_choice2_alpha");
-      }
-      if (db->keyExists("EW_choice2_gamma")) {
-         d_EW_choice2_gamma = db->getDouble("EW_choice2_gamma");
-      }
-      if (db->keyExists("EW_safeguard_exponent")) {
-         d_EW_safeguard_exponent = db->getDouble("EW_safeguard_exponent");
-      }
-      if (db->keyExists("EW_safeguard_disable_threshold")) {
+         d_constant_forcing_term =
+            input_db->getDoubleWithDefault("constant_forcing_term", PETSC_DEFAULT);
+
+         d_initial_forcing_term =
+            input_db->getDoubleWithDefault("initial_forcing_term", PETSC_DEFAULT);
+
+         d_maximum_forcing_term =
+            input_db->getDoubleWithDefault("maximum_forcing_term", PETSC_DEFAULT);
+
+         d_EW_choice2_alpha =
+            input_db->getDoubleWithDefault("EW_choice2_alpha", PETSC_DEFAULT);
+
+         d_EW_choice2_gamma =
+            input_db->getDoubleWithDefault("EW_choice2_gamma", PETSC_DEFAULT);
+
+         d_EW_safeguard_exponent =
+            input_db->getDoubleWithDefault("EW_safeguard_exponent", PETSC_DEFAULT);
+
          d_EW_safeguard_disable_threshold =
-            db->getDouble("EW_safeguard_disable_threshold");
-      }
+            input_db->getDoubleWithDefault("EW_safeguard_disable_threshold", PETSC_DEFAULT);
 
-      if (db->keyExists("linear_solver_type")) {
-         d_linear_solver_type = db->getString("linear_solver_type");
-      }
-      if (db->keyExists("linear_solver_absolute_tolerance")) {
+         d_linear_solver_type =
+            input_db->getStringWithDefault("linear_solver_type", "");
+
          d_linear_solver_absolute_tolerance =
-            db->getDouble("linear_solver_absolute_tolerance");
-      }
-      if (db->keyExists("linear_solver_divergence_tolerance")) {
+            input_db->getDoubleWithDefault("linear_solver_absolute_tolerance", PETSC_DEFAULT);
+
          d_linear_solver_divergence_tolerance =
-            db->getDouble("linear_solver_divergence_tolerance");
-      }
-      if (db->keyExists("maximum_linear_iterations")) {
+            input_db->getDoubleWithDefault("linear_solver_divergence_tolerance", PETSC_DEFAULT);
+
          d_maximum_linear_iterations =
-            db->getInteger("maximum_linear_iterations");
-      }
+            input_db->getIntegerWithDefault("maximum_linear_iterations", PETSC_DEFAULT);
 
-      if (db->keyExists("maximum_gmres_krylov_dimension")) {
          d_maximum_gmres_krylov_dimension =
-            db->getInteger("maximum_gmres_krylov_dimension");
-      }
-      if (db->keyExists("gmres_orthogonalization_algorithm")) {
-         d_gmres_orthogonalization_algorithm =
-            db->getString("gmres_orthogonalization_algorithm");
-      }
+            input_db->getIntegerWithDefault("maximum_gmres_krylov_dimension", PETSC_DEFAULT);
 
-      if (db->keyExists("differencing_parameter_strategy")) {
+         d_gmres_orthogonalization_algorithm =
+            input_db->getStringWithDefault("gmres_orthogonalization_algorithm", "");
+
          d_differencing_parameter_strategy =
-            db->getString("differencing_parameter_strategy");
-      }
-      if (db->keyExists("function_evaluation_error")) {
+            input_db->getStringWithDefault("differencing_parameter_strategy", MATMFFD_WP);
+         if (!(d_differencing_parameter_strategy == MATMFFD_WP ||
+               d_differencing_parameter_strategy == MATMFFD_DS)) {
+            INPUT_VALUE_ERROR("differencing_parameter_strategy");
+         }
+
          d_function_evaluation_error =
-            db->getDouble("function_evaluation_error");
+            input_db->getDoubleWithDefault("function_evaluation_error", PETSC_DEFAULT);
+      } else {
+         bool read_on_restart =
+            input_db->getBoolWithDefault("read_on_restart", false);
+         if (!read_on_restart) {
+            return;
+         }
+
+         d_maximum_nonlinear_iterations =
+            input_db->getIntegerWithDefault("maximum_nonlinear_iterations",
+               d_maximum_nonlinear_iterations);
+         d_maximum_function_evals =
+            input_db->getIntegerWithDefault("maximum_function_evals",
+               d_maximum_function_evals);
+         d_uses_preconditioner =
+            input_db->getBoolWithDefault("uses_preconditioner",
+               d_uses_preconditioner);
+         d_uses_explicit_jacobian =
+            input_db->getBoolWithDefault("uses_explicit_jacobian",
+               d_uses_explicit_jacobian);
+         d_absolute_tolerance =
+            input_db->getDoubleWithDefault("absolute_tolerance",
+               d_absolute_tolerance);
+         d_relative_tolerance =
+            input_db->getDoubleWithDefault("relative_tolerance",
+               d_relative_tolerance);
+         d_step_tolerance =
+            input_db->getDoubleWithDefault("step_tolerance", d_step_tolerance);
+         d_forcing_term_strategy =
+            input_db->getStringWithDefault("forcing_term_strategy",
+               d_forcing_term_strategy);
+         if (d_forcing_term_strategy == "EWCHOICE1") {
+            d_forcing_term_flag = 1;
+         } else if (d_forcing_term_strategy == "EWCHOICE2") {
+            d_forcing_term_flag = 2;
+         } else if (!(d_forcing_term_strategy == "CONSTANT")) {
+            TBOX_ERROR(
+               d_object_name << ": "
+                             << "Key data `forcing_term_strategy' = "
+                             << d_forcing_term_strategy
+                             << " in input not recognized.");
+         }
+         d_constant_forcing_term =
+            input_db->getDoubleWithDefault("constant_forcing_term",
+               d_constant_forcing_term);
+         d_initial_forcing_term =
+            input_db->getDoubleWithDefault("initial_forcing_term",
+               d_initial_forcing_term);
+         d_maximum_forcing_term =
+            input_db->getDoubleWithDefault("maximum_forcing_term",
+               d_maximum_forcing_term);
+         d_EW_choice2_alpha =
+            input_db->getDoubleWithDefault("EW_choice2_alpha",
+               d_EW_choice2_alpha);
+         d_EW_choice2_gamma =
+            input_db->getDoubleWithDefault("EW_choice2_gamma",
+               d_EW_choice2_gamma);
+         d_EW_safeguard_exponent =
+            input_db->getDoubleWithDefault("EW_safeguard_exponent",
+               d_EW_safeguard_exponent);
+         d_EW_safeguard_disable_threshold =
+            input_db->getDoubleWithDefault("EW_safeguard_disable_threshold",
+               d_EW_safeguard_disable_threshold);
+         d_linear_solver_type =
+            input_db->getStringWithDefault("linear_solver_type",
+               d_linear_solver_type);
+         d_linear_solver_absolute_tolerance =
+            input_db->getDoubleWithDefault("linear_solver_absolute_tolerance",
+               d_linear_solver_absolute_tolerance);
+         d_linear_solver_divergence_tolerance =
+            input_db->getDoubleWithDefault("linear_solver_divergence_tolerance",
+               d_linear_solver_divergence_tolerance);
+         d_maximum_linear_iterations =
+            input_db->getIntegerWithDefault("maximum_linear_iterations",
+               d_maximum_linear_iterations);
+         d_maximum_gmres_krylov_dimension =
+            input_db->getIntegerWithDefault("maximum_gmres_krylov_dimension",
+               d_maximum_gmres_krylov_dimension);
+         d_gmres_orthogonalization_algorithm =
+            input_db->getStringWithDefault("gmres_orthogonalization_algorithm",
+               d_gmres_orthogonalization_algorithm);
+         d_differencing_parameter_strategy =
+            input_db->getStringWithDefault("differencing_parameter_strategy",
+               d_differencing_parameter_strategy);
+         if (d_differencing_parameter_strategy != MATMFFD_WP &&
+             d_differencing_parameter_strategy != MATMFFD_DS) {
+            TBOX_ERROR("SNES_SAMRAIContext::getFromInput error...\n"
+               << "differencing_parameter_strategy must be \"wp\" or \"ds\"."
+               << std::endl);
+         }
+         d_function_evaluation_error =
+            input_db->getDoubleWithDefault("function_evaluation_error",
+               d_function_evaluation_error);
       }
    }
 
@@ -708,101 +752,102 @@ SNES_SAMRAIContext::getFromRestart()
 
    int ver = db->getInteger("SOLV_SNES_SAMRAI_CONTEXT_VERSION");
    if (ver != SOLV_SNES_SAMRAI_CONTEXT_VERSION) {
-      TBOX_ERROR(d_object_name << ":  "
+      TBOX_ERROR(d_object_name << ":SNES_SAMRAIContext::getFromRestart() error ...\n "
                                << "Restart file version different "
                                << "than class version.");
    }
 
-   d_uses_preconditioner = db->getBool("d_uses_preconditioner");
-   d_uses_explicit_jacobian = db->getBool("d_uses_explicit_jacobian");
+   d_uses_preconditioner = db->getBool("uses_preconditioner");
+   d_uses_explicit_jacobian = db->getBool("uses_explicit_jacobian");
 
    d_maximum_nonlinear_iterations =
-      db->getInteger("d_maximum_nonlinear_iterations");
-   d_maximum_function_evals = db->getInteger("d_maximum_function_evals");
+      db->getInteger("maximum_nonlinear_iterations");
+   d_maximum_function_evals = db->getInteger("maximum_function_evals");
 
-   d_absolute_tolerance = db->getDouble("d_absolute_tolerance");
-   d_relative_tolerance = db->getDouble("d_relative_tolerance");
-   d_step_tolerance = db->getDouble("d_step_tolerance");
+   d_absolute_tolerance = db->getDouble("absolute_tolerance");
+   d_relative_tolerance = db->getDouble("relative_tolerance");
+   d_step_tolerance = db->getDouble("step_tolerance");
 
-   d_forcing_term_strategy = db->getString("d_forcing_term_strategy");
+   d_forcing_term_strategy = db->getString("forcing_term_strategy");
    d_forcing_term_flag = db->getInteger("d_forcing_term_flag");
 
-   d_constant_forcing_term = db->getDouble("d_constant_forcing_term");
-   d_initial_forcing_term = db->getDouble("d_initial_forcing_term");
-   d_maximum_forcing_term = db->getDouble("d_maximum_forcing_term");
-   d_EW_choice2_alpha = db->getDouble("d_EW_choice2_alpha");
-   d_EW_choice2_gamma = db->getDouble("d_EW_choice2_gamma");
-   d_EW_safeguard_exponent = db->getDouble("d_EW_safeguard_exponent");
+   d_constant_forcing_term = db->getDouble("constant_forcing_term");
+   d_initial_forcing_term = db->getDouble("initial_forcing_term");
+   d_maximum_forcing_term = db->getDouble("maximum_forcing_term");
+   d_EW_choice2_alpha = db->getDouble("EW_choice2_alpha");
+   d_EW_choice2_gamma = db->getDouble("EW_choice2_gamma");
+   d_EW_safeguard_exponent = db->getDouble("EW_safeguard_exponent");
    d_EW_safeguard_disable_threshold =
-      db->getDouble("d_EW_safeguard_disable_threshold");
+      db->getDouble("EW_safeguard_disable_threshold");
 
-   d_linear_solver_type = db->getString("d_linear_solver_type");
+   d_linear_solver_type = db->getString("linear_solver_type");
    d_linear_solver_absolute_tolerance =
-      db->getDouble("d_linear_solver_absolute_tolerance");
+      db->getDouble("linear_solver_absolute_tolerance");
    d_linear_solver_divergence_tolerance =
-      db->getDouble("d_linear_solver_divergence_tolerance");
+      db->getDouble("linear_solver_divergence_tolerance");
    d_maximum_linear_iterations =
-      db->getInteger("d_maximum_linear_iterations");
+      db->getInteger("maximum_linear_iterations");
 
    d_maximum_gmres_krylov_dimension =
-      db->getInteger("d_maximum_gmres_krylov_dimension");
+      db->getInteger("maximum_gmres_krylov_dimension");
    d_gmres_orthogonalization_algorithm =
-      db->getString("d_gmres_orthogonalization_algorithm");
+      db->getString("gmres_orthogonalization_algorithm");
 
-   d_function_evaluation_error = db->getDouble("d_function_evaluation_error");
+   d_function_evaluation_error = db->getDouble("function_evaluation_error");
    d_differencing_parameter_strategy =
-      db->getString("d_differencing_parameter_strategy");
+      db->getString("differencing_parameter_strategy");
 
 }
 
 void
-SNES_SAMRAIContext::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+SNES_SAMRAIContext::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("SOLV_SNES_SAMRAI_CONTEXT_VERSION",
+   restart_db->putInteger("SOLV_SNES_SAMRAI_CONTEXT_VERSION",
       SOLV_SNES_SAMRAI_CONTEXT_VERSION);
 
-   db->putBool("d_uses_preconditioner", d_uses_preconditioner);
-   db->putBool("d_uses_explicit_jacobian", d_uses_explicit_jacobian);
+   restart_db->putBool("uses_preconditioner", d_uses_preconditioner);
+   restart_db->putBool("uses_explicit_jacobian", d_uses_explicit_jacobian);
 
-   db->putInteger("d_maximum_nonlinear_iterations",
+   restart_db->putInteger("maximum_nonlinear_iterations",
       d_maximum_nonlinear_iterations);
-   db->putInteger("d_maximum_function_evals", d_maximum_function_evals);
+   restart_db->putInteger("maximum_function_evals",
+      d_maximum_function_evals);
 
-   db->putDouble("d_absolute_tolerance", d_absolute_tolerance);
-   db->putDouble("d_relative_tolerance", d_relative_tolerance);
-   db->putDouble("d_step_tolerance", d_step_tolerance);
+   restart_db->putDouble("absolute_tolerance", d_absolute_tolerance);
+   restart_db->putDouble("relative_tolerance", d_relative_tolerance);
+   restart_db->putDouble("step_tolerance", d_step_tolerance);
 
-   db->putString("d_forcing_term_strategy", d_forcing_term_strategy);
-   db->putInteger("d_forcing_term_flag", d_forcing_term_flag);
+   restart_db->putString("forcing_term_strategy", d_forcing_term_strategy);
+   restart_db->putInteger("d_forcing_term_flag", d_forcing_term_flag);
 
-   db->putDouble("d_constant_forcing_term", d_constant_forcing_term);
-   db->putDouble("d_initial_forcing_term", d_initial_forcing_term);
-   db->putDouble("d_maximum_forcing_term", d_maximum_forcing_term);
-   db->putDouble("d_EW_choice2_alpha", d_EW_choice2_alpha);
-   db->putDouble("d_EW_choice2_gamma", d_EW_choice2_gamma);
-   db->putDouble("d_EW_safeguard_exponent", d_EW_safeguard_exponent);
-   db->putDouble("d_EW_safeguard_disable_threshold",
+   restart_db->putDouble("constant_forcing_term", d_constant_forcing_term);
+   restart_db->putDouble("initial_forcing_term", d_initial_forcing_term);
+   restart_db->putDouble("maximum_forcing_term", d_maximum_forcing_term);
+   restart_db->putDouble("EW_choice2_alpha", d_EW_choice2_alpha);
+   restart_db->putDouble("EW_choice2_gamma", d_EW_choice2_gamma);
+   restart_db->putDouble("EW_safeguard_exponent", d_EW_safeguard_exponent);
+   restart_db->putDouble("EW_safeguard_disable_threshold",
       d_EW_safeguard_disable_threshold);
 
-   db->putString("d_linear_solver_type", d_linear_solver_type);
-   db->putDouble("d_linear_solver_absolute_tolerance",
+   restart_db->putString("linear_solver_type", d_linear_solver_type);
+   restart_db->putDouble("linear_solver_absolute_tolerance",
       d_linear_solver_absolute_tolerance);
-   db->putDouble("d_linear_solver_divergence_tolerance",
+   restart_db->putDouble("linear_solver_divergence_tolerance",
       d_linear_solver_divergence_tolerance);
-   db->putInteger("d_maximum_linear_iterations",
+   restart_db->putInteger("maximum_linear_iterations",
       d_maximum_linear_iterations);
 
-   db->putInteger("d_maximum_gmres_krylov_dimension",
+   restart_db->putInteger("maximum_gmres_krylov_dimension",
       d_maximum_gmres_krylov_dimension);
-   db->putString("d_gmres_orthogonalization_algorithm",
+   restart_db->putString("gmres_orthogonalization_algorithm",
       d_gmres_orthogonalization_algorithm);
 
-   db->putDouble("d_function_evaluation_error",
+   restart_db->putDouble("function_evaluation_error",
       d_function_evaluation_error);
-   db->putString("d_differencing_parameter_strategy",
+   restart_db->putString("differencing_parameter_strategy",
       d_differencing_parameter_strategy);
 
 }
@@ -878,5 +923,4 @@ SNES_SAMRAIContext::printClassData(
 }
 }
 
-#endif
 #endif

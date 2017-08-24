@@ -3,48 +3,44 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Input file for hypre test.
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Input file for hypre unit test.
  *
  ************************************************************************/
+
+// Refer to default.2d.input for full description of all input parameters
+// specific to this problem.
 
 Main {
   dim = 3
   base_name = "default3"
   log_all_nodes = FALSE
-  // Visualization writers to write files for.
-  vis_writer = "VisIt"
 }
 
-HyprePoisson {
-  CellPoissonHypreSolver {
-    use_smg = TRUE	// Whether to use HYPRE's SMG instead of PFMG.
-    print_solver_info = TRUE
-    max_iterations = 20             // Max iterations used by Hypre
-    relative_residual_tol = 1.0e-8  // Residual tolerance used by Hypre
-    num_pre_relax_steps = 1         // # of presmoothing steps used by Hypre
-    num_post_relax_steps = 1        // # of postsmoothing steps used by Hypre
-  }
-  bc_coefs {
-    // These are the boundary condition specifications.  The number
-    // after "boundary_" is the location index of the boundary.
-    // The inputs are arrays of strings where the first string
-    // indicates the type of values you want to set.  "slope" means
-    // boundary slope, "value" means boundary value, and "coefficients"
-    // mean the raw Robin boundary condition coefficients.
-    // The remaining strings are converted into numbers as
-    // appropriate for what boundary condition you specified with
-    // the first string.  Other boundary conditions are possible.
-    // see the solv_RobinBcCoefStrategy class.
-    // Examples:
-    boundary_0 = "value", "0"
-    boundary_1 = "coefficients", "1", "0"
-    boundary_2 = "value", "0"
-    boundary_3 = "value", "0"
-    boundary_4 = "value", "0"
-    boundary_5 = "value", "0"
-  }
+hypre_solver {
+  print_solver_info = TRUE
+  max_iterations = 20             // Max iterations used by Hypre
+  relative_residual_tol = 1.0e-8  // Residual tolerance used by Hypre
+}
 
+bc_coefs {
+  // These are the boundary condition specifications.  The number
+  // after "boundary_" is the location index of the boundary.
+  // The inputs are arrays of strings where the first string
+  // indicates the type of values you want to set.  "slope" means
+  // boundary slope, "value" means boundary value, and "coefficients"
+  // mean the raw Robin boundary condition coefficients.
+  // The remaining strings are converted into numbers as
+  // appropriate for what boundary condition you specified with
+  // the first string.  Other boundary conditions are possible.
+  // see the solv_RobinBcCoefStrategy class.
+  // Examples:
+  boundary_0 = "value", "0"
+  boundary_1 = "coefficients", "1", "0"
+  boundary_2 = "value", "0"
+  boundary_3 = "value", "0"
+  boundary_4 = "value", "0"
+  boundary_5 = "value", "0"
 }
 
 CartesianGeometry {
@@ -58,25 +54,23 @@ StandardTagAndInitialize {
 }
 
 BergerRigoutsos {
-  log_node_history = FALSE
-  log_cluster_summary = TRUE
-  log_cluster = FALSE
-    // algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
-  algo_advance_mode = "ADVANCE_SOME"
-  // algo_advance_mode = "SYNCHRONOUS"
-  // owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
-  owner_mode = "MOST_OVERLAP"
-  // owner_mode = "SINGLE_OWNER"
-  use_level_boxes = FALSE
-  use_private_communicator = TRUE
-  sequentialize_output_indices = TRUE
+  DEV_log_node_history = FALSE
+  DEV_log_cluster_summary = TRUE
+  DEV_log_cluster = FALSE
+    // DEV_algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
+  DEV_algo_advance_mode = "ADVANCE_SOME"
+  // DEV_algo_advance_mode = "SYNCHRONOUS"
+  // DEV_owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
+  DEV_owner_mode = "MOST_OVERLAP"
+  // DEV_owner_mode = "SINGLE_OWNER"
+  efficiency_tolerance = 0.88
+  combine_efficiency = 0.88
 }
 
 TreeLoadBalancer {
-  report_load_balance = TRUE
-  barrier_before = FALSE
-  barrier_after = FALSE
-  n_root_cycles = 3
+  DEV_report_load_balance = TRUE
+  DEV_barrier_before = FALSE
+  DEV_barrier_after = FALSE
 }
 
 PatchHierarchy {
@@ -106,15 +100,9 @@ PatchHierarchy {
 
 GriddingAlgorithm {
    enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
-   // load_balance = FALSE
-   combine_efficiency = 0.88
-   efficiency_tolerance = 0.88
-   // write_regrid_boxes = TRUE
-   // read_regrid_boxes = TRUE
-   // regrid_boxes_filename = "grid"
+   DEV_extend_to_domain_boundary = TRUE
+   // DEV_load_balance = FALSE
    check_nonrefined_tags = "IGNORE"
-   extend_tags_to_bdry = TRUE
    sequentialize_patch_indices = TRUE
 }
 

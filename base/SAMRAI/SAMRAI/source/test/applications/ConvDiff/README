@@ -1,457 +1,103 @@
 #########################################################################
 ##
-## This file is part of the SAMRAI distribution.  For full copyright 
-## information, see COPYRIGHT and COPYING.LESSER. 
+## This file is part of the SAMRAI distribution.  For full copyright
+## information, see COPYRIGHT and COPYING.LESSER.
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   CONVECTION DIFFUSION EQUATION EXAMPLE                         ##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   CONVECTION DIFFUSION EQUATION EXAMPLE
+##
 #########################################################################
 
-This README explains how to run the Convection Diffusion example which uses
-an adaptive Runge-Kutta time integration. The files included in this 
-directory are as follows:  
+This README explains how to compile and run the Convection Diffusion example
+which uses an adaptive Runge-Kutta time integration. The files included in
+this directory are as follows:
 
-          main.C         -  application driver program
-          ConvDiff.[C,h] -  C++ class containing routines specific to the 
-                            ConvDiff example and which are called 
-                            from SAMRAI AMR library routines
-          ConvDiffFort.h -  header file defining external fortran routines
-          fortran/2d,3d  -  Fortran numerical routines for 2d,3d problems.
+          main.C                 -  application driver program
+          MainRestartData.[C,h]  -  just a holder for general run control
+                                    parameters such as start and end time and
+                                    number of time steps
+          ConvDiff.[C,h]         -  C++ class containing routines specific to
+                                    the ConvDiff example and which are called
+                                    from SAMRAI AMR library routines
+          ConvDiffFort.h         -  header file defining external fortran
+                                    routines
+          fortran/2d,3d          -  Fortran numerical routines for 2d,3d
+                                    problems.
 
-To understand the construction of this application code from pieces 
+To understand the construction of this application code from pieces
 specific to the ConvDiff model and more generic pieces in the SAMRAI
 library consider the object construction pattern in the main.C file.
-For more details on these files and the Euler class consult the comments
-in those files and the ConvDiff.h class header file.
+For more details on library classes and the ConvDiff class consult
+the comments in the header files for the library classes and the
+ConvDiff.h class header file.
 
-COMPILE and RUN
+
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
+
+   Run:
+      serial:
+         ./main test_inputs/test.[2,3]d.input
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] main test_inputs/test.[2,3]d.input
+
+   There are also example input files in the subdirectory example_inputs.
+      sphere.2d.input - advecting sphere in a box with fixed boundaries
+      sphere.3d.input - advecting sphere in a cube with fixed boundaries
+      heated_floor.2d.input  - mimics a heated floor, demonstrating diffusion.
+
+   The test and example input files contain comments describing the input
+   parameters specific to this problem.  Descriptions of input parameters for
+   library classes will be found in the documentation of those classes as well
+   their header files.
+
+
+INPUT PARAMETER
 ---------------
-Compile:  make <prog name>   where <prog name> = "main2d" for 2D case
-                                               = "main3d" for 3D case  
-
-Run: 
-
-   main2d <input file>                     ... Serial run   (w/o  MPI)
-   mpirun -np <nprocs> main2d <input file> ... Parallel run (with MPI)
-
-      NOTE: <input file> is the FULL-PATH of the input file
-
-   There are sample input files in the subdirectory sample_input.
-      sphere-2d.input - advecting sphere in a box with fixed boundaries
-      sphere-3d.input - advecting sphere in a cube with fixed boundaries
-      heated-flr-2d.input  - mimics a heated floor, demonstrating diffusion. 
-
-   example:
-      main2d sample_input/sphere-2d.input
-      mpirun -np 2 main2d sample_input/sphere-2d.input
-
-Restarted Run:
-
-      same format as regular run but add <restart dir> <restore num>
-      to end of command.
-         <restart dir> is directory where restart files are stored
-                       (set in input file).
-         <restore num> is the identifier of which restart file to use
-                       (generally the timestep).
-     
-      example:  (to start from timestep #5)
-        
-        main2d sample_input/sphere-2d.input restart_sphere-2d 5
-        mpirun -np 2 main2d sample_input/sphere-2d.input restart_sphere-2d 5
-
-      NOTE:  The ordinary use of our restart functionality requires that
-             a problem can only be restarted on on the same number of
-             processors on which the problem was originally run.  To restart
-             on a different number of processors, used the
-             restart-redistribute tool in SAMRAI/tools/restart.
+Refer to test_inputs/test2d.input for full description of all input parameters
+specific to this problem.
 
 
-CONSTRUCTION:
--------------
-
-   The ConvDiff application code is composed of various classes that implement
-   the algorithmic and numerical routines in the AMR solution process (see 
-   comments in the main.C code for more discussion of the various objects 
-   used to build the application).  User-specified inputs control the 
-   behavior of the objects.  Those objects expecting input are:
-
-   Main program .... creates objects used in the simulation - controls output
-                     of viz and restart information.
-
-   MainRestart  .... Stores data used in the main program for restart.
-
-   ConvDiff ........... defines variables and provides numerical kernels for
-                     ConvDiff problem, including data initialization, time
-                     integration, boundary routines, etc.
-
-   CartesianGeometry ..... manages Cartesian grid coordinate system 
-                           on AMR patch hierarchy.
-
-   GriddingAlgorithm ..... constructs AMR patch hierarchy and
-                           regrids levels during simulation.
-
- 
-   StandardTagAndInitialize .... manages tagging and initialization during
-                                 regridding operation.
-
-   MethodOfLinesIntegrator ... manages time integration using  Runge-Kutta
-                               algorithm on levels in AMR patch hierarchy.
-
-   LoadBalancer .... manages mapping of patches to processors.
-
-
-   The input options for these objects are discussed below.  The TYPE is 
-   shown in (parenthesis) and the DEFAULT setting (value set if no input
-   is given) for the option is shown in [brackets].  Required inputs are 
-   designated by [REQD].
-
-   "Main" input section
-   --------------------
-   Main {
-      // Log file where output is directed  
-      // log_file_name -- (char string) name of log file ["euler.log"]
-      // log_all_nodes -- (bool) option to specify whether output on different
-      //                  processors should be directed to multiple log files
-      //                  (named "log_file_name.<processor id>") or to the 
-      //                  single file. [FALSE]
-      log_file_name    = "sphere-2d.log"
-      log_all_nodes    = TRUE
-
-      // Visualization dump parameters.
-      // viz_dump_interval -- (int) the interval in timesteps over coarsest 
-      //                      level between writing of consecutive 
-      //                      visualization dumps.  Setting it to zero turns off 
-      //                      writing of visualization files.
-      // viz_dump_dirname  -- (char string) directory where viz files are 
-      //                      writen (may include a path).  VisIt requires a
-      //                      non-empty string.  Vizamrai permits an empty string,
-      //                      in which case dumps go to directory where main2d/3d
-      //                      exists. If both data writers are used, directory name
-      //                      must be nonempty, and main.C will append _VisIt,
-      //                       _Vizamrai to dirname.
-      // visit_number_procs_per_file
-      //                   -- (int >= 1) for parallel runs, number of processors 
-      //                      that share a single common dump file. If this parameter
-      //                      > number processors being used, all processors share 
-      //                      single dump file.  Not used by Vizamrai.
-      //
-      //                      For example, the following inputs:
-      viz_writer            = "Vizamrai", "VisIt"
-      viz_dump_interval     = 1
-      viz_dump_dirname      = "viz_sphere-2d"
-      //                       would result in the following dump structure:
-      //                         main2d
-      //                         viz_sphere-2d_VisIt/
-      //                           visit_dump.00000/
-      //                           visit_dump.00001/
-      //                           ...
-      //                           dumps.visit
-
-      // Restart dump parameters.
-      // restart_interval -- (int) the interval in timesteps over coarsest
-      //                      level between writing of consecutive restart
-      //                      files. Setting it to zero turns off writing
-      //                      of restart files.  [0]
-      // restart_write_dirname  -- (char string) directory where restart files 
-      //                           are written [empty string] 
-      //                           (assertion thrown if not specified 
-      //                           and restart_interval > 0)     
-      //
-      restart_interval      = 1
-      restart_write_dirname = "restart_sphere-2d"
-
-      // Run-time plotting arguments (only apply in 2d):
-      //
-      // X-windows plotting specification for each primitive variable.
-      // Options:  NO_PLOTTING, BOXES_ONLY, CONTOURS_ONLY, SHADE_ONLY, 
-      //           CONTOUR_WITH_SHADE, BOTH_CONTOUR_AND_SHADE
-      // (see "euler_const.input" below for discussion of these options).
-      // plotting_interval  -- (int) interval for which values are plotted
-      //                       in X window during run [1]
-      // plot2d_density  -- (above options) specification of plotting for 
-      //                    density [NO_PLOTTING]
-      // plot2d_pressure -- (above options) specification of plotting for 
-      //                    pressure [NO_PLOTTING]
-      // plot2d_velocity -- (above options) specification of plotting for 
-      //                    velocity [NO_PLOTTING]
-      plotting_interval = 5   
-      plot2d_var = SHADE_ONLY
-   }
-
-   "MainRestart" input section
-   --------------------
-   MainRestart {
-      // max_timesteps -- (int) max number of timesteps to be used [REQD]
-      // start_time    -- (double) simulation start time [0.]
-      // end_time      -- (double) simulation stops when end time is reached
-      //                  (or if max timesteps is reached) [100000.]
-      // regrid_step   -- (int) regrid interval [2]
-      // tag_buffer    -- (int) buffer to be placed around tagged regions
-                          [regrid_step]
-   }
-
-   "ConvDiff" input section
-   ---------------------
-   ConvDiff {
-      //  Problem specification parameters
-      //  convection_coeff  -- (double array) convection coefficient in each 
-      //                       direction [0,0]
-      //  diffusion_coeff   -- (double) diffusion coefficient  [0]
-      //  source_coeff      -- (double) source coefficient [0]
-      //  cfl               -- (double) cfl condition to control timestep
-      //                        dt = cfl*dx^2 (dx^3 in 3d) [0.9]      
-      //  cell_tagging_tolerance -- (double) value at which cells are tagged.
-      //                            (i.e. cells tagged if value > tol).
-      //  data_problem      -- (SPHERE) specification of the problem [REQD] 
-      //
-      convection_coeff = 40.0, 20.0
-      diffusion_coeff  = 0.1
-      source_coeff     = 0.0
-      cfl              = 0.5
-      cell_tagging_tol = 20.0
-      data_problem     = SPHERE      
-
-      //  Initial data  for SPHERE problem:
-      //     radius -- (double) radius of sphere [REQD] 
-      //     center -- (double array) location of sphere center [REQD] 
-      //     val_inside   -- (double) value inside sphere [REQD] 
-      //     val_outside  -- (double) value outside sphere [REQD]  
-      Initial_data {
-            radius            = 2.9
-            center            = 5.5 , 5.5
- 
-            val_inside    = 80.
-            val_outside   = 0.
-      }
-
-
-      //  Boundary conditions  
-      //  Options:  DIRICHLET, NEUMANN
-      // Boundary_data {
-      //   boundary_node_x0y0 -- (above options) lower left corner [DIRICHLET]
-      //   boundary_node_x1y0 -- (above options) lower right corner [DIRICHLET]
-      //   boundary_node_x0y1 -- (above options) upper left corner [DIRICHLET]
-      //   boundary_node_x1y1 -- (above options) upper right corner [DIRICHLET]
-      //   boundary_edge_x0 { -- left edge
-      //   boundary_edge_x1 { -- right edge
-      //   boundary_edge_y0 { -- bottom edge
-      //   boundary_edge_y1 { -- top edge
-      //      boundary_type   -- (above options) type at prescribed 
-      //                         edge [DIRICHLET]
-      //      bdry_val        -- (double) value at prescribed edge [0]
-      //   }
-      //
-      //                       edge_y1
-      //         node_x0y1 o--------------o node_x1y1
-      //                   |              |
-      //                   |              |
-      //          edge_x0  |              | edge_x1
-      //                   |              |
-      //                   |              |
-      //         node_x0y0 o--------------o node_x1y0
-      //                       edge_y0
-      //
-      //  NOTE: 3D case specifies data at faces as well.  See
-      //        /SAMRAI/docs/userdocs/boundaries.ps for further discussion.
-      Boundary_data {
-         boundary_node_x0y0 = DIRICHLET
-         boundary_node_x1y0 = DIRICHLET
-         boundary_node_x0y1 = DIRICHLET
-         boundary_node_x1y1 = DIRICHLET
-         boundary_edge_x0 {
-           boundary_type      = DIRICHLET
-         }
-         boundary_edge_x1 {
-            boundary_type      = DIRICHLET
-         }
-         boundary_edge_y0 {
-            boundary_type      = DIRICHLET
-         }
-         boundary_edge_y1 {
-            boundary_type      = DIRICHLET
-         }
-      }
-
-   }
-
-   "CartesianGeometry" input section
-   ---------------------------------
-   CartesianGeometry {
-      //  Specify lower/upper corners of the computational domain and a
-      //  set of non-overlapping boxes defining domain interior.  If union 
-      //  of boxes is not a parallelpiped, lower/upper corner data corresponds 
-      //  to min/max corner indices over all boxes given.
-      //  x_lo  -- (double array) lower corner of computational domain [REQD]
-      //  x_up  -- (double array) upper corner of computational domain [REQD]
-      //  domain_boxes  -- (box array) set of boxes that define interior of 
-      //                   hysical domain. [REQD]
-      //  periodic_dimension -- (int array) coordinate directions in which 
-      //                        domain is periodic.  Zero indicates not
-      //                        periodic, non-zero value indicates periodicity.
-      //                        [0]
-      x_lo = 0.e0 , 0.e0           
-      x_up = 65.e0 , 55.e0       
-      domain_boxes      = [(0,0),(59,39)]
-      periodic_dimension = 0, 1  // periodic in y only
-   }
-
-
-   "GriddingAlgorithm" input section
-   ---------------------------------
-   GriddingAlgorithm {
-      // Information used to create patches in AMR hierarchy.
-      // max_levels -- (int) max number of mesh levels in hierarchy [REQD]
-      // 
-      // For most of the following parameters, the number of precribed data
-      // values need not match the number of levels in the hierarchy 
-      // (determined by max_levels).  If more values are given than number 
-      // of levels, extraneous values will be ignored.  If less are give, then
-      // values that correspond to individual levels will apply to those 
-      // levels.  Missing values will be taken from those for the finest
-      // level specified.
-      //
-      // ratio_to_coarser {
-      //   level_1 -- (int array) ratio between index spaces on 
-      //              level 1 to level 0 [REQD]
-      //   level_2 -- (int array)  ratio between index spaces on 
-      //              level 2 to level 1 [REQD]
-      //   etc....
-      // }
-      // largest_patch_size {
-      //   level_0 -- (int array) largest patch allowed on level 0. 
-      //              [REQD]    
-      //   level_1 -- (int array)    "       "      "   "  level 1 
-      //              [level 0 entry]
-      //   etc....                       
-      // }
-      // smallest_patch_size {
-      //   level_0 -- (int array) smallest patch allowed on level 0. 
-      //              [max ghost width for all variables]    
-      //   level_1 -- (int array)    "       "      "   "  level 1 
-      //              [level 0 entry]
-      //   etc....                       
-      // }
-      max_levels = 3
-      ratio_to_coarser {
-         level_1 = 4 , 4
-         level_2 = 4 , 4
-         level_3 = 4 , 4
-      }
-      largest_patch_size {
-         level_0 = 48 , 48
-      }
-      smallest_patch_size {
-         level_0 = 8 , 8
-      }
-
-      // Tolerances for gridding efficiency and box chopping operations.
-      // efficiency_tolerance -- (double array) minimum percentage of tagged 
-      //                         cells allowed in a box [0.8 for each level]
-      // combine_efficiency   -- (double array) threshold specifying when a  
-      //                         box may be chopped into two smaller boxes.
-      //                         If sum of the volumes of smaller boxes is > 
-      //                         combine efficiency * volume of larger box, 
-      //                         then larger box will not be chopped.
-      //                         [0.8 for each level]
-      // proper_nesting_buffer -- (int array) number of coarse cells by which
-      //                          the next finer level is nested within its
-      //                          interior. [1 for each level]
-      efficiency_tolerance    = 0.85e0
-      combine_efficiency      = 0.95e0
-      proper_nesting_buffer   = 1
-
-      // Option to read or write gridding information
-      // write_regrid_boxes    -- (bool) Output sequence of refine boxes to file
-      // read_regrid_boxes     -- (bool) Read sequence of refine boxes from file
-      // regrid_boxes_filename -- (string) file name used for reading or writing
-      //                          boxes.
-      //
-      // Reading and writing options require some user intervention to assure
-      // they work properly.  Please consult Andy Wissink (awissink@llnl.gov)
-      // if you are interested in using these options.
-      write_regrid_boxes    = TRUE
-      regrid_boxes_filename = TRUE
-   }
-
-   "StandardTagAndInitialize" input section
-   ---------------------------------------------
-   StandardTagAndInitialize {
-      // Specification of the type of tagging to be performed
-      // tagging_method -- (string array) one or more entries specifying
-      //                 the tagging algorithm used.  Options include:
-      //                 "GRADIENT_DETECTOR"
-      //                 "RICHARDSON_EXTRAPOLATION"
-      //                 "REFINE_BOXES"
-      //
-      // REFINE_BOXES allows you to prescribe where refinement should occur.
-      // If this option is used, you must also supply a RefineBoxes database
-      // entry with the refine boxes on different levels specified.  i.e.
-      //    RefineBoxes{
-      //        level_0 -- (BoxArray) Boxes to be refined on level 0
-      //        level_1 -- (BoxArray) Boxes to be refined on level 1
-      //        etc.
-      //
-      // Gradient detection option.
-      tagging_method = "GRADIENT_DETECTOR"
-      //
-      // Richarson extrapolation option.
-      tagging_method = "RICHARDSON_EXTRAPOLATION"
-      //
-      // Static refine boxes option.
-      tagging_method = "REFINE_BOXES"
-      RefineBoxes {
-        level0_boxes = [(15,0),(29,14)]
-        level1_boxes = [(65,10),(114,40)]
-      }
-      // Combination.
-      tagging_method = "RICHARDSON_EXTRAPOLATION", "GRADIENT_DETECTOR"
-   }
-
-   "MethodOfLinesIntegrator" input section
-   -----------------------------------------
-   MethodOfLinesIntegrator{
-      //  order    -- (int) order of the Runge-Kutta scheme (which will be 
-      //              the number of sub-iterations at each timestep.
-      //  alpha    -- (double array) sequence of alphas applied at each 
-      //              sub-iteration.  The number of entries in the array
-      //              should be the same as the order. 
-      order    = 2
-      alpha    = 0.5 , 1.0
-   }
-
-   "LoadBalancer" input section
-   ----------------------------------
-   LoadBalancer {
-      // using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
-   }
-
-
-"euler_const.input"
+RESETTING BASELINES
 -------------------
-   // This file specifies some constants used within the ConvDiff code.  These
-   // names and values map to those specified via "#define" statements in 
-   // ConvDiff.C
+The tests that are run from this directory include comparisons of the results
+to baseline data that represent expected results.  The tests compare the
+box configuration of the hierarchy, and certain timestep floating point values,
+as specified in the AutoTester input described above.  The baseline boxes
+are stored in HDF data files, and the expected timestep values are listed
+in the AutoTester input.
 
-   // 2D X Window plotting options
-   // Plotting will execute while the program is running for 2D cases. 
-   // Note that since it pipes data to an X-window, it slows the 
-   // performance of the code somewhat, but it sure is PRETTY!
-   NO_PLOTTING            = 0  // no plotting
-   BOXES_ONLY             = 1  // plot bounding boxes only
-   CONTOURS_ONLY          = 2  // plot contours only
-   SHADE_ONLY             = 3  // plot color shade only
-   CONTOUR_WITH_SHADE     = 4  // plot contours and color shade in same window
-   BOTH_CONTOUR_AND_SHADE = 5  // plot contours and color shade in separate 
-                               // window
+If a SAMRAI developer makes changes to the library that can legitimately change
+the box configuration of a hierarchy, then the baselines here need to be reset,
+according to the following steps
 
- 
-   //
-   // Data problem (only one at this point - more could be added)
-   // SPHERE : sphere problem
-   SPHERE         = 40
+1. Change the AutoTester input block in each input file to include these
+   two entries:
 
-   // Boundary types
-   // DIRICHLET 
-   // NEUMANN 
-   DIRICHLET      = 1
-   NEUMANN        = 2
+     write_patch_boxes = TRUE
+     read_patch_boxes = FALSE
+
+2. Comment out all of the lines that read restart files in the
+   Makefile's check2d and check3d rules.
+
+3. make check.  The baseline HDF files will be regenerated here.
+
+4. If you get floating-point-difference errors when the "correct_result"
+   values are compared, do the following
+
+   a. set output_correct = TRUE in the AutoTester input
+
+   b. make check
+
+   c. Find the new values of the three floating-point outputs in the log
+      file, and put them on the line "correct_result = ..."
+      (make sure they don't differ too much).
+
+5. Undo all makefile and input file changes (except for changes to
+   correct_results).
+
+6. make checktest (there should be no more errors).

@@ -1,7 +1,14 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for trace for 3d euler equations.
+c
 define(NDIM,3)dnl
 define(NEQU,5)dnl
 define(REAL,`double precision')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 include(FORTDIR/m4trace3d.i)dnl
 
       subroutine computesound3d(ifirst0,ilast0,ifirst1,ilast1,
@@ -25,6 +32,14 @@ c
 c
 c***********************************************************************
 c
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(density,velocity,pressure,sound,
+!$OMPc        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+!$OMPc        gamma,
+!$OMPc        CELLG,FLUXG,FACEG)
+!$OMPc PRIVATE(ic0,ic1,ic2)
+
+!$OMP DO SCHEDULE(DYNAMIC)
       do  ic0=ifirst0-CELLG,ilast0+CELLG
         do  ic1=ifirst1-CELLG,ilast1+CELLG
           do  ic2=ifirst2-CELLG,ilast2+CELLG
@@ -34,6 +49,8 @@ c
           enddo
         enddo
       enddo
+!$OMP END DO
+!$OMP END PARALLEL
 
       return
       end 
@@ -76,20 +93,36 @@ c (first-order upwind)
 c***********************************************************************
       if (FLUXG.lt.1) then
          write(6,*) "flux ghosts < 1!"
-	stop
+         stop
       endif
 c
 c***********************************************************************
 
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(density,velocity,pressure,
+!$OMPc        tracelft0,tracelft1,tracelft2,
+!$OMPc        tracergt0,tracergt1,tracergt2,
+!$OMPc        fluxriem0,fluxriem1,fluxriem2,
+!$OMPc        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+!$OMPc        CELLG,FLUXG,FACEG)
+!$OMPc PRIVATE(ic0,ic1,ic2,ie0,ie1,ie2)
+
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_init(0,1,2,`ie0-1,ic1,ic2',`ie0,ic1,ic2')dnl
+!$OMP END DO
 
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_init(1,2,0,`ic0,ie1-1,ic2',`ic0,ie1,ic2')dnl
+!$OMP END DO
 
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_init(2,0,1,`ic0,ic1,ie2-1',`ic0,ic1,ie2')dnl
+!$OMP END DO
 
 c
 c     we initialize the flux to be 0
 
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic2=ifirst2-FLUXG,ilast2+FLUXG
          do ic1=ifirst1-FLUXG,ilast1+FLUXG
            do ie0=ifirst0-FLUXG,ilast0+FLUXG+1
@@ -99,7 +132,9 @@ c     we initialize the flux to be 0
            enddo
          enddo
       enddo
+!$OMP END DO
 c
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic2=ifirst2-FLUXG,ilast2+FLUXG
          do ic0=ifirst0-FLUXG,ilast0+FLUXG
             do ie1=ifirst1-FLUXG,ilast1+FLUXG+1
@@ -109,7 +144,9 @@ c
             enddo
          enddo
       enddo
+!$OMP END DO
 c
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic1=ifirst1-FLUXG,ilast1+FLUXG
          do ic0=ifirst0-FLUXG,ilast0+FLUXG
             do ie2=ifirst2-FLUXG,ilast2+FLUXG+1
@@ -119,7 +156,9 @@ c
             enddo
          enddo
       enddo
+!$OMP END DO
 c
+!$OMP END PARALLEL
       return
       end 
 c
@@ -164,12 +203,25 @@ c  cell variables ifirst0 to ifirst0+mc-1 plus ghost cells
      &  ttsound(ifirst0-CELLG:ifirst0+mc-1+CELLG)
 c***********************************************************************
       integer ic0,ic1,ic2,k,idir
+
 c***********************************************************************
 c trace higher order states at cell edges
 c***********************************************************************
       idir = 0
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(dt,mc,dx,gamma,igdnv,sound,
+!$OMPc        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+!$OMPc        tracelft,tracergt,
+!$OMPc        CELLG,FLUXG,FACEG,
+!$OMPc        idir)
+!$OMPc PRIVATE(ic0,ic1,ic2,
+!$OMPc         ttsound,ttcelslp,ttedgslp,ttraclft,ttracrgt,
+!$OMPc         k)
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_call(0,1,2)dnl
+!$OMP END DO
 c***********************************************************************
+!$OMP END PARALLEL
       return
       end
 c***********************************************************************
@@ -215,9 +267,21 @@ c***********************************************************************
 c trace higher order states at cell edges
 c***********************************************************************
       idir = 1
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(dt,mc,dx,gamma,igdnv,sound,
+!$OMPc        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+!$OMPc        tracelft,tracergt,
+!$OMPc        CELLG,FLUXG,FACEG,
+!$OMPc        idir)
+!$OMPc PRIVATE(ic0,ic1,ic2,
+!$OMPc         ttsound,ttcelslp,ttedgslp,ttraclft,ttracrgt,
+!$OMPc         k)
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_call(1,2,0)dnl
+!$OMP END DO
 c
 c***********************************************************************
+!$OMP END PARALLEL
       return
       end
 c
@@ -264,8 +328,20 @@ c***********************************************************************
 c trace higher order states at cell edges
 c***********************************************************************
       idir = 2
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(dt,mc,dx,gamma,igdnv,sound,
+!$OMPc        ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+!$OMPc        tracelft,tracergt,
+!$OMPc        CELLG,FLUXG,FACEG,
+!$OMPc        idir)
+!$OMPc PRIVATE(ic0,ic1,ic2,
+!$OMPc         ttsound,ttcelslp,ttedgslp,ttraclft,ttracrgt,
+!$OMPc         k)
+!$OMP DO SCHEDULE(DYNAMIC)
 trace_call(2,0,1)dnl
+!$OMP END DO
 c
 c***********************************************************************
+!$OMP END PARALLEL
       return
       end

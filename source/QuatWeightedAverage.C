@@ -85,7 +85,7 @@ using namespace SAMRAI;
 QuatWeightedAverage::QuatWeightedAverage(
    const bool symmetry_aware,
    const int quat_symm_rotation_id )
-   : hier::CoarsenOperator(tbox::Dimension(NDIM), "BASE_QUAT_COARSEN")
+   : hier::CoarsenOperator("BASE_QUAT_COARSEN")
 {
    d_name_id = "QUAT_COARSEN";
    d_symmetry_aware = symmetry_aware;
@@ -100,8 +100,8 @@ bool QuatWeightedAverage::findCoarsenOperator(
    const boost::shared_ptr< hier::Variable >& var,
    const string &op_name) const
 {
-   const boost::shared_ptr< pdat::CellVariable<double> > cast_var(var,
-         boost::detail::dynamic_cast_tag());
+   const boost::shared_ptr< pdat::CellVariable<double> > cast_var(
+      BOOST_CAST<pdat::CellVariable<double>, hier::Variable>( var ) );
    if ( cast_var && (op_name == d_name_id) ) {
       return(true);
    } else {
@@ -121,8 +121,8 @@ int QuatWeightedAverage::getOperatorPriority() const
 }
 
 hier::IntVector
-QuatWeightedAverage::getStencilWidth() const {
-   return(hier::IntVector(tbox::Dimension(NDIM),0));
+QuatWeightedAverage::getStencilWidth(const tbox::Dimension& dim) const {
+   return(hier::IntVector(dim,0));
 }
 
 void QuatWeightedAverage::coarsen(
@@ -133,12 +133,10 @@ void QuatWeightedAverage::coarsen(
    const hier::Box& coarse_box,
    const hier::IntVector& ratio) const
 {
-   boost::shared_ptr< pdat::CellData<double> >
-      fdata ( fine.getPatchData(src_component),
-         boost::detail::dynamic_cast_tag());
-   boost::shared_ptr< pdat::CellData<double> >
-      cdata ( coarse.getPatchData(dst_component),
-         boost::detail::dynamic_cast_tag());
+   boost::shared_ptr< pdat::CellData<double> > fdata ( 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>( fine.getPatchData(src_component) ) );
+   boost::shared_ptr< pdat::CellData<double> > cdata (
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>( coarse.getPatchData(dst_component) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(fdata);
    assert(cdata);
@@ -151,11 +149,9 @@ void QuatWeightedAverage::coarsen(
    const hier::Index cihi = cdata->getGhostBox().upper();
 
    const boost::shared_ptr<geom::CartesianPatchGeometry > fgeom (
-      fine.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(fine.getPatchGeometry()) );
    const boost::shared_ptr<geom::CartesianPatchGeometry > cgeom (
-      coarse.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(coarse.getPatchGeometry()) );
 
    const hier::Index ifirstc = coarse_box.lower();
    const hier::Index ilastc = coarse_box.upper();
@@ -164,7 +160,7 @@ void QuatWeightedAverage::coarsen(
 
    if ( d_symmetry_aware ) {
       boost::shared_ptr< pdat::SideData<int> > rotation_index (
-         coarse.getPatchData( d_quat_symm_rotation_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<int>, hier::PatchData>(coarse.getPatchData( d_quat_symm_rotation_id) ) );
       assert( rotation_index );
       const hier::Box & rot_gbox = rotation_index->getGhostBox();
       const hier::Index r_lower = rot_gbox.lower();

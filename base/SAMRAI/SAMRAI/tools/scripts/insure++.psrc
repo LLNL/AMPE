@@ -173,6 +173,8 @@ insure++.leaksummaryfilter -! * PetscHeaderCreate_Private *
 insure++.leaksummaryfilter -! * PetscViewerASCIIGetStdout *
 insure++.leaksummaryfilter -! * VecInitializePackage *
 insure++.leaksummaryfilter -! * PETSC_VIEWER_STDOUT_ *
+insure++.leaksummaryfilter -! * PetscGetUserName *
+insure++.leaksummaryfilter -! * PetscMallocAlign *
 
 # SILO
 insure++.leaksummaryfilter -! * _lite_PD_init_chrt *
@@ -188,6 +190,10 @@ insure++.suppress USER_ERROR { qsort lite_SC_string_sort lite_PD_ls PJ_ls db_pdb
 # SGS 7/7/11
 # SILO is xstating a file during creation; assume it knows what it is doing to handle file not found.
 insure++.suppress RETURN_FAILURE { __xstat64() DBCreateReal() * }
+
+#WJA 3/18/13
+#stl_bvector copies data into uninitialized memory which is OK
+insure++.suppress READ_UNINIT_MEM(read) at stl_bvector.h
 
 ##############################################################################
 # Suppress warnings in SAMRAI
@@ -236,16 +242,14 @@ suppress COPY_WILD { yy_load_buffer_state *}
 suppress COPY_WILD { yyparse *}
 suppress COPY_WILD { delete_list * }
 
-suppress COPY_WILD in ReferenceCounter.C:47
-
-# SGS 7/11/11
-# This looks to be just an Insure++ STL error.  The object in question 
-# is the root node which has just been pushed then popped off of the queue
-suppress COPY_WILD in BergerRigoutsosNode.C:395
-
 # SGS 7/12/11
 # Insure++ is getting confused by this code; causing bogus leaks to be detected.
 file_ignore BoxTree.C
+
+# WJA 2/27/13
+# Something in the TreeCommunication performance test is confusing Insure++.
+suppress READ_DANGLING {* testUpThenDown *}
+suppress WRITE_DANGLING {* testUpThenDown *}
 
 #=============================================================================
 # These lines should improve insure++ performance but will result in
@@ -290,3 +294,5 @@ file_ignore BoxTree.C
 
 # WJA LIBC bug?
 insure++.suppress FREE_NULL { * vfprintf * }
+
+insure++.suppress COPY_DANGLING {* SAMRAI::solv::CellPoissonHypreSolver::copyToHypre *}

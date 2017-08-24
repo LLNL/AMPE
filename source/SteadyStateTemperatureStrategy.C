@@ -53,10 +53,10 @@ SteadyStateTemperatureStrategy::SteadyStateTemperatureStrategy(
    d_rhs_id         = rhs_id;
    d_weight_id      = weight_id;
 
-   TemperatureFACOps* fac_ops =
+   boost::shared_ptr<TemperatureFACOps> fac_ops (
       new TemperatureFACOps(
          "SteadyStateTemperatureStrategyFACOps",
-         temperature_sys_solver_database );
+         temperature_sys_solver_database ) );
    
    d_temperature_sys_solver =
       new TemperatureFACSolver(

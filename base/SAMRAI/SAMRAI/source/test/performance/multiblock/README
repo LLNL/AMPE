@@ -1,29 +1,41 @@
 #########################################################################
 ##
-## This file is part of the SAMRAI distribution.  For full copyright 
-## information, see COPYRIGHT and COPYING.LESSER. 
+## This file is part of the SAMRAI distribution.  For full copyright
+## information, see COPYRIGHT and COPYING.LESSER.
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   MULTIBLOCK LINEAR ADVECTION EQUATION EXAMPLE
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   Multiblock performance tests.
 ##
 #########################################################################
 
 This example is similar to the single-block AMR LinAdv sample application.
-Please see the README in that example for details on how to compile
-and run.  This example has the following differences:
+This example has the following differences:
 
-   1. It works on non-cartesian mapped grids 
+   1. It works on non-cartesian mapped grids
    2. It works with multiblock grids
    3. All numerical kernel operations (e.g. computeFluxesOnPatch()) are
       c-based rather than fortran
 
-The three test cases included are:
+The four test cases included are:
 
-   1. cart-1blk   - single block Cartesian grid 
-   2. wedge-1blk  - single block mapped wedge grid 
-   3. octant-3blk - multi block (3 blocks) mapped octant grid 
+   1. test.3d.1blk   - single block Cartesian grid
+   2. test.3d.2blk   - two block Cartesian grid
+   3. test.3d.4blk   - four block Cartesian grid
+   4. test.3d.8blk   - eight block Cartesian grid
 
-Note that this example will compile in 2D but the numerics have not been fully
-tested so it currently should only run in 3D.  For further information, please
-contact Andy Wissink: awissink@llnl.gov
+Note that the numerics for this example have not been fully tested in 2D so it
+currently should only run in 3D.
 
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
+
+   Execution:
+      For one of the following input files in performance_inputs:
+      serial:
+      ./main <input file>
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main <input file>

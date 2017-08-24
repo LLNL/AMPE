@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Class containing numerical routines for modified Bratu problem
  *
  ************************************************************************/
@@ -61,11 +61,11 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/tbox/Serializable.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 
 using namespace SAMRAI;
 using namespace xfer;
@@ -106,6 +106,7 @@ public:
    ModifiedBratuProblem(
       const string& object_name,
       const tbox::Dimension& dim,
+      const boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver,
       boost::shared_ptr<tbox::Database> input_db,
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
       boost::shared_ptr<appu::VisItDataWriter> visit_data_writer =
@@ -340,9 +341,9 @@ public:
       NULL_USE(ratio);
    }
 
-   hier::IntVector getRefineOpStencilWidth() const
+   hier::IntVector getRefineOpStencilWidth(const tbox::Dimension& dim) const
    {
-      return hier::IntVector(d_dim, 0);
+      return hier::IntVector(dim, 0);
    }
 
    //@}
@@ -380,21 +381,29 @@ public:
       NULL_USE(ratio);
    }
 
-   hier::IntVector getCoarsenOpStencilWidth() const
+   hier::IntVector getCoarsenOpStencilWidth(const tbox::Dimension& dim) const
    {
-      return hier::IntVector(d_dim, 0);
+      return hier::IntVector(dim, 0);
+   }
+
+   /*!
+    * @brief Return the dimension of this object.
+    */
+   const tbox::Dimension& getDim() const
+   {
+      return d_dim;
    }
 
    //@}
 
    /**
-    * Write data members to given data base for restart.
+    * Write data members to given database for restart.
     *
-    * Overloaded from tbox::Serializable.
+    * Inherited from tbox::Serializable.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * Write class data to given output stream.
@@ -405,16 +414,14 @@ public:
 
 private:
    /*
-    * Functions to read data from input and restart databases. If the boolean
-    * flag is true, all data members are read from restart.  They can
-    * later be overwritten from values in the input file.  When the flag
-    * is false, all data values are set from thos given in input.
+    * Functions to read data from input database. If the boolean
+    * flag is true, all data members must be present in input.
     *
     * An assertion results if the database pointer is null.
     */
    void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
 
    /*
@@ -427,7 +434,7 @@ private:
       hier::BoxContainer& boxes,
       boost::shared_ptr<hier::Patch> patch,
       boost::shared_ptr<hier::PatchLevel> level,
-      const int dim,
+      const tbox::Dimension::dir_t dim,
       const int face);
 
    void
@@ -583,13 +590,13 @@ private:
     */
    RefineAlgorithm d_fill_new_level;
    RefineAlgorithm d_soln_fill;
-   tbox::Array<boost::shared_ptr<RefineSchedule> > d_soln_fill_schedule;
+   std::vector<boost::shared_ptr<RefineSchedule> > d_soln_fill_schedule;
    CoarsenAlgorithm d_flux_coarsen;
-   tbox::Array<boost::shared_ptr<CoarsenSchedule> > d_flux_coarsen_schedule;
+   std::vector<boost::shared_ptr<CoarsenSchedule> > d_flux_coarsen_schedule;
    CoarsenAlgorithm d_soln_coarsen;
-   tbox::Array<boost::shared_ptr<CoarsenSchedule> > d_soln_coarsen_schedule;
+   std::vector<boost::shared_ptr<CoarsenSchedule> > d_soln_coarsen_schedule;
    CoarsenAlgorithm d_scratch_soln_coarsen;
-   tbox::Array<boost::shared_ptr<CoarsenSchedule> > d_scratch_soln_coarsen_schedule;
+   std::vector<boost::shared_ptr<CoarsenSchedule> > d_scratch_soln_coarsen_schedule;
 
    boost::shared_ptr<RefineOperator> d_soln_refine_op;
    boost::shared_ptr<CoarsenOperator> d_soln_coarsen_op;

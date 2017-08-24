@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A factory for building SiloDatabases
  *
  ************************************************************************/
@@ -25,6 +25,30 @@ namespace tbox {
  */
 class SiloDatabaseFactory:public DatabaseFactory
 {
+public:
+   /**
+    * Default constructor.
+    */
+   SiloDatabaseFactory();
+
+   /**
+    * Copy constructor.
+    */
+   SiloDatabaseFactory(
+      const SiloDatabaseFactory& other);
+
+   /**
+    * Assignment operator.
+    */
+   SiloDatabaseFactory&
+   operator = (
+      const SiloDatabaseFactory& rhs);
+
+   /**
+    * Destructor.
+    */
+   ~SiloDatabaseFactory();
+
    /**
     * Build a new Database object.
     */

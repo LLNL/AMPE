@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -20,10 +20,13 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+#include <vector>
 
 namespace SAMRAI {
 namespace pdat {
+
+class SideIterator;
 
 /*!
  * Class SideGeometry manages the mapping between the AMR index space
@@ -31,11 +34,11 @@ namespace pdat {
  * hier::BoxGeometry and it computes intersections between side-
  * centered box geometries for communication operations.
  *
- * See header file for SideData<DIM> class for a more detailed
+ * See header file for SideData<TYPE> class for a more detailed
  * description of the data layout.
  *
  * @see hier::BoxGeometry
- * @see pdat::SideOverlap
+ * @see SideOverlap
  */
 
 class SideGeometry:public hier::BoxGeometry
@@ -48,13 +51,15 @@ public:
 
    /*!
     * @brief Convert an AMR index box space box into an side geometry box.
-    * An side geometry box extends the given AMR index box space box
-    * by one in upper dimension for the side normal coordinate direction.
+    * An side geometry box extends the given AMR index space box
+    * by one at upper end for the side normal coordinate direction.
+    *
+    * @pre (side_normal >= 0) && (side_normal < box.getDim().getValue())
     */
    static hier::Box
    toSideBox(
       const hier::Box& box,
-      int side_normal);
+      tbox::Dimension::dir_t side_normal);
 
    /*!
     * @brief Transform a side-centered box.
@@ -89,15 +94,43 @@ public:
       SideIndex& index,
       const hier::Transformation& transformation);
 
+   static SideIterator
+   begin(
+      const hier::Box& box,
+      tbox::Dimension::dir_t axis);
+
+   static SideIterator
+   end(
+      const hier::Box& box,
+      tbox::Dimension::dir_t axis);
+
    /*!
     * @brief Construct the side geometry object given an AMR index
     * space box, ghost cell width and directions vector indicating
     * which coordinate directions are allocated.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre ghosts.min() >= 0
+    * @pre directions.min() >= 0
     */
    SideGeometry(
       const hier::Box& box,
       const hier::IntVector& ghosts,
       const hier::IntVector& directions);
+
+   /*!
+    * @brief Construct the side geometry object given an AMR index
+    * space box and ghost cell width.
+    *
+    * No directions vector is provided, so it is assumed that all
+    * coordinate directions are allocated.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre ghosts.min() >= 0
+    */
+   SideGeometry(
+      const hier::Box& box,
+      const hier::IntVector& ghosts);
 
    /*!
     * @brief The virtual destructor does nothing interesting.
@@ -107,6 +140,8 @@ public:
    /*!
     * @brief Compute the overlap in side-centered index space between
     * the source box geometry and the destination box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    virtual boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -117,6 +152,23 @@ public:
       const bool overwrite_interior,
       const hier::Transformation& transformation,
       const bool retry,
+      const hier::BoxContainer& dst_restrict_boxes = hier::BoxContainer()) const;
+
+   /*!
+    * @brief Compute the side-centered destination boxes that represent
+    * the overlap between the source box geometry and the destination
+    * box geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset.getDim()
+    */
+   void
+   computeDestinationBoxes(
+      std::vector<hier::BoxContainer>& dst_boxes,
+      const SideGeometry& src_geometry,
+      const hier::Box& src_mask,
+      const hier::Box& fill_box,
+      const bool overwrite_interior,
+      const hier::Transformation& transformation,
       const hier::BoxContainer& dst_restrict_boxes = hier::BoxContainer()) const;
 
    /*!
@@ -167,6 +219,9 @@ private:
     * Function doOverlap() is the function that computes the overlap
     * between the source and destination objects, where both box geometry
     * objects are guaranteed to have side centered geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset().getDim()
+    * @pre dst_geometry.getDirectionVector() == src_geometry.getDirectionVector()
     */
    static boost::shared_ptr<hier::BoxOverlap>
    doOverlap(
@@ -181,12 +236,12 @@ private:
    static void
    rotateAboutAxis(
       SideIndex& index,
-      const int axis,
+      const tbox::Dimension::dir_t axis,
       const int num_rotations);
 
    SideGeometry(
       const SideGeometry&);             // not implemented
-   void
+   SideGeometry&
    operator = (
       const SideGeometry&);                     // not implemented
 

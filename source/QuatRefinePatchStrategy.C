@@ -48,7 +48,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
    const int quat_id,
    const int conc_id,
    const int temperature_id )
-   : xfer::RefinePatchStrategy(tbox::Dimension(NDIM)),
+   : xfer::RefinePatchStrategy(),
      d_object_name( object_name ),
      d_phase_id( phase_id ),
      d_eta_id( eta_id ),

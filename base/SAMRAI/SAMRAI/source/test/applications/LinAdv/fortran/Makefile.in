@@ -1,0 +1,95 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for SAMRAI linear advection
+##                sample application
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/applications/LinAdv/fortran
+VPATH         = @srcdir@
+OBJECT        = ../../../../..
+
+default: main
+
+include $(OBJECT)/config/Makefile.config
+
+OBJS= 	flux2d.o \
+	grad2d.o \
+	init2d.o \
+	stable2d.o \
+	stufprobc.o \
+	trace1d.o \
+	trace2d.o \
+	flux3d.o \
+	init3d.o \
+	grad3d.o \
+	trace3d.o \
+	stable3d.o \
+	fluxcorner3d.o
+
+main:	$(OBJS)
+
+clean:
+	$(CLEAN_COMMON_TEST_FILES)
+
+include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+flux2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/flux2d.m4 > flux2d.f
+	$(F77) $(FFLAGS) -c flux2d.f -o $@
+
+flux3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/flux3d.m4 > flux3d.f
+	$(F77) $(FFLAGS) -c flux3d.f -o $@
+
+fluxcorner3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/fluxcorner3d.m4 > fluxcorner3d.f
+	$(F77) $(FFLAGS) -c fluxcorner3d.f -o $@
+
+grad2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/grad2d.m4 > grad2d.f
+	$(F77) $(FFLAGS) -c grad2d.f -o $@
+
+grad3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/grad3d.m4 > grad3d.f
+	$(F77) $(FFLAGS) -c grad3d.f -o $@
+
+init2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/init2d.m4 > init2d.f
+	$(F77) $(FFLAGS) -c init2d.f -o $@
+
+init3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/init3d.m4 > init3d.f
+	$(F77) $(FFLAGS) -c init3d.f -o $@
+
+stable2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/stable2d.m4 > stable2d.f
+	$(F77) $(FFLAGS) -c stable2d.f -o $@
+
+stable3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/stable3d.m4 > stable3d.f
+	$(F77) $(FFLAGS) -c stable3d.f -o $@
+
+stufprobc.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/stufprobc.m4 > stufprobc.f
+	$(F77) $(FFLAGS) -c stufprobc.f -o $@
+
+trace1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/trace1d.m4 > trace1d.f
+	$(F77) $(FFLAGS) -c trace1d.f -o $@
+
+trace2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/trace2d.m4 > trace2d.f
+	$(F77) $(FFLAGS) -c trace2d.f -o $@
+
+trace3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/trace3d.m4 > trace3d.f
+	$(F77) $(FFLAGS) -c trace3d.f -o $@

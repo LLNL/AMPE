@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Misc array setting functions in FAC solver test.
  *
  ************************************************************************/
@@ -28,7 +28,7 @@ setArrayDataTo(
    const double* xhi,
    const double* h
    ,
-   const double* coef = NULL);
+   const double* coef = 0);
 
 void
 setArrayDataTo(
@@ -42,7 +42,7 @@ setArrayDataTo(
    const double* xhi,
    const double* h
    ,
-   const double* coef = NULL);
+   const double* coef = 0);
 void
 setArrayDataTo(
    MDA_Access<double, 3, MDA_OrderColMajor<3> >& s
@@ -55,7 +55,7 @@ setArrayDataTo(
    const double* xhi,
    const double* h
    ,
-   const double* coef = NULL);
+   const double* coef = 0);
 
 void
 setArrayDataToSinusoidal(

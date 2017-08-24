@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to patch routines for hyperbolic integration scheme.
  *
  ************************************************************************/
@@ -21,7 +21,7 @@
 #include "SAMRAI/xfer/CoarsenPatchStrategy.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace algs {
@@ -53,7 +53,7 @@ class HyperbolicLevelIntegrator;
  * context.  The concrete patch strategy subclass can access the appropriate
  * context via the getDataContext() method.
  *
- * @see algs::HyperbolicLevelIntegrator
+ * @see HyperbolicLevelIntegrator
  * @see xfer::RefinePatchStrategy
  * @see xfer::CoarsenPatchStrategy
  */
@@ -66,8 +66,7 @@ public:
    /**
     * Blank constructor for HyperbolicPatchStrategy.
     */
-   explicit HyperbolicPatchStrategy(
-      const tbox::Dimension& dim);
+   HyperbolicPatchStrategy();
 
    /**
     * Virtual destructor for HyperbolicPatchStrategy.
@@ -325,112 +324,55 @@ public:
       const double fill_time,
       const hier::IntVector& ghost_width_to_fill) = 0;
 
-   /**
-    * Return maximum stencil width needed for user-defined
-    * data interpolation operations.  Default is to return
-    * zero, assuming no user-defined operations provided.
+   /*!
+    * @brief Check the tags on a tagged patch.
     *
-    * Note that this function is not pure virtual. It is given a
-    * dummy implementation here so that users may ignore it when
-    * inheriting from this class.
-    */
-   virtual hier::IntVector
-   getRefineOpStencilWidth() const;
-
-   /**
-    * Pre- and post-processing routines for implementing user-defined
-    * spatial interpolation routines applied to variables.  The
-    * interpolation routines are used in the hyperbolic AMR algorithm
-    * for filling patch ghost cells before advancing data on a level
-    * and after regridding a level to fill portions of the new level
-    * from some coarser level.  These routines are called automatically
-    * from within patch boundary filling schedules; thus, some concrete
-    * function matching these signatures must be provided in the user's
-    * patch routines.  However, the routines only need to perform some
-    * operations when "USER_DEFINED_REFINE" is given as the interpolation
-    * method for some variable when the patch routines register variables
-    * with the hyperbolic level integration algorithm, typically.  If the
-    * user does not provide operations that refine such variables in either
-    * of these routines, then they will not be refined.
+    * This virtual method provides an interface for a callback into
+    * application code to check the values held in user tag PatchData
+    * The tag data will contain the tags created by application code
+    * plus any tags added internally by the GriddingAlgorithm (for
+    * example, buffering).
     *
-    * The order in which these operations are used in each patch
-    * boundary filling schedule is:
+    * This is a virtual method with a no-op implementation provided, so that
+    * users who do not need this callback need not implement anything.
     *
-    * - \b (1) {Call user's preprocessRefine() routine.}
-    * - \b (2) {Refine all variables with standard interpolation operators.}
-    * - \b (3) {Call user's postprocessRefine() routine.}
-    *
-    * Note that these functions are not pure virtual. They are given
-    * dummy implementations here so that users may ignore them when
-    * inheriting from this class.
+    * @param[in] patch
+    * @param[in] tag_index     Patch data index for user tags
     */
    virtual void
-   preprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
+   checkUserTagData(
+      hier::Patch& patch,
+      const int tag_index) const
+   {
+      NULL_USE(patch);
+      NULL_USE(tag_index);
+   }
 
-   ///
-   virtual void
-   postprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
 
-   /**
-    * Return maximum stencil width needed for user-defined
-    * data coarsen operations.  Default is to return
-    * zero, assuming no user-defined operations provided.
+   /*!
+    * @brief Check the tags on a newly-created patch.
     *
-    * Note that this function is not pure virtual. It is given a
-    * dummy implementation here so that users may ignore it when
-    * inheriting from this class.
-    */
-   virtual hier::IntVector
-   getCoarsenOpStencilWidth() const;
-
-   /**
-    * Pre- and post-processing routines for implementing user-defined
-    * spatial coarsening routines applied to variables.  The coarsening
-    * routines are used in the hyperbolic AMR algorithm synchronizing
-    * coarse and fine levels when they have been integrated to the same
-    * point.  These routines are called automatically from within the
-    * data synchronization coarsen schedules; thus, some concrete
-    * function matching these signatures must be provided in the user's
-    * patch routines.  However, the routines only need to perform some
-    * operations when "USER_DEFINED_COARSEN" is given as the coarsening
-    * method for some variable when the patch routines register variables
-    * with the hyperbolic level integration algorithm, typically.  If the
-    * user does not provide operations that coarsen such variables in either
-    * of these routines, then they will not be coarsened.
+    * This virtual method provides an interface for a callback into
+    * application code to check the tag values that have been saved on
+    * a new patch that has been created during intitialization or
+    * regridding.  The tag values will be the values of the user tags
+    * on the coarser level, constant refined onto the cells of the patch
+    * on the new level.
     *
-    * The order in which these operations are used in each coarsening
-    * schedule is:
+    * This is a virtual method with a no-op implementation provided, so that
+    * users who do not need this callback need not implement anything.
     *
-    * - \b (1) {Call user's preprocessCoarsen() routine.}
-    * - \b (2) {Coarsen all variables with standard coarsening operators.}
-    * - \b (3) {Call user's postprocessCoarsen() routine.}
-    *
-    * Note that these functions are not pure virtual. They are given
-    * dummy implementations here so that users may ignore them when
-    * inheriting from this class.
+    * @param[in] patch
+    * @param[in] tag_index      Patch data index for the new tags.
     */
    virtual void
-   preprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio);
-
-   ///
-   virtual void
-   postprocessCoarsen(
-      hier::Patch& coarse,
-      const hier::Patch& fine,
-      const hier::Box& coarse_box,
-      const hier::IntVector& ratio);
+   checkNewPatchTagData(
+      hier::Patch& patch,
+      const int tag_index) const
+   {
+      NULL_USE(patch);
+      NULL_USE(tag_index);
+   }
 
    /**
     * Return pointer to patch data context.
@@ -463,15 +405,7 @@ public:
       d_data_context.reset();
    }
 
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
-   }
-
 private:
-   const tbox::Dimension d_dim;
-
    boost::shared_ptr<hier::VariableContext> d_data_context;
 };
 

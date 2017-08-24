@@ -3,10 +3,13 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing patch hierarchy refining 
  *
  ************************************************************************/
+
+// Refer to hierarchy_coarsen2d.input for full description of all input
+// parameters specific to this problem.
 
 GlobalInputs {
    call_abort_in_serial_instead_of_exit = FALSE
@@ -65,46 +68,46 @@ PatchHierarchy {
 
 }
 
-GriddingAlgorithm {
-
+BergerRigoutsos {
    efficiency_tolerance     = 0.70e0   // min % of tag cells in new patch level
    combine_efficiency       = 0.85e0   // chop box if sum of volumes of smaller
                                        // boxes < efficiency * vol of large box
+}
 
+GriddingAlgorithm {
    sequentialize_patch_indices = TRUE
 }
 
 TreeLoadBalancer {
-  report_load_balance = TRUE
-  barrier_before = FALSE
-  barrier_after = FALSE
-  n_root_cycles = 1
-  interlace_groups = FALSE
-  balance_penalty_wt = 1.0
-  surface_penalty_wt = 1.0
+  DEV_report_load_balance = TRUE
+  DEV_barrier_before = FALSE
+  DEV_barrier_after = FALSE
+  DEV_balance_penalty_wt = 1.0
+  DEV_surface_penalty_wt = 1.0
 
   // Debugging options
-  check_map = FALSE
-  check_connectivity = FALSE
-  print_steps = FALSE
-  print_swap_steps = FALSE
-  print_break_steps = FALSE
-  print_edge_steps = FALSE
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = FALSE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
 }
 
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
 
-   RefineBoxes {
-      level_0 = [ (0,16) , (11,19) ],
-                     [ (12,0) , (31,19) ],
-                     [ (32,4) , (43,5) ],
-                     [ (16,20) , (21,27) ],
-                     [ (8,28) , (27,41) ],
-                     [ (20,42) , (27,55) ]
-      level_1 = [ (36,16) , (51,27) ],
-                     [ (24,64) , (31,75) ],
-                     [ (32,64) , (43,71) ]
+   level_0 {
+      boxes = [ (0,16) , (11,19) ],
+              [ (12,0) , (31,19) ],
+              [ (32,4) , (43,5) ],
+              [ (16,20) , (21,27) ],
+              [ (8,28) , (27,41) ],
+              [ (20,42) , (27,55) ]
    }
-
+   level_1 {
+      boxes = [ (36,16) , (51,27) ],
+              [ (24,64) , (31,75) ],
+              [ (32,64) , (43,71) ]
+   }
 }

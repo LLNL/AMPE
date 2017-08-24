@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Wrapper class for CVODE solver function calls and data
  *
  ************************************************************************/
@@ -270,8 +270,8 @@ public:
    initialize(
       SundialsAbstractVector* solution)
    {
-      TBOX_ASSERT(!(solution == (SundialsAbstractVector *)NULL));
-      TBOX_ASSERT(d_solution_vector == (SundialsAbstractVector *)NULL);
+      TBOX_ASSERT(!(solution == 0));
+      TBOX_ASSERT(d_solution_vector == 0);
       d_solution_vector = solution;
       d_CVODE_needs_initialization = true;
       initializeCVODE();
@@ -391,9 +391,12 @@ public:
    setLogFileData(
       const std::string& log_fname = std::string())
    {
-      TBOX_ASSERT(!log_fname.empty());
       if (!(log_fname == d_cvode_log_file_name)) {
-         d_cvode_log_file_name = log_fname;
+         if (log_fname.empty()) {
+            d_cvode_log_file_name = "cvode.log";
+         } else {
+            d_cvode_log_file_name = log_fname;
+         }
          d_CVODE_needs_initialization = true;
       }
    }
@@ -423,7 +426,7 @@ public:
       CVODEAbstractFunctions* my_functions,
       const bool uses_preconditioner)
    {
-      TBOX_ASSERT(!(my_functions == (CVODEAbstractFunctions *)NULL));
+      TBOX_ASSERT(!(my_functions == 0));
       d_cvode_functions = my_functions;
       d_uses_preconditioner = uses_preconditioner;
       d_CVODE_needs_initialization = true;
@@ -623,7 +626,7 @@ public:
    setAbsoluteTolerance(
       SundialsAbstractVector* absolute_tolerance)
    {
-      TBOX_ASSERT(!(absolute_tolerance == (SundialsAbstractVector *)NULL));
+      TBOX_ASSERT(!(absolute_tolerance == 0));
       TBOX_ASSERT(absolute_tolerance->vecMin() >= 0.0);
       d_absolute_tolerance_vector = absolute_tolerance;
       d_use_scalar_absolute_tolerance = false;
@@ -712,7 +715,7 @@ public:
    setInitialConditionVector(
       SundialsAbstractVector* ic_vector)
    {
-      TBOX_ASSERT(!(ic_vector == (SundialsAbstractVector *)NULL));
+      TBOX_ASSERT(!(ic_vector == 0));
       d_ic_vector = ic_vector;
       d_CVODE_needs_initialization = true;
    }

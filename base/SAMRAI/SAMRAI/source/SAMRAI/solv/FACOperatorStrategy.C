@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to user-defined operations used in FAC solve.
  *
  ************************************************************************/
-
-#ifndef included_solv_FACOperatorStrategy_C
-#define included_solv_FACOperatorStrategy_C
-
 #include "SAMRAI/solv/FACOperatorStrategy.h"
 
 namespace SAMRAI {
@@ -31,4 +27,3 @@ FACOperatorStrategy::deallocateOperatorState()
 
 }
 }
-#endif

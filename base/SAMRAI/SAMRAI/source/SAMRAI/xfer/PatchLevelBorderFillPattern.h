@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract fill pattern class to provide interface for stencils
  *
  ************************************************************************/
@@ -22,7 +22,7 @@ namespace xfer {
  * @brief PatchLevelFillPattern implementation for filling at PatchLevel
  * boundaries.
  *
- * For documentation on this interface see @ref xfer::PatchLevelFillPattern
+ * For documentation on this interface see @ref PatchLevelFillPattern
  *
  * The fill boxes will consist of the ghost regions lying outside of
  * the level interior--in other words the ghost regions at physical
@@ -43,33 +43,30 @@ public:
    virtual ~PatchLevelBorderFillPattern();
 
    /*!
-    * @brief Compute the mapped boxes to be filled and related communication
-    * data.
+    * @brief Compute the boxes to be filled and related communication data.
     *
-    * The computed fill_mapped_boxes will cover the ghost regions around the
-    * boxes of dst_mapped_box_level at coarse-fine and physical boundaries.
+    * The computed fill_box_level will cover the ghost regions around the
+    * boxes of dst_box_level at coarse-fine and physical boundaries.
     * The width of those ghost regions will be determined by fill_ghost_width.
     *
-    * @param[out] fill_mapped_boxes    Output BoxLevel to be filled
+    * @param[out] fill_box_level       Output BoxLevel to be filled
     * @param[out] dst_to_fill          Output Connector between
-    *                                  dst_mapped_box_level and
-    *                                  and fill_mapped_boxes
-    * @param[in] dst_mapped_box_level  destination level
-    * @param[in] dst_to_dst            Connector of destination to itself
-    * @param[in] dst_to_src            Connector of destination to source
-    * @param[in] src_to_dst            Connector of source to destination
+    *                                  dst_box_level and fill_box_level
+    * @param[in] dst_box_level         destination level
     * @param[in] fill_ghost_width      Ghost width being filled by refine
     *                                  schedule
+    * @param[in] data_on_patch_border  true if there is data living on patch
+    *                                  borders
+    *
+    * @pre dst_box_level.getDim() == fill_ghost_width.getDim()
     */
    void
    computeFillBoxesAndNeighborhoodSets(
-      hier::BoxLevel& fill_mapped_boxes,
-      hier::Connector& dst_to_fill,
-      const hier::BoxLevel& dst_mapped_box_level,
-      const hier::Connector& dst_to_dst,
-      const hier::Connector& dst_to_src,
-      const hier::Connector& src_to_dst,
-      const hier::IntVector& fill_ghost_width);
+      boost::shared_ptr<hier::BoxLevel>& fill_box_level,
+      boost::shared_ptr<hier::Connector>& dst_to_fill,
+      const hier::BoxLevel& dst_box_level,
+      const hier::IntVector& fill_ghost_width,
+      bool data_on_patch_border);
 
    /*!
     * @brief Return true to indicate source patch owners cannot compute
@@ -85,11 +82,13 @@ public:
     * method should never be called.  It is implemented here to satisfy
     * the pure virtual interface from the base class.  An error will result
     * if this is ever called.
+    *
+    * @pre needsToCommunicateDestinationFillBoxes()
     */
    void
    computeDestinationFillBoxesOnSourceProc(
       FillSet& dst_fill_boxes_on_src_proc,
-      const hier::BoxLevel& dst_mapped_box_level,
+      const hier::BoxLevel& dst_box_level,
       const hier::Connector& src_to_dst,
       const hier::IntVector& fill_ghost_width);
 
@@ -122,7 +121,7 @@ public:
    fillingCoarseFineGhosts() const;
 
    /*!
-    * @brief Returns false because this fill pattern is specialized for
+    * @brief Returns false because this fill pattern is not specialized for
     * enhanced connectivity only.
     */
    bool
@@ -131,7 +130,7 @@ public:
 private:
    PatchLevelBorderFillPattern(
       const PatchLevelBorderFillPattern&);            // not implemented
-   void
+   PatchLevelBorderFillPattern&
    operator = (
       const PatchLevelBorderFillPattern&);            // not implemented
 

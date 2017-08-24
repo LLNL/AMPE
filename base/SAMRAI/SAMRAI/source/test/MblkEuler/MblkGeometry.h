@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   this class creates mapped multiblock grid geometries.
  *                The supported grid types include Cartesian, Wedge, and
  *                Spherical shell.  The spherical shell case is a full
@@ -16,9 +16,10 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/CellData.h"
+
+#include <vector>
 
 using namespace SAMRAI;
 
@@ -33,7 +34,7 @@ public:
       const std::string& object_name,
       const tbox::Dimension& dim,
       boost::shared_ptr<tbox::Database> input_db,
-      const int nblocks);
+      const size_t nblocks);
 
    ~MblkGeometry();
 
@@ -50,7 +51,7 @@ public:
    bool
    getRefineBoxes(
       hier::BoxContainer& refine_boxes,
-      const int block_number,
+      const hier::BlockId::block_t block_number,
       const int level_number);
 
    //
@@ -63,8 +64,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& domain,
       const int xyz_id,
-      const int block_number,
-      int* dom_local_blocks);
+      const hier::BlockId::block_t block_number,
+      hier::BlockId::block_t* dom_local_blocks);
 
    //
    // The array of block indices denoting patch neighbors
@@ -73,8 +74,8 @@ public:
    buildLocalBlocks(
       const hier::Box& pbox,                       // the patch box
       const hier::Box& domain,                     // the block box
-      const int block_number,
-      int* dom_local_blocks);                       // this returns the blocks neighboring this patch
+      const hier::BlockId::block_t block_number,
+      hier::BlockId::block_t* dom_local_blocks);                       // this returns the blocks neighboring this patch
 
 private:
    //
@@ -101,7 +102,7 @@ private:
       const hier::Patch& patch,
       const hier::Box& domain,
       const int xyz_id,
-      const int block_number);
+      const hier::BlockId::block_t block_number);
 
    //
    // trilinearly interpolated base mesh
@@ -111,7 +112,7 @@ private:
       const hier::Patch& patch,
       const hier::Box& domain,
       const int xyz_id,
-      const int block_number);
+      const hier::BlockId::block_t block_number);
 
    //
    // Spherical shell grid construction
@@ -121,18 +122,18 @@ private:
       const hier::Patch& patch,
       const hier::Box& domain,
       const int xyz_id,
-      const int block_number);
+      const hier::BlockId::block_t block_number);
 
    //
    // For the spherical shell construction, i always points in the r direction
    // and j,k are points on the shell.  Given a certain j,k compute the
    // unit sphere locations for block face (actual xyz is computed
-   // by x = r*xface, y = r*yface, z = r*zface.  Note that the dimension
+   // by x = r*xface, y = r*yface, z = r*zface.  Note that the size
    // in the theta direction (nth) should be the same for each block.
    //
    void
    computeUnitSphereOctant(
-      int nblock,
+      hier::BlockId::block_t nblock,
       int nth,
       int j,
       int k,
@@ -152,19 +153,19 @@ private:
    // The number of blocks and the set of skelton grid geometries that make
    // up a multiblock mesh.
    //
-   int d_nblocks;
+   size_t d_nblocks;
 
    //
    // Cartesian inputs
    //
-   tbox::Array<tbox::Array<double> > d_cart_xlo;
-   tbox::Array<tbox::Array<double> > d_cart_xhi;
+   std::vector<std::vector<double> > d_cart_xlo;
+   std::vector<std::vector<double> > d_cart_xhi;
 
    //
    // Wedge inputs
    //
-   tbox::Array<double> d_wedge_rmin;
-   tbox::Array<double> d_wedge_rmax;
+   std::vector<double> d_wedge_rmin;
+   std::vector<double> d_wedge_rmax;
    double d_wedge_thmin;
    double d_wedge_thmax;
    double d_wedge_zmin;
@@ -180,7 +181,7 @@ private:
    int* d_tri_nzp;
    int* d_tri_node_size;   // block size
 
-   int** d_tri_nbr;   // integer array of neighboring blocks
+   hier::BlockId::block_t** d_tri_nbr;   // integer array of neighboring blocks
    double** d_tri_x; // [block][node]  nodal coordinates
    double** d_tri_y;
    double** d_tri_z;
@@ -207,7 +208,7 @@ private:
    //
    // Refine boxes for different blocks/levels
    //
-   tbox::Array<tbox::Array<hier::BoxContainer> > d_refine_boxes;
+   std::vector<std::vector<hier::BoxContainer> > d_refine_boxes;
 
 };
 

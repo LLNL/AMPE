@@ -1,3 +1,10 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routine.
+c
       subroutine stufprobc(
      &  APPROX_RIEM_SOLVEin,EXACT_RIEM_SOLVEin,HLLC_RIEM_SOLVEin,
      &  PIECEWISE_CONSTANT_Xin,PIECEWISE_CONSTANT_Yin,

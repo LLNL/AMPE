@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Iterator for node centered patch data types
  *
  ************************************************************************/
@@ -37,22 +37,14 @@ namespace pdat {
  * on your compiler.  Many compilers are not smart enough to optimize the
  * looping constructs and indexing operations.
  *
- * @see pdat::NodeData
- * @see pdat::NodeGeometry
- * @see pdat::NodeIndex
+ * @see NodeData
+ * @see NodeGeometry
+ * @see NodeIndex
  */
 
 class NodeIterator
 {
 public:
-   /**
-    * Constructor for the node iterator.  The iterator will enumerate
-    * the indices in the argument box.
-    */
-   explicit NodeIterator(
-      const hier::Box& box,
-      bool begin);
-
    /**
     * Copy constructor for the node iterator
     */
@@ -89,7 +81,7 @@ public:
     * Extract a pointer to the node index corresponding to the iterator
     * position in the box.
     */
-   const NodeIndex*
+   const NodeIndex *
    operator -> () const
    {
       return &d_index;
@@ -115,6 +107,8 @@ public:
    operator == (
       const NodeIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index == iterator.d_index;
    }
 
@@ -125,10 +119,29 @@ public:
    operator != (
       const NodeIterator& iterator) const
    {
+      TBOX_ASSERT(d_box.isSpatiallyEqual(iterator.d_box));
+      TBOX_ASSERT(d_box.isIdEqual(iterator.d_box));
       return d_index != iterator.d_index;
    }
 
 private:
+   friend NodeIterator
+   NodeGeometry::begin(
+      const hier::Box& box);
+   friend NodeIterator
+   NodeGeometry::end(
+      const hier::Box& box);
+   /**
+    * Constructor for the node iterator.  The iterator will enumerate
+    * the indices in the argument box.
+    */
+   NodeIterator(
+      const hier::Box& box,
+      bool begin);
+
+   // Unimplemented default constructor.
+   NodeIterator();
+
    NodeIndex d_index;
    hier::Box d_box;
 };

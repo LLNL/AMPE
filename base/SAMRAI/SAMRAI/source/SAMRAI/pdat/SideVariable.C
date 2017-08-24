@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -15,13 +15,10 @@
 #include "SAMRAI/pdat/SideDataFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
-
-template<class TYPE>
-const int SideVariable<TYPE>::ALL_DIRECTIONS = -1;
 
 /*
  *************************************************************************
@@ -35,34 +32,38 @@ template<class TYPE>
 SideVariable<TYPE>::SideVariable(
    const tbox::Dimension& dim,
    const std::string& name,
+   const hier::IntVector& directions,
    int depth,
-   bool fine_boundary_represents_var,
-   int direction):
+   bool fine_boundary_represents_var):
    hier::Variable(name,
                   boost::make_shared<SideDataFactory<TYPE> >(
                      depth,
                      // default zero ghost cells
                      hier::IntVector::getZero(dim),
-                     fine_boundary_represents_var)),
+                     fine_boundary_represents_var,
+                     directions)),
    d_fine_boundary_represents_var(fine_boundary_represents_var),
-   d_directions(dim)
+   d_directions(directions)
 {
-   TBOX_ASSERT((direction >= ALL_DIRECTIONS) && (direction < getDim().getValue()));
+   TBOX_ASSERT(directions.getDim() == getDim());
+}
 
-   d_directions = hier::IntVector::getOne(getDim());
-   if ((direction != ALL_DIRECTIONS)) {
-      // SGS this loop seems stupid, why not just set directions(direction) = 1?
-      for (int id = 0; id < getDim().getValue(); id++) {
-         d_directions(id) = ((direction == id) ? 1 : 0);
-      }
-      const hier::IntVector& zero_vector(hier::IntVector::getZero(getDim()));
-      setPatchDataFactory(
-         boost::make_shared<SideDataFactory<TYPE> >(
-            depth,
-            zero_vector,
-            fine_boundary_represents_var,
-            d_directions));
-   }
+template<class TYPE>
+SideVariable<TYPE>::SideVariable(
+   const tbox::Dimension& dim,
+   const std::string& name,
+   int depth,
+   bool fine_boundary_represents_var):
+   hier::Variable(name,
+                  boost::make_shared<SideDataFactory<TYPE> >(
+                     depth,
+                     // default zero ghost cells
+                     hier::IntVector::getZero(dim),
+                     fine_boundary_represents_var,
+                     hier::IntVector::getOne(dim))),
+   d_fine_boundary_represents_var(fine_boundary_represents_var),
+   d_directions(hier::IntVector::getOne(dim))
+{
 }
 
 template<class TYPE>
@@ -79,35 +80,11 @@ const hier::IntVector& SideVariable<TYPE>::getDirectionVector() const
 template<class TYPE>
 int SideVariable<TYPE>::getDepth() const
 {
-   boost::shared_ptr<SideDataFactory<TYPE> > factory(getPatchDataFactory());
+   boost::shared_ptr<SideDataFactory<TYPE> > factory(
+      BOOST_CAST<SideDataFactory<TYPE>, hier::PatchDataFactory>(
+         getPatchDataFactory()));
    TBOX_ASSERT(factory);
    return factory->getDepth();
-}
-
-/*
- *************************************************************************
- *
- * These are private and should not be used.  They are defined here
- * because some template instantiation methods fail if some member
- * functions are left undefined.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-SideVariable<TYPE>::SideVariable(
-   const SideVariable<TYPE>& foo):
-   hier::Variable(NULL, boost::shared_ptr<hier::PatchDataFactory>()),
-   d_directions(hier::IntVector(foo.getDim()))
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void SideVariable<TYPE>::operator = (
-   const SideVariable<TYPE>& foo)
-{
-   NULL_USE(foo);
 }
 
 }

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Misc array setting functions in FAC solver test.
  *
  ************************************************************************/
@@ -107,7 +107,7 @@ void setArrayDataTo(
    NULL_USE(xhi);
 
    const double ucoef[2] = { 1., 1. };
-   if (coef == NULL) coef = ucoef;
+   if (coef == 0) coef = ucoef;
    for (int j = lower[1]; j <= upper[1]; ++j) {
       double y = xlo[1] + h[1] * (j - lower[1] + 0.5);
       for (int i = lower[0]; i <= upper[0]; ++i) {
@@ -131,7 +131,7 @@ void setArrayDataTo(
    NULL_USE(xhi);
 
    const double ucoef[3] = { 1., 1., 1. };
-   if (coef == NULL) coef = ucoef;
+   if (coef == 0) coef = ucoef;
    for (int k = lower[2]; k <= upper[2]; ++k) {
       double z = xlo[2] + h[2] * (k - lower[2] + 0.5);
       for (int j = lower[1]; j <= upper[1]; ++j) {

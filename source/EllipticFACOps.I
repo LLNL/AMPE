@@ -77,7 +77,7 @@ void EllipticFACOps::setCConstant( const double scalar ) {
 }
 
 SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setPreconditioner(const solv::FACPreconditioner *preconditioner )
+void EllipticFACOps::setPreconditioner(const FACPreconditioner *preconditioner )
 {
    d_preconditioner = preconditioner;
    return;

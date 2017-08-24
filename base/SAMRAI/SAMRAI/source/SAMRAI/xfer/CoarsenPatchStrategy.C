@@ -3,22 +3,16 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface to user routines for coarsening AMR data.
  *
  ************************************************************************/
-
-#ifndef included_xfer_CoarsenPatchStrategy_C
-#define included_xfer_CoarsenPatchStrategy_C
-
 #include "SAMRAI/xfer/CoarsenPatchStrategy.h"
 
 namespace SAMRAI {
 namespace xfer {
 
-CoarsenPatchStrategy::CoarsenPatchStrategy(
-   const tbox::Dimension& dim):
-   d_dim(dim)
+CoarsenPatchStrategy::CoarsenPatchStrategy()
 {
    registerObject();
 }
@@ -43,10 +37,8 @@ CoarsenPatchStrategy::getMaxCoarsenOpStencilWidth(
       CoarsenPatchStrategy::getCurrentObjects();
    for (std::set<CoarsenPatchStrategy *>::const_iterator
         si = current_objects.begin(); si != current_objects.end(); ++si) {
-      const CoarsenPatchStrategy* op = *si;
-      if (op->getDim() == dim) {
-         max_width.max(op->getCoarsenOpStencilWidth());
-      }
+      const CoarsenPatchStrategy* strategy = *si;
+      max_width.max(strategy->getCoarsenOpStencilWidth(dim));
    }
 
    return max_width;
@@ -54,4 +46,3 @@ CoarsenPatchStrategy::getMaxCoarsenOpStencilWidth(
 
 }
 }
-#endif

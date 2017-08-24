@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -33,12 +33,12 @@ class NodeGeometry;
  * box geometries and node or outernode box geometries for communication
  * operations.
  *
- * See header file for OuternodeData<DIM> class for a more detailed
+ * See header file for OuternodeData<TYPE> class for a more detailed
  * description of the data layout.
  *
  * @see hier::BoxGeometry
- * @see pdat::NodeGeometry
- * @see pdat::NodeOverlap
+ * @see NodeGeometry
+ * @see NodeOverlap
  */
 
 class OuternodeGeometry:public hier::BoxGeometry
@@ -52,6 +52,9 @@ public:
    /*!
     * @brief Construct an outernode geometry object given an AMR index
     * space box and ghost cell width.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre ghosts.min() >= 0
     */
    OuternodeGeometry(
       const hier::Box& box,
@@ -65,6 +68,8 @@ public:
    /*!
     * @brief Compute the overlap in node-centered index space on the
     * boundaries of the source box geometry and the destination box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    virtual boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -110,6 +115,8 @@ private:
     * Compute the overlap
     * between the source and destination objects, where the source
     * has outernode geometry and the destination node geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset().getDim()
     */
    static boost::shared_ptr<hier::BoxOverlap>
    doOverlap(
@@ -126,6 +133,8 @@ private:
     * Compute the overlap
     * between the source and destination objects, where the source
     * has node geometry and the destination outernode geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset().getDim()
     */
    static boost::shared_ptr<hier::BoxOverlap>
    doOverlap(
@@ -142,6 +151,8 @@ private:
     * Compute the overlap
     * between the source and destination objects, where the source
     * has outernode geometry and the destination outernode geometry.
+    *
+    * @pre src_mask.getDim() == transformation.getOffset().getDim()
     */
    static boost::shared_ptr<hier::BoxOverlap>
    doOverlap(
@@ -157,7 +168,7 @@ private:
    OuternodeGeometry(
       const OuternodeGeometry&);
    /*! Not implemented */
-   void
+   OuternodeGeometry&
    operator = (
       const OuternodeGeometry&);
 

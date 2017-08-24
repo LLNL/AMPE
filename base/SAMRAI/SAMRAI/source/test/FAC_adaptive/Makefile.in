@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for the FAC test directory 
 ##
 #########################################################################
@@ -14,6 +14,9 @@ SUBDIR        = source/test/FAC_adaptive
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
+TESTLIBDIR    = $(OBJECT)/source/test/testlib
+TESTLIB       = $(TESTLIBDIR)/libSAMRAI_test$(LIB_SUFFIX)
 
 default: check
 
@@ -21,14 +24,12 @@ include $(OBJECT)/config/Makefile.config
 
 CPPFLAGS_EXTRA= -DTESTING=1
 
-
 NUM_TESTS = 15
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 CXX_OBJS      = main.o AdaptivePoisson.o \
-	get-input-filename.o \
-	printObject.o \
 	patchFcns.o \
 	setArrayData.o \
 	SinusoidFcn.o \
@@ -40,9 +41,13 @@ CXX_OBJS      = main.o AdaptivePoisson.o \
 	PoissonMultigaussianSolution.o \
 	PoissonPolynomialSolution.o
 
-main:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS)	\
-	$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o main
+main:	$(CXX_OBJS) $(LIBSAMRAIDEPEND) $(TESTLIB)
+	(cd $(TESTLIBDIR) && $(MAKE) library) || exit 1 
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(TESTLIB)	\
+	$(LIBSAMRAI) $(LDLIBS) -o main
+
+# Prevents "No rule to make target" error.  Built in the rule for main.
+$(TESTLIB):
 
 check:
 	$(MAKE) check2d
@@ -50,32 +55,49 @@ check:
 
 check2d:	main
 	@for i in test_inputs/*.2d.input ; do	\
-	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-		./main $${i};	\
-	done
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"FAC_adaptive\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
 
 check3d:	main
 	@for i in test_inputs/*.3d.input ; do	\
-	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-		./main $${i};	\
-	done
+	  for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	    echo "    <testcase classname=\"FAC_adaptive\" name=$(QUOTE)$$i $$p procs$(QUOTE)>" >> $(REPORT); \
+	    $(OBJECT)/config/serpa-run $$p ./main $${i} | $(TEE) foo; \
+	    if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	    echo "    </testcase>" >> $(REPORT); \
+	  done \
+	done; \
+	$(RM) foo
 
 checkcompile: main
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
 examples:
 
-clean-check:
-	$(SAMCLEAN)
+perf:
 
-clean:
-	$(SAMCLEAN)
-	$(RM) *.f *main* 
-	$(RM) -rf *visit
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
 
 include $(SRCDIR)/Makefile.depend

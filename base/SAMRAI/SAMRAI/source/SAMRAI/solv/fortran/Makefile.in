@@ -3,15 +3,15 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for fortran files for solv directory 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/SAMRAI/solv/fortran
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 OBJECT        = ../../../..
 
 # For classes that are non-dimensional.
@@ -28,6 +28,6 @@ include $(OBJECT)/config/Makefile.config
 library: $(OBJS)
 
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
 
 include $(SRCDIR)/Makefile.depend

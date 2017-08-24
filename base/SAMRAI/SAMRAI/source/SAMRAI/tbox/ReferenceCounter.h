@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Reference counting class for Array
  *
  ************************************************************************/
@@ -30,7 +30,7 @@ namespace tbox {
  * object will cause my simple memory allocation mechanism to break in
  * horrible and disgusting ways.
  *
- * @see tbox::Array
+ * @see Array
  */
 
 class ReferenceCounter
@@ -97,7 +97,7 @@ public:
 private:
    ReferenceCounter(
       const ReferenceCounter&);                 // not implemented
-   void
+   ReferenceCounter&
    operator = (
       const ReferenceCounter&);                 // not implemented
 

@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_NodeOverlap_C
-#define included_pdat_NodeOverlap_C
-
 #include "SAMRAI/pdat/NodeOverlap.h"
 
 namespace SAMRAI {
@@ -19,7 +15,7 @@ namespace pdat {
 NodeOverlap::NodeOverlap(
    const hier::BoxContainer& boxes,
    const hier::Transformation& transformation):
-   d_is_overlap_empty(boxes.isEmpty()),
+   d_is_overlap_empty(boxes.empty()),
    d_transformation(transformation),
    d_dst_boxes(boxes)
 {
@@ -41,6 +37,23 @@ NodeOverlap::getDestinationBoxContainer() const
    return d_dst_boxes;
 }
 
+void
+NodeOverlap::getSourceBoxContainer(hier::BoxContainer& src_boxes) const
+{
+   TBOX_ASSERT(src_boxes.empty());
+
+   src_boxes = d_dst_boxes;
+   if (!src_boxes.empty()) {
+      const tbox::Dimension& dim = src_boxes.front().getDim();
+      for (hier::BoxContainer::iterator bi = src_boxes.begin();
+           bi != src_boxes.end(); ++bi) {
+         bi->setUpper(bi->upper() - hier::IntVector::getOne(dim));
+         d_transformation.inverseTransform(*bi);
+         bi->setUpper(bi->upper() + hier::IntVector::getOne(dim));
+      }
+   }
+}
+
 const hier::IntVector&
 NodeOverlap::getSourceOffset() const
 {
@@ -55,4 +68,3 @@ NodeOverlap::getTransformation() const
 
 }
 }
-#endif

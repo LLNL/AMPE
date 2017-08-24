@@ -44,7 +44,7 @@ PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
    const string& object_name,
    boost::shared_ptr< tbox::Database > input_bc_db,
    const int partition_coeff_id )
-   : xfer::RefinePatchStrategy(tbox::Dimension(NDIM)),
+   : xfer::RefinePatchStrategy(),
      d_object_name( object_name ),
      d_partition_coeff_id( partition_coeff_id )
 {

@@ -3,31 +3,88 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for fortran files for pdat directory 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/SAMRAI/pdat/fortran
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 OBJECT        = ../../../..
-
-# For classes that are non-dimensional.
-OBJS= 	 pdat_dbugfort1d.o pdat_dbugfort2d.o pdat_dbugfort3d.o\
-	pdat_concoarsen1d.o pdat_concoarsen3d.o pdat_conrefine2d.o\
-	pdat_concoarsen2d.o pdat_conrefine1d.o pdat_conrefine3d.o\
-	pdat_lintimint1d.o pdat_lintimint2d.o pdat_lintimint3d.o\
-
 
 default: library
 
 include $(OBJECT)/config/Makefile.config
 
+OBJS= 	pdat_concoarsen1d.o \
+	pdat_concoarsen2d.o \
+	pdat_concoarsen3d.o \
+	pdat_conrefine1d.o \
+	pdat_conrefine2d.o \
+	pdat_conrefine3d.o \
+	pdat_dbugfort1d.o \
+	pdat_dbugfort2d.o \
+	pdat_dbugfort3d.o \
+	pdat_lintimint1d.o \
+	pdat_lintimint2d.o \
+	pdat_lintimint3d.o
+
 library:	$(OBJS)
 
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
+	$(RM) *.f
 
 include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+pdat_concoarsen1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_concoarsen1d.m4 > pdat_concoarsen1d.f
+	$(F77) $(FFLAGS) -c pdat_concoarsen1d.f -o $@
+
+pdat_concoarsen2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_concoarsen2d.m4 > pdat_concoarsen2d.f
+	$(F77) $(FFLAGS) -c pdat_concoarsen2d.f -o $@
+
+pdat_concoarsen3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_concoarsen3d.m4 > pdat_concoarsen3d.f
+	$(F77) $(FFLAGS) -c pdat_concoarsen3d.f -o $@
+
+pdat_conrefine1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_conrefine1d.m4 > pdat_conrefine1d.f
+	$(F77) $(FFLAGS) -c pdat_conrefine1d.f -o $@
+
+pdat_conrefine2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_conrefine2d.m4 > pdat_conrefine2d.f
+	$(F77) $(FFLAGS) -c pdat_conrefine2d.f -o $@
+
+pdat_conrefine3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_conrefine3d.m4 > pdat_conrefine3d.f
+	$(F77) $(FFLAGS) -c pdat_conrefine3d.f -o $@
+
+pdat_dbugfort1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_dbugfort1d.m4 > pdat_dbugfort1d.f
+	$(F77) $(FFLAGS) -c pdat_dbugfort1d.f -o $@
+
+pdat_dbugfort2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_dbugfort2d.m4 > pdat_dbugfort2d.f
+	$(F77) $(FFLAGS) -c pdat_dbugfort2d.f -o $@
+
+pdat_dbugfort3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_dbugfort3d.m4 > pdat_dbugfort3d.f
+	$(F77) $(FFLAGS) -c pdat_dbugfort3d.f -o $@
+
+pdat_lintimint1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_lintimint1d.m4 > pdat_lintimint1d.f
+	$(F77) $(FFLAGS) -c pdat_lintimint1d.f -o $@
+
+pdat_lintimint2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_lintimint2d.m4 > pdat_lintimint2d.f
+	$(F77) $(FFLAGS) -c pdat_lintimint2d.f -o $@
+
+pdat_lintimint3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/pdat_lintimint3d.m4 > pdat_lintimint3d.f
+	$(F77) $(FFLAGS) -c pdat_lintimint3d.f -o $@

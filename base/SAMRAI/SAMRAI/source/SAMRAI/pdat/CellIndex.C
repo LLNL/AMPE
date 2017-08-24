@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_CellIndex_C
-#define included_pdat_CellIndex_C
-
 #include "SAMRAI/pdat/CellIndex.h"
 
 namespace SAMRAI {
@@ -38,4 +34,3 @@ CellIndex::~CellIndex()
 
 }
 }
-#endif

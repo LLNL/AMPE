@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for complex side-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchSideDataOpsComplex_C
-#define included_math_PatchSideDataOpsComplex_C
-
 #include "SAMRAI/math/PatchSideDataOpsComplex.h"
 #include "SAMRAI/pdat/SideGeometry.h"
 
@@ -42,11 +38,11 @@ PatchSideDataOpsComplex::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::SideData<dcomplex> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::SideData<dcomplex> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -65,7 +61,7 @@ PatchSideDataOpsComplex::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -80,11 +76,11 @@ PatchSideDataOpsComplex::copyData(
 {
    TBOX_ASSERT(dst && src);
    TBOX_ASSERT(dst->getDirectionVector() == src->getDirectionVector());
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
    const hier::IntVector& directions = dst->getDirectionVector();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       if (directions(d)) {
          dst->getArrayData(d).copy(src->getArrayData(d),
             pdat::SideGeometry::toSideBox(box, d));
@@ -94,4 +90,3 @@ PatchSideDataOpsComplex::copyData(
 
 }
 }
-#endif

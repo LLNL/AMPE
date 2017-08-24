@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Writes data files for visualization by VisIt
  *
  ************************************************************************/
@@ -28,13 +28,14 @@
 #include "SAMRAI/tbox/IOStream.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/HDFDatabase.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace appu {
@@ -99,7 +100,7 @@ namespace appu {
  *
  *    - Register hierarchy variable data fields using
  *      registerPlotQuantity(). The variables registered may be scalar,
- *      vector, or tensor (depth 1, DIM, and DIM*DIM, respectively)
+ *      vector, or tensor (depth 1, dim, and dim*dim, respectively)
  *      which is specified in the argument list.  All variables require a
  *      string identifier and an index into the patch data array on the
  *      AMR hierarchy. Optionally, a start depth index may be supplied
@@ -183,18 +184,22 @@ public:
     * registered.
     *
     * An error results and the program will halt if:
-    *   - the data is not 2D nor 3D, i.e. DIM != 2 and DIM != 3
+    *   - the data is not 2D nor 3D, i.e. dim != 2 and dim != 3
     *   - when assertion checking is active, the object name string is
     *     empty, or the number_procs_per_file is <= 0.
     *
     * @param dim
     * @param object_name String name for data writer object
     * @param dump_directory_name String name for dump directory, which
-    *   may include a path.
+    *    may include a path.
     * @param number_procs_per_file Optional integer number processors
-    *  (>= 1) to share a common dump file; default is 1.
+    *    (>= 1) to share a common dump file; default is 1.
     * @param is_multiblock Optional argument should be set to true only
-    *  only for problems on a multiblock domain.
+    *    only for problems on a multiblock domain.
+    *
+    * @pre !object_name.empty()
+    * @pre number_procs_per_file > 0
+    * @pre (dim.getValue() == 2) || (dim.getValue() == 3)
     */
    VisItDataWriter(
       const tbox::Dimension& dim,
@@ -223,13 +228,15 @@ public:
     *     pointer is null.
     *
     * @param default_derived_writer Pointer to a VisDerivedDataStrategy
-    *  object.
+    *    object.
+    *
+    * @pre default_derived_writer != 0
     */
    void
    setDefaultDerivedDataWriter(
       VisDerivedDataStrategy* default_derived_writer)
    {
-      TBOX_ASSERT(default_derived_writer != (VisDerivedDataStrategy *)NULL);
+      TBOX_ASSERT(default_derived_writer != 0);
       d_default_derived_writer = default_derived_writer;
    }
 
@@ -240,13 +247,16 @@ public:
     *   - assertion checking is active and the materials_data__writer
     *     pointer is null.
     *
-    * @param materials_data_writer Pointer to a VisMaterialsDataStrategy object.
+    * @param materials_data_writer Pointer to a VisMaterialsDataStrategy
+    *    object.
+    *
+    * @pre materials_data_writer != 0
     */
    void
    setMaterialsDataWriter(
       VisMaterialsDataStrategy* materials_data_writer)
    {
-      TBOX_ASSERT(materials_data_writer != (VisMaterialsDataStrategy *)NULL);
+      TBOX_ASSERT(materials_data_writer != 0);
       d_materials_writer = materials_data_writer;
    }
 
@@ -256,8 +266,8 @@ public:
     * Each plot quantity requires a variable name, which is what VisIt
     * will label the plotted quantity.  The variable type is a string
     * specifying either "SCALAR", "VECTOR", or "TENSOR".  By default, the
-    * dimension of a scalar variable is 1, vector is DIM, and tensor is
-    * DIM*DIM. The integer patch data array index and optional depth
+    * dimension of a scalar variable is 1, vector is dim, and tensor is
+    * dim*dim. The integer patch data array index and optional depth
     * index indicate where the data may be found on patches in the hierarchy.
     *
     * A number of optional parameters may be used to further specify
@@ -293,8 +303,12 @@ public:
     * @param variable_centering (optional) "CELL" or "NODE" - used
     *    only when data being registered is not standard cell or
     *    node type.
+    *
+    * @pre !variable_name.empty()
+    * @pre !variable_type.empty()
+    * @pre patch_data_index >= -1
+    * @pre start_depth_index >= 0
     */
-
    void
    registerPlotQuantity(
       const std::string& variable_name,
@@ -311,8 +325,8 @@ public:
     * Each derived variable requires a variable name, which is what VisIt
     * will label the plotted quantity.  The variable type is a string
     * specifying either "SCALAR", "VECTOR", or "TENSOR".  By default, the
-    * dimension of a scalar variable is 1, vector is DIM, and tensor is
-    * DIM*DIM.  The derived writer should implement methods defined in
+    * dimension of a scalar variable is 1, vector is dim, and tensor is
+    * dim*dim.  The derived writer should implement methods defined in
     * the derived data strategy which compute the derived data.
     *
     * Optional parameters may be used to further define characteristics
@@ -334,18 +348,23 @@ public:
     *    derived data object if not supplied
     * @param scale_factor (optional) scale factor with which to multiply
     *    all data values
-    * @param variable_centering (optional) centering of derived data - "CELL" or "NODE"
-    * @param variable_mix_type (optional) indicate whether or not the mixed material
-    *    state will be stored, "MIXED", or the default of using cell averages
-    *    "CLEAN". If "MIXED" then packMixedDerivedDataIntoDoubleBuffer() must
-    *    be provided.
+    * @param variable_centering (optional) centering of derived data - "CELL"
+    *    or "NODE"
+    * @param variable_mix_type (optional) indicate whether or not the mixed
+    *    material state will be stored, "MIXED", or the default of using cell
+    *    averages "CLEAN". If "MIXED" then
+    *    packMixedDerivedDataIntoDoubleBuffer() must be provided.
+    *
+    * @pre !variable_name.empty()
+    * @pre !variable_type.empty()
+    * @pre (variable_name != "Coords") ||
+    *      ((variable_type == "VECTOR") && (variable_centering == "NODE"))
     */
    void
    registerDerivedPlotQuantity(
       const std::string& variable_name,
       const std::string& variable_type,
-      VisDerivedDataStrategy* derived_writer =
-         (VisDerivedDataStrategy *)NULL,
+      VisDerivedDataStrategy* derived_writer = 0,
       const double scale_factor = 1.0,
       const std::string& variable_centering = "CELL",
       const std::string& variable_mix_type = "CLEAN");
@@ -381,7 +400,13 @@ public:
     * @param variable_name name of variable.
     * @param level_number level number on which data index is being reset.
     * @param patch_data_index new patch data array index.
-    * @param start_depth_index (optional) argument indicating the new depth index.
+    * @param start_depth_index (optional) argument indicating the new depth
+    *    index.
+    *
+    * @pre !variable_name.empty()
+    * @pre level_number >= 0
+    * @pre patch_data_index >= -1
+    * @pre start_depth_index >= 0
     */
    void
    resetLevelPlotQuantity(
@@ -394,13 +419,13 @@ public:
     * @brief This method is used to register node coordinates for
     * deformed structured AMR grids (moving grids).
     *
-    * The patch data index must correspond to an DIM dimensional vector
+    * The patch data index must correspond to an dim-dimensional vector
     * that defines the coordinate location ([X,Y] in 2D, [X,Y,Z] in 3D).
     * The data defining the node locations must be node centered.
     *
     * An error results and the program will halt if:
     *   - the patch data array index is invalid.
-    *   - the depth of the patch data index is less than DIM.
+    *   - the depth of the patch data index is less than dim.
     *
     * If the nodal coordinates are not in a NodeData object on the
     * hierarchy, you can use registerDerivedPlotQuantity() with the
@@ -410,6 +435,9 @@ public:
     * @param patch_data_index patch data index of the coordinate data.
     * @param start_depth_index (optional) start index for case where
     *    coordinate data is a subcomponent of a larger patch data vector
+    *
+    * @pre patch_data_index >= -1
+    * @pre start_depth_index >= 0
     */
    void
    registerNodeCoordinates(
@@ -436,6 +464,10 @@ public:
     *    coordinate data is a subcomponent of a larger patch data vector
     * @param scale_factor scale factor with which to multiply
     *    coordinate data values
+    *
+    * @pre (coordinate_number >= 0) && (coordinate_number < d_dim.getValue())
+    * @pre patch_data_index >= -1
+    * @pre depth_index >= 0
     */
    void
    registerSingleNodeCoordinate(
@@ -486,10 +518,14 @@ public:
     *     or any material name string is empty.
     *
     * @param material_names tbox::Array of strings: the names of the materials.
+    *
+    * @pre material_names.size() > 0
+    * @pre for each member of material_names, mn, !mn.empty()
+    * @pre d_materials_names.size() == 0
     */
    void
    registerMaterialNames(
-      const tbox::Array<std::string>& material_names);
+      const std::vector<std::string>& material_names);
 
    /*!
     * @brief This method registers with the VisIt data writer the
@@ -528,10 +564,14 @@ public:
     *     or any material name string is empty.
     *
     * @param material_names tbox::Array of strings: the names of the materials.
+    *
+    * @pre material_names.size() > 0
+    * @pre for each member of material_names, mn, !mn.empty()
+    * @pre d_materials_names.size() == 0
     */
    void
    registerSparseMaterialNames(
-      const tbox::Array<std::string>& material_names);
+      const std::vector<std::string>& material_names);
 
    /*!
     * @brief This method registers the names of the species for a
@@ -540,7 +580,7 @@ public:
     * Species are subcomponents of a material. For example, a simulation
     * with 4 materials (e.g. "copper", "gold", "liquid" and "gas") may have
     * one of the materials (e.g. "gas") that is composed of multiple
-    * species (e.g. "nitrogen" and helium"). Each species is associated
+    * species (e.g. "nitrogen" and "helium"). Each species is associated
     * with a particular material, so it is necessary that the
     * "registerMaterialNames()" method is called before this method.
     *
@@ -573,14 +613,18 @@ public:
     *     or any name string is empty.
     *
     * @param material_name String name of the material whose species
-    *  names are being registered.
+    *    names are being registered.
     * @param species_names tbox::Array of strings: the names of the species
-    *  for material_name.
+    *    for material_name.
+    *
+    * @pre !material_name.empty()
+    * @pre species_names.size() > 0
+    * @pre d_materials_names.size() > 0
     */
    void
    registerSpeciesNames(
       const std::string& material_name,
-      const tbox::Array<std::string>& species_names);
+      const std::vector<std::string>& species_names);
 
    /*!
     * @brief This method registers expressions that will be embedded in the
@@ -591,12 +635,11 @@ public:
     * (scalar, vector, tensor). For more information on defining VisIt
     * expressions see the VisItUsersManual.
     */
-
    void
    registerVisItExpressions(
-      const tbox::Array<std::string>& expression_keys,
-      const tbox::Array<std::string>& expressions,
-      const tbox::Array<std::string>& expression_types);
+      const std::vector<std::string>& expression_keys,
+      const std::vector<std::string>& expressions,
+      const std::vector<std::string>& expression_types);
 
    /*!
     * @brief This method causes the VisIt data writer to dump all
@@ -618,11 +661,15 @@ public:
     *     the time step is < 0, or the dump directory name string is empty,
     *
     * @param hierarchy A pointer to the patch hierarchy on which the data
-    *  to be plotted is defined.
+    *    to be plotted is defined.
     * @param time_step Non-negative integer value specifying the current
-    *  time step number.
+    *    time step number.
     * @param simulation_time Optional argument specifying the double
-    *  precision simulation time. Default is 0.0.
+    *    precision simulation time. Default is 0.0.
+    *
+    * @pre hierarchy
+    * @pre time_step_number >= 0
+    * @pre !d_top_level_directory_name.empty()
     */
    void
    writePlotData(
@@ -639,6 +686,8 @@ public:
     * so the actual name of the file will be "<filename>.samrai".  If no
     * alternative name is supplied, by default the summary file used is
     * "summary.samrai".
+    *
+    * @pre !filename.empty()
     */
    void
    setSummaryFilename(
@@ -749,8 +798,8 @@ private:
    /*
     * hier::Variable type:
     *   SCALAR - scalar plot variable (depth = 1)
-    *   VECTOR - vector plot variable (depth = DIM)
-    *   TENSOR - tensor plot variable (depth = DIM*DIM)
+    *   VECTOR - vector plot variable (depth = dim)
+    *   TENSOR - tensor plot variable (depth = dim*dim)
     */
    enum variable_type { VISIT_SCALAR = 0,
                         VISIT_VECTOR = 1,
@@ -861,18 +910,18 @@ private:
        */
       int d_depth;
       variable_data_type d_var_data_type;
-      tbox::Array<std::string> d_visit_var_name;
+      std::vector<std::string> d_visit_var_name;
       struct patchMinMaxStruct *
       d_master_min_max[VISIT_MAX_NUMBER_COMPONENTS];
-      tbox::Array<int> d_level_patch_data_index;
-      tbox::Array<double> d_coord_scale_factor;
+      std::vector<int> d_level_patch_data_index;
+      std::vector<double> d_coord_scale_factor;
 
       /*
        * Material information
        */
       bool d_isa_material;
       std::string d_material_name;
-      tbox::Array<std::string> d_species_names;
+      std::vector<std::string> d_species_names;
       VisMaterialsDataStrategy* d_materials_writer;
       /*
        * Species information
@@ -937,7 +986,8 @@ private:
       const boost::shared_ptr<tbox::Database>& processor_HDFGroup,
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       int coarsest_level,
-      int finest_level);
+      int finest_level,
+      double simulation_time);
 
    /*
     * Pack regular (i.e. NOT materials or species) and derived data into
@@ -948,7 +998,8 @@ private:
       const boost::shared_ptr<tbox::Database>& patch_HDFGroup,
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const int level_number,
-      hier::Patch& patch);
+      hier::Patch& patch,
+      double simulation_time);
 
    /*
     * Pack the materials data into the supplied database for output.
@@ -1043,7 +1094,7 @@ private:
       const int finest_plot_level);
 
    /*
-    * Pack DIM patch data into 1D double precision buffer,
+    * Pack dim patch data into 1D double precision buffer,
     * eliminating ghost data if necessary
     */
    void
@@ -1148,6 +1199,11 @@ private:
     */
    const tbox::Dimension d_dim;
 
+   /*!
+    * @brief Exclusive SAMRAI_MPI duplicated for this object.
+    */
+   tbox::SAMRAI_MPI d_mpi;
+
    /*
     * Name of this VisIt data writer object
     */
@@ -1162,7 +1218,7 @@ private:
     * tbox::Array of mesh-scaling ratios from each level to reference level
     * (i.e., coarsest level).
     */
-   tbox::Array<hier::IntVector> d_scaling_ratios;
+   std::vector<hier::IntVector> d_scaling_ratios;
 
    /*
     * Default data writer for user defined data.
@@ -1205,7 +1261,7 @@ private:
     */
    int d_number_file_clusters;
    int d_my_file_cluster_number;
-   tbox::Array<int> d_processor_in_file_cluster_number;
+   std::vector<int> d_processor_in_file_cluster_number;
    bool d_file_cluster_leader;
    int d_file_cluster_size;
    int d_my_rank_in_file_cluster;
@@ -1229,7 +1285,7 @@ private:
     */
    int d_number_visit_variables;
    int d_number_visit_variables_plus_depth;
-   tbox::Array<std::string> d_materials_names;
+   std::vector<std::string> d_materials_names;
    int d_number_species;
 
    /*
@@ -1256,9 +1312,9 @@ private:
     * brief Storage for strings defining VisIt expressions to be embedded in
     * the plot dump.
     */
-   tbox::Array<std::string> d_visit_expression_keys;
-   tbox::Array<std::string> d_visit_expressions;
-   tbox::Array<std::string> d_visit_expression_types;
+   std::vector<std::string> d_visit_expression_keys;
+   std::vector<std::string> d_visit_expressions;
+   std::vector<std::string> d_visit_expression_types;
 
    //! @brief Timer for writePlotData().
    static boost::shared_ptr<tbox::Timer> t_write_plot_data;
@@ -1272,7 +1328,7 @@ private:
    initializeCallback()
    {
       t_write_plot_data = tbox::TimerManager::getManager()->getTimer(
-         "appu:VisItDataWriter::writePlotData()");
+            "appu:VisItDataWriter::writePlotData()");
    }
 
    /*!

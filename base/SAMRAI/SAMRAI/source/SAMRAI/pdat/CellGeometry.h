@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -20,11 +20,13 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
+#include "boost/make_shared.hpp"
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
+
+class CellIterator;
 
 /*!
  * Class CellGeometry manages the mapping between the AMR index space
@@ -32,11 +34,11 @@ namespace pdat {
  * hier::BoxGeometry and it computes intersections between cell-
  * centered box geometries for communication operations.
  *
- * See header file for CellData<DIM> class for a more detailed
+ * See header file for CellData<TYPE> class for a more detailed
  * description of the data layout.
  *
  * @see hier::BoxGeometry
- * @see pdat::CellOverlap
+ * @see CellOverlap
  */
 
 class CellGeometry:public hier::BoxGeometry
@@ -72,9 +74,20 @@ public:
       CellIndex& index,
       const hier::Transformation& transformation);
 
+   static CellIterator
+   begin(
+      const hier::Box& box);
+
+   static CellIterator
+   end(
+      const hier::Box& box);
+
    /*!
     * @brief Construct the cell geometry object given an AMR index
     * space box and ghost cell width.
+    *
+    * @pre box.getDim()== ghosts.getDim()
+    * @pre ghosts.min() >= 0
     */
    CellGeometry(
       const hier::Box& box,
@@ -88,6 +101,8 @@ public:
    /*!
     * @brief Compute the overlap in cell-centered index space between
     * the source box geometry and the destination box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    virtual boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -104,6 +119,8 @@ public:
     * @brief Compute the cell-centered destination boxes that represent
     * the overlap between the source box geometry and the destination
     * box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    void
    computeDestinationBoxes(
@@ -181,7 +198,7 @@ private:
 
    CellGeometry(
       const CellGeometry&);             // not implemented
-   void
+   CellGeometry&
    operator = (
       const CellGeometry&);                     // not implemented
 

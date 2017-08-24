@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple integer id and namestring variable context
  *
  ************************************************************************/
@@ -46,7 +46,7 @@ namespace hier {
  *
  * \endverbatim
  *
- * @see hier::VariableDatabase
+ * @see VariableDatabase
  */
 
 class VariableContext
@@ -68,8 +68,7 @@ public:
     * The variable context constructor creates a context with the given
     * name and increments the context index counter.
     *
-    * When assertion checking is active, an unrecoverable assertion results
-    * when the name std::string is empty.
+    * @pre !name.empty()
     */
    explicit VariableContext(
       const std::string& name);
@@ -112,7 +111,7 @@ public:
 private:
    VariableContext(
       const VariableContext&);                // not implemented
-   void
+   VariableContext&
    operator = (
       const VariableContext&);                     // not implemented
 

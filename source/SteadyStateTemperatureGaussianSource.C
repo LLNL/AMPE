@@ -149,8 +149,7 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double* dx = patch_geom->getDx();
          const double* xlo = patch_geom->getXLower();
          const double* xhi = patch_geom->getXUpper();
@@ -160,9 +159,9 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > rhs (
-            patch->getPatchData( d_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_rhs_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cp (
-            patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
             
          FORT_INITGAUSSIAN_SOURCE(dx, xlo, xhi,
             ifirst(0), ilast(0), 

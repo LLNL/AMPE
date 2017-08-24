@@ -34,12 +34,12 @@
 #define included_EllipticFACSolver
 
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/solv/FACPreconditioner.h"
 #include "SAMRAI/solv/CartesianRobinBcHelper.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "EllipticFACOps.h"
+#include "FACPreconditioner.h"
 
 #include <boost/make_shared.hpp>
 using namespace SAMRAI;
@@ -158,7 +158,7 @@ public:
     */
    EllipticFACSolver(
       const std::string &object_name,
-      EllipticFACOps * fac_ops,
+      const boost::shared_ptr<EllipticFACOps> fac_ops,
       const boost::shared_ptr<tbox::Database>& database =
          boost::shared_ptr<tbox::Database>()
       );
@@ -589,12 +589,12 @@ protected:
     * @brief FAC operator implementation corresponding to cell-centered
     * Poisson discretization.
     */
-   EllipticFACOps * d_fac_ops;
+   boost::shared_ptr<EllipticFACOps> d_fac_ops;
 
    /*!
     * @brief FAC preconditioner algorithm.
     */
-   solv::FACPreconditioner d_fac_precond;
+   FACPreconditioner d_fac_precond;
 
    /*!
     * @brief Robin bc object in use.

@@ -97,8 +97,7 @@ void SpinodalCompositionRHSStrategy::computeFluxOnPatch(
    assert( d_eta_scratch_id>=0 );
 
    const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -106,29 +105,29 @@ void SpinodalCompositionRHSStrategy::computeFluxOnPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > conc (
-      patch.getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_scratch_id) ) );
    assert( conc );
 
    boost::shared_ptr< pdat::CellData<double> > conca (
-      patch.getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_scratch_id) ) );
    assert( conca );
 
    boost::shared_ptr< pdat::CellData<double> > concb (
-      patch.getPatchData( d_conc_b_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_b_scratch_id) ) );
    assert( concb );
 
    boost::shared_ptr< pdat::CellData<double> > eta (
-      patch.getPatchData( d_eta_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_eta_scratch_id) ) );
    assert( eta );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusion (
-      patch.getPatchData( d_diffusion_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_id) ) );
    assert( conc_diffusion );
    assert( conc_diffusion->getDepth()==(1) );
 
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
    assert( flux->getDepth()==1 );
 
@@ -202,13 +201,13 @@ void SpinodalCompositionRHSStrategy::setDiffusionForConc(
             *p;
       
          boost::shared_ptr< pdat::CellData<double> > conc (
-            patch->getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_scratch_id) ) );
          
          boost::shared_ptr< pdat::CellData<double> > temp (
-            patch->getPatchData( d_temperature_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_scratch_id) ) );
          
          boost::shared_ptr< pdat::SideData<double> > diffusion (
-            patch->getPatchData( d_diffusion_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_id) ) );
          
          setDiffusionCoeffForConcOnPatch(
             conc, temp,

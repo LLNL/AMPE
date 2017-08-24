@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   AMR communication tests for edge-centered patch data
  *
  ************************************************************************/
@@ -17,25 +17,22 @@
 
 #include "MultiblockTester.h"
 
+#include <vector>
+
 using namespace SAMRAI;
 
 EdgeMultiblockTest::EdgeMultiblockTest(
    const string& object_name,
    const tbox::Dimension& dim,
    boost::shared_ptr<tbox::Database> main_input_db,
-   bool do_refine,
-   bool do_coarsen,
    const string& refine_option):
    PatchMultiblockTestStrategy(dim),
    d_dim(dim)
 {
-   NULL_USE(do_refine);
-   NULL_USE(do_coarsen);
-#ifdef DEBUG_CHECK_ASSERTIONS
+
    TBOX_ASSERT(!object_name.empty());
    TBOX_ASSERT(main_input_db);
    TBOX_ASSERT(!refine_option.empty());
-#endif
 
    d_object_name = object_name;
 
@@ -71,9 +68,7 @@ EdgeMultiblockTest::~EdgeMultiblockTest()
 void EdgeMultiblockTest::readTestInput(
    boost::shared_ptr<tbox::Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(db);
-#endif
 
    /*
     * Base class reads variable parameters and boxes to refine.
@@ -86,17 +81,17 @@ void EdgeMultiblockTest::readTestInput(
 void EdgeMultiblockTest::registerVariables(
    MultiblockTester* commtest)
 {
-   TBOX_ASSERT(commtest != (MultiblockTester *)NULL);
+   TBOX_ASSERT(commtest != 0);
 
-   int nvars = d_variable_src_name.getSize();
+   int nvars = static_cast<int>(d_variable_src_name.size());
 
-   d_variables.resizeArray(nvars);
+   d_variables.resize(nvars);
 
-   for (int i = 0; i < nvars; i++) {
+   for (int i = 0; i < nvars; ++i) {
       d_variables[i].reset(
          new pdat::EdgeVariable<double>(d_dim,
-                                        d_variable_src_name[i],
-                                        d_variable_depth[i]));
+            d_variable_src_name[i],
+            d_variable_depth[i]));
 
       commtest->registerVariable(d_variables[i],
          d_variables[i],
@@ -123,11 +118,12 @@ void EdgeMultiblockTest::initializeDataOnPatch(
        || ((d_refine_option == "INTERIOR_FROM_COARSER_LEVEL")
            && (level_number < d_finest_level_number))) {
 
-      for (int i = 0; i < d_variables.getSize(); i++) {
+      for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
 
          boost::shared_ptr<pdat::EdgeData<double> > edge_data(
-            patch.getPatchData(d_variables[i], getDataContext()),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::EdgeData<double>, hier::PatchData>(
+               patch.getPatchData(d_variables[i], getDataContext())));
+         TBOX_ASSERT(edge_data);
 
          hier::Box dbox = edge_data->getGhostBox();
 
@@ -161,48 +157,46 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
 
    boost::shared_ptr<hier::PatchGeometry> pgeom(patch.getPatchGeometry());
 
-   const tbox::Array<hier::BoundaryBox> node_bdry =
+   const std::vector<hier::BoundaryBox>& node_bdry =
       pgeom->getCodimensionBoundaries(d_dim.getValue());
-   const int num_node_bdry_boxes = node_bdry.getSize();
+   const int num_node_bdry_boxes = static_cast<int>(node_bdry.size());
 
-   tbox::Array<hier::BoundaryBox> edge_bdry;
-   int num_edge_bdry_boxes = 0;
-   if (d_dim > tbox::Dimension(1)) {
-      edge_bdry = pgeom->getCodimensionBoundaries(d_dim.getValue() - 1);
-      num_edge_bdry_boxes = edge_bdry.getSize();
-   }
+   std::vector<hier::BoundaryBox> empty_vector(0, hier::BoundaryBox(d_dim));
+   const std::vector<hier::BoundaryBox>& edge_bdry =
+      d_dim > tbox::Dimension(1) ?
+      pgeom->getCodimensionBoundaries(d_dim.getValue() - 1) : empty_vector;
+   const int num_edge_bdry_boxes = static_cast<int>(edge_bdry.size());
 
-   tbox::Array<hier::BoundaryBox> face_bdry;
-   int num_face_bdry_boxes = 0;
-   if (d_dim == tbox::Dimension(3)) {
-      face_bdry = pgeom->getCodimensionBoundaries(d_dim.getValue() - 2);
-      num_face_bdry_boxes = face_bdry.getSize();
-   }
+   const std::vector<hier::BoundaryBox>& face_bdry =
+      d_dim == tbox::Dimension(3) ?
+      pgeom->getCodimensionBoundaries(d_dim.getValue() - 2) : empty_vector;
+   const int num_face_bdry_boxes = static_cast<int>(face_bdry.size());
 
-   for (int i = 0; i < d_variables.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
 
       boost::shared_ptr<pdat::EdgeData<double> > edge_data(
-         patch.getPatchData(d_variables[i], getDataContext()),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::EdgeData<double>, hier::PatchData>(
+            patch.getPatchData(d_variables[i], getDataContext())));
+      TBOX_ASSERT(edge_data);
 
       /*
        * Set node boundary data.
        */
-      for (int nb = 0; nb < num_node_bdry_boxes; nb++) {
+      for (int nb = 0; nb < num_node_bdry_boxes; ++nb) {
 
          hier::Box fill_box = pgeom->getBoundaryFillBox(node_bdry[nb],
                patch.getBox(),
                gcw_to_fill);
 
-         for (int axis = 0; axis < d_dim.getValue(); axis++) {
+         for (int axis = 0; axis < d_dim.getValue(); ++axis) {
             hier::Box patch_edge_box =
                pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
             if (!node_bdry[nb].getIsMultiblockSingularity()) {
-               pdat::EdgeIterator niend(fill_box, axis, false);
-               for (pdat::EdgeIterator ni(fill_box, axis, true);
+               pdat::EdgeIterator niend(pdat::EdgeGeometry::end(fill_box, axis));
+               for (pdat::EdgeIterator ni(pdat::EdgeGeometry::begin(fill_box, axis));
                     ni != niend; ++ni) {
                   if (!patch_edge_box.contains(*ni)) {
-                     for (int d = 0; d < edge_data->getDepth(); d++) {
+                     for (int d = 0; d < edge_data->getDepth(); ++d) {
                         (*edge_data)(*ni, d) =
                            (double)(node_bdry[nb].getLocationIndex() + 100);
                      }
@@ -216,25 +210,25 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
          /*
           * Set edge boundary data.
           */
-         for (int eb = 0; eb < num_edge_bdry_boxes; eb++) {
+         for (int eb = 0; eb < num_edge_bdry_boxes; ++eb) {
 
             hier::Box fill_box = pgeom->getBoundaryFillBox(edge_bdry[eb],
                   patch.getBox(),
                   gcw_to_fill);
 
-            for (int axis = 0; axis < d_dim.getValue(); axis++) {
+            for (int axis = 0; axis < d_dim.getValue(); ++axis) {
                hier::Box patch_edge_box =
                   pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
                hier::Index plower(patch_edge_box.lower());
                hier::Index pupper(patch_edge_box.upper());
 
                if (!edge_bdry[eb].getIsMultiblockSingularity()) {
-                  pdat::EdgeIterator niend(fill_box, axis, false);
-                  for (pdat::EdgeIterator ni(fill_box, axis, true);
+                  pdat::EdgeIterator niend(pdat::EdgeGeometry::end(fill_box, axis));
+                  for (pdat::EdgeIterator ni(pdat::EdgeGeometry::begin(fill_box, axis));
                        ni != niend; ++ni) {
                      if (!patch_edge_box.contains(*ni)) {
                         bool use_index = true;
-                        for (int n = 0; n < d_dim.getValue(); n++) {
+                        for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                            if (axis != n &&
                                edge_bdry[eb].getBox().numberCells(n) == 1) {
                               if ((*ni)(n) == plower(n) || (*ni)(n) ==
@@ -246,7 +240,7 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
                         }
 
                         if (use_index) {
-                           for (int d = 0; d < edge_data->getDepth(); d++) {
+                           for (int d = 0; d < edge_data->getDepth(); ++d) {
                               (*edge_data)(*ni, d) =
                                  (double)(edge_bdry[eb].getLocationIndex()
                                           + 100);
@@ -263,13 +257,13 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
          /*
           * Set face boundary data.
           */
-         for (int fb = 0; fb < num_face_bdry_boxes; fb++) {
+         for (int fb = 0; fb < num_face_bdry_boxes; ++fb) {
 
             hier::Box fill_box = pgeom->getBoundaryFillBox(face_bdry[fb],
                   patch.getBox(),
                   gcw_to_fill);
 
-            for (int axis = 0; axis < d_dim.getValue(); axis++) {
+            for (int axis = 0; axis < d_dim.getValue(); ++axis) {
                hier::Box patch_edge_box =
                   pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
 
@@ -277,12 +271,12 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
                hier::Index pupper(patch_edge_box.upper());
 
                if (!face_bdry[fb].getIsMultiblockSingularity()) {
-                  pdat::EdgeIterator niend(fill_box, axis, false);
-                  for (pdat::EdgeIterator ni(fill_box, axis, true);
+                  pdat::EdgeIterator niend(pdat::EdgeGeometry::end(fill_box, axis));
+                  for (pdat::EdgeIterator ni(pdat::EdgeGeometry::begin(fill_box, axis));
                        ni != niend; ++ni) {
                      if (!patch_edge_box.contains(*ni)) {
                         bool use_index = true;
-                        for (int n = 0; n < d_dim.getValue(); n++) {
+                        for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                            if (axis != n &&
                                face_bdry[fb].getBox().numberCells(n) == 1) {
                               if ((*ni)(n) == plower(n) || (*ni)(n) ==
@@ -311,42 +305,39 @@ void EdgeMultiblockTest::setPhysicalBoundaryConditions(
 void EdgeMultiblockTest::fillSingularityBoundaryConditions(
    hier::Patch& patch,
    const hier::PatchLevel& encon_level,
-   const hier::Connector& dst_to_encon,
+   boost::shared_ptr<const hier::Connector> dst_to_encon,
    const hier::Box& fill_box,
    const hier::BoundaryBox& bbox,
    const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry)
 {
    const tbox::Dimension& dim = fill_box.getDim();
 
-   const hier::BoxId& dst_mb_id = patch.getBox().getId();
+   const hier::BoxId& dst_mb_id = patch.getBox().getBoxId();
 
    const hier::BlockId& patch_blk_id = patch.getBox().getBlockId();
 
-   const std::list<hier::BaseGridGeometry::Neighbor>& neighbors =
-      grid_geometry->getNeighbors(patch_blk_id);
-
-   for (int i = 0; i < d_variables.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
 
       boost::shared_ptr<pdat::EdgeData<double> > edge_data(
-         patch.getPatchData(d_variables[i], getDataContext()),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::EdgeData<double>, hier::PatchData>(
+            patch.getPatchData(d_variables[i], getDataContext())));
+      TBOX_ASSERT(edge_data);
 
       hier::Box sing_fill_box(edge_data->getGhostBox() * fill_box);
 
       int depth = edge_data->getDepth();
 
-      for (int axis = 0; axis < d_dim.getValue(); axis++) {
-         hier::Box pbox =
-            pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
+      for (int axis = 0; axis < d_dim.getValue(); ++axis) {
+         hier::Box pbox = pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
 
          hier::Index plower(pbox.lower());
          hier::Index pupper(pbox.upper());
 
-         pdat::EdgeIterator niend(sing_fill_box, axis, false);
-         for (pdat::EdgeIterator ni(sing_fill_box, axis, true);
+         pdat::EdgeIterator niend(pdat::EdgeGeometry::end(sing_fill_box, axis));
+         for (pdat::EdgeIterator ni(pdat::EdgeGeometry::begin(sing_fill_box, axis));
               ni != niend; ++ni) {
             bool use_index = true;
-            for (int n = 0; n < d_dim.getValue(); n++) {
+            for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                if (axis != n && bbox.getBox().numberCells(n) == 1) {
                   if ((*ni)(n) == plower(n) || (*ni)(n) == pupper(n)) {
                      use_index = false;
@@ -355,7 +346,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                }
             }
             if (use_index) {
-               for (int d = 0; d < depth; d++) {
+               for (int d = 0; d < depth; ++d) {
                   (*edge_data)(*ni, d) = 0.0;
                }
             }
@@ -367,31 +358,27 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
       if (grid_geometry->hasEnhancedConnectivity()) {
 
          hier::Connector::ConstNeighborhoodIterator ni =
-            dst_to_encon.findLocal(dst_mb_id);
+            dst_to_encon->findLocal(dst_mb_id);
 
-         if (ni != dst_to_encon.end()) {
+         if (ni != dst_to_encon->end()) {
 
-            for (hier::Connector::ConstNeighborIterator ei = dst_to_encon.begin(ni);
-                 ei != dst_to_encon.end(ni); ++ei) {
+            for (hier::Connector::ConstNeighborIterator ei = dst_to_encon->begin(ni);
+                 ei != dst_to_encon->end(ni); ++ei) {
 
                const hier::BlockId& encon_blk_id = ei->getBlockId();
                boost::shared_ptr<hier::Patch> encon_patch(
-                  encon_level.getPatch(ei->getId()));
+                  encon_level.getPatch(ei->getBoxId()));
 
                hier::Transformation::RotationIdentifier rotation =
                   hier::Transformation::NO_ROTATE;
                hier::IntVector offset(dim);
 
-               for (std::list<hier::BaseGridGeometry::Neighbor>::const_iterator
-                    nbri(neighbors.begin()); nbri != neighbors.end(); nbri++) {
-                  if (nbri->getBlockId() == encon_blk_id) {
-                     rotation = nbri->getRotationIdentifier();
-                     offset = nbri->getShift();
-                     break;
-                  }
+               hier::BaseGridGeometry::ConstNeighborIterator itr =
+                  grid_geometry->find(patch_blk_id, encon_blk_id);
+               if (itr != grid_geometry->end(patch_blk_id)) {
+                  rotation = (*itr).getRotationIdentifier();
+                  offset = (*itr).getShift(encon_level.getLevelNumber());
                }
-
-               offset *= patch.getPatchGeometry()->getRatio();
 
                hier::Transformation transformation(rotation, offset,
                                                    encon_blk_id,
@@ -416,10 +403,12 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                                                   encon_blk_id);
 
                   boost::shared_ptr<pdat::EdgeData<double> > sing_data(
-                     encon_patch->getPatchData(d_variables[i], getDataContext()),
-                     boost::detail::dynamic_cast_tag());
+                     BOOST_CAST<pdat::EdgeData<double>, hier::PatchData>(
+                        encon_patch->getPatchData(
+                           d_variables[i], getDataContext())));
+                  TBOX_ASSERT(sing_data);
 
-                  for (int axis = 0; axis < d_dim.getValue(); axis++) {
+                  for (int axis = 0; axis < d_dim.getValue(); ++axis) {
 
                      hier::Box pbox(
                         pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis));
@@ -427,11 +416,11 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                      hier::Index plower(pbox.lower());
                      hier::Index pupper(pbox.upper());
 
-                     pdat::EdgeIterator ciend(sing_fill_box, axis, false);
-                     for (pdat::EdgeIterator ci(sing_fill_box, axis, true);
+                     pdat::EdgeIterator ciend(pdat::EdgeGeometry::end(sing_fill_box, axis));
+                     for (pdat::EdgeIterator ci(pdat::EdgeGeometry::begin(sing_fill_box, axis));
                           ci != ciend; ++ci) {
                         bool use_index = true;
-                        for (int n = 0; n < d_dim.getValue(); n++) {
+                        for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                            if (axis != n && bbox.getBox().numberCells(n) == 1) {
                               if ((*ci)(n) == plower(n) || (*ci)(n) == pupper(n)) {
                                  use_index = false;
@@ -444,7 +433,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                            pdat::EdgeIndex src_index(*ci);
                            pdat::EdgeGeometry::transform(src_index, back_trans);
 
-                           for (int d = 0; d < depth; d++) {
+                           for (int d = 0; d < depth; ++d) {
                               (*edge_data)(*ci, d) += (*sing_data)(src_index, d);
                            }
                         }
@@ -460,7 +449,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
 
       if (num_encon_used) {
 
-         for (int axis = 0; axis < d_dim.getValue(); axis++) {
+         for (int axis = 0; axis < d_dim.getValue(); ++axis) {
 
             hier::Box pbox =
                pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
@@ -468,11 +457,11 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
             hier::Index plower(pbox.lower());
             hier::Index pupper(pbox.upper());
 
-            pdat::EdgeIterator ciend(sing_fill_box, axis, false);
-            for (pdat::EdgeIterator ci(sing_fill_box, axis, true);
+            pdat::EdgeIterator ciend(pdat::EdgeGeometry::end(sing_fill_box, axis));
+            for (pdat::EdgeIterator ci(pdat::EdgeGeometry::begin(sing_fill_box, axis));
                  ci != ciend; ++ci) {
                bool use_index = true;
-               for (int n = 0; n < d_dim.getValue(); n++) {
+               for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                   if (axis != n && bbox.getBox().numberCells(n) == 1) {
                      if ((*ci)(n) == plower(n) || (*ci)(n) == pupper(n)) {
                         use_index = false;
@@ -481,7 +470,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                   }
                }
                if (use_index) {
-                  for (int d = 0; d < depth; d++) {
+                  for (int d = 0; d < depth; ++d) {
                      (*edge_data)(*ci, d) /= num_encon_used;
                   }
                }
@@ -495,7 +484,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
           * from which to acquire data.
           */
 
-         for (int axis = 0; axis < d_dim.getValue(); axis++) {
+         for (int axis = 0; axis < d_dim.getValue(); ++axis) {
 
             hier::Box pbox =
                pdat::EdgeGeometry::toEdgeBox(patch.getBox(), axis);
@@ -503,11 +492,11 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
             hier::Index plower(pbox.lower());
             hier::Index pupper(pbox.upper());
 
-            pdat::EdgeIterator ciend(sing_fill_box, axis, false);
-            for (pdat::EdgeIterator ci(sing_fill_box, axis, true);
+            pdat::EdgeIterator ciend(pdat::EdgeGeometry::end(sing_fill_box, axis));
+            for (pdat::EdgeIterator ci(pdat::EdgeGeometry::begin(sing_fill_box, axis));
                  ci != ciend; ++ci) {
                bool use_index = true;
-               for (int n = 0; n < d_dim.getValue(); n++) {
+               for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                   if (axis != n && bbox.getBox().numberCells(n) == 1) {
                      if ((*ci)(n) == plower(n) || (*ci)(n) == pupper(n)) {
                         use_index = false;
@@ -516,7 +505,7 @@ void EdgeMultiblockTest::fillSingularityBoundaryConditions(
                   }
                }
                if (use_index) {
-                  for (int d = 0; d < depth; d++) {
+                  for (int d = 0; d < depth; ++d) {
                      (*edge_data)(*ci, d) =
                         (double)bbox.getLocationIndex() + 200.0;
                   }
@@ -547,7 +536,7 @@ bool EdgeMultiblockTest::verifyResults(
    tbox::plog << "Patch box = " << patch.getBox() << endl;
 
    hier::IntVector tgcw(d_dim, 0);
-   for (int i = 0; i < d_variables.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
       tgcw.max(patch.getPatchData(d_variables[i], getDataContext())->
          getGhostCellWidth());
    }
@@ -559,10 +548,11 @@ bool EdgeMultiblockTest::verifyResults(
    hier::Box tbox(pbox);
    tbox.grow(tgcw);
 
-   const std::list<hier::BaseGridGeometry::Neighbor>& neighbors =
-      hierarchy->getGridGeometry()->getNeighbors(block_id);
+   boost::shared_ptr<hier::BaseGridGeometry> grid_geom(
+      hierarchy->getGridGeometry());
+
    hier::BoxContainer singularity(
-      hierarchy->getGridGeometry()->getSingularityBoxContainer(block_id));
+      grid_geom->getSingularityBoxContainer(block_id));
 
    hier::IntVector ratio =
       hierarchy->getPatchLevel(level_number)->getRatioToLevelZero();
@@ -571,23 +561,24 @@ bool EdgeMultiblockTest::verifyResults(
 
    bool test_failed = false;
 
-   for (int i = 0; i < d_variables.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
 
       double correct = (double)block_id.getBlockValue();
 
       boost::shared_ptr<pdat::EdgeData<double> > edge_data(
-         patch.getPatchData(d_variables[i], getDataContext()),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::EdgeData<double>, hier::PatchData>(
+            patch.getPatchData(d_variables[i], getDataContext())));
+      TBOX_ASSERT(edge_data);
       int depth = edge_data->getDepth();
 
       hier::Box interior_box(pbox);
       interior_box.grow(hier::IntVector(d_dim, -1));
 
-      for (int axis = 0; axis < d_dim.getValue(); axis++) {
-         pdat::EdgeIterator ciend(interior_box, axis, false);
-         for (pdat::EdgeIterator ci(interior_box, axis, true);
-             ci != ciend; ++ci) {
-            for (int d = 0; d < depth; d++) {
+      for (int axis = 0; axis < d_dim.getValue(); ++axis) {
+         pdat::EdgeIterator ciend(pdat::EdgeGeometry::end(interior_box, axis));
+         for (pdat::EdgeIterator ci(pdat::EdgeGeometry::begin(interior_box, axis));
+              ci != ciend; ++ci) {
+            for (int d = 0; d < depth; ++d) {
                double result = (*edge_data)(*ci, d);
 
                if (!tbox::MathUtilities<double>::equalEps(correct, result)) {
@@ -605,32 +596,34 @@ bool EdgeMultiblockTest::verifyResults(
 
       hier::Box gbox = edge_data->getGhostBox();
 
-      for (int axis = 0; axis < d_dim.getValue(); axis++) {
+      for (int axis = 0; axis < d_dim.getValue(); ++axis) {
          hier::Box patch_edge_box =
             pdat::EdgeGeometry::toEdgeBox(pbox, axis);
 
          hier::BoxContainer tested_neighbors;
 
          hier::BoxContainer sing_edge_boxlist;
-         for (hier::BoxContainer::iterator si(singularity);
+         for (hier::BoxContainer::iterator si = singularity.begin();
               si != singularity.end(); ++si) {
             sing_edge_boxlist.pushFront(
                pdat::EdgeGeometry::toEdgeBox(*si, axis));
          }
 
-         for (std::list<hier::BaseGridGeometry::Neighbor>::const_iterator
-              ne(neighbors.begin()); ne != neighbors.end(); ne++) {
+         for (hier::BaseGridGeometry::ConstNeighborIterator ne(
+                 grid_geom->begin(block_id));
+              ne != grid_geom->end(block_id); ++ne) {
 
-            if (ne->isSingularity()) {
+            const hier::BaseGridGeometry::Neighbor& nbr = *ne;
+            if (nbr.isSingularity()) {
                continue;
             }
 
-            correct = ne->getBlockId().getBlockValue();
+            correct = nbr.getBlockId().getBlockValue();
 
-            hier::BoxContainer neighbor_ghost(ne->getTransformedDomain());
+            hier::BoxContainer neighbor_ghost(nbr.getTransformedDomain());
 
             hier::BoxContainer neighbor_edge_ghost;
-            for (hier::BoxContainer::iterator nn(neighbor_ghost);
+            for (hier::BoxContainer::iterator nn = neighbor_ghost.begin();
                  nn != neighbor_ghost.end(); ++nn) {
                hier::Box neighbor_ghost_interior(
                   pdat::EdgeGeometry::toEdgeBox(*nn, axis));
@@ -646,16 +639,16 @@ bool EdgeMultiblockTest::verifyResults(
             neighbor_edge_ghost.removeIntersections(sing_edge_boxlist);
             neighbor_edge_ghost.removeIntersections(tested_neighbors);
 
-            for (hier::BoxContainer::iterator ng(neighbor_edge_ghost);
+            for (hier::BoxContainer::iterator ng = neighbor_edge_ghost.begin();
                  ng != neighbor_edge_ghost.end(); ++ng) {
 
-               hier::Box::iterator ciend(*ng, false);
-               for (hier::Box::iterator ci(*ng, true); ci != ciend; ++ci) {
+               hier::Box::iterator ciend(ng->end());
+               for (hier::Box::iterator ci(ng->begin()); ci != ciend; ++ci) {
                   pdat::EdgeIndex ei(*ci, 0, 0);
                   ei.setAxis(axis);
                   if (!patch_edge_box.contains(ei)) {
 
-                     for (int d = 0; d < depth; d++) {
+                     for (int d = 0; d < depth; ++d) {
                         double result = (*edge_data)(ei, d);
 
                         if (!tbox::MathUtilities<double>::equalEps(correct,
@@ -680,11 +673,11 @@ bool EdgeMultiblockTest::verifyResults(
 
       boost::shared_ptr<hier::PatchGeometry> pgeom(patch.getPatchGeometry());
 
-      for (int b = 0; b < d_dim.getValue(); b++) {
-         tbox::Array<hier::BoundaryBox> bdry =
+      for (int b = 0; b < d_dim.getValue(); ++b) {
+         const std::vector<hier::BoundaryBox>& bdry =
             pgeom->getCodimensionBoundaries(b + 1);
 
-         for (int k = 0; k < bdry.size(); k++) {
+         for (int k = 0; k < static_cast<int>(bdry.size()); ++k) {
             hier::Box fill_box = pgeom->getBoundaryFillBox(bdry[k],
                   patch.getBox(),
                   tgcw);
@@ -694,16 +687,18 @@ bool EdgeMultiblockTest::verifyResults(
                correct = 0.0;
 
                int num_sing_neighbors = 0;
-               for (std::list<hier::BaseGridGeometry::Neighbor>::const_iterator
-                    ns(neighbors.begin()); ns != neighbors.end(); ns++) {
-                  if (ns->isSingularity()) {
+               for (hier::BaseGridGeometry::ConstNeighborIterator ns(
+                       grid_geom->begin(block_id));
+                    ns != grid_geom->end(block_id); ++ns) {
+                  const hier::BaseGridGeometry::Neighbor& nbr = *ns;
+                  if (nbr.isSingularity()) {
                      hier::BoxContainer neighbor_ghost(
-                        ns->getTransformedDomain());
+                        nbr.getTransformedDomain());
                      neighbor_ghost.refine(ratio);
                      neighbor_ghost.intersectBoxes(fill_box);
                      if (neighbor_ghost.size()) {
-                        num_sing_neighbors++;
-                        correct += ns->getBlockId().getBlockValue();
+                        ++num_sing_neighbors;
+                        correct += nbr.getBlockId().getBlockValue();
                      }
                   }
                }
@@ -722,18 +717,18 @@ bool EdgeMultiblockTest::verifyResults(
                correct = (double)(bdry[k].getLocationIndex() + 100);
             }
 
-            for (int axis = 0; axis < d_dim.getValue(); axis++) {
+            for (int axis = 0; axis < d_dim.getValue(); ++axis) {
                hier::Box patch_edge_box =
                   pdat::EdgeGeometry::toEdgeBox(pbox, axis);
 
-               pdat::EdgeIterator ciend(fill_box, axis, false);
-               for (pdat::EdgeIterator ci(fill_box, axis, true);
+               pdat::EdgeIterator ciend(pdat::EdgeGeometry::end(fill_box, axis));
+               for (pdat::EdgeIterator ci(pdat::EdgeGeometry::begin(fill_box, axis));
                     ci != ciend; ++ci) {
 
                   if (!patch_edge_box.contains(*ci)) {
 
                      bool use_index = true;
-                     for (int n = 0; n < d_dim.getValue(); n++) {
+                     for (tbox::Dimension::dir_t n = 0; n < d_dim.getValue(); ++n) {
                         if (axis != n && bdry[k].getBox().numberCells(n) ==
                             1) {
                            if ((*ci)(n) == patch_edge_box.lower() (n) ||
@@ -745,7 +740,7 @@ bool EdgeMultiblockTest::verifyResults(
                      }
 
                      if (use_index) {
-                        for (int d = 0; d < depth; d++) {
+                        for (int d = 0; d < depth; ++d) {
                            double result = (*edge_data)(*ci, d);
 
                            if (!tbox::MathUtilities<double>::equalEps(correct,
@@ -790,15 +785,14 @@ void EdgeMultiblockTest::postprocessRefine(
    const hier::Box& fine_box,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(fine.getDim());
-
-   pdat::EdgeDoubleConstantRefine ref_op(dim);
+   pdat::EdgeDoubleConstantRefine ref_op;
 
    hier::BoxContainer fine_box_list(fine_box);
+   hier::BoxContainer empty_box_list;
 
    xfer::BoxGeometryVariableFillPattern fill_pattern;
 
-   for (int i = 0; i < d_variables.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(d_variables.size()); ++i) {
 
       int id = hier::VariableDatabase::getDatabase()->
          mapVariableAndContextToIndex(d_variables[i], context);
@@ -809,6 +803,7 @@ void EdgeMultiblockTest::postprocessRefine(
       boost::shared_ptr<hier::BoxOverlap> fine_overlap(
          fill_pattern.computeFillBoxesOverlap(
             fine_box_list,
+            empty_box_list,
             fine.getBox(),
             fine.getPatchData(id)->getGhostBox(),
             *fine_pdf));

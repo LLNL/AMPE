@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Gaussian function support for FAC solver tests.
  *
  ************************************************************************/
@@ -13,6 +13,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "SAMRAI/tbox/Utilities.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 #include <string>
 #include <string.h>
@@ -159,7 +160,7 @@ std::istream& operator >> (
          ci >> gf.d_center[dim];
          EAT_WS(ci) // ci >> std::noskipws; // ci.ipfx(0);
       } else {
-         abort();
+         tbox::SAMRAI_MPI::abort();
       }
    }
    return ci;

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -23,23 +23,23 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * Class SideVariable<DIM> is a templated variable class used to define
+ * Class SideVariable<TYPE> is a templated variable class used to define
  * side-centered quantities on an AMR mesh.   It is a subclass of
  * hier::Variable and is templated on the type of the underlying data
- * (e.g., double, int, bool, etc.).  See header file for SideData<DIM> class
+ * (e.g., double, int, bool, etc.).  See header file for SideData<TYPE> class
  * for a more detailed description of the data layout.
  *
  * Note that it is possible to create a side data object for managing
  * data at cell sides associated with a single coordinate direction only.
  * See the constructor for more information.
  *
- * IMPORTANT: The class FaceVariable<DIM> and associated "face data" classes
+ * IMPORTANT: The class FaceVariable<TPYE> and associated "face data" classes
  * define the same storage as this side variable class, except that the
  * individual array indices are permuted in the face data type.
  *
- * @see pdat::SideData
- * @see pdat::SideDataFactory
- * @see pdat::SideGeometry
+ * @see SideData
+ * @see SideDataFactory
+ * @see SideGeometry
  * @see hier::Variable
  */
 
@@ -50,24 +50,33 @@ public:
    /*!
     * @brief Create an side-centered variable object with the given name and
     * depth (i.e., number of data values at each edge index location).
+    *
     * A default depth of one is provided.   The fine boundary representation
     * boolean argument indicates which values (either coarse or fine) take
     * precedence at coarse-fine mesh boundaries during coarsen and refine
     * operations.  The default is that fine data values take precedence
     * on coarse-fine interfaces.
+    */
+   SideVariable(
+      const tbox::Dimension& dim,
+      const std::string& name,
+      const hier::IntVector& directions,
+      int depth = 1,
+      bool fine_boundary_represents_var = true);
+
+   /*!
+    * @brief Constructor that will assume a directions vector of 1 in
+    * all coordinate directions.
     *
-    * The default data allocation scheme is that side data will
-    * be allocated for all side normal coordinate directions.  If this is
-    * desired, then the direction argument may be omitted.   If an integer
-    * direction argument is specified, the only data for the given
-    * side normal direction will be maintained and managed for this variable.
+    * Constructs a SideVariable the same as the first constructor, except
+    * there is no directions argument, meaning that data is expected to
+    * exist on the sides in all coordinate directions.
     */
    SideVariable(
       const tbox::Dimension& dim,
       const std::string& name,
       int depth = 1,
-      bool fine_boundary_represents_var = true,
-      int direction = -1);
+      bool fine_boundary_represents_var = true);
 
    /*!
     * @brief Virtual destructor for side variable objects.
@@ -112,20 +121,17 @@ public:
    getDepth() const;
 
 private:
-   /*
-    * Static integer constant describing the value indicating that all
-    * directions are relevent.
-    */
-   static const int ALL_DIRECTIONS;
-
    bool d_fine_boundary_represents_var;
    hier::IntVector d_directions;
 
+   // Unimplemented copy constructor
    SideVariable(
-      const SideVariable<TYPE>&);            // not implemented
-   void
+      const SideVariable&);
+
+   // Unimplemented assignment operator
+   SideVariable&
    operator = (
-      const SideVariable<TYPE>&);               // not implemented
+      const SideVariable&);
 
 };
 

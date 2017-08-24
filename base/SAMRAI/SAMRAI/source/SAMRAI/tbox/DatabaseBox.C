@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A box structure representing a portion of the AMR index space
  *
  ************************************************************************/
@@ -13,42 +13,31 @@
 namespace SAMRAI {
 namespace tbox {
 
-DatabaseBox::DatabaseBox():
-   d_dim(Dimension::getInvalidDimension())
+DatabaseBox::DatabaseBox()
 {
    d_data.d_dimension = 0;
-   d_data.d_lo[0] = d_data.d_hi[0] = 0;
-   d_data.d_lo[1] = d_data.d_hi[1] = 0;
-   d_data.d_lo[2] = d_data.d_hi[2] = 0;
+   for (int i = 0; i < MAX_DIM_VAL; ++i) {
+      d_data.d_lo[i] = d_data.d_hi[i] = 0;
+   }
 }
 
 DatabaseBox::DatabaseBox(
-   const DatabaseBox& box):
-   d_dim(box.d_dim)
+   const DatabaseBox& box)
 {
-   d_data.d_dimension = box.d_data.d_dimension;
-   d_data.d_lo[0] = box.d_data.d_lo[0];
-   d_data.d_lo[1] = box.d_data.d_lo[1];
-   d_data.d_lo[2] = box.d_data.d_lo[2];
-   d_data.d_hi[0] = box.d_data.d_hi[0];
-   d_data.d_hi[1] = box.d_data.d_hi[1];
-   d_data.d_hi[2] = box.d_data.d_hi[2];
+   d_data = box.d_data;
 }
 
 DatabaseBox::DatabaseBox(
    const Dimension& dim,
    const int* lower,
-   const int* upper):
-   d_dim(dim)
+   const int* upper)
 {
-   TBOX_ASSERT(dim.getValue() <= DatabaseBox_MAX_DIM);
-
    d_data.d_dimension = dim.getValue();
    for (int i = 0; i < d_data.d_dimension; i++) {
       d_data.d_lo[i] = lower[i];
       d_data.d_hi[i] = upper[i];
    }
-   for (int j = d_data.d_dimension; j < DatabaseBox_MAX_DIM; j++) {
+   for (int j = d_data.d_dimension; j < SAMRAI::MAX_DIM_VAL; j++) {
       d_data.d_lo[j] = 0;
       d_data.d_hi[j] = 0;
    }
@@ -62,14 +51,7 @@ DatabaseBox&
 DatabaseBox::operator = (
    const DatabaseBox& box)
 {
-   d_dim = box.d_dim;
-   d_data.d_dimension = box.d_data.d_dimension;
-   d_data.d_lo[0] = box.d_data.d_lo[0];
-   d_data.d_lo[1] = box.d_data.d_lo[1];
-   d_data.d_lo[2] = box.d_data.d_lo[2];
-   d_data.d_hi[0] = box.d_data.d_hi[0];
-   d_data.d_hi[1] = box.d_data.d_hi[1];
-   d_data.d_hi[2] = box.d_data.d_hi[2];
+   d_data = box.d_data;
    return *this;
 }
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   SparseDataVariable
  *
  ************************************************************************/
@@ -85,11 +85,11 @@ private:
     * compiler from generating a default.
     */
    SparseDataVariable(
-      const SparseDataVariable<BOX_GEOMETRY>& rhs);
+      const SparseDataVariable& rhs);
 
-   SparseDataVariable<BOX_GEOMETRY>&
+   SparseDataVariable&
    operator = (
-      const SparseDataVariable<BOX_GEOMETRY>& rhs);
+      const SparseDataVariable& rhs);
 
 }; // end class SparseDataVariable.
 

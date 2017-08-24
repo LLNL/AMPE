@@ -1,13 +1,20 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for flux computation in 2d.
+c
 define(NDIM,2)dnl
 define(NEQU,1)dnl
 define(REAL,`double precision')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim2d.i)dnl
 include(FORTDIR/m4flux2d.i)dnl
 
       subroutine fluxcorrec(dt,
      &  ifirst0,ilast0,ifirst1,ilast1,
      &  dx,
-     &  advecspeed,uval,
+     &  advecspeed,
      &  flux0,flux1,
      &  trlft0,trlft1,
      &  trrgt0,trrgt1)
@@ -27,7 +34,6 @@ c
 c variables in 2d cell indexed         
       REAL
      &     advecspeed(0:NDIM-1),
-     &     uval(CELL2d(ifirst,ilast,CELLG)),
      &     flux0(FACE2d0(ifirst,ilast,FLUXG)),
      &     flux1(FACE2d1(ifirst,ilast,FLUXG)), 
      &     trlft0(FACE2d0(ifirst,ilast,FACEG)),
@@ -75,7 +81,6 @@ c***********************************************************************
       subroutine fluxcalculation2d(dt,extra_cell,visco,dx,
      &  ifirst0,ilast0,ifirst1,ilast1,
      &  advecspeed,
-     &  uval,
      &  flux0,flux1,
      &  trlft0,trlft1,trrgt0,trrgt1)
 c***********************************************************************
@@ -91,7 +96,6 @@ c input arrays:
 c variables in 2d cell indexed         
       REAL
      &     advecspeed(0:NDIM-1),
-     &     uval(CELL2d(ifirst,ilast,CELLG)),
 c variables in 2d side indexed         
      &     flux0(FACE2d0(ifirst,ilast,FLUXG)),
      &     flux1(FACE2d1(ifirst,ilast,FLUXG)), 
@@ -137,7 +141,7 @@ c***********************************************************************
      &  ifirst0,ilast0,ifirst1,ilast1,
      &  dx,
      &  flux0,flux1,
-     &  advecspeed,uval)
+     &  advecspeed,src,uval)
 c***********************************************************************
       implicit none
 include(FORTDIR/const.i)dnl
@@ -148,7 +152,7 @@ c***********************************************************************
       REAL
      &     flux0(FACE2d0(ifirst,ilast,FLUXG)),
      &     flux1(FACE2d1(ifirst,ilast,FLUXG)),
-     &     advecspeed(0:NDIM-1),
+     &     advecspeed(0:NDIM-1),src,
      &     uval(CELL2d(ifirst,ilast,CELLG))
 c
       integer ic0,ic1
@@ -164,7 +168,7 @@ c     write(6,*) "flux0"
 c     do  ic1=ifirst1,ilast1
 c       do  ic0=ifirst0,ilast0+1
 c         write(6,*) "ic0,flux0= ",ic0,ic1,
-c    &			flux0(ic0,ic1,1),flux0(ic0,ic1,2),
+c    &                  flux0(ic0,ic1,1),flux0(ic0,ic1,2),
 c    &                  flux0(ic0,ic1,3),flux0(ic0,ic1,4)
 c         call flush(6)
 c       enddo
@@ -173,7 +177,7 @@ c     write(6,*) "flux1"
 c     do  ic1=ifirst1,ilast1
 c       do  ic0=ifirst0,ilast0+1
 c         write(6,*) "ic0,flux1= ",ic0,ic1,
-c    &			flux1(ic0,ic1,1),flux1(ic0,ic1,2),
+c    &                  flux1(ic0,ic1,1),flux1(ic0,ic1,2),
 c    &                  flux1(ic0,ic1,3),flux1(ic0,ic1,4)
 c         call flush(6)
 c       enddo
@@ -190,7 +194,7 @@ c     enddo
 c***********************************************************************
       do ic1=ifirst1,ilast1
         do ic0=ifirst0,ilast0
-          uval(ic0,ic1) = uval(ic0,ic1)
+          uval(ic0,ic1) = uval(ic0,ic1) +src
      &          -(flux0(ic0+1,ic1)-flux0(ic0,ic1))/dx(0)
      &          -(flux1(ic1+1,ic0)-flux1(ic1,ic0))/dx(1)
         enddo

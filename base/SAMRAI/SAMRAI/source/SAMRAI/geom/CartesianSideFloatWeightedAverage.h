@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Weighted averaging operator for side-centered float data on
  *                a Cartesian mesh.
  *
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -41,8 +41,7 @@ public:
    /**
     * Uninteresting default constructor.
     */
-   explicit CartesianSideFloatWeightedAverage(
-      const tbox::Dimension& dim);
+   CartesianSideFloatWeightedAverage();
 
    /**
     * Uninteresting virtual destructor.
@@ -61,7 +60,8 @@ public:
     * zeros.  That is, its stencil does not extend outside the fine box.
     */
    hier::IntVector
-   getStencilWidth() const;
+   getStencilWidth(
+      const tbox::Dimension& dim) const;
 
    /**
     * Coarsen the source component on the fine patch to the destination
@@ -70,6 +70,15 @@ public:
     * the destination patch and the coarse box.  It is assumed that the
     * fine patch contains sufficient data for the stencil width of the
     * coarsening operator.
+    *
+    * @pre (fine.getDim() == coarse.getDim()) &&
+    *      (fine.getDim() == coarse_box.getDim()) &&
+    *      (fine.getDim() == ratio.getDim())
+    * @pre fine.getPatchData(src_component) is actually a boost::shared_ptr<pdat::SideData<float> >
+    * @pre coarse.getPatchData(dst_component) is actually a boost::shared_ptr<pdat::SideData<float> >
+    * @pre fine.getPatchData(src_component)->getDepth() == coarse.getPatchData(dst_component)->getDepth()
+    * @pre (fine.getDim().getValue() == 1) ||
+    *      (fine.getDim().getValue() == 2) || (fine.getDim().getValue() == 3)
     */
    void
    coarsen(

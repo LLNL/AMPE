@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for Hypre Poisson example
  *
  ************************************************************************/
@@ -14,6 +14,7 @@ using namespace std;
 
 #include "SAMRAI/mesh/BergerRigoutsos.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/tbox/InputDatabase.h"
@@ -30,7 +31,7 @@ using namespace std;
 
 #include "HyprePoisson.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -165,12 +166,32 @@ int main(
        * process that includes making the initial guess, specifying the
        * boundary conditions and call the solver.
        */
+
+      std::string hypre_poisson_name = base_name + "::HyprePoisson";
+      std::string hypre_solver_name = hypre_poisson_name + "::poisson_hypre";
+      std::string bc_coefs_name = hypre_poisson_name + "::bc_coefs";
+
+      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_solver(
+         new solv::CellPoissonHypreSolver(
+            dim,
+            hypre_poisson_name,
+            input_db->isDatabase("hypre_solver") ?
+            input_db->getDatabase("hypre_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::LocationIndexRobinBcCoefs> bc_coefs(
+         new solv::LocationIndexRobinBcCoefs(
+            dim,
+            bc_coefs_name,
+            input_db->isDatabase("bc_coefs") ?
+            input_db->getDatabase("bc_coefs") :
+            boost::shared_ptr<tbox::Database>()));
+
       HyprePoisson hypre_poisson(
-         base_name + "::HyprePoisson",
+         hypre_poisson_name,
          dim,
-         input_db->isDatabase("HyprePoisson") ?
-         input_db->getDatabase("HyprePoisson") :
-         boost::shared_ptr<tbox::Database>());
+         hypre_solver,
+         bc_coefs);
 
       /*
        * Create the tag-and-initializer, box-generator and load-balancer
@@ -178,7 +199,6 @@ int main(
        */
       boost::shared_ptr<mesh::StandardTagAndInitialize> tag_and_initializer(
          new mesh::StandardTagAndInitialize(
-            dim,
             "CellTaggingMethod",
             &hypre_poisson,
             input_db->getDatabase("StandardTagAndInitialize")));
@@ -219,25 +239,14 @@ int main(
        * function setupExternalPlotter to register its data
        * with the plotter.
        */
-      tbox::Array<string> vis_writer(1);
-      vis_writer[0] = "Visit";
-      if (main_db->keyExists("vis_writer")) {
-         vis_writer = main_db->getStringArray("vis_writer");
-      }
-      bool use_visit = false;
-      for (int i = 0; i < vis_writer.getSize(); i++) {
-         if (vis_writer[i] == "VisIt") use_visit = true;
-      }
+#ifdef HAVE_HDF5
       string vis_filename =
          main_db->getStringWithDefault("vis_filename", base_name);
-#ifdef HAVE_HDF5
-      boost::shared_ptr<appu::VisItDataWriter> visit_writer;
-      if (use_visit) {
-         visit_writer.reset(new appu::VisItDataWriter(dim,
-               "Visit Writer",
-               vis_filename + ".visit"));
-         hypre_poisson.registerVariablesWithPlotter(*visit_writer);
-      }
+      boost::shared_ptr<appu::VisItDataWriter> visit_writer(
+         boost::make_shared<appu::VisItDataWriter>(dim,
+                                                   "VisIt Writer",
+                                                   vis_filename + ".visit"));
+      hypre_poisson.registerVariablesWithPlotter(*visit_writer);
 #endif
 
       /*
@@ -259,9 +268,7 @@ int main(
        * Plot.
        */
 #ifdef HAVE_HDF5
-      if (use_visit) {
-         visit_writer->writePlotData(patch_hierarchy, 0);
-      }
+      visit_writer->writePlotData(patch_hierarchy, 0);
 #endif
 
       /*

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated operations for real face-centered patch data.
  *
  ************************************************************************/
@@ -37,31 +37,6 @@ PatchFaceDataOpsReal<TYPE>::~PatchFaceDataOpsReal()
 /*
  *************************************************************************
  *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchFaceDataOpsReal<TYPE>::PatchFaceDataOpsReal(
-   const PatchFaceDataOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchFaceDataOpsReal<TYPE>::operator = (
-   const PatchFaceDataOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-/*
- *************************************************************************
- *
  * General templated operations for real face-centered patch data.
  *
  *************************************************************************
@@ -77,11 +52,11 @@ PatchFaceDataOpsReal<TYPE>::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::FaceData<TYPE> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<TYPE>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::FaceData<TYPE> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::FaceData<TYPE>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -100,7 +75,7 @@ PatchFaceDataOpsReal<TYPE>::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -115,11 +90,11 @@ PatchFaceDataOpsReal<TYPE>::copyData(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
-   int dimVal = dst->getDim().getValue();
+   tbox::Dimension::dir_t dimVal = dst->getDim().getValue();
 
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       const hier::Box face_box = pdat::FaceGeometry::toFaceBox(box, d);
       (dst->getArrayData(d)).copy(src->getArrayData(d), face_box);
    }
@@ -133,7 +108,7 @@ PatchFaceDataOpsReal<TYPE>::setToScalar(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*dst, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*dst, box);
 
    dst->fillAll(alpha, box);
 }

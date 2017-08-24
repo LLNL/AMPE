@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Robin boundary condition problem-dependent interfaces
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Timer.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -100,6 +100,13 @@ public:
     *        the coefficient data is needed.
     * @param fill_time solution time corresponding to filling, for use
     *        when coefficients are time-dependent.
+    *
+    * @pre (d_dim == variable->getDim()) && (d_dim == patch.getDim()) &&
+    *      (d_dim == bdry_box.getDim())
+    * @pre !acoef_data || (d_dim == acoef_data->getDim())
+    * @pre !bcoef_data || (d_dim == bcoef_data->getDim())
+    * @pre !gcoef_data || (d_dim == gcoef_data->getDim())
+    * @pre !gcoef_data || (d_ghost_data_id != -1)
     */
    void
    setBcCoefs(
@@ -124,11 +131,13 @@ public:
     * @param ghost_data_id patch data index of ghost data
     * @param extensions_fillable the number of extensions past
     *        edge of a patch that has valid ghost cell values.
+    *
+    * @pre d_dim == extensions_fillable.getDim()
     */
    void
    setGhostDataId(
       int ghost_data_id,
-      hier::IntVector extensions_fillable // Default v2.x.x = hier::IntVector::getZero(tbox::Dimension(DIM)) );
+      hier::IntVector extensions_fillable // Default v2.x.x = zero );
       );
 
    /*!
@@ -160,6 +169,9 @@ private:
     * @param boundary_box input boundary box
     * @return a box to define the face indices corresponding to
     *    boundary_box
+    *
+    * @pre d_dim == boundary_box.getDim()
+    * @pre boundary_box.getBoundaryType() == 1
     */
    hier::Box
    makeSideBoundaryBox(

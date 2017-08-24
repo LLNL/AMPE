@@ -1,6 +1,13 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for trace in 3d.
+c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 include(FORTDIR/m4trace3d.i)dnl
 
       subroutine inittraceflux3d(
@@ -82,7 +89,6 @@ c
      &  mc,
      &  dx,
      &  advecspeed,igdnv,
-     &  uval,
      &  tracelft,tracergt,
      &  ttcelslp,ttedgslp,
      &  ttraclft,ttracrgt)
@@ -97,9 +103,8 @@ c input arrays:
 c variables in 1d axis indexed
       REAL 
      &     dx,advecspeed
-c variables in 2d axis indexed         
+c variables in 2d axis indexed
       REAL
-     &     uval(CELL3d(ifirst,ilast,CELLG)),
      &     tracelft(FACE3d0(ifirst,ilast,FACEG)),
      &     tracergt(FACE3d0(ifirst,ilast,FACEG))
 c  side variables ifirst0 to ifirst0+mc plus ghost cells
@@ -128,7 +133,6 @@ c***********************************************************************
      &  mc,
      &  dx,
      &  advecspeed,igdnv,
-     &  uval,
      &  tracelft,tracergt,
      &  ttcelslp,ttedgslp,
      &  ttraclft,ttracrgt)
@@ -143,9 +147,8 @@ c input arrays:
 c variables in 1d axis indexed
       REAL 
      &     dx,advecspeed
-c variables in 2d axis indexed         
+c variables in 2d axis indexed
       REAL
-     &     uval(CELL3d(ifirst,ilast,CELLG)),
      &     tracelft(FACE3d1(ifirst,ilast,FACEG)),
      &     tracergt(FACE3d1(ifirst,ilast,FACEG))
       REAL
@@ -174,7 +177,6 @@ c***********************************************************************
      &  mc,
      &  dx,
      &  advecspeed,igdnv,
-     &  uval,
      &  tracelft,tracergt,
      &  ttcelslp,ttedgslp,
      &  ttraclft,ttracrgt)
@@ -189,9 +191,8 @@ c input arrays:
 c variables in 1d axis indexed
       REAL 
      &     dx,advecspeed
-c variables in 2d axis indexed         
+c variables in 2d axis indexed
       REAL
-     &     uval(CELL3d(ifirst,ilast,CELLG)),
      &     tracelft(FACE3d2(ifirst,ilast,FACEG)),
      &     tracergt(FACE3d2(ifirst,ilast,FACEG))
       REAL

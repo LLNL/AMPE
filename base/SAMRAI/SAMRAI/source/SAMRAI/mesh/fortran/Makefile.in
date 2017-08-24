@@ -3,29 +3,43 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for fortran files for mesh directory 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/SAMRAI/mesh/fortran
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 OBJECT        = ../../../..
-
-# For classes that are non-dimensional.
-OBJS= 	 mesh_coarsentags1d.o mesh_coarsentags2d.o\
-	mesh_coarsentags3d.o\
-
 
 default: library
 
 include $(OBJECT)/config/Makefile.config
 
-library: $(OBJS)
+OBJS= 	mesh_coarsentags1d.o \
+	mesh_coarsentags2d.o \
+	mesh_coarsentags3d.o
+
+library:	$(OBJS)
 
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
+	$(RM) *.f
 
 include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+mesh_coarsentags1d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/mesh_coarsentags1d.m4 > mesh_coarsentags1d.f
+	$(F77) $(FFLAGS) -c mesh_coarsentags1d.f -o $@
+
+mesh_coarsentags2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/mesh_coarsentags2d.m4 > mesh_coarsentags2d.f
+	$(F77) $(FFLAGS) -c mesh_coarsentags2d.f -o $@
+
+mesh_coarsentags3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/mesh_coarsentags3d.m4 > mesh_coarsentags3d.f
+	$(F77) $(FFLAGS) -c mesh_coarsentags3d.f -o $@

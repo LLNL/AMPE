@@ -3,92 +3,92 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Input file for hypre test.
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Input file for hypre unit test.
  *
  ************************************************************************/
 
 Main {
+  // Dimension of problem.
   dim = 2
+
+  // Base name for log and visualization files.
   base_name = "default2"
+
+  // If TRUE each process writes a log file.  Otherwise only process 0 does.
   log_all_nodes = FALSE
-  // Visualization writers to write files for.
-  vis_writer = "VisIt"
+
+  // The name of the visualization file generated if supplied.  Otherwise
+  // visualization file name is derived from base_name.
+  // vis_filename = "default2d"
 }
 
-HyprePoisson {
-  CellPoissonHypreSolver {
-    use_smg = TRUE	// Whether to use HYPRE's SMG instead of PFMG.
-    print_solver_info = TRUE
-    max_iterations = 20             // Max iterations used by Hypre
-    relative_residual_tol = 1.0e-8  // Residual tolerance used by Hypre
-    num_pre_relax_steps = 1         // # of presmoothing steps used by Hypre
-    num_post_relax_steps = 1        // # of postsmoothing steps used by Hypre
-  }
-  bc_coefs {
-    // These are the boundary condition specifications.  The number
-    // after "boundary_" is the location index of the boundary.
-    // The inputs are arrays of strings where the first string
-    // indicates the type of values you want to set.  "slope" means
-    // boundary slope, "value" means boundary value, and "coefficients"
-    // mean the raw Robin boundary condition coefficients.
-    // The remaining strings are converted into numbers as
-    // appropriate for what boundary condition you specified with
-    // the first string.  Other boundary conditions are possible.
-    // see the solv_RobinBcCoefStrategy class.
-    // Examples:
-    boundary_0 = "value", "0"
-    boundary_1 = "coefficients", "1", "0"
-    boundary_2 = "value", "0"
-    boundary_3 = "value", "0"
-  }
-
+// Refer to solv::CellPoissonHypreSolver for input.
+hypre_solver {
+  print_solver_info = TRUE
+  max_iterations = 20             // Max iterations used by Hypre
+  relative_residual_tol = 1.0e-8  // Residual tolerance used by Hypre
 }
 
+// Refer to solv::LocationIndexRobinBcCoefs for input.
+bc_coefs {
+  // These are the boundary condition specifications.  The number
+  // after "boundary_" is the location index of the boundary.
+  // The inputs are arrays of strings where the first string
+  // indicates the type of values you want to set.  "slope" means
+  // boundary slope, "value" means boundary value, and "coefficients"
+  // mean the raw Robin boundary condition coefficients.
+  // The remaining strings are converted into numbers as
+  // appropriate for what boundary condition you specified with
+  // the first string.  Other boundary conditions are possible.
+  // see the solv_RobinBcCoefStrategy class.
+  // Examples:
+  boundary_0 = "value", "0"
+  boundary_1 = "coefficients", "1", "0"
+  boundary_2 = "value", "0"
+  boundary_3 = "value", "0"
+}
+
+// Refer to mesh::CartesianGridGeometry and its base classes for input.
 CartesianGeometry {
   domain_boxes = [(0,0), (31,31)]
   x_lo         = 0, 0
   x_up         = 1, 1
 }
 
+// Refer to mesh::StandardTagAndInitialize for input.
 StandardTagAndInitialize {
   // Use default settings for this example.
 }
 
+// Refer to mesh::BergerRigoutsos for input.
 BergerRigoutsos {
-  log_node_history = FALSE
-  log_cluster_summary = TRUE
-  log_cluster = FALSE
-    // algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
-  algo_advance_mode = "ADVANCE_SOME"
-  // algo_advance_mode = "SYNCHRONOUS"
-  // owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
-  // owner_mode = "FEWEST_OWNED"
-  owner_mode = "MOST_OVERLAP"
-  // owner_mode = "SINGLE_OWNER"
-  use_level_boxes = FALSE
-  use_private_communicator = TRUE
-  sequentialize_output_indices = TRUE
+  DEV_log_node_history = FALSE
+  DEV_log_cluster_summary = TRUE
+  DEV_log_cluster = FALSE
+  // DEV_algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
+  DEV_algo_advance_mode = "ADVANCE_SOME"
+  // DEV_algo_advance_mode = "SYNCHRONOUS"
+  // DEV_owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
+  // DEV_owner_mode = "FEWEST_OWNED"
+  DEV_owner_mode = "MOST_OVERLAP"
+  // DEV_owner_mode = "SINGLE_OWNER"
   max_box_size = 40, 40
-  barrier_before_cluster = FALSE
+  efficiency_tolerance = 0.70
+  combine_efficiency = 0.95
 }
 
-LoadBalancer{
-  // Use default settings for this example.
-}
-
+// Refer to mesh::TreeLoadBalancer for input.
 TreeLoadBalancer {
-  report_load_balance = TRUE
-  barrier_before = FALSE
-  barrier_after = FALSE
-  n_root_cycles = 2
-  interlace_groups = FALSE
+  DEV_report_load_balance = TRUE
+  DEV_barrier_before = FALSE
+  DEV_barrier_after = FALSE
 }
 
+// Refer to hier::PatchHierarchy for input.
 PatchHierarchy {
    max_levels = 1
    proper_nesting_buffer = 2, 2, 2, 2, 2, 2
-   // load_balance = FALSE
    largest_patch_size {
       // level_0 = 8, 8
       level_0 = -1, -1
@@ -113,24 +113,11 @@ PatchHierarchy {
    allow_patches_smaller_than_ghostwidth = TRUE
 }
 
+// Refer to mesh::GriddingAlgorithm for input.
 GriddingAlgorithm {
    enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = FALSE
-   // load_balance = FALSE
-   efficiency_tolerance = 0.70
-   combine_efficiency = 0.95
-   // write_regrid_boxes = TRUE
-   // read_regrid_boxes = TRUE
-   // regrid_boxes_filename = "grid"
+   DEV_extend_to_domain_boundary = FALSE
+   // DEV_load_balance = FALSE
    check_nonrefined_tags = "IGNORE"
-   extend_tags_to_bdry = TRUE
    sequentialize_patch_indices = TRUE
-   barrier_before_regrid = TRUE
-   barrier_before_find_refinement = TRUE
-   barrier_before_cluster = TRUE
-   barrier_before_nest = TRUE
-   barrier_before_limit = TRUE
-   barrier_before_extend = TRUE
-   barrier_before_balance = TRUE
-   barrier_after_find_refinement = TRUE
 }

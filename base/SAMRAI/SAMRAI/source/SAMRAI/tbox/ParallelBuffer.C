@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Parallel I/O class buffer to manage parallel ostreams output
  *
  ************************************************************************/
@@ -42,11 +42,12 @@ ParallelBuffer::ParallelBuffer()
 {
    d_active = true;
    d_prefix = std::string();
-   d_ostream1 = NULL;
-   d_ostream2 = NULL;
-   d_buffer = NULL;
+   d_ostream1 = 0;
+   d_ostream2 = 0;
+   d_buffer = 0;
    d_buffer_size = 0;
    d_buffer_ptr = 0;
+   TBOX_omp_init_lock(&l_buffer);
 }
 
 /*
@@ -63,6 +64,7 @@ ParallelBuffer::~ParallelBuffer()
    if (d_buffer) {
       delete[] d_buffer;
    }
+   TBOX_omp_destroy_lock(&l_buffer);
 }
 
 /*
@@ -78,13 +80,15 @@ void
 ParallelBuffer::setActive(
    bool active)
 {
+   TBOX_omp_set_lock(&l_buffer);
    if (!active && d_buffer) {
       delete[] d_buffer;
-      d_buffer = NULL;
+      d_buffer = 0;
       d_buffer_size = 0;
       d_buffer_ptr = 0;
    }
    d_active = active;
+   TBOX_omp_unset_lock(&l_buffer);
 }
 
 /*
@@ -104,6 +108,7 @@ ParallelBuffer::outputString(
 {
    if ((length > 0) && d_active) {
 
+      TBOX_omp_set_lock(&l_buffer);
       /*
        * If we need to allocate the internal buffer, then do so
        */
@@ -127,7 +132,7 @@ ParallelBuffer::outputString(
        */
 
       int eol_ptr = 0;
-      for ( ; (eol_ptr < length) && (text[eol_ptr] != '\n'); eol_ptr++)
+      for ( ; (eol_ptr < length) && (text[eol_ptr] != '\n'); ++eol_ptr)
          NULL_STATEMENT;
 
       /*
@@ -149,6 +154,8 @@ ParallelBuffer::outputString(
             outputString(text.substr(ncopy), length - ncopy);
          }
       }
+
+      TBOX_omp_unset_lock(&l_buffer);
    }
 }
 
@@ -158,6 +165,10 @@ ParallelBuffer::outputString(
  * Copy data from the text string into the internal output buffer.
  * If the internal buffer is not large enough to hold all of the string
  * data, then allocate a new internal buffer.
+ *
+ * This method is not thread-safe, but it is only called from
+ * outputString(), which prevents multiple thread access to the
+ * buffer.
  *
  *************************************************************************
  */

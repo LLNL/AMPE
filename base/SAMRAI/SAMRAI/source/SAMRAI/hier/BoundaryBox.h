@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Box representing a portion of the AMR index space
  *
  ************************************************************************/
@@ -31,9 +31,9 @@ namespace hier {
  * See the getBoundaryType() and getLocationIndex() methods for more
  * information.
  *
- * @see hier::Box
- * @see hier::PatchGeometry
- * @see hier::BoundaryLookupTable
+ * @see Box
+ * @see PatchGeometry
+ * @see BoundaryLookupTable
  */
 
 class BoundaryBox
@@ -60,6 +60,10 @@ public:
     * @param[in] box
     * @param[in] bdry_type
     * @param[in] location_index
+    *
+    * @pre (bdry_type >= 1) && (bdry_type <= d_dim.getValue())
+    * @pre location_index >= 0
+    * @pre location_index < BoundaryLookupTable::getLookupTable(box.getDim())->getMaxLocationIndices()[bdry_type - 1]
     */
    BoundaryBox(
       const Box& box,
@@ -127,7 +131,7 @@ public:
     * The location index is an integer which indicates the location of the
     * the boundary box in relation to the location of the associated patch.
     * The conventions for the location index depend on the dimension of
-    * the problem and the boundary type (codimentsion) of the BoundaryBox.
+    * the problem and the boundary type (codimension) of the BoundaryBox.
     *
     * \verbatim
     * Conventions:
@@ -267,6 +271,8 @@ public:
     * @return BoundaryOrientation value LOWER, MIDDLE, or UPPER
     *
     * @param[in] dir Coordinate direction on which to query
+    *
+    * @pre dir < getDim().getValue()
     */
    BoundaryOrientation
    getBoundaryOrientation(

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Algorithms for working with overlap Connectors.
  *
  ************************************************************************/
@@ -12,8 +12,10 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/hier/BaseConnectorAlgorithm.h"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 #include <map>
+#include <set>
 
 namespace SAMRAI {
 namespace hier {
@@ -31,7 +33,7 @@ namespace hier {
  * OverlapConnectorAlgorithm objects create, check and operate on overlap
  * Connectors.
  */
-class OverlapConnectorAlgorithm : public BaseConnectorAlgorithm
+class OverlapConnectorAlgorithm:public BaseConnectorAlgorithm
 {
 
 public:
@@ -44,6 +46,67 @@ public:
     * @brief Destructor.
     */
    virtual ~OverlapConnectorAlgorithm();
+
+   /*!
+    * @brief Read extra debugging flag from input database.
+    */
+   void
+   getFromInput();
+
+   /*!
+    * @brief Create overlap Connector then discover and add overlaps from base
+    * to head to it.
+    *
+    * The Connector's neighbor information is modified.
+    *
+    * If the Connector's head is not GLOBALIZED, a copy is made and
+    * globalized.  Once a globalized head is obtained, this method
+    * simply calls findOverlaps(const BoxLevel &globalized_head).
+    *
+    * @param[in,out] connector
+    * @param[in] base_box_level
+    * @param[in] head_box_level
+    * @param[in] base_width
+    * @param[in] parallel_state
+    * @param[in] ignore_self_overlap
+    */
+   void
+   findOverlaps(
+      boost::shared_ptr<Connector>& connector,
+      const BoxLevel& base_box_level,
+      const BoxLevel& head_box_level,
+      const IntVector& base_width,
+      const BoxLevel::ParallelState parallel_state = BoxLevel::DISTRIBUTED,
+      const bool ignore_self_overlap = false) const;
+
+   /*!
+    * @brief Create overlap Connector with its transpose then discover and add
+    * overlaps from base to head to it and overlaps from head to base to
+    * transpose.
+    *
+    * The Connector's neighbor information is modified.
+    *
+    * If the Connector's head is not GLOBALIZED, a copy is made and
+    * globalized.  Once a globalized head is obtained, this method
+    * simply calls findOverlaps(const BoxLevel &globalized_head).
+    *
+    * @param[in,out] connector
+    * @param[in] base_box_level
+    * @param[in] head_box_level
+    * @param[in] base_width
+    * @param[in] transpose_base_width
+    * @param[in] parallel_state
+    * @param[in] ignore_self_overlap
+    */
+   void
+   findOverlapsWithTranspose(
+      boost::shared_ptr<Connector>& connector,
+      const BoxLevel& base_box_level,
+      const BoxLevel& head_box_level,
+      const IntVector& base_width,
+      const IntVector& transpose_base_width,
+      const BoxLevel::ParallelState parallel_state = BoxLevel::DISTRIBUTED,
+      const bool ignore_self_overlap = false) const;
 
    /*!
     * @brief Discover and add overlaps from base to head for an
@@ -82,6 +145,16 @@ public:
       const BoxLevel& globalized_head,
       const bool ignore_self_overlap = false) const;
 
+   /*
+    * @brief Populate overlap relationships for the given Connector by
+    * using the assumed partition algorithm to find overlaps.
+    *
+    * For the assumed partition algorithm, see Allison Baker's paper.
+    */
+   void
+   findOverlaps_assumedPartition(
+      Connector& connector) const;
+
    /*!
     * @brief For a given Connector, get the subset of overlapping neighbors
     * defined by the given Connector width.
@@ -96,15 +169,20 @@ public:
     *
     * @param[out] neighbors
     * @param[in] connector
-    * @param[in] mapped_box_id
-    * @param[in] connector_width
+    * @param[in] box_id
+    * @param[in] width
+    *
+    * @pre width <= connector.getConnectorWidth()
+    * @pre (connector.getParallelState() == BoxLevel::GLOBALIZED) ||
+    *      (box_id.getOwnerRank() == connector.getMPI().getRank())
+    * @pre connector.getBase().hasBox(box_id)
     */
    void
    extractNeighbors(
       Connector::NeighborSet& neighbors,
       const Connector& connector,
-      const BoxId& mapped_box_id,
-      const IntVector& connector_width) const;
+      const BoxId& box_id,
+      const IntVector& width) const;
 
    /*!
     * @brief Like extractNeighbors above except that it computes all
@@ -112,13 +190,20 @@ public:
     *
     * @param[out] other
     * @param[in] connector
-    * @param[in] connector_width
+    * @param[in] width
+    *
+    * @pre width <= connector.getConnectorWidth()
+    * @pre for the box_id of each neighborhood base box in connector,
+    *      (connector.getParallelState() == BoxLevel::GLOBALIZED) ||
+    *      (box_id.getOwnerRank() == connector.getMPI().getRank())
+    * @pre for the box_id of each neighborhood base box in connector,
+    *      connector.getBase().hasBox(box_id)
     */
    void
    extractNeighbors(
       Connector& other,
       const Connector& connector,
-      const IntVector& connector_width) const;
+      const IntVector& width) const;
 
    /*!
     * @brief Compute the overlap Connectors between BoxLevels
@@ -158,21 +243,17 @@ public:
     * refer to the west, and two refer to the east.  The center, east
     * and west BoxLevels must be the same regardless of what
     * Connector is used to get them.  For example, <tt>
-    * &center_to_west.getHead() == &west_to_center.getBase() </tt> must
+    * &west_to_center.getTranspose().getHead() == &west_to_center.getBase() </tt> must
     * be true.
-    *
-    * - @c west_to_center and @c center_to_west must be mutual transposes.
-    *
-    * - @c east_to_center and @c center_to_east must be mutual transposes.
     *
     * Postconditions:
     *
     * @li @c west and @c east, as referenced by the output Connectors
-    * are heads of @c center_to_west and @c center_to_east.
+    * are heads of west_to_center's transpose and @c center_to_east.
     *
     * @li Widths of the output Connectors will be either @c
     * center_to_east's width reduced by @c center_growth_to_nest_west
-    * or @c center_to_west's width reduced by @c
+    * or west_to_center's transpose's width reduced by @c
     * center_growth_to_nest_east, which ever is greater.  Output
     * Connector widths are still limited by the @c
     * connector_width_limit argument.  All comparisons are done after
@@ -186,7 +267,7 @@ public:
     *
     * @li The bridge operation works in the degenerate case where @c
     * east and @c west are the same object.  In that case, @c
-    * west_to_east and @c east_to_west should also be the same object.
+    * west_to_east and its transpose should also be the same object.
     *
     * @li Bridging finds as many overlaps as it can, given the inputs,
     * but can only guarantee that the output Connectors are complete
@@ -210,11 +291,8 @@ public:
     * using BoxLevelConnectorUtils.
     *
     * @param[out] west_to_east
-    * @param[out] east_to_west
     * @param[in] west_to_center
     * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in] center_to_west
     *
     * @param center_growth_to_nest_west The amount by which the center
     * BoxLevel must grow to nest the west BoxLevel.
@@ -226,29 +304,33 @@ public:
     * @param center_growth_to_nest_east The amount by which the center
     * BoxLevel must grow to nest the east BoxLevel.
     * Bridging guarantees completeness if the width of @b
-    * center_to_west exceeds this amount.  If unknown, set to negative
-    * value if unknown so it won't be considered when computing the
+    * west_to_center's transpose exceeds this amount.  If unknown, set to
+    * negative value if unknown so it won't be considered when computing the
     * output Connector widths.
     *
     * @param connector_width_limit specifies the maximum Connector
     * width to compute overlaps for.  The connector_width should be in
     * the coarser of the east and west indices.  If
     * connector_width_limit is negative, use the default
-    * connector_width, which is the larger of the center_to_west and
-    * center_to_east Connectors', coarsened into the coarser of east
+    * connector_width, which is the larger of the west_to_center's transpose
+    * and center_to_east Connectors', coarsened into the coarser of east
     * and west indices.
+    *
+    * @param compute_transpose true if west_to_east's transpose should be
+    * computed
+    *
+    * @pre west_to_cent.hasTranspose()
+    * @pre cent_to_east.hasTranspose()
     */
    void
    bridgeWithNesting(
-      Connector& west_to_east,
-      Connector& east_to_west,
+      boost::shared_ptr<Connector>& west_to_east,
       const Connector& west_to_center,
       const Connector& center_to_east,
-      const Connector& east_to_center,
-      const Connector& center_to_west,
       const IntVector& center_growth_to_nest_west,
       const IntVector& center_growth_to_nest_east,
-      const IntVector& connector_width_limit) const;
+      const IntVector& connector_width_limit,
+      bool compute_transpose) const;
 
    /*!
     * @brief A version of bridge without any guarantee of nesting.
@@ -262,115 +344,91 @@ public:
     * index space, of course).
     *
     * @param[out] west_to_east
-    * @param[out] east_to_west
     * @param[in] west_to_center
     * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in] center_to_west
     * @param[in] connector_width_limit
+    * @param compute_transpose true if west_to_east's transpose should be
+    * computed
     *
-    * @see bridgeWithNesting( Connector& west_to_east, Connector& east_to_west, const Connector& west_to_center, const Connector& center_to_east, const Connector& east_to_center, const Connector& center_to_west, const IntVector& center_growth_to_nest_west, const IntVector& center_growth_to_nest_east, const IntVector& connector_width_limit) const;
+    * @pre west_to_cent.hasTranspose()
+    * @pre cent_to_east.hasTranspose()
+    *
+    * @see bridgeWithNesting( Connector& west_to_east, const Connector& west_to_center, const Connector& center_to_east, const IntVector& center_growth_to_nest_west, const IntVector& center_growth_to_nest_east, const IntVector& connector_width_limit, bool compute_transpose) const;
     */
    void
    bridge(
-      Connector& west_to_east,
-      Connector& east_to_west,
+      boost::shared_ptr<Connector>& west_to_east,
       const Connector& west_to_center,
       const Connector& center_to_east,
-      const Connector& east_to_center,
-      const Connector& center_to_west,
-      const IntVector& connector_width_limit) const;
+      const IntVector& connector_width_limit,
+      bool compute_transpose) const;
 
    /*!
-    * @brief A version of bridge without computing the reverse bridge.
+    * @brief A version of bridge without limiting the connector_width of the
+    * result.
     *
     * @param[out] west_to_east
     * @param[in] west_to_center
     * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in] center_to_west
-    * @param[in] connector_width_limit
+    * @param compute_transpose true if west_to_east's transpose should be
+    * computed
     *
-    * @see bridge( Connector& west_to_east, Connector& east_to_west, const Connector& west_to_center, const Connector& center_to_east, const Connector& east_to_center, const Connector& center_to_west, const IntVector& connector_width_limit) const;
+    * @pre west_to_cent.hasTranspose()
+    * @pre cent_to_east.hasTranspose()
+    *
+    * @see bridge( Connector& west_to_east, const Connector& west_to_center, const Connector& center_to_east, const IntVector& connector_width_limit, bool compute_transpose) const;
     */
    void
    bridge(
-      Connector& west_to_east,
+      boost::shared_ptr<Connector>& west_to_east,
       const Connector& west_to_center,
       const Connector& center_to_east,
-      const Connector& east_to_center,
-      const Connector& center_to_west,
-      const IntVector& connector_width_limit) const;
-
-   /*!
-    * @brief A version of bridge without limiting the connector_width of the result.
-    *
-    * @param[out] west_to_east
-    * @param[out] east_to_west
-    * @param[in] west_to_center
-    * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in] center_to_west
-    *
-    * @see bridge( Connector& west_to_east, Connector& east_to_west, const Connector& west_to_center, const Connector& center_to_east, const Connector& east_to_center, const Connector& center_to_west, const IntVector& connector_width_limit) const;
-    */
-   void
-   bridge(
-      Connector& west_to_east,
-      Connector& east_to_west,
-      const Connector& west_to_center,
-      const Connector& center_to_east,
-      const Connector& east_to_center,
-      const Connector& center_to_west) const;
-
-   /*!
-    * @brief A version of bridge without computing the reverse bridge
-    * and without limiting the connector_width of the result.
-    *
-    * @param[out] west_to_east
-    * @param[in] west_to_center
-    * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in] center_to_west
-    *
-    * @see bridge( Connector& west_to_east, Connector& east_to_west, const Connector& west_to_center, const Connector& center_to_east, const Connector& east_to_center, const Connector& center_to_west, const IntVector& connector_width_limit) const;
-    */
-   void
-   bridge(
-      Connector& west_to_east,
-      const Connector& west_to_center,
-      const Connector& center_to_east,
-      const Connector& east_to_center,
-      const Connector& center_to_west) const;
+      bool compute_transpose) const;
 
    /*!
     * @brief A version of bridge without any guarantee of nesting in which
-    * one pair of input connectors is modified to form the resulting bridge
-    * connectors.
+    * an input connector and its transpose are modified to form the resulting
+    * bridge connectors.
     *
     * The east and west BoxLevels are assumed
     * to nest in the center BoxLevel.  If they do not,
     * the results are not guaranteed to be complete.
     *
     * The output Connector widths are the greater of the widths of @c
-    * center_to_east and @c center_to_west (converted into the proper
+    * center_to_east and west_to_center's transpose (converted into the proper
     * index space, of course).
     *
     * @param[in,out] west_to_center
     * @param[in] center_to_east
-    * @param[in] east_to_center
-    * @param[in,out] center_to_west
     * @param[in] connector_width_limit
     *
-    * @see bridgeWithNesting( Connector& west_to_east, Connector& east_to_west, const Connector& west_to_center, const Connector& center_to_east, const Connector& east_to_center, const Connector& center_to_west, const IntVector& center_growth_to_nest_west, const IntVector& center_growth_to_nest_east, const IntVector& connector_width_limit) const;
+    * @pre west_to_cent.hasTranspose()
+    * @pre cent_to_east.hasTranspose()
+    *
+    * @see bridgeWithNesting( Connector& west_to_east, const Connector& west_to_center, const Connector& center_to_east, const IntVector& center_growth_to_nest_west, const IntVector& center_growth_to_nest_east, const IntVector& connector_width_limit, bool compute_transpose) const;
     */
    void
    bridge(
       Connector& west_to_center,
       const Connector& center_to_east,
-      const Connector& east_to_center,
-      Connector& center_to_west,
       const IntVector& connector_width_limit) const;
+
+   /*!
+    * @brief Set whether to barrier before potential major
+    * communication.
+    *
+    * This developer feature makes sure all processes start major
+    * operations at the same time so that timers do not include the
+    * time waiting for slower processes to get to the starting point.
+    *
+    * @param[in] do_barrier
+    */
+   void
+   setBarrierBeforeCommunication(
+      bool do_barrier)
+   {
+      d_barrier_before_communication = do_barrier;
+   }
 
    /*!
     * @brief When @c do_check is true, turn on sanity checks for input
@@ -384,7 +442,10 @@ public:
     */
    void
    setSanityCheckMethodPreconditions(
-      bool do_check);
+      bool do_check)
+   {
+      d_sanity_check_method_preconditions = do_check;
+   }
 
    /*!
     * @brief When @c do_check is true, turn on sanity checks for outputs
@@ -397,123 +458,75 @@ public:
     */
    void
    setSanityCheckMethodPostconditions(
-      bool do_check);
+      bool do_check)
+   {
+      d_sanity_check_method_postconditions = do_check;
+   }
 
    /*!
-    * Check that overlap data is correct (represents overlaps) for the
-    * given Connector.
+    * @brief Set the SAMRAI_MPI to use.
     *
-    * Checking is done as follows:
-    *   - Find overlap errors using @c findOverlapErrors().
-    *   - Report overlap errors to @c tbox::perr.
-    *   - Return number of local errors.
+    * If set, communication will use the specified SAMRAI_MPI instead
+    * of the SAMRAI_MPI from BoxLevels.  This protects communication
+    * operations from accidentally interacting with unrelated
+    * communications, but it limits operations to work only with
+    * metadata objects with comptatible (congruent) SAMRAI_MPI
+    * objects.
     *
-    * @note
-    * This is an expensive operation (it uses @b findOverlapErrors())
-    * and should only be used for debugging.
-    *
-    * @see findOverlaps()
-    *
-    * @param[in] connector
-    * @param[in] ignore_self_overlap Ignore a mapped_box's overlap with itself
-    * @param[in] assert_completeness If false, ignore missing overlaps. This will
-    *   still look for overlaps that should not be there.
-    * @param[in] ignore_periodic_images If true, do not require neighbors
-    *   that are periodic images.
-    *
-    * @return Number of overlap errors found locally.
-    */
-   int
-   checkOverlapCorrectness(
-      const Connector& connector,
-      bool ignore_self_overlap = false,
-      bool assert_completeness = true,
-      bool ignore_periodic_images = false) const;
-
-   /*!
-    * @brief Assert overlap correctness.
-    *
-    * @par Assertions
-    * if an error is found, the method will write out diagnostic information
-    * and throw an an error on all processes.
-    *
-    * This is an expensive check.
-    *
-    * @see checkOverlapCorrectness().
-    *
-    * @param[in] connector
-    * @param[in] ignore_self_overlap
-    * @param[in] assert_completeness
-    * @param[in] ignore_periodic_images
+    * If make_duplicate is true, the specified SAMRAI_MPI will be
+    * duplicated for exclusise use.  The duplicate will be freed upon
+    * object destruction.
     */
    void
-   assertOverlapCorrectness(
-      const Connector& connector,
-      bool ignore_self_overlap = false,
-      bool assert_completeness = true,
-      bool ignore_periodic_images = false) const;
+   setSAMRAI_MPI(
+      const tbox::SAMRAI_MPI& mpi,
+      bool make_duplicate = true);
 
    /*!
-    * @brief Find errors in overlap data of an overlap Connector.
+    * @brief When @c print_steps is true, print what the code is
+    * doing.
     *
-    * An error is either a missing overlap or an extra overlap.
-    *
-    * This is an expensive operation and should only be used for
+    * @note Step printing may be expensive and and is meant mainly for
     * debugging.
     *
-    * @par Assertions
-    * This version throws an assertion only if it finds inconsistent
-    * Connector data.  Missing and extra overlaps are returned but do
-    * not cause an assertion.
-    *
-    * @param[in] connector
-    * @param[out] missing
-    * @param[out] extra
-    * @param[in] ignore_self_overlap
+    * @param[in] print_steps
     */
    void
-   findOverlapErrors(
-      const Connector& connector,
-      Connector& missing,
-      Connector& extra,
-      bool ignore_self_overlap = false) const;
+   setPrintSteps(
+      bool print_steps)
+   {
+      d_print_steps = print_steps;
+   }
+
+   /*!
+    * @brief Setup names of timers.
+    *
+    * By default, timers are named
+    * "hier::OverlapConnectorAlgorithm::*", where the third field is
+    * the specific steps performed by the MappingConnectorAlgorithm.
+    * You can override the first two fields with this method.
+    * Conforming to the timer naming convention, timer_prefix should
+    * have the form "*::*".
+    */
+   void
+   setTimerPrefix(
+      const std::string& timer_prefix);
+
+   /*!
+    * @brief Get the name of this object.
+    */
+   const std::string
+   getObjectName() const
+   {
+      return "OverlapConnectorAlgorithm";
+   }
 
 private:
    // Internal shorthand.
    typedef Connector::NeighborSet NeighborSet;
 
-   //! @brief Data structure for MPI reductions.
-   struct IntIntStruct { int i;
-                         int rank;
-   };
-
-   /*!
-    * @brief This is where the bridge algorithm is implemented.
-    * All public bridge interfaces which do not perform an "in place" bridge
-    * call this method underneath.
-    *
-    * @param west_nesting_is_known Whether we know how west nests in
-    * center.
-    *
-    * @param cent_growth_to_nest_west Amount center BoxLevel has
-    * to grow to nest west BoxLevel (if known).
-    *
-    * @param east_nesting_is_known Whether we know how east nests in
-    * center.
-    *
-    * @param cent_growth_to_nest_east Amount center BoxLevel has
-    * to grow to nest east BoxLevel (if known).
-    *
-    * @param connector_width_limit specifies the maximum Connector
-    * width to compute overlaps for (negative if unlimited).  If
-    * connector_width_limit is negative, do not apply any limit.  The
-    * connector_width should be in the coarser of the east and west
-    * indices.
-    */
    void
-   privateBridge(
-      Connector& west_to_east,
-      Connector* east_to_west,
+   privateBridge_prologue(
       const Connector& west_to_cent,
       const Connector& cent_to_east,
       const Connector& east_to_cent,
@@ -522,42 +535,46 @@ private:
       const IntVector& cent_growth_to_nest_west,
       bool east_nesting_is_known,
       const IntVector& cent_growth_to_nest_east,
-      const IntVector& connector_width_limit) const;
+      const IntVector& connector_width_limit,
+      bool compute_transpose,
+      IntVector& west_to_east_width,
+      IntVector& east_to_west_width,
+      std::set<int>& incoming_ranks,
+      std::set<int>& outgoing_ranks,
+      NeighborSet& visible_west_nabrs,
+      NeighborSet& visible_east_nabrs) const;
 
    /*!
     * @brief This is where the bridge algorithm is implemented.
-    * All public bridge interfaces which perform an "in place" bridge call
-    * this method underneath.
+    * All public bridge interfaces which do not perform an "in place" bridge
+    * call this method underneath.
     *
-    * @param west_nesting_is_known Whether we know how west nests in
-    * center.
+    * @param west_to_east
     *
-    * @param cent_growth_to_nest_west Amount center BoxLevel has
-    * to grow to nest west BoxLevel (if known).
+    * @param east_to_west
     *
-    * @param east_nesting_is_known Whether we know how east nests in
-    * center.
+    * @param cent_to_east
     *
-    * @param cent_growth_to_nest_east Amount center BoxLevel has
-    * to grow to nest east BoxLevel (if known).
+    * @param compute_transpose true if east_to_west should be computed
     *
-    * @param connector_width_limit specifies the maximum Connector
-    * width to compute overlaps for (negative if unlimited).  If
-    * connector_width_limit is negative, do not apply any limit.  The
-    * connector_width should be in the coarser of the east and west
-    * indices.
+    * @param incoming_ranks
+    *
+    * @param outgoing_ranks
+    *
+    * @param visible_west_nabrs
+    *
+    * @param visible_east_nabrs
     */
    void
    privateBridge(
-      Connector& west_to_cent,
+      Connector& west_to_east,
+      Connector* east_to_west,
       const Connector& cent_to_east,
-      const Connector& east_to_cent,
-      Connector& cent_to_west,
-      bool west_nesting_is_known,
-      const IntVector& cent_growth_to_nest_west,
-      bool east_nesting_is_known,
-      const IntVector& cent_growth_to_nest_east,
-      const IntVector& connector_width_limit) const;
+      bool compute_transpose,
+      const std::set<int>& incoming_ranks,
+      const std::set<int>& outgoing_ranks,
+      NeighborSet& visible_west_nabrs,
+      NeighborSet& visible_east_nabrs) const;
 
    /*
     * @brief Perform checks on the arguments of bridge.
@@ -574,26 +591,45 @@ private:
     * outgoing information in message buffers.
     */
    void
-   privateModify_removeAndCache(
-      std::map<int, std::vector<int> >& neighbor_removal_mesg,
+   privateBridge_removeAndCache(
+      std::map<int, std::vector<int> >& send_mesgs,
       Connector& overlap_connector,
       Connector* overlap_connector_transpose,
       const Connector& misc_connector) const;
 
    /*!
-    *@brief Find all relationships in the Connector(s) to be computed and send
+    * @brief Find all relationships in the Connector(s) to be computed and send
     * outgoing information.
     */
    void
    privateBridge_discoverAndSend(
-      std::map<int, std::vector<int> > neighbor_removal_mesg,
+      std::map<int, std::vector<int> >& send_mesgs,
       Connector& west_to_east,
       Connector* east_to_west,
-      std::set<int>& incoming_ranks,
-      std::set<int>& outgoing_ranks,
-      tbox::AsyncCommPeer<int> all_comms[],
+      const std::set<int>& incoming_ranks,
+      const std::set<int>& outgoing_ranks,
+      tbox::AsyncCommPeer<int>* all_comms,
       NeighborSet& visible_west_nabrs,
       NeighborSet& visible_east_nabrs) const;
+
+   /*!
+    * @brief Find all relationships in the Connector(s) to be computed.
+    */
+   void
+   privateBridge_discover(
+      std::vector<int>& send_mesg,
+      Connector& west_to_east,
+      Connector* east_to_west,
+      const NeighborSet& visible_west_nabrs,
+      const NeighborSet& visible_east_nabrs,
+      NeighborSet::const_iterator& west_ni,
+      NeighborSet::const_iterator& east_ni,
+      int curr_owner,
+      const BoxContainer& east_rbbt,
+      const BoxContainer& west_rbbt,
+      const tbox::Dimension& dim,
+      bool compute_transpose,
+      int rank) const;
 
    /*!
     * @brief Find overlap and save in bridging connector or pack
@@ -602,50 +638,24 @@ private:
    void
    privateBridge_findOverlapsForOneProcess(
       const int curr_owner,
-      NeighborSet& visible_base_nabrs,
-      NeighborSet::iterator& base_ni,
+      const NeighborSet& visible_base_nabrs,
+      NeighborSet::const_iterator& base_ni,
       std::vector<int>& send_mesg,
-      const int remote_mapped_box_counter_index,
+      const int remote_box_counter_index,
       Connector& bridging_connector,
       NeighborSet& referenced_head_nabrs,
       const BoxContainer& head_rbbt) const;
 
-   //! @brief Utility used in privateBridge()
-   void
-   privateBridge_unshiftOverlappingNeighbors(
-      const Box& mapped_box,
-      BoxContainer& neighbors,
-      BoxContainer& scratch_space,
-      //std::vector<Box>& neighbors,
-      //std::vector<Box>& scratch_space,
-      const IntVector& neighbor_refinement_ratio) const;
-
    /*!
-    * @brief Discover and add overlaps from base and externally
-    * provided head mapped_box_level.
-    *
-    * Relationships found are added to appropriate neighbor lists.  No overlap is
-    * removed.  If existing overlaps are invalid, remove them first.
-    *
-    * The provided head should be like d_head, but if necessary,
-    * it may be a globalized version of d_head.  It should have
-    * the same refinement ratio as d_head.
-    *
-    * The ignore_self_overlap directs the method to not list
-    * a mapped_box as its own neighbor.  This should be true only
-    * when the head and tail objects represent the same mapped_box_level
-    * (regardless of whether they are the same objects), and
-    * you want to disregard self-overlaps.
-    * Two mapped_boxes are considered the same if
-    * - The mapped_boxes are equal by comparison (they have the same
-    *   owner and the same indices), and
-    * - They are from mapped_box_levels with the same refinement ratio.
+    * @brief Utility used in privateBridge()
     */
    void
-   findOverlaps_rbbt(
-      Connector& connector,
-      const BoxLevel& head,
-      const bool ignore_self_overlap = false) const;
+   privateBridge_unshiftOverlappingNeighbors(
+      const Box& box,
+      BoxContainer& neighbors,
+      BoxContainer& scratch_space,
+      const IntVector& neighbor_refinement_ratio,
+      const PeriodicShiftCatalog& shift_catalog) const;
 
    /*!
     * @brief Set up things for the entire class.
@@ -663,17 +673,14 @@ private:
    static void
    finalizeCallback();
 
-   /*!
-    * @brief Private communicator object shared by all objects in class,
-    * protecting internal communication from mixing with external.
-    *
-    * For communication, we usually use the SAMRAI_MPI of the
-    * Connectors, and this object is mainly for debugging.  If we
-    * suspect interference from unrelated communication calls, we
-    * resort to this exclusive SAMRAI_MPI object to rule out that
-    * possibility.
-    */
-   static tbox::SAMRAI_MPI s_class_mpi;
+   //! @brief SAMRAI_MPI for internal communications.
+   tbox::SAMRAI_MPI d_mpi;
+
+   //! @brief Whether d_mpi was duplicated for exclusive use.
+   bool d_mpi_is_exclusive;
+
+   // Extra checks independent of optimization/debug.
+   static char s_print_steps;
 
    /*!
     * @brief Tag to use (and increment) at begining of operations that
@@ -685,19 +692,66 @@ private:
     */
    static int s_operation_mpi_tag;
 
-   static boost::shared_ptr<tbox::Timer> t_find_overlaps_rbbt;
 
-   static boost::shared_ptr<tbox::Timer> t_bridge;
-   static boost::shared_ptr<tbox::Timer> t_bridge_setup_comm;
-   static boost::shared_ptr<tbox::Timer> t_bridge_remove_and_cache;
-   static boost::shared_ptr<tbox::Timer> t_bridge_discover;
-   static boost::shared_ptr<tbox::Timer> t_bridge_discover_get_neighbors;
-   static boost::shared_ptr<tbox::Timer> t_bridge_discover_form_rbbt;
-   static boost::shared_ptr<tbox::Timer> t_bridge_discover_find_overlaps;
-   static boost::shared_ptr<tbox::Timer> t_bridge_share;
-   static boost::shared_ptr<tbox::Timer> t_bridge_receive_and_unpack;
-   static boost::shared_ptr<tbox::Timer> t_bridge_MPI_wait;
+   //@{
+   //! @name Timer data for this class.
 
+   /*
+    * @brief Structure of timers used by this class.
+    *
+    * Each object can set its own timer names through
+    * setTimerPrefix().  This leads to many timer look-ups.  Because
+    * it is expensive to look up timers, this class caches the timers
+    * that has been looked up.  Each TimerStruct stores the timers
+    * corresponding to a prefix.
+    */
+   struct TimerStruct {
+      boost::shared_ptr<tbox::Timer> t_find_overlaps_rbbt;
+      boost::shared_ptr<tbox::Timer> t_find_overlaps_assumed_partition;
+      boost::shared_ptr<tbox::Timer> t_find_overlaps_assumed_partition_get_ap;
+      boost::shared_ptr<tbox::Timer> t_find_overlaps_assumed_partition_connect_to_ap;
+      boost::shared_ptr<tbox::Timer> t_find_overlaps_assumed_partition_transpose;
+
+      boost::shared_ptr<tbox::Timer> t_bridge;
+      boost::shared_ptr<tbox::Timer> t_bridge_setup_comm;
+      boost::shared_ptr<tbox::Timer> t_bridge_remove_and_cache;
+      boost::shared_ptr<tbox::Timer> t_bridge_discover_and_send;
+      boost::shared_ptr<tbox::Timer> t_bridge_discover_get_neighbors;
+      boost::shared_ptr<tbox::Timer> t_bridge_discover_form_rbbt;
+      boost::shared_ptr<tbox::Timer> t_bridge_share;
+      boost::shared_ptr<tbox::Timer> t_bridge_receive_and_unpack;
+      boost::shared_ptr<tbox::Timer> t_bridge_MPI_wait;
+   };
+
+   //! @brief Default prefix for Timers.
+   static const std::string s_default_timer_prefix;
+
+   /*!
+    * @brief Static container of timers that have been looked up.
+    */
+   static std::map<std::string, TimerStruct> s_static_timers;
+
+   static char s_ignore_external_timer_prefix;
+
+   /*!
+    * @brief Structure of timers in s_static_timers, matching this
+    * object's timer prefix.
+    */
+   TimerStruct* d_object_timers;
+
+   /*!
+    * @brief Get all the timers defined in TimerStruct.  The timers
+    * are named with the given prefix.
+    */
+   static void
+   getAllTimers(
+      const std::string& timer_prefix,
+      TimerStruct& timers);
+
+   //@}
+
+   bool d_print_steps;
+   bool d_barrier_before_communication;
    bool d_sanity_check_method_preconditions;
    bool d_sanity_check_method_postconditions;
 

@@ -844,19 +844,19 @@ private :
    int d_tmp2_id;
    
    xfer::CoarsenAlgorithm d_quat_diffusion_coarsen;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_quat_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_quat_diffusion_deriv_coarsen;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_quat_diffusion_deriv_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_conc_diffusion_coarsen;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_conc_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_flux_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_coarsen_alg;

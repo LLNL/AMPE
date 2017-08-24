@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for patch data test operations.
  *
  ************************************************************************/
@@ -14,6 +14,8 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/tbox/Utilities.h"
+
+#include <vector>
 
 namespace SAMRAI {
 
@@ -39,13 +41,13 @@ PatchDataTestStrategy::PatchDataTestStrategy(
    const tbox::Dimension& dim):
    d_dim(dim)
 {
-   d_variable_src_name.resizeArray(0);
-   d_variable_dst_name.resizeArray(0);
-   d_variable_depth.resizeArray(0);
-   d_variable_src_ghosts.resizeArray(0, hier::IntVector(d_dim));
-   d_variable_dst_ghosts.resizeArray(0, hier::IntVector(d_dim));
-   d_variable_coarsen_op.resizeArray(0);
-   d_variable_refine_op.resizeArray(0);
+   d_variable_src_name.resize(0);
+   d_variable_dst_name.resize(0);
+   d_variable_depth.resize(0);
+   d_variable_src_ghosts.resize(0, hier::IntVector(d_dim));
+   d_variable_dst_ghosts.resize(0, hier::IntVector(d_dim));
+   d_variable_coarsen_op.resize(0);
+   d_variable_refine_op.resize(0);
 }
 
 PatchDataTestStrategy::~PatchDataTestStrategy()
@@ -63,22 +65,20 @@ PatchDataTestStrategy::~PatchDataTestStrategy()
 void PatchDataTestStrategy::readVariableInput(
    boost::shared_ptr<tbox::Database> db)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(db);
-#endif
 
-   tbox::Array<string> var_keys = db->getAllKeys();
-   int nkeys = var_keys.getSize();
+   std::vector<string> var_keys = db->getAllKeys();
+   int nkeys = static_cast<int>(var_keys.size());
 
-   d_variable_src_name.resizeArray(nkeys);
-   d_variable_dst_name.resizeArray(nkeys);
-   d_variable_depth.resizeArray(nkeys);
-   d_variable_src_ghosts.resizeArray(nkeys, hier::IntVector(d_dim, 0));
-   d_variable_dst_ghosts.resizeArray(nkeys, hier::IntVector(d_dim, 0));
-   d_variable_coarsen_op.resizeArray(nkeys);
-   d_variable_refine_op.resizeArray(nkeys);
+   d_variable_src_name.resize(nkeys);
+   d_variable_dst_name.resize(nkeys);
+   d_variable_depth.resize(nkeys);
+   d_variable_src_ghosts.resize(nkeys, hier::IntVector(d_dim, 0));
+   d_variable_dst_ghosts.resize(nkeys, hier::IntVector(d_dim, 0));
+   d_variable_coarsen_op.resize(nkeys);
+   d_variable_refine_op.resize(nkeys);
 
-   for (int i = 0; i < nkeys; i++) {
+   for (int i = 0; i < nkeys; ++i) {
 
       boost::shared_ptr<tbox::Database> var_db(db->getDatabase(var_keys[i]));
 
@@ -124,23 +124,6 @@ void PatchDataTestStrategy::readVariableInput(
          d_variable_refine_op[i] = "NO_REFINE";
       }
 
-   }
-
-}
-
-void PatchDataTestStrategy::readRefinementInput(
-   boost::shared_ptr<tbox::Database> db)
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(db);
-#endif
-
-   tbox::Array<string> box_keys = db->getAllKeys();
-   int nkeys = box_keys.getSize();
-
-   d_refine_level_boxes.resizeArray(nkeys);
-   for (int i = 0; i < nkeys; i++) {
-      d_refine_level_boxes[i] = db->getDatabaseBoxArray(box_keys[i]);
    }
 
 }

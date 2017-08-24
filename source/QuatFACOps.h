@@ -45,7 +45,7 @@
 #include "SAMRAI/SAMRAI_config.h"
 #endif
 
-#include "SAMRAI/solv/FACPreconditioner.h"
+#include "FACPreconditioner.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
@@ -275,7 +275,7 @@ public:
     * The FAC Solver is accessed to get convergence data during
     * the cycle postprocessing step.  It is optional.
     */
-   void setSolver(const solv::FACPreconditioner *fac_solver);
+   void setSolver(const FACPreconditioner *fac_solver);
 
    /*
     * Set the operator coefficients.
@@ -714,7 +714,7 @@ private:
     * hier::CoarseFineBoundary is a light object before
     * it is set for a level.
     */
-   tbox::Array<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
+   std::vector<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
 
 
    /*
@@ -860,43 +860,40 @@ private:
     * Various refine and coarsen objects used internally.
     */
 
-   //boost::shared_ptr<hier::RefineOperator > d_sqrt_m_refine_operator;
-   //boost::shared_ptr<xfer::RefineAlgorithm > d_sqrt_m_refine_algorithm;
-
    // Error prolongation (refinement) operator.
-   boost::shared_ptr<hier::RefineOperator > d_prolongation_refine_operator[2];
+   std::vector< boost::shared_ptr<hier::RefineOperator > > d_prolongation_refine_operator;
    boost::shared_ptr<xfer::RefineAlgorithm > d_prolongation_refine_algorithm[2];
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule > >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
       d_prolongation_refine_schedules[2];
 
    // Solution restriction (coarsening) operator.
    boost::shared_ptr<hier::CoarsenOperator > d_urestriction_coarsen_operator[2];
    boost::shared_ptr<xfer::CoarsenAlgorithm > d_urestriction_coarsen_algorithm[2];
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_urestriction_coarsen_schedules[2];
 
    // Residual restriction (coarsening) operator.
    boost::shared_ptr<hier::CoarsenOperator > d_rrestriction_coarsen_operator[2];
    boost::shared_ptr<xfer::CoarsenAlgorithm > d_rrestriction_coarsen_algorithm[2];
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_rrestriction_coarsen_schedules[2];
 
    // Coarsen operator for outerflux-to-flux
    boost::shared_ptr<hier::CoarsenOperator > d_flux_coarsen_operator;
    boost::shared_ptr<xfer::CoarsenAlgorithm > d_flux_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule > >
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
       d_flux_coarsen_schedules;
 
    // Refine operator for cell-like data from coarser level.
    boost::shared_ptr<hier::RefineOperator > d_ghostfill_refine_operator;
    boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_refine_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule > >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
       d_ghostfill_refine_schedules;
 
    // Refine operator for cell-like data from same level.
    boost::shared_ptr<hier::RefineOperator > d_ghostfill_nocoarse_refine_operator;
    boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule > >
+   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
       d_ghostfill_nocoarse_refine_schedules;
 
 
@@ -937,7 +934,7 @@ private:
     *
     * See setPreconditioner().
     */
-   const solv::FACPreconditioner *d_solver;
+   const FACPreconditioner *d_solver;
    
    /*
     * Hierarchy cell operator

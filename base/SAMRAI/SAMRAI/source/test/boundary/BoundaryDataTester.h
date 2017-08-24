@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Class to test usage of boundary utilities
  *
  ************************************************************************/
@@ -24,10 +24,10 @@
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/tbox/Array.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 
 using namespace std;
 using namespace SAMRAI;
@@ -68,8 +68,8 @@ public:
     * They are not needed for this example since we only have one level
     * in the hierarchy.
     */
-   hier::IntVector getRefineOpStencilWidth() const {
-      return hier::IntVector(d_dim, 0);
+   hier::IntVector getRefineOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector(dim, 0);
    }
 
    void preprocessRefine(
@@ -146,6 +146,14 @@ public:
    printClassData(
       ostream& os) const;
 
+   /*!
+    * @brief Return the dimension of this object.
+    */
+   const tbox::Dimension& getDim() const
+   {
+      return d_dim;
+   }
+
 private:
    /*
     * The object name is used for error/warning reporting.
@@ -157,40 +165,40 @@ private:
    boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
 
    /*
-    * Arrays of information read from input file describing test variables
+    * Vectors of information read from input file describing test variables
     */
-   tbox::Array<string> d_variable_name;
-   tbox::Array<int> d_variable_depth;
-   tbox::Array<hier::IntVector> d_variable_num_ghosts;
-   tbox::Array<tbox::Array<double> > d_variable_interior_values;
+   std::vector<string> d_variable_name;
+   std::vector<int> d_variable_depth;
+   std::vector<hier::IntVector> d_variable_num_ghosts;
+   std::vector<std::vector<double> > d_variable_interior_values;
 
    /*
     * Items used to manage variables and data in test program.
     */
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_variables;
+   std::vector<boost::shared_ptr<hier::Variable> > d_variables;
    boost::shared_ptr<hier::VariableContext> d_variable_context;
    hier::ComponentSelector d_patch_data_components;
 
    /*
-    * Arrays of information read from input file for boundary conditions
+    * Vectors of information read from input file for boundary conditions
     */
-   tbox::Array<int> d_master_bdry_edge_conds;
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_vector_bdry_edge_conds;
+   std::vector<int> d_master_bdry_edge_conds;
+   std::vector<int> d_scalar_bdry_edge_conds;
+   std::vector<int> d_vector_bdry_edge_conds;
 
-   tbox::Array<int> d_master_bdry_node_conds;
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_vector_bdry_node_conds;
+   std::vector<int> d_master_bdry_node_conds;
+   std::vector<int> d_scalar_bdry_node_conds;
+   std::vector<int> d_vector_bdry_node_conds;
 
-   tbox::Array<int> d_master_bdry_face_conds; // Used only in 3D
-   tbox::Array<int> d_scalar_bdry_face_conds; // Used only in 3D
-   tbox::Array<int> d_vector_bdry_face_conds; // Used only in 3D
+   std::vector<int> d_master_bdry_face_conds; // Used only in 3D
+   std::vector<int> d_scalar_bdry_face_conds; // Used only in 3D
+   std::vector<int> d_vector_bdry_face_conds; // Used only in 3D
 
-   tbox::Array<int> d_node_bdry_edge; // Used only in 2D
-   tbox::Array<int> d_edge_bdry_face; // Used only in 3D
-   tbox::Array<int> d_node_bdry_face; // Used only in 3D
+   std::vector<int> d_node_bdry_edge; // Used only in 2D
+   std::vector<int> d_edge_bdry_face; // Used only in 3D
+   std::vector<int> d_node_bdry_face; // Used only in 3D
 
-   tbox::Array<tbox::Array<double> > d_variable_bc_values;
+   std::vector<std::vector<double> > d_variable_bc_values;
 
    int d_fail_count;
 

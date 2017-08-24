@@ -52,7 +52,7 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
    const hier::Box& pbox = patch->getBox();
 
    boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
-      patch->getPatchData( d_partition_coeff_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_id) ) );
    assert( cd_partition_coeff );
 
    const double* const ptr_partition = cd_partition_coeff->getPointer();

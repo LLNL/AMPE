@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utility class for logging.
  *
  ************************************************************************/
@@ -14,7 +14,7 @@
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -95,6 +95,15 @@ public:
          const std::string& message,
          const std::string& filename,
          const int line) = 0;
+
+      Appender();
+
+      Appender(
+         const Appender& other);
+
+      Appender&
+      operator = (
+         const Appender& rhs);
 
       virtual ~Appender();
    };
@@ -215,11 +224,20 @@ private:
     */
    Logger();
 
+   // Unimplemented copy constructor.
+   Logger(
+      const Logger& other);
+
    /*
     * Private destructor to avoid destruction of the singleton
     * outside this class.
     */
    ~Logger();
+
+   // Unimplemented assignment operator.
+   Logger&
+   operator = (
+      const Logger& rhs);
 
    /*!
     * Frees instance of the singleton logger.

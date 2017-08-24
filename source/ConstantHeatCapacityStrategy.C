@@ -66,7 +66,7 @@ void ConstantHeatCapacityStrategy::setCurrentValue(
             boost::shared_ptr<hier::Patch > patch = *p;
       
             boost::shared_ptr< pdat::CellData<double> > cp_data (
-               patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
             assert( cp_data );
       
             cp_data->fillAll( d_cp );

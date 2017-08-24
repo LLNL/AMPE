@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Test program for asynchromous communication classes
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Test program for asynchronous communication classes
  *
  ************************************************************************/
 #include "SAMRAI/SAMRAI_config.h"
@@ -83,11 +83,8 @@ int main(
        * to avoid possible interference with other communications
        * by SAMRAI library.
        */
-      tbox::SAMRAI_MPI::Comm isolated_communicator(MPI_COMM_NULL);
-      if (tbox::SAMRAI_MPI::usingMPI()) {
-         tbox::SAMRAI_MPI::getSAMRAIWorld().Comm_dup(&isolated_communicator);
-      }
-      tbox::SAMRAI_MPI isolated_mpi(isolated_communicator);
+      tbox::SAMRAI_MPI isolated_mpi(MPI_COMM_NULL);
+      isolated_mpi.dupCommunicator(SAMRAI_MPI::getSAMRAIWorld());
       plog << "Process " << std::setw(5) << rank
            << " duplicated Communicator." << std::endl;
 
@@ -182,7 +179,6 @@ int main(
       int gi; // Group index.
       int ai; // Active group index.
 
-
       int count = 0;
       while ((sync_bcast_count < sync_bcast_cycles) ||
              (sync_sumreduce_count < sync_sumreduce_cycles) ||
@@ -198,11 +194,11 @@ int main(
          plog << "\n\n\n***************** Beginning Cycle Number "
               << count << " *******************\n\n";
 
-         Array<Array<int> > group_ids(num_groups);
-         Array<int> owners(num_groups);
-         Array<int> active_flags(num_groups);
+         std::vector<std::vector<int> > group_ids(num_groups);
+         std::vector<int> owners(num_groups);
+         std::vector<int> active_flags(num_groups);
 
-         Array<int> active_groups(num_groups);
+         std::vector<int> active_groups(num_groups);
          int num_active_groups = 0;
 
          /*
@@ -216,7 +212,7 @@ int main(
          for (int n = 0; n < num_groups; ++n) {
 
             int gsize = (mpi.getSize() + n) / (n + 1);
-            group_ids[n].resizeArray(gsize);
+            group_ids[n].resize(gsize);
             active_flags[n] = false;
             for (int i = 0; i < gsize; ++i) {
                group_ids[n][i] = i * (n + 1);
@@ -231,7 +227,7 @@ int main(
             owners[n] = group_ids[n][gsize / 2];
 
          }
-         active_groups.resizeArray(num_active_groups);
+         active_groups.resize(num_active_groups);
 
          /*
           * Write out group data.
@@ -247,7 +243,7 @@ int main(
                  << std::setw(4) << owners[n]
                  << (active_flags[n] ? '*' : ' ')
                  << (owners[n] == rank ? '*' : ' ') << ':';
-            for (int i = 0; i < group_ids[n].size(); ++i) {
+            for (int i = 0; i < static_cast<int>(group_ids[n].size()); ++i) {
                plog << "  " << group_ids[n][i];
             }
             plog << '\n';
@@ -265,14 +261,14 @@ int main(
           * Compute the correct sum for comparison.
           */
 
-         Array<int> sum(num_active_groups);
-         Array<int> correct_sum(num_active_groups);
+         std::vector<int> sum(num_active_groups);
+         std::vector<int> correct_sum(num_active_groups);
 
          for (ai = 0; ai < num_active_groups; ++ai) {
             sum[ai] = 1 + rank;
             correct_sum[ai] = 0;
-            Array<int>& g = group_ids[active_groups[ai]];
-            for (int j = 0; j < g.size(); ++j) {
+            std::vector<int>& g = group_ids[active_groups[ai]];
+            for (int j = 0; j < static_cast<int>(g.size()); ++j) {
                correct_sum[ai] += 1 + g[j];
             }
          }
@@ -281,8 +277,8 @@ int main(
           * Initialize data for broadcast test.
           * Broadcast data is 1001 + the group index.
           */
-         Array<int> bcdata(num_active_groups);
-         Array<int> correct_bcdata(num_active_groups);
+         std::vector<int> bcdata(num_active_groups);
+         std::vector<int> correct_bcdata(num_active_groups);
          for (ai = 0; ai < num_active_groups; ++ai) {
             gi = active_groups[ai];
             bcdata[ai] = rank == owners[gi] ? 1001 + gi : -1;
@@ -301,8 +297,8 @@ int main(
             comm_groups[ai].initialize(num_children,
                &comm_stage);
             comm_groups[ai].setGroupAndRootRank(isolated_mpi,
-               group_ids[gi].getPointer(),
-               group_ids[gi].size(),
+               &group_ids[gi][0],
+               static_cast<int>(group_ids[gi].size()),
                owners[gi]);
             comm_groups[ai].setMPITag(1000000 * count + gi);
             comm_groups[ai].setUseBlockingSendToParent(false);
@@ -314,7 +310,7 @@ int main(
              * For the synchronous (groupwise) broadcast test,
              * each group broadcasts the its group id.
              */
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             plog << "\n\n\n*********** Synchronous Broadcast "
                  << sync_bcast_count << " ************\n";
             for (ai = 0; ai < num_active_groups; ++ai)
@@ -348,7 +344,7 @@ int main(
          }
 
          if (sync_sumreduce_count < sync_sumreduce_cycles) {
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             /*
              * For the sum advanceSome reduce test,
              * each group sums up the ranks of its members, plus 1.
@@ -390,7 +386,7 @@ int main(
          }
 
          if (asyncany_bcast_count < asyncany_bcast_cycles) {
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             /*
              * For the advanceSome broadcast test,
              * each group broadcasts the its group id.
@@ -412,9 +408,10 @@ int main(
                } else {
                   comm_stage.advanceAny();
                }
-               if ( comm_stage.numberOfCompletedMembers() > 0 ) {
-                  AsyncCommGroup *completed_group =
-                     dynamic_cast<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+               if (comm_stage.hasCompletedMembers()) {
+                  AsyncCommGroup* completed_group =
+                     CPP_CAST<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+                  TBOX_ASSERT(completed_group);
                   ai = static_cast<int>(completed_group - comm_groups);
                   gi = active_groups[ai];
                   plog << std::setw(3) << ai
@@ -443,7 +440,7 @@ int main(
          }
 
          if (asyncany_sumreduce_count < asyncany_sumreduce_cycles) {
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             /*
              * For the advanceSome broadcast test,
              * each group broadcasts the its group id.
@@ -463,14 +460,15 @@ int main(
                   }
                   ++counter;
                }
-               if ( comm_stage.numberOfCompletedMembers() == 0 ) {
+               if (!comm_stage.hasCompletedMembers()) {
                   comm_stage.advanceAny();
-                  TBOX_ASSERT( comm_stage.numberOfCompletedMembers() < 2 );
+                  TBOX_ASSERT(comm_stage.numberOfCompletedMembers() < 2);
                }
-               TBOX_ASSERT( comm_stage.numberOfCompletedMembers() < 2 );
-               if ( comm_stage.numberOfCompletedMembers() > 0 ) {
-                  AsyncCommGroup *completed_group =
-                     dynamic_cast<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+               TBOX_ASSERT(comm_stage.numberOfCompletedMembers() < 2);
+               if (comm_stage.hasCompletedMembers()) {
+                  AsyncCommGroup* completed_group =
+                     CPP_CAST<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+                  TBOX_ASSERT(completed_group);
                   ai = static_cast<int>(completed_group - comm_groups);
                   gi = active_groups[ai];
                   plog << std::setw(3) << ai
@@ -503,7 +501,7 @@ int main(
          }
 
          if (asyncsome_bcast_count < asyncsome_bcast_cycles) {
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             /*
              * For the advanceSome broadcast test,
              * each group broadcasts the its group id.
@@ -515,23 +513,23 @@ int main(
             for (ai = 0; ai < num_active_groups; ++ai) {
                AsyncCommGroup& comm_group = comm_groups[ai];
                comm_group.beginBcast(&bcdata[ai], 1);
-               if ( comm_group.isDone() ) {
+               if (comm_group.isDone()) {
                   comm_group.pushToCompletionQueue();
                }
             }
             plog << "Job Group Result Correct  Note\n";
-            while ( comm_stage.numberOfCompletedMembers() > 0 ||
-                    comm_stage.advanceSome() ) {
+            while (comm_stage.hasCompletedMembers() ||
+                   comm_stage.advanceSome()) {
                AsyncCommGroup* completed_group =
-                  dynamic_cast<AsyncCommGroup *>(comm_stage.popCompletionQueue());
-               TBOX_ASSERT(completed_group != NULL);
+                  CPP_CAST<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+               TBOX_ASSERT(completed_group != 0);
                ai = static_cast<int>(completed_group - comm_groups);
                gi = active_groups[ai];
                plog << std::setw(3) << ai
                     << std::setw(5) << gi
                     << std::setw(8) << bcdata[ai]
                     << std::setw(8) << correct_bcdata[ai]
-                  ;
+               ;
                plog << "  Bcast difference = "
                     << bcdata[ai] - correct_bcdata[ai];
                if (bcdata[ai] != correct_bcdata[ai]) {
@@ -551,7 +549,7 @@ int main(
          }
 
          if (asyncsome_sumreduce_count < asyncsome_sumreduce_cycles) {
-            TBOX_ASSERT( comm_stage.numberOfCompletedMembers() == 0 );
+            TBOX_ASSERT(!comm_stage.hasCompletedMembers());
             /*
              * For the sum advanceSome reduce test,
              * each group sums up the ranks of its members, plus 1.
@@ -562,23 +560,23 @@ int main(
             for (ai = 0; ai < num_active_groups; ++ai) {
                AsyncCommGroup& comm_group = comm_groups[ai];
                comm_group.beginSumReduce(&sum[ai], 1);
-               if ( comm_group.isDone() ) {
+               if (comm_group.isDone()) {
                   comm_group.pushToCompletionQueue();
                }
             }
             plog << "Job Group Result Correct  Note\n";
-            while ( comm_stage.numberOfCompletedMembers() > 0 ||
-                    comm_stage.advanceSome() ) {
+            while (comm_stage.hasCompletedMembers() ||
+                   comm_stage.advanceSome()) {
                AsyncCommGroup* completed_group =
-                  dynamic_cast<AsyncCommGroup *>(comm_stage.popCompletionQueue());
-               TBOX_ASSERT(completed_group != NULL);
+                  CPP_CAST<AsyncCommGroup *>(comm_stage.popCompletionQueue());
+               TBOX_ASSERT(completed_group != 0);
                ai = static_cast<int>(completed_group - comm_groups);
                gi = active_groups[ai];
                plog << std::setw(3) << ai
                     << std::setw(5) << gi
                     << std::setw(8) << sum[ai]
                     << std::setw(8) << correct_sum[ai]
-                  ;
+               ;
                if (rank == owners[gi]) {
                   plog << "  Sum reduce difference = "
                        << sum[ai] - correct_sum[ai];
@@ -617,10 +615,6 @@ int main(
 
       TimerManager::getManager()->print(plog);
 
-#if defined(HAVE_MPI)
-      MPI_Comm_free(&isolated_communicator);
-#endif
-
    }
 
    if (fail_count == 0) {
@@ -629,15 +623,7 @@ int main(
 
    SAMRAIManager::shutdown();
    SAMRAIManager::finalize();
+   SAMRAI_MPI::finalize();
 
-   if (fail_count == 0) {
-      SAMRAI_MPI::finalize();
-   } else {
-      plog << "Process " << std::setw(5) << rank << " aborting." << std::endl;
-      tbox::Utilities::abort("Aborting due to nonzero fail count",
-         __FILE__, __LINE__);
-   }
-
-   plog << "Process " << std::setw(5) << rank << " exiting." << std::endl;
    return fail_count;
 }

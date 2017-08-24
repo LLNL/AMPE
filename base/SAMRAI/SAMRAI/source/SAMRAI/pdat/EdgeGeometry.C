@@ -3,20 +3,17 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_EdgeGeometry_C
-#define included_pdat_EdgeGeometry_C
-
 #include "SAMRAI/pdat/EdgeGeometry.h"
+#include "SAMRAI/pdat/EdgeIterator.h"
 #include "SAMRAI/pdat/EdgeOverlap.h"
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -35,7 +32,7 @@ EdgeGeometry::EdgeGeometry(
    d_box(box),
    d_ghosts(ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(box, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(box, ghosts);
    TBOX_ASSERT(ghosts.min() >= 0);
 }
 
@@ -68,7 +65,7 @@ EdgeGeometry::calculateOverlap(
    const bool retry,
    const hier::BoxContainer& dst_restrict_boxes) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(d_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(d_box, src_mask);
 
    const EdgeGeometry* t_dst =
       dynamic_cast<const EdgeGeometry *>(&dst_geometry);
@@ -77,7 +74,7 @@ EdgeGeometry::calculateOverlap(
 
    boost::shared_ptr<hier::BoxOverlap> over;
 
-   if ((t_src != NULL) && (t_dst != NULL)) {
+   if ((t_src != 0) && (t_dst != 0)) {
       over = doOverlap(*t_dst, *t_src, src_mask, fill_box, overwrite_interior,
             transformation, dst_restrict_boxes);
    } else if (retry) {
@@ -87,6 +84,76 @@ EdgeGeometry::calculateOverlap(
             dst_restrict_boxes);
    }
    return over;
+}
+
+/*
+ *************************************************************************
+ *
+ * Compute the boxes that will be used to construct an overlap object
+ *
+ *************************************************************************
+ */
+
+void
+EdgeGeometry::computeDestinationBoxes(
+   std::vector<hier::BoxContainer>& dst_boxes,
+   const EdgeGeometry& src_geometry,
+   const hier::Box& src_mask,
+   const hier::Box& fill_box,
+   const bool overwrite_interior,
+   const hier::Transformation& transformation,
+   const hier::BoxContainer& dst_restrict_boxes) const
+{
+   const tbox::Dimension& dim(src_mask.getDim());
+
+   // Perform a quick-and-dirty intersection to see if the boxes might overlap
+
+   hier::Box src_shift(
+      hier::Box::grow(src_geometry.d_box, src_geometry.d_ghosts) * src_mask);
+   transformation.transform(src_shift);
+   hier::Box dst_ghost(d_box);
+   dst_ghost.grow(d_ghosts);
+
+   // Compute the intersection (if any) for each of the edge directions
+
+   const hier::IntVector one_vector(dim, 1);
+
+   const hier::Box quick_check(
+      hier::Box::grow(src_shift, one_vector)
+      * hier::Box::grow(dst_ghost, one_vector));
+
+   if (!quick_check.empty()) {
+
+      for (int d = 0; d < dim.getValue(); ++d) {
+
+         const hier::Box dst_edge(toEdgeBox(dst_ghost, d));
+         const hier::Box src_edge(toEdgeBox(src_shift, d));
+         const hier::Box fill_edge(toEdgeBox(fill_box, d));
+         const hier::Box together(dst_edge * src_edge * fill_edge);
+
+         if (!together.empty()) {
+
+            if (!overwrite_interior) {
+               const hier::Box int_edge(toEdgeBox(d_box, d));
+               dst_boxes[d].removeIntersections(together, int_edge);
+            } else {
+               dst_boxes[d].pushBack(together);
+            }
+
+         }  // if (!together.empty())
+
+         if (!dst_restrict_boxes.empty() && !dst_boxes[d].empty()) {
+            hier::BoxContainer edge_restrict_boxes;
+            for (hier::BoxContainer::const_iterator b = dst_restrict_boxes.begin();
+                 b != dst_restrict_boxes.end(); ++b) {
+               edge_restrict_boxes.pushBack(toEdgeBox(*b, d));
+            }
+            dst_boxes[d].intersectBoxes(edge_restrict_boxes);
+         }
+      }  // loop over dim
+
+   }  // if (!quick_check.empty())
+
 }
 
 /*
@@ -111,9 +178,9 @@ EdgeGeometry::toEdgeBox(
 
    if (!box.empty()) {
       edge_box = box;
-      for (int i = 0; i < dim.getValue(); i++) {
+      for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
          if (axis != i) {
-            edge_box.upper(i) += 1;
+            edge_box.setUpper(i, edge_box.upper(i) + 1);
          }
       }
    }
@@ -128,7 +195,7 @@ EdgeGeometry::toEdgeBox(
  * is fairly straight-forward.  First, we perform a quick-and-dirty
  * intersection to see if the boxes might overlap.  If that intersection
  * is not empty, then we need to do a better job calculating the overlap
- * for each dimension.  Note that the AMR index space boxes must be
+ * for each direction.  Note that the AMR index space boxes must be
  * shifted into the edge centered space before we calculate the proper
  * intersections.
  *
@@ -147,59 +214,15 @@ EdgeGeometry::doOverlap(
 {
    const tbox::Dimension& dim(src_mask.getDim());
 
-   tbox::Array<hier::BoxContainer> dst_boxes(dim.getValue());
+   std::vector<hier::BoxContainer> dst_boxes(dim.getValue());
 
-   // Perform a quick-and-dirty intersection to see if the boxes might overlap
-
-   const hier::Box src_box(
-      hier::Box::grow(src_geometry.d_box, src_geometry.d_ghosts) * src_mask);
-   hier::Box src_shift(src_box);
-   transformation.transform(src_shift);
-   const hier::Box dst_ghost(
-      hier::Box::grow(dst_geometry.d_box, dst_geometry.d_ghosts));
-
-   // Compute the intersection (if any) for each of the edge directions
-
-   const hier::IntVector one_vector(dim, 1);
-
-   const hier::Box quick_check =
-      hier::Box::grow(src_shift, one_vector) * hier::Box::grow(dst_ghost,
-         one_vector);
-
-   if (!quick_check.empty()) {
-
-      for (int d = 0; d < dim.getValue(); d++) {
-
-         const hier::Box dst_edge(toEdgeBox(dst_ghost, d));
-         const hier::Box src_edge(toEdgeBox(src_shift, d));
-         const hier::Box fill_edge(toEdgeBox(fill_box, d));
-         const hier::Box together(dst_edge * src_edge * fill_edge);
-
-         if (!together.empty()) {
-
-            dst_boxes[d].pushBack(together);
-            if (!overwrite_interior) {
-               const hier::Box int_edge(toEdgeBox(dst_geometry.d_box, d));
-               dst_boxes[d].removeIntersections(together, int_edge);
-            } else {
-               dst_boxes[d].pushBack(together);
-            }
-
-         }  // if (!together.empty())
-
-         if (dst_restrict_boxes.size() && dst_boxes[d].size()) {
-            hier::BoxContainer edge_restrict_boxes;
-            for (hier::BoxContainer::const_iterator b(dst_restrict_boxes);
-                 b != dst_restrict_boxes.end(); ++b) {
-               edge_restrict_boxes.pushBack(toEdgeBox(*b, d));
-            }
-            dst_boxes[d].intersectBoxes(edge_restrict_boxes);
-         }
-      }  // loop over dim
-
-   }  // if (!quick_check.empty())
-
-   // Create the edge overlap data object using the boxes and source shift
+   dst_geometry.computeDestinationBoxes(dst_boxes,
+      src_geometry,
+      src_mask,
+      fill_box,
+      overwrite_interior,
+      transformation,
+      dst_restrict_boxes);
 
    return boost::make_shared<EdgeOverlap>(dst_boxes, transformation);
 }
@@ -217,10 +240,11 @@ EdgeGeometry::setUpOverlap(
    const hier::Transformation& transformation) const
 {
    const tbox::Dimension& dim(transformation.getOffset().getDim());
-   tbox::Array<hier::BoxContainer> dst_boxes(dim.getValue());
+   std::vector<hier::BoxContainer> dst_boxes(dim.getValue());
 
-   for (hier::BoxContainer::const_iterator b(boxes); b != boxes.end(); ++b) {
-      for (int d = 0; d < dim.getValue(); d++) {
+   for (hier::BoxContainer::const_iterator b = boxes.begin();
+        b != boxes.end(); ++b) {
+      for (int d = 0; d < dim.getValue(); ++d) {
          hier::Box edge_box(EdgeGeometry::toEdgeBox(*b, d));
          dst_boxes[d].pushBack(edge_box);
       }
@@ -257,126 +281,135 @@ EdgeGeometry::transform(
       const hier::Transformation::RotationIdentifier rotation =
          transformation.getRotation();
 
-      for (int d = 0; d < dim.getValue(); d++) {
-         if (d != axis_direction) {
-            box.upper() (d) -= 1;
-         }
-      }
-      transformation.transform(box);
-      if (dim.getValue() == 2) {
-         const int rotation_num = static_cast<int>(rotation);
-         if (rotation_num % 2) {
-            axis_direction = (axis_direction + 1) % 2;
-         }
-      } else if (dim.getValue() == 3) {
+      if (rotation == hier::Transformation::NO_ROTATE) {
 
-         if (axis_direction == 0) {
+         transformation.transform(box);
 
-            switch (rotation) {
+      } else {
 
-               case hier::Transformation::IUP_JUP_KUP:
-               case hier::Transformation::IDOWN_KUP_JUP:
-               case hier::Transformation::IUP_KDOWN_JUP:
-               case hier::Transformation::IDOWN_JUP_KDOWN:
-               case hier::Transformation::IUP_KUP_JDOWN:
-               case hier::Transformation::IDOWN_JDOWN_KUP:
-               case hier::Transformation::IUP_JDOWN_KDOWN:
-               case hier::Transformation::IDOWN_KDOWN_JDOWN:
-
-                  axis_direction = 0;
-                  break;
-
-               case hier::Transformation::KUP_IUP_JUP:
-               case hier::Transformation::JUP_IDOWN_KUP:
-               case hier::Transformation::JUP_IUP_KDOWN:
-               case hier::Transformation::KDOWN_IDOWN_JUP:
-               case hier::Transformation::JDOWN_IUP_KUP:
-               case hier::Transformation::KUP_IDOWN_JDOWN:
-               case hier::Transformation::KDOWN_IUP_JDOWN:
-               case hier::Transformation::JDOWN_IDOWN_KDOWN:
-
-                  axis_direction = 1;
-                  break;
-
-               default:
-
-                  axis_direction = 2;
-                  break;
-
-            }
-
-         } else if (axis_direction == 1) {
-
-            switch (rotation) {
-               case hier::Transformation::JUP_KUP_IUP:
-               case hier::Transformation::JUP_IDOWN_KUP:
-               case hier::Transformation::JUP_IUP_KDOWN:
-               case hier::Transformation::JUP_KDOWN_IDOWN:
-               case hier::Transformation::JDOWN_IUP_KUP:
-               case hier::Transformation::JDOWN_KUP_IDOWN:
-               case hier::Transformation::JDOWN_KDOWN_IUP:
-               case hier::Transformation::JDOWN_IDOWN_KDOWN:
-
-                  axis_direction = 0;
-                  break;
-
-               case hier::Transformation::IUP_JUP_KUP:
-               case hier::Transformation::KUP_JUP_IDOWN:
-               case hier::Transformation::KDOWN_JUP_IUP:
-               case hier::Transformation::IDOWN_JUP_KDOWN:
-               case hier::Transformation::KUP_JDOWN_IUP:
-               case hier::Transformation::IDOWN_JDOWN_KUP:
-               case hier::Transformation::IUP_JDOWN_KDOWN:
-               case hier::Transformation::KDOWN_JDOWN_IDOWN:
-
-                  axis_direction = 1;
-                  break;
-
-               default:
-
-                  axis_direction = 2;
-                  break;
-            }
-
-         } else if (axis_direction == 2) {
-
-            switch (rotation) {
-               case hier::Transformation::KUP_IUP_JUP:
-               case hier::Transformation::KUP_JUP_IDOWN:
-               case hier::Transformation::KDOWN_JUP_IUP:
-               case hier::Transformation::KDOWN_IDOWN_JUP:
-               case hier::Transformation::KUP_JDOWN_IUP:
-               case hier::Transformation::KUP_IDOWN_JDOWN:
-               case hier::Transformation::KDOWN_IUP_JDOWN:
-               case hier::Transformation::KDOWN_JDOWN_IDOWN:
-
-                  axis_direction = 0;
-                  break;
-
-               case hier::Transformation::JUP_KUP_IUP:
-               case hier::Transformation::IDOWN_KUP_JUP:
-               case hier::Transformation::IUP_KDOWN_JUP:
-               case hier::Transformation::JUP_KDOWN_IDOWN:
-               case hier::Transformation::IUP_KUP_JDOWN:
-               case hier::Transformation::JDOWN_KUP_IDOWN:
-               case hier::Transformation::JDOWN_KDOWN_IUP:
-               case hier::Transformation::IDOWN_KDOWN_JDOWN:
-
-                  axis_direction = 1;
-                  break;
-
-               default:
-
-                  axis_direction = 2;
-                  break;
-
+         for (int d = 0; d < dim.getValue(); ++d) {
+            if (d != axis_direction) {
+               box.setUpper(static_cast<hier::Box::dir_t>(d),
+                  box.upper(static_cast<hier::Box::dir_t>(d)) - 1);
             }
          }
-      }
+         transformation.transform(box);
+         if (dim.getValue() == 2) {
+            const int rotation_num = static_cast<int>(rotation);
+            if (rotation_num % 2) {
+               axis_direction = (axis_direction + 1) % 2;
+            }
+         } else if (dim.getValue() == 3) {
 
-      for (int d = 0; d < dim.getValue(); d++) {
-         if (d != axis_direction) {
-            box.upper() (d) += 1;
+            if (axis_direction == 0) {
+
+               switch (rotation) {
+
+                  case hier::Transformation::IUP_JUP_KUP:
+                  case hier::Transformation::IDOWN_KUP_JUP:
+                  case hier::Transformation::IUP_KDOWN_JUP:
+                  case hier::Transformation::IDOWN_JUP_KDOWN:
+                  case hier::Transformation::IUP_KUP_JDOWN:
+                  case hier::Transformation::IDOWN_JDOWN_KUP:
+                  case hier::Transformation::IUP_JDOWN_KDOWN:
+                  case hier::Transformation::IDOWN_KDOWN_JDOWN:
+
+                     axis_direction = 0;
+                     break;
+
+                  case hier::Transformation::KUP_IUP_JUP:
+                  case hier::Transformation::JUP_IDOWN_KUP:
+                  case hier::Transformation::JUP_IUP_KDOWN:
+                  case hier::Transformation::KDOWN_IDOWN_JUP:
+                  case hier::Transformation::JDOWN_IUP_KUP:
+                  case hier::Transformation::KUP_IDOWN_JDOWN:
+                  case hier::Transformation::KDOWN_IUP_JDOWN:
+                  case hier::Transformation::JDOWN_IDOWN_KDOWN:
+
+                     axis_direction = 1;
+                     break;
+
+                  default:
+
+                     axis_direction = 2;
+                     break;
+
+               }
+
+            } else if (axis_direction == 1) {
+
+               switch (rotation) {
+                  case hier::Transformation::JUP_KUP_IUP:
+                  case hier::Transformation::JUP_IDOWN_KUP:
+                  case hier::Transformation::JUP_IUP_KDOWN:
+                  case hier::Transformation::JUP_KDOWN_IDOWN:
+                  case hier::Transformation::JDOWN_IUP_KUP:
+                  case hier::Transformation::JDOWN_KUP_IDOWN:
+                  case hier::Transformation::JDOWN_KDOWN_IUP:
+                  case hier::Transformation::JDOWN_IDOWN_KDOWN:
+
+                     axis_direction = 0;
+                     break;
+
+                  case hier::Transformation::IUP_JUP_KUP:
+                  case hier::Transformation::KUP_JUP_IDOWN:
+                  case hier::Transformation::KDOWN_JUP_IUP:
+                  case hier::Transformation::IDOWN_JUP_KDOWN:
+                  case hier::Transformation::KUP_JDOWN_IUP:
+                  case hier::Transformation::IDOWN_JDOWN_KUP:
+                  case hier::Transformation::IUP_JDOWN_KDOWN:
+                  case hier::Transformation::KDOWN_JDOWN_IDOWN:
+
+                     axis_direction = 1;
+                     break;
+
+                  default:
+
+                     axis_direction = 2;
+                     break;
+               }
+
+            } else if (axis_direction == 2) {
+
+               switch (rotation) {
+                  case hier::Transformation::KUP_IUP_JUP:
+                  case hier::Transformation::KUP_JUP_IDOWN:
+                  case hier::Transformation::KDOWN_JUP_IUP:
+                  case hier::Transformation::KDOWN_IDOWN_JUP:
+                  case hier::Transformation::KUP_JDOWN_IUP:
+                  case hier::Transformation::KUP_IDOWN_JDOWN:
+                  case hier::Transformation::KDOWN_IUP_JDOWN:
+                  case hier::Transformation::KDOWN_JDOWN_IDOWN:
+
+                     axis_direction = 0;
+                     break;
+
+                  case hier::Transformation::JUP_KUP_IUP:
+                  case hier::Transformation::IDOWN_KUP_JUP:
+                  case hier::Transformation::IUP_KDOWN_JUP:
+                  case hier::Transformation::JUP_KDOWN_IDOWN:
+                  case hier::Transformation::IUP_KUP_JDOWN:
+                  case hier::Transformation::JDOWN_KUP_IDOWN:
+                  case hier::Transformation::JDOWN_KDOWN_IUP:
+                  case hier::Transformation::IDOWN_KDOWN_JDOWN:
+
+                     axis_direction = 1;
+                     break;
+
+                  default:
+
+                     axis_direction = 2;
+                     break;
+
+               }
+            }
+         }
+
+         for (int d = 0; d < dim.getValue(); ++d) {
+            if (d != axis_direction) {
+               box.setUpper(static_cast<hier::Box::dir_t>(d),
+                  box.upper(static_cast<hier::Box::dir_t>(d)) + 1);
+            }
          }
       }
    }
@@ -407,9 +440,9 @@ EdgeGeometry::transform(
 
    const int axis_direction = index.getAxis();
 
-   for (int i = 0; i < dim.getValue(); i++) {
+   for (int i = 0; i < dim.getValue(); ++i) {
       if (i == axis_direction && index(i) >= 0) {
-         index(i)++;
+         ++index(i);
       }
    }
 
@@ -423,7 +456,7 @@ EdgeGeometry::transform(
       if (rotation_num) {
 
          EdgeIndex tmp_index(dim);
-         for (int r = 0; r < rotation_num; r++) {
+         for (int r = 0; r < rotation_num; ++r) {
             tmp_index = index;
             index(0) = tmp_index(1);
             index(1) = -tmp_index(0);
@@ -556,9 +589,9 @@ EdgeGeometry::transform(
 
    }
 
-   for (int i = 0; i < dim.getValue(); i++) {
+   for (int i = 0; i < dim.getValue(); ++i) {
       if (i == new_axis_direction && index(i) > 0) {
-         index(i)--;
+         --index(i);
       }
    }
 
@@ -575,7 +608,7 @@ EdgeGeometry::rotateAboutAxis(EdgeIndex& index,
    const int b = (axis + 2) % dim.getValue();
 
    EdgeIndex tmp_index(dim);
-   for (int j = 0; j < num_rotations; j++) {
+   for (int j = 0; j < num_rotations; ++j) {
       tmp_index = index;
       index(a) = tmp_index(b);
       index(b) = -tmp_index(a);
@@ -583,13 +616,28 @@ EdgeGeometry::rotateAboutAxis(EdgeIndex& index,
 
    int new_axis_direction = index.getAxis();
    if (new_axis_direction != axis) {
-      for (int j = 0; j < num_rotations; j++) {
+      for (int j = 0; j < num_rotations; ++j) {
          new_axis_direction = new_axis_direction == a ? b : a;
       }
    }
    index.setAxis(new_axis_direction);
 }
 
+EdgeIterator
+EdgeGeometry::begin(
+   const hier::Box& box,
+   int axis)
+{
+   return EdgeIterator(box, axis, true);
+}
+
+EdgeIterator
+EdgeGeometry::end(
+   const hier::Box& box,
+   int axis)
+{
+   return EdgeIterator(box, axis, false);
+}
+
 }
 }
-#endif

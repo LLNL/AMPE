@@ -3,27 +3,29 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for the restart database and HDF5 tests 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/test/restartdb
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 CPPFLAGS_EXTRA =  -DTESTING=1
 
-default: check	
+default: check
 
 include $(OBJECT)/config/Makefile.config
 
 NUM_TESTS = 5
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 testHDF5: mainHDF5.o database_tests.o $(LIBSAMRAIDEPEND)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) mainHDF5.o database_tests.o \
@@ -46,11 +48,37 @@ testMemory: mainMemory.o database_tests.o $(LIBSAMRAIDEPEND)
 	$(LIBSAMRAI) $(LDLIBS) -o testMemory
 
 check:	testHDF5 testHDF5AppFileOpen testSilo testSiloAppFileOpen testMemory
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testHDF5
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testHDF5AppFileOpen
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testSilo
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testSiloAppFileOpen
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./testMemory
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"restartdb\" name=$(QUOTE)HDF5 $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./testHDF5 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"restartdb\" name=$(QUOTE)HDF5AppFilOpen $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./testHDF5AppFileOpen | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"restartdb\" name=$(QUOTE)Silo $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./testSilo | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"restartdb\" name=$(QUOTE)SiloAppFileOpen $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./testSiloAppFileOpen | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"restartdb\" name=$(QUOTE)Memory $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./testMemory | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 check2d:
 	$(MAKE) check
@@ -62,14 +90,28 @@ checkcompile: testHDF5 testHDF5AppFileOpen testSilo testSiloAppFileOpen \
 	testMemory
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean:
-	$(SAMCLEAN)
-	$(RM) testHDF5 testSilo
-	$(RM) -r test_dir *.silo *.hdf5
+examples:
+
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) test_dir *.silo *.hdf5
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) testHDF5 testHDF5AppFileOpen testSilo testSiloAppFileOpen \
+	testMemory
 
 include $(SRCDIR)/Makefile.depend

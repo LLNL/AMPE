@@ -3,15 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Interface for writing user-defined data to either VisIt or
- *                Vizamrai dump file
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Interface for writing user-defined data to VisIt
  *
  ************************************************************************/
-
-#ifndef included_appu_VisDerivedDataStrategy_C
-#define included_appu_VisDerivedDataStrategy_C
-
 #include "SAMRAI/appu/VisDerivedDataStrategy.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -52,5 +47,3 @@ VisDerivedDataStrategy::packMixedDerivedDataIntoDoubleBuffer(
 
 }
 }
-
-#endif

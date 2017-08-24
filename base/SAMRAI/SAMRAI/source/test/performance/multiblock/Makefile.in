@@ -1,10 +1,10 @@
 #########################################################################
 ##
-## This file is part of the SAMRAI distribution.  For full copyright 
-## information, see COPYRIGHT and COPYING.LESSER. 
+## This file is part of the SAMRAI distribution.  For full copyright
+## information, see COPYRIGHT and COPYING.LESSER.
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   makefile for linear advection sample application 
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   Multiblock performance tests.
 ##
 #########################################################################
 
@@ -14,144 +14,112 @@ SUBDIR        = source/test/performance/multiblock
 VPATH         = @srcdir@
 TESTTOOLS     = ../../testtools
 OBJECT        = ../../../..
+REPORT        = $(OBJECT)/report.xml
+TESTLIBDIR    = $(OBJECT)/source/test/testlib
+TESTLIB       = $(TESTLIBDIR)/libSAMRAI_test$(LIB_SUFFIX)
 
 default:      check
 
 include $(OBJECT)/config/Makefile.config
 
-CPPFLAGS_EXTRA= -DTESTING=0
+SUBDIRS = fortran
 
-NUM_TESTS     = 8
+CPPFLAGS_EXTRA= 
+
+NUM_TESTS     = 0
 
 TEST_NPROCS   = @TEST_NPROCS@
 
-CXX_OBJS      = MblkGeometry.o main.o MblkLinAdv.o MblkHyperbolicLevelIntegrator.o \
-	MblkHyperbolicPatchStrategy.o Pointer-MblkHyperbolicLevelIntegrator.o \
-	SkeletonCellDoubleConservativeLinearRefine.o Pointer-SkeletonCellDoubleConservativeLinearRefine.o \
-	SkeletonCellDoubleWeightedAverage.o Pointer-SkeletonCellDoubleWeightedAverage.o \
-	SkeletonOutersideDoubleWeightedAverage.o Pointer-SkeletonOutersideDoubleWeightedAverage.o \
-	SkeletonBoundaryUtilities2.o \
-	SkeletonBoundaryUtilities3.o
+CXX_OBJS      = MblkGeometry.o main.o MblkLinAdv.o \
+		SkeletonOutersideDoubleWeightedAverage.o
 
-F_OBJS      = stufprobc.o trace1d.o trace2d.o trace3d.o grad2d.o grad3d.o flux2d.o flux3d.o fluxcorner3d.o stable2d.o stable3d.o init2d.o init3d.o upfluxsum2d.o skelbdry2d.o upfluxsum3d.o skelbdry3d.o
+F_OBJS      = fortran/stufprobc.o fortran/trace1d.o fortran/trace2d.o \
+	      fortran/trace3d.o fortran/grad2d.o fortran/grad3d.o \
+	      fortran/flux2d.o fortran/flux3d.o fortran/fluxcorner3d.o \
+	      fortran/stable2d.o fortran/stable3d.o fortran/init2d.o \
+	      fortran/init3d.o
 
-main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND) $(TESTLIB)
+	(cd $(TESTLIBDIR) && $(MAKE) library) || exit 1
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) $(TESTLIB) \
 	$(LIBSAMRAI) $(LDLIBS) -o $@
 
+# Prevents "No rule to make target" error.  Built in the rule for main.
+$(TESTLIB):
+
+fortran/stufprobc.o:
+
+fortran/trace1d.o:
+
+fortran/trace2d.o:
+
+fortran/trace3d.o:
+
+fortran/grad2d.o:
+
+fortran/grad3d.o:
+
+fortran/flux2d.o:
+
+fortran/flux3d.o:
+
+fortran/fluxcorner3d.o:
+
+fortran/stable2d.o:
+
+fortran/stable3d.o:
+
+fortran/init2d.o:
+
+fortran/init3d.o:
+
 check:
-	$(MAKE) check3d
-
-check2d:
-
-check3d:       main
-	@for i in test_inputs/*.input ; do \
-	 $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-	       ./main $${i}; \
-	done
 
 checkcompile: main
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
-
-examples2d: 
-
-examples3d: main
-	@for i in $(SRCDIR)/example_inputs/*.3d.input ; do	\
-	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-		./main $${i};	\
-	done
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
 examples:
-	$(MAKE) examples2d
-	$(MAKE) examples3d
 
-clean-check:
-	$(SAMCLEAN)
+perf2d:       main
+	@for i in performance_inputs/*.2d.*input ; do \
+	 $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+	       ./main $${i}; \
+	done
 
-clean: 
-	$(SAMCLEAN)
-	$(RM) *.f main viz*
+perf3d:       main
+	@for i in performance_inputs/*.3d.*input ; do \
+	 $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+	       ./main $${i}; \
+	done
 
-redo: 
+perf:
+	$(MAKE) perf2d
+	$(MAKE) perf3d
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) *.timing*
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+redo:
 	$(RM) main
 
 include $(SRCDIR)/Makefile.depend
-
-FORTRAN       = $(SRCDIR)/fortran
-M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
-
-skelbdry2d.o:	$(FORTRAN)/skelbdry2d.m4
-	$(M4) $(M4DIRS) $(FORTRAN)/skelbdry2d.m4 > skelbdry2d.f
-	$(F77) $(FFLAGS) -c skelbdry2d.f -o $@
-
-upfluxsum2d.o:	$(FORTRAN)/upfluxsum2d.m4
-	$(M4) $(M4DIRS) $(FORTRAN)/upfluxsum2d.m4 > upfluxsum2d.f
-	$(F77) $(FFLAGS) -c upfluxsum2d.f -o $@
-
-
-skelbdry3d.o:	$(FORTRAN)/skelbdry3d.m4
-	$(M4) $(M4DIRS) $(FORTRAN)/skelbdry3d.m4 > skelbdry3d.f
-	$(F77) $(FFLAGS) -c skelbdry3d.f -o $@
-
-upfluxsum3d.o:	$(FORTRAN)/upfluxsum3d.m4
-	$(M4) $(M4DIRS) $(FORTRAN)/upfluxsum3d.m4 > upfluxsum3d.f
-	$(F77) $(FFLAGS) -c upfluxsum3d.f -o $@
-
-init2d.o:       $(FORTRAN)/init2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/init2d.m4 > init2d.f
-		$(F77) $(FFLAGS) -c init2d.f -o $@
-
-init3d.o:       $(FORTRAN)/init3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/init3d.m4 > init3d.f
-		$(F77) $(FFLAGS) -c init3d.f -o $@
-
-flux2d.o:       $(FORTRAN)/flux2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/flux2d.m4 > flux2d.f
-		$(F77) $(FFLAGS) -c flux2d.f -o $@
-
-flux3d.o:       $(FORTRAN)/flux3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/flux3d.m4 > flux3d.f
-		$(F77) $(FFLAGS) -c flux3d.f -o $@
-
-grad2d.o:       $(FORTRAN)/grad2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/grad2d.m4 > grad2d.f
-		$(F77) $(FFLAGS) -c grad2d.f -o $@
-
-grad3d.o:       $(FORTRAN)/grad3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/grad3d.m4 > grad3d.f
-		$(F77) $(FFLAGS) -c grad3d.f -o $@
-
-trace1d.o:       $(FORTRAN)/trace1d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/trace1d.m4 > trace1d.f
-		$(F77) $(FFLAGS) -c trace1d.f -o $@
-
-trace2d.o:       $(FORTRAN)/trace2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/trace2d.m4 > trace2d.f
-		$(F77) $(FFLAGS) -c trace2d.f -o $@
-
-trace3d.o:       $(FORTRAN)/trace3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/trace3d.m4 > trace3d.f
-		$(F77) $(FFLAGS) -c trace3d.f -o $@
-
-stufprobc.o:       $(FORTRAN)/stufprobc.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/stufprobc.m4 > stufprobc.f
-		$(F77) $(FFLAGS) -c stufprobc.f -o $@
-
-stable2d.o:       $(FORTRAN)/stable2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/stable2d.m4 > stable2d.f
-		$(F77) $(FFLAGS) -c stable2d.f -o $@
-
-stable3d.o:       $(FORTRAN)/stable3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/stable3d.m4 > stable3d.f
-		$(F77) $(FFLAGS) -c stable3d.f -o $@
-
-fluxcorner3d.o:       $(FORTRAN)/fluxcorner3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/fluxcorner3d.m4 > fluxcorner3d.f
-		$(F77) $(FFLAGS) -c fluxcorner3d.f -o $@
 
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An input database structure that stores (key,value) pairs
  *
  ************************************************************************/
@@ -96,15 +96,15 @@ NullDatabase::keyExists(
 /*
  *************************************************************************
  *
- * Return an empty Array<std::string>.
+ * Return an empty std::vector<std::string>.
  *
  *************************************************************************
  */
 
-Array<std::string>
+std::vector<std::string>
 NullDatabase::getAllKeys()
 {
-   Array<std::string> keys(0);
+   std::vector<std::string> keys(0);
    return keys;
 }
 
@@ -132,7 +132,7 @@ NullDatabase::getArrayType(
  *************************************************************************
  */
 
-int
+size_t
 NullDatabase::getArraySize(
    const std::string& key)
 {
@@ -192,19 +192,19 @@ void
 NullDatabase::putBoolArray(
    const std::string& key,
    const bool * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<bool>
-NullDatabase::getBoolArray(
+std::vector<bool>
+NullDatabase::getBoolVector(
    const std::string& key)
 {
    NULL_USE(key);
-   Array<bool> empty(0);
+   std::vector<bool> empty(0);
    return empty;
 }
 
@@ -228,20 +228,20 @@ void
 NullDatabase::putDatabaseBoxArray(
    const std::string& key,
    const DatabaseBox * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<DatabaseBox>
-NullDatabase::getDatabaseBoxArray(
+std::vector<DatabaseBox>
+NullDatabase::getDatabaseBoxVector(
    const std::string& key)
 {
    NULL_USE(key);
 
-   Array<DatabaseBox> empty(0);
+   std::vector<DatabaseBox> empty(0);
    return empty;
 }
 
@@ -265,20 +265,20 @@ void
 NullDatabase::putCharArray(
    const std::string& key,
    const char * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<char>
-NullDatabase::getCharArray(
+std::vector<char>
+NullDatabase::getCharVector(
    const std::string& key)
 {
    NULL_USE(key);
 
-   Array<char> empty(0);
+   std::vector<char> empty(0);
    return empty;
 }
 
@@ -304,20 +304,20 @@ void
 NullDatabase::putComplexArray(
    const std::string& key,
    const dcomplex * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<dcomplex>
-NullDatabase::getComplexArray(
+std::vector<dcomplex>
+NullDatabase::getComplexVector(
    const std::string& key)
 {
    NULL_USE(key);
 
-   Array<dcomplex> empty(0);
+   std::vector<dcomplex> empty(0);
    return empty;
 }
 
@@ -342,19 +342,19 @@ void
 NullDatabase::putDoubleArray(
    const std::string& key,
    const double * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<double>
-NullDatabase::getDoubleArray(
+std::vector<double>
+NullDatabase::getDoubleVector(
    const std::string& key)
 {
    NULL_USE(key);
-   Array<double> empty(0);
+   std::vector<double> empty(0);
    return empty;
 }
 
@@ -380,20 +380,20 @@ void
 NullDatabase::putFloatArray(
    const std::string& key,
    const float * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<float>
-NullDatabase::getFloatArray(
+std::vector<float>
+NullDatabase::getFloatVector(
    const std::string& key)
 {
    NULL_USE(key);
 
-   Array<float> empty(0);
+   std::vector<float> empty(0);
    return empty;
 }
 
@@ -417,20 +417,20 @@ void
 NullDatabase::putIntegerArray(
    const std::string& key,
    const int * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<int>
-NullDatabase::getIntegerArray(
+std::vector<int>
+NullDatabase::getIntegerVector(
    const std::string& key)
 {
    NULL_USE(key);
 
-   Array<int> empty(0);
+   std::vector<int> empty(0);
    return empty;
 }
 
@@ -454,19 +454,19 @@ void
 NullDatabase::putStringArray(
    const std::string& key,
    const std::string * const data,
-   const int nelements)
+   const size_t nelements)
 {
    NULL_USE(key);
    NULL_USE(data);
    NULL_USE(nelements);
 }
 
-Array<std::string>
-NullDatabase::getStringArray(
+std::vector<std::string>
+NullDatabase::getStringVector(
    const std::string& key)
 {
    NULL_USE(key);
-   Array<std::string> empty(0);
+   std::vector<std::string> empty(0);
    return empty;
 }
 

@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Weighted averaging operator for cell-centered complex data on
  *                a Cartesian mesh.
  *
  ************************************************************************/
-
-#ifndef included_geom_CartesianCellComplexWeightedAverage_C
-#define included_geom_CartesianCellComplexWeightedAverage_C
-
 #include "SAMRAI/geom/CartesianCellComplexWeightedAverage.h"
 #include "SAMRAI/tbox/Complex.h"
 
@@ -37,27 +33,37 @@ extern "C" {
 #endif
 
 // in cartcoarsen1d.f:
-void F77_FUNC(cartwgtavgcellcplx1d, CARTWGTAVGCELLCPLX1D) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgcellcplx1d, CARTWGTAVGCELLCPLX1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen2d.f:
-void F77_FUNC(cartwgtavgcellcplx2d, CARTWGTAVGCELLCPLX2D) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgcellcplx2d, CARTWGTAVGCELLCPLX2D) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen3d.f:
-void F77_FUNC(cartwgtavgcellcplx3d, CARTWGTAVGCELLCPLX3D) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgcellcplx3d, CARTWGTAVGCELLCPLX3D) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+// in cartcoarsen4d.f:
+void SAMRAI_F77_FUNC(cartwgtavgcellcplx4d, CARTWGTAVGCELLCPLX4D) (const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
+   const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 }
@@ -67,9 +73,8 @@ namespace geom {
 
 // using namespace std;
 
-CartesianCellComplexWeightedAverage::CartesianCellComplexWeightedAverage(
-   const tbox::Dimension& dim):
-   hier::CoarsenOperator(dim, "CONSERVATIVE_COARSEN")
+CartesianCellComplexWeightedAverage::CartesianCellComplexWeightedAverage():
+   hier::CoarsenOperator("CONSERVATIVE_COARSEN")
 {
 }
 
@@ -84,9 +89,9 @@ CartesianCellComplexWeightedAverage::getOperatorPriority() const
 }
 
 hier::IntVector
-CartesianCellComplexWeightedAverage::getStencilWidth() const
+CartesianCellComplexWeightedAverage::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -98,37 +103,40 @@ CartesianCellComplexWeightedAverage::coarsen(
    const hier::Box& coarse_box,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, coarse, fine, coarse_box, ratio);
+   const tbox::Dimension& dim(fine.getDim());
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY3(dim, coarse, coarse_box, ratio);
 
    boost::shared_ptr<pdat::CellData<dcomplex> > fdata(
-      fine.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<dcomplex>, hier::PatchData>(
+         fine.getPatchData(src_component)));
    boost::shared_ptr<pdat::CellData<dcomplex> > cdata(
-      coarse.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<dcomplex>, hier::PatchData>(
+         coarse.getPatchData(dst_component)));
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata);
    TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
-   const hier::Index cilo = cdata->getGhostBox().lower();
-   const hier::Index cihi = cdata->getGhostBox().upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cdata->getGhostBox().lower();
+   const hier::Index& cihi = cdata->getGhostBox().upper();
 
    const boost::shared_ptr<CartesianPatchGeometry> fgeom(
-      fine.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         fine.getPatchGeometry()));
    const boost::shared_ptr<CartesianPatchGeometry> cgeom(
-      coarse.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         coarse.getPatchGeometry()));
 
-   const hier::Index ifirstc = coarse_box.lower();
-   const hier::Index ilastc = coarse_box.upper();
+   TBOX_ASSERT(cgeom);
+   TBOX_ASSERT(fgeom);
 
-   for (int d = 0; d < cdata->getDepth(); d++) {
+   const hier::Index& ifirstc = coarse_box.lower();
+   const hier::Index& ilastc = coarse_box.upper();
+
+   for (int d = 0; d < cdata->getDepth(); ++d) {
       if ((dim == tbox::Dimension(1))) {
-         F77_FUNC(cartwgtavgcellcplx1d, CARTWGTAVGCELLCPLX1D) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartwgtavgcellcplx1d, CARTWGTAVGCELLCPLX1D) (ifirstc(0),
             ilastc(0),
             filo(0), fihi(0),
             cilo(0), cihi(0),
@@ -137,9 +145,8 @@ CartesianCellComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(d),
             cdata->getPointer(d));
-      }
-      if ((dim == tbox::Dimension(2))) {
-         F77_FUNC(cartwgtavgcellcplx2d, CARTWGTAVGCELLCPLX2D) (ifirstc(0),
+      } else if ((dim == tbox::Dimension(2))) {
+         SAMRAI_F77_FUNC(cartwgtavgcellcplx2d, CARTWGTAVGCELLCPLX2D) (ifirstc(0),
             ifirstc(1), ilastc(0), ilastc(1),
             filo(0), filo(1), fihi(0), fihi(1),
             cilo(0), cilo(1), cihi(0), cihi(1),
@@ -148,9 +155,8 @@ CartesianCellComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(d),
             cdata->getPointer(d));
-      }
-      if ((dim == tbox::Dimension(3))) {
-         F77_FUNC(cartwgtavgcellcplx3d, CARTWGTAVGCELLCPLX3D) (ifirstc(0),
+      } else if ((dim == tbox::Dimension(3))) {
+         SAMRAI_F77_FUNC(cartwgtavgcellcplx3d, CARTWGTAVGCELLCPLX3D) (ifirstc(0),
             ifirstc(1), ifirstc(2),
             ilastc(0), ilastc(1), ilastc(2),
             filo(0), filo(1), filo(2),
@@ -162,13 +168,25 @@ CartesianCellComplexWeightedAverage::coarsen(
             cgeom->getDx(),
             fdata->getPointer(d),
             cdata->getPointer(d));
+      } else if ((dim == tbox::Dimension(4))) {
+         SAMRAI_F77_FUNC(cartwgtavgcellcplx4d, CARTWGTAVGCELLCPLX4D) (ifirstc(0),
+            ifirstc(1), ifirstc(2), ifirstc(3),
+            ilastc(0), ilastc(1), ilastc(2), ilastc(3),
+            filo(0), filo(1), filo(2), filo(3),
+            fihi(0), fihi(1), fihi(2), fihi(3),
+            cilo(0), cilo(1), cilo(2), cilo(3),
+            cihi(0), cihi(1), cihi(2), cihi(3),
+            &ratio[0],
+            fgeom->getDx(),
+            cgeom->getDx(),
+            fdata->getPointer(d),
+            cdata->getPointer(d));
       } else {
-         TBOX_ERROR("CartesianEdgeComplexWeightedAverage error...\n"
-            << "dim > 3 not supported." << std::endl);
+         TBOX_ERROR("CartesianCellComplexWeightedAverage error...\n"
+            << "dim > 4 not supported." << std::endl);
       }
    }
 }
 
 }
 }
-#endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating outeredge data objects
  *
  ************************************************************************/
@@ -19,21 +19,21 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Complex.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
 
 /*!
  * @brief
- * Class OuteredgeDataFactory<DIM> is a factory class used to allocate new
- * instances of OuteredgeData<DIM> objects.  It is a subclass of the patch
+ * Class OuteredgeDataFactory<TYPE> is a factory class used to allocate new
+ * instances of OuteredgeData<TYPE> objects.  It is a subclass of the patch
  * data factory class and outeredge data is a subclass of patch data.  Both
  * the factory and data classes are templated on the type of the contained
  * object (e.g., double or int).
  *
- * @see pdat::OuteredgeData
- * @see pdat::PatchDataFactory
+ * @see OuteredgeData
+ * @see PatchDataFactory
  */
 
 template<class TYPE>
@@ -46,6 +46,8 @@ public:
     *
     * The depth (number of components) gives the default for all of
     * the outeredge data objects created with this factory.
+    *
+    * @pre depth > 0
     */
    OuteredgeDataFactory(
       const tbox::Dimension& dim,
@@ -66,6 +68,8 @@ public:
     *
     * @param ghosts default ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    virtual boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
@@ -77,6 +81,8 @@ public:
     *
     * The default information about the object (e.g., depth) is taken from
     * the factory.
+    *
+    * @pre getDim() == patch.getDim()
     */
    virtual boost::shared_ptr<hier::PatchData>
    allocate(
@@ -88,6 +94,8 @@ public:
     *
     * This information will be used in the computation of intersections
     * and data dependencies between objects.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
@@ -107,6 +115,8 @@ public:
     * @brief
     * Calculate the amount of memory needed to store the outeredge data
     * object, including object data and dynamically allocated data.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual size_t
    getSizeOfMemory(
@@ -115,7 +125,7 @@ public:
    /*!
     * Return a boolean true value indicating that fine data for the outeredge
     * quantity will take precedence on coarse-fine interfaces.  See the
-    * OuteredgeVariable<DIM> class header file for more information.
+    * OuteredgeVariable<TYPE> class header file for more information.
     */
    bool
    fineBoundaryRepresentsVariable() const;
@@ -131,6 +141,8 @@ public:
     * Return whether it is valid to copy this OuteredgeDataFactory to the
     * supplied destination patch data factory.  It will return true if
     * dst_pdf is EdgeDataFactory or OuteredgeDataFactory, false otherwise.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(

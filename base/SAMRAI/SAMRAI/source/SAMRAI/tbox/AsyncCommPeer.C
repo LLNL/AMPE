@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Staged peer-to-peer communication.
  *
  ************************************************************************/
@@ -57,7 +57,6 @@ AsyncCommPeer<TYPE>::s_initialize_finalize_handler(
 
 /*
  ***********************************************************************
- * FIXME: d_mpi should be initialized with commNull or SAMRAI's comm base.
  ***********************************************************************
  */
 template<class TYPE>
@@ -68,9 +67,9 @@ AsyncCommPeer<TYPE>::AsyncCommPeer():
    d_next_task_op(none),
    d_max_first_data_len(1),
    d_full_count(0),
-   d_external_buf(NULL),
+   d_external_buf(0),
    d_internal_buf_size(0),
-   d_internal_buf(),
+   d_internal_buf(0),
    d_mpi(SAMRAI_MPI::getSAMRAIWorld()),
    d_tag0(-1),
    d_tag1(-1),
@@ -79,7 +78,7 @@ AsyncCommPeer<TYPE>::AsyncCommPeer():
    t_wait_timer(t_default_wait_timer)
 {
    d_report_send_completion[0] = d_report_send_completion[1] = false;
-   if ( ! t_default_wait_timer ) {
+   if (!t_default_wait_timer) {
       /*
        * This should not be needed, but somehow initializeCallback()
        * may not have called yet.
@@ -96,7 +95,6 @@ AsyncCommPeer<TYPE>::AsyncCommPeer():
  * Construct a simple object that works with a communication stage.
  * All parameters are set to reasonable defaults or, if appropriate,
  * invalid values.
- * FIXME: d_mpi should be initialized with commNull or SAMRAI's comm base.
  ***********************************************************************
  */
 template<class TYPE>
@@ -109,9 +107,9 @@ AsyncCommPeer<TYPE>::AsyncCommPeer(
    d_next_task_op(none),
    d_max_first_data_len(1),
    d_full_count(0),
-   d_external_buf(NULL),
+   d_external_buf(0),
    d_internal_buf_size(0),
-   d_internal_buf(),
+   d_internal_buf(0),
    d_mpi(SAMRAI_MPI::getSAMRAIWorld()),
    d_tag0(-1),
    d_tag1(-1),
@@ -120,7 +118,7 @@ AsyncCommPeer<TYPE>::AsyncCommPeer(
    t_wait_timer(t_default_wait_timer)
 {
    d_report_send_completion[0] = d_report_send_completion[1] = false;
-   if ( ! t_default_wait_timer ) {
+   if (!t_default_wait_timer) {
       /*
        * This should not be needed, but somehow initializeCallback()
        * may not have called yet.
@@ -141,13 +139,14 @@ AsyncCommPeer<TYPE>::~AsyncCommPeer()
 {
    if (!isDone()) {
       TBOX_ERROR("Deallocating an AsyncCommPeer object while communication\n"
-         << "is pending leads to lost messages."
+         << "is pending leads to lost messages.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0 << ", " << d_tag1);
+         << ",  mpi_tag = " << d_tag0 << ", " << d_tag1);
    }
 
    if (d_internal_buf) {
       free(d_internal_buf);
+      d_internal_buf = 0;
    }
 
 }
@@ -190,12 +189,12 @@ AsyncCommPeer<TYPE>::proceedToNextWait()
       case undefined:
          TBOX_ERROR("There is no current operation to check.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0 << ", " << d_tag1);
+         << ",  mpi_tag = " << d_tag0 << ", " << d_tag1);
       default:
          TBOX_ERROR("Library error: attempt to use an operation that\n"
-         << "has not been written yet"
+         << "has not been written yet.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0 << ", " << d_tag1);
+         << ",  mpi_tag = " << d_tag0 << ", " << d_tag1);
    }
    return true;
 }
@@ -219,7 +218,7 @@ AsyncCommPeer<TYPE>::completeCurrentOperation()
    while (!isDone()) {
 
       t_wait_timer->start();
-      int errf = d_mpi.Waitall(2,
+      int errf = SAMRAI_MPI::Waitall(2,
             req,
             mpi_status);
       t_wait_timer->stop();
@@ -227,7 +226,7 @@ AsyncCommPeer<TYPE>::completeCurrentOperation()
       if (errf != MPI_SUCCESS) {
          TBOX_ERROR("Error in MPI_wait call.\n"
             << "mpi_communicator = " << d_mpi.getCommunicator()
-            << "mpi_tag = " << d_tag0);
+            << ",  mpi_tag = " << d_tag0);
       }
 
       proceedToNextWait();
@@ -245,12 +244,13 @@ template<class TYPE>
 bool
 AsyncCommPeer<TYPE>::beginSend(
    const TYPE* buffer,
-   int size)
+   int size,
+   bool automatic_push_to_completion_queue)
 {
-   if (d_next_task_op != none) {
-      TBOX_ERROR("Cannot begin communication while another is in progress."
+   if (getNextTaskOp() != none) {
+      TBOX_ERROR("Cannot begin communication while another is in progress.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0);
+         << ",  mpi_tag = " << d_tag0);
    }
 #ifdef DEBUG_CHECK_ASSERTIONS
    checkMPIParams();
@@ -259,8 +259,8 @@ AsyncCommPeer<TYPE>::beginSend(
    d_full_count = size;
    d_base_op = send;
    d_next_task_op = send_start;
-   bool status = checkSend();
-   d_external_buf = NULL;
+   bool status = checkSend(automatic_push_to_completion_queue);
+   d_external_buf = 0;
    return status;
 }
 
@@ -270,11 +270,14 @@ void
 AsyncCommPeer<TYPE>::resizeBuffer(
    size_t size)
 {
+   TBOX_ASSERT(!hasPendingRequests());
+
    if (d_internal_buf_size < size) {
       if (d_internal_buf) {
          d_internal_buf = (FlexData *)realloc(d_internal_buf, size * sizeof(FlexData));
 #ifdef DEBUG_INITIALIZE_UNDEFINED
-         memset(d_internal_buf + d_internal_buf_size, 0, (size - d_internal_buf_size) * sizeof(FlexData));
+         memset(d_internal_buf + d_internal_buf_size, 0,
+            (size - d_internal_buf_size) * sizeof(FlexData));
 #endif
       } else {
 #ifdef DEBUG_INITIALIZE_UNDEFINED
@@ -300,12 +303,13 @@ AsyncCommPeer<TYPE>::resizeBuffer(
  */
 template<class TYPE>
 bool
-AsyncCommPeer<TYPE>::checkSend()
+AsyncCommPeer<TYPE>::checkSend(
+   bool automatic_push_to_completion_queue)
 {
-   if (d_base_op != send) {
-      TBOX_ERROR("Cannot check nonexistent send operation."
-         << " mpi_communicator = " << d_mpi.getCommunicator()
-         << " mpi_tag = " << d_tag0 << ", " << d_tag1);
+   if (getBaseOp() != send) {
+      TBOX_ERROR("Cannot check nonexistent send operation.\n"
+         << "mpi_communicator = " << d_mpi.getCommunicator()
+         << ",  mpi_tag = " << d_tag0 << ", " << d_tag1);
    }
    SAMRAI_MPI::Request * const req = getRequestPointer();
    int flag = 0;
@@ -346,9 +350,9 @@ AsyncCommPeer<TYPE>::checkSend()
                   &req[0]);
             t_send_timer->stop();
             if (d_mpi_err != MPI_SUCCESS) {
-               TBOX_ERROR("Error in MPI_Isend."
+               TBOX_ERROR("Error in MPI_Isend.\n"
                   << "mpi_communicator = " << d_mpi.getCommunicator()
-                  << "mpi_tag = " << d_tag0);
+                  << ",  mpi_tag = " << d_tag0);
             }
 #ifdef AsyncCommPeer_DEBUG_OUTPUT
             d_report_send_completion[0] = true;
@@ -398,9 +402,9 @@ AsyncCommPeer<TYPE>::checkSend()
                   &req[0]);
             t_send_timer->stop();
             if (d_mpi_err != MPI_SUCCESS) {
-               TBOX_ERROR("Error in MPI_Isend."
+               TBOX_ERROR("Error in MPI_Isend.\n"
                   << "mpi_communicator = " << d_mpi.getCommunicator()
-                  << "mpi_tag = " << d_tag0);
+                  << ",  mpi_tag = " << d_tag0);
             }
 
             // Stuff and send second message.
@@ -448,7 +452,7 @@ AsyncCommPeer<TYPE>::checkSend()
                      << "MPI_ERROR value is " << mpi_status[ic].MPI_ERROR
                      << '\n'
                      << "mpi_communicator = " << d_mpi.getCommunicator()
-                     << "mpi_tag = " << d_tag0);
+                     << ",  mpi_tag = " << d_tag0);
                }
             }
             if (req[ic] == MPI_REQUEST_NULL && d_report_send_completion[ic]) {
@@ -468,16 +472,20 @@ AsyncCommPeer<TYPE>::checkSend()
          } else {
             // Sends completed.  No next task.
             d_next_task_op = none;
-            d_external_buf = NULL;
+            d_external_buf = 0;
             d_full_count = 0;
          }
 
          break;
 
       default:
-         TBOX_ERROR("checkSend is incompatible with current state."
+         TBOX_ERROR("checkSend is incompatible with current state.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0);
+         << ",  mpi_tag = " << d_tag0);
+   }
+
+   if (automatic_push_to_completion_queue && d_next_task_op == none) {
+      pushToCompletionQueue();
    }
 
    return d_next_task_op == none;
@@ -491,12 +499,13 @@ AsyncCommPeer<TYPE>::checkSend()
  */
 template<class TYPE>
 bool
-AsyncCommPeer<TYPE>::beginRecv()
+AsyncCommPeer<TYPE>::beginRecv(
+   bool automatic_push_to_completion_queue)
 {
-   if (d_next_task_op != none) {
-      TBOX_ERROR("Cannot begin communication while another is in progress."
+   if (getNextTaskOp() != none) {
+      TBOX_ERROR("Cannot begin communication while another is in progress.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0);
+         << ",  mpi_tag = " << d_tag0);
    }
 #ifdef DEBUG_CHECK_ASSERTIONS
    checkMPIParams();
@@ -504,7 +513,7 @@ AsyncCommPeer<TYPE>::beginRecv()
    d_full_count = 0;
    d_base_op = recv;
    d_next_task_op = recv_start;
-   return checkRecv();
+   return checkRecv(automatic_push_to_completion_queue);
 }
 
 /*
@@ -520,12 +529,13 @@ AsyncCommPeer<TYPE>::beginRecv()
  */
 template<class TYPE>
 bool
-AsyncCommPeer<TYPE>::checkRecv()
+AsyncCommPeer<TYPE>::checkRecv(
+   bool automatic_push_to_completion_queue)
 {
-   if (d_base_op != recv) {
-      TBOX_ERROR("Cannot check nonexistent receive operation."
-         << " mpi_communicator = " << d_mpi.getCommunicator()
-         << " mpi_tag = " << d_tag0 << ", " << d_tag1);
+   if (getBaseOp() != recv) {
+      TBOX_ERROR("Cannot check nonexistent receive operation.\n"
+         << "mpi_communicator = " << d_mpi.getCommunicator()
+         << ",  mpi_tag = " << d_tag0 << ", " << d_tag1);
    }
    SAMRAI_MPI::Request * const req = getRequestPointer();
    SAMRAI_MPI::Status * const mpi_status = getStatusPointer();
@@ -546,8 +556,8 @@ AsyncCommPeer<TYPE>::checkRecv()
                   d_max_first_data_len);
             resizeBuffer(first_chunk_count + 2);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
             TBOX_ASSERT(req[0] == MPI_REQUEST_NULL);
+#ifdef DEBUG_CHECK_ASSERTIONS
             req[0] = MPI_REQUEST_NULL;
 #endif
             t_recv_timer->start();
@@ -560,9 +570,9 @@ AsyncCommPeer<TYPE>::checkRecv()
                   &req[0]);
             t_recv_timer->stop();
             if (d_mpi_err != MPI_SUCCESS) {
-               TBOX_ERROR("Error in MPI_Irecv."
+               TBOX_ERROR("Error in MPI_Irecv.\n"
                   << "mpi_communicator = " << d_mpi.getCommunicator()
-                  << "mpi_tag = " << d_tag0);
+                  << ",  mpi_tag = " << d_tag0);
             }
 #ifdef AsyncCommPeer_DEBUG_OUTPUT
             plog << "tag0-" << d_tag0
@@ -589,7 +599,7 @@ AsyncCommPeer<TYPE>::checkRecv()
                   << "MPI_ERROR value is " << mpi_status[0].MPI_ERROR
                   << '\n'
                   << "mpi_communicator = " << d_mpi.getCommunicator()
-                  << "mpi_tag = " << d_tag0);
+                  << ",  mpi_tag = " << d_tag0);
             }
          }
 
@@ -602,7 +612,7 @@ AsyncCommPeer<TYPE>::checkRecv()
             int icount = -1;
             d_mpi_err = SAMRAI_MPI::Get_count(&mpi_status[0], MPI_BYTE, &icount);
             if (d_mpi_err != MPI_SUCCESS) {
-               TBOX_ERROR("Error in MPI_Get_count."
+               TBOX_ERROR("Error in MPI_Get_count.\n"
                   << "error flag = " << d_mpi_err);
             }
             const size_t count = icount / sizeof(FlexData); // Convert byte count to item count.
@@ -613,11 +623,11 @@ AsyncCommPeer<TYPE>::checkRecv()
                  << " bytes from " << d_peer_rank << " in checkRecv"
                  << std::endl;
 #endif
+#endif
             TBOX_ASSERT(count <= d_max_first_data_len + 2);
             TBOX_ASSERT(mpi_status[0].MPI_TAG == d_tag0);
             TBOX_ASSERT(mpi_status[0].MPI_SOURCE == d_peer_rank);
             TBOX_ASSERT(req[0] == MPI_REQUEST_NULL);
-#endif
             // Get full count embedded in message.
             d_full_count = d_internal_buf[count - 1].i;
 
@@ -636,7 +646,6 @@ AsyncCommPeer<TYPE>::checkRecv()
                const size_t second_chunk_count = getNumberOfFlexData(
                      d_full_count - d_max_first_data_len);
 
-               // SGS this is bad coding.`
                resizeBuffer(d_internal_buf_size + second_chunk_count);
 
                TBOX_ASSERT(req[1] == MPI_REQUEST_NULL);
@@ -651,9 +660,9 @@ AsyncCommPeer<TYPE>::checkRecv()
                      &req[1]);
                t_recv_timer->stop();
                if (d_mpi_err != MPI_SUCCESS) {
-                  TBOX_ERROR("Error in MPI_Irecv."
+                  TBOX_ERROR("Error in MPI_Irecv.\n"
                      << "mpi_communicator = " << d_mpi.getCommunicator()
-                     << "mpi_tag = " << d_tag0);
+                     << ",  mpi_tag = " << d_tag0);
                }
 #ifdef AsyncCommPeer_DEBUG_OUTPUT
                plog << "tag1-" << d_tag1
@@ -686,7 +695,7 @@ AsyncCommPeer<TYPE>::checkRecv()
                   << "MPI_ERROR value is " << mpi_status[1].MPI_ERROR
                   << '\n'
                   << "mpi_communicator = " << d_mpi.getCommunicator()
-                  << "mpi_tag = " << d_tag1);
+                  << ",  mpi_tag = " << d_tag1);
             }
             if (flag == 1) {
                // Second message received.
@@ -759,9 +768,13 @@ AsyncCommPeer<TYPE>::checkRecv()
          break;
 
       default:
-         TBOX_ERROR("checkRecv is incompatible with current state."
+         TBOX_ERROR("checkRecv is incompatible with current state.\n"
          << "mpi_communicator = " << d_mpi.getCommunicator()
-         << "mpi_tag = " << d_tag0);
+         << ",  mpi_tag = " << d_tag0);
+   }
+
+   if (automatic_push_to_completion_queue && d_next_task_op == none) {
+      pushToCompletionQueue();
    }
 
    return d_next_task_op == none;
@@ -775,20 +788,20 @@ template<class TYPE>
 void
 AsyncCommPeer<TYPE>::checkMPIParams()
 {
-   if (d_tag0 < 0 || d_tag1 < 0) {
+   if (getPrimaryTag() < 0 || getSecondaryTag() < 0) {
       TBOX_ERROR("AsyncCommPeer: Invalid MPI tag values "
          << d_tag0 << " and " << d_tag1
          << "\nUse setMPITag() to set it.");
    }
-   if (d_mpi.getCommunicator() == SAMRAI_MPI::commNull) {
+   if (getMPI().getCommunicator() == MPI_COMM_NULL) {
       TBOX_ERROR("AsyncCommPeer: Invalid MPI communicator value "
          << d_mpi.getCommunicator() << "\nUse setCommunicator() to set it.");
    }
-   if (d_peer_rank < 0) {
+   if (getPeerRank() < 0) {
       TBOX_ERROR("AsyncCommPeer: Invalid peer rank "
          << d_peer_rank << "\nUse setPeerRank() to set it.");
    }
-   if (d_peer_rank == d_mpi.getRank() && !SAMRAI_MPI::usingMPI()) {
+   if (getPeerRank() == getMPI().getRank() && !SAMRAI_MPI::usingMPI()) {
       TBOX_ERROR("AsyncCommPeer: Peer rank cannot be the local rank\n"
          << "when running without MPI.");
    }
@@ -889,7 +902,7 @@ template<class TYPE>
 int
 AsyncCommPeer<TYPE>::getRecvSize() const
 {
-   if (d_base_op != recv) {
+   if (getBaseOp() != recv) {
       TBOX_ERROR("AsyncCommPeer::getRecvSize() called without a\n"
          << "corresponding receive.");
    }
@@ -901,12 +914,15 @@ AsyncCommPeer<TYPE>::getRecvSize() const
  ***********************************************************************
  */
 template<class TYPE>
-const TYPE*
+const TYPE *
 AsyncCommPeer<TYPE>::getRecvData() const
 {
-   if (d_base_op != recv) {
+   if (getBaseOp() != recv) {
       TBOX_ERROR("AsyncCommPeer::getRecvData() called without a\n"
          << "corresponding receive.");
+   }
+   if (!d_internal_buf) {
+      TBOX_ERROR("AsyncCommPeer::getRecvData() after clearRecvData().\n");
    }
    return &d_internal_buf[0].t;
 }
@@ -919,14 +935,15 @@ template<class TYPE>
 void
 AsyncCommPeer<TYPE>::clearRecvData()
 {
-   if (d_next_task_op != none) {
+   if (getNextTaskOp() != none) {
       TBOX_ERROR("AsyncCommPeer::clearRecvData() called during an\n"
          << "operation.");
    }
-   // d_internal_buf.clear();
+   if (d_internal_buf) {
+      free(d_internal_buf);
+      d_internal_buf = 0;
+   }
 }
-
-
 
 /*
  ***********************************************************************
@@ -935,13 +952,10 @@ AsyncCommPeer<TYPE>::clearRecvData()
 template<class TYPE>
 void
 AsyncCommPeer<TYPE>::setSendTimer(
-   const boost::shared_ptr<Timer> &send_timer )
+   const boost::shared_ptr<Timer>& send_timer)
 {
    t_send_timer = send_timer ? send_timer : t_default_send_timer;
-   return;
 }
-
-
 
 /*
  ***********************************************************************
@@ -950,13 +964,10 @@ AsyncCommPeer<TYPE>::setSendTimer(
 template<class TYPE>
 void
 AsyncCommPeer<TYPE>::setRecvTimer(
-   const boost::shared_ptr<Timer> &recv_timer )
+   const boost::shared_ptr<Timer>& recv_timer)
 {
    t_recv_timer = recv_timer ? recv_timer : t_default_recv_timer;
-   return;
 }
-
-
 
 /*
  ***********************************************************************
@@ -965,13 +976,10 @@ AsyncCommPeer<TYPE>::setRecvTimer(
 template<class TYPE>
 void
 AsyncCommPeer<TYPE>::setWaitTimer(
-   const boost::shared_ptr<Timer> &wait_timer )
+   const boost::shared_ptr<Timer>& wait_timer)
 {
    t_wait_timer = wait_timer ? wait_timer : t_default_wait_timer;
-   return;
 }
-
-
 
 template<class TYPE>
 bool
@@ -990,11 +998,11 @@ void
 AsyncCommPeer<TYPE>::initializeCallback()
 {
    t_default_send_timer = TimerManager::getManager()->
-      getTimer("tbox::AsyncCommPeer::MPI_ISend");
+      getTimer("tbox::AsyncCommPeer::MPI_Isend()");
    t_default_recv_timer = TimerManager::getManager()->
-      getTimer("tbox::AsyncCommPeer::MPI_Irecv");
+      getTimer("tbox::AsyncCommPeer::MPI_Irecv()");
    t_default_wait_timer = TimerManager::getManager()->
-      getTimer("tbox::AsyncCommPeer::wait_all()");
+      getTimer("tbox::AsyncCommPeer::MPI_Waitall()");
 }
 
 /*

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   AMR communication tests for cell-centered patch data
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -25,7 +24,7 @@
 
 #include "PatchDataTestStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 using namespace std;
@@ -122,6 +121,17 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
       int level_number);
 
+   void
+   setDataIds(std::list<int>& data_ids);
+
+   bool
+   verifyCompositeBoundaryData(
+      const hier::Patch& patch,
+      const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+      int data_id,
+      int level_number,
+      const std::vector<boost::shared_ptr<hier::PatchData> >& bdry_data);
+
 private:
    /**
     * Function for reading test data from input file.
@@ -191,7 +201,7 @@ private:
    std::string d_refine_option;
    int d_finest_level_number;
 
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_variables;
+   std::vector<boost::shared_ptr<hier::Variable> > d_variables;
 
 };
 

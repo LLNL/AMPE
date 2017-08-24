@@ -59,7 +59,7 @@ QuatFACOps::setVerbose(bool verbose)
 
 SAMRAI_INLINE_KEYWORD void
 QuatFACOps::setSolver(
-  const solv::FACPreconditioner *solver ) {
+  const FACPreconditioner *solver ) {
   d_solver = solver;
 }
 

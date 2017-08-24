@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to user-defined operations used in FAC solve.
  *
  ************************************************************************/
@@ -13,9 +13,8 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
-#include "SAMRAI/tbox/Array.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -34,7 +33,7 @@ namespace solv {
  * or FACPreconditioner::initializeSolverState()
  * or vectors cloned from them.
  *
- * @see solv::FACPreconditioner
+ * @see FACPreconditioner
  */
 
 class FACOperatorStrategy
@@ -65,8 +64,8 @@ public:
     * Can assume:
     * -# dest_ln is not the finest level in the range being solved.
     * -# corresponding solution has been computed on level dest_ln+1.
-    * -# the source and destination residual vectors (s and d) may
-    *    or may not be the same.  (This function must work in either case.)
+    * -# the source and destination residual vectors may or may not
+    *      be the same.  (This method must work in either case.)
     *
     * Upon return from this function, the solution on the refined region
     * of the coarse level will represent the coarsened version of the
@@ -97,8 +96,8 @@ public:
     * Can assume:
     * -# dest_ln is not the finest level in the range being solved.
     * -# correspnding residual has been computed on level dest_ln+1.
-    * -# the source and destination residual vectors (s and d) may
-    *    or may not be the same.  (This function must work in either case.)
+    * -# the source and destination residual vectors may or may not
+    *      be the same.  (This method must work in either case.)
     *
     * Upon return from this function, the residual on the refined region
     * of the coarse level will represent the coarsened version of the

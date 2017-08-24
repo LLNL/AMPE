@@ -45,7 +45,6 @@
 #include "SAMRAI/pdat/OutersideVariable.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/pdat/SideVariable.h"
-#include "SAMRAI/solv/FACPreconditioner.h"
 #include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
@@ -57,6 +56,9 @@
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
+#include "SAMRAI/xfer/PatchLevelFullFillPattern.h"
+
+#include "boost/make_shared.hpp"
 
 #include <cassert>
 using namespace std;
@@ -754,26 +756,6 @@ EllipticFACOps::EllipticFACOps(
    d_c_id(-1),
    d_d_id(-1),
    d_oflux_scratch_id(-1),
-   d_prolongation_refine_operator() ,
-   d_prolongation_refine_algorithm() ,
-   d_prolongation_refine_schedules() ,
-   d_urestriction_coarsen_operator() ,
-   d_urestriction_coarsen_algorithm() ,
-   d_urestriction_coarsen_schedules() ,
-   d_rrestriction_coarsen_operator() ,
-   d_rrestriction_coarsen_algorithm() ,
-   d_rrestriction_coarsen_schedules() ,
-   d_flux_coarsen_operator() ,
-   d_flux_coarsen_algorithm() ,
-   d_flux_coarsen_schedules() ,
-   d_ghostfill_refine_operator() ,
-   d_ghostfill_refine_algorithm() ,
-   d_ghostfill_refine_schedules() ,
-   d_ghostfill_nocoarse_refine_operator() ,
-   d_ghostfill_nocoarse_refine_algorithm() ,
-   d_ghostfill_nocoarse_refine_schedules() ,
-   d_mobility_refine_operator(),
-   d_mobility_refine_algorithm(),
    d_bc_helper( tbox::Dimension(NDIM), d_object_name+"::bc helper" ),
    d_enable_logging(false) ,
    d_verbose(false),
@@ -978,8 +960,7 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                     << "correspond to a variable.\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
       if ( !cell_var ) {
          TBOX_ERROR(d_object_name
                     << ": RHS variable is not cell-centered double\n");
@@ -993,8 +974,7 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                     << "correspond to a variable.\n");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
       if ( !cell_var ) {
          TBOX_ERROR(d_object_name
                     << ": Solution variable is not cell-centered double\n");
@@ -1014,8 +994,7 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
              * Some data checks can only be done if the data already exists.
              */
             boost::shared_ptr<pdat::CellData<double> > cd(
-               fd,
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>,hier::PatchData>(fd) );
             if (!cd) {
                TBOX_ERROR(d_object_name
                   << ": RHS data is not cell-centered double\n");
@@ -1027,15 +1006,13 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
             }
          }
          boost::shared_ptr<hier::PatchData> ud(
-            patch.getPatchData(solution.getComponentDescriptorIndex(0)),
-            boost::detail::dynamic_cast_tag());
+            patch.getPatchData(solution.getComponentDescriptorIndex(0) ) );
          if (ud) {
             /*
              * Some data checks can only be done if the data already exists.
              */
             boost::shared_ptr<pdat::CellData<double> > cd(
-               ud,
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>,hier::PatchData>(ud) );
             if (!cd) {
                TBOX_ERROR(d_object_name
                   << ": Solution data is not cell-centered double\n");
@@ -1069,7 +1046,7 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
     * Initialize the coarse-fine boundary description for the
     * hierarchy.
     */
-   d_cf_boundary.resizeArray( d_hierarchy->getNumberOfLevels() );
+   d_cf_boundary.resize( d_hierarchy->getNumberOfLevels() );
 
    hier::IntVector max_gcw(tbox::Dimension(NDIM),1);
    for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
@@ -1090,8 +1067,7 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
     *   acceptable strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
    boost::shared_ptr< hier::Variable > variable;
 
    vdb->mapIndexToVariable( d_cell_scratch_id, variable );
@@ -1182,27 +1158,31 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
      There is no need to delete the old schedules first
      because we have deallocated the solver state above.
    */
-   d_prolongation_refine_schedules.resizeArray(d_ln_max+1);
-   d_ghostfill_refine_schedules.resizeArray(d_ln_max+1);
-   d_ghostfill_nocoarse_refine_schedules.resizeArray(d_ln_max+1);
-   d_urestriction_coarsen_schedules.resizeArray(d_ln_max+1);
-   d_rrestriction_coarsen_schedules.resizeArray(d_ln_max+1);
-   d_flux_coarsen_schedules.resizeArray(d_ln_max+1);
+   d_prolongation_refine_schedules.resize(d_ln_max+1);
+   d_ghostfill_refine_schedules.resize(d_ln_max+1);
+   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max+1);
+   d_urestriction_coarsen_schedules.resize(d_ln_max+1);
+   d_rrestriction_coarsen_schedules.resize(d_ln_max+1);
+   d_flux_coarsen_schedules.resize(d_ln_max+1);
 
    d_prolongation_refine_algorithm.reset(
-      new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::RefineAlgorithm() );
+
    d_urestriction_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
    d_rrestriction_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
    d_flux_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
    d_ghostfill_refine_algorithm.reset(
-      new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::RefineAlgorithm() );
+
    d_ghostfill_nocoarse_refine_algorithm.reset(
-      new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::RefineAlgorithm() );
+
    d_mobility_refine_algorithm.reset(
-      new xfer::RefineAlgorithm(tbox::Dimension(NDIM)));
+      new xfer::RefineAlgorithm() );
+
 
    d_prolongation_refine_algorithm->
       registerRefine( d_cell_scratch_id ,
@@ -1239,9 +1219,13 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                       d_mobility_refine_operator );
 
    for ( int dest_ln=d_ln_min+1; dest_ln<=d_ln_max; ++dest_ln ) {
+
+      boost::shared_ptr<xfer::PatchLevelFullFillPattern> fill_pattern(
+         boost::make_shared<xfer::PatchLevelFullFillPattern>());
       d_prolongation_refine_schedules[dest_ln] =
          d_prolongation_refine_algorithm->
-         createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
+         createSchedule( fill_pattern,
+                         d_hierarchy->getPatchLevel(dest_ln) ,
                          boost::shared_ptr<hier::PatchLevel >() ,
                          dest_ln-1 ,
                          d_hierarchy ,
@@ -1339,7 +1323,7 @@ EllipticFACOps::deallocateOperatorState()
          d_hierarchy->getPatchLevel(ln)->
             deallocatePatchData(d_oflux_scratch_id);
       }
-      d_cf_boundary.resizeArray(0);
+      d_cf_boundary.resize(0);
 #if HAVE_HYPRE
       d_hypre_solver.deallocateSolverState();
 #endif
@@ -1348,23 +1332,11 @@ EllipticFACOps::deallocateOperatorState()
       d_ln_max = -1;
 
       d_prolongation_refine_algorithm.reset();
-      d_prolongation_refine_schedules.setNull();
-
       d_urestriction_coarsen_algorithm.reset();
-      d_urestriction_coarsen_schedules.setNull();
-
       d_rrestriction_coarsen_algorithm.reset();
-      d_rrestriction_coarsen_schedules.setNull();
-
       d_flux_coarsen_algorithm.reset();
-      d_flux_coarsen_schedules.setNull();
-
       d_ghostfill_refine_algorithm.reset();
-      d_ghostfill_refine_schedules.setNull();
-
       d_ghostfill_nocoarse_refine_algorithm.reset();
-      d_ghostfill_nocoarse_refine_schedules.setNull();
-
       d_mobility_refine_algorithm.reset();
    }
    d_C_is_set = false;
@@ -1397,9 +1369,9 @@ EllipticFACOps::setM(const int m_id)
       // Copy M to local array
 
       boost::shared_ptr<pdat::CellData<double> > m_data(
-        patch->getPatchData(m_id), boost::detail::dynamic_cast_tag());
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(m_id) ) );
       boost::shared_ptr<pdat::CellData<double> > local_m_data (
-        patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_m_id) ) );
       
       local_m_data->copy(*m_data);
 
@@ -1751,11 +1723,11 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
          }
 
          boost::shared_ptr<pdat::CellData<double> > err_data (
-            data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(data.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::CellData<double> > residual_data (
-            residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::SideData<double> > flux_data (
-            patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
 
          computeFluxOnPatch(
                             *patch ,
@@ -1795,11 +1767,11 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
          }
 
          boost::shared_ptr<pdat::CellData<double> > err_data (
-            data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(data.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::CellData<double> > residual_data (
-            residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-            patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
 
          computeFluxOnPatch(
                             *patch ,
@@ -1856,28 +1828,27 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
                                    pdat::SideData<double> &flux_data ,
                                    const hier::IntVector &ratio_to_coarser ) const
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(tbox::Dimension(NDIM), patch, soln_data, flux_data,
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY4(tbox::Dimension(NDIM), patch, soln_data, flux_data,
       ratio_to_coarser);
 
    const int patch_ln = patch.getPatchLevelNumber();
    const hier::GlobalId id = patch.getGlobalId();
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry,hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
    const double *dx = patch_geom->getDx();
    const hier::Box &patch_box( patch.getBox() );
    const hier::Index& plower = patch_box.lower();
    const hier::Index& pupper = patch_box.upper();
 
-   const tbox::Array<hier::BoundaryBox>& bboxes =
+   const std::vector<hier::BoundaryBox>& bboxes =
       d_cf_boundary[patch_ln]->getBoundaries(id, 1);
-   int bn, nboxes = bboxes.getSize();
+   unsigned int bn;
+   size_t nboxes = bboxes.size();
 
    if ( d_poisson_spec.dIsVariable() ) {
 
       boost::shared_ptr<pdat::SideData<double> > diffcoef_data(
-         patch.getPatchData(d_poisson_spec.getDPatchDataId()),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch.getPatchData(d_poisson_spec.getDPatchDataId() ) ) );
 
       for ( bn=0; bn<nboxes; ++bn ) {
          const hier::BoundaryBox &boundary_box=bboxes[bn];
@@ -2178,9 +2149,9 @@ EllipticFACOps::accumulateOperatorOnLevel(
       boost::shared_ptr< hier::Patch > patch = *pi;
 
       boost::shared_ptr<pdat::CellData<double> > soln_data (
-         patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(soln_id) ) );
       boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
 
       computeFluxOnPatch(*patch ,
                          level->getRatioToCoarserLevel() ,
@@ -2203,13 +2174,13 @@ EllipticFACOps::accumulateOperatorOnLevel(
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
       boost::shared_ptr<pdat::SideData<double> > flux_data (
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       boost::shared_ptr<pdat::CellData<double> > m_data (
-        patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+        BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_m_id) ) );
       boost::shared_ptr<pdat::CellData<double> > soln_data (
-         patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(soln_id) ) );
       boost::shared_ptr<pdat::CellData<double> > accum_data (
-         patch->getPatchData(accum_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(accum_id) ) );
 
       accumulateOperatorOnPatch( *patch, *flux_data, *m_data, *soln_data, *accum_data );
 
@@ -2222,7 +2193,7 @@ EllipticFACOps::accumulateOperatorOnLevel(
           *  avoid writing another loop for it.
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
 #endif
@@ -2336,9 +2307,9 @@ EllipticFACOps::computeCompositeResidualOnLevel(
       boost::shared_ptr< hier::Patch > patch = *pi;
 
       boost::shared_ptr<pdat::CellData<double> > soln_data (
-         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(solution.getComponentPatchData ( 0 , *patch )));
       boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       computeFluxOnPatch(*patch ,
                          level->getRatioToCoarserLevel() ,
                          *soln_data ,
@@ -2360,15 +2331,15 @@ EllipticFACOps::computeCompositeResidualOnLevel(
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
       boost::shared_ptr<pdat::CellData<double> > soln_data (
-         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>,hier::PatchData>( solution.getComponentPatchData ( 0 , *patch ) ) );
       boost::shared_ptr<pdat::CellData<double> > m_data (
-         patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_m_id) ) );
       boost::shared_ptr<pdat::CellData<double> > rhs_data (
-         rhs.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( rhs.getComponentPatchData ( 0 , *patch ) ) );
       boost::shared_ptr<pdat::CellData<double> > residual_data (
-         residual.getComponentPatchData( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( residual.getComponentPatchData( 0 , *patch ) ) );
       boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
       computeResidualOnPatch( *patch ,
                               *flux_data ,
                             *m_data ,
@@ -2385,7 +2356,7 @@ EllipticFACOps::computeCompositeResidualOnLevel(
           *  avoid writing another loop for it.
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
 #endif
@@ -2502,8 +2473,7 @@ EllipticFACOps::computeVectorWeights(
            p != level->end(); ++p) {
          const boost::shared_ptr<hier::Patch>& patch = *p;
          boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double* dx = patch_geometry->getDx();
          double cell_vol = dx[0];
          if (NDIM > 1) {
@@ -2515,7 +2485,7 @@ EllipticFACOps::computeVectorWeights(
          }
 
          boost::shared_ptr< pdat::CellData<double> > w (
-            patch->getPatchData(weight_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData(weight_id) ) );
          if ( !w ) {
             TBOX_ERROR(d_object_name
                        << ": weight id must refer to a pdat::CellVariable");
@@ -2553,14 +2523,13 @@ EllipticFACOps::computeVectorWeights(
               p != level->end(); ++p) {
 
             const boost::shared_ptr<hier::Patch>& patch = *p;
-            for (hier::BoxContainer::iterator i(coarsened_boxes);
+            for (hier::BoxContainer::iterator i=coarsened_boxes.begin();
                  i != coarsened_boxes.end(); ++i) {
 
                hier::Box intersection = *i * (patch->getBox());
                if (!intersection.empty()) {
                   boost::shared_ptr<pdat::CellData<double> > w(
-                     patch->getPatchData(weight_id),
-                     boost::detail::dynamic_cast_tag());
+                     BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(weight_id) ) );
                   w->fillAll(0.0, intersection);
 
                }  // assignment only in non-empty intersection
@@ -2592,8 +2561,7 @@ EllipticFACOps::checkInputPatchDataIndices() const
       boost::shared_ptr<hier::Variable > var;
       vdb.mapIndexToVariable(d_poisson_spec.getDPatchDataId(), var);
       boost::shared_ptr<pdat::SideVariable<double> > diffcoef_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideVariable<double>,hier::Variable>( var ) );
       if ( !diffcoef_var ) {
          TBOX_ERROR(d_object_name
                     << ": Bad diffusion coefficient patch data index.");
@@ -2604,8 +2572,7 @@ EllipticFACOps::checkInputPatchDataIndices() const
       boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_poisson_spec.getCPatchDataId(), var);
       boost::shared_ptr<pdat::CellVariable<double> > scalar_field_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var) );
       if (!scalar_field_var) {
          TBOX_ERROR(d_object_name << ": Bad linear term patch data index.");
       }
@@ -2615,8 +2582,7 @@ EllipticFACOps::checkInputPatchDataIndices() const
       boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_flux_id, var);
       boost::shared_ptr<pdat::SideVariable<double> > flux_var(
-         var,
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideVariable<double>,hier::Variable>( var ) );
 
       TBOX_ASSERT(flux_var);
    }
@@ -2644,8 +2610,7 @@ EllipticFACOps::computeFluxOnPatch(
 #endif
 
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
    const hier::Box &box=patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
@@ -2757,8 +2722,7 @@ EllipticFACOps::accumulateOperatorOnPatch(
 {
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const hier::Box &box=patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
@@ -2925,8 +2889,7 @@ EllipticFACOps::computeResidualOnPatch(
 {
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const hier::Box &box=patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
@@ -3137,8 +3100,7 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
 
    const int offset = red_or_black == 'r' ? 0 : 1;
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const hier::Box &box=patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
@@ -3168,7 +3130,7 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
       diffcoef_constant = d_poisson_spec.getDConstant();
    }
    boost::shared_ptr<pdat::CellData<double> > m_data ( 
-      patch.getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_m_id) ) );
 
    double maxres=0.0;
    if ( d_poisson_spec.dIsVariable() && d_poisson_spec.cIsVariable() ) {
@@ -3529,7 +3491,8 @@ EllipticFACOps::xeqScheduleProlongation(
    if ( ! d_prolongation_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm refiner;
+
    refiner.
       registerRefine( dst_id ,
                       src_id ,
@@ -3629,7 +3592,8 @@ EllipticFACOps::xeqScheduleGhostFill(
    if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm refiner;
+
    refiner.
       registerRefine( dst_id ,
                       dst_id ,
@@ -3654,7 +3618,8 @@ EllipticFACOps::xeqScheduleGhostFillNoCoarse(
    if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   xfer::RefineAlgorithm refiner(tbox::Dimension(NDIM));
+   xfer::RefineAlgorithm refiner;
+
    refiner.
       registerRefine( dst_id ,
                       dst_id ,

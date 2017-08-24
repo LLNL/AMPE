@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for timer and statistician main programs 
 ##
 #########################################################################
@@ -14,6 +14,7 @@ SUBDIR        = source/test/dimension
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 default: check
 
@@ -28,11 +29,18 @@ main:  main.o $(LIBSAMRAIDEPEND)
 NUM_TESTS = 1
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 checkcompile: main
 
 check:  checkcompile
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"dimension\" name=$(QUOTE)$$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./main | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 check2d:
 	$(MAKE) check
@@ -41,15 +49,26 @@ check3d:
 	$(MAKE) check
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
+examples:
 
-clean:
-	$(SAMCLEAN)
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
 	$(RM) main
-	$(RM) -rf *.log.* stats
 
 include $(SRCDIR)/Makefile.depend

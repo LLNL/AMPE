@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating outernode data objects
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/PatchDataFactory.h"
 #include "SAMRAI/tbox/Complex.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -32,8 +32,8 @@ namespace pdat {
  * the factory and data classes are templated on the type of the contained
  * object (e.g., double or int).
  *
- * @see pdat::OuternodeData
- * @see pdat::PatchDataFactory
+ * @see OuternodeData
+ * @see PatchDataFactory
  */
 
 template<class TYPE>
@@ -41,19 +41,19 @@ class OuternodeDataFactory:public hier::PatchDataFactory
 {
 public:
    /*!
-    * @brief
-    * The default constructor for the outernode data factory class.
+    * @brief The constructor for the outernode data factory class.
     *
     * The depth (number of components) gives the default for all of
     * the outernode data objects created with this factory.
+    *
+    * @pre depth > 0
     */
    OuternodeDataFactory(
       const tbox::Dimension& dim,
       int depth);
 
    /*!
-    * @brief
-    * Virtual destructor for the outernode data factory class.
+    * @brief Virtual destructor for the outernode data factory class.
     */
    virtual ~OuternodeDataFactory<TYPE>();
 
@@ -66,36 +66,40 @@ public:
     *
     * @param ghosts default ghost cell width for concrete classes created from
     * the factory.
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    virtual boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
       const hier::IntVector& ghosts);
 
    /*!
-    * @brief
-    * Virtual factory function to allocate a concrete outernode data object.
+    * @brief Virtual factory function to allocate a concrete outernode data
+    *        object.
     *
     * The default information about the object (e.g., depth) is taken from
     * the factory.
+    *
+    * @pre getDim() == patch.getDim()
     */
    virtual boost::shared_ptr<hier::PatchData>
    allocate(
       const hier::Patch& patch) const;
 
    /*!
-    * @brief
-    * Allocate the box geometry object associated with the patch data.
+    * @brief Allocate the box geometry object associated with the patch data.
     *
     * This information will be used in the computation of intersections
     * and data dependencies between objects.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
       const hier::Box& box) const;
 
    /*!
-    * @brief
-    * Get the depth (number of components).
+    * @brief Get the depth (number of components).
     *
     * This is the depth that will be used in the instantiation of
     * outernode data objects.
@@ -104,9 +108,10 @@ public:
    getDepth() const;
 
    /*!
-    * @brief
-    * Calculate the amount of memory needed to store the outernode data
-    * object, including object data and dynamically allocated data.
+    * @brief Calculate the amount of memory needed to store the outernode data
+    *        object, including object data and dynamically allocated data.
+    *
+    * @pre getDim() == box.getDim()
     */
    virtual size_t
    getSizeOfMemory(
@@ -131,6 +136,8 @@ public:
     * Return whether it is valid to copy this OuternodeDataFactory to the
     * supplied destination patch data factory.  It will return true if
     * dst_pdf is NodeDataFactory or OuternodeDataFactory, false otherwise.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(

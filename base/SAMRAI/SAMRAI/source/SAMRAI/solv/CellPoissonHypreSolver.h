@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Hypre solver interface for diffusion-like elliptic problems.
  *
  ************************************************************************/
@@ -16,13 +16,13 @@
 
 #ifndef included_HYPRE_struct_ls
 /*
- * This might break things if F77_FUNC_ is different for hypre vs
+ * This might break things if SAMRAI_F77_FUNC_ is different for hypre vs
  * SAMRAI autoconf detection.  But then C/C++ macros are totally
  * broken due to namespace collision as this example highlights so
  * resorting to hacks are necessary.
  */
-#ifdef F77_FUNC_
-#undef F77_FUNC_
+#ifdef SAMRAI_F77_FUNC_
+#undef SAMRAI_F77_FUNC_
 #endif
 #include "HYPRE_struct_ls.h"
 #define included_HYPRE_struct_ls
@@ -42,8 +42,9 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 
 namespace SAMRAI {
 namespace solv {
@@ -82,17 +83,87 @@ namespace solv {
  * - Solve the linear system, passing in u and f as the patch
  *   indices of the solution and the right hand side, respectively.
  *
- * Sample parameters for initialization from database (and their
- * default values):
- * @verbatim
- *     print_solver_info = FALSE      // Whether to print some data for debugging
- *     max_iterations = 10            // Max iterations used by Hypre
- *     relative_residual_tol = 1.0e-8 // Residual tolerance used by Hypre
- *     num_pre_relax_steps = 1        // # of presmoothing steps used by Hypre
- *     num_post_relax_steps = 1       // # of postsmoothing steps used by Hypre
- *     use_smg = FALSE                // Whether to use hypre's smg solver
- *                                    // (alternative is the pfmg solver)
- * @endverbatim
+ * <b> Input Parameters </b>
+ *
+ * <b> Definitions: </b>
+ *    - \b    print_solver_info
+ *       whether to print some data for debugging
+ *
+ *    - \b    max_iterations
+ *       max iterations used by Hypre
+ *
+ *    - \b    relative_residual_tol
+ *       residual tolerance used by Hypre
+ *
+ *    - \b    num_pre_relax_steps
+ *       number of presmoothing steps used by Hypre
+ *
+ *    - \b    num_post_relax_steps
+ *       number of postsmoothing steps used by Hypre
+ *
+ *    - \b    use_smg
+ *       whether to use hypre's smg solver (alternative is the pfmg solver)
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>print_solver_info</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_iterations</td>
+ *     <td>int</td>
+ *     <td>10</td>
+ *     <td>>0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>relative_residual_tol</td>
+ *     <td>double</td>
+ *     <td>1.0e-10</td>
+ *     <td>>0.0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>num_pre_relax_steps</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>num_post_relax_steps</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=0</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ *   <tr>
+ *     <td>use_smg</td>
+ *     <td>bool</td>
+ *     <td>TRUE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ * </table>
+ *
  */
 
 class CellPoissonHypreSolver
@@ -103,12 +174,14 @@ public:
     *
     * @param dim
     * @param object_name Name of object.
-    * @param database tbox::Database for input.
+    * @param input_db tbox::Database for input.
+    *
+    * @pre (dim.getValue() == 2) || (dim.getValue() == 3)
     */
    CellPoissonHypreSolver(
       const tbox::Dimension& dim,
       const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& database =
+      const boost::shared_ptr<tbox::Database>& input_db =
          boost::shared_ptr<tbox::Database>());
 
    /*!
@@ -123,6 +196,9 @@ public:
     *
     * @param hierarchy Hierarchy
     * @param ln Level number
+    *
+    * @pre hierarchy
+    * @pre d_dim == hierarchy->getDim()
     */
    void
    initializeSolverState(
@@ -143,6 +219,8 @@ public:
     * you set the values of C and D.
     *
     * This method must be called before solveSystem().
+    *
+    * @pre d_physical_bc_coef_strategy != 0
     */
    void
    setMatrixCoefficients(
@@ -194,6 +272,9 @@ public:
     *
     * @param max_iterations gives the maximum number of iterations
     * @param relative_residual_tol the maximum error tolerance
+    *
+    * @pre max_iterations >= 0
+    * @pre relative_residual_tol >= 0.0
     */
    void
    setStoppingCriteria(
@@ -238,6 +319,12 @@ public:
     *        are assumed.
     *
     * @return whether solver converged to specified level
+    *
+    * @pre d_physical_bc_coef_strategy != 0
+    * @pre u >= 0
+    * @pre f >= 0
+    * @pre u < d_hierarchy->getPatchLevel(d_ln)->getPatchDescriptor()->getMaxNumberRegisteredComponents()
+    * @pre v < d_hierarchy->getPatchLevel(d_ln)->getPatchDescriptor()->getMaxNumberRegisteredComponents()
     */
    int
    solveSystem(
@@ -257,28 +344,6 @@ public:
    }
 
    /*!
-    * @brief Set the number of pre-relax steps used by the Hypre solve.
-    */
-   void
-   setNumPreRelaxSteps(
-      const int steps)
-   {
-      TBOX_ASSERT(d_hierarchy);
-      d_num_pre_relax_steps = steps;
-   }
-
-   /*!
-    * @brief Set the number of post-relax steps used by the Hypre solve.
-    */
-   void
-   setNumPostRelaxSteps(
-      const int steps)
-   {
-      TBOX_ASSERT(d_hierarchy);
-      d_num_post_relax_steps = steps;
-   }
-
-   /*!
     * @brief Return the final residual norm returned by the Hypre solve.
     * @return final residual norm returned by the Hypre solve.
     */
@@ -286,25 +351,6 @@ public:
    getRelativeResidualNorm() const
    {
       return d_relative_residual_norm;
-   }
-
-   /*!
-    * @brief Set whether to use Hypre's PFMG algorithm instead of the
-    * SMG algorithm.
-    *
-    * The flag is used to select which of HYPRE's linear solver algorithms
-    * to use if true, the semicoarsening multigrid algorithm is used, and if
-    * false, the "PF" multigrid algorithm is used.
-    * By default, the SMG algorithm is used.
-    *
-    * Changing the algorithm must be done before setting up the matrix
-    * coefficients.
-    */
-   void
-   setUseSMG(
-      bool use_smg)
-   {
-      d_use_smg = use_smg;
    }
 
    /*!
@@ -324,7 +370,7 @@ public:
       const std::string& boundary_type,
       const int fluxes = -1,
       const int flags = -1,
-      int* bdry_types = NULL)
+      int* bdry_types = 0)
    {
       d_physical_bc_simple_case.setBoundaries(boundary_type,
          fluxes,
@@ -405,14 +451,14 @@ private:
     * @brief Set state using database
     *
     * See the class description for the parameters that can be set
-    * from a database.
+    * from an input database.
     *
-    * @param database Input database.  If a NULL pointer is given,
+    * @param input_db Input database.  If a NULL pointer is given,
     * nothing is done.
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& database);
+      const boost::shared_ptr<tbox::Database>& input_db);
 
    void
    setupHypreSolver();
@@ -448,21 +494,26 @@ private:
     * boundary or coarse-fine boundary for the patch.  The
     * bc coefficient implementation should correspond to the
     * boundary being worked on.
+    *
+    * @pre (d_dim == patch.getDim()) && (d_dim == rhs.getDim())
     */
    void
    add_gAk0_toRhs(
       const hier::Patch& patch,
-      const tbox::Array<hier::BoundaryBox>& bdry_boxes,
+      const std::vector<hier::BoundaryBox>& bdry_boxes,
       const RobinBcCoefStrategy* robin_bc_coef,
       pdat::CellData<double>& rhs);
 
    //@{
 
    /*!
-    * @name Dimension-independent functions to organize Fortran interface.
+    * @name Functions to organize Fortran interface.
     */
 
    //! @brief Compute diagonal entries of the matrix when C is variable.
+   // @pre (d_dim == diagonal.getDim()) && (d_dim == C_data.getDim()) &&
+   //      (d_dim == variable_off_diagonal.getDim()) &&
+   //      (d_dim == patch_box.getDim())
    void
    computeDiagonalEntries(
       pdat::CellData<double>& diagonal,
@@ -470,6 +521,9 @@ private:
       const pdat::SideData<double>& variable_off_diagonal,
       const hier::Box& patch_box);
    //! @brief Compute diagonal entries of the matrix when C is constant.
+   // @pre (d_dim == diagonal.getDim()) &&
+   //      (d_dim == variable_off_diagonal.getDim()) &&
+   //      (d_dim == patch_box.getDim())
    void
    computeDiagonalEntries(
       pdat::CellData<double>& diagonal,
@@ -477,6 +531,9 @@ private:
       const pdat::SideData<double>& variable_off_diagonal,
       const hier::Box& patch_box);
    //! @brief Compute diagonal entries of the matrix when C is zero.
+   // @pre (d_dim == diagonal.getDim()) &&
+   //      (d_dim == variable_off_diagonal.getDim()) &&
+   //      (d_dim == patch_box.getDim())
    void
    computeDiagonalEntries(
       pdat::CellData<double>& diagonal,
@@ -487,6 +544,13 @@ private:
     *
     * At the same time, save information that are needed to adjust
     * the rhs.
+    *
+    * @pre (d_dim == diagonal.getDim()) &&
+    *      (d_dim == variable_off_diagonal.getDim()) &&
+    *      (d_dim == patch_box.getDim()) && (d_dim == acoef_data.getDim()) &&
+    *      (d_dim == bcoef_data.getDim()) && (d_dim == bccoef_box.getDim()) &&
+    *      (d_dim == Ak0_data.getDim()) &&
+    *      (d_dim == trimmed_boundary_box.getDim())
     */
    void
    adjustBoundaryEntries(
@@ -498,7 +562,7 @@ private:
       const hier::Box bccoef_box,
       pdat::ArrayData<double>& Ak0_data,
       const hier::BoundaryBox& trimmed_boundary_box,
-      const double h[tbox::Dimension::MAXIMUM_DIMENSION_VALUE]);
+      const double h[SAMRAI::MAX_DIM_VAL]);
 
    //@}
 
@@ -597,7 +661,7 @@ private:
    int d_Ak0_id;
 
    static boost::shared_ptr<pdat::OutersideVariable<double> >
-      s_Ak0_var[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   s_Ak0_var[SAMRAI::MAX_DIM_VAL];
 
    /*!
     * @brief Depth of the solution variable.

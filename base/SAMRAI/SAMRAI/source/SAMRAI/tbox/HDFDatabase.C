@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A database structure that stores HDF5 format data.
  *
  ************************************************************************/
@@ -16,7 +16,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 #include <cstring>
 
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
@@ -59,10 +59,10 @@
    {                                                     \
       herr_t (* H5E_saved_efunc)( \
          hid_t, \
-         void *) = NULL;   \
-      void* H5E_saved_edata = NULL;                      \
+         void *) = 0;   \
+      void* H5E_saved_edata = 0;                      \
       H5Eget_auto(H5E_DEFAULT, &H5E_saved_efunc, &H5E_saved_edata); \
-      H5Eset_auto(H5E_DEFAULT, NULL, NULL);
+      H5Eset_auto(H5E_DEFAULT, 0, 0);
 
 #define END_SUPPRESS_HDF5_WARNINGS                     \
    H5Eset_auto(H5E_DEFAULT, H5E_saved_efunc, H5E_saved_edata);  \
@@ -71,10 +71,10 @@
 #define BEGIN_SUPPRESS_HDF5_WARNINGS                  \
    {                                                     \
       herr_t (* H5E_saved_efunc)( \
-         void *) = NULL;          \
-      void* H5E_saved_edata = NULL;                      \
+         void *) = 0;          \
+      void* H5E_saved_edata = 0;                      \
       H5Eget_auto(&H5E_saved_efunc, &H5E_saved_edata);   \
-      H5Eset_auto(NULL, NULL);
+      H5Eset_auto(0, 0);
 
 #define END_SUPPRESS_HDF5_WARNINGS                     \
    H5Eset_auto(H5E_saved_efunc, H5E_saved_edata);      \
@@ -126,7 +126,7 @@ HDFDatabase::iterateKeys(
    const char* name,
    void* void_database)
 {
-   TBOX_ASSERT(name != (char *)NULL);
+   TBOX_ASSERT(name != 0);
 
    HDFDatabase* database = (HDFDatabase *)(void_database);
 
@@ -156,7 +156,7 @@ HDFDatabase::iterateKeys(
 
                database->d_found_group = true;
                database->d_still_searching =
-                  H5Giterate(grp, ".", NULL,
+                  H5Giterate(grp, ".", 0,
                      HDFDatabase::iterateKeys, void_database);
                TBOX_ASSERT(database->d_still_searching >= 0);
 
@@ -175,7 +175,7 @@ HDFDatabase::iterateKeys(
                if (database->d_found_group) {
                   addKeyToList(name, KEY_DATABASE, void_database);
                } else {
-                  errf = H5Giterate(grp, ".", NULL,
+                  errf = H5Giterate(grp, ".", 0,
                         HDFDatabase::iterateKeys, void_database);
 
                   TBOX_ASSERT(errf >= 0);
@@ -249,8 +249,8 @@ HDFDatabase::addKeyToList(
    int type,
    void* database)
 {
-   TBOX_ASSERT(name != (char *)NULL);
-   TBOX_ASSERT(database != NULL);
+   TBOX_ASSERT(name != 0);
+   TBOX_ASSERT(database != 0);
 
    KeyData key_item;
    key_item.d_key = name;
@@ -394,18 +394,19 @@ HDFDatabase::keyExists(
  *************************************************************************
  */
 
-Array<std::string>
+std::vector<std::string>
 HDFDatabase::getAllKeys()
 {
    performKeySearch();
 
-   Array<std::string> tmp_keys(static_cast<int>(d_keydata.size()));
+   std::vector<std::string> tmp_keys(
+      static_cast<std::vector<std::string>::size_type>(d_keydata.size()));
 
-   int k = 0;
+   size_t k = 0;
    for (std::list<KeyData>::iterator i = d_keydata.begin();
-        i != d_keydata.end(); i++) {
+        i != d_keydata.end(); ++i) {
       tmp_keys[k] = i->d_key;
-      k++;
+      ++k;
    }
 
    cleanupKeySearch();
@@ -519,7 +520,7 @@ HDFDatabase::getArrayType(
  *************************************************************************
  */
 
-int
+size_t
 HDFDatabase::getArraySize(
    const std::string& key)
 {
@@ -528,7 +529,7 @@ HDFDatabase::getArraySize(
    herr_t errf;
    NULL_USE(errf);
 
-   int array_size = 0;
+   size_t array_size = 0;
 
    hid_t this_set;
    BEGIN_SUPPRESS_HDF5_WARNINGS;
@@ -551,7 +552,7 @@ HDFDatabase::getArraySize(
       } else {
          nsel = H5Sget_select_npoints(this_space);
       }
-      array_size = int(nsel);
+      array_size = static_cast<size_t>(nsel);
       errf = H5Sclose(this_space);
       TBOX_ASSERT(errf >= 0);
 
@@ -717,10 +718,10 @@ void
 HDFDatabase::putBoolArray(
    const std::string& key,
    const bool * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (bool *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -728,7 +729,7 @@ HDFDatabase::putBoolArray(
    if (nelements > 0) {
 
       hsize_t dim[1] = { nelements };
-      hid_t space = H5Screate_simple(1, dim, NULL);
+      hid_t space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
       /*
@@ -741,8 +742,8 @@ HDFDatabase::putBoolArray(
        * shortest integer type we can find, the H5T_SAMRAI_BOOL
        * type.
        */
-      Array<int> data1(nelements);
-      for (int i = 0; i < nelements; ++i) data1[i] = data[i];
+      std::vector<int> data1(nelements);
+      for (size_t i = 0; i < nelements; ++i) data1[i] = data[i];
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
       hid_t dataset = H5Dcreate(d_group_id, key.c_str(), H5T_SAMRAI_BOOL,
@@ -777,7 +778,7 @@ HDFDatabase::putBoolArray(
 /*
  ************************************************************************
  *
- * Two routines to get boolean arrays from the database with the
+ * Two routines to get boolean vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a boolean type.
@@ -785,14 +786,14 @@ HDFDatabase::putBoolArray(
  ************************************************************************
  */
 
-Array<bool>
-HDFDatabase::getBoolArray(
+std::vector<bool>
+HDFDatabase::getBoolVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
 
    if (!isBool(key)) {
-      TBOX_ERROR("HDFDatabase::getBoolArray() error in database "
+      TBOX_ERROR("HDFDatabase::getBoolVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a bool array." << std::endl);
    }
@@ -814,7 +815,8 @@ HDFDatabase::getBoolArray(
 
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<bool> bool_array(static_cast<int>(nsel));
+   std::vector<bool> bool_array(
+      static_cast<std::vector<bool>::size_type>(nsel));
 
    if (nsel > 0) {
       /*
@@ -824,8 +826,8 @@ HDFDatabase::getBoolArray(
        * type.  So we read bools into native integer memory
        * then convert.
        */
-      Array<int> data1(static_cast<int>(nsel));
-      int* locPtr = data1.getPointer();
+      std::vector<int> data1(static_cast<std::vector<int>::size_type>(nsel));
+      int* locPtr = &data1[0];
       errf = H5Dread(dset,
             H5T_NATIVE_INT,
             H5S_ALL,
@@ -899,10 +901,10 @@ void
 HDFDatabase::putDatabaseBoxArray(
    const std::string& key,
    const DatabaseBox * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (DatabaseBox *)NULL);
+   TBOX_ASSERT(data != 0);
 
    if (nelements > 0) {
 
@@ -915,7 +917,7 @@ HDFDatabase::putDatabaseBoxArray(
       hid_t stype = createCompoundDatabaseBox('s');
 
       hsize_t length = nelements;
-      hid_t space = H5Screate_simple(1, &length, NULL);
+      hid_t space = H5Screate_simple(1, &length, 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
       hid_t dataset =
@@ -956,7 +958,7 @@ HDFDatabase::putDatabaseBoxArray(
 /*
  ************************************************************************
  *
- * Two routines to get box arrays from the database with the
+ * A routine to get a box vector from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a box type.
@@ -964,14 +966,14 @@ HDFDatabase::putDatabaseBoxArray(
  ************************************************************************
  */
 
-Array<DatabaseBox>
-HDFDatabase::getDatabaseBoxArray(
+std::vector<DatabaseBox>
+HDFDatabase::getDatabaseBoxVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
 
    if (!isDatabaseBox(key)) {
-      TBOX_ERROR("HDFDatabase::getDatabaseBoxArray() error in database "
+      TBOX_ERROR("HDFDatabase::getDatabaseBoxVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a box array." << std::endl);
    }
@@ -997,10 +999,11 @@ HDFDatabase::getDatabaseBoxArray(
 
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<DatabaseBox> boxArray(static_cast<int>(nsel));
+   std::vector<DatabaseBox> boxVector(
+      static_cast<std::vector<DatabaseBox>::size_type>(nsel));
 
    if (nsel > 0) {
-      DatabaseBox* locPtr = boxArray.getPointer();
+      DatabaseBox* locPtr = &boxVector[0];
       errf = H5Dread(dset, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
 
@@ -1021,7 +1024,7 @@ HDFDatabase::getDatabaseBoxArray(
    errf = H5Dclose(dset);
    TBOX_ASSERT(errf >= 0);
 
-   return boxArray;
+   return boxVector;
 }
 
 hid_t
@@ -1054,11 +1057,11 @@ HDFDatabase::createCompoundDatabaseBox(
          int_type_spec);
    TBOX_ASSERT(errf >= 0);
 
-   const hsize_t box_dim = DatabaseBox_MAX_DIM /* defined in DatabaseBox.h */;
+   const hsize_t box_dim = SAMRAI::MAX_DIM_VAL;
    insertArray(type, "lo", HOFFSET(DatabaseBox_POD, d_lo), 1, &box_dim,
-      NULL, int_type_spec);
+      0, int_type_spec);
    insertArray(type, "hi", HOFFSET(DatabaseBox_POD, d_hi), 1, &box_dim,
-      NULL, int_type_spec);
+      0, int_type_spec);
    return type;
 }
 
@@ -1116,10 +1119,10 @@ void
 HDFDatabase::putCharArray(
    const std::string& key,
    const char * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (char *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1139,7 +1142,7 @@ HDFDatabase::putCharArray(
       errf = H5Tset_strpad(atype, H5T_STR_NULLTERM);
       TBOX_ASSERT(errf >= 0);
 
-      for (int i = 0; i < nelements; i++) {
+      for (size_t i = 0; i < nelements; ++i) {
          local_buf[i] = data[i];
       }
 
@@ -1184,7 +1187,7 @@ HDFDatabase::putCharArray(
 /*
  ************************************************************************
  *
- * Two routines to get char arrays from the database with the
+ * Two routines to get char vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a char type.
@@ -1192,14 +1195,14 @@ HDFDatabase::putCharArray(
  ************************************************************************
  */
 
-Array<char>
-HDFDatabase::getCharArray(
+std::vector<char>
+HDFDatabase::getCharVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
 
    if (!isChar(key)) {
-      TBOX_ERROR("HDFDatabase::getCharArray() error in database "
+      TBOX_ERROR("HDFDatabase::getCharVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a char array." << std::endl);
    }
@@ -1224,10 +1227,11 @@ HDFDatabase::getCharArray(
 
    nsel = H5Tget_size(dtype);
 
-   Array<char> charArray(static_cast<int>(nsel));
+   std::vector<char> charArray(
+      static_cast<std::vector<char>::size_type>(nsel));
 
    if (nsel > 0) {
-      char* locPtr = charArray.getPointer();
+      char* locPtr = &charArray[0];
       errf = H5Dread(dset, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
    }
@@ -1298,10 +1302,10 @@ void
 HDFDatabase::putComplexArray(
    const std::string& key,
    const dcomplex * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (dcomplex *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1316,7 +1320,7 @@ HDFDatabase::putComplexArray(
       hid_t stype = createCompoundComplex('s');
 
       hsize_t dim[] = { nelements };
-      space = H5Screate_simple(1, dim, NULL);
+      space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
@@ -1357,7 +1361,7 @@ HDFDatabase::putComplexArray(
 /*
  ************************************************************************
  *
- * Two routines to get complex arrays from the database with the
+ * Two routines to get complex vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a complex type.
@@ -1365,8 +1369,8 @@ HDFDatabase::putComplexArray(
  ************************************************************************
  */
 
-Array<dcomplex>
-HDFDatabase::getComplexArray(
+std::vector<dcomplex>
+HDFDatabase::getComplexVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
@@ -1375,7 +1379,7 @@ HDFDatabase::getComplexArray(
    NULL_USE(errf);
 
    if (!isComplex(key)) {
-      TBOX_ERROR("HDFDatabase::getComplexArray() error in database "
+      TBOX_ERROR("HDFDatabase::getComplexVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a complex array." << std::endl);
    }
@@ -1398,10 +1402,11 @@ HDFDatabase::getComplexArray(
 
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<dcomplex> complexArray(static_cast<int>(nsel));
+   std::vector<dcomplex> complexArray(
+      static_cast<std::vector<dcomplex>::size_type>(nsel));
 
    if (nsel > 0) {
-      dcomplex* locPtr = complexArray.getPointer();
+      dcomplex* locPtr = &complexArray[0];
       errf = H5Dread(dset, mtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
    }
@@ -1506,10 +1511,10 @@ void
 HDFDatabase::putDoubleArray(
    const std::string& key,
    const double * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (double *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1517,7 +1522,7 @@ HDFDatabase::putDoubleArray(
    if (nelements > 0) {
 
       hsize_t dim[] = { nelements };
-      hid_t space = H5Screate_simple(1, dim, NULL);
+      hid_t space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
@@ -1553,7 +1558,7 @@ HDFDatabase::putDoubleArray(
 /*
  ************************************************************************
  *
- * Two routines to get double arrays from the database with the
+ * Two routines to get double vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a double type.
@@ -1561,8 +1566,8 @@ HDFDatabase::putDoubleArray(
  ************************************************************************
  */
 
-Array<double>
-HDFDatabase::getDoubleArray(
+std::vector<double>
+HDFDatabase::getDoubleVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
@@ -1571,7 +1576,7 @@ HDFDatabase::getDoubleArray(
    NULL_USE(errf);
 
    if (!isDouble(key)) {
-      TBOX_ERROR("HDFDatabase::getDoubleArray() error in database "
+      TBOX_ERROR("HDFDatabase::getDoubleVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a double array." << std::endl);
    }
@@ -1591,10 +1596,11 @@ HDFDatabase::getDoubleArray(
 
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<double> doubleArray(static_cast<int>(nsel));
+   std::vector<double> doubleArray(
+      static_cast<std::vector<double>::size_type>(nsel));
 
    if (nsel > 0) {
-      double* locPtr = doubleArray.getPointer();
+      double* locPtr = &doubleArray[0];
       errf = H5Dread(dset, H5T_NATIVE_DOUBLE,
             H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
@@ -1662,10 +1668,10 @@ void
 HDFDatabase::putFloatArray(
    const std::string& key,
    const float * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (float *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1673,7 +1679,7 @@ HDFDatabase::putFloatArray(
    if (nelements > 0) {
 
       hsize_t dim[] = { nelements };
-      hid_t space = H5Screate_simple(1, dim, NULL);
+      hid_t space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
@@ -1710,7 +1716,7 @@ HDFDatabase::putFloatArray(
 /*
  ************************************************************************
  *
- * Two routines to get float arrays from the database with the
+ * Two routines to get float vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a float type.
@@ -1718,8 +1724,8 @@ HDFDatabase::putFloatArray(
  ************************************************************************
  */
 
-Array<float>
-HDFDatabase::getFloatArray(
+std::vector<float>
+HDFDatabase::getFloatVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
@@ -1728,7 +1734,7 @@ HDFDatabase::getFloatArray(
    NULL_USE(errf);
 
    if (!isFloat(key)) {
-      TBOX_ERROR("HDFDatabase::getFloatArray() error in database "
+      TBOX_ERROR("HDFDatabase::getFloatVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a float array." << std::endl);
    }
@@ -1748,10 +1754,11 @@ HDFDatabase::getFloatArray(
    TBOX_ASSERT(dspace >= 0);
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<float> floatArray(static_cast<int>(nsel));
+   std::vector<float> floatArray(
+      static_cast<std::vector<float>::size_type>(nsel));
 
    if (nsel > 0) {
-      float* locPtr = floatArray.getPointer();
+      float* locPtr = &floatArray[0];
       errf = H5Dread(dset, H5T_NATIVE_FLOAT,
             H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
@@ -1821,10 +1828,10 @@ void
 HDFDatabase::putIntegerArray(
    const std::string& key,
    const int * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (int *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1832,7 +1839,7 @@ HDFDatabase::putIntegerArray(
    if (nelements > 0) {
 
       hsize_t dim[] = { nelements };
-      hid_t space = H5Screate_simple(1, dim, NULL);
+      hid_t space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
@@ -1868,7 +1875,7 @@ HDFDatabase::putIntegerArray(
 /*
  ************************************************************************
  *
- * Two routines to get integer arrays from the database with the
+ * Two routines to get integer vectors and arrays from the database with the
  * specified key name. In any case, an error message is printed and
  * the program exits if the specified key does not exist in the
  * database or is not associated with a integer type.
@@ -1876,8 +1883,8 @@ HDFDatabase::putIntegerArray(
  ************************************************************************
  */
 
-Array<int>
-HDFDatabase::getIntegerArray(
+std::vector<int>
+HDFDatabase::getIntegerVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
@@ -1886,7 +1893,7 @@ HDFDatabase::getIntegerArray(
    NULL_USE(errf);
 
    if (!isInteger(key)) {
-      TBOX_ERROR("HDFDatabase::getIntegerArray() error in database "
+      TBOX_ERROR("HDFDatabase::getIntegerVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not an integer array." << std::endl);
    }
@@ -1906,10 +1913,10 @@ HDFDatabase::getIntegerArray(
 
    nsel = H5Sget_select_npoints(dspace);
 
-   Array<int> intArray(static_cast<int>(nsel));
+   std::vector<int> intArray(static_cast<std::vector<int>::size_type>(nsel));
 
    if (nsel > 0) {
-      int* locPtr = intArray.getPointer();
+      int* locPtr = &intArray[0];
       errf = H5Dread(dset, H5T_NATIVE_INT,
             H5S_ALL, H5S_ALL, H5P_DEFAULT, locPtr);
       TBOX_ASSERT(errf >= 0);
@@ -1978,10 +1985,10 @@ void
 HDFDatabase::putStringArray(
    const std::string& key,
    const std::string * const data,
-   const int nelements)
+   const size_t nelements)
 {
    TBOX_ASSERT(!key.empty());
-   TBOX_ASSERT(data != (std::string *)NULL);
+   TBOX_ASSERT(data != 0);
 
    herr_t errf;
    NULL_USE(errf);
@@ -1990,14 +1997,14 @@ HDFDatabase::putStringArray(
 
       int maxlen = 0;
       int current, data_size;
-      int i;
-      for (i = 0; i < nelements; i++) {
+      size_t i;
+      for (i = 0; i < nelements; ++i) {
          current = static_cast<int>(data[i].size());
          if (current > maxlen) maxlen = current;
       }
 
       char* local_buf = new char[nelements * (maxlen + 1)];
-      for (i = 0; i < nelements; i++) {
+      for (i = 0; i < nelements; ++i) {
          strcpy(&local_buf[i * (maxlen + 1)], data[i].c_str());
          data_size = static_cast<int>(data[i].size());
          if (data_size < maxlen) {
@@ -2016,7 +2023,7 @@ HDFDatabase::putStringArray(
       TBOX_ASSERT(errf >= 0);
 
       hsize_t dim[] = { nelements };
-      hid_t space = H5Screate_simple(1, dim, NULL);
+      hid_t space = H5Screate_simple(1, dim, 0);
       TBOX_ASSERT(space >= 0);
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
@@ -2065,8 +2072,8 @@ HDFDatabase::putStringArray(
  ************************************************************************
  */
 
-Array<std::string>
-HDFDatabase::getStringArray(
+std::vector<std::string>
+HDFDatabase::getStringVector(
    const std::string& key)
 {
    TBOX_ASSERT(!key.empty());
@@ -2075,7 +2082,7 @@ HDFDatabase::getStringArray(
    NULL_USE(errf);
 
    if (!isString(key)) {
-      TBOX_ERROR("HDFDatabase::getStringArray() error in database "
+      TBOX_ERROR("HDFDatabase::getStringVector() error in database "
          << d_database_name
          << "\n    Key = " << key << " is not a string array." << std::endl);
    }
@@ -2083,7 +2090,6 @@ HDFDatabase::getStringArray(
    hsize_t nsel;
    size_t dsize;
    hid_t dset, dspace, dtype;
-   char* local_buf;
 
 #if (H5_VERS_MAJOR > 1) || ((H5_VERS_MAJOR == 1) && (H5_VERS_MINOR > 6))
    dset = H5Dopen(d_group_id, key.c_str(), H5P_DEFAULT);
@@ -2101,16 +2107,21 @@ HDFDatabase::getStringArray(
    dsize = H5Tget_size(dtype);
    nsel = H5Sget_select_npoints(dspace);
 
-   local_buf = new char[nsel * dsize];
+   std::vector<std::string> stringArray(
+      static_cast<std::vector<std::string>::size_type>(nsel));
 
-   errf = H5Dread(dset, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, local_buf);
-   TBOX_ASSERT(errf >= 0);
+   if (nsel > 0) {
+      char* local_buf = new char[nsel * dsize];
 
-   Array<std::string> stringArray(static_cast<int>(nsel));
+      errf = H5Dread(dset, dtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, local_buf);
+      TBOX_ASSERT(errf >= 0);
 
-   for (int i = 0; i < static_cast<int>(nsel); i++) {
-      std::string* locPtr = stringArray.getPointer(i);
-      *locPtr = &local_buf[i * dsize];
+      for (std::vector<std::string>::size_type i = 0;
+           i < static_cast<std::vector<std::string>::size_type>(nsel); ++i) {
+         std::string* locPtr = &stringArray[i];
+         *locPtr = &local_buf[i * dsize];
+      }
+      delete[] local_buf;
    }
 
    errf = H5Sclose(dspace);
@@ -2122,7 +2133,6 @@ HDFDatabase::getStringArray(
    errf = H5Dclose(dset);
    TBOX_ASSERT(errf >= 0);
 
-   delete[] local_buf;
    return stringArray;
 }
 
@@ -2202,7 +2212,7 @@ HDFDatabase::printClassData(
    }
 
    for (std::list<KeyData>::iterator i = d_keydata.begin();
-        i != d_keydata.end(); i++) {
+        i != d_keydata.end(); ++i) {
       int t = i->d_type;
       switch (MathUtilities<int>::Abs(t)) {
          case KEY_DATABASE: {
@@ -2406,7 +2416,7 @@ HDFDatabase::insertArray(
 
 #else
    size_t newdim[H5S_MAX_RANK];
-   for (int i = 0; i < ndims; i++) {
+   for (int i = 0; i < ndims; ++i) {
       newdim[i] = dim[i];
    }
 
@@ -2447,7 +2457,7 @@ HDFDatabase::performKeySearch()
 
    d_still_searching = 1;
 
-   errf = H5Giterate(d_group_id, "/", NULL,
+   errf = H5Giterate(d_group_id, "/", 0,
          HDFDatabase::iterateKeys, (void *)this);
    TBOX_ASSERT(errf >= 0);
 }

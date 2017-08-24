@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utility for cataloging periodic shift directions.
  *
  ************************************************************************/
@@ -23,8 +23,7 @@ namespace SAMRAI {
 namespace hier {
 
 /*!
- * @brief Singleton for cataloging periodic shifts and assigning
- * each one a unique "shift number".
+ * @brief Catalogs periodic shifts and assigns each one a unique PeriodicId
  *
  * In a periodic domain, a Box location (or rather its images)
  * can appear to be in many places.  We define the "shift distance" as
@@ -33,7 +32,7 @@ namespace hier {
  *
  * This class catalogs all possible shifts for a periodic
  * configuration and assigns an integer index to each shift.  A shift
- * can be referenced by a single "shift number" rather than its IntVector
+ * can be referenced by a single PeriodicId rather than its IntVector
  * distance.
  *
  * TODO: Periodic shift definition and management should probably be
@@ -44,20 +43,26 @@ namespace hier {
 class PeriodicShiftCatalog
 {
 public:
+
    /*!
-    * @brief Get the singleton object.
+    * @brief Constructs uninitialized object.
     *
-    * @param[in] dim Get the catalog for this dimension.
+    * After construction, the object should be populated with periodic
+    * shifts, if any exist, using initializeShiftsByIndexDirections().
     */
-   static const PeriodicShiftCatalog *
-   getCatalog(
+   explicit PeriodicShiftCatalog(
       const tbox::Dimension& dim);
+
+   ~PeriodicShiftCatalog();
 
    /*!
     * @brief Return the shift distance corresponding to the given
     * shift number.
     *
     * @param[in] shift_number
+    *
+    * @pre shift_number.isValid()
+    * @pre shift_number.getPeriodicValue() < getNumberOfShifts()
     */
    const IntVector&
    shiftNumberToShiftDistance(
@@ -107,6 +112,9 @@ public:
     * the shift distance of the given shift number.
     *
     * @param[in] shift_number
+    *
+    * @pre shift_number.isValid()
+    * @pre shift_number.getPeriodicValue() < getNumberOfShifts()
     */
    const PeriodicId&
    getOppositeShiftNumber(
@@ -165,25 +173,12 @@ public:
     *
     * @param[in] shift_distance_along_index_directions The periodic
     * shift distance in each index direction.
-    *
-    * TODO: possible refactor?  This method should probably be changed
-    * to a regular member method, for conformity to other singletons.
     */
-   static void
+   void
    initializeShiftsByIndexDirections(
       const IntVector& shift_distance_along_index_directions);
 
 private:
-   /*!
-    * @brief Constructs uninitialized object.
-    *
-    * After construction, the object should be populated with periodic
-    * shifts using initializeShiftsByIndexDirections().
-    */
-   explicit PeriodicShiftCatalog(
-      const tbox::Dimension& dim);
-
-   ~PeriodicShiftCatalog();
 
    /*!
     * @brief Set the shifts.
@@ -198,23 +193,10 @@ private:
     *
     * @param[in] shifts All possible shifts.
     */
-   static void
+   void
    setShifts(
       const tbox::Dimension& dim,
       const std::vector<IntVector>& shifts);
-
-   /*!
-    * @brief Free the singleton object.
-    */
-   static void
-   finalizeCallback();
-
-   const tbox::Dimension d_dim;
-
-   static PeriodicShiftCatalog* s_periodic_shift_catalog_instance[tbox::
-                                                                  Dimension::
-                                                                  MAXIMUM_DIMENSION_VALUE
-   ];
 
    std::vector<IntVector> d_shifts;
 
@@ -231,8 +213,6 @@ private:
     */
    unsigned int d_zero_shift_number;
 
-   static tbox::StartupShutdownManager::Handler
-      s_finalize_handler;
 };
 
 }

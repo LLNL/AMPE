@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Concrete factory for create standard copy transactions
  *                for coarsen schedules.
  *
@@ -20,16 +20,16 @@
 #include "SAMRAI/xfer/CoarsenClasses.h"
 #include "SAMRAI/xfer/CoarsenTransactionFactory.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace xfer {
 
 /*!
- * @brief Concrete subclass of CoarsenTransactionFactory base class that allocates
- * CoarsenCopyTransaction objects for a CoarsenSchedule object.
+ * @brief Concrete subclass of CoarsenTransactionFactory base class that
+ * allocates CoarsenCopyTransaction objects for a CoarsenSchedule object.
  *
- * @see xfer::CoarsenCopyTransaction
+ * @see CoarsenCopyTransaction
  */
 
 class StandardCoarsenTransactionFactory:public CoarsenTransactionFactory
@@ -46,49 +46,39 @@ public:
    virtual ~StandardCoarsenTransactionFactory();
 
    /*!
-    * @brief Set the array of CoarsenClass::Data items used by the transactions.
-    */
-   virtual void
-   setCoarsenItems(
-      const CoarsenClasses::Data ** coarsen_items,
-      int num_coarsen_items);
-
-   /*!
-    * @brief Clear the array of CoarsenClass::Data items used by the transactions.
-    */
-   virtual void
-   unsetCoarsenItems();
-
-   /*!
     * @brief Allocate a CoarsenCopyTransaction object.
     *
     * @param dst_level      boost::shared_ptr to destination patch level.
     * @param src_level      boost::shared_ptr to source patch level.
-    * @param overlap        boost::shared_ptr to overlap region between patches.
-    * @param dst_mapped_box Destination Box in destination patch level.
-    * @param src_mapped_box Source Box in source patch level.
-    * @param citem_id       Integer index of CoarsenClass::Data item associated
+    * @param overlap        boost::shared_ptr to overlap region between
+    *                       patches.
+    * @param dst_box        Destination Box in destination patch level.
+    * @param src_box        Source Box in source patch level.
+    * @param coarsen_data   Pointer to array of coarsen data items
+    * @param item_id        Integer index of CoarsenClass::Data item associated
     *                       with transaction.
+    *
+    * @pre (dst_level->getDim() == src_level->getDim()) &&
+    *      (dst_level->getDim() == dst_box.getDim()) &&
+    *      (dst_level->getDim() == src_box.getDim())
     */
    virtual boost::shared_ptr<tbox::Transaction>
    allocate(
       const boost::shared_ptr<hier::PatchLevel>& dst_level,
       const boost::shared_ptr<hier::PatchLevel>& src_level,
       const boost::shared_ptr<hier::BoxOverlap>& overlap,
-      const hier::Box& dst_mapped_box,
-      const hier::Box& src_mapped_box,
-      int citem_id) const;
+      const hier::Box& dst_box,
+      const hier::Box& src_box,
+      const CoarsenClasses::Data ** coarsen_data,
+      int item_id) const;
 
 private:
    // The following two functions are not implemented
    StandardCoarsenTransactionFactory(
       const StandardCoarsenTransactionFactory&);
-   void
+   StandardCoarsenTransactionFactory&
    operator = (
       const StandardCoarsenTransactionFactory&);
-
-   const CoarsenClasses::Data** d_coarsen_items;
-   int d_num_coarsen_items;
 
 };
 

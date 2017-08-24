@@ -3,11 +3,12 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Schedule of communication transactions between processors
  *
  ************************************************************************/
 #include "SAMRAI/tbox/Schedule.h"
+#include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -41,13 +42,14 @@ const size_t Schedule::s_default_first_message_length = 1000;
 
 const std::string Schedule::s_default_timer_prefix("tbox::Schedule");
 std::map<std::string, Schedule::TimerStruct> Schedule::s_static_timers;
+char Schedule::s_ignore_external_timer_prefix('\0');
 
 StartupShutdownManager::Handler
 Schedule::s_initialize_finalize_handler(
    Schedule::initializeCallback,
    0,
    0,
-   Schedule::finalizeCallback,
+   0,
    StartupShutdownManager::priorityTimers);
 
 /*
@@ -56,14 +58,17 @@ Schedule::s_initialize_finalize_handler(
  */
 
 Schedule::Schedule():
-   d_coms(NULL),
+   d_coms(0),
    d_com_stage(),
    d_mpi(SAMRAI_MPI::getSAMRAIWorld()),
    d_first_tag(s_default_first_tag),
    d_second_tag(s_default_second_tag),
-   d_first_message_length(s_default_first_message_length)
+   d_first_message_length(s_default_first_message_length),
+   d_unpack_in_deterministic_order(false),
+   d_object_timers(0)
 {
-   setTimerPrefix("tbox::Schedule");
+   getFromInput();
+   setTimerPrefix(s_default_timer_prefix);
 }
 
 /*
@@ -74,7 +79,7 @@ Schedule::Schedule():
  */
 Schedule::~Schedule()
 {
-   if (d_coms != NULL) {
+   if (allocatedCommunicationObjects()) {
       TBOX_ERROR("Destructing a schedule while communication is pending\n"
          << "leads to lost messages.  Aborting.");
    }
@@ -172,10 +177,22 @@ Schedule::getNumRecvTransactions(
 void
 Schedule::communicate()
 {
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if (d_mpi.hasReceivableMessage(0, MPI_ANY_SOURCE, MPI_ANY_TAG)) {
+      TBOX_ERROR("Schedule::communicate: Errant message detected before beginCommunication().");
+   }
+#endif
+
    d_object_timers->t_communicate->start();
    beginCommunication();
    finalizeCommunication();
    d_object_timers->t_communicate->stop();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if (d_mpi.hasReceivableMessage(0, MPI_ANY_SOURCE, MPI_ANY_TAG)) {
+      TBOX_ERROR("Schedule::communicate: Errant message detected after finalizeCommunication().");
+   }
+#endif
 }
 
 /*
@@ -267,7 +284,7 @@ Schedule::postReceives()
       unsigned int byte_count = 0;
       bool can_estimate_incoming_message_size = true;
       for (ConstIterator r = transactions.begin();
-           r != transactions.end(); r++) {
+           r != transactions.end(); ++r) {
          if (!(*r)->canEstimateIncomingMessageSize()) {
             can_estimate_incoming_message_size = false;
             break;
@@ -344,7 +361,7 @@ Schedule::postSends()
       size_t byte_count = 0;
       bool can_estimate_incoming_message_size = true;
       for (ConstIterator pack = transactions.begin();
-           pack != transactions.end(); pack++) {
+           pack != transactions.end(); ++pack) {
          if (!(*pack)->canEstimateIncomingMessageSize()) {
             can_estimate_incoming_message_size = false;
          }
@@ -355,13 +372,13 @@ Schedule::postSends()
       MessageStream outgoing_stream(byte_count, MessageStream::Write);
       d_object_timers->t_pack_stream->start();
       for (ConstIterator pack = transactions.begin();
-           pack != transactions.end(); pack++) {
+           pack != transactions.end(); ++pack) {
          (*pack)->packStream(outgoing_stream);
       }
       d_object_timers->t_pack_stream->stop();
 
       if (can_estimate_incoming_message_size) {
-         // Receiver knows message size, so set it exactly.
+         // Receiver knows message size so set it exactly.
          send_coms[icom].limitFirstDataLength(byte_count);
       }
 
@@ -387,7 +404,7 @@ Schedule::performLocalCopies()
 {
    d_object_timers->t_local_copies->start();
    for (Iterator local = d_local_set.begin();
-        local != d_local_set.end(); local++) {
+        local != d_local_set.end(); ++local) {
       (*local)->copyLocalData();
    }
    d_object_timers->t_local_copies->stop();
@@ -399,6 +416,8 @@ Schedule::performLocalCopies()
  * operations are placed in d_completed_comm.  Process these first,
  * then check for next set of completed operations.  Repeat until all
  * operations are completed.
+ *
+ * Once a receive is completed, put it in a MessageStream for unpacking.
  *************************************************************************
  */
 void
@@ -406,34 +425,76 @@ Schedule::processCompletedCommunications()
 {
    d_object_timers->t_process_incoming_messages->start();
 
-   while ( d_com_stage.numberOfCompletedMembers() > 0 ||
-           d_com_stage.advanceSome() ) {
+   if (d_unpack_in_deterministic_order) {
 
-      AsyncCommPeer<char>* completed_comm =
-         dynamic_cast<AsyncCommPeer<char> *>(d_com_stage.popCompletionQueue());
+      // Unpack in deterministic order.  Wait for receive as needed.
 
-      TBOX_ASSERT(completed_comm != NULL);
-      TBOX_ASSERT(completed_comm->isDone());
-      if (static_cast<size_t>(completed_comm - d_coms) < d_recv_sets.size()) {
+      int irecv = 0;
+      for (TransactionSets::iterator recv_itr = d_recv_sets.begin();
+           recv_itr != d_recv_sets.end(); ++recv_itr, ++irecv) {
 
-         const int sender = completed_comm->getPeerRank();
+         int sender = recv_itr->first;
+         AsyncCommPeer<char>& completed_comm = d_coms[irecv];
+         TBOX_ASSERT(sender == completed_comm.getPeerRank());
+         completed_comm.completeCurrentOperation();
+         completed_comm.yankFromCompletionQueue();
 
-         // Copy message into stream.
          MessageStream incoming_stream(
-            completed_comm->getRecvSize() * sizeof(char),
+            static_cast<size_t>(completed_comm.getRecvSize()) * sizeof(char),
             MessageStream::Read,
-            completed_comm->getRecvData());
-         completed_comm->clearRecvData();
+            completed_comm.getRecvData(),
+            false /* don't use deep copy */);
 
          d_object_timers->t_unpack_stream->start();
          for (Iterator recv = d_recv_sets[sender].begin();
-              recv != d_recv_sets[sender].end(); recv++) {
+              recv != d_recv_sets[sender].end(); ++recv) {
             (*recv)->unpackStream(incoming_stream);
          }
          d_object_timers->t_unpack_stream->stop();
-      } else {
-         // No further action required for completed send.
+         completed_comm.clearRecvData();
+
       }
+
+      // Complete sends.
+      d_com_stage.advanceAll();
+      while (d_com_stage.hasCompletedMembers()) {
+         d_com_stage.popCompletionQueue();
+      }
+
+   } else {
+
+      // Unpack in order of completed receives.
+
+      size_t num_senders = d_recv_sets.size();
+      while (d_com_stage.hasCompletedMembers() || d_com_stage.advanceSome()) {
+
+         AsyncCommPeer<char>* completed_comm =
+            CPP_CAST<AsyncCommPeer<char> *>(d_com_stage.popCompletionQueue());
+
+         TBOX_ASSERT(completed_comm != 0);
+         TBOX_ASSERT(completed_comm->isDone());
+         if (static_cast<size_t>(completed_comm - d_coms) < num_senders) {
+
+            const int sender = completed_comm->getPeerRank();
+
+            MessageStream incoming_stream(
+               static_cast<size_t>(completed_comm->getRecvSize()) * sizeof(char),
+               MessageStream::Read,
+               completed_comm->getRecvData(),
+               false /* don't use deep copy */);
+
+            d_object_timers->t_unpack_stream->start();
+            for (Iterator recv = d_recv_sets[sender].begin();
+                 recv != d_recv_sets[sender].end(); ++recv) {
+               (*recv)->unpackStream(incoming_stream);
+            }
+            d_object_timers->t_unpack_stream->stop();
+            completed_comm->clearRecvData();
+         } else {
+            // No further action required for completed send.
+         }
+      }
+
    }
 
    d_object_timers->t_process_incoming_messages->stop();
@@ -449,7 +510,9 @@ void
 Schedule::allocateCommunicationObjects()
 {
    const size_t length = d_recv_sets.size() + d_send_sets.size();
-   d_coms = new AsyncCommPeer<char>[length];
+   if (length > 0) {
+      d_coms = new AsyncCommPeer<char>[length];
+   }
 
    size_t counter = 0;
    for (TransactionSets::iterator ti = d_recv_sets.begin();
@@ -494,7 +557,7 @@ Schedule::printClassData(
       const std::list<boost::shared_ptr<Transaction> >& send_set = ss->second;
       stream << "Send Set: " << ss->first << std::endl;
       for (ConstIterator send = send_set.begin();
-           send != send_set.end(); send++) {
+           send != send_set.end(); ++send) {
          (*send)->printClassData(stream);
       }
    }
@@ -504,15 +567,45 @@ Schedule::printClassData(
       const std::list<boost::shared_ptr<Transaction> >& recv_set = rs->second;
       stream << "Recv Set: " << rs->first << std::endl;
       for (ConstIterator recv = recv_set.begin();
-           recv != recv_set.end(); recv++) {
+           recv != recv_set.end(); ++recv) {
          (*recv)->printClassData(stream);
       }
    }
 
    stream << "Local Set" << std::endl;
    for (ConstIterator local = d_local_set.begin();
-        local != d_local_set.end(); local++) {
+        local != d_local_set.end(); ++local) {
       (*local)->printClassData(stream);
+   }
+}
+
+/*
+ ***********************************************************************
+ ***********************************************************************
+ */
+void
+Schedule::getFromInput()
+{
+   /*
+    * - set up debugging flags.
+    */
+   if (s_ignore_external_timer_prefix == '\0') {
+      s_ignore_external_timer_prefix = 'n';
+      if (InputManager::inputDatabaseExists()) {
+         boost::shared_ptr<Database> idb(
+            InputManager::getInputDatabase());
+         if (idb->isDatabase("Schedule")) {
+            boost::shared_ptr<Database> sched_db(
+               idb->getDatabase("Schedule"));
+            s_ignore_external_timer_prefix =
+               sched_db->getCharWithDefault("DEV_ignore_external_timer_prefix",
+                  'n');
+            if (!(s_ignore_external_timer_prefix == 'n' ||
+                  s_ignore_external_timer_prefix == 'y')) {
+               INPUT_VALUE_ERROR("DEV_ignore_external_timer_prefix");
+            }
+         }
+      }
    }
 }
 
@@ -524,11 +617,17 @@ void
 Schedule::setTimerPrefix(
    const std::string& timer_prefix)
 {
+   std::string timer_prefix_used;
+   if (s_ignore_external_timer_prefix == 'y') {
+      timer_prefix_used = s_default_timer_prefix;
+   } else {
+      timer_prefix_used = timer_prefix;
+   }
    std::map<std::string, TimerStruct>::iterator ti(
-      s_static_timers.find(timer_prefix));
+      s_static_timers.find(timer_prefix_used));
    if (ti == s_static_timers.end()) {
-      d_object_timers = &s_static_timers[timer_prefix];
-      getAllTimers(timer_prefix, *d_object_timers);
+      d_object_timers = &s_static_timers[timer_prefix_used];
+      getAllTimers(timer_prefix_used, *d_object_timers);
    } else {
       d_object_timers = &(ti->second);
    }

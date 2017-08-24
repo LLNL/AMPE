@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Array specializations
  *
  ************************************************************************/
@@ -34,13 +34,13 @@ Array<bool>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i] = default_value;
       }
 
    } else {
-      d_objects = (bool *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -55,13 +55,13 @@ Array<char>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i] = default_value;
       }
 
    } else {
-      d_objects = (char *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -76,13 +76,13 @@ Array<int>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i] = default_value;
       }
 
    } else {
-      d_objects = (int *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -97,13 +97,13 @@ Array<float>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i] = default_value;
       }
 
    } else {
-      d_objects = (float *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -118,13 +118,13 @@ Array<double>::Array(
       d_counter = new ReferenceCounter;
       d_elements = n;
 
-      for (int i = 0; i < d_elements; i++) {
+      for (int i = 0; i < d_elements; ++i) {
          d_objects[i] = default_value;
       }
 
    } else {
-      d_objects = (double *)NULL;
-      d_counter = (ReferenceCounter *)NULL;
+      d_objects = 0;
+      d_counter = 0;
       d_elements = 0;
    }
 }
@@ -138,8 +138,8 @@ Array<bool>::deleteObjects()
       delete d_counter;
    }
 
-   d_objects = (bool *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -152,8 +152,8 @@ Array<char>::deleteObjects()
       delete d_counter;
    }
 
-   d_objects = (char *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -166,8 +166,8 @@ Array<int>::deleteObjects()
       delete d_counter;
    }
 
-   d_objects = (int *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -180,8 +180,8 @@ Array<float>::deleteObjects()
       delete d_counter;
    }
 
-   d_objects = (float *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 
@@ -194,8 +194,8 @@ Array<double>::deleteObjects()
       delete d_counter;
    }
 
-   d_objects = (double *)NULL;
-   d_counter = (ReferenceCounter *)NULL;
+   d_objects = 0;
+   d_counter = 0;
    d_elements = 0;
 }
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing communication of SAMRAI cell data. 
  *
  ************************************************************************/
@@ -130,9 +130,6 @@ CellPatchDataTest {
 
    }
 
-   RefinementData {
-   }
-
 }
 
 CartesianGridGeometry {
@@ -159,54 +156,57 @@ PatchHierarchy {
    allow_patches_smaller_than_ghostwidth = FALSE
 }
 
-GriddingAlgorithm {
-   enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
-   // load_balance = FALSE
+BergerRigoutsos {
    efficiency_tolerance = 0.70
    combine_efficiency = 0.85
-   extend_tags_to_bdry = TRUE
+}
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   DEV_extend_to_domain_boundary = TRUE
+   // DEV_load_balance = FALSE
    check_nonrefined_tags = "IGNORE"
 }
 
 
 TreeLoadBalancer {
-   barrier_after = TRUE
+   DEV_barrier_after = TRUE
 }
 
 StandardTaggingAndInitializer {
    tagging_method = "REFINE_BOXES"
 
-   RefineBoxes {
-      level_0 = [ (0,0,0) , (5,5,29) ],
-                [ (0,6,0) , (5,10,19) ],
-                [ (24,5,14) , (29,9,39) ],
-                [ (24,10,24) , (29,19,39) ],
-                [ (18,13,15) , (23,19,39) ],
-                [ (0,14,10) , (17,19,29) ],
-                [ (11,5,14) , (17,11,24) ]
-      level_1 = [ (0,2,0) , (4,7,14) ],
-                [ (25,6,35) , (29,12,39) ],
-                [ (22,15,25) , (29,19,39) ],
-                [ (0,15,12) , (4,19,21) ],
-                [ (12,6,15) , (16,10,19) ]
+   level_0 {
+      boxes = [ (0,0,0) , (5,5,29) ],
+              [ (0,6,0) , (5,10,19) ],
+              [ (24,5,14) , (29,9,39) ],
+              [ (24,10,24) , (29,19,39) ],
+              [ (18,13,15) , (23,19,39) ],
+              [ (0,14,10) , (17,19,29) ],
+              [ (11,5,14) , (17,11,24) ]
    }
-
+   level_1 {
+      boxes = [ (0,2,0) , (4,7,14) ],
+              [ (25,6,35) , (29,12,39) ],
+              [ (22,15,25) , (29,19,39) ],
+              [ (0,15,12) , (4,19,21) ],
+              [ (12,6,15) , (16,10,19) ]
+   }
 }
 
-OverlapConnectorUtil {
-   print_bridge_steps = 'n'
+OverlapConnectorAlgorithm {
+   DEV_print_bridge_steps = 'n'
 }
 
-MappingConnectorUtil {
-   print_modify_steps = 'n'
+MappingConnectorAlgorithm {
+   DEV_print_modify_steps = 'n'
 }
 
 RefineSchedule {
-   extra_debug = FALSE
+   DEV_extra_debug = FALSE
 }
 
 PersistentOverlapConnectors {
-   check_created_connectors = TRUE
-   check_accessed_connectors = TRUE
+   DEV_check_created_connectors = TRUE
+   DEV_check_accessed_connectors = TRUE
 }

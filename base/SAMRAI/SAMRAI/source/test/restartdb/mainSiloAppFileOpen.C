@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Tests Silo database in SAMRAI
  *
  ************************************************************************/
@@ -11,7 +11,6 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/DatabaseBox.h"
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/SiloDatabase.h"
@@ -19,7 +18,7 @@
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/RestartManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 using namespace std;
@@ -39,13 +38,13 @@ public:
    virtual ~RestartTester() {
    }
 
-   void putToDatabase(
+   void putToRestart(
       const boost::shared_ptr<tbox::Database>& db) const
    {
       writeTestData(db);
    }
 
-   void getFromDatabase()
+   void getFromRestart()
    {
       boost::shared_ptr<tbox::Database> root_db(
          tbox::RestartManager::getManager()->getRootDatabase());
@@ -94,7 +93,7 @@ int main(
       std::string name = "./restart." + tbox::Utilities::processorToString(
             mpi.getRank()) + ".silo";
       DBfile* silo_file = DBCreate(
-            name.c_str(), DB_CLOBBER, DB_LOCAL, NULL, DB_PDB);
+            name.c_str(), DB_CLOBBER, DB_LOCAL, 0, DB_PDB);
       database->attachToFile(silo_file, "/");
 
       restart_manager->setRootDatabase(database);
@@ -116,7 +115,7 @@ int main(
 
       restart_manager->setRootDatabase(database);
 
-      silo_tester.getFromDatabase();
+      silo_tester.getFromRestart();
 
       database->close();
       restart_manager->setRootDatabase(boost::shared_ptr<tbox::Database>());

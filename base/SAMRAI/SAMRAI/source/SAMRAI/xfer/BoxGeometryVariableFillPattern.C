@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract fill pattern class to provide interface for stencils
  *
  ************************************************************************/
-
-#ifndef included_xfer_BoxGeometryVariableFillPattern_C
-#define included_xfer_BoxGeometryVariableFillPattern_C
-
 #include "SAMRAI/xfer/BoxGeometryVariableFillPattern.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -79,10 +75,13 @@ BoxGeometryVariableFillPattern::getStencilWidth()
 boost::shared_ptr<hier::BoxOverlap>
 BoxGeometryVariableFillPattern::computeFillBoxesOverlap(
    const hier::BoxContainer& fill_boxes,
+   const hier::BoxContainer& node_fill_boxes,
    const hier::Box& patch_box,
    const hier::Box& data_box,
    const hier::PatchDataFactory& pdf) const
 {
+   NULL_USE(node_fill_boxes);
+
    /*
     * For this (default) case, the overlap is simply the intersection of
     * fill_boxes and data_box.
@@ -99,4 +98,3 @@ BoxGeometryVariableFillPattern::computeFillBoxesOverlap(
 
 }
 }
-#endif

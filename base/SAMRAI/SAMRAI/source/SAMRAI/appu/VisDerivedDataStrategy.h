@@ -3,9 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Interface for writing user-defined data to either
- *                VisIt or Vizamrai file
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Interface for writing user-defined data to VisIt
  *
  ************************************************************************/
 
@@ -27,29 +26,25 @@ namespace appu {
 /*!
  * @brief Class VisDerivedDataStrategy is an abstract base class
  * that defines an interface allowing an VisItDataWriter object
- * and/or an CartesianVizamraiDataWriter<DIM> object to generate plot
- * files that contain "derived" quantities; that is, data that does
- * not reside on the hierarchy, but which is derived from data that
- * does reside on the hierarchy.  The derived data may be scalar,
- * vector, or tensor (VisIt only), and cell-centered or node-centered
- * (VisIt only).  A concrete object of this type must be registered
- * with the data writer if any derived variable is registered with the
- * data writer.  The registration of the concrete strategy object may
- * be done independently using the method setDerivedDataWriter()
- * (Vizamrai only) or setDefaultDerivedDataWriter() (VisIt only) from
- * the relevant DataWriter class, or the concrete strategy object may
- * be registered concurrently with the derived variable using the
- * method registerDerivedPlotScalar/Vector/Tensor().
+ * to generate plot files that contain "derived" quantities; that
+ * is, data that does not reside on the hierarchy, but which is
+ * derived from data that does reside on the hierarchy.  The
+ * derived data may be scalar, vector, or tensor, and cell-centered
+ * or node-centered.  A concrete object of this type must be
+ * registered with the data writer if any derived variable is
+ * registered with the data writer.  The registration of the
+ * concrete strategy object may be done independently using the
+ * method setDefaultDerivedDataWriter() from the relevant DataWriter
+ * class, or the concrete strategy object may be registered
+ * concurrently with the derived variable using the method
+ * registerDerivedPlotScalar/Vector/Tensor().
  *
  * The concrete strategy object is responsible for supplying an
  * implementation of the function packDerivedDataIntoDoubleBuffer()
  * which calculates the derived data and writes it into the double
  * precision buffer passed in to it.
  *
- * This class is shared by both VisDataWriter<DIM> and
- * CartesianVizamraiDataWriter<DIM>.
- *
- * @see appu::VisItDataWriter
+ * @see VisItDataWriter
  */
 
 class VisDerivedDataStrategy
@@ -110,6 +105,8 @@ public:
     * @param depth_index For scalar quantities index will be zero.
     *  For vector data, index varies between 0 and DIM-1.  For tensor
     *  data, index varies from 0 (DIM*DIM)-1.
+    * @param simulation_time Optional argument specifying the double
+    *    precision simulation time. Default is 0.0.
     * @return Boolean value indicating if derived data defined on this
     *  patch.
     */
@@ -119,7 +116,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const std::string& variable_name,
-      int depth_index) const = 0;
+      int depth_index,
+      double simulation_time = 0.0) const = 0;
 
    /*!
     * @brief This function calculates and packs derived

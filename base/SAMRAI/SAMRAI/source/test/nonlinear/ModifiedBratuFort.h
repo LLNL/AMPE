@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fortran function declarations for modified-Bratu problem
  *
  ************************************************************************/
@@ -172,61 +172,61 @@ FORT_VAXPY1D(
    const double *,
    const double *);
 
-void F77_FUNC(compfacdiag1d, COMPFACDIAG1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compfacdiag1d, COMPFACDIAG1D) (const int&, const int&,
    const double&, const double&,
    const double *, const double *,
    double *);
 
-void F77_FUNC(compfacoffdiag1d, COMPFACOFFDIAG1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compfacoffdiag1d, COMPFACOFFDIAG1D) (const int&, const int&,
    const double&, const double&,
    const double *,
    double *);
 
-void F77_FUNC(compdiffcoef1d, COMPDIFFCOEF1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compdiffcoef1d, COMPDIFFCOEF1D) (const int&, const int&,
    const double *, const double *,
    const double&,
    double *);
 
-void F77_FUNC(compexpu1d, COMPEXPU1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compexpu1d, COMPEXPU1D) (const int&, const int&,
    const int&,
    const double&,
    const double *,
    double *);
 
-void F77_FUNC(compsrc1d, COMPSRC1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsrc1d, COMPSRC1D) (const int&, const int&,
    const int&,
    const double *, const double *, const double&,
    const double&,
    const double *,
    double *);
 
-void F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (const int&, const int&,
    const int&,
    const double *, const double *, const double&,
    const double&,
    const double *,
    double *);
 
-void F77_FUNC(compsideflux1d, COMPSIDEFLUX1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsideflux1d, COMPSIDEFLUX1D) (const int&, const int&,
    const int&,
    const double *,
    const double *,
    const double *,
    double *);
 
-void F77_FUNC(fluxbdryfix1d, FLUXBDRYFIX1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(fluxbdryfix1d, FLUXBDRYFIX1D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const int&,
    const double&,
    double *);
 
-void F77_FUNC(fluxcopy01d, FLUXCOPY01D) (const int&, const int&,
+void SAMRAI_F77_FUNC(fluxcopy01d, FLUXCOPY01D) (const int&, const int&,
    const int&,
    const double *,
    double *);
 
-void F77_FUNC(compresidual1d, COMPRESIDUAL1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compresidual1d, COMPRESIDUAL1D) (const int&, const int&,
    const int&,
    const double *, const double&,
    const double *,
@@ -238,7 +238,7 @@ void F77_FUNC(compresidual1d, COMPRESIDUAL1D) (const int&, const int&,
 
 // Bonus function
 
-void F77_FUNC(adjcrsfineoffdiag1d, ADJCRSFINEOFFDIAG1D) (
+void SAMRAI_F77_FUNC(adjcrsfineoffdiag1d, ADJCRSFINEOFFDIAG1D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -456,7 +456,7 @@ FORT_VAXPY2D(
 
 /* These functions are in FACjacobian.m4 */
 
-void F77_FUNC(compjv2d, COMPJV2D) (
+void SAMRAI_F77_FUNC(compjv2d, COMPJV2D) (
    const int& ifirst0, const int& ilast0,
    const int& ifirst1, const int& ilast1,
    const int& gwc,
@@ -467,32 +467,32 @@ void F77_FUNC(compjv2d, COMPJV2D) (
    const double& dt,
    double* jv);
 
-void F77_FUNC(compfacdiag2d, COMPFACDIAG2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compfacdiag2d, COMPFACDIAG2D) (const int&, const int&,
    const int&, const int&,
    const double&, const double&,
    const double *, const double *,
    double *);
 
-void F77_FUNC(compfacoffdiag2d, COMPFACOFFDIAG2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compfacoffdiag2d, COMPFACOFFDIAG2D) (const int&, const int&,
    const int&, const int&,
    const double&, const double&,
    const double *, const double *,
    double *, double *);
 
-void F77_FUNC(compdiffcoef2d, COMPDIFFCOEF2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compdiffcoef2d, COMPDIFFCOEF2D) (const int&, const int&,
    const int&, const int&,
    const double *, const double *,
    const double&,
    double *, double *);
 
-void F77_FUNC(compexpu2d, COMPEXPU2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compexpu2d, COMPEXPU2D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double&,
    const double *,
    double *);
 
-void F77_FUNC(compsrc2d, COMPSRC2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsrc2d, COMPSRC2D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *, const double *, const double&,
@@ -500,7 +500,7 @@ void F77_FUNC(compsrc2d, COMPSRC2D) (const int&, const int&,
    const double *,
    double *);
 
-void F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *, const double *, const double&,
@@ -508,7 +508,7 @@ void F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (const int&, const int&,
    const double *,
    double *);
 
-void F77_FUNC(compsideflux2d, COMPSIDEFLUX2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compsideflux2d, COMPSIDEFLUX2D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *,
@@ -516,7 +516,7 @@ void F77_FUNC(compsideflux2d, COMPSIDEFLUX2D) (const int&, const int&,
    const double *,
    double *, double *);
 
-void F77_FUNC(fluxbdryfix2d, FLUXBDRYFIX2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(fluxbdryfix2d, FLUXBDRYFIX2D) (const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -525,19 +525,19 @@ void F77_FUNC(fluxbdryfix2d, FLUXBDRYFIX2D) (const int&, const int&,
    const double&,
    double *, double *);
 
-void F77_FUNC(fluxcopy02d, FLUXCOPY02D) (const int&, const int&,
+void SAMRAI_F77_FUNC(fluxcopy02d, FLUXCOPY02D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *,
    double *);
 
-void F77_FUNC(fluxcopy12d, FLUXCOPY12D) (const int&, const int&,
+void SAMRAI_F77_FUNC(fluxcopy12d, FLUXCOPY12D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *,
    double *);
 
-void F77_FUNC(compresidual2d, COMPRESIDUAL2D) (const int&, const int&,
+void SAMRAI_F77_FUNC(compresidual2d, COMPRESIDUAL2D) (const int&, const int&,
    const int&, const int&,
    const int&,
    const double *, const double&,
@@ -822,7 +822,7 @@ FORT_VAXPY3D(
 
 /* These functions are in FACjacobian.m4 */
 
-void F77_FUNC(compjv3d, COMPJV3D) (
+void SAMRAI_F77_FUNC(compjv3d, COMPJV3D) (
    const int& ifirst0, const int& ilast0,
    const int& ifirst1, const int& ilast1,
    const int& ifirst2, const int& ilast2,
@@ -834,14 +834,14 @@ void F77_FUNC(compjv3d, COMPJV3D) (
    const double& dt,
    double* jv);
 
-void F77_FUNC(compfacdiag3d, COMPFACDIAG3D) (
+void SAMRAI_F77_FUNC(compfacdiag3d, COMPFACDIAG3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const double&, const double&,
    const double *, const double *,
    double *);
-void F77_FUNC(compfacoffdiag3d, COMPFACOFFDIAG3D) (
+void SAMRAI_F77_FUNC(compfacoffdiag3d, COMPFACOFFDIAG3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -849,7 +849,7 @@ void F77_FUNC(compfacoffdiag3d, COMPFACOFFDIAG3D) (
    const double *, const double *, const double *,
    double *, double *, double *);
 
-void F77_FUNC(compdiffcoef3d, COMPDIFFCOEF3D) (
+void SAMRAI_F77_FUNC(compdiffcoef3d, COMPDIFFCOEF3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -857,7 +857,7 @@ void F77_FUNC(compdiffcoef3d, COMPDIFFCOEF3D) (
    const double&,
    double *, double *, double *);
 
-void F77_FUNC(compexpu3d, COMPEXPU3D) (
+void SAMRAI_F77_FUNC(compexpu3d, COMPEXPU3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -866,7 +866,7 @@ void F77_FUNC(compexpu3d, COMPEXPU3D) (
    const double *,
    double *);
 
-void F77_FUNC(compsrc3d, COMPSRC3D) (
+void SAMRAI_F77_FUNC(compsrc3d, COMPSRC3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -876,7 +876,7 @@ void F77_FUNC(compsrc3d, COMPSRC3D) (
    const double *,
    double *);
 
-void F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (
+void SAMRAI_F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -886,7 +886,7 @@ void F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (
    const double *,
    double *);
 
-void F77_FUNC(compsideflux3d, COMPSIDEFLUX3D) (
+void SAMRAI_F77_FUNC(compsideflux3d, COMPSIDEFLUX3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -896,7 +896,7 @@ void F77_FUNC(compsideflux3d, COMPSIDEFLUX3D) (
    const double *,
    double *, double *, double *);
 
-void F77_FUNC(fluxbdryfix3d, FLUXBDRYFIX3D) (
+void SAMRAI_F77_FUNC(fluxbdryfix3d, FLUXBDRYFIX3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -908,14 +908,14 @@ void F77_FUNC(fluxbdryfix3d, FLUXBDRYFIX3D) (
    const double&,
    double *, double *, double *);
 
-void F77_FUNC(fluxcopy03d, FLUXCOPY03D) (
+void SAMRAI_F77_FUNC(fluxcopy03d, FLUXCOPY03D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int&,
    const double *,
    double *);
-void F77_FUNC(fluxcopy13d, FLUXCOPY13D) (
+void SAMRAI_F77_FUNC(fluxcopy13d, FLUXCOPY13D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
@@ -923,7 +923,7 @@ void F77_FUNC(fluxcopy13d, FLUXCOPY13D) (
    const double *,
    double *);
 
-void F77_FUNC(compresidual3d, COMPRESIDUAL3D) (
+void SAMRAI_F77_FUNC(compresidual3d, COMPRESIDUAL3D) (
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,

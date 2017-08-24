@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   AdaptivePoisson class declaration
  *
  ************************************************************************/
@@ -52,7 +52,7 @@
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -87,9 +87,10 @@ public:
    AdaptivePoisson(
       const std::string& object_name,
       const tbox::Dimension& dim,
+      boost::shared_ptr<solv::CellPoissonFACOps>& fac_ops,
+      boost::shared_ptr<solv::FACPreconditioner>& fac_precond,
       tbox::Database& database,
-      /*! Standard output stream */ std::ostream* out_stream = NULL,
-      /*! Log output stream */ std::ostream* log_stream = NULL);
+      /*! Log output stream */ std::ostream* log_stream = 0);
 
    //@{ @name mesh::StandardTagAndInitStrategy virtuals
 
@@ -160,7 +161,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const std::string& variable_name,
-      int depth_id) const;
+      int depth_id,
+      double simulation_time) const;
 
    //@}
 
@@ -172,9 +174,6 @@ public:
     * solv::FACPreconditioner object to solve it.
     *
     * @param hierarchy the hierarchy to solve on
-    * @param max_cycle max number of FAC cycles to use
-    * @param pre_sweeps number of presmoothing sweeps to use
-    * @param pre_sweeps number of postsmoothing sweeps to use
     * @param initial_u how to set the initial guess for u.
     *       A std::string is used so the option "random" can be
     *       used.  If "random" is not used, set the std::string
@@ -183,10 +182,6 @@ public:
    int
    solvePoisson(
       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-      int max_cycles = 10,
-      double residual_tol = 1e-6,
-      int pre_sweeps = 5,
-      int post_sweeps = 5,
       std::string initial_u = std::string("0.0"));
 
 #ifdef HAVE_HDF5
@@ -209,8 +204,8 @@ public:
       /*! hierarchy */ const hier::PatchHierarchy& hierarchy,
       /*! L2 norm */ double* l2norm,
       /*! L-inf norm */ double* linorm,
-      /*! L2 norm on each level */ tbox::Array<double>& l2norms,
-      /*! L-inf norm on each level */ tbox::Array<double>& linorms) const;
+      /*! L2 norm on each level */ std::vector<double>& l2norms,
+      /*! L-inf norm on each level */ std::vector<double>& linorms) const;
 
    /*!
     * @brief Compute error estimator (for adaption or plotting).
@@ -233,9 +228,9 @@ private:
     * @name Major algorithm objects.
     */
 
-   solv::CellPoissonFACOps d_fac_ops;
+   boost::shared_ptr<solv::CellPoissonFACOps> d_fac_ops;
 
-   solv::FACPreconditioner d_fac_preconditioner;
+   boost::shared_ptr<solv::FACPreconditioner> d_fac_preconditioner;
 
    //@}
 
@@ -328,13 +323,6 @@ private:
     * @name Output streams.
     */
    /*!
-    * @brief Output stream pointer.
-    *
-    * If set to NULL, no output.
-    */
-   std::ostream* d_ostream;
-
-   /*!
     * @brief Log stream pointer.
     *
     * If set to NULL, no logging.
@@ -370,8 +358,6 @@ private:
    //@}
 
    double d_adaption_threshold;
-
-   int d_finest_plot_level;
 
    //@{
 private:

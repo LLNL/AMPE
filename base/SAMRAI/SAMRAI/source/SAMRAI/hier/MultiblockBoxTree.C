@@ -3,20 +3,16 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Multiblock binary trees of Boxes for overlap searches.
  *
  ************************************************************************/
-
-#ifndef included_hier_MultiblockBoxTree_C
-#define included_hier_MultiblockBoxTree_C
-
 #include "SAMRAI/hier/MultiblockBoxTree.h"
 
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/BaseGridGeometry.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
 /*
@@ -37,14 +33,14 @@ namespace hier {
 MultiblockBoxTree::MultiblockBoxTree(
    const BoxContainer& boxes,
    const BaseGridGeometry* grid_geometry,
-   int min_number)
- : d_grid_geometry(grid_geometry)
+   int min_number):
+   d_grid_geometry(grid_geometry)
 {
    /*
     * Group Boxes by their BlockId and
     * create a tree for each BlockId.
     */
-   std::map<BlockId, std::list<const Box*> > single_block_boxes;
+   std::map<BlockId, std::list<const Box *> > single_block_boxes;
    for (BoxContainer::const_iterator bi = boxes.begin();
         bi != boxes.end(); ++bi) {
       TBOX_ASSERT((*bi).getBlockId().isValid());
@@ -52,12 +48,12 @@ MultiblockBoxTree::MultiblockBoxTree(
       single_block_boxes[block_id].push_back(&(*bi));
    }
 
-   for (std::map<BlockId, std::list<const Box*> >::iterator blocki =
-        single_block_boxes.begin();
+   for (std::map<BlockId, std::list<const Box *> >::iterator blocki =
+           single_block_boxes.begin();
         blocki != single_block_boxes.end(); ++blocki) {
 
       d_single_block_trees[blocki->first].reset(new BoxTree(blocki->second,
-                                                            min_number));
+            min_number));
    }
 }
 
@@ -82,14 +78,13 @@ MultiblockBoxTree::hasOverlap(
    if (getNumberBlocksInTree() != 1) {
       TBOX_ERROR("Single block version of hasOverlap called on search tree with multiple blocks.");
    }
-      
+
    if (hasBoxInBlock(box.getBlockId())) {
       return d_single_block_trees.begin()->second->hasOverlap(box);
    } else {
       return false;
    }
 }
-
 
 /*
  **************************************************************************
@@ -103,17 +98,17 @@ MultiblockBoxTree::findOverlapBoxes(
    const IntVector& refinement_ratio,
    bool include_singularity_block_neighbors) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*d_grid_geometry, box, refinement_ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*d_grid_geometry, box, refinement_ratio);
 
-   const BlockId &block_id = box.getBlockId();
-   TBOX_ASSERT(block_id.getBlockValue() >= 0 &&
-      block_id.getBlockValue() < d_grid_geometry->getNumberBlocks());
+   const BlockId& block_id = box.getBlockId();
+   TBOX_ASSERT(block_id.getBlockValue() < d_grid_geometry->getNumberBlocks());
 
    /*
     * Search in the index space of block_id for overlaps.
     */
 
-   std::map<BlockId, boost::shared_ptr<BoxTree> >::const_iterator blocki(d_single_block_trees.find(block_id));
+   std::map<BlockId, boost::shared_ptr<BoxTree> >::const_iterator blocki(d_single_block_trees.find(
+                                                                            block_id));
 
    if (blocki != d_single_block_trees.end()) {
       blocki->second->findOverlapBoxes(overlap_boxes, box);
@@ -123,12 +118,9 @@ MultiblockBoxTree::findOverlapBoxes(
     * Search in the index spaces neighboring block_id for overlaps.
     */
 
-   const std::list<BaseGridGeometry::Neighbor>& block_neighbors(
-      d_grid_geometry->getNeighbors(block_id));
-
-   for (std::list<BaseGridGeometry::Neighbor>::const_iterator ni =
-        block_neighbors.begin();
-        ni != block_neighbors.end(); ni++) {
+   for (BaseGridGeometry::ConstNeighborIterator ni =
+           d_grid_geometry->begin(block_id);
+        ni != d_grid_geometry->end(block_id); ++ni) {
 
       const BaseGridGeometry::Neighbor& neighbor(*ni);
 
@@ -168,17 +160,17 @@ MultiblockBoxTree::findOverlapBoxes(
    const IntVector& refinement_ratio,
    bool include_singularity_block_neighbors) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*d_grid_geometry, box, refinement_ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*d_grid_geometry, box, refinement_ratio);
 
-   const BlockId &block_id = box.getBlockId();
-   TBOX_ASSERT(block_id.getBlockValue() >= 0 &&
-      block_id.getBlockValue() < d_grid_geometry->getNumberBlocks());
+   const BlockId& block_id = box.getBlockId();
+   TBOX_ASSERT(block_id.getBlockValue() < d_grid_geometry->getNumberBlocks());
 
    /*
     * Search in the index space of block_id for overlaps.
     */
 
-   std::map<BlockId, boost::shared_ptr<BoxTree> >::const_iterator blocki(d_single_block_trees.find(block_id));
+   std::map<BlockId, boost::shared_ptr<BoxTree> >::const_iterator blocki(d_single_block_trees.find(
+                                                                            block_id));
 
    if (blocki != d_single_block_trees.end()) {
       blocki->second->findOverlapBoxes(overlap_boxes, box);
@@ -188,12 +180,9 @@ MultiblockBoxTree::findOverlapBoxes(
     * Search in the index spaces neighboring block_id for overlaps.
     */
 
-   const std::list<BaseGridGeometry::Neighbor>& block_neighbors(
-      d_grid_geometry->getNeighbors(block_id));
-
-   for (std::list<BaseGridGeometry::Neighbor>::const_iterator ni =
-        block_neighbors.begin();
-        ni != block_neighbors.end(); ni++) {
+   for (BaseGridGeometry::ConstNeighborIterator ni =
+           d_grid_geometry->begin(block_id);
+        ni != d_grid_geometry->end(block_id); ++ni) {
 
       const BaseGridGeometry::Neighbor& neighbor(*ni);
 
@@ -232,7 +221,8 @@ MultiblockBoxTree::findOverlapBoxes(
    const Box& box) const
 {
    if (getNumberBlocksInTree() != 1) {
-      TBOX_ERROR("Single block version of findOverlapBoxes called on search tree with multiple blocks.");
+      TBOX_ERROR(
+         "Single block version of findOverlapBoxes called on search tree with multiple blocks.");
    }
 
    if (hasBoxInBlock(box.getBlockId())) {
@@ -253,7 +243,8 @@ MultiblockBoxTree::findOverlapBoxes(
    const Box& box) const
 {
    if (getNumberBlocksInTree() != 1) {
-      TBOX_ERROR("Single block version of findOverlapBoxes called on search tree with multiple blocks.");
+      TBOX_ERROR(
+         "Single block version of findOverlapBoxes called on search tree with multiple blocks.");
    }
 
    if (hasBoxInBlock(box.getBlockId())) {
@@ -272,6 +263,4 @@ MultiblockBoxTree::findOverlapBoxes(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

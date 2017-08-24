@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in linear advection ex.
  *
  ************************************************************************/
@@ -23,10 +23,11 @@
 #include "SAMRAI/pdat/FaceVariable.h"
 #include "SAMRAI/appu/BoundaryUtilityStrategy.h"
 
-#include "SkeletonCellDoubleConservativeLinearRefine.h"
-#include "SkeletonCellDoubleWeightedAverage.h"
+#include "test/testlib/SkeletonCellDoubleConservativeLinearRefine.h"
+#include "test/testlib/SkeletonCellDoubleWeightedAverage.h"
 #include "SkeletonOutersideDoubleWeightedAverage.h"
 #include <string>
+#include <vector>
 using namespace std;
 #define included_String
 #include "SAMRAI/hier/TimeInterpolateOperator.h"
@@ -35,10 +36,10 @@ using namespace std;
 
 // Local classes used for this application
 #include "MblkGeometry.h"
-#include "MblkHyperbolicLevelIntegrator.h"
-#include "MblkHyperbolicPatchStrategy.h"
+#include "test/testlib/MblkHyperbolicLevelIntegrator.h"
+#include "test/testlib/MblkHyperbolicPatchStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 /**
  * The MblkLinAdv class provides routines for a sample application code that
@@ -64,6 +65,7 @@ using namespace SAMRAI;
 class MblkLinAdv:
    public tbox::Serializable,
    public MblkHyperbolicPatchStrategy,
+   public xfer::SingularityPatchStrategy,
    public appu::BoundaryUtilityStrategy
 {
 public:
@@ -110,7 +112,7 @@ public:
     * In other words, variables are registered according to their role
     * in the integration process (e.g., time-dependent, flux, etc.).
     * This routine also registers variables for plotting with the
-    * Vis writer (Vizamrai or VisIt).
+    * Vis writer.
     */
    void
    registerModelVariables(
@@ -237,12 +239,10 @@ public:
    fillSingularityBoundaryConditions(
       hier::Patch& patch,
       const hier::PatchLevel& encon_level,
-      const hier::Connector& dst_to_encon,
-      const double fill_time,
+      boost::shared_ptr<const hier::Connector> dst_to_encon,
       const hier::Box& fill_box,
       const hier::BoundaryBox& boundary_box,
       const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry);
-
 
    /**
     * Build mapped grid on patch
@@ -260,8 +260,8 @@ public:
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * This routine is a concrete implementation of the virtual function
@@ -283,7 +283,10 @@ public:
       string& db_name,
       int bdry_location_index)
    {
-   } 
+      NULL_USE(db);
+      NULL_USE(db_name);
+      NULL_USE(bdry_location_index);
+   }
 
    hier::IntVector
    getMultiblockRefineOpStencilWidth() const;
@@ -320,7 +323,7 @@ private:
     */
    void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
 
    void
@@ -331,7 +334,7 @@ private:
       boost::shared_ptr<tbox::Database> db,
       const string& db_name,
       int array_indx,
-      tbox::Array<double>& uval);
+      std::vector<double>& uval);
 
    /*
     * Private member function to check correctness of boundary data.
@@ -341,7 +344,7 @@ private:
       int btype,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& scalar_bconds) const;
+      const std::vector<int>& scalar_bconds) const;
 
    /*
     * Three-dimensional flux computation routines corresponding to
@@ -366,7 +369,7 @@ private:
    const tbox::Dimension d_dim;
 
    /*
-    * We cache pointers to the grid geometry and Vizamrai data writer
+    * We cache pointers to the grid geometry and VisIt data writer
     * object to set up initial data, set physical boundary conditions,
     * and register plot variables.
     */
@@ -396,12 +399,11 @@ private:
     * boost::shared_ptr to grid - [xyz]
     */
    boost::shared_ptr<pdat::NodeVariable<double> > d_xyz;
-   int d_xyz_id;
 
    /**
     * linear advection velocity vector
     */
-   double d_advection_velocity[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_advection_velocity[SAMRAI::MAX_DIM_VAL];
 
    /*
     *  Parameters for numerical method:
@@ -433,7 +435,7 @@ private:
     * Input for SPHERE problem
     */
    double d_radius;
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[SAMRAI::MAX_DIM_VAL];
    double d_uval_inside;
    double d_uval_outside;
 
@@ -441,8 +443,8 @@ private:
     * Input for FRONT problem
     */
    int d_number_of_intervals;
-   tbox::Array<double> d_front_position;
-   tbox::Array<double> d_interval_uval;
+   std::vector<double> d_front_position;
+   std::vector<double> d_interval_uval;
 
    /*
     * Boundary condition cases and boundary values.
@@ -451,50 +453,50 @@ private:
     *
     * Input file values are read into these arrays.
     */
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_scalar_bdry_face_conds; // 3D only
+   std::vector<int> d_scalar_bdry_edge_conds;
+   std::vector<int> d_scalar_bdry_node_conds;
+   std::vector<int> d_scalar_bdry_face_conds; // 3D only
 
    /*
     * Boundary condition cases for scalar and vector (i.e., depth > 1)
     * variables.  These are post-processed input values and are passed
     * to the boundary routines.
     */
-   tbox::Array<int> d_node_bdry_edge; // 2D only
-   tbox::Array<int> d_edge_bdry_face; // 3D only
-   tbox::Array<int> d_node_bdry_face; // 3D only
+   std::vector<int> d_node_bdry_edge; // 2D only
+   std::vector<int> d_edge_bdry_face; // 3D only
+   std::vector<int> d_node_bdry_face; // 3D only
 
    /*
-    * Arrays of face (3d) or edge (2d) boundary values for DIRICHLET case.
+    * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
     */
-   tbox::Array<double> d_bdry_edge_uval;
-   tbox::Array<double> d_bdry_face_uval;
+   std::vector<double> d_bdry_edge_uval;
+   std::vector<double> d_bdry_face_uval;
 
    /*
     * Input for Sine problem initialization
     */
    double d_amplitude;
-   double d_frequency[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_frequency[SAMRAI::MAX_DIM_VAL];
 
    /*
     * Refinement criteria parameters for gradient detector and
     * Richardson extrapolation.
     */
-   tbox::Array<string> d_refinement_criteria;
-   tbox::Array<double> d_dev_tol;
-   tbox::Array<double> d_dev;
-   tbox::Array<double> d_dev_time_max;
-   tbox::Array<double> d_dev_time_min;
-   tbox::Array<double> d_grad_tol;
-   tbox::Array<double> d_grad_time_max;
-   tbox::Array<double> d_grad_time_min;
-   tbox::Array<double> d_shock_onset;
-   tbox::Array<double> d_shock_tol;
-   tbox::Array<double> d_shock_time_max;
-   tbox::Array<double> d_shock_time_min;
-   tbox::Array<double> d_rich_tol;
-   tbox::Array<double> d_rich_time_max;
-   tbox::Array<double> d_rich_time_min;
+   std::vector<string> d_refinement_criteria;
+   std::vector<double> d_dev_tol;
+   std::vector<double> d_dev;
+   std::vector<double> d_dev_time_max;
+   std::vector<double> d_dev_time_min;
+   std::vector<double> d_grad_tol;
+   std::vector<double> d_grad_time_max;
+   std::vector<double> d_grad_time_min;
+   std::vector<double> d_shock_onset;
+   std::vector<double> d_shock_tol;
+   std::vector<double> d_shock_time_max;
+   std::vector<double> d_shock_time_min;
+   std::vector<double> d_rich_tol;
+   std::vector<double> d_rich_time_max;
+   std::vector<double> d_rich_time_min;
 
    /*
     * This class stores geometry information used for constructing the
@@ -506,11 +508,11 @@ private:
     * Operators to be used with GridGeometry
     */
    boost::shared_ptr<SkeletonCellDoubleConservativeLinearRefine>
-      d_cell_cons_linear_refine_op;
+   d_cell_cons_linear_refine_op;
    boost::shared_ptr<SkeletonCellDoubleWeightedAverage> d_cell_cons_coarsen_op;
    boost::shared_ptr<hier::TimeInterpolateOperator> d_cell_time_interp_op;
    boost::shared_ptr<SkeletonOutersideDoubleWeightedAverage>
-      d_side_cons_coarsen_op;
+   d_side_cons_coarsen_op;
 
 };
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Default fill pattern class
  *
  ************************************************************************/
@@ -27,7 +27,7 @@ namespace xfer {
  * no VariableFillPattern object is provided when a refine operation is
  * registered with a RefineAlgorithm, this class is used by default.
  *
- * @see xfer::RefineAlgorithm
+ * @see RefineAlgorithm
  */
 
 class BoxGeometryVariableFillPattern:
@@ -64,6 +64,8 @@ public:
     *
     * @return                    boost::shared_ptr to the calculated overlap
     *                            object
+    *
+    * @pre dst_patch_box.getDim() == src_mask.getDim()
     */
    boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -78,7 +80,7 @@ public:
 #ifndef DEBUG_CHECK_DIM_ASSERTIONS
       NULL_USE(dst_patch_box);
 #endif
-      TBOX_DIM_ASSERT_CHECK_ARGS2(dst_patch_box, src_mask);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(dst_patch_box, src_mask);
       return dst_geometry.calculateOverlap(src_geometry, src_mask, fill_box,
          overwrite_interior, transformation);
    }
@@ -94,6 +96,7 @@ public:
     * @param[in] fill_boxes  list representing the all of the space on a patch
     *                        or its ghost region that may be filled by a
     *                        refine operator (cell-centered representation)
+    * @param[in] node_fill_boxes node-centered representation of fill_boxes
     * @param[in] patch_box   box representing the patch where a refine operator
     *                        will fill data.  (cell-centered representation)
     * @param[in] data_box    box representing the full extent of the region
@@ -105,6 +108,7 @@ public:
    boost::shared_ptr<hier::BoxOverlap>
    computeFillBoxesOverlap(
       const hier::BoxContainer& fill_boxes,
+      const hier::BoxContainer& node_fill_boxes,
       const hier::Box& patch_box,
       const hier::Box& data_box,
       const hier::PatchDataFactory& pdf) const;
@@ -133,7 +137,7 @@ public:
 private:
    BoxGeometryVariableFillPattern(
       const BoxGeometryVariableFillPattern&);    // not implemented
-   void
+   BoxGeometryVariableFillPattern&
    operator = (
       const BoxGeometryVariableFillPattern&);    // not implemented
 

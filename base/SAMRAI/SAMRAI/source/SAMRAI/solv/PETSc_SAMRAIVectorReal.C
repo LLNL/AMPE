@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between PETSc vector interface and SAMRAI vectors.
  *
  ************************************************************************/
@@ -57,11 +57,11 @@ void
 PETSc_SAMRAIVectorReal<TYPE>::destroyPETScVector(
    Vec petsc_vec)
 {
-   if (petsc_vec != static_cast<Vec>(NULL)) {
+   if (petsc_vec != 0) {
       PETSc_SAMRAIVectorReal<TYPE>* psv =
          static_cast<PETSc_SAMRAIVectorReal<TYPE> *>(petsc_vec->data);
 
-      TBOX_ASSERT(psv != NULL);
+      TBOX_ASSERT(psv != 0);
 
       delete psv;
    }
@@ -72,13 +72,13 @@ boost::shared_ptr<SAMRAIVectorReal<TYPE> >
 PETSc_SAMRAIVectorReal<TYPE>::getSAMRAIVector(
    Vec petsc_vec)
 {
-   TBOX_ASSERT(petsc_vec != static_cast<Vec>(NULL));
+   TBOX_ASSERT(petsc_vec != 0);
 
    PETSc_SAMRAIVectorReal<TYPE>* psv =
       static_cast<PETSc_SAMRAIVectorReal<TYPE> *>(petsc_vec->data);
 
 #ifdef DEBUG_CHECK_TBOX_ASSERTIONS
-   TBOX_ASSERT(psv != NULL);
+   TBOX_ASSERT(psv != 0);
 #endif
 
    return psv->d_samrai_vector;
@@ -151,7 +151,7 @@ PETSc_SAMRAIVectorReal<TYPE>::freeVector()
       Vec petsc_vec = this->getPETScVector();
 
 #ifdef DEBUG_CHECK_TBOX_ASSERTIONS
-      TBOX_ASSERT(petsc_vec != static_cast<Vec>(NULL));
+      TBOX_ASSERT(petsc_vec != 0);
 #endif
       delete ((PETSc_SAMRAIVectorReal<TYPE> *)(petsc_vec->data));
    }
@@ -342,7 +342,7 @@ void
 PETSc_SAMRAIVectorReal<TYPE>::getDataArray(
    TYPE** array)
 {
-   *array = NULL;
+   *array = 0;
 } // getDataArray
 
 template<class TYPE>
@@ -350,7 +350,7 @@ void
 PETSc_SAMRAIVectorReal<TYPE>::restoreDataArray(
    TYPE** array)
 {
-   *array = NULL;
+   *array = 0;
 } // restoreDataArray
 
 template<class TYPE>

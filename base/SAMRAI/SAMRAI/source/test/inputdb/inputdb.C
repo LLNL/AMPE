@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Test driver for the SAMRAI input database
  *
  ************************************************************************/
@@ -12,7 +12,6 @@
 
 //#include <stdlib.h>
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/DatabaseBox.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Complex.h"
@@ -24,7 +23,8 @@
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+#include <vector>
 
 using namespace SAMRAI;
 using namespace std;
@@ -81,7 +81,7 @@ int main(
 
       int lower[NDIM];
       int upper[NDIM];
-      for (int i = 0; i < NDIM; i++) {
+      for (int i = 0; i < NDIM; ++i) {
          lower[i] = 0;
          upper[i] = 9;
       }
@@ -96,31 +96,31 @@ int main(
       tbox::DatabaseBox box0 = prim_type_db->getDatabaseBox("box0");
 
       if (i0 != i0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Integer test #0 FAILED" << std::endl;
       }
       if (!tbox::MathUtilities<float>::equalEps(f0, f0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Float test #0 FAILED" << endl;
       }
       if (!tbox::MathUtilities<double>::equalEps(d0, d0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Double test #0 FAILED" << endl;
       }
       if (b0 != b0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Bool test #0 FAILED" << std::endl;
       }
       if (!tbox::MathUtilities<dcomplex>::equalEps(c0, c0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Complex test #0 FAILED" << std::endl;
       }
       if (s0 != s0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "String test #0 FAILED" << std::endl;
       }
       if (!(box0 == box0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Box test #0 FAILED" << std::endl;
       }
 
@@ -135,15 +135,15 @@ int main(
       boost::shared_ptr<tbox::Database> smart_array_db(
          input_db->getDatabase("SmartArrays"));
 
-      tbox::Array<int> i1_correct(5);
-      tbox::Array<float> f1_correct(5);
-      tbox::Array<double> d1_correct(5);
-      tbox::Array<bool> b1_correct(5);
-      tbox::Array<dcomplex> c1_correct(5);
-      tbox::Array<std::string> s1_correct(5);
-      tbox::Array<tbox::DatabaseBox> box1_correct(5);
+      std::vector<int> i1_correct(5);
+      std::vector<float> f1_correct(5);
+      std::vector<double> d1_correct(5);
+      std::vector<bool> b1_correct(5);
+      std::vector<dcomplex> c1_correct(5);
+      std::vector<std::string> s1_correct(5);
+      std::vector<tbox::DatabaseBox> box1_correct(5);
 
-      for (int i = 0; i < nsize; i++) {
+      for (int i = 0; i < nsize; ++i) {
          i1_correct[i] = i0_correct;
          f1_correct[i] = f0_correct;
          d1_correct[i] = d0_correct;
@@ -153,42 +153,42 @@ int main(
          box1_correct[i] = box0_correct;
       }
 
-      tbox::Array<int> i1 = smart_array_db->getIntegerArray("i1");
-      tbox::Array<float> f1 = smart_array_db->getFloatArray("f1");
-      tbox::Array<double> d1 = smart_array_db->getDoubleArray("d1");
-      tbox::Array<bool> b1 = smart_array_db->getBoolArray("b1");
-      tbox::Array<dcomplex> c1 = smart_array_db->getComplexArray("c1");
-      tbox::Array<std::string> s1 = smart_array_db->getStringArray("s1");
-      tbox::Array<tbox::DatabaseBox> box1 = smart_array_db->getDatabaseBoxArray(
-            "box1");
+      std::vector<int> i1 = smart_array_db->getIntegerVector("i1");
+      std::vector<float> f1 = smart_array_db->getFloatVector("f1");
+      std::vector<double> d1 = smart_array_db->getDoubleVector("d1");
+      std::vector<bool> b1 = smart_array_db->getBoolVector("b1");
+      std::vector<dcomplex> c1 = smart_array_db->getComplexVector("c1");
+      std::vector<std::string> s1 = smart_array_db->getStringVector("s1");
+      std::vector<tbox::DatabaseBox> box1 =
+         smart_array_db->getDatabaseBoxVector("box1");
 
-      for (int i = 0; i < nsize; i++) {
+      for (int i = 0; i < nsize; ++i) {
          if (i1[i] != i1_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Integer test #1 FAILED" << std::endl;
          }
          if (!tbox::MathUtilities<float>::equalEps(f1[i], f1_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Float test #1 FAILED" << endl;
          }
          if (!tbox::MathUtilities<double>::equalEps(d1[i], d1_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Double test #1 FAILED" << endl;
          }
          if (b1[i] != b1_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Bool test #1 FAILED" << std::endl;
          }
          if (!tbox::MathUtilities<dcomplex>::equalEps(c1[i], c1_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Complex test #1 FAILED" << std::endl;
          }
          if (s1[i] != s1_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "String test #1 FAILED" << std::endl;
          }
          if (!(box1[i] == box1_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Box test #1 FAILED" << std::endl;
          }
       }
@@ -206,7 +206,7 @@ int main(
       dcomplex c2_correct[nsize];
       std::string s2_correct[nsize];
       tbox::DatabaseBox box2_correct[nsize];
-      for (int i = 0; i < nsize; i++) {
+      for (int i = 0; i < nsize; ++i) {
          i2_correct[i] = i0_correct;
          f2_correct[i] = f0_correct;
          d2_correct[i] = d0_correct;
@@ -231,33 +231,33 @@ int main(
       basic_array_db->getStringArray("s2", s2, nsize);
       basic_array_db->getDatabaseBoxArray("box2", box2, nsize);
 
-      for (int i = 0; i < nsize; i++) {
+      for (int i = 0; i < nsize; ++i) {
          if (i2[i] != i2_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Integer test #2 FAILED" << std::endl;
          }
          if (!tbox::MathUtilities<float>::equalEps(f2[i], f2_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Float test #2 FAILED" << endl;
          }
          if (!tbox::MathUtilities<double>::equalEps(d2[i], d2_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Double test #2 FAILED" << endl;
          }
          if (b2[i] != b2_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Bool test #2 FAILED" << std::endl;
          }
          if (!tbox::MathUtilities<dcomplex>::equalEps(c2[i], c2_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Complex test #2 FAILED" << std::endl;
          }
          if (s2[i] != s2_correct[i]) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "String test #2 FAILED" << std::endl;
          }
          if (!(box2[i] == box2_correct[i])) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "Box test #2 FAILED" << std::endl;
          }
       }
@@ -279,31 +279,31 @@ int main(
             box0_correct);
 
       if (i3 != i0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Integer test #3 FAILED" << std::endl;
       }
       if (!tbox::MathUtilities<float>::equalEps(f3, f0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Float test #3 FAILED" << endl;
       }
       if (!tbox::MathUtilities<double>::equalEps(d3, d0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Double test #3 FAILED" << endl;
       }
       if (b3 != b0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Bool test #3 FAILED" << std::endl;
       }
       if (!tbox::MathUtilities<dcomplex>::equalEps(c3, c0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Complex test #3 FAILED" << std::endl;
       }
       if (s3 != s0_correct) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "String test #3 FAILED" << std::endl;
       }
       if (!(box3 == box0_correct)) {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "Box test #3 FAILED" << std::endl;
       }
 

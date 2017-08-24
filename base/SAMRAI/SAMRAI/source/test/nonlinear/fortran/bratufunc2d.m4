@@ -1,5 +1,14 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines to solve
+c                du/dt = div( D(x,t)*div(u) ) + lambda * exp(u) + source(x,t,u)
+c                in 2d.
+c
 define(NDIM,2)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 c
 c The following macro definitions are used in the routines below to

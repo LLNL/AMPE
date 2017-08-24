@@ -108,18 +108,18 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhase(
             *p;
       
          boost::shared_ptr< pdat::CellData<double> > phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          
          boost::shared_ptr< pdat::SideData<double> > diffusion_l (
-            patch->getPatchData( d_diffusion_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_a (
-            patch->getPatchData( d_diffusion_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_b;
          
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_l (
-            patch->getPatchData( d_diffusion_coeff_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_a (
-            patch->getPatchData( d_diffusion_coeff_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_b;
 
          boost::shared_ptr< pdat::CellData<double> > eta;
@@ -164,20 +164,20 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhase(
             *p;
 
          boost::shared_ptr< pdat::CellData<double> > temp (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cl (
-            patch->getPatchData( d_conc_l_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_scratch_id) ) );
          assert( cl );
          boost::shared_ptr< pdat::CellData<double> > ca (
-            patch->getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_scratch_id) ) );
          assert( ca );
          boost::shared_ptr< pdat::CellData<double> > cb;
 
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_l (
-            patch->getPatchData( d_diffusion_coeff_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_a (
-            patch->getPatchData( d_diffusion_coeff_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > diffusion_coeff_b;
 
          boost::shared_ptr< pdat::CellData<double> > eta;

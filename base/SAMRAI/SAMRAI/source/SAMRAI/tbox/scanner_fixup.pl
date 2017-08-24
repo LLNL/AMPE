@@ -4,7 +4,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   Script in input database package. 
 ##
 #########################################################################
@@ -14,6 +14,8 @@ while(<>) {
     s/.*Revision:.*//;
     s/.*Date:.*//;
     s/.*Header:.*//;
+
+    s/#include <unistd.h>/#ifdef HAVE_UNISTD_H\n#include <unistd.h>\n#endif/;
 
     # substitution to replace [yylval] with SAMRAI_[yylval]
     s/yylval/SAMRAI_yylval/g;

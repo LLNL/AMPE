@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Auto-release handle to prevent using invalid Connector data.
  *
  ************************************************************************/
@@ -14,7 +14,7 @@
 
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace hier {
@@ -54,10 +54,9 @@ public:
    /*!
     * @brief Return the BoxLevel attached to this handle.
     *
-    * If there is no attached BoxLevel (isAttached() returns
-    * false), an assertion is thrown.
-    *
     * @see isAttached()
+    *
+    * @pre isAttached()
     */
    const BoxLevel&
    getBoxLevel() const;
@@ -69,7 +68,7 @@ public:
    bool
    isAttached() const
    {
-      return d_box_level != NULL;
+      return d_box_level != 0;
    }
 
 private:
@@ -116,7 +115,7 @@ private:
    void
    detachMyBoxLevel()
    {
-      d_box_level = NULL;
+      d_box_level = 0;
    }
 
    //@{

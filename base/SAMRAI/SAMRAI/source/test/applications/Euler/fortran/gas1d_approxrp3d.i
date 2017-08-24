@@ -1,3 +1,11 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file defining routine to compute solution to 3d
+c                Riemann problem.
+c
       subroutine gas1dapproxrp3d(eosgam,wleft,wright, striem)
 c***********************************************************************
 c description of arguments:
@@ -38,7 +46,7 @@ c     ******************************************************************
          return
       endif
  
-	
+
       gp1g2i=half*(eosgam+one)/eosgam
       gp1o2gm1=half*(eosgam+one)/(eosgam-one)
       clsqp=eosgam*wleft(1)*max(smallr,wleft(3))

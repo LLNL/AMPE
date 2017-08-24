@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple utility class for interfacing with MPI
  *
  ************************************************************************/
@@ -50,12 +50,12 @@ int MPICHX_PARALLELSOCKETS_PARAMETERS;
 namespace SAMRAI {
 namespace tbox {
 
-SAMRAI_MPI::Comm SAMRAI_MPI::commWorld = MPI_COMM_NULL;
-SAMRAI_MPI::Comm SAMRAI_MPI::commNull = MPI_COMM_NULL;
+const SAMRAI_MPI::Comm SAMRAI_MPI::commWorld = MPI_COMM_WORLD;
+const SAMRAI_MPI::Comm SAMRAI_MPI::commNull = MPI_COMM_NULL;
 
 bool SAMRAI_MPI::s_mpi_is_initialized = false;
 bool SAMRAI_MPI::s_we_started_mpi(false);
-SAMRAI_MPI SAMRAI_MPI::s_samrai_world(SAMRAI_MPI::commNull);
+SAMRAI_MPI SAMRAI_MPI::s_samrai_world(MPI_COMM_NULL);
 
 bool SAMRAI_MPI::s_call_abort_in_serial_instead_of_exit = false;
 bool SAMRAI_MPI::s_call_abort_in_parallel_instead_of_mpiabort = false;
@@ -83,6 +83,19 @@ SAMRAI_MPI::SAMRAI_MPI(
       d_size = 1;
 #endif
    }
+}
+
+/*
+ **************************************************************************
+ * Copy constructor.
+ **************************************************************************
+ */
+SAMRAI_MPI::SAMRAI_MPI(
+   const SAMRAI_MPI& other):
+   d_comm(other.d_comm),
+   d_rank(other.d_rank),
+   d_size(other.d_size)
+{
 }
 
 /*
@@ -140,17 +153,17 @@ SAMRAI_MPI::init(
    s_mpi_is_initialized = true;
    s_we_started_mpi = true;
 
-   MPI_Comm_dup(MPI_COMM_WORLD, &s_samrai_world.d_comm);
-   MPI_Comm_rank(s_samrai_world.d_comm, &s_samrai_world.d_rank);
-   MPI_Comm_size(s_samrai_world.d_comm, &s_samrai_world.d_size);
+   Comm dup_comm;
+   MPI_Comm_dup(MPI_COMM_WORLD, &dup_comm);
+   s_samrai_world.setCommunicator(dup_comm);
 
 #else
    NULL_USE(argc);
    NULL_USE(argv);
+   s_samrai_world.d_comm = MPI_COMM_WORLD;
+   s_samrai_world.d_size = 1;
+   s_samrai_world.d_rank = 0;
 #endif
-
-   commWorld = MPI_COMM_WORLD;
-   commNull = MPI_COMM_NULL;
 
    if (getenv("SAMRAI_ABORT_ON_ERROR")) {
       SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(true);
@@ -177,14 +190,12 @@ SAMRAI_MPI::init(
 
    s_mpi_is_initialized = true;
    s_we_started_mpi = false;
-   MPI_Comm_dup(comm, &s_samrai_world.d_comm);
-   MPI_Comm_rank(s_samrai_world.d_comm, &s_samrai_world.d_rank);
-   MPI_Comm_size(s_samrai_world.d_comm, &s_samrai_world.d_size);
+
+   Comm dup_comm;
+   MPI_Comm_dup(comm, &dup_comm);
+   s_samrai_world.setCommunicator(dup_comm);
 
 #endif
-
-   commWorld = MPI_COMM_WORLD;
-   commNull = MPI_COMM_NULL;
 
    if (getenv("SAMRAI_ABORT_ON_ERROR")) {
       SAMRAI_MPI::setCallAbortInSerialInsteadOfExit(true);
@@ -202,9 +213,6 @@ SAMRAI_MPI::initMPIDisabled()
 {
    s_mpi_is_initialized = false;
    s_we_started_mpi = false;
-
-   commWorld = MPI_COMM_WORLD;
-   commNull = MPI_COMM_NULL;
 
    s_samrai_world.d_comm = MPI_COMM_WORLD;
    s_samrai_world.d_size = 1;
@@ -227,9 +235,10 @@ void
 SAMRAI_MPI::finalize()
 {
 #ifdef HAVE_MPI
-   // check if mpi is initialized before calling Comm_free
    if (s_mpi_is_initialized) {
       MPI_Comm_free(&s_samrai_world.d_comm);
+   } else {
+      s_samrai_world.d_comm = MPI_COMM_NULL;
    }
 
    if (s_we_started_mpi) {
@@ -251,6 +260,55 @@ SAMRAI_MPI::finalize()
  *
  *****************************************************************************
  */
+
+/*
+ *****************************************************************************
+ *****************************************************************************
+ */
+int
+SAMRAI_MPI::Comm_rank(
+   Comm comm,
+   int* rank)
+{
+#ifndef HAVE_MPI
+   NULL_USE(comm);
+#endif
+   if (!s_mpi_is_initialized) {
+      TBOX_ERROR("SAMRAI_MPI::Comm_rank is a no-op without run-time MPI!");
+   }
+   int rval = MPI_SUCCESS;
+#ifdef HAVE_MPI
+   rval = MPI_Comm_rank(comm, rank);
+#else
+   *rank = 0;
+#endif
+   return rval;
+}
+
+/*
+ *****************************************************************************
+ *****************************************************************************
+ */
+int
+SAMRAI_MPI::Comm_size(
+   Comm comm,
+   int* size)
+{
+#ifndef HAVE_MPI
+   NULL_USE(comm);
+#endif
+   if (!s_mpi_is_initialized) {
+      TBOX_ERROR("SAMRAI_MPI::Comm_size is a no-op without run-time MPI!");
+   }
+#ifdef HAVE_MPI
+   return MPI_Comm_size(comm, size);
+
+#else
+   *size = 1;
+   return MPI_SUCCESS;
+
+#endif
+}
 
 /*
  *****************************************************************************
@@ -310,17 +368,11 @@ int
 SAMRAI_MPI::Finalized(
    int* flag)
 {
-#ifndef HAVE_MPI
-   NULL_USE(flag);
-#endif
    int rval = MPI_SUCCESS;
-   if (!s_mpi_is_initialized) {
-      TBOX_ERROR("SAMRAI_MPI::Finalized is a no-op without run-time MPI!");
-   }
 #ifdef HAVE_MPI
-   else {
-      rval = MPI_Finalized(flag);
-   }
+   rval = MPI_Finalized(flag);
+#else
+   *flag = true;
 #endif
    return rval;
 }
@@ -347,6 +399,29 @@ SAMRAI_MPI::Get_count(
 #ifdef HAVE_MPI
    else {
       rval = MPI_Get_count(status, datatype, count);
+   }
+#endif
+   return rval;
+}
+
+/*
+ *****************************************************************************
+ *****************************************************************************
+ */
+int
+SAMRAI_MPI::Request_free(
+   Request* request)
+{
+#ifndef HAVE_MPI
+   NULL_USE(request);
+#endif
+   int rval = MPI_SUCCESS;
+   if (!s_mpi_is_initialized) {
+      TBOX_ERROR("SAMRAI_MPI::Get_count is a no-op without run-time MPI!");
+   }
+#ifdef HAVE_MPI
+   else {
+      rval = MPI_Request_free(request);
    }
 #endif
    return rval;
@@ -1104,6 +1179,75 @@ SAMRAI_MPI::Send(
 
 /*
  *****************************************************************************
+ *****************************************************************************
+ */
+int
+SAMRAI_MPI::Sendrecv(
+   void* sendbuf, int sendcount, Datatype sendtype, int dest, int sendtag,
+   void* recvbuf, int recvcount, Datatype recvtype, int source, int recvtag,
+   Status* status) const
+{
+#ifndef HAVE_MPI
+   NULL_USE(sendbuf);
+   NULL_USE(sendcount);
+   NULL_USE(sendtype);
+   NULL_USE(dest);
+   NULL_USE(sendtag);
+   NULL_USE(recvbuf);
+   NULL_USE(recvcount);
+   NULL_USE(recvtype);
+   NULL_USE(source);
+   NULL_USE(recvtag);
+   NULL_USE(status);
+#endif
+   int rval = MPI_SUCCESS;
+   if (!s_mpi_is_initialized) {
+      TBOX_ERROR("SAMRAI_MPI::Send is a no-op without run-time MPI!");
+   }
+#ifdef HAVE_MPI
+   else {
+      rval = MPI_Sendrecv(
+            sendbuf, sendcount, sendtype, dest, sendtag,
+            recvbuf, recvcount, recvtype, source, recvtag,
+            d_comm, status);
+   }
+#endif
+   return rval;
+}
+
+/*
+ *****************************************************************************
+ *****************************************************************************
+ */
+int
+SAMRAI_MPI::Scan(
+   void* sendbuf,
+   void* recvbuf,
+   int count,
+   Datatype datatype,
+   Op op) const
+{
+#ifndef HAVE_MPI
+   NULL_USE(sendbuf);
+   NULL_USE(recvbuf);
+   NULL_USE(count);
+   NULL_USE(datatype);
+   NULL_USE(op);
+#endif
+   int rval = MPI_SUCCESS;
+   if (!s_mpi_is_initialized) {
+      TBOX_ERROR("SAMRAI_MPI::Scan is a no-op without run-time MPI!");
+   }
+#ifdef HAVE_MPI
+   else {
+      rval = MPI_Scan(sendbuf, recvbuf, count, datatype, op, d_comm);
+   }
+#endif
+   return rval;
+}
+
+/*
+ *****************************************************************************
  *
  * Methods named like MPI's native interfaces (without the MPI_ prefix)
  * are wrappers for the native interfaces.  The SAMRAI_MPI versions
@@ -1135,7 +1279,7 @@ SAMRAI_MPI::AllReduce(
    NULL_USE(ranks_of_extrema);
 #endif
    if ((op == MPI_MINLOC || op == MPI_MAXLOC) &&
-       ranks_of_extrema == NULL) {
+       ranks_of_extrema == 0) {
       TBOX_ERROR("SAMRAI_MPI::AllReduce: If you specify reduce\n"
          << "operation MPI_MINLOC or MPI_MAXLOC, you must\n"
          << "provide space for the ranks in the 'ranks_of_extrema'\n"
@@ -1153,7 +1297,7 @@ SAMRAI_MPI::AllReduce(
    bool get_ranks_of_extrema =
       op == MPI_MINLOC ? true :
       op == MPI_MAXLOC ? true :
-      ranks_of_extrema != NULL && (op == MPI_MIN || op == MPI_MAX);
+      ranks_of_extrema != 0 && (op == MPI_MIN || op == MPI_MAX);
 
    if (!get_ranks_of_extrema) {
       std::vector<int> recv_buf(count);
@@ -1204,7 +1348,7 @@ SAMRAI_MPI::AllReduce(
    NULL_USE(ranks_of_extrema);
 #endif
    if ((op == MPI_MINLOC || op == MPI_MAXLOC) &&
-       ranks_of_extrema == NULL) {
+       ranks_of_extrema == 0) {
       TBOX_ERROR("SAMRAI_MPI::AllReduce: If you specify reduce\n"
          << "operation MPI_MINLOC or MPI_MAXLOC, you must\n"
          << "provide space for the ranks in the 'ranks_of_extrema'\n"
@@ -1222,7 +1366,7 @@ SAMRAI_MPI::AllReduce(
    bool get_ranks_of_extrema =
       op == MPI_MINLOC ? true :
       op == MPI_MAXLOC ? true :
-      ranks_of_extrema != NULL && (op == MPI_MIN || op == MPI_MAX);
+      ranks_of_extrema != 0 && (op == MPI_MIN || op == MPI_MAX);
 
    if (!get_ranks_of_extrema) {
       std::vector<double> recv_buf(count);
@@ -1273,7 +1417,7 @@ SAMRAI_MPI::AllReduce(
    NULL_USE(ranks_of_extrema);
 #endif
    if ((op == MPI_MINLOC || op == MPI_MAXLOC) &&
-       ranks_of_extrema == NULL) {
+       ranks_of_extrema == 0) {
       TBOX_ERROR("SAMRAI_MPI::AllReduce: If you specify reduce\n"
          << "operation MPI_MINLOC or MPI_MAXLOC, you must\n"
          << "provide space for the ranks in the 'ranks_of_extrema'\n"
@@ -1291,7 +1435,7 @@ SAMRAI_MPI::AllReduce(
    bool get_ranks_of_extrema =
       op == MPI_MINLOC ? true :
       op == MPI_MAXLOC ? true :
-      ranks_of_extrema != NULL && (op == MPI_MIN || op == MPI_MAX);
+      ranks_of_extrema != 0 && (op == MPI_MIN || op == MPI_MAX);
 
    if (!get_ranks_of_extrema) {
       std::vector<float> recv_buf(count);
@@ -1354,40 +1498,40 @@ SAMRAI_MPI::parallelPrefixSum(
    Status send_stat, recv_stat;
    int mpi_err = MPI_SUCCESS;
 
-   for ( int distance=1; distance < d_size; distance *= 2 ) {
+   for (int distance = 1; distance < d_size; distance *= 2) {
 
       const int recv_from = d_rank - distance;
       const int send_to = d_rank + distance;
 
-      if ( recv_from >= 0 ) {
-         mpi_err = Irecv( &recv_scr[0], count, MPI_INT, recv_from, tag, &recv_req );
-         if ( mpi_err != MPI_SUCCESS ) {
+      if (recv_from >= 0) {
+         mpi_err = Irecv(&recv_scr[0], count, MPI_INT, recv_from, tag, &recv_req);
+         if (mpi_err != MPI_SUCCESS) {
             return mpi_err;
          }
       }
 
-      if (send_to < d_size ) {
+      if (send_to < d_size) {
          send_scr.clear();
-         send_scr.insert( send_scr.end(), x, x+count );
-         mpi_err = Isend( &send_scr[0], count, MPI_INT, send_to, tag, &send_req );
-         if ( mpi_err != MPI_SUCCESS ) {
+         send_scr.insert(send_scr.end(), x, x + count);
+         mpi_err = Isend(&send_scr[0], count, MPI_INT, send_to, tag, &send_req);
+         if (mpi_err != MPI_SUCCESS) {
             return mpi_err;
          }
       }
 
-      if ( recv_from >= 0 ) {
-         mpi_err = Wait( &recv_req, &recv_stat );
-         if ( mpi_err != MPI_SUCCESS ) {
+      if (recv_from >= 0) {
+         mpi_err = Wait(&recv_req, &recv_stat);
+         if (mpi_err != MPI_SUCCESS) {
             return mpi_err;
          }
-         for ( int i=0; i<count; ++i ) {
+         for (int i = 0; i < count; ++i) {
             x[i] += recv_scr[i];
          }
       }
 
-      if ( send_to < d_size ) {
-         mpi_err = Wait( &send_req, &send_stat );
-         if ( mpi_err != MPI_SUCCESS ) {
+      if (send_to < d_size) {
+         mpi_err = Wait(&send_req, &send_stat);
+         if (mpi_err != MPI_SUCCESS) {
             return mpi_err;
          }
       }
@@ -1395,6 +1539,40 @@ SAMRAI_MPI::parallelPrefixSum(
    }
 
    return MPI_SUCCESS;
+}
+
+/*
+ **************************************************************************
+ * Check whether there is a receivable message, for use in guarding
+ * against errant messages (message from an unrelated communication)
+ * that may be mistakenly received.  This check is imperfect; it can
+ * detect messages that have arrived but it can't detect messages that
+ * has not arrived.
+ *
+ * The barriers prevent processes from starting or finishing the check
+ * too early.  Early start may miss recently sent errant messages from
+ * slower processes.  Early finishes can allow the process to get ahead
+ * and send a valid message that may be mistaken as an errant message
+ * by the receiver doing the Iprobe.
+ **************************************************************************
+ */
+bool
+SAMRAI_MPI::hasReceivableMessage(
+   Status* status,
+   int source,
+   int tag) const
+{
+   int flag = false;
+   if (s_mpi_is_initialized) {
+      SAMRAI_MPI::Status tmp_status;
+      Barrier();
+      int mpi_err = Iprobe(source, tag, &flag, status ? status : &tmp_status);
+      if (mpi_err != MPI_SUCCESS) {
+         TBOX_ERROR("SAMRAI_MPI::hasReceivableMessage: Error probing for message." << std::endl);
+      }
+      Barrier();
+   }
+   return flag == true;
 }
 
 /*
@@ -1416,7 +1594,9 @@ SAMRAI_MPI::dupCommunicator(
    TBOX_ASSERT(d_rank == r.d_rank);
    TBOX_ASSERT(d_size == r.d_size);
 #else
-   NULL_USE(r);
+   d_comm = r.d_comm;
+   d_rank = r.d_rank;
+   d_size = r.d_size;
 #endif
 }
 
@@ -1438,6 +1618,32 @@ SAMRAI_MPI::freeCommunicator()
 #endif
    d_rank = 0;
    d_size = 1;
+}
+
+/*
+ **************************************************************************
+ **************************************************************************
+ */
+int
+SAMRAI_MPI::compareCommunicator(
+   const SAMRAI_MPI& r) const
+{
+#ifdef HAVE_MPI
+   int compare_result;
+   int mpi_err = Comm_compare(
+         d_comm,
+         r.d_comm,
+         &compare_result);
+   if (mpi_err != MPI_SUCCESS) {
+      TBOX_ERROR("SAMRAI_MPI::compareCommunicator: Error comparing two communicators.");
+   }
+   return compare_result;
+
+#else
+   NULL_USE(r);
+   return d_comm == r.d_comm ? MPI_IDENT : MPI_CONGRUENT;
+
+#endif
 }
 
 /*

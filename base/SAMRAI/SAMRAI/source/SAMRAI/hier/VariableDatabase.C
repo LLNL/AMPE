@@ -3,31 +3,26 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Manager class for variables used in a SAMRAI application.
  *
  ************************************************************************/
-
-#ifndef included_hier_VariableDatabase_C
-#define included_hier_VariableDatabase_C
-
 #include "SAMRAI/hier/VariableDatabase.h"
 
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace hier {
 
-VariableDatabase *
-VariableDatabase::s_variable_database_instance = NULL;
+VariableDatabase * VariableDatabase::s_variable_database_instance(0);
 
-int VariableDatabase::s_context_array_alloc_size = 10;
-int VariableDatabase::s_variable_array_alloc_size = 100;
-int VariableDatabase::s_descriptor_array_alloc_size = 200;
+const int VariableDatabase::s_context_array_alloc_size(10);
+const int VariableDatabase::s_variable_array_alloc_size(100);
+const int VariableDatabase::s_descriptor_array_alloc_size(200);
 
 tbox::StartupShutdownManager::Handler
 VariableDatabase::s_shutdown_handler(
@@ -45,7 +40,7 @@ VariableDatabase::s_shutdown_handler(
  *************************************************************************
  */
 
-VariableDatabase*
+VariableDatabase *
 VariableDatabase::getDatabase()
 {
    if (!s_variable_database_instance) {
@@ -60,7 +55,7 @@ VariableDatabase::shutdownCallback()
    if (s_variable_database_instance) {
       delete s_variable_database_instance;
    }
-   s_variable_database_instance = ((VariableDatabase *)NULL);
+   s_variable_database_instance = 0;
 }
 
 /*
@@ -72,7 +67,7 @@ VariableDatabase::shutdownCallback()
  *************************************************************************
  */
 
-VariableDatabase::VariableDatabase() :
+VariableDatabase::VariableDatabase():
    d_patch_descriptor(boost::make_shared<PatchDescriptor>())
 {
    d_max_variable_id = idUndefined();
@@ -127,41 +122,6 @@ VariableDatabase::getNumberOfRegisteredVariableContexts() const
    // currently, we do not allow removal of variable contexts
    // so this suffices
    return d_max_context_id + 1;
-}
-
-/*
- *************************************************************************
- *
- * Accessory functions to manage patch data ids for restart.
- *
- *************************************************************************
- */
-
-ComponentSelector
-VariableDatabase::getPatchDataRestartTable() const
-{
-   return d_patchdata_restart_table;
-}
-
-bool
-VariableDatabase::isPatchDataRegisteredForRestart(
-   int index) const
-{
-   return d_patchdata_restart_table.isSet(index);
-}
-
-void
-VariableDatabase::registerPatchDataForRestart(
-   int index)
-{
-   d_patchdata_restart_table.setFlag(index);
-}
-
-void
-VariableDatabase::unregisterPatchDataForRestart(
-   int index)
-{
-   d_patchdata_restart_table.clrFlag(index);
 }
 
 /*
@@ -426,10 +386,10 @@ VariableDatabase::removePatchDataIndex(
 
       if (variable) {
 
-         tbox::Array<int>& indx_array =
+         std::vector<int>& indx_array =
             d_variable_context2index_map[variable->getInstanceIdentifier()];
-         int array_size = indx_array.getSize();
-         for (int i = 0; i < array_size; i++) {
+         int array_size = static_cast<int>(indx_array.size());
+         for (int i = 0; i < array_size; ++i) {
             if (indx_array[i] == data_id) {
                indx_array[i] = idUndefined();
                break;
@@ -439,14 +399,14 @@ VariableDatabase::removePatchDataIndex(
          d_patch_descriptor->removePatchDataComponent(data_id);
 
          if (d_index2variable_map[data_id]) {
-            d_num_registered_patch_data_ids--;
+            --d_num_registered_patch_data_ids;
          }
 
          d_index2variable_map[data_id].reset();
          if (data_id == d_max_descriptor_id) {
-            for (int id = d_max_descriptor_id; id >= 0; id--) {
+            for (int id = d_max_descriptor_id; id >= 0; --id) {
                if (!d_index2variable_map[id]) {
-                  d_max_descriptor_id--;
+                  --d_max_descriptor_id;
                } else {
                   break;
                }
@@ -580,7 +540,7 @@ VariableDatabase::mapVariableAndContextToIndex(
    int ctxt_id = context->getIndex();
 
    if ((var_id <= d_max_variable_id) &&
-       (ctxt_id < d_variable_context2index_map[var_id].getSize())) {
+       (ctxt_id < static_cast<int>(d_variable_context2index_map[var_id].size()))) {
 
       index = d_variable_context2index_map[var_id][ctxt_id];
 
@@ -611,7 +571,7 @@ VariableDatabase::mapIndexToVariable(
       variable = d_index2variable_map[index];
    }
 
-   return variable;
+   return variable.get();
 }
 
 /*
@@ -641,10 +601,10 @@ VariableDatabase::mapIndexToVariableAndContext(
 
       if (variable) {
 
-         const tbox::Array<int>& var_indx_array =
+         const std::vector<int>& var_indx_array =
             d_variable_context2index_map[variable->getInstanceIdentifier()];
-         int arr_size = var_indx_array.getSize();
-         for (int i = 0; i < arr_size; i++) {
+         int arr_size = static_cast<int>(var_indx_array.size());
+         for (int i = 0; i < arr_size; ++i) {
             if (var_indx_array[i] == index) {
                found = true;
                context = d_contexts[i];
@@ -682,7 +642,7 @@ VariableDatabase::printClassData(
    os << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       << std::endl;
    os << "Variable Contexts registered with database:";
-   for (i = 0; i <= d_max_context_id; i++) {
+   for (i = 0; i <= d_max_context_id; ++i) {
       os << "\nContext id = " << i;
       if (d_contexts[i]) {
          os << " : Context name = " << d_contexts[i]->getName();
@@ -693,7 +653,7 @@ VariableDatabase::printClassData(
    os << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       << std::endl << std::flush;
    os << "Variables registered with database:";
-   for (i = 0; i <= d_max_variable_id; i++) {
+   for (i = 0; i <= d_max_variable_id; ++i) {
       os << "\nVariable instance = " << i;
       if (d_variables[i]) {
          os << "\n";
@@ -712,15 +672,16 @@ VariableDatabase::printClassData(
    os << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       << std::endl << std::flush;
    os << "Variable-Context pairs mapping to Patch Data Indices in database:";
-   for (i = 0; i <= d_max_variable_id; i++) {
+   for (i = 0; i <= d_max_variable_id; ++i) {
       if (d_variables[i]) {
          if (!print_only_user_defined_variables ||
              (print_only_user_defined_variables &&
               d_is_user_variable[i])) {
             os << "\nVariable name = " << d_variables[i]->getName();
-            int nctxts = d_variable_context2index_map[i].getSize();
+            int nctxts =
+               static_cast<int>(d_variable_context2index_map[i].size());
             if (nctxts > 0) {
-               for (int j = 0; j < nctxts; j++) {
+               for (int j = 0; j < nctxts; ++j) {
                   if (d_variable_context2index_map[i][j] != idUndefined()) {
                      os << "\n   context id = " << j << ", name = "
                         << d_contexts[j]->getName()
@@ -740,7 +701,7 @@ VariableDatabase::printClassData(
    os << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       << std::endl << std::flush;
    os << "Mapping from Patch Data Indices to Variables:";
-   for (i = 0; i <= d_max_descriptor_id; i++) {
+   for (i = 0; i <= d_max_descriptor_id; ++i) {
       os << "\nPatch data id = " << i << " -- ";
       if (!d_index2variable_map[i]) {
          os << "UNDEFINED in database";
@@ -859,7 +820,7 @@ VariableDatabase::getVariableId(
    int ret_id = idUndefined();
 
    if (!name.empty()) {
-      for (int i = 0; i <= d_max_variable_id; i++) {
+      for (int i = 0; i <= d_max_variable_id; ++i) {
          if (d_variables[i] &&
              (d_variables[i]->getName() == name)) {
             ret_id = i;
@@ -887,7 +848,7 @@ VariableDatabase::getContextId_Private(
    int ret_id = idUndefined();
 
    if (!name.empty()) {
-      for (int i = 0; i <= d_max_context_id; i++) {
+      for (int i = 0; i <= d_max_context_id; ++i) {
          if (d_contexts[i] &&
              (d_contexts[i]->getName() == name)) {
             ret_id = i;
@@ -904,13 +865,13 @@ VariableDatabase::addContext_Private(
    const boost::shared_ptr<VariableContext>& context)
 {
    int new_id = context->getIndex();
-   int oldsize = d_contexts.getSize();
+   int oldsize = static_cast<int>(d_contexts.size());
    int newsize = new_id + 1;
    if (oldsize < newsize) {
       newsize =
          tbox::MathUtilities<int>::Max(oldsize + s_context_array_alloc_size,
             newsize);
-      d_contexts.resizeArray(newsize);
+      d_contexts.resize(newsize);
    }
    d_contexts[new_id] = context;
    d_max_context_id = tbox::MathUtilities<int>::Max(d_max_context_id, new_id);
@@ -941,16 +902,16 @@ VariableDatabase::addVariablePatchDataIndexPairToDatabase_Private(
          << std::endl);
    }
 
-   int oldsize = d_index2variable_map.getSize();
+   int oldsize = static_cast<int>(d_index2variable_map.size());
    if (data_id >= oldsize) {
-      d_index2variable_map.resizeArray(
+      d_index2variable_map.resize(
          tbox::MathUtilities<int>::Max(oldsize + s_descriptor_array_alloc_size,
             data_id + 1));
    }
 
    if (!d_index2variable_map[data_id] &&
        variable) {
-      d_num_registered_patch_data_ids++;
+      ++d_num_registered_patch_data_ids;
    }
 
    d_index2variable_map[data_id] = variable;
@@ -982,8 +943,9 @@ VariableDatabase::removeVariable(
    if (var_id != idUndefined()) {
       d_is_user_variable[var_id] = false;
 
-      tbox::Array<int> index_array = d_variable_context2index_map[var_id];
-      for (int context_id = 0; context_id < index_array.size(); ++context_id) {
+      std::vector<int>& index_array = d_variable_context2index_map[var_id];
+      for (int context_id = 0;
+           context_id < static_cast<int>(index_array.size()); ++context_id) {
          if (index_array[context_id] != idUndefined()) {
             int desc_id = index_array[context_id];
             removePatchDataIndex(desc_id);
@@ -1021,8 +983,8 @@ VariableDatabase::addVariable_Private(
    bool var_found = false;
    bool grow_array = false;
 
-   if (var_id < d_variables.getSize()) {
-      var_found = d_variables[var_id];
+   if (var_id < static_cast<int>(d_variables.size())) {
+      var_found = d_variables[var_id].get();
    } else {
       grow_array = true;
    }
@@ -1037,15 +999,15 @@ VariableDatabase::addVariable_Private(
 
          if (grow_array) {
             const int newsize =
-               tbox::MathUtilities<int>::Max(d_variables.getSize()
+               tbox::MathUtilities<int>::Max(static_cast<int>(d_variables.size())
                   + s_variable_array_alloc_size,
                   var_id + 1);
-            d_variables.resizeArray(newsize);
-            d_variable_context2index_map.resizeArray(newsize);
+            d_variables.resize(newsize);
+            d_variable_context2index_map.resize(newsize);
 
-            const int oldsize = d_is_user_variable.getSize();
-            d_is_user_variable.resizeArray(newsize);
-            for (int i = oldsize; i < newsize; i++) {
+            const int oldsize = static_cast<int>(d_is_user_variable.size());
+            d_is_user_variable.resize(newsize);
+            for (int i = oldsize; i < newsize; ++i) {
                d_is_user_variable[i] = false;
             }
          }
@@ -1118,12 +1080,12 @@ VariableDatabase::registerVariableAndContext_Private(
    // Check for valid variable_id, and get the
    // associated context to index map if valid.
    if (variable_id <= d_max_variable_id) {
-      tbox::Array<int>& test_indx_array =
+      std::vector<int>& test_indx_array =
          d_variable_context2index_map[variable_id];
 
       // Check for valid context id and get the patch
       // descriptor id if valid.
-      if (context_id < test_indx_array.getSize()) {
+      if (context_id < static_cast<int>(test_indx_array.size())) {
          desc_id = test_indx_array[context_id];
 
          // Check the descriptor id. If valid, get the associated
@@ -1151,7 +1113,7 @@ VariableDatabase::registerVariableAndContext_Private(
                }
             }
          }     // if (desc_id != idUndefined())
-      }     // if (context_id < test_indx_array.getSize())
+      }     // if (context_id < test_indx_array.size())
    }     // if (variable_id <= d_max_variable_id)
 
    // Create the new factory if necessary
@@ -1171,13 +1133,13 @@ VariableDatabase::registerVariableAndContext_Private(
          desc_id,
          user_variable);
 
-      tbox::Array<int>& var_indx_array =
+      std::vector<int>& var_indx_array =
          d_variable_context2index_map[variable_id];
-      int oldsize = var_indx_array.getSize();
+      int oldsize = static_cast<int>(var_indx_array.size());
       int newsize = context_id + 1;
       if (oldsize < newsize) {
-         var_indx_array.resizeArray(newsize);
-         for (int i = oldsize; i < newsize; i++) {
+         var_indx_array.resize(newsize);
+         for (int i = oldsize; i < newsize; ++i) {
             var_indx_array[i] = idUndefined();
          }
       }
@@ -1191,4 +1153,3 @@ VariableDatabase::registerVariableAndContext_Private(
 
 }
 }
-#endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -22,23 +22,23 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * @brief Class OutersideVariable<DIM> is a templated variable class
+ * @brief Class OutersideVariable<TYPE> is a templated variable class
  * used to define side-centered data quantities only on patch boundaries.
  * It is a subclass of hier::Variable and is templated on the type
  * of the underlying data (e.g., double, int, bool, etc.).
  *
  * Note that the data layout in the outerside data arrays matches the corresponding
  * array sections provided by the side data implementation. See header file for
- * the OutersideData<DIM> class for a more detailed description of the data layout.
+ * the OutersideData<TYPE> class for a more detailed description of the data layout.
  *
- * IMPORTANT: The class OuterfaceVariable<DIM> and associated "outerface
+ * IMPORTANT: The class OuterfaceVariable<TYPE> and associated "outerface
  * data" classes define the same storage as this outerside variable class,
  * except that the individual array indices are permuted in the outerface
  * data type.
  *
- * @see pdat::SideData
- * @see pdat::OutersideData
- * @see pdat::OutersideDataFactory
+ * @see SideData
+ * @see OutersideData
+ * @see OutersideDataFactory
  * @see hier::Variable
  */
 
@@ -89,10 +89,10 @@ public:
 private:
    // neither of the following functions are implemented
    OutersideVariable(
-      const OutersideVariable<TYPE>&);
-   void
+      const OutersideVariable&);
+   OutersideVariable&
    operator = (
-      const OutersideVariable<TYPE>&);
+      const OutersideVariable&);
 
 };
 

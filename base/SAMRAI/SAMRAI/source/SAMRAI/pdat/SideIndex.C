@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
-
-#ifndef included_pdat_SideIndex_C
-#define included_pdat_SideIndex_C
-
 #include "SAMRAI/pdat/SideIndex.h"
 
 namespace SAMRAI {
@@ -51,7 +47,7 @@ SideIndex::toCell(
 
    hier::Index index(dim);
 
-   for (int i = 0; i < dim.getValue(); i++) {
+   for (int i = 0; i < dim.getValue(); ++i) {
       index(i) = (*this)(i);
    }
 
@@ -62,4 +58,3 @@ SideIndex::toCell(
 
 }
 }
-#endif

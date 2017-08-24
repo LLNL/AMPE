@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   SparseDataFactory
  *
  ************************************************************************/
@@ -26,7 +26,7 @@
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/hier/PatchDataFactory.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -34,8 +34,8 @@ namespace pdat {
 /*!
  * @brief Factory class used to allocate new instances of SparseData objects.
  *
- * @see pdat::SparseData
- * @see pdat::SparseDataVariable
+ * @see SparseData
+ * @see SparseDataVariable
  * @see hier::PatchDataFactory
  */
 template<typename BOX_GEOMETRY>
@@ -68,6 +68,8 @@ public:
     * @return a cloned factory with the same properties which can
     * then be changed without modifying the original.
     * @param [in] ghosts
+    *
+    * @pre getDim() == ghosts.getDim()
     */
    boost::shared_ptr<hier::PatchDataFactory>
    cloneFactory(
@@ -80,6 +82,8 @@ public:
     * is provided by the factory.
     *
     * @param [in] patch
+    *
+    * @pre getDim() == patch.getDim()
     */
    boost::shared_ptr<hier::PatchData>
    allocate(
@@ -92,6 +96,8 @@ public:
     * and data dependencies between objects.
     *
     * @param [in] box
+    *
+    * @pre getDim() == box.getDim()
     */
    boost::shared_ptr<hier::BoxGeometry>
    getBoxGeometry(
@@ -103,6 +109,8 @@ public:
     *
     * The calculation includes object data, and does not include dynamically
     * allocated data.
+    *
+    * @pre getDim() == box.getDim()
     */
    size_t
    getSizeOfMemory(
@@ -137,6 +145,8 @@ public:
     *
     * If the destination PatchDataFactory is of the same type and dimension,
     * a valid copy can be made.
+    *
+    * @pre getDim() == dst_pdf->getDim()
     */
    bool
    validCopyTo(
@@ -148,11 +158,11 @@ private:
     * ensure the compiler does not create a default implementation.
     */
    SparseDataFactory(
-      const SparseDataFactory<BOX_GEOMETRY>& rhs);
+      const SparseDataFactory& other);
 
-   SparseDataFactory<BOX_GEOMETRY>&
+   SparseDataFactory&
    operator = (
-      const SparseDataFactory<BOX_GEOMETRY>& rhs);
+      const SparseDataFactory& rhs);
 
    std::vector<std::string> d_dbl_attributes;
    std::vector<std::string> d_int_attributes;

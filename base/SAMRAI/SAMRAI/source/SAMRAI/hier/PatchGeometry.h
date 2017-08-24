@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for geometry management on patches
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/LocalId.h"
@@ -22,6 +21,7 @@
 
 #include <iostream>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -35,8 +35,8 @@ namespace hier {
  * spaces.  The boundary information for patches is actually computed by
  * the BaseGridGeometry class.
  *
- * @see hier::BoundaryBox
- * @see hier::BaseGridGeometry
+ * @see BoundaryBox
+ * @see BaseGridGeometry
  */
 
 class PatchGeometry
@@ -95,25 +95,28 @@ public:
          return d_dim;
       }
 
-      friend class::std::map<LocalId, PatchGeometry::TwoDimBool>;
-
 private:
       /*
-       * Needed by brain dead STL. Don't use for other purposes.
+       * Unimplemented default constructor.
        */
       TwoDimBool();
 
       const tbox::Dimension d_dim;
-      bool d_data[2 * tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+      bool d_data[2 * SAMRAI::MAX_DIM_VAL];
    };
 
    /**
-    * The default constructor for the patch geometry base class.
+    * The constructor for the patch geometry base class.
+    *
+    * @pre (ratio_to_level_zero.getDim() == touches_regular_bdry.getDim())
+    * @pre all components of ratio_to_level_zero must be nonzero and all
+    *      components of ratio_to_level_zero not equal to 1 must have the same
+    *      sign
     */
    PatchGeometry(
       const IntVector& ratio_to_level_zero,
       const TwoDimBool& touches_regular_bdry,
-      const TwoDimBool& touches_periodic_bdry);
+      const BlockId& block_id);
 
    /**
     * The virtual destructor for the patch geometry base class.
@@ -123,23 +126,23 @@ private:
    /**
     * Return const reference to patch boundary information.
     */
-   const tbox::Array<tbox::Array<BoundaryBox> >
+   const std::vector<std::vector<BoundaryBox> >&
    getPatchBoundaries() const
    {
-      return d_patch_boundaries.getArrays();
+      return d_patch_boundaries.getVectors();
    }
 
    /*!
-    * @brief Set the boundary box arrays for this patch geometry.
+    * @brief Set the boundary box vectors for this patch geometry.
     *
-    * An array of length DIM of tbox::Array< BoundaryBox > is passed
+    * A vector of length DIM of std::vector<BoundaryBox> is passed
     * in to be stored as the boundary boxes for this patch geometry.
     *
-    * @param bdry The array of BoundaryBox arrays.
+    * @param bdry The vector of BoundaryBox vectors.
     */
    void
    setBoundaryBoxesOnPatch(
-      const tbox::Array<tbox::Array<BoundaryBox> > bdry);
+      const std::vector<std::vector<BoundaryBox> >& bdry);
 
    /**
     * Return const reference to ratio to level zero index space.
@@ -167,28 +170,27 @@ private:
    }
 
    /**
-    * Return array of boundary box components for patch each of which
+    * Return vector of boundary box components for patch each of which
     * intersects the patch at a single point (i.e., 0-dim intersection
     * between cells in patch and cells in boundary box).
     */
-   const tbox::Array<BoundaryBox>&
+   const std::vector<BoundaryBox>&
    getNodeBoundaries() const
    {
-      return d_patch_boundaries[d_dim.getValue() - 1];
+      return d_patch_boundaries[getDim().getValue() - 1];
    }
 
    /**
-    * Return array of boundary box components for patch each of which
+    * Return vector of boundary box components for patch each of which
     * intersects the patch along a 1-dim edge (i.e., 1-dim intersection
     * between cells in patch and cells in boundary box).
     *
-    * When assertion checking is active, this routine throws an assertion
-    * when DIM < 2.
+    * @pre getDim().getValue() >= 2
     */
-   const tbox::Array<BoundaryBox>&
+   const std::vector<BoundaryBox>&
    getEdgeBoundaries() const
    {
-      if (d_dim.getValue() < 2) {
+      if (getDim().getValue() < 2) {
          TBOX_ERROR("PatchGeometry error in getEdgeBoundary...\n"
             << "DIM < 2 not supported." << std::endl);
       }
@@ -196,21 +198,20 @@ private:
       // The "funny" indexing prevents a warning when compiling for
       // DIM < 2.  This code is only reached if DIM >= 2 when
       // executing.
-      return d_patch_boundaries[d_dim.getValue() < 2 ? 0 : d_dim.getValue() - 2];
+      return d_patch_boundaries[getDim().getValue() < 2 ? 0 : getDim().getValue() - 2];
    }
 
    /**
-    * Return array of boundary box components for patch each of which
+    * Return vector of boundary box components for patch each of which
     * intersects the patch along a 2-dim face (i.e., 2-dim intersection
     * between cells in patch and cells in boundary box).
     *
-    * When assertion checking is active, this routine throws an assertion
-    * when DIM < 3.
+    * @pre getDim().getValue() >= 3
     */
-   const tbox::Array<BoundaryBox>&
+   const std::vector<BoundaryBox>&
    getFaceBoundaries() const
    {
-      if (d_dim.getValue() < 3) {
+      if (getDim().getValue() < 3) {
          TBOX_ERROR("PatchGeometry error in getFaceBoundary...\n"
             << "DIM < 3 not supported." << std::endl);
       }
@@ -218,11 +219,11 @@ private:
       // The "funny" indexing prevents a warning when compiling for
       // DIM < 3.  This code is only reached if DIM >= 3 when
       // executing.
-      return d_patch_boundaries[d_dim.getValue() < 3 ? 0 : d_dim.getValue() - 3];
+      return d_patch_boundaries[getDim().getValue() < 3 ? 0 : getDim().getValue() - 3];
    }
 
    /**
-    * Return array of boundary box components for patch each of which
+    * Return vector of boundary box components for patch each of which
     * intersects the patch as a (DIM - codim)-dimensional object.
     * That is,
     *
@@ -235,24 +236,27 @@ private:
     *              (codim == 2) => same components as getEdgeBoundaries.
     *              (codim == 3) => same components as getNodeBoundaries.
     *
-    * When assertion checking is active, this routine throws an assertion
+    * @pre (codim > 0) && (codim <= getDim().getValue())
     * when codim < 0 or codim > DIM.
     */
-   const tbox::Array<BoundaryBox>&
+   const std::vector<BoundaryBox>&
    getCodimensionBoundaries(
       const int codim) const
    {
-      TBOX_ASSERT((codim > 0) && (codim <= d_dim.getValue()));
+      TBOX_ASSERT((codim > 0) && (codim <= getDim().getValue()));
       return d_patch_boundaries[codim - 1];
    }
 
    /**
-    * Set the array of boundary box components of the given codimension
+    * Set the vector of boundary box components of the given codimension
     * for a patch.
+    *
+    * @pre (codim > 0) && (codim <= getDim().getValue())
+    * @pre for each boundary_box in bdry_boxes, getBoundaryType() == codim
     */
    void
    setCodimensionBoundaries(
-      const tbox::Array<BoundaryBox>& bdry_boxes,
+      const std::vector<BoundaryBox>& bdry_boxes,
       const int codim);
 
    /*!
@@ -266,6 +270,10 @@ private:
     * @param bbox BoundaryBox representing location and type of boundary
     * @param patch_box The box for the patch where data is being filled
     * @param gcw ghost cell width to fill
+    *
+    * @pre bbox.getDim() == patch_box.getDim()
+    * @pre bbox.getDim() == gcw.getDim()
+    * @pre all components of gcw are >= 0
     */
    Box
    getBoundaryFillBox(
@@ -306,13 +314,16 @@ private:
     * @param axis       Axis direction normal to the side being checked
     * @param upperlower Flag should be 0 if checking the lower side in the
     *                   axis direction, or 1 if checking the upper side.
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (upperlower == 0) || (upperlower == 1)
     */
    bool
    getTouchesRegularBoundary(
       int axis,
       int upperlower) const
    {
-      TBOX_ASSERT(axis >= 0 && axis < d_dim.getValue());
+      TBOX_ASSERT(axis >= 0 && axis < getDim().getValue());
       TBOX_ASSERT(upperlower == 0 || upperlower == 1);
       return d_touches_regular_bdry(axis, upperlower);
    }
@@ -324,6 +335,12 @@ private:
    printClassData(
       std::ostream& stream) const;
 
+   const tbox::Dimension&
+   getDim() const
+   {
+      return d_dim;
+   }
+
 private:
    const tbox::Dimension d_dim;
 
@@ -333,6 +350,7 @@ private:
    PatchBoundaries d_patch_boundaries;
 
    TwoDimBool d_touches_regular_bdry;
+   BlockId d_block_id;
 };
 
 }

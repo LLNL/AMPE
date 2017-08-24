@@ -1,12 +1,11 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI patchdata
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: m4 include file for 3d patchdata debugging routines
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
 c
-define(SAMRAI_FORTDIR,../../pdat/fortran)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 3d patchdata debugging routines.
+c
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
 define(pdat_debug_subroutine_head_3d,`dnl
      &  fi0,la0,fi1,la1,fi2,la2,ng,

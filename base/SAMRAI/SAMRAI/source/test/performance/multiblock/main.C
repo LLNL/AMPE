@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Main program for SAMRAI Linear Advection example problem.
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Multiblock performance tests.
  *
  ************************************************************************/
 
@@ -28,25 +28,20 @@ using namespace std;
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/hier/VariableDatabase.h"
+#include "SAMRAI/geom/GridGeometry.h"
 
 // Headers for major algorithm/data structure objects
 
-#include "SAMRAI/mesh/BergerRigoutsos.h"
+#include "SAMRAI/mesh/TileClustering.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/mesh/StandardTagAndInitialize.h"
-#include "SAMRAI/mesh/TreeLoadBalancer.h"
+#include "SAMRAI/mesh/ChopAndPackLoadBalancer.h"
 #include "SAMRAI/algs/TimeRefinementIntegrator.h"
 
 // Header for application-specific algorithm/data structure object
 
-#include "MblkHyperbolicLevelIntegrator.h"
+#include "test/testlib/MblkHyperbolicLevelIntegrator.h"
 #include "MblkLinAdv.h"
-
-// Classes for run-time plotting and autotesting.
-
-#if (TESTING == 1)
-#include "AutoTester.h"
-#endif
 
 using namespace SAMRAI;
 
@@ -159,6 +154,9 @@ int main(
    int argc,
    char* argv[])
 {
+   double wc_time = 0.0;
+   string base_name;
+
    /*
     * Initialize tbox::MPI and SAMRAI, enable logging, and process command line.
     */
@@ -166,7 +164,7 @@ int main(
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
 
-   for (int run = 0; run < 1; run++) {
+   for (int run = 0; run < 1; ++run) {
 
       tbox::SAMRAIManager::startup();
       const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
@@ -208,6 +206,20 @@ int main(
       tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
       /*
+       * Setup the timer manager to trace timing statistics during execution
+       * of the code.  The list of timers is given in the tbox::TimerManager
+       * section of the input file.  Timing information is stored in the
+       * restart file.  Timers will automatically be initialized to their
+       * previous state if the run is restarted, unless they are explicitly
+       * reset using the tbox::TimerManager::resetAllTimers() routine.
+       */
+
+      tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
+      boost::shared_ptr<tbox::Timer> t_all =
+         tbox::TimerManager::getManager()->getTimer("appu::main::all");
+      t_all->start();
+
+      /*
        * Retrieve "GlobalInputs" section of the input database and set
        * values accordingly.
        */
@@ -229,7 +241,7 @@ int main(
 
       /*
        * Retrieve "Main" section of the input database.  First, read dump
-       * information, which is used for writing vizamrai plot files.  Second,
+       * information, which is used for writing VisIt plot files.  Second,
        * if proper restart information was given on command line, and the restart
        * interval is non-zero, create a restart database.
        */
@@ -238,6 +250,8 @@ int main(
          input_db->getDatabase("Main"));
 
       const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
+
+      base_name = main_db->getString("base_name");
 
       string log_file_name = "linadv.log";
       if (main_db->keyExists("log_file_name")) {
@@ -302,17 +316,6 @@ int main(
          }
       }
 
-#if (TESTING == 1) && !(HAVE_HDF5)
-      /*
-       * If we are autotesting on a system w/o HDF5, the read from
-       * restart will result in an error.  We want this to happen
-       * for users, so they know there is a problem with the restart,
-       * but we don't want it to happen when autotesting.
-       */
-      is_from_restart = false;
-      restart_interval = 0;
-#endif
-
       const bool write_restart = (restart_interval > 0)
          && !(restart_write_dirname.empty());
 
@@ -328,17 +331,6 @@ int main(
          openRestartFile(restart_read_dirname, restore_num,
             mpi.getSize());
       }
-
-      /*
-       * Setup the timer manager to trace timing statistics during execution
-       * of the code.  The list of timers is given in the tbox::TimerManager
-       * section of the input file.  Timing information is stored in the
-       * restart file.  Timers will automatically be initialized to their
-       * previous state if the run is restarted, unless they are explicitly
-       * reset using the tbox::TimerManager::resetAllTimers() routine.
-       */
-
-      tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
 
       /*
        * Create major algorithm and data objects which comprise application.
@@ -371,24 +363,25 @@ int main(
             input_db->getDatabase("HyperbolicLevelIntegrator"),
             linear_advection_model,
             mblk_patch_hierarchy,
-            true,
             use_refined_timestepping));
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
-         new mesh::StandardTagAndInitialize(dim,
+         new mesh::StandardTagAndInitialize(
             "StandardTagAndInitialize",
             mblk_hyp_level_integrator.get(),
             input_db->getDatabase("StandardTagAndInitialize")));
 
-      boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+      boost::shared_ptr<mesh::TileClustering> box_generator(
+         new mesh::TileClustering(dim,
+            input_db->getDatabase("BergerRigoutsos")));
 
-      boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
-         new mesh::TreeLoadBalancer(
+      boost::shared_ptr<mesh::ChopAndPackLoadBalancer> load_balancer(
+         new mesh::ChopAndPackLoadBalancer(
             dim,
-            "TreeLoadBalancer",
-            input_db->getDatabase("TreeLoadBalancer")));
-      load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
+            "CascadePartitioner",
+            input_db->getDatabaseWithDefault("TreeLoadBalancer",
+               boost::shared_ptr<tbox::Database>())));
+//      load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       boost::shared_ptr<mesh::GriddingAlgorithm> mblk_gridding_algorithm(
          new mesh::GriddingAlgorithm(
@@ -411,7 +404,7 @@ int main(
       /*
        * Set up Visualization plot file writer(s).
        */
-      // VisitDataWriter is only present if HDF is available
+      // VisItDataWriter is only present if HDF is available
 #ifdef HAVE_HDF5
       bool is_multiblock = true;
       boost::shared_ptr<appu::VisItDataWriter> visit_data_writer(
@@ -433,15 +426,6 @@ int main(
       double dt_now = time_integrator->initializeHierarchy();
 
       tbox::RestartManager::getManager()->closeRestartFile();
-
-#if (TESTING == 1)
-      /*
-       * Create the autotesting object which will verify correctness
-       * of the problem. If no automated testing is done, the object does
-       * not get used.
-       */
-      AutoTester autotester("AutoTester", input_db);
-#endif
 
       /*
        * After creating all objects and initializing their state, we
@@ -477,17 +461,6 @@ int main(
       double loop_time_end = time_integrator->getEndTime();
 
       int iteration_num = time_integrator->getIntegratorStep();
-
-#if (TESTING == 1)
-      /*
-       * If we are doing autotests, check result...
-       */
-      autotester.evalTestData(iteration_num,
-         patch_hierarchy,
-         time_integrator,
-         hyp_level_integrator,
-         gridding_algorithm);
-#endif
 
       while ((loop_time < loop_time_end) &&
              time_integrator->stepsRemaining()) {
@@ -537,26 +510,14 @@ int main(
 #endif
             }
          }
-
-#if (TESTING == 1)
-         /*
-          * If we are doing autotests, check result...
-          */
-         autotester.evalTestData(iteration_num,
-            patch_hierarchy,
-            time_integrator,
-            hyp_level_integrator,
-            gridding_algorithm);
-#endif
-
       }
 
       /*
        * Output timer results.
        */
-#if (TESTING != 1)
       tbox::TimerManager::getManager()->print(tbox::plog);
-#endif
+      t_all->stop();
+      wc_time += t_all->getTotalWallclockTime();
 
       /*
        * At conclusion of simulation, deallocate objects.
@@ -586,6 +547,15 @@ int main(
       tbox::SAMRAIManager::shutdown();
    }
 
+   int size = tbox::SAMRAI_MPI::getSAMRAIWorld().getSize();
+   if (tbox::SAMRAI_MPI::getSAMRAIWorld().getRank() == 0) {
+      string timing_file =
+         base_name + ".timing" + tbox::Utilities::intToString(size);
+      FILE* fp = fopen(timing_file.c_str(), "w");
+      fprintf(fp, "%f\n", wc_time);
+      fclose(fp);
+   }
+
    tbox::SAMRAIManager::finalize();
    tbox::SAMRAI_MPI::finalize();
 
@@ -600,16 +570,14 @@ void setupHierarchy(
    boost::shared_ptr<hier::BaseGridGeometry>& geometry,
    boost::shared_ptr<hier::PatchHierarchy>& mblk_hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(main_input_db);
-#endif
 
    boost::shared_ptr<tbox::Database> mult_db(
       main_input_db->getDatabase("PatchHierarchy"));
 
    char geom_name[32];
 
-   sprintf(geom_name, "BlockGeometry");
+   sprintf(geom_name, "GridGeometry");
    if (main_input_db->keyExists(geom_name)) {
       geometry.reset(
          new geom::GridGeometry(
@@ -622,7 +590,6 @@ void setupHierarchy(
    }
 
    mblk_hierarchy.reset(
-      new hier::PatchHierarchy("PatchHierarchy",
-         geometry, mult_db, true));
+      new hier::PatchHierarchy("PatchHierarchy", geometry, mult_db));
 
 }

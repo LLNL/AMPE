@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A collection of patches at one level of the AMR hierarchy
  *
  ************************************************************************/
-
-#ifndef included_hier_PatchLevel_C
-#define included_hier_PatchLevel_C
-
 #include "SAMRAI/hier/PatchLevel.h"
 
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -19,7 +15,7 @@
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/hier/RealBoxConstIterator.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 #include <cstdio>
 
 #if !defined(__BGL_FAMILY__) && defined(__xlC__)
@@ -35,13 +31,13 @@ namespace hier {
 
 const int PatchLevel::HIER_PATCH_LEVEL_VERSION = 3;
 
-static boost::shared_ptr<tbox::Timer> t_level_constructor;
-static boost::shared_ptr<tbox::Timer> t_constructor_setup;
-static boost::shared_ptr<tbox::Timer> t_constructor_phys_domain;
-static boost::shared_ptr<tbox::Timer> t_constructor_touch_boundaries;
-static boost::shared_ptr<tbox::Timer> t_constructor_set_geometry;
-static boost::shared_ptr<tbox::Timer> t_set_patch_touches;
-static boost::shared_ptr<tbox::Timer> t_constructor_compute_shifts;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_level_constructor;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_constructor_setup;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_constructor_phys_domain;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_constructor_touch_boundaries;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_constructor_set_geometry;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_set_patch_touches;
+boost::shared_ptr<tbox::Timer> PatchLevel::t_constructor_compute_shifts;
 
 tbox::StartupShutdownManager::Handler
 PatchLevel::s_initialize_finalize_handler(
@@ -89,45 +85,43 @@ PatchLevel::PatchLevel(
  */
 
 PatchLevel::PatchLevel(
-   const BoxLevel& mapped_box_level,
+   const BoxLevel& box_level,
    const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
    const boost::shared_ptr<PatchDescriptor>& descriptor,
    const boost::shared_ptr<PatchFactory>& factory,
    bool defer_boundary_box_creation):
    d_dim(grid_geometry->getDim()),
-   d_mapped_box_level(boost::make_shared<BoxLevel>(mapped_box_level)),
+   d_box_level(boost::make_shared<BoxLevel>(box_level)),
    d_has_globalized_data(false),
-   d_ratio_to_level_zero(d_mapped_box_level->getRefinementRatio()),
+   d_ratio_to_level_zero(d_box_level->getRefinementRatio()),
    d_factory(factory ? factory : boost::make_shared<PatchFactory>()),
    d_physical_domain(grid_geometry->getNumberBlocks()),
-   d_ratio_to_coarser_level(grid_geometry->getDim(), 0)
-
+   d_ratio_to_coarser_level(grid_geometry->getDim(), 0, grid_geometry->getNumberBlocks())
 {
    d_number_blocks = grid_geometry->getNumberBlocks();
 
-   TBOX_DIM_ASSERT_CHECK_ARGS2(mapped_box_level, *grid_geometry);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(box_level, *grid_geometry);
 
    t_level_constructor->start();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(grid_geometry);
    TBOX_ASSERT(descriptor);
    /*
     * All components of ratio must be nonzero.  Additionally, all components
     * of ratio not equal to 1 must have the same sign.
     */
-   TBOX_ASSERT(mapped_box_level.getRefinementRatio() !=
-      IntVector::getZero(getDim()));
-
-   if (getDim().getValue() > 1) {
-      for (int i = 0; i < getDim().getValue(); i++) {
-         TBOX_ASSERT((mapped_box_level.getRefinementRatio() (i)
-                      * mapped_box_level.getRefinementRatio() ((i
-                                                                + 1)
-                         % getDim().getValue()) > 0)
-            || (mapped_box_level.getRefinementRatio() (i) == 1)
-            || (mapped_box_level.getRefinementRatio() ((i + 1) % getDim().getValue()) ==
-                1));
+   TBOX_ASSERT(box_level.getRefinementRatio() != 0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if (d_dim.getValue() > 1) {
+      for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+         int i;
+         for (i = 0; i < d_dim.getValue(); ++i) {
+            bool pos0 = d_ratio_to_level_zero(b,i) > 0;
+            bool pos1 = d_ratio_to_level_zero(b,(i + 1) % d_dim.getValue()) > 0;
+            TBOX_ASSERT(pos0 == pos1
+               || (d_ratio_to_level_zero(b,i) == 1)
+               || (d_ratio_to_level_zero(b,(i + 1) % d_dim.getValue()) == 1));
+         }
       }
    }
 #endif
@@ -135,7 +129,7 @@ PatchLevel::PatchLevel(
    t_constructor_setup->start();
 
    d_local_number_patches =
-      static_cast<int>(d_mapped_box_level->getLocalNumberOfBoxes());
+      static_cast<int>(d_box_level->getLocalNumberOfBoxes());
    d_descriptor = descriptor;
 
    d_geometry = grid_geometry;
@@ -144,22 +138,23 @@ PatchLevel::PatchLevel(
    d_next_coarser_level_number = -1;
    d_in_hierarchy = false;
 
-   const BoxContainer& mapped_boxes = d_mapped_box_level->getBoxes();
-   for (RealBoxConstIterator ni(mapped_boxes.realBegin());
-        ni != mapped_boxes.realEnd(); ++ni) {
-      const Box& mapped_box = *ni;
-      const BoxId& ip = mapped_box.getId();
+   const BoxContainer& boxes = d_box_level->getBoxes();
+   for (RealBoxConstIterator ni(boxes.realBegin());
+        ni != boxes.realEnd(); ++ni) {
+      const Box& box = *ni;
+      const BoxId& ip = box.getBoxId();
       boost::shared_ptr<Patch>& patch(d_patches[ip]);
-      patch = d_factory->allocate(mapped_box, d_descriptor);
+      patch = d_factory->allocate(box, d_descriptor);
       patch->setPatchLevelNumber(d_level_number);
       patch->setPatchInHierarchy(d_in_hierarchy);
+      d_patch_vector.push_back(patch);
    }
 
    d_boundary_boxes_created = false;
    t_constructor_setup->stop();
 
    t_constructor_phys_domain->start();
-   for (int nb = 0; nb < d_number_blocks; nb++) {
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
       grid_geometry->computePhysicalDomain(d_physical_domain[nb],
          d_ratio_to_level_zero, BlockId(nb));
    }
@@ -179,7 +174,118 @@ PatchLevel::PatchLevel(
       *this,
       d_ratio_to_level_zero,
       touches_regular_bdry,
+      defer_boundary_box_creation);
+   t_constructor_set_geometry->stop();
+
+   if (!defer_boundary_box_creation) {
+      d_boundary_boxes_created = true;
+   }
+
+   t_level_constructor->stop();
+}
+
+/*
+ *************************************************************************
+ *
+ * Create a new patch level using the specified boxes and processor
+ * mapping.  Only those patches that are local to the processor are
+ * allocated.  Allocate patches using the specified patch factory or
+ * the standard patch factory if none is explicitly specified.
+ *
+ *************************************************************************
+ */
+
+PatchLevel::PatchLevel(
+   const boost::shared_ptr<BoxLevel> box_level,
+   const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
+   const boost::shared_ptr<PatchDescriptor>& descriptor,
+   const boost::shared_ptr<PatchFactory>& factory,
+   bool defer_boundary_box_creation):
+   d_dim(grid_geometry->getDim()),
+   d_box_level(box_level),
+   d_has_globalized_data(false),
+   d_ratio_to_level_zero(d_box_level->getRefinementRatio()),
+   d_factory(factory ? factory : boost::make_shared<PatchFactory>()),
+   d_physical_domain(grid_geometry->getNumberBlocks()),
+   d_ratio_to_coarser_level(grid_geometry->getDim(), 0, grid_geometry->getNumberBlocks())
+{
+   d_box_level->lock();
+   d_number_blocks = grid_geometry->getNumberBlocks();
+
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*box_level, *grid_geometry);
+
+   t_level_constructor->start();
+
+   TBOX_ASSERT(grid_geometry);
+   TBOX_ASSERT(descriptor);
+   /*
+    * All components of ratio must be nonzero.  Additionally, all components
+    * of ratio not equal to 1 must have the same sign.
+    */
+   TBOX_ASSERT(box_level->getRefinementRatio() != 0);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if (d_dim.getValue() > 1) {
+      for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+         int i;
+         for (i = 0; i < d_dim.getValue(); ++i) {
+            bool pos0 = d_ratio_to_level_zero(b,i) > 0;
+            bool pos1 = d_ratio_to_level_zero(b,(i + 1) % d_dim.getValue()) > 0;
+            TBOX_ASSERT(pos0 == pos1
+               || (d_ratio_to_level_zero(b,i) == 1)
+               || (d_ratio_to_level_zero(b,(i + 1) % d_dim.getValue()) == 1));
+         }
+      }
+   }
+#endif
+
+   t_constructor_setup->start();
+
+   d_local_number_patches =
+      static_cast<int>(d_box_level->getLocalNumberOfBoxes());
+   d_descriptor = descriptor;
+
+   d_geometry = grid_geometry;
+
+   d_level_number = -1;
+   d_next_coarser_level_number = -1;
+   d_in_hierarchy = false;
+
+   const BoxContainer& boxes = d_box_level->getBoxes();
+   for (RealBoxConstIterator ni(boxes.realBegin());
+        ni != boxes.realEnd(); ++ni) {
+      const Box& box = *ni;
+      const BoxId& ip = box.getBoxId();
+      boost::shared_ptr<Patch>& patch(d_patches[ip]);
+      patch = d_factory->allocate(box, d_descriptor);
+      patch->setPatchLevelNumber(d_level_number);
+      patch->setPatchInHierarchy(d_in_hierarchy);
+      d_patch_vector.push_back(patch);
+   }
+
+   d_boundary_boxes_created = false;
+   t_constructor_setup->stop();
+
+   t_constructor_phys_domain->start();
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
+      grid_geometry->computePhysicalDomain(d_physical_domain[nb],
+         d_ratio_to_level_zero, BlockId(nb));
+   }
+   t_constructor_phys_domain->stop();
+
+   t_constructor_touch_boundaries->start();
+   std::map<BoxId, PatchGeometry::TwoDimBool> touches_regular_bdry;
+   std::map<BoxId, PatchGeometry::TwoDimBool> touches_periodic_bdry;
+   grid_geometry->findPatchesTouchingBoundaries(
+      touches_regular_bdry,
       touches_periodic_bdry,
+      *this);
+   t_constructor_touch_boundaries->stop();
+
+   t_constructor_set_geometry->start();
+   grid_geometry->setGeometryOnPatches(
+      *this,
+      d_ratio_to_level_zero,
+      touches_regular_bdry,
       defer_boundary_box_creation);
    t_constructor_set_geometry->stop();
 
@@ -199,24 +305,25 @@ PatchLevel::PatchLevel(
  */
 
 PatchLevel::PatchLevel(
-   const boost::shared_ptr<tbox::Database>& level_database,
+   const boost::shared_ptr<tbox::Database>& restart_database,
    const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
    const boost::shared_ptr<PatchDescriptor>& descriptor,
    const boost::shared_ptr<PatchFactory>& factory,
-   const ComponentSelector& component_selector,
    bool defer_boundary_box_creation):
    d_dim(grid_geometry->getDim()),
    d_has_globalized_data(false),
-   d_ratio_to_level_zero(IntVector(grid_geometry->getDim(),
-                                   tbox::MathUtilities<int>::getMax())),
+   d_ratio_to_level_zero(grid_geometry->getDim(),
+                         tbox::MathUtilities<int>::getMax(),
+                         grid_geometry->getNumberBlocks()),
    d_factory(factory ? factory : boost::make_shared<PatchFactory>()),
    d_physical_domain(grid_geometry->getNumberBlocks()),
-   d_ratio_to_coarser_level(IntVector(grid_geometry->getDim(),
-                                      tbox::MathUtilities<int>::getMax()))
+   d_ratio_to_coarser_level(grid_geometry->getDim(),
+                            tbox::MathUtilities<int>::getMax(),
+                            grid_geometry->getNumberBlocks())
 {
    d_number_blocks = grid_geometry->getNumberBlocks();
 
-   TBOX_ASSERT(level_database);
+   TBOX_ASSERT(restart_database);
    TBOX_ASSERT(grid_geometry);
    TBOX_ASSERT(descriptor);
 
@@ -225,7 +332,7 @@ PatchLevel::PatchLevel(
    d_geometry = grid_geometry;
    d_descriptor = descriptor;
 
-   getFromDatabase(level_database, component_selector);
+   getFromRestart(restart_database);
 
    d_boundary_boxes_created = false;
 
@@ -243,7 +350,6 @@ PatchLevel::PatchLevel(
       *this,
       d_ratio_to_level_zero,
       touches_regular_bdry,
-      touches_periodic_bdry,
       defer_boundary_box_creation);
    t_constructor_set_geometry->stop();
 
@@ -275,13 +381,18 @@ PatchLevel::setRefinedPatchLevel(
    bool defer_boundary_box_creation)
 {
    TBOX_ASSERT(coarse_level);
-   TBOX_ASSERT(refine_ratio > IntVector::getZero(getDim()));
+   TBOX_ASSERT(refine_ratio != 0);
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, *coarse_level, refine_ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*this, *coarse_level, refine_ratio);
    if (fine_grid_geometry) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *fine_grid_geometry);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *fine_grid_geometry);
    }
 #endif
+
+   d_number_blocks = coarse_level->d_number_blocks;
+   if (d_ratio_to_level_zero.getNumBlocks() != d_number_blocks) {
+      d_ratio_to_level_zero = IntVector(d_dim, 0, d_number_blocks);
+   }
 
    /*
     * The basic state of the new patch level is initialized from the state of
@@ -308,21 +419,22 @@ PatchLevel::setRefinedPatchLevel(
       d_geometry = coarse_level->d_geometry;
 
       const IntVector& coarse_ratio = coarse_level->getRatioToLevelZero();
-      for (int i = 0; i < getDim().getValue(); i++) {
-         int coarse_rat = coarse_ratio(i);
-         int refine_rat = refine_ratio(i);
-         if (coarse_rat < 0) {
-            if (tbox::MathUtilities<int>::Abs(coarse_rat) >= refine_rat) {
-               d_ratio_to_level_zero(i) =
-                  -(tbox::MathUtilities<int>::Abs(coarse_rat / refine_rat));
+      for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+         for (int i = 0; i < getDim().getValue(); ++i) {
+            int coarse_rat = coarse_ratio(b,i);
+            int refine_rat = refine_ratio(b,i);
+            if (coarse_rat < 0) {
+               if (tbox::MathUtilities<int>::Abs(coarse_rat) >= refine_rat) {
+                  d_ratio_to_level_zero(b,i) =
+                     -(tbox::MathUtilities<int>::Abs(coarse_rat / refine_rat));
+               } else {
+                  d_ratio_to_level_zero(b,i) =
+                     tbox::MathUtilities<int>::Abs(refine_rat / coarse_rat);
+               }
             } else {
-               d_ratio_to_level_zero(i) =
-                  tbox::MathUtilities<int>::Abs(refine_rat / coarse_rat);
+               d_ratio_to_level_zero(b,i) = coarse_rat * refine_rat;
             }
-         } else {
-            d_ratio_to_level_zero(i) = coarse_rat * refine_rat;
          }
-
       }
 
    } else {
@@ -341,22 +453,21 @@ PatchLevel::setRefinedPatchLevel(
    d_boxes.refine(refine_ratio);
 
    {
-      d_mapped_box_level.reset(
+      d_box_level.reset(
          new BoxLevel(
             d_ratio_to_level_zero,
             d_geometry,
-            coarse_level->d_mapped_box_level->getMPI()));
-      coarse_level->d_mapped_box_level->refineBoxes(
-         *d_mapped_box_level,
+            coarse_level->d_box_level->getMPI()));
+      coarse_level->d_box_level->refineBoxes(
+         *d_box_level,
          refine_ratio,
          d_ratio_to_level_zero);
-      d_mapped_box_level->finalize();
+      d_box_level->finalize();
    }
    d_local_number_patches = coarse_level->getLocalNumberOfPatches();
-   d_number_blocks = coarse_level->d_number_blocks;
 
-   d_physical_domain.resizeArray(d_number_blocks);
-   for (int nb = 0; nb < d_number_blocks; nb++) {
+   d_physical_domain.resize(d_number_blocks);
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
       d_physical_domain[nb] = coarse_level->d_physical_domain[nb];
       d_physical_domain[nb].refine(refine_ratio);
    }
@@ -367,48 +478,38 @@ PatchLevel::setRefinedPatchLevel(
     * domain information.
     */
 
-   const BoxContainer& mapped_boxes = d_mapped_box_level->getBoxes();
-   for (RealBoxConstIterator ni(mapped_boxes.realBegin());
-        ni != mapped_boxes.realEnd(); ++ni) {
-      const Box& mapped_box = *ni;
-      const BoxId& mapped_box_id = mapped_box.getId();
-      d_patches[mapped_box_id] = d_factory->allocate(mapped_box, d_descriptor);
-      d_patches[mapped_box_id]->setPatchLevelNumber(d_level_number);
-      d_patches[mapped_box_id]->setPatchInHierarchy(d_in_hierarchy);
+   const BoxContainer& boxes = d_box_level->getBoxes();
+   for (RealBoxConstIterator ni(boxes.realBegin());
+        ni != boxes.realEnd(); ++ni) {
+      const Box& box = *ni;
+      const BoxId& box_id = box.getBoxId();
+      d_patches[box_id] = d_factory->allocate(box, d_descriptor);
+      d_patches[box_id]->setPatchLevelNumber(d_level_number);
+      d_patches[box_id]->setPatchInHierarchy(d_in_hierarchy);
+      d_patch_vector.push_back(d_patches[box_id]);
    }
 
    std::map<BoxId, PatchGeometry::TwoDimBool> touches_regular_bdry;
-   std::map<BoxId, PatchGeometry::TwoDimBool> touches_periodic_bdry;
 
-   for (iterator ip(coarse_level->begin()); ip != coarse_level->end(); ip++) {
+   for (iterator ip(coarse_level->begin()); ip != coarse_level->end(); ++ip) {
       boost::shared_ptr<PatchGeometry> coarse_pgeom((*ip)->getPatchGeometry());
 
       /* If map does not contain values create them */
       std::map<BoxId,
                PatchGeometry::TwoDimBool>::iterator iter_touches_regular_bdry(
-         touches_regular_bdry.find(ip->getBox().getId()));
+         touches_regular_bdry.find(ip->getBox().getBoxId()));
       if (iter_touches_regular_bdry == touches_regular_bdry.end()) {
          iter_touches_regular_bdry = touches_regular_bdry.insert(
                iter_touches_regular_bdry,
-               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getId(),
-                  PatchGeometry::TwoDimBool(getDim())));
-      }
-
-      std::map<BoxId,
-               PatchGeometry::TwoDimBool>::iterator iter_touches_periodic_bdry(
-         touches_periodic_bdry.find(ip->getBox().getId()));
-      if (iter_touches_periodic_bdry == touches_periodic_bdry.end()) {
-         iter_touches_periodic_bdry = touches_periodic_bdry.insert(
-               iter_touches_periodic_bdry,
-               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getId(),
+               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getBoxId(),
                   PatchGeometry::TwoDimBool(getDim())));
       }
 
       PatchGeometry::TwoDimBool&
       touches_regular_bdry_ip((*iter_touches_regular_bdry).second);
 
-      for (int axis = 0; axis < getDim().getValue(); axis++) {
-         for (int side = 0; side < 2; side++) {
+      for (int axis = 0; axis < getDim().getValue(); ++axis) {
+         for (int side = 0; side < 2; ++side) {
             touches_regular_bdry_ip(axis, side) =
                coarse_pgeom->getTouchesRegularBoundary(axis, side);
          }
@@ -419,7 +520,6 @@ PatchLevel::setRefinedPatchLevel(
       *this,
       d_ratio_to_level_zero,
       touches_regular_bdry,
-      touches_periodic_bdry,
       defer_boundary_box_creation);
 
    if (!defer_boundary_box_creation) {
@@ -445,12 +545,12 @@ PatchLevel::setCoarsenedPatchLevel(
    bool defer_boundary_box_creation)
 {
    TBOX_ASSERT(fine_level);
-   TBOX_ASSERT(coarsen_ratio > IntVector::getZero(getDim()));
+   TBOX_ASSERT(coarsen_ratio != 0);
 
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, *fine_level, coarsen_ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*this, *fine_level, coarsen_ratio);
    if (coarse_grid_geom) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *coarse_grid_geom);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *coarse_grid_geom);
    }
 #endif
 
@@ -463,6 +563,11 @@ PatchLevel::setCoarsenedPatchLevel(
    d_descriptor = fine_level->d_descriptor;
    d_factory = fine_level->d_factory;
    // d_mapping.setProcessorMapping( (fine_level->d_mapping).getProcessorMapping() );
+
+   d_number_blocks = fine_level->d_number_blocks;
+   if (d_ratio_to_level_zero.getNumBlocks() != d_number_blocks) {
+      d_ratio_to_level_zero = IntVector(d_dim, 0, d_number_blocks); 
+   }
 
    /*
     * Compute the ratio to coarsest level (reference level in hierarchy --
@@ -480,20 +585,21 @@ PatchLevel::setCoarsenedPatchLevel(
 
       const IntVector& fine_ratio =
          fine_level->d_ratio_to_level_zero;
-
-      for (int i = 0; i < getDim().getValue(); i++) {
-         int fine_rat = fine_ratio(i);
-         int coarsen_rat = coarsen_ratio(i);
-         if (fine_rat > 0) {
-            if (fine_rat >= coarsen_rat) {
-               d_ratio_to_level_zero(i) = fine_rat / coarsen_rat;
+      for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+         for (int i = 0; i < getDim().getValue(); ++i) {
+            int fine_rat = fine_ratio(b,i);
+            int coarsen_rat = coarsen_ratio(b,i);
+            if (fine_rat > 0) {
+               if (fine_rat >= coarsen_rat) {
+                  d_ratio_to_level_zero(b,i) = fine_rat / coarsen_rat;
+               } else {
+                  d_ratio_to_level_zero(b,i) =
+                     -(tbox::MathUtilities<int>::Abs(coarsen_rat / fine_rat));
+               }
             } else {
-               d_ratio_to_level_zero(i) =
-                  -(tbox::MathUtilities<int>::Abs(coarsen_rat / fine_rat));
+               d_ratio_to_level_zero(b,i) =
+                  -(tbox::MathUtilities<int>::Abs(fine_rat * coarsen_rat));
             }
-         } else {
-            d_ratio_to_level_zero(i) =
-               -(tbox::MathUtilities<int>::Abs(fine_rat * coarsen_rat));
          }
       }
 
@@ -513,29 +619,27 @@ PatchLevel::setCoarsenedPatchLevel(
    d_boxes.coarsen(coarsen_ratio);
 
    /*
-    * Set coarse mapped_box_level to be the coarsened version of fine mapped_box_level.
+    * Set coarse box_level to be the coarsened version of fine box_level.
     *
     * NOTE: Some parts of SAMRAI (CoarsenSchedule in particular)
-    * assumes that the mapped_box identities are the same between the
+    * assumes that the box identities are the same between the
     * fine and coarsened levels.
     */
-   const BoxLevel& fine_mapped_box_level =
-      *fine_level->d_mapped_box_level;
-   d_mapped_box_level.reset(
+   const BoxLevel& fine_box_level = *fine_level->d_box_level;
+   d_box_level.reset(
       new BoxLevel(
          d_ratio_to_level_zero,
          d_geometry,
-         fine_mapped_box_level.getMPI()));
-   fine_level->d_mapped_box_level->coarsenBoxes(
-      *d_mapped_box_level,
+         fine_box_level.getMPI()));
+   fine_level->d_box_level->coarsenBoxes(
+      *d_box_level,
       coarsen_ratio,
       d_ratio_to_level_zero);
-   d_mapped_box_level->finalize();
+   d_box_level->finalize();
    d_local_number_patches = fine_level->getNumberOfPatches();
-   d_number_blocks = fine_level->d_number_blocks;
 
-   d_physical_domain.resizeArray(d_number_blocks);
-   for (int nb = 0; nb < d_number_blocks; nb++) {
+   d_physical_domain.resize(d_number_blocks);
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
       d_physical_domain[nb] = fine_level->d_physical_domain[nb];
       d_physical_domain[nb].coarsen(coarsen_ratio);
    }
@@ -546,50 +650,40 @@ PatchLevel::setCoarsenedPatchLevel(
     * domain information.
     */
 
-   const BoxContainer& mapped_boxes = d_mapped_box_level->getBoxes();
-   for (RealBoxConstIterator ni(mapped_boxes.realBegin());
-        ni != mapped_boxes.realEnd(); ++ni) {
-      const Box& mapped_box = *ni;
-      const BoxId& mapped_box_id = mapped_box.getId();
-      d_patches[mapped_box_id] = d_factory->allocate(mapped_box, d_descriptor);
-      d_patches[mapped_box_id]->setPatchLevelNumber(d_level_number);
-      d_patches[mapped_box_id]->setPatchInHierarchy(d_in_hierarchy);
+   const BoxContainer& boxes = d_box_level->getBoxes();
+   for (RealBoxConstIterator ni(boxes.realBegin());
+        ni != boxes.realEnd(); ++ni) {
+      const Box& box = *ni;
+      const BoxId& box_id = box.getBoxId();
+      d_patches[box_id] = d_factory->allocate(box, d_descriptor);
+      d_patches[box_id]->setPatchLevelNumber(d_level_number);
+      d_patches[box_id]->setPatchInHierarchy(d_in_hierarchy);
+      d_patch_vector.push_back(d_patches[box_id]);
    }
 
    d_boundary_boxes_created = false;
 
    std::map<BoxId, PatchGeometry::TwoDimBool> touches_regular_bdry;
-   std::map<BoxId, PatchGeometry::TwoDimBool> touches_periodic_bdry;
 
-   for (iterator ip(fine_level->begin()); ip != fine_level->end(); ip++) {
+   for (iterator ip(fine_level->begin()); ip != fine_level->end(); ++ip) {
       boost::shared_ptr<PatchGeometry> fine_pgeom((*ip)->getPatchGeometry());
 
       /* If map does not contain values create them */
       std::map<BoxId,
                PatchGeometry::TwoDimBool>::iterator iter_touches_regular_bdry(
-         touches_regular_bdry.find(ip->getBox().getId()));
+         touches_regular_bdry.find(ip->getBox().getBoxId()));
       if (iter_touches_regular_bdry == touches_regular_bdry.end()) {
          iter_touches_regular_bdry = touches_regular_bdry.insert(
                iter_touches_regular_bdry,
-               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getId(),
-                  PatchGeometry::TwoDimBool(getDim())));
-      }
-
-      std::map<BoxId,
-               PatchGeometry::TwoDimBool>::iterator iter_touches_periodic_bdry(
-         touches_periodic_bdry.find(ip->getBox().getId()));
-      if (iter_touches_periodic_bdry == touches_periodic_bdry.end()) {
-         iter_touches_periodic_bdry = touches_periodic_bdry.insert(
-               iter_touches_periodic_bdry,
-               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getId(),
+               std::pair<BoxId, PatchGeometry::TwoDimBool>(ip->getBox().getBoxId(),
                   PatchGeometry::TwoDimBool(getDim())));
       }
 
       PatchGeometry::TwoDimBool&
       touches_regular_bdry_ip((*iter_touches_regular_bdry).second);
 
-      for (int axis = 0; axis < getDim().getValue(); axis++) {
-         for (int side = 0; side < 2; side++) {
+      for (int axis = 0; axis < getDim().getValue(); ++axis) {
+         for (int side = 0; side < 2; ++side) {
             touches_regular_bdry_ip(axis, side) =
                fine_pgeom->getTouchesRegularBoundary(axis, side);
          }
@@ -600,7 +694,6 @@ PatchLevel::setCoarsenedPatchLevel(
       *this,
       d_ratio_to_level_zero,
       touches_regular_bdry,
-      touches_periodic_bdry,
       defer_boundary_box_creation);
 
    if (!defer_boundary_box_creation) {
@@ -623,11 +716,11 @@ PatchLevel::getBoxes(
    }
 
    boxes.clear();
-   const BoxContainer& global_mapped_boxes =
-      d_mapped_box_level->getGlobalizedVersion().getGlobalBoxes();
+   const BoxContainer& global_boxes =
+      d_box_level->getGlobalizedVersion().getGlobalBoxes();
 
-   for (BoxContainerSingleBlockIterator gi(global_mapped_boxes.begin(block_id));
-        gi != global_mapped_boxes.end(block_id); ++gi) {
+   for (BoxContainerSingleBlockIterator gi(global_boxes.begin(block_id));
+        gi != global_boxes.end(block_id); ++gi) {
       boxes.pushBack(*gi);
    }
 }
@@ -636,98 +729,121 @@ PatchLevel::getBoxes(
  * ************************************************************************
  *
  *  Check that class version and restart file number are the same.  If
- *  so, read in data from database and build patch level from data.
+ *  so, read in data from restart database and build patch level from data.
  *
  * ************************************************************************
  */
 
 void
-PatchLevel::getFromDatabase(
-   const boost::shared_ptr<tbox::Database>& database,
-   const ComponentSelector& component_selector)
+PatchLevel::getFromRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db)
 {
-   TBOX_ASSERT(database);
+   TBOX_ASSERT(restart_db);
 
-   int ver = database->getInteger("HIER_PATCH_LEVEL_VERSION");
+   int ver = restart_db->getInteger("HIER_PATCH_LEVEL_VERSION");
    if (ver != HIER_PATCH_LEVEL_VERSION) {
-      TBOX_ERROR("PatchLevel::getFromDatabase() error...\n"
+      TBOX_ERROR("PatchLevel::getFromRestart() error...\n"
          << "   Restart file version different than class version.");
    }
 
-   if (database->keyExists("d_boxes")) {
-      d_boxes = database->getDatabaseBoxArray("d_boxes");
+   if (restart_db->keyExists("d_boxes")) {
+      std::vector<tbox::DatabaseBox> db_box_vector =
+         restart_db->getDatabaseBoxVector("d_boxes");
+      d_boxes = db_box_vector;
    }
 
-   int* temp_ratio = &d_ratio_to_level_zero[0];
-   database->getIntegerArray(
-      "d_ratio_to_level_zero",
-      temp_ratio,
-      getDim().getValue());
+   std::vector<int> temp_ratio = 
+      restart_db->getIntegerVector("d_ratio_to_level_zero");
+   TBOX_ASSERT(temp_ratio.size() == d_number_blocks * d_dim.getValue());
 
-   d_number_blocks = database->getInteger("d_number_blocks");
+   int i = 0;
+   for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+      for (int d = 0; d < d_dim.getValue(); ++d) {
+         d_ratio_to_level_zero(b,d) = temp_ratio[i];
+         ++i;
+      }
+   } 
 
-   d_physical_domain.resizeArray(d_number_blocks);
-   for (int nb = 0; nb < d_number_blocks; nb++) {
+   d_number_blocks =
+      static_cast<size_t>(restart_db->getInteger("d_number_blocks"));
+
+   d_physical_domain.resize(d_number_blocks);
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
       std::string domain_name = "d_physical_domain_"
-         + tbox::Utilities::blockToString(nb);
-      d_physical_domain[nb] = database->getDatabaseBoxArray(domain_name);
+         + tbox::Utilities::blockToString(static_cast<int>(nb));
+      std::vector<tbox::DatabaseBox> db_box_vector =
+         restart_db->getDatabaseBoxVector(domain_name);
+      d_physical_domain[nb] = db_box_vector;
       for (BoxContainer::iterator bi = d_physical_domain[nb].begin();
            bi != d_physical_domain[nb].end(); ++bi) {
          bi->setBlockId(BlockId(nb));
       }
    }
 
-   d_level_number = database->getInteger("d_level_number");
+   d_level_number = restart_db->getInteger("d_level_number");
    d_next_coarser_level_number =
-      database->getInteger("d_next_coarser_level_number");
-   d_in_hierarchy = database->getBool("d_in_hierarchy");
+      restart_db->getInteger("d_next_coarser_level_number");
+   d_in_hierarchy = restart_db->getBool("d_in_hierarchy");
 
-   temp_ratio = &d_ratio_to_coarser_level[0];
-   database->getIntegerArray(
-      "d_ratio_to_coarser_level",
-      temp_ratio,
-      getDim().getValue());
+   temp_ratio.clear();
+   temp_ratio = restart_db->getIntegerVector("d_ratio_to_coarser_level");
+   TBOX_ASSERT(temp_ratio.size() == d_number_blocks * d_dim.getValue());
 
    /*
-    * Put local patches in database.
+    * Make sure d_ratio_to_coarser_level is of the correct size before
+    * initializing values.
+    */
+   if (d_ratio_to_coarser_level.getNumBlocks() != d_number_blocks) {
+      d_ratio_to_coarser_level = IntVector(d_dim, 0, d_number_blocks);
+   }
+
+   i = 0;
+   for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+      for (int d = 0; d < d_dim.getValue(); ++d) {
+         d_ratio_to_coarser_level(b,d) = temp_ratio[i];
+         ++i;
+      }
+   }
+
+
+   /*
+    * Put local patches in restart database.
     */
 
-   boost::shared_ptr<tbox::Database> mbl_database(
-      database->getDatabase("mapped_box_level"));
-   boost::shared_ptr<BoxLevel> mapped_box_level(
-      boost::make_shared<BoxLevel>(getDim()));
    boost::shared_ptr<const BaseGridGeometry> grid_geometry(getGridGeometry());
-   mapped_box_level->getFromDatabase(*mbl_database, grid_geometry);
-   d_mapped_box_level = mapped_box_level;
+   boost::shared_ptr<tbox::Database> mbl_database(
+      restart_db->getDatabase("mapped_box_level"));
+   d_box_level.reset(new BoxLevel(getDim(), *mbl_database, grid_geometry));
 
    d_patches.clear();
+   d_patch_vector.clear();
 
-   const BoxContainer& mapped_boxes = d_mapped_box_level->getBoxes();
-   for (RealBoxConstIterator ni(mapped_boxes.realBegin());
-        ni != mapped_boxes.realEnd(); ++ni) {
-      const Box& mapped_box = *ni;
-      const LocalId& local_id = mapped_box.getLocalId();
-      const BoxId& mapped_box_id = mapped_box.getId();
+   const BoxContainer& boxes = d_box_level->getBoxes();
+   for (RealBoxConstIterator ni(boxes.realBegin());
+        ni != boxes.realEnd(); ++ni) {
+      const Box& box = *ni;
+      const LocalId& local_id = box.getLocalId();
+      const BoxId& box_id = box.getBoxId();
 
       std::string patch_name = "level_" + tbox::Utilities::levelToString(
             d_level_number)
-         + "-patch_" + tbox::Utilities::patchToString(local_id.getValue())
+         + "-patch_"
+         + tbox::Utilities::patchToString(local_id.getValue())
          + "-block_"
          + tbox::Utilities::blockToString(
-            mapped_box.getBlockId().getBlockValue());
-      if (!(database->isDatabase(patch_name))) {
-         TBOX_ERROR("PatchLevel::getFromDatabase() error...\n"
+              static_cast<int>(box.getBlockId().getBlockValue()));
+      if (!(restart_db->isDatabase(patch_name))) {
+         TBOX_ERROR("PatchLevel::getFromRestart() error...\n"
             << "   patch name " << patch_name
-            << " not found in database" << std::endl);
+            << " not found in restart database" << std::endl);
       }
 
-      boost::shared_ptr<Patch>& patch(d_patches[mapped_box_id]);
-      patch = d_factory->allocate(mapped_box, d_descriptor);
+      boost::shared_ptr<Patch>& patch(d_patches[box_id]);
+      patch = d_factory->allocate(box, d_descriptor);
       patch->setPatchLevelNumber(d_level_number);
       patch->setPatchInHierarchy(d_in_hierarchy);
-      patch->getFromDatabase(
-         database->getDatabase(patch_name),
-         component_selector);
+      patch->getFromRestart(restart_db->getDatabase(patch_name));
+      d_patch_vector.push_back(patch);
    }
 
 }
@@ -736,8 +852,9 @@ PatchLevel::getFromDatabase(
  * ************************************************************************
  *
  *  Write out class version number and patch_level data members to the
- *  database, then has each patch on the local processor write itself
- *  to the database.   The following are written out to the database:
+ *  restart database, then has each patch on the local processor write itself
+ *  to the restart database.   The following are written out to the restart
+ *  database:
  *  d_physical_domain, d_ratio_to_level_zero, d_boxes, d_mapping,
  *  d_global_number_patches, d_level_number, d_next_coarser_level_number,
  *  d_in_hierarchy, d_patches[].
@@ -749,55 +866,68 @@ PatchLevel::getFromDatabase(
  * ************************************************************************
  */
 void
-PatchLevel::putUnregisteredToDatabase(
-   const boost::shared_ptr<tbox::Database>& database,
-   const ComponentSelector& patchdata_write_table) const
+PatchLevel::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(database);
+   TBOX_ASSERT(restart_db);
 
-   database->putInteger("HIER_PATCH_LEVEL_VERSION", HIER_PATCH_LEVEL_VERSION);
+   restart_db->putInteger("HIER_PATCH_LEVEL_VERSION",
+      HIER_PATCH_LEVEL_VERSION);
 
-   database->putBool("d_is_patch_level", true);
+   // This appears to be used in the RedistributedRestartUtility.
+   restart_db->putBool("d_is_patch_level", true);
 
-   tbox::Array<tbox::DatabaseBox> temp_boxes = d_boxes;
-   if (temp_boxes.getSize() > 0) {
-      database->putDatabaseBoxArray("d_boxes", temp_boxes);
+   std::vector<tbox::DatabaseBox> temp_boxes = d_boxes;
+   if (temp_boxes.size() > 0) {
+      restart_db->putDatabaseBoxVector("d_boxes", temp_boxes);
    }
 
-   // database->putInteger("d_global_number_patches",d_global_number_patches);
+   std::vector<int> temp_ratio_to_level_zero(
+      d_number_blocks * getDim().getValue());
+   int i = 0;
+   for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+      for (int d = 0; d < d_dim.getValue(); ++d) {
+         temp_ratio_to_level_zero[i] = d_ratio_to_level_zero(b,d);
+         ++i;
+      }
+   }
+   restart_db->putIntegerVector("d_ratio_to_level_zero",
+      temp_ratio_to_level_zero);
 
-   // database->putIntegerArray("d_mapping", d_mapping.getProcessorMapping());
+   restart_db->putInteger("d_number_blocks", static_cast<int>(d_number_blocks));
 
-   const int* temp_ratio_to_level_zero = &d_ratio_to_level_zero[0];
-   database->putIntegerArray("d_ratio_to_level_zero",
-      temp_ratio_to_level_zero, getDim().getValue());
-
-   database->putInteger("d_number_blocks", d_number_blocks);
-
-   for (int nb = 0; nb < d_number_blocks; nb++) {
-      tbox::Array<tbox::DatabaseBox> temp_domain = d_physical_domain[nb];
+   for (BlockId::block_t nb = 0; nb < d_number_blocks; ++nb) {
+      std::vector<tbox::DatabaseBox> temp_domain = d_physical_domain[nb];
       std::string domain_name = "d_physical_domain_"
-         + tbox::Utilities::blockToString(nb);
-      database->putDatabaseBoxArray(domain_name, temp_domain);
+         + tbox::Utilities::blockToString(static_cast<int>(nb));
+      restart_db->putDatabaseBoxVector(domain_name, temp_domain);
    }
-   database->putInteger("d_level_number", d_level_number);
-   database->putInteger("d_next_coarser_level_number",
+   restart_db->putInteger("d_level_number", d_level_number);
+   restart_db->putInteger("d_next_coarser_level_number",
       d_next_coarser_level_number);
-   database->putBool("d_in_hierarchy", d_in_hierarchy);
+   restart_db->putBool("d_in_hierarchy", d_in_hierarchy);
 
-   const int* temp_ratio_to_coarser_level = &d_ratio_to_coarser_level[0];
-   database->putIntegerArray("d_ratio_to_coarser_level",
-      temp_ratio_to_coarser_level, getDim().getValue());
+   std::vector<int> temp_ratio_to_coarser_level(
+      d_number_blocks * getDim().getValue());
+   i = 0;
+   for (BlockId::block_t b = 0; b < d_number_blocks; ++b) {
+      for (int d = 0; d < d_dim.getValue(); ++d) {
+         temp_ratio_to_coarser_level[i] = d_ratio_to_coarser_level(b,d);
+         ++i;
+      }
+   }
+   restart_db->putIntegerVector("d_ratio_to_coarser_level",
+      temp_ratio_to_coarser_level);
 
    /*
-    * Put local patches in database.
+    * Put local patches in restart_db.
     */
 
    boost::shared_ptr<tbox::Database> mbl_database(
-      database->putDatabase("mapped_box_level"));
-   d_mapped_box_level->putUnregisteredToDatabase(mbl_database);
+      restart_db->putDatabase("mapped_box_level"));
+   d_box_level->putToRestart(mbl_database);
 
-   for (iterator ip(begin()); ip != end(); ip++) {
+   for (iterator ip(begin()); ip != end(); ++ip) {
 
       std::string patch_name = "level_" + tbox::Utilities::levelToString(
             d_level_number)
@@ -805,11 +935,9 @@ PatchLevel::putUnregisteredToDatabase(
          + tbox::Utilities::patchToString(ip->getLocalId().getValue())
          + "-block_"
          + tbox::Utilities::blockToString(
-            ip->getBox().getBlockId().getBlockValue());
+            static_cast<int>(ip->getBox().getBlockId().getBlockValue()));
 
-      ip->putUnregisteredToDatabase(
-         database->putDatabase(patch_name),
-         patchdata_write_table);
+      ip->putToRestart(restart_db->putDatabase(patch_name));
    }
 
 }
@@ -834,7 +962,7 @@ PatchLevel::recursivePrint(
    os << getBoxLevel()->format(border, 2) << std::endl;
 
    if (depth > 0) {
-      for (iterator pi(begin()); pi != end(); pi++) {
+      for (iterator pi(begin()); pi != end(); ++pi) {
          const boost::shared_ptr<Patch>& patch = *pi;
          os << border << "Patch " << patch->getLocalId() << '/' << npatch << "\n";
          patch->recursivePrint(os, border + "\t", depth - 1);
@@ -854,27 +982,26 @@ PatchLevel::initializeGlobalizedBoxLevel() const
 {
    if (!d_has_globalized_data) {
 
-      const BoxLevel& globalized_mapped_box_level(
-         d_mapped_box_level->getGlobalizedVersion());
+      const BoxLevel& globalized_box_level(
+         d_box_level->getGlobalizedVersion());
 
-      const int nboxes = globalized_mapped_box_level.getGlobalNumberOfBoxes();
+      const int nboxes = globalized_box_level.getGlobalNumberOfBoxes();
       d_boxes.clear();
       d_mapping.setMappingSize(nboxes);
 
       /*
        * Backward compatibility with things requiring global sequential
        * indices (such as the VisIt writer) is provided by the implicit
-       * ordering of the mapped_boxes in the nested loops below.
+       * ordering of the boxes in the nested loops below.
        *
        * Due to this necessary renumbering, the patch number obtained
        * by the PatchLevel::Iterator does not correspond to the
        * global sequential index.
        */
       int count = 0;
-      const BoxContainer& mapped_boxes =
-         globalized_mapped_box_level.getGlobalBoxes();
-      for (RealBoxConstIterator ni(mapped_boxes.realBegin());
-           ni != mapped_boxes.realEnd();
+      const BoxContainer& boxes = globalized_box_level.getGlobalBoxes();
+      for (RealBoxConstIterator ni(boxes.realBegin());
+           ni != boxes.realEnd();
            ++ni) {
          d_mapping.setProcessorAssignment(count, ni->getOwnerRank());
          d_boxes.pushBack(*ni);
@@ -936,7 +1063,7 @@ PatchLevel::finalizeCallback()
 PatchLevel::Iterator::Iterator(
    const PatchLevel::Iterator& r):
    d_iterator(r.d_iterator),
-   d_patches(NULL /* Unused since not backward compatibility not needed */)
+   d_patches(0 /* Unused since not backward compatibility not needed */)
 {
 }
 
@@ -945,7 +1072,7 @@ PatchLevel::Iterator::Iterator(
    const PatchLevel* patch_level,
    bool begin):
    d_iterator(begin ? patch_level->d_patches.begin() :
-                      patch_level->d_patches.end()),
+              patch_level->d_patches.end()),
    d_patches(&patch_level->d_patches)
 {
 }
@@ -959,6 +1086,4 @@ PatchLevel::Iterator::Iterator(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

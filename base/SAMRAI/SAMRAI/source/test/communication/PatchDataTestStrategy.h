@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for patch data test operations.
  *
  ************************************************************************/
@@ -19,10 +19,9 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/VariableContext.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 using namespace std;
@@ -108,9 +107,7 @@ public:
    void setGridGeometry(
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geom)
    {
-#ifdef DEBUG_CHECK_ASSERTIONS
       TBOX_ASSERT(grid_geom);
-#endif
       d_grid_geometry = grid_geom;
    }
 
@@ -126,9 +123,7 @@ public:
    void setDataContext(
       boost::shared_ptr<hier::VariableContext> context)
    {
-#ifdef DEBUG_CHECK_ASSERTIONS
       TBOX_ASSERT(context);
-#endif
       d_data_context = context;
    }
 
@@ -148,13 +143,6 @@ public:
     */
    void
    readVariableInput(
-      boost::shared_ptr<tbox::Database> db);
-
-   /**
-    * Read arrays of refinement boxes from input database.
-    */
-   void
-   readRefinementInput(
       boost::shared_ptr<tbox::Database> db);
 
    /**
@@ -233,23 +221,40 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
       int level_number) = 0;
 
+   virtual void
+   setDataIds(std::list<int>& data_ids)
+   {
+      NULL_USE(data_ids);
+   }
+
+   virtual bool
+   verifyCompositeBoundaryData(
+      const hier::Patch& patch,
+      const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+      int data_id,
+      int level_number,
+      const std::vector<boost::shared_ptr<hier::PatchData> >& bdry_data)
+   {
+      NULL_USE(patch);
+      NULL_USE(hierarchy);
+      NULL_USE(data_id);
+      NULL_USE(level_number);
+      NULL_USE(bdry_data);
+      return true;
+   }
+
 protected:
    const tbox::Dimension d_dim;
    /*
-    * Arrays of information read from input file describing test variables
+    * Vectors of information read from input file describing test variables
     */
-   tbox::Array<std::string> d_variable_src_name;
-   tbox::Array<std::string> d_variable_dst_name;
-   tbox::Array<int> d_variable_depth;
-   tbox::Array<hier::IntVector> d_variable_src_ghosts;
-   tbox::Array<hier::IntVector> d_variable_dst_ghosts;
-   tbox::Array<std::string> d_variable_coarsen_op;
-   tbox::Array<std::string> d_variable_refine_op;
-
-   /*
-    * Arrays of information read from input file describing test variables
-    */
-   tbox::Array<hier::BoxContainer> d_refine_level_boxes;
+   std::vector<std::string> d_variable_src_name;
+   std::vector<std::string> d_variable_dst_name;
+   std::vector<int> d_variable_depth;
+   std::vector<hier::IntVector> d_variable_src_ghosts;
+   std::vector<hier::IntVector> d_variable_dst_ghosts;
+   std::vector<std::string> d_variable_coarsen_op;
+   std::vector<std::string> d_variable_refine_op;
 
 private:
    boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;

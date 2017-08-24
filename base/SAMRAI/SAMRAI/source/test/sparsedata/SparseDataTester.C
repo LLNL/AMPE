@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Test class for SparseData (implementation).
  *
  ************************************************************************/
@@ -76,8 +76,10 @@ SparseDataTester::testConstruction()
 
    d_sparse_data->clear();
    return passed;
+
 #else
    return true;
+
 #endif
 }
 
@@ -96,8 +98,10 @@ SparseDataTester::testCopy()
    d_sparse_data->clear();
    sample->clear();
    return success;
+
 #else
    return true;
+
 #endif
 }
 
@@ -116,8 +120,10 @@ SparseDataTester::testCopy2()
    d_sparse_data->clear();
    sample->clear();
    return success;
+
 #else
    return true;
+
 #endif
 }
 
@@ -169,8 +175,10 @@ SparseDataTester::testRemove()
    }
 
    return success;
+
 #else
    return true;
+
 #endif
 }
 
@@ -191,7 +199,7 @@ SparseDataTester::testPackStream()
 
    pdat::CellOverlap overlap(blist, trans);
 
-   int strsize = sample->getDataStreamSize(overlap);
+   size_t strsize = sample->getDataStreamSize(overlap);
 
    SparseDataType::iterator iter(sample.get());
 
@@ -206,17 +214,39 @@ SparseDataTester::testPackStream()
 
    sample2->unpackStream(upStr, overlap);
 
-   SparseDataType::iterator iter2(sample2.get());
+//   SparseDataType::iterator iter2(sample2.get());
 
    sample2->printNames(tbox::plog);
    tbox::plog << "Printing sample2" << std::endl;
    sample2->printAttributes(tbox::plog);
-   for ( ; iter != sample->end() && iter2 != sample2->end(); ++iter, ++iter2) {
+/*
+ * for ( ; iter != sample->end() && iter2 != sample2->end(); ++iter, ++iter2) {
+ *    tbox::plog << "iter1 node: " << std::endl;
+ *    tbox::plog << iter;
+ *    tbox::plog << "iter2 node: " << std::endl;
+ *    tbox::plog << iter2;
+ *    if (!iter.equals(iter2)) {
+ *       success = false;
+ *    }
+ *    tbox::plog << std::endl;
+ * }
+ */
+   for ( ; iter != sample->end(); ++iter) {
       tbox::plog << "iter1 node: " << std::endl;
       tbox::plog << iter;
-      tbox::plog << "iter2 node: " << std::endl;
-      tbox::plog << iter2;
-      if (!iter.equals(iter2)) {
+
+      bool found = false;
+      SparseDataType::iterator iter2(sample2.get());
+      for ( ; iter2 != sample2->end(); ++iter2) {
+         if (iter.equals(iter2)) {
+            found = true;
+            tbox::plog << "iter2 node: " << std::endl;
+            tbox::plog << iter2;
+            break;
+         }
+      }
+
+      if (!found) {
          success = false;
       }
       tbox::plog << std::endl;
@@ -244,17 +274,24 @@ SparseDataTester::testDatabaseInterface()
    _fillObject(sample);
    boost::shared_ptr<tbox::Database> input_db(
       new tbox::InputDatabase("input_db"));
-   sample->putUnregisteredToDatabase(input_db);
+   sample->putToRestart(input_db);
 
    boost::shared_ptr<SparseDataType> sample2(_createEmptySparseData());
-   sample2->getFromDatabase(input_db);
+   sample2->getFromRestart(input_db);
 
    SparseDataType::iterator iter1(sample.get());
-   SparseDataType::iterator iter2(sample2.get());
 
-   for ( ; iter1 != sample->end() && iter2 != sample2->end() && success;
-         ++iter1, ++iter2) {
-      if (!iter1.equals(iter2)) {
+   for ( ; iter1 != sample->end(); ++iter1) {
+      bool found = false;
+      SparseDataType::iterator iter2(sample2.get());
+      for ( ; iter2 != sample2->end(); ++iter2) {
+         if (iter1.equals(iter2)) {
+            found = true;
+            break;
+         }
+      }
+
+      if (!found) {
          success = false;
       }
    }
@@ -264,7 +301,6 @@ SparseDataTester::testDatabaseInterface()
 #endif
    return success;
 }
-
 
 void
 SparseDataTester::testTiming()
@@ -307,10 +343,7 @@ SparseDataTester::testTiming()
 #endif
 }
 
-
-
 #ifdef HAVE_BOOST_HEADERS
-
 
 bool
 SparseDataTester::_testCopy(
@@ -331,7 +364,6 @@ SparseDataTester::_testCopy(
    }
    return success;
 }
-
 
 hier::Index
 SparseDataTester::_getRandomIndex()
@@ -383,7 +415,7 @@ SparseDataTester::_createEmptySparseData()
    std::vector<std::string> ikeys;
    _getIntKeys(ikeys);
    return boost::shared_ptr<SparseDataType>(
-      new SparseDataType(box, ghosts, dkeys, ikeys));
+             new SparseDataType(box, ghosts, dkeys, ikeys));
 }
 
 void

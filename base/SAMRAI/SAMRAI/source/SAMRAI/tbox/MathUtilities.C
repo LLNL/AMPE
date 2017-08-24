@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utilities class to access common POSIX constants and math ops
  *
  ************************************************************************/
@@ -11,34 +11,36 @@
 #ifndef included_tbox_MathUtilities_C
 #define included_tbox_MathUtilities_C
 
+#include <limits>
+
 namespace SAMRAI {
 namespace tbox {
 
 /*
  *************************************************************************
  *
- * Routines to initialize arrays to signaling NaNs.
+ * Routines to initialize vectors and arrays to signaling NaNs.
  *
  *************************************************************************
  */
+
+template<class TYPE>
+void
+MathUtilities<TYPE>::setVectorToSignalingNaN(
+   std::vector<TYPE>& vector)
+{
+   for (int i = 0; i < static_cast<int>(vector.size()); ++i) {
+      vector[i] = getSignalingNaN();
+   }
+}
 
 template<class TYPE>
 void
 MathUtilities<TYPE>::setArrayToSignalingNaN(
-   Array<TYPE>& array)
-{
-   for (int i = 0; i < array.getSize(); i++) {
-      array[i] = getSignalingNaN();
-   }
-}
-
-template<class TYPE>
-void
-MathUtilities<TYPE>::setArrayToSignalingNaN(
    TYPE* array,
    int n)
 {
-   for (int i = 0; i < n; i++) {
+   for (int i = 0; i < n; ++i) {
       array[i] = getSignalingNaN();
    }
 }
@@ -46,18 +48,18 @@ MathUtilities<TYPE>::setArrayToSignalingNaN(
 /*
  *************************************************************************
  *
- * Routines to initialize arrays to max value for type.
+ * Routines to initialize vectors and arrays to max value for type.
  *
  *************************************************************************
  */
 
 template<class TYPE>
 void
-MathUtilities<TYPE>::setArrayToMax(
-   Array<TYPE>& array)
+MathUtilities<TYPE>::setVectorToMax(
+   std::vector<TYPE>& vector)
 {
-   for (int i = 0; i < array.getSize(); i++) {
-      array[i] = getMax();
+   for (int i = 0; i < static_cast<int>(vector.size()); ++i) {
+      vector[i] = getMax();
    }
 }
 
@@ -67,7 +69,7 @@ MathUtilities<TYPE>::setArrayToMax(
    TYPE* array,
    int n)
 {
-   for (int i = 0; i < n; i++) {
+   for (int i = 0; i < n; ++i) {
       array[i] = getMax();
    }
 }
@@ -75,18 +77,18 @@ MathUtilities<TYPE>::setArrayToMax(
 /*
  *************************************************************************
  *
- * Routines to initialize arrays to min value for type.
+ * Routines to initialize vectors and arrays to min value for type.
  *
  *************************************************************************
  */
 
 template<class TYPE>
 void
-MathUtilities<TYPE>::setArrayToMin(
-   Array<TYPE>& array)
+MathUtilities<TYPE>::setVectorToMin(
+   std::vector<TYPE>& vector)
 {
-   for (int i = 0; i < array.getSize(); i++) {
-      array[i] = getMin();
+   for (int i = 0; i < static_cast<int>(vector.size()); ++i) {
+      vector[i] = getMin();
    }
 }
 
@@ -96,7 +98,7 @@ MathUtilities<TYPE>::setArrayToMin(
    TYPE* array,
    int n)
 {
-   for (int i = 0; i < n; i++) {
+   for (int i = 0; i < n; ++i) {
       array[i] = getMin();
    }
 }
@@ -104,18 +106,18 @@ MathUtilities<TYPE>::setArrayToMin(
 /*
  *************************************************************************
  *
- * Routines to initialize arrays to epsilon value for type.
+ * Routines to initialize vectors and arrays to epsilon value for type.
  *
  *************************************************************************
  */
 
 template<class TYPE>
 void
-MathUtilities<TYPE>::setArrayToEpsilon(
-   Array<TYPE>& array)
+MathUtilities<TYPE>::setVectorToEpsilon(
+   std::vector<TYPE>& vector)
 {
-   for (int i = 0; i < array.getSize(); i++) {
-      array[i] = getEpsilon();
+   for (int i = 0; i < static_cast<int>(vector.size()); ++i) {
+      vector[i] = getEpsilon();
    }
 }
 
@@ -125,7 +127,7 @@ MathUtilities<TYPE>::setArrayToEpsilon(
    TYPE* array,
    int n)
 {
-   for (int i = 0; i < n; i++) {
+   for (int i = 0; i < n; ++i) {
       array[i] = getEpsilon();
    }
 }
@@ -148,28 +150,28 @@ template<class TYPE>
 TYPE
 MathUtilities<TYPE>::getSignalingNaN()
 {
-   return s_signaling_nan;
+   return std::numeric_limits<TYPE>::signaling_NaN();
 }
 
 template<class TYPE>
 TYPE
 MathUtilities<TYPE>::getMax()
 {
-   return s_max;
+   return std::numeric_limits<TYPE>::max();
 }
 
 template<class TYPE>
 TYPE
 MathUtilities<TYPE>::getMin()
 {
-   return s_min;
+   return std::numeric_limits<TYPE>::min();
 }
 
 template<class TYPE>
 TYPE
 MathUtilities<TYPE>::getEpsilon()
 {
-   return s_epsilon;
+   return std::numeric_limits<TYPE>::epsilon();
 }
 
 template<class TYPE>

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing communication of SAMRAI cell data. 
  *
  ************************************************************************/
@@ -17,7 +17,7 @@ Main {
 //
 // Log file information
 //
-    base_name  = "cell-test"
+    base_name  = "cell_coarsen.2d"
     log_all_nodes  = TRUE
 
 //
@@ -130,9 +130,6 @@ CellPatchDataTest {
 
    }
 
-   RefinementData {
-   }
-
 }
 
 CartesianGridGeometry {
@@ -162,13 +159,15 @@ PatchHierarchy {
    allow_patches_smaller_than_ghostwidth = FALSE
 }
 
-GriddingAlgorithm {
-   enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
-   // load_balance = FALSE
+BergerRigoutsos {
    efficiency_tolerance = 0.70
    combine_efficiency = 0.85
-   extend_tags_to_bdry = TRUE
+}
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   DEV_extend_to_domain_boundary = TRUE
+   // DEV_load_balance = FALSE
    check_nonrefined_tags = "IGNORE"
 }
 
@@ -176,20 +175,18 @@ GriddingAlgorithm {
 StandardTaggingAndInitializer {
    tagging_method = "REFINE_BOXES"
 
-   RefineBoxes {
-      level_0 {
-         boxes_0 = [ (0,16) , (11,19)  ],
-                   [ (12,0) , (31,19)  ],
-                   [ (32,4) , (43,5)   ],
-                   [ (16,20) , (21,27) ],
-                   [ (8,28) , (27,41)  ],
-                   [ (20,42) , (27,55) ]
-      }
-      level_1 {
-         boxes_0 = [ (36,16) , (51,27) ],
-                   [ (24,64) , (31,75) ],
-                   [ (32,64) , (43,71) ]
-      }
+   level_0 {
+      boxes = [ (0,16) , (11,19)  ],
+              [ (12,0) , (31,19)  ],
+              [ (32,4) , (43,5)   ],
+              [ (16,20) , (21,27) ],
+              [ (8,28) , (27,41)  ],
+              [ (20,42) , (27,55) ]
+   }
+   level_1 {
+      boxes = [ (36,16) , (51,27) ],
+              [ (24,64) , (31,75) ],
+              [ (32,64) , (43,71) ]
    }
 
 }
@@ -199,10 +196,10 @@ TreeLoadBalancer {
 
 
 RefineSchedule {
-   extra_debug = FALSE
+   DEV_extra_debug = FALSE
 }
 
 PersistentOverlapConnectors {
-   check_created_connectors = TRUE
-   check_accessed_connectors = TRUE
+   DEV_check_created_connectors = TRUE
+   DEV_check_accessed_connectors = TRUE
 }

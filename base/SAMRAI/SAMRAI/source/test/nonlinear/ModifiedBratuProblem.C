@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Class containing numerical routines for modified Bratu problem
  *
  ************************************************************************/
@@ -36,8 +36,8 @@ using namespace SAMRAI;
 #include <math.h>
 
 #include <float.h>
+#include <vector>
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -112,51 +112,53 @@ boost::shared_ptr<tbox::Timer> ModifiedBratuProblem::s_pc_timer;
 ModifiedBratuProblem::ModifiedBratuProblem(
    const string& object_name,
    const tbox::Dimension& dim,
+   const boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver,
    boost::shared_ptr<tbox::Database> input_db,
    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
    boost::shared_ptr<appu::VisItDataWriter> visit_writer):
-   RefinePatchStrategy(dim),
-   CoarsenPatchStrategy(dim),
+   RefinePatchStrategy(),
+   CoarsenPatchStrategy(),
    d_object_name(object_name),
    d_dim(dim),
    d_grid_geometry(grid_geometry),
    d_lambda(tbox::MathUtilities<double>::getSignalingNaN()),
    d_input_dt(tbox::MathUtilities<double>::getSignalingNaN()),
    d_solution(new pdat::CellVariable<double>(
-      dim, object_name + "solution", 1)),
+                 dim, object_name + "solution", 1)),
    d_source_term(new pdat::CellVariable<double>(
-      dim, object_name + "source_term", 1)),
+                    dim, object_name + "source_term", 1)),
    d_exponential_term(new pdat::CellVariable<double>(
-      dim, object_name + "exponential_term", 1)),
+                         dim, object_name + "exponential_term", 1)),
    d_diffusion_coef(new pdat::SideVariable<double>(
-      dim, object_name + "diffusion_coef", 1)),
+                       dim, object_name + "diffusion_coef", hier::IntVector::getOne(dim), 1)),
    d_flux(new pdat::SideVariable<double>(
-      dim, object_name + "flux", 1)),
+             dim, object_name + "flux", hier::IntVector::getOne(dim), 1)),
    d_coarse_fine_flux(new pdat::OutersideVariable<double>(
-      dim, object_name + "coarse_fine_flux", 1)),
+                         dim, object_name + "coarse_fine_flux", 1)),
    d_jacobian_a(new pdat::CellVariable<double>(
-      dim, object_name + ":jacobian_a", 1)),
+                   dim, object_name + ":jacobian_a", 1)),
    d_jacobian_b(new pdat::FaceVariable<double>(
-      dim, object_name + ":jacobian_b", 1)),
+                   dim, object_name + ":jacobian_b", 1)),
    d_jacobian_a_id(-1),
    d_jacobian_b_id(-1),
    d_precond_a(new pdat::CellVariable<double>(
-      dim, object_name + "precond_a", 1)),
+                  dim, object_name + "precond_a", 1)),
    d_precond_b(new pdat::FaceVariable<double>(
-      dim, object_name + "precond_b", 1)),
+                  dim, object_name + "precond_b", 1)),
    d_precond_a_id(-1),
    d_precond_b_id(-1),
    d_nghosts(hier::IntVector(dim, NUM_GHOSTS_U)),
    d_weight(new pdat::CellVariable<double>(
-      dim, object_name + "weight", 1)),
-   d_fill_new_level(dim),
-   d_soln_fill(dim),
+               dim, object_name + "weight", 1)),
+   d_fill_new_level(),
+   d_soln_fill(),
    d_flux_coarsen(dim),
    d_soln_coarsen(dim),
    d_scratch_soln_coarsen(dim),
    d_current_time(tbox::MathUtilities<double>::getSignalingNaN()),
    d_new_time(tbox::MathUtilities<double>::getSignalingNaN()),
    d_current_dt(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_FAC_solver(fac_solver),
    d_max_precond_its(tbox::MathUtilities<int>::getMax()),
    d_precond_tol(tbox::MathUtilities<double>::getSignalingNaN())
 {
@@ -209,11 +211,9 @@ ModifiedBratuProblem::ModifiedBratuProblem(
          d_scratch,
          hier::IntVector(d_dim, 0));
 
-
    int exp_id = variable_db->registerVariableAndContext(d_exponential_term,
          d_scratch,
          hier::IntVector(d_dim, 0));
-
 
    int diffcoef_id = variable_db->registerVariableAndContext(d_diffusion_coef,
          d_scratch,
@@ -369,9 +369,7 @@ ModifiedBratuProblem::~ModifiedBratuProblem()
 void ModifiedBratuProblem::setupSolutionVector(
    const boost::shared_ptr<solv::SAMRAIVectorReal<double> >& solution)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(solution);
-#endif
 
    d_solution_vector = solution;
 
@@ -394,20 +392,21 @@ void ModifiedBratuProblem::setVectorWeights(
 {
    for (int amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
 
       /*
        * On every level, first assign cell volume to vector weight.
        */
 
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       for (hier::PatchLevel::iterator p(level->begin());
            p != level->end(); ++p) {
          const boost::shared_ptr<hier::Patch>& patch = *p;
          boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geometry);
          const double* dx = patch_geometry->getDx();
          double cell_vol = dx[0];
          if (d_dim > tbox::Dimension(1)) {
@@ -417,8 +416,9 @@ void ModifiedBratuProblem::setVectorWeights(
             cell_vol *= dx[2];
          }
          boost::shared_ptr<pdat::CellData<double> > w(
-            patch->getPatchData(d_weight_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_weight_id)));
+         TBOX_ASSERT(w);
          w->fillAll(cell_vol);
       }
 
@@ -452,15 +452,16 @@ void ModifiedBratuProblem::setVectorWeights(
               p != level->end(); ++p) {
 
             const boost::shared_ptr<hier::Patch>& patch = *p;
-            for (hier::BoxContainer::const_iterator i(coarsened_boxes);
+            for (hier::BoxContainer::const_iterator i = coarsened_boxes.begin();
                  i != coarsened_boxes.end(); ++i) {
 
                const hier::Box& coarse_box = *i;
                hier::Box intersection = coarse_box * patch->getBox();
                if (!intersection.empty()) {
                   boost::shared_ptr<pdat::CellData<double> > w(
-                     patch->getPatchData(d_weight_id),
-                     boost::detail::dynamic_cast_tag());
+                     BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                        patch->getPatchData(d_weight_id)));
+                  TBOX_ASSERT(w);
                   w->fillAll(0.0, intersection);
 
                }  // assignment only in non-empty intersection
@@ -498,18 +499,7 @@ void ModifiedBratuProblem::setInitialGuess(
    boost::shared_ptr<hier::PatchHierarchy> hierarchy(
       d_solution_vector->getPatchHierarchy());
 
-   if (first_step) {
-
-      if (d_FAC_solver) {
-         d_FAC_solver.reset();
-      }
-
-      d_FAC_solver.reset(
-         new solv::CellPoissonFACSolver(d_dim, d_object_name + ":FAC_solver"));
-
-   }
-
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; ln--) {
+   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
       hierarchy->getPatchLevel(ln)->
       allocatePatchData(d_jacobian_data);
       hierarchy->getPatchLevel(ln)->
@@ -520,7 +510,7 @@ void ModifiedBratuProblem::setInitialGuess(
 
       for (int amr_level = 0;
            amr_level < hierarchy->getNumberOfLevels();
-           amr_level++) {
+           ++amr_level) {
 
          boost::shared_ptr<hier::PatchLevel> patch_level(
             hierarchy->getPatchLevel(amr_level));
@@ -529,11 +519,13 @@ void ModifiedBratuProblem::setInitialGuess(
             const boost::shared_ptr<hier::Patch>& patch = *p;
 
             boost::shared_ptr<pdat::CellData<double> > y_cur(
-               patch->getPatchData(d_solution, d_current),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData(d_solution, d_current)));
             boost::shared_ptr<pdat::CellData<double> > y_new(
-               patch->getPatchData(d_solution, d_new),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData(d_solution, d_new)));
+            TBOX_ASSERT(y_cur);
+            TBOX_ASSERT(y_new);
             y_new->copy(*y_cur);
 
             y_new->setTime(d_new_time);
@@ -541,8 +533,9 @@ void ModifiedBratuProblem::setInitialGuess(
             patch->getPatchData(d_solution, d_scratch)->setTime(d_new_time);
 
             boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-               patch->getPatchGeometry(),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+                  patch->getPatchGeometry()));
+            TBOX_ASSERT(patch_geometry);
             const double* dx = patch_geometry->getDx();
             const double* xlo = patch_geometry->getXLower();
             const double* xhi = patch_geometry->getXUpper();
@@ -550,22 +543,21 @@ void ModifiedBratuProblem::setInitialGuess(
             const hier::Index ilast = patch->getBox().upper();
 
             boost::shared_ptr<pdat::SideData<double> > diffusion(
-               patch->getPatchData(d_diffusion_coef, d_scratch),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                  patch->getPatchData(d_diffusion_coef, d_scratch)));
+            TBOX_ASSERT(diffusion);
 
             if (d_dim == tbox::Dimension(1)) {
                FORT_EVALDIFFUSION1D(ifirst(0), ilast(0),
                   dx, xlo, xhi,
                   diffusion->getPointer(0));
-            }
-            if (d_dim == tbox::Dimension(2)) {
+            } else if (d_dim == tbox::Dimension(2)) {
                FORT_EVALDIFFUSION2D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   dx, xlo, xhi,
                   diffusion->getPointer(0),
                   diffusion->getPointer(1));
-            }
-            if (d_dim == tbox::Dimension(3)) {
+            } else if (d_dim == tbox::Dimension(3)) {
                FORT_EVALDIFFUSION3D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   ifirst(2), ilast(2),
@@ -580,7 +572,7 @@ void ModifiedBratuProblem::setInitialGuess(
 
       for (int amr_level = 0;
            amr_level < hierarchy->getNumberOfLevels();
-           amr_level++) {
+           ++amr_level) {
 
          boost::shared_ptr<hier::PatchLevel> patch_level(
             hierarchy->getPatchLevel(amr_level));
@@ -589,11 +581,13 @@ void ModifiedBratuProblem::setInitialGuess(
             const boost::shared_ptr<hier::Patch>& patch = *p;
 
             boost::shared_ptr<pdat::CellData<double> > y_cur(
-               patch->getPatchData(d_solution, d_current),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData(d_solution, d_current)));
             boost::shared_ptr<pdat::CellData<double> > y_new(
-               patch->getPatchData(d_solution, d_new),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData(d_solution, d_new)));
+            TBOX_ASSERT(y_cur);
+            TBOX_ASSERT(y_new);
             y_new->copy(*y_cur);
 
             y_new->setTime(d_new_time);
@@ -601,8 +595,9 @@ void ModifiedBratuProblem::setInitialGuess(
             patch->getPatchData(d_solution, d_scratch)->setTime(d_new_time);
 
             boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-               patch->getPatchGeometry(),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+                  patch->getPatchGeometry()));
+            TBOX_ASSERT(patch_geometry);
             const double* dx = patch_geometry->getDx();
             const double* xlo = patch_geometry->getXLower();
             const double* xhi = patch_geometry->getXUpper();
@@ -610,21 +605,20 @@ void ModifiedBratuProblem::setInitialGuess(
             const hier::Index ilast = patch->getBox().upper();
 
             boost::shared_ptr<pdat::SideData<double> > diffusion(
-               patch->getPatchData(d_diffusion_coef, d_scratch),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                  patch->getPatchData(d_diffusion_coef, d_scratch)));
+            TBOX_ASSERT(diffusion);
             if (d_dim == tbox::Dimension(1)) {
                FORT_EVALDIFFUSION1D(ifirst(0), ilast(0),
                   dx, xlo, xhi,
                   diffusion->getPointer(0));
-            }
-            if (d_dim == tbox::Dimension(2)) {
+            } else if (d_dim == tbox::Dimension(2)) {
                FORT_EVALDIFFUSION2D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   dx, xlo, xhi,
                   diffusion->getPointer(0),
                   diffusion->getPointer(1));
-            }
-            if (d_dim == tbox::Dimension(3)) {
+            } else if (d_dim == tbox::Dimension(3)) {
                FORT_EVALDIFFUSION3D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   ifirst(2), ilast(2),
@@ -718,7 +712,7 @@ bool ModifiedBratuProblem::checkNewSolution(
       d_solution_vector->getPatchHierarchy());
    for (int amr_level = 0;
         amr_level < hierarchy->getNumberOfLevels();
-        amr_level++) {
+        ++amr_level) {
       boost::shared_ptr<hier::PatchLevel> patch_level(
          hierarchy->getPatchLevel(amr_level));
       double levelerror = 0.0;
@@ -729,17 +723,20 @@ bool ModifiedBratuProblem::checkNewSolution(
          const hier::Index ifirst = patch->getBox().lower();
          const hier::Index ilast = patch->getBox().upper();
          boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
          const double* dx = patch_geom->getDx();
          const double* xlo = patch_geom->getXLower();
          const double* xhi = patch_geom->getXUpper();
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_new),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_new)));
          boost::shared_ptr<pdat::CellData<double> > w(
-            patch->getPatchData(d_weight_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_weight_id)));
+         TBOX_ASSERT(u);
+         TBOX_ASSERT(w);
 
          if (d_dim == tbox::Dimension(1)) {
             FORT_ERROR1D(ifirst(0), ilast(0),
@@ -748,8 +745,7 @@ bool ModifiedBratuProblem::checkNewSolution(
                xlo, xhi, dx,
                new_time,
                levelerror, levell2error);
-         }
-         if (d_dim == tbox::Dimension(2)) {
+         } else if (d_dim == tbox::Dimension(2)) {
             FORT_ERROR2D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                u->getPointer(), w->getPointer(),
@@ -757,8 +753,7 @@ bool ModifiedBratuProblem::checkNewSolution(
                xlo, xhi, dx,
                new_time,
                levelerror, levell2error);
-         }
-         if (d_dim == tbox::Dimension(3)) {
+         } else if (d_dim == tbox::Dimension(3)) {
             FORT_ERROR3D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
@@ -805,7 +800,7 @@ void ModifiedBratuProblem::updateSolution(
 
    for (int amr_level = 0;
         amr_level < hierarchy->getNumberOfLevels();
-        amr_level++) {
+        ++amr_level) {
 
       boost::shared_ptr<hier::PatchLevel> patch_level(
          hierarchy->getPatchLevel(amr_level));
@@ -814,11 +809,13 @@ void ModifiedBratuProblem::updateSolution(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          boost::shared_ptr<pdat::CellData<double> > y_cur(
-            patch->getPatchData(d_solution, d_current),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_current)));
          boost::shared_ptr<pdat::CellData<double> > y_new(
-            patch->getPatchData(d_solution, d_new),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_new)));
+         TBOX_ASSERT(y_cur);
+         TBOX_ASSERT(y_new);
          y_cur->copy(*y_new);
 
          y_cur->setTime(new_time);
@@ -861,15 +858,11 @@ void ModifiedBratuProblem::initializeLevelData(
    NULL_USE(can_be_refined);
    NULL_USE(allocate_data);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(hierarchy);
    TBOX_ASSERT((level_number >= 0)
       && (level_number <= hierarchy->getFinestLevelNumber()));
-   if (old_level) {
-      TBOX_ASSERT(level_number == old_level->getLevelNumber());
-   }
+   TBOX_ASSERT(!old_level || level_number == old_level->getLevelNumber());
    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
-#endif
 
    boost::shared_ptr<hier::PatchLevel> level(
       hierarchy->getPatchLevel(level_number));
@@ -884,7 +877,7 @@ void ModifiedBratuProblem::initializeLevelData(
             old_level,
             level_number - 1,
             hierarchy,
-            NULL));
+            0));
       sched->fillData(time);
 
       if (old_level) {
@@ -908,15 +901,17 @@ void ModifiedBratuProblem::initializeLevelData(
       if (initial_time) {
 
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_current),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_current)));
+         TBOX_ASSERT(u);
          u->fillAll(0.0);
 
       }
 
       boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-         patch->getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+            patch->getPatchGeometry()));
+      TBOX_ASSERT(patch_geometry);
       const double* dx = patch_geometry->getDx();
       const double* xlo = patch_geometry->getXLower();
       const double* xhi = patch_geometry->getXUpper();
@@ -924,21 +919,20 @@ void ModifiedBratuProblem::initializeLevelData(
       const hier::Index ilast = patch->getBox().upper();
 
       boost::shared_ptr<pdat::SideData<double> > diffusion(
-         patch->getPatchData(d_diffusion_coef, d_scratch),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            patch->getPatchData(d_diffusion_coef, d_scratch)));
+      TBOX_ASSERT(diffusion);
       if (d_dim == tbox::Dimension(1)) {
          FORT_EVALDIFFUSION1D(ifirst(0), ilast(0),
             dx, xlo, xhi,
             diffusion->getPointer(0));
-      }
-      if (d_dim == tbox::Dimension(2)) {
+      } else if (d_dim == tbox::Dimension(2)) {
          FORT_EVALDIFFUSION2D(ifirst(0), ilast(0),
             ifirst(1), ilast(1),
             dx, xlo, xhi,
             diffusion->getPointer(0),
             diffusion->getPointer(1));
-      }
-      if (d_dim == tbox::Dimension(3)) {
+      } else if (d_dim == tbox::Dimension(3)) {
          FORT_EVALDIFFUSION3D(ifirst(0), ilast(0),
             ifirst(1), ilast(1),
             ifirst(2), ilast(2),
@@ -969,21 +963,20 @@ void ModifiedBratuProblem::resetHierarchyConfiguration(
    const int coarsest_level,
    const int finest_level)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(hierarchy);
    TBOX_ASSERT((coarsest_level >= 0)
       && (coarsest_level <= finest_level)
       && (finest_level <= hierarchy->getFinestLevelNumber()));
-   for (int ln0 = 0; ln0 <= finest_level; ln0++) {
+#ifdef DEBUG_CHECK_ASSERTIONS
+   for (int ln0 = 0; ln0 <= finest_level; ++ln0) {
       TBOX_ASSERT(hierarchy->getPatchLevel(ln0));
    }
 #endif
 
-   d_flux_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
-   d_soln_fill_schedule.resizeArray(hierarchy->getNumberOfLevels());
-   d_soln_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
-   d_scratch_soln_coarsen_schedule.resizeArray(
-      hierarchy->getNumberOfLevels());
+   d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
+   d_soln_fill_schedule.resize(hierarchy->getNumberOfLevels());
+   d_soln_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
+   d_scratch_soln_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    int ln;
    /*
@@ -1048,10 +1041,8 @@ void ModifiedBratuProblem::evaluateNonlinearFunction(
    solv::SundialsAbstractVector* soln,
    solv::SundialsAbstractVector* fval)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(soln == (solv::SundialsAbstractVector *)NULL));
-   TBOX_ASSERT(!(fval == (solv::SundialsAbstractVector *)NULL));
-#endif
+   TBOX_ASSERT(soln != 0);
+   TBOX_ASSERT(fval != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > x(
       solv::Sundials_SAMRAIVector::getSAMRAIVector(soln));
@@ -1075,9 +1066,8 @@ int ModifiedBratuProblem::precondSetup(
    NULL_USE(fval_scale);
    NULL_USE(vtemp1);
    NULL_USE(vtemp2);
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(soln == (solv::SundialsAbstractVector *)NULL));
-#endif
+
+   TBOX_ASSERT(soln != 0);
 
    num_feval += 0;
 
@@ -1103,9 +1093,8 @@ int ModifiedBratuProblem::precondSolve(
    NULL_USE(fval);
    NULL_USE(fval_scale);
    NULL_USE(vtemp);
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(rhs == (solv::SundialsAbstractVector *)NULL));
-#endif
+
+   TBOX_ASSERT(rhs != 0);
 
    num_feval += 0;
 
@@ -1122,11 +1111,9 @@ ModifiedBratuProblem::jacobianTimesVector(
    const bool soln_changed,
    solv::SundialsAbstractVector* soln)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(vector == (solv::SundialsAbstractVector *)NULL));
-   TBOX_ASSERT(!(product == (solv::SundialsAbstractVector *)NULL));
-   TBOX_ASSERT(!(soln == (solv::SundialsAbstractVector *)NULL));
-#endif
+   TBOX_ASSERT(vector != 0);
+   TBOX_ASSERT(product != 0);
+   TBOX_ASSERT(soln != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > v(
       solv::Sundials_SAMRAIVector::getSAMRAIVector(vector));
@@ -1153,10 +1140,8 @@ int ModifiedBratuProblem::evaluateNonlinearFunction(
    Vec xcur,
    Vec fcur)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(xcur == NULL));
-   TBOX_ASSERT(!(fcur == NULL));
-#endif
+   TBOX_ASSERT(xcur != 0);
+   TBOX_ASSERT(fcur != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > x(
       solv::PETSc_SAMRAIVectorReal<double>::getSAMRAIVector(xcur));
@@ -1171,9 +1156,7 @@ int ModifiedBratuProblem::evaluateNonlinearFunction(
 int ModifiedBratuProblem::evaluateJacobian(
    Vec x)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(x == NULL));
-#endif
+   TBOX_ASSERT(x != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > xvec(
       solv::PETSc_SAMRAIVectorReal<double>::getSAMRAIVector(x));
@@ -1187,10 +1170,8 @@ int ModifiedBratuProblem::jacobianTimesVector(
    Vec xin,
    Vec xout)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(xin != NULL);
-   TBOX_ASSERT(xout != NULL);
-#endif
+   TBOX_ASSERT(xin != 0);
+   TBOX_ASSERT(xout != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > xinvec(
       solv::PETSc_SAMRAIVectorReal<double>::getSAMRAIVector(xin));
@@ -1216,10 +1197,8 @@ int ModifiedBratuProblem::applyPreconditioner(
    Vec r,
    Vec z)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(r != NULL);
-   TBOX_ASSERT(z != NULL);
-#endif
+   TBOX_ASSERT(r != 0);
+   TBOX_ASSERT(z != 0);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > rhs(
       solv::PETSc_SAMRAIVectorReal<double>::getSAMRAIVector(r));
@@ -1256,10 +1235,8 @@ void ModifiedBratuProblem::evaluateBratuFunction(
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > x,
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > f)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(x);
    TBOX_ASSERT(f);
-#endif
 
    boost::shared_ptr<hier::PatchHierarchy> hierarchy(
       d_solution_vector->getPatchHierarchy());
@@ -1275,9 +1252,9 @@ void ModifiedBratuProblem::evaluateBratuFunction(
    int amr_level = 0;
    for (amr_level = hierarchy->getFinestLevelNumber() - 1;
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       boost::shared_ptr<hier::PatchLevel> finer_level(
          hierarchy->getPatchLevel(amr_level + 1));
       eval_average.resetSchedule(d_soln_coarsen_schedule[amr_level]);
@@ -1290,7 +1267,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
     */
 
    s_copy_timer->start();
-   RefineAlgorithm eval_fill(d_dim);
+   RefineAlgorithm eval_fill;
    eval_fill.registerRefine(d_soln_scratch_id,
       x->getComponentDescriptorIndex(0),
       d_soln_scratch_id,
@@ -1299,9 +1276,9 @@ void ModifiedBratuProblem::evaluateBratuFunction(
 
    for (amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
 
       s_copy_timer->start();
       eval_fill.resetSchedule(d_soln_fill_schedule[amr_level]);
@@ -1319,24 +1296,28 @@ void ModifiedBratuProblem::evaluateBratuFunction(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
          const double* dx = patch_geom->getDx();
          const hier::Index ifirst = patch->getBox().lower();
          const hier::Index ilast = patch->getBox().upper();
 
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > diffusion(
-            patch->getPatchData(d_diffusion_coef, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_diffusion_coef, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > flux(
-            patch->getPatchData(d_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_flux_id)));
          boost::shared_ptr<pdat::OutersideData<double> > coarse_fine_flux(
-            patch->getPatchData(d_coarse_fine_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+               patch->getPatchData(d_coarse_fine_flux_id)));
+         TBOX_ASSERT(u);
+         TBOX_ASSERT(diffusion);
+         TBOX_ASSERT(flux);
          if (d_dim == tbox::Dimension(1)) {
             FORT_EVALFACEFLUXES1D(ifirst(0), ilast(0),
                NUM_GHOSTS_U,
@@ -1344,8 +1325,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                u->getPointer(),
                dx,
                flux->getPointer(0));
-         }
-         if (d_dim == tbox::Dimension(2)) {
+         } else if (d_dim == tbox::Dimension(2)) {
             FORT_EVALFACEFLUXES2D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
@@ -1355,8 +1335,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                dx,
                flux->getPointer(0),
                flux->getPointer(1));
-         }
-         if (d_dim == tbox::Dimension(3)) {
+         } else if (d_dim == tbox::Dimension(3)) {
             FORT_EVALFACEFLUXES3D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
@@ -1370,23 +1349,21 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                flux->getPointer(1),
                flux->getPointer(2));
          }
-         const tbox::Array<hier::BoundaryBox> bdry_faces =
+         const std::vector<hier::BoundaryBox>& bdry_faces =
             patch_geom->getCodimensionBoundaries(1);
 #if 0
          if (d_dim == tbox::Dimension(1)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getNodeBoundaries();
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+         } else if (d_dim == tbox::Dimension(2)) {
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getEdgeBoundaries();
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+         } else if (d_dim == tbox::Dimension(3)) {
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getFaceBoundaries();
          }
 #endif
-         for (int i = 0; i < bdry_faces.getSize(); i++) {
+         for (int i = 0; i < static_cast<int>(bdry_faces.size()); ++i) {
 
             hier::Box bbox = bdry_faces[i].getBox();
             const hier::Index ibeg = bbox.lower();
@@ -1401,8 +1378,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                   flux->getPointer(0),
                   &bbox.lower()[0], &bbox.upper()[0],
                   face);
-            }
-            if (d_dim == tbox::Dimension(2)) {
+            } else if (d_dim == tbox::Dimension(2)) {
                FORT_EWBCFLUXFIX2D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   NUM_GHOSTS_U,
@@ -1419,8 +1395,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                   flux->getPointer(1),
                   &bbox.lower()[0], &bbox.upper()[0],
                   face);
-            }
-            if (d_dim == tbox::Dimension(3)) {
+            } else if (d_dim == tbox::Dimension(3)) {
                FORT_EWBCFLUXFIX3D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   ifirst(2), ilast(2),
@@ -1456,14 +1431,15 @@ void ModifiedBratuProblem::evaluateBratuFunction(
 
          if (amr_level > 0) {
 
-            for (int side = 0; side < 2; side++) {
+            TBOX_ASSERT(coarse_fine_flux);
+
+            for (int side = 0; side < 2; ++side) {
                if (d_dim == tbox::Dimension(1)) {
                   FORT_EWFLUXCOPY1D(ifirst(0), ilast(0),
                      flux->getPointer(0),
                      coarse_fine_flux->getPointer(0, side),
                      side);
-               }
-               if (d_dim == tbox::Dimension(2)) {
+               } else if (d_dim == tbox::Dimension(2)) {
                   FORT_EWFLUXCOPY2D(ifirst(0), ilast(0),
                      ifirst(1), ilast(1),
                      flux->getPointer(0),
@@ -1474,8 +1450,7 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                      flux->getPointer(1),
                      coarse_fine_flux->getPointer(1, side),
                      side);
-               }
-               if (d_dim == tbox::Dimension(3)) {
+               } else if (d_dim == tbox::Dimension(3)) {
                   FORT_EWFLUXCOPY3D(ifirst(0), ilast(0),
                      ifirst(1), ilast(1),
                      ifirst(2), ilast(2),
@@ -1527,8 +1502,9 @@ void ModifiedBratuProblem::evaluateBratuFunction(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
 
          const double* dx = patch_geom->getDx();
          const double* xlo = patch_geom->getXLower();
@@ -1537,69 +1513,42 @@ void ModifiedBratuProblem::evaluateBratuFunction(
          const hier::Index ilast = patch->getBox().upper();
 
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > u_cur(
-            patch->getPatchData(d_solution, d_current),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_current)));
          boost::shared_ptr<pdat::CellData<double> > source(
-            patch->getPatchData(d_source_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_source_term, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > exponential(
-            patch->getPatchData(d_exponential_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_exponential_term, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > flux(
-            patch->getPatchData(d_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_flux_id)));
          boost::shared_ptr<pdat::CellData<double> > fcur(
-            f->getComponentPatchData(0, *patch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               f->getComponentPatchData(0, *patch)));
          boost::shared_ptr<pdat::CellData<double> > xdat(
-            x->getComponentPatchData(0, *patch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               x->getComponentPatchData(0, *patch)));
+         TBOX_ASSERT(u);
+         TBOX_ASSERT(u_cur);
+         TBOX_ASSERT(source);
+         TBOX_ASSERT(exponential);
+         TBOX_ASSERT(flux);
+         TBOX_ASSERT(fcur);
+         TBOX_ASSERT(xdat);
          if (d_dim == tbox::Dimension(1)) {
             FORT_EVALEXPONENTIAL1D(ifirst(0), ilast(0),
                xdat->getPointer(),
                d_lambda,
                exponential->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            FORT_EVALEXPONENTIAL2D(ifirst(0), ilast(0),
-               ifirst(1), ilast(1),
-               xdat->getPointer(),
-               d_lambda,
-               exponential->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            FORT_EVALEXPONENTIAL3D(ifirst(0), ilast(0),
-               ifirst(1), ilast(1),
-               ifirst(2), ilast(2),
-               xdat->getPointer(),
-               d_lambda,
-               exponential->getPointer());
-         }
-         if (d_dim == tbox::Dimension(1)) {
             FORT_EVALSOURCE1D(ifirst(0), ilast(0),
                d_lambda,
                xlo, xhi, dx, d_new_time,
                source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            FORT_EVALSOURCE2D(ifirst(0), ilast(0),
-               ifirst(1), ilast(1),
-               d_lambda,
-               xlo, xhi, dx, d_new_time,
-               source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            FORT_EVALSOURCE3D(ifirst(0), ilast(0),
-               ifirst(1), ilast(1),
-               ifirst(2), ilast(2),
-               d_lambda,
-               xlo, xhi, dx, d_new_time,
-               source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(1)) {
             FORT_EVALBRATU1D(ifirst(0), ilast(0),
                NUM_GHOSTS_U,
                flux->getPointer(0),
@@ -1609,8 +1558,17 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                u->getPointer(),
                dx, d_current_dt,
                fcur->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
+         } else if (d_dim == tbox::Dimension(2)) {
+            FORT_EVALEXPONENTIAL2D(ifirst(0), ilast(0),
+               ifirst(1), ilast(1),
+               xdat->getPointer(),
+               d_lambda,
+               exponential->getPointer());
+            FORT_EVALSOURCE2D(ifirst(0), ilast(0),
+               ifirst(1), ilast(1),
+               d_lambda,
+               xlo, xhi, dx, d_new_time,
+               source->getPointer());
             FORT_EVALBRATU2D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
@@ -1622,8 +1580,19 @@ void ModifiedBratuProblem::evaluateBratuFunction(
                u->getPointer(),
                dx, d_current_dt,
                fcur->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
+         } else if (d_dim == tbox::Dimension(3)) {
+            FORT_EVALEXPONENTIAL3D(ifirst(0), ilast(0),
+               ifirst(1), ilast(1),
+               ifirst(2), ilast(2),
+               xdat->getPointer(),
+               d_lambda,
+               exponential->getPointer());
+            FORT_EVALSOURCE3D(ifirst(0), ilast(0),
+               ifirst(1), ilast(1),
+               ifirst(2), ilast(2),
+               d_lambda,
+               xlo, xhi, dx, d_new_time,
+               source->getPointer());
             FORT_EVALBRATU3D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
@@ -1655,9 +1624,9 @@ void ModifiedBratuProblem::evaluateBratuFunction(
       d_soln_coarsen_op);
    for (amr_level = hierarchy->getFinestLevelNumber() - 1;
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       boost::shared_ptr<hier::PatchLevel> finer_level(
          hierarchy->getPatchLevel(amr_level + 1));
       /*
@@ -1685,10 +1654,8 @@ ModifiedBratuProblem::jacobianTimesVector(
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > v,
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > Jv)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(v);
    TBOX_ASSERT(Jv);
-#endif
 
    /*
     * Create a coarsen algorithm to average down fine-to-coarse.
@@ -1708,10 +1675,10 @@ ModifiedBratuProblem::jacobianTimesVector(
 
    for (int amr_level = hierarchy->getFinestLevelNumber() - 1;
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
 
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       boost::shared_ptr<hier::PatchLevel> finer_level(
          hierarchy->getPatchLevel(amr_level + 1));
       jacv_average.resetSchedule(d_soln_coarsen_schedule[amr_level]);
@@ -1725,7 +1692,7 @@ ModifiedBratuProblem::jacobianTimesVector(
     * multiplied.
     */
    s_copy_timer->start();
-   RefineAlgorithm jacv_fill(d_dim);
+   RefineAlgorithm jacv_fill;
    jacv_fill.registerRefine(d_soln_scratch_id,
       v->getComponentDescriptorIndex(0),
       d_soln_scratch_id,
@@ -1753,10 +1720,10 @@ ModifiedBratuProblem::jacobianTimesVector(
 
    for (int amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
 
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
 
       /*
        * Allocate scratch space on this level used to store the fluxes.  Also,
@@ -1793,21 +1760,26 @@ ModifiedBratuProblem::jacobianTimesVector(
          const hier::Index ilast = patch->getBox().upper();
 
          boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
          const double* dx = patch_geom->getDx();
+
          boost::shared_ptr<pdat::CellData<double> > vdat(
-            patch->getPatchData(d_soln_scratch_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_soln_scratch_id)));
          boost::shared_ptr<pdat::SideData<double> > diffusion(
-            patch->getPatchData(d_diffusion_coef, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_diffusion_coef, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > flux(
-            patch->getPatchData(d_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_flux_id)));
          boost::shared_ptr<pdat::OutersideData<double> > coarse_fine_flux(
-            patch->getPatchData(d_coarse_fine_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+               patch->getPatchData(d_coarse_fine_flux_id)));
+         TBOX_ASSERT(vdat);
+         TBOX_ASSERT(diffusion);
+         TBOX_ASSERT(flux);
 
          if (d_dim == tbox::Dimension(1)) {
             FORT_EVALFACEFLUXES1D(ifirst(0), ilast(0),
@@ -1816,8 +1788,7 @@ ModifiedBratuProblem::jacobianTimesVector(
                vdat->getPointer(),
                dx,
                flux->getPointer(0));
-         }
-         if (d_dim == tbox::Dimension(2)) {
+         } else if (d_dim == tbox::Dimension(2)) {
             FORT_EVALFACEFLUXES2D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
@@ -1827,8 +1798,7 @@ ModifiedBratuProblem::jacobianTimesVector(
                dx,
                flux->getPointer(0),
                flux->getPointer(1));
-         }
-         if (d_dim == tbox::Dimension(3)) {
+         } else if (d_dim == tbox::Dimension(3)) {
             FORT_EVALFACEFLUXES3D(ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
@@ -1850,23 +1820,21 @@ ModifiedBratuProblem::jacobianTimesVector(
           * boundaries, and the fluxes at these locations have to be modified.
           */
 
-         const tbox::Array<hier::BoundaryBox> bdry_faces =
+         const std::vector<hier::BoundaryBox>& bdry_faces =
             patch_geom->getCodimensionBoundaries(1);
 #if 0
          if (d_dim == tbox::Dimension(1)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getNodeBoundaries();
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+         } else if (d_dim == tbox::Dimension(2)) {
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getEdgeBoundaries();
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            const tbox::Array<hier::BoundaryBox> bdry_faces =
+         } else if (d_dim == tbox::Dimension(3)) {
+            const std::vector<hier::BoundaryBox>& bdry_faces =
                patch_geom->getFaceBoundaries();
          }
 #endif
-         for (int i = 0; i < bdry_faces.getSize(); i++) {
+         for (int i = 0; i < static_cast<int>(bdry_faces.size()); ++i) {
 
             hier::Box bbox = bdry_faces[i].getBox();
             const hier::Index ibeg = bbox.lower();
@@ -1881,8 +1849,7 @@ ModifiedBratuProblem::jacobianTimesVector(
                   flux->getPointer(0),
                   &bbox.lower()[0], &bbox.upper()[0],
                   face);
-            }
-            if (d_dim == tbox::Dimension(2)) {
+            } else if (d_dim == tbox::Dimension(2)) {
                FORT_EWBCFLUXFIX2D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   NUM_GHOSTS_U,
@@ -1899,8 +1866,7 @@ ModifiedBratuProblem::jacobianTimesVector(
                   flux->getPointer(1),
                   &bbox.lower()[0], &bbox.upper()[0],
                   face);
-            }
-            if (d_dim == tbox::Dimension(3)) {
+            } else if (d_dim == tbox::Dimension(3)) {
                FORT_EWBCFLUXFIX3D(ifirst(0), ilast(0),
                   ifirst(1), ilast(1),
                   ifirst(2), ilast(2),
@@ -1940,14 +1906,14 @@ ModifiedBratuProblem::jacobianTimesVector(
           */
 
          if (amr_level > 0) {
-            for (int side = 0; side < 2; side++) {
+            TBOX_ASSERT(coarse_fine_flux);
+            for (int side = 0; side < 2; ++side) {
                if (d_dim == tbox::Dimension(1)) {
                   FORT_EWFLUXCOPY1D(ifirst(0), ilast(0),
                      flux->getPointer(0),
                      coarse_fine_flux->getPointer(0, side),
                      side);
-               }
-               if (d_dim == tbox::Dimension(2)) {
+               } else if (d_dim == tbox::Dimension(2)) {
                   FORT_EWFLUXCOPY2D(ifirst(0), ilast(0),
                      ifirst(1), ilast(1),
                      flux->getPointer(0),
@@ -1958,8 +1924,7 @@ ModifiedBratuProblem::jacobianTimesVector(
                      flux->getPointer(1),
                      coarse_fine_flux->getPointer(1, side),
                      side);
-               }
-               if (d_dim == tbox::Dimension(3)) {
+               } else if (d_dim == tbox::Dimension(3)) {
                   FORT_EWFLUXCOPY3D(ifirst(0), ilast(0),
                      ifirst(1), ilast(1),
                      ifirst(2), ilast(2),
@@ -2011,8 +1976,9 @@ ModifiedBratuProblem::jacobianTimesVector(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
 
          const hier::Index ifirst = patch->getBox().lower();
          const hier::Index ilast = patch->getBox().upper();
@@ -2020,27 +1986,29 @@ ModifiedBratuProblem::jacobianTimesVector(
          const double* dx = patch_geom->getDx();
 
          boost::shared_ptr<pdat::CellData<double> > jac_a(
-            patch->getPatchData(d_jacobian_a_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_jacobian_a_id)));
          boost::shared_ptr<pdat::CellData<double> > Jvdat(
-            Jv->getComponentPatchData(0, *patch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               Jv->getComponentPatchData(0, *patch)));
          boost::shared_ptr<pdat::CellData<double> > vdat(
-            patch->getPatchData(d_soln_scratch_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_soln_scratch_id)));
          boost::shared_ptr<pdat::SideData<double> > flux(
-            patch->getPatchData(d_flux_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_flux_id)));
+         TBOX_ASSERT(jac_a);
+         TBOX_ASSERT(Jvdat);
+         TBOX_ASSERT(vdat);
+         TBOX_ASSERT(flux);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT(vdat->getGhostCellWidth() ==
             hier::IntVector(d_dim, NUM_GHOSTS_U));
          TBOX_ASSERT(Jvdat->getGhostCellWidth() == hier::IntVector(d_dim, 0));
          TBOX_ASSERT(jac_a->getGhostCellWidth() == hier::IntVector(d_dim, 0));
-#endif
 
          if (d_dim == tbox::Dimension(2)) {
-            F77_FUNC(compjv2d, COMPJV2D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compjv2d, COMPJV2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
                jac_a->getPointer(),
@@ -2060,9 +2028,8 @@ ModifiedBratuProblem::jacobianTimesVector(
                dx, d_current_dt,
                Jvdat->getPointer());
 #endif
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            F77_FUNC(compjv3d, COMPJV3D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(3)) {
+            SAMRAI_F77_FUNC(compjv3d, COMPJV3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                NUM_GHOSTS_U,
@@ -2117,14 +2084,12 @@ ModifiedBratuProblem::jacobianTimesVector(
 void ModifiedBratuProblem::setupBratuPreconditioner(
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > x)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(x);
-#endif
 
    boost::shared_ptr<hier::PatchHierarchy> hierarchy(
       d_solution_vector->getPatchHierarchy());
 
-   RefineAlgorithm eval_fill(d_dim);
+   RefineAlgorithm eval_fill;
    eval_fill.registerRefine(d_soln_scratch_id,
       x->getComponentDescriptorIndex(0),
       d_soln_scratch_id,
@@ -2132,9 +2097,9 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
 
    for (int amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
 
       eval_fill.resetSchedule(d_soln_fill_schedule[amr_level]);
       d_soln_fill_schedule[amr_level]->fillData(d_new_time);
@@ -2145,8 +2110,9 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
 
          const hier::Index ifirst = patch->getBox().lower();
          const hier::Index ilast = patch->getBox().upper();
@@ -2162,39 +2128,37 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
             cell_vol *= dx[2];
          }
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > exponential(
-            patch->getPatchData(d_exponential_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_exponential_term, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > source(
-            patch->getPatchData(d_source_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_source_term, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > diffusion(
-            patch->getPatchData(d_diffusion_coef, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_diffusion_coef, d_scratch)));
 
          boost::shared_ptr<pdat::CellData<double> > a(
-            patch->getPatchData(d_precond_a_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_precond_a_id)));
          boost::shared_ptr<pdat::FaceData<double> > b(
-            patch->getPatchData(d_precond_b_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::FaceData<double>, hier::PatchData>(
+               patch->getPatchData(d_precond_b_id)));
 
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT(exponential);
          TBOX_ASSERT(source);
          TBOX_ASSERT(u);
          TBOX_ASSERT(diffusion);
          TBOX_ASSERT(a);
          TBOX_ASSERT(b);
-#endif
 
          /*
           * Compute exponential = lambda * exp(u)
           */
          if (d_dim == tbox::Dimension(1)) {
-            F77_FUNC(compexpu1d, COMPEXPU1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compexpu1d, COMPEXPU1D) (ifirst(0), ilast(0),
                NUM_GHOSTS_U,
                d_lambda,
                u->getPointer(),
@@ -2203,16 +2167,15 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (ifirst(0), ilast(0),
                NUM_GHOSTS_U,
                xlo, dx,
                d_new_time,
                d_lambda,
                u->getPointer(),
                source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            F77_FUNC(compexpu2d, COMPEXPU2D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(2)) {
+            SAMRAI_F77_FUNC(compexpu2d, COMPEXPU2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
                d_lambda,
@@ -2222,7 +2185,7 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
                xlo, dx,
@@ -2230,9 +2193,8 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
                d_lambda,
                u->getPointer(),
                source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            F77_FUNC(compexpu3d, COMPEXPU3D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(3)) {
+            SAMRAI_F77_FUNC(compexpu3d, COMPEXPU3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                NUM_GHOSTS_U,
@@ -2243,7 +2205,7 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                NUM_GHOSTS_U,
@@ -2257,24 +2219,22 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
           * Compute a = cell_vol * ( 1 - d_current_dt*(exponential + source))
           */
          if (d_dim == tbox::Dimension(1)) {
-            F77_FUNC(compfacdiag1d, COMPFACDIAG1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compfacdiag1d, COMPFACDIAG1D) (ifirst(0), ilast(0),
                d_current_dt,
                cell_vol,
                exponential->getPointer(),
                source->getPointer(),
                a->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            F77_FUNC(compfacdiag2d, COMPFACDIAG2D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(2)) {
+            SAMRAI_F77_FUNC(compfacdiag2d, COMPFACDIAG2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                d_current_dt,
                cell_vol,
                exponential->getPointer(),
                source->getPointer(),
                a->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            F77_FUNC(compfacdiag3d, COMPFACDIAG3D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(3)) {
+            SAMRAI_F77_FUNC(compfacdiag3d, COMPFACDIAG3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                d_current_dt,
@@ -2289,14 +2249,13 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
           * and multiply by cell_vol*d_current_dt.
           */
          if (d_dim == tbox::Dimension(1)) {
-            F77_FUNC(compfacoffdiag1d, COMPFACOFFDIAG1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compfacoffdiag1d, COMPFACOFFDIAG1D) (ifirst(0), ilast(0),
                d_current_dt,
                cell_vol,
                diffusion->getPointer(0),
                b->getPointer(0));
-         }
-         if (d_dim == tbox::Dimension(2)) {
-            F77_FUNC(compfacoffdiag2d, COMPFACOFFDIAG2D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(2)) {
+            SAMRAI_F77_FUNC(compfacoffdiag2d, COMPFACOFFDIAG2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                d_current_dt,
                cell_vol,
@@ -2304,9 +2263,8 @@ void ModifiedBratuProblem::setupBratuPreconditioner(
                diffusion->getPointer(1),
                b->getPointer(0),
                b->getPointer(1));
-         }
-         if (d_dim == tbox::Dimension(3)) {
-            F77_FUNC(compfacoffdiag3d, COMPFACOFFDIAG3D) (ifirst(0), ilast(0),
+         } else if (d_dim == tbox::Dimension(3)) {
+            SAMRAI_F77_FUNC(compfacoffdiag3d, COMPFACOFFDIAG3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                d_current_dt,
@@ -2355,10 +2313,8 @@ int ModifiedBratuProblem::applyBratuPreconditioner(
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > r,
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > z)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(r);
    TBOX_ASSERT(z);
-#endif
 
    int ret_val = 0;
 
@@ -2377,9 +2333,9 @@ int ModifiedBratuProblem::applyBratuPreconditioner(
 
    for (int amr_level = hierarchy->getFinestLevelNumber() - 1;
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       boost::shared_ptr<hier::PatchLevel> finer_level(
          hierarchy->getPatchLevel(amr_level + 1));
       pc_rhs_average.resetSchedule(d_soln_coarsen_schedule[amr_level]);
@@ -2415,9 +2371,9 @@ int ModifiedBratuProblem::applyBratuPreconditioner(
 
    for (int amr_level = hierarchy->getFinestLevelNumber() - 1;
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
       boost::shared_ptr<hier::PatchLevel> finer_level(
          hierarchy->getPatchLevel(amr_level + 1));
       pc_sol_average.resetSchedule(d_scratch_soln_coarsen_schedule[amr_level]);
@@ -2428,20 +2384,22 @@ int ModifiedBratuProblem::applyBratuPreconditioner(
 
    for (int amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
 
       for (hier::PatchLevel::iterator p(level->begin());
            p != level->end(); ++p) {
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          boost::shared_ptr<pdat::CellData<double> > src_data(
-            patch->getPatchData(d_soln_scratch_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_soln_scratch_id)));
          boost::shared_ptr<pdat::CellData<double> > dst_data(
-            patch->getPatchData(z_indx),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(z_indx)));
+         TBOX_ASSERT(src_data);
+         TBOX_ASSERT(dst_data);
 
          dst_data->copy(*src_data);
       }
@@ -2464,7 +2422,7 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
    boost::shared_ptr<hier::PatchHierarchy> hierarchy(
       d_solution_vector->getPatchHierarchy());
 
-   RefineAlgorithm eval_fill(d_dim);
+   RefineAlgorithm eval_fill;
    eval_fill.registerRefine(d_soln_scratch_id,
       x->getComponentDescriptorIndex(0),
       d_soln_scratch_id,
@@ -2472,9 +2430,9 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
 
    for (int amr_level = hierarchy->getFinestLevelNumber();
         amr_level >= 0;
-        amr_level--) {
+        --amr_level) {
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(
-            amr_level));
+                                                   amr_level));
 
       eval_fill.resetSchedule(d_soln_fill_schedule[amr_level]);
       d_soln_fill_schedule[amr_level]->fillData(d_new_time);
@@ -2485,8 +2443,9 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
          const boost::shared_ptr<hier::Patch>& patch = *p;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+               patch->getPatchGeometry()));
+         TBOX_ASSERT(patch_geom);
 
          const hier::Index ifirst = patch->getBox().lower();
          const hier::Index ilast = patch->getBox().upper();
@@ -2503,30 +2462,36 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
          }
 
          boost::shared_ptr<pdat::CellData<double> > u(
-            patch->getPatchData(d_solution, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_solution, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > exponential(
-            patch->getPatchData(d_exponential_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_exponential_term, d_scratch)));
          boost::shared_ptr<pdat::CellData<double> > source(
-            patch->getPatchData(d_source_term, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_source_term, d_scratch)));
          boost::shared_ptr<pdat::SideData<double> > diffusion(
-            patch->getPatchData(d_diffusion_coef, d_scratch),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData(d_diffusion_coef, d_scratch)));
 
          boost::shared_ptr<pdat::CellData<double> > a(
-            patch->getPatchData(d_jacobian_a_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_jacobian_a_id)));
          boost::shared_ptr<pdat::FaceData<double> > b(
-            patch->getPatchData(d_jacobian_b_id),
-            boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::FaceData<double>, hier::PatchData>(
+               patch->getPatchData(d_jacobian_b_id)));
+         TBOX_ASSERT(u);
+         TBOX_ASSERT(exponential);
+         TBOX_ASSERT(source);
+         TBOX_ASSERT(diffusion);
+         TBOX_ASSERT(a);
+         TBOX_ASSERT(b);
 
          if (d_dim == tbox::Dimension(1)) {
             /*
              * Compute exponential = lambda * exp(u)
              */
-            F77_FUNC(compexpu1d, COMPEXPU1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compexpu1d, COMPEXPU1D) (ifirst(0), ilast(0),
                NUM_GHOSTS_U,
                d_lambda,
                u->getPointer(),
@@ -2535,19 +2500,18 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv1d, COMPSRCDERV1D) (ifirst(0), ilast(0),
                NUM_GHOSTS_U,
                xlo, dx,
                d_new_time,
                d_lambda,
                u->getPointer(),
                source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(2)) {
+         } else if (d_dim == tbox::Dimension(2)) {
             /*
              * Compute exponential = lambda * exp(u)
              */
-            F77_FUNC(compexpu2d, COMPEXPU2D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compexpu2d, COMPEXPU2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
                d_lambda,
@@ -2557,7 +2521,7 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv2d, COMPSRCDERV2D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                NUM_GHOSTS_U,
                xlo, dx,
@@ -2565,12 +2529,11 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
                d_lambda,
                u->getPointer(),
                source->getPointer());
-         }
-         if (d_dim == tbox::Dimension(3)) {
+         } else if (d_dim == tbox::Dimension(3)) {
             /*
              * Compute exponential = lambda * exp(u)
              */
-            F77_FUNC(compexpu3d, COMPEXPU3D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compexpu3d, COMPEXPU3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                NUM_GHOSTS_U,
@@ -2581,7 +2544,7 @@ void ModifiedBratuProblem::evaluateBratuJacobian(
             /*
              * Compute source = df/du
              */
-            F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (ifirst(0), ilast(0),
+            SAMRAI_F77_FUNC(compsrcderv3d, COMPSRCDERV3D) (ifirst(0), ilast(0),
                ifirst(1), ilast(1),
                ifirst(2), ilast(2),
                NUM_GHOSTS_U,
@@ -2625,8 +2588,9 @@ void ModifiedBratuProblem::setPhysicalBoundaryConditions(
     */
 
    boost::shared_ptr<pdat::CellData<double> > u(
-      patch.getPatchData(d_soln_scratch_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_soln_scratch_id)));
+   TBOX_ASSERT(u);
 
    const hier::Index ifirst = patch.getBox().lower();
    const hier::Index ilast = patch.getBox().upper();
@@ -2636,21 +2600,20 @@ void ModifiedBratuProblem::setPhysicalBoundaryConditions(
     */
 
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
-   const tbox::Array<hier::BoundaryBox> boundary =
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
+   const std::vector<hier::BoundaryBox>& boundary =
       patch_geom->getCodimensionBoundaries(1);
 #if 0
    if (d_dim == tbox::Dimension(1)) {
-      const tbox::Array<hier::BoundaryBox> boundary =
+      const std::vector<hier::BoundaryBox>& boundary =
          patch_geom->getNodeBoundaries();
-   }
-   if (d_dim == tbox::Dimension(2)) {
-      const tbox::Array<hier::BoundaryBox> boundary =
+   } else if (d_dim == tbox::Dimension(2)) {
+      const std::vector<hier::BoundaryBox>& boundary =
          patch_geom->getEdgeBoundaries();
-   }
-   if (d_dim == tbox::Dimension(3)) {
-      const tbox::Array<hier::BoundaryBox> boundary =
+   } else if (d_dim == tbox::Dimension(3)) {
+      const std::vector<hier::BoundaryBox>& boundary =
          patch_geom->getFaceBoundaries();
    }
 #endif
@@ -2661,7 +2624,7 @@ void ModifiedBratuProblem::setPhysicalBoundaryConditions(
     */
 
    int face;
-   for (int i = 0; i < boundary.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(boundary.size()); ++i) {
       hier::Box bbox = hier::Box(boundary[i].getBox());
       face = boundary[i].getLocationIndex();
       if (d_dim == tbox::Dimension(1)) {
@@ -2670,16 +2633,14 @@ void ModifiedBratuProblem::setPhysicalBoundaryConditions(
             u->getPointer(),
             &bbox.lower()[0], &bbox.upper()[0],
             face);
-      }
-      if (d_dim == tbox::Dimension(2)) {
+      } else if (d_dim == tbox::Dimension(2)) {
          FORT_SETBC2D(ifirst(0), ilast(0),
             ifirst(1), ilast(1),
             NUM_GHOSTS_U,
             u->getPointer(),
             &bbox.lower()[0], &bbox.upper()[0],
             face);
-      }
-      if (d_dim == tbox::Dimension(3)) {
+      } else if (d_dim == tbox::Dimension(3)) {
          FORT_SETBC3D(ifirst(0), ilast(0),
             ifirst(1), ilast(1),
             ifirst(2), ilast(2),
@@ -2700,22 +2661,20 @@ void ModifiedBratuProblem::setPhysicalBoundaryConditions(
  */
 
 void ModifiedBratuProblem::getFromInput(
-   boost::shared_ptr<tbox::Database> db,
+   boost::shared_ptr<tbox::Database> input_db,
    bool is_from_restart)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(db);
-#endif
+   TBOX_ASSERT(input_db);
 
-   if (db->keyExists("lambda")) {
-      d_lambda = db->getDouble("lambda");
+   if (input_db->keyExists("lambda")) {
+      d_lambda = input_db->getDouble("lambda");
    } else {
       TBOX_ERROR(d_object_name << " -- Key data `lambda'"
                                << " missing in input.");
    }
 
-   if (db->keyExists("timestep")) {
-      d_input_dt = db->getDouble("timestep");
+   if (input_db->keyExists("timestep")) {
+      d_input_dt = input_db->getDouble("timestep");
       if (d_input_dt < 0.0) {
          TBOX_ERROR(d_object_name << " Input error: timestep < 0.0");
       }
@@ -2726,8 +2685,8 @@ void ModifiedBratuProblem::getFromInput(
       }
    }
 
-   if (db->keyExists("max_precond_its")) {
-      d_max_precond_its = db->getInteger("max_precond_its");
+   if (input_db->keyExists("max_precond_its")) {
+      d_max_precond_its = input_db->getInteger("max_precond_its");
       if (d_max_precond_its < 0) {
          TBOX_ERROR(d_object_name << " Input error: max_precond_its < 0");
       }
@@ -2738,8 +2697,8 @@ void ModifiedBratuProblem::getFromInput(
       }
    }
 
-   if (db->keyExists("precond_tol")) {
-      d_precond_tol = db->getDouble("precond_tol");
+   if (input_db->keyExists("precond_tol")) {
+      d_precond_tol = input_db->getDouble("precond_tol");
       if (d_precond_tol <= 0.0) {
          TBOX_ERROR(d_object_name << " Input error: precond_tol <= 0.0");
       }
@@ -2755,24 +2714,22 @@ void ModifiedBratuProblem::getFromInput(
 /*
  *************************************************************************
  *
- * Put class version number and data members in database.
+ * Put class version number and data members in restart database.
  *
  *************************************************************************
  */
 
-void ModifiedBratuProblem::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+void ModifiedBratuProblem::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(db);
-#endif
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("MODIFIED_BRATU_PROBLEM", MODIFIED_BRATU_PROBLEM);
+   restart_db->putInteger("MODIFIED_BRATU_PROBLEM", MODIFIED_BRATU_PROBLEM);
 
-   db->putDouble("d_lambda", d_lambda);
-   db->putDouble("d_input_dt", d_input_dt);
-   db->putInteger("d_max_precond_its", d_max_precond_its);
-   db->putDouble("d_precond_tol", d_precond_tol);
+   restart_db->putDouble("d_lambda", d_lambda);
+   restart_db->putDouble("d_input_dt", d_input_dt);
+   restart_db->putInteger("d_max_precond_its", d_max_precond_its);
+   restart_db->putDouble("d_precond_tol", d_precond_tol);
 
 }
 
@@ -2818,7 +2775,7 @@ void ModifiedBratuProblem::getLevelEdges(
    hier::BoxContainer& boxes,
    boost::shared_ptr<hier::Patch> patch,
    boost::shared_ptr<hier::PatchLevel> level,
-   const int dim,
+   const tbox::Dimension::dir_t dim,
    const int face)
 {
 
@@ -2831,11 +2788,11 @@ void ModifiedBratuProblem::getLevelEdges(
    hier::Box box = patch->getBox();
    hier::Box boundary = box;
    if (face == 0) {
-      boundary.lower(dim) = box.lower(dim) - 1;
-      boundary.upper(dim) = box.lower(dim) - 1;
+      boundary.setLower(dim, box.lower(dim) - 1);
+      boundary.setUpper(dim, box.lower(dim) - 1);
    } else {
-      boundary.lower(dim) = box.upper(dim) + 1;
-      boundary.upper(dim) = box.upper(dim) + 1;
+      boundary.setLower(dim, box.upper(dim) + 1);
+      boundary.setUpper(dim, box.upper(dim) + 1);
    }
 
    /*
@@ -2853,11 +2810,12 @@ void ModifiedBratuProblem::getLevelEdges(
     */
 
    boost::shared_ptr<geom::CartesianPatchGeometry> geometry(
-      patch->getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
-   tbox::Array<hier::BoundaryBox> boundary_boxes =
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch->getPatchGeometry()));
+   TBOX_ASSERT(geometry);
+   const std::vector<hier::BoundaryBox>& boundary_boxes =
       geometry->getCodimensionBoundaries(1);
-   for (int i = 0; i < boundary_boxes.getSize(); i++) {
+   for (int i = 0; i < static_cast<int>(boundary_boxes.size()); ++i) {
       boxes.removeIntersections(boundary_boxes[i].getBox());
    }
 
@@ -2875,35 +2833,37 @@ void ModifiedBratuProblem::correctLevelFlux(
       const boost::shared_ptr<hier::Patch>& patch = *p;
       const hier::Box box = patch->getBox();
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         patch->getPatchData(d_flux_id),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            patch->getPatchData(d_flux_id)));
+      TBOX_ASSERT(flux_data);
 
       /*
-       * For each dimension, for each side:  compute the index space that
+       * For each direction, for each side:  compute the index space that
        * describes the part of the patch that lies on the outer edge of
        * the refinement level.  Then, scale the fluxes along that edge
        * to account for the different grid spacing when CONSTANT_REFINE
        * is used to fill the ghost cells.
        */
 
-      for (int d = 0; d < d_dim.getValue(); d++) {
-         for (int s = 0; s <= 1; s++) {
+      for (tbox::Dimension::dir_t d = 0; d < d_dim.getValue(); ++d) {
+         for (int s = 0; s <= 1; ++s) {
             hier::Index delta(d_dim, 0);
             delta(d) = ((s == 0) ? 1 : -1);
             hier::Index twodelta(d_dim, 0);
             twodelta(d) = ((s == 0) ? 2 : -2);
             hier::BoxContainer level_edges;
             getLevelEdges(level_edges, patch, level, d, s);
-            for (hier::BoxContainer::iterator l(level_edges);
+            for (hier::BoxContainer::iterator l = level_edges.begin();
                  l != level_edges.end(); ++l) {
-               pdat::CellIterator icend(*l, false);
-               for (pdat::CellIterator ic(*l, true); ic != icend; ++ic) {
+               pdat::CellIterator icend(pdat::CellGeometry::end(*l));
+               for (pdat::CellIterator ic(pdat::CellGeometry::begin(*l));
+                    ic != icend; ++ic) {
                   pdat::SideIndex iside(*ic + delta, d, s);
                   (*flux_data)(iside) = 2.0 * (*flux_data)(iside) / 3.0;
                }   // cell loop
             }   // box loop
          }   // side loop
-      }   // dimension loop
+      }   // direction loop
    }   // patch loop
 }
 
@@ -2914,15 +2874,17 @@ void ModifiedBratuProblem::correctPatchFlux(
 {
    const hier::Box box = patch->getBox();
    boost::shared_ptr<pdat::SideData<double> > flux_data(
-      patch->getPatchData(d_flux_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         patch->getPatchData(d_flux_id)));
    const boost::shared_ptr<geom::CartesianPatchGeometry> geometry(
-      patch->getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch->getPatchGeometry()));
+   TBOX_ASSERT(flux_data);
+   TBOX_ASSERT(geometry);
    const double* dx = geometry->getDx();
 
-   for (int d = 0; d < d_dim.getValue(); d++) {
-      for (int s = 0; s <= 1; s++) {
+   for (tbox::Dimension::dir_t d = 0; d < d_dim.getValue(); ++d) {
+      for (int s = 0; s <= 1; ++s) {
          hier::Index delta1(d_dim, 0);
          delta1(d) = ((s == 0) ? 1 : -1);
          hier::Index delta2(d_dim, 0);
@@ -2930,10 +2892,11 @@ void ModifiedBratuProblem::correctPatchFlux(
          double factor = ((s == 0) ? 1.0 / dx[d] : -1.0 / dx[d]);
          hier::BoxContainer level_edges;
          getLevelEdges(level_edges, patch, level, d, s);
-         for (hier::BoxContainer::iterator l(level_edges);
+         for (hier::BoxContainer::iterator l = level_edges.begin();
               l != level_edges.end(); ++l) {
-            pdat::CellIterator icend(*l, false);
-            for (pdat::CellIterator ic(*l, true); ic != icend; ++ic) {
+            pdat::CellIterator icend(pdat::CellGeometry::end(*l));
+            for (pdat::CellIterator ic(pdat::CellGeometry::begin(*l));
+                 ic != icend; ++ic) {
                pdat::SideIndex iside(*ic + delta1, d, s);
                (*flux_data)(iside) = factor * (-8.0 * (*u)(*ic) / 15.0
                                                + (*u)(*ic + delta1) / 3.0
@@ -2941,7 +2904,7 @@ void ModifiedBratuProblem::correctPatchFlux(
             } // cell loop
          } // box loop
       } // side loop
-   } // dimension loop
+   } // direction loop
 }
 
 #endif

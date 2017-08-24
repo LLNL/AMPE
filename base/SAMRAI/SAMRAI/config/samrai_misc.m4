@@ -11,12 +11,12 @@ AC_DEFUN_ONCE([SAMRAI_MISC],[
 
 AC_ARG_ENABLE([box_counting],
 [AS_HELP_STRING([--enable-box_counting],
-   [Turns on Box and MappedBox telemetry.])],
+   [Turns on Box and telemetry.])],
    [
       if test "x$enableval" = "xyes"; then
-         CPPFLAGS_EXTRA="-DBOX_TELEMETRY $CPPFLAGS_EXTRA"
+         AC_DEFINE(BOX_TELEMETRY,1,Enable Box counting)
       elif test "x$enableval" = "x"; then
-         CPPFLAGS_EXTRA="-DBOX_TELEMETRY $CPPFLAGS_EXTRA"
+         AC_DEFINE(BOX_TELEMETRY,1,Enable Box counting)
       fi
    ],)
 ]

@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Refine algorithm for data transfer between AMR levels
  *
  ************************************************************************/
-
-#ifndef included_xfer_RefineAlgorithm_C
-#define included_xfer_RefineAlgorithm_C
-
 #include "SAMRAI/xfer/RefineAlgorithm.h"
 
 #include "SAMRAI/xfer/BoxGeometryVariableFillPattern.h"
@@ -22,7 +18,7 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace xfer {
@@ -35,9 +31,7 @@ namespace xfer {
  *************************************************************************
  */
 
-RefineAlgorithm::RefineAlgorithm(
-   const tbox::Dimension& dim):
-   d_dim(dim),
+RefineAlgorithm::RefineAlgorithm():
    d_refine_classes(boost::make_shared<RefineClasses>()),
    d_schedule_created(false)
 {
@@ -72,12 +66,6 @@ RefineAlgorithm::registerRefine(
    const boost::shared_ptr<hier::RefineOperator>& oprefine,
    const boost::shared_ptr<VariableFillPattern>& var_fill_pattern)
 {
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   if (oprefine) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *oprefine);
-   }
-#endif
-
    if (d_schedule_created) {
       TBOX_ERROR("RefineAlgorithm::registerRefine error..."
          << "\nCannot call registerRefine with a RefineAlgorithm"
@@ -176,12 +164,6 @@ RefineAlgorithm::createSchedule(
    const boost::shared_ptr<RefineTransactionFactory>& transaction_factory)
 {
    TBOX_ASSERT(level);
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *level);
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
-   }
-#endif
 
    d_schedule_created = true;
 
@@ -196,12 +178,12 @@ RefineAlgorithm::createSchedule(
       boost::make_shared<PatchLevelFullFillPattern>());
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      level,
-      level,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy);
+             fill_pattern,
+             level,
+             level,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy);
 }
 
 /*
@@ -222,12 +204,6 @@ RefineAlgorithm::createSchedule(
    const boost::shared_ptr<RefineTransactionFactory>& transaction_factory)
 {
    TBOX_ASSERT(level);
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *level);
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
-   }
-#endif
 
    d_schedule_created = true;
 
@@ -239,12 +215,12 @@ RefineAlgorithm::createSchedule(
    }
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      level,
-      level,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy);
+             fill_pattern,
+             level,
+             level,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy);
 }
 
 /*
@@ -269,12 +245,7 @@ RefineAlgorithm::createSchedule(
 
    TBOX_ASSERT(dst_level);
    TBOX_ASSERT(src_level);
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, *dst_level, *src_level);
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
-   }
-#endif
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *src_level);
 
    d_schedule_created = true;
 
@@ -289,13 +260,13 @@ RefineAlgorithm::createSchedule(
       boost::make_shared<PatchLevelFullFillPattern>());
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      dst_level,
-      src_level,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      use_time_refinement);
+             fill_pattern,
+             dst_level,
+             src_level,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             use_time_refinement);
 }
 
 /*
@@ -319,12 +290,7 @@ RefineAlgorithm::createSchedule(
 {
    TBOX_ASSERT(dst_level);
    TBOX_ASSERT(src_level);
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*this, *dst_level, *src_level);
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
-   }
-#endif
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *src_level);
 
    d_schedule_created = true;
 
@@ -336,13 +302,13 @@ RefineAlgorithm::createSchedule(
    }
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      dst_level,
-      src_level,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      use_time_refinement);
+             fill_pattern,
+             dst_level,
+             src_level,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             use_time_refinement);
 }
 
 /*
@@ -365,16 +331,12 @@ RefineAlgorithm::createSchedule(
    const boost::shared_ptr<RefineTransactionFactory>& transaction_factory)
 {
 
-   // Do we all agree on the destination mapped_box_level?
+   // Do we all agree on the destination box_level?
    TBOX_ASSERT(level);
    TBOX_ASSERT((next_coarser_level == -1) || hierarchy);
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *level);
    if (hierarchy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *hierarchy);
-   }
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*level, *hierarchy);
    }
 #endif
 
@@ -391,15 +353,15 @@ RefineAlgorithm::createSchedule(
       boost::make_shared<PatchLevelFullFillPattern>());
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      level,
-      level,
-      next_coarser_level,
-      hierarchy,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      use_time_refinement);
+             fill_pattern,
+             level,
+             level,
+             next_coarser_level,
+             hierarchy,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             use_time_refinement);
 }
 
 /*
@@ -423,16 +385,12 @@ RefineAlgorithm::createSchedule(
    const boost::shared_ptr<RefineTransactionFactory>& transaction_factory)
 {
 
-   // Do we all agree on the destination mapped_box_level?
+   // Do we all agree on the destination box_level?
    TBOX_ASSERT(level);
    TBOX_ASSERT((next_coarser_level == -1) || hierarchy);
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *level);
    if (hierarchy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *hierarchy);
-   }
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*level, *hierarchy);
    }
 #endif
 
@@ -446,15 +404,15 @@ RefineAlgorithm::createSchedule(
    }
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      level,
-      level,
-      next_coarser_level,
-      hierarchy,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      use_time_refinement);
+             fill_pattern,
+             level,
+             level,
+             next_coarser_level,
+             hierarchy,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             use_time_refinement);
 }
 
 /*
@@ -482,19 +440,15 @@ RefineAlgorithm::createSchedule(
    TBOX_ASSERT(dst_level);
    TBOX_ASSERT((next_coarser_level == -1) || hierarchy);
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *dst_level);
    if (src_level) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *src_level);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *src_level);
    }
    if (hierarchy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *hierarchy);
-   }
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *hierarchy);
    }
 #endif
 
-   // Do we all agree on the destination mapped_box_level?
+   // Do we all agree on the destination box_level?
    if (src_level) {
       if (next_coarser_level >= 0) {
       }
@@ -513,15 +467,15 @@ RefineAlgorithm::createSchedule(
       boost::make_shared<PatchLevelFullFillPattern>());
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      dst_level,
-      src_level,
-      next_coarser_level,
-      hierarchy,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      false);
+             fill_pattern,
+             dst_level,
+             src_level,
+             next_coarser_level,
+             hierarchy,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             false);
 }
 
 /*
@@ -550,19 +504,15 @@ RefineAlgorithm::createSchedule(
    TBOX_ASSERT(dst_level);
    TBOX_ASSERT((next_coarser_level == -1) || hierarchy);
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *dst_level);
    if (src_level) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *src_level);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *src_level);
    }
    if (hierarchy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *hierarchy);
-   }
-   if (patch_strategy) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *patch_strategy);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*dst_level, *hierarchy);
    }
 #endif
 
-   // Do we all agree on the destination mapped_box_level?
+   // Do we all agree on the destination box_level?
    if (src_level) {
       if (next_coarser_level >= 0) {
       }
@@ -578,15 +528,15 @@ RefineAlgorithm::createSchedule(
    }
 
    return boost::make_shared<RefineSchedule>(
-      fill_pattern,
-      dst_level,
-      src_level,
-      next_coarser_level,
-      hierarchy,
-      d_refine_classes,
-      trans_factory,
-      patch_strategy,
-      false);
+             fill_pattern,
+             dst_level,
+             src_level,
+             next_coarser_level,
+             hierarchy,
+             d_refine_classes,
+             trans_factory,
+             patch_strategy,
+             false);
 }
 
 /*
@@ -613,7 +563,7 @@ void RefineAlgorithm::resetSchedule(
       schedule->reset(d_refine_classes);
    } else {
       TBOX_ERROR("RefineAlgorithm::resetSchedule error..."
-         << "\n Items in xfer::RefineClasses object passed to reset"
+         << "\n Items in RefineClasses object passed to reset"
          << "\n routine does not match that in existing schedule."
          << std::endl);
    }
@@ -638,4 +588,3 @@ RefineAlgorithm::printClassData(
 
 }
 }
-#endif

@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for testing the input database driver 
 ##
 #########################################################################
@@ -14,6 +14,7 @@ SUBDIR        = source/test/inputdb
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 default: check	
 
@@ -22,32 +23,51 @@ include $(OBJECT)/config/Makefile.config
 CPPFLAGS_EXTRA= -DNDIM=2  -DTESTING=1
 
 main:	inputdb.o $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) inputdb.o $(LIBSAMRAI) $(LDLIBS) -o $@
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) inputdb.o $(LIBSAMRAI) $(LDLIBS) -o $@
 
 NUM_TESTS = 1
 
 TEST_NPROCS = @TEST_NPROCS@ 
+QUOTE = \"
 
 checkcompile: main
 
-check:		checkcompile
-		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-			./main inputdb.input
+check:	checkcompile
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"inputdb\" name=$(QUOTE)$$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./main test_inputs/inputdb.input | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 check2d:
-		$(MAKE) check
+	$(MAKE) check
 
 check3d:
-		$(MAKE) check
+	$(MAKE) check
 
 checktest:
-		rm -f makecheck.logfile
-		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-		rm -f makecheck.logfile
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean:
-		$(SAMCLEAN)
-		$(RM) main
+examples:
+
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
 
 include $(SRCDIR)/Makefile.depend

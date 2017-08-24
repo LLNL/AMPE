@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated array data looping operations supporting patch data types
  *
  ************************************************************************/
@@ -34,17 +34,14 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
    const ArrayData<TYPE>& src,
    const hier::Box& opbox,
    const hier::IntVector& src_shift,
-   int dst_start_depth,
-   int src_start_depth,
-   int num_depth,
+   unsigned int dst_start_depth,
+   unsigned int src_start_depth,
+   unsigned int num_depth,
    const OP& op)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS4(dst, src, opbox, src_shift);
-   TBOX_ASSERT(num_depth >= 0);
-   TBOX_ASSERT((0 <= dst_start_depth) &&
-      (dst_start_depth + num_depth <= dst.getDepth()));
-   TBOX_ASSERT((0 <= src_start_depth) &&
-      (src_start_depth + num_depth <= src.getDepth()));
+   TBOX_ASSERT_OBJDIM_EQUALITY4(dst, src, opbox, src_shift);
+   TBOX_ASSERT((dst_start_depth + num_depth <= dst.getDepth()));
+   TBOX_ASSERT((src_start_depth + num_depth <= src.getDepth()));
 
    const tbox::Dimension& dim(dst.getDim());
 
@@ -54,19 +51,19 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
    const hier::Box& dst_box(dst.getBox());
    const hier::Box& src_box(src.getBox());
 
-   int box_w[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   int dst_w[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   int src_w[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   int dim_counter[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   for (int i = 0; i < dim.getValue(); i++) {
+   int box_w[SAMRAI::MAX_DIM_VAL];
+   int dst_w[SAMRAI::MAX_DIM_VAL];
+   int src_w[SAMRAI::MAX_DIM_VAL];
+   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dst_w[i] = dst_box.numberCells(i);
       src_w[i] = src_box.numberCells(i);
       dim_counter[i] = 0;
    }
 
-   const int dst_offset = dst.getOffset();
-   const int src_offset = src.getOffset();
+   const size_t dst_offset = dst.getOffset();
+   const size_t src_offset = src.getOffset();
 
    /*
     * Data on the opbox can be decomposed into a set of
@@ -78,25 +75,25 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
     * data items in each array section to be copied.
     */
 
-   const int num_d0_blocks = opbox.size() / box_w[0];
+   const int num_d0_blocks = static_cast<int>(opbox.size() / box_w[0]);
 
-   int dst_begin = dst_box.offset(opbox.lower())
+   size_t dst_begin = dst_box.offset(opbox.lower())
       + dst_start_depth * dst_offset;
-   int src_begin = src_box.offset(opbox.lower() - src_shift)
+   size_t src_begin = src_box.offset(opbox.lower() - src_shift)
       + src_start_depth * src_offset;
 
    /*
     * Loop over the depth sections of the data arrays.
     */
 
-   for (int d = 0; d < num_depth; ++d) {
+   for (unsigned int d = 0; d < num_depth; ++d) {
 
-      int dst_counter = dst_begin;
-      int src_counter = src_begin;
+      size_t dst_counter = dst_begin;
+      size_t src_counter = src_begin;
 
-      int dst_b[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-      int src_b[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-      for (int nd = 0; nd < dim.getValue(); nd++) {
+      size_t dst_b[SAMRAI::MAX_DIM_VAL];
+      size_t src_b[SAMRAI::MAX_DIM_VAL];
+      for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
          dst_b[nd] = dst_counter;
          src_b[nd] = src_counter;
       }
@@ -105,9 +102,9 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
        * Loop over each contiguous block of data.
        */
 
-      for (int nb = 0; nb < num_d0_blocks; nb++) {
+      for (int nb = 0; nb < num_d0_blocks; ++nb) {
 
-         for (int i0 = 0; i0 < box_w[0]; i0++) {
+         for (int i0 = 0; i0 < box_w[0]; ++i0) {
             op(dst_ptr[dst_counter + i0], src_ptr[src_counter + i0]);
          }
          int dim_jump = 0;
@@ -117,7 +114,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
           * beginning array index for the next block.
           */
 
-         for (int j = 1; j < dim.getValue(); j++) {
+         for (tbox::Dimension::dir_t j = 1; j < dim.getValue(); ++j) {
             if (dim_counter[j] < box_w[j] - 1) {
                ++dim_counter[j];
                dim_jump = j;
@@ -131,14 +128,14 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataOperationOnBox(
 
             int dst_step = 1;
             int src_step = 1;
-            for (int k = 0; k < dim_jump; k++) {
+            for (int k = 0; k < dim_jump; ++k) {
                dst_step *= dst_w[k];
                src_step *= src_w[k];
             }
             dst_counter = dst_b[dim_jump - 1] + dst_step;
             src_counter = src_b[dim_jump - 1] + src_step;
 
-            for (int m = 0; m < dim_jump; m++) {
+            for (int m = 0; m < dim_jump; ++m) {
                dst_b[m] = dst_counter;
                src_b[m] = src_counter;
             }
@@ -177,8 +174,8 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
    bool src_is_buffer,
    const OP& op)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(arraydata, opbox);
-   TBOX_ASSERT(buffer != (const TYPE *)NULL);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(arraydata, opbox);
+   TBOX_ASSERT(buffer != 0);
    TBOX_ASSERT(opbox.isSpatiallyEqual((opbox * arraydata.getBox())));
 
    const tbox::Dimension& dim(arraydata.getDim());
@@ -190,19 +187,19 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
       (src_is_buffer ? buffer : arraydata.getPointer());
 
    const hier::Box& array_d_box(arraydata.getBox());
-   const int array_d_depth = arraydata.getDepth();
+   const unsigned int array_d_depth = arraydata.getDepth();
 
-   int box_w[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   int dat_w[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   int dim_counter[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   for (int i = 0; i < dim.getValue(); i++) {
+   int box_w[SAMRAI::MAX_DIM_VAL];
+   int dat_w[SAMRAI::MAX_DIM_VAL];
+   int dim_counter[SAMRAI::MAX_DIM_VAL];
+   for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); ++i) {
       box_w[i] = opbox.numberCells(i);
       dat_w[i] = array_d_box.numberCells(i);
       dim_counter[i] = 0;
    }
 
-   const int dat_offset = arraydata.getOffset();
-   const int buf_offset = box_w[0];
+   const size_t dat_offset = arraydata.getOffset();
+   const size_t buf_offset = box_w[0];
 
    /*
     * Data on the opbox can be decomposed into a set of
@@ -214,35 +211,35 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
     * data items in each array section to be copied.
     */
 
-   const int num_d0_blocks = opbox.size() / box_w[0];
+   const int num_d0_blocks = static_cast<int>(opbox.size() / box_w[0]);
 
-   int dat_begin = array_d_box.offset(opbox.lower());
-   int buf_begin = 0;
+   size_t dat_begin = array_d_box.offset(opbox.lower());
+   size_t buf_begin = 0;
 
    /*
     * Loop over the depth sections of the data arrays.
     */
 
-   for (int d = 0; d < array_d_depth; d++) {
+   for (unsigned int d = 0; d < array_d_depth; ++d) {
 
-      int dat_counter = dat_begin;
-      int buf_counter = buf_begin;
+      size_t dat_counter = dat_begin;
+      size_t buf_counter = buf_begin;
 
-      int& dst_counter = (src_is_buffer ? dat_counter : buf_counter);
-      int& src_counter = (src_is_buffer ? buf_counter : dat_counter);
+      size_t& dst_counter = (src_is_buffer ? dat_counter : buf_counter);
+      size_t& src_counter = (src_is_buffer ? buf_counter : dat_counter);
 
-      int dat_b[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-      for (int nd = 0; nd < dim.getValue(); nd++) {
-         dat_b[nd] = dat_counter;
+      int dat_b[SAMRAI::MAX_DIM_VAL];
+      for (tbox::Dimension::dir_t nd = 0; nd < dim.getValue(); ++nd) {
+         dat_b[nd] = static_cast<int>(dat_counter);
       }
 
       /*
        * Loop over each contiguous block of data.
        */
 
-      for (int nb = 0; nb < num_d0_blocks; nb++) {
+      for (int nb = 0; nb < num_d0_blocks; ++nb) {
 
-         for (int i0 = 0; i0 < box_w[0]; i0++) {
+         for (int i0 = 0; i0 < box_w[0]; ++i0) {
             op(dst_ptr[dst_counter + i0], src_ptr[src_counter + i0]);
          }
          int dim_jump = 0;
@@ -252,7 +249,7 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
           * beginning array index for the next block.
           */
 
-         for (int j = 1; j < dim.getValue(); j++) {
+         for (int j = 1; j < dim.getValue(); ++j) {
             if (dim_counter[j] < box_w[j] - 1) {
                ++dim_counter[j];
                dim_jump = j;
@@ -265,13 +262,13 @@ void ArrayDataOperationUtilities<TYPE, OP>::doArrayDataBufferOperationOnBox(
          if (dim_jump > 0) {
 
             int dat_step = 1;
-            for (int k = 0; k < dim_jump; k++) {
+            for (int k = 0; k < dim_jump; ++k) {
                dat_step *= dat_w[k];
             }
             dat_counter = dat_b[dim_jump - 1] + dat_step;
 
-            for (int m = 0; m < dim_jump; m++) {
-               dat_b[m] = dat_counter;
+            for (int m = 0; m < dim_jump; ++m) {
+               dat_b[m] = static_cast<int>(dat_counter);
             }
 
          }  // if dim_jump > 0

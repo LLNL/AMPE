@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   CVODE example
 ##
 #########################################################################
@@ -14,14 +14,27 @@ SAMRAI.  The files included in this directory are as follows:
           main.C               -  example main program
           CVODEModel.[Ch]      -  example user routines that supply interface
                                   methods to CVODE operations in the library 
-          cvode-[2d,3d].input  -  2d and 3d input files
+          cvode-dir.[2d,3d].input  -  2d and 3d Dirichlet input files
+          cvode-neu.[2d,3d].input  -  2d and 3d Neumann input files
  
-COMPILE and RUN
----------------
-Compile:  make     
-Run:      main2d sundials-2d-[dir,neu].input                        
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
 
-"dir" indicates dirichlet BCs, while "neu" indicates neumann BCs.
+   Execution:
+      For one of the following input files:
+         "dir" indicates Dirichlet BCs, while "neu" indicates Neumann BCs.
+         test_inputs/cvode_dir.2d.input
+         test_inputs/cvode_neu.2d.input
+         test_inputs/cvode_dir.3d.input
+         test_inputs/cvode_neu.3d.input
+      serial:
+         ./main <input file>
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main <input file>
  
 
 INPUTS:
@@ -57,39 +70,3 @@ CVODEModel {
    Diffusion_Coefficient = .1
    Boundary_value = 0.0
 }
-
-The "Geometry" section describes the spatial layout of the problem.
-It specifies the domain boxes, which specify the index space, and
-the low and high spatial dimensions of the domain.  
-An example input might look like:
-
-Geometry {
-   domain_boxes  = [ (0,0) , (9,9) ]
-   x_lo          = 0.e0 , 0.e0  // lower end of computational domain.
-   x_up          = 1.e1 , 1.e1  // upper end of computational domain.
-}
-
-The "GriddingAlgorithm" section describes parameters used for 
-adaptive gridding.  It specifies the number of levels, the ratios
-between coarse and fine levels, and the largest and smallest allowed
-patch size.  An example input might look like:
-
-GriddingAlgorithm {
-   max_levels              = 1 // Maximum number of levels in hierarchy.
-
-   ratio_to_coarser {         // vector ratio to next coarser level
-      level_1               = 2 , 2
-      level_2               = 2 , 2
-   }
-
-   largest_patch_size {
-      level_0 = 10,10
-      // all finer levels will use same values as level_0...
-   }
-
-   smallest_patch_size {
-      level_0 = 1,1
-      // all finer levels will use same values as level_0...
-   }
-
-   efficiency_tolerance     = 0.70e0   // min % of tag cells in new patch level   combine_efficiency       = 0.85e0   // chop box if sum of volumes of smaller                                       // boxes < efficiency * vol of large box}

@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Implicit time integration manager class for nonlinear problems.
  *
  ************************************************************************/
-
-#ifndef included_algs_ImplicitIntegrator_C
-#define included_algs_ImplicitIntegrator_C
-
 #include "SAMRAI/algs/ImplicitIntegrator.h"
 
 #include <stdio.h>
@@ -44,30 +40,24 @@ ImplicitIntegrator::ImplicitIntegrator(
    const boost::shared_ptr<tbox::Database>& input_db,
    ImplicitEquationStrategy* implicit_equations,
    solv::NonlinearSolverStrategy* nonlinear_solver,
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy)
+   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy):
+   d_object_name(object_name),
+   d_implicit_equations(implicit_equations),
+   d_nonlinear_solver(nonlinear_solver),
+   d_patch_hierarchy(hierarchy),
+   d_finest_level(-1),
+   d_initial_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_final_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_current_time(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_current_dt(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_old_dt(tbox::MathUtilities<double>::getSignalingNaN()),
+   d_integrator_step(0),
+   d_max_integrator_steps(0)
 {
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(implicit_equations != ((ImplicitEquationStrategy *)NULL));
-   TBOX_ASSERT(nonlinear_solver != ((solv::NonlinearSolverStrategy *)NULL));
+   TBOX_ASSERT(implicit_equations != 0);
+   TBOX_ASSERT(nonlinear_solver != 0);
    TBOX_ASSERT(hierarchy);
-
-   d_object_name = object_name;
-   d_implicit_equations = implicit_equations;
-   d_nonlinear_solver = nonlinear_solver;
-   d_patch_hierarchy = hierarchy;
-
-   d_solution_vector.reset();
-
-   d_initial_time =
-      d_final_time =
-         d_current_time =
-            d_current_dt =
-               d_old_dt = tbox::MathUtilities<double>::getSignalingNaN();
-
-   d_integrator_step = 0;
-   d_max_integrator_steps = 0;
-
-   d_finest_level = -1;
 
    /*
     * Initialize object with data read from input and restart databases.
@@ -111,13 +101,13 @@ ImplicitIntegrator::initialize()
 
    d_solution_vector.reset(
       new solv::SAMRAIVectorReal<double>("solution_vector",
-                                         d_patch_hierarchy,
-                                         0, d_finest_level));
+         d_patch_hierarchy,
+         0, d_finest_level));
 
    d_implicit_equations->setupSolutionVector(d_solution_vector);
 
    if (d_solution_vector->getNumberOfComponents() == 0) {
-      TBOX_ERROR("Solution vector has zero components.");
+      TBOX_ERROR("Solution vector has zero components." << std::endl);
    }
 
    d_nonlinear_solver->initialize(d_solution_vector);
@@ -255,7 +245,7 @@ ImplicitIntegrator::updateSolution()
 {
    d_current_time += d_current_dt;
    d_old_dt = d_current_dt;
-   d_integrator_step++;
+   ++d_integrator_step;
 
    d_implicit_equations->updateSolution(d_current_time);
 
@@ -274,98 +264,89 @@ ImplicitIntegrator::updateSolution()
 
 void
 ImplicitIntegrator::getFromInput(
-   const boost::shared_ptr<tbox::Database>& db,
+   const boost::shared_ptr<tbox::Database>& input_db,
    bool is_from_restart)
 {
-   TBOX_ASSERT(is_from_restart || db);
-
-   if (is_from_restart) {
-
-      if (db) {
-         if (db->keyExists("final_time")) {
-            d_final_time = db->getDouble("final_time");
-            if (d_final_time < d_initial_time) {
-               TBOX_ERROR(d_object_name << " -- Error in input data "
-                                        << "final_time < initial_time.");
-            }
-         }
-
-         if (db->keyExists("max_integrator_steps")) {
-            d_max_integrator_steps = db->getInteger("max_integrator_steps");
-            if (d_max_integrator_steps < 0) {
-               TBOX_ERROR(d_object_name << " -- Error in input data "
-                                        << "max_integrator_steps < 0.");
-            } else {
-               if (d_max_integrator_steps < d_integrator_step) {
-                  TBOX_ERROR(
-                     d_object_name << " -- Error in input data "
-                                   << "max_integrator_steps < current integrator step.");
-               }
-            }
-
-         }
-      }
-
-   } else {
-
-      if (db->keyExists("initial_time")) {
-         d_initial_time = db->getDouble("initial_time");
-      } else {
-         TBOX_ERROR(d_object_name << " -- Key data `initial_time'"
-                                  << " missing in input.");
-      }
-
-      if (db->keyExists("final_time")) {
-         d_final_time = db->getDouble("final_time");
-         if (d_final_time < d_initial_time) {
-            TBOX_ERROR(d_object_name << " -- Error in input data "
-                                     << "final_time < initial_time.");
-         }
-      } else {
-         TBOX_ERROR(d_object_name << " -- Key data `final_time'"
-                                  << " missing in input.");
-      }
-
-      if (db->keyExists("max_integrator_steps")) {
-         d_max_integrator_steps = db->getInteger("max_integrator_steps");
-         if (d_max_integrator_steps < 0) {
-            TBOX_ERROR(d_object_name << " -- Error in input data "
-                                     << "max_integrator_steps < 0.");
-         }
-      } else {
-         TBOX_ERROR(d_object_name << " -- Key data `max_integrator_steps'"
-                                  << " missing in input.");
-      }
-
+   if (!is_from_restart && !input_db) {
+      TBOX_ERROR(": ImplicitIntegrator::getFromInput()\n"
+         << "no input database supplied" << std::endl);
    }
 
+   if (!is_from_restart) {
+
+      d_initial_time = input_db->getDouble("initial_time");
+      if (!(d_initial_time >= 0)) {
+         INPUT_RANGE_ERROR("initial_time");
+      }
+
+      d_final_time = input_db->getDouble("final_time");
+      if (!(d_final_time >= d_initial_time)) {
+         INPUT_RANGE_ERROR("final_time");
+      }
+
+      d_max_integrator_steps = input_db->getInteger("max_integrator_steps");
+      if (!(d_max_integrator_steps >= 0)) {
+         INPUT_RANGE_ERROR("max_integrator_steps");
+      }
+
+   } else if (input_db) {
+      bool read_on_restart =
+         input_db->getBoolWithDefault("read_on_restart", false);
+
+      if (read_on_restart) {
+         if (input_db->keyExists("initial_time")) {
+            double tmp = input_db->getDouble("initial_time");
+            if (tmp != d_initial_time) {
+               TBOX_WARNING("ImplicitIntegrator::getFromInput warning...\n"
+                  << "initial_time may not be changed on restart."
+                  << std::endl);
+            }
+         }
+
+         d_final_time =
+            input_db->getDoubleWithDefault("final_time", d_final_time);
+         if (d_final_time < d_initial_time) {
+            TBOX_ERROR("ImplicitIntegrator::getFromInput() error...\n"
+               << "final_time must be >= initial_time " << std::endl);
+         }
+
+         d_max_integrator_steps =
+            input_db->getIntegerWithDefault("max_integrator_steps",
+               d_max_integrator_steps);
+         if (d_max_integrator_steps < 0) {
+            TBOX_ERROR("ImplicitIntegrator::getFromInput() error...\n"
+               << "max_integrator_steps must be >= 0." << std::endl);
+         } else if (d_max_integrator_steps < d_integrator_step) {
+            TBOX_ERROR("ImplicitIntegrator::getFromInput() error...\n"
+               << "max_integrator_steps must be >= current integrator step."
+               << std::endl);
+         }
+      }
+   }
 }
 
 /*
  *************************************************************************
  *
- * Write out class version number and data members to database.
+ * Write out class version number and data members to restart database.
  *
  *************************************************************************
  */
 
 void
-ImplicitIntegrator::putToDatabase(
-   const boost::shared_ptr<tbox::Database>& db) const
+ImplicitIntegrator::putToRestart(
+   const boost::shared_ptr<tbox::Database>& restart_db) const
 {
-   TBOX_ASSERT(db);
+   TBOX_ASSERT(restart_db);
 
-   db->putInteger("ALGS_IMPLICIT_INTEGRATOR_VERSION",
+   restart_db->putInteger("ALGS_IMPLICIT_INTEGRATOR_VERSION",
       ALGS_IMPLICIT_INTEGRATOR_VERSION);
 
-   db->putDouble("d_initial_time", d_initial_time);
-   db->putDouble("d_final_time", d_final_time);
-   db->putDouble("d_current_time", d_current_time);
-   db->putDouble("d_current_dt", d_current_dt);
-   db->putDouble("d_old_dt", d_old_dt);
+   restart_db->putDouble("initial_time", d_initial_time);
+   restart_db->putDouble("final_time", d_final_time);
 
-   db->putInteger("d_integrator_step", d_integrator_step);
-   db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
+   restart_db->putInteger("d_integrator_step", d_integrator_step);
+   restart_db->putInteger("max_integrator_steps", d_max_integrator_steps);
 
 }
 
@@ -388,7 +369,7 @@ ImplicitIntegrator::getFromRestart()
 
    if (!root_db->isDatabase(d_object_name)) {
       TBOX_ERROR("Restart database corresponding to "
-         << d_object_name << " not found in restart file");
+         << d_object_name << " not found in restart file" << std::endl);
    }
    boost::shared_ptr<tbox::Database> db(root_db->getDatabase(d_object_name));
 
@@ -396,17 +377,14 @@ ImplicitIntegrator::getFromRestart()
    if (ver != ALGS_IMPLICIT_INTEGRATOR_VERSION) {
       TBOX_ERROR(d_object_name << ":  "
                                << "Restart file version different "
-                               << "than class version.");
+                               << "than class version." << std::endl);
    }
 
-   d_initial_time = db->getDouble("d_initial_time");
-   d_final_time = db->getDouble("d_final_time");
-   d_current_time = db->getDouble("d_current_time");
-   d_current_dt = db->getDouble("d_current_dt");
-   d_old_dt = db->getDouble("d_old_dt");
+   d_initial_time = db->getDouble("initial_time");
+   d_final_time = db->getDouble("final_time");
 
    d_integrator_step = db->getInteger("d_integrator_step");
-   d_max_integrator_steps = db->getInteger("d_max_integrator_steps");
+   d_max_integrator_steps = db->getInteger("max_integrator_steps");
 
 }
 
@@ -447,4 +425,3 @@ ImplicitIntegrator::printClassData(
 
 }
 }
-#endif

@@ -3,10 +3,14 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for 2D nonlinear solver example using PETSc. 
  *
  ************************************************************************/
+
+// Refer to test_inputs/kinsol.2d.input for description of the input parameters
+// specific to this test directory.
+
 // This is the input file for the 2D nonlinear solver example using PETSc.
 
 Main{
@@ -15,11 +19,9 @@ Main{
    base_name = "2d.petsc"
 
 // visualization dump parameters 
-   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
    viz_dump_interval     = 1          // zero to turn off
    viz_dump_dirname      = "2d.petsc.visit"
-   viz_dump_filename     = "2d.petsc"    // not used by VisIt
-   visit_number_procs_per_file = 1    // not used by Vizamrai
+   visit_number_procs_per_file = 1
 
 // regrid parameters
    regrid_interval       = 0         // zero to turn off
@@ -69,34 +71,53 @@ PatchHierarchy {
    }
 }
 
-GriddingAlgorithm{
+BergerRigoutsos {
    combine_efficiency = 0.75
    efficiency_tolerance = 0.75
+}
 
+GriddingAlgorithm{
    // TODO this should be removed when visit writer is updated
    sequentialize_patch_indices = TRUE
 }
 
 StandardTagAndInitialize{
    tagging_method = "REFINE_BOXES"
-   RefineBoxes{
-     level_0 = [(8,8), (23,23)]
-     level_1 = [(24,24), (39,39)]
-     level_2 = [(56,56), (71,71)]
-     level_3 = [(120,120), (135,135)]
-     level_4 = [(248,248), (263,263)]
-     level_5 = [(504,504), (519,519)]
-     level_6 = [(1016,1016), (1031,1031)]
-     level_7 = [(2040,2040), (2055,2055)]
-     level_8 = [(4088,4088), (4103,4103)]
-     level_9 = [(8184,8184), (8199,8199)]
-            //etc.
+
+   level_0 {
+      boxes = [(8,8), (23,23)]
    }
+   level_1 {
+      boxes = [(24,24), (39,39)]
+   }
+   level_2 {
+      boxes = [(56,56), (71,71)]
+   }
+   level_3 {
+      boxes = [(120,120), (135,135)]
+   }
+   level_4 {
+      boxes = [(248,248), (263,263)]
+   }
+   level_5 {
+      boxes = [(504,504), (519,519)]
+   }
+   level_6 {
+      boxes = [(1016,1016), (1031,1031)]
+   }
+   level_7 {
+      boxes = [(2040,2040), (2055,2055)]
+   }
+   level_8 {
+      boxes = [(4088,4088), (4103,4103)]
+   }
+//   level_9 {
+//      boxes = [(8184,8184), (8199,8199)]
+//   }
+   //etc.
 }
 
 LoadBalancer{
-    processors = 1, 1
-    use_spatial_bin_pack = TRUE
 }
 
 ModifiedBratuProblem{
@@ -105,8 +126,6 @@ ModifiedBratuProblem{
 
    max_precond_its = 35    // maximum iterations for preconditioner 
    precond_tol = 1.0e-2    // preconditioner convergence tolerance
-
-   preconditioner_print_flag = FALSE // should the preconditioner report residuals
 }
 
 KINSOLSolver{
@@ -134,9 +153,6 @@ SNESSolver{
     maximum_gmres_krylov_dimension = 20
     maximum_linear_iterations      = 50
     forcing_term_strategy          = "EWCHOICE1"
-    collect_convergence_histories  = TRUE
-    print_nonlinear_residuals      = TRUE
-    print_linear_residuals         = TRUE
 }
 
 ImplicitIntegrator{

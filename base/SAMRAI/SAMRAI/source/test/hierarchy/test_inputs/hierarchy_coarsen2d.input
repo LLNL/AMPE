@@ -3,39 +3,50 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing patch hierarchy coarsening 
  *
  ************************************************************************/
 
 GlobalInputs {
+   // If FALSE, when an error is encountered in serial exit(-1) will be called
+   // instead of SAMRAI_MPI::abort().
    call_abort_in_serial_instead_of_exit = FALSE
 }
 
 Main {
-    dim = 2
-//
-// Log file information
-//
-    log_file_name  = "hierarchy-coarsen2d-test.log"
-    log_all_nodes  = TRUE
+   // Dimension of problem.
+   dim = 2
+
+   // Name of log file.
+   log_file_name  = "hierarchy-coarsen2d-test.log"
+
+   // If TRUE all nodes will log to individual files.
+   // If FALSE only node 0 will log.
+   log_all_nodes  = TRUE
 }
 
 HierarchyTest {
 
-  do_refine_test  = FALSE
-  do_coarsen_test = TRUE
+   // If TRUE will test makeRefinedPatchHierarchy.
+   do_refine_test  = FALSE
 
-  ratio = 2,2
+   // If TRUE will test makeCoarsenedPatchHierarchy.
+   do_coarsen_test = TRUE
+
+   // Refinement or coarsening ratio.
+   ratio = 2,2
 
 }
 
+// Refer to mesh::CartesianGridGeometry and its base classes for input.
 CartesianGridGeometry {
    domain_boxes = [ (0,0) , (31,23) ]
    x_lo         = 0.e0 , 0.e0    // lower end of computational domain.
    x_up         = 1.e0 , 1.e0    // upper end of computational domain.
 }
 
+// Refer to hier::PatchHierarchy for input.
 PatchHierarchy {
    max_levels              = 2 // Maximum number of levels in hierarchy.
 
@@ -61,40 +72,42 @@ PatchHierarchy {
 
 }
 
-GriddingAlgorithm {
-
+// Refer to mesh::BergerRigoutsos for input.
+BergerRigoutsos {
    efficiency_tolerance     = 0.70e0   // min % of tag cells in new patch level
    combine_efficiency       = 0.85e0   // chop box if sum of volumes of smaller
                                        // boxes < efficiency * vol of large box
+}
 
+// Refer to mesh::GriddingAlgorithm for input.
+GriddingAlgorithm {
    sequentialize_patch_indices = TRUE
 }
 
+// Refer to mesh::StandardTagAndInitialize for input.
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
 
-   RefineBoxes {
-      level_0 = [ (0,16) , (11,23) ],
-                [ (16,0) , (31,7) ],
-                [ (24,8) , (31,15) ]
+   level_0 {
+      boxes = [ (0,16) , (11,23) ],
+              [ (16,0) , (31,7) ],
+              [ (24,8) , (31,15) ]
    }
-
 }
 
+// Refer to mesh::TreeLoadBalancer for input.
 TreeLoadBalancer {
-  report_load_balance = TRUE
-  barrier_before = FALSE
-  barrier_after = FALSE
-  n_root_cycles = 1
-  interlace_groups = FALSE
-  balance_penalty_wt = 1.0
-  surface_penalty_wt = 1.0
+  DEV_report_load_balance = TRUE
+  DEV_barrier_before = FALSE
+  DEV_barrier_after = FALSE
+  DEV_balance_penalty_wt = 1.0
+  DEV_surface_penalty_wt = 1.0
 
   // Debugging options
-  check_map = FALSE
-  check_connectivity = FALSE
-  print_steps = FALSE
-  print_swap_steps = FALSE
-  print_break_steps = FALSE
-  print_edge_steps = FALSE
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = FALSE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
 }

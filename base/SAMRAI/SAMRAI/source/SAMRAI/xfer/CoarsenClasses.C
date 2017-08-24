@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple structure for managing coarsening data in equivalence classes.
  *
  ************************************************************************/
-
-#ifndef included_xfer_CoarsenClasses_C
-#define included_xfer_CoarsenClasses_C
-
 #include "SAMRAI/xfer/CoarsenClasses.h"
 
 #include "SAMRAI/hier/IntVector.h"
@@ -34,14 +30,10 @@ int CoarsenClasses::s_default_coarsen_item_array_size = 20;
  *************************************************************************
  */
 
-CoarsenClasses::CoarsenClasses(
-   bool fill_coarse_data):
-   d_fill_coarse_data(fill_coarse_data),
+CoarsenClasses::CoarsenClasses():
+   d_coarsen_classes_data_items(),
    d_num_coarsen_items(0)
 {
-   d_coarsen_classes_data_items.resizeArray(
-      s_default_coarsen_item_array_size,
-      Data(tbox::Dimension::getInvalidDimension()));
 }
 
 /*
@@ -81,14 +73,15 @@ CoarsenClasses::insertEquivalenceClassItem(
       int eq_index = getEquivalenceClassIndex(data, descriptor);
 
       if (eq_index < 0) {
-         eq_index = d_equivalence_class_indices.size();
-         d_equivalence_class_indices.resizeArray(eq_index + 1);
+         eq_index = static_cast<int>(d_equivalence_class_indices.size());
+         d_equivalence_class_indices.resize(eq_index + 1);
       }
 
       data.d_class_index = eq_index;
 
-      if (d_num_coarsen_items >= d_coarsen_classes_data_items.size()) {
-         d_coarsen_classes_data_items.resizeArray(
+      if (d_num_coarsen_items >=
+          static_cast<int>(d_coarsen_classes_data_items.size())) {
+         d_coarsen_classes_data_items.resize(
             d_num_coarsen_items + s_default_coarsen_item_array_size,
             Data(data.d_gcw_to_coarsen.getDim()));
       }
@@ -97,7 +90,7 @@ CoarsenClasses::insertEquivalenceClassItem(
 
       d_equivalence_class_indices[eq_index].push_back(d_num_coarsen_items);
 
-      d_num_coarsen_items++;
+      ++d_num_coarsen_items;
    }
 
 }
@@ -128,6 +121,7 @@ CoarsenClasses::itemIsValid(
    if (!pd) {
       pd = hier::VariableDatabase::getDatabase()->getPatchDescriptor();
    }
+   const tbox::Dimension& dim = pd->getPatchDataFactory(data_item.d_dst)->getDim();
 
    const int dst_id = data_item.d_dst;
    const int src_id = data_item.d_src;
@@ -158,13 +152,13 @@ CoarsenClasses::itemIsValid(
 
    boost::shared_ptr<hier::CoarsenOperator> coarsop(data_item.d_opcoarsen);
    if (item_good && coarsop) {
-      if (coarsop->getStencilWidth() > sfact->getGhostCellWidth()) {
+      if (coarsop->getStencilWidth(dim) > sfact->getGhostCellWidth()) {
          item_good = false;
          TBOX_ERROR("Bad data given to CoarsenClasses...\n"
             << "Coarsen operator " << coarsop->getOperatorName()
             << "\nhas larger stencil width than ghost cell width"
             << "of `Source' patch data" << pd->mapIndexToName(src_id)
-            << "\noperator stencil width = " << coarsop->getStencilWidth()
+            << "\noperator stencil width = " << coarsop->getStencilWidth(dim)
             << "\n`Source'  ghost width = "
             << sfact->getGhostCellWidth()
             << std::endl);
@@ -227,7 +221,7 @@ CoarsenClasses::classesMatch(
 
          } // if number of items in equivalence class match
 
-         eq_index++;
+         ++eq_index;
 
       } // while equivalence classes match
 
@@ -258,6 +252,7 @@ CoarsenClasses::itemsAreEquivalent(
    if (!pd) {
       pd = hier::VariableDatabase::getDatabase()->getPatchDescriptor();
    }
+   const tbox::Dimension& dim = pd->getPatchDataFactory(data1.d_dst)->getDim();
 
    equivalent = patchDataMatch(data1.d_dst, data2.d_dst, pd);
 
@@ -269,8 +264,8 @@ CoarsenClasses::itemsAreEquivalent(
 
    equivalent &= (!data1.d_opcoarsen == !data2.d_opcoarsen);
    if (equivalent && data1.d_opcoarsen) {
-      equivalent &= (data1.d_opcoarsen->getStencilWidth() ==
-                     data2.d_opcoarsen->getStencilWidth());
+      equivalent &= (data1.d_opcoarsen->getStencilWidth(dim) ==
+                     data2.d_opcoarsen->getStencilWidth(dim));
    }
 
    equivalent &= (!data1.d_var_fill_pattern ==
@@ -297,19 +292,19 @@ CoarsenClasses::printClassData(
 {
    stream << "CoarsenClasses::printClassData()\n";
    stream << "--------------------------------------\n";
-   for (int i = 0; i < (int)d_equivalence_class_indices.size(); i++) {
+   for (int i = 0; i < static_cast<int>(d_equivalence_class_indices.size()); ++i) {
       stream << "EQUIVALENCE CLASS # " << i << std::endl;
       int j = 0;
       const std::list<int>& indices = d_equivalence_class_indices[i];
       for (std::list<int>::const_iterator li(indices.begin());
-           li != indices.end(); li++) {
+           li != indices.end(); ++li) {
 
          stream << "Item # " << j << std::endl;
          stream << "-----------------------------\n";
 
          printCoarsenItem(stream, d_coarsen_classes_data_items[*li]);
 
-         j++;
+         ++j;
       }
       stream << std::endl;
    }
@@ -343,7 +338,8 @@ CoarsenClasses::printCoarsenItem(
              << data.d_opcoarsen->getOperatorPriority()
              << std::endl;
       stream << "operator stencil width: "
-             << data.d_opcoarsen->getStencilWidth()
+             << data.d_opcoarsen->getStencilWidth(
+         hier::VariableDatabase::getDatabase()->getPatchDescriptor()->getPatchDataDim(data.d_dst))
              << std::endl;
    }
    stream << std::endl;
@@ -419,7 +415,7 @@ CoarsenClasses::getEquivalenceClassIndex(
          eq_index = check_index;
       }
 
-      check_index++;
+      ++check_index;
    }
 
    return eq_index;
@@ -439,4 +435,3 @@ CoarsenClasses::Data::Data(
 
 }
 }
-#endif

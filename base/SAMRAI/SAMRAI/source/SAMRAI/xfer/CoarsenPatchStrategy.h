@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Strategy interface to user routines for coarsening AMR data.
  *
  ************************************************************************/
@@ -40,8 +40,8 @@ namespace xfer {
  * coarsening using CoarsenOperators and the postprocess member function is
  * called afterwards.
  *
- * @see xfer::CoarsenAlgorithm
- * @see xfer::CoarsenSchedule
+ * @see CoarsenAlgorithm
+ * @see CoarsenSchedule
  */
 
 class CoarsenPatchStrategy
@@ -55,9 +55,7 @@ public:
     * getCoarsenOpStencilWidth() for every CoarsenPatchStrategy of the
     * given Dimension used in an application.
     *
-    * @param[in] dim   Only objects with this dimension will be used to
-    *                  calculate the max.  If a CoarsenPatchStrategy with
-    *                  another dimension is registered, it will be ignored.
+    * @param[in] dim
     */
    static hier::IntVector
    getMaxCoarsenOpStencilWidth(
@@ -69,8 +67,7 @@ public:
     * The constructor will register the constructed object with a static
     * set that manages all CoarsenPatchStrategy objects in an application.
     */
-   explicit CoarsenPatchStrategy(
-      const tbox::Dimension& dim);
+   CoarsenPatchStrategy();
 
    /*!
     * @brief Destructor.
@@ -87,9 +84,12 @@ public:
     * For any user-defined coarsening operations implemented in the
     * preprocess or postprocess methods, return the maximum stencil needed
     * on a fine patch to coarsen data to a coarse patch.
+    * If your implementation doesn't work with the given dimension, return
+    * zero.
     */
    virtual hier::IntVector
-   getCoarsenOpStencilWidth() const = 0;
+   getCoarsenOpStencilWidth(
+      const tbox::Dimension& dim) const = 0;
 
    /*!
     * @brief Perform user-defined patch data coarsening operations.
@@ -139,15 +139,6 @@ public:
       const hier::Box& coarse_box,
       const hier::IntVector& ratio) = 0;
 
-   /*!
-    * @brief Return the dimension of this object.
-    */
-   const tbox::Dimension&
-   getDim() const
-   {
-      return d_dim;
-   }
-
 private:
    /*!
     * @brief Get the set of CoarsenPatchStrategy objects that have been
@@ -159,11 +150,6 @@ private:
       static std::set<CoarsenPatchStrategy *> current_objects;
       return current_objects;
    }
-
-   /*!
-    * @brief Dimension of the object.
-    */
-   const tbox::Dimension d_dim;
 
    /*!
     * @brief Register the object with a set of all CoarsenPatchStrategy

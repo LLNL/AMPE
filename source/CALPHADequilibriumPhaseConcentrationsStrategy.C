@@ -102,11 +102,11 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    const hier::Box& pbox = patch->getBox();
 
    boost::shared_ptr< pdat::CellData<double> > cd_c_l_ref (
-      patch->getPatchData( d_conc_l_ref_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_ref_id) ) );
    assert( cd_c_l_ref );
    
    boost::shared_ptr< pdat::CellData<double> > cd_c_a_ref (
-      patch->getPatchData( d_conc_a_ref_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_ref_id) ) );
    assert( cd_c_a_ref );
    
    boost::shared_ptr< pdat::CellData<double> > cd_c_b_ref;

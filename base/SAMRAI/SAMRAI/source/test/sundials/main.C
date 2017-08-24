@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for testing Sundials/SAMRAI interface.
  *
  ************************************************************************/
@@ -27,7 +27,7 @@ using namespace std;
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/PIO.h"
 
-#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/mesh/BergerRigoutsos.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/pdat/CellVariable.h"
@@ -63,7 +63,7 @@ using namespace std;
 #endif
 #endif
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -145,6 +145,7 @@ int main(
       int max_order = main_db->getInteger("max_order");
       int max_internal_steps = main_db->getInteger("max_internal_steps");
       double init_time = main_db->getDouble("init_time");
+      int init_cycle = main_db->getInteger("init_cycle");
       double print_interval = main_db->getDouble("print_interval");
       int num_print_intervals = main_db->getInteger("num_print_intervals");
 
@@ -154,21 +155,8 @@ int main(
       int stepping_method = main_db->getInteger("stepping_method");
       bool uses_preconditioning =
          main_db->getBoolWithDefault("uses_preconditioning", false);
-      int viz_dump_interval =
-         main_db->getIntegerWithDefault("viz_dump_interval", 0);
       bool solution_logging =
          main_db->getBoolWithDefault("solution_logging", false);
-
-      string viz_dump_filename;
-      string viz_dump_dirname;
-      if (viz_dump_interval > 0) {
-         if (main_db->keyExists("viz_dump_filename")) {
-            viz_dump_filename = main_db->getString("viz_dump_filename");
-         }
-         if (main_db->keyExists("viz_dump_dirname")) {
-            viz_dump_dirname = main_db->getString("viz_dump_dirname");
-         }
-      }
 
       /*
        * Create geometry and hierarchy objects.
@@ -189,22 +177,75 @@ int main(
        * Create gridding algorithm objects that will handle construction of
        * of the patch levels in the hierarchy.
        */
+
+      std::string cvode_model_name = "CVODEModel";
+      std::string fac_solver_name = cvode_model_name + ":FAC solver";
+      std::string fac_ops_name = fac_solver_name + "::fac_ops";
+      std::string fac_precond_name = fac_solver_name + "::fac_precond";
+      std::string hypre_poisson_name = fac_ops_name + "::hypre_solver";
+
+#ifdef HAVE_HYPRE
+      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_poisson(
+         new solv::CellPoissonHypreSolver(
+            dim,
+            hypre_poisson_name,
+            input_db->isDatabase("hypre_solver") ?
+            input_db->getDatabase("hypre_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            hypre_poisson,
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#else
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#endif
+
+      boost::shared_ptr<solv::FACPreconditioner> fac_precond(
+         new solv::FACPreconditioner(
+            fac_precond_name,
+            fac_ops,
+            input_db->isDatabase("fac_precond") ?
+            input_db->getDatabase("fac_precond") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver(
+         new solv::CellPoissonFACSolver(
+            dim,
+            fac_solver_name,
+            fac_precond,
+            fac_ops,
+            input_db->isDatabase("fac_solver") ?
+            input_db->getDatabase("fac_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
       boost::shared_ptr<CVODEModel> cvode_model(
          new CVODEModel(
-            "CVODEModel",
+            cvode_model_name,
             dim,
+            fac_solver,
             input_db->getDatabase("CVODEModel"),
             geometry));
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> error_est(
          new mesh::StandardTagAndInitialize(
-            dim,
             "StandardTagAndInitialize",
             cvode_model.get(),
             input_db->getDatabase("StandardTagAndInitialize")));
 
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+         new mesh::BergerRigoutsos(dim,
+            input_db->getDatabase("BergerRigoutsos")));
 
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
          new mesh::TreeLoadBalancer(
@@ -227,19 +268,20 @@ int main(
        */
       gridding_algorithm->makeCoarsestLevel(init_time);
 
-      tbox::Array<int> tag_buffer_array(hierarchy->getMaxNumberOfLevels());
-      for (int il = 0; il < hierarchy->getMaxNumberOfLevels(); il++) {
+      std::vector<int> tag_buffer_array(hierarchy->getMaxNumberOfLevels());
+      for (int il = 0; il < hierarchy->getMaxNumberOfLevels(); ++il) {
          tag_buffer_array[il] = 1;
       }
 
       bool done = false;
-      bool initial_time = true;
+      bool initial_cycle = true;
       for (int ln = 0; hierarchy->levelCanBeRefined(ln) && !done;
-           ln++) {
+           ++ln) {
          gridding_algorithm->makeFinerLevel(
-            init_time,
-            initial_time,
-            tag_buffer_array[ln]);
+            tag_buffer_array[ln],
+            initial_cycle,
+            init_cycle,
+            init_time);
          done = !(hierarchy->finerLevelExists(ln));
       }
 
@@ -273,11 +315,11 @@ int main(
             cvode_model.get(),
             uses_preconditioning);
 
-      int neq = 0;
+      size_t neq = 0;
       boost::shared_ptr<hier::PatchLevel> level_zero(
          hierarchy->getPatchLevel(0));
       const hier::BoxContainer& level_0_boxes = level_zero->getBoxes();
-      for (hier::BoxContainer::const_iterator i(level_0_boxes);
+      for (hier::BoxContainer::const_iterator i = level_0_boxes.begin();
            i != level_0_boxes.end(); ++i) {
          neq += i->size();
       }
@@ -311,7 +353,7 @@ int main(
          tbox::pout << "Initial solution vector y() at initial time: " << endl;
          int ln;
          tbox::pout << "y(" << init_time << "): " << endl;
-         for (ln = 0; ln < init_hierarchy->getNumberOfLevels(); ln++) {
+         for (ln = 0; ln < init_hierarchy->getNumberOfLevels(); ++ln) {
             boost::shared_ptr<hier::PatchLevel> level(
                init_hierarchy->getPatchLevel(ln));
             tbox::plog << "level = " << ln << endl;
@@ -321,8 +363,10 @@ int main(
                const boost::shared_ptr<hier::Patch>& patch = *p;
 
                boost::shared_ptr<CellData<double> > y_data(
-                  y_init->getComponentPatchData(0, *patch),
-                  boost::detail::dynamic_cast_tag());
+                  BOOST_CAST<CellData<double>, hier::PatchData>(
+                     y_init->getComponentPatchData(0, *patch)));
+               TBOX_ASSERT(y_data);
+               y_data->print(y_data->getBox());
             }
          }
       }
@@ -341,14 +385,14 @@ int main(
       * Start time-stepping.
       **************************************************************************/
 
-      tbox::Array<double> time(num_print_intervals);
-      tbox::Array<double> maxnorm(num_print_intervals);
-      tbox::Array<double> l1norm(num_print_intervals);
-      tbox::Array<double> l2norm(num_print_intervals);
+      std::vector<double> time(num_print_intervals);
+      std::vector<double> maxnorm(num_print_intervals);
+      std::vector<double> l1norm(num_print_intervals);
+      std::vector<double> l2norm(num_print_intervals);
 
       double final_time = init_time;
       int interval;
-      for (interval = 1; interval <= num_print_intervals; interval++) {
+      for (interval = 1; interval <= num_print_intervals; ++interval) {
 
          /*
           * Set time interval
@@ -390,7 +434,7 @@ int main(
             tbox::plog << "y(" << final_time << "): " << endl << endl;
             t_log_dump->start();
             for (int ln = 0; ln < result_hierarchy->getNumberOfLevels();
-                 ln++) {
+                 ++ln) {
                boost::shared_ptr<hier::PatchLevel> level(
                   result_hierarchy->getPatchLevel(ln));
                tbox::plog << "level = " << ln << endl;
@@ -400,8 +444,9 @@ int main(
                   const boost::shared_ptr<hier::Patch>& patch = *p;
 
                   boost::shared_ptr<CellData<double> > y_data(
-                     y_result->getComponentPatchData(0, *patch),
-                     boost::detail::dynamic_cast_tag());
+                     BOOST_CAST<CellData<double>, hier::PatchData>(
+                        y_result->getComponentPatchData(0, *patch)));
+                  TBOX_ASSERT(y_data);
                   y_data->print(y_data->getBox());
                }
             }
@@ -415,7 +460,7 @@ int main(
       /*
        * Write CVODEModel stats
        */
-      tbox::Array<int> counters;
+      std::vector<int> counters;
       cvode_model->getCounters(counters);
 
 #if (TESTING == 1)
@@ -469,7 +514,7 @@ int main(
                     << "  L1 Norm  \t"
                     << "  L2 Norm  " << endl;
 
-         for (interval = 0; interval < num_print_intervals; interval++) {
+         for (interval = 0; interval < num_print_intervals; ++interval) {
             tbox::pout.precision(18);
             tbox::pout << "  " << time[interval] << "  \t";
             tbox::pout.precision(6);

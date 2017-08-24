@@ -1,13 +1,12 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI geometry
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: m4 include file for 1d Cartesian coarsen operators
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 1d Cartesian coarsen operators.
 c
 define(NDIM,1)dnl
-define(SAMRAI_FORTDIR,../../pdat/fortran)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim1d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim1d.i)dnl
 define(cart_coarsen_op_subroutine_head_1d,`dnl
      &  ifirstc0,ilastc0,
      &  filo0,fihi0,

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Routine to time some routines in the dummy class Foo.
  *
  ************************************************************************/
@@ -12,8 +12,7 @@
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 #define LOOP_MAX (10000000)
 
@@ -30,7 +29,7 @@ Foo::~Foo()
 void Foo::timerOff()
 {
    boost::shared_ptr<tbox::Timer> timer(tbox::TimerManager::getManager()->
-      getTimer("dummy::SomeClassName::shouldBeTurnedOff"));
+                                        getTimer("dummy::SomeClassName::shouldBeTurnedOff"));
    timer->start();
 
    timer->stop();
@@ -162,7 +161,7 @@ void Foo::setMaxDepth(
 void Foo::start(
    std::string& name)
 {
-   d_depth++;
+   ++d_depth;
 
    boost::shared_ptr<tbox::Timer> timer(
       tbox::TimerManager::getManager()->getTimer(name));

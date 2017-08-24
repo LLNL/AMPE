@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Generic utilities for boundary box calculus.
  *
  ************************************************************************/
@@ -21,7 +21,7 @@ namespace hier {
  * @brief Perform shifts, extensions, etc on a BoundaryBox using the box's
  * location index and type.
  *
- * @see hier::BoundaryBox
+ * @see BoundaryBox
  */
 
 class BoundaryBoxUtils
@@ -107,6 +107,9 @@ public:
     *
     * @param[out] box The stretched box.
     * @param[in] ghost_cell_width Ghost width to stretch the box.
+    *
+    * @pre getBoundaryBox().getDim() == box.getDim()
+    * @pre ghost_cell_width >= IntVector::getZero(getBoundaryBox().getDim())
     */
    void
    stretchBoxToGhostWidth(
@@ -126,6 +129,8 @@ public:
     * @param[out] box      The extended box
     * @param[in] extension IntVector telling how many cells to extend the box
     *                      in each coordinate direction.
+    *
+    * @pre getBoundaryBox().getDim() == box.getDim()
     */
    void
    extendBoxOutward(
@@ -144,7 +149,7 @@ public:
    int
    normalDir() const
    {
-      return d_bbox.getLocationIndex() / 2;
+      return getBoundaryBox().getLocationIndex() / 2;
    }
 
    /*!
@@ -152,8 +157,8 @@ public:
     * past a limiting box in direction transverse to the boundary
     * normal.
     *
-    * This method affects the only box dimensions parallel to
-    * the boundary.  For methods affecting other box dimensions,
+    * This method affects the only box directions parallel to
+    * the boundary.  For methods affecting other box directions,
     * see stretchBoxToGhostWidth().
     *
     * The boundary type of the BoundaryBox that was given to the
@@ -162,6 +167,9 @@ public:
     * @param[in] limit_box Box to not stick out past
     *
     * @return New trimmed boundary box.
+    *
+    * @pre getBoundaryBox().getDim() == limit_box.getDim()
+    * @pre getBoundaryBox().getBoundaryType() < getBoundaryBox().getDim().getValue())
     */
    BoundaryBox
    trimBoundaryBox(
@@ -176,18 +184,21 @@ public:
     * in 2D.  These surfaces lie on the boundary itself.
     *
     * The input boundary_box must be of type 1
-    * (see hier::BoundaryBox::getBoundaryType()).
+    * (see BoundaryBox::getBoundaryType()).
     *
     * This is a utility function for working with the surface
     * indices corresponding to a boundary box.
     *
     * @return a box to define the side indices corresponding to the
     * BoundaryBox
+    *
+    * @pre getBoundaryBox().getBoundaryType() == 1
     */
    Box
    getSurfaceBoxFromBoundaryBox() const;
 
 private:
+   // Unimplemented default constructor.
    BoundaryBoxUtils();
 
    /*!

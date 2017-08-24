@@ -148,17 +148,17 @@ private :
    boost::shared_ptr<xfer::RefineAlgorithm > d_grain_quat_refine_alg;
    boost::shared_ptr<xfer::CoarsenAlgorithm > d_grain_quat_coarsen_alg;
 
-   tbox::Array< boost::shared_ptr< xfer::RefineSchedule > >
+   std::vector< boost::shared_ptr< xfer::RefineSchedule > >
       d_grain_number_refine_sched;
-   tbox::Array< boost::shared_ptr< xfer::CoarsenSchedule > >
+   std::vector< boost::shared_ptr< xfer::CoarsenSchedule > >
       d_grain_number_coarsen_sched;
-   tbox::Array< boost::shared_ptr< xfer::RefineSchedule > >
+   std::vector< boost::shared_ptr< xfer::RefineSchedule > >
       d_grain_extend_refine_sched;
-   tbox::Array< boost::shared_ptr< xfer::CoarsenSchedule > >
+   std::vector< boost::shared_ptr< xfer::CoarsenSchedule > >
       d_grain_extend_coarsen_sched;
-   tbox::Array< boost::shared_ptr< xfer::RefineSchedule > >
+   std::vector< boost::shared_ptr< xfer::RefineSchedule > >
       d_grain_quat_refine_sched;
-   tbox::Array< boost::shared_ptr< xfer::CoarsenSchedule > >
+   std::vector< boost::shared_ptr< xfer::CoarsenSchedule > >
       d_grain_quat_coarsen_sched;
 
    int d_number_of_grains;

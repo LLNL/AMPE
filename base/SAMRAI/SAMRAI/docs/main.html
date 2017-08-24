@@ -13,8 +13,8 @@
  
 <div align="left"><br>
  
-<h4><a href="userdocs/SAMRAI-overview-I.pdf">SAMRAI Overview</a></h4>
- Introductory slide presentation.<br>
+<h4><a href="userdocs/SAMRAI-Concepts_SoftwareDesign.docx">SAMRAI Overview</a></h4>
+ Introduction to SAMR, SAMRAI's conceptualization of SAMR, and design of the library.<br>
  </div>
  
 <div align="left"> 
@@ -23,23 +23,22 @@
  
 <h4><big>Documents describing various code functionality in SAMRAI:</big></h4>
 <ul>
+  <li><a href="userdocs/InputParametersAndRestart.pdf">Input Parameters & Restart</a>
+- describes how input parameters and running from restart interact.</li>
+  <li><a href="userdocs/RestartRedistribute.txt">Redistribution For Restart</a>
+- describes how to run the restart-redistribute tool to redistribute a problem to restart on a different number of processors.</li>
+  <li><a href="userdocs/Multiblock.pdf">Multiblock Geometries</a>
+- describes how to create multiblock geometries in SAMRAI.</li>
   <li><a href="userdocs/FAC-Preconditioner.pdf">FAC Preconditioner</a>, <a
  href="userdocs/Robin-Bc.pdf">Robin Boundary conditions</a> - use of FAC
 solver classes</li>
   <li><a href="userdocs/Regridding-RichardsonExtrapolation.pdf">Regridding
 and Richardson Extrapolation</a> - describes how to manage refinement using
 either a gradient detectionn algorithm or Richardson extrapolation.</li>
-  <li><a href="userdocs/Schedule-Boundary.pdf">Communication Algorithms and
-Boundary conditions</a> - describes parallel AMR data communication support
-and how boundary conditions are invoked.</li>
   <li><a href="userdocs/Timing-Instrumentation.pdf">Timing and Instrumentation</a>
 - describes the timing package to assist in performance analysis and to guide
 the user about which routines are incurring the largest percentage of computation
 time.</li>
-  <li><a href="userdocs/Vizamrai-writer.pdf">Vizamrai Writer</a>, <a
- href="userdocs/VisIt-writer.pdf">VisIt Writer</a>, <a
- href="userdocs/VisIt-writer-slides.pdf">VisIt Tutorial</a> - describes how
-to write data that may be postprocessed by the Vizamrai or VisIt tools.</li>
   <li><a href="userdocs/m4macros.txt">M4 Macros for Fortran</a> - how to
 use SAMRAI m4 macros for accessing patch data in fortran<br>
   </li>

@@ -1,14 +1,12 @@
 %{
 //
-// File:	$URL$
-// Package:	SAMRAI toolbox
-// Copyright:	(c) 1997-2012 Lawrence Livermore National Security, LLC
-// Revision:	$LastChangedRevision$
-// Description:	Lex scanner description for the SAMRAI input database
+// This file is part of the SAMRAI distribution.  For full copyright
+// information, see COPYRIGHT and COPYING.LESSER.
+//
+// Copyright:   (c) 1997-2016 Lawrence Livermore National Security, LLC
+// Description: Lex scanner description for the SAMRAI input database
 //
 
-
-#include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/Parser.h"
@@ -86,7 +84,7 @@ S_STRING  (\"([^\n"])*\")
 
 {S_INTEGER} {
    Parser::getParser()->advanceCursor(yytext);
-   yylval.u_integer = atol(yytext);
+   yylval.u_integer = atoi(yytext);
    return(T_INTEGER);
 }
 
@@ -132,7 +130,7 @@ S_STRING  (\"([^\n"])*\")
    } else {
       if (Parser::getParser()->pushIncludeFile(filename)) {
          s_include_stack[s_include_stack_top++] = YY_CURRENT_BUFFER;
-         yy_switch_to_buffer(yy_create_buffer(NULL,YY_BUF_SIZE));
+         yy_switch_to_buffer(yy_create_buffer(0,YY_BUF_SIZE));
       }
    }
 }

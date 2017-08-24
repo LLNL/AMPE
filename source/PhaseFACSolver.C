@@ -37,7 +37,7 @@ using namespace std;
 
 PhaseFACSolver::PhaseFACSolver (
    const std::string &object_name,
-   PhaseFACOps* fac_ops,
+   boost::shared_ptr<PhaseFACOps> fac_ops,
    boost::shared_ptr<tbox::Database> database )
    :
    EllipticFACSolver( object_name, fac_ops, database )
@@ -61,7 +61,8 @@ void PhaseFACSolver::setOperatorCoefficients(
 {
    t_set_op_coef->start();
 
-   PhaseFACOps* phase_fac_ops = dynamic_cast<PhaseFACOps*>( d_fac_ops );
+   boost::shared_ptr<PhaseFACOps> phase_fac_ops (
+      boost::dynamic_pointer_cast< PhaseFACOps, EllipticFACOps >( d_fac_ops ) );
 
    phase_fac_ops->setOperatorCoefficients(
       phase_id,

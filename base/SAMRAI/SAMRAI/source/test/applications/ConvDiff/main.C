@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for SAMRAI convection-diffusion ex. problem.
  *
  ************************************************************************/
@@ -24,7 +24,7 @@ using namespace std;
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/mesh/BergerRigoutsos.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/tbox/Database.h"
@@ -53,10 +53,12 @@ using namespace std;
 
 // Classes for autotesting.
 #if (TESTING == 1)
-#include "AutoTester.h"
+#include "test/testlib/AutoTester.h"
 #endif
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
 
 using namespace SAMRAI;
 using namespace algs;
@@ -330,7 +332,6 @@ int main(
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
          new mesh::StandardTagAndInitialize(
-            dim,
             "StandardTagAndInitialize",
             mol_integrator.get(),
             input_db->getDatabase("StandardTagAndInitialize")));
@@ -346,7 +347,8 @@ int main(
          new mesh::TreeLoadBalancer(
             dim,
             "LoadBalancer",
-            input_db->getDatabase("LoadBalancer")));
+            input_db->getDatabase("LoadBalancer"),
+            boost::shared_ptr<tbox::RankTreeStrategy>(new tbox::BalancedDepthFirstTree)));
       load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
@@ -405,23 +407,24 @@ int main(
       *
       ****************************************************************/
 
-      tbox::Array<int>
+      std::vector<int>
       tag_buffer_array(patch_hierarchy->getMaxNumberOfLevels());
-      for (int il = 0; il < patch_hierarchy->getMaxNumberOfLevels(); il++) {
+      for (int il = 0; il < patch_hierarchy->getMaxNumberOfLevels(); ++il) {
          tag_buffer_array[il] = main_restart_data->getTagBuffer();
          tbox::pout << "il = " << il << " tag_buffer = "
                     << tag_buffer_array[il]
                     << endl;
       }
 
-      tbox::Array<double>
-      regrid_start_time(patch_hierarchy->getMaxNumberOfLevels());
+      std::vector<double> regrid_start_time(
+         patch_hierarchy->getMaxNumberOfLevels());
 
       double loop_time = main_restart_data->getLoopTime();
+      int loop_cycle = main_restart_data->getIterationNumber();
 
       if (tbox::RestartManager::getManager()->isFromRestart()) {
 
-         patch_hierarchy->getFromRestart();
+         patch_hierarchy->initializeHierarchy();
 
          gridding_algorithm->getTagAndInitializeStrategy()->
          resetHierarchyConfiguration(patch_hierarchy,
@@ -433,14 +436,15 @@ int main(
          gridding_algorithm->makeCoarsestLevel(loop_time);
 
          bool done = false;
-         bool initial_time = true;
+         bool initial_cycle = true;
          for (int ln = 0;
               patch_hierarchy->levelCanBeRefined(ln) && !done;
-              ln++) {
+              ++ln) {
             gridding_algorithm->makeFinerLevel(
-               loop_time,
-               initial_time,
-               tag_buffer_array[ln]);
+               tag_buffer_array[ln],
+               initial_cycle,
+               loop_cycle,
+               loop_time);
             done = !(patch_hierarchy->finerLevelExists(ln));
          }
       }
@@ -507,7 +511,7 @@ int main(
              (iteration_num < main_restart_data->getMaxTimesteps())) {
 
          iteration_num = main_restart_data->getIterationNumber();
-         iteration_num++;
+         ++iteration_num;
 
          tbox::pout << "++++++++++++++++++++++++++++++++++++++++++++" << endl;
          tbox::pout << "At begining of timestep # " << iteration_num - 1
@@ -564,8 +568,9 @@ int main(
                        << patch_hierarchy->getFinestLevelNumber() << endl;
 
             gridding_algorithm->regridAllFinerLevels(0,
-               loop_time,
                tag_buffer_array,
+               iteration_num,
+               loop_time,
                regrid_start_time);
 
             tbox::plog << "Finest level after regrid: "

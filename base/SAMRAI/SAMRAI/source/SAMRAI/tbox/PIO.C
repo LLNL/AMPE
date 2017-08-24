@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Parallel I/O classes pout, perr, and plog and control class
  *
  ************************************************************************/
@@ -19,7 +19,7 @@ namespace SAMRAI {
 namespace tbox {
 
 int PIO::s_rank = -1;
-std::ofstream * PIO::s_filestream = NULL;
+std::ofstream * PIO::s_filestream = 0;
 
 /*
  *************************************************************************
@@ -52,7 +52,7 @@ PIO::initialize()
 {
    const SAMRAI_MPI& mpi(SAMRAI_MPI::getSAMRAIWorld());
    mpi.Comm_rank(&s_rank);
-   s_filestream = NULL;
+   s_filestream = 0;
 
    /*
     * Initialize the standard parallel output stream
@@ -61,7 +61,7 @@ PIO::initialize()
    pout_buffer.setActive(s_rank == 0);
    pout_buffer.setPrefixString(std::string());
    pout_buffer.setOutputStream1(&std::cout);
-   pout_buffer.setOutputStream2(NULL);
+   pout_buffer.setOutputStream2(0);
 
    /*
     * Initialize the error parallel output stream
@@ -72,7 +72,7 @@ PIO::initialize()
    perr_buffer.setActive(true);
    perr_buffer.setPrefixString(buffer);
    perr_buffer.setOutputStream1(&std::cerr);
-   perr_buffer.setOutputStream2(NULL);
+   perr_buffer.setOutputStream2(0);
 
    /*
     * Initialize the parallel log file (disabled by default)
@@ -80,8 +80,8 @@ PIO::initialize()
 
    plog_buffer.setActive(false);
    plog_buffer.setPrefixString(std::string());
-   plog_buffer.setOutputStream1(NULL);
-   plog_buffer.setOutputStream2(NULL);
+   plog_buffer.setOutputStream1(0);
+   plog_buffer.setOutputStream2(0);
 }
 
 /*
@@ -118,11 +118,11 @@ PIO::shutdownFilestream()
       s_filestream->close();
 
       delete s_filestream;
-      s_filestream = NULL;
+      s_filestream = 0;
 
-      pout_buffer.setOutputStream2(NULL);
-      perr_buffer.setOutputStream2(NULL);
-      plog_buffer.setOutputStream1(NULL);
+      pout_buffer.setOutputStream2(0);
+      perr_buffer.setOutputStream2(0);
+      plog_buffer.setOutputStream1(0);
       plog_buffer.setActive(false);
    }
 }
@@ -155,7 +155,7 @@ PIO::logOnlyNodeZero(
       s_filestream = new std::ofstream(filename.c_str());
       if (!(*s_filestream)) {
          delete s_filestream;
-         s_filestream = NULL;
+         s_filestream = 0;
          perr << "PIO: Could not open log file ``" << filename.c_str()
               << "''\n";
       } else {
@@ -197,7 +197,7 @@ PIO::logAllNodes(
 
    if (!(*s_filestream)) {
       delete s_filestream;
-      s_filestream = NULL;
+      s_filestream = 0;
       perr << "PIO: Could not open log file ``" << full_filename << "''\n";
    } else {
       pout_buffer.setOutputStream2(s_filestream);
@@ -218,9 +218,9 @@ PIO::logAllNodes(
 void
 PIO::suspendLogging()
 {
-   pout_buffer.setOutputStream2(NULL);
-   perr_buffer.setOutputStream2(NULL);
-   plog_buffer.setOutputStream1(NULL);
+   pout_buffer.setOutputStream2(0);
+   perr_buffer.setOutputStream2(0);
+   plog_buffer.setOutputStream1(0);
    plog_buffer.setActive(false);
 }
 
@@ -228,7 +228,7 @@ PIO::suspendLogging()
  *************************************************************************
  *
  * Resume logging of the file stream (assuming it was open).  If the
- * file stream is NULL, then do nothing.
+ * file stream is 0, then do nothing.
  *
  *************************************************************************
  */

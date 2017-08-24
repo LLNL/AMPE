@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -33,12 +33,12 @@ class FaceGeometry;
  * box geometries and face or outerface box geometries for communication
  * operations.
  *
- * See header file for OuterfaceData<DIM> class for a more detailed
+ * See header file for OuterfaceData<TYPE> class for a more detailed
  * description of the data layout.
  *
  * @see hier::BoxGeometry
- * @see pdat::FaceGeometry
- * @see pdat::FaceOverlap
+ * @see FaceGeometry
+ * @see FaceOverlap
  */
 
 class OuterfaceGeometry:public hier::BoxGeometry
@@ -52,6 +52,9 @@ public:
    /*!
     * @brief Construct an outerface geometry object given an AMR index
     * space box and ghost cell width.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre ghosts.min() >= 0
     */
    OuterfaceGeometry(
       const hier::Box& box,
@@ -65,6 +68,8 @@ public:
    /*!
     * @brief Compute the overlap in face-centered index space on the
     * boundaries of the source box geometry and the destination box geometry.
+    *
+    * @pre getBox().getDim() == src_mask.getDim()
     */
    virtual boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -120,9 +125,19 @@ private:
       const hier::Transformation& transformation,
       const hier::BoxContainer& dst_restrict_boxes);
 
+   static boost::shared_ptr<hier::BoxOverlap>
+   doOverlap(
+      const OuterfaceGeometry& dst_geometry,
+      const OuterfaceGeometry& src_geometry,
+      const hier::Box& src_mask,
+      const hier::Box& fill_box,
+      const bool overwrite_interior,
+      const hier::Transformation& transformation,
+      const hier::BoxContainer& dst_restrict_boxes);
+
    OuterfaceGeometry(
       const OuterfaceGeometry&);                // not implemented
-   void
+   OuterfaceGeometry&
    operator = (
       const OuterfaceGeometry&);                    // not implemented
 

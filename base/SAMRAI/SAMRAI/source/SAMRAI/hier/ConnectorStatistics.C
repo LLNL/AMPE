@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Statistical characteristics of a Connector.
  *
  ************************************************************************/
-#ifndef included_hier_ConnectorStatistics_C
-#define included_hier_ConnectorStatistics_C
-
 #include "SAMRAI/hier/ConnectorStatistics.h"
 
 #include "SAMRAI/hier/BoxContainer.h"
@@ -26,7 +23,6 @@
 namespace SAMRAI {
 namespace hier {
 
-
 std::string ConnectorStatistics::s_quantity_names[NUMBER_OF_QUANTITIES];
 int ConnectorStatistics::s_longest_length;
 
@@ -38,36 +34,33 @@ ConnectorStatistics::s_initialize_finalize_handler(
    ConnectorStatistics::finalizeCallback,
    tbox::StartupShutdownManager::priorityTimers);
 
-
 /*
-************************************************************************
-* Constructor.
-************************************************************************
-*/
+ ************************************************************************
+ * Constructor.
+ ************************************************************************
+ */
 ConnectorStatistics::ConnectorStatistics(
-   const Connector &connector )
-   : d_mpi(connector.getMPI())
+   const Connector& connector):
+   d_mpi(connector.getMPI())
 {
    if (!connector.isFinalized()) {
       TBOX_ERROR("ConnectorStatistics requires an finalized Connector.");
    }
 
-   computeLocalConnectorStatistics( connector );
+   computeLocalConnectorStatistics(connector);
    reduceStatistics();
 }
 
-
 /*
-************************************************************************
-************************************************************************
-*/
+ ************************************************************************
+ ************************************************************************
+ */
 ConnectorStatistics::StatisticalQuantities::StatisticalQuantities()
 {
-   for ( int i=0; i<NUMBER_OF_QUANTITIES; ++i ) {
+   for (int i = 0; i < NUMBER_OF_QUANTITIES; ++i) {
       d_values[i] = 0.;
    }
 }
-
 
 /*
  ***********************************************************************
@@ -75,18 +68,19 @@ ConnectorStatistics::StatisticalQuantities::StatisticalQuantities()
  ***********************************************************************
  */
 
-void ConnectorStatistics::computeLocalConnectorStatistics( const Connector &connector )
+void
+ConnectorStatistics::computeLocalConnectorStatistics(const Connector& connector)
 {
    if (!connector.isFinalized()) {
       TBOX_ERROR("ConnectorStatistics::computeLocalStatistics cannot compute\n"
-                 <<"statistics for unfinalized Connector.");
+         << "statistics for unfinalized Connector.");
       return;
    }
 
    connector.cacheGlobalReducedData();
 
-   const BoxLevel &base(connector.getBase());
-   const tbox::SAMRAI_MPI &mpi(base.getMPI());
+   const BoxLevel& base(connector.getBase());
+   const tbox::SAMRAI_MPI& mpi(base.getMPI());
    const tbox::Dimension& dim(base.getDim());
 
    /*
@@ -94,12 +88,11 @@ void ConnectorStatistics::computeLocalConnectorStatistics( const Connector &conn
     * calculus.
     */
    const bool refine_head = connector.getHeadCoarserFlag() &&
-      ( connector.getRatio() != IntVector::getOne(dim) ||
-        !connector.ratioIsExact() );
+      (connector.getRatio() != IntVector::getOne(dim) ||
+       !connector.ratioIsExact());
    const bool coarsen_head = !connector.getHeadCoarserFlag() &&
-      ( connector.getRatio() != IntVector::getOne(dim) ||
-        !connector.ratioIsExact() );
-
+      (connector.getRatio() != IntVector::getOne(dim) ||
+       !connector.ratioIsExact());
 
    /*
     * Compute per-processor statistics.  Some quantities are readily
@@ -131,8 +124,8 @@ void ConnectorStatistics::computeLocalConnectorStatistics( const Connector &conn
 
    BoxContainer visible_neighbors(true); // All neighbors of local base boxes.
 
-   for ( Connector::ConstNeighborhoodIterator nbi=connector.begin();
-         nbi!=connector.end(); ++nbi ) {
+   for (Connector::ConstNeighborhoodIterator nbi = connector.begin();
+        nbi != connector.end(); ++nbi) {
 
       const int num_relations = connector.numLocalNeighbors(*nbi);
 
@@ -149,40 +142,43 @@ void ConnectorStatistics::computeLocalConnectorStatistics( const Connector &conn
       Box base_box = *base.getBoxStrict(*nbi);
       base_box.grow(connector.getConnectorWidth());
 
-      for ( Connector::ConstNeighborIterator ni = connector.begin(nbi);
-            ni != connector.end(nbi); ++ni ) {
+      for (Connector::ConstNeighborIterator ni = connector.begin(nbi);
+           ni != connector.end(nbi); ++ni) {
 
          visible_neighbors.insert(*ni);
          Box neighbor = *ni;
-         if ( refine_head ) {
+         if (refine_head) {
             neighbor.refine(connector.getRatio());
-         }
-         else if ( coarsen_head ) {
+         } else if (coarsen_head) {
             neighbor.coarsen(connector.getRatio());
          }
-         neighbor *= base_box;
-         const int size = neighbor.size();
-
-         d_sq.d_values[OVERLAP_SIZE] += size;
-         if ( neighbor.getOwnerRank() == mpi.getRank() ) {
-            d_sq.d_values[LOCAL_OVERLAP_SIZE] += size;
+         if (neighbor.getBlockId() != base_box.getBlockId()) {
+            base.getGridGeometry()->transformBox(neighbor,
+               base.getRefinementRatio(),
+               base_box.getBlockId(),
+               neighbor.getBlockId());
          }
-         else {
-            d_sq.d_values[REMOTE_OVERLAP_SIZE] += size;
+         neighbor *= base_box;
+         const size_t size = neighbor.size();
+
+         d_sq.d_values[OVERLAP_SIZE] += static_cast<double>(size);
+         if (neighbor.getOwnerRank() == mpi.getRank()) {
+            d_sq.d_values[LOCAL_OVERLAP_SIZE] += static_cast<double>(size);
+         } else {
+            d_sq.d_values[REMOTE_OVERLAP_SIZE] += static_cast<double>(size);
          }
 
       }
 
    }
 
-
    d_sq.d_values[NUMBER_OF_NEIGHBORS] =
       static_cast<double>(visible_neighbors.size());
 
    std::set<int> remote_neighbor_owners;
-   for ( BoxContainer::const_iterator bi=visible_neighbors.begin();
-         bi!=visible_neighbors.end(); ++bi ) {
-      const Box &neighbor = *bi;
+   for (BoxContainer::const_iterator bi = visible_neighbors.begin();
+        bi != visible_neighbors.end(); ++bi) {
+      const Box& neighbor = *bi;
 
       d_sq.d_values[NUMBER_OF_LOCAL_NEIGHBORS] +=
          neighbor.getOwnerRank() == mpi.getRank();
@@ -196,10 +192,7 @@ void ConnectorStatistics::computeLocalConnectorStatistics( const Connector &conn
    remote_neighbor_owners.erase(mpi.getRank());
    d_sq.d_values[NUMBER_OF_REMOTE_NEIGHBOR_OWNERS] =
       static_cast<double>(remote_neighbor_owners.size());
-
-   return;
 }
-
 
 /*
  ***********************************************************************
@@ -229,10 +222,7 @@ void ConnectorStatistics::reduceStatistics()
          d_rank_of_min[i] = d_rank_of_max[i] = 0;
       }
    }
-
-   return;
 }
-
 
 /*
  ***********************************************************************
@@ -267,10 +257,7 @@ void ConnectorStatistics::printNeighborStats(
          << ' ' << std::setw(8) << std::right
          << d_sq_sum.d_values[i] / d_mpi.getSize() << '\n';
    }
-
-   return;
 }
-
 
 /*
  ***********************************************************************
@@ -281,20 +268,20 @@ void
 ConnectorStatistics::initializeCallback()
 {
 
-   s_quantity_names[NUMBER_OF_BASE_BOXES]             = "num base boxes";
-   s_quantity_names[NUMBER_OF_BASE_CELLS]             = "num base cells";
+   s_quantity_names[NUMBER_OF_BASE_BOXES] = "num base boxes";
+   s_quantity_names[NUMBER_OF_BASE_CELLS] = "num base cells";
 
-   s_quantity_names[HAS_ANY_NEIGHBOR_SETS]            = "has any neighbor sets";
-   s_quantity_names[NUMBER_OF_NEIGHBOR_SETS]          = "num neighbor sets";
+   s_quantity_names[HAS_ANY_NEIGHBOR_SETS] = "has any neighbor sets";
+   s_quantity_names[NUMBER_OF_NEIGHBOR_SETS] = "num neighbor sets";
 
-   s_quantity_names[HAS_ANY_RELATIONSHIPS]            = "has any relationships";
-   s_quantity_names[NUMBER_OF_RELATIONSHIPS]          = "num relationships";
-   s_quantity_names[MIN_NUMBER_OF_RELATIONSHIPS]      = "min num relationships";
-   s_quantity_names[MAX_NUMBER_OF_RELATIONSHIPS]      = "max num relationships";
+   s_quantity_names[HAS_ANY_RELATIONSHIPS] = "has any relationships";
+   s_quantity_names[NUMBER_OF_RELATIONSHIPS] = "num relationships";
+   s_quantity_names[MIN_NUMBER_OF_RELATIONSHIPS] = "min num relationships";
+   s_quantity_names[MAX_NUMBER_OF_RELATIONSHIPS] = "max num relationships";
 
-   s_quantity_names[NUMBER_OF_NEIGHBORS]              = "num neighbors";
-   s_quantity_names[NUMBER_OF_LOCAL_NEIGHBORS]        = "num local neighbors";
-   s_quantity_names[NUMBER_OF_REMOTE_NEIGHBORS]       = "num remote neighbors";
+   s_quantity_names[NUMBER_OF_NEIGHBORS] = "num neighbors";
+   s_quantity_names[NUMBER_OF_LOCAL_NEIGHBORS] = "num local neighbors";
+   s_quantity_names[NUMBER_OF_REMOTE_NEIGHBORS] = "num remote neighbors";
    s_quantity_names[NUMBER_OF_REMOTE_NEIGHBOR_OWNERS] = "num remote neighbor owners";
 
    s_quantity_names[OVERLAP_SIZE] = "overlap size";
@@ -302,9 +289,9 @@ ConnectorStatistics::initializeCallback()
    s_quantity_names[REMOTE_OVERLAP_SIZE] = "remote overlap size";
 
    s_longest_length = 0;
-   for ( int i=0; i<NUMBER_OF_QUANTITIES; ++i ) {
+   for (int i = 0; i < NUMBER_OF_QUANTITIES; ++i) {
       s_longest_length = tbox::MathUtilities<int>::Max(
-         s_longest_length, static_cast<int>(s_quantity_names[i].length()));
+            s_longest_length, static_cast<int>(s_quantity_names[i].length()));
    }
 }
 
@@ -316,11 +303,10 @@ ConnectorStatistics::initializeCallback()
 void
 ConnectorStatistics::finalizeCallback()
 {
-   for ( int i=0; i<NUMBER_OF_QUANTITIES; ++i ) {
+   for (int i = 0; i < NUMBER_OF_QUANTITIES; ++i) {
       s_quantity_names[i].clear();
    }
 }
-
 
 }
 }
@@ -331,6 +317,4 @@ ConnectorStatistics::finalizeCallback()
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

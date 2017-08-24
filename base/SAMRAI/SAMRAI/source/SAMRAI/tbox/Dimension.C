@@ -3,34 +3,24 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   A smart pointer template class with RTTI
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Dimension class for abstracting dimension
  *
  ************************************************************************/
-
-#ifndef included_tbox_Dimension_C
-#define included_tbox_Dimension_C
-
 #include "SAMRAI/tbox/Dimension.h"
 
 namespace SAMRAI {
 namespace tbox {
 
-Dimension::Dimension():
-   d_dim(Dimension::getInvalidDimValue())
+Dimension::Dimension(
+   const unsigned short& dim):d_dim(dim)
 {
+   TBOX_DIM_ASSERT(dim > 0 && dim <= SAMRAI::MAX_DIM_VAL);
 }
 
 Dimension::Dimension(
-   const unsigned short& dim):d_dim(dim) {
-   TBOX_DIM_ASSERT((!isValid()) ||
-      (d_dim > 0 && d_dim <= Dimension::getMaxDimValue()));
-}
-
-Dimension::Dimension(
-   const Dimension& dimension):d_dim(dimension.d_dim) {
-   TBOX_DIM_ASSERT((!isValid()) ||
-      (d_dim > 0 && d_dim <= Dimension::getMaxDimValue()));
+   const Dimension& dimension):d_dim(dimension.d_dim)
+{
 }
 
 std::ostream&
@@ -44,5 +34,3 @@ operator << (
 
 }
 }
-
-#endif

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Example user class for solving Poisson using Hypre.
  *
  ************************************************************************/
@@ -11,8 +11,6 @@
 #define included_HyprePoisson
 
 #include "SAMRAI/SAMRAI_config.h"
-
-using namespace std;
 
 #if !defined(HAVE_HYPRE)
 
@@ -44,7 +42,9 @@ using namespace std;
 #include "SAMRAI/appu/VisDerivedDataStrategy.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+using namespace std;
 
 namespace SAMRAI {
 
@@ -86,12 +86,14 @@ public:
     * pass in valid pointers for those streams.
     *
     * @param object_name Ojbect name
+    * @param dim
+    * @param database
     */
    HyprePoisson(
       const string& object_name,
       const tbox::Dimension& dim,
-      boost::shared_ptr<tbox::Database> database =
-         boost::shared_ptr<tbox::Database>());
+      boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
+      boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
 
    virtual ~HyprePoisson();
 
@@ -137,7 +139,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const std::string& variable_name,
-      int depth_id) const;
+      int depth_id,
+      double simulation_time = 0.0) const;
 
    //@}
 
@@ -191,12 +194,12 @@ private:
    /*!
     * @brief HYPRE poisson solver.
     */
-   solv::CellPoissonHypreSolver d_poisson_hypre;
+   boost::shared_ptr<solv::CellPoissonHypreSolver> d_poisson_hypre;
 
    /*!
     * @brief Boundary condition coefficient implementation.
     */
-   solv::LocationIndexRobinBcCoefs d_bc_coefs;
+   boost::shared_ptr<solv::LocationIndexRobinBcCoefs> d_bc_coefs;
 
    //@}
 

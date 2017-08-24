@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Identifier for a Box.
  *
  ************************************************************************/
@@ -54,6 +54,8 @@ public:
     * @param[in] owner_rank
     *
     * @param[in] periodic_id
+    *
+    * @pre periodic_id.isValid()
     */
    BoxId(
       const LocalId& local_id,
@@ -66,6 +68,8 @@ public:
     * @param[in] id
     *
     * @param[in] periodic_id
+    *
+    * @pre periodic_id.isValid()
     */
    explicit BoxId(
       const GlobalId& id,
@@ -75,6 +79,8 @@ public:
     * @brief Copy constructor.
     *
     * @param[in] other
+    *
+    * @pre other.periodic_id.isValid()
     */
    BoxId(
       const BoxId& other);
@@ -154,13 +160,14 @@ public:
    /*!
     * @brief Whether the BoxId is valid--meaning it has a valid
     * GlobalId and PeriodicId.
-    */ 
+    */
    bool
    isValid() const
    {
-      return (d_periodic_id.isValid() &&
-              d_global_id.getLocalId() != LocalId::getInvalidId() && 
-              d_global_id.getOwnerRank() != tbox::SAMRAI_MPI::getInvalidRank());
+      return d_periodic_id.isValid() &&
+             d_global_id.getLocalId() != LocalId::getInvalidId() &&
+             d_global_id.getLocalId() >= 0 &&
+             d_global_id.getOwnerRank() != tbox::SAMRAI_MPI::getInvalidRank();
    }
 
    //@{
@@ -281,7 +288,7 @@ public:
     */
    void
    putToIntBuffer(
-      int * buffer) const
+      int* buffer) const
    {
       buffer[0] = getOwnerRank();
       buffer[1] = getLocalId().getValue();
@@ -296,7 +303,7 @@ public:
     */
    void
    getFromIntBuffer(
-      const int * buffer)
+      const int* buffer)
    {
       initialize(LocalId(buffer[1]),
          buffer[0],
@@ -311,7 +318,7 @@ public:
     */
    void
    putToMessageStream(
-      tbox::MessageStream &msg) const
+      tbox::MessageStream& msg) const
    {
       msg << getOwnerRank();
       msg << getLocalId().getValue();
@@ -326,7 +333,7 @@ public:
     */
    void
    getFromMessageStream(
-      tbox::MessageStream &msg)
+      tbox::MessageStream& msg)
    {
       int i1, i2, i3;
       msg >> i1;

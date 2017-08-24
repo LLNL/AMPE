@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract fill pattern class to provide interface for stencils
  *
  ************************************************************************/
@@ -23,9 +23,9 @@ namespace xfer {
  * fills the entire region the destination level, both interior and
  * ghost.
  *
- * For documentation on this interface see @ref xfer::PatchLevelFillPattern
+ * For documentation on this interface see @ref PatchLevelFillPattern
  *
- * The fill boxes for this "All" PatchLevelFillPattern will consist of
+ * The fill boxes for this PatchLevelFillPattern will consist of
  * the entire region of the destination level that can be filled, both
  * interior and ghost regions.
  *
@@ -34,8 +34,8 @@ namespace xfer {
  * PatchLevelFillPattern argument, this class will be used as the
  * default PatchLevelFillPattern.
  *
- * @see xfer::RefineAlgorithm
- * @see xfer::RefineSchedule
+ * @see RefineAlgorithm
+ * @see RefineSchedule
  */
 
 class PatchLevelFullFillPattern:public PatchLevelFillPattern
@@ -54,18 +54,18 @@ public:
    /*!
     * @copydoc PatchLevelFillPattern::computeFillBoxesAndNeighborhoodSets()
     *
-    * The computed fill_mapped_boxes for this fill pattern will be the
-    * boxes of dst_mapped_box_level grown by the fill_ghost_width.
+    * The computed fill_box_level for this fill pattern will be the
+    * boxes of dst_box_level grown by the fill_ghost_width.
+    *
+    * @pre dst_box_level.getDim() == fill_ghost_width.getDim()
     */
    void
    computeFillBoxesAndNeighborhoodSets(
-      hier::BoxLevel& fill_mapped_boxes,
-      hier::Connector& dst_to_fill,
-      const hier::BoxLevel& dst_mapped_box_level,
-      const hier::Connector& dst_to_dst,
-      const hier::Connector& dst_to_src,
-      const hier::Connector& src_to_dst,
-      const hier::IntVector& fill_ghost_width);
+      boost::shared_ptr<hier::BoxLevel>& fill_box_level,
+      boost::shared_ptr<hier::Connector>& dst_to_fill,
+      const hier::BoxLevel& dst_box_level,
+      const hier::IntVector& fill_ghost_width,
+      bool data_on_patch_border);
 
    /*!
     * @copydoc PatchLevelFillPattern::needsToCommunicateDestinationFillBoxes()
@@ -79,11 +79,13 @@ public:
 
    /*!
     * @copydoc PatchLevelFillPattern::computeDestinationFillBoxesOnSourceProc()
+    *
+    * @pre dst_box_level.getDim() == fill_ghost_width.getDim()
     */
    void
    computeDestinationFillBoxesOnSourceProc(
       FillSet& dst_fill_boxes_on_src_proc,
-      const hier::BoxLevel& dst_mapped_box_level,
+      const hier::BoxLevel& dst_box_level,
       const hier::Connector& src_to_dst,
       const hier::IntVector& fill_ghost_width);
 
@@ -117,7 +119,7 @@ public:
 private:
    PatchLevelFullFillPattern(
       const PatchLevelFullFillPattern&);             // not implemented
-   void
+   PatchLevelFullFillPattern&
    operator = (
       const PatchLevelFullFillPattern&);             // not implemented
 

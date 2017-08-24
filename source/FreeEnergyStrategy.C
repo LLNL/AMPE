@@ -49,7 +49,7 @@ void FreeEnergyStrategy::computeDerivFreeEnergy(
          boost::shared_ptr<hier::Patch > patch = *ip;
  
          boost::shared_ptr< pdat::CellData<double> > df (
-            patch->getPatchData( df_id ), boost::detail::dynamic_cast_tag()); 
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( df_id) ) );
          assert( df );
  
          df->fillAll( 0. );

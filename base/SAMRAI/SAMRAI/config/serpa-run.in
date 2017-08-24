@@ -185,7 +185,7 @@ elif echo "${HOST}" | grep '^tc2k' > /dev/null ; then
     return ${?}
   }
 
-elif echo "${HOST}" | egrep '^(cab|hera|sierra|ansel|atlas|rzzeus|rzalastor)[0-9]' > /dev/null ; then
+elif echo "${HOST}" | egrep '^(atlas|aztec|rzzeus|rzalastor|rzmerl|rzuseqlac|sierra|surface|hera)[0-9]' > /dev/null ; then
 
   # For LC Linux clusters using srun.
   run_multiproc () {
@@ -193,7 +193,7 @@ elif echo "${HOST}" | egrep '^(cab|hera|sierra|ansel|atlas|rzzeus|rzalastor)[0-9
     if [ -n "${REGRESSION}" ] ; then
       cmd="mpirun -np ${nproc}"
     else
-      cmd="srun -n${nproc} -ppdebug"
+      cmd="srun -n${nproc}"
     fi
     #com="${additional_env} srun -n${nproc} ${program} ${@}"
     com="${cmd} ${program} ${@}"

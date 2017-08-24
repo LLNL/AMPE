@@ -3,20 +3,16 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory for creating outernode sum transaction objects
  *
  ************************************************************************/
-
-#ifndef included_algs_OuternodeSumTransactionFactory_C
-#define included_algs_OuternodeSumTransactionFactory_C
-
 #include "SAMRAI/algs/OuternodeSumTransactionFactory.h"
 
 #include "SAMRAI/pdat/OuternodeData.h"
 #include "SAMRAI/algs/OuternodeSumTransaction.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace algs {
@@ -40,31 +36,6 @@ OuternodeSumTransactionFactory::~OuternodeSumTransactionFactory()
 /*
  *************************************************************************
  *
- * Set/unset information for transactions managed by this factory class.
- *
- *************************************************************************
- */
-
-void OuternodeSumTransactionFactory::setRefineItems(
-   const xfer::RefineClasses::Data** refine_items,
-   int num_refine_items)
-{
-   OuternodeSumTransaction::setRefineItems(refine_items,
-      num_refine_items);
-   d_refine_items = refine_items;
-   d_number_refine_items = num_refine_items;
-}
-
-void OuternodeSumTransactionFactory::unsetRefineItems()
-{
-   OuternodeSumTransaction::unsetRefineItems();
-   d_refine_items = (const xfer::RefineClasses::Data **)NULL;
-   d_number_refine_items = 0;
-}
-
-/*
- *************************************************************************
- *
  * Allocate outernode sum transaction object.
  *
  *************************************************************************
@@ -77,21 +48,29 @@ OuternodeSumTransactionFactory::allocate(
    const boost::shared_ptr<hier::BoxOverlap>& overlap,
    const hier::Box& dst_node,
    const hier::Box& src_node,
-   int ritem_id,
+   const xfer::RefineClasses::Data** refine_data,
+   int item_id,
    const hier::Box& box,
    bool use_time_interpolation) const
 {
    NULL_USE(box);
    NULL_USE(use_time_interpolation);
 
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst_level, *src_level, dst_node, src_node);
+   TBOX_ASSERT(dst_level);
+   TBOX_ASSERT(src_level);
+   TBOX_ASSERT(overlap);
+   TBOX_ASSERT(dst_node.getLocalId() >= 0);
+   TBOX_ASSERT(src_node.getLocalId() >= 0);
+   TBOX_ASSERT(refine_data != 0);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst_level, *src_level, dst_node, src_node);
 
    return boost::make_shared<OuternodeSumTransaction>(dst_level,
-      src_level,
-      overlap,
-      dst_node,
-      src_node,
-      ritem_id);
+                                                      src_level,
+                                                      overlap,
+                                                      dst_node,
+                                                      src_node,
+                                                      refine_data,
+                                                      item_id);
 }
 
 boost::shared_ptr<tbox::Transaction>
@@ -101,16 +80,24 @@ OuternodeSumTransactionFactory::allocate(
    const boost::shared_ptr<hier::BoxOverlap>& overlap,
    const hier::Box& dst_node,
    const hier::Box& src_node,
-   int ritem_id) const
+   const xfer::RefineClasses::Data** refine_data,
+   int item_id) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*dst_level, *src_level, dst_node, src_node);
+   TBOX_ASSERT(dst_level);
+   TBOX_ASSERT(src_level);
+   TBOX_ASSERT(overlap);
+   TBOX_ASSERT(dst_node.getLocalId() >= 0);
+   TBOX_ASSERT(src_node.getLocalId() >= 0);
+   TBOX_ASSERT(refine_data != 0);
+   TBOX_ASSERT_OBJDIM_EQUALITY4(*dst_level, *src_level, dst_node, src_node);
 
    return allocate(dst_level,
       src_level,
       overlap,
       dst_node,
       src_node,
-      ritem_id,
+      refine_data,
+      item_id,
       hier::Box(dst_level->getDim()),
       false);
 }
@@ -139,8 +126,9 @@ void OuternodeSumTransactionFactory::preprocessScratchSpace(
       for (int n = 0; n < ncomponents; ++n) {
          if (preprocess_vector.isSet(n)) {
             boost::shared_ptr<pdat::OuternodeData<double> > onode_data(
-               patch->getPatchData(n),
-               boost::detail::dynamic_cast_tag());
+               BOOST_CAST<pdat::OuternodeData<double>, hier::PatchData>(
+                  patch->getPatchData(n)));
+            TBOX_ASSERT(onode_data);
             onode_data->fillAll(0.0);
          }
       }
@@ -150,4 +138,3 @@ void OuternodeSumTransactionFactory::preprocessScratchSpace(
 
 }
 }
-#endif

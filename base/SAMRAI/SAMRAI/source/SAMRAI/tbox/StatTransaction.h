@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Communication transaction structure for statistic data copies
  *
  ************************************************************************/
@@ -16,7 +16,7 @@
 #include "SAMRAI/tbox/Statistic.h"
 #include "SAMRAI/tbox/Transaction.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
@@ -27,8 +27,8 @@ namespace tbox {
  * transaction between two processors for sending and gathering statistic
  * information generated on different processors.
  *
- * @see tbox::Schedule
- * @see tbox::Transaction
+ * @see Schedule
+ * @see Transaction
  */
 
 class StatTransaction:public Transaction
@@ -125,9 +125,10 @@ public:
       std::ostream& stream) const;
 
 private:
+   StatTransaction();                           // not implemented
    StatTransaction(
       const StatTransaction&);                  // not implemented
-   void
+   StatTransaction&
    operator = (
       const StatTransaction&);                  // not implemented
 

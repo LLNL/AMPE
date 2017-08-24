@@ -1,9 +1,9 @@
-c    
-c File:        $URL$
-c Package:     SAMRAI application utilities
-c Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c Revision:    $LastChangedRevision$
-c Description: copies data from 2D fortran array to 1D double buffer
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   Copies data from 2D fortran array to 1D double buffer.
 c
 
       subroutine cpddat2buf2d(

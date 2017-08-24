@@ -3,47 +3,57 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for 2D nonlinear solver example using KINSOL. 
  *
  ************************************************************************/
-// This is the input file for the 2D nonlinear solver example using KINSOL.
+ // This is the input file for the 2D nonlinear solver example using KINSOL.
 
 Main{
+
+   // Dimension of problem.  No default.
    dim = 2
 
+   // Base name of log and viz files.  Default is "default".
    base_name = "2d.kinsol"
 
-// visualization dump parameters 
-   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
-   viz_dump_interval     = 1          // zero to turn off
+   // Frequency at which to dump viz output--zero to turn off
+   // Default is 0.
+   viz_dump_interval     = 1
+
+   // Directory in which to place viz output.
+   // No default, this must be specified here if dump interval is non-zero.
    viz_dump_dirname      = "2d.kinsol.visit"
-   viz_dump_filename     = "2d.kinsol"    // not used by VisIt
-   visit_number_procs_per_file = 1    // not used by Vizamrai
 
+   // Number of processors that dump to one viz file.
+   // Default is 1.
+   visit_number_procs_per_file = 1
 
-// regrid parameters
+   // Timestep interval for regridding.  If zero, there will be no regridding.
+   // Default is 0.
    regrid_interval       = 1         // zero to turn off
 
-// Options for nonlinear solver package are:
-//     "KINSOL" (default), or "PETSc-SNES"
+   // Options for nonlinear solver package are:
+   //    "KINSOL" (default), or "PETSc-SNES"
    nonlinear_solver_package = "KINSOL"
-   // nonlinear_solver_package = "PETSc-SNES"
 
 }
 
+// Refer to xfer::TimerManager for input
 TimerManager{
    maintain_exclusive_time = TRUE
    maintain_concurrent_time = TRUE
    timer_list               = "apps::main::*", "apps::usrFcns::*"
 }
 
+// Refer to geom::CartesianGridGeometry and its base classes for input
 CartesianGeometry{
    domain_boxes = [(0,0), (31,31)]
    x_lo         = 0.0e0, 0.0e0   
    x_up         = 1.0e0, 1.0e0
 }
 
+// Refer to hier::PatchHierarchy for input
 PatchHierarchy {
    max_levels = 8
    largest_patch_size {
@@ -72,44 +82,77 @@ PatchHierarchy {
    // TODO this should be removed when visit writer is updated
    sequentialize_patch_indices = TRUE
 }
-GriddingAlgorithm{
 
+// Refer to mesh::BergerRigoutsos for input
+BergerRigoutsos {
    combine_efficiency = 0.75
    efficiency_tolerance = 0.75
 }
 
+// Refer to mesh::GriddingAlgorithm for input
+GriddingAlgorithm{
+}
+
+// Refer to mesh::StandardTagAndInitialize for input
 StandardTagAndInitialize{
    tagging_method = "REFINE_BOXES"
-   RefineBoxes{
-     level_0 = [(8,8), (23,23)]
-     level_1 = [(24,24), (39,39)]
-     level_2 = [(56,56), (71,71)]
-     level_3 = [(120,120), (135,135)]
-     level_4 = [(248,248), (263,263)]
-     level_5 = [(504,504), (519,519)]
-     level_6 = [(1016,1016), (1031,1031)]
-     level_7 = [(2040,2040), (2055,2055)]
-     level_8 = [(4088,4088), (4103,4103)]
-     level_9 = [(8184,8184), (8199,8199)]
-            //etc.
+
+   level_0 {
+      boxes = [(8,8), (23,23)]
    }
+   level_1 {
+      boxes = [(24,24), (39,39)]
+   }
+   level_2 {
+      boxes = [(56,56), (71,71)]
+   }
+   level_3 {
+      boxes = [(120,120), (135,135)]
+   }
+   level_4 {
+      boxes = [(248,248), (263,263)]
+   }
+   level_5 {
+      boxes = [(504,504), (519,519)]
+   }
+   level_6 {
+      boxes = [(1016,1016), (1031,1031)]
+   }
+   level_7 {
+      boxes = [(2040,2040), (2055,2055)]
+   }
+   level_8 {
+      boxes = [(4088,4088), (4103,4103)]
+   }
+//   level_9 {
+//      boxes = [(8184,8184), (8199,8199)]
+//   }
+   //etc.
 }
 
+// Refer to mesh::TreeLoadBalancer for input
 LoadBalancer{
-    processors = 1, 1
-    use_spatial_bin_pack = TRUE
 }
 
+// The ModifiedBratuProblem class is the "user class" in this example.
+// It owns the solver and contains the code to set up the solver.
+// The inputs for ModifiedBratuProblem is simply the inputs for the
+// individual parts owned by the FACPoisson class.
 ModifiedBratuProblem{
-   timestep = 0.0625      // time increment used for all steps
+   // Time increment used for all steps. No default.
+   timestep = 0.0625
+
+   // Factor multiplying exponential term.  No default.
    lambda   = 6.0         // factor multiplying exponential term
 
-   max_precond_its = 35    // maximum iterations for preconditioner 
-   precond_tol = 1.0e-2    // preconditioner convergence tolerance
+   // Maximum iteration for preconditioner.  No default.
+   max_precond_its = 35
 
-   preconditioner_print_flag = FALSE // should the preconditioner report residuals
+   // Preconditioner convergence tolerance.  No default.
+   precond_tol = 1.0e-2    // preconditioner convergence tolerance
 }
 
+// Refer to solv::KINSOL_SAMRAIContext for input
 KINSOLSolver{
     max_nonlinear_iterations = 20
     KINSOL_log_filename      = "nkLog.32x32.8"
@@ -125,6 +168,7 @@ KINSOLSolver{
     max_linear_solve_restarts = 6
 }
 
+// Refer to solv::SNES_SAMRAIContext for input
 SNESSolver{
     uses_preconditioner            = TRUE
     uses_explicit_jacobian         = TRUE
@@ -135,11 +179,9 @@ SNESSolver{
     maximum_gmres_krylov_dimension = 20
     maximum_linear_iterations      = 50
     forcing_term_strategy          = "EWCHOICE1"
-    collect_convergence_histories  = TRUE
-    print_nonlinear_residuals      = TRUE
-    print_linear_residuals         = TRUE
 }
 
+// Refer to algs::ImplicitIntegrator for input
 ImplicitIntegrator{
     initial_time = 0.0
     final_time = 1.0

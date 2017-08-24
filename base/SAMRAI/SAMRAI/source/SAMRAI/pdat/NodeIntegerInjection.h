@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Constant averaging operator for node-centered integer data on
  *                a  mesh.
  *
@@ -18,7 +18,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/CoarsenOperator.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -41,8 +41,7 @@ public:
    /**
     * Uninteresting default constructor.
     */
-   explicit NodeIntegerInjection(
-      const tbox::Dimension& dim);
+   NodeIntegerInjection();
 
    /**
     * Uninteresting virtual destructor.
@@ -61,7 +60,8 @@ public:
     * zeros.  That is, its stencil does not extend outside the fine box.
     */
    hier::IntVector
-   getStencilWidth() const;
+   getStencilWidth(
+      const tbox::Dimension& dim) const;
 
    /**
     * Coarsen the source component on the fine patch to the destination

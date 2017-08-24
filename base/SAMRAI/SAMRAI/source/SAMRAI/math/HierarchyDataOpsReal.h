@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to templated operations for real data on hierarchy.
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
 namespace SAMRAI {
@@ -68,7 +68,6 @@ public:
 
    /**
     * Reset range of patch levels over which operations occur.
-    * Typically, levels must exist in hierarchy or an assertion will result.
     */
    virtual void
    resetLevels(
@@ -273,14 +272,14 @@ public:
     * is false, all elements will be counted (including ghost values)
     * over all patches.
     */
-   virtual int
+   virtual size_t
    numberOfEntries(
       const int data_id,
       const bool interior_only = true) const = 0;
 
    /**
     * Return sum of the control volumes associated with the data component.
-    * Note that if the ontrol volumes are set propery, this is equivalent to
+    * Note that if the control volumes are set properly, this is equivalent to
     * integrating a data component containing all ones over the collection of
     * hierarchy levels.
     */
@@ -468,10 +467,10 @@ public:
 private:
    // The following are not implemented
    HierarchyDataOpsReal(
-      const HierarchyDataOpsReal<TYPE>&);
-   void
+      const HierarchyDataOpsReal&);
+   HierarchyDataOpsReal&
    operator = (
-      const HierarchyDataOpsReal<TYPE>&);
+      const HierarchyDataOpsReal&);
 
 };
 

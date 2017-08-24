@@ -1,6 +1,13 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for corner flux computation in 3d.
+c
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
 include(FORTDIR/m4fluxcorner3d.i)dnl
 
       subroutine onethirdstate3d(dt,dx,idir,
@@ -59,7 +66,6 @@ c***********************************************************************
       subroutine fluxthird3d(dt,dx,idir,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &  advecspeed,
-     &  uval,
      &  st3,
      &  flux0,flux1,flux2)
      
@@ -76,8 +82,7 @@ c input arrays:
      &     dx(0:NDIM-1)
 c variables in 2d cell indexed         
       REAL
-     &     advecspeed(0:NDIM-1),
-     &     uval(CELL3d(ifirst,ilast,CELLG))
+     &     advecspeed(0:NDIM-1)
 c variables in 2d side indexed         
       REAL
      &     flux0(FACE3d0(ifirst,ilast,FLUXG)),
@@ -123,7 +128,7 @@ c***********************************************************************
 c***********************************************************************
       subroutine fluxcorrecjt3d(dt,dx,idir,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
-     &  advecspeed,uval,
+     &  advecspeed,
      &  flux0,flux1,flux2,
      &  tracelft0,tracelft1,tracelft2,
      &  tracergt0,tracergt1,tracergt2)
@@ -143,7 +148,6 @@ c
 c variables in 2d cell indexed         
       REAL
      &     advecspeed(0:NDIM-1),
-     &     uval(CELL3d(ifirst,ilast,CELLG)),
      &     flux0(FACE3d0(ifirst,ilast,FLUXG)),
      &     flux1(FACE3d1(ifirst,ilast,FLUXG)),
      &     flux2(FACE3d2(ifirst,ilast,FLUXG)),

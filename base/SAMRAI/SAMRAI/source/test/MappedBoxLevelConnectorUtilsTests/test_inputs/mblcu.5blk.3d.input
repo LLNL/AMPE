@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing multiblock tree searches.
  *
  ************************************************************************/
@@ -38,16 +38,6 @@ GridGeometry {
    domain_boxes_3 = [ (0,0,0) , (19,19,7) ]
    domain_boxes_4 = [ (0,0,0) , (19,19,7) ]
 
-   Singularity0 {
-      blocks = 0,1,2,3,4
-
-      sing_box_0 = [(20,20,0),(20,20,7)]
-      sing_box_1 = [(20,20,0),(20,20,7)]
-      sing_box_2 = [(20,-1,0),(20,-1,7)]
-      sing_box_3 = [(-1,-1,0),(-1,-1,7)]
-      sing_box_4 = [(-1,20,0),(-1,20,7)]
-   }
-
    BlockNeighbors0 {
       block_a = 0
       block_b = 1
@@ -64,7 +54,6 @@ GridGeometry {
       rotation_b_to_a = "J_UP", "I_DOWN", "K_UP"
       point_in_a_space = 19,19,0
       point_in_b_space = 20,-1,0
-      is_singularity = TRUE
    }
 
    BlockNeighbors2 {
@@ -74,7 +63,6 @@ GridGeometry {
       rotation_b_to_a = "I_UP", "J_UP", "K_UP"
       point_in_a_space = 19,19,0
       point_in_b_space = -1,-1,0
-      is_singularity = TRUE
    }
 
    BlockNeighbors3 {
@@ -104,7 +92,6 @@ GridGeometry {
       rotation_b_to_a = "I_UP", "J_UP", "K_UP"
       point_in_a_space = 19,19,0
       point_in_b_space = -1,-1,0
-      is_singularity = TRUE
    }
 
    BlockNeighbors6 {
@@ -114,7 +101,6 @@ GridGeometry {
       rotation_b_to_a = "J_DOWN", "I_UP", "K_UP"
       point_in_a_space = 19,19,0
       point_in_b_space = -1,20,0
-      is_singularity = TRUE
    }
 
    BlockNeighbors7 {
@@ -134,7 +120,6 @@ GridGeometry {
       rotation_b_to_a = "I_UP", "J_UP", "K_UP"
       point_in_a_space = 19,0,0
       point_in_b_space = -1,20,0
-      is_singularity = TRUE
    }
 
    BlockNeighbors9 {

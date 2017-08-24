@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   1Z fill pattern class
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/xfer/VariableFillPattern.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -71,6 +71,8 @@ public:
     *                            destination index space.
     *
     * @return                boost::shared_ptr to the calculated overlap object
+    *
+    * @pre dst_patch_box.getDim() == src_mask.getDim()
     */
    boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -94,6 +96,7 @@ public:
     * @param[in] fill_boxes  list representing the all of the space on a patch
     *                        or its ghost region that may be filled by a
     *                        refine operator (cell-centered represtentation)
+    * @param[in] node_fill_boxes  node-centered represenation of fill_boxes
     * @param[in] patch_box   box representing the patch where a refine operator
     *                        will fill data.  (cell-centered representation)
     * @param[in] data_box    box representing the full extent of the region
@@ -105,6 +108,7 @@ public:
    boost::shared_ptr<hier::BoxOverlap>
    computeFillBoxesOverlap(
       const hier::BoxContainer& fill_boxes,
+      const hier::BoxContainer& node_fill_boxes,
       const hier::Box& patch_box,
       const hier::Box& data_box,
       const hier::PatchDataFactory& pdf) const;
@@ -124,7 +128,7 @@ public:
 private:
    FirstLayerCellVariableFillPattern(
       const FirstLayerCellVariableFillPattern&);    // not implemented
-   void
+   FirstLayerCellVariableFillPattern&
    operator = (
       const FirstLayerCellVariableFillPattern&);    // not implemented
 
@@ -136,6 +140,8 @@ private:
     *
     * @param[out] stencil_boxes   The computed stencil BoxContainer.
     * @param[in]  dst_box         Input box around which stencil is computed.
+    *
+    * @pre stencil_boxes.size() == 0
     */
    void
    computeStencilBoxes(

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   AMR communication tests for edge-centered patch data
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/pdat/FaceData.h"
 #include "SAMRAI/pdat/FaceDoubleConstantRefine.h"
@@ -23,7 +22,7 @@
 #include "PatchMultiblockTestStrategy.h"
 #include "SAMRAI/hier/Variable.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -45,8 +44,6 @@ public:
       const string& object_name,
       const tbox::Dimension& dim,
       boost::shared_ptr<tbox::Database> main_input_db,
-      bool do_refine,
-      bool do_coarsen,
       const string& refine_option);
 
    /**
@@ -56,7 +53,7 @@ public:
 
    /**
     * User-supplied boundary conditions.  Note that we do not implement
-    * user-defined coarsen and refine operations.
+    * user-defined refine operations.
     */
    void
    setPhysicalBoundaryConditions(
@@ -68,7 +65,7 @@ public:
    fillSingularityBoundaryConditions(
       hier::Patch& patch,
       const hier::PatchLevel& encon_level,
-      const hier::Connector& dst_to_encon,
+      boost::shared_ptr<const hier::Connector> dst_to_encon,
       const hier::Box& fill_box,
       const hier::BoundaryBox& bbox,
       const boost::shared_ptr<hier::BaseGridGeometry>& grid_geometry);
@@ -77,7 +74,7 @@ public:
     * This function is called from the MultiblockTester constructor.  Its
     * purpose is to register variables used in the patch data test
     * and appropriate communication parameters (ghost cell widths,
-    * coarsen/refine operations) with the MultiblockTester object, which
+    * refine operations) with the MultiblockTester object, which
     * manages the variable storage.
     */
    void
@@ -145,7 +142,7 @@ private:
    string d_refine_option;
    int d_finest_level_number;
 
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_variables;
+   std::vector<boost::shared_ptr<hier::Variable> > d_variables;
 
 };
 

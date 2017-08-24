@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   Nonlinear solver example
 ##
 #########################################################################
@@ -13,240 +13,47 @@ SAMRAI application.  This example is for 2D and 3D only.
 
 The files included in this directory are as follows:
  
-	  ModifiedBratuProblem.h, ModifiedBratuProblem.C
+          ModifiedBratuProblem.h, ModifiedBratuProblem.C
                         -  Class to set up and solve the modified Bratu
                            problem..
-	  ModifiedBratuFort.h
-			-  Declarations of FORTRAN functions for
-			   the modified Bratu problem.
+          ModifiedBratuFort.h
+                        -  Declarations of FORTRAN functions for
+                           the modified Bratu problem.
+          fortran/*     -  FORTRAN files for numerical kernels
           main.C        -  example main program.
+          test_inputs/*input
+                        -  2D input files for regression testing
+          performance_inputs/*input
+                        -  3D input files for performance testing
  
-COMPILE and RUN
----------------
+COMPILATION AND EXECUTION
+-------------------------
 
-Compile:  make main2d
-Run:      main2d 2d.kinsol.input
-          main2d 2d.petsc.input
- 
-Compile:  make main3d
-Run:      main3d 3d.kinsol.input
-          main3d 3d.petsc.input
+   Compilation:
+      make main
+
+   Execution:
+      For one of the following input files:
+         test_inputs/kinsol.2d.input
+         test_inputs/petsc.2d.input
+      serial:
+         ./main <input file>
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main <input file>
  
 
 INPUTS
 ------
 
-   Main {
-      // General specifications.
-      base_name = "default"	// The base file name for output files.
-      nonlinear_solver_package = "KINSOL" // Name of the nonlinear
-         // solver package.  Can be "KINSOL" or "PETSc-SNES"
-   }
+   The test_inputs directory contains:
+         kinsol.2d.input
+         petsc.2d.input
 
-   ModifiedBratuProblem {
-     // The ModifiedBratuProblem class is the "user class" in this example.
-     // It owns the solver and contains the code to set up the solver.
-     // The inputs for ModifiedBratuProblem is simply the inputs for the
-     // individual parts owned by the FACPoisson class.
-     timestep = 0.0625      // time increment used for all steps
-     lambda   = 6.0         // factor multiplying exponential term
-     max_precond_its = 35    // maximum iterations for preconditioner 
-     precond_tol = 1.0e-2    // preconditioner convergence tolerance
-     preconditioner_print_flag = FALSE // whether preconditioner reports residuals
-   }
+   The performance_inputs directory contains:
+         kinsol.3d.input
+         petsc.3d.input
 
-   KINSOLSolver{
-      // Specify the parameters for the Newton-Krylov solve using KINSOL
-      max_nonlinear_iterations = 20      // Max number of nonlinear iterations.
-      residual_stop_tolerance  = 1.0e-10 // Stopping tolerance on the norm
-                                         // of scaled residual.
-      nonlinear_step_tolerance = 1.0e-10 // Stopping tolerance on maximum
-                                         // entry in scaled Newton step.
-      max_krylov_dimension      = 20     // Max dim of Krylov space.
-      max_linear_solve_restarts = 4      // Max number of linear solver
-                                         // restarts allowed.
-      // Specify whether the user provides certain components
-      // needed by the solver.
-      uses_preconditioner      = TRUE    // Whether a preconditioner is
-                                         // supplied.
-      uses_jac_times_vector    = TRUE    // Whether an analytic Jacobian-vector
-                                         // product is supplied.
-      // Debugging printouts
-      KINSOL_log_filename      = "kinsol.log" // Name of KINSOL log file.
-      KINSOL_print_flag        = 3       // Flag for KINSOL log file print
-                                         // option.
-   }
-
-   SNESSolver{
-      // Specify the parameters for the nonlinear solve using SNES
-      absolute_tolerance             = 1.0e-10 // Absolute nonlinear
-                                               // convergence tolerance.
-      relative_tolerance             = 1.0e-4  // Relative nonlinear
-                                               // convergence tolerance.
-      step_tolerance                 = 1.0e-6  // Minimum tolerance on change
-                                               // in solution norm between
-                                               // nonlinear iterates.
-      linear_solver_type             = "gmres" // Name of linear solver type
-                                               // (KSPType).
-      maximum_gmres_krylov_dimension = 20      // Max dimension of Krylov
-                                               // subspace before restarting.
-                                               // Valid only when using GMRES
-                                               // linear solver.
-      maximum_linear_iterations      = 50      // Max number of linear solver
-                                               // iterations.
-      // Specify whether the user provides certain components
-      // needed by the solver.
-      uses_preconditioner            = TRUE    // Whether a preconditioner is
-                                               // supplied.
-      uses_explicit_jacobian         = TRUE    // Whether user provides
-                                               // Jacobian-vector product
-                                               // function.
-      forcing_term_strategy          = "EWCHOICE1" // Choice of forcing term
-                                               // in linear solver within the
-                                               // inexact Newton method.
-   }
-
-   ImplicitIntegrator{
-      initial_time = 0.0
-      final_time = 1.0
-      max_integrator_steps = 5
-   }
-
-   "CartesianGeometry" input section
-   ---------------------------------
-   CartesianGeometry {
-      //  Specify lower/upper corners of the computational domain and a
-      //  set of non-overlapping boxes defining domain interior.  If union 
-      //  of boxes is not a parallelpiped, lower/upper corner data corresponds 
-      //  to min/max corner indices over all boxes given.
-      //  x_lo  -- (double array) lower corner of computational domain [REQD]
-      //  x_up  -- (double array) upper corner of computational domain [REQD]
-      //  domain_boxes  -- (box array) set of boxes that define interior of 
-      //                   hysical domain. [REQD]
-      //  periodic_dimension -- (int array) coordinate directions in which 
-      //                        domain is periodic.  Zero indicates not
-      //                        periodic, non-zero value indicates periodicity.
-      //                        [0]
-      x_lo = 0.e0 , 0.e0           
-      x_up = 65.e0 , 55.e0       
-      domain_boxes      = [(0,9),(14,20)],
-                          [(0,21),(19,35)],
-                          [(0,36),(14,49)],
-                          [(20,0),(49,54)],
-                          [(50,0),(64,35)],
-                          [(50,46),(64,54)],
-                          [(57,36),(64,45)]
-      periodic_dimension = 0, 1  // periodic in y only
-   }
-
-
-   "GriddingAlgorithm" input section
-   ---------------------------------
-   GriddingAlgorithm {
-      // Information used to create patches in AMR hierarchy.
-      // max_levels -- (int) max number of mesh levels in hierarchy [REQD]
-      // 
-      // For most of the following parameters, the number of precribed data
-      // values need not match the number of levels in the hierarchy 
-      // (determined by max_levels).  If more values are given than number 
-      // of levels, extraneous values will be ignored.  If less are give, then
-      // values that correspond to individual levels will apply to those 
-      // levels.  Missing values will be taken from those for the finest
-      // level specified.
-      //
-      // ratio_to_coarser {
-      //   level_1 -- (int array) ratio between index spaces on 
-      //              level 1 to level 0 [REQD]
-      //   level_2 -- (int array)  ratio between index spaces on 
-      //              level 2 to level 1 [REQD]
-      //   etc....
-      // }
-      // largest_patch_size {
-      //   level_0 -- (int array) largest patch allowed on level 0. 
-      //              [REQD]    
-      //   level_1 -- (int array)    "       "      "   "  level 1 
-      //              [level 0 entry]
-      //   etc....                       
-      // }
-      // smallest_patch_size {
-      //   level_0 -- (int array) smallest patch allowed on level 0. 
-      //              [max ghost width for all variables]    
-      //   level_1 -- (int array)    "       "      "   "  level 1 
-      //              [level 0 entry]
-      //   etc....                       
-      // }
-      max_levels = 3
-      ratio_to_coarser {
-         level_1 = 4 , 4
-         level_2 = 4 , 4
-         level_3 = 4 , 4
-      }
-      largest_patch_size {
-         level_0 = 48 , 48
-      }
-      smallest_patch_size {
-         level_0 = 8 , 8
-      }
-
-      // Tolerances for gridding efficiency and box chopping operations.
-      // efficiency_tolerance -- (double array) minimum percentage of tagged 
-      //                         cells allowed in a box [0.8 for each level]
-      // combine_efficiency   -- (double array) threshold specifying when a  
-      //                         box may be chopped into two smaller boxes.
-      //                         If sum of the volumes of smaller boxes is > 
-      //                         combine efficiency * volume of larger box, 
-      //                         then larger box will not be chopped.
-      //                         [0.8 for each level]
-      // proper_nesting_buffer -- (int array) number of coarse cells by which
-      //                          the next finer level is nested within its
-      //                          interior. [1 for each level]
-      efficiency_tolerance    = 0.85e0
-      combine_efficiency      = 0.95e0
-      proper_nesting_buffer   = 1
-
-      // Option to read or write gridding information
-      // write_regrid_boxes    -- (bool) Output sequence of refine boxes to file
-      // read_regrid_boxes     -- (bool) Read sequence of refine boxes from file
-      // regrid_boxes_filename -- (string) file name used for reading or writing
-      //                          boxes.
-      //
-      // Reading and writing options require some user intervention to assure
-      // they work properly.  Please consult Andy Wissink (awissink@llnl.gov)
-      // if you are interested in using these options.
-      write_regrid_boxes    = TRUE
-      regrid_boxes_filename = TRUE
-   }
-
-   "StandardTagAndInitialize" input section
-   ---------------------------------------------
-   StandardTagAndInitialize {
-      // Specification of the type of tagging to be performed
-      // tagging_method -- (string array) one or more entries specifying
-      //                 the tagging algorithm used.  Options include:
-      //                 "GRADIENT_DETECTOR"
-      //                 "RICHARDSON_EXTRAPOLATION"
-      //                 "REFINE_BOXES"
-      //
-      // REFINE_BOXES allows you to prescribe where refinement should occur.
-      // If this option is used, you must also supply a RefineBoxes database
-      // entry with the refine boxes on different levels specified.  i.e.
-      //    RefineBoxes{
-      //        level_0 -- (BoxArray) Boxes to be refined on level 0
-      //        level_1 -- (BoxArray) Boxes to be refined on level 1
-      //        etc.
-      //
-      // Gradient detection option.
-      tagging_method = "GRADIENT_DETECTOR"
-      //
-      // Richarson extrapolation option.
-      tagging_method = "RICHARDSON_EXTRAPOLATION"
-      //
-      // Static refine boxes option.
-      tagging_method = "REFINE_BOXES"
-      RefineBoxes {
-        level0_boxes = [(15,0),(29,14)]
-        level1_boxes = [(65,10),(114,40)]
-      }
-      // Combination.
-      tagging_method = "RICHARDSON_EXTRAPOLATION", "GRADIENT_DETECTOR"
-   }
+Refer to kinsol.2d.input for description of the input parameters specific
+to this test directory.

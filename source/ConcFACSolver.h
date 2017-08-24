@@ -46,7 +46,7 @@ public:
 
    ConcFACSolver(
       const std::string &object_name,
-      ConcFACOps* fac_ops,
+      boost::shared_ptr<ConcFACOps> fac_ops,
       const boost::shared_ptr<tbox::Database>& database =
          boost::shared_ptr<tbox::Database>() );
 

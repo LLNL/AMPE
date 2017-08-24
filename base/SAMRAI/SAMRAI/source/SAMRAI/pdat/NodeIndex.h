@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -26,13 +26,13 @@ namespace pdat {
  * vector for node centered variables.  Given a hier::Box in the AMR abstract
  * index space, the index space for a node-centered variable runs from the
  * lower corner of the box to the upper corner of the box plus one in each
- * dimension.  See the node box geometry class for more information about
+ * direction.  See the node box geometry class for more information about
  * the mapping between the AMR index space and the node indices.
  *
  * @see hier::Index
- * @see pdat::NodeData
- * @see pdat::NodeGeometry
- * @see pdat::NodeIterator
+ * @see NodeData
+ * @see NodeGeometry
+ * @see NodeIterator
  */
 
 class NodeIndex:public hier::Index
@@ -64,18 +64,21 @@ public:
     * The Corner enumerated type is only defined for 3D or lower, so use
     * the next constructor with an hier::IntVector argument when using higher
     * dimensions.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex(
       const hier::Index& rhs,
       const Corner corner);
 
    /**
-    * Construct a node index from a regular index and an hier::IntVector.  The
-    * hier::IntVector is binary--an assertion failure will result if it contains
-    * any values other than 0 or 1.  For each dimension, if the hier::IntVector
-    * contains a 0, the node index will represent a lower bound in that
-    * dimensional direction, and if 1 will represent an upper bound in that
-    * direction.
+    * Construct a node index from a regular index and an hier::IntVector.  For
+    * each direction, if the hier::IntVector contains a 0, the node index will
+    * represent a lower bound in that direction, and if 1 will represent an
+    * upper bound in that direction.
+    *
+    * @pre getDim() == rhs.getDim()
+    * @pre for each element of corner, e, e == 0 || e == 1
     */
    NodeIndex(
       const hier::Index& rhs,
@@ -83,18 +86,22 @@ public:
 
    /**
     * The copy constructor creates a node index equal to the argument.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex(
       const NodeIndex& rhs);
 
    /**
     * The assignment operator sets the node index equal to the argument.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex&
    operator = (
       const NodeIndex& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator = (rhs);
       return *this;
    }
@@ -106,24 +113,28 @@ public:
 
    /**
     * Plus-equals operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex&
    operator += (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator += (rhs);
       return *this;
    }
 
    /**
     * Plus operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex
    operator + (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       NodeIndex tmp = *this;
       tmp += rhs;
       return tmp;
@@ -154,24 +165,28 @@ public:
 
    /**
     * Minus-equals operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex&
    operator -= (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator -= (rhs);
       return *this;
    }
 
    /**
     * Minus operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex
    operator - (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       NodeIndex tmp = *this;
       tmp -= rhs;
       return tmp;
@@ -202,24 +217,28 @@ public:
 
    /**
     * Times-equals operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex&
    operator *= (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator *= (rhs);
       return *this;
    }
 
    /**
     * Times operator for a node index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    NodeIndex
    operator * (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       NodeIndex tmp = *this;
       tmp *= rhs;
       return tmp;
@@ -251,24 +270,28 @@ public:
    /**
     * Returns true if two node index objects are equal.
     * All components must be the same for equality.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    bool
    operator == (
       const NodeIndex& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       return ((hier::Index *)this)->operator == (rhs);
    }
 
    /**
     * Returns true if two node index objects are not equal.
     * Any of the components may be different for inequality.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    bool
    operator != (
       const NodeIndex& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       return ((hier::Index *)this)->operator != (rhs);
    }
 
@@ -279,9 +302,8 @@ private:
    void
    setOffsets();
 
-   static std::vector<hier::IntVector> s_offsets[tbox::Dimension::
-                                                 MAXIMUM_DIMENSION_VALUE];
-   static bool s_offsets_are_set[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   static std::vector<hier::IntVector> s_offsets[SAMRAI::MAX_DIM_VAL];
+   static bool s_offsets_are_set[SAMRAI::MAX_DIM_VAL];
 };
 
 }

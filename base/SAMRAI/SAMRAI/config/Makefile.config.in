@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   configuration makefile included by all SAMRAI makefiles 
 ##
 #########################################################################
@@ -13,29 +13,17 @@
 .SUFFIXES:
 .SUFFIXES: .o .F .f .c .C .cc
 
-DIM_OBJS = ${DIM_SRC:X.C=${NDIM}.o}
-
 #
-# The sed src_file finds the X.C file in the list of prerequisites. One would think
-# this would exist as a Makefile symbol but the "$<" symbol is only usable in
-# suffix rules. The sed rule extracts the .C filename.  This ONLY works
-# if the .C file is changed.  It will break if only the .I or .h files
+# The sed src_file finds the X.C file in the list of prerequisites. One would
+# think this would exist as a Makefile symbol but the "$<" symbol is only
+# usable in suffix rules. The sed rule extracts the .C filename.  This ONLY
+# works if the .C file is changed.  It will break if only the .I or .h files
 # change.  Thus is can be used for an intial build but does not
 # really work in a development environment.
 #
-#
-# Uncomment the following 4 lines for non GNU make compatiblity
-# ${DIM_OBJS} :
-# 	@src_file=`echo $? | sed  's/^\(.*\) \(.*X.C\) \(.*\)/\2/;s/^\(.*X.C\) \(.*\)/\1/'`; \
-# 	echo $(CXX) -DNDIM=${NDIM} $(CXXFLAGS) $(CPPFLAGS) -c  $$src_file -o $@; \
-# 	$(CXX) -DNDIM=${NDIM} $(CXXFLAGS) $(CPPFLAGS) -c  $$src_file -o $@
-
-# Comment out these 2 lines if using not using GNU make
-%${NDIM}.o : %X.C
-	$(CXX) -DNDIM=${NDIM} $(CXXFLAGS) $(CPPFLAGS) -c $< -o $@
 
 .F.o:
-	$(F77) $(FFLAGS) -DNDIM=${NDIM} -c @SRCDIR_COMPILE_PREFIX@$< -o $@
+	$(F77) $(FFLAGS) -c @SRCDIR_COMPILE_PREFIX@$< -o $@
 .f.o:
 	$(F77) $(FFLAGS) -c @SRCDIR_COMPILE_PREFIX@$< -o $@
 .c.o:
@@ -91,16 +79,20 @@ CPPFLAGS      = @CPPFLAGS@ -I. -I$(OBJECT)/include -I$(INCLUDE_SAM) @INC_PATH@ $
 
 AR	      = @AR@
 
+RPATH	      = @btng_rpath_beginning@
+
+ifdef RPATH
+LDFLAGS       = @LD_FLAGS@ -L$(LIB_SAM) @btng_rpath_beginning@$(LIB_SAM) @LIB_PATH@ $(LDFLAGS_EXTRA)
+else
 LDFLAGS       = @LD_FLAGS@ -L$(LIB_SAM) @LIB_PATH@ $(LDFLAGS_EXTRA)
+endif
 LDLIBS        = $(LDLIBS_EXTRA) @LIB_NAME@
 
 CXXLD_FLAGS   = -L$(LIB_SAM) @CXXLD_FLAGS@ @LIB_PATH@ $(LDFLAGS_EXTRA)
 CXXLDLIBS     = $(LDLIBS_EXTRA) @LIB_NAME@
 
-SAMRAI_M4_FLAGS = -DSAMRAI_FORTDIR=$(INCLUDE_SAM)/SAMRAI/pdat/fortran
-
-# Are object files dependent on template implementation files (.C)
-DEPENDS_ON_TEMPLATE_IMPLEMENTATION=@DEPENDS_ON_TEMPLATE_IMPLEMENTATION@
+PDAT_FORTDIR  = $(INCLUDE_SAM)/SAMRAI/pdat/fortran
+SAMRAI_M4_FLAGS = -DPDAT_FORTDIR=$(PDAT_FORTDIR)
 
 # Should the special SAMRAI targets be included in the Makefile.config
 DEVELOPER_MAKEFILE=@DEVELOPER_MAKEFILE@
@@ -109,12 +101,13 @@ DEVELOPER_MAKEFILE=@DEVELOPER_MAKEFILE@
 # Rules used in all directories.
 ######################################################################
 
-SAMCLEAN=@$(RM) *.o *.ii *.int.c *.log *.log.* stamp-* core core.* stats -r ti_files ii_files \
-		*.valgrind
+CLEAN_COMMON_LIB_FILES = @$(RM) *.o
+CLEAN_COMMON_CHECK_FILES = @$(RM) *visit *.log* foo *core* *.TVD* *.valgrind
+CLEAN_COMMON_TEST_FILES = @$(RM) *.o *.f
 
 # Used to control which types are created.
 # Default is double, integer, bool, float, complex, char
-SAMRAI_LIBRARY_TARGETS=libdefault
+SAMRAI_LIBRARY_TARGETS=libdefault libdcomplex
 
 ######################################################################
 # Rules for SAMRAI developer builds only.

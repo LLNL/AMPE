@@ -181,13 +181,13 @@ void KKSCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          const hier::Index& ilast  = pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
          
          boost::shared_ptr< pdat::SideData<double> > diffusion0 (
-            patch->getPatchData( conc_diffusion0_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_diffusion0_id) ) );
          
          int three_phase = 0;
          double* ptr_eta = NULL;
@@ -236,23 +236,23 @@ void KKSCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          const hier::Box& pbox = patch->getBox();
 
          boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff (
-            patch->getPatchData( conc_phase_coupling_diffusion_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_phase_coupling_diffusion_id) ) );
 
          boost::shared_ptr< pdat::SideData<double> > sd_eta_diff_coeff;
 
          boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff (
-            patch->getPatchData( conc_diffusion0_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_diffusion0_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_eta;
 
          boost::shared_ptr< pdat::CellData<double> > cd_c_l (
-            patch->getPatchData( d_conc_l_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_scratch_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_c_a (
-            patch->getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_scratch_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_c_b;
 
@@ -808,8 +808,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
    const int flux_id)
 {
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -817,23 +816,23 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > conc (
-      patch.getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_scratch_id) ) );
    assert( conc );
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData( d_phase_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_scratch_id) ) );
    assert( phase );
    
    boost::shared_ptr< pdat::SideData<double> > conc_diffusion0 (
-      patch.getPatchData( d_diffusion0_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion0_id) ) );
    assert( conc_diffusion0 );
 
    boost::shared_ptr< pdat::SideData<double> > conc_phase_coupling_diffusion (
-      patch.getPatchData( d_conc_phase_coupling_diffusion_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_conc_phase_coupling_diffusion_id) ) );
    assert( conc_phase_coupling_diffusion );
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
 
    int three_phase = 0;
@@ -845,8 +844,8 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
 #endif
    if ( d_with_third_phase ) {
       three_phase = 1;
-      boost::shared_ptr< pdat::CellData<double> > eta
-         ( patch.getPatchData( d_eta_scratch_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr< pdat::CellData<double> > eta (
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch.getPatchData( d_eta_scratch_id) ) );
       assert( eta );
       ptr_eta = eta->getPointer();
    }

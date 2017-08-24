@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   SAMRAI class to manage package startup and shutdown
  *
  ************************************************************************/
@@ -50,8 +50,8 @@ namespace tbox {
  * Additionally this class manages static data that controls the maximum
  * number of patch data components that can be allowed.
  *
- * @see tbox::SAMRAI_MPI
- * @see tbox::StartupShutdownManager
+ * @see SAMRAI_MPI
+ * @see StartupShutdownManager
  */
 
 class SAMRAIManager
@@ -70,6 +70,8 @@ public:
     * interface through StartupShutdownManager.
     *
     * @param[in] initialize_IEEE_assertion_handlers (defaults to true)
+    *
+    * @pre !s_initialized
     */
    static void
    initialize(
@@ -82,6 +84,9 @@ public:
     * startup callback interface through StartupShutdownManager.
     * This function may be invoked more than once in a process if
     * solving multiple SAMRAI problems.
+    *
+    * @pre s_initialized
+    * @pre !s_started
     */
    static void
    startup()
@@ -99,6 +104,9 @@ public:
     * startup callback interface through StartupShutdownManager.
     * This function may be invoked more than once in an process if
     * solving multiple SAMRAI problems.
+    *
+    * @pre s_initialized
+    * @pre s_started
     */
    static void
    shutdown()
@@ -122,6 +130,8 @@ public:
     * exiting the program is a call to SAMRAI_MPI::finalize().
     *
     * This function should be invoked only once.
+    *
+    * @pre s_initialized
     */
    static void
    finalize()
@@ -159,7 +169,6 @@ public:
    static int
    getMaxNumberPatchDataEntries()
    {
-      s_max_patch_data_entries_accessed = true;
       return s_max_patch_data_entries;
    }
 
@@ -168,19 +177,24 @@ public:
     *
     * The maximum number will be set to the maximum of the current value and
     * the argument value.
-    *
-    * Note that this routine cannot be called anytime after the max patch
-    * data entries value has been accessed via the
-    * getMaxNumberPatchDataEntries() function, neither by the user nor
-    * internally within SAMRAI.  Typically, the first internal access of this
-    * value occurs whenever any objects related to the patch hierarchy or
-    * variables are created.
     */
    static void
    setMaxNumberPatchDataEntries(
       int maxnum);
 
 private:
+   // Unimplemented default constructor.
+   SAMRAIManager();
+
+   // Unimplemented copy constructor.
+   SAMRAIManager(
+      const SAMRAIManager& other);
+
+   // Unimplemented assignment operator.
+   SAMRAIManager&
+   operator = (
+      const SAMRAIManager& rhs);
+
    /*!
     * Flag indicating SAMRAIManager has been initialized.
     */
@@ -196,11 +210,6 @@ private:
     */
    static int s_max_patch_data_entries;
 
-   /*!
-    * Flag telling whether maximum number of patch data components has
-    * been accessed.
-    */
-   static bool s_max_patch_data_entries_accessed;
 
 };
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for SAMRAI Linear Advection example problem.
  *
  ************************************************************************/
@@ -24,6 +24,7 @@ using namespace std;
 
 // Headers for basic SAMRAI objects
 
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -40,8 +41,12 @@ using namespace std;
 
 // Header for application-specific algorithm/data structure object
 
-#include "MblkHyperbolicLevelIntegrator.h"
+#include "test/testlib/MblkHyperbolicLevelIntegrator.h"
 #include "MblkLinAdv.h"
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 // Classes for run-time plotting and autotesting.
 
@@ -170,7 +175,7 @@ int main(
    /*
     * Run problem twice to test startup/shutdown process for multi-block problems.
     */
-   for (int run = 0; run < 2; run++) {
+   for (int run = 0; run < 2; ++run) {
 
       tbox::SAMRAIManager::startup();
       const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
@@ -233,7 +238,7 @@ int main(
 
       /*
        * Retrieve "Main" section of the input database.  First, read dump
-       * information, which is used for writing vizamrai plot files.  Second,
+       * information, which is used for writing VisIt plot files.  Second,
        * if proper restart information was given on command line, and the restart
        * interval is non-zero, create a restart database.
        */
@@ -243,7 +248,7 @@ int main(
 
       const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
-      string log_file_name = "linadv.log";
+      string log_file_name = "MblkLinAdv.log";
       if (main_db->keyExists("log_file_name")) {
          log_file_name = main_db->getString("log_file_name");
       }
@@ -256,6 +261,14 @@ int main(
       } else {
          tbox::PIO::logOnlyNodeZero(log_file_name);
       }
+
+#ifdef _OPENMP
+      tbox::plog << "Compiled with OpenMP version " << _OPENMP
+                 << ".  Running with " << omp_get_max_threads() << " threads."
+                 << std::endl;
+#else
+      tbox::plog << "Compiled without OpenMP.\n";
+#endif
 
       int viz_dump_interval = 0;
       if (main_db->keyExists("viz_dump_interval")) {
@@ -375,24 +388,24 @@ int main(
             input_db->getDatabase("HyperbolicLevelIntegrator"),
             linear_advection_model,
             mblk_patch_hierarchy,
-            true,
             use_refined_timestepping));
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
          new mesh::StandardTagAndInitialize(
-            dim,
             "StandardTagAndInitialize",
             mblk_hyp_level_integrator.get(),
             input_db->getDatabase("StandardTagAndInitialize")));
 
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+         new mesh::BergerRigoutsos(dim,
+            input_db->getDatabase("BergerRigoutsos")));
 
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
          new mesh::TreeLoadBalancer(
             dim,
             "TreeLoadBalancer",
-            input_db->getDatabase("TreeLoadBalancer")));
+            input_db->getDatabase("TreeLoadBalancer"),
+            boost::shared_ptr<tbox::RankTreeStrategy>(new tbox::BalancedDepthFirstTree)));
       load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       boost::shared_ptr<mesh::GriddingAlgorithm> mblk_gridding_algorithm(
@@ -417,7 +430,7 @@ int main(
       /*
        * Set up Visualization plot file writer(s).
        */
-      // VisitDataWriter is only present if HDF is available
+      // VisItDataWriter is only present if HDF is available
 #ifdef HAVE_HDF5
       bool is_multiblock = true;
       boost::shared_ptr<appu::VisItDataWriter> visit_data_writer(
@@ -602,9 +615,7 @@ void setupHierarchy(
    boost::shared_ptr<hier::BaseGridGeometry>& geometry,
    boost::shared_ptr<hier::PatchHierarchy>& mblk_hierarchy)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(main_input_db);
-#endif
 
    boost::shared_ptr<tbox::Database> mult_db(
       main_input_db->getDatabase("PatchHierarchy"));
@@ -628,6 +639,6 @@ void setupHierarchy(
    }
 
    mblk_hierarchy.reset(
-      new hier::PatchHierarchy("PatchHierarchy", geometry, mult_db, true));
+      new hier::PatchHierarchy("PatchHierarchy", geometry, mult_db));
 
 }

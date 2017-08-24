@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between Sundials vector interface and SAMRAI vectors.
  *
  ************************************************************************/
@@ -24,7 +24,7 @@
 #include "SAMRAI/solv/SundialsAbstractVector.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -50,8 +50,8 @@ namespace solv {
  * Finally, we remark that this class provides vectors of type <TT>double</TT>,
  * which is the default for Sundials.
  *
- * @see solv::SundialsAbstractVector
- * @see solv::SAMRAIVectorReal
+ * @see SundialsAbstractVector
+ * @see SAMRAIVectorReal
  */
 
 class Sundials_SAMRAIVector:public SundialsAbstractVector
@@ -67,6 +67,8 @@ public:
     * through the SAMRAI vector object directly.  For output of the
     * data through "N_VPrint" calls, the output stream to which the
     * SAMRAI vector object writes will be used.
+    *
+    * @pre samrai_vec
     */
    static SundialsAbstractVector *
    createSundialsVector(
@@ -84,6 +86,8 @@ public:
    /**
     * Return pointer to the SAMRAI vector object associated with the
     * given Sundials wrapper vector.
+    *
+    * @pre sundials_vec != 0
     */
    static boost::shared_ptr<SAMRAIVectorReal<double> >
    getSAMRAIVector(
@@ -92,6 +96,8 @@ public:
    /**
     * Return pointer to the SAMRAI vector object associated with the
     * given Sundials vector.
+    *
+    * @pre sundials_vec != 0
     */
    static boost::shared_ptr<SAMRAIVectorReal<double> >
    getSAMRAIVector(

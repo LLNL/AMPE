@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fill pattern class that fills PatchInteriors only
  *
  ************************************************************************/
@@ -17,18 +17,6 @@
 
 namespace SAMRAI {
 namespace xfer {
-
-/*!
- * @brief Class BoxGeometryVariableFillPattern is a default implementation of
- * the abstract base class VariableFillPattern.
- *
- * It is used to calculate overlaps that consist of the full intersection
- * between source and destination patches, including all ghost regions.  If
- * no VariableFillPattern object is provided when a refine operation is
- * registered with a RefineAlgorithm, this class is used by default.
- *
- * @see xfer::RefineAlgorithm
- */
 
 /*!
  * @brief Class PatchInteriorVariableFillPattern is an implementation of the
@@ -82,6 +70,8 @@ public:
     *
     * @return                    boost::shared_ptr to the calculated overlap
     *                            object
+    *
+    * @pre dst_patch_box.getDim() == src_mask.getDim()
     */
    boost::shared_ptr<hier::BoxOverlap>
    calculateOverlap(
@@ -105,6 +95,7 @@ public:
     * @param[in] fill_boxes  list representing the all of the space on a patch
     *                        or its ghost region that may be filled by a
     *                        refine operator (cell-centered represtentation)
+    * @param[in] unfilled_node_boxes node-centered representation of fill_boxes
     * @param[in] patch_box   box representing the patch where a refine operator
     *                        will fill data.  (cell-centered representation)
     * @param[in] data_box    box representing the full extent of the region
@@ -116,6 +107,7 @@ public:
    boost::shared_ptr<hier::BoxOverlap>
    computeFillBoxesOverlap(
       const hier::BoxContainer& fill_boxes,
+      const hier::BoxContainer& unfilled_node_boxes,
       const hier::Box& patch_box,
       const hier::Box& data_box,
       const hier::PatchDataFactory& pdf) const;
@@ -137,7 +129,7 @@ public:
 private:
    PatchInteriorVariableFillPattern(
       const PatchInteriorVariableFillPattern&);    // not implemented
-   void
+   PatchInteriorVariableFillPattern&
    operator = (
       const PatchInteriorVariableFillPattern&);    // not implemented
 

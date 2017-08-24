@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program to test statistics operations
  *
  ************************************************************************/
@@ -23,7 +23,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MathUtilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 using namespace std;
 
@@ -130,7 +130,7 @@ int main(
        * is the tbox::MPI process rank.
        */
       double factor = myrank + 1;
-      for (ips = 0; ips < 3; ips++) {
+      for (ips = 0; ips < 3; ++ips) {
          procstat1->recordProcStat(factor * ips);
       }
 
@@ -140,7 +140,7 @@ int main(
        * is the tbox::MPI process rank.
        */
       factor = myrank + 2;
-      for (ips = 0; ips < 1; ips++) {
+      for (ips = 0; ips < 1; ++ips) {
          procstat2->recordProcStat(factor * (ips + 1));
       }
 
@@ -150,8 +150,8 @@ int main(
        * item of the patches will be (patch id*2 + seq #), where the patch
        * id's on each processor are myrank*2 and myrank*2+1.
        */
-      for (ips = 0; ips < 2; ips++) {
-         for (i = myrank * 2; i <= myrank * 2 + 1; i++) {
+      for (ips = 0; ips < 2; ++ips) {
+         for (i = myrank * 2; i <= myrank * 2 + 1; ++i) {
             patchstat1->recordPatchStat(i,                // patch number
                i * 2 + ips,                               // data value
                ips);                                      // seq number
@@ -166,13 +166,13 @@ int main(
        * value, etc.).  The value for each patch will be twice the patch
        * number plus the sequence number.
        */
-      for (ips = 0; ips < 2; ips++) {
+      for (ips = 0; ips < 2; ++ips) {
          int patch_start_num = 0;
-         for (i = 0; i < myrank; i++) {
+         for (i = 0; i < myrank; ++i) {
             patch_start_num += i + 2;
          }
          int num_patches = myrank + 2;
-         for (i = patch_start_num; i < patch_start_num + num_patches; i++) {
+         for (i = patch_start_num; i < patch_start_num + num_patches; ++i) {
             patchstat2->recordPatchStat(i,              // patch number
                2.0 * i + ips,                           // data value
                ips);                                    // sequence number
@@ -182,7 +182,7 @@ int main(
       // Test #1:
       int tval = statistician->getNumberProcessorStats();
       if (tval != 3) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #1a: tbox::Statistician::getNumberProcessorStats()\n"
          << "incorrect number of processor statistics found" << endl;
@@ -191,7 +191,7 @@ int main(
       }
       tval = statistician->getNumberPatchStats();
       if (tval != 3) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #1b: tbox::Statistician::getNumberPatchStats()\n"
          << "incorrect number of patch statistics found" << endl;
@@ -202,14 +202,14 @@ int main(
       // Test #2:
       boost::shared_ptr<tbox::Statistic> tstat;
       if (!statistician->checkStatisticExists(tstat, "procstat2")) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #2a: tbox::Statistician::checkStatisticExists()\n"
          << "procstat2 added to statistician, but not found" << endl;
       } else {
          tbox::plog << "Test #2a successful" << endl;
          if (tstat->getName() != "procstat2") {
-            fail_count++;
+            ++fail_count;
             tbox::perr
             << "FAILED: - Test #2b: tbox::Statistician::checkStatisticExists()\n"
             << "name of procstat2 does not match statistician entry"
@@ -220,7 +220,7 @@ int main(
       }
 
       if (!statistician->checkStatisticExists(tstat, "patchstat1")) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #2c: tbox::Statistician::checkStatisticExists()\n"
          << "patchstat1 added to statistician, but not found"
@@ -228,7 +228,7 @@ int main(
       } else {
          tbox::plog << "Test #2c successful" << endl;
          if (tstat->getName() != "patchstat1") {
-            fail_count++;
+            ++fail_count;
             tbox::perr
             << "FAILED: - Test #2d: tbox::Statistician::checkStatisticExists()\n"
             << "name of patchstat1 does not match statistician entry" << endl;
@@ -238,7 +238,7 @@ int main(
       }
 
       if (statistician->checkStatisticExists(tstat, "dummy")) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #2e: tbox::Statistician::checkStatisticExists()\n"
          << "wrongly found statistic named dummy in statistician"
@@ -251,7 +251,7 @@ int main(
       // Test #3:
       if (statistician->getProcStatId(procstat1->getName())
           != procstat1->getInstanceId()) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #3a: tbox::Statistician::getProcStatId()\n"
          << "procstat1 has wrong instance id in statistician"
@@ -261,7 +261,7 @@ int main(
       }
       if (statistician->getPatchStatId(patchstat2->getName())
           != patchstat2->getInstanceId()) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #3b: tbox::Statistician::getPatchStatId()\n"
          << "patchstat2 has wrong instance id in statistician"
@@ -270,7 +270,7 @@ int main(
          tbox::plog << "Test #3b successful" << endl;
       }
       if (statistician->getProcStatId(patchstat1->getName()) != -1) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #3c: tbox::Statistician::getProcStatId()\n"
          << "patchstat1 is not a processor statistic" << endl;
@@ -278,7 +278,7 @@ int main(
          tbox::plog << "Test #3c successful" << endl;
       }
       if (statistician->getPatchStatId(procstat2->getName()) != -1) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #3d: tbox::Statistician::getPatchStatId()\n"
          << "procstat2 is not a patch statistic" << endl;
@@ -288,14 +288,14 @@ int main(
 
       // Test #4:
       if (procstat1->getType() != "PROC_STAT") {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "FAILED: - Test #4a: tbox::Statistic::getType()\n"
                     << "procstat1 returns incorrect type" << endl;
       } else {
          tbox::plog << "Test #4a successful" << endl;
       }
       if (patchstat1->getType() != "PATCH_STAT") {
-         fail_count++;
+         ++fail_count;
          tbox::perr << "FAILED: - Test #4b: tbox::Statistic::getType()\n"
                     << "patchstat1 returns incorrect type" << endl;
       } else {
@@ -313,7 +313,7 @@ int main(
          procstat2_seqlen = 1;
       }
       if (procstat1->getStatSequenceLength() != procstat1_seqlen) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #5a: tbox::Statistic::getStatSequenceLength()\n"
          << "procstat1 returns incorrect sequence length" << endl;
@@ -321,7 +321,7 @@ int main(
          tbox::plog << "Test #5a successful" << endl;
       }
       if (procstat2->getStatSequenceLength() != procstat2_seqlen) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #5b: tbox::Statistic::getStatSequenceLength()\n"
          << "procstat2 returns incorrect sequence length" << endl;
@@ -329,7 +329,7 @@ int main(
          tbox::plog << "Test #5b successful" << endl;
       }
       if (patchstat1->getStatSequenceLength() != 2) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #5c: tbox::Statistic::getStatSequenceLength()\n"
          << "patchstat1 returns incorrect sequence length" << endl;
@@ -337,7 +337,7 @@ int main(
          tbox::plog << "Test #5c successful" << endl;
       }
       if (patchstat2->getStatSequenceLength() != 2) {
-         fail_count++;
+         ++fail_count;
          tbox::perr
          << "FAILED: - Test #5d: tbox::Statistic::getStatSequenceLength()\n"
          << "patchstat2 returns incorrect sequence length" << endl;
@@ -347,15 +347,15 @@ int main(
 
       statistician->printLocalStatData(tbox::plog);
 
-      statistician->finalize();
+      statistician->finalize(true);
 
       statistician->printAllGlobalStatData(tbox::plog);
 
-      statistician->finalize();
+      statistician->finalize(true);
 
       statistician->printSpreadSheetOutput();
 
-      statistician->finalize();
+      statistician->finalize(true);
 
       if (mpi.getRank() == 0) {
 
@@ -363,7 +363,7 @@ int main(
          if (statistician->
              getGlobalProcStatSequenceLength(procstat1->getInstanceId()) !=
              procstat1_seqlen) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #6a: "
                        << "Statistician::getGlobalProcStatSequenceLength()\n"
                        << "incorrect sequence length returned for procstat1"
@@ -375,7 +375,7 @@ int main(
          if (statistician->
              getGlobalProcStatSequenceLength(procstat2->getInstanceId()) !=
              procstat2_seqlen) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #6b: "
                        << "Statistician::getGlobalProcStatSequenceLength()\n"
                        << "incorrect sequence length returned for procstat2"
@@ -384,11 +384,11 @@ int main(
             tbox::plog << "Test #6b successful" << endl;
          }
 
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalProcStatValue(procstat1->getInstanceId(),
                       2, i), (i + 1) * 2)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #6c: "
                           << "Statistician::getGlobalProcStatValue()\n"
                           << "incorrect global data returned for procstat1"
@@ -397,11 +397,11 @@ int main(
                tbox::plog << "Test #6c successful" << endl;
             }
          }
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalProcStatValue(procstat2->getInstanceId(),
                       0, i), i + 2)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #6d: "
                           << "Statistician::getGlobalProcStatValue()\n"
                           << "incorrect global data returned for procstat2"
@@ -414,7 +414,7 @@ int main(
          // Test #7:
          if (statistician->
              getGlobalPatchStatSequenceLength(patchstat1->getInstanceId()) != 2) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #7a: "
                        << "Statistician::getGlobalPatchStatSequenceLength()\n"
                        << "incorrect sequence length returned for patchstat1"
@@ -426,7 +426,7 @@ int main(
          int num_patches = mpi.getSize() * 2;
          if (statistician->getGlobalPatchStatNumberPatches(
                 patchstat1->getInstanceId(), 0) != num_patches) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #7b: "
                        << "Statistician::getGlobalPatchStatNumberPatches()\n"
                        << "incorrect num patches returned for patchstat1"
@@ -435,16 +435,16 @@ int main(
             tbox::plog << "Test #7b successful" << endl;
          }
 
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
 
             int pnum = 0;
-            for (j = 0; j < 1; j++) {
+            for (j = 0; j < 1; ++j) {
                pnum = i * 2 + j;
             }
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalPatchStatValue(
                       patchstat1->getInstanceId(), 1, pnum), pnum * 2 + 1)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #7e: "
                           << "Statistician::getGlobalPatchStatValue()\n"
                           << "incorrect global data returned for patch "
@@ -457,12 +457,12 @@ int main(
          }
 
          num_patches = 0;
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             num_patches += i + 2;
          }
          if (statistician->getGlobalPatchStatNumberPatches(
                 patchstat2->getInstanceId(), 0) != num_patches) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #7c: "
                        << "Statistician::getGlobalPatchStatNumberPatches()\n"
                        << "incorrect num patches returned for patchstat2"
@@ -471,14 +471,14 @@ int main(
             tbox::plog << "Test #7c successful" << endl;
          }
 
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             int pnum = 0;
-            for (j = 0; j < i; j++) {
+            for (j = 0; j < i; ++j) {
                pnum += j + 2;
             }
             if (statistician->getGlobalPatchStatPatchMapping(
                    patchstat2->getInstanceId(), 1, pnum) != i) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #7d: "
                           << "Statistician::getGlobalPatchStatPatchMapping()\n"
                           << "incorrect mapping for patch " << pnum << "in "
@@ -489,15 +489,15 @@ int main(
 
          }
 
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             int pnum = 0;
-            for (j = 0; j < i; j++) {
+            for (j = 0; j < i; ++j) {
                pnum += j + 2;
             }
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalPatchStatValue(
                       patchstat2->getInstanceId(), 1, pnum), pnum * 2 + 1)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #7f: "
                           << "Statistician::getGlobalPatchStatValue()\n"
                           << "incorrect global data returned for patch "
@@ -514,14 +514,14 @@ int main(
          double sum1 = 0.;
          double sum2 = 0.;
 
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             sum1 += (double)i + 1;
             sum2 += (double)2 * (i + 1);
          }
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatSum(
                    procstat1->getInstanceId(), 0), sum0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8a: "
                        << "Statistician::getGlobalProcStatSum()\n"
                        << "incorrect value returned." << endl;
@@ -531,7 +531,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatSum(
                    procstat1->getInstanceId(), 1), sum1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8b: "
                        << "Statistician::getGlobalProcStatSum()\n"
                        << "incorrect value returned." << endl;
@@ -541,7 +541,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatSum(
                    procstat1->getInstanceId(), 2), sum2)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8c: "
                        << "Statistician::getGlobalProcStatSum()\n"
                        << "incorrect value returned." << endl;
@@ -555,7 +555,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMax(
                    procstat1->getInstanceId(), 0), max0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8d: "
                        << "Statistician::getGlobalProcStatMax()\n"
                        << "incorrect value returned." << endl;
@@ -565,7 +565,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMax(
                    procstat1->getInstanceId(), 1), max1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8e: "
                        << "Statistician::getGlobalProcStatMax()\n"
                        << "incorrect value returned." << endl;
@@ -575,7 +575,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMax(
                    procstat1->getInstanceId(), 2), max2)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8f: "
                        << "Statistician::getGlobalProcStatMax()\n"
                        << "incorrect value returned." << endl;
@@ -585,7 +585,7 @@ int main(
          if (statistician->getGlobalProcStatMaxProcessorId(
                 procstat1->getInstanceId(),
                 1) != mpi.getSize() - 1) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8g: "
                        << "Statistician::getGlobalProcStatMaxId()\n"
                        << "returned incorrect ID." << endl;
@@ -595,7 +595,7 @@ int main(
          if (statistician->getGlobalProcStatMaxProcessorId(
                 procstat1->getInstanceId(),
                 2) != mpi.getSize() - 1) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8h: "
                        << "Statistician::getGlobalProcStatMaxId()\n"
                        << "returned incorrect ID." << endl;
@@ -609,7 +609,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMin(
                    procstat1->getInstanceId(), 0), min0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8i: "
                        << "Statistician::getGlobalProcStatMin()\n"
                        << "incorrect value returned." << endl;
@@ -619,7 +619,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMin(
                    procstat1->getInstanceId(), 1), min1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8j: "
                        << "Statistician::getGlobalProcStatMin()\n"
                        << "incorrect value returned." << endl;
@@ -629,7 +629,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalProcStatMin(
                    procstat1->getInstanceId(), 2), min2)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8k: "
                        << "Statistician::getGlobalProcStatMin()\n"
                        << "incorrect value returned." << endl;
@@ -641,7 +641,7 @@ int main(
                 procstat1->getInstanceId(), 1) != 0) {
             tbox::pout << statistician->getGlobalProcStatMinProcessorId(
                procstat1->getInstanceId(), 1) << endl;
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8l: "
                        << "Statistician::getGlobalProcStatMinProcessorId()\n"
                        << "incorrect value returned." << endl;
@@ -652,7 +652,7 @@ int main(
                 procstat1->getInstanceId(), 2) != 0) {
             tbox::pout << statistician->getGlobalProcStatMinProcessorId(
                procstat1->getInstanceId(), 2) << endl;
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #8m: "
                        << "Statistician::getGlobalProcStatMinProcessorId()\n"
                        << "incorrect value returned." << endl;
@@ -664,8 +664,8 @@ int main(
          int pnum = 0;
          sum0 = 0.;
          sum1 = 0.;
-         for (i = 0; i < mpi.getSize(); i++) {
-            for (j = 0; j < i + 2; j++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
+            for (j = 0; j < i + 2; ++j) {
                sum0 += (double)pnum * 2;
                sum1 += (double)(pnum * 2 + 1);
                pnum += 1;
@@ -675,7 +675,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatSum(
                    patchstat2->getInstanceId(), 0), sum0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9a: "
                        << "Statistician::getGlobalPatchStatSum()\n"
                        << "incorrect value returned." << endl;
@@ -686,7 +686,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatSum(
                    patchstat2->getInstanceId(), 1), sum1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9b: "
                        << "Statistician::getGlobalPatchStatSum()\n"
                        << "incorrect value returned." << endl;
@@ -697,8 +697,8 @@ int main(
          max0 = 0.;
          max1 = 0.;
          pnum = -1;
-         for (i = 0; i < mpi.getSize(); i++) {
-            for (j = 0; j < i + 2; j++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
+            for (j = 0; j < i + 2; ++j) {
                pnum += 1;
             }
          }
@@ -708,7 +708,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatMax(
                    patchstat2->getInstanceId(), 0), max0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9c: "
                        << "Statistician::getGlobalPatchStatMax()\n"
                        << "incorrect value returned." << endl;
@@ -719,7 +719,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatMax(
                    patchstat2->getInstanceId(), 1), max1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9d: "
                        << "Statistician::getGlobalPatchStatMax()\n"
                        << "incorrect value returned." << endl;
@@ -729,7 +729,7 @@ int main(
 
          if (statistician->getGlobalPatchStatMaxPatchId(
                 patchstat2->getInstanceId(), 0) != pnum) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9e: "
                        << "Statistician::getGlobalPatchStatMaxPatchId()\n"
                        << "incorrect value returned." << endl;
@@ -739,7 +739,7 @@ int main(
 
          if (statistician->getGlobalPatchStatMaxPatchId(
                 patchstat2->getInstanceId(), 1) != pnum) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9f: "
                        << "Statistician::getGlobalPatchStatMaxPatchId()\n"
                        << "incorrect value returned." << endl;
@@ -752,7 +752,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatMin(
                    patchstat2->getInstanceId(), 0), min0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9g: "
                        << "Statistician::getGlobalPatchStatMin()\n"
                        << "incorrect value returned." << endl;
@@ -762,7 +762,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatMin(
                    patchstat2->getInstanceId(), 1), min1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9h: "
                        << "Statistician::getGlobalPatchStatMin()\n"
                        << "incorrect value returned." << endl;
@@ -772,7 +772,7 @@ int main(
 
          if (statistician->getGlobalPatchStatMinPatchId(
                 patchstat2->getInstanceId(), 0) != 0) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9i: "
                        << "Statistician::getGlobalPatchStatMinPatchId()\n"
                        << "incorrect value returned." << endl;
@@ -781,7 +781,7 @@ int main(
          }
          if (statistician->getGlobalPatchStatMinPatchId(
                 patchstat2->getInstanceId(), 1) != 0) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #9j: "
                        << "Statistician::getGlobalPatchStatMinPatchId()\n"
                        << "incorrect value returned." << endl;
@@ -791,10 +791,10 @@ int main(
 
          // Test #10:
          pnum = 0;
-         for (i = 0; i < mpi.getSize(); i++) {
+         for (i = 0; i < mpi.getSize(); ++i) {
             max0 = 0.;
             max1 = 0.;
-            for (j = 0; j < i + 2; j++) {
+            for (j = 0; j < i + 2; ++j) {
                max0 += (double)pnum * 2;
                max1 += (double)(pnum * 2 + 1);
                pnum += 1;
@@ -802,7 +802,7 @@ int main(
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalPatchStatProcessorSum(
                       patchstat2->getInstanceId(), i, 0), max0)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #10a: "
                           << "Statistician::getGlobalPatchStatProcessorSum()\n"
                           << "incorrect value returned." << endl;
@@ -812,7 +812,7 @@ int main(
             if (!tbox::MathUtilities<double>::equalEps(statistician->
                    getGlobalPatchStatProcessorSum(
                       patchstat2->getInstanceId(), i, 1), max1)) {
-               fail_count++;
+               ++fail_count;
                tbox::perr << "FAILED: - Test #10b: "
                           << "Statistician::getGlobalPatchStatProcessorSum()\n"
                           << "incorrect value returned." << endl;
@@ -824,7 +824,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatProcessorSumMax(
                    patchstat2->getInstanceId(), 0), max0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10c: "
                        << "Statistician::getGlobalPatchStatProcessorSumMax()\n"
                        << "incorrect value returned." << endl;
@@ -834,7 +834,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatProcessorSumMax(
                    patchstat2->getInstanceId(), 1), max1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10d: "
                        << "Statistician::getGlobalPatchStatProcessorSumMax()\n"
                        << "incorrect value returned." << endl;
@@ -845,7 +845,7 @@ int main(
          int nnodes = mpi.getSize();
          if (statistician->getGlobalPatchStatProcessorSumMaxId(
                 patchstat2->getInstanceId(), 0) != nnodes - 1) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10e: "
                        << "Statistician::getGlobalPatchStatProcessorSumMaxId()\n"
                        << "incorrect value returned." << endl;
@@ -854,7 +854,7 @@ int main(
          }
          if (statistician->getGlobalPatchStatProcessorSumMaxId(
                 patchstat2->getInstanceId(), 1) != nnodes - 1) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10f: "
                        << "Statistician::getGlobalPatchStatProcessorSumMaxId()\n"
                        << "incorrect value returned." << endl;
@@ -867,7 +867,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatProcessorSumMin(
                    patchstat2->getInstanceId(), 0), min0)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10g: "
                        << "Statistician::getGlobalPatchStatProcessorSumMin()\n"
                        << "incorrect value returned." << endl;
@@ -877,7 +877,7 @@ int main(
          if (!tbox::MathUtilities<double>::equalEps(statistician->
                 getGlobalPatchStatProcessorSumMin(
                    patchstat2->getInstanceId(), 1), min1)) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10h: "
                        << "Statistician::getGlobalPatchStatProcessorSumMin()\n"
                        << "incorrect value returned." << endl;
@@ -887,7 +887,7 @@ int main(
 
          if (statistician->getGlobalPatchStatProcessorSumMinId(
                 patchstat2->getInstanceId(), 0) != 0) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10i: "
                        << "Statistician::getGlobalPatchStatProcessorSumMinId()\n"
                        << "incorrect value returned." << endl;
@@ -896,7 +896,7 @@ int main(
          }
          if (statistician->getGlobalPatchStatProcessorSumMinId(
                 patchstat2->getInstanceId(), 1) != 0) {
-            fail_count++;
+            ++fail_count;
             tbox::perr << "FAILED: - Test #10j: "
                        << "Statistician::getGlobalPatchStatProcessorSumMinId()\n"
                        << "incorrect value returned." << endl;

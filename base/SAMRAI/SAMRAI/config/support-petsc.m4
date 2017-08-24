@@ -2,12 +2,11 @@ dnl $Id$
 
 AC_DEFUN([CASC_SUPPORT_PETSC],[
 # Begin macro SUPPORT_PETSC
-dnl Support PETSC by setting PETSC_DIR, PETSC_ARCH,
+dnl Support PETSC by setting PETSC_DIR
 dnl petsc_INCLUDE and petsc_LIBS.
 dnl Also set PETSC_VERSION_MAJOR, PETSC_VERSION_MINOR and
 dnl PETSC_VERSION_SUBMINOR to indicate PETSc version.
 dnl
-dnl Support --with-petsc-optimize to use optimized PETSC library.
 dnl Support --with-petsc-mpiuni to use PETSC uniprocessor MPI library.
 dnl
 dnl Arg1: non-empty if you want the default to be on.
@@ -49,23 +48,6 @@ PETSC_VERSION_SUBMINOR=`sed -e '/^[ \t]\{0,\}#define PETSC_VERSION_SUBMINOR/!d' 
 fi
 CASC_AC_LOG_VAR(PETSC_VERSION_MAJOR PETSC_VERSION_MINOR PETSC_VERSION_SUBMINOR)
 
-# Set PETSC_ARCH.
-CASC_ARG_WITH_PREFIX(petsc-arch,PETSC_ARCH,
-[  --with-petsc-arch=PETSC_ARCH
-			Specify the PETSC architecture.
-			If omitted, the output of the petscarch script
-			in the PETSc directory is used.])
-
-# Set PETSC_OPTIMIZE.
-CASC_ARG_WITH_ENV_WRAPPER(petsc-optimize,PETSC_OPTIMIZE,
-[  --with-petsc-optimize
-			Use the optimized PETSC libraries],
-# By default, use the debug PETSC library.
-PETSC_OPTIMIZE=g
-CASC_AC_LOG_VAR(with_petsc_optimize)
-test "$with_petsc_optimize" = yes && PETSC_OPTIMIZE=O
-)
-
 # Set PETSC_MPIUNI.
 CASC_ARG_WITH_ENV_WRAPPER(petsc-mpiuni,PETSC_MPIUNI,
 [  --with-petsc-mpiuni	Use the PETSC uniprocessor MPI library],
@@ -89,36 +71,16 @@ if test "${PETSC_DIR+set}" = set; then
     AC_MSG_WARN([PETSC directory ($PETSC_DIR) does not look right])
   fi
   export PETSC_DIR
-  if test -z "$PETSC_ARCH"; then
-    if test -f "$PETSC_DIR/bmake/petscconf"; then
-	eval `grep PETSC_ARCH $PETSC_DIR/bmake/petscconf`
-    elif test -x "$PETSC_DIR/bin/petscarch"; then
-       PETSC_ARCH=`$PETSC_DIR/bin/petscarch`
-    else
-       AC_MSG_WARN([PETSC could not determine PETSC_ARCH])
-    fi    
-    export PETSC_ARCH
-  fi
-  CASC_AC_LOG_VAR(PETSC_ARCH)
-  if test ! -d "$PETSC_DIR/bmake/$PETSC_ARCH"; then
-    AC_MSG_WARN([PETSC architecture ($PETSC_ARCH) does not look right])
-  fi
-  if test ! "$PETSC_OPTIMIZE" = g && test ! "$PETSC_OPTIMIZE" = O; then
-    AC_MSG_ERROR([PETSC optimize should be either g or O])
-  fi
 
-  petsc_INCLUDES="-I$PETSC_DIR/include -I$PETSC_DIR/bmake/$PETSC_ARCH"
-  petsc_INCLUDES="$petsc_INCLUDES -I$PETSC_DIR/src/vec"
+  petsc_INCLUDES="-I$PETSC_DIR/include"
   # Currently, I'm not entirely sure why we have to explicitly specify
   # the src/vec directory in the include path.  But there is at least
   # one required file there that cannot be found in the include directory.
 
 # SGS Support latter version of PETSc
 # Try new structure and then old
-  if test -d "${PETSC_DIR}/lib/${PETSC_ARCH}"; then
-    petsc_LIBDIR="${PETSC_DIR}/lib/${PETSC_ARCH}"
-  elif  test -d "${PETSC_DIR}/lib/lib${PETSC_OPTIMIZE}/${PETSC_ARCH}"; then
-    petsc_LIBDIR="${PETSC_DIR}/lib/lib${PETSC_OPTIMIZE}/${PETSC_ARCH}"
+  if test -d "${PETSC_DIR}/lib"; then
+    petsc_LIBDIR="${PETSC_DIR}/lib"
   else 
     AC_MSG_WARN([PETSC lib directory does not look as expected])
   fi
@@ -134,7 +96,7 @@ if test "${PETSC_DIR+set}" = set; then
   if test -n "$petsc_libs_ls1"; then
     unset petsc_libs_ls
     for i in $petsc_libs_ls1; do
-      j=`echo $i | sed -e 's/lib//' -e 's/\.a$//' -e 's/\.so$//'`
+      j=`echo $i | sed -e 's/lib//' -e 's/\.a$//' -e 's/\.so.*//'`
       if echo "$petsc_libs_ls" | grep -v " $j " > /dev/null; then # Note padding!
         petsc_libs_ls="$petsc_libs_ls $j ";	# Note space padding!
       fi
@@ -164,7 +126,7 @@ if test "${PETSC_DIR+set}" = set; then
     fi
   fi
 
-  CASC_AC_LOG_VAR(PETSC_DIR petsc_INCLUDES petsc_LIBS PETSC_OPTIMIZE PETSC_MPIUNI)
+  CASC_AC_LOG_VAR(PETSC_DIR petsc_INCLUDES petsc_LIBS PETSC_MPIUNI)
 
 fi
 # End macro SUPPORT_PETSC

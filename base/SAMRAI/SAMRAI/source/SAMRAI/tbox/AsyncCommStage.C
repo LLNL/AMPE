@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Support for coordinating multiple asynchronous communications
  *
  ************************************************************************/
@@ -53,7 +53,7 @@ AsyncCommStage::AsyncCommStage():
 AsyncCommStage::~AsyncCommStage()
 {
    for (size_t i = 0; i < d_members.size(); ++i) {
-      if (d_members[i] != NULL) {
+      if (d_members[i] != 0) {
          /*
           * Found an undeallocated Member.  Make sure it does not
           * have oustanding requests and deallocate it.
@@ -63,9 +63,9 @@ AsyncCommStage::~AsyncCommStage()
                << "have pending communication leads to\n"
                << "abandoned MPI messages.  Member number "
                << i << "\n"
-               << "is not yet done.");
+               << "is not yet done." << std::endl);
          }
-         d_members[i] = NULL;
+         d_members[i] = 0;
       }
    }
 }
@@ -82,8 +82,8 @@ AsyncCommStage::privateStageMember(
    Member* member,
    size_t nreq)
 {
+   TBOX_ASSERT(!member->hasStage());   // Double stage not allowed.
 #ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(member->d_stage == NULL);   // Double stage not allowed.
    if (nreq < 1) {
       TBOX_ERROR("Each Member on a stage must have at least one request.\n");
    }
@@ -101,7 +101,6 @@ AsyncCommStage::privateStageMember(
     */
    d_members.push_back(member);
    ++d_member_count;
-
 
    const size_t cur_total_request_count = d_member_to_req[d_members.size() - 1];
    const size_t new_total_request_count = cur_total_request_count + nreq;
@@ -145,17 +144,17 @@ AsyncCommStage::privateDestageMember(
    assertDataConsistency();
 #endif
 
-   if (d_members[member->d_index_on_stage] != member) {
+   if (getMember(member->d_index_on_stage) != member) {
       /*
        * Member was not staged with this AsyncCommStage.  Since staging
        * and destaging are private methods, there must be some logic
        * bug in the library.
        */
       TBOX_ERROR("Library error: An AsyncCommStage cannot destage a Member\n"
-         << "that was not staged with it.");
+         << "that was not staged with it." << std::endl);
    }
 
-   d_members[member->d_index_on_stage] = NULL;
+   d_members[member->d_index_on_stage] = 0;
    --d_member_count;
 
    /*
@@ -164,11 +163,11 @@ AsyncCommStage::privateDestageMember(
     * end.)
     */
    size_t min_required_len = d_members.size();
-   while (min_required_len > 0 && d_members[min_required_len - 1] == NULL) {
+   while (min_required_len > 0 && d_members[min_required_len - 1] == 0) {
       --min_required_len;
    }
    if (min_required_len != d_members.size()) {
-      d_members.resize(min_required_len, NULL);
+      d_members.resize(min_required_len, 0);
       d_member_to_req.resize(d_members.size() + 1,
          size_t(MathUtilities<int>::getMax()));
 
@@ -180,8 +179,8 @@ AsyncCommStage::privateDestageMember(
 
    member->d_nreq = member->d_index_on_stage = size_t(
             MathUtilities<int>::getMax());
-   member->d_stage = NULL;
-   member->d_handler = NULL;
+   member->d_stage = 0;
+   member->d_handler = 0;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    assertDataConsistency();
@@ -198,10 +197,10 @@ AsyncCommStage::assertDataConsistency() const
    if (d_members.size() + 1 != d_member_to_req.size()) {
       TBOX_ERROR("d_members.size()=" << d_members.size()
                                      << "+1 is not d_member_to_req.size()="
-                                     << d_member_to_req.size());
+                                     << d_member_to_req.size() << std::endl);
    }
    if (d_member_to_req[d_member_to_req.size() - 1] != d_req.size()) {
-      TBOX_ERROR("d_member_to_req's last entry is bad.");
+      TBOX_ERROR("d_member_to_req's last entry is bad." << std::endl);
    }
 
    if (d_members.empty()) {
@@ -210,14 +209,15 @@ AsyncCommStage::assertDataConsistency() const
 
    for (size_t i = 0; i < d_members.size() - 1; ++i) {
       if (d_member_to_req[i] >= d_member_to_req[i + 1]) {
-         TBOX_ERROR("d_member_to_req out of order at i=" << i);
+         TBOX_ERROR("d_member_to_req out of order at i=" << i << std::endl);
       }
-      if (d_members[i] != NULL) {
+      if (d_members[i] != 0) {
          if (d_members[i]->d_nreq !=
              d_member_to_req[i + 1] - d_member_to_req[i]) {
             TBOX_ERROR("d_members[" << i << "] has bad d_nreq="
                                     << d_members[i]->d_nreq << ", stage value is "
-                                    << (d_member_to_req[i + 1] - d_member_to_req[i]));
+                                    << (d_member_to_req[i + 1] - d_member_to_req[i])
+                                    << std::endl);
          }
       }
    }
@@ -228,12 +228,13 @@ AsyncCommStage::assertDataConsistency() const
       if (d_req_to_member[i] == member_index) {
          ++number_of_requests;
       } else {
-         if (d_members[member_index] != NULL) {
+         if (d_members[member_index] != 0) {
             if (d_members[member_index]->d_nreq != number_of_requests) {
                TBOX_ERROR("d_members[" << member_index << "]->d_nreq is "
                                        << d_members[member_index]->d_nreq
                                        << " while stage claims it should have "
-                                       << number_of_requests << " requests");
+                                       << number_of_requests << " requests"
+                                       << std::endl);
             }
          }
          member_index = d_req_to_member[i];
@@ -244,11 +245,10 @@ AsyncCommStage::assertDataConsistency() const
       TBOX_ERROR("d_members[" << member_index << "]->d_nreq is "
                               << d_members[member_index]->d_nreq
                               << " while stage claims it should have "
-                              << number_of_requests << " requests");
+                              << number_of_requests << " requests"
+                              << std::endl);
    }
 }
-
-
 
 /*
  ***********************************************************************
@@ -256,25 +256,22 @@ AsyncCommStage::assertDataConsistency() const
  */
 
 void
-AsyncCommStage::privatePushToCompletionQueue( Member &member )
+AsyncCommStage::privatePushToCompletionQueue(Member& member)
 {
-   TBOX_ASSERT( member.isDone() );
+   TBOX_ASSERT(member.isDone());
    /*
     * Push member onto d_completed_members, but be sure to avoid
     * duplicating.
     */
    std::list<size_t>::iterator li;
-   for ( li=d_completed_members.begin();
-         li!=d_completed_members.end(); ++li ) {
-      if ( member.d_index_on_stage == *li ) break;
+   for (li = d_completed_members.begin();
+        li != d_completed_members.end(); ++li) {
+      if (member.d_index_on_stage == *li) break;
    }
-   if ( li == d_completed_members.end() ) {
+   if (li == d_completed_members.end()) {
       d_completed_members.push_back(member.d_index_on_stage);
    }
-   return;
 }
-
-
 
 /*
  ***********************************************************************
@@ -282,44 +279,43 @@ AsyncCommStage::privatePushToCompletionQueue( Member &member )
  */
 
 void
-AsyncCommStage::privateYankFromCompletionQueue( Member &member )
+AsyncCommStage::privateYankFromCompletionQueue(Member& member)
 {
    /*
     * Remove member from d_completed_members.
     */
    std::list<size_t>::iterator li;
-   for ( li=d_completed_members.begin();
-         li!=d_completed_members.end(); ++li ) {
-      if ( member.d_index_on_stage == *li ) {
+   for (li = d_completed_members.begin();
+        li != d_completed_members.end(); ++li) {
+      if (member.d_index_on_stage == *li) {
          d_completed_members.erase(li);
          break;
       }
    }
-   return;
 }
 
 /*
  ***********************************************************************
  ***********************************************************************
  */
-AsyncCommStage::Member*
+AsyncCommStage::Member *
 AsyncCommStage::popCompletionQueue()
 {
-   if ( d_completed_members.empty() ) {
+   if (!hasCompletedMembers()) {
       TBOX_ERROR("AsyncCommStage::popCompletionQueue(): There is no\n"
-                 << "completed member.  You cannot call this method\n"
-                 << "when numberOfCompletedMembers() > 0.");
+         << "completed member.  You cannot call this method\n"
+         << "when hasCompletedMembers()." << std::endl);
    }
-   Member *completed = d_members[d_completed_members.front()];
-   if ( ! completed->isDone() ) {
+   if (!firstCompletedMember()->isDone()) {
       TBOX_ERROR("AsyncCommStage::popCompletionQueue error:\n"
-                 << "You asked for a completed AsyncCommStage Member\n"
-                 << "but its stage has changed to pending since the\n"
-                 << "stage last identified it as being completed.\n"
-                 << "This is likely caused by some code re-using the\n"
-                 << "Member for another operation before poping it\n"
-                 << "using this method.");
+         << "You asked for a completed AsyncCommStage Member\n"
+         << "but its stage has changed to pending since the\n"
+         << "stage last identified it as being completed.\n"
+         << "This is likely caused by some code re-using the\n"
+         << "Member for another operation before poping it\n"
+         << "using this method." << std::endl);
    }
+   Member* completed = d_members[d_completed_members.front()];
    d_completed_members.pop_front();
    return completed;
 }
@@ -330,13 +326,13 @@ AsyncCommStage::popCompletionQueue()
  * repeatedly until all outstanding communications are complete.
  ******************************************************************
  */
-size_t
+bool
 AsyncCommStage::advanceAll()
 {
    while (hasPendingRequests()) {
       advanceSome();
    }
-   return d_completed_members.size();
+   return !d_completed_members.empty();
 }
 
 /*
@@ -350,16 +346,16 @@ AsyncCommStage::advanceAll()
  * finished.  If no Member has finished, repeat until at least one has.
  ******************************************************************
  */
-size_t
+bool
 AsyncCommStage::advanceSome()
 {
    if (!SAMRAI_MPI::usingMPI()) {
-      return 0;
+      return false;
    }
 
    if (d_members.empty()) {
       // Short cut for an empty stage.
-      return 0;
+      return false;
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -367,12 +363,12 @@ AsyncCommStage::advanceSome()
         i < d_req.size();
         ++i) {
       if (d_req[i] != MPI_REQUEST_NULL)
-         TBOX_WARNING("non-null request above d_n_req.");
+         TBOX_WARNING("non-null request above d_n_req." << std::endl);
    }
 #endif
 
-   Array<int> index(static_cast<int>(d_member_to_req[d_members.size()]));
-   Array<SAMRAI_MPI::Status> stat(
+   std::vector<int> index(static_cast<int>(d_member_to_req[d_members.size()]));
+   std::vector<SAMRAI_MPI::Status> stat(
       static_cast<int>(d_member_to_req[d_members.size()]));
 
    size_t n_member_completed = 0;
@@ -386,8 +382,8 @@ AsyncCommStage::advanceSome()
             static_cast<int>(d_member_to_req[d_members.size()]),
             &d_req[0],
             &n_req_completed,
-            index.getPointer(),
-            stat.getPointer());
+            &index[0],
+            &stat[0]);
       if (d_communication_timer) d_communication_timer->stop();
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (n_req_completed <= 0) {
@@ -415,7 +411,7 @@ AsyncCommStage::advanceSome()
               i < d_req.size();
               ++i) {
             if (d_req[i] != MPI_REQUEST_NULL)
-               TBOX_WARNING("non-null request above d_n_reg.");
+               TBOX_WARNING("non-null request above d_n_reg." << std::endl);
          }
       }
       if (n_req_completed == 0) {
@@ -487,7 +483,7 @@ AsyncCommStage::advanceSome()
 
    } while (n_req_completed > 0 && n_member_completed == 0);
 
-   return d_completed_members.size();
+   return !d_completed_members.empty();
 }
 
 /*
@@ -501,11 +497,11 @@ AsyncCommStage::advanceSome()
  * has completed its communication operation.
  ****************************************************************
  */
-size_t
+bool
 AsyncCommStage::advanceAny()
 {
    if (!SAMRAI_MPI::usingMPI()) {
-      return 0;
+      return false;
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -513,7 +509,7 @@ AsyncCommStage::advanceAny()
         i < d_req.size();
         ++i) {
       if (d_req[i] != MPI_REQUEST_NULL)
-         TBOX_WARNING("non-null request above d_n_reg.");
+         TBOX_WARNING("non-null request above d_n_reg." << std::endl);
    }
 #endif
 
@@ -553,7 +549,7 @@ AsyncCommStage::advanceAny()
 
       TBOX_ASSERT(member_index_on_stage >= 0 &&
          member_index_on_stage < static_cast<int>(d_members.size()));
-      TBOX_ASSERT(d_members[member_index_on_stage] != NULL);
+      TBOX_ASSERT(d_members[member_index_on_stage] != 0);
 
       Member* member = d_members[member_index_on_stage];
       /*
@@ -587,12 +583,11 @@ AsyncCommStage::advanceAny()
 
    } while (member_done == false);
 
-
-   if ( member_index_on_stage >= 0 ) {
+   if (member_index_on_stage >= 0) {
       privatePushToCompletionQueue(*d_members[member_index_on_stage]);
    }
 
-   return d_completed_members.size();
+   return !d_completed_members.empty();
 }
 
 /*
@@ -603,8 +598,8 @@ size_t
 AsyncCommStage::numberOfRequests(
    size_t index_on_stage) const
 {
-   TBOX_ASSERT(index_on_stage < d_members.size());
-   TBOX_ASSERT(d_members[index_on_stage] != NULL);
+   TBOX_ASSERT(index_on_stage < numManagedMembers());
+   TBOX_ASSERT(getMember(index_on_stage) != 0);
 
    const int init_req = static_cast<int>(d_member_to_req[index_on_stage]);
    const int term_req = static_cast<int>(d_member_to_req[index_on_stage + 1]);
@@ -653,7 +648,7 @@ AsyncCommStage::numberOfPendingMembers() const
 {
    size_t nmember = 0;
    for (size_t imember = 0; imember < d_members.size(); ++imember) {
-      if (d_members[imember] != NULL &&
+      if (d_members[imember] != 0 &&
           d_members[imember]->hasPendingRequests()) {
          ++nmember;
       }
@@ -667,12 +662,12 @@ AsyncCommStage::numberOfPendingMembers() const
  * allocated by this object.
  ****************************************************************
  */
-SAMRAI_MPI::Request*
+SAMRAI_MPI::Request *
 AsyncCommStage::lookupRequestPointer(
    const size_t imember) const
 {
-   TBOX_ASSERT(imember < d_members.size());
-   TBOX_ASSERT(d_members[imember] != NULL);
+   TBOX_ASSERT(imember < numManagedMembers());
+   TBOX_ASSERT(getMember(imember) != 0);
    return &d_req[d_member_to_req[imember]];
 }
 
@@ -682,12 +677,12 @@ AsyncCommStage::lookupRequestPointer(
  * allocated by this object.
  ****************************************************************
  */
-SAMRAI_MPI::Status*
+SAMRAI_MPI::Status *
 AsyncCommStage::lookupStatusPointer(
    const size_t imember) const
 {
-   TBOX_ASSERT(imember < d_members.size());
-   TBOX_ASSERT(d_members[imember] != NULL);
+   TBOX_ASSERT(imember < numManagedMembers());
+   TBOX_ASSERT(getMember(imember) != 0);
    return &d_stat[d_member_to_req[imember]];
 }
 
@@ -705,7 +700,7 @@ AsyncCommStage::Member::Member(
    const size_t nreq,
    AsyncCommStage* stage,
    AsyncCommStage::Handler* handler):
-   d_stage(NULL),
+   d_stage(0),
    d_nreq(size_t(MathUtilities<int>::getMax())),
    d_index_on_stage(size_t(MathUtilities<int>::getMax())),
    d_handler(handler)
@@ -718,10 +713,10 @@ AsyncCommStage::Member::Member(
  ***********************************************************************
  */
 AsyncCommStage::Member::Member():
-   d_stage(NULL),
+   d_stage(0),
    d_nreq(size_t(MathUtilities<int>::getMax())),
    d_index_on_stage(size_t(MathUtilities<int>::getMax())),
-   d_handler(NULL)
+   d_handler(0)
 {
 }
 
@@ -735,10 +730,10 @@ AsyncCommStage::Member::~Member()
       TBOX_ERROR("Cannot deallocate a Member with pending communications.\n"
          << "It would corrupt message passing algorithms.\n");
    }
-   if (d_stage != NULL) {
+   if (d_stage != 0) {
       d_stage->privateDestageMember(this);
    }
-   d_handler = NULL;
+   d_handler = 0;
 }
 
 /*
@@ -750,11 +745,11 @@ AsyncCommStage::Member::attachStage(
    const size_t nreq,
    AsyncCommStage* stage)
 {
-   if (d_stage != NULL) {
+   if (d_stage != 0) {
       // Deregister from current stage.
       d_stage->privateDestageMember(this);
    }
-   if (stage != NULL) {
+   if (stage != 0) {
       // Register with new stage, if any.
       stage->privateStageMember(this, nreq);
    }
@@ -767,12 +762,12 @@ AsyncCommStage::Member::attachStage(
 void
 AsyncCommStage::Member::detachStage()
 {
-   if (d_stage != NULL) {
+   if (d_stage != 0) {
       // Deregister from current stage.
       d_stage->privateDestageMember(this);
    }
    d_nreq = 0;
-   d_stage = NULL;
+   d_stage = 0;
 }
 
 /*
@@ -782,7 +777,7 @@ AsyncCommStage::Member::detachStage()
 bool
 AsyncCommStage::Member::hasPendingRequests() const
 {
-   if (d_stage == NULL) {
+   if (d_stage == 0) {
       return false;
    } else {
       SAMRAI_MPI::Request* req = getRequestPointer();
@@ -801,7 +796,7 @@ size_t
 AsyncCommStage::Member::numberOfPendingRequests() const
 {
    size_t npending = 0;
-   if (d_stage != NULL) {
+   if (d_stage != 0) {
       SAMRAI_MPI::Request* req = getRequestPointer();
       for (size_t i = 0; i < d_nreq; ++i) {
          if (req[i] != MPI_REQUEST_NULL) ++npending;
@@ -814,17 +809,15 @@ AsyncCommStage::Member::numberOfPendingRequests() const
  ***********************************************************************
  ***********************************************************************
  */
-SAMRAI_MPI::Request*
+SAMRAI_MPI::Request *
 AsyncCommStage::Member::getRequestPointer() const
 {
-   if (d_stage == NULL) {
+   if (!hasStage()) {
       TBOX_ERROR("AssyncCommStage::Member::getRequestPointer():\n"
          << "Empty stage encountered!\n"
-         << "This probably means that the stage that allocated\n"
-         << "your AsyncCommGroup has been deallocated.\n"
-         << "(and your AssyncCommGroup deallocated too!).\n"
-         << "It is an error to deallocate a stage and still\n"
-         << "use the Member it allocated.\n");
+         << "This probably means the stage Member has not been placed on a stage.\n"
+         << "See documentation for the Membmber's concrete implementation for how\n"
+         << "to place the Member on the stage.");
 
    }
    return d_stage->lookupRequestPointer(d_index_on_stage);
@@ -834,17 +827,15 @@ AsyncCommStage::Member::getRequestPointer() const
  ***********************************************************************
  ***********************************************************************
  */
-SAMRAI_MPI::Status*
+SAMRAI_MPI::Status *
 AsyncCommStage::Member::getStatusPointer() const
 {
-   if (d_stage == NULL) {
+   if (!hasStage()) {
       TBOX_ERROR("AssyncCommStage::Member::getStatusPointer():\n"
          << "Empty stage encountered!\n"
-         << "This probably means that the stage that allocated\n"
-         << "your AsyncCommGroup has been deallocated.\n"
-         << "(and your AssyncCommGroup deallocated too!).\n"
-         << "It is an error to deallocate a stage and still\n"
-         << "use the Member it allocated.\n");
+         << "This probably means the stage Member has not been placed on a stage.\n"
+         << "See documentation for the Membmber's concrete implementation for how\n"
+         << "to place the Member on the stage.");
 
    }
    return d_stage->lookupStatusPointer(d_index_on_stage);
@@ -857,13 +848,13 @@ AsyncCommStage::Member::getStatusPointer() const
 void
 AsyncCommStage::Member::pushToCompletionQueue()
 {
-   if ( ! isDone() ) {
+   if (!isDone()) {
       TBOX_ERROR("AsyncCommStage::Member::pushToCompletionQueue error:\n"
-                 << "This method may not be called by Members that have not\n"
-                 << "completed their operation (and returns true from isDon().");
+         << "This method may not be called by Members that have not\n"
+         << "completed their operation (and returns true from isDone()."
+         << std::endl);
    }
    d_stage->privatePushToCompletionQueue(*this);
-   return;
 }
 
 /*

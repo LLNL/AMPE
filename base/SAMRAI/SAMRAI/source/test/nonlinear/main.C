@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Main program for modified-Bratu problem
  *
  ************************************************************************/
@@ -19,12 +19,12 @@ using namespace std;
  * Headers for basic SAMRAI objects used in this sample code.
  */
 #include "SAMRAI/tbox/Database.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/hier/BaseGridGeometry.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/PIO.h"
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/Timer.h"
@@ -52,10 +52,15 @@ using namespace std;
 #ifdef HAVE_SUNDIALS
 #include "SAMRAI/solv/KINSOL_SAMRAIContext.h"
 #endif
+#ifdef HAVE_HYPRE
+#include "SAMRAI/solv/CellPoissonHypreSolver.h"
+#endif
 #include "ModifiedBratuProblem.h"
 #include "SAMRAI/solv/NonlinearSolverStrategy.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
+
+#include <vector>
 
 using namespace SAMRAI;
 
@@ -168,8 +173,8 @@ int main(
        */
       string input_filename;
 
-      if (argc != 2) {
-         TBOX_ERROR("USAGE:  " << argv[0] << " <input file> \n"
+      if (argc != 3) {
+         TBOX_ERROR("USAGE:  " << argv[0] << " <input file> -skip_petscrc \n"
                                << "  options:\n"
                                << "  none at this time" << endl);
       } else {
@@ -205,38 +210,25 @@ int main(
          viz_dump_interval = main_db->getInteger("viz_dump_interval");
       }
 
-      tbox::Array<string> viz_writer(1);
-      viz_writer[0] = "Visit";
-      string viz_dump_filename;
       string visit_dump_dirname;
       bool uses_visit = false;
       int visit_number_procs_per_file = 1;
       if (viz_dump_interval > 0) {
-         if (main_db->keyExists("viz_writer")) {
-            viz_writer = main_db->getStringArray("viz_writer");
-         }
-         if (main_db->keyExists("viz_dump_filename")) {
-            viz_dump_filename = main_db->getString("viz_dump_filename");
-         }
+         uses_visit = true;
          string viz_dump_dirname;
          if (main_db->keyExists("viz_dump_dirname")) {
             viz_dump_dirname = main_db->getString("viz_dump_dirname");
          }
-         for (int i = 0; i < viz_writer.getSize(); i++) {
-            if (viz_writer[i] == "VisIt") uses_visit = true;
-         }
          visit_dump_dirname = viz_dump_dirname;
-         if (uses_visit) {
-            if (viz_dump_dirname.empty()) {
-               TBOX_ERROR("main(): "
-                  << "\nviz_dump_dirname is null ... "
-                  << "\nThis must be specified for use with VisIt"
-                  << endl);
-            }
-            if (main_db->keyExists("visit_number_procs_per_file")) {
-               visit_number_procs_per_file =
-                  main_db->getInteger("visit_number_procs_per_file");
-            }
+         if (viz_dump_dirname.empty()) {
+            TBOX_ERROR("main(): "
+               << "\nviz_dump_dirname is null ... "
+               << "\nThis must be specified for use with VisIt"
+               << endl);
+         }
+         if (main_db->keyExists("visit_number_procs_per_file")) {
+            visit_number_procs_per_file =
+               main_db->getInteger("visit_number_procs_per_file");
          }
       }
 
@@ -257,6 +249,9 @@ int main(
        * section of the input file.
        */
       tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
+      boost::shared_ptr<tbox::Timer> t_all =
+         tbox::TimerManager::getManager()->getTimer("appu::main::all");
+      t_all->start();
 
       /*
        * Create major algorithm and data objects which comprise application.
@@ -288,21 +283,74 @@ int main(
             grid_geometry,
             input_db->getDatabase("PatchHierarchy")));
 
-      ModifiedBratuProblem* bratu_model = new ModifiedBratuProblem(
-            "ModifiedBratuProblem",
-            dim,
-            input_db->getDatabase("ModifiedBratuProblem"),
-            grid_geometry, visit_data_writer);
+      std::string mod_bratu_prob_name = "ModifiedBratuProblem";
+      std::string fac_solver_name = mod_bratu_prob_name + ":FAC_solver";
+      std::string fac_ops_name = fac_solver_name + "::fac_ops";
+      std::string fac_precond_name = fac_solver_name + "::fac_precond";
+      std::string hypre_poisson_name = fac_ops_name + "::hypre_solver";
 
-      solv::NonlinearSolverStrategy* nonlinear_solver = NULL;
+#ifdef HAVE_HYPRE
+      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_poisson(
+         new solv::CellPoissonHypreSolver(
+            dim,
+            hypre_poisson_name,
+            input_db->isDatabase("hypre_solver") ?
+            input_db->getDatabase("hypre_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            hypre_poisson,
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#else
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+#endif
+
+      boost::shared_ptr<solv::FACPreconditioner> fac_precond(
+         new solv::FACPreconditioner(
+            fac_precond_name,
+            fac_ops,
+            input_db->isDatabase("fac_precond") ?
+            input_db->getDatabase("fac_precond") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver(
+         new solv::CellPoissonFACSolver(
+            dim,
+            fac_solver_name,
+            fac_precond,
+            fac_ops,
+            input_db->isDatabase("fac_solver") ?
+            input_db->getDatabase("fac_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      ModifiedBratuProblem* bratu_model = new ModifiedBratuProblem(
+            mod_bratu_prob_name,
+            dim,
+            fac_solver,
+            input_db->getDatabase("ModifiedBratuProblem"),
+            grid_geometry,
+            visit_data_writer);
+
+      solv::NonlinearSolverStrategy* nonlinear_solver = 0;
 
       if (nonlinear_solver_package == "PETSc-SNES") {
 
 #ifdef HAVE_PETSC
          nonlinear_solver =
             new solv::SNES_SAMRAIContext("SNESSolver",
-               input_db->getDatabase("SNESSolver"),
-               bratu_model);
+               bratu_model,
+               input_db->getDatabase("SNESSolver"));
 #else
          TBOX_ERROR("Cannot use PETSc-SNES option because SAMRAI was\n"
             << "not configured to use it.");
@@ -313,8 +361,8 @@ int main(
 #ifdef HAVE_SUNDIALS
          nonlinear_solver =
             new solv::KINSOL_SAMRAIContext("KINSOLSolver",
-               input_db->getDatabase("KINSOLSolver"),
-               bratu_model);
+               bratu_model,
+               input_db->getDatabase("KINSOLSolver"));
 #else
          TBOX_ERROR("Cannot use KINSOL option because SAMRAI was\n"
             << "not configured to use it.");
@@ -336,14 +384,13 @@ int main(
 
       boost::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
          new mesh::StandardTagAndInitialize(
-            dim,
             "CellTaggingMethod",
             bratu_model,
-            input_db->
-            getDatabase("StandardTagAndInitialize")));
+            input_db->getDatabase("StandardTagAndInitialize")));
 
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+         new mesh::BergerRigoutsos(dim,
+            input_db->getDatabase("BergerRigoutsos")));
 
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
          new mesh::TreeLoadBalancer(
@@ -365,21 +412,22 @@ int main(
        * Tag buffers are passed to the gridding algorithm for buffering
        * tagged cells before new levels are created.
        */
-      tbox::Array<int> tag_buffer(patch_hierarchy->getMaxNumberOfLevels());
-      for (int ln = 0; ln < patch_hierarchy->getMaxNumberOfLevels(); ln++) {
+      std::vector<int> tag_buffer(patch_hierarchy->getMaxNumberOfLevels());
+      for (int ln = 0; ln < patch_hierarchy->getMaxNumberOfLevels(); ++ln) {
          tag_buffer[ln] = 0;
       }
       if (main_db->keyExists("tag_buffer")) {
-         tbox::Array<int> input_tags = main_db->getIntegerArray("tag_buffer");
-         if (input_tags.getSize() > 0) {
+         std::vector<int> input_tags = main_db->getIntegerVector("tag_buffer");
+         if (input_tags.size() > 0) {
             for (int ln0 = 0; ln0 < patch_hierarchy->getMaxNumberOfLevels();
-                 ln0++) {
-               if (input_tags.getSize() > ln0) {
+                 ++ln0) {
+               if (static_cast<int>(input_tags.size()) > ln0) {
                   tag_buffer[ln0] = ((input_tags[ln0] > 0) ?
                                      input_tags[ln0] : 0);
                } else {
-                  tag_buffer[ln0] = ((input_tags[input_tags.getSize() - 1] > 0)
-                                     ? input_tags[input_tags.getSize() - 1] : 0);
+                  int input_tags_size = static_cast<int>(input_tags.size());
+                  tag_buffer[ln0] = ((input_tags[input_tags_size - 1] > 0)
+                                     ? input_tags[input_tags_size - 1] : 0);
                }
             }
          }
@@ -417,7 +465,7 @@ int main(
 
       if (tbox::RestartManager::getManager()->isFromRestart()) {
 
-         patch_hierarchy->getFromRestart();
+         patch_hierarchy->initializeHierarchy();
 
          gridding_algorithm->getTagAndInitializeStrategy()->
          resetHierarchyConfiguration(patch_hierarchy,
@@ -429,13 +477,14 @@ int main(
          gridding_algorithm->makeCoarsestLevel(sim_time);
 
          bool done = false;
-         bool initial_time = true;
+         bool initial_cycle = true;
          for (int lnum = 0;
-              patch_hierarchy->levelCanBeRefined(lnum) && !done; lnum++) {
+              patch_hierarchy->levelCanBeRefined(lnum) && !done; ++lnum) {
             gridding_algorithm->makeFinerLevel(
-               sim_time,
-               initial_time,
-               tag_buffer[lnum]);
+               tag_buffer[lnum],
+               initial_cycle,
+               imp_integrator->getIntegratorStep(),
+               sim_time);
             done = !(patch_hierarchy->finerLevelExists(lnum));
          }
 
@@ -521,8 +570,9 @@ int main(
             if ((regrid_interval > 0)
                 && ((iteration_num % regrid_interval) == 0)) {
                gridding_algorithm->regridAllFinerLevels(0,
-                  sim_time,
-                  tag_buffer);
+                  tag_buffer,
+                  iteration_num,
+                  sim_time);
 #if defined(HAVE_PETSC) || defined(HAVE_SUNDIALS)
                bratu_model->setVectorWeights(patch_hierarchy);
 #endif
@@ -571,6 +621,16 @@ int main(
          visit_data_writer.reset();
       }
 
+      t_all->stop();
+      int size = tbox::SAMRAI_MPI::getSAMRAIWorld().getSize();
+      if (tbox::SAMRAI_MPI::getSAMRAIWorld().getRank() == 0) {
+         string timing_file =
+            base_name + ".timing" + tbox::Utilities::intToString(size);
+         FILE* fp = fopen(timing_file.c_str(), "w");
+         fprintf(fp, "%f\n", t_all->getTotalWallclockTime());
+         fclose(fp);
+      }
+
 #endif
 
 #ifdef TESTING
@@ -581,7 +641,6 @@ int main(
        */
       tbox::pout << "\nPASSED:  nonlinear" << endl;
 #endif
-
    }
 
    tbox::SAMRAIManager::shutdown();

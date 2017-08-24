@@ -1,0 +1,39 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for SAMRAI cvode sample
+##                application
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/sundials/fortran
+VPATH         = @srcdir@
+OBJECT        = ../../../..
+
+default: main
+
+include $(OBJECT)/config/Makefile.config
+
+OBJS= 	FACjacobian2d.o FACjacobian3d.o
+
+main:	$(OBJS)
+
+clean:
+	$(CLEAN_COMMON_TEST_FILES)
+
+include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+FACjacobian2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/FACjacobian2d.m4 > FACjacobian2d.f
+	$(F77) $(FFLAGS) -c FACjacobian2d.f -o $@
+
+FACjacobian3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/FACjacobian3d.m4 > FACjacobian3d.f
+	$(F77) $(FFLAGS) -c FACjacobian3d.f -o $@

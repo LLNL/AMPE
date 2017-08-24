@@ -3,21 +3,17 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fill pattern class to provide interface for stencils
  *
  ************************************************************************/
-
-#ifndef included_pdat_FirstLayerNodeVariableFillPattern_C
-#define included_pdat_FirstLayerNodeVariableFillPattern_C
-
 #include "SAMRAI/pdat/FirstLayerNodeVariableFillPattern.h"
 
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/pdat/NodeGeometry.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -69,17 +65,15 @@ FirstLayerNodeVariableFillPattern::calculateOverlap(
    const bool overwrite_interior,
    const hier::Transformation& transformation) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(dst_patch_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(dst_patch_box, src_mask);
 
    hier::BoxContainer stencil_boxes;
    computeStencilBoxes(stencil_boxes, dst_patch_box);
 
    hier::BoxContainer dst_boxes;
 
-   const NodeGeometry* t_dst =
-      dynamic_cast<const NodeGeometry *>(&dst_geometry);
-   const NodeGeometry* t_src =
-      dynamic_cast<const NodeGeometry *>(&src_geometry);
+   const NodeGeometry* t_dst = CPP_CAST<const NodeGeometry *>(&dst_geometry);
+   const NodeGeometry* t_src = CPP_CAST<const NodeGeometry *>(&src_geometry);
 
    TBOX_ASSERT(t_dst);
    TBOX_ASSERT(t_src);
@@ -155,11 +149,13 @@ FirstLayerNodeVariableFillPattern::computeStencilBoxes(
 boost::shared_ptr<hier::BoxOverlap>
 FirstLayerNodeVariableFillPattern::computeFillBoxesOverlap(
    const hier::BoxContainer& fill_boxes,
+   const hier::BoxContainer& node_fill_boxes,
    const hier::Box& patch_box,
    const hier::Box& data_box,
    const hier::PatchDataFactory& pdf) const
 {
    NULL_USE(pdf);
+   NULL_USE(node_fill_boxes);
 
    const tbox::Dimension& dim = patch_box.getDim();
 
@@ -173,7 +169,7 @@ FirstLayerNodeVariableFillPattern::computeFillBoxesOverlap(
     * to a node centering, which must be done before intersecting with
     * stencil_boxes, which is node-centered.
     */
-   for (hier::BoxContainer::iterator b(overlap_boxes);
+   for (hier::BoxContainer::iterator b = overlap_boxes.begin();
         b != overlap_boxes.end(); ++b) {
       b->growUpper(hier::IntVector::getOne(dim));
    }
@@ -191,10 +187,9 @@ FirstLayerNodeVariableFillPattern::computeFillBoxesOverlap(
    overlap_boxes.coalesce();
 
    return boost::make_shared<NodeOverlap>(
-      overlap_boxes,
-      hier::Transformation(hier::IntVector::getZero(dim)));
+             overlap_boxes,
+             hier::Transformation(hier::IntVector::getZero(dim)));
 }
 
 }
 }
-#endif

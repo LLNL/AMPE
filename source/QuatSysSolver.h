@@ -302,7 +302,7 @@ public:
       }
 #endif
       d_bc_object = bc_object;
-      d_fac_ops.setPhysicalBcCoefObject(d_bc_object);
+      d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }
 
    void setOperatorCoefficients(
@@ -478,11 +478,11 @@ public:
 
    int getFaceDiffCoeffId()
       {
-         return d_fac_ops.getFaceDiffCoeffId();
+         return d_fac_ops->getFaceDiffCoeffId();
       }
    int getFaceDiffCoeffScratchId()
       {
-         return d_fac_ops.getFaceDiffCoeffScratchId();
+         return d_fac_ops->getFaceDiffCoeffScratchId();
       }
   
 private:
@@ -527,13 +527,12 @@ private:
    /*
     * FAC operator implementation
     */
-   //  QuatFACOps<DIM,3*DIM-5> d_fac_ops;
-   QuatFACOps d_fac_ops;
+   boost::shared_ptr<QuatFACOps> d_fac_ops;
 
    /*
     * The FAC solver used for the preconditioner
     */
-   solv::FACPreconditioner d_fac_solver;
+   FACPreconditioner d_fac_solver;
 
    /*
     * Robin bc object in use.

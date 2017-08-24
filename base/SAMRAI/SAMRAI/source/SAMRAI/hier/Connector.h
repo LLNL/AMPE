@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Set of distributed box-graph relationships from one BoxLevel
  *                to another.
  *
@@ -79,59 +79,35 @@ public:
     */
    typedef BoxNeighborhoodCollection::NeighborIterator NeighborIterator;
 
-   /// TODO:  Possible refactor?  Since Connectors do not imply relationship
-   // meanings, why is this even defined?  The "getConnectorType function
-   // is never called; The individual types are never used except in
-   // conjunction with the "setConnectorType" function.  This seems to be
-   // a useless enumeration producing unused code.  SGH.
-
-   /*!
-    * @brief Types of Connectors
-    *
-    * The types describe the meaning of the relationships in a Connector.
-    *
-    * @b COMPLETE_OVERLAP: The relationships represent overlaps, and every
-    * overlap is represented by an relationship, including overlaps with
-    * periodic images.
-    *
-    * @b COMPLETE_OVERLAP_NO_PERIODIC: The relationships represent overlaps,
-    * and every overlap is represented by an relationship.  Overlaps with
-    * periodic images are omitted.
-    *
-    * @b INCOMPLETE_OVERLAP: The relationships represent overlaps, but not
-    * all overlaps are represented.
-    *
-    * @b BASE_GENERATED: The head is generated from the base.  Each
-    * head Box comes from a base Box and there is an relationship
-    * from the base Box to the head Box.
-    *
-    * @b MAPPING: relationships indicate a mapping relationship.  Applying
-    * the map would change Connectors incident to the base into
-    * Connectors incident to the head.
-    *
-    * @b UNKNOWN: Meaning of relationships are unknown.
-    *
-    * See setConnectorType(), getConnectorType().
-    *
-    * The Connector types are not exclusive.  For example, a mapping
-    * Connector may also be used as an overlap Connector.
-    */
-   enum ConnectorType {
-      COMPLETE_OVERLAP = 1,
-      COMPLETE_OVERLAP_NO_PERIODIC = 2,
-      INCOMPLETE_OVERLAP = 3,
-      BASE_GENERATED = 4,
-      MAPPING = 5,
-      UNKNOWN = 6
-   };
-
    /*!
     * @brief Creates an uninitialized Connector object in the
     * distributed state.
     *
-    * @see initialize()
+    * @param dim The dimension of the head and base BoxLevels that
+    * this object will eventually connect.
+    *
+    * @see setBase()
+    * @see setHead()
+    * @see setWidth()
     */
-   Connector();
+   explicit Connector(
+      const tbox::Dimension& dim);
+
+   /*!
+    * @brief Creates a Connector which is initialized from a restart database.
+    *
+    * @param dim The dimension of the head and base BoxLevels that
+    * this object will eventually connect.
+    *
+    * @param restart_db Restart Database written by a Connector.
+    *
+    * @see setBase()
+    * @see setHead()
+    * @see setWidth()
+    */
+   Connector(
+      const tbox::Dimension& dim,
+      tbox::Database& restart_db);
 
    /*!
     * @brief Copy constructor.
@@ -146,21 +122,49 @@ public:
     *
     * The Connector's relationships are initialized to a dummy state.
     *
-    * @param[in] base_mapped_box_level
-    * @param[in] head_mapped_box_level
+    * @param[in] base_box_level
+    * @param[in] head_box_level
     * @param[in] base_width
     * @param[in] parallel_state
+    *
+    * @pre (base_box_level.getDim() == head_box_level.getDim()) &&
+    *      (base_box_level.getDim() == base_width.getDim())
     */
    Connector(
-      const BoxLevel& base_mapped_box_level,
-      const BoxLevel& head_mapped_box_level,
+      const BoxLevel& base_box_level,
+      const BoxLevel& head_box_level,
       const IntVector& base_width,
       const BoxLevel::ParallelState parallel_state = BoxLevel::DISTRIBUTED);
 
    /*!
     * @brief Destructor.
     */
-   ~Connector();
+   virtual ~Connector();
+
+   /*!
+    * @brief Set this to the transpose of another Connector and
+    * populate its edges with the other's transposed edges.
+    *
+    * This method uses communication to acquire the transpose edges.
+    *
+    * @param other [i]
+    *
+    * @param mpi SAMRAI_MPI to use for communication.  If omitted, use
+    * the other.getBase().getMPI() by default.  If specified, must be
+    * congruent with the default.
+    */
+   void
+   computeTransposeOf(
+      const Connector& other,
+      const tbox::SAMRAI_MPI& mpi = tbox::SAMRAI_MPI(MPI_COMM_NULL));
+
+   /*!
+    * @brief Transpose the visible relationships so that they point from
+    * each visible head box to a set of local base boxes.
+    */
+   void
+   reorderRelationshipsByHead(
+      std::map<Box, BoxContainer, Box::id_less>& relationships_by_head) const;
 
    /*!
     * @brief Clear the Connector, putting it into an uninitialized state.
@@ -168,13 +172,12 @@ public:
    void
    clear()
    {
-      if ( d_base_handle ) {
+      if (d_base_handle) {
          d_relationships.clear();
          d_global_relationships.clear();
-         d_mpi.setCommunicator(tbox::SAMRAI_MPI::commNull);
+         d_mpi.setCommunicator(MPI_COMM_NULL);
          d_base_handle.reset();
          d_head_handle.reset();
-         d_base_width(0) = d_ratio(0) = 0;
          d_parallel_state = BoxLevel::DISTRIBUTED;
       }
    }
@@ -187,7 +190,6 @@ public:
    {
       d_relationships.clear();
       d_global_relationships.clear();
-      return;
    }
 
    /*!
@@ -257,7 +259,7 @@ public:
       NeighborhoodIterator& nbrhd)
    {
       BoxNeighborhoodCollection* tmp =
-         const_cast<BoxNeighborhoodCollection*>(nbrhd.d_collection);
+         const_cast<BoxNeighborhoodCollection *>(nbrhd.d_collection);
       return tmp->begin(nbrhd);
    }
 
@@ -283,7 +285,7 @@ public:
       NeighborhoodIterator& nbrhd)
    {
       BoxNeighborhoodCollection* tmp =
-         const_cast<BoxNeighborhoodCollection*>(nbrhd.d_collection);
+         const_cast<BoxNeighborhoodCollection *>(nbrhd.d_collection);
       return tmp->end(nbrhd);
    }
 
@@ -328,8 +330,7 @@ public:
       const BoxId& box_id) const
    {
       const BoxNeighborhoodCollection& relationships = getRelations(box_id);
-      BoxId non_per_id(box_id.getGlobalId(),
-                       PeriodicId::zero());
+      BoxId non_per_id(box_id.getGlobalId(), PeriodicId::zero());
       ConstNeighborhoodIterator ei = relationships.find(non_per_id);
       if (ei == relationships.end()) {
          TBOX_ERROR("Connector::find: No neighbor set exists for\n"
@@ -375,16 +376,14 @@ public:
     * @brief Return true if a neighbor set exists for the specified
     * BoxId.
     *
-    * @param[in] mapped_box_id
+    * @param[in] box_id
     */
    bool
    hasNeighborSet(
-      const BoxId& mapped_box_id) const
+      const BoxId& box_id) const
    {
-      const BoxNeighborhoodCollection& relationships =
-         getRelations(mapped_box_id);
-      BoxId non_per_id(mapped_box_id.getGlobalId(),
-                       PeriodicId::zero());
+      const BoxNeighborhoodCollection& relationships = getRelations(box_id);
+      BoxId non_per_id(box_id.getGlobalId(), PeriodicId::zero());
       ConstNeighborhoodIterator ei = relationships.find(non_per_id);
       return ei != relationships.end();
    }
@@ -395,13 +394,15 @@ public:
     *
     * @param[in] box_id
     * @param[in] neighbor
+    *
+    * @pre box_id.getOwnerRank() == getMPI().getRank()
     */
    bool
    hasLocalNeighbor(
       const BoxId& box_id,
       const Box& neighbor) const
    {
-      TBOX_ASSERT( box_id.getOwnerRank() == d_mpi.getRank() );
+      TBOX_ASSERT(box_id.getOwnerRank() == d_mpi.getRank());
       return d_relationships.hasNeighbor(box_id, neighbor);
    }
 
@@ -410,12 +411,16 @@ public:
     *
     * @param[in] box_id
     * @param[out] nbr_boxes
+    *
+    * @pre hasNeighborSet(box_id)
     */
    void
    getNeighborBoxes(
       const BoxId& box_id,
       BoxContainer& nbr_boxes) const
    {
+      TBOX_ASSERT(hasNeighborSet(box_id));
+
       const BoxNeighborhoodCollection& relationships = getRelations(box_id);
       BoxId non_per_id(box_id.getGlobalId(),
                        PeriodicId::zero());
@@ -432,7 +437,6 @@ public:
       BoxContainer& neighbors) const
    {
       d_relationships.getNeighbors(neighbors);
-      return;
    }
 
    /*!
@@ -445,7 +449,6 @@ public:
       std::map<BlockId, BoxContainer>& neighbors) const
    {
       d_relationships.getNeighbors(neighbors);
-      return;
    }
 
    /*!
@@ -453,6 +456,8 @@ public:
     * supplied BoxId.
     *
     * @param[in] box_id
+    *
+    * @pre hasNeighborSet(box_id)
     */
    int
    numLocalNeighbors(
@@ -492,7 +497,6 @@ public:
       std::set<int>& owners) const
    {
       d_relationships.getOwners(owners);
-      return;
    }
 
    /*!
@@ -508,7 +512,6 @@ public:
       std::set<int>& owners) const
    {
       d_relationships.getOwners(base_boxes_itr, owners);
-      return;
    }
 
    //@{
@@ -521,6 +524,10 @@ public:
     *
     * @param[in] neighbors
     * @param[in] base_box
+    *
+    * @pre (getParallelState() == BoxLevel::GLOBALIZED) ||
+    *      (base_box.getOwnerRank() == getMPI().getRank())
+    * @pre getBase().hasBox(base_box)
     */
    void
    insertNeighbors(
@@ -530,29 +537,32 @@ public:
    /*!
     * @brief Erase neighbor of the specified BoxId.
     *
-    * @note Assertions
-    * It is an error to to specify a non-existent BoxId.
-    *
     * @param[in] neighbor
-    * @param[in] mapped_box_id
+    * @param[in] box_id
+    *
+    * @pre (getParallelState() == BoxLevel::GLOBALIZED) ||
+    *      (base_box.getOwnerRank() == getMPI().getRank())
+    * @pre getBase().hasBox(box_id)
     */
    void
    eraseNeighbor(
       const Box& neighbor,
-      const BoxId& mapped_box_id);
+      const BoxId& box_id);
 
    /*!
     * @brief Adds a neighbor of the specified BoxId.
     *
     * @param[in] neighbor
     * @param[in] box_id
+    *
+    * @pre box_id.getOwnerRank() == getMPI().getRank()
     */
    void
    insertLocalNeighbor(
       const Box& neighbor,
       const BoxId& box_id)
    {
-      TBOX_ASSERT( box_id.getOwnerRank() == d_mpi.getRank() );
+      TBOX_ASSERT(box_id.getOwnerRank() == d_mpi.getRank());
       d_relationships.insert(box_id, neighbor);
    }
 
@@ -561,13 +571,15 @@ public:
     *
     * @param[in] neighbor
     * @param[in] base_box_itr
+    *
+    * @pre base_box_itr->getOwnerRank() == getMPI().getRank()
     */
    void
    insertLocalNeighbor(
       const Box& neighbor,
       NeighborhoodIterator& base_box_itr)
    {
-      TBOX_ASSERT( base_box_itr->getOwnerRank() == d_mpi.getRank() );
+      TBOX_ASSERT(base_box_itr->getOwnerRank() == d_mpi.getRank());
       d_relationships.insert(base_box_itr, neighbor);
    }
 
@@ -575,12 +587,14 @@ public:
     * @brief Erases the neighborhood of the specified BoxId.
     *
     * @param[in] box_id
+    *
+    * @pre box_id.getOwnerRank() == getMPI().getRank()
     */
    void
    eraseLocalNeighborhood(
       const BoxId& box_id)
    {
-      TBOX_ASSERT( box_id.getOwnerRank() == d_mpi.getRank() );
+      TBOX_ASSERT(box_id.getOwnerRank() == d_mpi.getRank());
       d_relationships.erase(box_id);
    }
 
@@ -594,7 +608,6 @@ public:
       if (d_parallel_state == BoxLevel::GLOBALIZED) {
          d_global_relationships.erasePeriodicNeighbors();
       }
-      return;
    }
 
    /*!
@@ -604,7 +617,6 @@ public:
    removePeriodicLocalNeighbors()
    {
       d_relationships.erasePeriodicNeighbors();
-      return;
    }
 
    /*!
@@ -629,12 +641,14 @@ public:
     * @brief Make an empty set of neighbors of the supplied box_id.
     *
     * @param[in] box_id
+    *
+    * @pre box_id.getOwnerRank() == getMPI().getRank()
     */
    NeighborhoodIterator
    makeEmptyLocalNeighborhood(
       const BoxId& box_id)
    {
-      TBOX_ASSERT( box_id.getOwnerRank() == d_mpi.getRank() );
+      TBOX_ASSERT(box_id.getOwnerRank() == d_mpi.getRank());
       return d_relationships.insert(box_id).first;
    }
 
@@ -646,7 +660,6 @@ public:
    {
       d_relationships.eraseEmptyNeighborhoods();
       d_global_data_up_to_date = false;
-      return;
    }
 
    /*!
@@ -671,7 +684,6 @@ public:
       const IntVector& ratio)
    {
       d_relationships.coarsenNeighbors(ratio);
-      return;
    }
 
    /*!
@@ -684,7 +696,6 @@ public:
       const IntVector& ratio)
    {
       d_relationships.refineNeighbors(ratio);
-      return;
    }
 
    /*!
@@ -697,7 +708,6 @@ public:
       const IntVector& growth)
    {
       d_relationships.growNeighbors(growth);
-      return;
    }
 
    //@}
@@ -708,6 +718,13 @@ public:
     *
     * To be called after modifying a Connector's context through setBase,
     * setHead, or setWidth methods.
+    *
+    * @pre d_base_handle && d_head_handle
+    * @pre getBase().getGridGeometry() == getHead().getGridGeometry()
+    * @pre (getBase().getRefinementRatio() >= getHead().getRefinementRatio()) ||
+    *      (getBase().getRefinementRatio() <= getHead().getRefinementRatio())
+    * @pre (getParallelState() == BoxLevel::DISTRIBUTED) ||
+    *      (getBase().getParallelState() == BoxLevel::GLOBALIZED)
     */
    void
    finalizeContext();
@@ -719,6 +736,8 @@ public:
     *
     * @param new_base
     * @param finalize_context
+    *
+    * @pre new_base.isInitialized()
     */
    void
    setBase(
@@ -727,6 +746,8 @@ public:
 
    /*!
     * @brief Return a reference to the base BoxLevel.
+    *
+    * @pre isFinalized()
     */
    const BoxLevel&
    getBase() const
@@ -742,6 +763,8 @@ public:
     *
     * @param new_head
     * @param finalize_context
+    *
+    * @pre new_head.isInitialized()
     */
    void
    setHead(
@@ -750,6 +773,8 @@ public:
 
    /*!
     * @brief Return a reference to the head BoxLevel.
+    *
+    * @pre isFinalized()
     */
    const BoxLevel&
    getHead() const
@@ -765,6 +790,8 @@ public:
     * The ratio is the same regardless of which is the coarser of the two.
     * Use getHeadCoarserFlag() to determine which is coarser.  If the ratio
     * cannot be represented by an IntVector, truncated.  @see ratioIsExact().
+    *
+    * @pre isFinalized()
     */
    const IntVector&
    getRatio() const
@@ -778,6 +805,8 @@ public:
     *
     * The ratio is exact if it can be represented by an IntVector.
     * @see getRatio().
+    *
+    * @pre isFinalized()
     */
    bool
    ratioIsExact() const
@@ -789,6 +818,8 @@ public:
    /*!
     * @brief Return true if head BoxLevel is coarser than base
     * BoxLevel.
+    *
+    * @pre isFinalized()
     */
    bool
    getHeadCoarserFlag() const
@@ -812,28 +843,35 @@ public:
    }
 
    /*!
-    * @brief Initialize to the transpose of a given Connector object,
-    * assuming that all relationships are local (no remote neighbors).
+    * @brief Create and return this Connector's transpose, assuming that all
+    * relationships are local (no remote neighbors).
     *
     * If any remote neighbor is found an unrecoverable assertion is
     * thrown.
     *
-    * Non-periodic relationships in @c connector are simply reversed to get the
-    * transpose relationship.  For each periodic relationships in @c connector,
-    * we create a periodic relationship incident from @c connector's unshifted
-    * head neighbor to @c connectors's shifted base neighbor.  This is because
-    * all relationships must be incident from a real (unshifted) Box.
-    *
-    * @param[in] connector
+    * Non-periodic relationships in are simply reversed to get the transpose
+    * relationship.  For each periodic relationship we create a periodic
+    * relationship incident from the unshifted head neighbor to the shifted
+    * base neighbor.  This is because all relationships must be incident from a
+    * real (unshifted) Box.
     */
-   void
-   initializeToLocalTranspose(
-      const Connector& connector);
+   virtual Connector *
+   createLocalTranspose() const;
+
+   /*!
+    * @brief Create and return this Connector's transpose.
+    *
+    * Similar to createLocalTranspose(), but this method allows
+    * non-local edges.  Global data is required, so this method
+    * is not scalable.
+    */
+   virtual Connector *
+   createTranspose() const;
 
    /*!
     * @brief Assignment operator
     */
-   const Connector&
+   Connector&
    operator = (
       const Connector& rhs);
 
@@ -871,8 +909,8 @@ public:
    /*!
     * @brief Set the parallel distribution state.
     *
-    * Before a Connector can be in a GLOBALIZED state, The base
-    * BoxLevel given in initialize() must already be in
+    * Before a Connector can be in a GLOBALIZED state, the base
+    * BoxLevel given in setBase() must already be in
     * GLOBALIZED mode.  The base BoxLevel should remain in
     * GLOBALIZED mode for compatibility with the Connector.
     *
@@ -884,6 +922,8 @@ public:
     * cost for switching parallel states.
     *
     * @param[in] parallel_state
+    *
+    * @pre isFinalized()
     */
    void
    setParallelState(
@@ -901,12 +941,14 @@ public:
    /*!
     * @brief Returns the MPI communication object, which is always
     * that of the base BoxLevel.
+    *
+    * @pre isFinalized()
     */
    const tbox::SAMRAI_MPI&
    getMPI() const
    {
       TBOX_ASSERT(isFinalized());
-      return d_base_handle->getBoxLevel().getMPI();
+      return getBase().getMPI();
    }
 
    /*!
@@ -916,6 +958,8 @@ public:
     *
     * @param new_width
     * @param finalize_context
+    *
+    * @pre new_width >= IntVector::getZero(new_width.getDim())
     */
    void
    setWidth(
@@ -926,10 +970,12 @@ public:
     * @brief Return the Connector width associated with the relationships.
     *
     * For overlap Connectors, an relationship exists between a base and head
-    * Boxes if the base mapped_box, grown by this width,
-    * overlaps the head mapped_box.  For mapping Connectors, the width
+    * Boxes if the base box, grown by this width,
+    * overlaps the head box.  For mapping Connectors, the width
     * the amount that a pre-map box must grow to nest the post-map
-    * boxes.
+    * boxes
+    *
+    * @pre isFinalized().
     */
    const IntVector&
    getConnectorWidth() const
@@ -943,6 +989,9 @@ public:
     * relationships as needed.
     *
     * @param[in] new_width
+    *
+    * @pre new_width <= getConnectorWidth()
+    * @pre getParallelState() == BoxLevel::DISTRIBUTED
     */
    void
    shrinkWidth(
@@ -964,7 +1013,7 @@ public:
    recursivePrint(
       std::ostream& os,
       const std::string& border,
-      int detail_depth = 0) const;
+      int detail_depth = 2) const;
 
    /*!
     * @brief Return true if two Connector objects are
@@ -1001,25 +1050,28 @@ public:
     *
     * @param[in] base_refinement_ratio
     * @param[in] head_refinement_ratio
-    * @param[in] head_gcw The connector width in the head index space.
+    * @param[in] head_width The connector width in the head index space.
     *
     * @return A copy of the connector width converted to the base index
     * space.
+    *
+    * @pre (base_refinement_ratio >= head_refinement_ratio) ||
+    *      (base_refinement_ratio <= head_refinement_ratio)
     */
    static IntVector
    convertHeadWidthToBase(
       const IntVector& base_refinement_ratio,
       const IntVector& head_refinement_ratio,
-      const IntVector& head_gcw);
+      const IntVector& head_width);
 
    // TODO: refactor use of size_t as return type.  This could be
    // problematic.
    /*!
     * @brief Check for consistency between the relationship data and base
-    * mapped boxes, and return the number of consistency errors.
+    * boxes, and return the number of consistency errors.
     *
     * Consistency stipulates that each neighbor list must correspond to
-    * a base mapped box.
+    * a base box.
     *
     * relationship consistency errors should be treated as fatal because many
     * operations assume consistency.
@@ -1045,6 +1097,8 @@ public:
     * globalized for checking, triggering communication.
     *
     * @return number of inconsistencies found.
+    *
+    * @pre getHead().getGlobalizedVersion().getParallelState() == BoxLevel::GLOBALIZED
     */
 
    size_t
@@ -1071,9 +1125,76 @@ public:
     */
    static void
    computeNeighborhoodDifferences(
-      Connector& left_minus_right,
+      boost::shared_ptr<Connector>& left_minus_right,
       const Connector& left_connector,
       const Connector& right_connector);
+
+   /*!
+    * @brief Returns true if the transpose of this Connector exists.
+    */
+   bool
+   hasTranspose() const
+   {
+      return d_transpose;
+   }
+
+   /*!
+    * @brief Returns the transpose of this Connector if it exists.
+    *
+    * @pre hasTranspose()
+    */
+   Connector&
+   getTranspose() const
+   {
+      TBOX_ASSERT(hasTranspose());
+      return *d_transpose;
+   }
+
+   /*!
+    * @brief Sets this Connector's transpose and, if the transpose exists,
+    * sets its transpose to this Connector.  If owns_transpose is true then
+    * this object will delete the transpose during its deletion.
+    *
+    * @note If owns_transpose is false, then client code is responsible for
+    * the deletion of the transpose.  Similarly, if owns_transpose is true
+    * client code must never explicitly delete the transpose.
+    *
+    * @param[in] transpose
+    * @param[in] owns_transpose
+    */
+   void
+   setTranspose(
+      Connector* transpose,
+      bool owns_transpose)
+   {
+      if (d_transpose && d_owns_transpose &&
+          (d_transpose != transpose) && (d_transpose != this)) {
+         delete d_transpose;
+      }
+      d_transpose = transpose;
+      d_owns_transpose = owns_transpose;
+      if (d_transpose && d_transpose != this) {
+         d_transpose->d_transpose = this;
+         d_transpose->d_owns_transpose = false;
+
+         if (d_ratio != IntVector::getOne(d_ratio.getDim())) {
+            if ((d_ratio * d_base_width) != d_transpose->d_base_width &&
+                d_base_width != (d_ratio * d_transpose->d_base_width)) {
+
+               TBOX_ERROR("Connector::setTranspose: Base width for \n"
+                  "this Connector and its transpose are inconsistent.\n");
+
+            }
+         } else {
+            if (d_base_width != d_transpose->d_base_width) {
+
+               TBOX_ERROR("Connector::setTranspose: Base width for \n"
+                  "this Connector and its transpose are inconsistent.\n");
+
+            }
+         }
+      }
+   }
 
    /*!
     * @brief Check that the relationships are a correct transpose of another
@@ -1094,7 +1215,7 @@ public:
    size_t
    checkTransposeCorrectness(
       const Connector& transpose,
-      const bool ignore_periodic_relationships = false) const;
+      bool ignore_periodic_relationships = false) const;
 
    /*!
     * @brief Run checkTransposeCorrectness.  If any errors are found,
@@ -1109,28 +1230,86 @@ public:
       const Connector& transpose,
       const bool ignore_periodic_relationships = false) const;
 
-   //@}
+   /*!
+    * Check that overlap data is correct (represents overlaps).
+    *
+    * Checking is done as follows:
+    *   - Find overlap errors using @c findOverlapErrors().
+    *   - Report overlap errors to @c tbox::perr.
+    *   - Return number of local errors.
+    *
+    * @note
+    * This is an expensive operation (it uses @b findOverlapErrors())
+    * and should only be used for debugging.
+    *
+    * @see findOverlaps()
+    *
+    * @param[in] ignore_self_overlap Ignore a box's overlap with itself
+    * @param[in] assert_completeness If false, ignore missing overlaps. This
+    *   will still look for overlaps that should not be there.
+    * @param[in] ignore_periodic_images If true, do not require neighbors
+    *   that are periodic images.
+    *
+    * @return Number of overlap errors found locally.
+    *
+    * @pre (getBase().isInitialized()) && (getHead().isInitialized())
+    * @pre !hasPeriodicLocalNeighborhoodBaseBoxes()
+    */
+   int
+   checkOverlapCorrectness(
+      bool ignore_self_overlap = false,
+      bool assert_completeness = true,
+      bool ignore_periodic_images = false) const;
 
    /*!
-    * @brief Set the Connector type.
+    * @brief Assert overlap correctness.
     *
-    * @param[in] connector_type
+    * @par Assertions
+    * if an error is found, the method will write out diagnostic information
+    * and throw an an error on all processes.
+    *
+    * This is an expensive check.
+    *
+    * @see checkOverlapCorrectness().
+    *
+    * @param[in] ignore_self_overlap
+    * @param[in] assert_completeness
+    * @param[in] ignore_periodic_images
+    *
+    * @pre (getBase().isInitialized()) && (getHead().isInitialized())
     */
    void
-   setConnectorType(
-      ConnectorType connector_type)
-   {
-      d_connector_type = connector_type;
-   }
+   assertOverlapCorrectness(
+      bool ignore_self_overlap = false,
+      bool assert_completeness = true,
+      bool ignore_periodic_images = false) const;
 
    /*!
-    * @brief Return the Connector type.
+    * @brief Find errors in overlap data of an overlap Connector.
+    *
+    * An error is either a missing overlap or an extra overlap.
+    *
+    * This is an expensive operation and should only be used for
+    * debugging.
+    *
+    * @par Assertions
+    * This version throws an assertion only if it finds inconsistent
+    * Connector data.  Missing and extra overlaps are returned but do
+    * not cause an assertion.
+    *
+    * @param[out] missing
+    * @param[out] extra
+    * @param[in] ignore_self_overlap
+    *
+    * @pre (getBase().isInitialized()) && (getHead().isInitialized())
     */
-   ConnectorType
-   getConnectorType() const
-   {
-      return d_connector_type;
-   }
+   void
+   findOverlapErrors(
+      boost::shared_ptr<Connector>& missing,
+      boost::shared_ptr<Connector>& extra,
+      bool ignore_self_overlap = false) const;
+
+   //@}
 
    /*!
     * @brief Return local number of neighbor sets.
@@ -1157,6 +1336,8 @@ public:
     * been computed and cached.  When communication is required, all
     * processors must call this method.  To ensure that no
     * communication is needed, call cacheGlobalReducedData() first.
+    *
+    * @pre isFinalized()
     */
    int
    getGlobalNumberOfNeighborSets() const
@@ -1173,6 +1354,8 @@ public:
     * been computed and cached.  When communication is required, all
     * processors must call this method.  To ensure that no
     * communication is needed, call cacheGlobalReducedData() first.
+    *
+    * @pre isFinalized()
     */
    int
    getGlobalNumberOfRelationships() const
@@ -1192,34 +1375,22 @@ public:
     * changes.
     *
     * Sets d_global_data_up_to_date;
+    *
+    * @pre isFinalized()
     */
    void
    cacheGlobalReducedData() const;
 
    /*!
-    * @brief Write the neighborhoods to a database.
+    * @brief Write the neighborhoods to a restart database.
     *
-    * @param[in] database
+    * @param[in] restart_db
     */
    void
-   putNeighborhoodsToDatabase(
-      const boost::shared_ptr<tbox::Database>& database)
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db)
    {
-      d_relationships.putUnregisteredToDatabase(database);
-      return;
-   }
-
-   /*!
-    * @brief Read the neighborhoods from a database.
-    *
-    * @param[in] database
-    */
-   void
-   getNeighborhoodsFromDatabase(
-      tbox::Database& database)
-   {
-      d_relationships.getFromDatabase(database);
-      return;
+      d_relationships.putToRestart(restart_db);
    }
 
    /*!
@@ -1251,12 +1422,14 @@ public:
       const std::string& border) const;
 
    /*!
-    * @brief Writes the requested neighborhood to tbox::perr.
+    * @brief Writes the requested neighborhood to an output stream.
     *
+    * @param[in] os
     * @param[in] box_id
     */
    void
-   writeNeighborhoodToErrorStream(
+   writeNeighborhoodToStream(
+      std::ostream& os,
       const BoxId& box_id) const;
 
    /*!
@@ -1287,9 +1460,9 @@ private:
       Outputter(
          const Connector& connector,
          const std::string& border,
-         int detail_depth = 0,
+         int detail_depth = 2,
          bool output_statistics = false);
-      void
+      Outputter&
       operator = (
          const Outputter& r);               // Unimplemented private.
       const Connector& d_conn;
@@ -1304,8 +1477,7 @@ private:
     *
     * Usage example:
     * @code
-    *    cout << "my connector:\n"
-    *         << connector.format("  ", 2) << endl;
+    *    tbox::plog << "my connector:\n" << connector.format() << endl;
     * @endcode
     *
     * @param[in] border
@@ -1314,7 +1486,7 @@ private:
    Outputter
    format(
       const std::string& border = std::string(),
-      int detail_depth = 0) const
+      int detail_depth = 2) const
    {
       return Outputter(*this, border, detail_depth);
    }
@@ -1338,31 +1510,67 @@ private:
       return Outputter(*this, border, 0, true);
    }
 
+protected:
+   /*!
+    * @brief Method to do the work of createLocalTranspose.
+    *
+    * @param transpose
+    *
+    * @pre transpose
+    */
+   void
+   doLocalTransposeWork(
+      Connector* transpose) const;
+
+   /*!
+    * @brief Method to do the work of createTranspose.
+    *
+    * @param transpose
+    *
+    * @pre transpose
+    */
+   void
+   doTransposeWork(
+      Connector* transpose) const;
+
 private:
+   // To access findOverlaps_rbbt().
+   friend class OverlapConnectorAlgorithm;
+
    /*
     * Static integer constant descibing class's version number.
     */
    static const int HIER_CONNECTOR_VERSION;
 
-   enum { BAD_INT = (1 << (8 * sizeof(int) - 2)) };
+   //! @brief Data structure for MPI reductions.
+   struct IntIntStruct { int i;
+                         int rank;
+   };
+
+   /*
+    * Uninitialized default constructor.
+    */
+   Connector();
 
    /*!
     * @brief Return the globalized relationship data.
     *
-    * @par Assertions
-    * Throws an unrecoverable assertion if not in GLOBALIZED mode.
+    * @pre getParallelState() == BoxLevel::GLOBALIZED
     */
    const BoxNeighborhoodCollection&
    getGlobalNeighborhoodSets() const
    {
       if (d_parallel_state == BoxLevel::DISTRIBUTED) {
-         TBOX_ERROR("Global connectivity unavailable in DISTRIBUTED state.");
+         TBOX_ERROR("Global connectivity unavailable in DISTRIBUTED state." << std::endl);
       }
       return d_global_relationships;
    }
 
    /*!
     * @brief Return the relationships appropriate to the parallel state.
+    *
+    * @pre (getParallelState() == BoxLevel::GLOBALIZED) ||
+    *      (box_id.getOwnerRank() == getMPI().getRank())
     */
    const BoxNeighborhoodCollection&
    getRelations(
@@ -1385,6 +1593,8 @@ private:
     * change its state to GLOBALIZED.
     *
     * The returned object should be deleted to prevent memory leaks.
+    *
+    * @pre other.getParallelState() != BoxLevel::GLOBALIZED
     */
    Connector *
    makeGlobalizedCopy(
@@ -1424,6 +1634,8 @@ private:
          getTimer("hier::Connector::acquireRemoteNeighborhoods()");
       t_cache_global_reduced_data = tbox::TimerManager::getManager()->
          getTimer("hier::Connector::cacheGlobalReducedData()");
+      t_find_overlaps_rbbt = tbox::TimerManager::getManager()->
+         getTimer("hier::Connector::findOverlaps_rbbt()");
    }
 
    /*!
@@ -1436,11 +1648,49 @@ private:
    {
       t_acquire_remote_relationships.reset();
       t_cache_global_reduced_data.reset();
+      t_find_overlaps_rbbt.reset();
    }
 
-   //@{ @name Private utilities.
+   /*!
+    * @brief Read the neighborhoods from a restart database.
+    *
+    * @param[in] restart_db
+    */
+   void
+   getFromRestart(
+      tbox::Database& restart_db)
+   {
+      d_relationships.getFromRestart(restart_db);
+   }
 
-   //@}
+   /*!
+    * @brief Discover and add overlaps from base and externally
+    * provided head box_level.
+    *
+    * Relationships found are added to appropriate neighbor lists.  No overlap
+    * is removed.  If existing overlaps are invalid, remove them first.
+    *
+    * The provided head should be a globalized version of
+    * d_head_handle->getBoxLevel().  It should have the same
+    * refinement ratio as d_head_handle->getBoxLevel().
+    *
+    * The ignore_self_overlap directs the method to not list
+    * a box as its own neighbor.  This should be true only
+    * when the head and tail objects represent the same box_level
+    * (regardless of whether they are the same objects), and
+    * you want to disregard self-overlaps.
+    * Two boxes are considered the same if
+    * - The boxes are equal by comparison (they have the same
+    *   owner and the same indices), and
+    * - They are from box_levels with the same refinement ratio.
+    *
+    * @pre head.getParallelState() == BoxLevel::GLOBALIZED
+    */
+   void
+   findOverlaps_rbbt(
+      const BoxLevel& head,
+      bool ignore_self_overlap = false,
+      bool sanity_check_method_postconditions = false);
 
    /*!
     * @brief Handle for access to the base BoxLevel.
@@ -1461,9 +1711,8 @@ private:
    /*!
     * @brief Connector width for the base BoxLevel.
     *
-    * This is the amount of growth applied to a mapped_box in the base BoxLevel
-    * before checking if the mapped_box overlaps a mapped_box in the head
-    * BoxLevel.
+    * This is the amount of growth applied to a box in the base BoxLevel
+    * before checking if the box overlaps a box in the head BoxLevel.
     */
    IntVector d_base_width;
 
@@ -1547,10 +1796,13 @@ private:
     */
    mutable bool d_global_data_up_to_date;
 
-   ConnectorType d_connector_type;
+   Connector* d_transpose;
+
+   bool d_owns_transpose;
 
    static boost::shared_ptr<tbox::Timer> t_acquire_remote_relationships;
    static boost::shared_ptr<tbox::Timer> t_cache_global_reduced_data;
+   static boost::shared_ptr<tbox::Timer> t_find_overlaps_rbbt;
 
    static tbox::StartupShutdownManager::Handler
       s_initialize_finalize_handler;

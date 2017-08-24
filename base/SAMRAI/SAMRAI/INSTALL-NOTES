@@ -1,5 +1,5 @@
 ****************************************************************************
-*  Copyright 1997-2012                                                     *
+*  Copyright 1997-2016                                                     *
 *  Lawrence Livermore National Security, LLC.                            *
 *  All rights reserved.                                                    *
 ****************************************************************************
@@ -50,7 +50,7 @@ subdirectories contain library archives and configuration files
 for a particular architecture, compiler, and set of optimization
 flags.  For example,
 
-	SAMRAI-v2.1.0/
+	SAMRAI-v3.3.3/
 		SAMRAI/
 		solaris-g++-debug/
 			config/ lib/
@@ -71,9 +71,10 @@ SAMRAI version numbers are of the form X.Y.Z, where X is the major release
 number, Y is the minor release number, and Z is the bug fix patch number.
 To unpack the distribution as described above, do:
 
-	(a) mkdir SAMRAI-vX.Y.Z (substitue appropriate version numbers)
+        (a) gunzip SAMRAI-vX.Y.Z.tar.gz
+	(b) mkdir SAMRAI-vX.Y.Z (substitue appropriate version numbers)
 	(b) cd SAMRAI-vX.Y.Z
-	(c) zcat ../SAMRAI-vX.Y.Z.tar | tar xfov -
+        (e) tar xvf ../SAMRAI-vX.Y.Z.tar
 
 You may need to use the GNU tar (often named gtar) due to name length
 problems with some of the native tar implementations.
@@ -122,6 +123,8 @@ CASC and LC systems.
 	(a) sh ../SAMRAI/config.suggest         -- lists architectures on which
 						   we have configured.
 	(b) sh ../SAMRAI/config.suggest [arch]  -- prints configure options
+
+        (c) ../config.suggest [arch] | xargs ../configure -- use options
 
 See the section "Configure Options" below for more details on supported 
 configuration options.  
@@ -237,6 +240,7 @@ possible configure options--use "configure --help" for that.
 
 	sh ../SAMRAI/config.suggest         -- lists architectures supported
 	sh ../SAMRAI/config.suggest [arch]  -- prints configure options
+        ../config.suggest [arch] | xargs ../configure -- use options
 
 The default settings used by config.suggest refer to locations on the
 LLNL systems where we have found them.  However, please note that these
@@ -278,7 +282,7 @@ To change default settings, use the flags described above. For example:
 
 	sh ../SAMRAI/configure --with-CXX=/usr/bin/CC --without-MPI
 
-	sh ../SAMRAI/configure --disable-debug --enable-opt --with-vampir
+	sh ../SAMRAI/configure --disable-debug --enable-opt
 
 	sh ../SAMRAI/configure --with-petsc=/usr/casc/petsc
 
@@ -311,38 +315,36 @@ arguments.
 
 Tool 		Version(s)
 --------------  --------------------------------------  
-gcc		3.4.6, 4.1.2, 4.5.0
+gcc		4.5.0, 4.6.0
 
-ilx		6.0.0.3
+icc		12.0.191, 12.1.293
 
-icc		9.1.045, 9.1.049, 11.1.059
-
-xlc	        v7.0, v9.0	
+xlc	        v9
 
 pathscale	Does not currently work.  Core dumps and produces incorrect results.
 
 PGI             Does not currently work.
 
-Boost		1.45.0
+Boost		1.45.0, 1.46.1
 
-HDF5		1.6.5, 1.8.5
+HDF5		1.8.4, 1.8.5
 
-MPICH2          1.0.7    (MPICH1 is no longer supported and 
+MPICH2          1.3.2    (MPICH1 is no longer supported and 
 	                  has bugs which will hang SAMRAI)
 
-OpenMPI	        1.2.8
+OpenMPI	        1.5
 
-PETSc 	        2.3.3    (this version is required if PETSc is used)
+PETSc 	        3.2    (this version is required if PETSc is used)
 
 Sundials        2.3.0
 
-hypre           2.2.0b, 2.6.0b
+hypre           2.6.0b
 
-Visit		1.8.0
+VisIt		1.8.0
 
-doxygen	        1.5.7
+doxygen	        1.6.1
 
-graphviz	2.6
+graphviz	2.26
 
 
 Visualization Tools:
@@ -352,8 +354,8 @@ SAMRAI uses the VisIt visualization system.  This replaces the
 vizamrai utility in previous releases.  VisIt binaries, source, and
 documentation are available at http://www.llnl.gov/visit.  You must
 compile with HDF in order to create VisIt output files.  See the
-SAMRAI/examples/Euler application for example of how to use the
-VisItDataWriter.
+SAMRAI/test/applications/Euler program for an example of how to use
+the VisItDataWriter.
 
 Location users can find VisIt in /usr/apps/visit on CASC systems and
 /usr/gapps/ on LC systems.
@@ -361,31 +363,18 @@ Location users can find VisIt in /usr/apps/visit on CASC systems and
 Performance Analysis Tools:
 ---------------------------
 
-SAMRAI maintains links to the Tau and Vampir performance analysis tools.  
-Tau (Tuning and Analysis Utilities) is a freely available tool out of 
-the University of Oregon (http://www.cs.uoregon.edu/research/paracomp/tau)
-that is available on all CASC and LC platforms.  Vampir is a proprietary 
-tool available only on LC platforms (e.g. blue/frost, tc2k, gps).
+SAMRAI maintains links to the Tau performance analysis tool.  Tau
+(Tuning and Analysis Utilities) is a freely available tool out of the
+University of Oregon (http://www.cs.uoregon.edu/research/paracomp/tau)
+that is available on all CASC and LC platforms.
 
-By default, SAMRAI is NOT configured with either tool.  To use the tools,
-you must use the --with-tau and/or --with-vampir configure options, discussed
-above.  
+To use Tau, you must use the --with-tau configure option.
 
-Links to Tau and Vampir are maintained through the SAMRAI timers.  Hence, you
-must manually instrument your code with SAMRAI timers to use either tool. Tau
-provides a profile view of times on each processor so it is useful to identify
-load imbalances and distribution of computational workload.  Vampir provides
-the additional capability of building a trace of the applications method calls 
-and MPI communication pattern.  Although Vampir provides more information, it
-is more heavyweight than Tau because building the trace file can incur 
-significant computational overhead and the trace files often become quite 
-large.  Unlike Tau, Vampir is not available on all platforms.  We generally 
-recommend starting with Tau to glean baseline performance information and 
-use Vampir, if available, for more detailed analysis.
+Links to Tau are maintained through the SAMRAI timers.  Hence, you
+must manually instrument your code with SAMRAI timers to use it. Tau
+provides a profile view of times on each processor so it is useful to
+identify load imbalances and distribution of computational workload.
 
-Vampir may be invoked using the ``--with-vampir'' configure option. Vampir
-is only available on the ASCI IBM systems (blue, frost) and on LC Compaq
-machines (gps, tc2k).  It is not available on any of the CASC machines.
 Tau is available on a variety of machines and is invoked using the 
 ``--with-tau=<tau-makefile>'' where the location of the Tau makefile 
 maintained on LLNL systems is as follows: 
@@ -394,18 +383,12 @@ maintained on LLNL systems is as follows:
       (for standard timers only - no hardware counters or mem checking)
          --with-tau=/usr/casc/samrai/tau/tau-2.13.5/i386_linux/lib/Makefile.tau-linuxtimers-mpi
 
-   IBM frost (blue won't work):
-      (for standard timers and mem tracking)
-         --with-tau=/usr/casc/samrai/tau/tau-2.12/rs6000/lib/Makefile.tau-mpi-kcc
-      (for hardware counters)
-         --with-tau=/usr/casc/samrai/tau/tau-2.12/rs6000/lib/Makefile.tau-multiplecounters-mpi-papi-kcc
-
 To view the profile files that Tau generates upon running the code, use
 the "jracy" tool located in <tau-dir>/bin/jracy, where <tau-dir> corresponds
 to the above tau directory locations (i.e. everything before /lib).
 
-See the document SAMRAI/docs/userdocs/TimerInstrumentation.pdf for more 
-information about use of Tau and Vampir.
+See the document SAMRAI/docs/userdocs/TimerInstrumentation.pdf for
+more information about the use of Tau.
 
 Documentation
 --------------------
@@ -503,7 +486,5 @@ the default XCode compilers must be overridden):
 *  Looking for list of configure options?  We have encapsulated this in    *
 *  the new ``config.suggest'' tool.                                        *
 *                                                                          *
-*  SEE DISCUSSION UNDER "CONFIGURE OPTIONS" AT LINE 216 ABOVE.             *
+*  SEE DISCUSSION UNDER "CONFIGURE OPTIONS" AT LINE 208 ABOVE.             *
 ****************************************************************************
-****************************************************************************
-

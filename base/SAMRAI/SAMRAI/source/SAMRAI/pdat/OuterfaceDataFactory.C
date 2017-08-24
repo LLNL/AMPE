@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for creating outerface data objects
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/FaceDataFactory.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -61,11 +61,11 @@ boost::shared_ptr<hier::PatchDataFactory>
 OuterfaceDataFactory<TYPE>::cloneFactory(
    const hier::IntVector& ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, ghosts);
 
    return boost::make_shared<OuterfaceDataFactory<TYPE> >(
-      ghosts.getDim(),
-      d_depth);
+             ghosts.getDim(),
+             d_depth);
 }
 
 /*
@@ -81,7 +81,7 @@ boost::shared_ptr<hier::PatchData>
 OuterfaceDataFactory<TYPE>::allocate(
    const hier::Patch& patch) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, patch);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, patch);
 
    return boost::make_shared<OuterfaceData<TYPE> >(patch.getBox(), d_depth);
 }
@@ -99,7 +99,7 @@ boost::shared_ptr<hier::BoxGeometry>
 OuterfaceDataFactory<TYPE>::getBoxGeometry(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    const hier::IntVector zero_vector(hier::IntVector::getZero(getDim()));
 
@@ -126,7 +126,7 @@ size_t
 OuterfaceDataFactory<TYPE>::getSizeOfMemory(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    const size_t obj = tbox::MemoryUtilities::align(sizeof(OuterfaceData<TYPE>));
    const size_t data = OuterfaceData<TYPE>::getSizeOfData(box, d_depth);
@@ -138,7 +138,7 @@ OuterfaceDataFactory<TYPE>::getSizeOfMemory(
  *
  * Return a boolean true value indicating that fine data for the outerface
  * quantity will take precedence on coarse-fine interfaces.  See the
- * OuterfaceVariable<DIM> class header file for more information.
+ * OuterfaceVariable<TYPE> class header file for more information.
  *
  *************************************************************************
  */
@@ -178,7 +178,7 @@ bool
 OuterfaceDataFactory<TYPE>::validCopyTo(
    const boost::shared_ptr<hier::PatchDataFactory>& dst_pdf) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *dst_pdf);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *dst_pdf);
 
    bool valid_copy = false;
 
@@ -187,8 +187,8 @@ OuterfaceDataFactory<TYPE>::validCopyTo(
     */
    if (!valid_copy) {
       boost::shared_ptr<FaceDataFactory<TYPE> > fdf(
-         dst_pdf,
-         boost::detail::dynamic_cast_tag());
+         boost::dynamic_pointer_cast<FaceDataFactory<TYPE>,
+                                     hier::PatchDataFactory>(dst_pdf));
       if (fdf) {
          valid_copy = true;
       }
@@ -196,8 +196,9 @@ OuterfaceDataFactory<TYPE>::validCopyTo(
 
    if (!valid_copy) {
       boost::shared_ptr<OuterfaceDataFactory<TYPE> > ofdf(
-         dst_pdf,
-         boost::detail::dynamic_cast_tag());
+         boost::dynamic_pointer_cast<OuterfaceDataFactory<TYPE>,
+                                     hier::PatchDataFactory>(
+            dst_pdf));
       if (ofdf) {
          valid_copy = true;
       }

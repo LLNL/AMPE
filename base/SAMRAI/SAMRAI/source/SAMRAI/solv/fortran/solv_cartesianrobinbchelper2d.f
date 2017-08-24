@@ -1,12 +1,9 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI application utilities
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Release:     
-c  Revision:    
-c  Modified:    
-c  Description: F77 routines for Cartesian 2d Robin boundary conditions
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
 c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for Cartesian 2d Robin boundary conditions.
 c
 c***********************************************************************
 c***********************************************************************

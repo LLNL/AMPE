@@ -171,8 +171,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    assert( d_diffusion_a_id>=0 );
 
    const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -182,25 +181,25 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    const unsigned short nc2=d_ncompositions*d_ncompositions;
 
    boost::shared_ptr< pdat::CellData<double> > conc_l (
-      patch.getPatchData( d_conc_l_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_scratch_id) ) );
    assert( conc_l );
 
    boost::shared_ptr< pdat::CellData<double> > conc_a (
-      patch.getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_scratch_id) ) );
    assert( conc_a );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusionl (
-      patch.getPatchData( d_diffusion_l_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_l_id) ) );
    assert( conc_diffusionl );
    assert( conc_diffusionl->getDepth()==(nc2) );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusiona (
-      patch.getPatchData( d_diffusion_a_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_a_id) ) );
    assert( conc_diffusiona );
    assert( conc_diffusiona->getDepth()==(nc2) );
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
    assert( flux->getDepth()==d_ncompositions );
 
@@ -254,11 +253,11 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    if ( d_with_third_phase ){
       assert( d_conc_b_scratch_id>=0 );
       boost::shared_ptr< pdat::CellData<double> > conc_b (
-         patch.getPatchData( d_conc_b_scratch_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_b_scratch_id) ) );
       assert( conc_b );
       
       boost::shared_ptr< pdat::SideData<double> > conc_diffusionb (
-         patch.getPatchData( d_diffusion_b_id ), boost::detail::dynamic_cast_tag());
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_b_id) ) );
       assert( conc_diffusionb );
 
       assert( conc_diffusionb->getPointer(0)!=NULL );
@@ -316,9 +315,9 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
             *p;
       
          boost::shared_ptr< pdat::SideData<double> > dl (
-            patch->getPatchData( d_diffusion_coeff_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > da (
-            patch->getPatchData( d_diffusion_coeff_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > db;
          
          boost::shared_ptr< pdat::CellData<double> > eta;
@@ -328,10 +327,10 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
          }
 
          boost::shared_ptr< pdat::CellData<double> > phi (
-            patch->getPatchData( d_phase_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
 
          boost::shared_ptr< pdat::SideData<double> > diffusion (
-            patch->getPatchData( d_diffusion_precond_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_precond_id) ) );
 
          setDiffusionCoeffForPreconditionConcentrationOnPatch(
             dl, da, db,
@@ -568,8 +567,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    //tbox::plog<<"EBSCompositionRHSStrategy::addFluxFromGradTonPatch()"<<endl;
    
    const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -577,19 +575,19 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData( phase_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( phase_scratch_id) ) );
    assert( phase );
    boost::shared_ptr< pdat::CellData<double> > cl (
-      patch.getPatchData( d_conc_l_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_scratch_id) ) );
    assert( cl );
    boost::shared_ptr< pdat::CellData<double> > ca (
-      patch.getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_scratch_id) ) );
    assert( ca );
    boost::shared_ptr< pdat::CellData<double> > dphidt (
-      patch.getPatchData( dphidt_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( dphidt_id) ) );
    assert( dphidt );
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
    assert( phase->getGhostCellWidth()[0]==1 );
 
@@ -640,19 +638,19 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForT(
             *p;
 
          boost::shared_ptr< pdat::CellData<double> > temp (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cl (
-            patch->getPatchData( concentration_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_l_id) ) );
          boost::shared_ptr< pdat::CellData<double> > ca (
-            patch->getPatchData( concentration_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_a_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cb;
 
          boost::shared_ptr< pdat::CellData<double> > phi (
-            patch->getPatchData( d_phase_scratch_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
 
          boost::shared_ptr< pdat::SideData<double> > mq (
-            patch->getPatchData( d_Mq_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_Mq_id) ) );
          assert( mq );
 
          boost::shared_ptr< pdat::CellData<double> > eta;
@@ -1002,8 +1000,7 @@ void EBSCompositionRHSStrategy::addFluxFromGradTonPatch(
    //tbox::plog<<"EBSCompositionRHSStrategy::addFluxFromGradTonPatch()"<<endl;
    
    const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -1011,13 +1008,13 @@ void EBSCompositionRHSStrategy::addFluxFromGradTonPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      patch.getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
    assert( temperature );
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
    boost::shared_ptr< pdat::SideData<double> > mq (
-      patch.getPatchData( d_Mq_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_Mq_id) ) );
    assert( mq );
 
    // now compute concentration flux

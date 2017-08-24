@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory class for patch data objects that live on a patch
  *
  ************************************************************************/
-
-#ifndef included_hier_PatchDescriptor_C
-#define included_hier_PatchDescriptor_C
-
 #include "SAMRAI/hier/PatchDescriptor.h"
 
 #include "SAMRAI/tbox/SAMRAIManager.h"
@@ -45,18 +41,19 @@ const int PatchDescriptor::INDEX_UNDEFINED = -1;
  */
 
 PatchDescriptor::PatchDescriptor():
-   d_min_gcw(tbox::Dimension::MAXIMUM_DIMENSION_VALUE)
+   d_min_gcw()
 {
    const int max_num_patch_data_components_allowed =
       tbox::SAMRAIManager::getMaxNumberPatchDataEntries();
    d_max_number_registered_components = 0;
-   d_names.resizeArray(max_num_patch_data_components_allowed);
-   d_factories.resizeArray(max_num_patch_data_components_allowed);
-   for (int i = 0; i < max_num_patch_data_components_allowed; i++) {
+   d_names.resize(max_num_patch_data_components_allowed);
+   d_factories.resize(max_num_patch_data_components_allowed);
+   for (int i = 0; i < max_num_patch_data_components_allowed; ++i) {
       d_free_indices.push_back(i);
    }
-   for (unsigned short d = 0; d < d_min_gcw.size(); ++d) {
-      d_min_gcw[d] = IntVector::getZero(tbox::Dimension(static_cast<unsigned short>(d + 1)));
+   for (unsigned short d = 0; d < SAMRAI::MAX_DIM_VAL; ++d) {
+      d_min_gcw.push_back(
+         IntVector::getZero(tbox::Dimension(static_cast<unsigned short>(d + 1))));
    }
 }
 
@@ -82,23 +79,27 @@ PatchDescriptor::definePatchDataComponent(
    TBOX_ASSERT(!name.empty());
    TBOX_ASSERT(factory);
 
-   int ret_index = INDEX_UNDEFINED;
    if (d_free_indices.empty()) {
-      TBOX_ERROR(
-         "PatchDescriptor::definePatchDataComponent error...\n"
-         << "No available patch data component indices left.\n"
-         << "Application must be restarted and size must be increased.\n"
-         << "See tbox::SAMRAIManager utility for more information."
-         << std::endl);
-   } else {
-      ret_index = d_free_indices.front();
-      d_free_indices.pop_front();
-      if (d_max_number_registered_components < ret_index + 1) {
-         d_max_number_registered_components = ret_index + 1;
+      int old_size = static_cast<int>(d_names.size());
+      int new_size = old_size +
+         tbox::SAMRAIManager::getMaxNumberPatchDataEntries();
+      TBOX_ASSERT(new_size > old_size);
+      d_names.resize(new_size);
+      d_factories.resize(new_size);
+      for (int i = old_size; i < new_size; ++i) {
+         d_free_indices.push_back(i);
       }
-      d_factories[ret_index] = factory;
-      d_names[ret_index] = name;
+      tbox::SAMRAIManager::setMaxNumberPatchDataEntries(new_size);
+   } 
+
+   int ret_index = d_free_indices.front();
+   d_free_indices.pop_front();
+   if (d_max_number_registered_components < ret_index + 1) {
+      d_max_number_registered_components = ret_index + 1;
    }
+   d_factories[ret_index] = factory;
+   d_names[ret_index] = name;
+
    return ret_index;
 }
 
@@ -167,7 +168,7 @@ PatchDescriptor::mapNameToIndex(
       if (name == d_names[id]) {
          ret_index = id;
       }
-      id++;
+      ++id;
    }
    return ret_index;
 }
@@ -192,7 +193,7 @@ PatchDescriptor::printClassData(
           << d_max_number_registered_components << std::endl;
    stream << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
           << std::endl;
-   for (int i = 0; i < d_max_number_registered_components; i++) {
+   for (int i = 0; i < d_max_number_registered_components; ++i) {
       stream << "Patch Data Index=" << i << std::endl;
       if (d_factories[i]) {
          stream << "   Patch Data Factory Name = "
@@ -219,12 +220,25 @@ PatchDescriptor::getMaxGhostWidth(
    const tbox::Dimension& dim) const
 {
    IntVector max_gcw(d_min_gcw[dim.getValue() - 1]);
-   for (int i = 0; i < d_max_number_registered_components; i++) {
+   for (int i = 0; i < d_max_number_registered_components; ++i) {
       if (d_factories[i] && (d_factories[i]->getDim() == dim)) {
          max_gcw.max(d_factories[i]->getGhostCellWidth());
       }
    }
    return max_gcw;
+}
+
+/*
+ *************************************************************************
+ * Return the dimension of the data for the given data_id.
+ *************************************************************************
+ */
+
+tbox::Dimension
+PatchDescriptor::getPatchDataDim(
+   int patch_id) const
+{
+   return d_factories[patch_id]->getDim();
 }
 
 }
@@ -236,6 +250,4 @@ PatchDescriptor::getMaxGhostWidth(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

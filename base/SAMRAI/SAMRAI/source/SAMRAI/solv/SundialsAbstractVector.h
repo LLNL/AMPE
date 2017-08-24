@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to C++ vector kernel operations for Sundials package.
  *
  ************************************************************************/
@@ -29,7 +29,7 @@ namespace SAMRAI {
 namespace solv {
 
 /**
- * Class solv::SundialsAbstractVector is an abstract base class that declares
+ * Class SundialsAbstractVector is an abstract base class that declares
  * operations provided by any <TT>C++</TT> class that may be used as the
  * vector kernel by the Sundials nonlinear solver package.  Sundials allows
  * arbitrarily defined vectors to be used within it as long as the proper
@@ -66,14 +66,14 @@ namespace solv {
  *
  *
  *
- * @see solv::SundialsSolver
+ * @see SundialsSolver
  */
 
 class SundialsAbstractVector
 {
 public:
    /**
-    * Uninteresting constructor and destructor for solv::SundialsAbstractVector.
+    * Uninteresting constructor and destructor for SundialsAbstractVector.
     */
    SundialsAbstractVector();
    virtual ~SundialsAbstractVector();

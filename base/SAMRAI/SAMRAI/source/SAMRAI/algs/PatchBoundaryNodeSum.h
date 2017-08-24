@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Routines for summing node data at patch boundaries
  *
  ************************************************************************/
@@ -24,7 +24,7 @@
 #include "SAMRAI/xfer/RefineTransactionFactory.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -120,8 +120,9 @@ public:
     *  state.
     *
     *  @param object_name const std::string reference for name of object used
-    *  in error reporting.  When assertion checking is on, the string
-    *  cannot be empty.
+    *  in error reporting.
+    *
+    *  @pre !object_name.empty()
     */
    explicit PatchBoundaryNodeSum(
       const std::string& object_name);
@@ -136,8 +137,9 @@ public:
     *
     *  @param node_data_id  integer patch data index for node data to sum
     *
-    *  The node data id must be a valid patch data id (>=0) and must
-    *  correspond to node-centered double data.  If not, an error will result.
+    *  @pre !d_setup_called
+    *  @pre node_data_id >= 0
+    *  @pre hier::VariableDatabase::getDatabase()->getPatchDescriptor()->getPatchDataFactory(node_data_id) is actually a boost::shared_ptr<pdat::NodeDataFactory<double> >
     */
    void
    registerSum(
@@ -152,7 +154,8 @@ public:
     *
     *  @param level         pointer to level on which to perform node sum
     *
-    *  When assertion checking is active, the level pointer cannot be null.
+    *  @pre level
+    *  @pre !d_hierarchy_setup_called
     */
    void
    setupSum(
@@ -169,8 +172,10 @@ public:
     *  @param coarsest_level coarsest level number for node sum
     *  @param finest_level   finest level number for node sum
     *
-    *  When assertion checking is active, the hierarchy pointer cannot be null,
-    *  and the range of levels must be valid.
+    *  @pre hierarchy
+    *  @pre (coarsest_level >= 0) && (finest_level >= coarsest_level) &&
+    *       (finest_level <= hierarchy->getFinestLevelNumber())
+    *  @pre !d_hierarchy_setup_called
     */
    void
    setupSum(
@@ -226,46 +231,89 @@ public:
    }
 
 private:
-   /*
-    * Private member function to perform node sum across single level --
-    * called from computeSum().
+   /*!
+    * @brief Perform node sum across single level.
+    *
+    * Called from computeSum().
+    *
+    * @pre level
     */
    void
    doLevelSum(
       const boost::shared_ptr<hier::PatchLevel>& level) const;
 
-   /*
-    * Private member function to set node node data on a fine level at a
-    * coarse-fine boundary to the sum of the node values and the associated
-    * outernode values on a coarsened version of the fine level.
+   /*!
+    * @ Sum node data on a coarse-fine boundary
+    *
+    * A fine level and a coarse level are given as arguments, with the
+    * coarse level being a coarsened representation of the fine level.
+    * This method modifies node data on the coarse-fine boundary of the
+    * fine level by summing the existing node data values with outernode
+    * data values from the coarse level.
+    *
+    * The data to modify are specified by the node_data_id and onode_data_id
+    * arrays.  Each entry in node_data_id identifies data that will be
+    * summed with data identified by the corresponding entry in onode_data_id.
+    *
+    * If the boolean fill_hanging_nodes is false, only data on the nodes
+    * coincident between the fine and coarse levels will be modified.  If true,
+    * linear interpolation will be used to fill the remaining fine nodes
+    * on the coarse-fine boundary.  See documentation of method computeSum()
+    * for more information on this argument.
+    *
+    * @param fine_level            Level where data will be modified
+    * @param coarsened_fine_level  Coarsened version of fine_level
+    * @param node_data_id   Vector of data ids specifying data to modify
+    * @param onode_data_id  Vector of data ids specifying data to use in sums
+    * @param fill_hanging_nodes    Tells whether to fill fine data on
+    *                              intermediate fine nodes.
+    *
+    * @pre fine_level
+    * @pre coarsened_fine_level
+    * @pre fine_level->getDim() == coarsened_fine_level->getDim()
+    * @pre node_data_id.size() == onode_data_id.size()
+    * @pre for each member, i, of node_data_id fine_level->checkAllocated(i)
+    * @pre for each member, i, of onode_data_id coarsened_fine_level->checkAllocated(i)
     */
    void
    doLocalCoarseFineBoundarySum(
       const boost::shared_ptr<hier::PatchLevel>& fine_level,
       const boost::shared_ptr<hier::PatchLevel>& coarsened_fine_level,
-      const tbox::Array<int>& node_data_id,
-      const tbox::Array<int>& onode_data_id,
+      const std::vector<int>& node_data_id,
+      const std::vector<int>& onode_data_id,
       bool fill_hanging_nodes) const;
 
    /*
-    * Private member function to copy node data to outernode data
-    * on all patches on a level.
+    * @brief Copy node data to outernode data on all patches of level
+    *
+    * Data specified in the node_data_id array will be copied to data
+    * specified by the onode_data_id array on all patches.
+    *
+    * @param level
+    * @param node_data_id   Vector of data ids for NodeData source
+    * @param onode_data_id  Vector of data ids for OuternodeData destination
     */
    void
    copyNodeToOuternodeOnLevel(
       const boost::shared_ptr<hier::PatchLevel>& level,
-      const tbox::Array<int>& node_data_id,
-      const tbox::Array<int>& onode_data_id) const;
+      const std::vector<int>& node_data_id,
+      const std::vector<int>& onode_data_id) const;
 
    /*
-    * Private member function to copy outernode data to node data
-    * on all patches on a level.
+    * @brief Copy outernode data to node data on all patches of level
+    *
+    * Data specified in the onode_data_id array will be copied to data
+    * specified by the node_data_id array on all patches.
+    *
+    * @param level
+    * @param onode_data_id Vector of data ids for OuternodeData source
+    * @param node_data_id  Vector of data ids for NodeData destination
     */
    void
    copyOuternodeToNodeOnLevel(
       const boost::shared_ptr<hier::PatchLevel>& level,
-      const tbox::Array<int>& onode_data_id,
-      const tbox::Array<int>& node_data_id) const;
+      const std::vector<int>& onode_data_id,
+      const std::vector<int>& node_data_id) const;
 
    /*
     * Static members for managing shared temporary data among multiple
@@ -273,8 +321,8 @@ private:
     */
    static int s_instance_counter;
    // These arrays are indexed [data depth][number of variables with depth]
-   static tbox::Array<tbox::Array<int> > s_onode_src_id_array;
-   static tbox::Array<tbox::Array<int> > s_onode_dst_id_array;
+   static std::vector<std::vector<int> > s_onode_src_id_array;
+   static std::vector<std::vector<int> > s_onode_dst_id_array;
 
    enum PATCH_BDRY_NODE_SUM_DATA_ID { ID_UNDEFINED = -1 };
 
@@ -284,23 +332,23 @@ private:
    int d_num_reg_sum;
 
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<int> d_user_node_data_id;
-   tbox::Array<int> d_user_node_depth;
+   std::vector<int> d_user_node_data_id;
+   std::vector<int> d_user_node_depth;
 
    // These arrays are indexed [data depth]
-   tbox::Array<int> d_num_registered_data_by_depth;
+   std::vector<int> d_num_registered_data_by_depth;
 
    /*
     * Node-centered variables and patch data indices used as internal work
     * quantities.
     */
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_tmp_onode_src_variable;
-   tbox::Array<boost::shared_ptr<hier::Variable> > d_tmp_onode_dst_variable;
+   std::vector<boost::shared_ptr<hier::Variable> > d_tmp_onode_src_variable;
+   std::vector<boost::shared_ptr<hier::Variable> > d_tmp_onode_dst_variable;
 
    // These arrays are indexed [variable registration sequence number]
-   tbox::Array<int> d_onode_src_id;
-   tbox::Array<int> d_onode_dst_id;
+   std::vector<int> d_onode_src_id;
+   std::vector<int> d_onode_dst_id;
 
    /*
     * Sets of indices for temporary variables to expedite allocation and
@@ -320,17 +368,18 @@ private:
 
    boost::shared_ptr<xfer::RefineTransactionFactory> d_sum_transaction_factory;
 
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
-      d_single_level_sum_schedule;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> >
-      d_cfbdry_copy_schedule;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> >
-      d_sync_coarsen_schedule;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   d_single_level_sum_schedule;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   d_cfbdry_copy_schedule;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   d_sync_coarsen_schedule;
 
-   tbox::Array<boost::shared_ptr<hier::PatchLevel> > d_cfbdry_tmp_level;
+   // A coarsened version of each fine level.
+   std::vector<boost::shared_ptr<hier::PatchLevel> > d_cfbdry_tmp_level;
 
-   tbox::Array<boost::shared_ptr<hier::CoarseFineBoundary> >
-      d_coarse_fine_boundary;
+   std::vector<boost::shared_ptr<hier::CoarseFineBoundary> >
+   d_coarse_fine_boundary;
 
 };
 

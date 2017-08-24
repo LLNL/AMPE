@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Robin boundary condition problem-dependent interfaces
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -44,25 +44,40 @@ namespace solv {
  * a and g directly (see RobinBcCoefStrategy) for the
  * meanings of a and g.
  *
- * @b Inputs:
- * You can specify the boundary conditions for any location index
- * through the input database.  One line is required for each
- * location index.  The input parameters are "boundary_N", where
- * N is the index of the location.  Each parameter must be
- * a std::string array so that all boundary types can be accomodated
- * the same way.  The first std::string must be one of "value",
- * "slope" or "coefficients".  If the std::string is "value" or "slope"
- * the next std::string is the value you want to set, defaulting to
- * zero if not specified.  If the first std::string is "coefficients",
- * the next two strings specifies the values of a and g.
+ * <b> Input Parameters </b>
  *
- * @b Examples inputs:
- * @verbatim
- * boundary_0 = "value", "0.0"
- * boundary_1 = "value", "1.0"
- * boundary_2 = "slope", "0.0"
- * boundary_4 = "coefficients", "1.0", "0.0"
- * @endverbatim
+ * <b> Definitions:</b>
+ *    - \b    boundary_N
+ *       You can specify the boundary conditions for any location index
+ *       through the input database.  One line is required for each
+ *       location index.  The input parameters are "boundary_N", where
+ *       N is the index of the location.  Each parameter must be
+ *       a std::string array so that all boundary types can be accomodated
+ *       the same way.  The first std::string must be one of "value",
+ *       "slope" or "coefficients".  If the std::string is "value" or "slope"
+ *       the next std::string is the value you want to set.  If the first
+ *       std::string is "coefficients", the next two strings specify the
+ *       values of a and b.
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>boundary_N</td>
+ *     <td>array of strings</td>
+ *     <td>none</td>
+ *     <td>"value", "gval"; "slope", "gval"; "coefficients", "aVal", "bVal"</td>
+ *     <td>req</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ * </table>
+ *
  */
 class LocationIndexRobinBcCoefs:
    public RobinBcCoefStrategy
@@ -70,12 +85,15 @@ class LocationIndexRobinBcCoefs:
 
 public:
    /*!
-    * @brief Constructor using database.
+    * @brief Constructor using input database.
+    *
+    * @pre input_db
     */
    LocationIndexRobinBcCoefs(
       const tbox::Dimension& dim,
       const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& database);
+      const boost::shared_ptr<tbox::Database>& input_db =
+         boost::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -108,6 +126,13 @@ public:
     *        the coefficient data is needed.
     * @param fill_time Solution time corresponding to filling,
     *        for use when coefficients are time-dependent.
+    *
+    * @pre (d_dim == patch.getDim()) && (d_dim == bdry_box.getDim())
+    * @pre (!acoef_data || (d_dim == acoef_data.getDim())
+    * @pre (!bcoef_data || (d_dim == acoef_data.betDim())
+    * @pre (!gcoef_data || (d_dim == acoef_data.getDim())
+    * @pre (bdry_box.getLocationIndex() >= 0) &&
+    *      (bdry_box.getLocationIndex() < 2 * d_dim.getValue())
     */
    void
    setBcCoefs(
@@ -131,6 +156,8 @@ public:
     *
     * @param location_index Set coefficients for this index.
     * @param value Boundary value at @c location_index.
+    *
+    * @pre (location_index >= 0) && (location_index < 2 * d_dim.getValue())
     */
    void
    setBoundaryValue(
@@ -139,7 +166,7 @@ public:
    {
       if (location_index < 0 || location_index >= 2 * d_dim.getValue()) {
          TBOX_ERROR("Location index in " << d_dim.getValue() << "D must be\n"
-                    << "in [0," << 2 * d_dim.getValue() - 1 << "].\n");
+                                         << "in [0," << 2 * d_dim.getValue() - 1 << ").\n");
       }
       d_a_map[location_index] = 1.0;
       d_b_map[location_index] = 0.0;
@@ -151,15 +178,17 @@ public:
     *
     * @param location_index Set coefficients for this index.
     * @param slope Boundary slope at @c location_index.
+    *
+    * @pre (location_index >= 0) && (location_index < 2 * d_dim.getValue())
     */
    void
    setBoundarySlope(
       int location_index,
       double slope)
    {
-      if (location_index >= 2 * d_dim.getValue()) {
+      if (location_index < 0 || location_index >= 2 * d_dim.getValue()) {
          TBOX_ERROR("Location index in " << d_dim.getValue() << "D must be\n"
-                    << "in [0," << 2 * d_dim.getValue() - 1 << "].\n");
+                                         << "in [0," << 2 * d_dim.getValue() - 1 << ").\n");
       }
       d_a_map[location_index] = 0.0;
       d_b_map[location_index] = 1.0;
@@ -181,6 +210,8 @@ public:
     * @param a Value of coefficient a at given location index.
     * @param b Value of coefficient b at given location index.
     * @param g Value of coefficient g at given location index.
+    *
+    * @pre (location_index >= 0) && (location_index < 2 * d_dim.getValue())
     */
    void
    setRawCoefficients(
@@ -189,9 +220,9 @@ public:
       double b,
       double g)
    {
-      if (location_index >= 2 * d_dim.getValue()) {
+      if (location_index < 0 || location_index >= 2 * d_dim.getValue()) {
          TBOX_ERROR("Location index in " << d_dim.getValue() << "D must be\n"
-                    << "in [0," << 2 * d_dim.getValue() - 1 << "].\n");
+                                         << "in [0," << 2 * d_dim.getValue() - 1 << ").\n");
       }
       d_a_map[location_index] = a;
       d_b_map[location_index] = b;
@@ -200,6 +231,13 @@ public:
 
    /*!
     * @brief Access coefficients.
+    *
+    * @param location_index Set coefficients for this index.
+    * @param a Value of coefficient a at given location index.
+    * @param b Value of coefficient b at given location index.
+    * @param g Value of coefficient g at given location index.
+    *
+    * @pre (location_index >= 0) && (location_index < 2 * d_dim.getValue())
     */
    void
    getCoefficients(
@@ -208,6 +246,10 @@ public:
       double& b,
       double& g) const
    {
+      if (location_index < 0 || location_index >= 2 * d_dim.getValue()) {
+         TBOX_ERROR("Location index in " << d_dim.getValue() << "D must be\n"
+                                         << "in [0," << 2 * d_dim.getValue() - 1 << ").\n");
+      }
       a = d_a_map[location_index];
       b = d_b_map[location_index];
       g = d_g_map[location_index];
@@ -227,7 +269,7 @@ public:
    /*!
     * @brief Assignment operator.
     */
-   const LocationIndexRobinBcCoefs&
+   LocationIndexRobinBcCoefs&
    operator = (
       const LocationIndexRobinBcCoefs& r);
 
@@ -238,12 +280,13 @@ private:
     * See the class description for the parameters that can be set
     * from a database.
     *
-    * @param database Input database.  If a NULL pointer is given,
-    * nothing is done.
+    * @param input_db Input database.
+    *
+    * @pre input_db
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& database);
+      const boost::shared_ptr<tbox::Database>& input_db);
 
    /*
     * @brief Object dimension
@@ -258,16 +301,16 @@ private:
    /*
     * @brief Mapping for a coefficient.
     */
-   double d_a_map[2 * tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_a_map[2 * SAMRAI::MAX_DIM_VAL];
 
    /*
     * @brief Mapping for b coefficient.
     */
-   double d_b_map[2 * tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_b_map[2 * SAMRAI::MAX_DIM_VAL];
    /*
     * @brief Mapping for g coefficient.
     */
-   double d_g_map[2 * tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_g_map[2 * SAMRAI::MAX_DIM_VAL];
 
 };
 

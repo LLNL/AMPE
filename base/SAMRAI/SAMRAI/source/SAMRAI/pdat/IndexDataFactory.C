@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   IndexDataFactory implementation
  *
  ************************************************************************/
@@ -18,7 +18,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/MemoryUtilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -56,7 +56,7 @@ boost::shared_ptr<hier::PatchDataFactory>
 IndexDataFactory<TYPE, BOX_GEOMETRY>::cloneFactory(
    const hier::IntVector& ghosts)
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, ghosts);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, ghosts);
 
    return boost::make_shared<IndexDataFactory<TYPE, BOX_GEOMETRY> >(ghosts);
 }
@@ -74,11 +74,11 @@ boost::shared_ptr<hier::PatchData>
 IndexDataFactory<TYPE, BOX_GEOMETRY>::allocate(
    const hier::Patch& patch) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, patch);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, patch);
 
    return boost::make_shared<IndexData<TYPE, BOX_GEOMETRY> >(
-      patch.getBox(),
-      d_ghosts);
+             patch.getBox(),
+             d_ghosts);
 }
 
 /*
@@ -94,7 +94,7 @@ boost::shared_ptr<hier::BoxGeometry>
 IndexDataFactory<TYPE, BOX_GEOMETRY>::getBoxGeometry(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    return boost::make_shared<BOX_GEOMETRY>(box, d_ghosts);
 }
@@ -112,7 +112,7 @@ size_t
 IndexDataFactory<TYPE, BOX_GEOMETRY>::getSizeOfMemory(
    const hier::Box& box) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, box);
 
    NULL_USE(box);
    return tbox::MemoryUtilities::align(sizeof(IndexData<TYPE, BOX_GEOMETRY>));
@@ -132,7 +132,7 @@ bool
 IndexDataFactory<TYPE, BOX_GEOMETRY>::validCopyTo(
    const boost::shared_ptr<hier::PatchDataFactory>& dst_pdf) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *dst_pdf);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*this, *dst_pdf);
 
    bool valid_copy = false;
 
@@ -142,7 +142,8 @@ IndexDataFactory<TYPE, BOX_GEOMETRY>::validCopyTo(
     */
    if (!valid_copy) {
       boost::shared_ptr<IndexDataFactory<TYPE, BOX_GEOMETRY> > idf(
-         dst_pdf, boost::detail::dynamic_cast_tag());
+         boost::dynamic_pointer_cast<IndexDataFactory<TYPE, BOX_GEOMETRY>,
+                                     hier::PatchDataFactory>(dst_pdf));
       if (idf) {
          valid_copy = true;
       }
@@ -156,8 +157,8 @@ IndexDataFactory<TYPE, BOX_GEOMETRY>::validCopyTo(
  *
  * Return a boolean true value indicating that the index data quantities
  * will always be treated as though fine values represent them on
- * coarse-fine interfaces. See the IndexVariable<DIM> class header file for
- * more information.
+ * coarse-fine interfaces. See the IndexVariable<TYPE, BOX_GEOMETRY> class
+ * header file for more information.
  *
  *************************************************************************
  */

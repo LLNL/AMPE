@@ -3,89 +3,38 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   README file for input database tests.
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   Unit test of InputDatabase class.
 ##
 #########################################################################
 
-The inputdb program tests the reading of input files into the input database.
-Several sample input files are available within this directory.  
+This is a unit test of SAMRAI's InputDatabase class.  The files included in
+this directory are as follows:
 
-Compilation:
-             make
-
-Execution:
-             ./inputdb <list of input files separated by spaces>
-
-Output:
-             Input Database is dumped to stdout.
+   inputdb.C                  -  unit tester
+   test_inputs/inputdb.input  -  test input file
 
 
-==============================================================================
-General InputManager and InputDatabase Usage
-==============================================================================
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
 
-Required headers:
-   InputDatabase.h
-   InputManager.h
-
-Input File:
-   Supported Features -
-   *support types: 
-       bool: TRUE,FALSE
-       box: [(lower coord),(upper coord)]
-       char: '<character>'
-       complex: ( real , imag )
-       double, float:  standard representation for double/float.  A period
-                       may not start the double/float( use 0.8 instead of .8 ).
-       integer: standard integer representation
-       string: "<string>"
-       vectors, arrays, lists: other types separated by commas
-   *nesting of databases 
-   *simple expression grammar for keyword assignment
-   *inclusion of other input files using the standard C/C++ #include grammar
-   *use of standard C/C++ comments 
-
-   An example input file might look like the following -
-
-#include "another_input_file"
-
-Database_name {
-
-   keyword1 = value1
-   keyword2 = value2
-   sub_database1 {
-      keyword3 = value3
-      keyword4 = value4
-   }
-}
-
-Reading from an input database:
-   1) Create an InputDatabase object (the name for this database is not 
-      important).
-   2) Parse the input file using the parseInputFile() in the InputManager
-      class.  Since the InputManager is a singleton object, a pointer
-      to it can be obtained by using the static function 
-      InputManager::getManager().
-   3) Retrive data from the InputDatabase using the accessor methods
-      provided by the Database.h interface.
-
-   A code snippet demonstrating InputDatabase use might look like -
-
-// Create input database object
-Pointer<InputDatabase> input_db = new InputDatabase("input_db");
-
-// Parse input file
-InputManager::getManager()->parseInputFile("input_file",input_db);
-
-// Access database
-int int_value = input_db->getInteger("integer_key");
-double double_value = input_db->getDouble("double_key");
-Pointer<Database> sub_database = input_db->getDatabase("sub_database_name");
-char char_value  = sub_database->getChar("char_key");
-float float_value = input_db->getFloat("float_key");
+   Execution:
+      serial:
+         ./main test_inputs/inputdb.input
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main inputdb.input
 
 
-   More examples of input database usage can be found in main.C for 
-   the sample applications.  These applications can be found in the
-   SAMRAI/source/applications/ directory.
+OUTPUT
+------
+   Input Database is dumped to inputdb.log.
+
+
+INPUT PARAMETERS
+----------------
+Refer to test_inputs/inputdb.input for a full description of all input
+parameters specific to this problem.

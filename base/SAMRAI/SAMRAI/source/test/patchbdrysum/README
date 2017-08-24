@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   README file for patch boundary sum tests.
 ##
 #########################################################################
@@ -30,4 +30,39 @@ The test works as follows:
      be either 2^NDIM or 0.0 - there should be no cases where the node
      will have an alternative value.
 
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
 
+   Execution:
+      For one of the following input files:
+         test_inputs/1lev_edge.2d.input
+         test_inputs/1lev_edge.3d.input
+         test_inputs/2lev_edge.3d.input
+         test_inputs/2lev_node.3d.input
+         test_inputs/2lev_node_aligned_bdry.2d.input
+         test_inputs/2lev_node_aligned_bdry.3d.input
+         test_inputs/2lev_node_edge.2d.input
+         test_inputs/2lev_node_edge_perx.2d.input
+         test_inputs/2lev_node_edge_perx.3d.input
+         test_inputs/2lev_node_edge_perxy.2d.input
+         test_inputs/2lev_node_edge_perxy.3d.input
+         test_inputs/2lev_node_edge_perxyz.3d.input
+         test_inputs/2lev_node_edge_perxz.3d.input
+         test_inputs/2lev_node_edge_pery.2d.input
+         test_inputs/2lev_node_edge_pery.3d.input
+         test_inputs/2lev_node_edge_peryz.3d.input
+         test_inputs/2lev_node_edge_perz.3d.input
+      serial:
+         ./main <input file>
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main <input file>
+
+INPUT
+-----
+
+See test_inputs/2lev_node.3d.input for descriptions of the input options
+specific to this test.

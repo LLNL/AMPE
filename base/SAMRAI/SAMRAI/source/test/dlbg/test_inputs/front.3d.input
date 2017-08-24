@@ -3,26 +3,24 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for DLBG tests.
  *
  ************************************************************************/
 
+// Refer to front.2d.input for full description of all input parameters
+// specific to this problem.
+
 Main {
   dim = 3
   check_dlbg_in_main = FALSE
-  which_br = 'n'
-  base_name = "front3d"
+  base_name = "front.3d"
   log_all = TRUE
   plot_step = 10
-  check_graph = FALSE
-  // restart_write_dirname = "restart"
-  // time_nlbg_random_rmi = TRUE
   log_hierarchy = TRUE
-  num_steps = 100
+  num_steps = 50
   build_cross_edge = TRUE
   build_peer_edge = TRUE
-  globalize_node_sets = FALSE
   node_log_detail = 2
   edge_log_detail = 3
   tag_buffer = 1, 1, 1, 1, 1, 1, 1, 1
@@ -31,36 +29,42 @@ Main {
 
 DLBGTest {
   sine_tagger {
-    allocate_data = TRUE
-    period = 1
-    amplitude = .3
-    init_disp = -0.5, 0.0, 0.0
-    velocity = 0.02, 0.005, 0.01
+    period = 0.5, 2.0, 2.0
+    amplitude = .25
+    init_disp = 0.25, 0.0, 0.0
+    init_time = 0.0
+    velocity = 0.015, 0.010, 0.007
+
+    buffer_distance_0 = 0.0, 0.0, 0.0
+    buffer_distance_1 = 0.0, 0.0, 0.0
+    buffer_distance_2 = 0.0, 0.0, 0.0
+    buffer_distance_3 = 0.0, 0.0, 0.0
   }
 }
 
 
 BergerRigoutsos {
-  log_node_history = FALSE
-  log_cluster_summary = TRUE
-  log_cluster = FALSE
-    // algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
-  algo_advance_mode = "ADVANCE_SOME"
-  // algo_advance_mode = "SYNCHRONOUS"
-  // owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
-  owner_mode = "MOST_OVERLAP"
-  // owner_mode = "SINGLE_OWNER"
-  use_level_boxes = FALSE
-  use_private_communicator = TRUE
-  sequentialize_output_indices = TRUE
+  DEV_log_node_history = FALSE
+  DEV_log_cluster_summary = TRUE
+  DEV_log_cluster = FALSE
+  // DEV_algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
+  DEV_algo_advance_mode = "ADVANCE_SOME"
+  // DEV_algo_advance_mode = "SYNCHRONOUS"
+  // DEV_owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
+  DEV_owner_mode = "MOST_OVERLAP"
+  // DEV_owner_mode = "SINGLE_OWNER"
+  efficiency_tolerance = 0.85
+  combine_efficiency = 0.85
 }
 
 
 CartesianGridGeometry {
+  // domain_boxes = [(0,0,0), (31,63,63)]
+  // domain_boxes = [(0,0,0), (15,31,31)]
   domain_boxes = [(0,0,0), (7,15,15)]
-  // domain_boxes = [(0,0,0), (9,3,3)]
+  // domain_boxes = [(0,0,0), (3,7,7)]
   x_lo         = 0, 0, 0
-  x_up         = 1, 2, 2
+  x_up         = 0.25, 0.5, 0.5
 }
 
 StandardTagAndInitialize {
@@ -68,18 +72,17 @@ StandardTagAndInitialize {
 }
 
 TreeLoadBalancer {
-  report_load_balance = TRUE
-  barrier_before = FALSE
-  barrier_after = FALSE
-  n_root_cycles = -1
+  DEV_report_load_balance = TRUE
+  DEV_barrier_before = FALSE
+  DEV_barrier_after = FALSE
 
   // Debugging options
-  check_map = FALSE
-  check_connectivity = FALSE
-  print_steps = FALSE
-  print_swap_steps = FALSE
-  print_break_steps = FALSE
-  print_edge_steps = FALSE
+  DEV_check_map = FALSE
+  DEV_check_connectivity = FALSE
+  DEV_print_steps = FALSE
+  DEV_print_swap_steps = FALSE
+  DEV_print_break_steps = FALSE
+  DEV_print_edge_steps = FALSE
 }
 
 PatchHierarchy {
@@ -111,32 +114,17 @@ PatchHierarchy {
 
 GriddingAlgorithm {
    enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
-   // load_balance = FALSE
-   combine_efficiency = 0.88
-   efficiency_tolerance = 0.88
-   // write_regrid_boxes = TRUE
-   // read_regrid_boxes = TRUE
-   // regrid_boxes_filename = "grid"
-   allow_patches_smaller_than_ghostwidth = FALSE
+   DEV_extend_to_domain_boundary = TRUE
+   // DEV_load_balance = FALSE
    check_nonrefined_tags = "WARN"
    check_overlapping_patches = "WARN"
-   extend_tags_to_bdry = TRUE
    sequentialize_patch_indices = TRUE
-   coalesce_boxes = FALSE
 
    check_overflow_nesting = FALSE
    check_proper_nesting = TRUE
-   check_connectors = FALSE
-   print_layer_hierarchy = FALSE
-   print_steps = FALSE
+   DEV_check_connectors = FALSE
+   DEV_print_steps = FALSE
 }
-
-
-GlobalInputs{
-   tag_clustering_method = "BINARY_TREE"
-}
-
 
 TimerManager{
   timer_list = "*::*::*"

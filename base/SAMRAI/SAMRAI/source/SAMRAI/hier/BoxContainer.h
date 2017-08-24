@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A container of boxes with basic domain calculus operations
  *
  ************************************************************************/
@@ -16,13 +16,13 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/MultiblockBoxTree.h"
-#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/hier/PeriodicShiftCatalog.h"
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <iostream>
 #include <list>
 #include <set>
-
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -80,11 +80,10 @@ class RealBoxConstIterator;
  */
 class BoxContainer
 {
-friend class BoxContainerIterator;
-friend class BoxContainerConstIterator;
+   friend class BoxContainerIterator;
+   friend class BoxContainerConstIterator;
 
 public:
-
    class BoxContainerIterator;
 
    /*!
@@ -103,21 +102,12 @@ public:
       friend class BoxContainer;
       friend class BoxContainerIterator;
 
-   public:
-
-      /*!
-       * @brief Constructor for the BoxContainerConstIterator.
-       *
-       * The iterator will point to the beginning or the end of the argument
-       * container, depending on the from_start argument
-       *
-       * @param[in] container The container whose members are iterated.
-       * @param[in] from_start true if iteration starts at beginning of
-       * container.
-       */
-      explicit BoxContainerConstIterator(
-         const BoxContainer& container,
-         bool from_start = true);
+public:
+      typedef std::bidirectional_iterator_tag iterator_category;
+      typedef const Box value_type;
+      typedef ptrdiff_t difference_type;
+      typedef const Box * pointer;
+      typedef const Box& reference;
 
       /*!
        * @brief Copy constructor.
@@ -144,9 +134,12 @@ public:
          const BoxContainerConstIterator& rhs)
       {
          if (this != &rhs) {
-            d_list_iter = rhs.d_list_iter;
-            d_set_iter = rhs.d_set_iter;
             d_ordered = rhs.d_ordered;
+            if (d_ordered) {
+               d_set_iter = rhs.d_set_iter;
+            } else {
+               d_list_iter = rhs.d_list_iter;
+            }
          }
          return *this;
       }
@@ -172,7 +165,7 @@ public:
        *
        * @return Const pointer to the current box.
        */
-      const Box*
+      const Box *
       operator -> () const
       {
          return d_ordered ? *d_set_iter : &(*d_list_iter);
@@ -262,7 +255,7 @@ public:
          const BoxContainerConstIterator& other) const
       {
          return d_ordered ? d_set_iter == other.d_set_iter :
-                            d_list_iter == other.d_list_iter;
+                d_list_iter == other.d_list_iter;
       }
 
       /*!
@@ -277,14 +270,28 @@ public:
          const BoxContainerConstIterator& other) const
       {
          return d_ordered ? d_set_iter != other.d_set_iter :
-                            d_list_iter != other.d_list_iter;
+                d_list_iter != other.d_list_iter;
       }
 
-   private:
-      /*
-       * Default constructor just to be clear that there is none.
+private:
+      /*!
+       * @brief Default constructor is defined but accessible only by friends.
        */
       BoxContainerConstIterator();
+
+      /*!
+       * @brief Constructor for the BoxContainerConstIterator.
+       *
+       * The iterator will point to the beginning or the end of the argument
+       * container, depending on the from_start argument
+       *
+       * @param[in] container The container whose members are iterated.
+       * @param[in] from_start true if iteration starts at beginning of
+       * container.
+       */
+      explicit BoxContainerConstIterator(
+         const BoxContainer& container,
+         bool from_start = true);
 
       /*
        * Underlying iterator to be used when unordered.
@@ -294,7 +301,7 @@ public:
       /*
        * Underlying iterator to be used when ordered.
        */
-      std::set<Box*>::const_iterator d_set_iter;
+      std::set<Box *, Box::id_less>::const_iterator d_set_iter;
 
       bool d_ordered;
    };
@@ -315,21 +322,12 @@ public:
       friend class BoxContainer;
       friend class BoxContainerConstIterator;
 
-   public:
-
-      /*!
-       * @brief Constructor for the BoxContainerIterator.
-       *
-       * The iterator will point to the beginning or the end of the argument
-       * container, depending on the from_start argument
-       *
-       * @param[in] container The container whose members are iterated.
-       * @param[in] from_start true if iteration starts at beginning of
-       * container.
-       */
-      explicit BoxContainerIterator(
-         BoxContainer& container,
-         bool from_start = true);
+public:
+      typedef std::bidirectional_iterator_tag iterator_category;
+      typedef Box value_type;
+      typedef ptrdiff_t difference_type;
+      typedef Box * pointer;
+      typedef Box& reference;
 
       /*!
        * @brief Copy constructor.
@@ -349,9 +347,12 @@ public:
          const BoxContainerIterator& rhs)
       {
          if (this != &rhs) {
-            d_list_iter = rhs.d_list_iter;
-            d_set_iter = rhs.d_set_iter;
             d_ordered = rhs.d_ordered;
+            if (d_ordered) {
+               d_set_iter = rhs.d_set_iter;
+            } else {
+               d_list_iter = rhs.d_list_iter;
+            }
          }
          return *this;
       }
@@ -376,8 +377,8 @@ public:
        * @brief Get pointer to box at iterator's position in container.
        *
        * @return Pointer to the current box.
-       */ 
-      Box*
+       */
+      Box *
       operator -> () const
       {
          return d_ordered ? *d_set_iter : &(*d_list_iter);
@@ -389,7 +390,7 @@ public:
        * @return Iterator at the position in the container before the
        * increment.
        */
-      BoxContainerIterator 
+      BoxContainerIterator
       operator ++ (
          int)
       {
@@ -438,7 +439,6 @@ public:
          return return_iter;
       }
 
-
       /*!
        * @brief Pre-decrement iterator to point to next box in the container.
        *
@@ -456,7 +456,6 @@ public:
          return *this;
       }
 
-
       /*!
        * @brief Equality operators
        *
@@ -469,7 +468,7 @@ public:
          const BoxContainerIterator& other) const
       {
          return d_ordered ? d_set_iter == other.d_set_iter :
-                            d_list_iter == other.d_list_iter;
+                d_list_iter == other.d_list_iter;
       }
 
       bool
@@ -477,7 +476,7 @@ public:
          const BoxContainerConstIterator& other) const
       {
          return d_ordered ? d_set_iter == other.d_set_iter :
-                            d_list_iter == other.d_list_iter;
+                d_list_iter == other.d_list_iter;
       }
 
       /*!
@@ -492,7 +491,7 @@ public:
          const BoxContainerIterator& other) const
       {
          return d_ordered ? d_set_iter != other.d_set_iter :
-                            d_list_iter != other.d_list_iter;
+                d_list_iter != other.d_list_iter;
       }
 
       bool
@@ -500,15 +499,28 @@ public:
          const BoxContainerConstIterator& other) const
       {
          return d_ordered ? d_set_iter != other.d_set_iter :
-                            d_list_iter != other.d_list_iter;
+                d_list_iter != other.d_list_iter;
       }
 
-   private:
-
+private:
       /*!
        * @brief Default constructor is defined but accessible only by friends.
        */
       BoxContainerIterator();
+
+      /*!
+       * @brief Constructor for the BoxContainerIterator.
+       *
+       * The iterator will point to the beginning or the end of the argument
+       * container, depending on the from_start argument
+       *
+       * @param[in] container The container whose members are iterated.
+       * @param[in] from_start true if iteration starts at beginning of
+       * container.
+       */
+      explicit BoxContainerIterator(
+         BoxContainer& container,
+         bool from_start = true);
 
       /*
        * Underlying iterator to be used when unordered.
@@ -518,7 +530,7 @@ public:
       /*
        * Underlying iterator to be used when ordered.
        */
-      std::set<Box*>::iterator d_set_iter;
+      std::set<Box *, Box::id_less>::iterator d_set_iter;
 
       bool d_ordered;
 
@@ -592,7 +604,7 @@ public:
     * @param[in] other
     */
    explicit BoxContainer(
-      const tbox::Array<tbox::DatabaseBox>& other);
+      const std::vector<tbox::DatabaseBox>& other);
 
    /*!
     * @brief Constructor that copies only Boxes having the given BlockId
@@ -631,7 +643,7 @@ public:
     */
    BoxContainer&
    operator = (
-      const tbox::Array<tbox::DatabaseBox>& rhs);
+      const std::vector<tbox::DatabaseBox>& rhs);
 
    /*!
     * @brief The destructor releases all storage.
@@ -658,12 +670,29 @@ public:
    }
 
    /*!
-    * @brief Returns true if there are no boxes in the container
+    * @brief Returns true if there are no boxes in the container.
+    *
+    * Archaic syntax.  Synonymous with empty().  Retained for backward
+    * compatibility.
+    *
+    * @see empty()
+    */
+   DEPRECATED(
+      bool
+      isEmpty() const)
+   {
+      return empty();
+   }
+
+   /*!
+    * @brief Returns true if there are no boxes in the container.
+    *
+    * This version follows the naming standards used in STL.
     *
     * @return True if the container is empty.
     */
    bool
-   isEmpty() const
+   empty() const
    {
       return d_list.empty();
    }
@@ -858,7 +887,7 @@ public:
       bool other_set_created = other.d_ordered;
       other.d_ordered = d_ordered;
       d_ordered = other_set_created;
-      d_tree = other.d_tree;
+      d_tree.swap(other.d_tree);
    }
 
    /*!
@@ -867,6 +896,8 @@ public:
     * The rank of every member of this container is inserted into the set.
     *
     * @param[out] owners
+    *
+    * @pre isOrdered() || for each box in container has valid BoxId
     */
    void
    getOwners(
@@ -913,7 +944,7 @@ public:
     *
     * @return Total number of indices of all boxes in the container.
     */
-   int
+   size_t
    getTotalSizeOfBoxes() const;
 
    /*!
@@ -925,6 +956,8 @@ public:
     *
     * @param[in] idx
     * @param[in] block_id
+    *
+    * @pre each box in container must have a valid BlockId
     */
    bool
    contains(
@@ -934,8 +967,8 @@ public:
    /*!
     * @brief  Returns the bounding box for all the boxes in the container.
     *
-    * A run-time error will occur if Boxes in this container have different
-    * BlockIds.
+    * @pre !empty()
+    * @pre each Box in container has same BlockId
     */
    Box
    getBoundingBox() const;
@@ -943,6 +976,10 @@ public:
    /*!
     * @brief  Returns the bounding box for all the boxes in the container
     *         having the given BlockId.
+    *
+    * @param[in] block_id
+    *
+    * @pre !empty()
     */
    Box
    getBoundingBox(
@@ -964,11 +1001,9 @@ public:
    /*!
     * @brief Changes state of this container to ordered.
     *
-    * This can be called on an unordered container with the restriction that
-    * every member of the container must have a valid and unique BoxId.
-    * If this restriction is not met, then a run-time error will occur.
-    *
     * If called on a container that is already ordered, nothing changes.
+    *
+    * @pre each box in container must have valid and unique BoxId
     */
    void
    order();
@@ -1003,20 +1038,23 @@ public:
     * front() in an unordered container.
     *
     * @param[in] item
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
     */
    void
    pushFront(
       const Box& item)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if (size() > 0) {
-         TBOX_DIM_ASSERT_CHECK_ARGS2(front(), item);
+      if (!empty()) {
+         TBOX_ASSERT_OBJDIM_EQUALITY2(front(), item);
       }
 #endif
       if (!d_ordered) {
          d_list.push_front(item);
       } else {
-         TBOX_ERROR("Attempted pushFront on an ordered BoxContainer");
+         TBOX_ERROR("Attempted pushFront on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1030,24 +1068,47 @@ public:
     * back() in an unordered container.
     *
     * @param[in] item
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
     */
    void
    pushBack(
       const Box& item)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if (size() > 0) {
-         TBOX_DIM_ASSERT_CHECK_ARGS2(front(), item);
+      if (!empty()) {
+         TBOX_ASSERT_OBJDIM_EQUALITY2(front(), item);
       }
 #endif
       if (!d_ordered) {
          d_list.push_back(item);
       } else {
-         TBOX_ERROR("Attempted pushBack on an ordered BoxContainer");
+         TBOX_ERROR("Attempted pushBack on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
       }
+   }
+
+   /*!
+    * @brief STL-named version of pushFront().
+    */
+   void
+   push_front(
+      const Box& item)
+   {
+      pushFront(item);
+   }
+
+   /*!
+    * @brief STL-named version of pushBack().
+    */
+   void
+   push_back(
+      const Box& item)
+   {
+      pushBack(item);
    }
 
    /*!
@@ -1058,6 +1119,9 @@ public:
     *
     * @param[in] iter Location to add item before.
     * @param[in] item Box to add to container.
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
     */
    void
    insertBefore(
@@ -1065,14 +1129,14 @@ public:
       const Box& item)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if (size() > 0) {
-         TBOX_DIM_ASSERT_CHECK_ARGS2(front(), item);
+      if (!empty()) {
+         TBOX_ASSERT_OBJDIM_EQUALITY2(front(), item);
       }
 #endif
       if (!d_ordered) {
          d_list.insert(iter.d_list_iter, item);
       } else {
-         TBOX_ERROR("Attempted insertBefore on an ordered BoxContainer");
+         TBOX_ERROR("Attempted insertBefore on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1087,6 +1151,9 @@ public:
     *
     * @param[in] iter Location to add item after.
     * @param[in] item Box to add to container.
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
     */
    void
    insertAfter(
@@ -1102,7 +1169,7 @@ public:
             insertBefore(tmp, item);
          }
       } else {
-         TBOX_ERROR("Attempted insertAfter called on ordered BoxContainer.");
+         TBOX_ERROR("Attempted insertAfter called on ordered BoxContainer." << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1115,20 +1182,25 @@ public:
     * "boxes" will be empty following this operation.
     *
     * @param[in] boxes
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
+    *
+    * @post boxes.empty()
     */
    void
    spliceFront(
       BoxContainer& boxes)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if (size() > 0 && boxes.size() > 0) {
-         TBOX_DIM_ASSERT_CHECK_ARGS2(front(), boxes.front());
+      if (!empty() && !boxes.empty()) {
+         TBOX_ASSERT_OBJDIM_EQUALITY2(front(), boxes.front());
       }
 #endif
       if (!d_ordered) {
          d_list.splice(begin().d_list_iter, boxes.d_list);
       } else {
-         TBOX_ERROR("Attempted spliceFront on an ordered BoxContainer");
+         TBOX_ERROR("Attempted spliceFront on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1141,21 +1213,26 @@ public:
     * "boxes" will be empty following this operation.
     *
     * @param[in] boxes
+    *
+    * @pre empty() || (front().getDim() == item.getDim())
+    * @pre !isOrdered()
+    *
+    * @post boxes.empty()
     */
    void
    spliceBack(
       BoxContainer& boxes)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if (size() > 0 && boxes.size() > 0) {
-         TBOX_DIM_ASSERT_CHECK_ARGS2(front(), boxes.front());
+      if (!empty() && !boxes.empty()) {
+         TBOX_ASSERT_OBJDIM_EQUALITY2(front(), boxes.front());
       }
 #endif
       if (!d_ordered) {
          boxes.spliceFront(*this);
          d_list.swap(boxes.d_list);
       } else {
-         TBOX_ERROR("Attempted spliceBack on an ordered BoxContainer");
+         TBOX_ERROR("Attempted spliceBack on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1164,6 +1241,8 @@ public:
 
    /*!
     * @brief Remove the first member of the unordered container.
+    *
+    * @pre !isOrdered()
     */
    void
    popFront()
@@ -1171,7 +1250,7 @@ public:
       if (!d_ordered) {
          d_list.pop_front();
       } else {
-         TBOX_ERROR("Attempted popFront on an ordered BoxContainer");
+         TBOX_ERROR("Attempted popFront on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1180,6 +1259,8 @@ public:
 
    /*!
     * @brief Remove the last member of the unordered container.
+    *
+    * @pre !isOrdered()
     */
    void
    popBack()
@@ -1187,7 +1268,7 @@ public:
       if (!d_ordered) {
          d_list.pop_back();
       } else {
-         TBOX_ERROR("Attempted popBack on an ordered BoxContainer");
+         TBOX_ERROR("Attempted popBack on an ordered BoxContainer" << std::endl);
       }
       if (d_tree) {
          d_tree.reset();
@@ -1198,8 +1279,8 @@ public:
     * @brief Place the boxes in the container into a canonical ordering.
     *
     * The canonical ordering for boxes is defined such that boxes that lie
-    * next to each other in higher dimensions are coalesced together before
-    * boxes that lie next to each other in lower dimensions.  This ordering
+    * next to each other in higher directions are coalesced together before
+    * boxes that lie next to each other in lower directions.  This ordering
     * provides a standard representation that can be used to compare box
     * containers.  The canonical ordering also does not allow any overlap
     * between the boxes in the container.  This routine is potentially
@@ -1207,6 +1288,9 @@ public:
     * of the domain calculus routines call simplify(); all calls to simplify
     * the boxes must be explicit.  Note that this routine is distinct from
     * coalesce(), which is not guaranteed to produce a canonical ordering.
+    *
+    * @pre !isOrdered()
+    * @pre empty() || all Boxes in container have same BlockId
     */
    void
    simplify();
@@ -1225,6 +1309,9 @@ public:
     * the boxes in the order in which they appear in the container, rather
     * than attempting to coalesce boxes along specific coordinate directions
     * before others.
+    *
+    * @pre !isOrdered()
+    * @pre empty() || all Boxes in container have same BlockId
     */
    void
    coalesce();
@@ -1235,6 +1322,9 @@ public:
     * @note Works only in 2D or 3D.
     *
     * @param[in] rotation_ident
+    *
+    * @pre each Box in container has dim 2 or 3
+    * @pre each Box in container has same BlockId
     */
    void
    rotate(
@@ -1250,6 +1340,8 @@ public:
     * '^' indicates intersection.
     *
     * @param[in] takeaway What to exclude from each box in the container.
+    *
+    * @pre !isOrdered()
     */
    void
    removeIntersections(
@@ -1265,6 +1357,8 @@ public:
     * BoxContainer have the same BlockId.  An error will occur otherwise.
     *
     * @param[in] takeaway What to exclude from each box in the container.
+    *
+    * @pre !isOrdered()
     */
    void
    removeIntersections(
@@ -1277,7 +1371,7 @@ public:
     * across block boundaries if needed.
     *
     * @param[in] refinement_ratio  All boxes in this BoxContainer
-    * are assumed to exist in index space that has this refinement ratio 
+    * are assumed to exist in index space that has this refinement ratio
     * relative to the coarse-level domain.
     *
     * @param[in] takeaway  The boxes to take away from this BoxContainer.  An
@@ -1287,6 +1381,9 @@ public:
     * @param[in] include_singularity_block_neighbors  If true, intersections
     * with neighboring blocks that touch only across an enhanced connectivity
     * singularity will be removed.  If false, those intersections are ignored.
+    *
+    * @pre !isOrdered()
+    * @pre takeaway.hasTree()
     */
    void
    removeIntersections(
@@ -1307,6 +1404,10 @@ public:
     *
     * @param[in] box
     * @param[in] takeaway
+    *
+    * @pre !isOrdered()
+    * @pre empty()
+    * @pre box.getBlockId() == takeaway.getBlockId()
     */
    void
    removeIntersections(
@@ -1320,6 +1421,8 @@ public:
     * container with \f$N\f$ boxes.  The complement of removeIntersections.
     *
     * @param[in] keep
+    *
+    * @pre !isOrdered()
     */
    void
    intersectBoxes(
@@ -1333,10 +1436,12 @@ public:
     * \f$O(N^2)\f$ time for containers with \f$N\f$ boxes.  The complement
     * of removeIntersections.
     *
-    * This only works if all boxes in this BoxContainer and the keep 
+    * This only works if all boxes in this BoxContainer and the keep
     * BoxContainer have the same BlockId.  An error will occur otherwise.
     *
     * @param[in] keep
+    *
+    * @pre !isOrdered()
     */
    void
    intersectBoxes(
@@ -1349,7 +1454,7 @@ public:
     * across block boundaries if needed.
     *
     * @param[in]  refinement_ratio  All boxes in this BoxContainer
-    * are assumed to exist in index space that has this refinement ratio 
+    * are assumed to exist in index space that has this refinement ratio
     * relative to the coarse-level domain.
     *
     * @param[in] keep  The boxes to intersect with this BoxContainer.  An
@@ -1359,6 +1464,9 @@ public:
     * @param[in] include_singularity_block_neighbors  If true, intersections
     * with neighboring blocks that touch only across an enhanced connectivity
     * singularity will be kept.  If false, those intersections are ignored.
+    *
+    * @pre !isOrdered()
+    * @pre keep.hasTree()
     */
    void
    intersectBoxes(
@@ -1389,7 +1497,11 @@ public:
     *          same BoxId, false otherwise.
     *
     * @param[in]  box Box to attempt to insert into the container.
-    */ 
+    *
+    * @pre box.getBoxId().isValid()
+    * @pre empty() || (front().getDim() == box.getDim())
+    * @pre empty() || isOrdered()
+    */
    bool
    insert(
       const Box& box);
@@ -1418,11 +1530,16 @@ public:
     *
     * @param[in] position  Location to begin searching for place to insert Box
     * @param[in] box       Box to attempt to insert into the container
+    *
+    * @pre box.getBoxId().isValid()
+    * @pre box.getBlockId() != BlockId::invalidId()
+    * @pre empty() || (front().getDim() == box.getDim())
+    * @pre empty() || isOrdered()
     */
    iterator
    insert(
       iterator position,
-      const Box& box );
+      const Box& box);
 
    /*!
     * @brief  Insert all Boxes within a range.
@@ -1433,13 +1550,17 @@ public:
     *
     * @param[in] first
     * @param[in] last
+    *
+    * @pre empty() || isOrdered()
+    * @pre for each box in [first, last), box.getBoxId().isValid() &&
+    *      (empty || front().getDim() == box.getDim())
     */
    void
    insert(
       const_iterator first,
-      const_iterator last );
+      const_iterator last);
 
-   //@} 
+   //@}
 
    //@{ @name Methods that may only be called on an ordered container
 
@@ -1454,17 +1575,19 @@ public:
     *          end() for this container is returned.
     *
     * @param[in]  box  Box serving as key for the find operation.  Only
-    *                  its BoxId is compared to members of this container. 
-    */  
+    *                  its BoxId is compared to members of this container.
+    *
+    * @pre isOrdered()
+    */
    iterator
    find(
       const Box& box) const
    {
       if (!d_ordered) {
-         TBOX_ERROR("find attempted on unordered BoxContainer.");
+         TBOX_ERROR("find attempted on unordered BoxContainer." << std::endl);
       }
       iterator iter;
-      iter.d_set_iter = d_set.find(const_cast<Box*>(&box));
+      iter.d_set_iter = d_set.find(const_cast<Box *>(&box));
       iter.d_ordered = true;
       return iter;
    }
@@ -1479,16 +1602,18 @@ public:
     *          the argument Box.
     *
     * @param[in]  box  Box serving as key for the lower bound search.
+    *
+    * @pre isOrdered()
     */
    iterator
    lowerBound(
       const Box& box) const
    {
       if (!d_ordered) {
-         TBOX_ERROR("lowerBound attempted on unordered BoxContainer.");
+         TBOX_ERROR("lowerBound attempted on unordered BoxContainer." << std::endl);
       }
       iterator iter;
-      iter.d_set_iter = d_set.lower_bound(const_cast<Box*>(&box));
+      iter.d_set_iter = d_set.lower_bound(const_cast<Box *>(&box));
       iter.d_ordered = true;
       return iter;
    }
@@ -1496,24 +1621,24 @@ public:
    /*!
     * @brief  Get upper bound iterator for a given Box.
     *
-    * This may only be called on an ordered container.
-    *
     * @return  iterator pointing to the first member of this container
     *          with a BoxId value greater than the BoxId of the argument
     *          Box.  Will return end() if there are no members with a greater
     *          BoxId value.
     *
     * @param[in]  box  Box serving as key for the upper bound search.
+    *
+    * @pre isOrdered()
     */
    iterator
    upperBound(
       const Box& box) const
    {
       if (!d_ordered) {
-         TBOX_ERROR("upperBound attempted on unordered BoxContainer.");
+         TBOX_ERROR("upperBound attempted on unordered BoxContainer." << std::endl);
       }
       iterator iter;
-      iter.d_set_iter = d_set.upper_bound(const_cast<Box*>(&box));
+      iter.d_set_iter = d_set.upper_bound(const_cast<Box *>(&box));
       iter.d_ordered = true;
       return iter;
    }
@@ -1521,14 +1646,15 @@ public:
    /*!
     * @brief  Erase a Box from the container.
     *
-    * This may only be called on an ordered container.  If a member of the
-    * container has the same BoxId as the argument Box, it will be erased
-    * from the container.  If no such member is found, the container is
-    * unchanged.
+    * If a member of the container has the same BoxId as the argument Box,
+    * it will be erased from the container.  If no such member is found,
+    * the container is unchanged.
     *
     * @return  1 if a Box is erased, 0 otherwise.
     *
     * @param[in]  box  Box serving as key to find a Box to be erased.
+    *
+    * @pre isOrdered()
     */
    int
    erase(
@@ -1545,17 +1671,24 @@ public:
     * efficiency, the output containers are NOT cleared first, so users
     * may want to clear them before calling this method.
     *
-    * @param[out] real_mapped_box_vector
-    * @param[out] periodic_image_mapped_box_vector
+    * @param[out] real_box_vector
+    * @param[out] periodic_image_box_vector
+    * @param[in] shift_catalog PeriodicShiftCatalog object that maps the
+    * PeriodicId to a specific shift.
+    *
+    * @pre isOrdered()
     */
    void
    separatePeriodicImages(
-      std::vector<Box>& real_mapped_box_vector,
-      std::vector<Box>& periodic_image_mapped_box_vector) const;
+      std::vector<Box>& real_box_vector,
+      std::vector<Box>& periodic_image_box_vector,
+      const PeriodicShiftCatalog& shift_catalog) const;
 
    /*!
     * @brief  Any members of this container that are periodic images will
     *         be erased.
+    *
+    * @pre empty() || isOrdered()
     */
    void
    removePeriodicImageBoxes();
@@ -1571,29 +1704,69 @@ public:
     * For flexibility and efficiency, the output container is NOT cleared
     * first, so users may want to clear it before calling this method.
     *
-    * @param[out] output_mapped_boxes
+    * @param[out] output_boxes
     *
     * @param[in] refinement_ratio Refinement ratio where the boxes live.
+    *
+    * @param[in] shift_catalog PeriodicShiftCatalog object that maps the
+    * PeriodicId to a specific shift.
+    *
+    * @pre isOrdered()
     */
    void
    unshiftPeriodicImageBoxes(
-      BoxContainer& output_mapped_boxes,
-      const IntVector& refinement_ratio) const;
+      BoxContainer& output_boxes,
+      const IntVector& refinement_ratio,
+      const PeriodicShiftCatalog& shift_catalog) const;
 
    //@}
 
    /*!
     * @brief  Equality operator
     *
-    * @return  If ordered, return true if all BoxIds in this and rhs are
-    *          identical.  If unordered, return true if a Boxes in this
-    *          and rhs are spatially equal.
+    * If the container is ordered, then this checks if all boxes have
+    * identical BoxIds and are spatially equal to the boxes in rhs.  If
+    * unordered, then this checks only the spatial equality of the boxes.
+    *
+    * Addtionally to be considered equal, both containers must contain the
+    * same number of boxes and have the same ordered/unordered state.
+    *
+    * @return  true only if the containers meet the equality conditions.
     *
     * @param[in] rhs
     */
    bool
    operator == (
       const BoxContainer& rhs) const;
+
+   /*!
+    * @brief  Check for equality of BoxIds in ordered containers.
+    *
+    * An error will occur if this operator is called with either BoxContainer
+    * in unordered state.
+    *
+    * @return  true if both containers are the same size and the boxes
+    *          have identical BoxIds.
+    *
+    * @param[in] other
+    * @pre isOrdered() && other.isOrdered()
+    *
+    */
+   bool
+   isIdEqual(
+      const BoxContainer& other) const;
+
+   /*!
+    * @brief  Check for spatial equality of all boxes
+    *
+    * @return  true if both containers are the same size and the boxes
+    *          are spatially equal (same extents and same BlockId).
+    *
+    * @param[in] other
+    */
+   bool
+   isSpatiallyEqual(
+      const BoxContainer& other) const;
 
    /*!
     * @brief  Inequality operator
@@ -1612,32 +1785,34 @@ public:
    //@{ @name I/O
 
    /*!
-    * @brief Write the BoxContainer to a database.
+    * @brief Write the BoxContainer to a restart database.
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
-    * @brief Read the BoxContainer from a database.
+    * @brief Read the BoxContainer from a restart database.
     */
    void
-   getFromDatabase(
-      tbox::Database& database);
+   getFromRestart(
+      tbox::Database& restart_db);
 
    /*!
-    * @brief Conversion from BoxContainer to tbox::Array<tbox::DatabaseBox>.
+    * @brief Conversion from BoxContainer to std::vector<tbox::DatabaseBox>.
     */
-   operator tbox::Array<tbox::DatabaseBox>() const;
+   operator std::vector<tbox::DatabaseBox>() const;
 
    /*!
     * @brief Print each box in the container to the specified output stream.
     *
     * @param[in] os
+    * @param[in] border
     */
    void
    print(
-      std::ostream& os = tbox::plog) const;
+      std::ostream& os = tbox::plog,
+      const std::string& border = std::string()) const;
 
    /*!
     * @brief Intermediary between BoxContainer and output streams,
@@ -1660,11 +1835,11 @@ private:
        * parameters needed to output the BoxContainer to a stream.
        */
       Outputter(
-         const BoxContainer& mapped_box_set,
+         const BoxContainer& boxes,
          const std::string& border,
-         int detail_depth = 0);
+         int detail_depth = 2);
 
-      void
+      Outputter&
       operator = (
          const Outputter& rhs);               // Unimplemented private.
 
@@ -1681,7 +1856,7 @@ private:
     *
     * Usage example (printing with a tab indentation):
     * @verbatim
-    *    cout << "my mapped_boxes:\n" << mapped_boxes.format("\t") << endl;
+    *    cout << "my boxes:\n" << boxes.format("\t") << endl;
     * @endverbatim
     *
     * @param[in] border Left border of the output
@@ -1691,7 +1866,7 @@ private:
    Outputter
    format(
       const std::string& border = std::string(),
-      int detail_depth = 0) const;
+      int detail_depth = 2) const;
 
    //@}
 
@@ -1726,14 +1901,20 @@ private:
     * container is going to be used in any of the methods that handle
     * multiblock transformations.  If this container is used only in a
     * single-block context, no BaseGridGeometry argument is necessary.
-    * 
+    *
+    * @note The grid_geometry argument is required for multiblock.  It must
+    * be the GridGeometry from which the Boxes stored in the container came
+    * from.
+    *
     * @param[in]  grid_geometry  To handle multiblock transformations if
-    *                            needed.  
-    * @param[in]  min_number  An assertion failure will occur if not positive
+    *                            needed.
+    * @param[in]  min_number
+    *
+    * @pre min_number > 0
     */
    void
    makeTree(
-      const BaseGridGeometry* grid_geometry = NULL,
+      const BaseGridGeometry* grid_geometry = 0,
       const int min_number = 10) const;
 
    /*!
@@ -1742,7 +1923,7 @@ private:
    bool
    hasTree() const
    {
-      return (d_tree.get() != 0);
+      return d_tree.get() != 0;
    }
 
    /*!
@@ -1792,10 +1973,12 @@ private:
     * @param[out] overlap_boxes
     *
     * @param[in] box
+    *
+    * @pre !hasTree() || (d_tree->getNumberBlocksInTree() == 1)
     */
    void
    findOverlapBoxes(
-      std::vector<const Box*>& overlap_boxes,
+      std::vector<const Box *>& overlap_boxes,
       const Box& box) const;
 
    /*!
@@ -1816,17 +1999,26 @@ private:
     * @param[in]  box
     *
     * @param[in]  refinement_ratio  All boxes in this BoxContainer
-    * are assumed to exist in index space that has this refinement ratio 
+    * are assumed to exist in index space that has this refinement ratio
     * relative to the coarse-level domain.
     *
     * @param[in]  include_singularity_block_neighbors  If true, intersections
     * with neighboring blocks that touch only across an enhanced connectivity
     * singularity will be added to output.  If false, those intersections are
     * ignored.
+    *
+    * @pre hasTree()
     */
    void
    findOverlapBoxes(
       BoxContainer& overlap_boxes,
+      const Box& box,
+      const IntVector& refinement_ratio,
+      bool include_singularity_block_neighbors = false) const;
+
+   void
+   findOverlapBoxes(
+      std::vector<const Box *>& overlap_boxes,
       const Box& box,
       const IntVector& refinement_ratio,
       bool include_singularity_block_neighbors = false) const;
@@ -1840,7 +2032,7 @@ private:
     *
     * This only works if all boxes in this BoxContainer have the same BlockId,
     * and the argument box also has that same BlockId.  An error will occur if
-    * these conditions are not met. 
+    * these conditions are not met.
     *
     * @return  True if box intersects with any member of the BoxContainer,
     *          false otherwise.
@@ -1852,7 +2044,6 @@ private:
       const Box& box) const;
 
 private:
-
    /*
     * Static integer constant describing class's version number.
     */
@@ -1867,6 +2058,8 @@ private:
     * this operation computes b-(b^t) where '^' indicates intersection.
     *
     * @param[in] takeaway What to exclude from each box in the container.
+    *
+    * @pre !isOrdered()
     */
    void
    removeIntersections(
@@ -1880,6 +2073,8 @@ private:
     * removeIntersections.
     *
     * @param[in] keep
+    *
+    * @pre !isOrdered()
     */
    void
    intersectBoxes(
@@ -1888,38 +2083,44 @@ private:
    /*!
     * @brief Break up bursty against solid and adds the pieces to container.
     *
-    * The bursting is done on dimensions 0 through dimension-1, starting
-    * with lowest dimensions first to try to maintain the canonical
+    * The bursting is done on directions 0 through dimension-1, starting
+    * with lowest directions first to try to maintain the canonical
     * representation for the bursted domains.
     *
     * @param[in] bursty
     * @param[in] solid
-    * @param[in] dimension
+    * @param[in] direction
+    *
+    * @pre bursty.getDim() == solid.getDim()
+    * @pre dimension <= bursty.getDim().getValue()
     */
    void
    burstBoxes(
       const Box& bursty,
       const Box& solid,
-      const int dimension);
+      const int direction);
 
    /*!
     * @brief Break up bursty against solid and adds the pieces to container
     * starting at location pointed to by itr.
     *
-    * The bursting is done on dimensions 0 through dimension-1, starting
-    * with lowest dimensions first to try to maintain the canonical
+    * The bursting is done on directions 0 through dimension-1, starting
+    * with lowest directions first to try to maintain the canonical
     * representation for the bursted domains.
     *
     * @param[in] bursty
     * @param[in] solid
-    * @param[in] dimension
+    * @param[in] direction
     * @param[in] itr
+    *
+    * @pre bursty.getDim() == solid.getDim()
+    * @pre dimension <= bursty.getDim().getValue()
     */
    void
    burstBoxes(
       const Box& bursty,
       const Box& solid,
-      const int dimension,
+      const int direction,
       iterator& itr);
 
    /*!
@@ -1931,6 +2132,8 @@ private:
     * @param[in] sublist_end
     * @param[in] insertion_pt Where to put new boxes created by this
     * operation.
+    *
+    * @pre !isOrdered()
     */
    void
    removeIntersectionsFromSublist(
@@ -1948,7 +2151,7 @@ private:
     * Set of Box* used for ordered containers.  Each Box* in the set
     * points to a member of d_list.
     */
-   std::set<Box*, Box::id_less> d_set;
+   std::set<Box *, Box::id_less> d_set;
 
    bool d_ordered;
 

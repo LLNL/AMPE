@@ -3,8 +3,8 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
-## Description:   Hypre Poisson solver example
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   Unit test of CellPoissonHypreSolver
 ##
 #########################################################################
 ****************************************************************************
@@ -16,53 +16,32 @@
 *                                                                          *
 ****************************************************************************
 
-This example demonstrates use of the PoissonHypreSolver class in a SAMRAI
-application. 
-The files/classes included in this directory are as follows:
+This test demonstrates the use of and unit tests the CellPoissonHypreSolver
+class.  The files included in this directory are as follows:
  
-          main          -  example main program
-	  HyprePoisson  -  Class to set up and solve the scalar
-                           Poisson equation on a single level.
-                           Also supplies required implementations
-                           to interfaces for building grid and
+   main.C               -  driver
+   HyprePoisson.[Ch]    -  Class to set up and solve the scalar Poisson
+                           equation on a single level.  Also supplies required
+                           implementations to interfaces for building grid and
                            plotting.
+   test_inputs/*.input  -  2d and 3d input files
 
-COMPILE and RUN
----------------
-Compile:  make main2d main3d
-Run:      main2d 2d.default.input
-          main3d 3d.default.input
+
+COMPILATION AND EXECUTION
+-------------------------
+   Compilation:
+      make main
+
+   Execution:
+      serial:
+         ./main test_inputs/default.[2,3]d.input
+      parallel:
+         Parallel execution is platform dependent.  This example demonstrates
+         execution via mpirun.
+         mpirun -np <nprocs> [mpirun options] ./main test_inputs/default.[2,3]d.input
  
 
-INPUTS
-------
-
-Main {                                                          
-   base_name = <string> [All names used are derived from this one.]
-   log_all_nodes = <bool> [log all nodes or node 0 only?]
-   residual_tol = <double> [Tolerance for solve]
-}
-
-CartesianGeometry {
-   // Define the domain.
-   // See SAMRAI documentation for inputs.
-}
-
-StandardTagAndInitialize {
-   // Use default settings for this example.
-   // See SAMRAI documentation for inputs.
-}
-
-LoadBalancer{
-   // Use default settings for this example.
-   // See SAMRAI documentation for inputs.
-}
-
-GriddingAlgorithm {
-   max_levels = 1
-   largest_patch_size {
-      level_0 = 32, 32
-      // all finer levels will use same values as level_0...
-   }
-}
-
+INPUT PARAMETERS
+----------------
+Refer to test_inputs/default.2d.input for a full description of all input
+parameters specific to this problem.

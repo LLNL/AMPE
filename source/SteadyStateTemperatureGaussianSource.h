@@ -79,21 +79,21 @@ private:
    HeatCapacityStrategy* d_heat_capacity_strategy;
    
    // Gaussian parameters
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[3];
    
    // Gaussian center at t=0
-   double d_center0[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   double d_periodic_length[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center0[3];
+   double d_periodic_length[3];
    
    // velocity of Gaussian center
-   double d_velocity[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_velocity[3];
    
    // Gaussian in time for pulse
    double d_pulse_time;
    double d_pulse_width;
    
    boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
-   int d_periodic_flag[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   int d_periodic_flag[3];
 
    double d_source_peak;
    double d_standard_dev;

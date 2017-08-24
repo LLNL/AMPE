@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Parallel I/O class buffer to manage parallel ostreams output
  *
  ************************************************************************/
@@ -12,6 +12,8 @@
 #define included_tbox_ParallelBuffer
 
 #include "SAMRAI/SAMRAI_config.h"
+
+#include "SAMRAI/tbox/OpenMPUtilities.h"
 
 #include <iostream>
 #include <string>
@@ -147,6 +149,15 @@ public:
 #endif
 
 private:
+   // Unimplemented copy constructor.
+   ParallelBuffer(
+      const ParallelBuffer& other);
+
+   // Unimplemented assignment operator.
+   ParallelBuffer&
+   operator = (
+      const ParallelBuffer& rhs);
+
    void
    copyToBuffer(
       const std::string& text,
@@ -161,6 +172,7 @@ private:
    char* d_buffer;              // internal buffer to store accumulated string
    int d_buffer_size;           // size of the internal output buffer
    int d_buffer_ptr;            // number of charcters in the output buffer
+   TBOX_omp_lock_t l_buffer;    // OpenMP lock for buffer operations.
 
    static const int DEFAULT_BUFFER_SIZE;
 };

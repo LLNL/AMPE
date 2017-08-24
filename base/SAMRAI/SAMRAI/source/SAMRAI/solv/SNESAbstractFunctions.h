@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to user functions for SAMRAI-based PETSc SNES context
  *
  ************************************************************************/
@@ -16,26 +16,21 @@
 #ifdef HAVE_PETSC
 
 /*
- * This is needed since petsc defines MPICH_SKIP_MPICXX so if SAMRAI
- * has already defined it the compile will fail.
+ * This is needed since petsc defines MPICH_SKIP_MPICXX and OMPI_SKIP_MPICXX
+ * so if SAMRAI has already defined them the compile will fail.
  */
 #ifndef samrai_included_petsc_snes
 #define samrai_included_petsc_snes
 #ifdef MPICH_SKIP_MPICXX
 #undef MPICH_SKIP_MPICXX
 #endif
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
 
 extern "C" {
-#ifdef PETSC2028
-#include "snes.h"
-#else
 #include "petscsnes.h"
-#endif
 }
-#endif
-
-#ifndef MPICH_SKIP_MPICXX
-#define MPICH_SKIP_MPICXX
 #endif
 
 #ifdef REQUIRES_CMATH
@@ -65,7 +60,7 @@ namespace solv {
  * Note that the virtual members of this class are all protected.  They should
  * not be used outside of a subclass of this class.
  *
- * @see solv::SNES_SAMRAIContext
+ * @see SNES_SAMRAIContext
  */
 
 class SNESAbstractFunctions

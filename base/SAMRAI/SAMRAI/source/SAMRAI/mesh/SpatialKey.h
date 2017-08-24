@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   spatial key used for generating space-filling curves.
  *
  ************************************************************************/
@@ -64,7 +64,7 @@ public:
    operator = (
       const SpatialKey& spatial_key)
    {
-      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; i++) {
+      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; ++i) {
          d_key[i] = spatial_key.d_key[i];
       }
       return *this;
@@ -79,7 +79,7 @@ public:
       const SpatialKey& spatial_key) const
    {
       bool are_equal = true;
-      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; i++) {
+      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; ++i) {
          if (d_key[i] != spatial_key.d_key[i]) {
             are_equal = false;
             break;
@@ -146,7 +146,7 @@ public:
    void
    setToZero()
    {
-      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; i++) {
+      for (int i = 0; i < NUM_COORDS_MIXED_FOR_SPATIAL_KEY; ++i) {
          d_key[i] = 0;
       }
    }
@@ -155,7 +155,7 @@ public:
     * Set this key from the index space coordinates and the level number.
     *
     * The values of i, j, and k default to 0 to handle cases
-    * where the number of dimensions in the problem is not 3.
+    * where the dimensions of the problem is not 3.
     * The default value of level_num is also 0.
     */
    void
@@ -209,7 +209,7 @@ private:
       const unsigned int coord,
       const int coord_offset);
 
-   int d_bits_per_int;
+   size_t d_bits_per_int;
    unsigned int d_key[NUM_COORDS_MIXED_FOR_SPATIAL_KEY];
 };
 

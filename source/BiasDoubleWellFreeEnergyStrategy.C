@@ -76,15 +76,15 @@ void BiasDoubleWellFreeEnergyStrategy::addComponentRhsPhi(
    (void) f_a_id; // unused
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      patch.getPatchData(phase_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
    assert( phase );
  
    boost::shared_ptr< pdat::CellData<double> > temp (
-      patch.getPatchData(temperature_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(temperature_id) ) );
    assert( temp );
  
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      patch.getPatchData( rhs_id ), boost::detail::dynamic_cast_tag()); 
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
    assert( rhs );
  
    assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -94,7 +94,7 @@ void BiasDoubleWellFreeEnergyStrategy::addComponentRhsPhi(
    d_meltingTstrat->evaluate(patch);
    
    boost::shared_ptr< pdat::CellData<double> > eq_temp (
-      patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id() ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id() ) ) );
    assert( eq_temp );
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	

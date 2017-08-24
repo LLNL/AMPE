@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   High-level solver (wrapper) for scalar poisson equation.
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -28,12 +28,6 @@ namespace solv {
  * @brief Class for solving scalar Poisson's equation on SAMR grid,
  * wrapping up lower-level components (FAC cycling, Poisson equation
  * operations and boundary conditions) in a single high-level interface.
- *
- * Note: this class provides a backward-compatible interface to
- * the soon-to-be obsolete PoissonHierarchySolver<DIM> class.
- * Although this class hides the lower-level components (FAC cycling,
- * Poisson equation operations and boundary conditions), it is
- * perfectly acceptable to use those lower-level components directly.
  *
  * We solve the equation
  *    div(D grad(u)) + Cu = f
@@ -93,23 +87,31 @@ namespace solv {
  *
  * Finer solver controls can be set using the functions in this class.
  *
- * Object of this class can be set using input databases.
- * The following parameters can be set.  Each is shown with its
- * default value in the case where hypre is used.
- * @verbatim
- * enable_logging = TRUE // Bool flag to switch logging on/off
- * max_cycles = 10       // Integer number of max FAC cycles to use
- * residual_tol = 1.e-6  // Residual tolerance to solve for
- * num_pre_sweeps = 1    // Number of presmoothing sweeps to use
- * num_post_sweeps = 1   // Number of postsmoothing sweeps to use
- * coarse_fine_discretization = "Ewing" // Name of coarse-fine discretization
- * prolongation_method = "CONSTANT_REFINE" // Name of prolongation method
- * coarse_solver_choice = "hypre"  // Name of coarse level solver
- * coarse_solver_tolerance = 1e-10 // Coarse level tolerance
- * coarse_solver_max_iterations = 20 // Coarse level max iterations
- * use_smg = "FALSE"     // Whether to use hypre's smg solver
- *                       // (alternative is the pfmg solver)
- * @endverbatim
+ * <b> Input Parameters </b>
+ *
+ * <b> Definitions: </b>
+ *    - \b    enable_logging
+ *       turn logging on or off
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>enable_logging</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Not written to restart.  Value in input db used.</td>
+ *   </tr>
+ * </table>
  *
  */
 class CellPoissonFACSolver
@@ -126,32 +128,22 @@ public:
     *
     * @param dim
     * @param object_name Name of object used in outputs
-    * @param database tbox::Database for initialization (may be NULL)
+    * @param fac_precond
+    * @param fac_ops
+    * @param input_db tbox::Database for initialization (may be NULL)
     */
    CellPoissonFACSolver(
       const tbox::Dimension& dim,
       const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& database =
+      const boost::shared_ptr<FACPreconditioner>& fac_precond,
+      const boost::shared_ptr<CellPoissonFACOps>& fac_ops,
+      const boost::shared_ptr<tbox::Database>& input_db =
          boost::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
     */
    ~CellPoissonFACSolver();
-
-   /*!
-    * @brief Enable logging.
-    *
-    * To disable, pass in @c false.
-    */
-   void
-   enableLogging(
-      bool logging)
-   {
-      d_enable_logging = logging;
-      d_fac_precond.enableLogging(d_enable_logging);
-      d_fac_ops.enableLogging(d_enable_logging);
-   }
 
    /*!
     * @brief Solve Poisson's equation, assuming an uninitialized
@@ -183,6 +175,10 @@ public:
     * @return whether solver converged to specified level
     *
     * @see initializeSolverState
+    *
+    * @pre hierarchy
+    * @pre d_dim == hierarchy->getDim()
+    * @pre !d_solver_is_initialized
     */
    bool
    solveSystem(
@@ -211,6 +207,9 @@ public:
     * @return whether solver converged to specified level
     *
     * @see solveSystem( const int, const int, boost::shared_ptr< hier::PatchHierarchy >, int, int);
+    *
+    * @pre d_solver_is_initialized
+    * @pre (solution >= 0) || (rhs >= 0)
     */
    bool
    solveSystem(
@@ -232,7 +231,7 @@ public:
     *
     * If using Dirichlet boundary conditions, then before the solver is
     * called, the storage for the unknown u
-    * must have a mapped_box_level of ghost cells at least one cell wide that includes
+    * must have a box_level of ghost cells at least one cell wide that includes
     * the Dirichlet boundary values.
     *
     * If using Neumann boundary conditions, then before the solver is called,
@@ -258,6 +257,8 @@ public:
     * conditions, 1 for Neumann conditions, and 2 for mixed boundary
     * conditions.  The bdry_type argument is never required, but if used
     * it can sometimes make the PoissonHYPRESolver class more efficient.
+    *
+    * @pre (d_bc_object == 0) || (d_bc_object == &d_simple_bc)
     */
 
    void
@@ -265,7 +266,7 @@ public:
       const std::string& boundary_type,
       const int fluxes = -1,
       const int flags = -1,
-      int* bdry_types = NULL);
+      int* bdry_types = 0);
 
    /*!
     * @brief Override internal implementation to set boundary condition
@@ -283,6 +284,8 @@ public:
     *
     * Once the boundary condition object is overwritten by this
     * method, you must no longer call the setBoundaries() method.
+    *
+    * @pre bc_object
     */
    void
    setBcObject(
@@ -290,12 +293,12 @@ public:
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (!bc_object) {
-         TBOX_ERROR(d_object_name << ": NULL pointer for boundary condition\n"
+         TBOX_ERROR(d_object_name << ": NULL pointer for boundary condition "
                                   << "object.\n");
       }
 #endif
       d_bc_object = bc_object;
-      d_fac_ops.setPhysicalBcCoefObject(d_bc_object);
+      d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }
 
    //!@{ @name Specifying PDE parameters
@@ -362,187 +365,6 @@ public:
 
    //@}
 
-   //@{ @name Functions for setting solver mathematic algorithm controls
-
-   /*!
-    * @brief Set coarse level solver.
-    *
-    * Select from these:
-    * - @c "redblack"
-    * - @c "hypre" (only if the HYPRE library is available).
-    */
-   void
-   setCoarsestLevelSolverChoice(
-      const std::string& choice)
-   {
-      d_fac_ops.setCoarsestLevelSolverChoice(choice);
-   }
-
-   /*!
-    * @brief Set tolerance for coarse level solve.
-    *
-    * If the coarse level solver requires a tolerance
-    * (currently, they all do), the specified value is used.
-    */
-   void
-   setCoarsestLevelSolverTolerance(
-      double tol)
-   {
-      d_fac_ops.setCoarsestLevelSolverTolerance(tol);
-   }
-
-   /*!
-    * @brief Set max iterations for coarse level solve.
-    *
-    * If the coarse level solver requires a max iteration limit
-    * (currently, they all do), the specified value is used.
-    */
-   void
-   setCoarsestLevelSolverMaxIterations(
-      int max_iterations)
-   {
-      d_fac_ops.setCoarsestLevelSolverMaxIterations(max_iterations);
-   }
-
-#ifdef HAVE_HYPRE
-   /*!
-    * @brief Set whether to use HYPRe's PFMG algorithm instead of the
-    * SMG algorithm.
-    *
-    * The flag is used to select which of HYPRE's linear solver algorithms
-    * to use if true, the semicoarsening multigrid algorithm is used, and if
-    * false, the ``PF'' multigrid algorithm is used.
-    * By default, the SMG algorithm is used.
-    *
-    * This setting has effect only when HYPRe is chosen for the coarsest
-    * level solver.  See setCoarsestLevelSolverChoice().
-    *
-    * Changing the algorithm must be done before setting up the matrix
-    * coefficients.
-    */
-   void
-   setUseSMG(
-      bool use_smg)
-   {
-      if (d_solver_is_initialized) {
-         TBOX_ERROR(
-            d_object_name << ": setUseSMG(bool) may NOT be called\n"
-                          << "while the solver state is initialized, as that\n"
-                          << "would lead to a corrupted solver state.\n");
-      }
-      d_fac_ops.setUseSMG(use_smg);
-   }
-#endif
-
-   /*!
-    * @brief Set the coarse-fine boundary discretization method.
-    *
-    * Specify the @c op_name std::string which will be passed to
-    * xfer::Geometry::lookupRefineOperator() to get the operator
-    * for setting fine grid ghost cells from the coarse grid.
-    * Note that chosing this operator implicitly choses the
-    * discretization method at the coarse-fine boundary.
-    *
-    * There is one important instance where this std::string is
-    * @em not passed to xfer::Geometry::lookupRefineOperator().
-    * If this variable is set to "Ewing", a constant refinement
-    * method is used along with Ewing's correction.
-    * For a reference to the correction method, see
-    * "Local Refinement Techniques for Elliptic Problems on Cell-Centered
-    * Grids, I. Error Analysis", Mathematics of Computation, Vol. 56, No. 194,
-    * April 1991, pp. 437-461.
-    *
-    * @param coarsefine_method String selecting the coarse-fine discretization method.
-    */
-   void
-   setCoarseFineDiscretization(
-      const std::string& coarsefine_method)
-   {
-      d_fac_ops.setCoarseFineDiscretization(coarsefine_method);
-   }
-
-   /*!
-    * @brief Set the name of the prolongation method.
-    *
-    * Specify the @c op_name std::string which will be passed to
-    * xfer::Geometry::lookupRefineOperator() to get the operator
-    * for prolonging the coarse-grid correction.
-    *
-    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to
-    * to lead to faster convergence, but it does NOT satisfy the Galerkin
-    * condition.
-    *
-    * Prolonging using linear refinement requires a Robin bc
-    * coefficient implementation that is capable of delivering
-    * coefficients for non-hierarchy data, because linear refinement
-    * requires boundary conditions to be set on temporary levels.
-    *
-    * @param prolongation_method String selecting the coarse-fine discretization method.
-    */
-   void
-   setProlongationMethod(
-      const std::string& prolongation_method)
-   {
-      d_fac_ops.setProlongationMethod(prolongation_method);
-   }
-
-   /*!
-    * @brief Set the number of pre-smoothing sweeps during
-    * FAC iteration process.
-    *
-    * Presmoothing is applied during the fine-to-coarse phase of the
-    * iteration.  The default is to use one sweep.
-    *
-    * @param num_pre_sweeps Number of presmoothing sweeps
-    */
-   void
-   setPresmoothingSweeps(
-      int num_pre_sweeps)
-   {
-      d_fac_precond.setPresmoothingSweeps(num_pre_sweeps);
-   }
-
-   /*!
-    * @brief Set the number of post-smoothing sweeps during
-    * FAC iteration process.
-    *
-    * Postsmoothing is applied during the coarse-to-fine phase of the
-    * iteration.  The default is to use one sweep.
-    *
-    * @param num_post_sweeps Number of postsmoothing sweeps
-    */
-   void
-   setPostsmoothingSweeps(
-      int num_post_sweeps)
-   {
-      d_fac_precond.setPostsmoothingSweeps(num_post_sweeps);
-   }
-
-   /*!
-    * @brief Set the max number of iterations (cycles) to use per solve.
-    */
-   void
-   setMaxCycles(
-      int max_cycles)
-   {
-      d_fac_precond.setMaxCycles(max_cycles);
-   }
-
-   /*!
-    * @brief Set the residual tolerance for stopping.
-    *
-    * If you want the prescribed maximum number of cycles to always be taken,
-    * set the residual tolerance to a negative number.
-    */
-   void
-   setResidualTolerance(
-      double residual_tol)
-   {
-      d_fac_precond.setResidualTolerance(residual_tol);
-   }
-
-   //@}
-
    /*!
     * @brief Prepare the solver's internal state for solving
     *
@@ -571,6 +393,11 @@ public:
     * @param hierarchy The patch hierarchy to solve on
     * @param coarse_level The coarsest level in the solve
     * @param fine_level The finest level in the solve
+    *
+    * @pre hierarchy
+    * @pre d_dim == hierarchy->getDim()
+    * @pre d_bc_object != 0
+    * @pre (solution >= 0) || (rhs >= 0)
     */
    void
    initializeSolverState(
@@ -602,7 +429,7 @@ public:
    int
    getNumberOfIterations() const
    {
-      return d_fac_precond.getNumberOfIterations();
+      return d_fac_precond->getNumberOfIterations();
    }
 
    /*!
@@ -617,7 +444,7 @@ public:
       double& avg_factor,
       double& final_factor) const
    {
-      d_fac_precond.getConvergenceFactors(avg_factor, final_factor);
+      d_fac_precond->getConvergenceFactors(avg_factor, final_factor);
    }
 
    /*!
@@ -632,7 +459,7 @@ public:
    double
    getResidualNorm() const
    {
-      return d_fac_precond.getResidualNorm();
+      return d_fac_precond->getResidualNorm();
    }
 
    //@}
@@ -655,12 +482,12 @@ private:
     * See the class description for the parameters that can be set
     * from a database.
     *
-    * @param database Input database.  If a NULL pointer is given,
+    * @param input_db Input database.  If a NULL pointer is given,
     * nothing is done.
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& database);
+      const boost::shared_ptr<tbox::Database>& input_db);
 
    /*
     * @brief Set @c d_uv and @c d_fv to vectors wrapping the data
@@ -703,12 +530,12 @@ private:
     * @brief FAC operator implementation corresponding to cell-centered
     * Poisson discretization.
     */
-   CellPoissonFACOps d_fac_ops;
+   boost::shared_ptr<CellPoissonFACOps> d_fac_ops;
 
    /*!
     * @brief FAC preconditioner algorithm.
     */
-   FACPreconditioner d_fac_precond;
+   boost::shared_ptr<FACPreconditioner> d_fac_precond;
 
    /*!
     * @brief Robin bc object in use.
@@ -743,8 +570,8 @@ private:
    bool d_enable_logging;
 
    static bool s_initialized;
-   static int s_weight_id[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   static int s_instance_counter[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   static int s_weight_id[SAMRAI::MAX_DIM_VAL];
+   static int s_instance_counter[SAMRAI::MAX_DIM_VAL];
 };
 
 }

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Special iterator for BoxContainer.
  *
  ************************************************************************/
@@ -29,7 +29,7 @@ namespace hier {
  */
 class BoxContainerSingleBlockIterator
 {
-friend class BoxContainer;
+   friend class BoxContainer;
 
 public:
    //! @brief Destructor
@@ -42,7 +42,7 @@ public:
    operator = (
       const BoxContainerSingleBlockIterator& r)
    {
-      d_mapped_boxes = r.d_mapped_boxes;
+      d_boxes = r.d_boxes;
       d_iter = r.d_iter;
       d_block_id = r.d_block_id;
       return *this;
@@ -73,7 +73,7 @@ public:
    operator == (
       const BoxContainerSingleBlockIterator& r) const
    {
-      return d_mapped_boxes == r.d_mapped_boxes &&
+      return d_boxes == r.d_boxes &&
              d_block_id == r.d_block_id &&
              d_iter == r.d_iter;
    }
@@ -85,7 +85,7 @@ public:
    operator != (
       const BoxContainerSingleBlockIterator& r) const
    {
-      return d_mapped_boxes != r.d_mapped_boxes ||
+      return d_boxes != r.d_boxes ||
              d_block_id != r.d_block_id ||
              d_iter != r.d_iter;
    }
@@ -119,9 +119,9 @@ private:
    /*!
     * @brief Constructor
     *
-    * @param [i] container
-    * @param [i] block_id
-    * @param [i] begin
+    * @param [in] container
+    * @param [in] block_id
+    * @param [in] begin
     */
    BoxContainerSingleBlockIterator(
       const BoxContainer& container,
@@ -131,7 +131,7 @@ private:
    /*!
     * @brief BoxContainer being iterated through.
     */
-   const BoxContainer* d_mapped_boxes;
+   const BoxContainer* d_boxes;
 
    /*!
     * @brief The BlockId.

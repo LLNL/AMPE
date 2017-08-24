@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   GriddingAlgorihtm's implementation of PatchHierarchy
  *
  ************************************************************************/
-
-#ifndef included_mesh_GriddingAlgorithmConnectorWidthRequestor_C
-#define included_mesh_GriddingAlgorithmConnectorWidthRequestor_C
-
 #include "SAMRAI/mesh/GriddingAlgorithmConnectorWidthRequestor.h"
 
 #include "SAMRAI/tbox/Utilities.h"
@@ -46,6 +42,11 @@ GriddingAlgorithmConnectorWidthRequestor::computeRequiredConnectorWidths(
    std::vector<hier::IntVector>& fine_connector_widths,
    const hier::PatchHierarchy& patch_hierarchy) const
 {
+   if (!d_tag_to_cluster_width.empty()) {
+      TBOX_ASSERT(static_cast<int>(d_tag_to_cluster_width.size()) >=
+         patch_hierarchy.getMaxNumberOfLevels() - 1);
+   }
+
    const tbox::Dimension& dim(patch_hierarchy.getDim());
    const int max_levels(patch_hierarchy.getMaxNumberOfLevels());
 
@@ -53,10 +54,13 @@ GriddingAlgorithmConnectorWidthRequestor::computeRequiredConnectorWidths(
       patch_hierarchy.getPatchDescriptor()->getMaxGhostWidth(dim));
 
    const hier::IntVector max_stencil_width(
-      patch_hierarchy.getGridGeometry()->getMaxTransferOpStencilWidth());
+      patch_hierarchy.getGridGeometry()->getMaxTransferOpStencilWidth(dim));
 
-   fine_connector_widths.resize(max_levels - 1, hier::IntVector(dim));
-   self_connector_widths.resize(max_levels, hier::IntVector(dim));
+   fine_connector_widths.resize(max_levels - 1,
+      hier::IntVector::getZero(dim));
+   self_connector_widths.resize(max_levels,
+      hier::IntVector::getZero(dim));
+
 
    /*
     * Compute the Connector width needed to ensure all edges are found
@@ -70,7 +74,7 @@ GriddingAlgorithmConnectorWidthRequestor::computeRequiredConnectorWidths(
     * computeCoarserLevelConnectorWidthsFromFines() once the finer
     * level's Connector widths are computed.
     */
-   self_connector_widths[max_levels - 1] = max_ghost_width;
+   self_connector_widths[max_levels - 1].setAll(max_ghost_width);
    for (int ln = max_levels - 2; ln > -1; --ln) {
 
       computeCoarserLevelConnectorWidthsFromFines(
@@ -86,7 +90,16 @@ GriddingAlgorithmConnectorWidthRequestor::computeRequiredConnectorWidths(
        * Must be big enough for GriddingAlgorithm::computeProperNestingData().
        */
       self_connector_widths[ln].max(
-         hier::IntVector(dim,patch_hierarchy.getProperNestingBuffer(ln)));
+         hier::IntVector(dim, patch_hierarchy.getProperNestingBuffer(ln)));
+
+      /*
+       * Must be big enough for GriddingAlgorithm to guarantee that
+       * tag--->cluster width is at least d_tag_to_cluster_width[ln]
+       * when bridging cluster<==>tag<==>tag.
+       */
+      if (!d_tag_to_cluster_width.empty()) {
+         self_connector_widths[ln].max(d_tag_to_cluster_width[ln]);
+      }
    }
 }
 
@@ -126,7 +139,7 @@ GriddingAlgorithmConnectorWidthRequestor::computeCoarserLevelConnectorWidthsFrom
 
 #ifdef DEBUG_CHECK_DIM_ASSERTIONS
    const tbox::Dimension& dim(fine_to_fine_width.getDim());
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS7(dim,
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY7(dim,
       coarse_to_fine_width,
       coarse_to_coarse_width,
       fine_to_fine_width,
@@ -135,6 +148,8 @@ GriddingAlgorithmConnectorWidthRequestor::computeCoarserLevelConnectorWidthsFrom
       max_stencil_width_at_coarse,
       max_ghost_width_at_coarse);
 #endif
+
+   const size_t num_blocks = fine_to_coarse_ratio.getNumBlocks();
 
    /*
     * Coarse-to-fine width must be big enough to cover the width at the
@@ -148,7 +163,7 @@ GriddingAlgorithmConnectorWidthRequestor::computeCoarserLevelConnectorWidthsFrom
    /*
     * Coarse-to-fine width must be big enough for the [ln] -> [ln+1]
     * Connector to see all the [ln+1] Boxes that are used to add
-    * tags to [ln-1] Boxes for ensuring [ln] properly nests
+    * tags to [ln-1] for ensuring [ln] properly nests
     * [ln+1] when [ln] is being regenerated.
     *
     * The rationale for this adjustment is illustrated by the following
@@ -173,7 +188,9 @@ GriddingAlgorithmConnectorWidthRequestor::computeCoarserLevelConnectorWidthsFrom
     * be have at least a 2-cell GCW (in L2 index space).
     */
    coarse_to_fine_width.max(
-      hier::IntVector::ceilingDivide(nesting_buffer_at_fine, fine_to_coarse_ratio));
+      hier::IntVector::ceilingDivide(
+         hier::IntVector(nesting_buffer_at_fine, num_blocks),
+         fine_to_coarse_ratio));
 
    /*
     * Coarse-to-coarse Connectors must cover all data that the finer
@@ -187,7 +204,16 @@ GriddingAlgorithmConnectorWidthRequestor::computeCoarserLevelConnectorWidthsFrom
    coarse_to_coarse_width.max(max_ghost_width_at_coarse);
 }
 
-}
+/*
+ **************************************************************************
+ **************************************************************************
+ */
+void
+GriddingAlgorithmConnectorWidthRequestor::setTagToClusterWidth(
+   std::vector<hier::IntVector>& tag_to_cluster_width)
+{
+   d_tag_to_cluster_width = tag_to_cluster_width;
 }
 
-#endif
+}
+}

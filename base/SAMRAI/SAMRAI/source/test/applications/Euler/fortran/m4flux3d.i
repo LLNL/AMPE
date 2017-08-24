@@ -1,3 +1,10 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   m4 include file for 3d flux calculation.
+c
 define(riemann_solve,`dnl
 c     write(6,*) "checking onedr sol in riemann solve  "
 c     write(6,*) "         dt= ",dt
@@ -9,6 +16,7 @@ c     *  Approximate Riemann solver and exact Riemann solver have
 c     *  identical setup and post-process phases.
 c     ************************************************************
 
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$3=ifirst$3-$6,ilast$3+$6
          do ic$2=ifirst$2-$5,ilast$2+$5
            do ie$1=ifirst$1-(FLUXG-1),ilast$1+1+(FLUXG-1)
@@ -52,12 +60,14 @@ c          ************************************************************
            enddo
          enddo
       enddo
+!$OMP END DO
 
       elseif (rpchoice.eq.HLLC_RIEM_SOLVE) then
 c     ******************************************************************
 c     *  HLLC Riemann Solver
 c     ******************************************************************
 
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$3=ifirst$3-$6,ilast$3+$6
          do ic$2=ifirst$2-$5,ilast$2+$5
             do ie$1=ifirst$1-(FLUXG-1),ilast$1+1+(FLUXG-1)
@@ -205,11 +215,13 @@ c        ************************************************************
             enddo
          enddo
       enddo
+!$OMP END DO
 
       endif
 ')dnl
 define(correc_flux2d,`dnl
 c   correct the $1-direction with $3-fluxes
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$5=ifirst$5-(FLUXG),ilast$5+(FLUXG)
          do ic$3=ifirst$3-(FLUXG-1),ilast$3+(FLUXG-1)
            do ic$1=ifirst$1-(FLUXG),ilast$1+(FLUXG)
@@ -240,9 +252,11 @@ c
            enddo
          enddo
       enddo
+!$OMP END DO
 ')dnl
 define(correc_flux3d,`dnl
 c   correct the $1-direction with $2$3-fluxes
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$1=ifirst$1-FLUXG,ilast$1+FLUXG
          do ic$3=ifirst$3-(FLUXG-1),ilast$3+(FLUXG-1)
            do ic$2=ifirst$2-(FLUXG-1),ilast$2+(FLUXG-1)
@@ -256,7 +270,7 @@ c   correct the $1-direction with $2$3-fluxes
      &          (flux$4(ic$2+1,$6,k)-flux$4(ic$2,$6,k))/dx($2)+
      &          (flux$5(ic$3+1,$7,k)-flux$5(ic$3,$7,k))/dx($3))
              enddo
-  
+
              ttv(1)= trnsvers(1)
              ttv(2)= (trnsvers(2) - vel0*trnsvers(1))/rho
              ttv(3)= (trnsvers(3) - vel1*trnsvers(1))/rho
@@ -274,14 +288,16 @@ c   correct the $1-direction with $2$3-fluxes
            enddo
          enddo
       enddo
+!$OMP END DO
 ')dnl
 define(artificial_viscosity1,`dnl
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic$3=ifirst$3-(FLUXG-1),ilast$3+(FLUXG-1)
          do ic$2=ifirst$2-(FLUXG-1),ilast$2+(FLUXG-1)
            do ie$1=ifirst$1-(FLUXG-1),ilast$1+(FLUXG)
              maxeig =trrgt$1(ie$1,ic$2,ic$3,NEQU)-trlft$1(ie$1,ic$2,ic$3,NEQU)
              vcoef = tenth*abs(maxeig)
-   
+
              mom0L=trlft$1(ie$1,ic$2,ic$3,1)*trlft$1(ie$1,ic$2,ic$3,2)
              mom1L=trlft$1(ie$1,ic$2,ic$3,1)*trlft$1(ie$1,ic$2,ic$3,3)
              mom2L=trlft$1(ie$1,ic$2,ic$3,1)*trlft$1(ie$1,ic$2,ic$3,4)
@@ -308,9 +324,11 @@ define(artificial_viscosity1,`dnl
            enddo
          enddo
       enddo
+!$OMP END DO
 ')dnl
 c
 define(artificial_viscosity2,`dnl
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic1=ifirst1,ilast1
         do ie0=ifirst0,ilast0+1
           maxeig =pressure(ie0,ic1)-pressure(ie0-1,ic1)
@@ -336,6 +354,9 @@ define(artificial_viscosity2,`dnl
              enddo
         enddo
       enddo
+!$OMP END DO
+
+!$OMP DO SCHEDULE(DYNAMIC)
       do ic0=ifirst0,ilast0
         do ie1=ifirst1,ilast1+1
           maxeig =pressure(ic0,ie1)-pressure(ic0-1,ie1)
@@ -360,5 +381,6 @@ define(artificial_viscosity2,`dnl
           flux1(ie1,ic0,4)= flux1(ie1,ic0,4) - vcorr4
         enddo
       enddo
+!$OMP END DO
 ')dnl
 c

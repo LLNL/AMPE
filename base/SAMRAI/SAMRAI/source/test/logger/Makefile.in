@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for timer and statistician test programs 
 ##
 #########################################################################
@@ -14,6 +14,7 @@ SUBDIR        = source/test/logger
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 default: check
 
@@ -32,24 +33,30 @@ userloggertest:  userloggertest.o $(LIBSAMRAIDEPEND)
 NUM_TESTS = 2
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 check:  defaultloggertest userloggertest
 	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
-                passed=1; \
-		$(OBJECT)/config/serpa-run $$p ./defaultloggertest; \
-		if ! grep "Test warning" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
-		if grep "Test debug1" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
-		if ! grep "Test debug2" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
-		if [ $$passed == 1 ] ; then echo "PASSED defaultloggertest"; else echo "FAILED defaultloggertest"; fi; \
+	  echo "    <testcase classname=\"logger\" name=$(QUOTE)defaultlogger $$p procs$(QUOTE)>" >> $(REPORT); \
+	  passed=1; \
+	  $(OBJECT)/config/serpa-run $$p ./defaultloggertest; \
+	  if ! grep "Test warning" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+	  if grep "Test debug1" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+	  if ! grep "Test debug2" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+	  if [ $$passed == 1 ] ; then echo "PASSED defaultloggertest"; else echo "FAILED defaultloggertest"; fi; \
+	  if [ $$passed == 0 ] ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
 	done; \
 	for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
-                passed=1; \
-		$(OBJECT)/config/serpa-run $$p ./userloggertest; \
-		if ! grep "Test warning" user.log >& /dev/null ; then passed=0; fi; \
-		if grep "Test debug1" user.log >& /dev/null ; then passed=0; fi; \
-		if ! grep "Test debug2" user.log >& /dev/null ; then passed=0; fi; \
-		passed=1; \
-		if [ $$passed == 1 ] ; then echo "PASSED userloggertest"; else echo "FAILED userloggertest"; fi; \
+	  echo "    <testcase classname=\"logger\" name=$(QUOTE)userlogger $$p procs$(QUOTE)>" >> $(REPORT); \
+	  passed=1; \
+	  $(OBJECT)/config/serpa-run $$p ./userloggertest; \
+	  if ! grep "Test warning" user.log >& /dev/null ; then passed=0; fi; \
+	  if grep "Test debug1" user.log >& /dev/null ; then passed=0; fi; \
+	  if ! grep "Test debug2" user.log >& /dev/null ; then passed=0; fi; \
+	  if [ $$passed == 1 ] ; then echo "PASSED userloggertest"; else echo "FAILED userloggertest"; fi; \
+	  if [ $$passed == 0 ] ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
 	done;
 
 check2d:
@@ -61,14 +68,26 @@ check3d:
 checkcompile: userloggertest defaultloggertest
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean: 
-	$(SAMCLEAN)
-	$(RM) -rf defaultloggertest userloggertest
-	$(RM) -rf *.log.* stats
+examples:
+
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) defaultloggertest userloggertest
 
 include $(SRCDIR)/Makefile.depend

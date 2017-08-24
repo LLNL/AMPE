@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   utility routines useful for load balancing operations
  *
  ************************************************************************/
@@ -14,13 +14,18 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/hier/BaseGridGeometry.h"
+#include "SAMRAI/hier/Connector.h"
+#include "SAMRAI/hier/MappingConnector.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/ProcessorMapping.h"
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
+#include "SAMRAI/mesh/PartitioningParams.h"
 #include "SAMRAI/mesh/SpatialKey.h"
+#include "SAMRAI/tbox/RankGroup.h"
 
 #include <iostream>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace mesh {
@@ -42,13 +47,16 @@ struct BalanceUtilities {
     *                 (ranges from zero to one hundred percent)
     *
     * @param mapping  Output processor mapping.
-    * @param weights  tbox::Array of double-valued weights to distribute.
+    * @param weights  std::vector of double-valued weights to distribute.
     * @param nproc    Integer number of processors, must be > 0.
+    *
+    * @pre nproc > 0
+    * @pre for each memeber of weights, w, w >=0
     */
    static double
    binPack(
       hier::ProcessorMapping& mapping,
-      tbox::Array<double>& weights,
+      std::vector<double>& weights,
       int nproc);
 
    /*!
@@ -66,16 +74,17 @@ struct BalanceUtilities {
     *                 (ranges from zero to one hundred percent)
     *
     * @param mapping  Output processor mapping.
-    * @param weights  tbox::Array of double-valued box weights to distribute.
-    * @param boxes    tbox::Array of boxes to distribute to processors.
+    * @param weights  std::vector of double-valued box weights to distribute.
+    * @param boxes    hier::BoxContainer of boxes to distribute to processors.
     * @param nproc    Integer number of processors, must be > 0.
     *
-    * Note that the wight and box arrrays must be the same size.
+    * @pre nproc > 0
+    * @pre weights.size() == boxes.size()
     */
    static double
    spatialBinPack(
       hier::ProcessorMapping& mapping,
-      tbox::Array<double>& weights,
+      std::vector<double>& weights,
       hier::BoxContainer& boxes,
       const int nproc);
 
@@ -93,11 +102,11 @@ struct BalanceUtilities {
     * @param in_boxes        Input boxlist for chopping.
     * @param ideal_workload  Input double ideal box workload, must be > 0.
     * @param workload_tolerance Input double workload tolerance, must be >= 0 and < 1.0
-    * @param min_size        Input integer vector of minimum dimensions for
+    * @param min_size        Input integer vector of minimum sizes for
     *                        output boxes. All entries must be > 0.
     * @param cut_factor      Input integer vector used to create boxes with
-    *                        correct dimensions.  The length of each box
-    *                        dimension will be an integer multiple of the
+    *                        correct sizes.  The box size in each
+    *                        direction will be an integer multiple of the
     *                        corresponding cut factor vector entry.  All
     *                        vector entries must be > 0.  See hier::BoxUtilities
     *                        documentation for more details.
@@ -115,9 +124,18 @@ struct BalanceUtilities {
     *                        will be either in the domain interior or outside
     *                        the domain.  All entries must be >= 0. See
     *                        hier::BoxUtilities documentation for more details.
-    * @param physical_domain tbox::Array of boxes describing the physical extent of
-    *                        the index space associated with the in_boxes.
-    *                        This box array cannot be empty.
+    * @param physical_domain hier::BoxContainer of boxes describing the
+    *                        physical extent of the index space associated with
+    *                        the in_boxes.  This box array cannot be empty.
+    *
+    * @pre (min_size.getDim() == cut_factor.getDim()) &&
+    *      (min_size.getDim() == bad_interval.getDim())
+    * @pre ideal_workload > 0
+    * @pre (workload_tolerance >= 0) && (workload_tolerance < 1.0)
+    * @pre min_size > hier::IntVector::getZero(min_size.getDim())
+    * @pre cut_factor > hier::IntVector::getZero(min_size.getDim())
+    * @pre bad_interval >= hier::IntVector::getZero(min_size.getDim())
+    * @pre !physical_domain.empty()
     */
    static void
    recursiveBisectionUniform(
@@ -150,11 +168,11 @@ struct BalanceUtilities {
     *                        double work estimate for each cell.
     * @param ideal_workload  Input double ideal box workload, must be > 0.
     * @param workload_tolerance Input double workload tolerance, must be >= 0 and < 1.0
-    * @param min_size        Input integer vector of minimum dimensions for
+    * @param min_size        Input integer vector of minimum sizes for
     *                        output boxes. All entries must be > 0.
     * @param cut_factor      Input integer vector used to create boxes with
-    *                        correct dimensions.  The length of each box
-    *                        dimension will be an integer multiple of the
+    *                        correct sizes.  The box size in each
+    *                        direction will be an integer multiple of the
     *                        corresponding cut factor vector entry.  All
     *                        vector entries must be > 0.  See hier::BoxUtilities
     *                        documentation for more details.
@@ -172,9 +190,18 @@ struct BalanceUtilities {
     *                        will be either in the domain interior or outside
     *                        the domain.  All entries must be >= 0. See
     *                        hier::BoxUtilities documentation for more details.
-    * @param physical_domain tbox::Array of boxes describing the physical extent of
-    *                        the index space associated with the in_boxes.
-    *                        This box array cannot be empty.
+    * @param physical_domain hier::BoxContainer of boxes describing the
+    *                        physical extent of the index space associated with
+    *                        the in_boxes.  This box array cannot be empty.
+    *
+    * @pre (min_size.getDim() == cut_factor.getDim()) &&
+    *      (min_size.getDim() == bad_interval.getDim())
+    * @pre ideal_workload > 0
+    * @pre (workload_tolerance >= 0) && (workload_tolerance < 1.0)
+    * @pre min_size > hier::IntVector::getZero(min_size.getDim())
+    * @pre cut_factor > hier::IntVector::getZero(min_size.getDim())
+    * @pre bad_interval >= hier::IntVector::getZero(min_size.getDim())
+    * @pre !physical_domain.empty()
     */
    static void
    recursiveBisectionNonuniform(
@@ -191,12 +218,16 @@ struct BalanceUtilities {
 
    /*!
     * Compute factorization of processors corresponding to
-    * dimensions of given box.
+    * size of given box.
     *
     * @param proc_dist  Output number of processors for each
     *                   coordinate direction.
     * @param num_procs  Input integer number of processors, must be > 0.
     * @param box        Input box to be distributed.
+    *
+    * @pre proc_dist.getDim() == box.getDim()
+    * @pre num_procs > 0
+    * @pre for each dimension, i, box.numberCells(i) > 0
     */
    static void
    computeDomainDependentProcessorLayout(
@@ -216,6 +247,10 @@ struct BalanceUtilities {
     *                   coordinate direction.
     * @param num_procs  Input integer number of processors, must be > 0.
     * @param box        Input box to be distributed.
+    *
+    * @pre proc_dist.getDim() == box.getDim()
+    * @pre num_procs > 0
+    * @pre for each dimension, i, box.numberCells(i) > 0
     */
    static void
    computeDomainIndependentProcessorLayout(
@@ -234,12 +269,12 @@ struct BalanceUtilities {
     * @param boxes     Boxes to be sorted based on workload array.
     * @param workload  Workloads to use for sorting boxes.
     *
-    * Note that both arrays must be the same size.
+    * @pre boxes.size() == workload.size()
     */
    static void
    sortDescendingBoxWorkloads(
       hier::BoxContainer& boxes,
-      tbox::Array<double>& workload);
+      std::vector<double>& workload);
 
    /*!
     * Compute total workload in region of argument box based on patch
@@ -247,19 +282,129 @@ struct BalanceUtilities {
     * intersection of argument box and box over which data associated with
     * workload is defined.
     *
-    * @return          Double-valued sum of workload values in box region.
+    * @return          Sum of workload values in box region.
     *
     * @param patch     Input patch on which workload data is defined.
     * @param wrk_indx  Input integer patch data identifier for work data.
     * @param box       Input box region
     *
     * Note that wrk_indx must refer to a valid cell-centered patch data entry.
+    *
+    * @pre patch
+    * @pre patch->getDim() == box.getDim()
     */
    static double
    computeNonUniformWorkload(
       const boost::shared_ptr<hier::Patch>& patch,
       int wrk_indx,
       const hier::Box& box);
+
+   /*!
+    * @brief Compute total workload in region of argument box based on patch
+    * data defined by given integer index, while also associating weights with
+    * corners of the box.
+    *
+    * The corner weights are fractional values that identify how much of the
+    * workload is located in each quadrant or octant of the box.
+    *
+    * @return          Sum of workload values in the box.
+    *
+    * @param[out] corner_weights  Fraction of weights associated with
+    *                             each corner of the patch. Vector must be
+    *                             empty on input. 
+    * @param[in]  patch     Patch on which workload data is defined.
+    * @param[in]  wrk_indx  Patch data identifier for work data.
+    * @param[in]  box       Box on which workload is computed
+    *
+    * @pre box.getBlockId() == patch->getBox().getBlockId()
+    * @pre box.isSpatiallyEqual(box * patch->getBox())
+    */
+   static double
+   computeNonUniformWorkloadOnCorners(
+      std::vector<double>& corner_weights,
+      const boost::shared_ptr<hier::Patch>& patch,
+      int wrk_indx,
+      const hier::Box& box);
+
+   /*!
+    * @brief Find small boxes in a post-balance BoxLevel that are not
+    * in a pre-balance BoxLevel.
+    *
+    * @param co Stream to report findings
+    *
+    * @param border Left border in report output
+    *
+    * @param [in] post_to_pre
+    *
+    * @param [in] min_width Report post-balance boxes smaller than
+    * min_width in any direction.
+    *
+    * @param [in] min_vol Report post-balance boxes with fewer cells
+    * than this.
+    */
+   static void
+   findSmallBoxesInPostbalance(
+      std::ostream& co,
+      const std::string& border,
+      const hier::MappingConnector& post_to_pre,
+      const hier::IntVector& min_width,
+      size_t min_vol);
+
+   /*!
+    * @brief Find small boxes in a post-balance BoxLevel that are not
+    * in a pre-balance BoxLevel.
+    *
+    * This method does not scale.  It acquires and processes
+    * globalized data.
+    *
+    * @param co Stream to report findings
+    *
+    * @param border Left border in report output
+    *
+    * @param [in] pre Pre-balance BoxLevel
+    *
+    * @param [in] post Post-balance BoxLevel
+    *
+    * @param [in] min_width Report post-balance boxes smaller than
+    * min_width in any direction.
+    *
+    * @param [in] min_vol Report post-balance boxes with fewer cells
+    * than this.
+    */
+   static void
+   findSmallBoxesInPostbalance(
+      std::ostream& co,
+      const std::string& border,
+      const hier::BoxLevel& pre,
+      const hier::BoxLevel& post,
+      const hier::IntVector& min_width,
+      size_t min_vol);
+
+   /*!
+    * @brief Evaluate whether a new load is an improvement over a
+    * current load based on their proximity to an ideal value or range
+    * of acceptable values.
+    *
+    * There is a slight bias toward current load.  The new_load is better
+    * only if it improves by at least pparams.getLoadComparisonTol().
+    *
+    * Return values in flags:
+    * - [0]: -1, 0 or 1: degrades, leave-alone or improves in-range
+    * - [1]: -1, 0 or 1: degrades, leave-alone or improves balance
+    * - [2]: -1, 0 or 1: degrades, leave-alone or improves overall
+    * - [3]: 0 or 1: whether new_load is within the range of [low, high]
+    *
+    * Return whether new_load is an improvement over current_load.
+    */
+   static bool
+   compareLoads(
+      int flags[],
+      double current_load,
+      double new_load,
+      double ideal_load,
+      double low_load,
+      double high_load,
+      const PartitioningParams &pparams);
 
    /*!
     * Compute and return load balance efficiency for a level.
@@ -273,6 +418,8 @@ struct BalanceUtilities {
     * @param workload_data_id (Optional) Input integer id for workload
     *                         data on level.  If no value is given, the
     *                         calculation assumes spatially-uniform load.
+    *
+    * @pre level
     */
    static double
    computeLoadBalanceEfficiency(
@@ -285,34 +432,14 @@ struct BalanceUtilities {
    //! @name Load balance reporting.
 
    /*!
-    * @brief Gather workloads in an MPI group and write out a summary
-    * of load balance efficiency.
-    *
-    * To be used for performance evaluation.  Not recommended for general use.
-    *
-    * @param[in] local_workload Workload of the local process
-    *
-    * @param[in] mpi Represents all processes involved in the load balancing.
-    *
-    * @param[in] output_stream
-    *
-    * TODO: This method is a utility that doesn't strictly belong in a
-    * strategy design pattern.  It should be moved elsewhere.
-    */
-   static void
-   gatherAndReportLoadBalance(
-      double local_workload,
-      const tbox::SAMRAI_MPI& mpi,
-      std::ostream& output_stream = tbox::plog);
-
-   /*!
-    * @brief Gather a sequence of workloads in an MPI group and write
-    * out a summary of load balance efficiency.
+    * @brief Globally reduce a sequence of workloads in an MPI group
+    * and write out a summary of load balance efficiency.
     *
     * Each value in the sequence of workloads represent a certain load
     * the local process had over a sequence of load balancings.
     *
-    * To be used for performance evaluation.  Not recommended for general use.
+    * To be used for performance evaluation.  Not recommended for
+    * general use.
     *
     * @param[in] local_loads Sequence of workloads of the local
     * process.  The size of @c local_loads is the number times load
@@ -324,32 +451,44 @@ struct BalanceUtilities {
     * @param[in] output_stream
     */
    static void
-   gatherAndReportLoadBalance(
+   reduceAndReportLoadBalance(
       const std::vector<double>& local_loads,
       const tbox::SAMRAI_MPI& mpi,
       std::ostream& output_stream = tbox::plog);
 
-   /*!
-    * @brief Write out a short report of how well load is balanced.
-    *
-    * Given the workloads of a number of processes, format and write
-    * out a brief report for assessing how well balanced the workloads
-    * are.
-    *
-    * @param[in] workloads One value for each process.  The number of
-    * processes is taken to be the size of this container.
-    *
-    * @param[in] output_stream
-    */
-   static void
-   reportLoadBalance(
-      const std::vector<double>& workloads,
-      std::ostream& output_stream);
-
    //@}
 
-private:
+   /*
+    * Constrain maximum box sizes in the given BoxLevel and
+    * update given Connectors to the changed BoxLevel.
+    *
+    * @pre !anchor_to_level || anchor_to_level->hasTranspose()
+    */
+   static void
+   constrainMaxBoxSizes(
+      hier::BoxLevel& box_level,
+      hier::Connector* anchor_to_level,
+      const PartitioningParams& pparams);
 
+   static const int BalanceUtilities_PREBALANCE0 = 5;
+   static const int BalanceUtilities_PREBALANCE1 = 6;
+
+   /*!
+    * Move Boxes in balance_box_level from ranks outside of
+    * rank_group to ranks inside rank_group.  Modify the given connectors
+    * to make them correct following this moving of boxes.
+    *
+    * @pre !balance_to_anchor || balance_to_anchor->hasTranspose()
+    * @pre !balance_to_anchor || (balance_to_anchor->getTranspose().checkTransposeCorrectness(*balance_to_anchor) == 0)
+    * @pre !balance_to_anchor || (balance_to_anchor->checkTransposeCorrectness(balance_to_anchor->getTranspose()) == 0)
+    */
+   static void
+   prebalanceBoxLevel(
+      hier::BoxLevel& balance_box_level,
+      hier::Connector* balance_to_anchor,
+      const tbox::RankGroup& rank_group);
+
+private:
    struct RankAndLoad {
       int rank;
       double load;
@@ -369,15 +508,15 @@ private:
 
    static void
    privateHeapify(
-      tbox::Array<int>& permutation,
-      tbox::Array<double>& workload,
+      std::vector<int>& permutation,
+      std::vector<double>& workload,
       const int index,
       const int heap_size);
 
    static void
    privateHeapify(
-      tbox::Array<int>& permutation,
-      tbox::Array<SpatialKey>& spatial_keys,
+      std::vector<int>& permutation,
+      std::vector<SpatialKey>& spatial_keys,
       const int index,
       const int heap_size);
 
@@ -385,7 +524,7 @@ private:
    privateRecursiveProcAssign(
       const int wt_index_lo,
       const int wt_index_hi,
-      tbox::Array<double>& weights,
+      std::vector<double>& weights,
       const int proc_index_lo,
       const int proc_index_hi,
       hier::ProcessorMapping& mapping,
@@ -394,11 +533,11 @@ private:
    static void
    privatePrimeFactorization(
       const int N,
-      tbox::Array<int>& p);
+      std::vector<int>& p);
 
    static void
    privateResetPrimesArray(
-      tbox::Array<int>& p);
+      std::vector<int>& p);
 
    static bool
    privateBadCutPointsExist(
@@ -406,7 +545,7 @@ private:
 
    static void
    privateInitializeBadCutPointsForBox(
-      tbox::Array<tbox::Array<bool> >& bad_cut_points,
+      std::vector<std::vector<bool> >& bad_cut_points,
       hier::Box& box,
       bool bad_domain_boundaries_exist,
       const hier::IntVector& bad_interval,
@@ -414,11 +553,11 @@ private:
 
    static bool
    privateFindBestCutDimension(
-      int& cut_dim_out,
+      tbox::Dimension::dir_t& cut_dim_out,
       const hier::Box& in_box,
       const hier::IntVector& min_size,
       const hier::IntVector& cut_factor,
-      tbox::Array<tbox::Array<bool> >& bad_cut_points);
+      std::vector<std::vector<bool> >& bad_cut_points);
 
    static int
    privateFindCutPoint(
@@ -426,19 +565,19 @@ private:
       double ideal_workload,
       int mincut,
       int numcells,
-      const tbox::Array<double>& work_in_slice,
-      const tbox::Array<bool>& bad_cut_points);
+      const std::vector<double>& work_in_slice,
+      const std::vector<bool>& bad_cut_points);
 
    static void
    privateCutBoxesAndSetBadCutPoints(
       hier::Box& box_lo,
-      tbox::Array<tbox::Array<bool> >& bad_cut_points_for_boxlo,
+      std::vector<std::vector<bool> >& bad_cut_points_for_boxlo,
       hier::Box& box_hi,
-      tbox::Array<tbox::Array<bool> >& bad_cut_points_for_boxhi,
+      std::vector<std::vector<bool> >& bad_cut_points_for_boxhi,
       const hier::Box& in_box,
-      int cutdim,
+      tbox::Dimension::dir_t cutdim,
       int cut_index,
-      const tbox::Array<tbox::Array<bool> >& bad_cut_points);
+      const std::vector<std::vector<bool> >& bad_cut_points);
 
    static void
    privateRecursiveBisectionUniformSingleBox(
@@ -450,7 +589,7 @@ private:
       const double workload_tolerance,
       const hier::IntVector& min_size,
       const hier::IntVector& cut_factor,
-      tbox::Array<tbox::Array<bool> >& bad_cut_points);
+      std::vector<std::vector<bool> >& bad_cut_points);
 
    static void
    privateRecursiveBisectionNonuniformSingleBox(
@@ -464,7 +603,7 @@ private:
       const double workload_tolerance,
       const hier::IntVector& min_size,
       const hier::IntVector& cut_factor,
-      tbox::Array<tbox::Array<bool> >& bad_cut_points);
+      std::vector<std::vector<bool> >& bad_cut_points);
 
 };
 

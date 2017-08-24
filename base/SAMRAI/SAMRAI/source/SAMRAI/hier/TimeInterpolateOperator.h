@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Abstract base class for time interpolation operators.
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/hier/Variable.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -45,13 +45,13 @@ namespace hier {
  * subclass must implement the interpolation operation in the timeInterpolate()
  * function.  Then, the new operator must be added to the operator list
  * for the appropriate transfer geometry object using the
- * Geometry<DIM>::addTimeInterpolateOperator() function.
+ * BaseGridGeometry::addTimeInterpolateOperator() function.
  *
  * Although time interpolation operators usually depend only on patch data
  * centering and data type and not the mesh coordinate system, they are
  * defined in the @em geometry package.
  *
- * @see hier::TransferOperatorRegistry
+ * @see TransferOperatorRegistry
  */
 
 class TimeInterpolateOperator
@@ -97,7 +97,7 @@ private:
    // Neither of these is implemented.
    TimeInterpolateOperator(
       const TimeInterpolateOperator&);
-   void
+   TimeInterpolateOperator&
    operator = (
       const TimeInterpolateOperator&);
 

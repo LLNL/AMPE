@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Factory for creating outernode sum transaction objects
  *
  ************************************************************************/
@@ -19,7 +19,7 @@
 #include "SAMRAI/xfer/RefineClasses.h"
 #include "SAMRAI/xfer/RefineTransactionFactory.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace algs {
@@ -47,16 +47,15 @@ public:
    virtual ~OuternodeSumTransactionFactory();
 
    /*!
-    * @brief Set the array of xfer::RefineClass<DIM>::Data items used by the
+    * @brief Set the array of xfer::RefineClasses::Data items used by the
     * transactions.
     */
    void
    setRefineItems(
-      const xfer::RefineClasses::Data ** refine_items,
-      int num_refine_items);
+      const xfer::RefineClasses::Data * const * refine_items);
 
    /*!
-    * @brief Clear the array of xfer::RefineClass<DIM>::Data items used by the
+    * @brief Clear the array of xfer::RefineClasses::Data items used by the
     * transactions.
     */
    void
@@ -71,7 +70,8 @@ public:
     *                       patches.
     * @param dst_node       Destination Box in destination patch level.
     * @param src_node       Source Box in source patch level.
-    * @param ritem_id       Integer index of xfer::RefineClass<DIM>::Data item
+    * @param refine_data    Pointer to array of refine data items
+    * @param item_id        Integer index of xfer::RefineClasses::Data item
     *                       associated with transaction.
     * @param box            Const reference to box defining region of
     *                       refine transaction.  Use following allocate method
@@ -79,6 +79,16 @@ public:
     * @param use_time_interpolation  Optional boolean flag indicating whether
     *                       the refine transaction involves time interpolation.
     *                       Default is false.
+    *
+    * @pre dst_level
+    * @pre src_level
+    * @pre overlap
+    * @pre dst_node.getLocalId() >= 0
+    * @pre src_node.getLocalId() >= 0
+    * @pre item_id >= 0
+    * @pre (dst_level->getDim() == src_level->getDim()) &&
+    *      (dst_level->getDim() == dst_node.getDim()) &&
+    *      (dst_level->getDim() == src_node.getDim())
     */
    boost::shared_ptr<tbox::Transaction>
    allocate(
@@ -87,7 +97,8 @@ public:
       const boost::shared_ptr<hier::BoxOverlap>& overlap,
       const hier::Box& dst_node,
       const hier::Box& src_node,
-      int ritem_id,
+      const xfer::RefineClasses::Data ** refine_data,
+      int item_id,
       const hier::Box& box,
       bool use_time_interpolation = false) const;
 
@@ -96,6 +107,16 @@ public:
     *
     * Same as previous allocate routine but with default empty box and no
     * timer interpolation.
+    *
+    * @pre dst_level
+    * @pre src_level
+    * @pre overlap
+    * @pre dst_node.getLocalId() >= 0
+    * @pre src_node.getLocalId() >= 0
+    * @pre item_id >= 0
+    * @pre (dst_level->getDim() == src_level->getDim()) &&
+    *      (dst_level->getDim() == dst_node.getDim()) &&
+    *      (dst_level->getDim() == src_node.getDim())
     */
    boost::shared_ptr<tbox::Transaction>
    allocate(
@@ -104,7 +125,8 @@ public:
       const boost::shared_ptr<hier::BoxOverlap>& overlap,
       const hier::Box& dst_node,
       const hier::Box& src_node,
-      int ritem_id) const;
+      const xfer::RefineClasses::Data ** refine_data,
+      int item_id) const;
 
    /*!
     * @brief Function to initialize scratch space data for the sum transactions
@@ -117,6 +139,8 @@ public:
     * @param preprocess_vector Const reference to hier::ComponentSelector
     *                     indicating patch data array indices of scratch patch
     *                     data objects to preprocess.
+    *
+    * @pre level
     */
    void
    preprocessScratchSpace(
@@ -128,12 +152,9 @@ private:
    // The following two functions are not implemented
    OuternodeSumTransactionFactory(
       const OuternodeSumTransactionFactory&);
-   void
+   OuternodeSumTransactionFactory&
    operator = (
       const OuternodeSumTransactionFactory&);
-
-   const xfer::RefineClasses::Data** d_refine_items;
-   int d_number_refine_items;
 
 };
 

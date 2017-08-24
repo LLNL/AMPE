@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Robin boundary condition problem-dependent interfaces
  *
  ************************************************************************/
@@ -16,7 +16,7 @@
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/hier/Patch.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace solv {
@@ -96,7 +96,7 @@ public:
     * on the boundary is simple.
     *
     * The boundary condition coefficients should be placed
-    * in the pdat::ArrayData<DIM> objects, @c acoef_data and @c gcoef_data
+    * in the pdat::ArrayData<TYPE> objects, @c acoef_data and @c gcoef_data
     * (see argument list), which are dimensioned to contain the indices
     * of the points alligned with @c variable and lying on the
     * the boundary defined by @c bdry_box.

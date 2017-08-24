@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to C++ vector implementation for PETSc package.
  *
  ************************************************************************/
@@ -30,6 +30,9 @@
 #define included_petsc_vec
 #ifdef MPICH_SKIP_MPICXX
 #undef MPICH_SKIP_MPICXX
+#endif
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
 #endif
 #include "petscvec.h"
 #endif
@@ -363,8 +366,8 @@ private:
     */
    static PetscErrorCode
    vecDestroyVecs(
-      Vec* v_arr,
-      PetscInt n);
+      PetscInt n,
+      Vec* v_arr);
 
    /*
     * Computes the vector dot product.
@@ -393,9 +396,8 @@ private:
     *
     * typedef enum {NORM_1=0,NORM_2=1,NORM_FROBENIUS=2,NORM_INFINITY=3,NORM_1_AND_2=4} NormType;
     *
-    * If norm type is not NORM_1, NORM_2, NORM_INFINITY, or
-    * NORM_1_AND_2, an unrecoverable assertion will be thrown and
-    * program will abort.
+    * @pre (type == NORM_1) || (type == NORM_2) || (type == NORM_INFINITY) ||
+    *      (type == NORM_1_AND_2)
     */
    static PetscErrorCode
    vecNorm(
@@ -624,9 +626,8 @@ private:
     *
     * typedef enum {NORM_1=0,NORM_2=1,NORM_FROBENIUS=2,NORM_INFINITY=3,NORM_1_AND_2=4} NormType;
     *
-    * If norm type is not NORM_1, NORM_2, NORM_INFINITY, or
-    * NORM_1_AND_2, an unrecoverable assertion will be thrown and
-    * program will abort.
+    * @pre (type == NORM_1) || (type == NORM_2) || (type == NORM_INFINITY) ||
+    *      (type == NORM_1_AND_2)
     */
    static PetscErrorCode
    vecNorm_local(
@@ -690,7 +691,8 @@ private:
    static PetscErrorCode
    vecSetOption(
       Vec x,
-      VecOption op);
+      VecOption op,
+      PetscBool result);
 
    static PetscErrorCode
    vecSetValuesBlocked(
@@ -746,9 +748,8 @@ private:
 
    static PetscErrorCode
    vecLoad(
-      PetscViewer viewer,
-      VecType outtype,
-      Vec* newvec);
+      Vec newvec,
+      PetscViewer viewer);
 
    static PetscErrorCode
    vecPointwiseMax(

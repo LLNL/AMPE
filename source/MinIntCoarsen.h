@@ -92,7 +92,7 @@ public:
     * The stencil width of the weighted averaging operator is the vector of
     * zeros.  That is, its stencil does not extend outside the fine box.
     */
-   hier::IntVector getStencilWidth() const;
+   hier::IntVector getStencilWidth(const tbox::Dimension& dim) const;
 
    /**
     * Coarsen the source component on the fine patch to the destination

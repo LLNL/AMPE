@@ -111,9 +111,9 @@ public:
       (void) ratio;
    }
 
-   hier::IntVector getRefineOpStencilWidth() const 
+   hier::IntVector getRefineOpStencilWidth(const tbox::Dimension &dim) const 
    {
-       return( hier::IntVector(tbox::Dimension(NDIM),1) );
+       return( hier::IntVector(dim,1) );
    }
 
    //@}

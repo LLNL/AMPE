@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Weighted averaging operator for side-centered complex data on
  *                a Cartesian mesh.
  *
  ************************************************************************/
-
-#ifndef included_geom_CartesianSideComplexWeightedAverage_C
-#define included_geom_CartesianSideComplexWeightedAverage_C
-
 #include "SAMRAI/geom/CartesianSideComplexWeightedAverage.h"
 #include "SAMRAI/tbox/Complex.h"
 
@@ -37,28 +33,28 @@ extern "C" {
 #endif
 
 // in cartcoarsen1d.f:
-void F77_FUNC(cartwgtavgsidecplx1d, CARTWGTAVGSIDECPLX1D) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx1d, CARTWGTAVGSIDECPLX1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen2d.f:
-void F77_FUNC(cartwgtavgsidecplx2d0, CARTWGTAVGSIDECPLX2D0) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx2d0, CARTWGTAVGSIDECPLX2D0) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 
-void F77_FUNC(cartwgtavgsidecplx2d1, CARTWGTAVGSIDECPLX2D1) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx2d1, CARTWGTAVGSIDECPLX2D1) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartcoarsen3d.f:
-void F77_FUNC(cartwgtavgsidecplx3d0, CARTWGTAVGSIDECPLX3D0) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx3d0, CARTWGTAVGSIDECPLX3D0) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -67,7 +63,7 @@ void F77_FUNC(cartwgtavgsidecplx3d0, CARTWGTAVGSIDECPLX3D0) (const int&,
    const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(cartwgtavgsidecplx3d1, CARTWGTAVGSIDECPLX3D1) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx3d1, CARTWGTAVGSIDECPLX3D1) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -76,7 +72,7 @@ void F77_FUNC(cartwgtavgsidecplx3d1, CARTWGTAVGSIDECPLX3D1) (const int&,
    const int&, const int&, const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(cartwgtavgsidecplx3d2, CARTWGTAVGSIDECPLX3D2) (const int&,
+void SAMRAI_F77_FUNC(cartwgtavgsidecplx3d2, CARTWGTAVGSIDECPLX3D2) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -92,9 +88,8 @@ namespace geom {
 
 // using namespace std;
 
-CartesianSideComplexWeightedAverage::CartesianSideComplexWeightedAverage(
-   const tbox::Dimension& dim):
-   hier::CoarsenOperator(dim, "CONSERVATIVE_COARSEN")
+CartesianSideComplexWeightedAverage::CartesianSideComplexWeightedAverage():
+   hier::CoarsenOperator("CONSERVATIVE_COARSEN")
 {
 }
 
@@ -109,9 +104,9 @@ CartesianSideComplexWeightedAverage::getOperatorPriority() const
 }
 
 hier::IntVector
-CartesianSideComplexWeightedAverage::getStencilWidth() const
+CartesianSideComplexWeightedAverage::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -123,16 +118,16 @@ CartesianSideComplexWeightedAverage::coarsen(
    const hier::Box& coarse_box,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
+   const tbox::Dimension& dim(fine.getDim());
 
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, coarse, fine, coarse_box, ratio);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY3(dim, coarse, coarse_box, ratio);
 
    boost::shared_ptr<pdat::SideData<dcomplex> > fdata(
-      fine.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<dcomplex>, hier::PatchData>(
+         fine.getPatchData(src_component)));
    boost::shared_ptr<pdat::SideData<dcomplex> > cdata(
-      coarse.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::SideData<dcomplex>, hier::PatchData>(
+         coarse.getPatchData(dst_component)));
 
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata);
@@ -143,25 +138,28 @@ CartesianSideComplexWeightedAverage::coarsen(
    TBOX_ASSERT(directions ==
       hier::IntVector::min(directions, fdata->getDirectionVector()));
 
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
-   const hier::Index cilo = cdata->getGhostBox().lower();
-   const hier::Index cihi = cdata->getGhostBox().upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cdata->getGhostBox().lower();
+   const hier::Index& cihi = cdata->getGhostBox().upper();
 
    const boost::shared_ptr<CartesianPatchGeometry> fgeom(
-      fine.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         fine.getPatchGeometry()));
    const boost::shared_ptr<CartesianPatchGeometry> cgeom(
-      coarse.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         coarse.getPatchGeometry()));
 
-   const hier::Index ifirstc = coarse_box.lower();
-   const hier::Index ilastc = coarse_box.upper();
+   TBOX_ASSERT(fgeom);
+   TBOX_ASSERT(cgeom);
 
-   for (int d = 0; d < cdata->getDepth(); d++) {
+   const hier::Index& ifirstc = coarse_box.lower();
+   const hier::Index& ilastc = coarse_box.upper();
+
+   for (int d = 0; d < cdata->getDepth(); ++d) {
       if ((dim == tbox::Dimension(1))) {
          if (directions(0)) {
-            F77_FUNC(cartwgtavgsidecplx1d, CARTWGTAVGSIDECPLX1D) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx1d, CARTWGTAVGSIDECPLX1D) (ifirstc(0),
                ilastc(0),
                filo(0), fihi(0),
                cilo(0), cihi(0),
@@ -173,7 +171,7 @@ CartesianSideComplexWeightedAverage::coarsen(
          }
       } else if ((dim == tbox::Dimension(2))) {
          if (directions(0)) {
-            F77_FUNC(cartwgtavgsidecplx2d0, CARTWGTAVGSIDECPLX2D0) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx2d0, CARTWGTAVGSIDECPLX2D0) (ifirstc(0),
                ifirstc(1), ilastc(0), ilastc(1),
                filo(0), filo(1), fihi(0), fihi(1),
                cilo(0), cilo(1), cihi(0), cihi(1),
@@ -184,7 +182,7 @@ CartesianSideComplexWeightedAverage::coarsen(
                cdata->getPointer(0, d));
          }
          if (directions(1)) {
-            F77_FUNC(cartwgtavgsidecplx2d1, CARTWGTAVGSIDECPLX2D1) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx2d1, CARTWGTAVGSIDECPLX2D1) (ifirstc(0),
                ifirstc(1), ilastc(0), ilastc(1),
                filo(0), filo(1), fihi(0), fihi(1),
                cilo(0), cilo(1), cihi(0), cihi(1),
@@ -196,7 +194,7 @@ CartesianSideComplexWeightedAverage::coarsen(
          }
       } else if ((dim == tbox::Dimension(3))) {
          if (directions(0)) {
-            F77_FUNC(cartwgtavgsidecplx3d0, CARTWGTAVGSIDECPLX3D0) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx3d0, CARTWGTAVGSIDECPLX3D0) (ifirstc(0),
                ifirstc(1), ifirstc(2),
                ilastc(0), ilastc(1), ilastc(2),
                filo(0), filo(1), filo(2),
@@ -210,7 +208,7 @@ CartesianSideComplexWeightedAverage::coarsen(
                cdata->getPointer(0, d));
          }
          if (directions(1)) {
-            F77_FUNC(cartwgtavgsidecplx3d1, CARTWGTAVGSIDECPLX3D1) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx3d1, CARTWGTAVGSIDECPLX3D1) (ifirstc(0),
                ifirstc(1), ifirstc(2),
                ilastc(0), ilastc(1), ilastc(2),
                filo(0), filo(1), filo(2),
@@ -224,7 +222,7 @@ CartesianSideComplexWeightedAverage::coarsen(
                cdata->getPointer(1, d));
          }
          if (directions(2)) {
-            F77_FUNC(cartwgtavgsidecplx3d2, CARTWGTAVGSIDECPLX3D2) (ifirstc(0),
+            SAMRAI_F77_FUNC(cartwgtavgsidecplx3d2, CARTWGTAVGSIDECPLX3D2) (ifirstc(0),
                ifirstc(1), ifirstc(2),
                ilastc(0), ilastc(1), ilastc(2),
                filo(0), filo(1), filo(2),
@@ -247,4 +245,3 @@ CartesianSideComplexWeightedAverage::coarsen(
 
 }
 }
-#endif

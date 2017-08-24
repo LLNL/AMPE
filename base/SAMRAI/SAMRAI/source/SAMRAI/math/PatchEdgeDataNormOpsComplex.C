@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Norm operations for complex edge-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchEdgeDataNormOpsComplex_C
-#define included_math_PatchEdgeDataNormOpsComplex_C
-
 #include "SAMRAI/math/PatchEdgeDataNormOpsComplex.h"
 #include "SAMRAI/pdat/EdgeGeometry.h"
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -33,19 +29,19 @@ PatchEdgeDataNormOpsComplex::~PatchEdgeDataNormOpsComplex()
  *************************************************************************
  */
 
-int
+size_t
 PatchEdgeDataNormOpsComplex::numberOfEntries(
    const boost::shared_ptr<pdat::EdgeData<dcomplex> >& data,
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
-   int dimVal = box.getDim().getValue();
-   int retval = 0;
+   tbox::Dimension::dir_t dimVal = box.getDim().getValue();
+   size_t retval = 0;
    const hier::Box ibox = box * data->getGhostBox();
    const int data_depth = data->getDepth();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       retval += (pdat::EdgeGeometry::toEdgeBox(ibox, d).size() * data_depth);
    }
    return retval;
@@ -69,10 +65,10 @@ PatchEdgeDataNormOpsComplex::sumControlVolumes(
 
    int dimVal = box.getDim().getValue();
    double retval = 0.0;
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       retval += d_array_ops.sumControlVolumes(data->getArrayData(d),
-         cvol->getArrayData(d),
-         pdat::EdgeGeometry::toEdgeBox(box, d));
+            cvol->getArrayData(d),
+            pdat::EdgeGeometry::toEdgeBox(box, d));
    }
    return retval;
 }
@@ -84,10 +80,10 @@ PatchEdgeDataNormOpsComplex::abs(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       d_array_ops.abs(dst->getArrayData(d),
          src->getArrayData(d),
          pdat::EdgeGeometry::toEdgeBox(box, d));
@@ -101,20 +97,20 @@ PatchEdgeDataNormOpsComplex::L1Norm(
    const boost::shared_ptr<pdat::EdgeData<double> >& cvol) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    int dimVal = box.getDim().getValue();
 
    double retval = 0.0;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          retval += d_array_ops.L1Norm(data->getArrayData(d), edge_box);
       }
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          retval += d_array_ops.L1NormWithControlVolume(data->getArrayData(d),
                cvol->getArrayData(d),
@@ -131,21 +127,21 @@ PatchEdgeDataNormOpsComplex::L2Norm(
    const boost::shared_ptr<pdat::EdgeData<double> >& cvol) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    int dimVal = box.getDim().getValue();
 
    double retval = 0.0;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          double aval = d_array_ops.L2Norm(data->getArrayData(d), edge_box);
          retval += aval * aval;
       }
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          double aval = d_array_ops.L2NormWithControlVolume(
                data->getArrayData(d),
@@ -165,13 +161,13 @@ PatchEdgeDataNormOpsComplex::weightedL2Norm(
    const boost::shared_ptr<pdat::EdgeData<double> >& cvol) const
 {
    TBOX_ASSERT(data && weight);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*data, *weight, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*data, *weight, box);
 
    int dimVal = box.getDim().getValue();
 
    double retval = 0.0;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          double aval = d_array_ops.weightedL2Norm(data->getArrayData(d),
                weight->getArrayData(d),
@@ -179,9 +175,9 @@ PatchEdgeDataNormOpsComplex::weightedL2Norm(
          retval += aval * aval;
       }
    } else {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*data, *cvol);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*data, *cvol);
 
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          double aval = d_array_ops.weightedL2NormWithControlVolume(
                data->getArrayData(d),
@@ -238,14 +234,14 @@ PatchEdgeDataNormOpsComplex::maxNorm(
 
    double retval = 0.0;
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<double>::Max(retval,
                d_array_ops.maxNorm(data->getArrayData(d), edge_box));
       }
    } else {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box =
             pdat::EdgeGeometry::toEdgeBox(box, d);
          retval = tbox::MathUtilities<double>::Max(retval,
@@ -268,14 +264,14 @@ PatchEdgeDataNormOpsComplex::dot(
 
    dcomplex retval = dcomplex(0.0, 0.0);
    if (!cvol) {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          retval += d_array_ops.dot(data1->getArrayData(d),
                data2->getArrayData(d),
                edge_box);
       }
    } else {
-      for (int d = 0; d < dimVal; d++) {
+      for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
          const hier::Box edge_box = pdat::EdgeGeometry::toEdgeBox(box, d);
          retval += d_array_ops.dotWithControlVolume(
                data1->getArrayData(d),
@@ -297,7 +293,7 @@ PatchEdgeDataNormOpsComplex::integral(
 
    int dimVal = box.getDim().getValue();
    dcomplex retval = dcomplex(0.0, 0.0);
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       retval += d_array_ops.integral(
             data->getArrayData(d),
             vol->getArrayData(d),
@@ -308,4 +304,3 @@ PatchEdgeDataNormOpsComplex::integral(
 
 }
 }
-#endif

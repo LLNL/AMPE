@@ -1,0 +1,39 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for SAMRAI patch hierarchy
+##                boundary sum test
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/patchbdrysum/fortran
+VPATH         = @srcdir@
+OBJECT        = ../../../..
+
+default: main
+
+include $(OBJECT)/config/Makefile.config
+
+OBJS= 	edgeops2d.o edgeops3d.o
+
+main:	$(OBJS)
+
+clean:
+	$(CLEAN_COMMON_TEST_FILES)
+
+include $(SRCDIR)/Makefile.depend
+
+M4DIRS = -DFORTDIR=$(SRCDIR) $(SAMRAI_M4_FLAGS)
+
+edgeops2d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/edgeops2d.m4 > edgeops2d.f
+	$(F77) $(FFLAGS) -c edgeops2d.f -o $@
+
+edgeops3d.o:
+	$(M4) $(M4DIRS) $(SRCDIR)/edgeops3d.m4 > edgeops3d.f
+	$(F77) $(FFLAGS) -c edgeops3d.f -o $@

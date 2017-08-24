@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   KINSOL solver for use within a SAMRAI-based application.
  *
  ************************************************************************/
@@ -47,98 +47,258 @@ namespace solv {
  * Alternatively, solver parameters may be set up at initialization time
  * using the SAMRAI input database.
  *
- * If no parameters are read from input, KINSOL defaults are used.  See KINSOL
- * documentation for default information.  Optional input keys and types are:
+ * <b> Input Parameters </b>
  *
+ * If no parameters are read from input, KINSOL defaults are used.  See KINSOL
+ * documentation for default information.
+ *
+ * <b> Definitions: </b>
  *  - @b residual_stop_tolerance
- *      double value for stopping tolerance on norm of scaled residual.
+ *     stopping tolerance on norm of scaled residual
  *
  *  - @b max_nonlinear_iterations
- *      integer value for maximum number of nonlinear iterations (MXITER).
+ *     maximum number of nonlinear iterations
  *
  *  - @b max_krylov_dimension
- *      integer value for maximum dimension of Krylov space.
+ *     maximum dimension of Krylov space
  *
  *  - @b global_newton_strategy
- *      integer flag for globalization strategy.  Choices are
- *      "INEXACT_NEWTON" (default) and "LINESEARCH".
+ *     globalization strategy
  *
  *  - @b max_newton_step
- *      double value for maximum allowable Newton step (MXNEWTONSTEP).
+ *     maximum allowable Newton step
  *
  *  - @b nonlinear_step_tolerance
- *      double value for stopping tolerance on maximum entry in
- *      scaled Newton step.
+ *     stopping tolerance on maximum entry in scaled Newton step
  *
  *  - @b relative_function_error
- *      double value for relative error in function evaluation (RELFUNC).
- *
- *  - @b solution_update_constraint
- *      double value for constraint on relative change in solution (RELU).
+ *     relative error in function evaluation
  *
  *  - @b linear_convergence_test
- *      integer flag for linear solver convergence tolerance (ETACHOICE).
- *      Choices are "ETACONSTANT" (default), "ETACHOICE1", ETACHOICE2".
+ *     linear solver convergence tolerance
  *
- *  - @b max_sub_setup_calls
- *      number of nonlinear iterations between checks by the
- *      nonlinear residual monitoring algorithm (specifies lenght of
- *      subinterval) NOTE: should be a multiple of
- *      MaxStepsWithNoPrecondSetup
+ *  - @b max_subsetup_calls
+ *     number of nonlinear iterations between checks by the nonlinear residual
+ *     monitoring algorithm (specifies lenght of subinterval)
+ *     NOTE: should be a multiple of max_solves_no_precond_setup
  *
  *  - @b residual_monitoring_params
- *      values of omega_min and omega_max scalars used by nonlinear
- *      residual monitoring algorithm.
- *      Default is [0.00001 and 0.9]
+ *     values of omega_min and omega_max scalars used by nonlinear residual
+ *     monitoring algorithm
  *
  *  - @b residual_monitoring_constant
- *      constant value used by residual monitoring algorithm. If
- *      omega=0, then it is estimated using omega_min and
- *      omega_max.
- *      Default is 0.0.
+ *     constant value used by residual monitoring algorithm. If omega=0, then
+ *     it is estimated using omega_min and omega_max.
  *
- *  - @b no_min_eps flag
- *      control whether or not the value * of eps is bounded below
- *      by 0.01*fnormtol. FALSE = "constrain value of eps by setting to
- *      the following: eps = MAX{0.01*fnormtol, eps}" TRUE = "do
- *      notconstrain value of eps".  Default is FALSE
+ *  - @b no_min_eps
+ *     control whether or not the value * of eps is bounded below by
+ *     0.01*fnormtol. FALSE = "constrain value of eps by setting to the
+ *     following: eps = MAX{0.01*fnormtol, eps}" TRUE = "do
+ *     notconstrain value of eps".
  *
  *  - @b eisenstat_walker_params
- *      array of two double values Eisenstat-Walker choice 2; i.e.,
- *      the values are given as ETAALPHA, followed by ETAGAMMA.  Note: the
- *      values only apply when linear convergence test is set to ETACHOICE2.
+ *     Eisenstat-Walker choice 2; i.e., the values are given as ETAALPHA,
+ *     followed by ETAGAMMA.  Note: the values only apply when linear
+ *     convergence test is set to ETACHOICE2.
  *
- *  - @b linear_solver_relative_tolerance
- *      double value for constant linear solver relative tolerance
- *      (ETACONST).  Note: value only apply when convergence test is
- *      set to ETACONSTANT.
- *
- *  - @b precond_setup_flag
- *      integer flag for preconditioner setup strategy (PRECOND_NO_INIT).
+ *  - @b linear_solver_constant_tolerance
+ *     constant linear solver relative tolerance
+ *     Note: value only applies when convergence test is set to ETACONSTANT.
  *
  *  - @b max_solves_no_precond_setup
- *      integer value for number of nonlinear steps separating successive
- *      calls to preconditioner setup routine.
+ *     number of nonlinear steps separating successive calls to preconditioner
+ *     setup routine
  *
  *  - @b max_linear_solve_restarts
- *      integer value for maximum number of linear solver restarts allowed.
+ *     maximum number of linear solver restarts allowed
  *
  *  - @b KINSOL_log_filename
- *      string value for name of KINSOL log file; default is "kinsol.log".
+ *     name of KINSOL log file
  *
  *  - @b KINSOL_print_flag
- *      integer flag for KINSOL log file print options (PRINTFL).
+ *     KINSOL log file print options
  *
  *  - @b uses_preconditioner
- *      boolean flag indicating whether a preconditioner is supplied.
- *      Default is false.
+ *     indicates whether a preconditioner is supplied
  *
  *  - @b uses_jac_times_vector
- *      boolean flag indicating whether an analytic Jacobian-vector
- *      product is supplied.  Default is false.
+ *     indicates whether an analytic Jacobian-vector product is supplied
  *
- * Note that all input values may override values read in from restart.  If
- * no new input value is given, the restart value is used.
+ * All values read in from a restart database may be overriden by input
+ * database values.  If no new input database value is given, the restart
+ * database value is used.
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>residual_stop_tolerance</td>
+ *     <td>double</td>
+ *     <td>-1.0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_nonlinear_iterations</td>
+ *     <td>int</td>
+ *     <td>200</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_krylov_dimension</td>
+ *     <td>int</td>
+ *     <td>10</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>global_newton_strategy</td>
+ *     <td>int</td>
+ *     <td>0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_newton_step</td>
+ *     <td>double</td>
+ *     <td>-1.0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>nonlinear_step_tolerance</td>
+ *     <td>double</td>
+ *     <td>-1.0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>relative_function_error</td>
+ *     <td>double</td>
+ *     <td>-1.0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>linear_convergence_test</td>
+ *     <td>int</td>
+ *     <td>3</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_subsetup_calls</td>
+ *     <td>int</td>
+ *     <td>5</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>residual_monitoring_params</td>
+ *     <td>double[2]</td>
+ *     <td>[0.00001, 0.9]</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>residual_monitoring_constant</td>
+ *     <td>double</td>
+ *     <td>0.0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>no_min_eps</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>eisenstat_walker_params</td>
+ *     <td>double[2]</td>
+ *     <td>[2.0, 0.9]</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>linear_solver_constant_tolerance</td>
+ *     <td>double</td>
+ *     <td>0.1</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_solves_no_precond_setup</td>
+ *     <td>int</td>
+ *     <td>10</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_linear_solve_restarts</td>
+ *     <td>int</td>
+ *     <td>0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>KINSOL_log_filename</td>
+ *     <td>string</td>
+ *     <td>""</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>KINSOL_print_flag</td>
+ *     <td>int</td>
+ *     <td>0</td>
+ *     <td>Refer to KINSOL documentation</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>uses_preconditioner</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>uses_jac_times_vector</td>
+ *     <td>bool</td>
+ *     <td>FALSE</td>
+ *     <td>TRUE, FALSE</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * A sample input file entry might look like:
  *
@@ -150,7 +310,7 @@ namespace solv {
  *   KINSOL_print_flag        =  3   // print all output KINSOL has to offer
  * @endcode
  *
- * @see solv::NonlinearSolverStrategy
+ * @see NonlinearSolverStrategy
  */
 class KINSOL_SAMRAIContext:
    public NonlinearSolverStrategy,
@@ -163,14 +323,14 @@ public:
     * with user-supplied solver components.  Then, it reads solver parameter
     * from input and restart which may override default values.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if the name string is empty or the pointer to the
-    * user-defined KINSOL functions object is null.
+    * @pre !object_name.empty()
+    * @pre my_functions != 0
     */
    KINSOL_SAMRAIContext(
       const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& input_db,
-      KINSOLAbstractFunctions* my_functions);
+      KINSOLAbstractFunctions* my_functions,
+      const boost::shared_ptr<tbox::Database>& input_db =
+         boost::shared_ptr<tbox::Database>());
 
    /**
     * Destructor for algs::KINSOL_SAMRAIContext destroys the KINSOL
@@ -182,6 +342,8 @@ public:
     * Initialize the state of KINSOL based on vector argument representing
     * the solution of the nonlinear system.  In general, this routine must
     * be called before the solve() routine is invoked.
+    *
+    * @pre solution
     */
    void
    initialize(
@@ -210,12 +372,14 @@ public:
    /**
     * Read input parameters from given database.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if the database pointer is null.
+    * @param[in] input_db
+    *
+    * @param[in] is_from_restart
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db);
+      const boost::shared_ptr<tbox::Database>& input_db,
+      bool is_from_restart);
 
    /**
     * Retrieve solver parameters from restart database matching object name.
@@ -230,12 +394,11 @@ public:
    /**
     * Retrieve solver parameters from restart database matching object name.
     *
-    * When assertion checking is active, an unrecoverable assertion
-    * will result if database pointer is null.
+    * @pre restart_db
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * Print out all members of integrator instance to given output stream.
@@ -279,14 +442,12 @@ private:
    double d_max_newton_step;
    double d_nonlinear_step_tolerance;
    double d_relative_function_error;
-   double d_solution_update_constraint;
    int d_linear_convergence_test;
    int d_max_subsetup_calls;
    double d_residual_monitoring_params[2];
    double d_residual_monitoring_constant;
    double d_eisenstat_walker_params[2];
    double d_linear_solver_constant_tolerance;
-   int d_precond_setup_flag;
    int d_max_solves_no_precond_setup;
    int d_max_linear_solve_restarts;
    std::string d_KINSOL_log_filename;

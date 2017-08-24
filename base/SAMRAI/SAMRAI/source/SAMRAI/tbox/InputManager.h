@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   An input manager singleton class that parses input files
  *
  ************************************************************************/
@@ -15,7 +15,7 @@
 #include "SAMRAI/tbox/InputDatabase.h"
 #include "SAMRAI/tbox/StartupShutdownManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 
 namespace SAMRAI {
@@ -69,7 +69,7 @@ public:
     */
    static void
    setManager(
-      InputManager * manager);
+      InputManager* manager);
 
    /**
     * Return whether or not the manager has read an input database.  If
@@ -78,7 +78,7 @@ public:
    static bool
    inputDatabaseExists()
    {
-      return s_input_db;
+      return s_input_db.get();
    }
 
    /**
@@ -146,7 +146,7 @@ protected:
 private:
    InputManager(
       const InputManager&);           // not implemented
-   void
+   InputManager&
    operator = (
       const InputManager&);                // not implemented
 

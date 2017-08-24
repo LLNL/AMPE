@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface to C++ vector implementation for Sundials package.
  *
  ************************************************************************/
@@ -22,7 +22,7 @@ SundialsAbstractVector::SundialsAbstractVector()
 {
    /* Create N vector */
    d_n_vector = (N_Vector)malloc(sizeof *d_n_vector);
-   TBOX_ASSERT(d_n_vector != NULL);
+   TBOX_ASSERT(d_n_vector != 0);
 
    /* Attach content and ops */
    d_n_vector->content = this;
@@ -34,10 +34,10 @@ SundialsAbstractVector::~SundialsAbstractVector()
    if (d_n_vector) {
       if (d_n_vector->ops) {
          free(d_n_vector->ops);
-         d_n_vector->ops = NULL;
+         d_n_vector->ops = 0;
       }
       free(d_n_vector);
-      d_n_vector = NULL;
+      d_n_vector = 0;
    }
 }
 

@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   simple shell script to generate flex and bison files 
 ##
 #########################################################################
@@ -33,6 +33,7 @@ rm temp.$$
 # machine generated code.
 cat >> temp.$$ <<-EOF 
 #ifdef __GNUC__
+#ifndef __INTEL_COMPILER
 #if __GNUC__ > 4 || \
               (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 || \
                                  (__GNUC_MINOR__ == 2 && \
@@ -40,6 +41,7 @@ cat >> temp.$$ <<-EOF
 #pragma GCC diagnostic ignored "-Wall"
 #pragma GCC diagnostic ignored "-Wextra"
 #pragma GCC diagnostic ignored "-Wconversion"
+#endif
 #endif
 #endif
 

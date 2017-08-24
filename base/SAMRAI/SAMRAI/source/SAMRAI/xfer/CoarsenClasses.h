@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Simple structure for managing coarsening data in equivalence classes.
  *
  ************************************************************************/
@@ -13,14 +13,14 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/VariableFillPattern.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace xfer {
@@ -110,12 +110,9 @@ private:
    };
 
    /*!
-    * @brief The constructor creates an empty array of coarsen classes.
-    *
-    * @deprecated fill_coarse_data is no longer used.
+    * @brief The default constructor creates an empty array of coarsen classes.
     */
-   explicit CoarsenClasses(
-      bool fill_coarse_data);
+   CoarsenClasses();
 
    /*!
     * @brief The destructor destroys the coarsen data items owned
@@ -129,7 +126,7 @@ private:
    int
    getNumberOfEquivalenceClasses() const
    {
-      return d_equivalence_class_indices.size();
+      return static_cast<int>(d_equivalence_class_indices.size());
    }
 
    /*!
@@ -145,12 +142,13 @@ private:
    /*!
     * @brief Get representative item for a given equivalence class index.
     *
-    * When assertion checking is active, the index will be checked for validity.
-    *
     * @return Given an index of an existing equivalence class, one item
     * from that class is returned.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    const CoarsenClasses::Data&
    getClassRepresentative(
@@ -159,7 +157,7 @@ private:
       TBOX_ASSERT((equiv_class_index >= 0) &&
          (equiv_class_index < getNumberOfEquivalenceClasses()));
       return d_coarsen_classes_data_items[
-         d_equivalence_class_indices[equiv_class_index].front()];
+                d_equivalence_class_indices[equiv_class_index].front()];
    }
 
    /*!
@@ -188,8 +186,7 @@ private:
     *
     * The number of quivalence classes can be determined via the
     * getNumberOfEquivalenceClasses() member function.  Valid integer
-    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.  When
-    * assertion checking is active, the id will be checked for validity.
+    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.
     *
     * @note The list should not be modified through this iterator.
     *
@@ -199,6 +196,9 @@ private:
     * class.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    std::list<int>::iterator
    getIterator(
@@ -215,8 +215,7 @@ private:
     *
     * The number of quivalence classes can be determined via the
     * getNumberOfEquivalenceClasses() member function.  Valid integer
-    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.  When
-    * assertion checking is active, the id will be checked for validity.
+    * arguments are from 0 to getNumberOfEquivalenceClasses()-1.
     *
     * @note The list should not be modified through this iterator.
     *
@@ -226,6 +225,9 @@ private:
     * class.
     *
     * @param[in] equiv_class_index
+    *
+    * @pre (equiv_class_index >= 0) &&
+    *      (equiv_class_index < getNumberOfEquivalenceClasses())
     */
    std::list<int>::iterator
    getIteratorEnd(
@@ -245,15 +247,14 @@ private:
     * this item.  The integer class index in the data item will set to the
     * index of the equivalence class into which it is inserted.
     *
-    * If assertion checking is active, the data item will be checked for
-    * validity.  See itemIsValid() for explanation of validity.
-    *
     * If a null patch descriptor argument is passed (or ommitted), the
     * descriptor associated with the variable database Singleton object will be
     * used.
     *
     * @param[in,out] data
     * @param[in] descriptor
+    *
+    * @pre itemIsValid(data, descriptor)
     */
    void
    insertEquivalenceClassItem(
@@ -360,7 +361,7 @@ private:
    int
    getCoarsenItemArraySize() const
    {
-      return d_coarsen_classes_data_items.size();
+      return static_cast<int>(d_coarsen_classes_data_items.size());
    }
 
    /*!
@@ -379,8 +380,8 @@ private:
       const int size,
       const tbox::Dimension& dim)
    {
-      if (size > d_coarsen_classes_data_items.size()) {
-         d_coarsen_classes_data_items.resizeArray(size, Data(dim));
+      if (size > static_cast<int>(d_coarsen_classes_data_items.size())) {
+         d_coarsen_classes_data_items.resize(size, Data(dim));
       }
    }
 
@@ -456,14 +457,9 @@ private:
    static int s_default_coarsen_item_array_size;
 
    /*!
-    * @deprecated  No longer used
-    */
-   bool d_fill_coarse_data;
-
-   /*!
     * The array of coarsen items.
     */
-   tbox::Array<CoarsenClasses::Data> d_coarsen_classes_data_items;
+   std::vector<CoarsenClasses::Data> d_coarsen_classes_data_items;
 
    /*!
     * The array managing equivalence classes.  Each element of the array
@@ -471,7 +467,7 @@ private:
     * which items are part of an equivalence class.  The integers index into
     * the array d_coarsen_classes_data_items.
     */
-   tbox::Array<std::list<int> > d_equivalence_class_indices;
+   std::vector<std::list<int> > d_equivalence_class_indices;
 
    /*!
     * The number of coarsen items that have been registered.

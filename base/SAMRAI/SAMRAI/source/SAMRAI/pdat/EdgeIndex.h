@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   hier
  *
  ************************************************************************/
@@ -28,9 +28,9 @@ namespace pdat {
  * about the mapping between the AMR index space and the edge indices.
  *
  * @see hier::Index
- * @see pdat::EdgeData
- * @see pdat::EdgeGeometry
- * @see pdat::EdgeIterator
+ * @see EdgeData
+ * @see EdgeGeometry
+ * @see EdgeIterator
  */
 
 class EdgeIndex:public hier::Index
@@ -103,7 +103,9 @@ public:
     * For dimension 3, converts the edge index into the index on the lower
     * left (argument edge == 0), the lower right (argument edge == 1),
     * the upper left (argument edge == 2), or the upper right
-    * (argument edge == 3) of thw edge.
+    * (argument edge == 3) of the edge.
+    *
+    * TODO: I find the above comment confusing.
     */
    hier::Index
    toCell(
@@ -111,24 +113,28 @@ public:
 
    /**
     * Plus-equals operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex&
    operator += (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator += (rhs);
       return *this;
    }
 
    /**
     * Plus operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex
    operator + (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       EdgeIndex tmp = *this;
       tmp += rhs;
       return tmp;
@@ -159,24 +165,28 @@ public:
 
    /**
     * Minus-equals operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex&
    operator -= (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator -= (rhs);
       return *this;
    }
 
    /**
     * Minus operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex
    operator - (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       EdgeIndex tmp = *this;
       tmp -= rhs;
       return tmp;
@@ -207,24 +217,28 @@ public:
 
    /**
     * Times-equals operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex&
    operator *= (
       const hier::IntVector& rhs)
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       hier::Index::operator *= (rhs);
       return *this;
    }
 
    /**
     * Times operator for a edge index and an integer vector.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    EdgeIndex
    operator * (
       const hier::IntVector& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       EdgeIndex tmp = *this;
       tmp *= rhs;
       return tmp;
@@ -256,24 +270,28 @@ public:
    /**
     * Returns true if two edge index objects are equal.  All components
     * and the corresponding edge axes must be the same for equality.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    bool
    operator == (
       const EdgeIndex& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       return ((hier::Index *)this)->operator == (rhs) && (d_axis == rhs.d_axis);
    }
 
    /**
     * Returns true if two edge index objects are not equal.  Any of
     * the components or axes may be different for inequality.
+    *
+    * @pre getDim() == rhs.getDim()
     */
    bool
    operator != (
       const EdgeIndex& rhs) const
    {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, rhs);
+      TBOX_ASSERT_OBJDIM_EQUALITY2(*this, rhs);
       return ((hier::Index *)this)->operator != (rhs) || (d_axis != rhs.d_axis);
    }
 

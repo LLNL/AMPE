@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile dependencies
 ##
 #########################################################################
@@ -13,67 +13,45 @@
 
 FILE_0=appu_cartbdry2d.o
 DEPENDS_0:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_cartbdry2d.f
+	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim2d.i		\
+	appu_cartbdry2d.m4 appu_cartbdryparams2d.i
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_0 +=\
 	
-endif
 
-${FILE_0:X.o=${NDIM}.o}: ${DEPENDS_0}
+
+${FILE_0}: ${DEPENDS_0}
 
 FILE_1=appu_cartbdry3d.o
 DEPENDS_1:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_cartbdry3d.f
+	$(OBJECT)/include/SAMRAI/SAMRAI_config.h			\
+	$(INCLUDE_SAM)/SAMRAI/pdat/fortran/pdat_m4arrdim3d.i		\
+	appu_cartbdry3d.m4 appu_cartbdryparams3d.i
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_1 +=\
 	
-endif
 
-${FILE_1:X.o=${NDIM}.o}: ${DEPENDS_1}
+
+${FILE_1}: ${DEPENDS_1}
 
 FILE_2=appu_cpdat2buf2d.o
 DEPENDS_2:=\
 	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_cpdat2buf2d.f
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_2 +=\
 	
-endif
 
-${FILE_2:X.o=${NDIM}.o}: ${DEPENDS_2}
+
+${FILE_2}: ${DEPENDS_2}
 
 FILE_3=appu_cpdat2buf3d.o
 DEPENDS_3:=\
 	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_cpdat2buf3d.f
 
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
 DEPENDS_3 +=\
 	
-endif
 
-${FILE_3:X.o=${NDIM}.o}: ${DEPENDS_3}
 
-FILE_4=appu_ebdry2d.o
-DEPENDS_4:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_ebdry2d.f
-
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
-DEPENDS_4 +=\
-	
-endif
-
-${FILE_4:X.o=${NDIM}.o}: ${DEPENDS_4}
-
-FILE_5=appu_ebdry3d.o
-DEPENDS_5:=\
-	$(OBJECT)/include/SAMRAI/SAMRAI_config.h appu_ebdry3d.f
-
-ifeq (${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)
-DEPENDS_5 +=\
-	
-endif
-
-${FILE_5:X.o=${NDIM}.o}: ${DEPENDS_5}
+${FILE_3}: ${DEPENDS_3}
 

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Time integration manager for AMR with local time stepping.
  *
  ************************************************************************/
@@ -14,15 +14,15 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/algs/TimeRefinementLevelStrategy.h"
+#include "SAMRAI/algs/TimeRefinementIntegratorConnectorWidthRequestor.h"
 #include "SAMRAI/mesh/GriddingAlgorithmStrategy.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/Serializable.h"
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
 #include <iostream>
 
@@ -87,61 +87,110 @@ namespace algs {
  * time integration, data synchronization, and mesh movement are coordinated
  * properly.
  *
- * An object of this class requires numerous parameters to be read from
- * input.  Also, data must be written to and read from files for restart.
- * The input data are summarized as follows.
+ * <b> Input Parameters </b>
  *
- * Required input keys and data types:
+ * <b> Definitions: </b>
+ *    - \b    regrid_interval
+ *       when using synchronized timestepping, number of timesteps between each
+ *        regrid of the hierarchy
  *
  *    - \b    start_time
- *        double value representing the start time for the simulation.
+ *       start time for the simulation.
  *
  *    - \b    end_time
- *        double value representing the end time for the simulation.
+ *       end time for the simulation.
  *
  *    - \b    grow_dt
- *        double value representing the maximum factor by which each
- *        succesive time increment may grow (typically >= 1.0).
+ *       maximum factor by which each succesive time increment may grow
+ *       (typically >= 1.0).
  *
  *    - \b    max_integrator_steps
- *        integer value representing the maximum number of timesteps
- *        performed on the coarsest hierarchy level during the simulation.
- *
- *
- * Optional input keys, data types, and defaults:
+ *       maximum number of timesteps performed on the coarsest hierarchy level
+ *       during the simulation.
  *
  *    - \b    tag_buffer
  *       array of integer values (one for each level that may be refined)
  *       representing the number of cells by which tagged cells are buffered
- *       before clustering into boxes.  If no input is given, a default value
- *       equal to the number of steps taken on the level before the next
- *       regrid is used.
+ *       before clustering into boxes.
  *
+ * Note that the input values for regrid_interval, end_time, grow_dt,
+ * max_integrator_steps, and tag_buffer override values read in from restart.
  *
- * Note that the input values for end_time, grow_dt, max_integrator_step,
- * and tag_buffer override values read in from restart.
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *     <td>regrid_interval</td>
+ *     <td>int</td>
+ *     <td>1</td>
+ *     <td>>=1</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>start_time</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>start_time >=0</td>
+ *     <td>req</td>
+ *     <td>May not be modified by input db on restart</td>
+ *   </tr>
+ *   <tr>
+ *     <td>end_time</td>
+ *     <td>double</td>
+ *     <td>none</td>
+ *     <td>end_time >= start_time</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>grow_dt</td>
+ *     <td>double</td>
+ *     <td>1.0</td>
+ *     <td>>0</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>max_integrator_steps</td>
+ *     <td>int</td>
+ *     <td>none</td>
+ *     <td>>=0</td>
+ *     <td>req</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *     <td>tag_buffer</td>
+ *     <td>array of ints</td>
+ *     <td>regrid_interval value for corresponding level</td>
+ *     <td>all values >= 0</td>
+ *     <td>opt</td>
+ *     <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * A sample input file entry might look like:
  *
- * \verbatim
- *
+ * @code
  *    start_time            = 0.e0      // initial simulation time
  *    end_time              = 10.e0     // final simulation time
  *    grow_dt               = 1.1e0     // growth factor for timesteps
  *    max_integrator_steps  = 50        // max number of simulation timesteps
  *    tag_buffer            = 1,1,1,1   // a max of 4 finer levels in hierarchy
+ * @endcode
  *
- * \endverbatim
- *
- * When running in synchronized timestepping mode, an additional input
- * key 'regrid_interval' can be added to specify the number of timesteps
- * between each regrid of the hierarchy.
- *
- * @see algs::TimeRefinementLevelStrategy
+ * @see TimeRefinementLevelStrategy
  * @see mesh::GriddingAlgorithmStrategy
  */
 
-class TimeRefinementIntegrator :
+class TimeRefinementIntegrator:
    public tbox::Serializable
 {
 public:
@@ -151,32 +200,26 @@ public:
     * hierarchy.   Some data is set to default values; others are read
     * from the specified input database and the restart database
     * corresponding to the specified object_name.  Consult top of
-    * this header file for further details.  The constructor also
-    * registers this object for restart using the specified object name
-    * when the boolean argument is true.  Whether object will write its state
-    * to restart files during program execution is determined by this argument.
-    * Note that it has a default state of true.
+    * this header file for further details.
     *
     * Note that this object also invokes the variable creation and
     * registration process in the level strategy.
     *
-    * If assertion checking is turned on, an unrecoverable assertion will
-    * result if any of the input database, patch hierarchy,
-    * level strategy, or regridding algorithm pointers is null.  Assertions
-    * may also be thrown if any checks for consistency between parameters
-    * in the gridding algorithm, level strategy, and this object fail.
+    * @pre !object_name.empty()
+    * @pre hierarchy
+    * @pre level_integrator
+    * @pre gridding_algorithm
     */
    TimeRefinementIntegrator(
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
       const boost::shared_ptr<TimeRefinementLevelStrategy>& level_integrator,
-      const boost::shared_ptr<mesh::GriddingAlgorithmStrategy>& gridding_algorithm,
-      bool register_for_restart = true);
+      const boost::shared_ptr<mesh::GriddingAlgorithmStrategy>& gridding_algorithm);
 
    /**
     * The destructor for TimeRefinementIntegrator unregisters
-    * the integrator object with the restart manager when so registered.
+    * the integrator object with the restart manager.
     */
    virtual ~TimeRefinementIntegrator();
 
@@ -198,17 +241,6 @@ public:
     * initial hierarchy configuration and simulation data is set properly for
     * the advanceHierarchy() function to be called.  In particular, on each
     * level constructed only the data needed for initialization exists.
-    *
-    * When assertion checking is active, the hierachy database pointer
-    * must be non-null.
-    *
-    * The optional argument is only to be used for a special case
-    * where the user wishes to manually specify a decomposition for
-    * the coarsest level of the hierarchy.  The BoxLevel
-    * argument must be a decomposition of the the coarsest level, and
-    * must exactly fill the index space of the physical domain of the
-    * hierarchy.  If omitted or given an uninitialized
-    * mapped_box_level, the standard decomposition method is used.
     */
    double
    initializeHierarchy();
@@ -234,6 +266,8 @@ public:
     * the new simulation time (where this synchronization process is defined
     * by the level strategy).  Thus, the data is set properly for any
     * subsequent calls to this function.
+    *
+    * @pre dt >= 0
     */
    double
    advanceHierarchy(
@@ -246,6 +280,9 @@ public:
     * if both the level allows refinement and the step count is an
     * integer multiple of the regrid step interval.
     * Otherwise, false is returned.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    bool
    atRegridPoint(
@@ -285,7 +322,7 @@ public:
    int
    getIntegratorStep() const
    {
-      return d_integrator_step;
+      return d_step_level[0];
    }
 
    /**
@@ -295,13 +332,16 @@ public:
    int
    getMaxIntegratorSteps() const
    {
-      return d_max_integrator_steps;
+      return d_max_steps_level[0];
    }
 
    /**
     * Return true if any steps remain in current step sequence on level
     * (i.e., before it will synchronize with some coarser level).
     * Return false otherwise.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    bool
    stepsRemaining(
@@ -309,7 +349,11 @@ public:
    {
       TBOX_ASSERT((level_number >= 0) &&
          (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
-      return d_step_level[level_number] < d_max_steps_level[level_number];
+      if (level_number == 0) {
+         return !d_level_0_advanced;
+      } else {
+         return d_step_level[level_number] < d_max_steps_level[level_number];
+      }
    }
 
    /**
@@ -318,11 +362,14 @@ public:
    bool
    stepsRemaining() const
    {
-      return d_integrator_step < d_max_integrator_steps;
+      return d_step_level[0] < d_max_steps_level[0];
    }
 
    /**
     * Return current time increment used to advance level.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    double
    getLevelDtActual(
@@ -335,6 +382,9 @@ public:
 
    /**
     * Return maximum time increment currently allowed on level.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    double
    getLevelDtMax(
@@ -347,6 +397,9 @@ public:
 
    /**
     * Return current simulation time for level.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    double
    getLevelSimTime(
@@ -359,6 +412,9 @@ public:
 
    /**
     * Return step count for current integration sequence on level.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    int
    getLevelStep(
@@ -366,12 +422,19 @@ public:
    {
       TBOX_ASSERT((level_number >= 0) &&
          (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
-      return d_step_level[level_number];
+      if (level_number == 0) {
+         return d_level_0_advanced ? 1 : 0;
+      } else {
+         return d_step_level[level_number];
+      }
    }
 
    /**
     * Return maximum number of time steps allowed on level in
     * current integration step sequence.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    int
    getLevelMaxSteps(
@@ -379,7 +442,11 @@ public:
    {
       TBOX_ASSERT((level_number >= 0) &&
          (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
-      return d_max_steps_level[level_number];
+      if (level_number == 0) {
+         return 1;
+      } else {
+         return d_max_steps_level[level_number];
+      }
    }
 
    /**
@@ -412,6 +479,9 @@ public:
    /**
     * Return true if current step on level is first in current step
     * sequence; otherwise return false.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    bool
    firstLevelStep(
@@ -419,12 +489,19 @@ public:
    {
       TBOX_ASSERT((level_number >= 0) &&
          (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
-      return d_step_level[level_number] <= 0;
+      if (level_number == 0) {
+         return !d_level_0_advanced;
+      } else {
+         return d_step_level[level_number] <= 0;
+      }
    }
 
    /**
     * Return true if current step on level is last in current step
     * sequence; otherwise return false.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    bool
    lastLevelStep(
@@ -432,22 +509,22 @@ public:
    {
       TBOX_ASSERT((level_number >= 0) &&
          (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
-      return d_step_level[level_number] >= d_max_steps_level[level_number];
+      if (level_number == 0) {
+         return d_level_0_advanced;
+      } else {
+         return d_step_level[level_number] >= d_max_steps_level[level_number];
+      }
    }
 
    /**
-    * set the regrid interval to a new value.  This may only be used
+    * Set the regrid interval to a new value.  This may only be used
     * when using synchronized timestepping.
+    *
+    * @pre !d_use_refined_timestepping
     */
    void
    setRegridInterval(
-      const int regrid_interval)
-   {
-      TBOX_ASSERT(!d_use_refined_timestepping);
-      for (int i = 0; i < d_regrid_interval.getSize(); i++) {
-         d_regrid_interval[i] = regrid_interval;
-      }
-   }
+      const int regrid_interval);
 
    /**
     * Print data representation of this object to given output stream.
@@ -458,6 +535,9 @@ public:
 
    /**
     * Print time stepping data for a single level to given output stream.
+    *
+    * @pre (level_number >= 0) &&
+    *      (level_number <= getPatchHierarchy()->getFinestLevelNumber())
     */
    void
    printDataForLevel(
@@ -465,13 +545,13 @@ public:
       const int level_number) const;
 
    /**
-    * Write object state out to the given database.
+    * Write object state out to the given restart database.
     *
-    * When assertion checking is active, the database pointer must be non-null.
+    * @pre restart_db
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * Returns the object name.
@@ -545,9 +625,9 @@ private:
       const int level_number) const;
 
    /*
-    * Read input data from specified database and initialize class members.
-    * The argument is_from_restart should be set to true if the simulation
-    * is from restart.  Otherwise, it should be set to false.
+    * Read input data from specified input database and initialize class
+    * members.  The argument is_from_restart should be set to true if the
+    * simulation is from restart.  Otherwise, it should be set to false.
     *
     * If the simulation is not from restart, read in start_time, end_time,
     * grow_dt, max_integrator_step, and possibly tag_buffer
@@ -556,12 +636,10 @@ private:
     * If the simulation is from restart, then only read in end_time,
     * grow_dt, max_integrator_step and tag_buffer if they are
     * found in the input database.
-    *
-    * When assertion checking is active, the databse pointer must be non-null.
     */
    virtual void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<tbox::Database>& input_db,
       bool is_from_restart);
 
    /*
@@ -583,11 +661,9 @@ private:
 
    /*
     * The object name is used as a handle to databases stored in
-    * restart files and for error reporting purposes.  The boolean
-    * is used to control restart file writing operations.
+    * restart files and for error reporting purposes.
     */
    std::string d_object_name;
-   bool d_registered_for_restart;
 
    /*
     * Pointers to the patch hierarchy, level integration and gridding
@@ -610,7 +686,6 @@ private:
    double d_start_time;
    double d_end_time;
    double d_grow_dt;
-   int d_max_integrator_steps;
 
    /*
     * The regrid interval indicates the number of integration steps taken
@@ -625,7 +700,7 @@ private:
     * that for level 1.  In the future, users may be able to specify
     * this value in the input file.
     */
-   tbox::Array<int> d_regrid_interval;
+   std::vector<int> d_regrid_interval;
 
    /*
     * The tag buffer indicates the number of cells on each level by which
@@ -641,25 +716,28 @@ private:
     * be taken to assure that improper tag buffering will not degrade the
     * calculation.
     */
-   tbox::Array<int> d_tag_buffer;
+   std::vector<int> d_tag_buffer;
 
    /*
     * Integrator data that evolves during time integration and maintains
     * the state of the timestep sequence over the levels in the AMR hierarchy.
     */
    double d_integrator_time;
-   int d_integrator_step;
    bool d_just_regridded;
    int d_last_finest_level;
-   tbox::Array<double> d_level_old_old_time;
-   tbox::Array<double> d_level_old_time;
-   tbox::Array<double> d_level_sim_time;
-   tbox::Array<double> d_dt_max_level;
-   tbox::Array<double> d_dt_actual_level;
-   tbox::Array<int> d_step_level;
-   tbox::Array<int> d_max_steps_level;
+   std::vector<double> d_level_old_old_time;
+   std::vector<double> d_level_old_time;
+   std::vector<double> d_level_sim_time;
+   std::vector<double> d_dt_max_level;
+   std::vector<double> d_dt_actual_level;
+   std::vector<int> d_step_level;
+   std::vector<int> d_max_steps_level;
+   bool d_level_0_advanced;
+   bool d_hierarchy_advanced;
 
    double d_dt;
+
+   TimeRefinementIntegratorConnectorWidthRequestor d_connector_width_requestor;
 
    bool d_barrier_and_time;
 
@@ -673,7 +751,7 @@ private:
    // The following are not implemented:
    TimeRefinementIntegrator(
       const TimeRefinementIntegrator&);
-   void
+   TimeRefinementIntegrator&
    operator = (
       const TimeRefinementIntegrator&);
 

@@ -1,14 +1,13 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI application utilities
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: F77 routines for Cartesian 2d boundary conditions
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for Cartesian 2d boundary conditions.
 c
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
-define(SAMRAI_FORTDIR,../../pdat/fortran)dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
 c general boundary condition cases
 c
@@ -148,7 +147,7 @@ c***********************************************************************
      &  arrdepth)
 c***********************************************************************
       implicit none
-include(appu_cartbdryparams2d.i)dnl
+include(FORTDIR/appu_cartbdryparams2d.i)dnl
 c***********************************************************************
       integer ifirst0,ilast0,ifirst1,ilast1
       integer ibeg0,iend0,ibeg1,iend1
@@ -218,7 +217,7 @@ c***********************************************************************
      &  arrdepth)
 c***********************************************************************
       implicit none
-include(appu_cartbdryparams2d.i)dnl
+include(FORTDIR/appu_cartbdryparams2d.i)dnl
 c***********************************************************************
       integer ifirst0,ilast0,ifirst1,ilast1
       integer ibeg0,iend0,ibeg1,iend1
@@ -293,7 +292,7 @@ c***********************************************************************
       integer
      &  XLEFTin, XRIGHTin, YLEFTin, YRIGHTin,
      &  X0Y0in, X1Y0in, X0Y1in, X1Y1in
-include(appu_cartbdryparams2d.i)dnl
+include(FORTDIR/appu_cartbdryparams2d.i)dnl
 
 c 2d edges
         XLEFT=XLEFTin
@@ -322,7 +321,7 @@ c***********************************************************************
      &  REFLECTin, XREFLECTin, YREFLECTin,
      &  DIRICHLETin, XDIRICHLETin, YDIRICHLETin,
      &  NEUMANNin, XNEUMANNin, YNEUMANNin
-include(appu_cartbdryparams2d.i)dnl
+include(FORTDIR/appu_cartbdryparams2d.i)dnl
 
         FLOW=FLOWin
         XFLOW=XFLOWin

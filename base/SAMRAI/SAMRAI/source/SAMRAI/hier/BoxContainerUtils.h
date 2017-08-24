@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Common Box operations for Box containers.
  *
  ************************************************************************/
@@ -12,7 +12,9 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/hier/Connector.h"
+#include "SAMRAI/hier/Box.h"
+
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -20,14 +22,6 @@ namespace hier {
 /*!
  * @brief Utilities for performing simple common tasks on a container
  * of Boxes.
- *
- * TODO: Arguments should be re-ordered to the SAMRAI standard, output
- * before input.
- *
- * TODO: There are some very similar methods in this class.  In many cases,
- * one version supports input and output being the same object, but the other
- * does not.  For uniformity, all these methods should support input and
- * output containers being the same object.  It's simple to implement.
  */
 class BoxContainerUtils
 {
@@ -40,7 +34,7 @@ public:
    /*!
     * @brief Print a vector of Boxes to an output stream.
     *
-    * @param[in] mapped_boxes
+    * @param[in] boxes
     *
     * @param[in] output_stream
     *
@@ -50,7 +44,7 @@ public:
     */
    static void
    recursivePrintBoxVector(
-      const std::vector<Box>& mapped_boxes,
+      const std::vector<Box>& boxes,
       std::ostream& output_stream = tbox::plog,
       const std::string& border = std::string(),
       int detail_depth = 0);

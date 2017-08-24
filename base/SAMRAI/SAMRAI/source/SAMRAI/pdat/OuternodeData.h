@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated outernode centered patch data type
  *
  ************************************************************************/
@@ -21,14 +21,14 @@
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/PIO.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
 namespace pdat {
 
 /*!
- * @brief Class OuternodeData<DIM> provides an implementation for data defined
+ * @brief Class OuternodeData<TYPE> provides an implementation for data defined
  * at cell nodes on the boundaries of AMR patches.  It is derived from the
  * hier::PatchData interface common to all SAMRAI patch data types.  Given
  * a CELL-centered AMR index space box, an outernode data object represents
@@ -69,7 +69,7 @@ namespace pdat {
  *        Note: Boxes are trimmed at edges intersecting faces with
  *              normal directions 1 and 2 so that node indices shared
  *              with those faces appear in data arrays associated with
- *              higher dimension faces.
+ *              higher direction faces.
  *
  *    face normal 1:
  *        lower    [ l0 : u0+1   , l1 : l1     , l2+1 : u2 , d ]
@@ -77,7 +77,7 @@ namespace pdat {
  *        Note: Boxes are trimmed at edges intersecting faces with
  *              normal direction 2 so that node indices shared
  *              with those faces appear in data arrays associated with
- *              higher dimension faces.
+ *              higher direction faces.
  *
  *    face normal 2:
  *        lower    [ l0 : u0+1   , l1 : u1+1   , l2 : l2     , d ]
@@ -90,12 +90,12 @@ namespace pdat {
  * The data type TYPE must define a default constructor (that takes no
  * arguments) and also the assignment operator.
  *
- * @see pdat::ArrayData
+ * @see ArrayData
  * @see hier::PatchData
- * @see pdat::OuternodeDataFactory
- * @see pdat::OuternodeGeometry
- * @see pdat::NodeIterator
- * @see pdat::NodeIndex
+ * @see OuternodeDataFactory
+ * @see OuternodeGeometry
+ * @see NodeIterator
+ * @see NodeIndex
  */
 
 template<class TYPE>
@@ -116,6 +116,8 @@ public:
     *            Note: the ghost cell width is assumed to be zero.
     * @param depth gives the number of data values for each
     *              spatial location in the array.
+    *
+    * @pre depth > 0
     */
    static size_t
    getSizeOfData(
@@ -132,6 +134,8 @@ public:
     *            outernode data object will be created.
     * @param depth gives the number of data values for each
     *              spatial location in the array.
+    *
+    * @pre depth > 0
     */
    OuternodeData(
       const hier::Box& box,
@@ -153,8 +157,9 @@ public:
     * @brief Returns true if outernode data exists for the given
     * face normal direction; false otherwise.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
     */
    bool
    dataExists(
@@ -165,26 +170,30 @@ public:
     *        outernode data.  Note: the returned box
     *        will reside in the @em node index space.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outernode
     *             data array
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    hier::Box
    getDataBox(
-      int face_normal,
+      tbox::Dimension::dir_t face_normal,
       int side);
 
    /*!
     * @brief Get a pointer to the beginning of a particular face normal,
     * side, and depth component of the outernode centered array.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outernode
     *             data array
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE *
    getPointer(
@@ -196,12 +205,14 @@ public:
     * @brief Get a const pointer to the beginning of a particular face
     * normal, side, and depth component of the outernode centered array.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outernode
     *             data array
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE *
    getPointer(
@@ -215,8 +226,10 @@ public:
     *
     * @param i const reference to NodeIndex, @em MUST be
     *          an index on the outernode of the box.
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE&
    operator () (
@@ -229,8 +242,10 @@ public:
     *
     * @param i const reference to NodeIndex, @em MUST be
     *          an index on the outernode of the box.
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE&
    operator () (
@@ -241,10 +256,12 @@ public:
     * @brief Return a reference to the array data object for
     * face normal, and side index of the outernode centered array.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outeredge
     *             data array
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue()));
+    * @pre (side == 0) || (side == 1)
     */
    ArrayData<TYPE>&
    getArrayData(
@@ -255,10 +272,12 @@ public:
     * @brief Return a const reference to the array data object for
     * face normal, and side index of the outernode centered array.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outeredge
     *             data array
+    *
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue()));
+    * @pre (side == 0) || (side == 1)
     */
    const ArrayData<TYPE>&
    getArrayData(
@@ -274,6 +293,10 @@ public:
     * both the source and destination).  Currently, source data must be
     * either NodeData or OuternodeData of the same DIM and TYPE.  If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre (dynamic_cast<const NodeData<TYPE> *>(&src) != 0) ||
+    *      (dynamic_cast<const OuternodeData<TYPE> *>(&src) != 0)
     */
    virtual void
    copy(
@@ -288,6 +311,10 @@ public:
     * both the source and destination).  Currently, destination data must be
     * either NodeData or OuternodeData of the same DIM and TYPE.  If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre (dynamic_cast<NodeData<TYPE> *>(&dst) != 0) ||
+    *      (dynamic_cast<OuternodeData<TYPE> *>(&dst) != 0)
     */
    virtual void
    copy2(
@@ -301,6 +328,11 @@ public:
     * of the same DIM and TYPE and the overlap must be an NodeOverlap
     * of the same DIM.  If not, then an unrecoverable error
     * results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
+    * @pre (dynamic_cast<const NodeData<TYPE> *>(&src) != 0) ||
+    *      (dynamic_cast<const OuternodeData<TYPE> *>(&src) != 0)
     */
    virtual void
    copy(
@@ -315,6 +347,11 @@ public:
     * of the same DIM and TYPE and the overlap must be an NodeOverlap
     * of the same DIM.  If not, then an unrecoverable error
     * results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
+    * @pre (dynamic_cast<NodeData<TYPE> *>(&dst) != 0) ||
+    *      (dynamic_cast<OuternodeData<TYPE> *>(&dst) != 0)
     */
    virtual void
    copy2(
@@ -325,6 +362,8 @@ public:
     * @brief Fast copy (i.e., assumes node and outernode data objects are
     * defined over the same box) from the given node source data object to
     * this destination outernode data object at the specified depths.
+    *
+    * @pre getDim() == src.getDim()
     */
    void
    copyDepth(
@@ -336,6 +375,8 @@ public:
     * @brief Fast copy (i.e., assumes node and outernode data objects are
     * defined over the same box) to the given node destination data object
     * from this source outernode data object at the specified depths.
+    *
+    * @pre getDim() == dst.getDim()
     */
    void
    copyDepth2(
@@ -350,6 +391,10 @@ public:
     * Currently, source data must be OuternodeData of the same DIM and
     * TYPE and the overlap must be an EdgeOverlap of the same DIM.
     * If not, then an unrecoverable error results.
+    *
+    * @pre getDim() == src.getDim()
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
+    * @pre dynamic_cast<const OuternodeData<TYPE> *>(&src) != 0
     */
    virtual void
    sum(
@@ -374,8 +419,10 @@ public:
     *
     * This routine is defined for the standard types (bool, char,
     * double, float, int, and dcomplex).
+    *
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
     */
-   virtual int
+   virtual size_t
    getDataStreamSize(
       const hier::BoxOverlap& overlap) const;
 
@@ -383,6 +430,8 @@ public:
     * @brief Pack data in this patch data object lying in the specified
     * box overlap region into the stream.  The overlap must be an
     * NodeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
     */
    virtual void
    packStream(
@@ -393,6 +442,8 @@ public:
     * @brief Unpack data from stream into this patch data object over
     * the specified box overlap region.  The overlap must be an
     * NodeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
     */
    virtual void
    unpackStream(
@@ -403,6 +454,8 @@ public:
     * @brief Unpack data from stream and add into this patch data object
     * over the specified box overlap region.  The overlap must be an
     * NodeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const NodeOverlap *>(&overlap) != 0
     */
    virtual void
    unpackStreamAndSum(
@@ -411,6 +464,8 @@ public:
 
    /*!
     * @brief Fill all values at depth d with the value t.
+    *
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -419,6 +474,9 @@ public:
 
    /*!
     * @brief Fill all values at depth d within the box with the value t.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -435,6 +493,8 @@ public:
 
    /*!
     * @brief Fill all depth components within the box with value t.
+    *
+    * @pre getDim() == box.getDim()
     */
    void
    fillAll(
@@ -450,10 +510,12 @@ public:
     *        and will be converted to node index space.
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
     */
    void
    print(
@@ -468,14 +530,16 @@ public:
     * @param box  const reference to box over whioch to print data. Note box
     *        is assumed to reside in standard cell-centered index space
     *        and will be converted to node index space.
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    void
    print(
@@ -489,8 +553,7 @@ public:
     * face_normal and side residing in the specified box.
     * If the depth of the data is greater than one, all depths are printed.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outernode
     *             data array
     * @param box  const reference to box over whioch to print data. Note box
@@ -498,10 +561,14 @@ public:
     *        and will be converted to node index space.
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    void
    printAxisSide(
@@ -515,21 +582,24 @@ public:
     * @brief Print all outernode centered data values for specified
     * face_normal, side, and depth residing in the specified box.
     *
-    * @param face_normal  integer face normal direction for data,
-    *              must satisfy 0 <= face_normal < DIM
+    * @param face_normal  integer face normal direction for data
     * @param side integer lower (0) or upper (1) side of outernode
     *             data array
     * @param box  const reference to box over whioch to print data. Note box
     *        is assumed to reside in standard cell-centered index space
     *        and will be converted to node index space.
-    * @param depth integer depth component, must satisfy
-    *              0 <= depth < actual depth of data array
+    * @param depth integer depth component
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
+    * @pre (face_normal >= 0) && (face_normal < getDim().getValue())
+    * @pre (side == 0) || (side == 1)
     */
    void
    printAxisSide(
@@ -542,23 +612,23 @@ public:
 
    /*!
     * @brief Check that class version and restart file version are equal.
-    * If so, read data members from the database.
+    * If so, read data members from the restart database.
     *
-    * Assertions: database must be a non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   getSpecializedFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /*!
     * @brief Write out the class version number and other data members to
-    * the database.
+    * the restart database.
     *
-    * Assertions: database must be a non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   putSpecializedToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
 private:
    /*
@@ -566,10 +636,14 @@ private:
     */
    static const int PDAT_OUTERNODEDATA_VERSION;
 
-   OuternodeData<TYPE>(const OuternodeData<TYPE>&); // not implemented
-   void
+   // Unimplemented copy constructor
+   OuternodeData(
+      const OuternodeData&);
+
+   // Unimplemented assignment operator
+   OuternodeData&
    operator = (
-      const OuternodeData<TYPE>&);                // not implemented
+      const OuternodeData&);
 
    //@
    //! @name Internal implementations of data copy operations.
@@ -604,7 +678,8 @@ private:
    //@
 
    int d_depth;
-   ArrayData<TYPE> d_data[tbox::Dimension::MAXIMUM_DIMENSION_VALUE][2];
+
+   boost::shared_ptr<ArrayData<TYPE> > d_data[SAMRAI::MAX_DIM_VAL][2];
 };
 
 }

@@ -3,21 +3,17 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Fill pattern class to provide interface for stencils
  *
  ************************************************************************/
-
-#ifndef included_pdat_SecondLayerNodeNoCornersVariableFillPattern_C
-#define included_pdat_SecondLayerNodeNoCornersVariableFillPattern_C
-
 #include "SAMRAI/pdat/SecondLayerNodeNoCornersVariableFillPattern.h"
 
 #include "SAMRAI/hier/BoxContainer.h"
 #include "SAMRAI/pdat/NodeGeometry.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace pdat {
@@ -71,7 +67,7 @@ SecondLayerNodeNoCornersVariableFillPattern::calculateOverlap(
    const bool overwrite_interior,
    const hier::Transformation& transformation) const
 {
-   TBOX_DIM_ASSERT_CHECK_ARGS2(dst_patch_box, src_mask);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(dst_patch_box, src_mask);
    NULL_USE(overwrite_interior);
 
    hier::BoxContainer dst_boxes;
@@ -79,26 +75,21 @@ SecondLayerNodeNoCornersVariableFillPattern::calculateOverlap(
    hier::Box dst_node_box(NodeGeometry::toNodeBox(dst_patch_box));
    hier::Box src_node_mask(NodeGeometry::toNodeBox(src_mask));
 
-   bool corner_overlap = ((dst_node_box * src_node_mask).size() == 1)
-      ? true : false;
+   hier::BoxContainer stencil_boxes;
+   computeStencilBoxes(stencil_boxes, dst_patch_box);
 
-   if (!corner_overlap) {
-      hier::BoxContainer stencil_boxes;
-      computeStencilBoxes(stencil_boxes, dst_patch_box);
+   const NodeGeometry* t_dst =
+      CPP_CAST<const NodeGeometry *>(&dst_geometry);
+   const NodeGeometry* t_src =
+      CPP_CAST<const NodeGeometry *>(&src_geometry);
 
-      const NodeGeometry* t_dst =
-         dynamic_cast<const NodeGeometry *>(&dst_geometry);
-      const NodeGeometry* t_src =
-         dynamic_cast<const NodeGeometry *>(&src_geometry);
+   TBOX_ASSERT(t_dst);
+   TBOX_ASSERT(t_src);
 
-      TBOX_ASSERT(t_dst);
-      TBOX_ASSERT(t_src);
+   t_dst->computeDestinationBoxes(dst_boxes, *t_src, src_mask, fill_box,
+      false, transformation);
 
-      t_dst->computeDestinationBoxes(dst_boxes, *t_src, src_mask, fill_box,
-         false, transformation);
-
-      dst_boxes.intersectBoxes(stencil_boxes);
-   }
+   dst_boxes.intersectBoxes(stencil_boxes);
 
    return boost::make_shared<NodeOverlap>(dst_boxes, transformation);
 
@@ -150,15 +141,15 @@ SecondLayerNodeNoCornersVariableFillPattern::computeStencilBoxes(
    const tbox::Dimension& dim = dst_box.getDim();
    hier::Box dst_node_box(NodeGeometry::toNodeBox(dst_box));
 
-   for (unsigned short i = 0; i < dim.getValue(); i++) {
+   for (unsigned short i = 0; i < dim.getValue(); ++i) {
       hier::Box low_box(dst_node_box);
-      low_box.lower(i) = dst_node_box.lower(i) - 1;
-      low_box.upper(i) = low_box.lower(i);
+      low_box.setLower(i, dst_node_box.lower(i) - 1);
+      low_box.setUpper(i, low_box.lower(i));
       stencil_boxes.pushFront(low_box);
 
       hier::Box high_box(dst_node_box);
-      high_box.lower(i) = dst_node_box.upper(i) + 1;
-      high_box.upper(i) = high_box.lower(i);
+      high_box.setLower(i, dst_node_box.upper(i) + 1);
+      high_box.setUpper(i, high_box.lower(i));
       stencil_boxes.pushFront(high_box);
    }
 }
@@ -175,6 +166,7 @@ SecondLayerNodeNoCornersVariableFillPattern::computeStencilBoxes(
 boost::shared_ptr<hier::BoxOverlap>
 SecondLayerNodeNoCornersVariableFillPattern::computeFillBoxesOverlap(
    const hier::BoxContainer& fill_boxes,
+   const hier::BoxContainer& node_fill_boxes,
    const hier::Box& patch_box,
    const hier::Box& data_box,
    const hier::PatchDataFactory& pdf) const
@@ -192,7 +184,7 @@ SecondLayerNodeNoCornersVariableFillPattern::computeFillBoxesOverlap(
     * to a node centering, which must be done before intersecting with
     * stencil_boxes, which is node-centered.
     */
-   for (hier::BoxContainer::iterator b(overlap_boxes);
+   for (hier::BoxContainer::iterator b = overlap_boxes.begin();
         b != overlap_boxes.end(); ++b) {
       b->growUpper(hier::IntVector::getOne(dim));
    }
@@ -200,14 +192,14 @@ SecondLayerNodeNoCornersVariableFillPattern::computeFillBoxesOverlap(
    overlap_boxes.intersectBoxes(NodeGeometry::toNodeBox(data_box));
 
    overlap_boxes.intersectBoxes(stencil_boxes);
+   overlap_boxes.intersectBoxes(node_fill_boxes);
 
    overlap_boxes.coalesce();
 
    return boost::make_shared<NodeOverlap>(
-      overlap_boxes,
-      hier::Transformation(hier::IntVector::getZero(dim)));
+             overlap_boxes,
+             hier::Transformation(hier::IntVector::getZero(dim)));
 }
 
 }
 }
-#endif

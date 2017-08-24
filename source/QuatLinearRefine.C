@@ -86,7 +86,7 @@ using namespace SAMRAI;
 
 QuatLinearRefine::
 QuatLinearRefine( const int quat_symm_rotation_id )
-: hier::RefineOperator(tbox::Dimension(NDIM), "BASE_QUAT_LINEAR_REFINE")
+: hier::RefineOperator("BASE_QUAT_LINEAR_REFINE")
 {
    d_name_id = "QUAT_LINEAR_REFINE";
    d_quat_symm_rotation_id = quat_symm_rotation_id;
@@ -101,8 +101,8 @@ bool QuatLinearRefine::findRefineOperator(
    const boost::shared_ptr<hier::Variable >& var,
    const string &op_name) const
 {
-   const boost::shared_ptr< pdat::CellVariable<double> > cast_var(var,
-         boost::detail::dynamic_cast_tag());
+   const boost::shared_ptr< pdat::CellVariable<double> > cast_var(
+      BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var) );
    if ( cast_var && (op_name == d_name_id) ) {
       return(true);
    } else {
@@ -122,8 +122,8 @@ int QuatLinearRefine::getOperatorPriority() const
 }
 
 hier::IntVector 
-QuatLinearRefine::getStencilWidth() const {
-   return(hier::IntVector(tbox::Dimension(NDIM),1));
+QuatLinearRefine::getStencilWidth(const tbox::Dimension& dim) const {
+   return(hier::IntVector(dim,1));
 }
 
 void QuatLinearRefine::refine(
@@ -140,7 +140,7 @@ void QuatLinearRefine::refine(
    TBOX_ASSERT(t_overlap != NULL);
 
    const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer();
-   for (hier::BoxContainer::const_iterator b(boxes); b != boxes.end(); ++b) {
+   for (hier::BoxContainer::const_iterator b=boxes.begin(); b != boxes.end(); ++b) {
       hier::Box fine_box(*b);
       fine_box.growUpper(hier::IntVector(ratio.getDim(), -1));
       refine(fine,
@@ -160,15 +160,13 @@ void QuatLinearRefine::refine(
    const hier::Box& fine_box, 
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, fine, coarse, fine_box, ratio);
+   const tbox::Dimension& dim(fine.getDim());
+   TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
 
-   boost::shared_ptr< pdat::CellData<double> >
-      cdata ( coarse.getPatchData(src_component),
-              boost::detail::dynamic_cast_tag());
-   boost::shared_ptr< pdat::CellData<double> >
-      fdata ( fine.getPatchData(dst_component),
-              boost::detail::dynamic_cast_tag());
+   boost::shared_ptr< pdat::CellData<double> > cdata (
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>( coarse.getPatchData(src_component) ) );
+   boost::shared_ptr< pdat::CellData<double> > fdata (
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>( fine.getPatchData(dst_component) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(cdata);
    assert(fdata);
@@ -184,18 +182,16 @@ void QuatLinearRefine::refine(
    const hier::Index& fihi = fdata->getGhostBox().upper();
 
    const boost::shared_ptr<geom::CartesianPatchGeometry > cgeom(
-                                                    coarse.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+                                                    BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(coarse.getPatchGeometry()) );
    const boost::shared_ptr<geom::CartesianPatchGeometry > fgeom(
-                                                    fine.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+                                                    BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(fine.getPatchGeometry()) );
 
    const hier::Box coarse_box = hier::Box::coarsen(fine_box, ratio);
    const hier::Index& ifirstf = fine_box.lower();
    const hier::Index& ilastf = fine_box.upper();
 
    boost::shared_ptr< pdat::SideData<int> > rotation_index (
-      coarse.getPatchData( d_quat_symm_rotation_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<int>, hier::PatchData>(coarse.getPatchData( d_quat_symm_rotation_id) ) );
    assert( rotation_index );
    const hier::Box & rot_gbox = rotation_index->getGhostBox();
    const hier::Index& r_lower = rot_gbox.lower();

@@ -3,17 +3,18 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for test of index data 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
-SRCDIR	      =	@srcdir@
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
 SUBDIR        = source/test/sparsedata
-VPATH	      =	@srcdir@
+VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 #
 # For these classes don't turn off implicit template instantiation.
@@ -29,6 +30,7 @@ CPPFLAGS_EXTRA= -DTESTING=1
 NUM_TESTS = 2
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 main: main.o SparseDataTester.o $(LIBSAMRAIDEPEND)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) main.o SparseDataTester.o $(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o $@
@@ -39,22 +41,46 @@ sparse: sparse_dataops.o $(LIBSAMRAIDEPEND)
 checkcompile: main sparse
 
 check:
-		$(MAKE) check2d
+	$(MAKE) check2d
 
 check2d:	main sparse
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./sparse
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"sparsedata\" name=$(QUOTE)main $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./main | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"sparsedata\" name=$(QUOTE)sparse $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./sparse | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 check3d:
 
 checktest:
-		rm -f makecheck.logfile
-		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-		rm -f makecheck.logfile
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
-clean: 
-	$(SAMCLEAN)
-	@$(RM) *.f main* sparse*
+examples:
+
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	@$(RM) main sparse
 
 include $(SRCDIR)/Makefile.depend

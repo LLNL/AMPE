@@ -1,0 +1,83 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+## Description:   makefile for library of reusable test code
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/testlib
+VPATH         = @srcdir@
+TESTTOOLS     = ../../testtools
+OBJECT        = ../../..
+TESTLIBDIR    = $(OBJECT)/source/test/testlib
+
+default: check	
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+CXX_OBJS      = AutoTester.o \
+		DerivedVisOwnerData.o \
+		MblkHyperbolicLevelIntegrator.o \
+		MblkHyperbolicPatchStrategy.o \
+		SkeletonBoundaryUtilities2.o \
+		SkeletonBoundaryUtilities3.o \
+		SkeletonCellDoubleConservativeLinearRefine.o \
+		SkeletonCellDoubleWeightedAverage.o	\
+		MeshGenerationStrategy.o	\
+		SinusoidalFrontGenerator.o	\
+		SphericalShellGenerator.o \
+		ShrunkenLevelGenerator.o \
+		get-input-filename.o
+
+F_OBJS      = fortran/skelbdry2d.o \
+	      fortran/skelbdry3d.o \
+	      fortran/upfluxsum2d.o \
+	      fortran/upfluxsum3d.o
+
+library:        libSAMRAI_test$(LIB_SUFFIX)
+
+libSAMRAI_test$(LIB_SUFFIX):   $(CXX_OBJS) $(F_OBJS)
+	rm -rf libSAMRAI_test$(LIB_SUFFIX)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+	echo $(CXX_OBJS) $(F_OBJS) | @XARGS@ @AR@ ru libSAMRAI_test$(LIB_SUFFIX);
+
+# Prevents "No rule to make target" error.  Built in the rule for main.
+fortran/skelbdry2d.o:
+
+fortran/skelbdry3d.o:
+
+fortran/upfluxsum2d.o:
+
+fortran/upfluxsum3d.o:
+
+check:	library
+
+checkcompile:
+	$(MAKE) check
+
+checktest:
+	$(MAKE) check
+
+examples:
+
+perf:
+
+everything:
+
+checkclean:
+
+clean:	checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) libSAMRAI_test$(LIB_SUFFIX)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+include $(SRCDIR)/Makefile.depend

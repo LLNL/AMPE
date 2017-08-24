@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   ABRTest class declaration
  *
  ************************************************************************/
@@ -13,7 +13,7 @@
 #include <string>
 using namespace std;
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include "SAMRAI/tbox/Database.h"
 
 /*
@@ -26,7 +26,7 @@ using namespace std;
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "SAMRAI/solv/RobinBcCoefStrategy.h"
-#include "SinusoidalFrontTagger.h"
+#include "test/testlib/SinusoidalFrontGenerator.h"
 
 using namespace SAMRAI;
 
@@ -60,7 +60,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const std::string& variable_name,
-      int depth_id) const;
+      int depth_id,
+      double simulation_time) const;
 
    //@}
 
@@ -103,12 +104,7 @@ private:
 
    boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
-   SinusoidalFrontTagger d_tagger;
-
-   /*!
-    * @brief Front time.
-    */
-   double d_time;
+   SinusoidalFrontGenerator d_sine_wall;
 
 };
 

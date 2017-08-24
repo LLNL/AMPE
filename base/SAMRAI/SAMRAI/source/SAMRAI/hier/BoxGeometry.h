@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Box geometry description for overlap computations
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 #include "SAMRAI/hier/BoxOverlap.h"
 #include "SAMRAI/hier/IntVector.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 
 namespace SAMRAI {
 namespace hier {
@@ -62,9 +62,9 @@ namespace hier {
  * then data will be copied only into the ghost cell values and not the
  * interior values of the patch.
  *
- * @see hier::BoxOverlap
- * @see hier::PatchDataFactory
- * @see hier::PatchData
+ * @see BoxOverlap
+ * @see PatchDataFactory
+ * @see PatchData
  */
 
 class BoxGeometry
@@ -162,7 +162,7 @@ public:
 private:
    BoxGeometry(
       const BoxGeometry&);              // not implemented
-   void
+   BoxGeometry&
    operator = (
       const BoxGeometry&);              // not implemented
 

@@ -81,19 +81,19 @@ private:
    double d_initial_temperature;
 
    // Gaussian parameters
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[3];
    
    // Gaussian center at t=0
-   double d_center0[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
-   double d_periodic_length[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center0[3];
+   double d_periodic_length[3];
    
    // velocity of Gaussian center
-   double d_velocity[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_velocity[3];
    
    double d_standard_dev;
    
    boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
-   int d_periodic_flag[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   int d_periodic_flag[3];
 
    void setCurrentTemperaturePrivatePatch(
       hier::Patch& patch,

@@ -74,15 +74,14 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(
    const int flux_id)
 {
    boost::shared_ptr< geom::CartesianPatchGeometry > pg (
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
 
    // Get face boundary boxes.
-   const tbox::Array< hier::BoundaryBox > bdry =
+   const std::vector< hier::BoundaryBox > bdry =
       pg->getCodimensionBoundaries(1);
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
 
    const hier::Box& gbox=flux->getGhostBox();
@@ -95,7 +94,7 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(
    const hier::Index glo(gbox.lower());
    for(int i=0;i<NDIM;i++)assert( glo(i)==plo(i) );
    
-   for ( int i = 0; i < bdry.getSize(); i++ ) {
+   for ( int i = 0; i < bdry.size(); i++ ) {
    
       const int locind=bdry[i].getLocationIndex();
       const int dir =locind>>1;

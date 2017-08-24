@@ -339,11 +339,11 @@ void QuatIntegrator::setupPreconditionersPhase(boost::shared_ptr<tbox::Database>
          phase_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   PhaseFACOps* fac_ops =
+   boost::shared_ptr<PhaseFACOps> fac_ops(
       new PhaseFACOps(
          d_name+"_QIPhaseFACOps",
          d_with_third_phase,
-         phase_sys_solver_database );
+         phase_sys_solver_database ) );
    
    d_phase_sys_solver.reset(
       new PhaseFACSolver(
@@ -364,10 +364,10 @@ void QuatIntegrator::setupPreconditionersConcentration(boost::shared_ptr<tbox::D
          conc_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   ConcFACOps* fac_ops =
+   boost::shared_ptr<ConcFACOps> fac_ops(
       new ConcFACOps(
          d_name+"_QIConcFACOps",
-         conc_sys_solver_database );
+         conc_sys_solver_database ) );
    
    d_conc_sys_solver.reset(
       new ConcFACSolver(
@@ -387,10 +387,10 @@ void QuatIntegrator::setupPreconditionersEta(boost::shared_ptr<tbox::Database> i
          eta_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   EtaFACOps* fac_ops =
+   boost::shared_ptr<EtaFACOps> fac_ops (
       new EtaFACOps(
          d_name+"_QIEtaFACOps",
-         eta_sys_solver_database );
+         eta_sys_solver_database ) );
    
    d_eta_sys_solver.reset(
       new EtaFACSolver(
@@ -411,10 +411,10 @@ void QuatIntegrator::setupPreconditionersTemperature(boost::shared_ptr<tbox::Dat
          temperature_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   TemperatureFACOps* fac_ops =
+   boost::shared_ptr<TemperatureFACOps> fac_ops (
       new TemperatureFACOps(
          d_name+"_QITemperatureFACOps",
-         temperature_sys_solver_database );
+         temperature_sys_solver_database ) );
    
    d_temperature_sys_solver.reset(
       new TemperatureFACSolver(
@@ -550,15 +550,15 @@ void QuatIntegrator::resetHierarchyConfiguration(
 {
    // tbox::pout<<"QuatIntegrator::resetHierarchyConfiguration()"<<endl;
 
-   d_flux_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
+   d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
    
-   d_quat_diffusion_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
+   d_quat_diffusion_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    if (d_precond_has_dquatdphi) {
-      d_quat_diffusion_deriv_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
+      d_quat_diffusion_deriv_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
    }
 
-   d_conc_diffusion_coarsen_schedule.resizeArray(hierarchy->getNumberOfLevels());
+   d_conc_diffusion_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    int ln_beg = coarsest_level - (coarsest_level>0);
    int ln_end = finest_level;
@@ -2372,13 +2372,13 @@ void QuatIntegrator::setDiffusionCoeffForQuatPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > phi (
-      patch.getPatchData(d_phase_scratch_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_phase_scratch_id) ) );
 
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      patch.getPatchData( d_temperature_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_temperature_scratch_id) ) );
 
    boost::shared_ptr< pdat::SideData<double> > diffusion (
-      patch.getPatchData(d_quat_diffusion_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData(d_quat_diffusion_id) ) );
    assert( diffusion->getDepth() == 1 );
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2477,16 +2477,16 @@ void QuatIntegrator::setDerivDiffusionCoeffForQuatPatch(
    const hier::Index& ilast  = pbox.upper();
 
    boost::shared_ptr< pdat::CellData<double> > phi (
-      patch.getPatchData( d_phase_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_scratch_id) ) );
 
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      patch.getPatchData( d_temperature_scratch_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_temperature_scratch_id) ) );
 
    boost::shared_ptr< pdat::SideData<double> > diffusion_deriv (
-      patch.getPatchData( d_quat_diffusion_deriv_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_quat_diffusion_deriv_id) ) );
 
    boost::shared_ptr< pdat::SideData<double> > grad_q (
-      patch.getPatchData(d_quat_grad_side_copy_id), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData(d_quat_grad_side_copy_id) ) );
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert( phi );
@@ -2573,7 +2573,7 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
 
    // evaluate vel at finest level
    boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
-      patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
    double vel=1.;
    for(int i=0;i<NDIM;i++)
@@ -2598,16 +2598,16 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
          boost::shared_ptr<hier::Patch > this_patch = *this_p;
 
          boost::shared_ptr< pdat::SideData<double> > diffusion (
-            this_patch->getPatchData(d_quat_diffusion_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(this_patch->getPatchData(d_quat_diffusion_id) ) );
          diffusion->fillAll(dval);
 
          boost::shared_ptr< pdat::SideData<double> > grad_side_copy_data (
-            this_patch->getPatchData(d_quat_grad_side_copy_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(this_patch->getPatchData(d_quat_grad_side_copy_id) ) );
          assert( grad_side_copy_data );
          grad_side_copy_data->fillAll( alpha );
 
          boost::shared_ptr< pdat::SideData<double> > grad_side_data (
-            this_patch->getPatchData(d_quat_grad_side_id), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(this_patch->getPatchData(d_quat_grad_side_id) ) );
          assert( grad_side_data );
          grad_side_data->fillAll( alpha );
 
@@ -2668,29 +2668,29 @@ void QuatIntegrator::evaluatePhaseRHS(
             d_f_a_id, false );
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double* dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          assert( phase );
 
          boost::shared_ptr< pdat::CellData<double> > phase_rhs (
-            patch->getPatchData( phase_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
          assert( phase_rhs );
          boost::shared_ptr< pdat::CellData<double> > fl (
-            patch->getPatchData( d_f_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
          assert( fl );
          boost::shared_ptr< pdat::CellData<double> > fa (
-            patch->getPatchData( d_f_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          assert( fa );
 
          boost::shared_ptr<pdat::SideData<double> > phase_flux (
-            patch->getPatchData( d_flux_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_id) ) );
          assert( phase_flux );
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
          assert( temperature );
 
          int with_orient = 0;
@@ -2699,7 +2699,7 @@ void QuatIntegrator::evaluatePhaseRHS(
             with_orient = 1;
             assert( d_quat_grad_modulus_id >= 0 );
             boost::shared_ptr< pdat::CellData<double> > qgm (
-               patch->getPatchData( d_quat_grad_modulus_id ), boost::detail::dynamic_cast_tag()); 
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_grad_modulus_id) ) );
             ptr_quat_grad_modulus = qgm->getPointer();
          }
 
@@ -2708,7 +2708,7 @@ void QuatIntegrator::evaluatePhaseRHS(
          if ( d_with_third_phase ) {
             three_phase = 1;
             boost::shared_ptr< pdat::CellData<double> > eta (
-               patch->getPatchData( eta_id ), boost::detail::dynamic_cast_tag()); 
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( eta_id) ) );
             ptr_eta = eta->getPointer();
          }
 
@@ -2774,7 +2774,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 #endif
 
          boost::shared_ptr< pdat::CellData<double> > phase_mobility (
-            patch->getPatchData( d_phase_mobility_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_mobility_id) ) );
          assert( phase_mobility );
 
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
@@ -2837,27 +2837,27 @@ void QuatIntegrator::evaluateEtaRHS(
             d_f_b_id, false );
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double* dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          assert( phase );
 
          boost::shared_ptr< pdat::CellData<double> > eta (
-            patch->getPatchData( eta_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( eta_id) ) );
          assert( eta );
 
          boost::shared_ptr< pdat::CellData<double> > eta_rhs (
-            patch->getPatchData( eta_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( eta_rhs_id) ) );
          assert( eta_rhs );
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
          assert( temperature );
 
          boost::shared_ptr<pdat::SideData<double> > eta_flux (
-            patch->getPatchData( d_flux_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_id) ) );
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
@@ -2900,7 +2900,7 @@ void QuatIntegrator::evaluateEtaRHS(
             eta_rhs_id );
 
          boost::shared_ptr< pdat::CellData<double> > eta_mobility (
-            patch->getPatchData( d_eta_mobility_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_eta_mobility_id) ) );
          assert( eta_mobility );
 
          mathops.multiply( eta_rhs, eta_mobility, eta_rhs, pbox );
@@ -2940,24 +2940,24 @@ void QuatIntegrator::evaluateTemperatureRHS(
             *ip;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double * dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
          assert( temperature );
          assert( temperature->getGhostCellWidth()[0]>0 );
 
          boost::shared_ptr< pdat::CellData<double> > cp (
-            patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
          assert( cp );
          
          boost::shared_ptr< pdat::CellData<double> > temperature_rhs (
-            patch->getPatchData( temperature_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_rhs_id) ) );
          assert( temperature_rhs );
 
          boost::shared_ptr< pdat::CellData<double> > phase_rhs (
-            patch->getPatchData( phase_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
          assert( phase_rhs );
 
          const hier::Box& pbox = patch->getBox();
@@ -3034,16 +3034,16 @@ void QuatIntegrator::evaluateConcentrationRHS(
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double * dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::SideData<double> > flux (
-            patch->getPatchData( d_flux_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_id) ) );
          assert( flux );
          assert( flux->getDepth()==d_ncompositions );
 
          boost::shared_ptr< pdat::CellData<double> > conc_rhs (
-            patch->getPatchData( conc_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( conc_rhs_id) ) );
          assert( conc_rhs );
          assert( conc_rhs->getDepth()==d_ncompositions );
          assert( conc_rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
@@ -3107,12 +3107,12 @@ void QuatIntegrator::evaluateQuatRHS(
          const hier::Box box  (patch->getBox());
 
          boost::shared_ptr< pdat::CellData<double> > rhs (
-            patch->getPatchData( quat_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_rhs_id) ) );
          boost::shared_ptr< pdat::CellData<double> > nrhs (
-            patch->getPatchData( d_q_rhs1_visit_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_q_rhs1_visit_id) ) );
 
-         pdat::CellIterator cend(box, false);
-         for (pdat::CellIterator c(box,true); c!=cend; ++c) {
+         pdat::CellIterator cend(pdat::CellGeometry::end(box));
+         for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c!=cend; ++c) {
             pdat::CellIndex cell = *c;
             (*nrhs)(cell) = 0.;
             for(int m=0;m<d_qlen;m++)
@@ -3139,12 +3139,12 @@ void QuatIntegrator::evaluateQuatRHS(
             const hier::Box box  (patch->getBox());
 
             boost::shared_ptr< pdat::CellData<double> > rhs (
-               patch->getPatchData( quat_rhs_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_rhs_id) ) );
             boost::shared_ptr< pdat::CellData<double> > nrhs (
-               patch->getPatchData( d_modulus_q_rhs_visit_id ), boost::detail::dynamic_cast_tag());
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_modulus_q_rhs_visit_id) ) );
 
-            pdat::CellIterator cend(box, false);
-            for (pdat::CellIterator c(box,true); c!=cend; c++) {
+            pdat::CellIterator cend(pdat::CellGeometry::end(box));
+            for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c!=cend; c++) {
                pdat::CellIndex cell = *c;
                (*nrhs)(cell) = 0.;
                for(int m=0;m<d_qlen;m++){
@@ -3257,7 +3257,8 @@ void QuatIntegrator::fillScratch(
    // Copy the input phase/quat/conc vectors to the phase/quat/conc
    // scratch arrays and fill the ghost cells
 
-   xfer::RefineAlgorithm copy_to_scratch (tbox::Dimension(NDIM) );
+   xfer::RefineAlgorithm copy_to_scratch ;
+
 
    if ( d_with_phase ) {
       int y_phase_id =
@@ -3785,12 +3786,16 @@ int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > h
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
-   // Zero out the initial guess in the temporary solution array
-   cellops.setToScalar( d_phase_sol_id, 0., false );
+#ifdef DEBUG_CHECK_ASSERTIONS
+   assert( cellops.max(r_phase_id)==cellops.max(r_phase_id) );
+#endif
 
    // Copy the right-hand side (r_phase_id) to the temporary right-hand side array (d_phase_rhs_id)
    cellops.copyData( d_phase_rhs_id, r_phase_id, false );
 
+   // Zero out the initial guess in the temporary solution array
+   cellops.setToScalar( d_phase_sol_id, 0., false );
+   
    // Set the tolerance for the FAC solve as requested by integrator
    d_phase_sys_solver->setResidualTolerance( delta );
 
@@ -3904,15 +3909,15 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    assert( r_conc_id >= 0 );
    assert( ewt_conc_id >= 0 );
 
-   // Zero out the initial guess in the temporary solution array
-   cellops.setToScalar( d_conc_sol_id, 0., false );
-
    // Copy the right-hand side to the temporary right-hand side array
    cellops.copyData( d_conc_rhs_id, r_conc_id, false );
 
    // Set the tolerance for the FAC solve as requested by integrator
    d_conc_sys_solver->setResidualTolerance( delta );
 
+   // Zero out the initial guess in the temporary solution array
+   cellops.setToScalar( d_conc_sol_id, 0., false );
+   
    // Solve the concentration block system
    bool converged =
       d_conc_sys_solver->solveSystem(
@@ -3940,7 +3945,6 @@ int QuatIntegrator::QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hi
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert( cellops.max(r_quat_id)==cellops.max(r_quat_id) );
-   assert( cellops.max(d_quat_rhs_id)==cellops.max(d_quat_rhs_id) );
 #endif
    if ( d_precond_has_dquatdphi ) {
    
@@ -3979,7 +3983,7 @@ int QuatIntegrator::QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hi
          d_quat_rhs_id,
          ewt_quat_id );
 
-   int retcode = (converged && retcode==0) ? 0 : 1;
+   int retcode = converged ? 0 : 1;
 
    // Copy solution from the local temporary to the output array, z_quat_id
    cellops.copyData( z_quat_id, d_quat_sol_id, false );
@@ -4064,7 +4068,8 @@ CVSpgmrPrecondSolve
             if ( d_precond_has_dquatdphi ) {
 
                // Copy the phase correction to an array with ghost cells and fill them
-               xfer::RefineAlgorithm copy_with_ghosts (tbox::Dimension(NDIM));
+               xfer::RefineAlgorithm copy_with_ghosts ;
+
                copy_with_ghosts.registerRefine(
                   d_phase_sol_id,  // destination
                   z_phase_id,      // source
@@ -4269,7 +4274,7 @@ void QuatIntegrator::correctRhsForSymmetry(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
          const double* dx = patch_geom->getDx();
 
          const hier::Box& box = patch->getBox();
@@ -4277,34 +4282,34 @@ void QuatIntegrator::correctRhsForSymmetry(
          const hier::Index& upper = box.upper();
 
          boost::shared_ptr< pdat::CellData<double> > q_data (
-            patch->getPatchData( quat_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_id) ) );
          assert( q_data );
 
          boost::shared_ptr< pdat::SideData<double> > face_coeff (
-            patch->getPatchData( face_coeff_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( face_coeff_id) ) );
          assert( face_coeff );
          assert( face_coeff->getDepth() == d_qlen );
          assert( face_coeff->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
 
          boost::shared_ptr< pdat::SideData<double> > quat_diffs (
-            patch->getPatchData( d_quat_diffs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_quat_diffs_id) ) );
          assert( quat_diffs );
          assert( quat_diffs->getDepth() == 2 * d_qlen );
          assert( quat_diffs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
          boost::shared_ptr< pdat::CellData<double> > mobility (
-            patch->getPatchData( d_quat_mobility_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_mobility_id) ) );
          assert( mobility );
          assert( mobility->getDepth() == 1 );
          assert( mobility->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),1) );
 
          boost::shared_ptr< pdat::CellData<double> > rhs (
-            patch->getPatchData( quat_rhs_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_rhs_id) ) );
          assert( rhs );
          assert( rhs->getDepth() == d_qlen );
 
          boost::shared_ptr< pdat::SideData<int> > rotation_index (
-            patch->getPatchData( d_quat_symm_rotation_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::SideData<int>, hier::PatchData>(patch->getPatchData( d_quat_symm_rotation_id) ) );
          assert( rotation_index );
          assert( rotation_index->getGhostCellWidth() ==
                  hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );

@@ -83,19 +83,18 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          hierarchy->getPatchLevel( amr_level );
 
       for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
-         boost::shared_ptr<hier::Patch > patch =
-            *p;
-
-         const hier::Box& pbox = patch->getBox();
+         boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            patch->getPatchData( temperature_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
          assert( temperature );
          
          boost::shared_ptr< pdat::CellData<double> > phi (
-            patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
          assert( phi );
 #ifdef DEBUG_CHECK_ASSERTIONS
+         const hier::Box& pbox = patch->getBox();
+
          SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
          double l2phi=ops.L2Norm(phi,pbox);
          assert( l2phi==l2phi );
@@ -110,15 +109,15 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          }
 
          boost::shared_ptr< pdat::CellData<double> > concentration (
-            patch->getPatchData( concentration_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_id) ) );
          assert( concentration );
 
          boost::shared_ptr< pdat::CellData<double> > c_l (
-            patch->getPatchData( d_conc_l_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_id) ) );
          assert( c_l );
          
          boost::shared_ptr< pdat::CellData<double> > c_a (
-            patch->getPatchData( d_conc_a_id ), boost::detail::dynamic_cast_tag());
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_id) ) );
          assert( c_a );
          
          boost::shared_ptr< pdat::CellData<double> > c_b;

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Variable class for defining outeredge centered variables
  *
  ************************************************************************/
@@ -20,18 +20,18 @@ namespace SAMRAI {
 namespace pdat {
 
 /*!
- * @brief Class OuteredgeVariable<DIM> is a templated variable class
+ * @brief Class OuteredgeVariable<TYPE> is a templated variable class
  * used to define edge-centered data quantities only on patch boundaries.
  * It is a subclass of hier::Variable and is templated on the type
  * of the underlying data (e.g., double, int, bool, etc.).
  *
  * Note that the data layout in the outeredge data arrays matches the corresponding
  * array sections provided by the edge data implementation.  See header file for
- * the OuteredgeData<DIM> class for a more detailed description of the data layout.
+ * the OuteredgeData<TYPE> class for a more detailed description of the data layout.
  *
- * @see pdat::EdgeData
- * @see pdat::OuteredgeData
- * @see pdat::OuteredgeDataFactory
+ * @see EdgeData
+ * @see OuteredgeData
+ * @see OuteredgeDataFactory
  * @see hier::Variable
  */
 
@@ -82,10 +82,10 @@ public:
 private:
    // neither of the following functions are implemented
    OuteredgeVariable(
-      const OuteredgeVariable<TYPE>&);
-   void
+      const OuteredgeVariable&);
+   OuteredgeVariable&
    operator = (
-      const OuteredgeVariable<TYPE>&);
+      const OuteredgeVariable&);
 
 };
 

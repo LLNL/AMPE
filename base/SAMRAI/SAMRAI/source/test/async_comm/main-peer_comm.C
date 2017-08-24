@@ -3,8 +3,8 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
- * Description:   Test program for asynchromous peer communication classes
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Test program for asynchronous peer communication classes
  *
  ************************************************************************/
 #include "SAMRAI/SAMRAI_config.h"
@@ -162,7 +162,6 @@ void TypeIndependentTester<TYPE>::runTest(
            << "] recv fr " << std::setw(3) << peer_rank << std::endl;
    }
 
-
    /*
     * Test loop.  Each process will send and receive from every
     * member in its group num_cycles times.
@@ -186,7 +185,7 @@ void TypeIndependentTester<TYPE>::runTest(
       /*
        * Check completed members for correctness.
        */
-      while ( stage.numberOfCompletedMembers() > 0 ) {
+      while (stage.hasCompletedMembers()) {
 
          AsyncCommStage::Member* completed_member = stage.popCompletionQueue();
 
@@ -197,7 +196,8 @@ void TypeIndependentTester<TYPE>::runTest(
           */
 
          AsyncCommPeer<TYPE>* completed_comm_ =
-            dynamic_cast<AsyncCommPeer<TYPE> *>(completed_member);
+            CPP_CAST<AsyncCommPeer<TYPE> *>(completed_member);
+         TBOX_ASSERT(completed_comm_);
          AsyncCommPeer<TYPE>& completed_comm = *completed_comm_;
 
          int completed_comm_index = static_cast<int>(completed_comm_ - peer_comms);
@@ -261,7 +261,7 @@ void TypeIndependentTester<TYPE>::runTest(
                   peer_comm.getPeerRank(),
                   completion_counter[i],
                   send_data);
-               peer_comm.beginSend(send_data.size() > 0 ? &send_data[0] : NULL,
+               peer_comm.beginSend(send_data.size() > 0 ? &send_data[0] : 0,
                   static_cast<int>(send_data.size()));
                /*
                 * Check if the new communication is done (because if it is,
@@ -542,18 +542,7 @@ int main(
 
    SAMRAIManager::shutdown();
    SAMRAIManager::finalize();
-
-   if (total_fail_count == 0) {
-      SAMRAI_MPI::finalize();
-   } else {
-      perr << "Process " << std::setw(5) << iproc << " got "
-           << total_fail_count
-           << " failures.  Aborting." << std::endl;
-      tbox::Utilities::abort("Aborting due to nonzero fail count",
-         __FILE__, __LINE__);
-   }
-
-   plog << "Process " << std::setw(5) << iproc << " exiting." << std::endl;
+   SAMRAI_MPI::finalize();
 
    return total_fail_count;
 }

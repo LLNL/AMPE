@@ -3,105 +3,121 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for Euler gas dynamics sample application 
 ##
 #########################################################################
 
-# TODO sample_input should be renamed to example input or removed?
-
 SAMRAI	      = @top_srcdir@
 SRCDIR        = @srcdir@
 SUBDIR        = source/test/performance/Euler
-VPATH         = @top_srcdir@/$(SUBDIR)
+VPATH         = @srcdir@
+TESTTOOLS     = ../../testtools
 OBJECT        = ../../../..
+REPORT        = $(OBJECT)/report.xml
 
-default:        main3d
+default:	main
 
 include $(OBJECT)/config/Makefile.config
 
-CPPFLAGS_EXTRA= -DDISPLAY -DNDIM=$(PDIM)  -DTESTING=0
+SUBDIRS = fortran
+
+CPPFLAGS_EXTRA=
+
+NUM_TESTS = 0
+
+TEST_NPROCS = @TEST_NPROCS@
+PERF_NPROCS = 16,32,64
 
 CXX_OBJS      = main.o Euler.o 
-F2D_OBJS      = avgint.o flaten1d.o flux.o grad.o init.o stable.o \
-		stufprobc.o trace.o trace1d.o
-F3D_OBJS      = $(F2D_OBJS) fluxcorner.o 
+F_OBJS      = \
+		fortran/avgint2d.o fortran/flaten1d2d.o fortran/flux2d.o \
+		fortran/grad2d.o fortran/init2d.o fortran/stable2d.o \
+		fortran/stufprobc.o fortran/trace2d.o fortran/trace1d2d.o \
+		fortran/avgint3d.o fortran/flaten1d3d.o fortran/flux3d.o \
+		fortran/grad3d.o fortran/init3d.o fortran/stable3d.o \
+		fortran/trace3d.o fortran/trace1d3d.o fortran/fluxcorner3d.o
 
-NUM_TESTS = 1
-TEST_NPROCS = @TEST_NPROCS@
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS)     \
+	$(LIBSAMRAI) $(LDLIBS) -o main
 
-main2d:
-		if test -f stamp-3d; then $(MAKE) clean; fi
-		touch stamp-2d
-		$(MAKE) PDIM=2 main-2d
+# Prevents "No rule to make target" error.  Built in the rule for main.
+fortran/avgint2d.o:
 
-main-2d:	$(CXX_OBJS) $(F2D_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F2D_OBJS)	\
-		$(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o main2d
+fortran/flaten1d2d.o:
 
-main3d:
-		if test -f stamp-2d; then $(MAKE) clean; fi
-		touch stamp-3d
-		$(MAKE) PDIM=3 main-3d
+fortran/flux2d.o:
 
-main-3d:	$(CXX_OBJS) $(F3D_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F3D_OBJS)	\
-		$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o main3d
+fortran/grad2d.o:
 
-clean:
-		$(SAMCLEAN)
-		$(RM) *.f main2d main3d
+fortran/init2d.o:
+
+fortran/stable2d.o:
+
+fortran/stufprobc.o:
+
+fortran/trace2d.o:
+
+fortran/trace1d2d.o:
+
+fortran/avgint3d.o:
+
+fortran/flaten1d3d.o:
+
+fortran/flux3d.o:
+
+fortran/grad3d.o:
+
+fortran/init3d.o:
+
+fortran/stable3d.o:
+
+fortran/trace3d.o:
+
+fortran/trace1d3d.o:
+
+fortran/fluxcorner3d.o:
+
+testlib:
+	cd $(TESTLIBDIR) && $(MAKE) library
+
+check:
+
+checkcompile:	main
+
+checktest:
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(OBJECT)/source/test/testtools/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
+
+examples:
+
+perf:	main
+	@for i in performance_inputs/mEuler/*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(PERF_NPROCS) \
+		./main $${i};	\
+	done
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) *.timing*
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 
 redo:
-		$(RM) main2d main3d core *.ii *.int.c
-		$(RM) -r ti_files ii_files
+	$(RM) main core *.ii *.int.c
+	$(RM) ti_files ii_files
 
 include $(SRCDIR)/Makefile.depend
-
-FORTRAN       = fortran/$(PDIM)d
-M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
-
-avgint.o:	$(FORTRAN)/avgint.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/avgint.m4 > avgint.f
-		$(F77) $(FFLAGS) -c avgint.f -o $@
-
-flaten1d.o:	$(FORTRAN)/flaten1d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/flaten1d.m4 > flaten1d.f
-		$(F77) $(FFLAGS) -c flaten1d.f -o $@
-
-flux.o:		$(FORTRAN)/flux.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/flux.m4 > flux.f
-		$(F77) $(FFLAGS) -c flux.f -o $@
-
-fluxcorner.o:	$(FORTRAN)/fluxcorner.m4
-		$(M4) -B8096 $(M4DIRS) $(FORTRAN)/fluxcorner.m4 > fluxcorner.f
-		$(F77) $(FFLAGS) -c fluxcorner.f -o $@
-
-grad.o:		$(FORTRAN)/grad.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/grad.m4 > grad.f
-		$(F77) $(FFLAGS) -c grad.f -o $@
-
-init.o:		$(FORTRAN)/init.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/init.m4 > init.f
-		$(F77) $(FFLAGS) -c init.f -o $@
-
-stable.o:	$(FORTRAN)/stable.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/stable.m4 > stable.f
-		$(F77) $(FFLAGS) -c stable.f -o $@
-
-stufprobc.o:	$(FORTRAN)/../stufprobc.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/../stufprobc.m4 > stufprobc.f
-		$(F77) $(FFLAGS) -c stufprobc.f -o $@
-
-trace.o:	$(FORTRAN)/trace.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/trace.m4 > trace.f
-		$(F77) $(FFLAGS) -c trace.f -o $@
-
-trace1d.o:	$(FORTRAN)/trace1d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/trace1d.m4 > trace1d.f
-		$(F77) $(FFLAGS) -c trace1d.f -o $@
-
-m2d:
-	rm -f *.o main2d && $(MAKE) main2d
-m3d:
-	rm -f *.o main3d && $(MAKE) main3d

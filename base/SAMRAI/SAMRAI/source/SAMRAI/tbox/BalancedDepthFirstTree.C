@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Utility for building efficient communication tree.
  *
  ************************************************************************/
-#ifndef included_tbox_BalancedDepthFirstTree_C
-#define included_tbox_BalancedDepthFirstTree_C
-
 #include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 
 #include "SAMRAI/tbox/PIO.h"
@@ -26,44 +23,84 @@
 namespace SAMRAI {
 namespace tbox {
 
-BalancedDepthFirstTree::BalancedDepthFirstTree()
+/*
+ ****************************************************************
+ ****************************************************************
+ */
+BalancedDepthFirstTree::BalancedDepthFirstTree():
+   d_rank(getInvalidRank()),
+   d_parent(getInvalidRank()),
+   d_root_rank(getInvalidRank()),
+   d_num_children(0),
+   d_do_left_leaf_switch(true)
 {
 }
 
+/*
+ ****************************************************************
+ ****************************************************************
+ */
 BalancedDepthFirstTree::BalancedDepthFirstTree(
-   unsigned int first_rank,
-   unsigned int last_rank,
-   unsigned int my_rank,
-   bool do_left_leaf_switch)
+   int first_rank,
+   int last_rank,
+   int my_rank,
+   bool do_left_leaf_switch):
+   d_rank(getInvalidRank()),
+   d_parent(getInvalidRank()),
+   d_root_rank(getInvalidRank()),
+   d_num_children(0),
+   d_do_left_leaf_switch(do_left_leaf_switch)
 {
-   initialize(first_rank, last_rank, my_rank, do_left_leaf_switch);
+   setupTreeForContiguousRanks(first_rank, last_rank, my_rank);
 }
 
+/*
+ ****************************************************************
+ ****************************************************************
+ */
 BalancedDepthFirstTree::~BalancedDepthFirstTree()
 {
 }
 
+/*
+ ****************************************************************
+ * Set up the tree from a RankGroup.
+ ****************************************************************
+ */
 void
-BalancedDepthFirstTree::initialize(
-   unsigned int first_rank,
-   unsigned int last_rank,
-   unsigned int rank,
-   bool do_left_leaf_switch)
+BalancedDepthFirstTree::setupTree(
+   const RankGroup& rank_group,
+   int my_rank)
+{
+   TBOX_ASSERT(rank_group.isMember(my_rank));
+   setupTreeForContiguousRanks(0, rank_group.size() - 1, rank_group.getMapIndex(my_rank));
+}
+
+/*
+ ****************************************************************
+ * Set up the tree for contiguous ranks.
+ ****************************************************************
+ */
+void
+BalancedDepthFirstTree::setupTreeForContiguousRanks(
+   int first_rank,
+   int last_rank,
+   int rank)
 {
    TBOX_ASSERT(first_rank <= rank);
    TBOX_ASSERT(rank <= last_rank);
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-   plog
-   << "BalancedDepthFirstTree::initialize with first_rank,last_rank,x="
-   << first_rank << " " << last_rank << " " << rank << std::endl;
-#endif
 
-   unsigned int rbeg = first_rank;
-   unsigned int rend = last_rank;
-   unsigned int up = getInvalidRank();          // Temporary guess for parent.
-   unsigned int upp = getInvalidRank(); // Temporary guess for grandparent.
-   unsigned int cl, cr;         // Temporary guesses for children.
-   bool is_switchable = false;    // Part of a left-leaf switchable trio.
+   d_root_rank = first_rank;
+   d_generation = 0;
+   d_child_number = getInvalidChildNumber();
+
+   int rbeg = first_rank;
+   int rend = last_rank;
+   int up = getInvalidRank();  // Temporary guess for parent.
+   int upp = getInvalidRank(); // Temporary guess for grandparent.
+   int cl, cr;         // Temporary guesses for children.
+   unsigned int parents_child_number = getInvalidChildNumber();
+   bool is_switchable = false;  // Part of a left-leaf switchable trio.
 
    size_t nr;           // Number of nodes on right branch
    size_t nl;           // Number of nodes on left branch
@@ -75,8 +112,8 @@ BalancedDepthFirstTree::initialize(
        * parent and its children.
        */
 
-      unsigned int node = rbeg; // Node being examined
-      size_t nrem = rend - rbeg;  // Number or nodes remaining, excluding node.
+      int node = rbeg; // Node being examined
+      size_t nrem = static_cast<size_t>(rend - rbeg);  // Number or nodes remaining, excluding node.
 
       nr = nrem / 2;      // Number on right branch
       nl = nrem - nr;     // Number on left branch
@@ -94,34 +131,25 @@ BalancedDepthFirstTree::initialize(
       if (nl > 0) cl = node + 1;        // left child
       if (nr > 0) cr = cl + static_cast<int>(nl);         // right child
 
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-      plog << "There are" << " " << nrem << " "
-           << "remaining nodes.  nl,nr=" << " " << nl << " " << nr
-           << std::endl;
-      plog << "cl=" << " " << cl << " " << "cr=" << " " << cr
-           << std::endl;
-#endif
-
       if (node == rank) break;
       else {
          TBOX_ASSERT(nl > 0);
          TBOX_ASSERT(cl != getInvalidRank());
          upp = up;
          up = node;
+         ++d_generation;
          if (nr < 1 || rank < cr) {
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-            plog << "Going left to" << " " << cl << std::endl;
-#endif
             rbeg = cl;
             rend = cl + static_cast<int>(nl) - 1;
+            parents_child_number = d_child_number;
+            d_child_number = 0;
          } else {
             TBOX_ASSERT(nr > 0);
             TBOX_ASSERT(cr != getInvalidRank());
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-            plog << "Going right to" << " " << cr << std::endl;
-#endif
             rbeg = cr;
             rend = cr + static_cast<int>(nr) - 1;
+            parents_child_number = d_child_number;
+            d_child_number = 1;
          }
       }
    }
@@ -132,15 +160,8 @@ BalancedDepthFirstTree::initialize(
    d_children[0] = cl;
    d_children[1] = cr;
    d_num_children = 0;
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-   plog << "  " << d_parent << std::endl;
-   plog << "   |" << std::endl;
-   plog << "  " << d_rank << std::endl;
-   plog << "  /  \\ " << std::endl;
-   plog << d_children[0] << "   " << d_children[1] << std::endl;
-#endif
 
-   if (do_left_leaf_switch) {
+   if (d_do_left_leaf_switch) {
       if (is_switchable) {
          /*
           * Trios of a parent and 2 leaf children are subject to
@@ -152,25 +173,33 @@ BalancedDepthFirstTree::initialize(
           *        left    right             parent    right
           */
          if (nl == 1) {
-            // Parent in a left-leaf switchable.
+            // This is a parent in a left-leaf switchable.
             d_parent = cl;
             d_children[0] = getInvalidRank();
             d_children[1] = getInvalidRank();
+            ++d_generation;
+            d_child_number = 0;
          } else if (rank == d_parent + 1) {
-            // Left child in a left-leaf switchable.
+            // This is a left child in a left-leaf switchable.
             d_children[0] = d_parent;
             d_parent = gparent;
             d_children[1] = rank + 1;
+            --d_generation;
+            d_child_number = parents_child_number;
          } else {
-            // Right child in a left-leaf switchable.
+            // This is a right child in a left-leaf switchable.
             d_parent = d_parent + 1;
+         }
+         if (last_rank - first_rank + 1 == 3) {
+            // Special case of exactly 3 ranks allows the root be switched.
+            d_root_rank = first_rank + 1;
          }
       } else {
          /*
           * Rank is not in a switchable trio, but its children
           * may be.  Example:
           *
-          * Before:       rank                   After:       rank
+          * Before:      rank                   After:       rank
           *             /    \                              /    \
           *            /      \                            /      \
           *      rank+1        rank+4                rank+2        rank+5
@@ -193,13 +222,6 @@ BalancedDepthFirstTree::initialize(
       }
    }
 
-#if defined(BalancedDepthFirstTree_ExtraDebug)
-   plog << "  " << d_parent << std::endl;
-   plog << "   |" << std::endl;
-   plog << "  " << d_rank << std::endl;
-   plog << "  /  \\ " << std::endl;
-   plog << d_children[0] << "   " << d_children[1] << std::endl;
-#endif
 }
 
 }
@@ -211,6 +233,4 @@ BalancedDepthFirstTree::initialize(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

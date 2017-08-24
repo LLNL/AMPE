@@ -3,67 +3,223 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for SAMRAI Euler 2d test problem 
  *
  ************************************************************************/
 
 GlobalInputs {
+   // If FALSE, when an error is encountered in serial exit(-1) will be called
+   // instead of SAMRAI_MPI::abort().
    call_abort_in_serial_instead_of_exit = FALSE
 }
 
 AutoTester {
+   // If true, fluxes will be written out to a .dat file for inspection.
+   // Default is FALSE.
    test_fluxes = FALSE
-   test_iter_num = 10
-   correct_result =  0.0199217807513, 0.000626631372170, 6.97075036474e-05
-   output_correct = FALSE
 
+   // iteration to carry out test.  Default is 10.
+   test_iter_num = 10
+
+   // if true will write correct patch boxes--useful for rebaselining
+   // Default is FALSE.
    write_patch_boxes = FALSE
+
+   // if true will read correct patch boxes--set to FALSE to rebaseline
+   // Default is FALSE.
    read_patch_boxes = TRUE
-   test_patch_boxes_at_steps = 0, 5, 10  // 0 checks initial data
+
+   // time steps for which correctness of patch boxes will be checked
+   // Required if one of write_patch_boxes or read_patch_boxes is true.
+   // No default.
+   test_patch_boxes_at_steps = 0, 5, 10
+
+   // base name of files containing correct patch boxes
+   // Required if one of write_patch_boxes or read_patch_boxes is true.
+   // No default.
    test_patch_boxes_filename = "test_inputs/test.2d.boxes"
-   simplify_test_boxes = TRUE
+
+   // expected correct result
+   // Required if test_fluxes is FALSE.  Unread otherwise.  No default.
+   correct_result =  0.0199217807513, 0.000626631372170, 6.97075036474e-05
+
+   // if true will write corrct result--useful for rebaselining
+   // Default is FALSE.
+   output_correct = FALSE
 }
 
 Euler {
-   gamma            = 1.4      // gamma = Ratio of specific heats
+   // Allow nonuniform workload.  Default is FALSE.
+   use_nonuniform_workload = FALSE
 
-   godunov_order    = 4        // order of Goduov slopes (1, 2, or 4)
+   // Ratio of specific heats.  Not read on restart.  Default is 1.4.
+   gamma            = 1.4
 
+   // Riemann solver used in flux calculation.  Must be one of
+   // "APPROX_RIEM_SOLVE", "EXACT_RIEM_SOLVE", "HLLC_RIEM_SOLVE".
+   // Default is "APPROX_RIEM_SOLVE".
    riemann_solve        = "APPROX_RIEM_SOLVE"
 //   riemann_solve        = "EXACT_RIEM_SOLVE"
 //   riemann_solve        = "HLLC_RIEM_SOLVE"
 
-   data_problem         = "STEP"
+   // Order of Goduov slopes (1, 2, or 4).  Default is 1.
+   godunov_order    = 4
 
-   Initial_data {
-      front_position = 0.0
-      interval_0 {
-         density         = 1.4
-         velocity        = 3.0 , 0.0
-         pressure        = 1.0
-      }
-      interval_1 {
-         density         = 1.4
-         velocity        = 3.0 , 0.0
-         pressure        = 1.0
-      }
-   }
+   // Type of finite difference approximation for 3d transverse flux
+   // correction.  Allowed values are CORNER_TRANSPORT_1 and
+   // CORNER_TRANSPORT_2.
+   // CORNER_TRANSPORT_1 means to compute numerical approximations to flux
+   // terms using an extension to three dimensions of Collella's corner
+   // transport upwind approach.  
+   // CORNER_TRANSPORT_2 means to compute numerical approximations to flux
+   // terms using John Trangenstein's interpretation of the three-dimensional
+   // version of Collella's corner transport upwind approach.
+   // Default is "CORNER_TRANSPORT_1".
+   corner_transport = "CORNER_TRANSPORT_1"
 
+   // Control of how to refine.
    Refinement_data {
+      // Refinement criteria and, for each, the parameters controling it.
+      // Refinement criteria may be one or more of DENSITY_DEVIATION,
+      // DENSITY_GRADIENT, DENSITY_SHOCK, DENSITY_RICHARDSON,
+      // PRESSURE_DEVIATION, PRESSURE_GRADIENT, PRESSURE_SHOCK, or
+      // PRESSURE_RICHARDSON.
+      // Input required.  No default.
       refine_criteria = "PRESSURE_GRADIENT", "PRESSURE_SHOCK"
 
+      // Criteria for PRESSURE_GRADIENT refinement criteria.
       PRESSURE_GRADIENT {
+         // Array of pressure gradient tagging tolerances, one value per level.
+         // If the number of levels is greater than the number of entries in
+         // this array then the tolerance for all finer levels is the last
+         // array entry.  Gradients greater than this tolerance result in
+         // tagged cells.  No default.
          grad_tol = 20.0
+
+         // Array of maximum simulation times for which this criteria applies,
+         // one per level.  If the number of levels is greater than the number
+         // of entries in this array then the maximum simulation time for all
+         // finer levels is the last array entry.
+         // Default is all time (maximum double) for all levels.
+//         time_max = 1000000.0
+
+         // Array of minimum simulation times for which this criteria applies,
+         // one per level.  If the number of levels is greater than the number
+         // of entries in this array then the minimum simulation time for all
+         // finer levels is the last array entry.
+         // Default is 0.0 for all levels.
+         time_min = 0.0
       }
 
+      // Criteria for PRESSURE_SHOCK refinement criteria.
       PRESSURE_SHOCK {
-         shock_tol = 10.0
+         // Array of shock tagging tolerances, one value per level.  If the
+         // number of levels is greater than the number of entries in this
+         // array then the tolerance for all finer levels is the last array
+         // entry.  No default.
+         shock_tol   = 10.0
+
+         // Array of shock tagging onsets, one value per level.  This value is
+         // used to prevent unintended overrefinement of large, smooth
+         // gradients resulting in smooth flow.  If the number of levels is
+         // greater than the number of entries in this array then the onset for
+         // all finer levels is the last array entry. No default.
          shock_onset = 0.90
+
+         // Array of maximum simulation times for which this criteria applies,
+         // one per level.  If the number of levels is greater than the number
+         // of entries in this array then the maximum simulation time for all
+         // finer levels is the last array entry.
+         // Default is all time (maximum double) for all levels.
+//         time_max = 1000000.0
+
+         // Array of minimum simulation times for which this criteria applies,
+         // one per level.  If the number of levels is greater than the number
+         // of entries in this array then the minimum simulation time for all
+         // finer levels is the last array entry.
+         // Default is 0.0 for all levels.
+         time_min = 0.0
+      }
+
+      // PRESSURE_DEVIATION
+      // dev_tol
+      // An array of pressure deviation tolerances, one value per level.  Cell
+      // is refined if (p - pressure_dev) > dev_tol.  If the number of levels
+      // is greater than the number of entries in this array then the tolerance
+      // for all finer levels is the last array entry.  No default.
+      // pressure_dev
+      // An array of pressure deviations, one value per level.  If the number
+      // of levels is greater than the number of entries in this array then the
+      // deviation of for all finer levels is the last array entry.
+      // No default.
+      // time_max
+      // An array of maximum simulation times for which this criteria applies,
+      // one per level.  If the number of levels is greater than the number of
+      // entries in this array then the maximum simulation time for all finer
+      // levels is the last array entry.  Default is all time (maximum double)
+      // for all levels.
+      // time_min
+      // An array of minimum simulation times for which this criteria applies,
+      // one per level.  If the number of levels is greater than the number of
+      // entries in this array then the minimum simulation time for all finer
+      // levels is the last array entry.  Default is 0.0 for all levels.
+
+      // PRESSURE_RICHARDSON
+      // rich_tol
+      // An array of tolerances on the global error.  Cells in which the global
+      // error exceeds the tolerance are tagged.  If the number of levels is
+      // greater than the number of entries in this array then the tolerance
+      // for all finer levels is the last array entry.  No default.
+      // time_max
+      // An array of maximum simulation times for which this criteria applies,
+      // one per level.  If the number of levels is greater than the number of
+      // entries in this array then the maximum simulation time for all finer
+      // levels is the last array entry.  Default is all time (maximum double)
+      // for all levels.
+      // time_min
+      // An array of minimum simulation times for which this criteria applies,
+      // one per level.  If the number of levels is greater than the number of
+      // entries in this array then the minimum simulation time for all finer
+      // levels is the last array entry.  Default is 0.0 for all levels.
+
+      // DENSITY_GRADIENT inputs are grad_tol, time_max, time_min and are
+      // analogous to those for PRESSURE_GRADIENT.
+
+      // DENSITY_SHOCK input are shock_onset, shock_tol, time_max, time_min and
+      // are analogous to thos pre PRESSURE_SHOCK.
+
+      // DENSITY_DEVIATION inputs are dev_tol, density_dev, time_max, time_min
+      // and are analogous to those for PRESSURE_DEVIATION.
+
+      // DENSITY_RICHARDSON inputs are rich_tol, time_max, time_min and are
+      // analogous to those for PRESSURE_RICHARDSON.
+   }
+
+   // General type of problem and its initial conditions.  Options are "STEP",
+   // "SPHERE", "PIECEWISE_CONSTANT_X", "PIECEWISE_CONSTANT_"Y,
+   // "PIECEWISE_CONSTANT_Z".  Specific Initial_data inputs vary by problem
+   // type.  No default.
+   data_problem      = "STEP"
+   Initial_data {
+      // Initial location of front.
+      front_position = 0.0
+      // Initial conditions on one side of step.
+      interval_0 {
+         density         = 1.4
+         velocity        = 3.0 , 0.0 // vector of length dim
+         pressure        = 1.0
+      }
+      // Initial conditions on other side of step.
+      interval_1 {
+         density         = 1.4
+         velocity        = 3.0 , 0.0 // vector of length dim
+         pressure        = 1.0
       }
    }
 
-   // valid boundary_condition values are "FLOW", "REFLECT", "DIRICHLET"
+   // Boundary condition data following the format defined in
+   // appu::CartesianBoundaryUtility[2,3].  Refer to these classes for details.
    Boundary_data {
       boundary_edge_xlo {
          boundary_condition      = "FLOW"
@@ -101,35 +257,57 @@ Euler {
 
 }
 
-BergerRigoutsos {
-   algo_advance_mode = "ADVANCE_SOME"
-   owner_mode = "MOST_OVERLAP"
-   log_node_history = FALSE
-   use_level_boxes = FALSE
-   use_private_communicator = TRUE
-   sort_output_nodes = TRUE // Makes results repeatable.
-   max_box_size = 100, 100
-   log_cluster_summary = TRUE
-   log_cluster = FALSE
-   barrier_before = TRUE
-   barrier_after = TRUE
-}
-
 Main {
+   // Dimension of problem.  Required input.  No default.
    dim = 2
+
+
+   // Base name of log and viz files.  Default is "unnamed".
    base_name = "test.2d"
-// log file parameters
+
+
+   // Explicit name of log file.  Default is base_name + ".log"
+   log_filname = "test.2d.log"
+
+
+   // If true all nodes will log to individual files.
+   // If false only node 0 will log.
+   // Default is FALSE.
    log_all_nodes    = TRUE
 
-// visualization dump parameters
-   viz_dump_interval     = 1         // zero to turn off
 
-// restart dump parameters
-   restart_interval       = 1         // zero to turn off
+   // Visualization dump parameters.
 
-   plotting_interval = 0
+   // Frequency at which to dump viz output--zero to turn off.
+   // Default is 0.
+   viz_dump_interval    = 1
+
+   // Directory in which to place viz output.
+   // Default is base_name + ".visit"
+   viz_dump_dirname = "test.2d.visit"
+
+   // Number of processors which write to each viz file.
+   // Default is 1.
+   visit_number_procs_per_file = 1
+
+
+   // Restart dump parameters.
+
+   // Frequency at which to dump restart output--zero to turn off.
+   // Default is 0.
+   restart_interval     = 1      
+
+   // Directory in which to place restart output.
+   // Default is base_name + ".restart"
+   restart_write_dirname = "test.2d.restart"
+
+
+   // If anything but "SYNCHRONIZED" will use refined timestepping.
+   // Default is not "SYNCHRONIZED".
+//   use_refined_timestepping = "SYNCHRONIZED"
 }
 
+// Refer to tbox::TimerManager for input
 TimerManager{
    print_exclusive      = TRUE   // output exclusive time
    timer_list               = "apps::main::*",
@@ -138,6 +316,7 @@ TimerManager{
                               "algs::HyperbolicLevelIntegrator::*"
 }
 
+// Refer to geom::CartesianGridGeometry and its base classes for input
 CartesianGeometry {
    domain_boxes = [ (0,0) , (9,19) ],
                   [ (10,4) , (49,19) ]
@@ -145,10 +324,12 @@ CartesianGeometry {
    x_up         = 2.5e0 , 1.e0  // upper end of computational domain.
 }
 
+// Refer to mesh::StandardTagAndInitialize for input
 StandardTagAndInitialize{
    tagging_method = "GRADIENT_DETECTOR"
 }
 
+// Refer to hier::PatchHierarchy for input
 PatchHierarchy {
 
    max_levels = 5         // Maximum number of levels in hierarchy.
@@ -179,19 +360,33 @@ PatchHierarchy {
 
 }
 
+// Refer to mesh::GriddingAlgorithm for input
 GriddingAlgorithm {
    enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
+   DEV_extend_to_domain_boundary = TRUE
    check_nonrefined_tags = "IGNORE"
-
-   efficiency_tolerance = 0.75e0   // min % of tag cells in new patch level
-   combine_efficiency   = 0.85e0   // chop box if sum of volumes of smaller
-                                   // boxes < efficiency * vol of large box
    sequentialize_patch_indices = TRUE // Required for plotting.
 
    check_overlapping_patches = "IGNORE"
 }
 
+// Refer to mesh::BergerRigoutsos for input
+BergerRigoutsos {
+   DEV_algo_advance_mode = "ADVANCE_SOME"
+   DEV_owner_mode = "MOST_OVERLAP"
+   DEV_log_node_history = FALSE
+   sort_output_nodes = TRUE // Makes results repeatable.
+   max_box_size = 100, 100
+   efficiency_tolerance   = 0.75e0    // min % of tag cells in new patch level
+   combine_efficiency     = 0.85e0    // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+   DEV_log_cluster_summary = FALSE
+   DEV_log_cluster = FALSE
+   DEV_barrier_before = TRUE
+   DEV_barrier_after = TRUE
+}
+
+// Refer to algs::HyperbolicLevelIntegrator for input
 HyperbolicLevelIntegrator {
    cfl                      = 0.9e0    // max cfl factor used in problem
    cfl_init                 = 0.1e0    // initial cfl factor
@@ -199,20 +394,22 @@ HyperbolicLevelIntegrator {
    use_ghosts_to_compute_dt = TRUE
 }
 
+// Refer to algs::TimeRefinementIntegrator for input
 TimeRefinementIntegrator {
-   start_time            = 0.e0     // initial simulation time
-   end_time              = 100.e0    // final simulation time
-   grow_dt               = 1.1e0    // growth factor for timesteps
+   start_time            = 0.e0    // initial simulation time
+   end_time              = 100.e0  // final simulation time
+   grow_dt               = 1.1e0   // growth factor for timesteps
    max_integrator_steps  = 10      // max number of simulation timesteps
 }
 
+// Refer to mesh::TreeLoadBalancer for input
 LoadBalancer {
-  report_load_balance = FALSE
-  barrier_before = TRUE
-  barrier_after = TRUE
-  n_root_cycles = 1
+   DEV_report_load_balance = FALSE
+   DEV_barrier_before = TRUE
+   DEV_barrier_after = TRUE
 }
 
+// Refer to xfer::RefineSchedule for input
 RefineSchedule {
-  extra_debug = TRUE
+   DEV_extra_debug = FALSE
 }

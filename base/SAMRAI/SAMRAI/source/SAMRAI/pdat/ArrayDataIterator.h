@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Iterator for array patch data types
  *
  ************************************************************************/
@@ -38,7 +38,7 @@ namespace pdat {
  * depending on your compiler.  Many compilers are not smart enough to
  * optimize the looping constructs and indexing operations.
  *
- * @see pdat::ArrayData
+ * @see ArrayData
  * @see hier::Index
  */
 
@@ -49,7 +49,7 @@ public:
     * Constructor for the array data iterator.  The iterator will enumerate
     * the indices in the argument box.
     */
-   explicit ArrayDataIterator(
+   ArrayDataIterator(
       const hier::Box& box,
       bool begin);
 
@@ -89,7 +89,7 @@ public:
     * Extract pointer to the index corresponding to the iterator position in
     * the box.
     */
-   const hier::Index*
+   const hier::Index *
    operator -> () const
    {
       return &d_index;

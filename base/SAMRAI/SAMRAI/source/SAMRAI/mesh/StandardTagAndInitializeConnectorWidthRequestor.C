@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   StandardTagAndInitialize's implementation of PatchHierarchy
  *
  ************************************************************************/
-
-#ifndef included_mesh_StandardTagAndInitializeConnectorWidthRequestor_C
-#define included_mesh_StandardTagAndInitializeConnectorWidthRequestor_C
-
 #include "SAMRAI/mesh/StandardTagAndInitializeConnectorWidthRequestor.h"
 
 #include "SAMRAI/xfer/RefineScheduleConnectorWidthRequestor.h"
@@ -100,13 +96,13 @@ StandardTagAndInitializeConnectorWidthRequestor::computeRequiredConnectorWidths(
     * by which StandardTagAndInitialize may coarsen a level in the
     * hierarchy.  It is the growth factor for ghost data.
     */
-   tbox::Array<hier::IntVector> ratios_to_coarser(
+   std::vector<hier::IntVector> ratios_to_coarser(
       patch_hierarchy.getMaxNumberOfLevels(),
-      hier::IntVector(dim));
+      hier::IntVector::getZero(dim));
 
    for (int ln = 0; ln < patch_hierarchy.getMaxNumberOfLevels(); ++ln) {
       ratios_to_coarser[ln] = patch_hierarchy.getRatioToCoarserLevel(ln);
-   }
+   } 
 
    int error_coarsen_ratio = computeCoarsenRatio(ratios_to_coarser);
 
@@ -136,14 +132,15 @@ StandardTagAndInitializeConnectorWidthRequestor::computeRequiredConnectorWidths(
 
 int
 StandardTagAndInitializeConnectorWidthRequestor::computeCoarsenRatio(
-   const tbox::Array<hier::IntVector>& ratios_to_coarser) const
+   const std::vector<hier::IntVector>& ratios_to_coarser) const
 {
    const tbox::Dimension& dim(ratios_to_coarser[0].getDim());
+
    /*
-    * Compute GCD on first dimension of level 1
+    * Compute GCD on first coordinate direction of level 1
     */
    int error_coarsen_ratio = 0;
-   int gcd_level1 = ratios_to_coarser[1](0);
+   int gcd_level1 = ratios_to_coarser[1](0,0);
    if ((gcd_level1 % 2) == 0) {
       error_coarsen_ratio = 2;
    } else if ((gcd_level1 % 3) == 0) {
@@ -158,22 +155,21 @@ StandardTagAndInitializeConnectorWidthRequestor::computeCoarsenRatio(
 
    /*
     * Iterate through levels and check the coarsen ratios to make sure the
-    * error coarsen ratios computed in every dimension on every
+    * error coarsen ratios computed in every coordinate direction on every
     * level are between the supported 2 or 3, and that the error coarsen
     * ratios are constant over the hierarchy.
     */
-   for (int ln = 1; ln < ratios_to_coarser.getSize(); ln++) {
-
-      for (int d = 0; d < dim.getValue(); d++) {
-         int gcd = GCD(error_coarsen_ratio, ratios_to_coarser[ln](d));
+   for (int ln = 1; ln < static_cast<int>(ratios_to_coarser.size()); ++ln) {
+      for (int d = 0; d < dim.getValue(); ++d) {
+         int gcd = GCD(error_coarsen_ratio, ratios_to_coarser[ln](0,d));
          if ((gcd % error_coarsen_ratio) != 0) {
-            gcd = ratios_to_coarser[ln](d);
+            gcd = ratios_to_coarser[ln](0,d);
             TBOX_ERROR(
                "StandardTagAndInitializeConnectorWidthRequestor::computeCoarsenRatio:\n"
                << "Unable to perform Richardson extrapolation because\n"
                << "the error coarsen ratio computed from the\n"
                << "ratios_to_coarser entries is not constant across all\n"
-               << "levels, in all dimensions, of the hierarchy. In\n"
+               << "levels, in all coordinate directions, of the hierarchy. In\n"
                << "order to use Richardson extrapolation, the minimum\n"
                << "divisor (> 1) of all the ratios_to_coarser entries must\n"
                << "be 2 -or- 3:\n"
@@ -194,4 +190,3 @@ StandardTagAndInitializeConnectorWidthRequestor::computeCoarsenRatio(
 
 }
 }
-#endif

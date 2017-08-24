@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A collection of patches at one level of the AMR hierarchy
  *
  ************************************************************************/
@@ -19,8 +19,9 @@
 #include "SAMRAI/hier/ProcessorMapping.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <map>
+#include <vector>
 
 namespace SAMRAI {
 namespace hier {
@@ -38,12 +39,12 @@ class BaseGridGeometry;
  * To iterate over the local patches in a patch level, use the patch
  * level iterator class (PatchLevel::Iterator).
  *
- * @see hier::BasePatchLevel
- * @see hier::Patch
- * @see hier::PatchDescriptor
- * @see hier::PatchFactory
- * @see hier::PatchLevelFactory
- * @see hier::PatchLevel::Iterator
+ * @see BasePatchLevel
+ * @see Patch
+ * @see PatchDescriptor
+ * @see PatchFactory
+ * @see PatchLevelFactory
+ * @see PatchLevel::Iterator
  */
 
 class PatchLevel
@@ -59,6 +60,11 @@ public:
    /*!
     * @brief Construct a new patch level given a BoxLevel.
     *
+    * This constructor makes a COPY of the supplied BoxLevel.  If the caller
+    * intends to modify the supplied BoxLevel for other purposes after creating
+    * this PatchLevel, then this constructor must be used rather than the
+    * constructor taking a boost::shared_ptr<BoxLevel>.
+    *
     * The BoxLevel provides refinement ratio information, establishing
     * the ratio between the index space of the new level and some reference
     * level (typically level zero) in some patch hierarchy.
@@ -67,13 +73,7 @@ public:
     * by the grid geometry instance to initialize geometry information
     * of both the level and the patches on that level.
     *
-    * @par Error conditions
-    * When assertion checking is active, an unrecoverable assertion results
-    * if either the grid geometry pointer or patch descriptor pointer is
-    * null, or if the number of boxes in the array does not match the
-    * mapping array.
-    *
-    * @param[in]  mapped_box_level
+    * @param[in]  box_level
     * @param[in]  grid_geometry
     * @param[in]  descriptor The PatchDescriptor used to allocate patch data
     *             on the local processor
@@ -82,9 +82,15 @@ public:
     * @param[in]  defer_boundary_box_creation Flag to indicate suppressing
     *             construction of the boundary boxes.
     *
+    * @pre grid_geometry
+    * @pre descriptor
+    * @pre box_level.getDim() == grid_geometry->getDim()
+    * @pre box_level.getRefinementRatio() != IntVector::getZero(getDim())
+    * @pre all components of box_level's refinement ratio must be nonzero and,
+    *      all components not equal to 1 must have the same sign
     */
    PatchLevel(
-      const BoxLevel& mapped_box_level,
+      const BoxLevel& box_level,
       const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
       const boost::shared_ptr<PatchDescriptor>& descriptor,
       const boost::shared_ptr<PatchFactory>& factory =
@@ -92,38 +98,74 @@ public:
       bool defer_boundary_box_creation = false);
 
    /*!
-    * @brief Construct a new patch level from the specified PatchLevel database.
+    * @brief Construct a new patch level given a BoxLevel.
+    *
+    * This constructor ACQUIRES the supplied BoxLevel.  If the caller will not
+    * modify the supplied BoxLevel for other purposes after creating this
+    * PatchLevel, then this constructor may be used rather than the constructor
+    * taking a BoxLevel&.  Use of this constructor where permitted is more
+    * efficient as it avoids copying an entire BoxLevel.  Note that this
+    * constructor locks the supplied BoxLevel so that any attempt by the caller
+    * to modify it after calling this constructor will result in an
+    * unrecoverable error.
+    *
+    * The BoxLevel provides refinement ratio information, establishing
+    * the ratio between the index space of the new level and some reference
+    * level (typically level zero) in some patch hierarchy.
+    *
+    * The ratio information provided by the BoxLevel is also used
+    * by the grid geometry instance to initialize geometry information
+    * of both the level and the patches on that level.
+    *
+    * @param[in]  box_level
+    * @param[in]  grid_geometry
+    * @param[in]  descriptor The PatchDescriptor used to allocate patch data
+    *             on the local processor
+    * @param[in]  factory Optional PatchFactory.  If none specified, a default
+    *             (standard) patch factory will be used.
+    * @param[in]  defer_boundary_box_creation Flag to indicate suppressing
+    *             construction of the boundary boxes.
+    *
+    * @pre grid_geometry
+    * @pre descriptor
+    * @pre box_level.getDim() == grid_geometry->getDim()
+    * @pre box_level.getRefinementRatio() != IntVector::getZero(getDim())
+    * @pre all components of box_level's refinement ratio must be nonzero and,
+    *      all components not equal to 1 must have the same sign
+    */
+   PatchLevel(
+      const boost::shared_ptr<BoxLevel> box_level,
+      const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
+      const boost::shared_ptr<PatchDescriptor>& descriptor,
+      const boost::shared_ptr<PatchFactory>& factory =
+         boost::shared_ptr<PatchFactory>(),
+      bool defer_boundary_box_creation = false);
+
+   /*!
+    * @brief Construct a new patch level from the specified PatchLevel
+    * restart database.
     *
     * The box, mapping, and ratio to level zero data which are normally
     * passed in during the construction of a new patch level are
-    * retrieved from the specified database.  The component_selector
-    * argument specifies which patch data components should be allocated
-    * and read in from the level_database.  By default, all bits in the
-    * component selector are set to false so that no patch data are
-    * allocated.
+    * retrieved from the specified restart database.
     *
-    * @par Error conditions
-    * When assertion checking is turned on, the level_database,
-    * grid_geometry, and descriptor are checked to make sure that
-    * they are not null.  If null, an unrecoverable assertion will result.
-    *
-    * @param[in]  level_database
+    * @param[in]  restart_database
     * @param[in]  grid_geometry
     * @param[in]  descriptor The PatchDescriptor used to allocate patch
     *             data.
     * @param[in]  factory
-    * @param[in]  component_selector Optional ComponentSelector. @b Default:
-    *             a ComponentSelector with all elements set to false
     * @param[in]  defer_boundary_box_creation Flag to indicate suppressing
     *             construction of the boundary boxes.  @b Default: false
+    *
+    * @pre restart_database
+    * @pre grid_geometry
+    * @pre descriptor
     */
    PatchLevel(
-      const boost::shared_ptr<tbox::Database>& level_database,
+      const boost::shared_ptr<tbox::Database>& restart_database,
       const boost::shared_ptr<BaseGridGeometry>& grid_geometry,
       const boost::shared_ptr<PatchDescriptor>& descriptor,
       const boost::shared_ptr<PatchFactory>& factory,
-      const ComponentSelector& component_selector =
-         *(new ComponentSelector(false)),
       bool defer_boundary_box_creation = false);
 
    /*!
@@ -162,7 +204,7 @@ public:
       const int level)
    {
       d_level_number = level;
-      for (Iterator p(begin()); p != end(); p++) {
+      for (Iterator p(begin()); p != end(); ++p) {
          p->setPatchLevelNumber(d_level_number);
       }
    }
@@ -224,7 +266,7 @@ public:
       bool in_hierarchy)
    {
       d_in_hierarchy = in_hierarchy;
-      for (Iterator p(begin()); p != end(); p++) {
+      for (Iterator p(begin()); p != end(); ++p) {
          p->setPatchInHierarchy(d_in_hierarchy);
       }
    }
@@ -246,7 +288,7 @@ public:
    int
    getLocalNumberOfPatches() const
    {
-      return static_cast<int>(d_mapped_box_level->getLocalNumberOfBoxes());
+      return static_cast<int>(d_box_level->getLocalNumberOfBoxes());
    }
 
    /*!
@@ -255,7 +297,7 @@ public:
    int
    getGlobalNumberOfPatches() const
    {
-      return d_mapped_box_level->getGlobalNumberOfBoxes();
+      return d_box_level->getGlobalNumberOfBoxes();
    }
 
    /*!
@@ -264,16 +306,16 @@ public:
    int
    getLocalNumberOfCells() const
    {
-      return static_cast<int>(d_mapped_box_level->getLocalNumberOfCells());
+      return static_cast<int>(d_box_level->getLocalNumberOfCells());
    }
 
    /*!
     * @brief Get the global number of cells
     */
-   int
+   long int
    getGlobalNumberOfCells() const
    {
-      return d_mapped_box_level->getGlobalNumberOfCells();
+      return d_box_level->getGlobalNumberOfCells();
    }
 
    /*!
@@ -289,7 +331,11 @@ public:
    {
       BoxId mbid(gid);
       PatchContainer::const_iterator it = d_patches.find(mbid);
-      TBOX_ASSERT(it != d_patches.end());
+      if (it == d_patches.end()) {
+         TBOX_ERROR("PatchLevel::getPatch error: GlobalId "
+            << gid << " does not exist locally.\n"
+            << "You must specify the GlobalId of a current local patch.");
+      }
       return it->second;
    }
 
@@ -299,19 +345,37 @@ public:
     * @param[in]  mbid
     *
     * @return A boost::shared_ptr to the Patch indicated by the BoxId.
+    *
+    * @pre d_patches.find(mbid) != d_patches.end()
     */
    boost::shared_ptr<Patch>
    getPatch(
       const BoxId& mbid) const
    {
       const PatchContainer::const_iterator mi = d_patches.find(mbid);
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (mi == d_patches.end()) {
-         TBOX_ERROR("PatchLevel::getPatch(" << mbid
-            << "): patch does not exist locally.");
+         TBOX_ERROR("PatchLevel::getPatch error: BoxId "
+            << mbid << " does not exist locally.\n"
+            << "You must specify the BoxId of a current local box"
+            << " that is not a periodic image.");
       }
-#endif
       return (*mi).second;
+   }
+
+   /*!
+    * @brief Get a patch using a random access index.
+    *
+    * The index specifies the position of the patch as would be
+    * encountered when iterating through the patches.
+    */
+   const boost::shared_ptr<Patch>& getPatch(size_t index) const
+   {
+      if (index >= d_patch_vector.size()) {
+         TBOX_ERROR("PatchLevel::getPatch error: index "
+            << index << " is too big.\n"
+            << "There are only " << d_patch_vector.size() << " patches.");
+      }
+      return d_patch_vector[index];
    }
 
    /*!
@@ -387,6 +451,12 @@ public:
     * @param[in]  fine_grid_geometry @b Default: boost::shared_ptr to a null
     *             grid geometry
     * @param[in]  defer_boundary_box_creation @b Default: false
+    *
+    * @pre coarse_level
+    * @pre refine_ratio > IntVector::getZero(getDim())
+    * @pre (getDim() == coarse_level->getDim()) &&
+    *      (getDim() == refine_ratio.getDim())
+    * @pre !fine_grid_geometry || getDim() == fine_grid_geometry->getDim()
     */
    void
    setRefinedPatchLevel(
@@ -435,6 +505,12 @@ public:
     * @param[in]  coarse_grid_geom @b Default: boost::shared_ptr to a null
     *             grid geometry
     * @param[in]  defer_boundary_box_creation @b Default: false
+    *
+    * @pre fine_level
+    * @pre coarsen_ratio > IntVector::getZero(getDim())
+    * @pre (getDim() == fine_level->getDim()) &&
+    *      (getDim() == coarsen_ratio.getDim())
+    * @pre !coarse_grid_geom || getDim() == coarse_grid_geom->getDim()
     */
    void
    setCoarsenedPatchLevel(
@@ -470,7 +546,7 @@ public:
     * @return A const reference to the box array that defines
     * the extent of the index space on the level.
     */
-   const tbox::Array<BoxContainer>&
+   const std::vector<BoxContainer>&
    getPhysicalDomainArray() const
    {
       return d_physical_domain;
@@ -526,7 +602,7 @@ public:
    const boost::shared_ptr<BoxLevel>&
    getBoxLevel() const
    {
-      return d_mapped_box_level;
+      return d_box_level;
    }
 
    /*!
@@ -546,7 +622,7 @@ public:
       if (!d_has_globalized_data) {
          initializeGlobalizedBoxLevel();
       }
-      return d_mapped_box_level->getGlobalizedVersion();
+      return d_box_level->getGlobalizedVersion();
    }
 
    /*!
@@ -614,22 +690,22 @@ public:
     * @return the processor that owns the specified patch.  The patches
     * are numbered starting at zero.
     *
-    * @param[in] mapped_box_id Patch's BoxId
+    * @param[in] box_id Patch's BoxId
     */
    int
    getMappingForPatch(
-      const BoxId& mapped_box_id) const
+      const BoxId& box_id) const
    {
       // Note: p is required to be a local index.
       /*
        * This must be for backward compatability, because if p is a local
-       * index, the mapping is always to d_mapped_box_level->getRank().
+       * index, the mapping is always to d_box_level->getRank().
        * Here is the old code:
        *
-       * return d_mapped_box_level->getBoxStrict(p)->getOwnerRank();
+       * return d_box_level->getBoxStrict(p)->getOwnerRank();
        */
-      NULL_USE(mapped_box_id);
-      return d_mapped_box_level->getMPI().getRank();
+      NULL_USE(box_id);
+      return d_box_level->getMPI().getRank();
    }
 
    /*!
@@ -637,33 +713,35 @@ public:
     *
     * @return The box for the specified patch.
     *
-    * @param[in] mapped_box_id Patch's BoxId
+    * @param[in] box_id Patch's BoxId
+    *
+    * @pre box_id.getOwnerRank() == getBoxLevel()->getMPI().getRank()
     */
    const Box&
    getBoxForPatch(
-      const BoxId& mapped_box_id) const
+      const BoxId& box_id) const
    {
-      TBOX_ASSERT(mapped_box_id.getOwnerRank() ==
-                  d_mapped_box_level->getMPI().getRank());
-      return getPatch(mapped_box_id)->getBox();
+      TBOX_ASSERT(box_id.getOwnerRank() == d_box_level->getMPI().getRank());
+      return getPatch(box_id)->getBox();
    }
 
    /*!
     * @brief Determine if the patch is adjacent to a non-periodic
     * physical domain boundary.
     *
-    * @param[in] mapped_box_id Patch's BoxId
+    * @param[in] box_id Patch's BoxId
     *
     * @return True if patch with given number is adjacent to a non-periodic
     * physical domain boundary.  Otherwise, false.
+    *
+    * @pre box_id.getOwnerRank() == getBoxLevel()->getMPI().getRank()
     */
    bool
    patchTouchesRegularBoundary(
-      const BoxId& mapped_box_id) const
+      const BoxId& box_id) const
    {
-      TBOX_ASSERT(mapped_box_id.getOwnerRank() ==
-                  d_mapped_box_level->getMPI().getRank());
-      return getPatch(mapped_box_id)->getPatchGeometry()->getTouchesRegularBoundary();
+      TBOX_ASSERT(box_id.getOwnerRank() == d_box_level->getMPI().getRank());
+      return getPatch(box_id)->getPatchGeometry()->getTouchesRegularBoundary();
    }
 
    /*!
@@ -677,7 +755,7 @@ public:
       const int id,
       const double timestamp = 0.0)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->allocatePatchData(id, timestamp);
       }
    }
@@ -694,7 +772,7 @@ public:
       const ComponentSelector& components,
       const double timestamp = 0.0)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->allocatePatchData(components, timestamp);
       }
    }
@@ -706,7 +784,7 @@ public:
     *         (2) all of the patches have allocated the patch data component,
     *         otherwise false.
     *
-    * @param[in] id The patch identifier.
+    * @param[in] id The patch data identifier.
     */
    bool
    checkAllocated(
@@ -725,13 +803,13 @@ public:
     *
     * This component will need to be reallocated before its next use.
     *
-    * @param[in]  id The patch identifier
+    * @param[in]  id The patch data identifier
     */
    void
    deallocatePatchData(
       const int id)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->deallocatePatchData(id);
       }
    }
@@ -748,7 +826,7 @@ public:
    deallocatePatchData(
       const ComponentSelector& components)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->deallocatePatchData(components);
       }
    }
@@ -775,7 +853,7 @@ public:
       const double timestamp,
       const int id)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->setTime(timestamp, id);
       }
    }
@@ -792,7 +870,7 @@ public:
       const double timestamp,
       const ComponentSelector& components)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->setTime(timestamp, components);
       }
    }
@@ -806,14 +884,191 @@ public:
    setTime(
       const double timestamp)
    {
-      for (Iterator ip(begin()); ip != end(); ip++) {
+      for (Iterator ip(begin()); ip != end(); ++ip) {
          ip->setTime(timestamp);
       }
    }
 
    /*!
-    * @brief Use the PatchLevel database to set the state of the PatchLevel
-    * and to create all patches on the local processor.
+    * @brief Find an overlap Connector with the given PatchLevel's BoxLevel as
+    * its head and minimum Connector width.  If the specified Connector is not
+    * found, take the specified action.
+    *
+    * If multiple Connectors fit the criteria, the one with the
+    * smallest ghost cell width (based on the algebraic sum of the
+    * components) is selected.
+    *
+    * @param[in] head Find the overlap Connector with this PatchLevel's
+    *      BoxLevel as the head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum Connector width.
+    * @param[in] not_found_action Action to take if Connector is not found.
+    * @param[in] exact_width_only If true, the returned Connector will
+    *      have exactly the requested connector width. If only a Connector
+    *      with a greater width is found, a connector of the requested width
+    *      will be generated.
+    *
+    * @return The Connector which matches the search criterion.
+    *
+    * @pre getBoxLevel()->isInitialized()
+    * @pre head.getBoxLevel()->isInitialized()
+    */
+   const Connector&
+   findConnector(
+      const PatchLevel& head,
+      const IntVector& min_connector_width,
+      ConnectorNotFoundAction not_found_action,
+      bool exact_width_only = true) const
+   {
+      return getBoxLevel()->findConnector(*head.getBoxLevel(),
+         min_connector_width,
+         not_found_action,
+         exact_width_only);
+   }
+
+   /*!
+    * @brief Find an overlap Connector with its transpose with the given
+    * PatchLevel's BoxLevel as its head and minimum Connector widths.  If the
+    * specified Connector is not found, take the specified action.
+    *
+    * If multiple Connectors fit the criteria, the one with the
+    * smallest ghost cell width (based on the algebraic sum of the
+    * components) is selected.
+    *
+    * @param[in] head Find the overlap Connector with this PatchLevel's
+    *      BoxLevel as the head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum Connector width.
+    * @param[in] transpose_min_connector_width Find the transpose overlap
+    *      Connector satisfying this minimum Connector width.
+    * @param[in] not_found_action Action to take if Connector is not found.
+    * @param[in] exact_width_only If true, the returned Connector will
+    *      have exactly the requested connector width. If only a Connector
+    *      with a greater width is found, a connector of the requested width
+    *      will be generated.
+    * @return The Connector which matches the search criterion.
+    *
+    * @pre getBoxLevel()->isInitialized()
+    * @pre head.getBoxLevel()->isInitialized()
+    */
+   const Connector&
+   findConnectorWithTranspose(
+      const PatchLevel& head,
+      const IntVector& min_connector_width,
+      const IntVector& transpose_min_connector_width,
+      ConnectorNotFoundAction not_found_action,
+      bool exact_width_only = true) const
+   {
+      return getBoxLevel()->findConnectorWithTranspose(*head.getBoxLevel(),
+         min_connector_width,
+         transpose_min_connector_width,
+         not_found_action,
+         exact_width_only);
+   }
+
+   /*!
+    * @brief Create an overlap Connector, computing relationships by
+    * globalizing data.
+    *
+    * The base will be this PatchLevel's BoxLevel.
+    * Find Connector relationships using a (non-scalable) global search.
+    *
+    * @see Connector
+    * @see Connector::initialize()
+    *
+    * @param[in] head This PatchLevel's BoxLevel will be the head.
+    * @param[in] connector_width
+    *
+    * @return A const reference to the newly created overlap Connector.
+    *
+    * @pre getBoxLevel()->isInitialized()
+    * @pre head.getBoxLevel()->isInitialized()
+    */
+   const Connector&
+   createConnector(
+      const PatchLevel& head,
+      const IntVector& connector_width) const
+   {
+      return getBoxLevel()->createConnector(*head.getBoxLevel(),
+         connector_width);
+   }
+
+   /*!
+    * @brief Create an overlap Connector with its transpose, computing
+    * relationships by globalizing data.
+    *
+    * The base will be this PatchLevel's BoxLevel.
+    * Find Connector relationships using a (non-scalable) global search.
+    *
+    * @see Connector
+    * @see Connector::initialize()
+    *
+    * @param[in] head This PatchLevel's BoxLevel will be the head.
+    * @param[in] connector_width
+    * @param[in] transpose_connector_width
+    *
+    * @return A const reference to the newly created overlap Connector.
+    *
+    * @pre getBoxLevel()->isInitialized()
+    * @pre head.getBoxLevel()->isInitialized()
+    */
+   const Connector&
+   createConnectorWithTranspose(
+      const PatchLevel& head,
+      const IntVector& connector_width,
+      const IntVector& transpose_connector_width) const
+   {
+      return getBoxLevel()->createConnectorWithTranspose(*head.getBoxLevel(),
+         connector_width,
+         transpose_connector_width);
+   }
+
+   /*!
+    * @brief Cache the supplied overlap Connector and its transpose
+    * if it exists.
+    *
+    * @param[in] connector
+    *
+    * @pre connector
+    * @pre getBoxLevel()->isInitialized()
+    * @pre getBoxLevel() == connector->getBase()
+    */
+   void
+   cacheConnector(
+      boost::shared_ptr<Connector>& connector) const
+   {
+      return getBoxLevel()->cacheConnector(connector);
+   }
+
+   /*!
+    * @brief Returns whether the object has overlap Connectors with the given
+    * PatchLevel's BoxLevel as the head and minimum Connector width.
+    *
+    * TODO:  does the following comment mean that this must be called
+    * before the call to findConnector?
+    *
+    * If this returns true, the Connector fitting the specification
+    * exists and findConnector() will not throw an assertion.
+    *
+    * @param[in] head Find the overlap Connector with this PatchLevel's
+    *      BoxLevel as the head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum ghost cell width.
+    *
+    * @return True if a Connector is found, otherwise false.
+    */
+   bool
+   hasConnector(
+      const PatchLevel& head,
+      const IntVector& min_connector_width) const
+   {
+      return getBoxLevel()->hasConnector(*head.getBoxLevel(),
+         min_connector_width);
+   }
+
+   /*!
+    * @brief Use the PatchLevel restart database to set the state of the
+    * PatchLevel and to create all patches on the local processor.
     *
     * @par Assertions
     * Assertions will check that database is a non-null boost::shared_ptr,
@@ -823,32 +1078,28 @@ public:
     * same, and that the number of patches and the number of boxes on the
     * level are equal.
     *
-    * @param[in,out] database
-    * @param[in]     component_selector
+    * @param[in,out] restart_db
+    *
+    * @pre restart_db
     */
    void
-   getFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database,
-      const ComponentSelector& component_selector);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /*!
-    * @brief Write data to the database.
+    * @brief Write data to the restart database.
     *
-    * Writes the data from the PatchLevel to the database.
+    * Writes the data from the PatchLevel to the restart database.
     * Also tells all local patches to write out their state to
-    * the database.
+    * the restart database.
     *
-    * @par Assertions
-    * Check that database is a non-null boost::shared_ptr.
+    * @param[in,out]  restart_db
     *
-    * @param[in,out]  database
-    * @param[in]      patchdata_write_table The ComponentSelector specifying
-    *                 which patch data to write to the database
+    * @pre restart_db
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database,
-      const ComponentSelector& patchdata_write_table) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
     * @brief Print a patch level to varying details.
@@ -875,9 +1126,13 @@ private:
 
    /*
     * @brief Container of distributed patches on level.
-    *
     */
    typedef std::map<BoxId, boost::shared_ptr<Patch> > PatchContainer;
+
+   /*
+    * @brief Vector of local patches on level.
+    */
+   typedef std::vector<boost::shared_ptr<Patch> > PatchVector;
 
 public:
    /*!
@@ -885,7 +1140,7 @@ public:
     */
    class Iterator
    {
-friend class PatchLevel;
+      friend class PatchLevel;
 
 public:
       /*!
@@ -980,7 +1235,7 @@ private:
        * @param[in]  patch_level
        * @param[in]  begin
        */
-      explicit Iterator(
+      Iterator(
          const PatchLevel* patch_level,
          bool begin);
 
@@ -1049,21 +1304,21 @@ private:
    /*!
     * @brief Number of blocks that can be represented by this level.
     */
-   int d_number_blocks;
+   size_t d_number_blocks;
 
    /*!
     * Primary metadata describing the PatchLevel.
     */
-   boost::shared_ptr<BoxLevel> d_mapped_box_level;
+   boost::shared_ptr<BoxLevel> d_box_level;
 
    /*
-    * Whether we have a globalized version of d_mapped_box_level.
+    * Whether we have a globalized version of d_box_level.
     */
    mutable bool d_has_globalized_data;
    /*
     * Boxes for all level patches.
     *
-    * d_boxes is slave to d_mapped_box_level and computed only if getBoxes() is called.
+    * d_boxes is slave to d_box_level and computed only if getBoxes() is called.
     * This means that the first getBoxes() has to be called by all processors,
     * because it requires communication.
     */
@@ -1100,7 +1355,7 @@ private:
    /*
     * Extent of the index space.
     */
-   tbox::Array<BoxContainer> d_physical_domain;
+   std::vector<BoxContainer> d_physical_domain;
 
    /*
     * The ratio to coarser level applies only when the level resides
@@ -1134,6 +1389,13 @@ private:
     */
    PatchContainer d_patches;
 
+   /*!
+    * @brief Vector holding the same patches in d_patches, in the same order.
+    *
+    * This allows random access to the patches.
+    */
+   PatchVector d_patch_vector;
+
    /*
     * Flag to indicate boundary boxes are created.
     */
@@ -1151,6 +1413,14 @@ private:
     */
    static bool
    initialize();
+
+   static boost::shared_ptr<tbox::Timer> t_level_constructor;
+   static boost::shared_ptr<tbox::Timer> t_constructor_setup;
+   static boost::shared_ptr<tbox::Timer> t_constructor_phys_domain;
+   static boost::shared_ptr<tbox::Timer> t_constructor_touch_boundaries;
+   static boost::shared_ptr<tbox::Timer> t_constructor_set_geometry;
+   static boost::shared_ptr<tbox::Timer> t_set_patch_touches;
+   static boost::shared_ptr<tbox::Timer> t_constructor_compute_shifts;
 
    static tbox::StartupShutdownManager::Handler
       s_initialize_finalize_handler;

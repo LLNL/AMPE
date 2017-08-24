@@ -3,122 +3,127 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for linear advection performance test 
 ##
 #########################################################################
 
-SAMRAI	      =	@top_srcdir@
+SAMRAI        = @top_srcdir@
 SRCDIR        = @srcdir@
 SUBDIR        = source/test/performance/LinAdv
-VPATH         = @top_srcdir@/$(SUBDIR)
+VPATH         = @srcdir@
 OBJECT        = ../../../..
+REPORT        = $(OBJECT)/report.xml
+TESTLIBDIR    = $(OBJECT)/source/test/testlib
+TESTLIB       = $(TESTLIBDIR)/libSAMRAI_test$(LIB_SUFFIX)
 
 default:      main
 
 include $(OBJECT)/config/Makefile.config
 
-CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=0
+SUBDIRS = fortran
+
+CPPFLAGS_EXTRA = 
 
 NUM_TESTS = 2
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
-CXX_OBJS      = main.o LinAdv.o SinusoidalFrontTagger.o
+CXX_OBJS      = main.o LinAdv.o
 F_OBJS      = \
-	    flux3d.o grad3d.o init3d.o stable3d.o stufprobc3d.o trace3d.o trace1d3d.o fluxcorner3d.o \
-	    flux2d.o grad2d.o init2d.o stable2d.o stufprobc2d.o trace2d.o trace1d2d.o
+	    fortran/flux3d.o fortran/grad3d.o fortran/init3d.o \
+	    fortran/stable3d.o fortran/stufprobc3d.o fortran/trace3d.o \
+	    fortran/trace1d3d.o fortran/fluxcorner3d.o \
+	    fortran/flux2d.o fortran/grad2d.o fortran/init2d.o \
+	    fortran/stable2d.o fortran/stufprobc2d.o fortran/trace2d.o \
+	    fortran/trace1d2d.o
 
-main:		$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS)	\
-		$(LIBSAMRAI) $(LDLIBS) -o $@
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND) $(TESTLIB)
+	(cd $(TESTLIBDIR) && $(MAKE) library) || exit 1
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) $(TESTLIB) \
+	$(LIBSAMRAI) $(LDLIBS) -o $@
 
-clean:
-		$(SAMCLEAN)
-		$(RM) *.f main
+# Prevents "No rule to make target" error.  Built in the rule for main.
+$(TESTLIB):
 
-check:
-#               $(MAKE) check2d
-		$(MAKE) check3d
+fortran/flux3d.o:
 
-check2d:	main
+fortran/grad3d.o:
 
-check3d:	main
-		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-			./main performance_inputs/domainexpansion.input;
-		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-			./main performance_inputs/domainexpansionb.input;
+fortran/init3d.o:
+
+fortran/stable3d.o:
+
+fortran/stufprobc3d.o:
+
+fortran/trace3d.o:
+
+fortran/trace1d3d.o:
+
+fortran/fluxcorner3d.o:
+
+fortran/flux2d.o:
+
+fortran/grad2d.o:
+
+fortran/init2d.o:
+
+fortran/stable2d.o:
+
+fortran/stufprobc2d.o:
+
+fortran/trace2d.o:
+
+fortran/trace1d2d.o:
+
+testlib:
+	cd $(TESTLIBDIR) && $(MAKE) library
+
+check:	main
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"performance LinAdv\" name=$(QUOTE)domainexpansion $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./main test_inputs/domainexpansion.input | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"performance LinAdv\" name=$(QUOTE)domainexpansionb $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./main test_inputs/domainexpansionb.input | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 checkcompile: main
 
 checktest:
-		rm -f makecheck.logfile
-		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-		$(OBJECT)/source/test/testtools/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-		rm -f makecheck.logfile
+	$(RM) makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(OBJECT)/source/test/testtools/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
+
+examples:
+
+perf:	main
+	@for i in performance_inputs/*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) *.timing*
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) main
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 
 include $(SRCDIR)/Makefile.depend
-
-FORTRAN       = @srcdir@/fortran
-M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
-
-flux2d.o:		$(FORTRAN)/2d/flux2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/flux2d.m4 > flux2d.f
-		$(F77) $(FFLAGS) -c flux2d.f -o $@
-
-grad2d.o:		$(FORTRAN)/2d/grad2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/grad2d.m4 > grad2d.f
-		$(F77) $(FFLAGS) -c grad2d.f -o $@
-
-init2d.o:		$(FORTRAN)/2d/init2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/init2d.m4 > init2d.f
-		$(F77) $(FFLAGS) -c init2d.f -o $@
-
-stable2d.o:	$(FORTRAN)/2d/stable2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/stable2d.m4 > stable2d.f
-		$(F77) $(FFLAGS) -c stable2d.f -o $@
-
-stufprobc2d.o:	$(FORTRAN)/2d/stufprobc2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/stufprobc2d.m4 > stufprobc2d.f
-		$(F77) $(FFLAGS) -c stufprobc2d.f -o $@
-
-trace2d.o:	$(FORTRAN)/2d/trace2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/trace2d.m4 > trace2d.f
-		$(F77) $(FFLAGS) -c trace2d.f -o $@
-
-trace1d2d.o:	$(FORTRAN)/2d/trace1d2d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/2d/trace1d2d.m4 > trace1d2d.f
-		$(F77) $(FFLAGS) -c trace1d2d.f -o $@
-
-
-
-flux3d.o:		$(FORTRAN)/3d/flux3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/flux3d.m4 > flux3d.f
-		$(F77) $(FFLAGS) -c flux3d.f -o $@
-
-fluxcorner3d.o:	$(FORTRAN)/3d/fluxcorner3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/fluxcorner3d.m4 > fluxcorner3d.f
-		$(F77) $(FFLAGS) -c fluxcorner3d.f -o $@
-
-grad3d.o:		$(FORTRAN)/3d/grad3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/grad3d.m4 > grad3d.f
-		$(F77) $(FFLAGS) -c grad3d.f -o $@
-
-init3d.o:		$(FORTRAN)/3d/init3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/init3d.m4 > init3d.f
-		$(F77) $(FFLAGS) -c init3d.f -o $@
-
-stable3d.o:	$(FORTRAN)/3d/stable3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/stable3d.m4 > stable3d.f
-		$(F77) $(FFLAGS) -c stable3d.f -o $@
-
-stufprobc3d.o:	$(FORTRAN)/3d/stufprobc3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/stufprobc3d.m4 > stufprobc3d.f
-		$(F77) $(FFLAGS) -c stufprobc3d.f -o $@
-
-trace3d.o:	$(FORTRAN)/3d/trace3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/trace3d.m4 > trace3d.f
-		$(F77) $(FFLAGS) -c trace3d.f -o $@
-
-trace1d3d.o:	$(FORTRAN)/3d/trace1d3d.m4
-		$(M4) $(M4DIRS) $(FORTRAN)/3d/trace1d3d.m4 > trace1d3d.f
-		$(F77) $(FFLAGS) -c trace1d3d.f -o $@

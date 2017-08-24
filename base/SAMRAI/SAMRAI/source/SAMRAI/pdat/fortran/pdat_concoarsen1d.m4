@@ -1,12 +1,12 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI patchdata
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: FORTRAN routines for spatial coarsening of 1d patch data
-c               on a regular Cartesian mesh.
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
 c
-include(pdat_m4concoarsenops1d.i)dnl
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   FORTRAN routines for spatial coarsening of 1d patch data
+c                on a regular Cartesian mesh.
+c
+include(PDAT_FORTDIR/pdat_m4concoarsenops1d.i)dnl
 c
 c***********************************************************************
 c Constant coarsening for 1d node-centered double data

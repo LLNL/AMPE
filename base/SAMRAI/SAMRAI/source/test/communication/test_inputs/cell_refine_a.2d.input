@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   input file for testing communication of SAMRAI cell data. 
  *
  ************************************************************************/
@@ -13,11 +13,16 @@ GlobalInputs {
 }
 
 Main {
+
+//
+// Problem dimensionality
+//
    dim = 2
+
 //
 // Log file information
 //
-    base_name  = "cell-test"
+    base_name  = "cell_refine_a.2d"
     log_all_nodes  = TRUE
 
 //
@@ -129,10 +134,9 @@ CellPatchDataTest {
 
    }
 
-   RefinementData {
-   }
-
 }
+
+// Domain description for entire problem
 
 CartesianGridGeometry {
    domain_boxes = [ (0,0) , (41,29) ],
@@ -142,6 +146,8 @@ CartesianGridGeometry {
    x_lo         = 0.e0 , 0.e0    // lower end of computational domain.
    x_up         = 1.e0 , 1.e0    // upper end of computational domain.
 }
+
+// Refer to hier::PatchHierarchy for input documentation
 
 PatchHierarchy {
    max_levels = 3
@@ -160,55 +166,62 @@ PatchHierarchy {
    allow_patches_smaller_than_ghostwidth = FALSE
 }
 
-GriddingAlgorithm {
-   enforce_proper_nesting = TRUE
-   extend_to_domain_boundary = TRUE
-   // load_balance = FALSE
+// Refer to mesh::BergerRigoutsos for input documentation
+
+BergerRigoutsos {
    efficiency_tolerance = 0.70
    combine_efficiency = 0.85
-   extend_tags_to_bdry = TRUE
-   check_nonrefined_tags = "IGNORE"
-   barrier_before_regrid                 = FALSE
-   barrier_before_find_refinement        = FALSE
-   barrier_after_find_refinement         = FALSE
-   barrier_before_tag_cells              = FALSE
-   barrier_before_cluster                = FALSE
-   barrier_before_nest                   = FALSE
-   barrier_before_limit                  = FALSE
-   barrier_before_extend                 = FALSE
-   barrier_before_balance                = FALSE
-   barrier_before_make_new               = FALSE
 }
 
+// Refer to mesh::GriddingAlgorithm for input documentation
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   DEV_extend_to_domain_boundary = TRUE
+   // DEV_load_balance = FALSE
+   check_nonrefined_tags = "IGNORE"
+}
+
+
+// Refer to mesh::TreeLoadBalancer for input
 
 TreeLoadBalancer {
 }
 
+// Refer to mesh::StandardTagAndInitialize for input.
+
 StandardTaggingAndInitializer {
    tagging_method = "REFINE_BOXES"
 
-   RefineBoxes {
-      level_0 {
-         boxes_0 = [ (0,16) , (11,19)  ],
-                   [ (12,0) , (31,19)  ],
-                   [ (32,4) , (43,5)   ],
-                   [ (16,20) , (21,27) ],
-                   [ (8,28) , (27,41)  ],
-                   [ (20,42) , (27,55) ]
-      }
-      level_1 {
-         boxes_0 = [ (36,16) , (51,27) ],
-                   [ (24,64) , (31,75) ],
-                   [ (32,64) , (43,71) ]
-      }
+   // These are the boxes that will be tagged on level 0 to create level 1
+
+   level_0 {
+      boxes = [ (0,16) , (11,19)  ],
+              [ (12,0) , (31,19)  ],
+              [ (32,4) , (43,5)   ],
+              [ (16,20) , (21,27) ],
+              [ (8,28) , (27,41)  ],
+              [ (20,42) , (27,55) ]
+   }
+
+   // These are the boxes that will be tagged on level 1 to create level 2
+
+   level_1 {
+      boxes = [ (36,16) , (51,27) ],
+              [ (24,64) , (31,75) ],
+              [ (32,64) , (43,71) ]
    }
 }
 
+// Extra debug/sanity checks could be turned on in the event of a problem.
+
 RefineSchedule {
-   extra_debug = TRUE
+   DEV_extra_debug = FALSE
 }
 
+// Turn on sanity checking of connectors
+
 PersistentOverlapConnectors {
-   check_created_connectors = TRUE
-   check_accessed_connectors = TRUE
+   DEV_check_created_connectors = TRUE
+   DEV_check_accessed_connectors = TRUE
 }

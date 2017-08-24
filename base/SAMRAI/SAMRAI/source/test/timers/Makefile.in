@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for timer and statistician test programs 
 ##
 #########################################################################
@@ -14,6 +14,7 @@ SUBDIR        = source/test/timers
 VPATH         = @srcdir@
 TESTTOOLS     = ../testtools
 OBJECT        = ../../..
+REPORT        = $(OBJECT)/report.xml
 
 default: check
 
@@ -36,16 +37,30 @@ example: main_example.o $(LIBSAMRAIDEPEND)
 NUM_TESTS = 3
 
 TEST_NPROCS = @TEST_NPROCS@
+QUOTE = \"
 
 checkcompile: timertest statstest example
 
 check:  checkcompile
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-                ./timertest test_inputs/test.input; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-                ./timertest test_inputs/test.input restart 0; \
-	$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
-                ./statstest 
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"timers\" name=$(QUOTE)timertest $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./timertest test_inputs/test.input | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"timers\" name=$(QUOTE)timertest restart $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./timertest test_inputs/test.input restart 0 | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+	  echo "    <testcase classname=\"timers\" name=$(QUOTE)statstest $$p procs$(QUOTE)>" >> $(REPORT); \
+	  $(OBJECT)/config/serpa-run $$p ./statstest  | $(TEE) foo; \
+	  if ! grep "PASSED" foo >& /dev/null ; then echo "      <failure/>" >> $(REPORT); fi; \
+	  echo "    </testcase>" >> $(REPORT); \
+	done; \
+	$(RM) foo
 
 check2d:
 	$(MAKE) check
@@ -54,15 +69,27 @@ check3d:
 	$(MAKE) check
 
 checktest:
-	rm -f makecheck.logfile
+	$(RM) makecheck.logfile
 	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
-	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
-	rm -f makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) 0 makecheck.logfile
+	$(RM) makecheck.logfile
 
+examples:
 
-clean:
-	$(SAMCLEAN)
-	$(RM) timertest statstest timermaxtest
-	$(RM) -rf *.log.* stats
+perf:
+
+everything:
+	$(MAKE) checkcompile || exit 1
+	$(MAKE) checktest
+	$(MAKE) examples
+	$(MAKE) perf
+
+checkclean:
+	$(CLEAN_COMMON_CHECK_FILES)
+	$(RM) *.txt restart
+
+clean: checkclean
+	$(CLEAN_COMMON_TEST_FILES)
+	$(RM) timertest statstest example
 
 include $(SRCDIR)/Makefile.depend

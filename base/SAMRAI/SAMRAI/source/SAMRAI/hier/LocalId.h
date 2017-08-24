@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Generic identifier used on a single process.
  *
  ************************************************************************/
@@ -102,6 +102,15 @@ public:
    getValue() const
    {
       return d_value;
+   }
+
+   /*!
+    * @brief Whether value is a valid one (not equal to getInvalidId()).
+    */
+   bool
+   isValid() const
+   {
+      return d_value != s_invalid_id.getValue();
    }
 
    /*!

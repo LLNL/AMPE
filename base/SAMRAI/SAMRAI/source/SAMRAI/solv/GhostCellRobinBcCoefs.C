@@ -3,13 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Robin boundary condition support on cartesian grids.
  *
  ************************************************************************/
-#ifndef included_solv_GhostCellRobinBcCoefs_C
-#define included_solv_GhostCellRobinBcCoefs_C
-
 #include "SAMRAI/hier/VariableDatabase.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -68,7 +65,7 @@ GhostCellRobinBcCoefs::setGhostDataId(
    int ghost_data_id,
    hier::IntVector extensions_fillable)
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, extensions_fillable);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, extensions_fillable);
 
    d_ghost_data_id = ghost_data_id;
    d_extensions_fillable = extensions_fillable;
@@ -86,13 +83,8 @@ GhostCellRobinBcCoefs::setGhostDataId(
                                   << " does not correspond to any variable.");
       }
       boost::shared_ptr<pdat::CellVariable<double> > cell_variable_ptr(
-         variable_ptr,
-         boost::detail::dynamic_cast_tag());
-      if (!cell_variable_ptr) {
-         TBOX_ERROR(
-            d_object_name << ": hier::Index " << ghost_data_id
-                          << " does not correspond to a cell-double variable.");
-      }
+         BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable_ptr));
+      TBOX_ASSERT(cell_variable_ptr);
    }
 }
 
@@ -116,7 +108,7 @@ GhostCellRobinBcCoefs::setBcCoefs(
    const hier::BoundaryBox& bdry_box,
    double fill_time) const
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS3(d_dim, *variable, patch, bdry_box);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY3(d_dim, *variable, patch, bdry_box);
 
    NULL_USE(variable);
    NULL_USE(fill_time);
@@ -124,8 +116,11 @@ GhostCellRobinBcCoefs::setBcCoefs(
    t_set_bc_coefs->start();
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+
+   TBOX_ASSERT(patch_geom);
+
    const int norm_dir = bdry_box.getLocationIndex() / 2;
    const double* dx = patch_geom->getDx();
    const double h = dx[norm_dir];
@@ -136,18 +131,18 @@ GhostCellRobinBcCoefs::setBcCoefs(
     * the ghost cell centers.  bcoef_data is 1-acoef_data.
     */
    if (acoef_data) {
-      TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, *acoef_data);
+      TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, *acoef_data);
 
       acoef_data->fill(1.0 / (1 + 0.5 * h));
    }
    if (bcoef_data) {
-      TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, *bcoef_data);
+      TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, *bcoef_data);
 
       bcoef_data->fill(0.5 * h / (1 + 0.5 * h));
    }
 
    if (gcoef_data) {
-      TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, *gcoef_data);
+      TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, *gcoef_data);
 
       if (d_ghost_data_id == -1) {
          TBOX_ERROR(d_object_name << ": Coefficient g requested without\n"
@@ -156,8 +151,8 @@ GhostCellRobinBcCoefs::setBcCoefs(
 
       /*
        * Fill in gcoef_data with data from d_ghost_data_id.
-       * The data is first looked for in a pdat::OutersideData<DIM> object
-       * and a pdat::CellData<DIM> object in that order.  Data from the
+       * The data is first looked for in a pdat::OutersideData<TYPE> object
+       * and a pdat::CellData<TYPE> object in that order.  Data from the
        * first place with allocated storage is used.
        */
       boost::shared_ptr<hier::PatchData> patch_data(
@@ -167,14 +162,10 @@ GhostCellRobinBcCoefs::setBcCoefs(
                                   << d_ghost_data_id << " does not exist.");
       }
       boost::shared_ptr<pdat::CellData<double> > cell_data(
-         patch_data,
-         boost::detail::dynamic_cast_tag());
-      if (!cell_data) {
-         TBOX_ERROR(
-            d_object_name << ": hier::Patch data for index "
-                          << d_ghost_data_id
-                          << " is not cell double data.");
-      }
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch_data));
+
+      TBOX_ASSERT(cell_data);
+
       const int location_index = bdry_box.getLocationIndex();
       const hier::IntVector& gw = cell_data->getGhostCellWidth();
       if (gw[norm_dir] < 1) {
@@ -227,7 +218,7 @@ hier::Box
 GhostCellRobinBcCoefs::makeSideBoundaryBox(
    const hier::BoundaryBox& boundary_box) const
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(d_dim, boundary_box);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(d_dim, boundary_box);
 
    if (boundary_box.getBoundaryType() != 1) {
       TBOX_ERROR(
@@ -244,11 +235,10 @@ GhostCellRobinBcCoefs::makeSideBoundaryBox(
        * than the boundary cell indices, in the direction normal
        * to the boundary.
        */
-      face_indices.shift(location_index / 2, 1);
+      face_indices.shift(static_cast<tbox::Dimension::dir_t>(location_index / 2), 1);
    }
    return face_indices;
 }
 
 }
 }
-#endif

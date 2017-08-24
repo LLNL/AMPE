@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Linear refine operator for node-centered complex data on
  *                a Cartesian mesh.
  *
  ************************************************************************/
-
-#ifndef included_geom_CartesianNodeComplexLinearRefine_C
-#define included_geom_CartesianNodeComplexLinearRefine_C
-
 #include "SAMRAI/geom/CartesianNodeComplexLinearRefine.h"
 #include "SAMRAI/tbox/Complex.h"
 
@@ -37,7 +33,7 @@ extern "C" {
 #endif
 
 // in cartrefine1d.f:
-void F77_FUNC(cartlinrefnodecplx1d, CARTLINREFNODECPLX1D) (const int&,
+void SAMRAI_F77_FUNC(cartlinrefnodecplx1d, CARTLINREFNODECPLX1D) (const int&,
    const int&,
    const int&, const int&,
    const int&, const int&,
@@ -45,7 +41,7 @@ void F77_FUNC(cartlinrefnodecplx1d, CARTLINREFNODECPLX1D) (const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartrefine2d.f:
-void F77_FUNC(cartlinrefnodecplx2d, CARTLINREFNODECPLX2D) (const int&,
+void SAMRAI_F77_FUNC(cartlinrefnodecplx2d, CARTLINREFNODECPLX2D) (const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
@@ -53,7 +49,7 @@ void F77_FUNC(cartlinrefnodecplx2d, CARTLINREFNODECPLX2D) (const int&,
    const int *, const double *, const double *,
    const dcomplex *, dcomplex *);
 // in cartrefine3d.f:
-void F77_FUNC(cartlinrefnodecplx3d, CARTLINREFNODECPLX3D) (const int&,
+void SAMRAI_F77_FUNC(cartlinrefnodecplx3d, CARTLINREFNODECPLX3D) (const int&,
    const int&, const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -71,9 +67,8 @@ namespace geom {
 
 // using namespace std;
 
-CartesianNodeComplexLinearRefine::CartesianNodeComplexLinearRefine(
-   const tbox::Dimension& dim):
-   hier::RefineOperator(dim, "LINEAR_REFINE")
+CartesianNodeComplexLinearRefine::CartesianNodeComplexLinearRefine():
+   hier::RefineOperator("LINEAR_REFINE")
 {
 }
 
@@ -88,9 +83,9 @@ CartesianNodeComplexLinearRefine::getOperatorPriority() const
 }
 
 hier::IntVector
-CartesianNodeComplexLinearRefine::getStencilWidth() const
+CartesianNodeComplexLinearRefine::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void
@@ -103,12 +98,13 @@ CartesianNodeComplexLinearRefine::refine(
    const hier::IntVector& ratio) const
 {
    const pdat::NodeOverlap* t_overlap =
-      dynamic_cast<const pdat::NodeOverlap *>(&fine_overlap);
+      CPP_CAST<const pdat::NodeOverlap *>(&fine_overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer();
-   for (hier::BoxContainer::const_iterator b(boxes); b != boxes.end(); ++b) {
+   for (hier::BoxContainer::const_iterator b = boxes.begin();
+        b != boxes.end(); ++b) {
       hier::Box fine_box(*b);
       fine_box.growUpper(hier::IntVector(ratio.getDim(), -1));
       refine(fine,
@@ -129,42 +125,45 @@ CartesianNodeComplexLinearRefine::refine(
    const hier::Box& fine_box,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, fine, coarse, fine_box, ratio);
+   const tbox::Dimension& dim(fine.getDim());
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY3(dim, coarse, fine_box, ratio);
 
    boost::shared_ptr<pdat::NodeData<dcomplex> > cdata(
-      coarse.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<dcomplex>, hier::PatchData>(
+         coarse.getPatchData(src_component)));
    boost::shared_ptr<pdat::NodeData<dcomplex> > fdata(
-      fine.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::NodeData<dcomplex>, hier::PatchData>(
+         fine.getPatchData(dst_component)));
    TBOX_ASSERT(cdata);
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
 
    const hier::Box cgbox(cdata->getGhostBox());
 
-   const hier::Index cilo = cgbox.lower();
-   const hier::Index cihi = cgbox.upper();
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cgbox.lower();
+   const hier::Index& cihi = cgbox.upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
 
    const boost::shared_ptr<CartesianPatchGeometry> cgeom(
-      coarse.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         coarse.getPatchGeometry()));
    const boost::shared_ptr<CartesianPatchGeometry> fgeom(
-      fine.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<CartesianPatchGeometry, hier::PatchGeometry>(
+         fine.getPatchGeometry()));
+
+   TBOX_ASSERT(cgeom);
+   TBOX_ASSERT(fgeom);
 
    const hier::Box coarse_box = hier::Box::coarsen(fine_box, ratio);
-   const hier::Index ifirstc = coarse_box.lower();
-   const hier::Index ilastc = coarse_box.upper();
-   const hier::Index ifirstf = fine_box.lower();
-   const hier::Index ilastf = fine_box.upper();
+   const hier::Index& ifirstc = coarse_box.lower();
+   const hier::Index& ilastc = coarse_box.upper();
+   const hier::Index& ifirstf = fine_box.lower();
+   const hier::Index& ilastf = fine_box.upper();
 
-   for (int d = 0; d < fdata->getDepth(); d++) {
+   for (int d = 0; d < fdata->getDepth(); ++d) {
       if ((dim == tbox::Dimension(1))) {
-         F77_FUNC(cartlinrefnodecplx1d, CARTLINREFNODECPLX1D) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartlinrefnodecplx1d, CARTLINREFNODECPLX1D) (ifirstc(0),
             ilastc(0),
             ifirstf(0), ilastf(0),
             cilo(0), cihi(0),
@@ -175,7 +174,7 @@ CartesianNodeComplexLinearRefine::refine(
             cdata->getPointer(d),
             fdata->getPointer(d));
       } else if ((dim == tbox::Dimension(2))) {
-         F77_FUNC(cartlinrefnodecplx2d, CARTLINREFNODECPLX2D) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartlinrefnodecplx2d, CARTLINREFNODECPLX2D) (ifirstc(0),
             ifirstc(1), ilastc(0), ilastc(1),
             ifirstf(0), ifirstf(1), ilastf(0), ilastf(1),
             cilo(0), cilo(1), cihi(0), cihi(1),
@@ -186,7 +185,7 @@ CartesianNodeComplexLinearRefine::refine(
             cdata->getPointer(d),
             fdata->getPointer(d));
       } else if ((dim == tbox::Dimension(3))) {
-         F77_FUNC(cartlinrefnodecplx3d, CARTLINREFNODECPLX3D) (ifirstc(0),
+         SAMRAI_F77_FUNC(cartlinrefnodecplx3d, CARTLINREFNODECPLX3D) (ifirstc(0),
             ifirstc(1), ifirstc(2),
             ilastc(0), ilastc(1), ilastc(2),
             ifirstf(0), ifirstf(1), ifirstf(2),
@@ -209,4 +208,3 @@ CartesianNodeComplexLinearRefine::refine(
 
 }
 }
-#endif

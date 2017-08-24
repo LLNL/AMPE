@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for the entire SAMRAI distribution 
 ##
 #########################################################################
@@ -18,8 +18,8 @@ OBJECT  = .
 include ./config/Makefile.config
 
 INCLUDE_SAM = @top_srcdir@/source/SAMRAI
-INSTALL	    = sh @srcdir@/config/install-sh
-INSTDIR	    = @INSTDIR@
+INSTALL     = @INSTALL@
+INSTDIR     = @INSTDIR@
 
 #
 # GNUMake script to reverse strings.  This is recursive.
@@ -60,7 +60,7 @@ cleantest:
 	cd source/test && $(MAKE) clean
 
 checkclean:
-	cd source/test && $(MAKE) clean
+	cd source/test && $(MAKE) checkclean
 
 # Build temporary files containing list of object files for each
 # library.
@@ -141,42 +141,43 @@ install: library tools
 	$(INSTALL) -d -m 755 $(INSTDIR)/bin
 	$(INSTALL) -d -m 755 $(INSTDIR)/include
 	$(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI
-	$(INSTALL) -c -m 644 COPYRIGHT $(INSTDIR)
-	$(INSTALL) -c -m 644 config.status $(INSTDIR)/config
-	$(INSTALL) -c -m 644 config/Makefile.config $(INSTDIR)/config
+	$(INSTALL) -p -c -m 644 COPYRIGHT $(INSTDIR)
+	$(INSTALL) -p -c -m 644 COPYING.LESSER $(INSTDIR)
+	$(INSTALL) -p -c -m 644 config.status $(INSTDIR)/config
+	$(INSTALL) -p -c -m 644 config/Makefile.config $(INSTDIR)/config
 	cat config/Makefile.config.install >> $(INSTDIR)/config/Makefile.config 
-	$(INSTALL) -c -m 644 include/SAMRAI/SAMRAI_config.h $(INSTDIR)/include/SAMRAI/
+	$(INSTALL) -p -c -m 644 include/SAMRAI/SAMRAI_config.h $(INSTDIR)/include/SAMRAI/
 	@for i in $(SAMRAI_LIBRARIES); \
 	do \
-           $(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI/$$i;                    \
-           for f in $(INCLUDE_SAM)/$$i/*.[hICi]; do                               \
-              $(INSTALL) -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i;             \
-           done;                                                                  \
-           if test -d $(INCLUDE_SAM)/$$i/fortran; then                            \
-              for f in $(INCLUDE_SAM)/$$i/fortran/*.[i]; do		          \
-		if test -f $$f; then                                              \
-	           if ! test -d $(INSTDIR)/include/SAMRAI/$$i/fortran; then       \
-		      $(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI/$$i/fortran; \
-	           fi;                                                            \
-	           $(INSTALL) -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i/fortran;\
-		fi                                                                \
-	     done;                                                                \
-	   fi                                                           	  \
+	   $(INSTALL) -p -d -m 755 $(INSTDIR)/include/SAMRAI/$$i; \
+	   for f in $(INCLUDE_SAM)/$$i/*.[hICi]; do \
+	      $(INSTALL) -p -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i; \
+	   done; \
+	   if test -d $(INCLUDE_SAM)/$$i/fortran; then \
+	      for f in $(INCLUDE_SAM)/$$i/fortran/*.[i]; do \
+		 if test -f $$f; then \
+		    if ! test -d $(INSTDIR)/include/SAMRAI/$$i/fortran; then \
+		       $(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI/$$i/fortran; \
+		    fi; \
+		    $(INSTALL) -p -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i/fortran; \
+		 fi \
+	      done; \
+	   fi \
 	done
-	@if test -f lib/libSAMRAI_tbox.a; then                           \
-		for i in lib/libSAMRAI*.a; do				\
-		   $(INSTALL) -c -m 644 $$i $(INSTDIR)/lib;             \
-		done                                                    \
-	fi 
-	@if test -f lib/libSAMRAI_tbox.so; then                          \
-		for i in lib/libSAMRAI*.so; do				\
-		   $(INSTALL) -c -m 644 $$i $(INSTDIR)/lib;             \
-		done                                                    \
+	@if test -f lib/libSAMRAI_tbox.a; then \
+	   for i in lib/libSAMRAI*.a; do \
+	      $(INSTALL) -p -c -m 644 $$i $(INSTDIR)/lib; \
+	   done \
 	fi
-	@if test -f bin/restart-redistribute; then                       \
-		for i in bin/*; do               			\
-		   $(INSTALL) -c -m 755 $$i $(INSTDIR)/bin;             \
-		done                                                    \
+	@if test -f lib/libSAMRAI_tbox.so; then \
+	   for i in lib/libSAMRAI*.so; do \
+	      $(INSTALL) -p -c -m 644 $$i $(INSTDIR)/lib; \
+	   done \
+	fi
+	@if test -f bin/restart-redistribute; then \
+	   for i in bin/*; do \
+	      $(INSTALL) -p -c -m 755 $$i $(INSTDIR)/bin; \
+	   done \
 	fi
 
 # Rebuild config.status if configure changed.
@@ -191,6 +192,10 @@ dox redox devdox redevdox:
 check:
 	(cd source/test; $(MAKE) check)
 
+# Compile the testlib needed by the SAMRAI test suite
+testlib:
+	(cd source/test/testlib && $(MAKE) library) || exit 1
+
 # Compile the SAMRAI test suite
 checkcompile:
 	(cd source/test; $(MAKE) checkcompile)
@@ -199,23 +204,41 @@ checkcompile:
 checktest:
 	(cd source/test; $(MAKE) checktest)
 
+# Run the SAMRAI example problems
+examples:
+	(cd source/test; $(MAKE) examples)
+
+# Run the SAMRAI performance tests
+perf:
+	(cd source/test; $(MAKE) perf)
+
+# Compile the SAMRAI test suite
+# Run the SAMRAI test suite
+# Run the SAMRAI example problems
+# Run the SAMRAI performance tests
+everything:
+	(cd source/test; $(MAKE) checkcompile || exit 1)
+	(cd source/test; $(MAKE) checktest)
+	(cd source/test; $(MAKE) examples)
+	(cd source/test; $(MAKE) perf)
+
 memtest: 
-	rm -f ~/insure.out 
+	$(RM) ~/insure.out 
 	$(MAKE) checktest
-	@NUM_INSURE_RUNS=`grep "PROBLEM SUMMARY - by type" ~/insure.out| wc -l`;            \
-	NO_LEAKS=`grep "No leaks were found" ~/insure.out | wc -l`;                         \
-        NUM_INSURE_ERRORS=`grep TOTAL ~/insure.out | awk '{ sum += $$2}; END {print sum}'`; \
-	if test $$NO_LEAKS -ne $$NUM_INSURE_RUNS;                                           \
-	then                                                                                \
-	   echo "FAIL: Insure++ reported memory leaks";                                     \
-	else                                                                                \
-	   echo "PASSED: Insure++ reported no memory leaks";                                \
-	fi;                                                                                 \
-        if test "$$NUM_INSURE_ERRORS" -ne "0";                                              \
-	then                                                                                \
-	   echo "FAIL: Insure++ reported unexpected errors";                                \
-	else                                                                                \
-	   echo "PASSED: Insure++ reported no unexpected errors";                           \
+	@NUM_INSURE_RUNS=`grep "PROBLEM SUMMARY - by type" ~/insure.out| wc -l`; \
+	NO_LEAKS=`grep "No leaks were found" ~/insure.out | wc -l`; \
+	NUM_INSURE_ERRORS=`grep TOTAL ~/insure.out | awk '{ sum += $$2}; END {print sum}'`; \
+	if test $$NO_LEAKS -ne $$NUM_INSURE_RUNS; \
+	then \
+	   echo "FAIL: Insure++ reported memory leaks"; \
+	else \
+	   echo "PASSED: Insure++ reported no memory leaks"; \
+	fi; \
+        if test "$$NUM_INSURE_ERRORS" -ne "0"; \
+	then \
+	   echo "FAIL: Insure++ reported unexpected errors"; \
+	else \
+	   echo "PASSED: Insure++ reported no unexpected errors"; \
 	fi                                                                      
 
 # Update copies/links in the include directory
@@ -237,5 +260,5 @@ genfiles: update indent
 	@-(cd @top_srcdir@; \
 	for i in `find . -name genfiles.sh`; \
 	do \
-		(cd `dirname $$i` && ./genfiles.sh) \
+	   (cd `dirname $$i` && ./genfiles.sh) \
 	done)

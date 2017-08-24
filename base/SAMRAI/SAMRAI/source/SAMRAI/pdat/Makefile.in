@@ -3,7 +3,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   primary makefile for compiling the SAMRAI pdat package 
 ##
 #########################################################################
@@ -67,7 +67,7 @@ OBJS = 	\
 	NodeDoubleInjection.o \
 	NodeFloatInjection.o \
 	NodeIntegerInjection.o \
-	OuternodeDoubleConstantCoarsen.o \
+	OuternodeDoubleInjection.o \
 	CellIterator.o \
 	EdgeIterator.o \
 	FaceIterator.o \
@@ -95,7 +95,9 @@ OBJS = 	\
 	ArrayDataIterator.o \
 	FirstLayerCellVariableFillPattern.o \
 	FirstLayerCellNoCornersVariableFillPattern.o \
+	FirstLayerEdgeVariableFillPattern.o \
 	FirstLayerNodeVariableFillPattern.o \
+	FirstLayerSideVariableFillPattern.o \
 	SecondLayerNodeVariableFillPattern.o \
 	SecondLayerNodeNoCornersVariableFillPattern.o \
 	SparseData.o \
@@ -104,13 +106,11 @@ OBJS = 	\
 	IntegerAttributeId.o \
 	DoubleAttributeId.o
 
-        
-
 library: $(OBJS)
 	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 
 clean:
-	$(SAMCLEAN)
+	$(CLEAN_COMMON_LIB_FILES)
 	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
 
 include $(SRCDIR)/Makefile.depend

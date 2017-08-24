@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Reference counting class for Array
  *
  ************************************************************************/
@@ -17,7 +17,7 @@
 namespace SAMRAI {
 namespace tbox {
 
-ReferenceCounter * ReferenceCounter::s_free_list = NULL;
+ReferenceCounter * ReferenceCounter::s_free_list = 0;
 bool ReferenceCounter::s_is_finalized = false;
 
 StartupShutdownManager::Handler
@@ -31,7 +31,7 @@ ReferenceCounter::s_handler(
 ReferenceCounter::ReferenceCounter()
 {
    d_references = 1;
-   d_next = (ReferenceCounter *)NULL;
+   d_next = 0;
 }
 
 ReferenceCounter::~ReferenceCounter()
@@ -41,7 +41,7 @@ ReferenceCounter::~ReferenceCounter()
    }
 }
 
-void*
+void *
 ReferenceCounter::operator new (
    size_t bytes)
 {
@@ -55,7 +55,8 @@ ReferenceCounter::operator new (
       s_free_list = s_free_list->d_next;
       return node;
    } else {
-      return ::operator new (bytes);
+      return ::operator new (
+                bytes);
    }
 }
 
@@ -78,8 +79,10 @@ ReferenceCounter::finalizeCallback()
 {
    while (s_free_list) {
       void * byebye = s_free_list;
-      s_free_list = s_free_list->d_next;
-      ::operator delete (byebye);
+      s_free_list = s_free_list->d_next
+      ;
+      ::operator delete (
+         byebye);
    }
 
    s_is_finalized = true;

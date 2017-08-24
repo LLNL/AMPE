@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Support for coordinating multiple asynchronous communications
  *
  ************************************************************************/
@@ -26,7 +26,7 @@ namespace tbox {
 /*!
  * @brief Stage multiple non-blocking MPI communications so that codes
  * waiting for them to complete can advance as their respective MPI
- * requests are completed.
+ * communication operations are completed.
  *
  * An AsyncCommStage object manages multiple non-blocking MPI
  * communications carried out by AsyncCommStage::Member objects.
@@ -62,8 +62,8 @@ namespace tbox {
  * To advance the communication operation of any of the allocated
  * Member objects, use advanceAny() or advanceSome().  In general,
  * advanceSome() has better performance than advanceAny() because it
- * gets around the "starvation" problem.  See the MPI documentation
- * for a discussion of starvation.
+ * avoids the "starvation" problem.  See the MPI documentation for a
+ * discussion of starvation.
  *
  * This class supports communication and uses MPI for message passing.
  * If MPI is disabled, the job of this class disappears and the class
@@ -103,6 +103,7 @@ public:
        * attachStage() to properly stage the Member.
        */
       Member();
+
       /*!
        * @brief Initializing constructor.
        *
@@ -113,10 +114,13 @@ public:
          const size_t nreq,
          AsyncCommStage* stage,
          Handler* handler);
+
       /*!
        * @brief Destructor detach the Member from its stage.
        * Memory allocated by the stage to support the Member
        * will be recycled.
+       *
+       * @pre !hasPendingRequests()
        */
       virtual ~Member();
 
@@ -214,22 +218,34 @@ public:
       }
 
       /*!
-       * @brief Push this onto the stage's list of completed Members.
+       * @brief Push this onto its stage's list of completed Members.
        *
        * This causes the member to be returned by a call to
        * AsyncCommStage::popCompletionQueue(), eventually.
+       *
+       * @pre isDone()
        */
       void
       pushToCompletionQueue();
 
       /*!
        * @brief Yank this member from the stage's list of completed
-       * Members.
+       * Members so it would not be returned by
+       * AsyncCommStage::popCompletionQueue().
        */
       void
       yankFromCompletionQueue()
       {
          d_stage->privateYankFromCompletionQueue(*this);
+      }
+
+      /*!
+       * @brief Returns true if there is a stage associated with this member.
+       */
+      bool
+      hasStage() const
+      {
+         return d_stage != 0;
       }
 
 protected:
@@ -239,9 +255,9 @@ protected:
        * Specify the stage to use and the number of SAMRAI_MPI::Request
        * objects needed from the stage.
        *
-       * @param nreq Number of SAMRAI_MPI::Requests needed by the member.
+       * @param[in] nreq Number of SAMRAI_MPI::Requests needed by the member.
        *
-       * @param stage Register with this AsyncCommStage.
+       * @param[in] stage The AsyncCommStage to attach to.
        */
       void
       attachStage(
@@ -267,6 +283,8 @@ protected:
        * @b Important: Do not save the pointer returned by this
        * method.  The stage's dynamic memory actions may render old
        * pointers invalid.
+       *
+       * @pre hasStage()
        */
       SAMRAI_MPI::Request *
       getRequestPointer() const;
@@ -284,9 +302,18 @@ protected:
        * @b Important: Do not save the pointer returned by this
        * method.  The stage's dynamic memory actions may render old
        * pointers invalid.
+       *
+       * @pre hasStage()
        */
       SAMRAI_MPI::Status *
       getStatusPointer() const;
+
+      /*!
+       * @brief Return the number of requests for this stage Member.
+       */
+      size_t getNumberOfRequests() const {
+         return d_nreq;
+      }
 
 private:
       /*!
@@ -294,6 +321,15 @@ private:
        * stage will set the Member's internal data.
        */
       friend class AsyncCommStage;
+
+      // Unimplemented copy constructor.
+      Member(
+         const Member& other);
+
+      // Unimplemented assignment operator.
+      Member&
+      operator = (
+         const Member& rhs);
 
       /*!
        * @brief The stage this Member belongs to.
@@ -353,9 +389,9 @@ private:
     * another processor, it is better to use advanceSome(), which uses
     * MPI_Waitsome, which avoids starvation.
     *
-    * @return Number of completed Members in the completion queue.
+    * @return True if there are still completed Members in the completion queue.
     */
-   size_t
+   bool
    advanceAny();
 
    /*!
@@ -364,9 +400,9 @@ private:
     *
     * The completed Members are accessible through popCompletionQueue().
     *
-    * @return Number of completed Members in the completion queue.
+    * @return True if there are still completed Members in the completion queue.
     */
-   size_t
+   bool
    advanceSome();
 
    /*!
@@ -374,9 +410,9 @@ private:
     *
     * The completed Members are accessible through popCompletionQueue().
     *
-    * @return Number of completed Members in the completion queue.
+    * @return True if there are still completed Members in the completion queue.
     */
-   size_t
+   bool
    advanceAll();
 
    /*
@@ -384,7 +420,8 @@ private:
     * queue.
     *
     * Members that completed their communication operation through
-    * advanceAny(), advanceSome() or advanceAll() can be accessed
+    * advanceAny(), advanceSome() or advanceAll(), and members manually
+    * pushed onto the queue by pushToCompletionQueue(), can be accessed
     * through popCompletionQueue().  This method gives the size of
     * that queue.
     */
@@ -392,6 +429,43 @@ private:
    numberOfCompletedMembers() const
    {
       return d_completed_members.size();
+   }
+
+   /*
+    * @brief Returns true if there are completed stage Members in the completion
+    * queue.
+    *
+    * Members that completed their communication operation through
+    * advanceAny(), advanceSome() or advanceAll() can be accessed
+    * through popCompletionQueue().  This method tells if there are
+    * any members in that queue.
+    */
+   bool
+   hasCompletedMembers() const
+   {
+      return !d_completed_members.empty();
+   }
+
+   /*!
+    * @brief Returns the first completed Member.
+    */
+   const Member *
+   firstCompletedMember() const
+   {
+      return d_members[d_completed_members.front()];
+   }
+
+   /*!
+    * @brief Returns the ith managed Member.
+    *
+    * @param i
+    *
+    * @pre i < numManagedMembers()
+    */
+   const Member *
+   getMember(size_t i) const
+   {
+      return d_members[i];
    }
 
    /*
@@ -403,8 +477,11 @@ private:
     * populated by advanceAny(), advanceSome() and advanceAll().  You
     * can also push Members onto the queue using the Member's
     * pushToCompletionQueue().
+    *
+    * @pre hasCompletedMembers()
+    * @pre firstCompletedMember()->isDone()
     */
-   Member*
+   Member *
    popCompletionQueue();
 
    /*!
@@ -444,6 +521,15 @@ private:
    }
 
    /*!
+    * @brief Returns the number of staged and destaged Members.
+    */
+   size_t
+   numManagedMembers() const
+   {
+      return d_members.size();
+   }
+
+   /*!
     * @brief Return whether the stage has any pending communication
     * requests.
     */
@@ -471,7 +557,16 @@ private:
     * public.  This friendship is safe because Member is an integral
     * part of the stage code.
     */
-   friend class Member;
+   friend struct Member;
+
+   // Unimplemented copy constructor.
+   AsyncCommStage(
+      const AsyncCommStage& other);
+
+   // Unimplemented assignment operator.
+   AsyncCommStage&
+   operator = (
+      const AsyncCommStage& rhs);
 
    //@{
    //! @name Private methods to be called only by Members of the stage.
@@ -480,26 +575,37 @@ private:
     * @brief Set up a Member to work this stage, initializing mutual
     * references between the stage and the member.
     *
+    * @param member Member to work this stage.
     * @param nreq Number of requests needed on the stage.
     *
-    * @param handle Optional pointer back to a Member object associated
-    *               with the Member.  See class documentation.
+    * @pre !member->hasStage()
+    * @pre nreq >= 1
     */
    void
    privateStageMember(
-      Member* Member,
+      Member* member,
       size_t nreq);
 
    /*!
     * @brief Remove a member from the stage, clearing mutual
     * references between the stage and the member.
+    *
+    * @param member Member removed from the stage.
+    *
+    * @pre !member->hasPendingRequests()
+    * @pre getMember(member->d_index_on_stage) == member
     */
    void
    privateDestageMember(
-      Member* Member);
+      Member* member);
 
    /*!
     * @brief Get the number of requests for the given Member index.
+    *
+    * @param index_on_stage Member index.
+    *
+    * @pre index_on_stage < numManagedMembers()
+    * @pre getMember(index_on_stage) != 0
     */
    size_t
    numberOfRequests(
@@ -526,6 +632,11 @@ private:
     *
     * This is private because only friend class Member should
     * use it.
+    *
+    * @param index_on_stage Member index.
+    *
+    * @pre index_on_stage < numManagedMembers()
+    * @pre getMember(index_on_stage) != 0
     */
    SAMRAI_MPI::Request *
    lookupRequestPointer(
@@ -534,6 +645,11 @@ private:
    /*!
     * @brief Look up and return the status pointer from the stage
     * for the given Member.  (Works similarly to lookupRequestPointer().)
+    *
+    * @param index_on_stage Member index.
+    *
+    * @pre index_on_stage < numManagedMembers()
+    * @pre getMember(index_on_stage) != 0
     */
    SAMRAI_MPI::Status *
    lookupStatusPointer(
@@ -542,20 +658,24 @@ private:
    /*!
     * @brief Push the given Member onto the stage's list of completed
     * Members.
+    *
+    * @param member
+    *
+    * @pre member.isDone()
     */
    void
-   privatePushToCompletionQueue( Member &member );
+   privatePushToCompletionQueue(
+      Member& member);
 
    /*!
     * @brief Yank the given Member from the stage's list of completed
     * Members.
     */
    void
-   privateYankFromCompletionQueue( Member &member );
+   privateYankFromCompletionQueue(
+      Member& member);
 
    //@}
-
-
 
    /*!
     * @brief Members managed on this stage.
@@ -564,12 +684,12 @@ private:
     * stage because they are not at the end of the vector and cannot
     * be removed from the vector.
     */
-   std::vector<Member*> d_members;
+   std::vector<Member *> d_members;
 
    /*!
     * @brief Number of members.
     *
-    * Not necessarily the same as d_members.size(), because d_members
+    * Not necessarily the same as numManagedMembers(), because d_members
     * may have unused slots left behind by destaged members.
     */
    size_t d_member_count;
@@ -602,7 +722,7 @@ private:
     * (d_member_to_req[i]) and the number of request it has
     * (d_member_to_req[i+1]-d_member_to_req[i]).  This vector is
     * always one longer than d_members.  The extra item,
-    * d_member_to_req[d_members.size()], is the total number of
+    * d_member_to_req[numManagedMembers()], is the total number of
     * requests that the stage has allocated.
     */
    std::vector<size_t> d_member_to_req;

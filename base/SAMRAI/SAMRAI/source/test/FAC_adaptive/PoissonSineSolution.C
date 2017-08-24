@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   PoissonSineSolution class implementation
  *
  ************************************************************************/
@@ -16,7 +16,6 @@
 #include STL_SSTREAM_HEADER_FILE
 
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
-#include "SAMRAI/tbox/Array.h"
 
 using namespace SAMRAI;
 
@@ -64,15 +63,15 @@ void PoissonSineSolution::setFromDatabase(
    std::istringstream ist(istr);
    ist >> d_exact;
    if (database.isBool("neumann_locations")) {
-      tbox::Array<bool> neumann_locations =
-         database.getBoolArray("neumann_locations");
-      if (neumann_locations.getSize() > 2 * d_dim.getValue()) {
+      std::vector<bool> neumann_locations =
+         database.getBoolVector("neumann_locations");
+      if (static_cast<int>(neumann_locations.size()) > 2 * d_dim.getValue()) {
          TBOX_ERROR(
             "'neumann_locations' should have at most " << 2 * d_dim.getValue()
                                                        << " entries in " << d_dim << "D.\n");
       }
       int i;
-      for (i = 0; i < neumann_locations.getSize(); ++i) {
+      for (i = 0; i < static_cast<int>(neumann_locations.size()); ++i) {
          d_neumann_location[i] = neumann_locations[i];
       }
    }
@@ -117,8 +116,8 @@ void PoissonSineSolution::setGridData(
    setCellDataToSinusoid(source_data,
       patch,
       d_exact);
-   double npi[tbox::Dimension::MAXIMUM_DIMENSION_VALUE],
-          ppi[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double npi[SAMRAI::MAX_DIM_VAL],
+          ppi[SAMRAI::MAX_DIM_VAL];
    d_exact.getWaveNumbers(npi);
    d_exact.getPhaseAngles(ppi);
    double source_scale = 0.0;
@@ -172,8 +171,9 @@ void PoissonSineSolution::setBcCoefs(
     */
    hier::Box patch_box(patch.getBox());
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      patch.getPatchGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         patch.getPatchGeometry()));
+   TBOX_ASSERT(patch_geom);
    const double* xlo = patch_geom->getXLower();
    const double* xup = patch_geom->getXUpper();
    const double* dx = patch_geom->getDx();
@@ -183,8 +183,8 @@ void PoissonSineSolution::setBcCoefs(
 
    if (gcoef_data) {
       if (d_dim == tbox::Dimension(2)) {
-         hier::Box::iterator boxit(gcoef_data->getBox(), true);
-         hier::Box::iterator boxitend(gcoef_data->getBox(), false);
+         hier::Box::iterator boxit(gcoef_data->getBox().begin());
+         hier::Box::iterator boxitend(gcoef_data->getBox().end());
          int i, j;
          double x, y;
          switch (location_index) {

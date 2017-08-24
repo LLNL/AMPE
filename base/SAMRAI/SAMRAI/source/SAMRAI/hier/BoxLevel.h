@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Set of Boxes in the same "level".
  *
  ************************************************************************/
@@ -22,11 +22,23 @@
 #include "SAMRAI/tbox/Timer.h"
 #include "SAMRAI/tbox/TimerManager.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <vector>
 
 namespace SAMRAI {
 namespace hier {
+
+/*
+ *****************************************************************************
+ * IMPORTANT
+ * IF YOU ARE ADDING A NON-CONST METHOD IT MUST BE PREFACED WITH THE FOLLOWING
+ * CODE AS LOCKED BOX_LEVELS MAY NOT BE MODIFIED IN ANY WAY
+ * if (locked()) {
+ *    TBOX_ERROR("BoxLevel::newMethodName(): operating on locked BoxLevel."
+ *       << std::endl);
+ * }
+ *****************************************************************************
+ */
 
 /*!
  * @brief A distributed set of Box objects which reside in the
@@ -89,25 +101,20 @@ public:
    /*!
     * @brief Names of parallel states.
     */
-   /*
-    * TODO: We should only have one enum for this. Currently, we have
-    * this one and a similar one in Connector.h.
-    */
    enum ParallelState { DISTRIBUTED, GLOBALIZED };
 
    /*!
-    * @brief Construct uninitialized object.
-    *
-    * Uninitialized objects can be initialized by calling initialize()
-    * or swapInitialize().
-    *
-    * @see initialize()
-    * @see swapInitialize()
+    * @brief Construct a BoxLevel which will be initialized from the supplied
+    * restart database.
     *
     * @param[in] dim
+    * @param[in] restart_db
+    * @param[in] grid_geom
     */
-   explicit BoxLevel(
-      const tbox::Dimension& dim);
+   BoxLevel(
+      const tbox::Dimension& dim,
+      tbox::Database& restart_db,
+      const boost::shared_ptr<const BaseGridGeometry>& grid_geom);
 
    /*!
     * @brief Copy constructor.
@@ -128,7 +135,6 @@ public:
     * @brief Constructs an empty, initialized object.
     *
     * @see addBox()
-    * @see addBox()
     * @see initialize()
     *
     * @param[in] ratio
@@ -137,6 +143,25 @@ public:
     * @param[in] parallel_state
     */
    BoxLevel(
+      const IntVector& ratio,
+      const boost::shared_ptr<const BaseGridGeometry>& grid_geom,
+      const tbox::SAMRAI_MPI& mpi = tbox::SAMRAI_MPI::getSAMRAIWorld(),
+      const ParallelState parallel_state = DISTRIBUTED);
+
+   /*!
+    * @brief Constructs a populated object.
+    *
+    * @see addBox()
+    * @see initialize()
+    *
+    * @param[in] boxes
+    * @param[in] ratio
+    * @param[in] grid_geom
+    * @param[in] mpi
+    * @param[in] parallel_state
+    */
+   BoxLevel(
+      const BoxContainer& boxes,
       const IntVector& ratio,
       const boost::shared_ptr<const BaseGridGeometry>& grid_geom,
       const tbox::SAMRAI_MPI& mpi = tbox::SAMRAI_MPI::getSAMRAIWorld(),
@@ -153,15 +178,15 @@ public:
    //! @name Initialization and clearing methods
 
    /*!
-    * @brief Initialize the BoxLevel without and Boxes
+    * @brief Initialize the BoxLevel
     *
     * The content and state of the object before calling this function
     * is discarded.
     *
     * @see addBox()
-    * @see addBox()
     * @see initialize(const BoxContainer&, const IntVector&, const tbox::SAMRAI_MPI&, const ParallelState)
     *
+    * @param[in] boxes
     * @param[in] ratio
     * @param[in] grid_geom
     * @param[in] mpi
@@ -169,6 +194,7 @@ public:
     */
    void
    initialize(
+      const BoxContainer& boxes,
       const IntVector& ratio,
       const boost::shared_ptr<const BaseGridGeometry>& grid_geom,
       const tbox::SAMRAI_MPI& mpi = tbox::SAMRAI_MPI::getSAMRAIWorld(),
@@ -195,6 +221,8 @@ public:
     * @param[in] grid_geom
     * @param[in] mpi
     * @param[in] parallel_state
+    *
+    * @pre &boxes != &getBoxes()
     */
    void
    swapInitialize(
@@ -219,7 +247,7 @@ public:
    bool
    isInitialized() const
    {
-      return d_ratio(0) != 0;
+      return d_ratio(0,0) != 0;
    }
 
    /*!
@@ -256,6 +284,10 @@ public:
    clearForBoxChanges(
       bool isInvalid = true)
    {
+      if (locked()) {
+         TBOX_ERROR("BoxLevel::clearForBoxChanges(): operating on locked BoxLevel."
+            << std::endl);
+      }
       deallocateGlobalizedVersion();
       clearPersistentOverlapConnectors();
       if (isInvalid) {
@@ -284,6 +316,8 @@ public:
     * Data not used by the new state gets deallocated.
     *
     * @param[in] parallel_state
+    *
+    * @pre isInitialized()
     */
    void
    setParallelState(
@@ -307,7 +341,9 @@ public:
     * be accessed without further communications, until the object
     * changes.
     *
-    * Sets d_global_data_up_to_date;
+    * Sets d_global_data_up_to_date to true;
+    *
+    * @pre isInitialized()
     */
    void
    cacheGlobalReducedData() const;
@@ -329,6 +365,10 @@ public:
     * BoxLevel is in DISTRIBUTED state and there is no cached
     * version yet), all processes must make this call at the same
     * point.
+    *
+    * @pre isInitialized()
+    *
+    * @post d_globalized_version->getParallelState() == GLOBALIZED
     */
    const BoxLevel&
    getGlobalizedVersion() const;
@@ -336,14 +376,17 @@ public:
    /*!
     * @brief Deallocate the internal globalized version of the
     * BoxLevel, if there is any.
+    *
+    * @pre (d_globalized_version == 0) ||
+    *      (d_globalized_version->getParallelState() == GLOBALIZED)
     */
    void
    deallocateGlobalizedVersion() const
    {
-      if (d_globalized_version != NULL) {
+      if (d_globalized_version != 0) {
          TBOX_ASSERT(d_globalized_version->getParallelState() == GLOBALIZED);
          delete d_globalized_version;
-         d_globalized_version = NULL;
+         d_globalized_version = 0;
       }
    }
 
@@ -384,7 +427,7 @@ public:
     * @brief Swap the contents of two BoxLevel objects.
     *
     * Swapping is a modifying operation, so the
-    * PersistentOverlapConnectorss of the operands are cleared.
+    * PersistentOverlapConnectors of the operands are cleared.
     *
     * Persistent Connectors are not swapped.  This decision
     * was based on expected usage, which is that
@@ -394,6 +437,10 @@ public:
     *
     * @param[in,out] level_a
     * @param[in,out] level_b
+    *
+    * @pre (&level_a == &level_b) ||
+    *      !level_a.isInitialized() || !level_b.isInitialized() ||
+    *      (level_a.getDim() == level_b.getDim())
     */
    static void
    swap(
@@ -455,6 +502,17 @@ public:
     * invalidate other internal data.  Use other methods for modifying
     * the BoxContainer.
     *
+    * @note It is possible that one may wish to perform repeated searches on
+    * the Boxes in the BoxContainer returned by this method.  As noted in
+    * BoxContainer's documentation, it may be advantageous to call the makeTree
+    * method on the BoxContainer in this case.  If you do, remember that the
+    * GridGeometry passed to makeTree must be the GridGeometry held by this
+    * BoxLevel.  Thus the proper use of makeTree with the result of a call to
+    * this method will look like:
+    * @verbatim
+    *    box_level.getBoxes().makeTree(box_level.getGridGeometry());
+    * @endverbatim
+    *
     * @see getGlobalNumberOfBoxes()
     * @see getLocalNumberOfBoxes()
     *
@@ -467,6 +525,17 @@ public:
 
    /*!
     * @brief Returns the container of global Boxes.
+    *
+    * @note It is possible that one may wish to perform repeated searches on
+    * the Boxes in the BoxContainer returned by this method.  As noted in
+    * BoxContainer's documentation, it may be advantageous to call the makeTree
+    * method on the BoxContainer in this case.  If you do, remember that the
+    * GridGeometry passed to makeTree must be the GridGeometry held by this
+    * BoxLevel.  Thus the proper use of makeTree with the result of a call to
+    * this method will look like:
+    * @verbatim
+    *    box_level.getBoxes().makeTree(box_level.getGridGeometry());
+    * @endverbatim
     */
    const BoxContainer&
    getGlobalBoxes() const
@@ -491,6 +560,8 @@ public:
    /*!
     * @brief Returns the first LocalId, or one with a value of -1 if
     * no local Box exists.
+    *
+    * @pre isInitialized()
     */
    LocalId
    getFirstLocalId() const;
@@ -498,6 +569,8 @@ public:
    /*!
     * @brief Returns the last LocalId, or one with a value of -1 if no
     * local Box exists.
+    *
+    * @pre isInitialized()
     */
    LocalId
    getLastLocalId() const;
@@ -516,8 +589,10 @@ public:
     * @brief Return local number of boxes.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
-   size_t
+   int
    getLocalNumberOfBoxes() const
    {
       TBOX_ASSERT(isInitialized());
@@ -529,11 +604,13 @@ public:
     *
     * Periodic image Boxes are excluded.
     *
-    * Object must be in GLOBALIZED mode to use this method.
-    *
     * @param[in] rank
+    *
+    * @pre isInitialized()
+    * @pre (getParallelState() == GLOBALIZED) || (rank == getMPI().getRank())
+    * @pre (rank >= 0) && (rank < getMPI().getSize())
     */
-   size_t
+   int
    getLocalNumberOfBoxes(
       int rank) const;
 
@@ -546,6 +623,8 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
    int
    getGlobalNumberOfBoxes() const
@@ -564,6 +643,8 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
    int
    getMaxNumberOfBoxes() const
@@ -582,6 +663,8 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
    int
    getMinNumberOfBoxes() const
@@ -595,6 +678,8 @@ public:
     * @brief Return local number of cells.
     *
     * Cells in periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
    size_t
    getLocalNumberOfCells() const
@@ -612,8 +697,10 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
-   int
+   size_t
    getMaxNumberOfCells() const
    {
       TBOX_ASSERT(isInitialized());
@@ -630,8 +717,10 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
-   int
+   size_t
    getMinNumberOfCells() const
    {
       TBOX_ASSERT(isInitialized());
@@ -644,9 +733,11 @@ public:
     *
     * Cells in periodic image Boxes are excluded.
     *
-    * Object must be in GLOBALIZED mode to use this method.
-    *
     * @param[in] rank
+    *
+    * @pre isInitialized()
+    * @pre (getParallelState() == GLOBALIZED) || (rank == getMPI().getRank())
+    * @pre (rank >= 0) && (rank < getMPI().getSize())
     */
    size_t
    getLocalNumberOfCells(
@@ -661,8 +752,10 @@ public:
     * communication is needed, call cacheGlobalReducedData() first.
     *
     * Cells in periodic image Boxes are excluded.
+    *
+    * @pre isInitialized()
     */
-   int
+   size_t
    getGlobalNumberOfCells() const
    {
       TBOX_ASSERT(isInitialized());
@@ -675,9 +768,9 @@ public:
     */
    const Box&
    getLocalBoundingBox(
-      int block_number) const
+      const BlockId& block_id) const
    {
-      return d_local_bounding_box[block_number];
+      return d_local_bounding_box[block_id.getBlockValue()];
    }
 
    /*!
@@ -690,10 +783,10 @@ public:
     */
    const Box&
    getGlobalBoundingBox(
-      int block_number) const
+      const BlockId& block_id) const
    {
       cacheGlobalReducedData();
-      return d_global_bounding_box[block_number];
+      return d_global_bounding_box[block_id.getBlockValue()];
    }
 
    /*!
@@ -701,9 +794,9 @@ public:
     */
    const IntVector&
    getLocalMaxBoxSize(
-      int block_number) const
+      const BlockId& block_id) const
    {
-      return d_local_max_box_size[block_number];
+      return d_local_max_box_size[block_id.getBlockValue()];
    }
 
    /*!
@@ -711,9 +804,9 @@ public:
     */
    const IntVector&
    getLocalMinBoxSize(
-      int block_number) const
+      const BlockId& block_id) const
    {
-      return d_local_min_box_size[block_number];
+      return d_local_min_box_size[block_id.getBlockValue()];
    }
 
    /*!
@@ -726,10 +819,10 @@ public:
     */
    const IntVector&
    getGlobalMaxBoxSize(
-      int block_number) const
+      const BlockId& block_id) const
    {
       cacheGlobalReducedData();
-      return d_global_max_box_size[block_number];
+      return d_global_max_box_size[block_id.getBlockValue()];
    }
 
    /*!
@@ -742,17 +835,14 @@ public:
     */
    const IntVector&
    getGlobalMinBoxSize(
-      int block_number) const
+      const BlockId& block_id) const
    {
       cacheGlobalReducedData();
-      return d_global_min_box_size[block_number];
+      return d_global_min_box_size[block_id.getBlockValue()];
    }
 
    /*!
     * @brief Return the dimension of this object.
-    *
-    * If object has never been initialized, return
-    * tbox::Dimension::getInvalidDimension().
     */
    const tbox::Dimension&
    getDim() const
@@ -777,12 +867,6 @@ public:
 
    //! @name Methods to modify all Boxes.
    /*
-    ***************************************************************************
-    * TODO: This method puts finer in an inconsistent state by not
-    * updating the attributes depenent on what has been changed.  This
-    * method seems to be an initializer, but it is not clear from the
-    * name or documentation if that is so.  The same goes for coarsenBoxes.
-    ***************************************************************************
     */
    /*!
     * @brief Refine all Boxes of this BoxLevel by ratio placing result into
@@ -798,10 +882,20 @@ public:
       const IntVector& ratio,
       const IntVector& final_ratio) const
    {
+      finer.detachMyHandle();
+      if (finer.d_globalized_version) {
+         delete finer.d_globalized_version;
+         finer.d_globalized_version = 0;
+      }
       finer.d_boxes = d_boxes;
       finer.d_boxes.refine(ratio);
+      finer.d_parallel_state = d_parallel_state;
+      if (finer.d_parallel_state == GLOBALIZED) {
+         finer.d_global_boxes = d_global_boxes;
+         finer.d_global_boxes.refine(ratio);
+      }
       finer.d_ratio = final_ratio;
-      return;
+      finer.computeLocalRedundantData();
    }
 
    /*!
@@ -818,10 +912,20 @@ public:
       const IntVector& ratio,
       const IntVector& final_ratio) const
    {
+      coarser.detachMyHandle();
+      if (coarser.d_globalized_version) {
+         delete coarser.d_globalized_version;
+         coarser.d_globalized_version = 0;
+      }
       coarser.d_boxes = d_boxes;
       coarser.d_boxes.coarsen(ratio);
+      coarser.d_parallel_state = d_parallel_state;
+      if (coarser.d_parallel_state == GLOBALIZED) {
+         coarser.d_global_boxes = d_global_boxes;
+         coarser.d_global_boxes.coarsen(ratio);
+      }
       coarser.d_ratio = final_ratio;
-      return;
+      coarser.computeLocalRedundantData();
    }
 
    //@}
@@ -830,48 +934,43 @@ public:
 
    //! @name Individual Box methods.
 
-   /*
-    * TODO: Why the vacant index thing?  The comments say that the
-    * box will be assigned an unused index.  Isn't this a "vacant" index?
-    *
-    * TODO: Why does the first method require "distributed" state and the ones
-    * after require GLOBALIZED state for a remote box?  These comments
-    * are inconsistent and confusing.  I think it would be best to have the
-    * same pre/post conditions apply to all similar methods (e.g., "add box"
-    * methods), then describe them once rather than repeat (potentially
-    * inconsistently for each method).
-    */
-
    /*!
     * @brief Create new local Box from given Box and add it to this
     * level.
     *
-    * The new Box will be assigned an unused local index.  To be
+    * The new Box will be assigned an unused local index, so the input
+    * box need not have a valid one.  To be
     * efficient, no communication will be used.  Therefore, the state
     * must be distributed.
     *
     * The new Box will have a periodic shift number
     * corresponding to zero-shift.
     *
-    * It is faster not to request a vacant index when adding a box.
+    * @note It is imperative that applications which call addBox also call
+    * invalidateGlobalData.  It is possible for some processes to add Boxes and
+    * for others to not.  Since the addBox method sets d_global_data_up_to_date
+    * to false, some processes in this situation will have this flag set to
+    * true and others will not.  This will result in a hang in
+    * cacheGlobalReducedData when global data is accessed.  We could have
+    * performed and allReduce of this flag to the top of cacheGlobalReducedData
+    * but this would have added a costly call for every access of global data.
     *
     * @param[in] box
     * @param[in] block_id
-    * @param[in] use_vacant_index
     *
     * @return iterator to the new Box
+    *
+    * @pre getParallelState() == DISTRIBUTED
+    * @pre (box.getBlockId() == BlockId::invalidId()) ||
+    *      (box.getBlockId() == block_id)
     */
    BoxContainer::const_iterator
    addBox(
       const Box& box,
-      const BlockId& block_id,
-      const bool use_vacant_index = true);
+      const BlockId& block_id);
 
    /*!
     * @brief Add a Box to this level.
-    *
-    * Adding a remote Box is allowed if the object is in
-    * GLOBALIZED mode.
     *
     * @par CAUTION
     * To be efficient, no checks are made to make sure the
@@ -885,8 +984,14 @@ public:
     *
     * It is an error to add any Box that already exists.
     *
-    * FIXME: Should we prevent this operation if persistent overlap
-    * Connectors are attached to this object?
+    * @note It is imperative that applications which call addBox also call
+    * invalidateGlobalData.  It is possible for some processes to add Boxes and
+    * for others to not.  Since the addBox method sets d_global_data_up_to_date
+    * to false, some processes in this situation will have this flag set to
+    * true and others will not.  This will result in a hang in
+    * cacheGlobalReducedData when global data is accessed.  We could have
+    * performed and allReduce of this flag to the top of cacheGlobalReducedData
+    * but this would have added a costly call for every access of global data.
     *
     * @param[in] box
     */
@@ -907,18 +1012,18 @@ public:
    addBoxWithoutUpdate(
       const Box& box)
    {
-      if (d_parallel_state == GLOBALIZED) {
+      if (locked()) {
+         TBOX_ERROR("BoxLevel::addBoxWithoutUpdate(): operating on locked BoxLevel."
+            << std::endl);
+      }
+      if (getParallelState() == GLOBALIZED) {
          d_global_boxes.insert(box);
       }
       d_boxes.insert(box);
-      return;
    }
 
    /*!
     * @brief Insert given periodic image of an existing Box.
-    *
-    * Adding a remote Box is allowed if the object is in
-    * GLOBALIZED mode.
     *
     * Unlike adding a regular Box, it is OK to add a periodic
     * image Box that already exists.  However, that is a no-op.
@@ -926,14 +1031,14 @@ public:
     * @par CAUTION
     * To be efficient, no checks are made to make sure the
     * BoxLevel representation is consistent across all
-    * processors.  Setting inconsistent data leads potentially elusive
-    * bugs.
+    * processors.  Setting inconsistent data leads to potentially
+    * elusive bugs.
     *
     * @par Errors
     * It is an error to add a periodic image of a Box that does
     * not exist.
     *
-    * FIXME: Should we prevent this operation if persistent overlap
+    * TODO: Should we prevent this operation if persistent overlap
     * Connectors are attached to this object?
     *
     * @param[in] existing_box  An existing Box for reference.
@@ -942,6 +1047,8 @@ public:
     *      position.
     * @param[in] shift_number The valid shift number for the Box being
     *      added.  The shift amount is taken from the PeriodicShiftCatalog.
+    *
+    * @pre shift_number != getGridGeometry()->getPeriodicShiftCatalog().getZeroShiftNumber()
     */
    void
    addPeriodicBox(
@@ -958,10 +1065,23 @@ public:
     *
     * Erasing a Box also erases all of its periodic images.
     *
-    * FIXME: Should we prevent this operation if the object has
+    * TODO: Should we prevent this operation if the object has
     * persistent overlap Connectors?
     *
+    * @note It is imperative that applications which call eraseBox also call
+    * invalidateGlobalData.  It is possible for some processes to erase Boxes
+    * and for others to not.  Since the eraseBox method sets
+    * d_global_data_up_to_date to false, some processes in this situation will
+    * have this flag set to true and others will not.  This will result in a
+    * hang in cacheGlobalReducedData when global data is accessed.  We could
+    * have performed and allReduce of this flag to the top of
+    * cacheGlobalReducedData but this would have erased a costly call for every
+    * access of global data.
+    *
     * @param[in] ibox The iterator of the Box to erase.
+    *
+    * @pre getParallelState() == DISTRIBUTED
+    * @pre ibox == getBoxes().find(*ibox)
     */
    void
    eraseBox(
@@ -976,10 +1096,23 @@ public:
     *
     * Erasing a Box also erases all of its periodic images.
     *
-    * FIXME: Should we prevent this operation if the object has
+    * TODO: Should we prevent this operation if the object has
     * persistent overlap Connectors?
     *
+    * @note It is imperative that applications which call eraseBox also call
+    * invalidateGlobalData.  It is possible for some processes to erase Boxes
+    * and for others to not.  Since the eraseBox method sets
+    * d_global_data_up_to_date to false, some processes in this situation will
+    * have this flag set to true and others will not.  This will result in a
+    * hang in cacheGlobalReducedData when global data is accessed.  We could
+    * have performed and allReduce of this flag to the top of
+    * cacheGlobalReducedData but this would have erased a costly call for every
+    * access of global data.
+    *
     * @param[in] box
+    *
+    * @pre getParallelState() == DISTRIBUTED
+    * @pre getBoxes().find(box) != getBoxes().end()
     */
    void
    eraseBox(
@@ -998,8 +1131,11 @@ public:
    eraseBoxWithoutUpdate(
       const Box& box)
    {
+      if (locked()) {
+         TBOX_ERROR("BoxLevel::eraseBoxWithoutUpdate(): operating on locked BoxLevel."
+            << std::endl);
+      }
       d_boxes.erase(box);
-      return;
    }
 
    /*!
@@ -1015,19 +1151,22 @@ public:
     *
     * @return Iterator to the box, or @c
     * getBoxes(owner).end() if box does not exist in set.
+    *
+    * @pre (box.getOwnerRank() == getMPI().getRank()) ||
+    *      (getParallelState() == GLOBALIZED)
     */
    BoxContainer::const_iterator
    getBox(
       const Box& box) const
    {
-      if (box.getOwnerRank() == d_mpi.getRank()) {
+      if (box.getOwnerRank() == getMPI().getRank()) {
          return d_boxes.find(box);
       } else {
 #ifdef DEBUG_CHECK_ASSERTIONS
-         if (d_parallel_state != GLOBALIZED) {
+         if (getParallelState() != GLOBALIZED) {
             TBOX_ERROR(
                "BoxLevel::getBox: cannot get remote box "
-               << box << " without being in globalized state.");
+               << box << " without being in globalized state." << std::endl);
          }
 #endif
          return d_global_boxes.find(box);
@@ -1071,13 +1210,15 @@ public:
     * invalidate other internal data.  Use other methods for modifying
     * the BoxContainer.
     *
-    * @par Assertions
-    * Throws an unrecoverable assertion if the Box does not
-    * exist.
-    *
     * @param[in] box
     *
     * @return Iterator to the box.
+    *
+    * @pre ((box.getOwnerRank() == getMPI().getRank()) &&
+    *       (getBoxes().find(box) != getBoxes().end())) ||
+    *      ((box.getOwnerRank() != getMPI().getRank()) &&
+    *       (getParallelState() == GLOBALIZED) &&
+    *       (getGlobalBoxes().find(box) != getGlobalBoxes().end()))
     */
    BoxContainer::const_iterator
    getBoxStrict(
@@ -1090,12 +1231,13 @@ public:
     * invalidate other internal data.  Use other methods for modifying
     * the BoxContainer.
     *
-    * @par Assertions
-    * Throw an unrecoverable assertion if the Box does not exist.
-    *
     * @param[in] box_id
     *
     * @return Iterator to the box.
+    *
+    * @pre (box_id.getOwnerRank() == getMPI().getRank()) ||
+    *      (getParallelState() == GLOBALIZED)
+    * @pre box with supplied BoxId exists in the BoxLevel
     */
    BoxContainer::const_iterator
    getBoxStrict(
@@ -1156,6 +1298,9 @@ public:
     * BoxId of the given box.
     *
     * @param[in] box
+    *
+    * @pre (box.getOwnerRank() == getMPI().getRank()) ||
+    *      (getParallelState() == GLOBALIZED)
     */
    bool
    hasBox(
@@ -1169,67 +1314,221 @@ public:
     */
 
    /*!
-    * @brief Write the BoxLevel to a database.
+    * @brief Write the BoxLevel to a restart database.
     *
     * Write only local parts regardless of parallel state (to avoid
     * writing tons of repetitive data).
     *
-    * @par Assertions
-    * Check that database is a non-null Pointer.
-    *
-    * @param[in,out] database
+    * @param[in,out] restart_db
     */
    void
-   putUnregisteredToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
-
-   /*!
-    * @brief Read the BoxLevel from a database.
-    *
-    * Put the BoxLevel in the DISTRIBUTED parallel state and
-    * read only local parts.
-    *
-    * If the BoxLevel is initialized, use its SAMRAI_MPI object
-    * and require its refinement ratio to match that in the database.
-    * If the BoxLevel is uninitialized, it will be initialized
-    * to use tbox::SAMRAI_MPI::getSAMRAIWorld() for the SAMRAI_MPI
-    * object.  Note that these behaviors have not been extensively
-    * discussed by the SAMRAI developers and may be subject to change.
-    *
-    * @par Assertions
-    * Check that database is a non-null Pointer.
-    *
-    * @param[in,out] database
-    * @param[in] grid_geom
-    */
-   void
-   getFromDatabase(
-      tbox::Database& database,
-      const boost::shared_ptr<const BaseGridGeometry>& grid_geom);
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    //@}
 
    /*!
-    * @brief Get the collection of overlap Connectors dedicated to
-    * provide overlap neighbors for this BoxLevel.
+    * @brief Sets d_global_data_up_to_date to false.  Must be called after
+    * calls to addBox or eraseBox.
     *
-    * The PersistentOverlapConnectors provides overlap neighbors for
-    * this BoxLevel.  Its role is to create and manage
-    * persistent overlap Connectors based at this BoxLevel and
-    * persisting until the BoxLevel changes (so they should not
-    * be set up until the BoxLevel is in its final state).  This
-    * is the mechanism by which code that can efficiently generate the
-    * overlap Connectors (usually the code that generated the
-    * BoxLevel) provides overlap data to code using the
-    * BoxLevel.  The PersistentOverlapConnectors are guaranteed
-    * to be correct, so any changes to the BoxLevel will cause
-    * current Connectors to be deallocated.
-    *
-    * @see PersistentOverlapConnectors for instructions on creating
-    * the Connectors.
+    * @see addBox()
+    * @see eraseBox()
     */
-   PersistentOverlapConnectors&
-   getPersistentOverlapConnectors() const;
+   void
+   invalidateGlobalData()
+   {
+      if (locked()) {
+         TBOX_ERROR("BoxLevel::invalidateGlobalData(): operating on locked BoxLevel."
+            << std::endl);
+      }
+      d_global_data_up_to_date = false;
+   }
+
+   /*!
+    * @brief Deallocate persistent overlap Connectors, if there are any.
+    */
+   void
+   clearPersistentOverlapConnectors()
+   {
+      if (d_persistent_overlap_connectors != 0) {
+         d_persistent_overlap_connectors->clear();
+      }
+   }
+
+   /*!
+    * @brief Find an overlap Connector with the given head and minimum
+    * Connector width.  If the specified Connector is not found, take the
+    * specified action.
+    *
+    * If multiple Connectors fit the criteria, the one with the
+    * smallest ghost cell width (based on the algebraic sum of the
+    * components) is selected.
+    *
+    * @param[in] head Find the overlap Connector with this specified head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum Connector width.
+    * @param[in] not_found_action Action to take if Connector is not found.
+    * @param[in] exact_width_only If true, the returned Connector will
+    *      have exactly the requested connector width. If only a Connector
+    *      with a greater width is found, a connector of the requested width
+    *      will be generated.
+    *
+    * @return The Connector which matches the search criterion.
+    *
+    * @pre isInitialized()
+    * @pre head.isInitialized()
+    */
+   const Connector&
+   findConnector(
+      const BoxLevel& head,
+      const IntVector& min_connector_width,
+      ConnectorNotFoundAction not_found_action,
+      bool exact_width_only = true) const
+   {
+      return getPersistentOverlapConnectors().findConnector(head,
+         min_connector_width,
+         not_found_action,
+         exact_width_only);
+   }
+
+   /*!
+    * @brief Find an overlap Connector with its transpose with the given head
+    * and minimum Connector widths.  If the specified Connector is not found,
+    * take the specified action.
+    *
+    * If multiple Connectors fit the criteria, the one with the
+    * smallest ghost cell width (based on the algebraic sum of the
+    * components) is selected.
+    *
+    * @param[in] head Find the overlap Connector with this specified head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum Connector width.
+    * @param[in] transpose_min_connector_width Find the transpose overlap
+    *      Connector satisfying this minimum Connector width.
+    * @param[in] not_found_action Action to take if Connector is not found.
+    * @param[in] exact_width_only If true, the returned Connector will
+    *      have exactly the requested connector width. If only a Connector
+    *      with a greater width is found, a connector of the requested width
+    *      will be generated.
+    *
+    * @return The Connector which matches the search criterion.
+    *
+    * @pre isInitialized()
+    * @pre head.isInitialized()
+    */
+   const Connector&
+   findConnectorWithTranspose(
+      const BoxLevel& head,
+      const IntVector& min_connector_width,
+      const IntVector& transpose_min_connector_width,
+      ConnectorNotFoundAction not_found_action,
+      bool exact_width_only = true) const
+   {
+      return getPersistentOverlapConnectors().findConnectorWithTranspose(head,
+         min_connector_width,
+         transpose_min_connector_width,
+         not_found_action,
+         exact_width_only);
+   }
+
+   /*!
+    * @brief Create an overlap Connector, computing relationships by
+    * globalizing data.
+    *
+    * The base will be this BoxLevel.
+    * Find Connector relationships using a (non-scalable) global search.
+    *
+    * @see Connector
+    * @see Connector::initialize()
+    *
+    * @param[in] head This BoxLevel will be the head.
+    * @param[in] connector_width
+    *
+    * @return A const reference to the newly created overlap Connector.
+    *
+    * @pre isInitialized()
+    * @pre head.isInitialized()
+    */
+   const Connector&
+   createConnector(
+      const BoxLevel& head,
+      const IntVector& connector_width) const
+   {
+      return getPersistentOverlapConnectors().createConnector(head,
+         connector_width);
+   }
+
+   /*!
+    * @brief Create an overlap Connector with its transpose, computing
+    * relationships by globalizing data.
+    *
+    * The base will be this BoxLevel.
+    * Find Connector relationships using a (non-scalable) global search.
+    *
+    * @see Connector
+    * @see Connector::initialize()
+    *
+    * @param[in] head This BoxLevel will be the head.
+    * @param[in] connector_width
+    * @param[in] transpose_connector_width
+    *
+    * @return A const reference to the newly created overlap Connector.
+    *
+    * @pre isInitialized()
+    * @pre head.isInitialized()
+    */
+   const Connector&
+   createConnectorWithTranspose(
+      const BoxLevel& head,
+      const IntVector& connector_width,
+      const IntVector& transpose_connector_width) const
+   {
+      return getPersistentOverlapConnectors().createConnectorWithTranspose(head,
+         connector_width,
+         transpose_connector_width);
+   }
+
+   /*!
+    * @brief Cache the supplied overlap Connector and its transpose
+    * if it exists.
+    *
+    * @param[in] connector
+    *
+    * @pre isInitialized()
+    * @pre connector
+    */
+   void
+   cacheConnector(
+      boost::shared_ptr<Connector>& connector) const
+   {
+      return getPersistentOverlapConnectors().cacheConnector(connector);
+   }
+
+   /*!
+    * @brief Returns whether the object has overlap
+    * Connectors with the given head and minimum Connector
+    * width.
+    *
+    * TODO:  does the following comment mean that this must be called
+    * before the call to findConnector?
+    *
+    * If this returns true, the Connector fitting the specification
+    * exists and findConnector() will not throw an assertion.
+    *
+    * @param[in] head Find the overlap Connector with this specified head.
+    * @param[in] min_connector_width Find the overlap Connector satisfying
+    *      this minimum ghost cell width.
+    *
+    * @return True if a Connector is found, otherwise false.
+    */
+   bool
+   hasConnector(
+      const BoxLevel& head,
+      const IntVector& min_connector_width) const
+   {
+      return getPersistentOverlapConnectors().hasConnector(head,
+         min_connector_width);
+   }
 
    /*
     * TODO: The following method is "not for general use" and indeed
@@ -1270,6 +1569,8 @@ public:
     * @see BoxLevelHandle.
     *
     * @return A boost::shared_ptr to the BoxLevelHandle
+    *
+    * @pre !d_handle || (d_handle->d_box_level == this)
     */
    const boost::shared_ptr<BoxLevelHandle>&
    getBoxLevelHandle() const
@@ -1285,9 +1586,28 @@ public:
           * Sanity check: The handle for this object should be attached
           * to this object.
           */
-         TBOX_ERROR("Library error in BoxLevelHandle::getBoxLevel");
+         TBOX_ERROR("Library error in BoxLevelHandle::getBoxLevel" << std::endl);
       }
       return d_handle;
+   }
+
+   /*!
+    * @brief Effectively makes a non-const BoxLevel const.  Prevents any
+    * non-const method from executing.
+    */
+   void
+   lock()
+   {
+      d_locked = true;
+   }
+
+   /*!
+    * @brief Returns true if the BoxLevel is locked.
+    */
+   bool
+   locked()
+   {
+      return d_locked;
    }
 
    //@{
@@ -1307,7 +1627,7 @@ public:
    recursivePrint(
       std::ostream& os,
       const std::string& border,
-      int detail_depth = 0) const;
+      int detail_depth = 2) const;
 
    /*!
     * @brief A class for outputting BoxLevel.
@@ -1343,9 +1663,9 @@ private:
       Outputter(
          const BoxLevel& box_level,
          const std::string& border,
-         int detail_depth = 0,
+         int detail_depth = 2,
          bool output_statistics = false);
-      void
+      Outputter&
       operator = (
          const Outputter& r);               // Unimplemented private.
       const BoxLevel& d_level;
@@ -1360,8 +1680,7 @@ private:
     *
     * Usage example:
     * @code
-    *    std::cout << "my box_level:\n"
-    *              << box_level.format("  ", 2) << std::endl;
+    *    tbox::plog << "my box_level:\n" << box_level.format() << endl;
     * @endcode
     *
     * @param[in] border
@@ -1370,7 +1689,7 @@ private:
    Outputter
    format(
       const std::string& border = std::string(),
-      int detail_depth = 0) const;
+      int detail_depth = 2) const;
 
    /*!
     * @brief Return a object that can format the BoxLevel for
@@ -1390,52 +1709,19 @@ private:
 
    //@}
 
-   /*!
-    * @brief Allows std::vector to allocate objects with
-    * uninitialized dimensions.
-    */
-   friend class std::vector<BoxLevel>;
-
-   /*!
-    * @brief Set up things for the entire class.
-    *
-    * Only called by StartupShutdownManager.
-    */
-   static void
-   initializeCallback()
-   {
-      t_initialize_private = tbox::TimerManager::getManager()->
-         getTimer("hier::BoxLevel::initializePrivate()");
-      t_acquire_remote_boxes = tbox::TimerManager::getManager()->
-         getTimer("hier::BoxLevel::acquireRemoteBoxes()");
-      t_cache_global_reduced_data = tbox::TimerManager::getManager()->
-         getTimer("hier::BoxLevel::cacheGlobalReducedData()");
-   }
-
-   /*!
-    * @brief Free static timers.
-    *
-    * Only called by StartupShutdownManager.
-    */
-   static void
-   finalizeCallback()
-   {
-      t_initialize_private.reset();
-      t_acquire_remote_boxes.reset();
-      t_cache_global_reduced_data.reset();
-   }
-
 private:
+   friend class PersistentOverlapConnectors;
+
    /*
     * Static integer constant describing class's version number.
     */
-   static const int HIER_MAPPED_BOX_LEVEL_VERSION;
+   static const int HIER_BOX_LEVEL_VERSION;
 
    /*
     * Static integer constant describing the number of statistics in this
     * class.
     */
-   static const int MAPPED_BOX_LEVEL_NUMBER_OF_STATS;
+   static const int BOX_LEVEL_NUMBER_OF_STATS;
 
    /*
     * TODO: This same enum is defined in the Connector header.
@@ -1446,13 +1732,8 @@ private:
     */
    enum { BAD_INT = (1 << (8 * sizeof(int) - 2)) };
 
-   /*!
-    * @brief Construct uninitialized object.
-    *
-    * Constructor creates an uninitialized object in distributed state.
-    *
-    * Private to limit where an uninitialized object can
-    * be created.
+   /*
+    * Unimplemented default constructor.
     */
    BoxLevel();
 
@@ -1513,15 +1794,26 @@ private:
    //@}
 
    /*!
-    * @brief Deallocate persistent overlap Connectors, if there are any.
+    * @brief Get the collection of overlap Connectors dedicated to
+    * provide overlap neighbors for this BoxLevel.
+    *
+    * The PersistentOverlapConnectors provides overlap neighbors for
+    * this BoxLevel.  Its role is to create and manage
+    * persistent overlap Connectors based at this BoxLevel and
+    * persisting until the BoxLevel changes (so they should not
+    * be set up until the BoxLevel is in its final state).  This
+    * is the mechanism by which code that can efficiently generate the
+    * overlap Connectors (usually the code that generated the
+    * BoxLevel) provides overlap data to code using the
+    * BoxLevel.  The PersistentOverlapConnectors are guaranteed
+    * to be correct, so any changes to the BoxLevel will cause
+    * current Connectors to be deallocated.
+    *
+    * @see PersistentOverlapConnectors for instructions on creating
+    * the Connectors.
     */
-   void
-   clearPersistentOverlapConnectors()
-   {
-      if (d_persistent_overlap_connectors != NULL) {
-         d_persistent_overlap_connectors->clear();
-      }
-   }
+   PersistentOverlapConnectors&
+   getPersistentOverlapConnectors() const;
 
    /*!
     * @brief Detach this object from the handle it has been using.
@@ -1530,9 +1822,10 @@ private:
     * be able to access this BoxLevel by the handle.
     */
    void
-   detachMyHandle() const
+   detachMyHandle()
    {
       if (d_handle) {
+         clearPersistentOverlapConnectors();
          d_handle->detachMyBoxLevel();
          d_handle.reset();
       }
@@ -1541,6 +1834,8 @@ private:
    /*!
     * @brief Encapsulates functionality common to all initialization
     * functions.
+    *
+    * @pre getDim() == ratio.getDim()
     */
    void
    initializePrivate(
@@ -1548,6 +1843,56 @@ private:
       const boost::shared_ptr<const BaseGridGeometry>& grid_geom,
       const tbox::SAMRAI_MPI& mpi = tbox::SAMRAI_MPI::getSAMRAIWorld(),
       const ParallelState parallel_state = DISTRIBUTED);
+
+   /*!
+    * @brief Read the BoxLevel from a restart database.
+    *
+    * Put the BoxLevel in the DISTRIBUTED parallel state and
+    * read only local parts.
+    *
+    * If the BoxLevel is initialized, use its SAMRAI_MPI object
+    * and require its refinement ratio to match that in the database.
+    * If the BoxLevel is uninitialized, it will be initialized
+    * to use tbox::SAMRAI_MPI::getSAMRAIWorld() for the SAMRAI_MPI
+    * object.  Note that these behaviors have not been extensively
+    * discussed by the SAMRAI developers and may be subject to change.
+    *
+    * @param[in,out] restart_db
+    * @param[in] grid_geom
+    */
+   void
+   getFromRestart(
+      tbox::Database& restart_db,
+      const boost::shared_ptr<const BaseGridGeometry>& grid_geom);
+
+   /*!
+    * @brief Set up things for the entire class.
+    *
+    * Only called by StartupShutdownManager.
+    */
+   static void
+   initializeCallback()
+   {
+      t_initialize_private = tbox::TimerManager::getManager()->
+         getTimer("hier::BoxLevel::initializePrivate()");
+      t_acquire_remote_boxes = tbox::TimerManager::getManager()->
+         getTimer("hier::BoxLevel::acquireRemoteBoxes()");
+      t_cache_global_reduced_data = tbox::TimerManager::getManager()->
+         getTimer("hier::BoxLevel::cacheGlobalReducedData()");
+   }
+
+   /*!
+    * @brief Free static timers.
+    *
+    * Only called by StartupShutdownManager.
+    */
+   static void
+   finalizeCallback()
+   {
+      t_initialize_private.reset();
+      t_acquire_remote_boxes.reset();
+      t_cache_global_reduced_data.reset();
+   }
 
    /*!
     * @brief BoxLevel is a parallel object,
@@ -1593,25 +1938,21 @@ private:
     *
     * This is mutable because it depends on the Boxes and may be
     * saved by a const object if computed.
-    *
-    * A value < 0 means it has not been computed.
     */
-   mutable int d_global_number_of_cells;
+   mutable size_t d_global_number_of_cells;
 
    /*!
     * @brief Local Box count, excluding periodic images.
     *
     * Unlike d_global_number_of_boxes, this parameter is always current.
     */
-   size_t d_local_number_of_boxes;
+   int d_local_number_of_boxes;
 
    /*!
     * @brief Global box count, excluding periodic images.
     *
     * This is mutable because it depends on the Boxes and may be
     * saved by a const object if computed.
-    *
-    * A value < 0 means it has not been computed.
     */
    mutable int d_global_number_of_boxes;
 
@@ -1620,9 +1961,9 @@ private:
    //! @brief Global min box count on any proc, excluding periodic images.
    mutable int d_min_number_of_boxes;
    //! @brief Global max cell count on any proc, excluding periodic images.
-   mutable int d_max_number_of_cells;
+   mutable size_t d_max_number_of_cells;
    //! @brief Global min cell count on any proc, excluding periodic images.
-   mutable int d_min_number_of_cells;
+   mutable size_t d_min_number_of_cells;
 
    //! @brief Max size of largest local box, one for each block.
    std::vector<IntVector> d_local_max_box_size;
@@ -1636,17 +1977,14 @@ private:
    /*!
     * @brief Bounding box of local Boxes, excluding periodic images.
     * One for each block.
-    *
-    * This is mutable because it depends on the Boxes and may be
-    * saved by a const object if computed.
     */
-   mutable std::vector<Box> d_local_bounding_box;
+   std::vector<Box> d_local_bounding_box;
 
    /*!
     * @brief Whether d_local_bounding_box is up to date (or needs
     * recomputing.
     */
-   mutable bool d_local_bounding_box_up_to_date;
+   bool d_local_bounding_box_up_to_date;
 
    /*!
     * @brief Bounding box of global Boxes, excluding periodic images.
@@ -1724,6 +2062,8 @@ private:
     * object.
     */
    boost::shared_ptr<const BaseGridGeometry> d_grid_geometry;
+
+   bool d_locked;
 
    /*!
     * @brief A LocalId object with value of -1.

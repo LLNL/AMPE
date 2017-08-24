@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   C++ Wrapper class for CVODE solver package
  *
  ************************************************************************/
@@ -30,13 +30,13 @@ CVODESolver::CVODESolver(
    const bool uses_preconditioner)
 {
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(!(my_functions == (CVODEAbstractFunctions *)NULL));
+   TBOX_ASSERT(!(my_functions == 0));
 
    d_object_name = object_name;
    d_cvode_functions = my_functions;
    d_uses_preconditioner = uses_preconditioner;
 
-   d_solution_vector = (SundialsAbstractVector *)NULL;
+   d_solution_vector = 0;
 
    /*
     * Set default parameters to safe values or to CVODE/CVSpgmr defaults.
@@ -45,8 +45,8 @@ CVODESolver::CVODESolver(
    /*
     * CVODE memory record and log file.
     */
-   d_cvode_mem = NULL;
-   d_cvode_log_file = NULL;
+   d_cvode_mem = 0;
+   d_cvode_log_file = 0;
    d_cvode_log_file_name = "cvode.log";
 
    /*
@@ -55,7 +55,7 @@ CVODESolver::CVODESolver(
    d_t_0 = 0.0;
    d_user_t_f = 0.0;
    d_actual_t_f = 0.0;
-   d_ic_vector = ((SundialsAbstractVector *)NULL);
+   d_ic_vector = 0;
 
    /*
     * ODE integration parameters.
@@ -66,7 +66,7 @@ CVODESolver::CVODESolver(
    setToleranceType(CV_SS);
    setRelativeTolerance(0.0);
    setAbsoluteTolerance(0.0);
-   d_absolute_tolerance_vector = (SundialsAbstractVector *)NULL;
+   d_absolute_tolerance_vector = 0;
    setSteppingMethod(CV_NORMAL);
 
    d_max_order = -1;
@@ -113,7 +113,7 @@ CVODESolver::~CVODESolver()
 void
 CVODESolver::initializeCVODE()
 {
-   TBOX_ASSERT(!(d_solution_vector == (SundialsAbstractVector *)NULL));
+   TBOX_ASSERT(!(d_solution_vector == 0));
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
@@ -211,8 +211,8 @@ CVODESolver::initializeCVODE()
          /*
           * Setup CVSpgmr function pointers.
           */
-         CVSpilsPrecSetupFn precond_set = NULL;
-         CVSpilsPrecSolveFn precond_solve = NULL;
+         CVSpilsPrecSetupFn precond_set = 0;
+         CVSpilsPrecSolveFn precond_solve = 0;
 
          if (d_uses_preconditioner) {
             precond_set = CVODESolver::CVSpgmrPrecondSet;

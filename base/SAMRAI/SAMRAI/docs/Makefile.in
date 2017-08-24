@@ -3,24 +3,22 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile for the entire SAMRAI distribution 
 ##
 #########################################################################
 
-srcdir = @srcdir@
-top_srcdir = @top_srcdir@
-top_builddir = ..
-subdir = docs
-VPATH = @srcdir@
+SRCDIR = @srcdir@
+SAMRAI = @top_srcdir@
+OBJECT = ..
+SUBDIR = docs
+VPATH = @SRCDIR@
 
-Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status --file=$(subdir)/$@
+include $(OBJECT)/config/Makefile.config
 
-Doxyfile: $(srcdir)/Doxyfile.in $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status --file=$(subdir)/$@
+Doxyfile: $(SRCDIR)/Doxyfile.in $(OBJECT)/config.status
+	cd $(OBJECT) \
+	  && CONFIG_FILES=$(SUBDIR)/$@ CONFIG_HEADERS= $(SHELL) ./config.status --file=$(SUBDIR)/$@
 dox: Doxyfile doxygenBinaryWarning
 	@mkdir -p @dox_output_dir@.
 	@DOXYGEN_BIN@ Doxyfile
@@ -29,11 +27,11 @@ dox: Doxyfile doxygenBinaryWarning
 	cp @dox_output_dir@samrai.tag @dox_output_dir@samrai-dox/html/samrai.tag
 	@echo "Created documentation in @dox_output_dir@"
 redox:
-	rm -f dox && $(MAKE) dox
+	$(RM) dox && $(MAKE) dox
 
-devDoxyfile: $(srcdir)/devDoxyfile.in $(top_builddir)/config.status
-	cd $(top_builddir) \
-	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status --file=$(subdir)/$@
+devDoxyfile: $(SRCDIR)/devDoxyfile.in $(OBJECT)/config.status
+	cd $(OBJECT) \
+	  && CONFIG_FILES=$(SUBDIR)/$@ CONFIG_HEADERS= $(SHELL) ./config.status --file=$(SUBDIR)/$@
 devdox: devDoxyfile doxygenBinaryWarning
 	@mkdir -p @dox_output_dir@.
 	@DOXYGEN_BIN@ devDoxyfile
@@ -42,7 +40,7 @@ devdox: devDoxyfile doxygenBinaryWarning
 	cp @dox_output_dir@samrai-dev.tag @dox_output_dir@samrai-devdox/html/samrai.tag
 	@echo "Created documentation in @dox_output_dir@"
 redevdox:
-	rm -f devdox && $(MAKE) devdox
+	$(RM) devdox && $(MAKE) devdox
 
 grey-dox-bg:
 	@cd @dox_output_dir@.

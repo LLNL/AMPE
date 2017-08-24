@@ -47,7 +47,7 @@ public:
 
    EtaFACSolver(
       const std::string &object_name,
-      EtaFACOps* fac_ops,
+      boost::shared_ptr<EtaFACOps> fac_ops,
       const boost::shared_ptr<tbox::Database> database =
          boost::shared_ptr<tbox::Database>() );
 

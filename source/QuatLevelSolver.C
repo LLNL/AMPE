@@ -359,8 +359,7 @@ void QuatLevelSolver::allocateHypreData()
 
    boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
-      d_hierarchy->getGridGeometry(),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<geom::CartesianGridGeometry,hier::BaseGridGeometry>(d_hierarchy->getGridGeometry()));
    const hier::IntVector ratio = level->getRatioToLevelZero();
    hier::IntVector periodic_shift =
       grid_geometry->getPeriodicShift(ratio);
@@ -435,41 +434,49 @@ void QuatLevelSolver::allocateHypreData()
       HYPRE_SStructGridSetExtents(d_grid, PART, &lower[0], &upper[0]);
    }
 
-   if ( is_periodic ) {
-
 #ifdef DEBUG_CHECK_ASSERTIONS
+   tbox::Dimension::dir_t d;
+   if (is_periodic) {
       const hier::BoxContainer& level_domain =
          level->getPhysicalDomain(hier::BlockId::zero());
       hier::Box domain_bound(level_domain.front());
-      for (hier::BoxContainer::const_iterator i(level_domain);
+      for (hier::BoxContainer::const_iterator i = level_domain.begin();
            i != level_domain.end(); ++i) {
-         domain_bound.lower().min(i->lower());
-         domain_bound.upper().max(i->upper());
+         domain_bound.setLower(
+            hier::Index::min(domain_bound.lower(), i->lower()));
+         domain_bound.setUpper(
+            hier::Index::min(domain_bound.upper(), i->upper()));
       }
-      for (int d=0; d<NDIM; ++d ) {
-         if ( periodic_flag[d] == true ) {
-            int tmpi=1;
-            for (unsigned int p_of_two=0; p_of_two<8*sizeof(p_of_two)-1; ++p_of_two ) {
-               if ( tmpi == domain_bound.numberCells(d) ) {
+      for (d = 0; d < d_dim.getValue(); ++d) {
+         if (periodic_flag[d] == true) {
+            int tmpi = 1;
+            unsigned int p_of_two;
+            for (p_of_two = 0; p_of_two < 8 * sizeof(p_of_two) - 1;
+                 ++p_of_two) {
+               if (tmpi == domain_bound.numberCells(d)) {
                   break;
                }
-               if ( tmpi > domain_bound.numberCells(d) ) {
-                  TBOX_ERROR(d_object_name << ": Hypre currently requires\n"
-                             <<"that grid size in periodic directions be\n"
-                             <<"powers of two.  (This requirement may go\n"
-                             <<"away in future versions of hypre.)\n"
-                             <<"Size problem in direction " << d << "\n"
-                             <<"Domain bound is " << domain_bound << ",\n"
-                             <<"Size of " << domain_bound.numberCells() << "\n");
+               if (tmpi > domain_bound.numberCells(d)) {
+                  TBOX_ERROR(
+                     d_object_name << ": Hypre currently requires\n"
+                                   << "that grid size in periodic directions be\n"
+                                   << "powers of two.  (This requirement may go\n"
+                                   << "away in future versions of hypre.)\n"
+                                   << "Size problem in direction "
+                                   << d << "\n"
+                                   << "Domain bound is "
+                                   << domain_bound << ",\n"
+                                   << "Size of "
+                                   << domain_bound.numberCells() << "\n");
                }
                tmpi = tmpi ? tmpi << 1 : 1;
             }
          }
       }
+   }
 #endif
 
-      HYPRE_SStructGridSetPeriodic(d_grid, PART, &periodic_shift[0]);
-   }
+   HYPRE_SStructGridSetPeriodic(d_grid, PART, &periodic_shift[0]);
 
    // Set the variable type and number of variables on each part.
    HYPRE_SStructVariable * vartypes = new HYPRE_SStructVariable[1];
@@ -738,8 +745,8 @@ QuatLevelSolver::copyFromHypre(
       TBOX_ERROR(d_object_name<< ": Could not allocate values\n");
    }
 
-   hier::Index& lower = box.lower();
-   hier::Index& upper = box.upper();
+   hier::Index lower = box.lower();
+   hier::Index upper = box.upper();
    HYPRE_SStructVectorGetBoxValues(src_vector, PART, &lower[0], &upper[0], depth, values);
    
 #if NDIM==2
@@ -807,8 +814,7 @@ QuatLevelSolver::setMatrixCoefficients(
 
       // Get the cell width array
       boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-         patch.getPatchGeometry(),
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
 
       const double * h = pg->getDx();
 
@@ -818,8 +824,8 @@ QuatLevelSolver::setMatrixCoefficients(
         to Hypre (whose prototypes don't accept const modifiers)
       */
       hier::Box patch_box(patch.getBox());
-      hier::Index& lower = patch_box.lower();
-      hier::Index& upper = patch_box.upper();
+      hier::Index lower = patch_box.lower();
+      hier::Index upper = patch_box.upper();
       int num_cells = patch_box.size();
 
       Ak0 = boost::dynamic_pointer_cast<pdat::OutersideData<double>,
@@ -832,8 +838,8 @@ QuatLevelSolver::setMatrixCoefficients(
       pdat::CellData<double> diagonal(patch_box, d_qlen, hier::IntVector(tbox::Dimension(NDIM),0));
       pdat::SideData<double> off_diagonal(patch_box, d_qlen, hier::IntVector(tbox::Dimension(NDIM),0));
 
-      boost::shared_ptr<pdat::SideData<double> > face_coef_data ( patch.getPatchData(face_coef_id), boost::detail::dynamic_cast_tag());
-
+      boost::shared_ptr<pdat::SideData<double> > face_coef_data ( 
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch.getPatchData(face_coef_id)));
       //  Set the J_ij blocks
       
       for (int depth=0; depth<d_qlen; depth++) {
@@ -859,8 +865,10 @@ QuatLevelSolver::setMatrixCoefficients(
             off_diagonal.getPointer(2, depth), lower[0], upper[0]  , lower[1], upper[1]  , lower[2], upper[2]+1);
 #endif
       }
-      
-      boost::shared_ptr<pdat::CellData<double> > sqrt_mobility_data ( patch.getPatchData(sqrt_mobility_id), boost::detail::dynamic_cast_tag());
+     
+      boost::shared_ptr<pdat::CellData<double> > sqrt_mobility_data (
+         BOOST_CAST<pdat::CellData<double>,hier::PatchData>( patch.getPatchData(sqrt_mobility_id) ) );
+ 
       const hier::Box & m_gbox = sqrt_mobility_data->getGhostBox();
       const hier::Index& mlower = m_gbox.lower();
       const hier::Index& mupper = m_gbox.upper();
@@ -878,9 +886,9 @@ QuatLevelSolver::setMatrixCoefficients(
       * and rhs contribution (k0).
       */
       {
-         const tbox::Array< hier::BoundaryBox >& surface_boxes = 
+         const std::vector< hier::BoundaryBox >& surface_boxes = 
             pg->getCodimensionBoundaries(1);
-         const int n_bdry_boxes = surface_boxes.getSize();
+         const int n_bdry_boxes = surface_boxes.size();
          for ( int n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox& boundary_box = surface_boxes[n];
@@ -928,7 +936,7 @@ QuatLevelSolver::setMatrixCoefficients(
     * There are potentially coarse-fine boundaries to deal with.
     */
 
-       tbox::Array< hier::BoundaryBox > surface_boxes;
+       std::vector< hier::BoundaryBox > surface_boxes;
 
        if (NDIM == 2) {
      surface_boxes = d_cf_boundary->getEdgeBoundaries(pi->getGlobalId());
@@ -936,7 +944,7 @@ QuatLevelSolver::setMatrixCoefficients(
      surface_boxes = d_cf_boundary->getFaceBoundaries(pi->getGlobalId());
        } 
 
-       const int n_bdry_boxes = surface_boxes.getSize();
+       const int n_bdry_boxes = surface_boxes.size();
        for ( int n=0; n<n_bdry_boxes; ++n ) {
   
          const hier::BoundaryBox &boundary_box = surface_boxes[n];
@@ -1090,7 +1098,7 @@ QuatLevelSolver::setMatrixCoefficients(
 void
 QuatLevelSolver::add_gAk0_toRhs(
    const hier::Patch& patch,
-   const tbox::Array< hier::BoundaryBox >& bdry_boxes,
+   const std::vector< hier::BoundaryBox >& bdry_boxes,
    const solv::RobinBcCoefStrategy* robin_bc_coef,
    pdat::CellData<double>& rhs )
 {
@@ -1113,11 +1121,10 @@ QuatLevelSolver::add_gAk0_toRhs(
     * to rhs.
     */
    boost::shared_ptr<pdat::OutersideData<double> >Ak0(
-      patch.getPatchData(d_Ak0_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch.getPatchData(d_Ak0_id) ) );
    assert( Ak0->getDepth()==d_qlen);
 
-   const int n_bdry_boxes = bdry_boxes.getSize();
+   const int n_bdry_boxes = bdry_boxes.size();
    for (int n=0; n<n_bdry_boxes; ++n) {
 
       const hier::BoundaryBox& boundary_box = bdry_boxes[n];
@@ -1466,8 +1473,7 @@ QuatLevelSolver::solveSystem(
       
       // Get references to the hierarchy solution data
       boost::shared_ptr<pdat::CellData<double> > q_solution_data_ ( 
-         patch->getPatchData(q_solution_id), 
-         boost::detail::dynamic_cast_tag());
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(q_solution_id) ) );
       TBOX_ASSERT( q_solution_data_ );
       TBOX_ASSERT( q_solution_data_->getDepth()==d_qlen );
 
@@ -1622,8 +1628,8 @@ QuatLevelSolver::solveSystem(
    for (hier::PatchLevel::iterator ip(level->begin());
         ip != level->end(); ++ip) {
       const boost::shared_ptr<hier::Patch>& patch = *ip;
-      boost::shared_ptr<pdat::CellData<double> > q_solution_data
-         ( patch->getPatchData(q_solution_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > q_solution_data(
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(q_solution_id) ) );
       
       for (int depth=0; depth<d_qlen; depth++) {
          copyFromHypre(0, d_linear_sol[depth], depth, *q_solution_data);

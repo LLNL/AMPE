@@ -118,7 +118,7 @@ public :
    //
    // Methods inherited from Serializable
    //
-   virtual void putToDatabase(const boost::shared_ptr<tbox::Database>& db )const;
+   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db )const;
 
    //-----------------------------------------------------------------------
    //
@@ -149,7 +149,7 @@ protected:
 
    bool d_amr_enabled;
 
-   tbox::Array<int> d_tag_buffer_array;
+   std::vector<int> d_tag_buffer_array;
    bool d_all_periodic;
    bool d_periodic_flag[NDIM];
 

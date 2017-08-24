@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Communication transaction for summing outeredge data
  *
  ************************************************************************/
@@ -44,37 +44,6 @@ class OuteredgeSumTransaction:public tbox::Transaction
 {
 public:
    /*!
-    * Static member function to set the array of refine class data items that
-    * is shared by all object instances of this sum transaction class during
-    * data transfers.  The array must be set before any transactions are
-    * executed.  The array is set in the RefineSchedule class.
-    */
-   static void
-   setRefineItems(
-      const xfer::RefineClasses::Data ** refine_items,
-      int num_refine_items)
-   {
-      TBOX_ASSERT(refine_items != (const xfer::RefineClasses::Data **)NULL);
-      TBOX_ASSERT(num_refine_items >= 0);
-      s_refine_items = refine_items;
-      s_num_refine_items = num_refine_items;
-   }
-
-   /*!
-    * Static member function to unset the array of refine class data items that
-    * is shared by all object instances of this sum transaction class during
-    * data transfers.  The unset function is used to prevent erroneous
-    * execution of different schedules.  The array is unset in the
-    * RefineSchedule class.
-    */
-   static void
-   unsetRefineItems()
-   {
-      s_refine_items = (const xfer::RefineClasses::Data **)NULL;
-      s_num_refine_items = 0;
-   }
-
-   /*!
     * Construct a transaction with the specified source and destination
     * levels, patches, and patch data components found in the refine class
     * item with the given id owned by the calling refine schedule.  In
@@ -91,12 +60,20 @@ public:
     *                         patches.
     * @param dst_node         Destination box.
     * @param src_node         Source box.
-    * @param refine_item_id   Integer id of refine data item owned by refine
+    * @param refine_data      Pointer to array of refine data items
+    * @param item_id          Integer id of refine data item owned by refine
     *                         schedule.
     *
-    * When assertion checking is active, an assertion will result if any of the
-    * pointer arguments is null, or if any of the integer arguments is invalid
-    * (i.e., < 0).
+    * @pre dst_level
+    * @pre src_level
+    * @pre overlap
+    * @pre dst_node.getLocalId() >= 0
+    * @pre src_node.getLocalId() >= 0
+    * @pre refine_data != 0
+    * @pre item_id >= 0
+    * @pre (dst_level->getDim() == src_level->getDim()) &&
+    *      (dst_level->getDim() == dst_node.getDim()) &&
+    *      (dst_level->getDim() == src_node.getDim())
     */
    OuteredgeSumTransaction(
       const boost::shared_ptr<hier::PatchLevel>& dst_level,
@@ -104,7 +81,8 @@ public:
       const boost::shared_ptr<hier::BoxOverlap>& overlap,
       const hier::Box& dst_node,
       const hier::Box& src_node,
-      int refine_item_id);
+      const xfer::RefineClasses::Data ** refine_data,
+      int item_id);
 
    /*!
     * The virtual destructor for the copy transaction releases all
@@ -157,6 +135,8 @@ public:
 
    /*!
     * Unpack the transaction data from the message stream.
+    *
+    * @pre d_dst_level->getPatch(d_dst_node.getGlobalId())->getPatchData(_refine_data[d_item_id]->d_scratch) is actually a boost::shared_ptr<pdat::OuteredgeData<double> >
     */
    virtual void
    unpackStream(
@@ -164,6 +144,9 @@ public:
 
    /*!
     * Perform the local data copy for the transaction.
+    *
+    * @pre d_dst_level->getPatch(d_dst_node.getGlobalId())->getPatchData(d_refine_data[d_item_id]->d_scratch) is actually a boost::shared_ptr<pdat::OuteredgeData<double> >
+    * @pre d_src_level->getPatch(d_src_node.getGlobalId())->getPatchData(d_refine_data[d_item_id]->d_src) is actually a boost::shared_ptr<pdat::OuteredgeData<double> >
     */
    virtual void
    copyLocalData();
@@ -178,21 +161,19 @@ public:
 private:
    OuteredgeSumTransaction(
       const OuteredgeSumTransaction&);                      // not implemented
-   void
+   OuteredgeSumTransaction&
    operator = (
       const OuteredgeSumTransaction&);             // not implemented
-
-   static const xfer::RefineClasses::Data** s_refine_items;
-   static int s_num_refine_items;
 
    boost::shared_ptr<hier::PatchLevel> d_dst_level;
    boost::shared_ptr<hier::PatchLevel> d_src_level;
    boost::shared_ptr<hier::BoxOverlap> d_overlap;
    hier::Box d_dst_node;
    hier::Box d_src_node;
-   int d_refine_item_id;
-   int d_incoming_bytes;
-   int d_outgoing_bytes;
+   const xfer::RefineClasses::Data** d_refine_data;
+   int d_item_id;
+   size_t d_incoming_bytes;
+   size_t d_outgoing_bytes;
 
 };
 

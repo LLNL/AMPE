@@ -37,7 +37,7 @@ using namespace std;
 
 EtaFACSolver::EtaFACSolver (
    const std::string &object_name,
-   EtaFACOps* fac_ops,
+   boost::shared_ptr<EtaFACOps> fac_ops,
    boost::shared_ptr<tbox::Database> database )
    :
    EllipticFACSolver( object_name, fac_ops, database )
@@ -55,7 +55,8 @@ void EtaFACSolver::setOperatorCoefficients(
    const double eta_well_scale,
    const string eta_well_func_type )
 {
-   EtaFACOps* eta_fac_ops = dynamic_cast<EtaFACOps*>( d_fac_ops );
+   boost::shared_ptr<EtaFACOps> eta_fac_ops (
+      boost::dynamic_pointer_cast< EtaFACOps, EllipticFACOps >( d_fac_ops ) );
 
    eta_fac_ops->setOperatorCoefficients(
       phase_id,

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Base class for geometry management in AMR hierarchy
  *
  ************************************************************************/
@@ -18,6 +18,7 @@
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchGeometry.h"
+#include "SAMRAI/hier/PeriodicShiftCatalog.h"
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/hier/TimeInterpolateOperator.h"
 #include "SAMRAI/hier/TransferOperatorRegistry.h"
@@ -33,8 +34,9 @@ namespace SAMRAI {
 namespace hier {
 
 class BoxLevel;
-class PatchLevel;
 class BoxTree;
+class PatchLevel;
+class SingularityFinder;
 
 /*!
  * @brief Class BaseGridGeometry manages the index space that determines the
@@ -48,68 +50,18 @@ class BoxTree;
  * about the index space describing the physical domain and computing this
  * information for patches in an AMR hierarchy.
  *
- * Required input file keys and data types (only required when using first
- * constructor which takes an input database):
- *
- *    - @b    num_blocks
- *       Integer value specifying the number of blocks in the multiblock
- *       mesh configuration.
- *
- *    - @b    domain_boxes_
- *       For each block, an array of boxes representing the index space for the
- *       entire domain within a block (on the coarsest mesh level; i.e., level
- *       zero).  The key must have an integer value as a suffix
- *       (domain_boxes_0, domain_boxes_1, etc.), and there must be an entry
- *       for every block from 0 to num_blocks-1.
- *
- * Optional input file keys and data types (for first constructor which
- * takes an input database):
- *
- *    - @b    periodic_dimension
- *       An array of integer values (expected number of values is equal to
- *       the spatial dimension of the mesh) representing the directions in
- *       which the physical domain is periodic.  A non-zero value indicates
- *       that the direction is periodic.  A zero value indicates that
- *       the direction is not periodic.  If no values are specified, then
- *       the array is initialized to all zeros (no periodic directions).
- *       This key should only be used when the number of blocks is 1 (a
- *       single block mesh), as periodic boundaries are not supported for
- *       multiblock meshes.
- *
- *    - @b   BlockNeighbors
- *
- *       For multiblock grids, a BlockNeighbors entry must be given for
- *       every pair of blocks that touch each other in any way.  The key
- *       for this entry must include a unique trailing integer, and the
- *       integers for the full set of BlockNeighbors keys must be a
- *       continuous sequence beginning with 0.
- *
- *    - @b  Singularity
- *
- *       When there is a reduced or enhanced connectivity singularity,
- *       this key must be used to identify which blocks touch the
- *       singularity and the position of the singularity in relation to
- *       each block's index space.  Like BlockNeighbors, each entry must
- *       have a trailing integer beginning with 0.
- *
- * A description of the input format for BlockNeighbors* and Singularity
- * is included in the Multiblock.pdf document in the docs/userdocs
- * directory of the SAMRAI distribution.
- *
  * @par Additional Functionality
  * Operations performed by this class include determining which patches are
  * adjacent to the physical domain boundary and computing boundary boxes
  * for patches which describe how the patch touches the domain boundary
  * (useful for filling ghost cell data for physical boundary conditions).
  *
- * @see hier::BoundaryBox
+ * @see BoundaryBox
  */
 
 class BaseGridGeometry:
    public tbox::Serializable
 {
-   friend class TransferOperatorRegistry;
-
 public:
    typedef  PatchGeometry::TwoDimBool TwoDimBool;
 
@@ -119,52 +71,43 @@ public:
     *
     * This constructor for BaseGridGeometry initializes data members
     * based on parameters read from the specified input database.
-    * The constructor also registers this object for restart using
-    * the specified object name, when the boolean argument is true.
-    * Whether the object will write its state to restart files during
-    * program execution is determined by this argument.
     *
     * This constructor is intended for use when directly constructing a
     * BaseGridGeometry without using a derived child class.  The object will
     * contain all index space grid information for a mesh, but nothing about
     * the physical coordinates of the mesh.
     *
-    * @note
-    * @b Errors: passing in a null database pointer or an empty string
-    * will result in an unrecoverable assertion.
-    *
     * @param[in]  dim
     * @param[in]  object_name
     * @param[in]  input_db
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.  @b Default: true
+    * @param[in]  allow_multiblock set to false if called by inherently single
+    *             block derived class such as CartesianGridGeometry
+    *
+    * @pre !object_name.empty()
+    * @pre input_db
     */
    BaseGridGeometry(
       const tbox::Dimension& dim,
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
-      bool register_for_restart = true);
+      bool allow_multiblock = true);
 
    /*!
     * @brief Construct a new BaseGridGeometry object based on arguments.
     *
     * This constructor creates a new BaseGridGeometry object based on the
-    * arguments, rather than relying on input or restart data.  The
-    * constructor also registers this object for restart using
-    * the specified object name, when the boolean argument is true.
-    * Whether the object will write its state to restart files during
-    * program execution is determined by this argument.
+    * arguments, rather than relying on input or restart data.
     *
     * @param[in]  object_name
     * @param[in]  domain      Each element of the array describes the index
     *                         space for a block.
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.  @b Default: true
+    *
+    * @pre !object_name.empty()
+    * @pre !domain.empty()
     */
    BaseGridGeometry(
       const std::string& object_name,
-      const BoxContainer& domain,
-      bool register_for_restart = true);
+      BoxContainer& domain);
 
    /*!
     * @brief Virtual destructor
@@ -212,7 +155,7 @@ public:
       TwoDimBool& touches_regular_bdry,
       TwoDimBool& touches_periodic_bdry,
       const Box& box,
-      const IntVector &refinement_ratio,
+      const IntVector& refinement_ratio,
       const BoxContainer& refined_periodic_domain_tree) const;
 
    /*!
@@ -222,19 +165,18 @@ public:
     * will pass the information to the concrete implementation of the
     * geometry class, and construct boundary boxes if required.
     *
-    * @param[in]   level containing the patches to be checked.
+    * @param[in,out]   level containing the patches to be checked.
     * @param[in]   ratio_to_level_zero ratio to the coarsest level.
     * @param[in]   touches_regular_bdry Array storing which patches touch
     *              non-periodic boundaries.
-    * @param[in]   touches_periodic_bdry Array storing which patches touch
-    *              periodic boundaries.
     * @param[in]   defer_boundary_box_creation Flag to indicate if boundary
     *              boxes should be created
+    *
+    * @pre (getDim() == level.getDim()) &&
+    *      (getDim() == ratio_to_level_zero.getDim())
+    * @pre ratio_to_level_zero != IntVector::getZero(getDim())
     */
    /*
-    * TODO:  Are all these parameters really only input params?  If so, these
-    * should be const references rather than non-const.
-    *
     * TODO:  The confusing coordination and sequence of calls between
     *        grid geometry classes and patch geometry classes should
     *        be reworked, including simplification of the data we're
@@ -246,9 +188,8 @@ public:
    setGeometryOnPatches(
       PatchLevel& level,
       const IntVector& ratio_to_level_zero,
-      std::map<BoxId, TwoDimBool>& touches_regular_bdry,
-      std::map<BoxId, TwoDimBool>& touches_periodic_bdry,
-      bool defer_boundary_box_creation);
+      const std::map<BoxId, TwoDimBool>& touches_regular_bdry,
+      const bool defer_boundary_box_creation);
 
    /*!
     * @brief Construct and set the boundary boxes for each patch.
@@ -257,11 +198,11 @@ public:
     * Once constructed, the boundary boxes are set on each patch's
     * PatchGeometry object.
     *
-    * @param[in] level The level for which boundary boxes are constructed.
+    * @param[in,out] level The level for which boundary boxes are constructed.
+    *
+    * @pre getDim() == level.getDim()
     */
    /*
-    * TODO:  really input param?  If so, should be const qualified.
-    *
     * TODO:  See the second TODO item for the previous method.
     */
    void
@@ -283,6 +224,8 @@ public:
     * @param[out]    domain The BoxContainer to be computed
     * @param[in]     ratio_to_level_zero ratio to the coarsest level
     * @param[in]     block_id
+    *
+    * @pre getDim() == ratio_to_level_zero.getDim()
     */
    void
    computePhysicalDomain(
@@ -311,6 +254,8 @@ public:
     *                Boxes describing the index space
     * @param[in]     ratio_to_level_zero ratio to the coarsest level
     * @param[in]     block_id
+    *
+    * @pre getDim() == ratio_to_level_zero.getDim()
     */
    void
    computePhysicalDomain(
@@ -328,13 +273,15 @@ public:
     * coarsened with respect to the physical domain description.
     * Otherwise, the index space is refined.
     *
-    * @param[out]    domain_mapped_boxes The BoxContainer containing all
+    * @param[out]    domain_boxes The BoxContainer containing all
     *                Boxes describing the physical domain
     * @param[in]     ratio_to_level_zero ratio to the coarsest level
+    *
+    * @pre getDim() == ratio_to_level_zero.getDim()
     */
    void
    computePhysicalDomain(
-      BoxContainer& domain_mapped_boxes,
+      BoxContainer& domain_boxes,
       const IntVector& ratio_to_level_zero) const;
 
    /*!
@@ -350,6 +297,8 @@ public:
     * @param[out]    box_level The BoxLevel containing all
     *                Boxes describing the physical domain
     * @param[in]     ratio_to_level_zero ratio to the coarsest level
+    *
+    * @pre getDim() == ratio_to_level_zero.getDim()
     */
    void
    computePhysicalDomain(
@@ -370,11 +319,15 @@ public:
     *
     * @param[in]     domain The input array of BoxContainer
     * @param[in]     number_blocks
+    *
+    * @pre !domain.empty()
+    * @pre for each box in domain: box.getBlockId().isValid() &&
+    *      (box.getBlockId().getBlockValue() < number_blocks)
     */
    void
    setPhysicalDomain(
       const BoxContainer& domain,
-      const int number_blocks);
+      const size_t number_blocks);
 
    /*!
     * @brief Get the physical domain description on level zero.
@@ -409,7 +362,7 @@ public:
     * @return The domain description as a search tree with periodic
     * images (if any).
     */
-   const BoxContainer& 
+   const BoxContainer&
    getPeriodicDomainSearchTree() const
    {
       return d_domain_with_images;
@@ -437,6 +390,8 @@ public:
     * @param[in]  directions an array indicating periodic directions(1) or
     *             all others (0).
     *
+    * @pre getDim() == directions.getDim()
+    *
     * @note
     * The IntVector argument should be set to 1 for periodic directions
     * and 0 for all other directions.  The shift will be calculated to
@@ -461,15 +416,27 @@ public:
     * @return        The periodic shift in each direction for a domain
     *                represented by a refinement of the reference physical
     *                domain.
+    *
+    * @pre getDim() == ratio_to_level_zero.getDim()
     */
    IntVector
    getPeriodicShift(
       const IntVector& ratio_to_level_zero) const;
 
    /*!
+    * @brief Get the periodic shift catalog object, used for mapping between
+    * a PeriodicId and an IntVector representation of a periodic shift.
+    */
+   const PeriodicShiftCatalog&
+   getPeriodicShiftCatalog() const
+   {
+      return d_periodic_shift_catalog;
+   }
+
+   /*!
     * @brief Get the number of blocks in the geometry.
     */
-   int
+   size_t
    getNumberBlocks() const
    {
       return d_number_blocks;
@@ -486,9 +453,9 @@ public:
     * @return The max stencil width of all transfer operators.
     */
    IntVector
-   getMaxTransferOpStencilWidth()
+   getMaxTransferOpStencilWidth(const tbox::Dimension& dim)
    {
-      return d_transfer_operator_registry->getMaxTransferOpStencilWidth();
+      return d_transfer_operator_registry->getMaxTransferOpStencilWidth(dim);
    }
 
    /*!
@@ -500,16 +467,13 @@ public:
     *
     * @param[in]     fine_geom_name std::string name of the geometry object
     * @param[in]     refine_ratio the refinement ratio.
-    * @param[in]     register_for_restart Flag to indicate whether to register
-    *                for restart.
     *
     * @return The pointer to the grid geometry object.
     */
    virtual boost::shared_ptr<BaseGridGeometry>
    makeRefinedGridGeometry(
       const std::string& fine_geom_name,
-      const IntVector& refine_ratio,
-      bool register_for_restart) const = 0;
+      const IntVector& refine_ratio) const = 0;
 
    /*!
     * @brief Create a pointer to a coarsened version of this grid geometry
@@ -520,16 +484,13 @@ public:
     *
     * @param[in]     coarse_geom_name std::string name of the geometry object
     * @param[in]     coarsen_ratio the coasening ratio
-    * @param[in]     register_for_restart Flag to indicate whether to register
-    *                for restart.
     *
     * @return The pointer to a coarsened version of this grid geometry object.
     */
    virtual boost::shared_ptr<BaseGridGeometry>
    makeCoarsenedGridGeometry(
       const std::string& coarse_geom_name,
-      const IntVector& coarsen_ratio,
-      bool register_for_restart) const = 0;
+      const IntVector& coarsen_ratio) const = 0;
 
    /*!
     * @brief Compute and set grid data for patch.
@@ -542,8 +503,10 @@ public:
     * @param[in]        ratio_to_level_zero ratio to coarsest level
     * @param[in]        touches_regular_bdry Array storing which patches touch
     *                   non-periodic boundaries.
-    * @param[in]        touches_periodic_bdry Array storing which patches touch
-    *                   periodic boundaries.
+    *
+    * @pre (getDim() == patch.getDim()) &&
+    *      (getDim() == ratio_to_level_zero.getDim()) &&
+    *      (getDim() == touches_regular_bdry.getDim())
     */
    /*
     * TODO:  See the second TODO item for the setGeometryOnPatches() method.
@@ -552,8 +515,7 @@ public:
    setGeometryDataOnPatch(
       Patch& patch,
       const IntVector& ratio_to_level_zero,
-      const TwoDimBool& touches_regular_bdry,
-      const TwoDimBool& touches_periodic_bdry) const;
+      const TwoDimBool& touches_regular_bdry) const;
 
    /*!
     * @brief Compute boundary boxes for each patch in patch level.
@@ -570,9 +532,9 @@ public:
     * of boundary box arrays will be ordered as follows:
     *
     * @code
-    * (patch 0 face array, patch 0 edge array, patch 0 mapped_box array,
-    *  patch 1 face array, patch 1 edge array, patch 1 mapped_box array, . . . ,
-    *  patch n-1 face array, patch n-1 edge array, patch n-1 mapped_box array)
+    * (patch 0 face array, patch 0 edge array, patch 0 box array,
+    *  patch 1 face array, patch 1 edge array, patch 1 box array, . . . ,
+    *  patch n-1 face array, patch n-1 edge array, patch n-1 box array)
     * @endcode
     *
     * @note
@@ -597,6 +559,11 @@ public:
     *                computing boundary boxes.
     * @param[in]     do_all_patches Flag to indicate boundary box computation
     *                on all patches, even those known to not touch a boundary
+    *
+    * @pre (getDim() == level.getDim()) &&
+    *      (getDim() == periodic_shift.getDim()) &&
+    *      (getDim() == ghost_width.getDim())
+    * @pre ghost_width >= IntVector::getZero(ghost_width.getDim())
     */
    void
    computeBoundaryBoxesOnLevel(
@@ -604,21 +571,24 @@ public:
       const PatchLevel& level,
       const IntVector& periodic_shift,
       const IntVector& ghost_width,
-      const tbox::Array<BoxContainer>& domain,
+      const std::vector<BoxContainer>& domain,
       bool do_all_patches = false) const;
 
    /*!
     * @brief Compute boundary boxes for patch
     *
     * Decompose patch boundary region into pieces depending on spatial
-    * dimensions. Boxes are extended along the boundary to the edge
-    * of the ghost mapped_box_level if necessary.
+    * directions. Boxes are extended along the boundary to the edge
+    * of the ghost box_level if necessary.
     *
     * @param[out]    patch_boundaries output boundaries
     * @param[in]     box
     * @param[in]     domain_boxes
     * @param[in]     ghosts
     * @param[in]     periodic_shift
+    *
+    * @pre (getDim() == box.getDim()) && (getDim() == ghosts.getDim()) &&
+    *      (getDim() == periodic_shift.getDim())
     */
    void
    getBoundaryBoxes(
@@ -641,6 +611,10 @@ public:
     * are represented.
     *
     * @param[in,out] patch_level Level where boundaries need to be adjusted.
+    *
+    * @pre getDim() == patch_level.getDim()
+    * @pre patch_level.getGridGeometry()->getNumberBlocks() == getNumberBlocks()
+    *
     * TODO:  Incorporate into regular boundary box computation once
     * PatchLevel is multiblock-aware.
     */
@@ -720,7 +694,7 @@ public:
       const std::string& op_name)
    {
       return d_transfer_operator_registry->lookupCoarsenOperator(
-         *this, var, op_name);
+         var, op_name);
    }
 
    /*!
@@ -741,7 +715,7 @@ public:
       const std::string& op_name)
    {
       return d_transfer_operator_registry->lookupRefineOperator(
-         *this, var, op_name);
+         var, op_name);
    }
 
    /*!
@@ -764,7 +738,7 @@ public:
          "STD_LINEAR_TIME_INTERPOLATE")
    {
       return d_transfer_operator_registry->lookupTimeInterpolateOperator(
-         *this, var, op_name);
+         var, op_name);
    }
 
    /*!
@@ -823,15 +797,11 @@ public:
        *                       block's index space
        * @param[in] transformation The transformation needed to align the
        *                           neighboring index spaces
-       * @param[in] is_singularity True if the current block and the
-       *                           neighboring block abut at a reduced
-       *                           or enhanced connectivity singularity
        */
       Neighbor(
          const BlockId& block_id,
          const BoxContainer& domain,
-         const Transformation& transformation,
-         const bool is_singularity);
+         const std::vector<Transformation>& transformation);
 
       /*!
        * @brief Get the block number of the neighboring block.
@@ -856,9 +826,9 @@ public:
        * @brief Get the Transformation for the neighbor relationship.
        */
       const Transformation&
-      getTransformation() const
+      getTransformation(const int level_num) const
       {
-         return d_transformation;
+         return d_transformation[level_num];
       }
 
       /*!
@@ -867,20 +837,41 @@ public:
       Transformation::RotationIdentifier
       getRotationIdentifier() const
       {
-         return d_transformation.getRotation();
+         return d_transformation[0].getRotation();
       }
 
       /*!
        * @brief Get the shift for the neighbor relationship.
        */
       const IntVector&
-      getShift() const
+      getShift(const int level_num) const
       {
-         return d_transformation.getOffset();
+         return d_transformation[level_num].getOffset();
+      }
+
+      void
+      addTransformation(const Transformation& transformation,
+                        int level_num)
+      {
+#ifndef DEBUG_CHECK_ASSERTIONS
+         NULL_USE(level_num);
+#endif
+         TBOX_ASSERT(static_cast<unsigned int>(level_num) == d_transformation.size());
+         d_transformation.push_back(transformation);
       }
 
       /*!
-       * @brief Tell if the neighboring block touch each other at an
+       * @brief Set the flag telling if that the neighboring blocks
+       * touch each other at an enhanced connectivity singularity.
+       */
+      void
+      setSingularity(bool is_singularity)
+      {
+         d_is_singularity = is_singularity;
+      }
+
+      /*!
+       * @brief Tell if the neighboring blocks touch each other at an
        * enhanced connectivity singularity.
        */
       bool
@@ -905,7 +896,7 @@ private:
        * @brief The transformation to transform the neighboring block's
        * coordinate system into the current coordinate system.
        */
-      Transformation d_transformation;
+      std::vector<Transformation> d_transformation;
 
       /*!
        * True if the current block and the neighboring block abut at a
@@ -925,16 +916,53 @@ private:
     *                            with block a's
     * @param[in] shift_b_to_a    The post-rotation shift to move b into its
     *                            correct location within a's index space
-    * @param[in] neighbor_type   The type (codimension) of the neighbor
-    *                            relationship
+    *
+    * @pre getDim() = shift_b_to_a.getDim()
     */
    void
    registerNeighbors(
       const BlockId& block_a,
       const BlockId& block_b,
       const Transformation::RotationIdentifier rotation_b_to_a,
-      const IntVector& shift_b_to_a,
-      const int neighbor_type);
+      const IntVector& shift_b_to_a);
+
+   /*!
+    * @brief find the blocks that touch singularities.
+    *
+    * @param[out] singularity_blocks Container to hold the singularity
+    *                                information. Each singularity is
+    *                                represented by a member of the outer set,
+    *                                while the inner set holds all BlockIds
+    *                                for the blocks that touch a particular
+    *                                singularity.
+    *
+    * @pre singularity_blocks.empty()
+    * @pre d_number_blocks > 1
+    */
+   void
+   findSingularities(
+      std::set<std::set<BlockId> >& singularity_blocks);
+
+   /*
+    * @brief Chop the physical domain of this geometry into a container
+    * that has no T-junctions at adjacent faces
+    *
+    * A T-junction occurs when a face one Box in the physical touches the faces
+    * of more than one other Box.  This method creates a representation of the
+    * domain that has chopped the physical domain Boxes such that there are
+    * no T-junctions.
+    *
+    * If the physical domain has no T-junctions, then the output chopped_domain
+    * will be a simple copy of the physical domain.
+    *
+    * @param[out] chopped_domain  Container to hold chopped representation of
+    *                             the domain.
+    *
+    * @pre chopped_domain.empty();
+    */
+   void
+   chopDomain(
+      BoxContainer& chopped_domain);
 
    /*!
     * @brief Get a BoxContainer that contains all of the index space of all other
@@ -971,7 +999,7 @@ private:
     * @return For every singularity point the block touches, the BoxContainer will
     * contain a single-cell box that lies just outside the block domain,
     * touching the block only at the singularity point.  For line singularities,
-    * the BoxContainer will contain boxes of width 1 in all dimensions except one,
+    * the BoxContainer will contain boxes of width 1 in all directions except one,
     * lying outside the block's coarse-level domain and touching the domain
     * only along the line of singularity.
     *
@@ -985,50 +1013,20 @@ private:
    }
 
    /*!
-    * @brief Return a list of integers indicating all of the
-    * singularities touched by the block indicated by block_id.
-    *
-    * @return For every singularity point the block touches, the
-    * vector<int> will contain the index of that singularity.
-    *
-    * @param[in] block_id
-    */
-   const std::vector<int>&
-   getSingularityIndices(
-      const BlockId& block_id) const
-   {
-      return d_singularity_indices[block_id.getBlockValue()];
-   }
-
-   /*!
-    * @brief Tell if block represented by block_id touches
-    * a reduced-connectivity singularity
-    *
-    * @return True if the block touches reduced connectivity singularity,
-    * false if not.
-    *
-    * @param[in] block_id
-    */
-   bool
-   reducedConnectivityExists(
-      const BlockId& block_id) const
-   {
-      return d_reduced_connect[block_id.getBlockValue()];
-   }
-
-   /*!
     * @brief Modify a box by rotating and shifting from the index space of
     * the transformed_block to the index space of the base_block at the
     * resolution level defined by ratio_to_level_zero.
     *
     * @param[in,out] box The boxes will be transformed from the
-    *                      transformed_block index space to the base_block
-    *                      index space.
+    *                    transformed_block index space to the base_block
+    *                    index space.
     * @param[in] ratio
     * @param[in] output_block Integer identifier of the block whose index space
-    *                       will be represented in the boxes at output
+    *                         will be represented in the boxes at output
     * @param[in] input_block Integer identifier of the block whose index
-    *                             space is represented in the boxes at input
+    *                        space is represented in the boxes at input
+    *
+    * @pre (getDim() == box.getDim()) && (getDim() == ratio.getDim())
     *
     * @return Whether the box has been transformed.  True if there is a
     * relationship between input_block and output_block.  False if
@@ -1038,6 +1036,12 @@ private:
    transformBox(
       Box& box,
       const IntVector& ratio,
+      const BlockId& output_block,
+      const BlockId& input_block) const;
+   bool
+   transformBox(
+      Box& box,
+      int level_number,
       const BlockId& output_block,
       const BlockId& input_block) const;
 
@@ -1087,21 +1091,6 @@ private:
       const BlockId& transformed_block);
 
    /*!
-    * @brief Return a list of Neighbor objects describing all of the neighbors
-    * of the block indicated by the block_id.
-    *
-    * @return The list of neighbors
-    *
-    * @param[in] block_id
-    */
-   const std::list<Neighbor>&
-   getNeighbors(
-      const BlockId& block_id) const
-   {
-      return d_block_neighbors[block_id.getBlockValue()];
-   }
-
-   /*!
     * @brief Return the number of neighbors a specific block of the Multiblock
     * domain has.
     *
@@ -1117,11 +1106,14 @@ private:
       const BlockId& block_id) const
    {
       return static_cast<int>(
-         d_block_neighbors[block_id.getBlockValue()].size());
+                d_block_neighbors[block_id.getBlockValue()].size());
    }
 
    /*!
     * @brief Tell if the given BlockIds represent neighboring blocks.
+    *
+    * @param block_a
+    * @param block_b
     */
    bool
    areNeighbors(
@@ -1130,6 +1122,9 @@ private:
 
    /*!
     * @brief Tell if the given BlockIds represent neighboring blocks.
+    *
+    * @param block_a
+    * @param block_b
     */
    bool
    areSingularityNeighbors(
@@ -1137,7 +1132,12 @@ private:
       const BlockId& block_b) const;
 
    /*!
-    * @brief Get the rotation identifier to rotate from src to dst.
+    * @brief Get the rotation identifier to rotate from src to dst.\
+    *
+    * @param dst
+    * @param src
+    *
+    * @pre areNeighbors(dst, src)
     */
    Transformation::RotationIdentifier
    getRotationIdentifier(
@@ -1146,11 +1146,18 @@ private:
 
    /*!
     * @brief Get the offset to shift from src to dst after rotation.
+    *
+    * @param dst
+    * @param src
+    * @param level_num
+    *
+    * @pre areNeighbors(dst, src)
     */
    const IntVector&
    getOffset(
       const BlockId& dst,
-      const BlockId& src) const;
+      const BlockId& src,
+      int level_num) const;
 
    /*!
     * @brief Query if the geometry has enhanced connectivity.
@@ -1162,6 +1169,57 @@ private:
    }
 
    /*!
+    * @brief Query if the the refinement ratios used in this geometry are
+    * isotropic
+    *
+    * All ratios must be isotropic for this to return true.
+    *
+    */
+   bool
+   hasIsotropicRatios() const
+   {
+      return d_ratios_are_isotropic; 
+   }
+
+   /*!
+    * @brief Set the relative refinement ratios between each level and its
+    * next coarser level
+    *
+    * @param ratio_to_coarser  Vector of refinement ratios.
+    */
+   void
+   setUpRatios(
+      const std::vector<IntVector>& ratio_to_coarser);
+
+   /*!
+    * @brief Get a level number based on a refinement ratio.
+    *
+    * An error will occur if the given ratio is not equal to one of the ratios
+    * stored in this geometry.
+    *
+    * @param ratio_to_level_zero  
+    */
+   int
+   getEquivalentLevelNumber(const IntVector& ratio_to_level_zero) const
+   {
+      int level_num = -1;
+      for (int i = 0; i < static_cast<int>(d_ratio_to_level_zero.size()); ++i) {
+         if (d_ratio_to_level_zero[i] == ratio_to_level_zero) {
+            level_num = i;
+            break; 
+         }
+      }
+      if (level_num == -1) {
+         TBOX_ERROR(
+            getObjectName() << ":  "
+                            << ratio_to_level_zero << " is not a valid"
+                            << " ratio in this geometry." << std::endl);
+      }
+
+      return level_num;
+   }
+       
+   /*!
     * @brief Print object data to the specified output stream.
     *
     * @param[out] stream The output stream (as a std::ostream&) to print to.
@@ -1172,49 +1230,506 @@ private:
 
    /*!
     * @brief Writes the state of the BaseGridGeometry object to the
-    * database.
+    * restart database.
     *
-    * When assertion checking is active, db cannot be a null database pointer.
+    * @param[in,out]  restart_db The restart database to write/serialize to.
     *
-    * @param[in,out]    db The database to write to write/serialize.
+    * @pre restart_db
     */
    virtual void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
+
+   /*!
+    * @brief Class NeighborIterator iterates over the Neighbors of a block.
+    *
+    * The iterator points to a mutable Neighbor.
+    */
+   class NeighborIterator
+   {
+      friend class BaseGridGeometry;
+public:
+      /*!
+       * @brief Copy constructor.
+       *
+       * @param[in] other The non-const iterator to copy.
+       */
+      NeighborIterator(
+         const NeighborIterator& other);
+
+      /*!
+       * @brief Destructor.
+       */
+      ~NeighborIterator();
+
+      /*!
+       * @brief Assignment operator.
+       *
+       * @param[in] rhs The non-const iterator being assigned.
+       *
+       * @return This object after the assignment.
+       */
+      NeighborIterator&
+      operator = (
+         const NeighborIterator& rhs)
+      {
+         d_grid_geom = rhs.d_grid_geom;
+         d_block_id.setId(rhs.d_block_id.getBlockValue());
+         d_nbr_itr = rhs.d_nbr_itr;
+         return *this;
+      }
+
+      /*!
+       * @brief Dereference operator.
+       *
+       * @return The Neighbor that the iterator is currently pointing to.
+       */
+      Neighbor&
+      operator * () const
+      {
+         return d_nbr_itr->second;
+      }
+
+      /*!
+       * @brief Post-increment operator.
+       *
+       * @return This iterator prior to having been incremented.
+       */
+      NeighborIterator
+      operator ++ (
+         int)
+      {
+         NeighborIterator tmp = *this;
+         if (d_nbr_itr !=
+             d_grid_geom->d_block_neighbors[d_block_id.getBlockValue()].end()) {
+            ++d_nbr_itr;
+         }
+         return tmp;
+      }
+
+      /*!
+       * @brief Pre-increment operator.
+       *
+       * @return This iterator after having been incremented.
+       */
+      NeighborIterator&
+      operator ++ ()
+      {
+         if (d_nbr_itr !=
+             d_grid_geom->d_block_neighbors[d_block_id.getBlockValue()].end()) {
+            ++d_nbr_itr;
+         }
+         return *this;
+      }
+
+      /*!
+       * @brief Equality operator.
+       *
+       * @param[in] rhs The right hand side of the comparison.
+       *
+       * @return True if this and rhs are pointing to the same Neighbor of the
+       * same block of the same grid geometry.
+       */
+      bool
+      operator == (
+         const NeighborIterator& rhs) const
+      {
+         return (d_grid_geom == rhs.d_grid_geom) &&
+                (d_block_id == rhs.d_block_id) &&
+                (d_nbr_itr == rhs.d_nbr_itr);
+      }
+
+      /*!
+       * @brief Inequality operator.
+       *
+       * @param[in] rhs The right hand side of the comparison.
+       *
+       * @return True if this and rhs are not pointing to different Neighbors
+       * or iterating over different block or different grid geometries.
+       */
+      bool
+      operator != (
+         const NeighborIterator& rhs) const
+      {
+         return !(*this == rhs);
+      }
+
+private:
+      /*!
+       * @brief Constructor.
+       *
+       * Constructs an iterator that points to the first or one past the last
+       * Neighbor of the block with the supplied BlockId in the supplied
+       * GridGeometry.
+       *
+       * @pre grid_geometry != 0
+       *
+       * @param[in] grid_geometry The grid geometry whose block Neighbors are
+       *                          of iterest.
+       * @param[in] block_id The ID of the block of interest in the grid
+       *                     geometry.
+       * @param[in] from_start If true iterator first points to the first
+       *                       Neighbor.
+       */
+      NeighborIterator(
+         BaseGridGeometry* grid_geometry,
+         const BlockId& block_id,
+         bool from_start = true);
+
+      /*!
+       * @brief Constructor.
+       *
+       * Constructs an iterator that points to the Neighbor block with BlockId
+       * nbr_blk_id of the block with BlockId block_id.  If no such Neighbor
+       * exists the iterator points to end().
+       *
+       * @pre grid_geometry != 0
+       *
+       * @param[in] grid_geometry The grid geometry whose block Neighbor is of
+       *                          iterest.
+       * @param[in] block_id The ID of the block of interest in the grid
+       *                     geometry.
+       * @param[in] nbr_block_id The ID of the Neighbor block of interest in
+       *                         the grid geometry.
+       */
+      NeighborIterator(
+         BaseGridGeometry* grid_geometry,
+         const BlockId& block_id,
+         const BlockId& nbr_block_id);
+
+      /*!
+       * @brief Unimplemented default constructor.
+       */
+      NeighborIterator();
+
+      /*!
+       * @brief The grid geometry whose block neighbors are of interest.
+       */
+      BaseGridGeometry* d_grid_geom;
+
+      /*!
+       * @brief The block id if the block whose Neighors are of interest.
+       */
+      BlockId d_block_id;
+
+      /*!
+       * @brief The underlying iterator.
+       */
+      std::map<BlockId, Neighbor>::iterator d_nbr_itr;
+   };
+
+   /*!
+    * @brief Class ConstNeighborIterator iterates over the Neighbors of a
+    * block.
+    *
+    * The iterator points to a const Neighbor.
+    */
+   class ConstNeighborIterator
+   {
+      friend class BaseGridGeometry;
+public:
+      /*!
+       * @brief Copy constructor.
+       *
+       * @param[in] other The const iterator to copy.
+       */
+      ConstNeighborIterator(
+         const ConstNeighborIterator& other);
+
+      /*!
+       * @brief Copy constructor.
+       *
+       * @param[in] other The non-const iterator to copy.
+       */
+      ConstNeighborIterator(
+         const NeighborIterator& other);
+
+      /*!
+       * @brief Destructor.
+       */
+      ~ConstNeighborIterator();
+
+      /*!
+       * @brief Assignment operator.
+       *
+       * @param[in] rhs The const iterator being assigned.
+       *
+       * @return This object after the assignment.
+       */
+      ConstNeighborIterator&
+      operator = (
+         const ConstNeighborIterator& rhs)
+      {
+         d_grid_geom = rhs.d_grid_geom;
+         d_block_id.setId(rhs.d_block_id.getBlockValue());
+         d_nbr_itr = rhs.d_nbr_itr;
+         return *this;
+      }
+
+      /*!
+       * @brief Assignment operator.
+       *
+       * @param[in] rhs The non-const iterator being assigned.
+       *
+       * @return This object after the assignment.
+       */
+      ConstNeighborIterator&
+      operator = (
+         const NeighborIterator& rhs)
+      {
+         d_grid_geom = rhs.d_grid_geom;
+         d_block_id.setId(rhs.d_block_id.getBlockValue());
+         d_nbr_itr = rhs.d_nbr_itr;
+         return *this;
+      }
+
+      /*!
+       * @brief Dereference operator.
+       *
+       * @return The Neighbor that the iterator is currently pointing to.
+       */
+      const Neighbor&
+      operator * () const
+      {
+         return d_nbr_itr->second;
+      }
+
+      /*!
+       * @brief Post-increment operator.
+       *
+       * @return This iterator prior to having been incremented.
+       */
+      ConstNeighborIterator
+      operator ++ (
+         int)
+      {
+         ConstNeighborIterator tmp = *this;
+         if (d_nbr_itr !=
+             d_grid_geom->d_block_neighbors[d_block_id.getBlockValue()].end()) {
+            ++d_nbr_itr;
+         }
+         return tmp;
+      }
+
+      /*!
+       * @brief Pre-increment operator.
+       *
+       * @return This iterator after having been incremented.
+       */
+      ConstNeighborIterator&
+      operator ++ ()
+      {
+         if (d_nbr_itr !=
+             d_grid_geom->d_block_neighbors[d_block_id.getBlockValue()].end()) {
+            ++d_nbr_itr;
+         }
+         return *this;
+      }
+
+      /*!
+       * @brief Equality operator.
+       *
+       * @param[in] rhs The right hand side of the comparison.
+       *
+       * @return True if this and rhs are pointing to the same Neighbor of the
+       * same block of the same grid geometry.
+       */
+      bool
+      operator == (
+         const ConstNeighborIterator& rhs) const
+      {
+         return (d_grid_geom == rhs.d_grid_geom) &&
+                (d_block_id == rhs.d_block_id) &&
+                (d_nbr_itr == rhs.d_nbr_itr);
+      }
+
+      /*!
+       * @brief Inequality operator.
+       *
+       * @param[in] rhs The right hand side of the comparison.
+       *
+       * @return True if this and rhs are not pointing to different Neighbors
+       * or iterating over different block or different grid geometries.
+       */
+      bool
+      operator != (
+         const ConstNeighborIterator& rhs) const
+      {
+         return !(*this == rhs);
+      }
+private:
+      /*!
+       * @brief Constructor.
+       *
+       * Constructs an iterator that points to the first or one past the last
+       * Neighbor of the block with the supplied BlockId in the supplied
+       * GridGeometry.
+       *
+       * @pre grid_geometry != 0
+       *
+       * @param[in] grid_geometry The grid geometry whose block Neighbors are
+       *                          of iterest.
+       * @param[in] block_id The ID of the block of interest in the grid
+       *                     geometry.
+       * @param[in] from_start If true iterator first points to the first
+       *                       Neighbor.
+       */
+      ConstNeighborIterator(
+         const BaseGridGeometry* grid_geometry,
+         const BlockId& block_id,
+         bool from_start = true);
+
+      /*!
+       * @brief Constructor.
+       *
+       * Constructs an iterator that points to the Neighbor block with BlockId
+       * nbr_blk_id of the block with BlockId block_id.  If no such Neighbor
+       * exists the iterator points to end().
+       *
+       * @pre grid_geometry != 0
+       *
+       * @param[in] grid_geometry The grid geometry whose block Neighbor is of
+       *                          iterest.
+       * @param[in] block_id The ID of the block of interest in the grid
+       *                     geometry.
+       * @param[in] nbr_block_id The ID of the Neighbor block of interest in
+       *                         the grid geometry.
+       */
+      ConstNeighborIterator(
+         const BaseGridGeometry* grid_geometry,
+         const BlockId& block_id,
+         const BlockId& nbr_block_id);
+
+      /*!
+       * @brief Unimplemented default constructor.
+       */
+      ConstNeighborIterator();
+
+      /*!
+       * @brief The grid geometry whose block neighbors are of interest.
+       */
+      const BaseGridGeometry* d_grid_geom;
+
+      /*!
+       * @brief The block id if the block whose Neighors are of interest.
+       */
+      BlockId d_block_id;
+
+      /*!
+       * @brief The underlying iterator.
+       */
+      std::map<BlockId, Neighbor>::const_iterator d_nbr_itr;
+   };
+
+   /*!
+    * @brief Create iterator pointing to the first Neighbor of the block with
+    * the supplied block id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @return Iterator pointing to the first Neighbor of the block with
+    * supplied block id.
+    */
+   NeighborIterator
+   begin(
+      const BlockId& block_id)
+   {
+      return NeighborIterator(this, block_id);
+   }
+
+   /*!
+    * @brief Create iterator pointing one past the last Neighbor of the block
+    * with the supplied block id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @return Iterator pointing one past the Neighbor of the block with
+    * supplied block id.
+    */
+   NeighborIterator
+   end(
+      const BlockId& block_id)
+   {
+      return NeighborIterator(this, block_id, false);
+   }
+
+   /*!
+    * @brief Create iterator pointing to the Neighbor with block id
+    * nbr_block_id of the block with block id block_id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @param[in] nbr_block_id The block id of the Neighbor of interest.
+    *
+    * @return Iterator pointing to the requested Neighbor of the block with
+    * supplied block id.
+    */
+   NeighborIterator
+   find(
+      const BlockId& block_id,
+      const BlockId& nbr_block_id)
+   {
+      return NeighborIterator(this, block_id, nbr_block_id);
+   }
+
+   /*!
+    * @brief Create iterator pointing to the first Neighbor of the block with
+    * the supplied block id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @return Iterator pointing to the first Neighbor of the block with
+    * supplied block id.
+    */
+   ConstNeighborIterator
+   begin(
+      const BlockId& block_id) const
+   {
+      return ConstNeighborIterator(this, block_id);
+   }
+
+   /*!
+    * @brief Create iterator pointing one past the last Neighbor of the block
+    * with the supplied block id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @return Iterator pointing one past the Neighbor of the block with
+    * supplied block id.
+    */
+   ConstNeighborIterator
+   end(
+      const BlockId& block_id) const
+   {
+      return ConstNeighborIterator(this, block_id, false);
+   }
+
+   /*!
+    * @brief Create iterator pointing to the Neighbor with block id
+    * nbr_block_id of the block with block id block_id.
+    *
+    * @param[in] block_id The block id of the block whose Neighbors are of
+    * interest.
+    *
+    * @param[in] nbr_block_id The block id of the Neighbor of interest.
+    *
+    * @return Iterator pointing to the requested Neighbor of the block with
+    * supplied block id.
+    */
+   ConstNeighborIterator
+   find(
+      const BlockId& block_id,
+      const BlockId& nbr_block_id) const
+   {
+      return ConstNeighborIterator(this, block_id, nbr_block_id);
+   }
 
 protected:
-   /*!
-    * @brief Construct a new BaseGridGeometry object in its default state.
-    *
-    * This constructor is intended to be called from a child class derived
-    * from BaseGridGeometry.  It will not register for restart nor read any
-    * input data, as it is expected that the child class will handle those
-    * operations.
-    *
-    * @param[in]  dim
-    * @param[in]  object_name
-    * @param[in]  op_reg
-    */
-   BaseGridGeometry(
-      const tbox::Dimension& dim,
-      const std::string& object_name,
-      const boost::shared_ptr<TransferOperatorRegistry>& op_reg);
-
-   /*!
-    * @brief Construct a new BaseGridGeometry object in its default state.
-    *
-    * This constructor is intended to be called from a child class derived
-    * from BaseGridGeometry.  It will not register for restart nor read any
-    * input data, as it is expected that the child class will handle those
-    * operations.
-    *
-    * @param[in]  dim
-    * @param[in]  object_name
-    */
-   BaseGridGeometry(
-      const tbox::Dimension& dim,
-      const std::string& object_name);
-
    /*!
     * @brief Construct a new BaseGridGeometry object based on arguments.
     *
@@ -1222,19 +1737,21 @@ protected:
     * @param[in]  domain      Each element of the array describes the index
     *                         space for a block.
     * @param[in]  op_reg
-    * @param[in]  register_for_restart Flag indicating whether this instance
-    *             should be registered for restart.  @b Default: true
+    *
+    * @pre !object_name.empty()
+    * @pre !domain.empty()
     */
    BaseGridGeometry(
       const std::string& object_name,
-      const BoxContainer& domain,
-      const boost::shared_ptr<TransferOperatorRegistry>& op_reg,
-      bool register_for_restart);
+      BoxContainer& domain,
+      const boost::shared_ptr<TransferOperatorRegistry>& op_reg);
 
    /*!
     * @brief Read multiblock metadata input from the input database
     *
     * @param[in] input_db
+    *
+    * @pre input_db
     */
    void
    readBlockDataFromInput(
@@ -1276,6 +1793,10 @@ private:
     * It returns true when a BoundaryBox has a width of 1 in at least
     * one direction, is adjacent to the patch boundary (possible extended
     * into the patch's ghost region) and is outside the physical domain.
+    *
+    * @pre (getDim() == boundary_box.getDim()) &&
+    *      (getDim() == patch.getDim()) &&
+    *      (getDim() == max_data_ghost_width.getDim())
     */
    bool
    checkBoundaryBox(
@@ -1296,6 +1817,8 @@ private:
     * @param[in]     box Box on which to compute periodic shifts
     * @param[in]     domain_search_tree search tree for the domain
     * @param[in]     periodic_shift
+    *
+    * @pre (getDim() == box.getDim()) && (getDim() == periodic_shift.getDim())
     */
    void
    computeShiftsForBox(
@@ -1309,13 +1832,13 @@ private:
     * into account the full multiblock configuration.
     *
     * @param[in] patch
-    * @param[in] geometry
     * @param[in] pseudo_domain The full multiblock domain represented as if
     *            every block were in the index space where the patch exists
     * @param[in] gcw         The maximum patch data ghost width
     * @param[in] singularity BoxContainer obtained by getSingularityBoxContainer()
+    *
+    * @pre (getDim() == patch.getDim()) && (getDim() == gcw.getDim())
     */
-
    void
    adjustBoundaryBoxesOnPatch(
       const Patch& patch,
@@ -1324,18 +1847,34 @@ private:
       const BoxContainer& singularity);
 
    /*!
+    * @brief Set the transformations between block neighbors for every level
+    *
+    * The transformations between block neighbors are originally received from
+    * input for the coarsest level. This method computes the transformations
+    * for all potential levels after the ratios to level zero for each level
+    * are computed.
+    */
+   void
+   setUpFineLevelTransformations();
+
+   /*!
     * @brief Reads in data from the specified input database.
     *
     * If the simulation is from restart, these values are taken from restart
     * and newly specified values in the input database are ignored.
     *
-    * @param[in] db  input database, must not be NULL pointer
+    * @param[in] input_db  input database, must not be NULL pointer
     * @param[in] is_from_restart  set to true if simulation is from restart
+    * @param[in] allow_multiblock set to false if called by inherently single
+    *            block derived class such as CartesianGridGeometry
+    *
+    * @pre is_from_restart || input_db
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db,
-      bool is_from_restart);
+      const boost::shared_ptr<tbox::Database>& input_db,
+      bool is_from_restart,
+      bool allow_multiblock);
 
    /*!
     * @brief Read object state from the restart file and initialize class data
@@ -1343,6 +1882,8 @@ private:
     *
     * The database from which the restart data is read is
     * determined by the object_name specified in the constructor.
+    *
+    * @pre tbox::RestartManager::getManager()->getRootDatabase()->isDatabase(getObjectName()
     *
     * Unrecoverable Errors:
     *
@@ -1385,7 +1926,7 @@ private:
     * Boolean array telling for each block whether the domain of that block
     * can be represented by a single box.
     */
-   tbox::Array<bool> d_domain_is_single_box;
+   std::vector<bool> d_domain_is_single_box;
 
    /*!
     * @brief BoxContainer representation of the physical domain, including
@@ -1400,6 +1941,12 @@ private:
    IntVector d_periodic_shift;
 
    /*!
+    * PeriodicShiftCatalog object that is constructed in accordance with
+    * this grid geometry's domain and periodic shift.
+    */
+   PeriodicShiftCatalog d_periodic_shift_catalog;
+
+   /*!
     * Current maximum ghost cell width over all patch data objects
     * known to the patch descriptor.  This is used to compute
     * boundary boxes.
@@ -1409,49 +1956,37 @@ private:
    /*!
     * The number of blocks represented in the BaseGridGeometry.
     */
-   int d_number_blocks;
+   size_t d_number_blocks;
 
    /*!
-    * The number of blocks singularities in the block configuration.
+    * The number of block singularities in the block configuration.
     */
    int d_number_of_block_singularities;
+
+   boost::shared_ptr<SingularityFinder> d_singularity_finder;
 
    /*!
     * @brief Associated with each block is a list of Neighbors that
     * it shares a block boundary with.
     */
-   tbox::Array<std::list<Neighbor> > d_block_neighbors;
+   std::vector<std::map<BlockId, Neighbor> > d_block_neighbors;
 
    /*!
     * @brief An array of BoxContainers defining the singularities of a multiblock
     * domain.  Each BoxContainer element defines the singularities that a single
     * block touches.
     */
-   tbox::Array<BoxContainer> d_singularity;
+   std::vector<BoxContainer> d_singularity;
 
-   /*!
-    * @brief An array of singularity indices of a multiblock
-    * domain.  d_singularity_indices[bn] is a list of singularity indices
-    * touched by block bn.
-    */
-   tbox::Array<std::vector<int> > d_singularity_indices;
+   std::vector<IntVector> d_ratio_to_level_zero;
 
-   /*!
-    * @brief Tell whether each block touches a reduced-connectivity
-    * singularity.
-    */
-   tbox::Array<bool> d_reduced_connect;
+   bool d_ratios_are_isotropic;
 
    /*!
     * @brief Tell whether there is enhanced connectivity anywhere in the
     * geometry.
     */
    bool d_has_enhanced_connectivity;
-
-   /*!
-    * Flag to determine whether this instance is registered for restart.
-    */
-   bool d_registered_for_restart;
 
    static boost::shared_ptr<tbox::Timer> t_find_patches_touching_boundaries;
    static boost::shared_ptr<tbox::Timer> t_touching_boundaries_init;
@@ -1461,6 +1996,7 @@ private:
    static boost::shared_ptr<tbox::Timer> t_set_geometry_data_on_patches;
    static boost::shared_ptr<tbox::Timer> t_compute_boundary_boxes_on_level;
    static boost::shared_ptr<tbox::Timer> t_get_boundary_boxes;
+   static boost::shared_ptr<tbox::Timer> t_adjust_multiblock_patch_level_boundaries;
 
    /*
     * Static initialization and cleanup handler.

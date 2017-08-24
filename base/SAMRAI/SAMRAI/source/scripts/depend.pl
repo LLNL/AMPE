@@ -4,7 +4,7 @@
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   perl script to generate dependencies for SAMRAI files 
 ##
 #########################################################################
@@ -12,19 +12,14 @@
 
 # Output a Makefile.depend file for .C src files.  A dependency is
 # created for each .C, .h, and .I recursively included file.
-# In order to speed compilation the makefile flag 
-# DEPENDS_ON_TEMPLATE_IMPLEMENTATION is used to control dependency
-# on .C files.  The rules for determining dependency are: 
+# The rules for determining dependency are: 
 # 
 # .h and .I files always included in the dependency
 #
-#  The src file is always included in the dependency.
+# The src file is always included in the dependency.
 #
-#  .C files included directly by the src file are always included in 
-#  the dependency.  
-#
-#  .C files that are recursively included are ONLY included in the 
-#  dependency if DEPENDS_ON_TEMPLATE_IMPLEMENTATION is "yes".
+# .C files included directly by the src file are always included in 
+# the dependency.  
 #
 
 use File::Basename;
@@ -40,7 +35,7 @@ if ( @ARGV ) {
 }
 else {
     opendir( SRCDIR, $src_dir ) || die "Cannot open directory $src_dir";
-    @FILES = sort grep( /.*\.[fCc]$/, (readdir SRCDIR) );
+    @FILES = sort grep( /.*\.[mfCc]$/, (readdir SRCDIR) );
     closedir SRCDIR;
 }
 $DEPEND  = "Makefile.depend.tmp";
@@ -87,7 +82,7 @@ print OUTFILE <<__EOM__;
 ## This file is part of the SAMRAI distribution.  For full copyright 
 ## information, see COPYRIGHT and COPYING.LESSER. 
 ##
-## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
 ## Description:   makefile dependencies
 ##
 #########################################################################
@@ -140,6 +135,7 @@ for $cfile (@FILES) {
     }
 
     @deps = sort(keys %dset);
+    print "file $cfile depends on:  ", join("  ",@deps), "\n" if $debug;
     for (@deps) { $_ = &fixName($_); }
     print "$cfile depends on @deps\n" if $debug;
     # Add SAMRAI_config.h because everything should depend on it,
@@ -163,6 +159,20 @@ sub getMoreDeps {
 		 ) {
 		push( @deps, $_ )
 		}
+            elsif ( s/^include\(([^\"]+)\)dnl\s*/\1/o
+                 && /[^\s]/o
+                 ) {
+                if ( s/^PDAT_FORTDIR/SAMRAI\/pdat\/fortran/o
+                     && /[^\s]/o
+                     ) {
+                   push( @deps, $_ )
+                }
+                elsif ( s/^FORTDIR\///o
+                     && /[^\s]/o
+                     ) {
+                   push( @deps, $_ )
+                }
+	      }
 	}
 	close DEPFILE;
 	if ( $debug ) {
@@ -180,9 +190,13 @@ sub getFullPath {
    my $FILE    = shift(@_);
 
    for (@INCPATH) {
-       print "checking if $_/$FILE is in SAMRAI source\n" if $debug;
+       print "checking if $_/$FILE is in SAMRAI source ... " if $debug;
       if (-r "$_/$FILE") {
+         print "yes.\n" if $debug;
          return( $_ ne '.' ? "$_/$FILE" : $FILE );
+      }
+      else {
+         print "no.\n" if $debug;
       }
    }
 
@@ -206,6 +220,7 @@ sub printDependencies {
    
    my $LIBLINE = $SRC_FILE;
    $LIBLINE =~ s/^(.*)\.[Cfc]/$1.o/o;
+   $LIBLINE =~ s/^(.*)\.m4/$1.o/o;
    print OUTFILE "FILE_$FILENUMBER=$LIBLINE\n";
 
 
@@ -246,12 +261,11 @@ sub printDependencies {
    print OUTFILE "DEPENDS_$FILENUMBER:=\\\n";
    printTabbedFiles(@OTHER_DEPS);
    print OUTFILE "\n";
-   print OUTFILE "ifeq (\${DEPENDS_ON_TEMPLATE_IMPLEMENTATION},yes)\n";
    print OUTFILE "DEPENDS_$FILENUMBER +=\\\n";
    printTabbedFiles(@C_SOURCE_DEPS);
-   print OUTFILE "endif\n\n";
+   print OUTFILE "\n\n";
    
-   $LIBLINE="\${FILE_$FILENUMBER:X.o=\${NDIM}.o}: \${DEPENDS_$FILENUMBER}";
+   $LIBLINE="\${FILE_$FILENUMBER}: \${DEPENDS_$FILENUMBER}";
    print OUTFILE "$LIBLINE\n\n";
 }
 
@@ -293,13 +307,20 @@ sub printTabbedFiles {
 
 sub fixName {
    $_ = shift(@_);
-   print "Fixing name $_\n" if $debug;
+   print "Fixing name $_ -> " if $debug;
    if ( m|(.*)/SAMRAI/(.*)$|o ) {
+      print "\$(INCLUDE_SAM)/SAMRAI/$2\n" if $debug;
       return("\$(INCLUDE_SAM)/SAMRAI/$2");
    }
+   if ( m|(.*)/test/testlib/(.*)$|o ) {
+      print "\$(TESTLIBDIR)/$2\n" if $debug;
+      return("\$(TESTLIBDIR)/$2");
+   }
    if ( m|/([^/]*)$|o ) {
+      print "$1\n" if $debug;
       return($1);
    } else {
+      print "$_\n" if $debug;
       return($_);
    }
 }

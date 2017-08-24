@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated miscellaneous operations for real node-centered data.
  *
  ************************************************************************/
@@ -26,31 +26,6 @@ PatchNodeDataMiscellaneousOpsReal<TYPE>::PatchNodeDataMiscellaneousOpsReal()
 template<class TYPE>
 PatchNodeDataMiscellaneousOpsReal<TYPE>::~PatchNodeDataMiscellaneousOpsReal()
 {
-}
-
-/*
- *************************************************************************
- *
- * The const constructor and assignment operator are not actually used
- * but are defined here for compilers that require an implementation for
- * every declaration.
- *
- *************************************************************************
- */
-
-template<class TYPE>
-PatchNodeDataMiscellaneousOpsReal<TYPE>::PatchNodeDataMiscellaneousOpsReal(
-   const PatchNodeDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
-}
-
-template<class TYPE>
-void
-PatchNodeDataMiscellaneousOpsReal<TYPE>::operator = (
-   const PatchNodeDataMiscellaneousOpsReal<TYPE>& foo)
-{
-   NULL_USE(foo);
 }
 
 /*

@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for complex cell-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchCellDataOpsComplex_C
-#define included_math_PatchCellDataOpsComplex_C
-
 #include "SAMRAI/math/PatchCellDataOpsComplex.h"
 
 namespace SAMRAI {
@@ -41,11 +37,11 @@ PatchCellDataOpsComplex::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::CellData<dcomplex> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::CellData<dcomplex> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::CellData<dcomplex>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -58,4 +54,3 @@ PatchCellDataOpsComplex::swapData(
 
 }
 }
-#endif

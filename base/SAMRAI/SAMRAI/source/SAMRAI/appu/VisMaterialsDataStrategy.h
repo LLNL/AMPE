@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Interface for writing material related data to a VisIt
  *                dump file.
  *
@@ -45,7 +45,7 @@ namespace appu {
  * be implemented.  If material state variables are used,
  * packMaterialStateVariableIntoDoubleBuffer() must be implemented.
  *
- * @see appu::VisItDataWriter
+ * @see VisItDataWriter
  */
 
 class VisMaterialsDataStrategy

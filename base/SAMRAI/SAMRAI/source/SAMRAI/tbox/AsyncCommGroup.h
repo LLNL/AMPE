@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   All-to-one and one-to-all communication using a tree.
  *
  ************************************************************************/
@@ -71,6 +71,21 @@ namespace tbox {
 class AsyncCommGroup:public AsyncCommStage::Member
 {
 
+private:
+   //! @brief Operations user would want to do.
+   enum BaseOp { undefined,
+                 gather,
+                 bcast,
+                 max_reduce,
+                 min_reduce,
+                 sum_reduce };
+   //! @brief Tasks, executed in order, to complete a base operation.
+   enum TaskOp { recv_start,
+                 recv_check,
+                 send_start,
+                 send_check,
+                 none };
+
 public:
    /*!
     * @brief Default constructor does not set up anything.
@@ -87,14 +102,18 @@ public:
     *        i.e., nchild=2 is a binary tree.
     * @param stage
     * @param handler
+    *
+    * @post nchild == numberOfRequests()
     */
    AsyncCommGroup(
       const size_t nchild,
-      AsyncCommStage * stage,
-      AsyncCommStage::Handler * handler = NULL);
+      AsyncCommStage* stage,
+      AsyncCommStage::Handler* handler = 0);
 
    /*!
     * @brief Destructor.
+    *
+    * @pre isDone()
     */
    virtual ~AsyncCommGroup();
 
@@ -110,12 +129,14 @@ public:
     * message passing calls.
     *
     * @param handler Optional handler (see AsyncCommStage::Member).
+    *
+    * @pre isDone()
     */
    void
    initialize(
       const int nchild,
-      AsyncCommStage * stage,
-      AsyncCommStage::Handler * handler = NULL);
+      AsyncCommStage* stage,
+      AsyncCommStage::Handler* handler = 0);
 
    //@{
    //! @name Define the communication group
@@ -126,11 +147,13 @@ public:
     *
     * The root rank is specified by dereferencing @c group array with
     * @c root_index.
+    *
+    * @pre getNextTaskOp() == none
     */
    void
    setGroupAndRootIndex(
       const SAMRAI_MPI& mpi,
-      const int * group_ranks,
+      const int* group_ranks,
       const int group_size,
       const int root_index);
 
@@ -144,7 +167,7 @@ public:
    void
    setGroupAndRootRank(
       const SAMRAI_MPI& mpi,
-      const int * group_ranks,
+      const int* group_ranks,
       const int group_size,
       const int root_rank);
 
@@ -160,10 +183,57 @@ public:
     * if incorrect messages are received.  To be safe, it is best to
     * create a new communicator to avoid interference with other
     * communications within SAMRAI.
+    *
+    * @pre isDone()
     */
    void
    setMPITag(
       const int mpi_tag);
+
+   /*!
+    * @brief Returns the MPI tag used for communication within the group.
+    */
+   int
+   getMPITag() const
+   {
+      return d_mpi_tag;
+   }
+
+   /*!
+    * @brief Returns the size of the group.
+    */
+   int
+   getGroupSize() const
+   {
+      return d_group_size;
+   }
+
+   /*!
+    * @brief Returns next task in a current communication operation.
+    */
+   TaskOp
+   getNextTaskOp() const
+   {
+      return d_next_task_op;
+   }
+
+   /*!
+    * @brief Returns operation being performed.
+    */
+   BaseOp
+   getBaseOp() const
+   {
+      return d_base_op;
+   }
+
+   /*!
+    * @brief Rank of parent process in the group.
+    */
+   int
+   getParentRank() const
+   {
+      return d_parent_rank;
+   }
 
    /*!
     * @brief Set whether to use native MPI collective function calls
@@ -172,6 +242,8 @@ public:
     * This option is off by default to avoid MPI lock-ups.  If you use
     * it, make sure all processors can get to the collective operation
     * to avoid lock-ups.
+    *
+    * @pre isDone()
     */
    void
    setUseMPICollectiveForFullGroups(
@@ -223,10 +295,12 @@ public:
     * it returns true before any change in object state is allowed.
     *
     * @return Whether operation is completed.
+    *
+    * @pre getNextTaskOp() == none
     */
    bool
    beginBcast(
-      int * buffer,
+      int* buffer,
       int size);
 
    /*!
@@ -237,6 +311,10 @@ public:
     * If no communication is in progress, this call does nothing.
     *
     * @return Whether operation is completed.
+    *
+    * @pre getBaseOp() == bcast
+    *
+    * @post (getParentRank() != -1) || (getNextTaskOp() != recv_check)
     */
    bool
    checkBcast();
@@ -265,10 +343,12 @@ public:
     * times the number of processes in the group).
     *
     * @return Whether operation is completed.
+    *
+    * @pre getNextTaskOp() == none
     */
    bool
    beginGather(
-      int * buffer,
+      int* buffer,
       int size);
 
    /*!
@@ -276,6 +356,8 @@ public:
     * gather if all MPI requests are fulfilled.
     *
     * @return Whether operation is completed.
+    *
+    * @pre getBaseOp() == gather
     */
    bool
    checkGather();
@@ -292,10 +374,12 @@ public:
     * Buffer should contain the data to be gathered.
     *
     * @return Whether operation is completed.
+    *
+    * @pre getNextTaskOp() == none
     */
    bool
    beginSumReduce(
-      int * buffer,
+      int* buffer,
       int size);
 
    /*!
@@ -324,6 +408,8 @@ public:
     * such as that returned by hasPendingRequests().  The communication
     * may be more complex, requiring several messages and copying of the
     * received message into the correct buffer.
+    *
+    * @pre (getNextTaskOp() != none) || !hasPendingRequests()
     */
    bool
    isDone() const;
@@ -349,6 +435,8 @@ public:
 private:
    /*
     * @brief Assert that user-set MPI parameters are valid.
+    *
+    * @pre getMPITag() >= 0
     */
    void
    checkMPIParams();
@@ -389,20 +477,6 @@ private:
    bool
    reduceByMpiCollective();
 
-   //! @brief Operations user would want to do.
-   enum BaseOp { undefined,
-                 gather,
-                 bcast,
-                 max_reduce,
-                 min_reduce,
-                 sum_reduce };
-   //! @brief Tasks, executed in order, to complete a base operation.
-   enum TaskOp { recv_start,
-                 recv_check,
-                 send_start,
-                 send_check,
-                 none };
-
    struct ChildData {
       //! @brief Rank of child process in the group.
       int rank;
@@ -433,6 +507,12 @@ private:
     * This method is the workhorse underneath the public reduce methods.
     *
     * @return Whether operation is completed.
+    *
+    * @pre (getBaseOp() == max_reduce) || (getBaseOp() == min_reduce) ||
+    *      (getBaseOp() == sum_reduce)
+    *
+    * @post (getParentRank() != -1) || (getNextTaskOp() != send_check)
+    * @post (getNextTaskOp() == none) || (numberOfPendingRequests() > 0)
     */
    bool
    checkReduce();
@@ -462,9 +542,9 @@ private:
    void
    resetStatus()
    {
-      d_mpi_status.MPI_TAG=
-         d_mpi_status.MPI_SOURCE=
-            d_mpi_status.MPI_ERROR= -1;
+      d_mpi_status.MPI_TAG =
+         d_mpi_status.MPI_SOURCE =
+            d_mpi_status.MPI_ERROR = -1;
    }
 
    //@{
@@ -480,12 +560,16 @@ private:
 
    /*!
     * @brief Convert the array index to the position.
+    *
+    * @pre (index >= 0) && (index < getGroupSize())
     */
    int
    toPosition(
       int index) const;
    /*!
     * @brief Convert the position to the array index.
+    *
+    * @pre (position >= 0) && (position < getGroupSize())
     */
    int
    toIndex(
@@ -497,6 +581,8 @@ private:
     *
     * @param parent_pos Position of the parent in the group.
     * @param ic Index of the child.  (Zero coresponds to the first child.)
+    *
+    * @pre (parent_pos >= 0) && (parent_pos < getGroupSize())
     */
    int
    toChildPosition(
@@ -508,6 +594,8 @@ private:
     * of a given position (whether or not that child really exists).
     *
     * Same as toChildPosition( parent_pos, 0 );
+    *
+    * @pre (parent_pos >= 0) && (parent_pos < getGroupSize())
     */
    int
    toOldest(
@@ -517,6 +605,8 @@ private:
     * of a given position (whether or not that child really exists).
     *
     * Same as toChildPosition( parent_pos, d_nchild-1 );
+    *
+    * @pre (parent_pos >= 0) && (parent_pos < getGroupSize())
     */
    int
    toYoungest(

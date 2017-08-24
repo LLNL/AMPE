@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   RefineSchedule's implementation of PatchHierarchy
  *
  ************************************************************************/
-
-#ifndef included_xfer_RefineScheduleConnectorWidthRequestor_C
-#define included_xfer_RefineScheduleConnectorWidthRequestor_C
-
 #include "SAMRAI/xfer/RefineScheduleConnectorWidthRequestor.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
@@ -75,15 +71,20 @@ RefineScheduleConnectorWidthRequestor::computeRequiredConnectorWidths(
 
    const tbox::Dimension& dim(patch_hierarchy.getDim());
 
+   /*
+    * Add one to max data ghost width to create overlaps of data
+    * living on patch boundaries.
+    */
    const hier::IntVector max_data_gcw(
-      patch_hierarchy.getPatchDescriptor()->getMaxGhostWidth(dim) * d_gcw_factor);
+      patch_hierarchy.getPatchDescriptor()->getMaxGhostWidth(dim) + 1);
 
-   const hier::IntVector max_stencil_width(
-      hier::IntVector::max(
-         patch_hierarchy.getGridGeometry()->getMaxTransferOpStencilWidth(),
-         RefinePatchStrategy::getMaxRefineOpStencilWidth(dim)));
+   hier::IntVector max_stencil_width =
+      patch_hierarchy.getGridGeometry()->getMaxTransferOpStencilWidth(dim);
+   max_stencil_width.max(
+      RefinePatchStrategy::getMaxRefineOpStencilWidth(dim));
 
-   const hier::IntVector& zero_vector(hier::IntVector::getZero(dim));
+   hier::IntVector zero_vector(hier::IntVector::getZero(dim),
+                               patch_hierarchy.getNumberBlocks());
 
    /*
     * Compute the Connector width needed to ensure all edges are found
@@ -103,8 +104,10 @@ RefineScheduleConnectorWidthRequestor::computeRequiredConnectorWidths(
     *   it.
     */
 
+   hier::IntVector self_width(max_data_gcw * d_gcw_factor,
+                              patch_hierarchy.getNumberBlocks()); 
    self_connector_widths.clear();
-   self_connector_widths.resize(max_levels, max_data_gcw);
+   self_connector_widths.resize(max_levels, self_width);
 
    fine_connector_widths.clear();
    if (max_levels > 1) {
@@ -117,27 +120,58 @@ RefineScheduleConnectorWidthRequestor::computeRequiredConnectorWidths(
     * fine levels.
     */
    for (int ln = max_levels - 1; ln > -1; --ln) {
+      computeRequiredFineConnectorWidthsForRecursiveRefinement(
+         fine_connector_widths,
+         max_data_gcw,
+         max_stencil_width,
+         patch_hierarchy,
+         ln);
+   }
+
+}
+
+/*
+ **************************************************************************
+ * Compute fine Connector width needed at each coarser level (lnc) for
+ * recursive refinement starting with destination level ln.
+ **************************************************************************
+ */
+void
+RefineScheduleConnectorWidthRequestor::computeRequiredFineConnectorWidthsForRecursiveRefinement(
+   std::vector<hier::IntVector>& fine_connector_widths,
+   const hier::IntVector& data_gcw_on_initial_dst_ln,
+   const hier::IntVector& max_stencil_width,
+   const hier::PatchHierarchy& patch_hierarchy,
+   int initial_dst_ln) const
+{
+   if (static_cast<int>(fine_connector_widths.size()) < initial_dst_ln) {
+      fine_connector_widths.insert(
+         fine_connector_widths.end(),
+         initial_dst_ln - fine_connector_widths.size(),
+         hier::IntVector(patch_hierarchy.getDim(), 0,
+            patch_hierarchy.getGridGeometry()->getNumberBlocks()) );
+   }
+
+   const size_t nblocks = patch_hierarchy.getGridGeometry()->getNumberBlocks();
+
+   hier::IntVector width_for_refining_recursively(
+      data_gcw_on_initial_dst_ln * d_gcw_factor, nblocks);
+
+   for (int lnc = initial_dst_ln - 1; lnc > -1; --lnc) {
+
+      const hier::IntVector& ratio_to_coarser =
+         patch_hierarchy.getRatioToCoarserLevel(lnc + 1);
+      width_for_refining_recursively.ceilingDivide(ratio_to_coarser);
+
       /*
-       * Compute width needed at each coarser level (lnc) for
-       * recursive refinement starting with destination level ln.
+       * Data in the supplemental level in RefineSchedule may have ghost
+       * cells as big as the stencil width.  Coarse_to_fine_width must be
+       * big enough to allow coarse to bridge to fine's supplemental, and
+       * the supplemental includes the stencil width at coarse.
        */
-      hier::IntVector width_for_refining_recursively = max_data_gcw;
-      for (int lnc = ln - 1; lnc > -1; --lnc) {
+      width_for_refining_recursively += max_stencil_width;
 
-         const hier::IntVector& ratio_to_coarser =
-            patch_hierarchy.getRatioToCoarserLevel(lnc + 1);
-         width_for_refining_recursively.ceilingDivide(ratio_to_coarser);
-
-         /*
-          * Data in the supplemental level in RefineSchedule may have ghost
-          * cells as big as the stencil width.  Coarse_to_fine_width must be
-          * big enough to allow coarse to bridge to fine's supplemental, and
-          * the supplemental includes the stencil width at coarse.
-          */
-         width_for_refining_recursively += max_stencil_width;
-
-         fine_connector_widths[lnc].max(width_for_refining_recursively);
-      }
+      fine_connector_widths[lnc].max(width_for_refining_recursively);
    }
 
 }
@@ -151,6 +185,4 @@ RefineScheduleConnectorWidthRequestor::computeRequiredConnectorWidths(
  */
 #pragma report(enable, CPPC5334)
 #pragma report(enable, CPPC5328)
-#endif
-
 #endif

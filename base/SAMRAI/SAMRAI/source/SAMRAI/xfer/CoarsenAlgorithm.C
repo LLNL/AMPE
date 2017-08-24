@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Coarsening algorithm for data transfer between AMR levels
  *
  ************************************************************************/
-
-#ifndef included_xfer_CoarsenAlgorithm_C
-#define included_xfer_CoarsenAlgorithm_C
-
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 
 #include "SAMRAI/xfer/BoxGeometryVariableFillPattern.h"
@@ -19,7 +15,7 @@
 #include "SAMRAI/hier/PatchDescriptor.h"
 #include "SAMRAI/hier/VariableDatabase.h"
 
-#include <boost/make_shared.hpp>
+#include "boost/make_shared.hpp"
 
 namespace SAMRAI {
 namespace xfer {
@@ -38,7 +34,7 @@ CoarsenAlgorithm::CoarsenAlgorithm(
    const tbox::Dimension& dim,
    bool fill_coarse_data):
    d_dim(dim),
-   d_coarsen_classes(boost::make_shared<CoarsenClasses>(d_fill_coarse_data)),
+   d_coarsen_classes(boost::make_shared<CoarsenClasses>()),
    d_fill_coarse_data(fill_coarse_data),
    d_schedule_created(false)
 {
@@ -72,12 +68,6 @@ CoarsenAlgorithm::registerCoarsen(
    const hier::IntVector& gcw_to_coarsen,
    const boost::shared_ptr<VariableFillPattern>& var_fill_pattern)
 {
-#ifdef DEBUG_CHECK_DIM_ASSERTIONS
-   if (opcoarsen) {
-      TBOX_DIM_ASSERT_CHECK_ARGS2(*this, *opcoarsen);
-   }
-#endif
-
    if (d_schedule_created) {
       TBOX_ERROR(
          "CoarsenAlgorithm::registerCoarsen error..."
@@ -121,7 +111,9 @@ CoarsenAlgorithm::createSchedule(
    CoarsenPatchStrategy* patch_strategy,
    const boost::shared_ptr<CoarsenTransactionFactory>& transaction_factory)
 {
-   TBOX_DIM_ASSERT_CHECK_DIM_ARGS2(d_dim, *crse_level, *fine_level);
+   TBOX_ASSERT(crse_level);
+   TBOX_ASSERT(fine_level);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, *crse_level, *fine_level);
 
    d_schedule_created = true;
 
@@ -133,12 +125,12 @@ CoarsenAlgorithm::createSchedule(
    }
 
    return boost::make_shared<CoarsenSchedule>(
-      crse_level,
-      fine_level,
-      d_coarsen_classes,
-      trans_factory,
-      patch_strategy,
-      d_fill_coarse_data);
+             crse_level,
+             fine_level,
+             d_coarsen_classes,
+             trans_factory,
+             patch_strategy,
+             d_fill_coarse_data);
 }
 
 void
@@ -179,4 +171,3 @@ CoarsenAlgorithm::printClassData(
 
 }
 }
-#endif

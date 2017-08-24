@@ -217,32 +217,19 @@ public:
     *
     * Notes:
     * 
-
-
-    *
     *    -
     *        The solution vector is not passed into the constructor.
     *        Before the solver can be used, the initialize() function must 
     *        be called.
     *
-    * 
-
-
-    *
     * Assertion checks: 
     * 
-
-
-    *
     *    -
     *        my_functions must not be null
     * 
     *    -
     *        object_name must not be empty.
     * 
-    * 
-
-
     * 
     */
    CPODESSolver(const std::string& object_name,
@@ -263,18 +250,12 @@ public:
     * 
     * Assertion checks:
     * 
-
-
-    *
     *    -
     *        the solution vector must not be null
     * 
     *    -
     *        the solution vector must not have already been set
     * 
-    * 
-
-
     */
    void initialize(solv::SundialsAbstractVector* solution); 
 
@@ -285,8 +266,6 @@ public:
     * 
     * CPODES Termination Codes:
     * 
-
-
     *
     *    - @b SUCCESS (=0)            
     *        Cpodes succeeded.

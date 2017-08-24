@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Templated edge centered patch data type
  *
  ************************************************************************/
@@ -17,17 +17,18 @@
 #include "SAMRAI/pdat/ArrayData.h"
 #include "SAMRAI/pdat/EdgeIndex.h"
 #include "SAMRAI/pdat/EdgeIterator.h"
+#include "SAMRAI/pdat/EdgeOverlap.h"
 #include "SAMRAI/tbox/Complex.h"
 #include "SAMRAI/tbox/PIO.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 
 namespace SAMRAI {
 namespace pdat {
 
 /*!
- * @brief Class EdgeData<DIM> provides an implementation for data defined
+ * @brief Class EdgeData<TYPE> provides an implementation for data defined
  * at cell edges on AMR patches.  It is derived from the hier::PatchData
  * interface common to all SAMRAI patch data types.  Given a CELL-centered
  * AMR index space box, an edge data object represents data of some template
@@ -44,7 +45,7 @@ namespace pdat {
  * style) so that the leftmost index runs fastest in memory.
  * For example, a three-dimensional edge data object created over a
  * CELL-centered AMR index space [l0:u0,l1:u1,l2:u2] allocates three data
- * arrays dimensioned as follows:
+ * arrays sized as follows:
  * \verbatim
  *
  * axis 0
@@ -71,12 +72,12 @@ namespace pdat {
  * The data type TYPE must define a default constructor (that takes no
  * arguments) and also the assignment operator.
  *
- * @see pdat::ArrayData
+ * @see ArrayData
  * @see hier::PatchData
- * @see pdat::EdgeDataFactory
- * @see pdat::EdgeIndex
- * @see pdat::EdgeIterator
- * @see pdat::EdgeGeometry
+ * @see EdgeDataFactory
+ * @see EdgeIndex
+ * @see EdgeIterator
+ * @see EdgeGeometry
  */
 
 template<class TYPE>
@@ -99,6 +100,9 @@ public:
     * @param ghosts const IntVector reference indicating the width
     *              of the ghost cell region around the box over which
     *              the edge data will be allocated.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre depth > 0
     */
    static size_t
    getSizeOfData(
@@ -117,6 +121,10 @@ public:
     * @param ghosts const IntVector reference indicating the width
     *              of the ghost cell region around the box over which
     *              the edge data will be allocated.
+    *
+    * @pre box.getDim() == ghosts.getDim()
+    * @pre depth > 0
+    * @pre ghosts.min() >= 0
     */
    EdgeData(
       const hier::Box& box,
@@ -138,6 +146,9 @@ public:
    /*!
     * @brief Get a pointer to the beginning of a particular axis and
     * depth component of the edge centered array.
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE *
    getPointer(
@@ -147,6 +158,9 @@ public:
    /*!
     * @brief Get a const pointer to the beginning of a particular axis and
     * depth component of the edge centered array.
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE *
    getPointer(
@@ -156,6 +170,10 @@ public:
    /*!
     * @brief Return a reference to the data entry corresponding
     * to a given edge index and depth.
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (i.getAxis() >= 0) && (i.getAxis() < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    TYPE&
    operator () (
@@ -165,6 +183,10 @@ public:
    /*!
     * @brief Return a const reference to the data entry corresponding
     * to a given edge index and depth.
+    *
+    * @pre getDim() == i.getDim()
+    * @pre (i.getAxis() >= 0) && (i.getAxis() < getDim().getValue())
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    const TYPE&
    operator () (
@@ -174,6 +196,8 @@ public:
    /*!
     * @brief Return a reference to the array data object for the
     * given axis of the edge centered data object.
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
     */
    ArrayData<TYPE>&
    getArrayData(
@@ -182,6 +206,8 @@ public:
    /*!
     * @brief Return a const reference to the array data object for the
     * given axis of the edge centered data object.
+    *
+    * @pre (axis >= 0) && (axis < getDim().getValue())
     */
    const ArrayData<TYPE>&
    getArrayData(
@@ -196,6 +222,8 @@ public:
     * both the source and destination).  Currently, source data must be
     * an EdgeData of the same DIM and TYPE.  If not, then an unrecoverable
     * error results.
+    *
+    * @pre getDim() == src.getDim()
     */
    virtual void
    copy(
@@ -210,6 +238,9 @@ public:
     * both the source and destination).  Currently, destination data must be
     * an EdgeData of the same DIM and TYPE.  If not, then an unrecoverable
     * error results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre dynamic_cast<EdgeData<TYPE> *>(&dst) != 0
     */
    virtual void
    copy2(
@@ -222,6 +253,8 @@ public:
     * Currently, source data must be EdgeData of the same DIM and TYPE
     * and the overlap must be a EdgeOverlap of the same DIM. If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == src.getDim()
     */
    virtual void
    copy(
@@ -235,6 +268,10 @@ public:
     * Currently, destination data must be EdgeData of the same DIM and TYPE
     * and the overlap must be a EdgeOverlap of the same DIM.  If not,
     * then an unrecoverable error results.
+    *
+    * @pre getDim() == dst.getDim()
+    * @pre dynamic_cast<EdgeData<TYPE> *>(&dst) != 0
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    copy2(
@@ -244,6 +281,8 @@ public:
    /*!
     * @brief Copy data from source to destination (i.e., this)
     * patch data object on the given CELL-centered AMR index box.
+    *
+    * @pre (getDim() == src.getDim()) && (getDim() == box.getDim())
     */
    void
    copyOnBox(
@@ -254,6 +293,8 @@ public:
     * @brief Fast copy (i.e., source and this edge data objects are
     * defined over the same box) to this destination edge data object
     * from the given source edge data object at the specified depths.
+    *
+    * @pre getDim() == src.getDim()
     */
    void
    copyDepth(
@@ -279,8 +320,10 @@ public:
     *
     * This routine is defined for the standard types (bool, char,
     * double, float, int, and dcomplex).
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
-   virtual int
+   virtual size_t
    getDataStreamSize(
       const hier::BoxOverlap& overlap) const;
 
@@ -288,6 +331,8 @@ public:
     * @brief Pack data in this patch data object lying in the specified
     * box overlap region into the stream.  The overlap must be an
     * EdgeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    packStream(
@@ -298,6 +343,8 @@ public:
     * @brief Unpack data from stream into this patch data object over
     * the specified box overlap region. The overlap must be an
     * EdgeOverlap of the same DIM.
+    *
+    * @pre dynamic_cast<const EdgeOverlap *>(&overlap) != 0
     */
    virtual void
    unpackStream(
@@ -306,6 +353,8 @@ public:
 
    /*!
     * @brief Fill all values at depth d with the value t.
+    *
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -314,6 +363,9 @@ public:
 
    /*!
     * @brief Fill all values at depth d within the box with the value t.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (d >= 0) && (d < getDepth())
     */
    void
    fill(
@@ -330,6 +382,8 @@ public:
 
    /*!
     * @brief Fill all depth components within the box with value t.
+    *
+    * @pre getDim() == box.getDim()
     */
    void
    fillAll(
@@ -345,8 +399,8 @@ public:
     *        and will be converted to edge index space.
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
     */
@@ -367,10 +421,13 @@ public:
     *              0 <= depth < actual depth of data array
     * @param os   reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
     */
    void
    print(
@@ -391,10 +448,13 @@ public:
     *        and will be converted to edge index space.
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (axis >= 0) && (axis < getDim().getValue())
     */
    void
    printAxis(
@@ -417,10 +477,14 @@ public:
     *              0 <= depth < actual depth of data array
     * @param os    reference to output stream.
     * @param prec integer precision for printing floating point numbers
-    *        (i.e., TYPE = float, double, or dcomplex). The default
-    *        is 12 decimal places for double and complex floating point numbers,
+    *        (i.e., TYPE = float, double, or dcomplex). The default is 12
+    *        decimal places for double and complex floating point numbers,
     *        and the default is 6 decimal places floats.  For other types, this
     *        value is ignored.
+    *
+    * @pre getDim() == box.getDim()
+    * @pre (depth >= 0) && (depth < getDepth())
+    * @pre (axis >= 0) && (axis < getDim().getValue())
     */
    void
    printAxis(
@@ -432,23 +496,23 @@ public:
 
    /*!
     * Check that class version and restart file version are equal.  If so,
-    * read data members from the database.
+    * read data members from the restart database.
     *
-    * Assertions: database must be non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   getSpecializedFromDatabase(
-      const boost::shared_ptr<tbox::Database>& database);
+   getFromRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db);
 
    /*!
     * Write out the class version number and other data members to
-    * the database.
+    * the restart database.
     *
-    * Assertions: database must be non-null pointer.
+    * @pre restart_db
     */
    virtual void
-   putSpecializedToDatabase(
-      const boost::shared_ptr<tbox::Database>& database) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
     * The edge iterator iterates over the elements on one axis of an edge
@@ -463,11 +527,14 @@ private:
     */
    static const int PDAT_EDGEDATA_VERSION;
 
+   // Unimplemented copy constructor
    EdgeData(
-      const EdgeData<TYPE>&);           // not implemented
-   void
+      const EdgeData&);
+
+   // Unimplemented assignment operator
+   EdgeData&
    operator = (
-      const EdgeData<TYPE>&);                           // not implemented
+      const EdgeData&);
 
    void
    copyWithRotation(
@@ -480,7 +547,8 @@ private:
       const EdgeOverlap& overlap) const;
 
    int d_depth;
-   ArrayData<TYPE> d_data[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+
+   boost::shared_ptr<ArrayData<TYPE> > d_data[SAMRAI::MAX_DIM_VAL];
 
 };
 

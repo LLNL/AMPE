@@ -3,15 +3,11 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Constant refine operator for side-centered complex data on
  *                a  mesh.
  *
  ************************************************************************/
-
-#ifndef included_pdat_SideComplexConstantRefine_C
-#define included_pdat_SideComplexConstantRefine_C
-
 #include "SAMRAI/pdat/SideComplexConstantRefine.h"
 
 #include <float.h>
@@ -35,21 +31,21 @@ extern "C" {
 #endif
 
 // in conrefine1d.f:
-void F77_FUNC(conrefsidecplx1d, CONREFSIDECPLX1D) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx1d, CONREFSIDECPLX1D) (const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int&, const int&,
    const int *,
    const dcomplex *, dcomplex *);
 // in conrefine2d.f:
-void F77_FUNC(conrefsidecplx2d0, CONREFSIDECPLX2D0) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx2d0, CONREFSIDECPLX2D0) (const int&, const int&,
    const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(conrefsidecplx2d1, CONREFSIDECPLX2D1) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx2d1, CONREFSIDECPLX2D1) (const int&, const int&,
    const int&, const int&,
    const int&, const int&, const int&, const int&,
    const int&, const int&, const int&, const int&,
@@ -57,7 +53,7 @@ void F77_FUNC(conrefsidecplx2d1, CONREFSIDECPLX2D1) (const int&, const int&,
    const int *,
    const dcomplex *, dcomplex *);
 // in conrefine3d.f:
-void F77_FUNC(conrefsidecplx3d0, CONREFSIDECPLX3D0) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx3d0, CONREFSIDECPLX3D0) (const int&, const int&,
    const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -68,7 +64,7 @@ void F77_FUNC(conrefsidecplx3d0, CONREFSIDECPLX3D0) (const int&, const int&,
    const int&, const int&, const int&,
    const int *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(conrefsidecplx3d1, CONREFSIDECPLX3D1) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx3d1, CONREFSIDECPLX3D1) (const int&, const int&,
    const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -79,7 +75,7 @@ void F77_FUNC(conrefsidecplx3d1, CONREFSIDECPLX3D1) (const int&, const int&,
    const int&, const int&, const int&,
    const int *,
    const dcomplex *, dcomplex *);
-void F77_FUNC(conrefsidecplx3d2, CONREFSIDECPLX3D2) (const int&, const int&,
+void SAMRAI_F77_FUNC(conrefsidecplx3d2, CONREFSIDECPLX3D2) (const int&, const int&,
    const int&,
    const int&, const int&, const int&,
    const int&, const int&, const int&,
@@ -95,9 +91,8 @@ void F77_FUNC(conrefsidecplx3d2, CONREFSIDECPLX3D2) (const int&, const int&,
 namespace SAMRAI {
 namespace pdat {
 
-SideComplexConstantRefine::SideComplexConstantRefine(
-   const tbox::Dimension& dim):
-   hier::RefineOperator(dim, "CONSTANT_REFINE")
+SideComplexConstantRefine::SideComplexConstantRefine():
+   hier::RefineOperator("CONSTANT_REFINE")
 {
 }
 
@@ -112,9 +107,9 @@ SideComplexConstantRefine::getOperatorPriority() const
 }
 
 hier::IntVector
-SideComplexConstantRefine::getStencilWidth() const
+SideComplexConstantRefine::getStencilWidth(const tbox::Dimension& dim) const
 {
-   return hier::IntVector::getZero(getDim());
+   return hier::IntVector::getZero(dim);
 }
 
 void SideComplexConstantRefine::refine(
@@ -125,58 +120,57 @@ void SideComplexConstantRefine::refine(
    const hier::BoxOverlap& fine_overlap,
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(getDim());
+   const tbox::Dimension& dim(fine.getDim());
 
    boost::shared_ptr<SideData<dcomplex> > cdata(
-      coarse.getPatchData(src_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<SideData<dcomplex>, hier::PatchData>(
+         coarse.getPatchData(src_component)));
    boost::shared_ptr<SideData<dcomplex> > fdata(
-      fine.getPatchData(dst_component),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<SideData<dcomplex>, hier::PatchData>(
+         fine.getPatchData(dst_component)));
 
-   const SideOverlap* t_overlap =
-      dynamic_cast<const SideOverlap *>(&fine_overlap);
+   const SideOverlap* t_overlap = CPP_CAST<const SideOverlap *>(&fine_overlap);
 
-   TBOX_ASSERT(t_overlap != NULL);
+   TBOX_ASSERT(t_overlap != 0);
 
    TBOX_ASSERT(cdata);
    TBOX_ASSERT(fdata);
    TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
-   TBOX_DIM_ASSERT_CHECK_ARGS4(*this, fine, coarse, ratio);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
 
    const hier::IntVector& directions = fdata->getDirectionVector();
 
    TBOX_ASSERT(directions ==
       hier::IntVector::min(directions, cdata->getDirectionVector()));
 
-   const hier::Box cgbox(cdata->getGhostBox());
+   const hier::Box& cgbox(cdata->getGhostBox());
 
-   const hier::Index cilo = cgbox.lower();
-   const hier::Index cihi = cgbox.upper();
-   const hier::Index filo = fdata->getGhostBox().lower();
-   const hier::Index fihi = fdata->getGhostBox().upper();
+   const hier::Index& cilo = cgbox.lower();
+   const hier::Index& cihi = cgbox.upper();
+   const hier::Index& filo = fdata->getGhostBox().lower();
+   const hier::Index& fihi = fdata->getGhostBox().upper();
 
-   for (int axis = 0; axis < dim.getValue(); axis++) {
+   for (tbox::Dimension::dir_t axis = 0; axis < dim.getValue(); ++axis) {
       const hier::BoxContainer& boxes = t_overlap->getDestinationBoxContainer(axis);
 
-      for (hier::BoxContainer::const_iterator b(boxes);
+      for (hier::BoxContainer::const_iterator b = boxes.begin();
            b != boxes.end(); ++b) {
 
          hier::Box fine_box(*b);
-         TBOX_DIM_ASSERT_CHECK_DIM_ARGS1(dim, fine_box);
+         TBOX_ASSERT_DIM_OBJDIM_EQUALITY1(dim, fine_box);
 
-         fine_box.upper(axis) -= 1;
+         fine_box.setUpper(axis, fine_box.upper(axis) - 1);
 
          const hier::Box coarse_box = hier::Box::coarsen(fine_box, ratio);
-         const hier::Index ifirstc = coarse_box.lower();
-         const hier::Index ilastc = coarse_box.upper();
-         const hier::Index ifirstf = fine_box.lower();
-         const hier::Index ilastf = fine_box.upper();
+         const hier::Index& ifirstc = coarse_box.lower();
+         const hier::Index& ilastc = coarse_box.upper();
+         const hier::Index& ifirstf = fine_box.lower();
+         const hier::Index& ilastf = fine_box.upper();
 
-         for (int d = 0; d < fdata->getDepth(); d++) {
+         for (int d = 0; d < fdata->getDepth(); ++d) {
             if (dim == tbox::Dimension(1)) {
                if (directions(axis)) {
-                  F77_FUNC(conrefsidecplx1d, CONREFSIDECPLX1D) (
+                  SAMRAI_F77_FUNC(conrefsidecplx1d, CONREFSIDECPLX1D) (
                      ifirstc(0), ilastc(0),
                      ifirstf(0), ilastf(0),
                      cilo(0), cihi(0),
@@ -187,7 +181,7 @@ void SideComplexConstantRefine::refine(
                }
             } else if (dim == tbox::Dimension(2)) {
                if (axis == 0 && directions(0)) {
-                  F77_FUNC(conrefsidecplx2d0, CONREFSIDECPLX2D0) (
+                  SAMRAI_F77_FUNC(conrefsidecplx2d0, CONREFSIDECPLX2D0) (
                      ifirstc(0), ifirstc(1), ilastc(0), ilastc(1),
                      ifirstf(0), ifirstf(1), ilastf(0), ilastf(1),
                      cilo(0), cilo(1), cihi(0), cihi(1),
@@ -197,7 +191,7 @@ void SideComplexConstantRefine::refine(
                      fdata->getPointer(0, d));
                }
                if (axis == 1 && directions(1)) {
-                  F77_FUNC(conrefsidecplx2d1, CONREFSIDECPLX2D1) (
+                  SAMRAI_F77_FUNC(conrefsidecplx2d1, CONREFSIDECPLX2D1) (
                      ifirstc(0), ifirstc(1), ilastc(0), ilastc(1),
                      ifirstf(0), ifirstf(1), ilastf(0), ilastf(1),
                      cilo(0), cilo(1), cihi(0), cihi(1),
@@ -208,7 +202,7 @@ void SideComplexConstantRefine::refine(
                }
             } else if (dim == tbox::Dimension(3)) {
                if (axis == 0 && directions(0)) {
-                  F77_FUNC(conrefsidecplx3d0, CONREFSIDECPLX3D0) (
+                  SAMRAI_F77_FUNC(conrefsidecplx3d0, CONREFSIDECPLX3D0) (
                      ifirstc(0), ifirstc(1), ifirstc(2),
                      ilastc(0), ilastc(1), ilastc(2),
                      ifirstf(0), ifirstf(1), ifirstf(2),
@@ -222,7 +216,7 @@ void SideComplexConstantRefine::refine(
                      fdata->getPointer(0, d));
                }
                if (axis == 1 && directions(1)) {
-                  F77_FUNC(conrefsidecplx3d1, CONREFSIDECPLX3D1) (
+                  SAMRAI_F77_FUNC(conrefsidecplx3d1, CONREFSIDECPLX3D1) (
                      ifirstc(0), ifirstc(1), ifirstc(2),
                      ilastc(0), ilastc(1), ilastc(2),
                      ifirstf(0), ifirstf(1), ifirstf(2),
@@ -236,7 +230,7 @@ void SideComplexConstantRefine::refine(
                      fdata->getPointer(1, d));
                }
                if (axis == 2 && directions(2)) {
-                  F77_FUNC(conrefsidecplx3d2, CONREFSIDECPLX3D2) (
+                  SAMRAI_F77_FUNC(conrefsidecplx3d2, CONREFSIDECPLX3D2) (
                      ifirstc(0), ifirstc(1), ifirstc(2),
                      ilastc(0), ilastc(1), ilastc(2),
                      ifirstf(0), ifirstf(1), ifirstf(2),
@@ -261,4 +255,3 @@ void SideComplexConstantRefine::refine(
 
 }
 }
-#endif

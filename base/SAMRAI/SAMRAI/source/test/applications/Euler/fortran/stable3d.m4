@@ -1,7 +1,15 @@
+c
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
+c
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routine to compute stable dt for 3d euler equations.
+c
 define(NDIM,3)dnl
 define(NEQU,5)dnl
 define(REAL,`double precision')dnl
-include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+include(PDAT_FORTDIR/pdat_m4arrdim3d.i)dnl
+
       subroutine stabledt3d(dx,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &  ngc0,ngc1,ngc2,
@@ -14,13 +22,17 @@ c+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       integer ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &  ngc0,ngc1,ngc2
 c
-      REAL  
+      REAL
      &  density(CELL3dVECG(ifirst,ilast,ngc)),
      &  velocity(CELL3dVECG(ifirst,ilast,ngc),0:NDIM-1),
      &  pressure(CELL3dVECG(ifirst,ilast,ngc))
-c    
+c
       integer ic0,ic1,ic2
       integer ighoslft(0:NDIM-1),ighosrgt(0:NDIM-1)
+
+      integer thread_c, omp_get_num_threads
+      integer thread_n, omp_get_thread_num
+      integer chunk
 
       REAL maxspeed(0:NDIM-1),gamma,lambda
 c
@@ -35,6 +47,18 @@ c
       maxspeed(1)=zero
       maxspeed(2)=zero
 
+      chunk = 1000
+!$OMP PARALLEL DEFAULT(none)
+!$OMPc SHARED(density,pressure,velocity,gamma,
+!$OMPc        ighoslft,ighosrgt,chunk)
+!$OMPc PRIVATE(ic2,ic1,ic0,lambda, thread_c)
+!$OMPc REDUCTION(max:maxspeed)
+
+c     thread_n = omp_get_thread_num()
+c     thread_c = omp_get_num_threads()
+c     write(6,*) "Thread number = ", thread_n, ' / ', thread_c
+
+!$OMP DO SCHEDULE(DYNAMIC)
       do  ic2=ighoslft(2),ighosrgt(2)
          do  ic1=ighoslft(1),ighosrgt(1)
             do  ic0=ighoslft(0),ighosrgt(0)
@@ -49,6 +73,9 @@ c
             enddo
          enddo
       enddo
+!$OMP END DO
+!$OMP END PARALLEL
+
       stabdt = min((dx(1)/maxspeed(1)),(dx(0)/maxspeed(0)))
       stabdt = min((dx(2)/maxspeed(2)),stabdt)
 c     write(6,*) " dx(0),maxspeed(0)= ",dx(0),maxspeed(0)
@@ -56,4 +83,4 @@ c      write(6,*) " dx(1),maxspeed(1)= ",dx(1),maxspeed(1)
 c      write(6,*) " dx(2),maxspeed(2)= ",dx(2),maxspeed(2)
 c      write(6,*) "        stabdt= ",stabdt
       return
-      end 
+      end

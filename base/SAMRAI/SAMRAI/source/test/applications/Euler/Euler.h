@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Numerical routines for single patch in Euler equation ex.
  *
  ************************************************************************/
@@ -31,11 +31,10 @@
 #include "SAMRAI/tbox/Serializable.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/tbox/MessageStream.h"
-#include "SAMRAI/tbox/Array.h"
 
-
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <string>
+#include <vector>
 using namespace std;
 
 /**
@@ -203,11 +202,15 @@ public:
       const int tag_index,
       const bool uses_gradient_detector_too);
 
+   //@{
+   //! @name Required implementations of HyperbolicPatchStrategy pure virtuals.
+
    ///
    ///  The following routines:
    ///
    ///      setPhysicalBoundaryConditions(),
    ///      getRefineOpStencilWidth(),
+   ///      preprocessRefine()
    ///      postprocessRefine()
    ///
    ///  are concrete implementations of functions declared in the
@@ -229,8 +232,22 @@ public:
    /**
     * Return stencil width of conservative linear interpolation operations.
     */
-   virtual hier::IntVector
-   getRefineOpStencilWidth() const;
+   hier::IntVector
+   getRefineOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getOne(dim);
+   }
+
+   void
+   preprocessRefine(
+      hier::Patch& fine,
+      const hier::Patch& coarse,
+      const hier::Box& fine_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(fine);
+      NULL_USE(coarse);
+      NULL_USE(fine_box);
+      NULL_USE(ratio);
+   }
 
    /**
     * Refine velocity and pressure from coarse patch to fine patch
@@ -247,17 +264,33 @@ public:
    ///  The following routines:
    ///
    ///      getCoarsenOpStencilWidth(),
+   ///      preprocessCoarsen()
    ///      postprocessCoarsen()
    ///
    ///  are concrete implementations of functions declared in the
-   ///  CoarsenPatchStrategy abstract base class.
+   ///  CoarsenPatchStrategy abstract base class.  They are trivial
+   ///  because this class doesn't do any pre/postprocessCoarsen.
    ///
 
    /**
     * Return stencil width of conservative averaging operations.
     */
    hier::IntVector
-   getCoarsenOpStencilWidth() const;
+   getCoarsenOpStencilWidth(const tbox::Dimension& dim) const {
+      return hier::IntVector::getZero(dim);
+   }
+
+   void
+   preprocessCoarsen(
+      hier::Patch& coarse,
+      const hier::Patch& fine,
+      const hier::Box& coarse_box,
+      const hier::IntVector& ratio) {
+      NULL_USE(coarse);
+      NULL_USE(fine);
+      NULL_USE(coarse_box);
+      NULL_USE(ratio);
+   }
 
    /**
     * Coarsen velocity and pressure from coarse patch to fine patch
@@ -270,6 +303,8 @@ public:
       const hier::Box& coarse_box,
       const hier::IntVector& ratio);
 
+   //@}
+
    /**
     * Write state of Euler object to the given database for restart.
     *
@@ -277,8 +312,8 @@ public:
     * declared in the tbox::Serializable abstract base class.
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /**
     * This routine is a concrete implementation of the virtual function
@@ -339,7 +374,8 @@ public:
       const hier::Patch& patch,
       const hier::Box& region,
       const string& variable_name,
-      int depth_id) const;
+      int depth_id,
+      double simulation_time) const;
 
    ///
    ///  The following routines are specific to the Euler class and
@@ -373,7 +409,7 @@ public:
    writeData1dPencil(
       const boost::shared_ptr<hier::Patch> patch,
       const hier::Box& pencil_box,
-      const int idir,
+      const tbox::Dimension::dir_t idir,
       ostream& file);
 
 private:
@@ -388,7 +424,7 @@ private:
     */
    void
    getFromInput(
-      boost::shared_ptr<tbox::Database> db,
+      boost::shared_ptr<tbox::Database> input_db,
       bool is_from_restart);
    void
    getFromRestart();
@@ -398,9 +434,9 @@ private:
       boost::shared_ptr<tbox::Database> db,
       const string& db_name,
       int array_indx,
-      tbox::Array<double>& density,
-      tbox::Array<double>& velocity,
-      tbox::Array<double>& pressure);
+      std::vector<double>& density,
+      std::vector<double>& velocity,
+      std::vector<double>& pressure);
 
    /*
     * Private member function to check correctness of boundary data.
@@ -410,8 +446,8 @@ private:
       int btype,
       const hier::Patch& patch,
       const hier::IntVector& ghost_width_to_fill,
-      const tbox::Array<int>& scalar_bconds,
-      const tbox::Array<int>& vector_bconds) const;
+      const std::vector<int>& scalar_bconds,
+      const std::vector<int>& vector_bconds) const;
 
    /*
     * Three-dimensional flux computation routines corresponding to
@@ -509,22 +545,22 @@ private:
     * Input for SPHERE problem
     */
    double d_radius;
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[SAMRAI::MAX_DIM_VAL];
    double d_density_inside;
-   double d_velocity_inside[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_velocity_inside[SAMRAI::MAX_DIM_VAL];
    double d_pressure_inside;
    double d_density_outside;
-   double d_velocity_outside[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_velocity_outside[SAMRAI::MAX_DIM_VAL];
    double d_pressure_outside;
 
    /*
     * Input for PIECEWISE_CONSTANT_*  and STEP problems
     */
    int d_number_of_intervals;
-   tbox::Array<double> d_front_position;
-   tbox::Array<double> d_interval_density;
-   tbox::Array<double> d_interval_velocity;
-   tbox::Array<double> d_interval_pressure;
+   std::vector<double> d_front_position;
+   std::vector<double> d_interval_density;
+   std::vector<double> d_interval_velocity;
+   std::vector<double> d_interval_pressure;
 
    /*
     * Boundary condition cases and boundary values.
@@ -533,71 +569,71 @@ private:
     *
     * Input file values are read into these arrays.
     */
-   tbox::Array<int> d_master_bdry_edge_conds;
-   tbox::Array<int> d_master_bdry_node_conds;
-   tbox::Array<int> d_master_bdry_face_conds; // Used in 3D only.
+   std::vector<int> d_master_bdry_edge_conds;
+   std::vector<int> d_master_bdry_node_conds;
+   std::vector<int> d_master_bdry_face_conds; // Used in 3D only.
 
    /*
     * Boundary condition cases for scalar and vector (i.e., depth > 1)
     * variables.  These are post-processed input values and are passed
     * to the boundary routines.
     */
-   tbox::Array<int> d_scalar_bdry_edge_conds;
-   tbox::Array<int> d_vector_bdry_edge_conds;
+   std::vector<int> d_scalar_bdry_edge_conds;
+   std::vector<int> d_vector_bdry_edge_conds;
 
-   tbox::Array<int> d_scalar_bdry_node_conds;
-   tbox::Array<int> d_vector_bdry_node_conds;
+   std::vector<int> d_scalar_bdry_node_conds;
+   std::vector<int> d_vector_bdry_node_conds;
 
-   tbox::Array<int> d_scalar_bdry_face_conds; // Used in 3D only.
-   tbox::Array<int> d_vector_bdry_face_conds; // Used in 3D only.
+   std::vector<int> d_scalar_bdry_face_conds; // Used in 3D only.
+   std::vector<int> d_vector_bdry_face_conds; // Used in 3D only.
 
-   tbox::Array<int> d_node_bdry_edge; // Used in 2D only.
-   tbox::Array<int> d_edge_bdry_face; // Used in 3D only.
-   tbox::Array<int> d_node_bdry_face; // Used in 3D only.
+   std::vector<int> d_node_bdry_edge; // Used in 2D only.
+   std::vector<int> d_edge_bdry_face; // Used in 3D only.
+   std::vector<int> d_node_bdry_face; // Used in 3D only.
 
    /*
-    * Arrays of face (3d) or edge (2d) boundary values for DIRICHLET case.
+    * Vectors of face (3d) or edge (2d) boundary values for DIRICHLET case.
     */
-   tbox::Array<double> d_bdry_edge_density; // Used in 2D only.
-   tbox::Array<double> d_bdry_edge_velocity; // Used in 2D only.
-   tbox::Array<double> d_bdry_edge_pressure; // Used in 2D only.
-   tbox::Array<double> d_bdry_face_density; // Used in 3D only.
-   tbox::Array<double> d_bdry_face_velocity; // Used in 3D only.
-   tbox::Array<double> d_bdry_face_pressure; // Used in 3D only.
+   std::vector<double> d_bdry_edge_density; // Used in 2D only.
+   std::vector<double> d_bdry_edge_velocity; // Used in 2D only.
+   std::vector<double> d_bdry_edge_pressure; // Used in 2D only.
+   std::vector<double> d_bdry_face_density; // Used in 3D only.
+   std::vector<double> d_bdry_face_velocity; // Used in 3D only.
+   std::vector<double> d_bdry_face_pressure; // Used in 3D only.
 
    /*
     * Refinement criteria parameters for gradient detector and
     * Richardson extrapolation.
     */
-   tbox::Array<string> d_refinement_criteria;
-   tbox::Array<double> d_density_dev_tol;
-   tbox::Array<double> d_density_dev;
-   tbox::Array<double> d_density_dev_time_max;
-   tbox::Array<double> d_density_dev_time_min;
-   tbox::Array<double> d_density_grad_tol;
-   tbox::Array<double> d_density_grad_time_max;
-   tbox::Array<double> d_density_grad_time_min;
-   tbox::Array<double> d_density_shock_onset;
-   tbox::Array<double> d_density_shock_tol;
-   tbox::Array<double> d_density_shock_time_max;
-   tbox::Array<double> d_density_shock_time_min;
-   tbox::Array<double> d_density_rich_tol;
-   tbox::Array<double> d_density_rich_time_max;
-   tbox::Array<double> d_density_rich_time_min;
-   tbox::Array<double> d_pressure_dev_tol;
-   tbox::Array<double> d_pressure_dev;
-   tbox::Array<double> d_pressure_dev_time_max;
-   tbox::Array<double> d_pressure_dev_time_min;
-   tbox::Array<double> d_pressure_grad_tol;
-   tbox::Array<double> d_pressure_grad_time_max;
-   tbox::Array<double> d_pressure_grad_time_min;
-   tbox::Array<double> d_pressure_shock_onset;
-   tbox::Array<double> d_pressure_shock_tol;
-   tbox::Array<double> d_pressure_shock_time_max;
-   tbox::Array<double> d_pressure_shock_time_min;
-   tbox::Array<double> d_pressure_rich_tol;
-   tbox::Array<double> d_pressure_rich_time_max;
-   tbox::Array<double> d_pressure_rich_time_min;
+   std::vector<string> d_refinement_criteria;
+   std::vector<double> d_density_dev_tol;
+   std::vector<double> d_density_dev;
+   std::vector<double> d_density_dev_time_max;
+   std::vector<double> d_density_dev_time_min;
+   std::vector<double> d_density_grad_tol;
+   std::vector<double> d_density_grad_time_max;
+   std::vector<double> d_density_grad_time_min;
+   std::vector<double> d_density_shock_onset;
+   std::vector<double> d_density_shock_tol;
+   std::vector<double> d_density_shock_time_max;
+   std::vector<double> d_density_shock_time_min;
+   std::vector<double> d_density_rich_tol;
+   std::vector<double> d_density_rich_time_max;
+   std::vector<double> d_density_rich_time_min;
+   std::vector<double> d_pressure_dev_tol;
+   std::vector<double> d_pressure_dev;
+   std::vector<double> d_pressure_dev_time_max;
+   std::vector<double> d_pressure_dev_time_min;
+   std::vector<double> d_pressure_grad_tol;
+   std::vector<double> d_pressure_grad_time_max;
+   std::vector<double> d_pressure_grad_time_min;
+   std::vector<double> d_pressure_shock_onset;
+   std::vector<double> d_pressure_shock_tol;
+   std::vector<double> d_pressure_shock_time_max;
+   std::vector<double> d_pressure_shock_time_min;
+   std::vector<double> d_pressure_rich_tol;
+   std::vector<double> d_pressure_rich_time_max;
+   std::vector<double> d_pressure_rich_time_min;
 
    /*
     * Timers.

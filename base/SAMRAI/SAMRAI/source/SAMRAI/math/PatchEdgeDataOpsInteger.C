@@ -3,14 +3,10 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Operations for integer edge-centered patch data.
  *
  ************************************************************************/
-
-#ifndef included_math_PatchEdgeDataOpsInteger_C
-#define included_math_PatchEdgeDataOpsInteger_C
-
 #include "SAMRAI/math/PatchEdgeDataOpsInteger.h"
 #include "SAMRAI/pdat/EdgeGeometry.h"
 
@@ -39,14 +35,14 @@ PatchEdgeDataOpsInteger::numberOfEntries(
    const hier::Box& box) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    int dimVal = box.getDim().getValue();
    int retval = 0;
    const hier::Box ibox = box * data->getGhostBox();
    const int data_depth = data->getDepth();
-   for (int d = 0; d < dimVal; d++) {
-      retval += ((pdat::EdgeGeometry::toEdgeBox(ibox, d).size()) * data_depth);
+   for (int d = 0; d < dimVal; ++d) {
+      retval += static_cast<int>((pdat::EdgeGeometry::toEdgeBox(ibox, d).size()) * data_depth);
    }
    return retval;
 }
@@ -68,11 +64,11 @@ PatchEdgeDataOpsInteger::swapData(
    TBOX_ASSERT(patch);
 
    boost::shared_ptr<pdat::EdgeData<int> > d1(
-      patch->getPatchData(data1_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::EdgeData<int>, hier::PatchData>(
+         patch->getPatchData(data1_id)));
    boost::shared_ptr<pdat::EdgeData<int> > d2(
-      patch->getPatchData(data2_id),
-      boost::detail::dynamic_cast_tag());
+      BOOST_CAST<pdat::EdgeData<int>, hier::PatchData>(
+         patch->getPatchData(data2_id)));
 
    TBOX_ASSERT(d1 && d2);
    TBOX_ASSERT(d1->getDepth() && d2->getDepth());
@@ -90,7 +86,7 @@ PatchEdgeDataOpsInteger::printData(
    std::ostream& s) const
 {
    TBOX_ASSERT(data);
-   TBOX_DIM_ASSERT_CHECK_ARGS2(*data, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY2(*data, box);
 
    s << "Data box = " << box << std::endl;
    data->print(box, s);
@@ -104,10 +100,10 @@ PatchEdgeDataOpsInteger::copyData(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
-   for (int d = 0; d < dimVal; d++) {
+   for (tbox::Dimension::dir_t d = 0; d < dimVal; ++d) {
       dst->getArrayData(d).copy(src->getArrayData(d),
          pdat::EdgeGeometry::toEdgeBox(box, d));
    }
@@ -120,10 +116,10 @@ PatchEdgeDataOpsInteger::abs(
    const hier::Box& box) const
 {
    TBOX_ASSERT(dst && src);
-   TBOX_DIM_ASSERT_CHECK_ARGS3(*dst, *src, box);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(*dst, *src, box);
 
    int dimVal = box.getDim().getValue();
-   for (int d = 0; d < dimVal; d++) {
+   for (int d = 0; d < dimVal; ++d) {
       d_array_ops.abs(dst->getArrayData(d),
          src->getArrayData(d),
          pdat::EdgeGeometry::toEdgeBox(box, d));
@@ -132,4 +128,3 @@ PatchEdgeDataOpsInteger::abs(
 
 }
 }
-#endif

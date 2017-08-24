@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Basic method-of-lines time integration algorithm
  *
  ************************************************************************/
@@ -13,7 +13,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#include "SAMRAI/tbox/Array.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 #include "SAMRAI/xfer/CoarsenSchedule.h"
 #include "SAMRAI/hier/ComponentSelector.h"
@@ -30,10 +29,11 @@
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/VariableContext.h"
 
-#include <boost/shared_ptr.hpp>
+#include "boost/shared_ptr.hpp"
 #include <iostream>
 #include <string>
 #include <list>
+#include <vector>
 
 namespace SAMRAI {
 namespace algs {
@@ -64,34 +64,64 @@ namespace algs {
  * values may override values read from restart.  Data read from input is
  * summarized as follows:
  *
- * Required input keys and data types: NONE
+ * <b> Input Parameters </b>
  *
- * Optional input keys, data types, and defaults:
- *
- *    - \b    order
- *       integer value specifying order of Runge-Kutta scheme.  If no input
- *       value is given, third order (i.e. order = 3) is used.
- *
+ * <b> Definitions: </b>
  *    - \b    alpha_1
  *    - \b    alpha_2
- *    - \b    beta
+ *    - \b    beta <br>
  *       arrays of double values (length = order) specifying the coeffients
  *       used in the multi-step Strong Stability Preserving (SSP) Runge-Kutta
- *       algorithm.  If no input is supplied, the default alpha_1, alpha_2,
- *       and beta values are automatically set to correspond to the
- *       specified order.
+ *       algorithm.
  *
+ * Note that when continuing from restart, the input parameters in the input
+ * database override all values read in from the restart database.
+ *
+ * <b> Details: </b> <br>
+ * <table>
+ *   <tr>
+ *     <th>parameter</th>
+ *     <th>type</th>
+ *     <th>default</th>
+ *     <th>range</th>
+ *     <th>opt/req</th>
+ *     <th>behavior on restart</th>
+ *   </tr>
+ *   <tr>
+ *      <td>alpha_1</td>
+ *      <td>array of doubles</td>
+ *      <td>[1.0, 0.75, 2.0/3.0]</td>
+ *      <td>any doubles but no more than 3 of them</td>
+ *      <td>opt</td>
+ *      <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *      <td>alpha_2</td>
+ *      <td>array of doubles</td>
+ *      <td>[0.0, 0.25, 2.0/3.0]</td>
+ *      <td>any doubles but no more than 3 of them</td>
+ *      <td>opt</td>
+ *      <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ *   <tr>
+ *      <td>beta</td>
+ *      <td>array of doubles</td>
+ *      <td>[1.0, 0.25, 2.0/3.0]</td>
+ *      <td>any doubles but no more than 3 of them</td>
+ *      <td>opt</td>
+ *      <td>Parameter read from restart db may be overridden by input db</td>
+ *   </tr>
+ * </table>
  *
  * The following represents a sample input entry:
  *
- * \verbatim
+ * @code
  *  MethodOfLinesIntegrator{
- *     order                 = 3
  *     alpha_1               = 1., 0.75, 0.33333
  *     alpha_2               = 0., 0.25, 0.66666
  *     beta                  = 1., 0.25, 0.66666
  *  }
- *  \endverbatim
+ *  @endcode
  *
  * @see mesh::StandardTagAndInitStrategy
  */
@@ -123,24 +153,19 @@ public:
     * (containing problem-specific numerical routines) and initializes
     * integration algorithm parameters provided in the specified input
     * database and in the restart database corresponding to the
-    * specified object_name.  The constructor also registers this object
-    * for restart using the specified object name when the boolean
-    * argument is true.  Whether object will write its state to
-    * restart files during program execution is determined by this argument.
-    * Note that it has a default state of true.
+    * specified object_name.
     *
-    * When assertion checking is active, passing in any null pointer
-    * or an empty std::string will result in an unrecoverable assertion.
+    * @pre !object_name.empty()
+    * @pre patch_strategy != 0
     */
    MethodOfLinesIntegrator(
       const std::string& object_name,
       const boost::shared_ptr<tbox::Database>& input_db,
-      MethodOfLinesPatchStrategy* patch_strategy,
-      bool register_for_restart = true);
+      MethodOfLinesPatchStrategy* patch_strategy);
 
    /*!
     * The destructor for MethodOfLinesIntegrator unregisters
-    * the integrator object with the restart manager when so registered.
+    * the integrator object with the restart manager.
     */
    virtual ~MethodOfLinesIntegrator();
 
@@ -149,6 +174,8 @@ public:
     * of data needed based on specifications of the gridding algorithm.
     *
     * This routine also invokes variable registration in the patch strategy.
+    *
+    * @pre gridding_alg
     */
    void
    initializeIntegrator(
@@ -158,6 +185,8 @@ public:
     * Return a suitable time increment over which to integrate the ODE
     * problem.  A minimum is taken over the increment computed on
     * each patch in the hierarchy.
+    *
+    * @pre hierarchy
     */
    double
    getTimestep(
@@ -168,6 +197,8 @@ public:
     * Advance the solution through the specified dt, which is assumed
     * for the problem and state of the solution.  Advances all patches
     * in the hierarchy passed in.
+    *
+    * @pre hierarchy
     */
    void
    advanceHierarchy(
@@ -178,6 +209,10 @@ public:
    /*!
     * Register variable quantity defined in the patch strategy with the
     * method of lines integrator which manipulates its storage.
+    *
+    * @pre variable
+    * @pre transfer_geom
+    * @pre variable->getDim() == ghosts.getDim()
     */
    void
    registerVariable(
@@ -224,8 +259,11 @@ public:
     * circumstances.  The can_be_refined boolean argument indicates whether
     * the level is the finest allowable level in the hierarchy.
     *
-    * Note: This function is overloaded from the base class
-    *       mesh::StandardTagAndInitStrategy.
+    * @pre hierarchy
+    * @pre level_number >= 0
+    * @pre hierarchy->getPatchLevel(level_number)
+    * @pre !old_level || (level_number == old_level->getLevelNumber())
+    * @pre !old_level || (hierarchy->getDim() == old_level->getDim())
     */
    void
    initializeLevelData(
@@ -251,8 +289,9 @@ public:
     * schedules are updated for every level finer than and including that
     * indexed by coarsest_level.
     *
-    * Note: This function is overloaded from the base class
-    *       mesh::StandardTagAndInitStrategy.
+    * @pre hierarchy
+    * @pre (coarsest_level >= 0) && (coarsest_level <= finest_level) &&
+    *      (finest_level <= hierarchy->getFinestLevelNumber())
     */
    void
    resetHierarchyConfiguration(
@@ -275,8 +314,8 @@ public:
     * application of the error estimator may be different in each of those
     * circumstances.
     *
-    * Note: This function is overloaded from the base class
-    *       mesh::StandardTagAndInitStrategy.
+    * @pre hierarchy
+    * @pre hierarchy->getPatchLevel(level_number)
     */
    virtual void
    applyGradientDetector(
@@ -288,13 +327,13 @@ public:
       const bool uses_richardson_extrapolation_too);
 
    /*!
-    * Writes object state out to the given database.
+    * Writes object state out to the given restart database.
     *
-    * When assertion checking is enabled, the database pointer must be non-null.
+    * @pre restart_db
     */
    void
-   putToDatabase(
-      const boost::shared_ptr<tbox::Database>& db) const;
+   putToRestart(
+      const boost::shared_ptr<tbox::Database>& restart_db) const;
 
    /*!
     * Returns the object name.
@@ -329,12 +368,10 @@ private:
     * Reads in parameters from the input database.  All
     * values from the input file take precedence over values from the
     * restart file.
-    *
-    * When assertion checking enabled: db must not be a non-NULL pointer.
     */
    void
    getFromInput(
-      const boost::shared_ptr<tbox::Database>& db,
+      const boost::shared_ptr<tbox::Database>& input_db,
       bool is_from_restart);
 
    /*
@@ -358,20 +395,18 @@ private:
 
    /*
     * The object name is used as a handle to the database stored in
-    * restart files and for error reporting purposes.  The boolean
-    * is used to control restart file writing operations.
+    * restart files and for error reporting purposes.
     */
    std::string d_object_name;
-   bool d_registered_for_restart;
 
    /*
     * Order of the Runge-Kutta method, and array of alpha values used in
     * updating solution during multi-step process.
     */
    int d_order;
-   tbox::Array<double> d_alpha_1;
-   tbox::Array<double> d_alpha_2;
-   tbox::Array<double> d_beta;
+   std::vector<double> d_alpha_1;
+   std::vector<double> d_alpha_2;
+   std::vector<double> d_beta;
 
    /*
     * A pointer to the method of lines patch model that will perform
@@ -393,7 +428,7 @@ private:
     * data at specified time.
     */
    boost::shared_ptr<xfer::RefineAlgorithm> d_bdry_fill_advance;
-   tbox::Array<boost::shared_ptr<xfer::RefineSchedule> > d_bdry_sched_advance;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> > d_bdry_sched_advance;
 
    /*
     * Algorithm for transferring data from coarse patch to fine patch
@@ -412,7 +447,7 @@ private:
     * fine to coarse grid.
     */
    boost::shared_ptr<xfer::CoarsenAlgorithm> d_coarsen_algorithm;
-   tbox::Array<boost::shared_ptr<xfer::CoarsenSchedule> > d_coarsen_schedule;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> > d_coarsen_schedule;
 
    /*
     * This algorithm has two variable contexts.  The current context is the

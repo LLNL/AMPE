@@ -1,11 +1,11 @@
 c
-c  File:        $URL$
-c  Package:     SAMRAI patchdata
-c  Copyright:   (c) 1997-2012 Lawrence Livermore National Security, LLC
-c  Revision:    $LastChangedRevision$
-c  Description: F77 routines for debugging 1d patch data types.
+c This file is part of the SAMRAI distribution.  For full copyright
+c information, see COPYRIGHT and COPYING.LESSER.
 c
-include(pdat_dbugstuff1d.i)dnl
+c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+c Description:   F77 routines for debugging 1d patch data types.
+c
+include(PDAT_FORTDIR/pdat_dbugstuff1d.i)dnl
 c
 c***********************************************************************
 c Debugging routines for 1d cell-centered data

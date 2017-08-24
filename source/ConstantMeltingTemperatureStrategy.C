@@ -40,7 +40,7 @@ void ConstantMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
    assert( d_equilibrium_temperature_id>=0 );
    
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      patch.getPatchData( d_equilibrium_temperature_id ), boost::detail::dynamic_cast_tag());
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_equilibrium_temperature_id) ) );
    
    assert( temperature );
 

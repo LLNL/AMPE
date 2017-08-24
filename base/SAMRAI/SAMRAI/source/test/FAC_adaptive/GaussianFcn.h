@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Gaussian function support for FAC solver tests.
  *
  ************************************************************************/
@@ -32,7 +32,7 @@ class GaussianFcn
 
 public:
    GaussianFcn();
-   GaussianFcn(
+   explicit GaussianFcn(
       const tbox::Dimension& dim);
 
    /*!
@@ -146,7 +146,7 @@ private:
    //! Amplitude
    double d_amp;
    //! Center
-   double d_center[tbox::Dimension::MAXIMUM_DIMENSION_VALUE];
+   double d_center[SAMRAI::MAX_DIM_VAL];
    //! Lambda
    double d_lambda;
 

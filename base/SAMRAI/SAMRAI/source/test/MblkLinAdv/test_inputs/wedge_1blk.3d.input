@@ -3,10 +3,13 @@
  * This file is part of the SAMRAI distribution.  For full copyright 
  * information, see COPYRIGHT and COPYING.LESSER. 
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Input file for SAMRAI LinAdv example problem 
  *
  ************************************************************************/
+
+// Refer to octant_3blk.3d.input for full description of all input parameters
+// specific to this problem.
 
 MblkGeometry {
    problem_type = "WEDGE"
@@ -151,11 +154,9 @@ Main {
    log_all_nodes    = TRUE
 
 // visualization dump parameters 
-   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
    viz_dump_interval     = 1          // zero to turn off
    viz_dump_dirname      = "viz_wedge"
-   viz_dump_filename     = "wedge"    // not used by VisIt
-   visit_number_procs_per_file = 1    // not used by Vizamrai
+   visit_number_procs_per_file = 1
 
 
 // restart dump parameters
@@ -180,12 +181,6 @@ TimerManager {
 BlockGeometry {
    num_blocks = 1
    domain_boxes_0 = [ (0,0,0) , (29,19,19) ]
-
-   // Singularity defn and neighbors
-   Singularity0 {
-      blocks = 0
-      sing_box_0 = [(30,20,20),(30,20,20)]
-   }
 }
 
 PatchHierarchy {
@@ -205,17 +200,14 @@ PatchHierarchy {
    }
 }
 
-
-
-
-
-
-GriddingAlgorithm{
-   sequentialize_patch_indices = TRUE
-
+BergerRigoutsos {
    efficiency_tolerance    = 0.85e0   // min % of tag cells in new patch level
    combine_efficiency      = 0.95e0   // chop box if sum of volumes of smaller
                                       // boxes < efficiency * vol of large box
+}
+
+GriddingAlgorithm{
+   sequentialize_patch_indices = TRUE
 }
 
 StandardTagAndInitialize {

@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   Copy operation on single array data elements templated on data type
  *
  ************************************************************************/
@@ -45,10 +45,10 @@ public:
 
 private:
    CopyOperation(
-      const CopyOperation<TYPE>&);              // not implemented
-   void
+      const CopyOperation&);              // not implemented
+   CopyOperation&
    operator = (
-      const CopyOperation<TYPE>&);              // not implemented
+      const CopyOperation&);              // not implemented
 };
 
 }

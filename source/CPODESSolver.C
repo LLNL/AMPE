@@ -179,14 +179,14 @@ CPODESSolver::CPODESSolver(
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!object_name.empty());
-   TBOX_ASSERT(!(my_functions == (CPODESAbstractFunctions*)NULL));
+   TBOX_ASSERT(!(my_functions == 0));
 #endif
 
    d_object_name         = object_name;
    d_cpode_functions      = my_functions;
    d_uses_preconditioner = uses_preconditioner;
 
-   d_solution_vector = (solv::SundialsAbstractVector*)NULL;
+   d_solution_vector = 0;
    d_solution_deriv_vector = (solv::SundialsAbstractVector*)NULL;
    d_weight_vector = (solv::SundialsAbstractVector*)NULL;
 
@@ -274,12 +274,12 @@ CPODESSolver::~CPODESSolver()
 
 void CPODESSolver::initialize(solv::SundialsAbstractVector* solution)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   TBOX_ASSERT(!(solution == (solv::SundialsAbstractVector*)NULL));
-   TBOX_ASSERT(d_solution_vector == (solv::SundialsAbstractVector*)NULL);
-   double l1norm=solution->L1Norm();
-   assert( l1norm==l1norm );
-#endif
+//#ifdef DEBUG_CHECK_ASSERTIONS
+//   TBOX_ASSERT(!(solution == (solv::SundialsAbstractVector*)NULL));
+//   TBOX_ASSERT(d_solution_vector == (solv::SundialsAbstractVector*)NULL);
+//   double l1norm=solution->L1Norm();
+//   assert( l1norm==l1norm );
+//#endif
    d_solution_vector = solution;
    d_CPODE_needs_initialization = true;
    initializeCPODES();

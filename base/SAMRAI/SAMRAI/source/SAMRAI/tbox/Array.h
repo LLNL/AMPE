@@ -3,7 +3,7 @@
  * This file is part of the SAMRAI distribution.  For full copyright
  * information, see COPYRIGHT and COPYING.LESSER.
  *
- * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  * Description:   A simple array template class
  *
  ************************************************************************/
@@ -33,7 +33,7 @@ namespace tbox {
  * Class TYPE must define a copy constructor and an assignment
  * operator.
  *
- * @see tbox::ReferenceCounter
+ * @see ReferenceCounter
  */
 
 template<class TYPE>
@@ -78,7 +78,7 @@ public:
    /**
     * Create an array of ``n'' uninitialized elements.
     *
-    * The tbox::Array::UNINITIALIZED value should be used for the
+    * The Array::UNINITIALIZED value should be used for the
     * second argument to flag that the array is uninitialized.
     *
     * CAUTION: Invoking this constructor will potentially result in a
@@ -90,7 +90,7 @@ public:
     * following example:
     *
     * \code
-    * for(int i = 0; i < d_elements; i++) {
+    * for(int i = 0; i < d_elements; ++i) {
     *       void *p = &d_objects[i];
     *       (void) new (p) TYPE(arg1, arg2);
     *    }
@@ -112,7 +112,7 @@ public:
       const typename Array::DoNotInitialize& do_not_initialize_flag);
 
    /**
-    * Const constructor for the array.  This creates an alias to the
+    * Copy constructor for the array.  This creates an alias to the
     * right hand side and increments the reference count.
     *
     * CAUTION: invoking resizeArray() forces a deep copy.
@@ -122,7 +122,7 @@ public:
     * of by value.
     */
    Array(
-      const Array<TYPE>& rhs);
+      const Array& rhs);
 
    /**
     * Destructor for the array.  If the reference count for the array data
@@ -140,14 +140,18 @@ public:
     * to one Array object container will not necessarily be reflected in the
     * other container.
     */
-   Array<TYPE>&
+   Array&
    operator = (
-      const Array<TYPE>& rhs);
+      const Array& rhs);
 
    /**
     * Non-const array subscripting.  Return a reference the object at array
     * index ``i'' (between 0 and N-1, where N is the number of elements in
     * the array.
+    *
+    * @param i Array index of item whose reference is to be returned.
+    *
+    * @pre (i >= 0) && (i < size())
     */
    TYPE&
    operator [] (
@@ -157,6 +161,10 @@ public:
     * Const array subscripting.  Return a const reference to the object
     * at array index ``i'' (between 0 and N-1, where N is the number of
     * elements in the array.
+    *
+    * @param i Array index of item whose reference is to be returned.
+    *
+    * @pre (i >= 0) && (i < size())
     */
    const TYPE&
    operator [] (
@@ -197,6 +205,10 @@ public:
    /**
     * Return a non-const pointer to the i-th object.  The index must be
     * between 0 and N-1, where N is the number of elements in the array.
+    *
+    * @param i Array index of item whose reference is to be returned.
+    *
+    * @pre (i >= 0) && (i < size())
     */
    TYPE *
    getPointer(
@@ -205,6 +217,10 @@ public:
    /**
     * Return a const pointer to the i-th object.  The index must be
     * between 0 and N-1, where N is the number of elements in the array.
+    *
+    * @param i Array index of item whose reference is to be returned.
+    *
+    * @pre (i >= 0) && (i < size())
     */
    const TYPE *
    getPointer(
@@ -248,9 +264,9 @@ public:
       const TYPE& value);
 
    /**
-    *
     * Returns a reference to the last element in the array container.
     *
+    * @pre size() > 0
     */
    const TYPE&
    back();
@@ -259,6 +275,9 @@ public:
     *
     * Removes from the array container a single element at position.
     *
+    * @param position Array index of element to be removed.
+    *
+    * @pre (position >= 0) && (position < size())
     */
    void
    erase(
