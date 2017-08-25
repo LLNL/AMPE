@@ -242,19 +242,21 @@ void QuatModel::initializeTemperature(
    boost::shared_ptr<tbox::Database> model_db,
    boost::shared_ptr<tbox::Database> integrator_db)
 {
-   if( d_model_parameters.with_heat_equation() )
+   if( d_model_parameters.with_heat_equation() ){
       if( d_model_parameters.with_concentration() ){
          tbox::pout << "QuatModel::initializeTemperature() "
                     << "Using NKR model for heat capacity..."
                     << endl;
-          d_heat_capacity_strategy = new NKRHeatCapacityStrategy(d_model_parameters.cp(), d_cp_id, d_conc_id, d_temperature_id);
+         d_heat_capacity_strategy = new NKRHeatCapacityStrategy(
+            d_model_parameters.cp(), d_cp_id, d_conc_id, d_temperature_id);
       }else{
          const std::map<short,double>& cp( d_model_parameters.cp(0) );
          std::map<short,double>::const_iterator p=cp.find(0);
          const double cpval=p->second;
          d_heat_capacity_strategy = new ConstantHeatCapacityStrategy(cpval, d_cp_id);
       }
-      
+   }
+
    TemperatureStrategyFactory factory(d_temperature_id,d_temperature_scratch_id,
       d_conc_id,
       d_weight_id,
@@ -3112,7 +3114,7 @@ void QuatModel::preRunDiagnostics( void )
 
          // compute equilibrium composition for pair L,A
          double phi_min = mathops.min( d_phase_id );
-         double phi_max = mathops.max( d_phase_id );
+         //double phi_max = mathops.max( d_phase_id );
          
          double ceq[3];
          bool found_ceq=false;
@@ -4476,6 +4478,8 @@ void QuatModel::WriteInitialConditionsFile( void )
    const int npp = mpi.getSize();
 
    for ( int pp = 0; pp < npp; pp++ ) {
+
+      //tbox::plog<<"pp="<<pp<<endl;
       if ( mpi.getRank() == pp ) {
 
 #ifdef HAVE_NETCDF3
@@ -4507,7 +4511,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             if( f->isNull()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }else{
-               tbox::plog<<"Open/replace file "<<d_initial_conditions_file_name<<endl;
+               clog<<"Open/replace file "<<d_initial_conditions_file_name<<endl;
             }
 #endif
  
@@ -4550,7 +4554,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             NcDim nc_nx = f->addDim( "x", nx_prob );
             NcDim nc_ny = f->addDim( "y", ny_prob );
             NcDim nc_nz = f->addDim( "z", nz_prob );
-            f->addDim( "qlen", d_qlen );
+            //f->addDim( "qlen", d_qlen );
 
             vector<NcDim> dims;
             dims.push_back(nc_nz);
@@ -4599,7 +4603,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             if ( f->isNull() ) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
             }else{
-               tbox::plog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
+               clog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
             }
 #endif
 
@@ -4630,7 +4634,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             nc_temp = f->get_var( "temperature" );
 #endif
 #ifdef HAVE_NETCDF4
-            tbox::plog<<"add variables from PE >0..."<<endl;
+            clog<<"add variables from PE >0..."<<endl;
             nc_phase = f->getVar( "phase" );
 
             if ( d_model_parameters.with_third_phase() ) {
@@ -4832,6 +4836,9 @@ void QuatModel::WriteInitialConditionsFile( void )
          //cout<<"Close file..."<<endl;
 #ifdef HAVE_NETCDF3
          f->close();
+#endif
+#ifdef HAVE_NETCDF4
+         delete f;
 #endif
          delete[] nc_qcomp;
          delete[] nc_conc;
@@ -6377,12 +6384,6 @@ void QuatModel::computeUniformPhaseMobility(
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
 
       boost::shared_ptr<hier::Patch > patch = *p;
-
-      const hier::Box& pbox = patch->getBox();
-
-      boost::shared_ptr< pdat::CellData<double> > temp_data (
-         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
-      assert( temp_data );
 
       boost::shared_ptr< pdat::CellData<double> > mobility_data (
          BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
