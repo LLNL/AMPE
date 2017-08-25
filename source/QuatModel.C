@@ -7053,6 +7053,11 @@ void QuatModel::evaluateEnergy(
             for ( int d = 0; d < NDIM; d++ ) {
                pgrad_quat[d] = grad_quat->getPointer( d );
             }
+#ifdef DEBUG_CHECK_ASSERTIONS
+            SAMRAI::math::PatchSideDataNormOpsReal<double> sops;
+            double l2gq=sops.L2Norm(grad_quat,pbox);
+            assert( l2gq==l2gq );
+#endif
          }
          else {
             for ( int d = 0; d < NDIM; d++ ) {
@@ -7070,6 +7075,26 @@ void QuatModel::evaluateEnergy(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          boost::shared_ptr< pdat::CellData<double> > temperature (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
+
+         assert( phase );
+         assert( weight );
+         assert( fl );
+         assert( fa );
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+         SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
+         double l2phi=ops.L2Norm(phase,pbox);
+         assert( l2phi==l2phi );
+
+         double l2t=ops.L2Norm(temperature,pbox);
+         assert( l2t==l2t );
+
+         double l2fl=ops.L2Norm(fl,pbox);
+         assert( l2fl==l2fl );
+
+         double l2fa=ops.L2Norm(fa,pbox);
+         assert( l2fa==l2fa );
+#endif
 
          int three_phase = 0;
          double* ptr_fb = NULL;
@@ -7093,12 +7118,11 @@ void QuatModel::evaluateEnergy(
             ptr_energy = energy->getPointer();
          }
 
-         assert( phase );
-         assert( weight );
-         assert( fl );
-         assert( fa );
          assert( phase->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
          assert( weight->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
+#if (NDIM == 3)
+         if ( d_model_parameters.with_orientation() )assert( pgrad_quat[2]!=NULL );
+#endif
 
          FORT_QUATENERGY(
             ifirst(0), ilast(0),

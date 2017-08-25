@@ -275,7 +275,7 @@ c
                   o2 = 0.d0
                   do m = 1, depth
                      do n = 1, NDIM
-                        o2 = o2 + gqz(i,j,k+1,n,m) * gqz(i,j,k+1,n,m)
+                        o2 = o2 + gqz(i,j,k+1,m,n) * gqz(i,j,k+1,m,n)
                      enddo
                   enddo
                   o2 = o2 + floor2
@@ -305,12 +305,12 @@ c
                   do m = 1, depth
                      do n = 1, NDIM
                         e = e + (
-     &                     gqx(i,  j,k  ,n,m) * gqx(i,  j,k  ,n,m)
-     &                   + gqx(i+1,j,k  ,n,m) * gqx(i+1,j,k  ,n,m)
-     &                   + gqy(i,j  ,k  ,n,m) * gqy(i,j  ,k  ,n,m)
-     &                   + gqy(i,j+1,k  ,n,m) * gqy(i,j+1,k  ,n,m)
-     &                   + gqz(i,j  ,k  ,n,m) * gqz(i,j  ,k  ,n,m)
-     &                   + gqz(i,j  ,k+1,n,m) * gqz(i,j  ,k+1,n,m)
+     &                     gqx(i,  j,k  ,m,n) * gqx(i,  j,k  ,m,n)
+     &                   + gqx(i+1,j,k  ,m,n) * gqx(i+1,j,k  ,m,n)
+     &                   + gqy(i,j  ,k  ,m,n) * gqy(i,j  ,k  ,m,n)
+     &                   + gqy(i,j+1,k  ,m,n) * gqy(i,j+1,k  ,m,n)
+     &                   + gqz(i,j  ,k  ,m,n) * gqz(i,j  ,k  ,m,n)
+     &                   + gqz(i,j  ,k+1,m,n) * gqz(i,j  ,k+1,m,n)
      &                   )
                      enddo
                   enddo
