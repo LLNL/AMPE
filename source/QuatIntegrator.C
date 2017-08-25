@@ -3776,6 +3776,7 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 }
 
 //-----------------------------------------------------------------------
+//returns 0 if converged
 int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                                       int r_phase_id, int ewt_phase_id, int z_phase_id, 
                                       const double delta)
@@ -4005,6 +4006,8 @@ int QuatIntegrator::QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hi
   The parameter delta is the solver tolerance requested
   by CPODE.  This routine assumes that M has already been
   setup by a prior call to CPSpgmrPrecondSet().
+
+  Returns 0 if all block solves converged.
 */
 
 int QuatIntegrator::
@@ -4092,8 +4095,8 @@ CVSpgmrPrecondSolve
          }
          else {
 
-            retcode = PhasePrecondSolve(hierarchy,r_phase_id,ewt_phase_id,z_phase_id,delta);
-
+            int converged = PhasePrecondSolve(hierarchy,r_phase_id,ewt_phase_id,z_phase_id,delta);
+            retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
       }
       
@@ -4114,8 +4117,8 @@ CVSpgmrPrecondSolve
             cellops.copyData( z_eta_id, r_eta_id, false );
          }
          else {
-            retcode = EtaPrecondSolve(hierarchy,r_eta_id,ewt_eta_id,z_eta_id,delta);
-
+            int converged = EtaPrecondSolve(hierarchy,r_eta_id,ewt_eta_id,z_eta_id,delta);
+            retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
       }
 
@@ -4135,7 +4138,8 @@ CVSpgmrPrecondSolve
 
          if( d_precondition_quat )
          {
-            retcode=QuatPrecondSolve(hierarchy,r_quat_id,ewt_quat_id,z_quat_id,delta, gamma);
+            int converged = QuatPrecondSolve(hierarchy,r_quat_id,ewt_quat_id,z_quat_id,delta, gamma);
+            retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
          else
          { // !d_precondition_quat
@@ -4161,15 +4165,16 @@ CVSpgmrPrecondSolve
             cellops.copyData( z_temperature_id, r_temperature_id, false );
          }
          else {
-            retcode=TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta);
+            int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta);
+            retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
       }
       
       // Apply the preconditioner concentration block
       if ( d_with_concentration ) {
 
-         applyConcentrationPreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta);
-
+         int converged = applyConcentrationPreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta);
+         retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
    }
    else {   // Identity (no) preconditioner
@@ -4224,6 +4229,8 @@ int QuatIntegrator::applyProjection(
    double                      epsProj,
    solv::SundialsAbstractVector *  err )
 {
+   (void)time;
+
    // Zero all components of the correction
    corr->setToScalar(0.);
 
