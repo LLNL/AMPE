@@ -192,7 +192,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       d_conc_rhs_strategy = SPINODAL;
    }
    else if ( conc_rhs_strategy[0] == 'u' ) {
-      d_conc_rhs_strategy = UTRC;
+      d_conc_rhs_strategy = Beckermann;
    }
    else {
       TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
@@ -200,7 +200,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    
    readMolarVolumes(conc_db);
 
-   if ( d_conc_rhs_strategy == UTRC ){
+   if ( d_conc_rhs_strategy == Beckermann ){
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_D_solid_A = conc_db->getDouble( "D_solid_A" );
    }

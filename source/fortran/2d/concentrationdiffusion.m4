@@ -156,9 +156,9 @@ c
       end
 
 c
-c Coefficient \tilde D from Acharya, Sharon, Starolesky (2016)
+c Coefficient \tilde D from Beckermann, Diepers, Steinbach, Karma, Tong, 1999
 c
-      subroutine concentrationdiffusion_utrc(
+      subroutine concentrationdiffusion_beckermann(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, ngphi,
      &   diff0, diff1, ngdiff,

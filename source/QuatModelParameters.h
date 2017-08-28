@@ -62,7 +62,7 @@ public:
       KKS,
       EBS,
       SPINODAL,
-      UTRC,
+      Beckermann,
       UNKNOWN
    };
 
@@ -252,12 +252,12 @@ public:
       assert( d_conc_rhs_strategy==KKS 
            || d_conc_rhs_strategy==EBS 
            || d_conc_rhs_strategy==SPINODAL 
-           || d_conc_rhs_strategy==UTRC );
+           || d_conc_rhs_strategy==Beckermann );
    }
    
    bool needGhosts4PartitionCoeff()const
    {
-      return ( d_conc_rhs_strategy==UTRC );
+      return ( d_conc_rhs_strategy==Beckermann );
    }
    
    bool concRHSstrategyIsKKS()const
@@ -266,8 +266,8 @@ public:
    { return ( d_conc_rhs_strategy == EBS ); }
    bool concRHSstrategyIsSPINODAL()const
    { return ( d_conc_rhs_strategy == SPINODAL ); }
-   bool concRHSstrategyIsUTRC()const
-   { return ( d_conc_rhs_strategy == UTRC ); }
+   bool concRHSstrategyIsBeckermann()const
+   { return ( d_conc_rhs_strategy == Beckermann ); }
    
    bool isHeatSourceCompositionDependent()const
    { return d_heat_source_type=="composition"; }

@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "UTRCCompositionRHSStrategy.h"
+#include "BeckermannCompositionRHSStrategy.h"
 
 #include "QuatFort.h"
 #include "QuatParams.h"
@@ -48,7 +48,7 @@
 
 using namespace std;
 
-UTRCCompositionRHSStrategy::UTRCCompositionRHSStrategy(
+BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
       QuatModel* quat_model,
       const int conc_scratch_id,
       const int phase_scratch_id,
@@ -87,12 +87,12 @@ UTRCCompositionRHSStrategy::UTRCCompositionRHSStrategy(
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
-      tman->getTimer("UTRCCompositionRHSStrategy::setDiffusionCoeff()");
+      tman->getTimer("BeckermannCompositionRHSStrategy::setDiffusionCoeff()");
 }
 
 //-----------------------------------------------------------------------
 
-void UTRCCompositionRHSStrategy::setDiffusionCoeff(
+void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const double                                    time)
 {
@@ -100,7 +100,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeff(
    
    t_set_diffcoeff_timer->start();
    
-   // tbox::pout<<"UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration"<<endl;
+   // tbox::pout<<"BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration"<<endl;
 
    // ghost values of k are needed to get k interpolated on faces
    // where diffusion coefficients are evaluated
@@ -120,7 +120,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeff(
 
 //=======================================================================
 
-void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
+void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const int partition_coeff_scratch_id,
    const int concentration_id,
@@ -128,7 +128,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    const int conc_tilde_diffusion_id,
    const int conc_phase_coupling_diffusion_id )
 {
-   //tbox::pout<<"UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration()"<<endl;
+   //tbox::pout<<"BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration()"<<endl;
    assert( concentration_id >= 0 );
    assert( phase_id >= 0 );
    assert( conc_tilde_diffusion_id >= 0 );
@@ -164,7 +164,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( partition_coeff_scratch_id) ) );
          assert( cd_partition_coeff );
          
-         FORT_CONCENTRATIONDIFFUSIONUTRC(
+         FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -226,7 +226,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForConcentration(
 
 //-----------------------------------------------------------------------
 
-void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
+void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
    boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff,
    boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -442,7 +442,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 
 //-----------------------------------------------------------------------
 
-void UTRCCompositionRHSStrategy::computeFluxOnPatch(
+void BeckermannCompositionRHSStrategy::computeFluxOnPatch(
    hier::Patch& patch,
    const int flux_id)
 {

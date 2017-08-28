@@ -39,7 +39,7 @@
 #define FORT_ADD_CONCENTRATION_FLUX_EBS add_concentrationflux_ebs_
 #define FORT_CONCENTRATION_FLUX_SPINODAL concentrationflux_spinodal_
 #define FORT_CONCENTRATIONDIFFUSION0 concentrationdiffusion0_
-#define FORT_CONCENTRATIONDIFFUSIONUTRC concentrationdiffusion_utrc_
+#define FORT_CONCENTRATIONDIFFUSIONBECKERMANN concentrationdiffusion_beckermann_
 #define FORT_COMPUTERHSCONCENTRATION computerhsconcentration_
 #define FORT_PHASERHS_FENERGY      phaserhs_fenergy_
 #define FORT_ETARHS_FENERGY      etarhs_fenergy_
@@ -197,7 +197,7 @@ extern "C" {
       const char* avg_func_type,
       const int& three_phase );
 
-   void FORT_CONCENTRATIONDIFFUSIONUTRC(
+   void FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)

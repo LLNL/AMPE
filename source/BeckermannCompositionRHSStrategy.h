@@ -30,8 +30,8 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#ifndef included_UTRCCompositionRHSStrategy
-#define included_UTRCCompositionRHSStrategy 
+#ifndef included_BeckermannCompositionRHSStrategy
+#define included_BeckermannCompositionRHSStrategy 
 
 #include "CompositionRHSStrategy.h"
 
@@ -43,11 +43,11 @@
 
 class QuatModel;
 
-class UTRCCompositionRHSStrategy:
+class BeckermannCompositionRHSStrategy:
    public CompositionRHSStrategy
 {
 public:
-   UTRCCompositionRHSStrategy(
+   BeckermannCompositionRHSStrategy(
       QuatModel* quat_model,
       const int conc_scratch_id,
       const int phase_scratch_id,
@@ -59,7 +59,7 @@ public:
       const std::string& phase_interp_func_type,
       const std::string& avg_func_type
    );
-   ~UTRCCompositionRHSStrategy(){};
+   ~BeckermannCompositionRHSStrategy(){};
    
    void computeFluxOnPatch(
       hier::Patch& patch,

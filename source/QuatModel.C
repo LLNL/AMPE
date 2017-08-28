@@ -41,7 +41,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "KKSCompositionRHSStrategy.h"
 #include "EBSCompositionRHSStrategy.h"
-#include "UTRCCompositionRHSStrategy.h"
+#include "BeckermannCompositionRHSStrategy.h"
 #include "ScalarTemperatureStrategy.h"
 #include "GaussianTemperatureStrategy.h"
 #include "ConstantTemperatureStrategy.h"
@@ -369,9 +369,9 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
             d_free_energy_strategy_for_diffusion,
             d_composition_strategy_mobilities,
             d_diffusion_for_conc_in_phase );
-   }else if ( d_model_parameters.concRHSstrategyIsUTRC() ){
+   }else if ( d_model_parameters.concRHSstrategyIsBeckermann() ){
       d_composition_rhs_strategy =
-         new UTRCCompositionRHSStrategy(
+         new BeckermannCompositionRHSStrategy(
             this,
             d_conc_scratch_id,
             d_phase_scratch_id,
@@ -1950,7 +1950,7 @@ void QuatModel::registerConcentrationVariables( void )
 
    d_model_parameters.checkValidityConcRHSstrategy();
    if( d_model_parameters.concRHSstrategyIsKKS() 
-    || d_model_parameters.concRHSstrategyIsUTRC()){
+    || d_model_parameters.concRHSstrategyIsBeckermann()){
       d_conc_phase_coupling_diffusion_var.reset(
          new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_phase_coupling_diffusion" ) );
       assert( d_conc_phase_coupling_diffusion_var );
@@ -3916,7 +3916,7 @@ void QuatModel::AllocateLocalPatchData(
       AllocateAndZeroData< pdat::SideData<double> >(
          d_conc_diffusion0_id, level, time, zero_data );
       if( d_model_parameters.concRHSstrategyIsKKS()
-       || d_model_parameters.concRHSstrategyIsUTRC() ){
+       || d_model_parameters.concRHSstrategyIsBeckermann() ){
          AllocateAndZeroData< pdat::SideData<double> >(
             d_conc_phase_coupling_diffusion_id, level, time, zero_data );
       }else{
