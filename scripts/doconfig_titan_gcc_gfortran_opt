@@ -1,6 +1,7 @@
 #!/bin/tcsh
-module purge
-module load PrgEnv-gnu
+#module purge
+#module load PrgEnv-gnu
+module swap PrgEnv-pgi PrgEnv-gnu
 module load craype-network-gemini
 module load cray-mpich
 module load cray-netcdf
@@ -16,5 +17,5 @@ module load boost
             --with-boost=$BOOST_DIR \
             --with-hdf5=$HDF5_DIR \
             --with-netcdf=$NETCDF_DIR \
-            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre \
+            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre_gnu \
             --prefix=$PWD/build

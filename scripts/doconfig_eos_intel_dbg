@@ -1,14 +1,9 @@
 #!/bin/tcsh
-#module purge
-#module load PrgEnv-gnu
-module swap PrgEnv-pgi PrgEnv-gnu
-module load craype-network-gemini
-module load cray-mpich
 module load cray-netcdf
 module load cray-hdf5
 module load boost
 
-./configure --build=x86_64 --host=x86_64-linux --enable-debug \
+./configure --enable-debug \
             --with-CXX=CC \
             --with-CC=cc \
             --with-F77=ftn \
@@ -17,5 +12,5 @@ module load boost
             --with-boost=$BOOST_DIR \
             --with-hdf5=$HDF5_DIR \
             --with-netcdf=$NETCDF_DIR \
-            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre_gnu \
+            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre_intel \
             --prefix=$PWD/build
