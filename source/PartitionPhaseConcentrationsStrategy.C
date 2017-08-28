@@ -43,6 +43,10 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
    boost::shared_ptr< pdat::CellData<double> > cd_c_b,
    boost::shared_ptr<hier::Patch > patch )
 {
+   (void)cd_temperature;
+   (void)cd_eta;
+   (void)cd_c_b;
+
    assert( cd_phi );
    assert( cd_concentration );
    assert( cd_c_l );
@@ -137,12 +141,10 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
             for(int ic=0;ic<cd_concentration->getDepth();ic++)
             {
                const double* const ptr_conc = cd_concentration->getPointer(ic);
-
                const double c = ptr_conc[idx_pf];
-if( c<0. )std::cerr<<"c="<<c<<std::endl;
-if( c>1. )std::cerr<<"c="<<c<<std::endl;
-               //assert( c>=0. );
-               //assert( c<=1. );
+
+               assert( c>=0. );
+               assert( c<=1. );
                assert( k>=0. );
 
                double* ptr_c_l = cd_c_l->getPointer(ic);

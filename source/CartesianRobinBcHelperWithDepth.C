@@ -213,7 +213,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
       cell_data_ptr->getGhostCellWidth();
    hier::IntVector gcw_to_fill = hier::IntVector::min(ghost_cells,
          ghost_width_to_fill);
-   if (!(gcw_to_fill == hier::IntVector::getZero(d_dim))) {
+   if (!(gcw_to_fill == hier::IntVector::getZero(dim))) {
       /*
        * Given a and g in a*u + (1-a)*un = g,
        * where un is the derivative in the outward normal direction,

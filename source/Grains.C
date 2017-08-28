@@ -343,12 +343,12 @@ void Grains::findAndNumberGrains(
 
       int nn = NDIM*ln;
       level_stride[nn] = 1;
-      for ( int dd = 1; dd < NDIM; dd++ ) {
+      for ( tbox::Dimension::dir_t dd = 1; dd < NDIM; dd++ ) {
          level_stride[nn+dd] =
             level_stride[nn+dd-1] * bbox.numberCells(dd-1);
       }
 
-      for ( int dd = 0; dd < NDIM; dd++ ) {
+      for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; dd++ ) {
          int width = bbox.numberCells( dd );
          if ( width > max_iteration_count ) {
             max_iteration_count = width; // would need factor 2 for nonperiodic BC
@@ -936,7 +936,7 @@ void Grains::extendGrainOrientation(
       hier::BoxContainer bl( level->getPhysicalDomain(hier::BlockId::zero()) );
       hier::Box bbox = bl.getBoundingBox();
 
-      for ( int dd = 0; dd < NDIM; dd++ ) {
+      for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; ++dd ) {
          int width = bbox.numberCells( dd );
          if ( width > max_iteration_count ) {
             max_iteration_count = width;
@@ -980,7 +980,6 @@ void Grains::extendGrainOrientation(
 
    // Iterate over all cells, filling with a tagged neighbor if there
    // is one.
-
    int nn;
    for ( nn = 0; nn < max_iteration_count; nn++ ) {
       int one_still_unset = 1;

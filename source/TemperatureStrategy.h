@@ -46,7 +46,10 @@ public:
    virtual ~TemperatureStrategy() {};
 
    virtual void initialize(
-      const boost::shared_ptr<hier::PatchHierarchy >& patch_hierarchy ){};
+      const boost::shared_ptr<hier::PatchHierarchy >& patch_hierarchy )
+   {
+      (void)patch_hierarchy;
+   };
 
    virtual double getCurrentMaxTemperature(  
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
@@ -63,7 +66,12 @@ public:
    virtual void resetSolversState(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int coarsest_level,
-      const int finest_level ){};
+      const int finest_level )
+   {
+      (void)hierarchy;
+      (void)coarsest_level;
+      (void)finest_level;
+   };
 };
 
 #endif

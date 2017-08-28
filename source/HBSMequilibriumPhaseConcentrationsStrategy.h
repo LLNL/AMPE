@@ -35,7 +35,7 @@
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
-#include "HBSMFreeEnergyStrategy.h";
+#include "HBSMFreeEnergyStrategy.h"
 
 #include <string>
 

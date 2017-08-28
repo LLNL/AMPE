@@ -1048,10 +1048,13 @@ QuatFACOps::deallocateOperatorState()
 
 void
 QuatFACOps::postprocessOneCycle(
-   int                                       fac_cycle_num,
+   int fac_cycle_num,
    const solv::SAMRAIVectorReal<double> & current_soln,
    const solv::SAMRAIVectorReal<double> &     residual )
 {
+   (void)current_soln;
+   (void)residual;
+
   if ( d_enable_logging ) {
     if ( d_solver ) {
       /*
@@ -1769,6 +1772,8 @@ QuatFACOps::computeFluxOnPatch(
    const pdat::SideData<double> &       gradq_data,
    pdat::SideData<double> &              flux_data ) const
 {
+   (void)ratio_to_coarser_level;
+
 #ifdef DEBUG_CHECK_ASSERTIONS
    tbox::pout<<"check array sizes in QuatFACOps::computeFluxOnPatch()..."<<endl;
    assert( patch.inHierarchy() );

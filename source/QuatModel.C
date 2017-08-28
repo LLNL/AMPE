@@ -4602,8 +4602,8 @@ void QuatModel::WriteInitialConditionsFile( void )
             f=new NcFile( d_initial_conditions_file_name, NcFile::write );
             if ( f->isNull() ) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name << endl);
-            }else{
-               clog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
+            //}else{
+            //   clog<<"Open/write file "<<d_initial_conditions_file_name<<endl;
             }
 #endif
 
@@ -4634,7 +4634,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             nc_temp = f->get_var( "temperature" );
 #endif
 #ifdef HAVE_NETCDF4
-            clog<<"add variables from PE >0..."<<endl;
+            //clog<<"add variables from PE >0..."<<endl;
             nc_phase = f->getVar( "phase" );
 
             if ( d_model_parameters.with_third_phase() ) {

@@ -57,8 +57,16 @@ public:
       const double temperature,
       const PHASE_INDEX pi0, const PHASE_INDEX pi1,
       double* ceq,
-      const bool verbose = false ){ return false; };
+      const bool verbose = false )
+   { 
+      (void)temperature;
+      (void)pi0;
+      (void)pi1;
+      (void)ceq;
+      (void)verbose;
 
+      return false; 
+   };
    virtual double computeFreeEnergy(
       const double temperature,
       const double* const conc,

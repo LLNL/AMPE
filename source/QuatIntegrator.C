@@ -970,7 +970,8 @@ void QuatIntegrator::RegisterVariables(
    }
 
 
-   d_quat_grad_side_copy_var.reset(new pdat::SideVariable<double>(tbox::Dimension(NDIM), d_name+"_quat_grad_side_copy", NDIM*d_qlen ));
+   d_quat_grad_side_copy_var.reset(
+      new pdat::SideVariable<double>(tbox::Dimension(NDIM), d_name+"_quat_grad_side_copy", NDIM*d_qlen ));
    d_quat_grad_side_copy_id = variable_db->registerVariableAndContext(d_quat_grad_side_copy_var,
                                                                     d_current,
                                                                     hier::IntVector(tbox::Dimension(NDIM),0));

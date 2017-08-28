@@ -413,6 +413,8 @@ double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
    const double energy_factor,
    const bool gp )const
 {
+   (void)temperature;
+
    double d = conc - Ceq;
 
    double fe = A * d * d;
@@ -433,6 +435,8 @@ double HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
    const double Ceq,
    const double energy_factor )const
 {
+   (void)temperature;
+
    double mu = 2.*A*( conc-Ceq );
 
    return mu * energy_factor;

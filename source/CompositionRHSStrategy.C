@@ -54,6 +54,10 @@ void CompositionRHSStrategy::addFluxFromGradTonPatch(
    const int temperature_id,
    const int flux_id)
 {
+   (void)patch;
+   (void)temperature_id;
+   (void)flux_id;
+
    TBOX_ERROR( "CompositionRHSStrategy::addFluxFromGradTonPatch() not implemented..."<< endl );
 }
 
@@ -64,6 +68,12 @@ void CompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    const double alpha,
    const int flux_id)
 {
+   (void)patch;
+   (void)phase_scratch_id;
+   (void)dphidt_id;
+   (void)alpha;
+   (void)flux_id;
+
    TBOX_ERROR( "CompositionRHSStrategy::addFluxFromAntitrappingonPatch() not implemented..."<< endl );
 }
 

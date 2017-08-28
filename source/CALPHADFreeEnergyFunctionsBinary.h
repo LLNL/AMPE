@@ -140,9 +140,9 @@ public:
       std::ostream& os );
 
    // empty default implementation to avoid downcasting
-   virtual double computePenalty(const PHASE_INDEX index, const double conc){return 0.;};
-   virtual double computeDerivPenalty(const PHASE_INDEX index, const double conc){return 0.;};
-   virtual double compute2ndDerivPenalty(const PHASE_INDEX index, const double conc){return 0.;};
+   virtual double computePenalty(const PHASE_INDEX, const double){return 0.;};
+   virtual double computeDerivPenalty(const PHASE_INDEX, const double){return 0.;};
+   virtual double compute2ndDerivPenalty(const PHASE_INDEX, const double){return 0.;};
    
 protected:
 

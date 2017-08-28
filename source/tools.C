@@ -43,7 +43,7 @@ void listLocalToGlobal(
    map<int,double>& lcl_map,
    map<int,double>& gbl_map )
 {
-   int size_in = lcl_map.size();
+   size_t size_in = lcl_map.size();
    int* lcl_n = new int[size_in];
    double* lcl_v = new double[size_in];
 
@@ -55,11 +55,10 @@ void listLocalToGlobal(
       ii++;
    }
    
-   int size_out = sumReduction( size_in );
+   int size_out = sumReduction( (int)size_in );
    int* gbl_n = new int[size_out];
    double* gbl_v = new double[size_out];
 
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    allGatherv( lcl_n, size_in, gbl_n, size_out );
    allGatherv( lcl_v, size_in, gbl_v, size_out );
 

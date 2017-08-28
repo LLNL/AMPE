@@ -103,7 +103,7 @@ public:
    double conc_mobility()const{ return d_conc_mobility; }
    double thermal_diffusivity()const{ return d_thermal_diffusivity; }
    double latent_heat()const{ return d_latent_heat; }
-   const std::map<short,double>& cp(const short isp)const
+   const std::map<short,double>& cp(const unsigned short isp)const
    {
       assert( isp<d_cp.size() );
       return d_cp[isp];

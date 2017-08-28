@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADFreeEnergyStrategyWithPenalty.h";
+#include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADConcSolverBinaryWithPenalty.h"
 #include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 

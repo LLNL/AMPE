@@ -144,6 +144,7 @@ public:
 
    virtual void preRunDiagnostics(std::ostream& os)
    {
+      (void) os;
       return;
    }
 
