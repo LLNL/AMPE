@@ -213,13 +213,13 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
 
 double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    const double temperature,
-   const double* const conc,
+   const double* conc,
    const PHASE_INDEX pi,
    const bool gp )
 {
    const double conc0=conc[0];
    const double conc1=conc[1];
-   
+
    double lAB[4] = {lmix0ABPhase( pi, temperature ),
                     lmix1ABPhase( pi, temperature ),
                     lmix2ABPhase( pi, temperature ),
@@ -384,7 +384,7 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(const doub
             d_L_BC_L[3] = lmix3BCPhaseL( temperature );
             break;
    
-         case phaseA:
+         case phaseA:         
             d_fA[i] = d_g_species_phaseA[0].fenergy( temperature );
             d_fB[i] = d_g_species_phaseA[1].fenergy( temperature );
             d_fC[i] = d_g_species_phaseA[2].fenergy( temperature );
@@ -540,11 +540,11 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
 
    assert( conc0>=0. );
    double concl[2]={cauxilliary[0],cauxilliary[2]};
-   fl = computeFreeEnergy(temperature,concl,phaseL,false);
+   fl = computeFreeEnergy(temperature,&concl[0],phaseL,false);
 
    assert( conc1>=0. );
    double conca[2]={cauxilliary[1],cauxilliary[3]};
-   fa = computeFreeEnergy(temperature,conca,phaseA,false);
+   fa = computeFreeEnergy(temperature,&conca[0],phaseA,false);
 }
 
 //-----------------------------------------------------------------------
@@ -783,11 +783,12 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
          temperature, hphi, conc0, conc1,
          fl, fa);
    }else{
+      double conc[2]={conc0,conc1};
       if( phi<=tol )
       {
-         fl=computeFreeEnergy(temperature,conc,phaseL);
+         fl=computeFreeEnergy(temperature,&conc[0],phaseL);
       }else{
-         fa=computeFreeEnergy(temperature,conc,phaseA);
+         fa=computeFreeEnergy(temperature,&conc[0],phaseA);
       }
    }
    const double well =
