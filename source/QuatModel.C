@@ -4856,6 +4856,9 @@ QuatModel::FlattenHierarchy(
    const int level_number,
    const double time )
 {
+   assert( level_number>=0 );
+   assert( level_number<10 );
+
    // It will be assumed that the levels of src_hierarchy are
    // synchronized at this point.
 
@@ -4866,13 +4869,15 @@ QuatModel::FlattenHierarchy(
 
    // Compute physical domain box array describing the index space of the physical domain managed 
    // by this geometry object. 
-   // If any entry of ratio vector is negative, the index space is coarsened with respect to the physical domain description. Otherwise, the index space is refined.    
+   // If any entry of ratio vector is negative, the index space is coarsened with respect to the 
+   // physical domain description. Otherwise, the index space is refined.    
    
    // get boxes corresponding to level 0 of hierarchy, then refine them to "level_number"
    hier::BoxLevel layer0(ratio, d_grid_geometry);
    hier::BoxContainer boxes;
    boost::shared_ptr<hier::PatchLevel> zero_level =
       src_hierarchy->getPatchLevel( 0 );
+   //iterate over patches
    for ( hier::PatchLevel::Iterator p(zero_level->begin()); p != zero_level->end(); ++p ) {
       const hier::Box& box = (*p)->getBox();
       boxes.pushBack(box);
@@ -4881,7 +4886,6 @@ QuatModel::FlattenHierarchy(
    //hier::BoxContainer boxes ( zero_level->getBoxes() );
    boxes.refine(ratio);   
    //boxes.print(cout);
-
    
    hier::BoxContainer::const_iterator boxes_itr=boxes.begin();
    for (int ib=0; ib < boxes.size(); ib++, boxes_itr++) {
@@ -4890,15 +4894,9 @@ QuatModel::FlattenHierarchy(
 
    boost::shared_ptr<hier::PatchLevel> src_level =
       src_hierarchy->getPatchLevel( level_number );
-
-   hier::PatchHierarchy tmp_hierarchy(
-      "tmpPatchHierarchy",
-      d_grid_geometry,
-      boost::shared_ptr<tbox::Database>() );
-   tmp_hierarchy.makeNewPatchLevel(level_number, layer0);
-
-   boost::shared_ptr<hier::PatchLevel > flattened_level = 
-      tmp_hierarchy.getPatchLevel( level_number );
+   boost::shared_ptr<hier::PatchLevel > flattened_level (
+      new hier::PatchLevel( layer0, d_grid_geometry, 
+                            hier::VariableDatabase::getDatabase()->getPatchDescriptor()) );
 
    // allocate data on newly created level
    flattened_level->allocatePatchData( d_phase_id );
