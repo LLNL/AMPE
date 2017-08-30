@@ -41,16 +41,17 @@ GITVERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DGITVERSION="$(GITVERSION)"
 
 CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
-		CALPHADConcSolverTernary.o CALPHADEqConcSolverTernary.o CALPHADFreeEnergyFunctionsTernary.o \
-      NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
+		CALPHADConcSolverTernary.o CALPHADEqConcSolverTernary.o \
+		CALPHADFreeEnergyFunctionsTernary.o \
+		NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
 		CALPHADFreeEnergyStrategy.o CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
 		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
-      CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
-      FreeEnergyStrategy.o
+		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
+		FreeEnergyStrategy.o math_utilities.o
 
-CXX_OBJS      = math_utilities.o DiffusionForConcInPhaseStrategy.o \
+CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 QuatIntegrator.o \
                 BeckermannCompositionRHSStrategy.o \
                 ConstantHeatCapacityStrategy.o PFModel.o \
@@ -118,7 +119,7 @@ LDLIBS += -lnetcdf_c++4 -lnetcdf
 default:        ampe2d
 
 ampe2d:		
-		if test -f stamp-3d; then $(MAKE) clean; fi
+		if test -f stamp-3d; then $(MAKE) clean; rm stamp-3d; fi
 		touch stamp-2d
 		$(MAKE) PDIM=2 ampe-2d
 		mkdir -p ../exec && mv ampe2d ../exec/ampe2d
@@ -128,7 +129,7 @@ ampe-2d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_2D) $(LIBSAMRAIDEPEND)
 		$(LIBSAMRAI) $(LDLIBS) -o ampe2d
 
 ampe3d:		
-		if test -f stamp-2d; then $(MAKE) clean; fi
+		if test -f stamp-2d; then $(MAKE) clean; rm stamp-2d; fi
 		touch stamp-3d
 		$(MAKE) PDIM=3 ampe-3d
 		mkdir -p ../exec && mv ampe3d ../exec/ampe3d

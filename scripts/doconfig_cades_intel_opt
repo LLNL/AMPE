@@ -1,0 +1,18 @@
+#!/bin/sh
+module purge
+module load PE-intel
+module load hdf5
+module load netcdf
+module load hypre
+
+export CXXFLAGS=-qopenmp
+
+./configure --disable-debug --enable-opt \
+            --with-CXX=mpic++ \
+            --with-CC=mpicc \
+            --with-F77=mpif90 \
+            --with-boost=$HOME/lib/boost/1.45.0 \
+            --with-hdf5=$HDF5_DIR \
+            --with-hypre=$HYPRE_DIR \
+            --with-netcdf=$NETCDF_DIR \
+            --prefix=$PWD/build
