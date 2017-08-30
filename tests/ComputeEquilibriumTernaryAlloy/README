@@ -1,0 +1,4 @@
+ln -sf ../../thermodynamic_data/calphadMoNbTa.dat
+
+aprun -n1 ~/GIT/ampe/build/eos-ext-CC-ftn-opt/exec/testCALPHADternary MoNbTa.input
+

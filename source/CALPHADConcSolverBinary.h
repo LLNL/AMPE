@@ -59,6 +59,9 @@ public :
       const double* const fB );
    
 protected:
+   /*
+    * number of coexisting phases
+    */
    int d_N;
    
    double d_fA[3];
@@ -74,8 +77,8 @@ protected:
    virtual void computeXi(const double* const c, 
                           double xi[3])const;
 
-   virtual void computeDxiDc(const double* const c, double xi[3], double dxidc[3])const;
-   
+   virtual void computeDxiDc(const double* const c,  double dxidc[3])const;
+ 
 private :
 
    void RHS(

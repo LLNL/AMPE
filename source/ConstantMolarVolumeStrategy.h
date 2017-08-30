@@ -54,6 +54,8 @@ public:
       const double* const conc,
       const PHASE_INDEX pi ) 
    {
+       (void)temperature;
+       (void)conc;
        return d_inv_vm[pi];
    }
 

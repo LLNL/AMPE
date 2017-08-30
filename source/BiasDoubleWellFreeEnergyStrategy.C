@@ -133,7 +133,16 @@ void BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta(
    const int f_b_id,
    const int rhs_id )
 {
-   assert( 0 );
+   (void)patch;
+   (void)temperature_id;
+   (void)phase_id;
+   (void)eta_id;
+   (void)conc_id;
+   (void)f_l_id;
+   (void)f_a_id;
+   (void)f_b_id;
+   (void)rhs_id;
+   TBOX_ERROR("BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta() not implemented!!!\n");
 }
 
 //=======================================================================

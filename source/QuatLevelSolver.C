@@ -888,7 +888,7 @@ QuatLevelSolver::setMatrixCoefficients(
       {
          const std::vector< hier::BoundaryBox >& surface_boxes = 
             pg->getCodimensionBoundaries(1);
-         const int n_bdry_boxes = surface_boxes.size();
+         const int n_bdry_boxes = static_cast<int>(surface_boxes.size());
          for ( int n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox& boundary_box = surface_boxes[n];

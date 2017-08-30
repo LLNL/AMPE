@@ -195,8 +195,7 @@ public :
       const boost::shared_ptr< pdat::CellVariable<double> > f_b_var );
 
    void RegisterWithVisit(
-      boost::shared_ptr<appu::VisItDataWriter > visit_data_writer,
-      const bool extra_visit_output );
+      boost::shared_ptr<appu::VisItDataWriter > visit_data_writer);
 
    double Advance(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -445,7 +444,9 @@ protected:
 
    // SAMRAIVector component index
    int d_phase_component_index;
+   int d_eta_component_index;
    int d_quat_component_index;
+   int d_conc_component_index;
    int d_temperature_component_index;
 
    //
@@ -972,10 +973,6 @@ private :
    std::string d_phase_well_func_type;
    std::string d_eta_well_func_type;
    std::string d_eta_interp_func_type;
-
-   // SAMRAIVector component index
-   int d_eta_component_index;
-   int d_conc_component_index;
 
    QuatModel* d_quat_model;
    

@@ -51,9 +51,7 @@ public :
       
    virtual void computeXi(const double* const c, double xi[3])const;
 
-   virtual void computeDxiDc(const double* const c, 
-                     double xi[3], 
-                     double dxidc[3])const;
+   virtual void computeDxiDc(const double* const c, double dxidc[3])const;
 
 private:
 

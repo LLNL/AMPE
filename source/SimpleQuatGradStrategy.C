@@ -167,7 +167,6 @@ void SimpleQuatGradStrategy::computeGradSide(
 
    d_quat_model->computeQuatGradSide(
       hierarchy,
-      quat_id,
       diffs_id,
       grad_id,
       time,
@@ -187,7 +186,6 @@ void SimpleQuatGradStrategy::computeGradSide(
 
    d_quat_model->computeQuatGradSide(
       patch_level,
-      quat_id,
       diffs_id,
       grad_id,
       time );

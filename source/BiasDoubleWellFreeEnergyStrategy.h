@@ -59,38 +59,68 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int fl_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)hierarchy;
+      (void)temperature_id;
+      (void)fl_id;
+      (void)gp;
+   };
 
    void computeFreeEnergySolidA(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int fs_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)hierarchy;
+      (void)temperature_id;
+      (void)fs_id;
+      (void)gp;
+   };
 
    void computeFreeEnergySolidB(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int fs_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)hierarchy;
+      (void)temperature_id;
+      (void)fs_id;
+      (void)gp;
+   };
 
    // mesh functions
    virtual void computeFreeEnergyLiquid(
       hier::Patch& patch,
       const int temperature_id,
       const int f_l_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)patch;
+      (void)temperature_id;
+      (void)f_l_id;
+      (void)gp;
+   };
 
    virtual void computeFreeEnergySolidA(
       hier::Patch& patch,
       const int temperature_id,
       const int f_a_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)patch;
+      (void)temperature_id;
+      (void)f_a_id;
+      (void)gp;
+   };
 
    virtual void computeFreeEnergySolidB(
       hier::Patch& patch,
       const int temperature_id,
       const int f_b_id,
-      const bool gp ){};
+      const bool gp ){
+      (void)patch;
+      (void)temperature_id;
+      (void)f_b_id;
+      (void)gp;
+   };
 
    void addComponentRhsPhi(
       hier::Patch& patch,

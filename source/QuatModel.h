@@ -161,7 +161,7 @@ public :
    
    template <typename T>
    void initializePatchFromData(
-      boost::shared_ptr<hier::Patch > patch, int islice,
+      boost::shared_ptr<hier::Patch > patch, unsigned islice,
 #ifdef HAVE_NETCDF3
       netCDF::NcVar* ncPhase,
       netCDF::NcVar* ncEta,
@@ -308,14 +308,12 @@ public :
 
    void computeQuatGradSide(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      int& quat_id,
       int& diffs_id,
       int& grad_side_id,
       const double time,
       const CACHE_TYPE cache = CACHE );
    void computeQuatGradSide(
       const boost::shared_ptr< hier::PatchLevel > patch_level,
-      int& quat_id,
       int& diffs_id,
       int& grad_side_id,
       const double time );

@@ -160,19 +160,18 @@ void QuatLinearRefine::refine(
    const hier::Box& fine_box, 
    const hier::IntVector& ratio) const
 {
-   const tbox::Dimension& dim(fine.getDim());
-   TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
+   //const tbox::Dimension& dim(fine.getDim());
 
    boost::shared_ptr< pdat::CellData<double> > cdata (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>( coarse.getPatchData(src_component) ) );
    boost::shared_ptr< pdat::CellData<double> > fdata (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>( fine.getPatchData(dst_component) ) );
-#ifdef DEBUG_CHECK_ASSERTIONS
-   assert(cdata);
-   assert(fdata);
-   assert(cdata->getDepth() == fdata->getDepth());
-   assert(cdata->getDepth() == 4);
-#endif
+
+   TBOX_ASSERT(cdata);
+   TBOX_ASSERT(fdata);
+   TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
+   TBOX_ASSERT(cdata->getDepth() == 4);
+   TBOX_ASSERT_OBJDIM_EQUALITY3(fine, coarse, ratio);
 
    const hier::Box& cgbox=cdata->getGhostBox();
 

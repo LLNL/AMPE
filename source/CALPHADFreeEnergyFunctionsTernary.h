@@ -5,13 +5,13 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverTernary.h"
 #include "CALPHADEqConcSolverTernary.h"
-#include "FreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctions.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 class CALPHADFreeEnergyFunctionsTernary:
-   public FreeEnergyFunctions
+   public CALPHADFreeEnergyFunctions
 {
 public:
    CALPHADFreeEnergyFunctionsTernary(
@@ -47,22 +47,28 @@ public:
       const double temperature,
       const PHASE_INDEX pi0, const PHASE_INDEX pi1,
       double* ceq,
+      const int maxits=20,
       const bool verbose = false);
 
-   void preRunDiagnostics(std::ostream& os)
+   void preRunDiagnostics(std::ostream& os, const double T0=300., const double T1=3000.)
    {
       os<<"#Species 0, Phase L"<<std::endl;
-      d_g_species_phaseL[0].plotFofT(os);
+      d_g_species_phaseL[0].plotFofT(os, T0, T1);
       os<<"#Species 1, Phase L"<<std::endl;
-      d_g_species_phaseL[1].plotFofT(os);
+      d_g_species_phaseL[1].plotFofT(os, T0, T1);
+      os<<"#Species 2, Phase L"<<std::endl;
+      d_g_species_phaseL[2].plotFofT(os, T0, T1);
       os<<"#Species 0, Phase A"<<std::endl;
-      d_g_species_phaseA[0].plotFofT(os);
+      d_g_species_phaseA[0].plotFofT(os, T0, T1);
       os<<"#Species 1, Phase A"<<std::endl;
-      d_g_species_phaseA[1].plotFofT(os);
+      d_g_species_phaseA[1].plotFofT(os, T0, T1);
+      os<<"#Species 2, Phase A"<<std::endl;
+      d_g_species_phaseA[2].plotFofT(os, T0, T1);
    }
 
    int computePhaseConcentrations(
-      const double temperature, const double* const conc, const double phi, const double eta,
+      const double temperature, const double* const conc,
+      const double phi, const double eta,
       double* x);
    void energyVsPhiAndC(const double temperature, 
                         const double* const ceq,
@@ -93,16 +99,28 @@ public:
       std::ostream& os );
 
    // empty default implementation to avoid downcasting
-   virtual double computePenalty(const PHASE_INDEX index, const double conc){return 0.;};
-   virtual double computeDerivPenalty(const PHASE_INDEX index, const double conc){return 0.;};
-   virtual double compute2ndDerivPenalty(const PHASE_INDEX index, const double conc){return 0.;};
+   virtual double computePenalty(const PHASE_INDEX index, const double conc){
+      (void)index;
+      (void)conc;
+      return 0.;
+   };
+   virtual double computeDerivPenalty(const PHASE_INDEX index, const double conc){
+      (void)index;
+      (void)conc;
+      return 0.;
+   };
+   virtual double compute2ndDerivPenalty(const PHASE_INDEX index, const double conc){
+      (void)index;
+      (void)conc;
+      return 0.;
+   };
    
 protected:
 
    CALPHADConcentrationSolverTernary* d_solver;
 
    double d_ceq_l[2];
-   double d_ceq_a[2];
+   double d_ceq_s[2];
    
    std::string d_phase_interp_func_type;
    std::string d_avg_func_type;
@@ -133,13 +151,13 @@ private:
    double d_LmixBCPhaseA[4][2];
 
    double d_L_AB_L[4];
-   double d_L_AB_A[4];
+   double d_L_AB_S[4];
 
    double d_L_AC_L[4];
-   double d_L_AC_A[4];
+   double d_L_AC_S[4];
 
    double d_L_BC_L[4];
-   double d_L_BC_A[4];
+   double d_L_BC_S[4];
 
    double d_fA[2];
    double d_fB[2];

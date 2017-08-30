@@ -40,9 +40,7 @@ class FreeEnergyFunctions
 public:
    FreeEnergyFunctions(){};
 
-   ~FreeEnergyFunctions()
-   {
-   };
+   virtual ~FreeEnergyFunctions(){};
    
    virtual void energyVsPhiAndC(const double temperature, 
                                 const double* const ceq,
@@ -57,12 +55,14 @@ public:
       const double temperature,
       const PHASE_INDEX pi0, const PHASE_INDEX pi1,
       double* ceq,
-      const bool verbose = false )
+      const int maxits,
+      const bool verbose=false )
    { 
       (void)temperature;
       (void)pi0;
       (void)pi1;
       (void)ceq;
+      (void)maxits;
       (void)verbose;
 
       return false; 

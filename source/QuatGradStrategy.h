@@ -103,6 +103,10 @@ public:
       int& mod_id,
       const double time )
       {
+         (void)patch_level;
+         (void)grad_id;
+         (void)mod_id;
+         (void)time;
          assert( "computeGradModulus unimplemented" );
       }
 

@@ -94,7 +94,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    d_diff_interp_func_type = phase_interp_func_type;
 
    d_phase_scratch_id = phase_scratch_id;
-   d_eta_scratch_id = phase_scratch_id;
+   d_eta_scratch_id   = eta_scratch_id;
    
    d_conc_l_scratch_id=conc_l_scratch_id;
    d_conc_a_scratch_id=conc_a_scratch_id;
@@ -127,8 +127,10 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 
 void EBSCompositionRHSStrategy::setDiffusionCoeff(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                               time)
+   const double                                    time)
 {
+   (void)time;
+
    //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeff"<<endl;
    assert( hierarchy );
    assert( d_free_energy_strategy != NULL );
@@ -175,10 +177,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
-   const hier::Index& ifirst = pbox.lower();
-   const hier::Index& ilast  = pbox.upper();
+   const hier::Index& ifirst ( pbox.lower() );
+   const hier::Index& ilast  ( pbox.upper() );
    
-   const unsigned short nc2=d_ncompositions*d_ncompositions;
+   const unsigned nc2=d_ncompositions*d_ncompositions;
 
    boost::shared_ptr< pdat::CellData<double> > conc_l (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_scratch_id) ) );
@@ -708,7 +710,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    ptr_dz_mq.resize(d_ncompositions*d_ncompositions, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_mq[ijc] = sd_mq->getPointer( 0, ijc );
       ptr_dy_mq[ijc] = sd_mq->getPointer( 1, ijc );
       if ( NDIM > 2 ) {

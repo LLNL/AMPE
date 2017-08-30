@@ -112,7 +112,10 @@ public :
    // deallocate some temporary data to free some memory,
    // for example before some high memory footprint postprocessing
    virtual void DeallocateIntermediateLocalPatchData(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy ){};
+      const boost::shared_ptr<hier::PatchHierarchy > hierarchy )
+   {
+      (void)hierarchy;
+   };
    
    //-----------------------------------------------------------------------
    //

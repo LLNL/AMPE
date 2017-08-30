@@ -37,7 +37,8 @@
 #include "SimpleQuatMobilityStrategy.h"
 #include "TemperatureFreeEnergyStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
-#include "CALPHADFreeEnergyStrategy.h"
+#include "CALPHADFreeEnergyStrategyBinary.h"
+#include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "KKSCompositionRHSStrategy.h"
 #include "EBSCompositionRHSStrategy.h"
@@ -449,34 +450,45 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                                                         d_model_parameters.molar_volume_solid_A(),
                                                         d_model_parameters.molar_volume_solid_B());
          
-         d_free_energy_strategy_for_diffusion =
-            new CALPHADFreeEnergyStrategy(
-               calphad_db, newton_db,
-               d_model_parameters.phase_interp_func_type(),
-               d_model_parameters.eta_interp_func_type(),
-               d_model_parameters.conc_avg_func_type(),
-               d_mvstrategy,
-               d_conc_l_id,
-               d_conc_a_id,
-               d_conc_b_id,
-               d_ncompositions,
-               d_model_parameters.with_third_phase(),
-               d_model_parameters.phase_well_scale(),
-               d_model_parameters.eta_well_scale(),
-               d_model_parameters.phase_well_func_type(),
-               d_model_parameters.eta_well_func_type() );
-         
+         {
+            if( d_ncompositions==1 ){
+               d_free_energy_strategy_for_diffusion =
+                  new CALPHADFreeEnergyStrategyBinary(
+                     calphad_db, newton_db,
+                     d_model_parameters.phase_interp_func_type(),
+                     d_model_parameters.eta_interp_func_type(),
+                     d_model_parameters.conc_avg_func_type(),
+                     d_mvstrategy,
+                     d_conc_l_id,
+                     d_conc_a_id,
+                     d_conc_b_id,
+                     d_model_parameters.with_third_phase(),
+                     d_model_parameters.phase_well_scale(),
+                     d_model_parameters.eta_well_scale(),
+                     d_model_parameters.phase_well_func_type(),
+                     d_model_parameters.eta_well_func_type() );
+            }else{
+               assert( d_ncompositions==2 );
+               d_free_energy_strategy_for_diffusion =
+                  new CALPHADFreeEnergyStrategyTernary(
+                     calphad_db, newton_db,
+                     d_model_parameters.phase_interp_func_type(),
+                     d_model_parameters.conc_avg_func_type(),
+                     d_mvstrategy,
+                     d_conc_l_id,
+                    d_conc_a_id,
+                     d_model_parameters.phase_well_scale(),
+                     d_model_parameters.phase_well_func_type() );
+            }
+         }
+
          if( !calphad_db->keyExists( "PenaltyPhaseL" ) ){
+             
             d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
 
-            if( d_ncompositions>1 ){
-            d_cafe = new CALPHADFreeEnergyFunctionsTernary(
-                  calphad_db, newton_db,
-                  d_model_parameters.phase_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.phase_well_func_type());
-            }else{
+            tbox::plog << "QuatModel: "
+                       << "CALPHAD with "<<d_ncompositions+1<<" species"<<endl;
+            if( d_ncompositions==1 ){
             d_cafe = new CALPHADFreeEnergyFunctionsBinary(
                   calphad_db, newton_db,
                   d_model_parameters.phase_interp_func_type(),
@@ -487,6 +499,13 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.eta_well_scale(),
                   d_model_parameters.phase_well_func_type(),
                   d_model_parameters.eta_well_func_type());
+            }else{
+            d_cafe = new CALPHADFreeEnergyFunctionsTernary(
+                  calphad_db, newton_db,
+                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.conc_avg_func_type(),
+                  d_model_parameters.phase_well_scale(),
+                  d_model_parameters.phase_well_func_type() );
             }
          }else{
             tbox::plog << "QuatModel: "
@@ -592,7 +611,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.eta_well_scale(),
                   d_model_parameters.phase_well_func_type(),
                   d_model_parameters.eta_well_func_type(),
-                  calphad_db, newton_db );
+                  calphad_db, newton_db,
+                  d_ncompositions );
          }else{
          if ( d_model_parameters.isConcentrationModelHBSM() )
             d_phase_conc_strategy =
@@ -785,6 +805,8 @@ void QuatModel::Initialize(
 
    d_grain_extend_interval.reset( new EventInterval(
       input_db, "GrainExtension", 0.0, "step" ) );
+
+   d_ncompositions = d_model_parameters.ncompositionFields();
 
    // Base class does setup of various common things: logfile,
    // restart, basic samrai objects, visit, ALSO VIRTUAL FUNCTIONS for
@@ -1413,12 +1435,12 @@ void QuatModel::initializeLevelFromData(
    dims.push_back(ncPhase.getDim(2));
    dims.push_back(ncPhase.getDim(1));
    dims.push_back(ncPhase.getDim(0));
-   int nx_file = dims[0].getSize();
-   int ny_file = dims[1].getSize();
-   int nz_file = dims[2].getSize();
+   size_t nx_file = dims[0].getSize();
+   size_t ny_file = dims[1].getSize();
+   size_t nz_file = dims[2].getSize();
 #endif
 
-   int islice = 0;
+   size_t islice = 0;
 #if (NDIM == 2)
    if ( d_slice_index < 0 ) {
       islice = nz_file / 2;
@@ -1428,9 +1450,7 @@ void QuatModel::initializeLevelFromData(
    }
 #endif
 
-//#ifdef HAVE_NETCDF3
    checkInputFileDimensions( nx_file, ny_file, nz_file, qlen_file );
-//#endif
 
 #ifdef HAVE_NETCDF3
    NcVar** ncQuatComponents=NULL;
@@ -1550,7 +1570,7 @@ void QuatModel::initializeLevelFromData(
    
 template <typename T>
 void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
-                                        int islice,
+                                        unsigned islice,
 #ifdef HAVE_NETCDF3
                                         NcVar* ncPhase,
                                         NcVar* ncEta,
@@ -2809,7 +2829,7 @@ void QuatModel::RegisterWithVisit( void )
          "energy", "SCALAR", d_energy_diag_id, 0 );
    }
 
-   d_integrator->RegisterWithVisit( d_visit_data_writer, d_model_parameters.with_extra_visit_output() );
+   d_integrator->RegisterWithVisit( d_visit_data_writer );
 
 }
 
@@ -3116,7 +3136,7 @@ void QuatModel::preRunDiagnostics( void )
          double phi_min = mathops.min( d_phase_id );
          //double phi_max = mathops.max( d_phase_id );
          
-         double ceq[3];
+         double ceq[4]; // 2 phases x 2 compositions max.
          bool found_ceq=false;
          if( phi_min<0.1 ){
             found_ceq=computeCeq(temperature,phaseL, phaseA,&ceq[0]);
@@ -3183,49 +3203,51 @@ bool QuatModel::computeCeq(const double temperature,
    tbox::pout<<"preRunDiagnostics: Try to estimate equilibrium concentrations between cmin="<<cmin
           <<" and cmax="<<cmax<<"..."<<endl;
    tbox::pout<<"T="<<temperature<<endl;
-   double ceq_init0=max(cmin,0.01);
-   double ceq_init1=min(cmax,0.99);
-   
-   double lceq[2*d_ncompositions];
-   for(short i=0;i<d_ncompositions;i++){
-      lceq[2*i]  =ceq_init0;
-      lceq[2*i+1]=ceq_init1;
-   }
-   
+//   double ceq_init0=max(cmin,0.01);
+//   double ceq_init1=min(cmax,0.99);
+
+   double val=1./(d_ncompositions+1); 
+   double lceq[4]={val,val,val,val};
+//   lceq[0]=ceq_init0;
+//   lceq[1]=ceq_init1;
+//   lceq[2]=ceq_init0;
+//   lceq[3]=ceq_init1;
+ 
    // compute equilibrium concentrations
    bool found_ceq = false;
    if( mpi.getRank()==0 ) // do it on PE0 only to avoid error message prints from all PEs
    {
       found_ceq =
-         d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0], true);
+         d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0], 50, true);
       if( lceq[0]>1. )found_ceq = false;
       if( lceq[0]<0. )found_ceq = false;
       if( lceq[1]>1. )found_ceq = false;
       if( lceq[1]<0. )found_ceq = false;
       
-      if( !found_ceq )
-      {
-         lceq[0]=ceq_init1;
-         lceq[1]=ceq_init0;
-         found_ceq =
-            d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0],true);
-            //d_free_energy_strategy->computeCeqT(temperature,pi0,pi1,&lceq[0]);
-      }
-      
+//      if( !found_ceq )
+//      {
+//         lceq[0]=ceq_init1;
+//         lceq[1]=ceq_init0;
+//         found_ceq =
+//            d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0],50,true);
+//            //d_free_energy_strategy->computeCeqT(temperature,pi0,pi1,&lceq[0]);
+//      }
       
       if( found_ceq ){
-         tbox::plog<<"Found equilibrium concentrations: "<<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
+         tbox::plog<<"Found equilibrium concentrations: "<<lceq[0]<<", "<<lceq[1]<<"..."<<endl;
+         if( d_ncompositions>1 )
+            tbox::plog<<"                                  "<<lceq[2]<<", "<<lceq[3]<<"..."<<endl;
       }else{
-         tbox::plog<<"WARNING: Equilibrium concentrations not found... "
-             <<"Set values to "<<ceq_init0<<" and "<<ceq_init1<<endl;
-         ceq[pi0]=ceq_init0;
-         ceq[pi1]=ceq_init1;
+         tbox::plog<<"ERROR: Equilibrium concentrations not found... "<<endl;
+//             <<"Set values to "<<ceq_init0<<" and "<<ceq_init1<<endl;
+//         ceq[pi0]=ceq_init0;
+//         ceq[pi1]=ceq_init1;
       }
    
       if( !found_ceq )mpi.abort();
    }
    
-   mpi.Bcast( &lceq[0], 2, MPI_DOUBLE, 0);
+   mpi.Bcast( &lceq[0], 4, MPI_DOUBLE, 0);
    
    int flag = (int)found_ceq;
    mpi.Bcast( &flag, 1, MPI_INT, 0);
@@ -5168,6 +5190,8 @@ void QuatModel::computeVarDiffs(
    int& diffs_id,
    const double time )
 {
+   (void)time;
+
    if ( var_id < 0 ) var_id = d_phase_scratch_id;
    if ( diffs_id < 0 ) diffs_id = d_phase_diffs_id;
    assert( var_id>=0 );
@@ -5342,6 +5366,8 @@ void QuatModel::computeVarGradCell(
    int& grad_cell_id,
    const double time )
 {
+   (void)time;
+
    assert ( diffs_id >= 0 );
    assert ( grad_cell_id >= 0 );
 
@@ -5445,6 +5471,8 @@ void QuatModel::computeVarGradSide(
    int& grad_side_id,
    const double time )
 {
+   (void)time;
+
    if ( diffs_id < 0 ) diffs_id = d_phase_diffs_id;
    if ( grad_side_id < 0 ) grad_side_id = d_phase_grad_side_id;
 
@@ -5562,6 +5590,8 @@ void QuatModel::computeQuatDiffs(
    int& quat_diffs_id,
    const double time )
 {
+   (void)time;
+
    if ( quat_id < 0 ) quat_id = d_quat_scratch_id;
    if ( quat_diffs_id < 0 ) quat_diffs_id = d_quat_diffs_id;
 
@@ -5719,6 +5749,7 @@ void QuatModel::computeQuatGradCell(
    int& grad_cell_id,
    const double time )
 {
+   (void)time;
    
    if ( quat_diffs_id < 0 ) quat_diffs_id = d_quat_diffs_id;
    if ( grad_cell_id < 0 ) grad_cell_id = d_quat_grad_cell_id;
@@ -5822,7 +5853,6 @@ void QuatModel::computeQuatGradCell(
 
 void QuatModel::computeQuatGradSide(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& quat_id,
    int& quat_diffs_id,
    int& grad_side_id,
    const double time,
@@ -5839,17 +5869,21 @@ void QuatModel::computeQuatGradSide(
          hierarchy->getPatchLevel( ln );
 
       computeQuatGradSide(
-         patch_level, quat_id, quat_diffs_id, grad_side_id, time );
+         patch_level, quat_diffs_id, grad_side_id, time );
    }
 }
 
+/*
+ * Compute gradients, using differences
+ */
 void QuatModel::computeQuatGradSide(
    const boost::shared_ptr< hier::PatchLevel > level,
-   int& quat_id,
    int& quat_diffs_id,
    int& grad_side_id,
    const double time )
 {
+   (void)time;
+
    //tbox::pout<<"computeQuatGradSide()"<<endl;
    
    if ( quat_diffs_id < 0 ) quat_diffs_id = d_quat_diffs_id;
@@ -6107,6 +6141,8 @@ void QuatModel::computeQuatGradModulus(
    int& grad_modulus_id,
    const double time )
 {
+   (void)time;
+
    if ( grad_cell_id < 0 ) grad_cell_id = d_quat_grad_cell_id;
    if ( grad_modulus_id < 0 )
       grad_modulus_id = d_quat_grad_modulus_id;
@@ -6176,6 +6212,8 @@ void QuatModel::computeQuatGradModulusFromSides(
    int& grad_modulus_id,
    const double time )
 {
+   (void)time;
+
    if ( grad_side_id < 0 ) grad_side_id = d_quat_grad_side_id;
    assert( grad_side_id>=0 );
    if ( grad_modulus_id < 0 )
@@ -6737,6 +6775,8 @@ void QuatModel::computeQuatMobilityDeriv(
    int& mobility_deriv_id,
    const double time )
 {
+   (void)time;
+
    if ( phase_id < 0 ) phase_id = d_phase_scratch_id;
    assert( mobility_deriv_id >= 0 );
 
@@ -7197,6 +7237,8 @@ void QuatModel::computeSymmetryRotations(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const double time )
 {
+   (void)time;
+
    assert( d_quat_scratch_id>=0 );
    assert( d_quat_symm_rotation_id>=0 );
    

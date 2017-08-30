@@ -36,11 +36,6 @@
 #include <cmath>
 #include <cassert>
 
-#define DEBUG_CONVERGENCE
-#ifdef DEBUG_CONVERGENCE
-#include <vector>
-#endif
-
 #include <iomanip>
 
 using namespace std;
@@ -56,6 +51,7 @@ DampedNewtonSolver::DampedNewtonSolver() :
 //=======================================================================
 // note: sizes to accomodate up to ternary alloys
 //
+// c: solution to be updated
 void DampedNewtonSolver::UpdateSolution(
    double* const c,
    const double* const fvec,
@@ -72,7 +68,7 @@ void DampedNewtonSolver::UpdateSolution(
    const double D = Determinant( fjac );
    const double D_inv = 1.0 / D;
 
-   //cout << "D = " << D << endl;
+   //cout << "DampedNewtonSolver::UpdateSolution(), D = " << D << endl;
 
    static double del_c[4];
 
@@ -89,7 +85,6 @@ void DampedNewtonSolver::UpdateSolution(
       del_c[jj] = D_inv * Determinant( mwork );
 
       //cout << "del_c[" << jj << "] = " << del_c[jj] << endl;
-
    }
 
 #if 0
@@ -137,9 +132,7 @@ void DampedNewtonSolver::UpdateSolution(
 
    }
    for ( int ii = 0; ii < nn; ii++ ) {
-
       c[ii] = c[ii] - w * del_c[ii];
-
    }
    
    bool flag;

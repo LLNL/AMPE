@@ -781,6 +781,7 @@ void PFModel::initializeLevelData(
 // derived method
    (void) hierarchy;
    (void) level_number;
+   (void) time;
    (void) can_be_refined;
    (void) initial_time;
    (void) old_level;

@@ -97,7 +97,6 @@ extern "C" {
  *
  * CPODESSolver Usage:
  * 
- *
  *    -  In order to use the CPODESSolver, the user must provide a
  *           concrete subclass of CPODESAbstractFunctions abstract
  *           base class which defines the evaluateRHSFunction(),
@@ -119,7 +118,6 @@ extern "C" {
  *           must be specified by the user before calling the solve()
  *           method:
  *        
- * 
  *            - Either relative or absolute tolerance must
  *                  be set - setRelativeTolerance(relative_tolerance),
  *                  setAbsoluteTolerance(absolute_tolerance)
@@ -132,12 +130,9 @@ extern "C" {
  *            - Initial condition vector - 
  *                  setInitialConditionVector(ic_vector)
  *
- *        
  *           
  *    -  The following is a list of default values for integration
  *           parameters:
- * 
- *        
  * 
  *           - @b Linear Multistep Method               
  *                BDF
@@ -189,9 +184,6 @@ extern "C" {
  * 
  *           - @b CPSpgmr Tolerance Scale Factor        
  *                CPSPGMR_DELT = 0.05.
- * 
- *        
- *
  * 
  *
  * CPODES was developed in the Center for Applied Scientific Computing (CASC) 

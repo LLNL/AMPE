@@ -177,10 +177,8 @@ CPODESSolver::CPODESSolver(
    CPODESAbstractFunctions* my_functions,
    const bool uses_preconditioner)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!object_name.empty());
    TBOX_ASSERT(!(my_functions == 0));
-#endif
 
    d_object_name         = object_name;
    d_cpode_functions      = my_functions;
@@ -287,9 +285,7 @@ void CPODESSolver::initialize(solv::SundialsAbstractVector* solution)
 
 void CPODESSolver::initializeCPODES() 
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!(d_solution_vector == (solv::SundialsAbstractVector*)NULL));
-#endif
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
@@ -468,9 +464,7 @@ void CPODESSolver::initializeCPODES()
 
 void CPODESSolver::reinitializeAfterRegrid() 
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!(d_solution_vector == (solv::SundialsAbstractVector*)NULL));
-#endif
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
@@ -503,7 +497,6 @@ void CPODESSolver::reinitializeAfterRegrid()
 */
 int CPODESSolver::solve()
 {
-
    int retval = CP_SUCCESS;
 
    initializeCPODES();
@@ -512,14 +505,11 @@ int CPODESSolver::solve()
     * Check to make sure that user specified final value for t
     * is greater than initial value for t.
     */
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( d_user_t_f > d_t_0);
-#endif
 
    /*
     * See cpodes.h header file for definition of return types.
     */
-
    retval = CPode(d_cpode_mem,
                   d_user_t_f,
                   &d_actual_t_f,
@@ -528,7 +518,6 @@ int CPODESSolver::solve()
                   d_stepping_method);                  
 
    return( retval );
-
 }
 
 /*
@@ -542,9 +531,8 @@ int CPODESSolver::solve()
 void CPODESSolver::setLogFileData(
    const std::string& log_fname)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!log_fname.empty());
-#endif
+
    if ( !(log_fname == d_cpode_log_file_name) ) {
       d_cpode_log_file_name = log_fname;
       d_CPODE_needs_initialization = true;
@@ -563,9 +551,7 @@ void CPODESSolver::setCPODESFunctions(
    CPODESAbstractFunctions* my_functions,
    const bool uses_preconditioner)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!(my_functions == (CPODESAbstractFunctions*)NULL));
-#endif
 
    d_cpode_functions = my_functions;
    d_uses_preconditioner = uses_preconditioner;
@@ -585,39 +571,32 @@ CPODESAbstractFunctions* CPODESSolver::getCPODESFunctions() const
 */
 void CPODESSolver::setLinearMultistepMethod(int linear_multistep_method)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (linear_multistep_method == CP_ADAMS) || 
            (linear_multistep_method == CP_BDF) );
-#endif
    d_linear_multistep_method = linear_multistep_method;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setIterationType(int iteration_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (iteration_type == CP_FUNCTIONAL) || 
            (iteration_type == CP_NEWTON) );
-#endif
    d_iteration_type = iteration_type;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setToleranceType(std::string tolerance_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (tolerance_type == "scalar") || 
            (tolerance_type == "vector") );
-#endif
+
    d_tolerance_type = tolerance_type;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setRelativeTolerance(double relative_tolerance)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(relative_tolerance >= 0.0);
-#endif
 
    d_relative_tolerance = relative_tolerance;
    d_CPODE_needs_initialization = true;
@@ -625,9 +604,8 @@ void CPODESSolver::setRelativeTolerance(double relative_tolerance)
 
 void CPODESSolver::setAbsoluteTolerance(double absolute_tolerance)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(absolute_tolerance >= 0.0);
-#endif
+
    d_absolute_tolerance_scalar = absolute_tolerance;
    d_use_scalar_absolute_tolerance = true;
    d_CPODE_needs_initialization = true;
@@ -636,10 +614,9 @@ void CPODESSolver::setAbsoluteTolerance(double absolute_tolerance)
 void CPODESSolver::setAbsoluteTolerance(
    solv::SundialsAbstractVector* absolute_tolerance)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( !(absolute_tolerance == (solv::SundialsAbstractVector*)NULL) );
    TBOX_ASSERT( absolute_tolerance->vecMin() >= 0.0 ); 
-#endif
+
    d_absolute_tolerance_vector = absolute_tolerance;
    d_use_scalar_absolute_tolerance = false;
    d_CPODE_needs_initialization = true;
@@ -647,10 +624,9 @@ void CPODESSolver::setAbsoluteTolerance(
 
 void CPODESSolver::setSteppingMethod(int stepping_method)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (stepping_method == CP_NORMAL) || 
            (stepping_method == CP_ONE_STEP) );
-#endif
+#
    d_stepping_method = stepping_method;
    d_CPODE_needs_initialization = true;
 }
@@ -671,9 +647,8 @@ void CPODESSolver::setFinalValueOfIndependentVariable(double t_f,
 void CPODESSolver::setInitialConditionVector(
    solv::SundialsAbstractVector* ic_vector)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( !(ic_vector == (solv::SundialsAbstractVector*)NULL) );
-#endif
+
    d_ic_vector = ic_vector;
    d_CPODE_needs_initialization = true;
 }
@@ -681,9 +656,8 @@ void CPODESSolver::setInitialConditionVector(
 void CPODESSolver::setMaximumLinearMultistepMethodOrder(
    int max_order)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( max_order >= 0);
-#endif
+
    d_max_order = max_order;
    d_CPODE_needs_initialization = true;
 }
@@ -691,9 +665,7 @@ void CPODESSolver::setMaximumLinearMultistepMethodOrder(
 void CPODESSolver::setMaximumNumberOfInternalSteps(
    int max_num_internal_steps)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( max_num_internal_steps >= 0 );
-#endif
 
    d_max_num_internal_steps = max_num_internal_steps;
    d_CPODE_needs_initialization = true;
@@ -702,9 +674,7 @@ void CPODESSolver::setMaximumNumberOfInternalSteps(
 void CPODESSolver::setMaximumNumberOfNilStepWarnings(
    int max_num_warnings)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( max_num_warnings >= 0 );
-#endif
 
    d_max_num_warnings = max_num_warnings;
    d_CPODE_needs_initialization = true;
@@ -712,27 +682,24 @@ void CPODESSolver::setMaximumNumberOfNilStepWarnings(
 
 void CPODESSolver::setInitialStepSize(double init_step_size)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( init_step_size >= 0.0 );
-#endif
+
    d_init_step_size = init_step_size;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setMaximumAbsoluteStepSize(double max_step_size)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( max_step_size >= 0.0 );
-#endif
+
    d_max_step_size = max_step_size;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setMinimumAbsoluteStepSize(double min_step_size)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( min_step_size >= 0.0 );
-#endif
+
    d_min_step_size = min_step_size;
    d_CPODE_needs_initialization = true;
 }
@@ -746,49 +713,44 @@ void CPODESSolver::setMinimumAbsoluteStepSize(double min_step_size)
 */
 void CPODESSolver::setPreconditioningType(int precondition_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (precondition_type == PREC_NONE) ||
            (precondition_type == PREC_LEFT) ||
            (precondition_type == PREC_RIGHT) ||
            (precondition_type == PREC_BOTH) );
-#endif
+
    d_precondition_type = precondition_type;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setGramSchmidtType(int gs_type)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( (gs_type == CLASSICAL_GS) ||
            (gs_type == MODIFIED_GS) );
-#endif
+
    d_gram_schmidt_type = gs_type;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setMaxKrylovDimension(int max_krylov_dim)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( max_krylov_dim >= 0 );
-#endif
+
    d_max_krylov_dim = max_krylov_dim;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setCPSpgmrToleranceScaleFactor(double tol_scale_factor)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( tol_scale_factor >= 0 );
-#endif
+
    d_tol_scale_factor = tol_scale_factor;
    d_CPODE_needs_initialization = true;
 }
 
 void CPODESSolver::setCPNonlinConvCoef(double coef)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( coef > 0. );
-#endif
+
    d_nonlin_conv_coef = coef;
    d_CPODE_needs_initialization = true;
 }

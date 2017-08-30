@@ -97,25 +97,17 @@ double NewtonSolver::Determinant(
 {
    assert( d_N == 2 || d_N == 3 || d_N == 4 );
 
-   double d;
-
    if ( d_N == 4 ) {
-
-      d = Determinant4(m);
-
+      return Determinant4(m);
    }
-   if ( d_N == 3 ) {
-
-      d = Determinant3(m);
-
+   else if ( d_N == 3 ) {
+      return Determinant3(m);
    }
    else if ( d_N == 2 ) {
-
-      d = m[0][0] * m[1][1] - m[1][0] * m[0][1];
-
+      return m[0][0] * m[1][1] - m[1][0] * m[0][1];
    }
 
-   return d;
+   return 0.;
 }
 
 //=======================================================================
@@ -136,7 +128,7 @@ void NewtonSolver::UpdateSolution(
 
    //cout << "D = " << D << endl;
 
-   static double del_c[3];
+   static double del_c[4];
 
    // use Cramer's rule to solve linear system
    for ( int jj = 0; jj < d_N; jj++ ) {
@@ -153,11 +145,8 @@ void NewtonSolver::UpdateSolution(
    }
 
    double w = 1.0;
-
    for ( int ii = 0; ii < d_N; ii++ ) {
-
       c[ii] = c[ii] - w * del_c[ii];
-
    }
    
    bool flag;
@@ -186,14 +175,18 @@ void NewtonSolver::UpdateSolution(
 }
 
 //=======================================================================
-
+// conc: initial guess and output solution
 int NewtonSolver::ComputeSolution(
    double* const conc,
    const int N )
 {
+   assert( d_max_iters>1 );
+
    d_N = N;
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
+   //cout<<"NewtonSolver::ComputeSolution(), Initial conc="
+   //    <<conc[0]<<","<<conc[1]<<","<<conc[2]<<","<<conc[3]<<endl;
 #endif
 
    static double* fvec=NULL;
@@ -244,6 +237,7 @@ int NewtonSolver::ComputeSolution(
             for ( int ii = 0; ii < d_N; ii++ ) {
                clog << " conc[" << ii << "] = " << conc[ii];
             }
+            clog << endl;
             for ( int ii = 0; ii < d_N; ii++ ) {
                clog << " rhs[" << ii << "] = " << fvec[ii];
             }
@@ -255,14 +249,21 @@ int NewtonSolver::ComputeSolution(
       }
       
 #ifdef DEBUG_CONVERGENCE
-      cerr<<setprecision(12);
+      cout<<setprecision(12);
+      cout<<"Concentration history..."<<endl;
+      for( unsigned j=0;j<ctmp.size();j=j+d_N){
+         cout << "  conc= ";
+         for ( int ii = 0; ii < d_N; ii++ ) {
+            cout<<ctmp[j+ii]<< "   ";
+         }
+         cout<<endl;
+      }
       for ( int ii = 0; ii < d_N; ii++ ) {
-         for( int j=ii;j<ctmp.size();j=j+d_N)cout<<ctmp[j]<< ", ";
-         cerr << "  conc[" << ii << "] = " << conc[ii]
+         cout << "  conc[" << ii << "] = " << conc[ii]
               << endl;
       }
       for ( int ii = 0; ii < d_N; ii++ ) {
-         cerr << "  rhs[" << ii << "] = " << fvec[ii]
+         cout << "  rhs[" << ii << "] = " << fvec[ii]
               << endl;
       }
 #endif

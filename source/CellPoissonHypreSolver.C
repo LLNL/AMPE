@@ -310,7 +310,7 @@ void sqrtArray(
       int dst_w[NDIM];
       int src_w[NDIM];
       int dim_counter[NDIM];
-      for (int i = 0; i < NDIM; i++) {
+      for (tbox::Dimension::dir_t i = 0; i < NDIM; i++) {
          box_w[i] = ibox.numberCells(i);
          dst_w[i] = dst_box.numberCells(i);
          src_w[i] = src_box.numberCells(i);
@@ -903,8 +903,6 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
    tbox::pout<<"CellPoissonHypreSolver::setMatrixCoefficients with M constant"<<endl;
 #endif
 
-   int i=0;
- 
    boost::shared_ptr< pdat::CellData<double> > C_data;
    boost::shared_ptr< pdat::SideData<double> > D_data;
    boost::shared_ptr< pdat::CellData<double> > M_data;
@@ -999,14 +997,14 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
         to our central difference formula.
        */
       if ( spec.dIsConstant() ) {
-        for ( i=0; i<NDIM; ++i ) {
+        for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
           double dhh = spec.getDConstant() / (h[i]*h[i]);
           pdat::ArrayData<double>& off_diag_array( off_diagonal.getArrayData(i) );
           off_diag_array.fill( dhh );
         }
       }
       else {
-        for ( i=0; i<NDIM; ++i ) {
+        for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
           hier::Box sbox(patch_box);
           sbox.growUpper( i, 1 );
           array_math.scale( off_diagonal.getArrayData(i) ,
@@ -1053,7 +1051,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          const double cval=spec.getCConstant();
          if ( spec.mIsConstant() ) {
             const double mscale = spec.getMConstant();
-            for ( i=0; i<NDIM; ++i ) {
+            for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
                hier::Box sbox(patch_box);
                sbox.growUpper( i, 1 );
                array_math.scale( off_diagonal.getArrayData(i),
@@ -1136,7 +1134,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          if ( spec.mIsConstant() ) {
             double mscale = spec.getMConstant();
             assert( fabs(mscale)>0. );
-            for ( i=0; i<NDIM; ++i ) {
+            for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
                hier::Box sbox(patch_box);
                sbox.growUpper( i, 1 );
                array_math.scale( off_diagonal.getArrayData(i),
@@ -1352,7 +1350,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       int stencil_indices[stencil_size];
       double mat_entries[stencil_size];
 
-      for ( i=0; i<stencil_size; i++ ) stencil_indices[i] = i;
+      for (tbox::Dimension::dir_t i=0; i<stencil_size; i++ ) stencil_indices[i] = i;
 
       pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box));
       pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));

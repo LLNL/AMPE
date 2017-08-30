@@ -275,6 +275,10 @@ void Grains::initializeLevelData(
    const boost::shared_ptr<hier::PatchLevel >& old_level,
    const bool allocate_data )
 {
+   (void)time;
+   (void)can_be_refined;
+   (void)initial_time;
+
    tbox::pout<<"Grains::initializeLevelData()"<<endl;
    boost::shared_ptr<hier::PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
@@ -341,7 +345,7 @@ void Grains::findAndNumberGrains(
          level_offset[ln+1] = level_offset[ln] + bbox_size;
       }
 
-      int nn = NDIM*ln;
+      unsigned nn = NDIM*ln;
       level_stride[nn] = 1;
       for ( tbox::Dimension::dir_t dd = 1; dd < NDIM; dd++ ) {
          level_stride[nn+dd] =

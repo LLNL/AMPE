@@ -77,7 +77,11 @@ private :
    bool CheckTolerance( const double* const fvec );
    bool CheckToleranceFirstEq( const double* const fvec );
 
+   /*
+    * Number of equations in system
+    */
    int d_N;
+
    int d_max_iters;
    double d_tolerance;
    bool d_verbose;

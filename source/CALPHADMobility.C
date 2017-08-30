@@ -70,7 +70,7 @@ void CALPHADMobility::initialize(
                                        it++ )
    {
       if( db->keyExists( *it ) ){
-         int n=db->getArraySize(*it);
+         size_t n=db->getArraySize(*it);
          assert(n>=2);
          assert(n<=4);
 

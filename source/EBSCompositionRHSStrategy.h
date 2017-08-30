@@ -36,7 +36,7 @@
 
 #include "CompositionRHSStrategy.h"
 #include "CALPHADMobility.h"
-#include "CALPHADFreeEnergyStrategy.h"
+#include "CALPHADFreeEnergyStrategyBinary.h"
 
 #include <vector>
 #include <string>

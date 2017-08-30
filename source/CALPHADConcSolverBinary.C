@@ -62,6 +62,7 @@ CALPHADConcentrationSolverBinary::CALPHADConcentrationSolverBinary(
 void CALPHADConcentrationSolverBinary::computeXi(const double* const c, double xi[3])const
 {
    //std::cout<<"CALPHADConcentrationSolverBinary::computeXi()"<<endl;
+   //loop over phases
    for ( int ii = 0; ii < d_N; ii++ ) {
 
       double omega = CALPHADcomputeFMix_derivBinary(d_L0[ii],d_L1[ii],d_L2[ii],d_L3[ii],c[ii]);
@@ -128,11 +129,10 @@ void CALPHADConcentrationSolverBinary::RHS(
 
 //=======================================================================
 
-void CALPHADConcentrationSolverBinary::computeDxiDc(const double* const c, double xi[3], double dxidc[3])const
+void CALPHADConcentrationSolverBinary::computeDxiDc(const double* const c, double dxidc[3])const
 {
    //std::cout<<"CALPHADConcentrationSolverBinary::computeDxiDc()"<<endl;
-   computeXi(c,xi);
-   
+   //loop over phases
    for ( int ii = 0; ii < d_N; ii++ ) {
       dxidc[ii] = d_RTinv * CALPHADcomputeFMix_deriv2Binary(d_L0[ii],d_L1[ii],d_L2[ii],d_L3[ii],c[ii]);
    }
@@ -144,11 +144,9 @@ void CALPHADConcentrationSolverBinary::Jacobian(
    const double* const c,
    double** const fjac )
 {
-   double xi[3];
+   //compute dxidc for up to 3 phases
    double dxidc[3];
-   double expxi[3];
-   
-   computeDxiDc(c,xi,dxidc);
+   computeDxiDc(c,dxidc);
 
    fjac[0][0] = ( 1.0 - d_hphi );
    fjac[0][1] = d_hphi;
@@ -163,6 +161,10 @@ void CALPHADConcentrationSolverBinary::Jacobian(
    fjac[1][1] = -dxidc[1]-xlogx_deriv2(c[1])-xlogx_deriv2(1.-c[1]);
    
 #else
+   double xi[3];
+   computeXi(c,xi);
+
+   double expxi[3];
    for ( int ii = 1; ii < d_N; ii++ ) {  // Not using [0]
       expxi[ii] = exp( xi[0] - xi[ii] );
    }
@@ -213,8 +215,12 @@ void CALPHADConcentrationSolverBinary::Jacobian(
 #endif
 }
 
-//=======================================================================
-
+/*
+ ********************************************************************
+ * conc: initial guess and final solution (concentration in each phase)
+ * c0: local composition
+ ********************************************************************
+ */
 int CALPHADConcentrationSolverBinary::ComputeConcentration(
    double* const conc,
    const double c0,

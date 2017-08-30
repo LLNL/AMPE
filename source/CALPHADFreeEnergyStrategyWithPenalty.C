@@ -57,7 +57,7 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
    const double eta_well_scale,
    const std::string& phase_well_func_type,
    const std::string& eta_well_func_type ):
-      CALPHADFreeEnergyStrategy(calphad_db,newton_db,
+      CALPHADFreeEnergyStrategyBinary(calphad_db,newton_db,
          phase_interp_func_type,
          eta_interp_func_type,
          avg_func_type,

@@ -31,21 +31,17 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADFreeEnergyFunctionsTernary.h"
-#include "CALPHADMobility.h"
-#include "CompositionStrategyMobilities.h"
-#include "CALPHADFreeEnergyStrategy.h"
-#include "QuatModelParameters.h"
-#include "ConstantMolarVolumeStrategy.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/PIO.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Database.h"
+
+#include <boost/make_shared.hpp>
 
 #include <string>
 #include <fstream>
@@ -112,18 +108,9 @@ int main( int argc, char *argv[] )
       if ( log_db->keyExists( "filename" ) ) {
          log_file_name = log_db->getString( "filename" );
       }
-
-      if ( log_db->keyExists( "log_all_nodes" ) ) {
-         log_all_nodes = log_db->getBool( "log_all_nodes" );
-      }
    }
 
-   if ( log_all_nodes ) {
-      tbox::PIO::logAllNodes( log_file_name );
-   }
-   else {
-      tbox::PIO::logOnlyNodeZero( log_file_name );
-   }
+   tbox::PIO::logOnlyNodeZero( log_file_name );
 
 #ifdef GITVERSION
 #define xstr(x) #x
@@ -139,21 +126,11 @@ int main( int argc, char *argv[] )
       input_db->getDatabase("ModelParameters");
 
    double phase_well_scale = model_db->getDouble( "phi_well_scale" );
-   double eta_well_scale   = model_db->getDoubleWithDefault( "eta_well_scale", 0. );
 
-   string eta_well_func_type =
-      model_db->getStringWithDefault( "eta_well_func_type", "double" );
    string phase_well_func_type =
          model_db->getString( "phi_well_func_type" );
-   if ( eta_well_func_type[0] != 's' &&
-        eta_well_func_type[0] != 'S' &&
-        eta_well_func_type[0] != 'd' &&
-        eta_well_func_type[0] != 'D' ) {
-      TBOX_ERROR( "Error: invalid value for eta_well_func_type" );
-   }
 
    string phase_interp_func_type = "pbg";
-   string eta_interp_func_type   ="pbg";
    
    boost::shared_ptr<tbox::Database> temperature_db = model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
@@ -168,8 +145,11 @@ int main( int argc, char *argv[] )
    tbox::InputManager::getManager()->parseInputFile( calphad_filename, calphad_db );
    
    boost::shared_ptr<tbox::Database> newton_db;
-   if ( conc_db->isDatabase( "NewtonSolver" ) )
+   int maxits=20;
+   if ( conc_db->isDatabase( "NewtonSolver" ) ){
       newton_db = conc_db->getDatabase( "NewtonSolver" );
+      maxits= newton_db->getIntegerWithDefault("max_its",20);
+   }
 
    bool with_third_phase=false;
    
@@ -179,79 +159,39 @@ int main( int argc, char *argv[] )
            conc_avg_func_type,
            phase_well_scale,
            phase_well_func_type);
-   
+  
    cafe.printEnergyVsComposition(temperature);
+
+   ofstream ffile("FvsT.dat", ios::out);
+   cafe.preRunDiagnostics(ffile,300., 5000.);
 
    // choose pair of phases: phaseL, phaseA, phaseB
    const PHASE_INDEX pi0=phaseL;
    const PHASE_INDEX pi1=phaseA;
    
    // initial guesses
-   double ceq_init0=0.5;
-   double ceq_init1=0.5;
-
-   double lceq[4]={ceq_init0,ceq_init1,  // liquid
-                   ceq_init0,ceq_init1}; // solid
+   double lceq[4]={0.33, 0.33,  // liquid
+                   0.33, 0.33}; // solid
    
    // compute equilibrium concentrations
    bool found_ceq =
-      cafe.computeCeqT(temperature,pi0,pi1,&lceq[0]);
+      cafe.computeCeqT(temperature,pi0,pi1,&lceq[0], maxits);
    if( lceq[0]>1. )found_ceq = false;
    if( lceq[0]<0. )found_ceq = false;
    if( lceq[1]>1. )found_ceq = false;
    if( lceq[1]<0. )found_ceq = false;
    
-   if( !found_ceq )
-   {
-      lceq[0]=ceq_init1;
-      lceq[1]=ceq_init0;
-      found_ceq =
-         cafe.computeCeqT(temperature,pi0,pi1,&lceq[0]);
-   }
-   
    if( found_ceq ){
-      tbox::plog<<"Found equilibrium concentrations: "<<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
+      cout<<"Found equilibrium concentrations: "
+          <<"Liquid: "<<lceq[0]<<","<<lceq[1]
+          <<"--- Solid: "<<lceq[2]<<","<<lceq[3]<<endl;
    }else{
-      tbox::plog<<"WARNING: Equilibrium concentrations not found... "<<endl;
+      cout<<"WARNING: Equilibrium concentrations not found... "<<endl;
    }
    
-   QuatModelParameters model_parameters;
-   model_parameters.readModelParameters(model_db);
-
-   tbox::plog<<"ConstantMolarVolumeStrategy... "<<endl;
-   ConstantMolarVolumeStrategy mvstrategy(model_parameters.molar_volume_liquid(),
-                                          model_parameters.molar_volume_solid_A(),
-                                          model_parameters.molar_volume_solid_B());
-   tbox::plog<<"CALPHADFreeEnergyStrategy... "<<endl;
-   CALPHADFreeEnergyStrategy free_energy_strategy(
-               calphad_db, newton_db,
-               model_parameters.phase_interp_func_type(),
-               model_parameters.eta_interp_func_type(),
-               model_parameters.conc_avg_func_type(),
-               &mvstrategy,
-               0,
-               1,
-               2,
-               2, // nb. compositions
-               model_parameters.with_third_phase(),
-               model_parameters.phase_well_scale(),
-               model_parameters.eta_well_scale(),
-               model_parameters.phase_well_func_type(),
-               model_parameters.eta_well_func_type() );
-
-   tbox::plog<<"CompositionStrategyMobilities... "<<endl;
-   CompositionStrategyMobilities composition_strategy_mobilities(dcalphad_db,
-         false,
-         2, // 2 compositions for 3 species
-         &free_energy_strategy );
-
-   composition_strategy_mobilities.printDiagnostics(temperature,temperature);
-
-
-   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
+   //cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
 
    input_db.reset();
-
 
    }
 

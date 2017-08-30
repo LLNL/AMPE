@@ -69,8 +69,8 @@ void NKRHeatCapacityStrategy::setCurrentValue(
       itp++;
    }
    
-   short npowers=powers.size();
-   int ncoeffs=d_cp.size()*npowers;
+   size_t npowers=powers.size();
+   size_t ncoeffs=d_cp.size()*npowers;
 
    double* cp_coeffs = new double[ncoeffs];
    memset(cp_coeffs,0,ncoeffs*sizeof(double));

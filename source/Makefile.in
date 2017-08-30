@@ -46,7 +46,8 @@ CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
-		CALPHADFreeEnergyStrategy.o CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
+		CALPHADFreeEnergyStrategyBinary.o CALPHADFreeEnergyStrategyTernary.o \
+		CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
 		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
 		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
 		FreeEnergyStrategy.o math_utilities.o

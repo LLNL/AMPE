@@ -34,7 +34,7 @@
 #define included_CALPHADequilibriumPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
-#include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctions.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -58,7 +58,8 @@ public:
       const std::string& phase_well_func_type,
       const std::string& eta_well_func_type,
       boost::shared_ptr<tbox::Database> calphad_db,
-      boost::shared_ptr<tbox::Database> newton_d);
+      boost::shared_ptr<tbox::Database> newton_d,
+      const unsigned ncompositions);
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy()
    {
@@ -80,9 +81,7 @@ private:
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
    
-   int d_ncompositions;
-   
-   FreeEnergyFunctions* d_calphad_fenergy;
+   CALPHADFreeEnergyFunctions* d_calphad_fenergy;
 };
 
 #endif

@@ -61,7 +61,9 @@ public:
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const double                                               time)=0;
    virtual void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
-   {};
+   {
+      (void)hierarchy;
+   };
    void setZeroFluxAtBoundaryOnPatch(
       hier::Patch& patch, const int flux_id);
    void addFluxFromAntitrappingonPatch(

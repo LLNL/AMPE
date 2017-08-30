@@ -37,13 +37,13 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverBinary.h"
 #include "CALPHADEqConcSolverBinary.h"
-#include "FreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctions.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 class CALPHADFreeEnergyFunctionsBinary:
-   public FreeEnergyFunctions
+   public CALPHADFreeEnergyFunctions
 {
 public:
    CALPHADFreeEnergyFunctionsBinary(
@@ -89,6 +89,7 @@ public:
       const double temperature,
       const PHASE_INDEX pi0, const PHASE_INDEX pi1,
       double* ceq,
+      const int maxits = 20,
       const bool verbose = false);
 
    void preRunDiagnostics(std::ostream& os)
@@ -104,7 +105,7 @@ public:
    }
 
    int computePhaseConcentrations(
-      const double temperature, const double* const conc, const double phi, const double eta,
+      const double temperature, const double* conc, const double phi, const double eta,
       double* x);
    void energyVsPhiAndC(const double temperature, 
                         const double* const ceq,

@@ -31,8 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
-#include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
 
 using namespace std;
 
@@ -53,7 +53,8 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       const std::string& phase_well_func_type,
       const std::string& eta_well_func_type,
       boost::shared_ptr<tbox::Database> calphad_db,
-      boost::shared_ptr<tbox::Database> newton_db):
+      boost::shared_ptr<tbox::Database> newton_db,
+      const unsigned ncompositions):
    PhaseConcentrationsStrategy(
       conc_l_id,
       conc_a_id,
@@ -64,14 +65,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
    d_conc_b_ref_id(conc_b_ref_id),
    d_ncompositions(ncompositions)
 {
-   if( d_ncompositions>1 )
-   d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
-                                 phase_interp_func_type,
-                                 avg_func_type,
-                                 phase_well_scale,
-                                 phase_well_func_type);  
-   else
+   if( ncompositions==1 ){
    d_calphad_fenergy = new
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  phase_interp_func_type,
@@ -79,6 +73,14 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
                                  with_third_phase,
                                  phase_well_scale,eta_well_scale,
                                  phase_well_func_type,eta_well_func_type);
+   }else{
+   d_calphad_fenergy = new
+      CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
+                                 phase_interp_func_type,
+                                 avg_func_type,
+                                 phase_well_scale,
+                                 phase_well_func_type);
+   }
 }
 
 void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
@@ -240,8 +242,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
                }
             }
 
-            d_calphad_fenergy->computePhaseConcentrations(
-                  t,&c[0],phi,eta,x);
+            d_calphad_fenergy->computePhaseConcentrations(t,c,phi,eta,x);
 
             for(int ic=0;ic<cd_concentration->getDepth();ic++)
             {

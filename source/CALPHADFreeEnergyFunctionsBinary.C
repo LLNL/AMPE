@@ -100,7 +100,7 @@ void CALPHADFreeEnergyFunctionsBinary::readNewtonparameters(boost::shared_ptr<tb
    if( newton_db!=NULL ){
       double tol =newton_db->getDoubleWithDefault( "tol", 1.e-8 );
       double alpha = newton_db->getDoubleWithDefault( "alpha", 1. );
-      int maxits = newton_db->getDoubleWithDefault( "max_its", 20 );
+      int maxits = newton_db->getIntegerWithDefault( "max_its", 20 );
       const bool verbose = newton_db->getBoolWithDefault( "verbose", false );
    
       d_solver->SetTolerance( tol );
@@ -437,6 +437,7 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
    const double temperature,
    const PHASE_INDEX pi0, const PHASE_INDEX pi1,
    double* ceq,
+   const int maxits,
    const bool verbose )
 {
    if(verbose)tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeCeqT()"<<endl;
@@ -445,7 +446,7 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
    setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3, d_fA, d_fB, pi0, pi1);
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqConcentrationSolverBinary eq_solver;
-   eq_solver.SetMaxIterations(20);
+   eq_solver.SetMaxIterations(maxits);
 
    int ret = eq_solver.ComputeConcentration(
       ceq,
@@ -544,7 +545,8 @@ void CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies(
 //-----------------------------------------------------------------------
 
 int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
-   const double temperature, const double* const conc, const double phi, const double eta,
+   const double temperature, const double* const conc, 
+   const double phi, const double eta,
    double* x)
 
 {
@@ -603,7 +605,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    }
    
    // conc could be outside of [0.,1.] in a trial step
-   double c0 = conc0>=0. ? conc0 : 0.;
+   double c0 = conc[0]>=0. ? conc[0] : 0.;
    c0 = c0<=1. ? c0 : 1.;
    int ret = d_solver->ComputeConcentration(
       x,
@@ -794,7 +796,7 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
    double fl=0.;
    double fa=0.; 
    double fb=0.;
-   if( phi>tol & phi<1.-tol )
+   if( (phi>tol) & (phi<(1.-tol)) )
    {
       computePhasesFreeEnergies(
          temperature, hphi, heta, conc[0],

@@ -66,7 +66,9 @@ double AzizPartitionCoefficientStrategy::computeKeq(const double temperature)
    assert( d_free_energy!=NULL );
    
    double ceq[2]={0.5,0.5};
-   d_free_energy->computeCeqT(temperature, phaseL, phaseA, &ceq[0]);
-      
+   bool flag = d_free_energy->computeCeqT(temperature, phaseL, phaseA, &ceq[0], 20);
+   
+   assert( flag );
+
    return ceq[1]/ceq[0];
 }

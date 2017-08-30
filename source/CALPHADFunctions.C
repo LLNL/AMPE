@@ -420,7 +420,8 @@ void CALPHADcomputeFMix_derivTernary(
    double* deriv )
 {
    double cC=1.-cA-cB;
-   
+  
+   // d/dcA 
    deriv[0] =
       cB*
       ( lAB[0] +
@@ -447,7 +448,7 @@ void CALPHADcomputeFMix_derivTernary(
         lAC[2] * 2. *(cA-cC) +
         lAC[3] * 3. *(cA-cC)*(cA-cC) );
 
-
+   // d/dcB
    deriv[1] =
       cA*
       ( lAB[0] +
@@ -475,6 +476,8 @@ void CALPHADcomputeFMix_derivTernary(
         lBC[3] * 3. *(cB-cC)*(cB-cC) );
 }
 
+// compute the 4 components of the second order derivative
+// with respect to cA and CB
 void CALPHADcomputeFMix_deriv2Ternary(
    const double* lAB,
    const double* lAC,
@@ -488,14 +491,12 @@ void CALPHADcomputeFMix_deriv2Ternary(
    double cC=1.-cA-cB;
    
    // /dcA*dcA
-   deriv[0] =
-      cB*
+   deriv[0] = cB*
       ( lAB[1] +
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[0] +=
-      cB*
+   deriv[0] += cB*
       ( lAB[1] +
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
@@ -505,14 +506,12 @@ void CALPHADcomputeFMix_deriv2Ternary(
       ( lAB[2] * 2. +
         lAB[3] * 6.*(cA-cB) );
 
-   deriv[0] +=
-      cC*
+   deriv[0] += cC*
       ( lAC[1]  +
         lAC[2] * 2.*(cA-cC) +
         lAC[3] * 3.*(cA-cC)*(cA-cC) );
 
-   deriv[0] +=
-      cC*
+   deriv[0] += cC*
       ( lAC[1] +
         lAC[2] * 2. *(cA-cC) +
         lAC[3] * 3. *(cA-cC)*(cA-cC) );
@@ -530,10 +529,10 @@ void CALPHADcomputeFMix_deriv2Ternary(
         lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
 
    deriv[1] +=
-      cB*
-      ( -lAB[1]  +
-        -lAB[2] * 2.*(cA-cB) +
-        -lAB[3] * 3.*(cA-cB)*(cA-cB) );
+      -1.*cB*
+      ( lAB[1]  +
+        lAB[2] * 2.*(cA-cB) +
+        lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
    deriv[1] +=
       cA*
@@ -542,9 +541,9 @@ void CALPHADcomputeFMix_deriv2Ternary(
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
    deriv[1] +=
-      cA*cB*
-      ( -lAB[2] * 2. +
-        -lAB[3] * 6.*(cA-cB) );
+      -1.*cA*cB*
+      ( lAB[2] * 2. +
+        lAB[3] * 6.*(cA-cB) );
 
    // /dcB*dcA
    deriv[2] =
@@ -570,15 +569,7 @@ void CALPHADcomputeFMix_deriv2Ternary(
       ( lAB[2] * 2.  +
         lAB[3] * 6. *(cA-cB) );
 
-   deriv[2] +=
-      cC*
-      ( lBC[0] +
-        lBC[1] * (cB-cC) +
-        lBC[2] * (cB-cC)*(cB-cC) +
-        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
-   
    // /dcB*dcB
-
    deriv[3] =
       cA*
       ( -lAB[1] +

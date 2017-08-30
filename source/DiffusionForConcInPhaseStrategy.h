@@ -34,7 +34,7 @@
 #define included_DIFFUSIONFORCONCINPHASESTRATEGY
 
 #include "FuncFort.h"
-#include "CALPHADFreeEnergyStrategy.h"
+//#include "CALPHADFreeEnergyStrategy.h"
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -45,6 +45,7 @@
 using namespace SAMRAI;
 
 class CompositionStrategyMobilities;
+class FreeEnergyStrategy;
 
 class DiffusionForConcInPhaseStrategy
 {
@@ -128,11 +129,11 @@ private:
    bool d_with_third_phase;
    
    std::string d_diff_interp_func_type;
+
+   CompositionStrategyMobilities* d_mobilities_strategy;
    
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
-
-   CompositionStrategyMobilities* d_mobilities_strategy;
 
    /*!
     * function to use to take averages between two phase values

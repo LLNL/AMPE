@@ -32,6 +32,7 @@
 // 
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "CompositionStrategyMobilities.h"
+#include "FreeEnergyStrategy.h"
 
 #include <vector>
 using namespace std;
@@ -104,8 +105,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhase(
          hierarchy->getPatchLevel( amr_level );
 
       for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
-         boost::shared_ptr<hier::Patch > patch =
-            *p;
+         boost::shared_ptr<hier::Patch > patch = *p;
       
          boost::shared_ptr< pdat::CellData<double> > phi (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
@@ -160,8 +160,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhase(
          hierarchy->getPatchLevel( amr_level );
 
       for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
-         boost::shared_ptr<hier::Patch > patch =
-            *p;
+         boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > temp (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
@@ -229,13 +228,13 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
 
    double* ptr_temp = cd_temp->getPointer();
 
-   const unsigned short nc2=d_ncompositions*d_ncompositions;
+   const int nc2=d_ncompositions*d_ncompositions;
    vector<double*> ptr_dx_coeff_l(nc2);
    vector<double*> ptr_dy_coeff_l(nc2);
    vector<double*> ptr_dz_coeff_l(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_coeff_l[ijc] = sd_d_coeff_l->getPointer( 0, ijc );
       ptr_dy_coeff_l[ijc] = sd_d_coeff_l->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -248,7 +247,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
    vector<double*> ptr_dz_coeff_a;ptr_dz_coeff_a.resize(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_coeff_a[ijc] = sd_d_coeff_a->getPointer( 0, ijc );
       ptr_dy_coeff_a[ijc] = sd_d_coeff_a->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -262,7 +261,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
-         const unsigned short ijc=ic+jc*d_ncompositions;
+         const unsigned ijc=ic+jc*d_ncompositions;
          ptr_dx_coeff_b[ijc] = sd_d_coeff_b->getPointer( 0, ijc );
          ptr_dy_coeff_b[ijc] = sd_d_coeff_b->getPointer( 1, ijc );
          if ( NDIM > 2 ) {
@@ -595,13 +594,13 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    assert( sd_d_l );
    assert( sd_d_coeff_l );
 
-   const unsigned short nc2=d_ncompositions*d_ncompositions;
+   const unsigned nc2=d_ncompositions*d_ncompositions;
    vector<double*> ptr_dx_l;ptr_dx_l.resize(nc2);
    vector<double*> ptr_dy_l;ptr_dy_l.resize(nc2);
    vector<double*> ptr_dz_l;ptr_dz_l.resize(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_l[ijc] = sd_d_l->getPointer( 0, ijc );
       ptr_dy_l[ijc] = sd_d_l->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -614,7 +613,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    vector<double*> ptr_dz_a(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_a[ijc] = sd_d_a->getPointer( 0, ijc );
       ptr_dy_a[ijc] = sd_d_a->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -628,7 +627,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
-         const unsigned short ijc=ic+jc*d_ncompositions;
+         const unsigned ijc=ic+jc*d_ncompositions;
          ptr_dx_b[ijc] = sd_d_b->getPointer( 0, ijc );
          ptr_dy_b[ijc] = sd_d_b->getPointer( 1, ijc );
          if ( NDIM > 2 ) {
@@ -642,7 +641,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    vector<double*> ptr_dz_coeff_l(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_coeff_l[ijc] = sd_d_coeff_l->getPointer( 0, ijc );
       ptr_dy_coeff_l[ijc] = sd_d_coeff_l->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -655,7 +654,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    vector<double*> ptr_dz_coeff_a(nc2, NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
-      const unsigned short ijc=ic+jc*d_ncompositions;
+      const unsigned ijc=ic+jc*d_ncompositions;
       ptr_dx_coeff_a[ijc] = sd_d_coeff_a->getPointer( 0, ijc );
       ptr_dy_coeff_a[ijc] = sd_d_coeff_a->getPointer( 1, ijc );
       if ( NDIM > 2 ) {
@@ -669,7 +668,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
-         const unsigned short ijc=ic+jc*d_ncompositions;
+         const unsigned ijc=ic+jc*d_ncompositions;
          ptr_dx_coeff_b[ijc] = sd_d_coeff_b->getPointer( 0, ijc );
          ptr_dy_coeff_b[ijc] = sd_d_coeff_b->getPointer( 1, ijc );
          if ( NDIM > 2 ) {

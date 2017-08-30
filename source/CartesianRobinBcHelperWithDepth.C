@@ -858,7 +858,7 @@ CartesianRobinBcHelperWithDepth::makeFaceBoundaryBox(
        * than the boundary cell indices, in the direction normal
        * to the boundary.
        */
-      face_indices.shift(location_index / 2, 1);
+      face_indices.shift(static_cast<tbox::Dimension::dir_t>(location_index / 2), 1);
    }
    return face_indices;
 }

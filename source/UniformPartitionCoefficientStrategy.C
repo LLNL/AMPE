@@ -38,5 +38,9 @@ void UniformPartitionCoefficientStrategy::evaluate(
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff)
 {
+   (void)patch;
+   (void)cd_velocity;
+   (void)cd_temperature;
+
    cd_partition_coeff->fill(d_keq);
 }

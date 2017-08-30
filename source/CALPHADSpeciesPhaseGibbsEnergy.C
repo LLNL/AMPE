@@ -44,12 +44,12 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(const string& name,
    boost::shared_ptr<tbox::Database> db)
 {
    d_name=name;
-   int ntc=db->getArraySize("Tc");
+   size_t ntc=db->getArraySize("Tc");
    assert( ntc>1 );   
    d_tc.resize(ntc);
    db->getDoubleArray("Tc",&d_tc[0],ntc);
 
-   int nintervals=db->getArraySize("a");
+   size_t nintervals=db->getArraySize("a");
    assert( nintervals==ntc-1 );
    d_a.resize(nintervals);
    db->getDoubleArray("a",&d_a[0],nintervals);
@@ -72,7 +72,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(const string& name,
       db->getDoubleArray("d3",&d_d3[0],nintervals);
    }else{
       d_d3.resize(nintervals);
-      for(short i=0;i<nintervals;i++)d_d3[i]=0.;
+      for(unsigned i=0;i<nintervals;i++)d_d3[i]=0.;
    }
    
    if ( db->keyExists( "d4" ) ) {
@@ -93,7 +93,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(const string& name,
       db->getDoubleArray("dm1",&d_dm1[0],nintervals);
    }else{
       d_dm1.resize(nintervals);
-      for(short i=0;i<nintervals;i++)d_dm1[i]=0.;
+      for(unsigned i=0;i<nintervals;i++)d_dm1[i]=0.;
    }
    
    if ( db->keyExists( "dm9" ) ) {
@@ -152,10 +152,11 @@ double CALPHADSpeciesPhaseGibbsEnergy::fenergy(const double T) // expect T in Ke
    return f;
 }
 
-void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os)
+void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os, 
+   const double T0, const double T1)
 {
    const int npts=300;
-   double dT=(testT1-testT0)/(double)npts;
+   double dT=(T1-T0)/(double)npts;
    os<<"# fenergy(J/mol) vs. T(K) for species "<<d_name<<endl;
    for(int i=0;i<npts;i++)
    {

@@ -104,11 +104,16 @@ QuatIntegrator::QuatIntegrator(
    const bool symmetry_aware,
    const bool use_gradq_for_flux
  )
-   : d_name( name ),
+   : d_phase_component_index( -1 ),
+     d_eta_component_index( -1 ),
+     d_quat_component_index( -1 ),
+     d_conc_component_index( -1 ),
+     d_temperature_component_index( -1 ),
+     d_name( name ),
      d_model_parameters( model_parameters ),
+     d_qlen( qlen ),
      d_current( current ),
      d_scratch( scratch ),
-     d_qlen( qlen ),
      d_ncompositions( ncompositions ),
      d_grid_geometry( grid_geom ),
      d_quat_grad_strategy( NULL ),
@@ -206,11 +211,6 @@ QuatIntegrator::QuatIntegrator(
      d_cum_p_apply( 0 ),
      d_lag_quat_sidegrad( true ),
      d_conc_mobility( tbox::IEEE::getSignalingNaN() ),
-     d_phase_component_index( -1 ),
-     d_eta_component_index( -1 ),
-     d_quat_component_index( -1 ),
-     d_conc_component_index( -1 ),
-     d_temperature_component_index( -1 ),
      d_phase_bc_coefs( NULL ),
      d_eta_bc_coefs( NULL ),
      d_temperature_bc_coefs( NULL ),
@@ -226,7 +226,6 @@ QuatIntegrator::QuatIntegrator(
    assert( db );
    assert( grid_geom );
    assert( ncompositions<=2 );
-   assert( ncompositions>=0 );
    
    #include <sstream>
    
@@ -1394,8 +1393,7 @@ void QuatIntegrator::setConcentrationModelParameters(
 // Pure virtual function from QuatIntegrator
 
 void QuatIntegrator::RegisterWithVisit( 
-   boost::shared_ptr<appu::VisItDataWriter > visit_data_writer,
-   const bool extra_visit_output )
+   boost::shared_ptr<appu::VisItDataWriter > visit_data_writer)
 {
    
    if( d_compute_velocity ){
@@ -2012,8 +2010,8 @@ void QuatIntegrator::updateDependentVariables(
 
 double QuatIntegrator::Advance(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                     beginning_time,
-   const int                                                 cycle )
+   const double                                    beginning_time,
+   const int                                       cycle )
 {
    //   tbox::pout<<"QuatIntegrator::advance()"<<endl;
 
@@ -2323,10 +2321,11 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
 
 void QuatIntegrator::setDiffusionCoeffForQuat(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                               time)
+   const double                                    time)
 {
-   // tbox::pout<<"QuatIntegrator::setDiffusionCoeffForQuat"<<endl;
+   (void)time;
 
+   // tbox::pout<<"QuatIntegrator::setDiffusionCoeffForQuat"<<endl;
    assert( hierarchy );
 
    const int maxl=hierarchy->getNumberOfLevels();
@@ -2419,8 +2418,7 @@ void QuatIntegrator::setDiffusionCoeffForQuatPatch(
       ifirst(2), ilast(2),
 #endif
       2.*d_H_parameter,
-      temperature->getPointer(),
-      temperature->getGhostCellWidth()[0],
+      temperature->getPointer(), temperature->getGhostCellWidth()[0],
       phi->getPointer(), NGHOSTS,
       diffusion->getPointer(0),
       diffusion->getPointer(1),
@@ -2436,8 +2434,10 @@ void QuatIntegrator::setDiffusionCoeffForQuatPatch(
 
 void QuatIntegrator::setDerivDiffusionCoeffForQuat(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                               time)
+   const double                                    time)
 {
+   (void)time;
+
    assert( hierarchy );
 
    const int maxl = hierarchy->getNumberOfLevels();
@@ -3233,6 +3233,8 @@ void QuatIntegrator::fillScratchComposition(
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > y,
    xfer::RefineAlgorithm& copy_to_scratch)
 {
+   (void)time;
+
    int y_conc_id =
       y->getComponentDescriptorIndex( d_conc_component_index );
 
@@ -3697,6 +3699,10 @@ CVSpgmrPrecondSet
    solv::SundialsAbstractVector * vtemp2,
    solv::SundialsAbstractVector * vtemp3 )
 {
+   (void)vtemp1;
+   (void)vtemp2;
+   (void)vtemp3;
+
    //   tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok << endl;
 
    t_psolve_setup_timer->start();
@@ -4028,6 +4034,8 @@ CVSpgmrPrecondSolve
    int                               lr,
    solv::SundialsAbstractVector * vtemp )
 {
+   (void)vtemp;
+
    assert( d_use_preconditioner );
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << endl;
 

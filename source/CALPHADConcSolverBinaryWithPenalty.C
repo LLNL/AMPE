@@ -41,7 +41,7 @@ void CALPHADConcentrationSolverBinaryWithPenalty::computeXi(const double* const 
    //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeXi()"<<std::endl;
    CALPHADConcentrationSolverBinary::computeXi(c,xi);
    
-   for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( short ii = 0; ii < d_N; ii++ ) {
 
       xi[ii] += d_RTinv * computeDerivPenalty(ii, c[ii]);
 
@@ -49,13 +49,12 @@ void CALPHADConcentrationSolverBinaryWithPenalty::computeXi(const double* const 
 }
 
 void CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc(const double* const c, 
-                                                         double xi[3], 
                                                          double dxidc[3])const
 {
    //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc()"<<std::endl;
-   CALPHADConcentrationSolverBinary::computeDxiDc(c,xi,dxidc);
+   CALPHADConcentrationSolverBinary::computeDxiDc(c,dxidc);
 
-   for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( short ii = 0; ii < d_N; ii++ ) {
       dxidc[ii] += d_RTinv * compute2ndDerivPenalty(ii, c[ii]);
    }
    //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc() done..."<<std::endl;

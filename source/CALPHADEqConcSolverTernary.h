@@ -8,7 +8,7 @@ class CALPHADEqConcentrationSolverTernary :
 {
 public :
 
-   CALPHADEqConcentrationSolverTernary(){};
+   CALPHADEqConcentrationSolverTernary();
       
    virtual ~CALPHADEqConcentrationSolverTernary() {};
       
@@ -18,9 +18,9 @@ public :
       const double* const L_AB_L,
       const double* const L_AC_L,
       const double* const L_BC_L,
-      const double* const L_AB_A,
-      const double* const L_AC_A,
-      const double* const L_BC_A,
+      const double* const L_AB_S,
+      const double* const L_AC_S,
+      const double* const L_BC_S,
       const double* const fA,
       const double* const fB,
       const double* const fC );
@@ -45,14 +45,14 @@ protected :
    double d_fB[2];
    double d_fC[2];
    
-   // L coefficients for 2 possible phases (L and A)
+   // L coefficients for 2 possible phases (L and S)
    double d_L_AB_L[4];
    double d_L_AC_L[4];
    double d_L_BC_L[4];
 
-   double d_L_AB_A[4];
-   double d_L_AC_A[4];
-   double d_L_BC_A[4];
+   double d_L_AB_S[4];
+   double d_L_AC_S[4];
+   double d_L_BC_S[4];
 
 };
 

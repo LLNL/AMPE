@@ -191,7 +191,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    else if ( conc_rhs_strategy[0] == 's' ) {
       d_conc_rhs_strategy = SPINODAL;
    }
-   else if ( conc_rhs_strategy[0] == 'u' ) {
+   else if ( conc_rhs_strategy[0] == 'u' 
+          || conc_rhs_strategy[0] == 'B' ) {
+      tbox::plog<<"Using Beckermann's model"<<endl;
       d_conc_rhs_strategy = Beckermann;
    }
    else {
@@ -413,10 +415,10 @@ void QuatModelParameters::readTemperatureModel(
             d_heat_source_type = temperature_db->getString( "heat_source_type" );
             if( d_heat_source_type=="composition")
             {
-               int nterms=temperature_db->getArraySize("source");
+               size_t nterms=temperature_db->getArraySize("source");
                d_T_source.resize(nterms);
                temperature_db->getDoubleArray("source",&d_T_source[0],nterms);
-               for(int i=0;i<nterms;++i)
+               for(size_t i=0;i<nterms;++i)
                   d_T_source[i] *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol] to [pJ/(mu m)^3]
             }
             else

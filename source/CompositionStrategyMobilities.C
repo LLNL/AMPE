@@ -349,7 +349,6 @@ void CompositionStrategyMobilities::printDiffusionVsComposition( const double te
    vector<double> amob(1);
    vector<double> conc(d_ncompositions);
    vector<double> d2f(d_ncompositions*d_ncompositions);
-   const double rt=gas_constant_R_JpKpmol*temperature;
 
    os<<"#Interdiffusion[m2/s] vs. composition in phase L at T="<<temperature<<endl;
    for(int i=0;i<=nc;i++)

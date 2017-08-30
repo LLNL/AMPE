@@ -283,7 +283,13 @@ public:
    
    bool with_visit_grain_output()const
    { return d_visit_grain_output; }
-   
+  
+   unsigned ncompositionFields()const
+   {
+      assert( d_ncompositions>=0 );
+      return d_ncompositions; 
+   }
+ 
 private:
    // Model parameters
    double d_H_parameter;

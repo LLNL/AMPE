@@ -96,6 +96,8 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const double                                    time)
 {
+   (void)time;
+
    assert( hierarchy );
    
    t_set_diffcoeff_timer->start();

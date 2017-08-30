@@ -66,7 +66,7 @@ public :
       boost::shared_ptr<tbox::Database> db );
 
    double fenergy( const double T ); // expect T in Kelvin
-   void plotFofT(std::ostream& os);
+   void plotFofT(std::ostream& os, const double T0=300., const double T1=3000.);
 };
 
 #endif
