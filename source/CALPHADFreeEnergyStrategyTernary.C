@@ -534,10 +534,6 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
    assert( f_a_id >= 0 );
    assert( rhs_id >= 0 );
    assert( temperature_id >= 0 );
-   if ( d_with_third_phase ) {
-      assert( eta_id >= 0 );
-      assert( f_b_id >= 0 );
-   }
 
    boost::shared_ptr< pdat::CellData<double> > phase (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );

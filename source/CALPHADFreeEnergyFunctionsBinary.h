@@ -166,9 +166,7 @@ protected:
                                       double* fA, double* fB,
                                       const PHASE_INDEX pi0, const PHASE_INDEX pi1);
 
-   void setupValuesForThreePhasesSolver(const double temperature,
-                                        double* L0, double* L1, double* L2, double* L3,
-                                        double* fA, double* fB);
+   void setupValuesForThreePhasesSolver(const double temperature);
 
 private:
 

@@ -475,10 +475,10 @@ protected:
    boost::shared_ptr< pdat::CellVariable<double> > d_phase_mobility_var;
    int d_phase_mobility_id;
 
-   int d_ncompositions;
+   const int d_ncompositions;
 
    bool d_with_phase;
-   bool d_with_concentration;
+   const bool d_with_concentration;
    bool d_with_orientation;
    bool d_with_unsteady_temperature;
 
@@ -829,6 +829,9 @@ private :
 
    boost::shared_ptr< pdat::SideVariable<double> > d_flux_var;
    int d_flux_id;
+
+   boost::shared_ptr< pdat::SideVariable<double> > d_flux_conc_var;
+   int d_flux_conc_id;
    
    boost::shared_ptr< pdat::CellVariable<double> > d_velocity_var;
    int d_velocity_id;
@@ -857,8 +860,10 @@ private :
       d_conc_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_flux_coarsen_schedule;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > > d_flux_coarsen_schedule;
+
+   xfer::CoarsenAlgorithm d_flux_conc_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > > d_flux_conc_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_coarsen_alg;
 

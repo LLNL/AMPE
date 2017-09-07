@@ -185,6 +185,7 @@ int NewtonSolver::ComputeSolution(
    d_N = N;
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
+   ctmp.reserve(40);
    //cout<<"NewtonSolver::ComputeSolution(), Initial conc="
    //    <<conc[0]<<","<<conc[1]<<","<<conc[2]<<","<<conc[3]<<endl;
 #endif
@@ -209,6 +210,7 @@ int NewtonSolver::ComputeSolution(
    while ( 1 ) {
 
 #ifdef DEBUG_CONVERGENCE
+      for ( int ii = 0; ii < N ; ii++ )assert( conc[ii]==conc[ii] );
       for ( int ii = 0; ii < N ; ii++ )ctmp.push_back(conc[ii]);
 #endif
       RHS( conc, fvec );
@@ -229,25 +231,6 @@ int NewtonSolver::ComputeSolution(
    }
 
    if ( !converged ) {
-      if( CheckToleranceFirstEq( fvec ) )
-      {
-         if( d_verbose )
-         {
-            clog<<setprecision(12);
-            for ( int ii = 0; ii < d_N; ii++ ) {
-               clog << " conc[" << ii << "] = " << conc[ii];
-            }
-            clog << endl;
-            for ( int ii = 0; ii < d_N; ii++ ) {
-               clog << " rhs[" << ii << "] = " << fvec[ii];
-            }
-            clog << endl;
-         }
-         const double tol=1.e-12;
-         for ( int ii = 0; ii < N ; ii++ )
-            if( conc[ii]<tol || conc[ii]>1.-tol )return -2;
-      }
-      
 #ifdef DEBUG_CONVERGENCE
       cout<<setprecision(12);
       cout<<"Concentration history..."<<endl;
@@ -267,6 +250,7 @@ int NewtonSolver::ComputeSolution(
               << endl;
       }
 #endif
+      cerr << iterations <<" iterations..."<<endl;
       cerr << "Error: too many iterations in NewtonSolver" << endl;
       return -1;
    }

@@ -188,6 +188,7 @@ void KKSCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          
          boost::shared_ptr< pdat::SideData<double> > diffusion0 (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_diffusion0_id) ) );
+         assert( diffusion0->getDepth()==1 );
          
          int three_phase = 0;
          double* ptr_eta = NULL;
@@ -826,14 +827,17 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
    boost::shared_ptr< pdat::SideData<double> > conc_diffusion0 (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion0_id) ) );
    assert( conc_diffusion0 );
+   assert( conc_diffusion0->getDepth()==1 );
 
    boost::shared_ptr< pdat::SideData<double> > conc_phase_coupling_diffusion (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_conc_phase_coupling_diffusion_id) ) );
    assert( conc_phase_coupling_diffusion );
+   assert( conc_phase_coupling_diffusion->getDepth()==1 );
 
    boost::shared_ptr< pdat::SideData<double> > flux (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
    assert( flux );
+   assert( flux->getDepth()==conc->getDepth() );
 
    int three_phase = 0;
    double* ptr_eta = NULL;
@@ -851,6 +855,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
    }
    
    // now compute concentration flux
+   for(int ic=0;ic<conc->getDepth();++ic)
    FORT_CONCENTRATION_FLUX(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -858,7 +863,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc->getPointer(), NGHOSTS,
+            conc->getPointer(ic), NGHOSTS,
             phase->getPointer(), NGHOSTS,
             ptr_eta, NGHOSTS,
             conc_diffusion0->getPointer(0),
@@ -879,10 +884,10 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
             ptr_conc_eta_diff2,
 #endif
             0,
-            flux->getPointer(0),
-            flux->getPointer(1),
+            flux->getPointer(0,ic),
+            flux->getPointer(1,ic),
 #if (NDIM == 3)
-            flux->getPointer(2),
+            flux->getPointer(2,ic),
 #endif
             flux->getGhostCellWidth()[0],
             three_phase );

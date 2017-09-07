@@ -109,12 +109,13 @@ QuatIntegrator::QuatIntegrator(
      d_quat_component_index( -1 ),
      d_conc_component_index( -1 ),
      d_temperature_component_index( -1 ),
+     d_ncompositions( ncompositions ),
      d_name( name ),
      d_model_parameters( model_parameters ),
      d_qlen( qlen ),
      d_current( current ),
      d_scratch( scratch ),
-     d_ncompositions( ncompositions ),
+     d_with_concentration( with_concentration ),
      d_grid_geometry( grid_geom ),
      d_quat_grad_strategy( NULL ),
      d_mobility_strategy( NULL ),
@@ -173,6 +174,7 @@ QuatIntegrator::QuatIntegrator(
      d_conc_rhs_id( -1 ),
      d_quat_mobility_deriv_id( -1 ),
      d_flux_id( -1 ),
+     d_flux_conc_id( -1 ),
      d_velocity_id( -1 ),
      d_tmp1_id( -1 ),
      d_tmp2_id( -1 ),
@@ -220,19 +222,20 @@ QuatIntegrator::QuatIntegrator(
      d_quat_diffusion_deriv_coarsen(tbox::Dimension(NDIM)),
      d_conc_diffusion_coarsen(tbox::Dimension(NDIM)),
      d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
+     d_flux_conc_coarsen_algorithm(tbox::Dimension(NDIM)),
      d_coarsen_alg(tbox::Dimension(NDIM)),
      d_all_refine_patch_strategy( NULL )
 {
    assert( db );
    assert( grid_geom );
-   assert( ncompositions<=2 );
-   
-   #include <sstream>
+   if( with_concentration ){
+      assert( d_ncompositions<=2 );
+      assert( d_ncompositions>0 );
+   } 
    
    d_quat_model = model;
 
    d_with_orientation        = with_orientation;
-   d_with_concentration      = with_concentration;
    d_with_phase              = with_phase;
    d_with_third_phase        = with_third_phase;
    d_with_heat_equation      = with_heat_equation;
@@ -550,7 +553,8 @@ void QuatIntegrator::resetHierarchyConfiguration(
    // tbox::pout<<"QuatIntegrator::resetHierarchyConfiguration()"<<endl;
 
    d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
-   
+   d_flux_conc_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
+ 
    d_quat_diffusion_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    if (d_precond_has_dquatdphi) {
@@ -577,6 +581,8 @@ void QuatIntegrator::resetHierarchyConfiguration(
 
       d_flux_coarsen_schedule[ln] =
          d_flux_coarsen_algorithm.createSchedule(level, finer_level);
+      d_flux_conc_coarsen_schedule[ln] =
+         d_flux_conc_coarsen_algorithm.createSchedule(level, finer_level);
    }
 
    if ( ! d_use_warm_start ) {
@@ -629,6 +635,9 @@ void QuatIntegrator::RegisterConcentrationVariables(
    const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion_var
    )
 {
+   assert( d_with_concentration );
+   assert( d_ncompositions>0 );
+
    d_conc_var = conc_var;
    d_conc_diffusion0_var = conc_diffusion0_var;
    d_conc_diffusion_var = conc_diffusion_var;
@@ -712,7 +721,10 @@ void QuatIntegrator::RegisterConcentrationVariables(
                diff_coarsen_op );
          }
       }
+
+      RegisterLocalConcentrationVariables();
    }
+
 }
 
 //-----------------------------------------------------------------------
@@ -916,6 +928,18 @@ void QuatIntegrator::RegisterVariables(
    assert( d_flux_id >= 0 );
    d_local_data.setFlag( d_flux_id );
 
+   if( d_with_concentration ){
+      d_flux_conc_var.reset (
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), d_name+"_QUI_conc_flux_", d_ncompositions ));
+      d_flux_conc_id =
+         variable_db->registerVariableAndContext(
+            d_flux_conc_var,
+            d_current,
+            hier::IntVector(tbox::Dimension(NDIM),0) );
+      assert( d_flux_conc_id >= 0 );
+      d_local_data.setFlag( d_flux_conc_id );
+   }
+
    if( d_compute_velocity ){
       d_velocity_var.reset (
          new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_velocity_", 1 ));
@@ -946,10 +970,6 @@ void QuatIntegrator::RegisterVariables(
       RegisterLocalEtaVariables();
    }
 
-   if( d_with_concentration ){
-      RegisterLocalConcentrationVariables();
-   }
-   
    d_flux_coarsen_op =
       d_grid_geometry->lookupCoarsenOperator(
          d_flux_var,
@@ -960,6 +980,12 @@ void QuatIntegrator::RegisterVariables(
       d_flux_id,
       d_flux_coarsen_op );
 
+   if( d_with_concentration ){
+      d_flux_conc_coarsen_algorithm.registerCoarsen(
+         d_flux_conc_id,
+         d_flux_conc_id,
+         d_flux_coarsen_op );
+   }
    if ( d_with_orientation ) {
       RegisterLocalQuatVariables();
    }
@@ -1081,6 +1107,10 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
 
 void QuatIntegrator::RegisterLocalConcentrationVariables()
 {
+   assert( d_with_concentration );
+   assert( d_ncompositions>0 );
+   assert( d_conc_var->getDepth()>0 );
+
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    d_conc_rhs_var.reset (
@@ -1102,6 +1132,8 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
          hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
    assert( d_conc_sol_id >= 0 );
    d_local_data.setFlag( d_conc_sol_id );
+
+   assert( d_conc_rhs_var->getDepth()==d_conc_var->getDepth() );
 }
 
 void QuatIntegrator::RegisterLocalQuatVariables()
@@ -3016,19 +3048,19 @@ void QuatIntegrator::evaluateConcentrationRHS(
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          assert( d_composition_rhs_strategy!=NULL );
-         d_composition_rhs_strategy->computeFluxOnPatch(*patch, d_flux_id);
+         d_composition_rhs_strategy->computeFluxOnPatch(*patch, d_flux_conc_id);
          if( d_with_gradT )
-            d_composition_rhs_strategy->addFluxFromGradTonPatch(*patch, temperature_id, d_flux_id);
+            d_composition_rhs_strategy->addFluxFromGradTonPatch(*patch, temperature_id, d_flux_conc_id);
          if( d_with_antitrapping )
-            d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(*patch, phase_id, phase_rhs_id, d_alpha_AT, d_flux_id);
+            d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(*patch, phase_id, phase_rhs_id, d_alpha_AT, d_flux_conc_id);
          if( !d_all_periodic )
-            d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(*patch, d_flux_id);
+            d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(*patch, d_flux_conc_id);
       }
 
       // Coarsen flux data from next finer level so that
       // the computed flux becomes the composite grid flux.
       if ( ln < hierarchy->getFinestLevelNumber() ) {
-         d_flux_coarsen_schedule[ln]->coarsenData();
+         d_flux_conc_coarsen_schedule[ln]->coarsenData();
       }
 
       for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
@@ -3039,7 +3071,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
          const double * dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::SideData<double> > flux (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_id) ) );
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_conc_id) ) );
          assert( flux );
          assert( flux->getDepth()==d_ncompositions );
 
@@ -3410,6 +3442,11 @@ void QuatIntegrator::setCoefficients(
       const double norm_y_temp = mathops.L2Norm( temperature_id );
       assert( norm_y_temp==norm_y_temp );
    }
+   if( conc_id>=0 ){
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_c = mathops.L2Norm( conc_id );
+      assert( norm_y_c==norm_y_c );
+   }
 #endif
 
    coarsenData(phase_id, eta_id, quat_id, conc_id, temperature_id, hierarchy);
@@ -3473,6 +3510,8 @@ void QuatIntegrator::computePhaseConcentrations(
    assert( maxphi<1.1 );
    assert( minphi>=-0.1 );
    assert( minphi<=1. );
+   double maxc=cellops.max(conc_id);
+   assert( maxc==maxc );
 #endif
 
 
@@ -3541,6 +3580,12 @@ int QuatIntegrator::evaluateRHSFunction(
       math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
       const double norm_y_temp = mathops.L2Norm( temperature_id );
       assert( norm_y_temp==norm_y_temp );
+   }
+   if( d_with_concentration ){
+      int conc_id = y_samvect->getComponentDescriptorIndex( d_conc_component_index );
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_c = mathops.L2Norm( conc_id );
+      assert( norm_y_c==norm_y_c );
    }
 #endif
 

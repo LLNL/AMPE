@@ -208,6 +208,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    flux->fillAll(0.);
 
    // now add components of concentration flux
+   for(int ic=0;ic<conc_l->getDepth();++ic)
    FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -215,7 +216,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_l->getPointer(), NGHOSTS,
+            conc_l->getPointer(ic), NGHOSTS,
             d_ncompositions,
             conc_diffusionl->getPointer(0),
             conc_diffusionl->getPointer(1),
@@ -223,13 +224,14 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusionl->getPointer(2),
 #endif
             0,
-            flux->getPointer(0),
-            flux->getPointer(1),
+            flux->getPointer(0,ic),
+            flux->getPointer(1,ic),
 #if (NDIM == 3)
-            flux->getPointer(2),
+            flux->getPointer(2,ic),
 #endif
             flux->getGhostCellWidth()[0] );
 
+   for(int ic=0;ic<conc_a->getDepth();++ic)
    FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -237,7 +239,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_a->getPointer(), NGHOSTS,
+            conc_a->getPointer(ic), NGHOSTS,
             d_ncompositions,
             conc_diffusiona->getPointer(0),
             conc_diffusiona->getPointer(1),
@@ -245,10 +247,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusiona->getPointer(2),
 #endif
             0,
-            flux->getPointer(0),
-            flux->getPointer(1),
+            flux->getPointer(0,ic),
+            flux->getPointer(1,ic),
 #if (NDIM == 3)
-            flux->getPointer(2),
+            flux->getPointer(2,ic),
 #endif
             flux->getGhostCellWidth()[0] );
 
@@ -268,6 +270,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
       assert( conc_diffusionb->getPointer(2)!=NULL );
 #endif
 
+      for(int ic=0;ic<conc_b->getDepth();++ic)
       FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -275,7 +278,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_b->getPointer(), NGHOSTS,
+            conc_b->getPointer(ic), NGHOSTS,
             d_ncompositions,
             conc_diffusionb->getPointer(0),
             conc_diffusionb->getPointer(1),
@@ -283,10 +286,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusionb->getPointer(2),
 #endif
             0,
-            flux->getPointer(0),
-            flux->getPointer(1),
+            flux->getPointer(0,ic),
+            flux->getPointer(1,ic),
 #if (NDIM == 3)
-            flux->getPointer(2),
+            flux->getPointer(2,ic),
 #endif
             flux->getGhostCellWidth()[0] );
    }

@@ -185,8 +185,6 @@ protected:
 
 protected:
 
-   bool d_with_third_phase;
-
    MolarVolumeStrategy* d_mv_strategy;
 
    CALPHADFreeEnergyFunctionsTernary* d_calphad_fenergy;

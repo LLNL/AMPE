@@ -34,6 +34,8 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 
+#include "SAMRAI/math/PatchCellDataNormOpsReal.h"
+
 using namespace std;
 
 CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrationsStrategy(
@@ -99,17 +101,25 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    assert( cd_c_l );
    assert( cd_c_a );
    assert( d_calphad_fenergy!=NULL );
-   assert( d_ncompositions==cd_concentration->getDepth() );
+   assert( cd_concentration->getDepth()==cd_c_l->getDepth() );
+   assert( cd_concentration->getDepth()==cd_c_a->getDepth() );
+#ifdef DEBUG_CHECK_ASSERTIONS
+   SAMRAI::math::PatchCellDataNormOpsReal<double> cops;
+   double l2n=cops.L2Norm(cd_concentration,patch->getBox());
+   assert( l2n==l2n );
+#endif
 
-   const hier::Box& pbox = patch->getBox();
+   const hier::Box& pbox ( patch->getBox() );
 
    boost::shared_ptr< pdat::CellData<double> > cd_c_l_ref (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_ref_id) ) );
    assert( cd_c_l_ref );
-   
+   assert( cd_concentration->getDepth()==cd_c_l_ref->getDepth() );
+ 
    boost::shared_ptr< pdat::CellData<double> > cd_c_a_ref (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_ref_id) ) );
    assert( cd_c_a_ref );
+   assert( cd_concentration->getDepth()==cd_c_a_ref->getDepth() );
    
    boost::shared_ptr< pdat::CellData<double> > cd_c_b_ref;
    if ( d_with_third_phase ) {
@@ -176,26 +186,14 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    kmax = pbox.upper(2);
 #endif
          
-   int N = 2*d_ncompositions;
+   int N = 2*cd_concentration->getDepth();
    if ( d_with_third_phase ) {
-      N+=d_ncompositions;
+      N += cd_concentration->getDepth();
    }
 
+   double c[2]; // up to 2 concentrations/3 species
+   int offset=cd_concentration->getDepth();
    double* x = new double[N];
-   double* fA = new double[N];
-   double* fB = new double[N];
-   double* L0 = new double[N];
-   double* L1 = new double[N];
-   double* L2 = new double[N];
-
-   for ( int ii = 0; ii < N; ii++ ) {
-      x[ii] = 0.0;
-      fA[ii] = 0.0;
-      fB[ii] = 0.0;
-      L0[ii] = 0.0;
-      L1[ii] = 0.0;
-      L2[ii] = 0.0;
-   }
 
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -213,14 +211,12 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
             const double t = ptr_temp[idx_temp];
             
             const double phi = ptr_phi[idx_pf];
-            double eta = 0.0;
 
+            double eta = 0.0;
             if ( d_with_third_phase ) {
                eta = ptr_eta[idx_pf];
             }
-            
-            vector<double> c(d_ncompositions);
-            
+           
             // loop over atomic species
             for(int ic=0;ic<cd_concentration->getDepth();ic++)
             {
@@ -233,11 +229,16 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
                }
 
                c[ic] = ptr_conc[idx_pf];
+               if( c[ic]!=c[ic] ){
+                  cerr<<"ic="<<ic<<",jj="<<jj<<",ii="<<ii<<endl;
+                  TBOX_ERROR("NaN");
+               }
+
                x[ic] = ptr_c_l_ref[idx_c_i];
-               x[ic+d_ncompositions] = ptr_c_a_ref[idx_c_i];
+               x[offset+ic] = ptr_c_a_ref[idx_c_i];
 
                if ( d_with_third_phase ) {
-                  x[ic+d_ncompositions*2] = ptr_c_b_ref[idx_c_i];
+                  x[2*offset+ic] = ptr_c_b_ref[idx_c_i];
 
                }
             }
@@ -253,9 +254,9 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
                   ptr_c_b = cd_c_b->getPointer(ic);
                }
                ptr_c_l[idx_c_i] = x[ic];
-               ptr_c_a[idx_c_i] = x[ic+d_ncompositions];
+               ptr_c_a[idx_c_i] = x[offset+ic];
                if ( d_with_third_phase ) {
-                  ptr_c_b[idx_c_i] = x[ic+d_ncompositions*2];
+                  ptr_c_b[idx_c_i] = x[2*offset+ic];
                }
             } // ic
          }
@@ -263,9 +264,5 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    }
 
    delete[] x;
-   delete[] fA;
-   delete[] fB;
-   delete[] L0;
-   delete[] L1;
-   delete[] L2;
+
 }

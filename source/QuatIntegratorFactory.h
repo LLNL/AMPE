@@ -78,13 +78,13 @@ public:
             quat_model,
             current, scratch,
             qlen,
-            0,
+            0, // 0 composition fields
             input_db,
             grid_geometry,
             bc_db,
             false, // without phase
             model_parameters.with_orientation(),
-            false,
+            false, // without concentration
             false,
             false,
             false,

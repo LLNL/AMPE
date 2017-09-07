@@ -317,24 +317,25 @@ void sqrtArray(
          dim_counter[i] = 0;
       }
 
-      const int dst_offset = dst.getOffset();
-      const int src_offset = src.getOffset();
+      // get the number of data values for each depth component
+      const size_t dst_offset = dst.getOffset();
+      const size_t src_offset = src.getOffset();
 
-      const int num_d0_blocks = ibox.size() / box_w[0];
+      const size_t num_d0_blocks = ibox.size() / box_w[0];
 
-      int dst_begin = dst_box.offset(ibox.lower());
-      int src_begin = src_box.offset(ibox.lower());
+      size_t dst_begin = dst_box.offset(ibox.lower());
+      size_t src_begin = src_box.offset(ibox.lower());
 
       double* dd       = dst.getPointer();
       const double* sd = src.getPointer();
 
       for (int d = 0; d < ddepth; d++) {
 
-         int dst_counter = dst_begin;
-         int src_counter = src_begin;
+         size_t dst_counter = dst_begin;
+         size_t src_counter = src_begin;
 
-         int dst_b[NDIM];
-         int src_b[NDIM];
+         size_t dst_b[NDIM];
+         size_t src_b[NDIM];
          for (int nd = 0; nd < NDIM; nd++) {
             dst_b[nd] = dst_counter;
             src_b[nd] = src_counter;
@@ -343,7 +344,7 @@ void sqrtArray(
          /*
           * Loop over each contiguous block of data.
           */
-         for (int nb = 0; nb < num_d0_blocks; nb++) {
+         for (size_t nb = 0; nb < num_d0_blocks; nb++) {
 
             for (int i0 = 0; i0 < box_w[0]; i0++) {
                dd[dst_counter+i0] = sqrt( sd[src_counter+i0] );
@@ -1238,8 +1239,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       {
          const std::vector< hier::BoundaryBox >& surface_boxes =
             pg->getCodimensionBoundaries(1);
-         const int n_bdry_boxes = surface_boxes.size();
-         for ( int n=0; n<n_bdry_boxes; ++n ) {
+         const size_t n_bdry_boxes = surface_boxes.size();
+         for ( size_t n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox &boundary_box = surface_boxes[n];
             if ( boundary_box.getBoundaryType() != 1 ) {
@@ -1295,8 +1296,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             surface_boxes = d_cf_boundary->getFaceBoundaries(pi->getGlobalId());
          } 
 
-         const int n_bdry_boxes = surface_boxes.size();
-         for ( int n=0; n<n_bdry_boxes; ++n ) {
+         const size_t n_bdry_boxes = surface_boxes.size();
+         for ( size_t n=0; n<n_bdry_boxes; ++n ) {
 
             const hier::BoundaryBox &boundary_box = surface_boxes[n];
             if ( boundary_box.getBoundaryType() != 1 ) {
@@ -1438,8 +1439,8 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
    boost::shared_ptr<pdat::OutersideData<double> >Ak0(
       BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch.getPatchData(d_Ak0_id) ) );
 
-   const int n_bdry_boxes = bdry_boxes.size();
-   for ( int n=0; n<n_bdry_boxes; ++n ) {
+   const size_t n_bdry_boxes = bdry_boxes.size();
+   for ( size_t n=0; n<n_bdry_boxes; ++n ) {
 
       const hier::BoundaryBox& boundary_box = bdry_boxes[n];
 #ifdef DEBUG_CHECK_ASSERTIONS

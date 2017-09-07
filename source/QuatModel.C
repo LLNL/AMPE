@@ -1712,7 +1712,6 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          for ( int qq = 0; qq < d_qlen; qq++ ) {
 #ifdef HAVE_NETCDF3
             NcVar* ncQuat = ncQuatComponents[qq];
-
             ncQuat->set_cur( z_lower, y_lower, x_lower );
 
             if ( ! ncQuat->get( vals, nz, ny, nx ) ) {
@@ -1751,7 +1750,6 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
 #ifdef HAVE_NETCDF3
             NcVar* ncConc = ncConcComponents[cc];
             assert( ncConc!=0 );
-            
             ncConc->set_cur( z_lower, y_lower, x_lower );
             if ( ! ncConc->get( vals, nz, ny, nx ) ) {
                TBOX_ERROR( "Could not read " << ncConc->name() <<
@@ -1777,14 +1775,20 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                (*conc_data)(ccell,cc) = vals[idx];
             }
          }
+#ifdef DEBUG_CHECK_ASSERTIONS
+         math::PatchCellDataBasicOps<double> mathops;
+         double maxc=mathops.max(conc_data, patch_box);
+         assert( maxc==maxc );
+#endif
       }
 
-
+#ifdef DEBUG_CHECK_ASSERTIONS
       //math::PatchCellDataBasicOps<double> mathops;
       //tbox::pout<<"max. q="<<mathops.max(quat_data,patch_box)<<endl;
       //tbox::pout<<"min. q="<<mathops.min(quat_data,patch_box)<<endl;
       //tbox::pout<<"max. p="<<mathops.max(phase_data,patch_box)<<endl;
       //tbox::pout<<"min. p="<<mathops.min(phase_data,patch_box)<<endl;
+#endif
 }
 
 //=======================================================================
@@ -2133,15 +2137,8 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_velocity_id >= 0 );
    }
 
-   d_integrator->RegisterConcentrationVariables(
-      d_conc_var,
-      d_conc_diffusion0_var,
-      d_conc_phase_coupling_diffusion_var,
-      d_conc_eta_coupling_diffusion_var,
-      d_conc_diffusion_var
-      );
-   if( d_model_parameters.with_orientation() )
-      d_integrator_quat_only->RegisterConcentrationVariables(
+   if( d_model_parameters.with_concentration() )
+      d_integrator->RegisterConcentrationVariables(
          d_conc_var,
          d_conc_diffusion0_var,
          d_conc_phase_coupling_diffusion_var,
@@ -3253,9 +3250,11 @@ bool QuatModel::computeCeq(const double temperature,
    mpi.Bcast( &flag, 1, MPI_INT, 0);
    found_ceq=(bool)flag;
    
-   ceq[pi0]=lceq[0];
-   ceq[pi1]=lceq[1];
-      
+   ceq[0]=lceq[0];
+   ceq[1]=lceq[1];
+   ceq[2]=lceq[2];
+   ceq[3]=lceq[3];
+ 
    return found_ceq;
 }
 
@@ -7557,13 +7556,46 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
    assert( d_conc_a_id>=0 );
    
    tbox::pout<<"QuatModel::setPhaseConcentrationsToEquilibrium(ceq)"<<endl;
-
+#if 0
    math::HierarchyCellDataOpsReal<double> cellops( d_patch_hierarchy );
    cellops.setToScalar( d_conc_l_id, ceq[0], false );
    cellops.setToScalar( d_conc_a_id, ceq[1], false );
    if( d_model_parameters.with_third_phase() )
       cellops.setToScalar( d_conc_b_id, ceq[2], false );
+#else
+   int offset=d_ncompositions;
+   for (int ln=0; ln<=d_patch_hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr< hier::PatchLevel > level =
+         d_patch_hierarchy->getPatchLevel(ln);
 
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++) {
+         boost::shared_ptr<hier::Patch > patch = *ip;
+
+         boost::shared_ptr< pdat::CellData<double> > concl (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_id ) ) );
+         assert( concl );
+
+         for(int i=0;i<d_ncompositions;i++)
+            concl->fill(ceq[i],i);
+
+         boost::shared_ptr< pdat::CellData<double> > conca (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_id ) ) );
+         assert( conca );
+
+         for(int i=0;i<d_ncompositions;i++)
+            conca->fill(ceq[offset+i],i);
+         if( d_model_parameters.with_third_phase() ){
+            boost::shared_ptr< pdat::CellData<double> > concb (
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_b_id ) ) );
+            assert( concb );
+
+            for(int i=0;i<d_ncompositions;i++)
+               concb->fill(ceq[2*offset+i],i);
+
+         }
+      }
+   }
+#endif
 }
 
 //=======================================================================

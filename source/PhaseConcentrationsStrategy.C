@@ -74,6 +74,8 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
    assert( maxphi<1.1 );
    assert( minphi>=-0.1 );
    assert( minphi<=1. );
+   double maxc=cellops.max(concentration_id);
+   assert( maxc==maxc );
 #endif
 
    const int maxl = hierarchy->getNumberOfLevels();

@@ -23,7 +23,14 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    double def_val = SAMRAI::tbox::IEEE::getSignalingNaN();
 
    d_fA[0]= def_val;
+   d_fA[1]= def_val;
+   d_fB[0]= def_val;
+   d_fB[1]= def_val;
+   d_fC[0]= def_val;
    d_fC[1]= def_val;
+
+   d_L_AB_L[0]=def_val;
+   d_L_AB_L[1]=def_val;
    d_L_AC_L[2]=def_val;
    d_L_BC_S[0]=def_val;
    d_L_BC_S[3]=def_val;
@@ -532,6 +539,8 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
    
    setupValuesForThreePhasesSolver(temperature);
 
+   assert( d_fC[0]==d_fC[0] );
+
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    int ret = d_solver->ComputeConcentration(
       cauxilliary,
@@ -546,8 +555,7 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
    if( ret<0 )
    {
       cerr<<"ERROR in CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies() ---"
-          <<"conc0="<<conc0
-          <<", conc1="<<conc1
+          <<"conc0="<<conc0<<", conc1="<<conc1
           <<", hphi="<<hphi<<endl;
       tbox::SAMRAI_MPI::abort();
    }
@@ -571,6 +579,8 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
 {
    (void)eta;
 
+   assert( conc[0]==conc[0] );
+   assert( conc[1]==conc[1] );
    assert( x[0]>=0. );
    assert( x[1]>=0. );
    assert( x[0]<=1. );
@@ -587,8 +597,9 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    d_fB[0] = getFenergyPhaseL( 1, temperature );
    d_fB[1] = getFenergyPhaseA( 1, temperature );
 
-   d_fB[0] = getFenergyPhaseL( 2, temperature );
-   d_fB[1] = getFenergyPhaseA( 2, temperature );
+   d_fC[0] = getFenergyPhaseL( 2, temperature );
+   d_fC[1] = getFenergyPhaseA( 2, temperature );
+   assert( d_fC[0]==d_fC[0] );
 
    d_L_AB_L[0] = lmix0ABPhaseL( temperature );
    d_L_AB_L[1] = lmix1ABPhaseL( temperature );
@@ -671,6 +682,7 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    const double* const ceqL=&ceq[0];
    const double* const ceqS=&ceq[2];
+   //clog<<"Input: "<<ceq[0]<<","<<ceq[1]<<","<<ceq[2]<<","<<ceq[3]<<endl;
 
    double slopec = 0.;
    double fc0=0.;
@@ -703,12 +715,15 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
 
       double c1min = min(ceqL[1],ceqS[1]);
       double c1max = max(ceqL[1],ceqS[1]);
-     
+ 
       double dc1=c1max-c1min;
       c1min = max( 0.25*c1min,         c1min-0.25*dc1 );
       c1max = min( 1.-0.25*(1.-c1max), c1max+0.25*dc1 );
       c1max = max( c1max, c1min+dc1 );
       double deltac1 = (c1max - c1min) / (npts_c-1);
+
+      clog<<"Range for c0: "<<c0min<<" to "<<c0max<<endl;
+      clog<<"Range for c1: "<<c1min<<" to "<<c1max<<endl;
 
       ofstream tfile(d_fenergy_diag_filename.data(), ios::out);
       
@@ -717,11 +732,12 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
                              tfile);
 
       for ( int i0 = 0; i0 < npts_c; i0++ ) {
-      for ( int i1 = 0; i1 < npts_c; i1++ ) {
-         double conc[2]={c0min+deltac0*i0, c1min+deltac1*i1};
-         printEnergyVsPhi( conc, temperature, npts_phi,
-                           tfile );
-      }
+         int i1=(1.-c0min-deltac0*i0-c1min)/deltac1;
+         int i1max = i1<npts_c ? i1 : npts_c;
+         for ( int i1 = 0; i1 < i1max; i1++ ) {
+            printEnergyVsPhi( c0min+deltac0*i0, c1min+deltac1*i1, temperature, npts_phi,
+                              tfile );
+         }
       }
    }
    

@@ -28,7 +28,7 @@ public :
       const double* const fB,
       const double* const fC );
    
-protected:
+private:
 
    //energies of 3 species, in two phase each
    double d_fA[2];
@@ -45,17 +45,6 @@ protected:
    double d_L_AC_S[4];
    double d_L_BC_S[4];
    
-   
-   double d_RTinv;
-
-   void computeXi(const double* const cL, const double* const cS, 
-                  double xiL[2], double xiS[2])const;
-
-   void computeDxiDc(const double* const cL, const double* const cS,
-                     double dxidcL[2], double dxidcS[2])const;
-   
-private :
-
    void RHS(
       const double* const c,
       double* const fvec );
@@ -66,6 +55,8 @@ private :
    
    double d_c0[2];
    double d_hphi;
+
+   double d_RT;
 };
 
 #endif
