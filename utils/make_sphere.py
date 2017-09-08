@@ -42,7 +42,8 @@ import quat as Q
 
 # other required packages
 import numpy as N
-from Scientific.IO import NetCDF
+#from Scientific.IO import NetCDF
+from scipy.io import netcdf as NetCDF
 
 #-----------------------------------------------------------------------
 # command-line arguments and options
@@ -550,11 +551,11 @@ for k in range( nz ) :
 #-----------------------------------------------------------------------
 # Write data to file and close
 
-ncphase.assignValue( phase )
+ncphase[:,:,:]=phase
 
 for n in range( QLEN ) :
-  ncquat[n].assignValue( quat[n,...] )
+  ncquat[n][:,:,:]=quat[n,:,:,:]
 
-ncconc.assignValue( conc )
+ncconc[:,:,:]= conc
 
 f.close()

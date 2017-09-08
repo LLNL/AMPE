@@ -42,7 +42,10 @@ import quat as Q
 
 # other required packages
 import numpy as N
-from Scientific.IO import NetCDF
+#from Scientific.IO import NetCDF
+from scipy.io import netcdf as NetCDF
+
+import netCDF4 as nc4
 
 print sys.path
 
@@ -438,7 +441,8 @@ def imposeMinDistance(cx,cy,cz,nx,ny,nz,drmin):
 #-----------------------------------------------------------------------
 # Open and define file
 
-f = NetCDF.NetCDFFile( filename, 'w' )
+#f = NetCDF.NetCDFFile( filename, 'w' )
+f = nc4.Dataset(filename, 'w', format='NETCDF4') 
 
 f.createDimension( 'x', nx )
 f.createDimension( 'y', ny )
@@ -619,15 +623,16 @@ vl=0.;
 #fill phase value and compute volume solid
 for g in range(n_spheres):
   r_sq = r[g]**2
+  threshold = (r[g]+width)**2
   print 'sphere ',g,', center: ',cx[g],cy[g],cz[g],', radius: ',r[g]
   for k in range( nz ) :
     z = k + 0.5
     dz2=distance2_1d_z(z,cz[g])
-    if dz2<r_sq :
+    if dz2<threshold :
       for j in range( ny ) :
         y = j + 0.5
         dy2=distance2_1d_y(y,cy[g])
-        if dy2<r_sq :
+        if dy2<threshold :
           for i in range( nx ) :
             x = i + 0.5
        
@@ -747,14 +752,14 @@ if not(temperature_inside is None):
 
 print 'Write data to file'
 if not(nomconc is None):
-  ncconc.assignValue( conc )
+  ncconc[:,:,:]= conc
 if not(temperature_inside is None):
-  nctemp.assignValue( temperature )
-ncphase.assignValue( phase )
+  nctemp[:,:,:]= temperature
+ncphase[:,:,:]=phase
 if( options.three ):
-  nceta.assignValue( eta )
+  nceta[:,:,:]=eta
 for m in range(QLEN):
-  ncquat[m].assignValue( quat[m,...] )
+  ncquat[m][:,:,:]=quat[m,:,:,:]
 
 f.close()
 

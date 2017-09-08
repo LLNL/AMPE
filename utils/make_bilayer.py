@@ -42,7 +42,10 @@ import quat as Q
 
 # other required packages
 import numpy as N
-from Scientific.IO import NetCDF
+#from Scientific.IO import NetCDF
+from scipy.io import netcdf as NetCDF
+
+import netCDF4 as nc4
 
 #-----------------------------------------------------------------------
 # command-line arguments and options
@@ -435,7 +438,8 @@ print "Composition outside=",co
 #-----------------------------------------------------------------------
 # Open and define file
 
-f = NetCDF.NetCDFFile( filename, 'w' )
+#f = NetCDF.NetCDFFile( filename, 'w' )
+f = nc4.Dataset(filename, 'w', format='NETCDF4')
 
 f.createDimension( 'x', nx )
 f.createDimension( 'y', ny )
@@ -690,16 +694,16 @@ for k in range( nz ) :
 #-----------------------------------------------------------------------
 # Write data to file and close
 
-ncphase.assignValue( phase )
+ncphase[:,:,:]=phase
 if( not eta_inside is None ):
-  nceta.assignValue( eta )
-nctemperature.assignValue( temperature )
+  nceta[:,:,:]=eta
+nctemperature[:,:,:]= temperature
 
 for n in range( QLEN ) :
-  ncquat[n].assignValue( quat[n,...] )
+  ncquat[n][:,:,:]=quat[n,:,:,:]
 
 if ( nspecies>0 ):
   for s in range(nspecies):
-    ncconc[s].assignValue( conc[s,...] )
+    ncconc[s][:,:,:]=conc[s,:,:,:]
 
 f.close()
