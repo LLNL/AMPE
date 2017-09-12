@@ -62,7 +62,6 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    const int conc_l_id,
    const int conc_a_id,
    const int conc_b_id,
-   const int ncompositions,
    const bool with_third_phase,
    const double  phase_well_scale,
    const double eta_well_scale,
@@ -70,7 +69,6 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    const std::string& eta_well_func_type
    ):
       d_mv_strategy(mvstrategy),
-      d_ncompositions(ncompositions),
       d_phase_well_scale(phase_well_scale),
       d_eta_well_scale(eta_well_scale),
       d_phase_well_func_type(phase_well_func_type),
@@ -108,21 +106,12 @@ void CALPHADFreeEnergyStrategyBinary::setup(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db)
 {
-   if(d_ncompositions==1){
    d_calphad_fenergy = new
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,d_phase_interp_func_type,
                                  d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,
                                  d_phase_well_func_type,d_eta_well_func_type);
-   }else{
-   assert( d_ncompositions==2 );
-   d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,d_phase_interp_func_type,
-                                 d_avg_func_type,
-                                 d_phase_well_scale,
-                                 d_phase_well_func_type);
-   }
 }
 
 //=======================================================================
@@ -497,11 +486,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-<<<<<<< HEAD
             ptr_f[idx_f] = d_calphad_fenergy->computeFreeEnergy(t,&c_i,pi,gp);
-=======
-            ptr_f[idx_f] = d_calphad_fenergy->computeFreeEnergy(t,c_i,pi,gp);
->>>>>>> Added class CALPHADFreeEnergyStrategyTernary. Adapted other functions
             ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
          }
       }
@@ -581,11 +566,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-<<<<<<< HEAD
             d_calphad_fenergy->computeDerivFreeEnergy(t,&c_i,pi, &ptr_f[idx_f]);
-=======
-            ptr_f[idx_f] = d_calphad_fenergy->computeDerivFreeEnergy(t,c_i,pi);
->>>>>>> Added class CALPHADFreeEnergyStrategyTernary. Adapted other functions
             ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
          }
       }
@@ -847,12 +828,8 @@ double CALPHADFreeEnergyStrategyBinary::computeMuA(
    const double t,
    const double c )
 {
-<<<<<<< HEAD
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseA,&mu);
-=======
-   double mu = d_calphad_fenergy->computeDerivFreeEnergy(t,c,phaseA);
->>>>>>> Added class CALPHADFreeEnergyStrategyTernary. Adapted other functions
    mu*=d_mv_strategy->computeInvMolarVolume(t,&c,phaseA);
 
    return mu;
@@ -864,12 +841,8 @@ double CALPHADFreeEnergyStrategyBinary::computeMuL(
    const double t,
    const double c )
 {
-<<<<<<< HEAD
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseL,&mu);
-=======
-   double mu = d_calphad_fenergy->computeDerivFreeEnergy(t,c,phaseL);
->>>>>>> Added class CALPHADFreeEnergyStrategyTernary. Adapted other functions
    mu*=d_mv_strategy->computeInvMolarVolume(t,&c,phaseL);
 
    return mu;

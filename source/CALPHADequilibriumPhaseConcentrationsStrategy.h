@@ -48,7 +48,6 @@ public:
       const int conc_l_ref_id,
       const int conc_a_ref_id,
       const int conc_b_ref_id,
-      const int ncompositions,
       const std::string& phase_interp_func_type,
       const std::string& eta_interp_func_type,
       const std::string& avg_func_type,

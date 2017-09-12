@@ -506,7 +506,7 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergyPrivatePatch(
             double c_i[2] = {ptr_c_i[idx_c_i],ptr_c_i[idx_c_i+coffset]};
 
             double deriv[2];
-            d_calphad_fenergy->computeDerivFreeEnergy(t,c_i[0],c_i[1],pi,deriv);
+            d_calphad_fenergy->computeDerivFreeEnergy(t,c_i,pi,deriv);
             double voli=d_mv_strategy->computeInvMolarVolume(t,c_i,pi);
             ptr_df[idx_f]         =deriv[0]*voli;
             ptr_df[idx_f+dfoffset]=deriv[1]*voli;
@@ -726,8 +726,8 @@ void CALPHADFreeEnergyStrategyTernary::computeMuA(
    const double c1,
    double* mu )
 {
-   d_calphad_fenergy->computeDerivFreeEnergy(t,c0,c1,phaseA,mu);
    double c[2]={c0,c1};
+   d_calphad_fenergy->computeDerivFreeEnergy(t,c,phaseA,mu);
    double fac=d_mv_strategy->computeInvMolarVolume(t,c,phaseA);
    mu[0]*=fac;
    mu[1]*=fac;
@@ -741,8 +741,8 @@ void CALPHADFreeEnergyStrategyTernary::computeMuL(
    const double c1,
    double* mu )
 {
-   d_calphad_fenergy->computeDerivFreeEnergy(t,c0,c1,phaseL,mu);
    double c[2]={c0,c1};
+   d_calphad_fenergy->computeDerivFreeEnergy(t,c,phaseL,mu);
    double fac=d_mv_strategy->computeInvMolarVolume(t,c,phaseL);
    mu[0]*=fac;
    mu[1]*=fac;
@@ -780,7 +780,7 @@ void CALPHADFreeEnergyStrategyTernary::defaultComputeSecondDerivativeEnergyPhase
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,c_l[0],c_l[1],phaseL,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_l[0],phaseL,d2fdc2);
 
    if( use_internal_units ){
       double voli = d_mv_strategy->computeInvMolarVolume(temp,&c_l[0],phaseL);
@@ -796,7 +796,7 @@ void CALPHADFreeEnergyStrategyTernary::defaultComputeSecondDerivativeEnergyPhase
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,c_a[0], c_a[1],phaseA,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_a[0],phaseA,d2fdc2);
 
    if( use_internal_units ){
       double voli= d_mv_strategy->computeInvMolarVolume(temp,&c_a[0],phaseA);

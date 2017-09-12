@@ -45,7 +45,6 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       const int conc_l_ref_id,
       const int conc_a_ref_id,
       const int conc_b_ref_id,
-      const int ncompositions,
       const string& phase_interp_func_type,
       const string& eta_interp_func_type,
       const string& avg_func_type,
@@ -64,8 +63,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       with_third_phase),
    d_conc_l_ref_id(conc_l_ref_id),
    d_conc_a_ref_id(conc_a_ref_id),
-   d_conc_b_ref_id(conc_b_ref_id),
-   d_ncompositions(ncompositions)
+   d_conc_b_ref_id(conc_b_ref_id)
 {
    if( ncompositions==1 ){
    d_calphad_fenergy = new

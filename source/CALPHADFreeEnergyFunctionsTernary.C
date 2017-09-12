@@ -362,10 +362,10 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
    const double rt = gas_constant_R_JpKpmol * temp;
 
    double deriv1[2];
-   CALPHADcomputeFIdealMix_deriv2Ternary(rt,conc0, conc1, &deriv1[0]);
+   CALPHADcomputeFIdealMix_deriv2Ternary(rt,conc[0], conc[1], &deriv1[0]);
 
    double deriv2[4]; 
-   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc0, conc1, &deriv2[0]);
+   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc[0], conc[1], &deriv2[0]);
 
    d2fdc2[0]=deriv1[0]+deriv2[0];
    d2fdc2[1]=          deriv2[1];
@@ -735,7 +735,8 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
          int i1=(1.-c0min-deltac0*i0-c1min)/deltac1;
          int i1max = i1<npts_c ? i1 : npts_c;
          for ( int i1 = 0; i1 < i1max; i1++ ) {
-            printEnergyVsPhi( c0min+deltac0*i0, c1min+deltac1*i1, temperature, npts_phi,
+            double c[2]={c0min+deltac0*i0, c1min+deltac1*i1};
+            printEnergyVsPhi( c, temperature, npts_phi,
                               tfile );
          }
       }
@@ -861,7 +862,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 0., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 0., 0., conc, temperature );
       os << conc[0] <<"\t"<< e << endl;
    }
    os << endl;
@@ -872,7 +873,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 1., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 1., 0., conc, temperature );
       os << conc[0] <<"\t"<< e << endl;
    }
    os << endl;
@@ -883,7 +884,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = 0.;
       conc[1] = i*dc;
 
-      double e = fenergy( 0., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 0., 0., conc, temperature );
       os << conc[1] <<"\t"<< e << endl;
    }
    os << endl;
@@ -894,7 +895,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = 0.;
       conc[1] = i*dc;
 
-      double e = fenergy( 1., 0., conc[0], conc[1], temperature );
+      double e = fenergy( 1., 0., conc, temperature );
       os << conc[1] <<"\t"<< e << endl;
    }
    os << endl;

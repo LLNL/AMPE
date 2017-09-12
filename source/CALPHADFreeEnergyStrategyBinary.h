@@ -38,6 +38,7 @@
 #include "CALPHADConcSolverBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "FreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -62,7 +63,6 @@ public:
       const int conc_l_id,
       const int conc_a_id,
       const int conc_b_id,
-      const int ncompositions,
       const bool with_third_phase,
       const double  phase_well_scale,
       const double eta_well_scale,
@@ -236,7 +236,7 @@ protected:
 
    MolarVolumeStrategy* d_mv_strategy;
 
-   FreeEnergyFunctions* d_calphad_fenergy;
+   CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
    
    std::string d_phase_interp_func_type;
    std::string d_eta_interp_func_type;
@@ -262,8 +262,6 @@ protected:
 
 private:
 
-   const int d_ncompositions;
-   
    void addComponentRhsPhiOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,

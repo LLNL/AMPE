@@ -602,7 +602,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_ref_id,
                   d_conc_a_ref_id,
                   d_conc_b_ref_id,
-                  d_ncompositions,
                   d_model_parameters.phase_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),

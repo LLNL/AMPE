@@ -65,7 +65,6 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
          conc_l_id,
          conc_a_id,
          conc_b_id,
-         ncompositions,
          with_third_phase,
          phase_well_scale,
          eta_well_scale,

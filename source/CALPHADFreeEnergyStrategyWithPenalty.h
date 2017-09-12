@@ -36,7 +36,6 @@
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
-#include "CALPHADFreeEnergyFunctionsBinary.h"
 
 
 class CALPHADFreeEnergyStrategyWithPenalty:
@@ -75,7 +74,7 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseL,gp);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseL,gp);
       const double f2 = d_calphad_fenergy->computePenalty(phaseL, conc);
       
       return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseL); 
@@ -86,7 +85,7 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseA,gp);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseA,gp);
       const double f2 = d_calphad_fenergy->computePenalty(phaseA, conc);
       
       return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseA); 
@@ -97,7 +96,7 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,conc,phaseB,gp);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseB,gp);
       const double f2 = d_calphad_fenergy->computePenalty(phaseB, conc);
       
       return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseB);  
