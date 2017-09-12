@@ -1,5 +1,5 @@
 #!/bin/sh
-i./configure --disable-debug --enable-opt \
+./configure --disable-debug --enable-opt \
             --with-CXX=/usr/local/bin/mpiicpc \
             --with-CC=/usr/local/bin/mpiicc \
             --with-F77=/usr/local/bin/ifort \
