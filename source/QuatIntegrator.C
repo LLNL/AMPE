@@ -59,6 +59,7 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/hier/Index.h"
+#include "SAMRAI/math/PatchSideDataNormOpsReal.h"
 
 #ifdef USE_CPODE
 #define BDF CP_BDF
@@ -1623,12 +1624,6 @@ void QuatIntegrator::createSolutionvector(const boost::shared_ptr<hier::PatchHie
       d_solution_vec->addComponent( d_temperature_var, d_temperature_id, d_weight_id );
       d_temperature_component_index = ncomponents;
       ncomponents ++;
-#ifdef DEBUG_CHECK_ASSERTIONS
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      const double norm_y_temp = mathops.L2Norm( d_temperature_id );
-      assert( norm_y_temp==norm_y_temp );
-#endif
-
    }
 
    if ( d_with_concentration ) {
@@ -1678,16 +1673,6 @@ void QuatIntegrator::resetIntegrator(
      = (solv::Sundials_SAMRAIVector *)solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec);
 
    d_sundials_solver->setInitialConditionVector(y);
-#ifdef DEBUG_CHECK_ASSERTIONS
-   if ( d_with_unsteady_temperature ) {
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_samvect
-         = solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
-      int temperature_id  = y_samvect->getComponentDescriptorIndex( d_temperature_component_index  );
-      const double norm_y_temp = mathops.L2Norm( d_temperature_id );
-      assert( norm_y_temp==norm_y_temp );
-   }
-#endif
 
    /*
      Complete the initialization of the integrator having now set the desired
@@ -2670,6 +2655,11 @@ void QuatIntegrator::evaluatePhaseRHS(
    t_phase_rhs_timer->start();
 
    math::PatchCellDataBasicOps<double> mathops;
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+#ifdef DEBUG_CHECK_ASSERTIONS
+   const double norm_y = cellops.L2Norm( phase_id );
+   assert( norm_y==norm_y );
+#endif
 
    // Loop from finest coarsest levels.  We assume that ghost cells
    // on all levels have already been filled by a prior call to
@@ -2678,7 +2668,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    for ( int ln=hierarchy->getFinestLevelNumber(); ln>=0; --ln ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel(ln);
-      
+      //tbox::pout<<"quat_id="<<quat_id<<endl;
       d_phase_flux_strategy->computeFluxes(level, phase_id, quat_id, d_flux_id);
       
       // Coarsen flux data from next finer level so that
@@ -2751,6 +2741,15 @@ void QuatIntegrator::evaluatePhaseRHS(
 
          assert( phase->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
          assert( phase_rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+#ifdef DEBUG_CHECK_ASSERTIONS
+         SAMRAI::math::PatchCellDataNormOpsReal<double> opc;
+         double l2t=opc.L2Norm(temperature,pbox);
+         assert( l2t==l2t );
+
+         SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
+         double l2f=ops.L2Norm(phase_flux,pbox);
+         assert( l2f==l2f );
+#endif
          
          // first compute component from interfacial energy
          FORT_COMP_RHS_PBG(
@@ -2784,8 +2783,7 @@ void QuatIntegrator::evaluatePhaseRHS(
             three_phase );
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-         SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
-         double l2rhs=ops.L2Norm(phase_rhs,pbox);
+         double l2rhs=opc.L2Norm(phase_rhs,pbox);
          assert( l2rhs==l2rhs );
 #endif
 
@@ -2802,7 +2800,7 @@ void QuatIntegrator::evaluatePhaseRHS(
             phase_rhs_id );
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-         l2rhs=ops.L2Norm(phase_rhs,pbox);
+         l2rhs=opc.L2Norm(phase_rhs,pbox);
          assert( l2rhs==l2rhs );
 #endif
 
@@ -2815,7 +2813,6 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    }
 
-   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2rhs=cellops.L2Norm(phase_rhs_id);
    assert( l2rhs==l2rhs );
@@ -3329,6 +3326,7 @@ void QuatIntegrator::fillScratch(
       const double norm_y_q = mathops.L2Norm( y_quat_id );
       assert( norm_y_q==norm_y_q );
 #endif
+      //tbox::pout<<"Fill scratch from "<<y_quat_id<<" into "<<d_quat_scratch_id<<endl;
       copy_to_scratch.registerRefine(
          d_quat_scratch_id,  // destination
          y_quat_id,          // source
@@ -4289,7 +4287,7 @@ int QuatIntegrator::applyProjection(
    corr->setToScalar(0.);
 
    if ( d_qlen > 1 && d_with_orientation ) {
-
+      //tbox::pout<<"QuatIntegrator::applyProjection()"<<endl;
       // Convert the Sundials vectors to SAMRAI vectors
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_samvect
          = solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
@@ -4301,7 +4299,7 @@ int QuatIntegrator::applyProjection(
       const int q_id    = y_samvect->getComponentDescriptorIndex(d_quat_component_index);
       const int corr_id = corr_samvect->getComponentDescriptorIndex(d_quat_component_index);
       const int err_id  = err_samvect->getComponentDescriptorIndex(d_quat_component_index);
-
+      //tbox::pout<<"q_id="<<q_id<<endl;
       d_quat_sys_solver->applyProjection(q_id, corr_id, err_id);
    }
 

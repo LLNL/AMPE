@@ -36,6 +36,7 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/math/PatchSideDataNormOpsReal.h"
 
 void PhaseFluxStrategyAnisotropy::computeFluxes(const boost::shared_ptr<hier::PatchLevel> level,
                    const int phase_id,
@@ -50,16 +51,21 @@ void PhaseFluxStrategyAnisotropy::computeFluxes(const boost::shared_ptr<hier::Pa
 
       const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
          BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+      TBOX_ASSERT(patch_geom);
+
       const double* dx  = patch_geom->getDx();
 
       boost::shared_ptr<pdat::CellData<double> > phase (
          BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(phase_id) ) );
+      TBOX_ASSERT(phase);
 
       boost::shared_ptr<pdat::SideData<double> > phase_flux (
          BOOST_CAST<pdat::SideData<double>, hier::PatchData>( patch->getPatchData( flux_id) ) );
+      TBOX_ASSERT(phase_flux);
       
       boost::shared_ptr< pdat::CellData<double> > quat( 
          BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData( quat_id) ) );
+      TBOX_ASSERT(quat);
 
       const hier::Box& pbox = patch->getBox();
       const hier::Index& ifirst = pbox.lower();
@@ -87,5 +93,11 @@ void PhaseFluxStrategyAnisotropy::computeFluxes(const boost::shared_ptr<hier::Pa
 #endif
          phase_flux->getGhostCellWidth()[0]
          );
+ 
+#ifdef DEBUG_CHECK_ASSERTIONS
+      SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
+      double l2f=ops.L2Norm(phase_flux,pbox);
+      assert( l2f==l2f );
+#endif
    }
 }

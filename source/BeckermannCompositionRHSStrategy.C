@@ -111,7 +111,6 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
    // set diffusion coefficients which is a function of the free energy form
    setDiffusionCoeffForConcentration(
       hierarchy,
-      d_partition_coeff_scratch_id,
       d_conc_scratch_id,
       d_phase_scratch_id,
       d_diffusion0_id,
@@ -124,7 +123,6 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const int partition_coeff_scratch_id,
    const int concentration_id,
    const int phase_id,
    const int conc_tilde_diffusion_id,
@@ -135,7 +133,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    assert( phase_id >= 0 );
    assert( conc_tilde_diffusion_id >= 0 );
    assert( conc_phase_coupling_diffusion_id >= 0 );
-   assert( partition_coeff_scratch_id >=0 );
+   assert( d_partition_coeff_scratch_id >=0 );
    assert( d_D_liquid>=0. );
    assert( d_D_solid_A>=0. );
 
@@ -163,7 +161,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          assert( sd_diffusion0 );
          
          boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( partition_coeff_scratch_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
          assert( cd_partition_coeff );
          
          FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
@@ -477,6 +475,15 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(
    assert( flux );
 
    int three_phase = 0;
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
+   double l2d=ops.L2Norm(sd_conc_diffusion0,pbox);
+   assert( l2d==l2d );
+
+   double l2p=ops.L2Norm(sd_conc_phase_coupling_diffusion,pbox);
+   assert( l2p==l2p );
+#endif
   
    // now compute concentration flux
    FORT_CONCENTRATION_FLUX(
@@ -514,6 +521,11 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(
 #endif
             flux->getGhostCellWidth()[0],
             three_phase );
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   double l2f=ops.L2Norm(flux,pbox);
+   assert( l2f==l2f );
+#endif
 
 }
 

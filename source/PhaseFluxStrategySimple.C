@@ -36,6 +36,7 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/math/PatchSideDataNormOpsReal.h"
 
 void PhaseFluxStrategySimple::computeFluxes(const boost::shared_ptr<hier::PatchLevel> level,
                    const int phase_id,
@@ -44,7 +45,7 @@ void PhaseFluxStrategySimple::computeFluxes(const boost::shared_ptr<hier::PatchL
 {
    //this strategy is independent of grain orientation
    (void) quat_id;
-   
+
    //  Compute phase "flux" on patches in level.
    for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
       boost::shared_ptr< hier::Patch > patch = *ip;
@@ -82,5 +83,11 @@ void PhaseFluxStrategySimple::computeFluxes(const boost::shared_ptr<hier::PatchL
 #endif
          phase_flux->getGhostCellWidth()[0]
          );
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+      SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
+      double l2f=ops.L2Norm(phase_flux,pbox);
+      assert( l2f==l2f );
+#endif
    }
 }

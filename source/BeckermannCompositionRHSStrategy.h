@@ -92,7 +92,6 @@ private:
 
    void setDiffusionCoeffForConcentration(
       const boost::shared_ptr< hier::PatchHierarchy >,
-      const int partition_coeff_scratch_id,
       const int concentration_id,
       const int phase_id,
       const int conc_tilde_diffusion_id,

@@ -874,7 +874,7 @@ void QuatModel::Initialize(
             d_conc_scratch_id,
             d_temperature_scratch_id );
   
-      if( d_partition_coeff_strategy!=NULL ) 
+      if( d_model_parameters.needGhosts4PartitionCoeff() ) 
          d_partition_coeff_refine_patch_strategy =
             new PartitionCoeffRefinePatchStrategy(
                "PartitionCoeffRefinePatchStrategy",
@@ -1374,7 +1374,6 @@ void QuatModel::initializeLevelFromData(
    }
 
    NcVar* ncTemp = NULL;
-
    if ( d_model_parameters.isTemperatureConstant() ) {
       ncTemp = ncf.get_var( "temperature" );
       if ( ncTemp == NULL ) {
@@ -7500,7 +7499,6 @@ void QuatModel::fillPartitionCoeffGhosts( void )
    //tbox::pout<<"QuatModel::fillPartitionCoeffGhosts"<<endl;
    
    xfer::RefineAlgorithm copy_to_scratch;
-
 
    boost::shared_ptr<hier::RefineOperator > refine_op =
       d_grid_geometry->lookupRefineOperator(
