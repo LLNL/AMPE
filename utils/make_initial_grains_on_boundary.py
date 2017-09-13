@@ -10,7 +10,10 @@ import quat as Q
 
 # other required packages
 import numpy as N
-from Scientific.IO import NetCDF
+#from Scientific.IO import NetCDF
+#from scipy.io import netcdf as NetCDF
+import netCDF4 as nc4
+
 from math import pi
 
 print sys.path
@@ -160,7 +163,8 @@ def setRandomQinGrains():
 #-----------------------------------------------------------------------
 # Open and define file
 
-f = NetCDF.NetCDFFile( filename, 'w' )
+#f = NetCDF.NetCDFFile( filename, 'w' )
+f = nc4.Dataset(filename, 'w', format='NETCDF4')
 
 f.createDimension( 'x', nx )
 f.createDimension( 'y', ny )
@@ -310,13 +314,12 @@ if not(nomconc is None):
 
 print 'Write data to file'
 if not(nomconc is None):
-  ncconc.assignValue( conc )
-print 'set T to ',temperature
+  ncconc[:,:,:]= conc
 if not(temperature is None):
-  nctemp.assignValue( temperature )
-ncphase.assignValue( phase )
+  nctemp[:,:,:]= temperature
+ncphase[:,:,:]=phase
 for m in range(QLEN):
-  ncquat[m].assignValue( quat[m,...] )
+  ncquat[m][:,:,:]=quat[m,:,:,:]
 
 f.close()
 
