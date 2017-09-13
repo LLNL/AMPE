@@ -201,39 +201,47 @@ c     local variables
       double precision epsilon2, dphidx, dphidy
       double precision epstheta, depsdtheta
 c
-      pi = 4.*atan(1.)
+      pi = 4.d0*atan(1.d0)
 c
       epsilon2 = epsilon * epsilon
 
-      dxinv = 1. / h(1)
-      dyinv = 1. / h(2)
+      dxinv = 1.d0 / h(1)
+      dyinv = 1.d0 / h(2)
 
 c x faces      
       do j = ifirst1, ilast1
          do i = ifirst0, ilast0+1
             dphidx = (phase(i,j) - phase(i-1,j)) * dxinv
-            dphidy = 0.25*(phase(i-1,j+1) - phase(i-1,j-1)
+            dphidy = 0.25d0*(phase(i-1,j+1) - phase(i-1,j-1)
      &                   + phase(i  ,j+1) - phase(i  ,j-1)) 
      &                   * dyinv 
-         
             if( abs(dphidx)>1.e-12 )then
                theta=atan(dphidy/dphidx)
             else
-               theta=0.5*pi
+               theta=0.5d0*pi
             endif
 
-            q=0.5*(quat(i-1,j,1)+quat(i,j,1))
+            q=0.5d0*(quat(i-1,j,1)+quat(i,j,1))
+c q could be slightly out of the [-1,+1] range due to finite precision
+c need to enforce q to be within that range before call to acos
+            if( q .gt.  1.d0 )q=1.d0
+            if( q .lt. -1.d0 )q=-1.d0
+
             if( qlen==4 )then
-               phi=2.*acos(q)
+               phi=2.d0*acos(q)
             else
                phi=acos(q)
             endif
             
-            epstheta=epsilon*(1.+nu*cos(knumber*(theta-phi)))
+            epstheta=epsilon*(1.d0+nu*cos(knumber*(theta-phi)))
             depsdtheta=-knumber*epsilon*nu*sin(knumber*(theta-phi))
             
             flux0(i,j) = epsilon2*dphidx 
      &                 - epstheta*depsdtheta*dphidy
+c            if( flux0(i,j) /= flux0(i,j) )then
+c               print*,'flux0,',i,j,q,phi,theta,epstheta,
+c     &                          depsdtheta,flux0(i,j)
+c            endif
          enddo
       enddo
 
@@ -252,6 +260,9 @@ c y faces
             endif
             
             q=0.5*(quat(i,j-1,1)+quat(i,j,1))
+            if( q .gt.  1.d0 )q=1.d0
+            if( q .lt. -1.d0 )q=-1.d0
+
             if( qlen==4 )then
                phi=2.*acos(q)
             else
