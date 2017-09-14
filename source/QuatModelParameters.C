@@ -297,7 +297,12 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       if( d_well_bias_alpha>0. ){
          d_with_bias_well = true;
       }
-      d_well_bias_gamma = conc_db->getDouble( "gamma" );
+      d_well_bias_gamma = conc_db->getDoubleWithDefault( "gamma", -1. );
+      if( d_well_bias_gamma<0. ){
+         d_bias_well_beckermann = true;
+      }else{
+         d_bias_well_beckermann = false;
+      }
    }
 }
 

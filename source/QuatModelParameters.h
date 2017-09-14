@@ -200,6 +200,8 @@ public:
    { return d_use_diffs_to_compute_flux; }
    bool useIsotropicStencil()const
    { return d_stencil_type.compare("isotropic")==0; }
+   bool wellBiasBeckermann()const
+   { return d_bias_well_beckermann; }
 
    double quatMobilityScaleFactor()const;
    
@@ -383,7 +385,8 @@ private:
    bool   d_with_antitrapping;
    bool   d_grand_potential;
    bool   d_with_bias_well;
-   
+   bool   d_bias_well_beckermann;  
+ 
    int d_ncompositions;
    
    std::string d_partition_coeff;

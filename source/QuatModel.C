@@ -60,7 +60,8 @@
 #include "PhaseFluxStrategySimple.h"
 #include "PhaseFluxStrategyIsotropic.h"
 #include "PhaseFluxStrategyAnisotropy.h"
-#include "BiasDoubleWellFreeEnergyStrategy.h"
+#include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
+#include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
@@ -581,12 +582,18 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                new ConstantMeltingTemperatureStrategy(d_model_parameters.meltingT(),
                                       d_equilibrium_temperature_id);
          }
-         d_free_energy_strategy =
-            new BiasDoubleWellFreeEnergyStrategy(
-               d_model_parameters.well_bias_alpha(),
-               d_model_parameters.well_bias_gamma(),
-               d_meltingT_strategy );
-      
+         if( d_model_parameters.wellBiasBeckermann() ){
+            d_free_energy_strategy =
+               new BiasDoubleWellBeckermannFreeEnergyStrategy(
+                  d_model_parameters.well_bias_alpha(),
+                  d_meltingT_strategy );
+         }else{
+            d_free_energy_strategy =
+               new BiasDoubleWellUTRCFreeEnergyStrategy(
+                  d_model_parameters.well_bias_alpha(),
+                  d_model_parameters.well_bias_gamma(),
+                  d_meltingT_strategy );
+         }
       }
       else{
          TBOX_ERROR( "Error: unknown concentration model" );
@@ -676,7 +683,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                                                    d_equilibrium_temperature_id);
          
          d_free_energy_strategy =
-            new BiasDoubleWellFreeEnergyStrategy(
+            new BiasDoubleWellUTRCFreeEnergyStrategy(
                d_model_parameters.well_bias_alpha(),
                d_model_parameters.well_bias_gamma(),
                d_meltingT_strategy );

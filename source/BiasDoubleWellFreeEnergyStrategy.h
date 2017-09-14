@@ -39,21 +39,15 @@
 /*!
  * @brief Class BiasDoubleWellFreeEnergyStrategy implements the free energy
  * used by Kobayashi in Physica D 63 (1993), p. 410-423
- * with
- *    m(T)=(alpha/pi)tan^-1(gamma(Te-T))
- *
  */
 
 class BiasDoubleWellFreeEnergyStrategy:
    public FreeEnergyStrategy
 {
 public:
-   BiasDoubleWellFreeEnergyStrategy(
-      const double alpha,
-      const double gamma,
-      MeltingTemperatureStrategy* meltingTstrat );
+   BiasDoubleWellFreeEnergyStrategy();
 
-   ~BiasDoubleWellFreeEnergyStrategy(){};
+   virtual ~BiasDoubleWellFreeEnergyStrategy(){};
  
    void computeFreeEnergyLiquid(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -122,7 +116,7 @@ public:
       (void)gp;
    };
 
-   void addComponentRhsPhi(
+   virtual void addComponentRhsPhi(
       hier::Patch& patch,
       const int temperature_id,
       const int phase_id,
@@ -131,7 +125,7 @@ public:
       const int fl_id,
       const int fa_id,
       const int fb_id,
-      const int rhs_id );
+      const int rhs_id )=0;
 
    void addComponentRhsEta(
       hier::Patch& patch,
@@ -166,10 +160,6 @@ public:
 
 private:
 
-   double d_scale;
-   double d_alpha;
-   double d_gamma;
-   MeltingTemperatureStrategy* d_meltingTstrat;
 };
 
 #endif

@@ -720,10 +720,8 @@ c
 c***********************************************************************
       implicit none
 c***********************************************************************
-c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
-
       integer ngphi, ngtemp, ngrhs, ngte
       double precision alpha, gamma
 c
@@ -733,11 +731,7 @@ c variables in 2d cell indexed
       double precision temp(CELL2d(ifirst,ilast,ngtemp))
       double precision te(CELL2d(ifirst,ilast,ngte))
 c
-c***********************************************************************
-c***********************************************************************     
-c
       double precision pi, coeff, m
-      
       integer ic0, ic1
 c
       pi = 4.*atan(1.)
@@ -747,6 +741,46 @@ c
          do ic0 = ifirst0, ilast0
 
             m = coeff*atan(gamma*(te(ic0,ic1)-temp(ic0,ic1)))
+c this is just the contribution in addition to regular double well
+            rhs(ic0,ic1) = rhs(ic0,ic1) +
+     &         m*phi(ic0,ic1)*(1.d0-phi(ic0,ic1))
+
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
+c
+      subroutine computerhsbiaswellbeckermann(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   phi, ngphi,
+     &   temp, ngtemp,
+     &   alpha, 
+     &   te, ngte,
+     &   rhs, ngrhs )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngphi, ngtemp, ngrhs, ngte
+      double precision alpha
+c
+c variables in 2d cell indexed
+      double precision phi(CELL2d(ifirst,ilast,ngphi))
+      double precision rhs(CELL2d(ifirst,ilast,ngrhs))
+      double precision temp(CELL2d(ifirst,ilast,ngtemp))
+      double precision te(CELL2d(ifirst,ilast,ngte))
+c
+      double precision m
+      integer ic0, ic1
+c
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0
+
+            m = alpha*(te(ic0,ic1)-temp(ic0,ic1))
 c this is just the contribution in addition to regular double well
             rhs(ic0,ic1) = rhs(ic0,ic1) +
      &         m*phi(ic0,ic1)*(1.d0-phi(ic0,ic1))
