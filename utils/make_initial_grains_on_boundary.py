@@ -285,12 +285,6 @@ if QLEN>0:
         for m in range(QLEN):
           quat[m,k,j,i] = qi[m]
 
-  for i in range( nx ) :
-    for j in range( ny ) :
-      for k in range( nz ) :
-        for m in range(QLEN):
-          quat[m,k,j,i] = quat[m,k,j,i]
-
 #fill conc values
 if nomconc is None:
   if not(conc_inside is None):
@@ -303,11 +297,8 @@ if not(nomconc is None):
   print 'conc_inside =',conc_inside
   print 'conc_outside=',conc_outside
 
-  for g in range(ngrains):
-    for k in range( nz ) :
-      for j in range( ny ) :
-        for i in range( nx ) :
-          conc[k,j,i]  = conc_inside*phase[k,j,i]+conc_outside*(1.-phase[k,j,i])
+  for x,y in N.nditer([conc,phase], op_flags=['readwrite']):
+    x[...]= conc_inside*y+conc_outside*(1.-y)
 
 #-----------------------------------------------------------------------
 # Write data to file and close
