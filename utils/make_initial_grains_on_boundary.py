@@ -250,11 +250,11 @@ for k in range( nz ) :
         if( d<0.1 ):
           phase[k,j,i] = phase_inside
           vs=vs+phase[k,j,i]
-      
-      dx=abs(x-0.5*nx)
-      if( dx<5 ):
-        s=N.sin(0.5*pi*dx/5)
-        phase[k,j,i]=phase[k,j,i]*s*s
+      if ngrains>1: 
+        dx=abs(x-0.5*nx)
+        if( dx<5 ):
+          s=N.sin(0.5*pi*dx/5)
+          phase[k,j,i]=phase[k,j,i]*s*s
 
 
 vl=vol-vs
