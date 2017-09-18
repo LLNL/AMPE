@@ -192,7 +192,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       d_conc_rhs_strategy = SPINODAL;
    }
    else if ( conc_rhs_strategy[0] == 'u' 
-          || conc_rhs_strategy[0] == 'B' ) {
+          || conc_rhs_strategy[0] == 'B'
+          || conc_rhs_strategy[0] == 'b' ) {
       tbox::plog<<"Using Beckermann's model"<<endl;
       d_conc_rhs_strategy = Beckermann;
    }
@@ -303,6 +304,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       }else{
          d_bias_well_beckermann = false;
       }
+      d_meltingT = conc_db->getDouble( "meltingT" );
    }
 }
 
@@ -439,7 +441,13 @@ void QuatModelParameters::readTemperatureModel(
          tbox::plog<<"Latent heat [pJ/(mu m)^3]:           "<<d_latent_heat<<endl;
          assert( d_latent_heat>0. );
          assert( d_latent_heat<1.e32 );
-         d_meltingT    = temperature_db->getDouble( "meltingT" ); // in [K]
+
+         //d_meltingT is needed for linear phase diagrams, and should be specified
+         //in "ConcentrationModel" instead
+         double meltingT    = temperature_db->getDoubleWithDefault( "meltingT", -1. ); // in [K]
+         if( meltingT>0. ){
+            TBOX_ERROR("meltingT should be specified in ConcentrationModel block!!!");
+         }
       }
       
    }
