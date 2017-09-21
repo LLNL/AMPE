@@ -53,8 +53,6 @@ Grains::Grains(const int qlen,
    d_number_of_grains = -1;
    d_grain_diag_isActive=false;
    d_grain_extend_isActive=false;
-   d_grain_refine_strategy=NULL;
-   
    d_grain_phase_threshold = 0.85;
    d_grain_size_minimum = 0.0;
 
@@ -87,22 +85,6 @@ Grains::Grains(const int qlen,
 void Grains::initialize( boost::shared_ptr<tbox::Database> input_db,
                          const bool all_periodic )
 {
-   tbox::plog<<"Grains::initialize()"<<endl;
-
-   d_all_periodic = all_periodic;
-   if ( ! d_all_periodic ) {
-      boost::shared_ptr<tbox::Database> model_db =
-         input_db->getDatabase("ModelParameters");
-      d_bc_db = model_db->getDatabase( "BoundaryConditions" );
-   }
-   
-   if ( ! d_all_periodic && d_grain_diag_isActive) {
-      d_grain_refine_strategy =
-         new GrainNumberRefinePatchStrategy(
-            "GrainNumberRefinePatchStrategy",
-            d_bc_db,
-            d_grain_number_id );
-   }
 }
 
 //=======================================================================
@@ -288,6 +270,19 @@ void Grains::initializeLevelData(
    }
 
    level->allocatePatchData( d_local_data );
+
+   // initialize scratch data to -1 so that values at physical boundaries
+   // are at -1 after call to fillData
+   for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
+
+      boost::shared_ptr<hier::Patch > patch = *p;
+      boost::shared_ptr< pdat::CellData<int> > gs (
+         BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_scr_id) ) );
+      assert( gs );
+
+      //initialize data with -1, including ghost values
+      gs->fillAll(-1,gs->getGhostBox());
+   }
 }
 
 //=======================================================================
@@ -312,7 +307,10 @@ void Grains::findAndNumberGrains(
    const double time )
 {
    assert( d_grain_diag_isActive );
-   
+   assert( d_grain_phase_threshold>0. );
+
+   tbox::plog<<"Grains::findAndNumberGrains() with threshold "<<d_grain_phase_threshold<<endl;  
+ 
    t_findAndNumberGrains_timer->start();
 
    assert( phase_id>=0 );
@@ -338,6 +336,8 @@ void Grains::findAndNumberGrains(
          hierarchy->getPatchLevel( ln );
       
       const hier::BoxContainer& bl( level->getPhysicalDomain(hier::BlockId::zero()) );
+      bl.print();
+
       hier::Box bbox = bl.getBoundingBox();
       int bbox_size = bl.size();
 
@@ -355,13 +355,15 @@ void Grains::findAndNumberGrains(
       for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; dd++ ) {
          int width = bbox.numberCells( dd );
          if ( width > max_iteration_count ) {
-            max_iteration_count = width; // would need factor 2 for nonperiodic BC
+            max_iteration_count = 2*width; // need factor 2 for nonperiodic BC
          }
       }
    }
+
    // safety factor to take into account non-convex grains    
    max_iteration_count *= 2;
 
+   int count_cells=0;
    for ( int ln = 0; ln <= maxln; ln++ ) {
       boost::shared_ptr<hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
@@ -377,25 +379,23 @@ void Grains::findAndNumberGrains(
          boost::shared_ptr< pdat::CellData<int> > g (
             BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_id) ) );
          assert( g );
-         
-         g->fillAll(-1);
+        
+         //initialize data with -1, including ghost values 
+         g->fillAll(-1,g->getGhostBox());
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
          for ( pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i!=iend; ++i ) {
-            pdat::CellIndex cell = *i;
+            pdat::CellIndex cell (*i);
 
             if ( (*phase)(cell) >= d_grain_phase_threshold ) {
                int nn = level_offset[ln];
-               for ( int dd = 0; dd < NDIM; dd++ ) {
+               for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; ++dd ) {
                   nn += level_stride[NDIM*ln + dd] * cell(dd);
                }
                (*g)(cell) = nn;
-               assert( nn >= 0 );
                assert( (*g)(cell) >= 0 );
+               count_cells++;
             }
-            else {
-               (*g)(cell) = -1;
-            }               
          }
       }
    }
@@ -403,13 +403,18 @@ void Grains::findAndNumberGrains(
    delete[] level_stride;
    delete[] level_offset;
 
+   int count_cells_sum;
+   mpi.Allreduce(&count_cells, &count_cells_sum, 1, MPI_INT, MPI_SUM);
+   if( count_cells_sum==0 )
+      tbox::pout<<"WARNING: not cell above threshold of "<<d_grain_phase_threshold<<endl;
+
    for ( int ln = maxln-1; ln >= 0; ln-- ) {
       d_grain_number_coarsen_sched[ln]->coarsenData();
    }
 
    //------------------------------------------------------------
    // Bucket fill grains with lowest grain number found.
-
+   assert( d_grain_number_refine_sched.size()>0 );
    int counter = 0;
    while ( counter < max_iteration_count ) {
       int changed = 0;
@@ -420,7 +425,9 @@ void Grains::findAndNumberGrains(
 
          // Fill patch boundaries
          assert( d_grain_number_refine_sched[ln] );
-         d_grain_number_refine_sched[ln]->fillData( time, false );
+
+         bool do_physical_boundary_fill = false;
+         d_grain_number_refine_sched[ln]->fillData( time, do_physical_boundary_fill);
 
          for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
 
@@ -505,12 +512,11 @@ void Grains::findAndNumberGrains(
                const pdat::CellIndex icell = *ic;
                const int n = (*g)(icell);
                const double v = (*w)(icell);
-
                if ( n >= 0 && v > 0. ) {
-                  for ( int dd = 0; dd < NDIM; dd++ ) {
+                  for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; dd++ ) {
                      pdat::CellIndex cm (icell);
                      cm[dd]--;
-
+                     //cout<<"CellIndex:"<<*ic<<", val="<<(*g)(icell)<<", (*g)(cm)="<<(*g)(cm)<<endl;
                      int nm = (*g)(cm);
                      if ( nm >= 0 && nm < n ) {
                         (*g)(icell) = nm;
@@ -552,6 +558,7 @@ void Grains::findAndNumberGrains(
       tbox::pout << "Grain numbering converged in "<<counter
                  <<" iterations"<< endl;
    }
+//return;
 
    //------------------------------------------------------------
    // Make local sorted list of grain numbers
@@ -1117,13 +1124,14 @@ void Grains::resetHierarchyConfiguration(
       boost::shared_ptr<hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
 
-      // d_grain_refine_strategy can be NULL if periodic BC
+      // the last argument should be NULL
+      // so that physical boundary values are -1, as initialized
       d_grain_number_refine_sched[ln] =
          d_grain_number_refine_alg->createSchedule(
             level,
             ln-1,
             hierarchy,
-            d_grain_refine_strategy );
+            NULL );
    }
 
    d_grain_number_coarsen_sched.resize( hierarchy->getNumberOfLevels() );
@@ -1155,13 +1163,13 @@ void Grains::resetHierarchyConfiguration(
                level,
                ln-1,
                hierarchy,
-               d_grain_refine_strategy );
+               NULL );
          d_grain_quat_refine_sched[ln] =
             d_grain_quat_refine_alg->createSchedule(
                level,
                ln-1,
                hierarchy,
-               d_grain_refine_strategy );
+               NULL );
       }
 
       d_grain_extend_coarsen_sched.resize( hierarchy->getNumberOfLevels() );

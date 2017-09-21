@@ -90,7 +90,7 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 ConcFACSolver.o ConcFACOps.o \
                 KKSCompositionRHSStrategy.o EBSCompositionRHSStrategy.o \
                 CompositionRHSStrategy.o \
-                GrainNumberRefinePatchStrategy.o Grains.o \
+                Grains.o \
                 TemperatureFACSolver.o TemperatureFACOps.o \
                 FACPreconditioner.o $(CALPHAD_OBJS)
 

@@ -33,8 +33,6 @@
 #ifndef included_Grains
 #define included_Grains
 
-#include "GrainNumberRefinePatchStrategy.h"
-
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
 #include <boost/make_shared.hpp>
@@ -163,12 +161,6 @@ private :
 
    int d_number_of_grains;
    
-   bool d_all_periodic;
-   
-   GrainNumberRefinePatchStrategy* d_grain_refine_strategy;
-   
-   boost::shared_ptr<tbox::Database> d_bc_db;
-
    // Timers
    boost::shared_ptr<tbox::Timer> t_findAndNumberGrains_timer;
    boost::shared_ptr<tbox::Timer> t_extendGrainOrientation_timer;
