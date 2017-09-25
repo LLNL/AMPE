@@ -81,6 +81,7 @@ public:
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
       const double time )
    {
+      (void) patch_hierarchy;
       (void) time;
    }
 

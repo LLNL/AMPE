@@ -73,14 +73,6 @@ PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
    tbox::plog << "f solid A =" << d_f_a << endl;
 }
 
-//double PhaseFreeEnergyStrategy::computeValFreeEnergyLiquid(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return d_f_l;
-//}
-//
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
@@ -125,16 +117,6 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
    fl->fillAll( d_f_l );
 }
 
-//=======================================================================
-//
-//double PhaseFreeEnergyStrategy::computeValFreeEnergySolidA(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return d_f_a;
-//}
-//
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(

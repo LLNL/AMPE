@@ -53,21 +53,6 @@ public:
 
    ~PhaseFreeEnergyStrategy(){};
  
-//   double computeValFreeEnergyLiquid(
-//      const double temperature,
-//      const double conc,
-//      const bool gp = false );
-//
-//   double computeValFreeEnergySolidA(
-//      const double temperature,
-//      const double conc,
-//      const bool gp = false );
-//
-//   double computeValFreeEnergySolidB(
-//      const double temperature,
-//      const double conc,
-//      const bool gp = false );
-//
    void computeFreeEnergyLiquid(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
