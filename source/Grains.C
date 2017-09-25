@@ -85,6 +85,8 @@ Grains::Grains(const int qlen,
 void Grains::initialize( boost::shared_ptr<tbox::Database> input_db,
                          const bool all_periodic )
 {
+   (void) input_db;
+   (void) all_periodic;
 }
 
 //=======================================================================
@@ -273,9 +275,12 @@ void Grains::initializeLevelData(
 
    // initialize scratch data to -1 so that values at physical boundaries
    // are at -1 after call to fillData
+   if( d_grain_diag_isActive )
    for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
 
       boost::shared_ptr<hier::Patch > patch = *p;
+
+      assert( d_grain_number_scr_id>=0 );
       boost::shared_ptr< pdat::CellData<int> > gs (
          BOOST_CAST< pdat::CellData<int>, hier::PatchData>(patch->getPatchData( d_grain_number_scr_id) ) );
       assert( gs );
