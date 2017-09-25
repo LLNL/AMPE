@@ -1,0 +1,134 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 1.
+max_delta_cycles    = 5
+
+Visit {
+   interval = 1
+   interval_type = "step"
+   grain_output = TRUE
+}
+
+ModelParameters {
+   H_parameter    = 0.25
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature0 = 1450.
+   }
+   
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+
+   phi_mobility = 6.4
+   orient_mobility = 0.64
+ 
+   phi_well_scale = 2.5  //  [pJ/um^3]
+   phi_well_func_type = "double"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+  BoundaryConditions {
+    // These are the boundary condition specifications.  The number
+    // after "boundary_" is the location index of the boundary.
+    // The inputs are arrays of strings where the first string
+    // indicates the type of values you want to set.  "slope" means
+    // boundary slope, "value" means boundary value, and "coefficients"
+    // mean the raw Robin boundary condition coefficients.
+    // The remaining strings are converted into numbers as
+    // appropriate for what boundary condition you specified with
+    // the first string.  Other boundary conditions are possible.
+    // see the solv_RobinBcCoefStrategy class.
+    // Examples:
+    Phase{
+      boundary_0 = "slope", "0"
+      boundary_1 = "slope", "0"
+      boundary_2 = "slope", "0"
+      boundary_3 = "slope", "0"
+    }
+    Conc{
+      boundary_0 = "slope", "0"
+      boundary_1 = "slope", "0"
+      boundary_2 = "slope", "0"
+      boundary_3 = "slope", "0"
+    }
+    Quat{
+      boundary_0 = "slope", "0"
+      boundary_1 = "slope", "0"
+      boundary_2 = "slope", "0"
+      boundary_3 = "slope", "0"
+    }
+    ConcL{
+      boundary_0 = "slope", "0"
+      boundary_1 = "slope", "0"
+      boundary_2 = "slope", "0"
+      boundary_3 = "slope", "0"
+    }
+    ConcA{
+      boundary_0 = "slope", "0"
+      boundary_1 = "slope", "0"
+      boundary_2 = "slope", "0"
+      boundary_3 = "slope", "0"
+    }
+
+  }
+}
+
+Symmetry {  // optional block
+   enabled = TRUE  // optional
+   Fundamental {  // optional block
+      interval = 1000000  // optional
+      interval_type = "step"  // optional
+   }
+}
+
+GrainExtension {  // optional block
+   interval = 1000000  // optional
+   interval_type = "step"  // optional
+}
+
+GrainDiagnostics {  // optional block
+   interval = 0.005  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = TRUE  // optional
+   phase_threshold = 0.5  // optional
+   minimum_size = 0.0  // optional
+}
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {
+   }
+}
+
+InitialConditions {
+   filename = "test.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 40, 30
+   x_lo         = -1.,  0. // [um]
+   x_up         =  1.,  1.5 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatLevelSolver::*","QuatSysSolver::*",
+                 "QuatIntegrator::*","EllipticFACOps::*",
+                 "CellPoissonHypreSolver::*"
+    print_threshold = 0.0
+}

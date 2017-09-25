@@ -1,0 +1,4 @@
+python ~/GIT/ampe/utils/make_initial_grains_on_boundary.py --ngrains 3 -d 2 \
+      -x 40 -y 30 -z 1 -q 4 \
+      --solid-fraction 0.3 --width 5. test.nc
+
