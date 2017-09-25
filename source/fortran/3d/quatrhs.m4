@@ -892,3 +892,45 @@ c this is just the contribution in addition to regular double well
       return
       end
 
+c***********************************************************************
+c
+      subroutine computerhsdeltatemperature(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   temp, ngtemp,
+     &   tm, latentheat,
+     &   rhs, ngrhs )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngtemp, ngrhs
+      double precision tm, latentheat
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision rhs(CELL3d(ifirst,ilast,ngrhs))
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+c
+      integer ic0, ic1, ic2
+      double precision m, alpha
+c
+      alpha = latentheat/tm
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               m = alpha*(tm-temp(ic0,ic1,ic2))
+
+               rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2) +
+     &          m*phi(ic0,ic1,ic2)*(1.d0-phi(ic0,ic1,ic2))
+
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+

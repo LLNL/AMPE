@@ -101,7 +101,6 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
    const QuatModelParameters& model_parameters)
 {
    static TemperatureStrategy* strategy=0;
-   QuatModelParameters::TEMPERATURE_TYPE temperature_type;
    
    boost::shared_ptr<tbox::Database> temperature_db;
    if ( model_db->keyExists( "Temperature" ) ) {
@@ -113,10 +112,12 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
    if( model_db->keyExists("BoundaryConditions") ) {
       boost::shared_ptr<tbox::Database> bc_db =
          model_db->getDatabase( "BoundaryConditions" );
-      boost::shared_ptr<tbox::Database> temperature_bc_db =
-         bc_db->getDatabase( "Temperature" );
-      d_temperature_bc_coefs
-         =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
+      if( bc_db->keyExists( "Temperature" ) ){
+         boost::shared_ptr<tbox::Database> temperature_bc_db =
+            bc_db->getDatabase( "Temperature" );
+         d_temperature_bc_coefs
+            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
+      }
    }
    
    // create strategy

@@ -62,6 +62,7 @@
 #include "PhaseFluxStrategyAnisotropy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
+#include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
@@ -687,6 +688,11 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_model_parameters.well_bias_alpha(),
                d_model_parameters.well_bias_gamma(),
                d_meltingT_strategy );
+      }else if( d_model_parameters.free_energy_type()[0]=='l' ){
+         d_free_energy_strategy =
+            new DeltaTemperatureFreeEnergyStrategy(
+               d_model_parameters.meltingT(),
+               d_model_parameters.latent_heat());
       }else
          d_free_energy_strategy =
             new TemperatureFreeEnergyStrategy(
@@ -701,17 +707,24 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_model_parameters.with_third_phase() );
    
    } else {
-      d_free_energy_strategy =
-         new PhaseFreeEnergyStrategy(
-            d_model_parameters.phase_interp_func_type(),
-            d_model_parameters.eta_interp_func_type(),
-            d_model_parameters.free_energy_liquid(),
-            d_model_parameters.free_energy_solid_A(),
-            d_model_parameters.free_energy_solid_B(),
+      if( d_model_parameters.free_energy_type()[0]=='l' ){
+         d_free_energy_strategy =
+            new DeltaTemperatureFreeEnergyStrategy(
+               d_model_parameters.meltingT(),
+               d_model_parameters.latent_heat());
+      }else{
+         d_free_energy_strategy =
+            new PhaseFreeEnergyStrategy(
+               d_model_parameters.phase_interp_func_type(),
+               d_model_parameters.eta_interp_func_type(),
+               d_model_parameters.free_energy_liquid(),
+               d_model_parameters.free_energy_solid_A(),
+               d_model_parameters.free_energy_solid_B(),
             d_model_parameters.molar_volume_liquid(),
             d_model_parameters.molar_volume_solid_A(),
             d_model_parameters.molar_volume_solid_B(),
             d_model_parameters.with_third_phase() );
+      }
    }
    
    if( d_model_parameters.with_Aziz_partition_coeff() ){
@@ -850,16 +863,17 @@ void QuatModel::Initialize(
       restore_num );
 
    // boundary conditions
-   if( d_all_periodic )
-   {
-      d_temperature_bc_coefs=0;
-   }else{
+   d_temperature_bc_coefs=0;
+   if( !d_all_periodic ){
       boost::shared_ptr<tbox::Database> bc_db =
          model_db->getDatabase( "BoundaryConditions" );
-      boost::shared_ptr<tbox::Database> temperature_bc_db =
-         bc_db->getDatabase( "Temperature" );
-      d_temperature_bc_coefs
-         =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
+      if(  bc_db->keyExists( "Temperature" ) ){
+         boost::shared_ptr<tbox::Database> temperature_bc_db =
+            bc_db->getDatabase( "Temperature" );
+         d_temperature_bc_coefs
+            =new solv::LocationIndexRobinBcCoefs(
+               tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
+      }
    }
    
    d_grains->initialize(input_db, d_all_periodic);
@@ -887,7 +901,8 @@ void QuatModel::Initialize(
                "PartitionCoeffRefinePatchStrategy",
                bc_db,
                d_partition_coeff_scratch_id );
-            
+
+      if( d_model_parameters.with_concentration() )       
       d_phase_concentration_refine_patch_strategy =
          new PhaseConcentrationRefinePatchStrategy(
             "PhaseConcentrationRefinePatchStrategy",
@@ -3796,11 +3811,12 @@ void QuatModel::initializeLevelData(
       for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
 
-         boost::shared_ptr< pdat::CellData<double> > fl (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
-         assert( fl );
-         fl->fillAll( d_model_parameters.free_energy_liquid() );
-
+         if ( d_model_parameters.free_energy_type()[0]=='s' ){
+            boost::shared_ptr< pdat::CellData<double> > fl (
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
+            assert( fl );
+            fl->fillAll( d_model_parameters.free_energy_liquid() );
+         }
          boost::shared_ptr< pdat::CellData<double> > fa (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          assert( fa );

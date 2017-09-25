@@ -34,6 +34,8 @@
 
 using namespace std;
 
+static double def_val = tbox::IEEE::getSignalingNaN();
+
 static
 void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
                    map<short,double>& cp)
@@ -54,7 +56,6 @@ void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
       
 QuatModelParameters::QuatModelParameters()
 {
-   double def_val = tbox::IEEE::getSignalingNaN();
 
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
@@ -435,25 +436,26 @@ void QuatModelParameters::readTemperatureModel(
          }
       }else{
          d_with_steady_temperature = false;
-         
-         d_latent_heat = temperature_db->getDouble( "latent_heat" ); // in [J/mol]
-         d_latent_heat *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol] to [pJ/(mu m)^3]
-         tbox::plog<<"Latent heat [pJ/(mu m)^3]:           "<<d_latent_heat<<endl;
-         assert( d_latent_heat>0. );
-         assert( d_latent_heat<1.e32 );
-
-         //d_meltingT is needed for linear phase diagrams, and should be specified
-         //in "ConcentrationModel" instead
-         double meltingT    = temperature_db->getDoubleWithDefault( "meltingT", -1. ); // in [K]
-         if( meltingT>0. ){
-            TBOX_ERROR("meltingT should be specified in ConcentrationModel block!!!");
-         }
       }
       
    }
    else {
       d_temperature_type = CONSTANT;
    }
+
+   if( temperature_db->keyExists("latent_heat" ) ){
+      d_latent_heat = temperature_db->getDouble( "latent_heat" ); // in [J/mol]
+      d_latent_heat *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol] to [pJ/(mu m)^3]
+      tbox::plog<<"Latent heat [pJ/(mu m)^3]:           "<<d_latent_heat<<endl;
+      assert( d_latent_heat>0. );
+      assert( d_latent_heat<1.e32 );
+   }else{
+      d_latent_heat = def_val;
+   }
+
+   //d_meltingT is needed for linear phase diagrams, and could be specified
+   //in "ConcentrationModel" instead
+   d_meltingT = temperature_db->getDoubleWithDefault( "meltingT", d_meltingT ); // in [K]
 }
 
 //=======================================================================
@@ -793,18 +795,27 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
 void QuatModelParameters::readFreeEnergies(boost::shared_ptr<tbox::Database> model_db)
 {
-   d_free_energy_liquid =
-      model_db->getDouble( "free_energy_liquid" );
+   boost::shared_ptr<tbox::Database> db( 
+      model_db->keyExists( "FreeEnergyModel" ) ?
+      model_db->getDatabase( "FreeEnergyModel" ) :
+      model_db );
 
-   if ( ! with_third_phase() ) {
-      d_free_energy_solid_A =
-         model_db->getDouble( "free_energy_solid" );
-   }
-   else {
-      d_free_energy_solid_A =
-         model_db->getDouble( "free_energy_solid_A" );
-      d_free_energy_solid_B =
-         model_db->getDouble( "free_energy_solid_B" );
+   d_free_energy_type = db->getStringWithDefault("type","scalar");
+
+   if( d_free_energy_type[0]=='s'){
+      d_free_energy_liquid =
+         db->getDouble( "free_energy_liquid" );
+
+      if ( ! with_third_phase() ) {
+         d_free_energy_solid_A =
+            db->getDouble( "free_energy_solid" );
+      }
+      else {
+         d_free_energy_solid_A =
+            db->getDouble( "free_energy_solid_A" );
+         d_free_energy_solid_B =
+            db->getDouble( "free_energy_solid_B" );
+      }
    }
 }
 

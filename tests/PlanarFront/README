@@ -1,0 +1,4 @@
+#generate initial conditions
+python ~/GIT/ampe/utils/make_initial_grains_on_boundary.py --ngrains 1 -d 2 \
+       -x 32 -y 256 -z 1 --solid-fraction 0.05 --width 5. test.nc
+

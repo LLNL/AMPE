@@ -142,7 +142,8 @@ public:
    double free_energy_liquid()const{ return d_free_energy_liquid; }
    double free_energy_solid_A()const{ return d_free_energy_solid_A; }
    double free_energy_solid_B()const{ return d_free_energy_solid_B; }
-      
+   std::string free_energy_type()const{ return d_free_energy_type; }
+ 
    double well_bias_alpha()const{ return d_well_bias_alpha; }
    double well_bias_gamma()const{ return d_well_bias_gamma; }
 
@@ -328,7 +329,8 @@ private:
    double d_free_energy_liquid;
    double d_free_energy_solid_A;
    double d_free_energy_solid_B;
-   
+   std::string d_free_energy_type;
+ 
    double d_well_bias_alpha;
    double d_well_bias_gamma;
    double d_liquidus_slope;

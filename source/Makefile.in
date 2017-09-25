@@ -54,7 +54,7 @@ CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 
 CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 QuatIntegrator.o \
-                BeckermannCompositionRHSStrategy.o \
+                BeckermannCompositionRHSStrategy.o DeltaTemperatureFreeEnergyStrategy.o \
                 ConstantHeatCapacityStrategy.o PFModel.o \
                 CartesianRobinBcHelperWithDepth.o \
                 ConstantMeltingTemperatureStrategy.o \

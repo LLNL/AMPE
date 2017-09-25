@@ -41,6 +41,7 @@
 #define FORT_COMP_RHS_TEMP computerhstemp_
 #define FORT_COMP_RHS_BIASWELL computerhsbiaswell_
 #define FORT_COMP_RHS_BIASWELL_BECKERMANN computerhsbiaswellbeckermann_
+#define FORT_COMP_RHS_DELTA_TEMPERATURE   computerhsdeltatemperature_
 #define FORT_COMP_RHS_ETA computerhseta_
 #define FORT_DIFFS diffs_
 #define FORT_GRAD_CELL grad_cell_
@@ -224,6 +225,18 @@ extern "C" {
       const double*, const int&,
       const double&,
       double* teq, const int&,
+      double* rhs, const int&
+      );
+
+   void FORT_COMP_RHS_DELTA_TEMPERATURE(
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const double*, const int&,
+      const double*, const int&,
+      const double&,const double&,
       double* rhs, const int&
       );
 
