@@ -1022,6 +1022,17 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          assert( d_phase_rhs_visit_id >= 0 );
          d_local_data.setFlag( d_phase_rhs_visit_id );
       }
+      if( d_with_heat_equation ) {
+         d_temperature_rhs_visit_var.reset (
+            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_temperature_rhs_visit_", 1 ));
+         d_temperature_rhs_visit_id =
+            variable_db->registerVariableAndContext(
+               d_temperature_rhs_visit_var,
+               d_current,
+               hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( d_temperature_rhs_visit_id >= 0 );
+         d_local_data.setFlag( d_temperature_rhs_visit_id );
+      }
       if ( d_with_orientation ) {
          d_modulus_q_rhs_visit_var.reset (
             new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_modulus_q_rhs_visit_", 1 ));
@@ -1447,6 +1458,11 @@ void QuatIntegrator::RegisterWithVisit(
       visit_data_writer->registerPlotQuantity(
          "phase_rhs", "SCALAR", d_phase_rhs_visit_id, 0 );
 
+      if ( d_with_heat_equation ) {
+         assert( d_temperature_rhs_visit_id>0 );
+         visit_data_writer->registerPlotQuantity(
+            "temperature_rhs", "SCALAR", d_temperature_rhs_visit_id, 0 );
+      }
       if ( d_with_orientation ) {
          assert( d_modulus_q_rhs_visit_id>0 );
          string visit_nameq("modulus_q_rhs");
@@ -2947,7 +2963,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int phase_rhs_id,
-   const int temperature_rhs_id )
+   const int temperature_rhs_id,
+   const bool visit_flag )
 {
    //tbox::pout<<"QuatIntegrator::evaluateTemperatureRHS()..."<<endl;
    //tbox::pout<<"d_thermal_diffusivity="<<d_thermal_diffusivity<<endl;
@@ -2959,6 +2976,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
    assert( d_latent_heat>0. );
    assert( d_latent_heat<1.e32 );
   
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+
    d_heat_capacity_strategy->setCurrentValue(hierarchy);
   
    for ( int ln=hierarchy->getFinestLevelNumber(); ln>=0; --ln ) {
@@ -3014,6 +3033,11 @@ void QuatIntegrator::evaluateTemperatureRHS(
             phase_rhs->getPointer(),   phase_rhs->getGhostCellWidth()[0],
             temperature_rhs->getPointer(), 0 );
       }
+   }
+
+   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+      assert( d_temperature_rhs_visit_id>=0 );
+      cellops.copyData( d_temperature_rhs_visit_id,  temperature_rhs_id, false );
    }
 }
 
@@ -3618,7 +3642,7 @@ int QuatIntegrator::evaluateRHSFunction(
       //tbox::pout<<"Evaluate phase rhs..."<<endl;
       evaluatePhaseRHS(
          hierarchy,
-         y_dot_samvect, (fd_flag==0) );
+         y_dot_samvect, fd_flag );
    
       if( d_with_partition_coeff && d_model_parameters.with_Aziz_partition_coeff()){
       
@@ -3680,7 +3704,7 @@ int QuatIntegrator::evaluateRHSFunction(
    // Set the quaternion component of the RHS
    if ( d_with_orientation ) {
 
-      evaluateQuatRHS( hierarchy,y_dot_samvect,(fd_flag==0));
+      evaluateQuatRHS( hierarchy,y_dot_samvect,fd_flag);
 
    }
 
@@ -3707,7 +3731,7 @@ int QuatIntegrator::evaluateRHSFunction(
    // Set the temperature component of the RHS
    if ( d_with_unsteady_temperature ) {
    
-      evaluateTemperatureRHS(hierarchy,y_dot_samvect);
+      evaluateTemperatureRHS(hierarchy,y_dot_samvect, fd_flag);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
       int Tdot_id  = y_dot_samvect->getComponentDescriptorIndex( d_temperature_component_index  );

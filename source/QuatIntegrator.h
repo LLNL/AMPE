@@ -394,7 +394,8 @@ protected:
 
    void evaluateTemperatureRHS(
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot_samvect )
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot_samvect,
+      int fd_flag )
    {
       const int ydot_phase_id = 
          y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index );
@@ -404,7 +405,8 @@ protected:
          hierarchy,
          d_temperature_scratch_id,
          ydot_phase_id,
-         ydot_temperature_id );
+         ydot_temperature_id,
+         fd_flag==0 );
    }
    
    void setTemperatureField(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -629,7 +631,8 @@ private :
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int phase_rhs_id,
-      const int temperature_rhs_id );
+      const int temperature_rhs_id,
+      const bool visit_flag );
    void evaluateQuatRHS(
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int quat_id,
@@ -784,6 +787,9 @@ private :
 
    boost::shared_ptr< pdat::CellVariable<double> > d_modulus_q_rhs_visit_var;
    int d_modulus_q_rhs_visit_id;
+
+   boost::shared_ptr< pdat::CellVariable<double> > d_temperature_rhs_visit_var;
+   int d_temperature_rhs_visit_id;
 
    boost::shared_ptr< pdat::CellVariable<double> > d_q_rhs1_visit_var;
    int d_q_rhs1_visit_id;
