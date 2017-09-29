@@ -38,18 +38,21 @@ static double def_val = tbox::IEEE::getSignalingNaN();
 
 static
 void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
-                   map<short,double>& cp)
+                   map<short,double>& cp,
+                   const double factor)
 {
-      double tmp=cp_db->getDouble("a");
+   assert( factor==factor );
+
+      double tmp=cp_db->getDouble("a")*factor;
       cp.insert( std::pair<short,double>(0,tmp) );
       if ( cp_db->keyExists( "b" ) )
       {
-         tmp = cp_db->getDouble("b");
+         tmp = cp_db->getDouble("b")*factor;
          cp.insert( std::pair<short,double>(1,tmp) );
       }
       if ( cp_db->keyExists( "dm2" ) )
       {
-         tmp = cp_db->getDouble("dm2");
+         tmp = cp_db->getDouble("dm2")*factor;
          cp.insert( std::pair<short,double>(-2,tmp) );
       }
 }
@@ -123,6 +126,7 @@ QuatModelParameters::QuatModelParameters()
    d_with_gradT = false;
    d_with_antitrapping = false;
    d_with_bias_well = false;
+   d_with_rescaled_temperature = false;
    
    d_partition_coeff = "";
    d_phase_concentration_model = "";
@@ -292,6 +296,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       assert( d_partition_coeff.compare("none")!=0 );
 
    if( d_conc_model==LINEAR ){
+      d_meltingT = conc_db->getDouble( "meltingT" );
+
       d_liquidus_slope = conc_db->getDoubleWithDefault( "liquidus_slope", 0. );
       if( fabs(d_liquidus_slope)>0. )
          d_average_concentration    = conc_db->getDouble( "average_concentration" );
@@ -305,7 +311,10 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       }else{
          d_bias_well_beckermann = false;
       }
-      d_meltingT = conc_db->getDouble( "meltingT" );
+      if( d_with_rescaled_temperature ){
+         d_liquidus_slope /= d_meltingT;
+         d_well_bias_gamma *= d_meltingT;
+      }
    }
 }
 
@@ -354,6 +363,10 @@ void QuatModelParameters::readTemperatureModel(
       TBOX_ERROR( "Error: invalid value for temperature_type" );
    }
 
+   //d_meltingT is needed for linear phase diagrams, and could be specified
+   //in "ConcentrationModel" instead
+   d_meltingT = temperature_db->getDoubleWithDefault( "meltingT", -1. ); // in [K]
+
    if ( temperature_type[0] == 's' ||
         temperature_type[0] == 'S' ) {
       
@@ -385,20 +398,24 @@ void QuatModelParameters::readTemperatureModel(
       // heat capacity value
       boost::shared_ptr<tbox::Database> cp_db = temperature_db->getDatabase( "cp" );
       map<short,double> empty_map;
-      
+     
+      d_with_rescaled_temperature = ( ( method != "steady" ) && (d_meltingT>0.) );
+      if( d_with_rescaled_temperature )
+         tbox::plog<<"Solve temperature equation with rescaled T"<<endl; 
+      double factor = d_with_rescaled_temperature ? d_meltingT : 1.; 
       d_cp.push_back(empty_map);
-      readSpeciesCP(cp_db->getDatabase( "SpeciesA" ), d_cp[0]);
+      readSpeciesCP(cp_db->getDatabase( "SpeciesA" ), d_cp[0], factor);
       if( d_ncompositions>0 )
       {
          assert( cp_db->keyExists( "SpeciesB" ) );
          d_cp.push_back(empty_map);
-         readSpeciesCP(cp_db->getDatabase("SpeciesB" ), d_cp[1]);
+         readSpeciesCP(cp_db->getDatabase("SpeciesB" ), d_cp[1], factor);
       }
       if( d_ncompositions>1 )
       {
          assert( cp_db->keyExists( "SpeciesC" ) );
          d_cp.push_back(empty_map);
-         readSpeciesCP(cp_db->getDatabase("SpeciesC" ), d_cp[2]);
+         readSpeciesCP(cp_db->getDatabase("SpeciesC" ), d_cp[2], factor);
       }
       
       tbox::plog<<"Cp for each species: "<<endl;
@@ -437,6 +454,13 @@ void QuatModelParameters::readTemperatureModel(
       }else{
          d_with_steady_temperature = false;
       }
+
+      if( d_with_rescaled_temperature ){   //rescale units
+         tbox::plog<<"Rescale thermal diffusivity by factor 1./d_meltingT = "<<1./d_meltingT<<endl;
+         d_thermal_diffusivity/=d_meltingT;
+
+         d_H_parameter *= d_meltingT;
+      }
       
    }
    else {
@@ -453,9 +477,6 @@ void QuatModelParameters::readTemperatureModel(
       d_latent_heat = def_val;
    }
 
-   //d_meltingT is needed for linear phase diagrams, and could be specified
-   //in "ConcentrationModel" instead
-   d_meltingT = temperature_db->getDoubleWithDefault( "meltingT", d_meltingT ); // in [K]
 }
 
 //=======================================================================
@@ -784,7 +805,9 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
    if ( with_orientation() )
       initializeOrientation(model_db);
-   
+  
+   readTemperatureModel(model_db);
+ 
    if ( model_db->keyExists( "ConcentrationModel" ) ) {      
       boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
       readConcDB(conc_db);
@@ -815,6 +838,10 @@ void QuatModelParameters::readFreeEnergies(boost::shared_ptr<tbox::Database> mod
             db->getDouble( "free_energy_solid_A" );
          d_free_energy_solid_B =
             db->getDouble( "free_energy_solid_B" );
+      }
+   }else{
+      if( d_free_energy_type[0]=='l'){
+         d_free_energy_solid_A = 0.;
       }
    }
 }

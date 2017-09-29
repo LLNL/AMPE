@@ -179,7 +179,9 @@ public:
    bool   with_concentration()const{ return d_with_concentration; }
    bool   with_third_phase()const{ return d_with_third_phase; }
    bool   with_heat_equation()const{ return d_with_heat_equation; }
+   bool   with_unsteady_heat_equation()const{ return d_with_heat_equation && !d_with_steady_temperature; }
    bool   with_steady_temperature()const{ return d_with_steady_temperature; }
+   bool   with_rescaled_temperature()const{ return d_with_rescaled_temperature; }
    bool   with_gradT()const{ return d_with_gradT; }
    bool   with_antitrapping()const{ return d_with_antitrapping; }
    bool   grand_potential()const{ return d_grand_potential; }
@@ -388,6 +390,7 @@ private:
    bool   d_grand_potential;
    bool   d_with_bias_well;
    bool   d_bias_well_beckermann;  
+   bool   d_with_rescaled_temperature;
  
    int d_ncompositions;
    

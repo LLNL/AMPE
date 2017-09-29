@@ -413,7 +413,9 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
 void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryDatabase>& input_db)
 {
    assert( d_ncompositions>=0 );
-   
+  
+   const double Tref = d_model_parameters.with_rescaled_temperature() ? 1. : d_model_parameters.meltingT();
+ 
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
@@ -572,7 +574,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       else if( d_model_parameters.with_bias_well() ){
          if( d_model_parameters.isConcentrationModelLinear() ){
             d_meltingT_strategy =
-               new LinearMeltingTemperatureStrategy(d_model_parameters.meltingT(),
+               new LinearMeltingTemperatureStrategy(Tref,
                                       d_model_parameters.average_concentration(),
                                       d_model_parameters.liquidus_slope(),
                                       d_conc_l_id,
@@ -580,7 +582,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          
          }else{
             d_meltingT_strategy =
-               new ConstantMeltingTemperatureStrategy(d_model_parameters.meltingT(),
+               new ConstantMeltingTemperatureStrategy(Tref,
                                       d_equilibrium_temperature_id);
          }
          if( d_model_parameters.wellBiasBeckermann() ){
@@ -680,7 +682,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    else if( d_model_parameters.with_heat_equation() ){
       if( d_model_parameters.with_bias_well() ){
          d_meltingT_strategy =
-            new ConstantMeltingTemperatureStrategy(d_model_parameters.meltingT(),
+            new ConstantMeltingTemperatureStrategy(Tref,
                                                    d_equilibrium_temperature_id);
          
          d_free_energy_strategy =
@@ -691,7 +693,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       }else if( d_model_parameters.free_energy_type()[0]=='l' ){
          d_free_energy_strategy =
             new DeltaTemperatureFreeEnergyStrategy(
-               d_model_parameters.meltingT(),
+               Tref,
                d_model_parameters.latent_heat());
       }else
          d_free_energy_strategy =
@@ -703,15 +705,14 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_model_parameters.molar_volume_solid_A(),
                d_model_parameters.molar_volume_solid_B(),
                d_model_parameters.latent_heat(),
-               d_model_parameters.meltingT(),
+               Tref,
                d_model_parameters.with_third_phase() );
    
    } else {
       if( d_model_parameters.free_energy_type()[0]=='l' ){
          d_free_energy_strategy =
             new DeltaTemperatureFreeEnergyStrategy(
-               d_model_parameters.meltingT(),
-               d_model_parameters.latent_heat());
+               Tref, d_model_parameters.latent_heat());
       }else{
          d_free_energy_strategy =
             new PhaseFreeEnergyStrategy(
@@ -836,10 +837,6 @@ void QuatModel::Initialize(
    if ( !d_model_parameters.with_concentration() && !d_model_parameters.with_bias_well() ) {
       d_model_parameters.readFreeEnergies(model_db);
    }
-
-   d_model_parameters.readTemperatureModel(model_db);
-
-
 
    EventInterval tmp_interval( input_db, "Visit", 0.0, "step" );
 
@@ -1720,6 +1717,13 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
             int idx = nx * ny * iz + nx * iy + ix;
 #endif
             (*temp_data)(ccell) = vals[idx];
+         }
+         //rescale initial conditions for temperature if we are solving
+         //time evolution equation for T since we use reduced units
+         if( d_model_parameters.with_rescaled_temperature() ){
+            assert( d_model_parameters.meltingT()==d_model_parameters.meltingT() );
+            math::PatchCellDataBasicOps<double> cellops;
+            cellops.scale(temp_data,1./d_model_parameters.meltingT(),temp_data,patch_box);
          }
       }
 
