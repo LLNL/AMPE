@@ -53,42 +53,32 @@ using namespace std;
 
 // Static class member definitions
 
-
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_cell_scratch_var0;
-
 
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_cell_scratch_var1;
 
-
 boost::shared_ptr<pdat::SideVariable<double> >
 QuatFACOps::s_flux_scratch_var;
-
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
 QuatFACOps::s_oflux_scratch_var;
 
-
 boost::shared_ptr<pdat::SideVariable<double> >
 QuatFACOps::s_face_coef_var;
-
 
 boost::shared_ptr<pdat::SideVariable<double> >
 QuatFACOps::s_face_coef_deriv_var;
 
-
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_q_local_var;
-
 
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_residual_var;
 
-
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_sqrt_m_var;
-
 
 boost::shared_ptr<pdat::CellVariable<double> >
 QuatFACOps::s_m_deriv_var;
@@ -1775,7 +1765,7 @@ QuatFACOps::computeFluxOnPatch(
    (void)ratio_to_coarser_level;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   tbox::pout<<"check array sizes in QuatFACOps::computeFluxOnPatch()..."<<endl;
+   //tbox::pout<<"check array sizes in QuatFACOps::computeFluxOnPatch()..."<<endl;
    assert( patch.inHierarchy() );
    assert( gradq_data.getDepth() == d_qlen*NDIM );
    assert( flux_data.getDepth() == d_qlen );
