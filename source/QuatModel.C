@@ -3398,6 +3398,8 @@ void QuatModel::printScalarDiagnostics( void )
       tbox::pout << "  Min. Temperature = " << t << endl;
       t = d_temperature_strategy->getCurrentMaxTemperature( d_patch_hierarchy, d_time );
       tbox::pout << "  Max. Temperature = " << t << endl;
+      t = d_temperature_strategy->getCurrentAverageTemperature( d_patch_hierarchy, d_time );
+      tbox::pout << "  Average Temperature = " << t << endl;
    }
 
    // computes volume of physical domain

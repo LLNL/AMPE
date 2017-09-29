@@ -57,6 +57,9 @@ public:
    virtual double getCurrentMinTemperature(   
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
       const double time );
+   virtual double getCurrentAverageTemperature(
+      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+      const double time );
 
    virtual void setCurrentTemperature(
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
@@ -65,6 +68,7 @@ public:
 private:
    int d_temperature_id;
    int d_temperature_scratch_id;
+   int d_weight_id;
 
    double d_temperature0;
    double d_dtemperaturedt;

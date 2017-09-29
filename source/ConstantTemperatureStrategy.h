@@ -46,13 +46,13 @@ class ConstantTemperatureStrategy:
 public:
    ConstantTemperatureStrategy(
       const int temperature_id,
-      const int temperature_scratch_id)
+      const int weight_id)
    {
       assert( temperature_id>=0 );
-      assert( temperature_scratch_id>=0 );
+      assert( weight_id>=0 );
 
-      d_temperature_id         = temperature_id;
-      d_temperature_scratch_id = temperature_scratch_id;
+      d_temperature_id = temperature_id;
+      d_weight_id      = weight_id;
    }
 
    ~ConstantTemperatureStrategy() {};
@@ -77,6 +77,18 @@ public:
       return cellops.max( d_temperature_id );
    }
 
+   virtual double getCurrentAverageTemperature(
+      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+      const double time )
+   {
+      (void) time;
+      math::HierarchyCellDataOpsReal<double> cellops( patch_hierarchy );
+
+      return cellops.integral(d_temperature_id,d_weight_id)
+            /cellops.sumControlVolumes(d_temperature_id,d_weight_id);
+   }
+
+
    virtual void setCurrentTemperature(
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
       const double time )
@@ -87,7 +99,7 @@ public:
 
 private:
    int d_temperature_id;
-   int d_temperature_scratch_id;
+   int d_weight_id;
 };
 
 #endif

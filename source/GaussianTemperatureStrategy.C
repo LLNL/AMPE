@@ -42,6 +42,7 @@
 GaussianTemperatureStrategy::GaussianTemperatureStrategy(
    const int temperature_id,
    const int temperature_scratch_id,
+   const int weight_id,
    boost::shared_ptr<tbox::Database> temperature_db,
    boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry ):
       d_grid_geometry(grid_geometry)
@@ -51,7 +52,8 @@ GaussianTemperatureStrategy::GaussianTemperatureStrategy(
 
    d_temperature_id         = temperature_id;
    d_temperature_scratch_id = temperature_scratch_id;
-   
+   d_weight_id              = weight_id;
+ 
    tbox::plog<<"Read Gaussian Temperature profile parameters..."<<std::endl;
    d_temperature_base = temperature_db->getDouble( "base" );
    // default is temperature initially uniform
@@ -99,7 +101,16 @@ double GaussianTemperatureStrategy::getCurrentMinTemperature(
    math::HierarchyCellDataOpsReal<double> mathops( patch_hierarchy );
    return mathops.min(d_temperature_scratch_id);
 }
+double GaussianTemperatureStrategy::getCurrentAverageTemperature(
+      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+      const double time )
+{
+   (void) time;
+   math::HierarchyCellDataOpsReal<double> cellops( patch_hierarchy );
 
+   return cellops.integral(d_temperature_id,d_weight_id)
+          /cellops.sumControlVolumes(d_temperature_id,d_weight_id);
+}
 double GaussianTemperatureStrategy::getCurrentTemperature(
    const double time )
 {

@@ -57,6 +57,9 @@ public:
    virtual double getCurrentMinTemperature(  
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
       const double time ) = 0;
+   virtual double getCurrentAverageTemperature(
+      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+      const double time ) = 0;
 
    //set temperature field according to specific strategy
    virtual void setCurrentTemperature(

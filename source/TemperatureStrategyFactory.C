@@ -135,6 +135,7 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
       strategy = new GaussianTemperatureStrategy( 
             d_temperature_id,
             d_temperature_scratch_id,
+            d_weight_id,
             temperature_db,
             d_grid_geometry );
    }
@@ -181,14 +182,14 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
       }else{
          strategy = new ConstantTemperatureStrategy(
                                                d_temperature_id,
-                                               d_temperature_scratch_id);
+                                               d_weight_id);
       }
 
    }
    else {
       strategy = new ConstantTemperatureStrategy(
                                                d_temperature_id,
-                                               d_temperature_scratch_id);
+                                               d_weight_id);
    }
    
    return strategy;

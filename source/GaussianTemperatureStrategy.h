@@ -50,6 +50,7 @@ public:
    GaussianTemperatureStrategy(
       const int temperature_id,
       const int temperature_scratch_id,
+      const int weight_id,
       boost::shared_ptr<tbox::Database> temperature_db,
       boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry);
 
@@ -61,6 +62,9 @@ public:
    virtual double getCurrentMinTemperature(   
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
       const double time );
+   virtual double getCurrentAverageTemperature(
+      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+      const double time );
 
    virtual void setCurrentTemperature(
       boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
@@ -68,6 +72,7 @@ public:
 private:
    int d_temperature_id;
    int d_temperature_scratch_id;
+   int d_weight_id;
 
    // temperature at tails of Gaussian
    double d_temperature_base;

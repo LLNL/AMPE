@@ -68,6 +68,13 @@ double ScalarTemperatureStrategy::getCurrentMinTemperature(
    return getCurrentTemperature(time);
 }
 
+double ScalarTemperatureStrategy::getCurrentAverageTemperature(
+   boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
+   const double time )
+{
+   return getCurrentTemperature(time);
+}
+
 double ScalarTemperatureStrategy::getCurrentTemperature(
    const double time )
 {
