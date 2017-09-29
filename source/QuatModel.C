@@ -199,7 +199,6 @@ QuatModel::QuatModel( int ql ) :
    double def_val = tbox::IEEE::getSignalingNaN();
 
    d_time = def_val;
-   d_temperature_bc_coefs = 0;
 
    tbox::RestartManager::getManager()->
       registerRestartItem( "QuatModel", this );
@@ -859,20 +858,6 @@ void QuatModel::Initialize(
       restart_read_dirname,
       restore_num );
 
-   // boundary conditions
-   d_temperature_bc_coefs=0;
-   if( !d_all_periodic ){
-      boost::shared_ptr<tbox::Database> bc_db =
-         model_db->getDatabase( "BoundaryConditions" );
-      if(  bc_db->keyExists( "Temperature" ) ){
-         boost::shared_ptr<tbox::Database> temperature_bc_db =
-            bc_db->getDatabase( "Temperature" );
-         d_temperature_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(
-               tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
-      }
-   }
-   
    d_grains->initialize(input_db, d_all_periodic);
 
    // Set up Dirichlet boundary conditions
@@ -881,7 +866,8 @@ void QuatModel::Initialize(
          model_db->getDatabase( "BoundaryConditions" );
 
       assert( d_phase_scratch_id!=-1 );
-      
+     
+      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
@@ -890,7 +876,7 @@ void QuatModel::Initialize(
             d_eta_scratch_id,
             d_quat_scratch_id,
             d_conc_scratch_id,
-            d_temperature_scratch_id );
+            d_temperature_scratch_id, factor );
   
       if( d_model_parameters.needGhosts4PartitionCoeff() ) 
          d_partition_coeff_refine_patch_strategy =

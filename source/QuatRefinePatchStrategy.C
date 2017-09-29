@@ -32,9 +32,6 @@
 // 
 #include "QuatRefinePatchStrategy.h"
 
-#include "SAMRAI/hier/BoundaryBox.h"
-#include "SAMRAI/geom/CartesianPatchGeometry.h"
-#include "SAMRAI/hier/VariableDatabase.h"
 #include <boost/make_shared.hpp>
 
 #include <cassert>
@@ -47,7 +44,8 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
    const int eta_id,
    const int quat_id,
    const int conc_id,
-   const int temperature_id )
+   const int temperature_id,
+   const double rescaled_temperature_coeff )
    : xfer::RefinePatchStrategy(),
      d_object_name( object_name ),
      d_phase_id( phase_id ),
@@ -93,7 +91,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
 
    if ( d_conc_id >= 0 ) {
       d_conc_refine_strategy =
-         new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "ConcBcHelper" );
+         new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM), "ConcBcHelper" );
       d_conc_refine_strategy->setTargetDataId( d_conc_id );
       boost::shared_ptr<tbox::Database> conc_bc_db =
          input_bc_db->getDatabase( "Conc" );
@@ -102,7 +100,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       d_conc_refine_strategy->setCoefImplementation( d_conc_bc_coefs );
    }
 
-   if ( d_temperature_id >= 0 ) {
+   if ( d_temperature_id >= 0 && input_bc_db->keyExists( "Temperature" ) ) {
       d_temp_refine_strategy =
          new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "TemperatureBcHelper" );
       d_temp_refine_strategy->setTargetDataId( d_temperature_id );
@@ -110,7 +108,20 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
          input_bc_db->getDatabase( "Temperature" );
       d_temp_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
          "TemperatureBcCoefs", temp_bc_db );
+      if( rescaled_temperature_coeff>0. ){
+         tbox::plog<<"Rescale Temperature boundary conditions by factor "<<rescaled_temperature_coeff<<endl;
+         double a,b,g;
+         for( int n =0; n<2*NDIM; n++){
+            d_temp_bc_coefs->getCoefficients(n,a,b,g);
+            tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
+            g*=rescaled_temperature_coeff;
+            tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
+            d_temp_bc_coefs->setRawCoefficients(n,a,b,g);
+         }
+      }
       d_temp_refine_strategy->setCoefImplementation( d_temp_bc_coefs );
+   }else{
+      d_temp_refine_strategy = NULL;
    }
 
 }
@@ -156,7 +167,7 @@ void QuatRefinePatchStrategy::setPhysicalBoundaryConditions(
          ghost_width_to_fill );
    }
 
-   if ( d_temperature_id >= 0 ) {
+   if ( d_temperature_id >= 0 && d_temp_refine_strategy!=NULL ) {
       d_temp_refine_strategy->setPhysicalBoundaryConditions(
          patch,
          fill_time,

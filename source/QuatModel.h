@@ -806,8 +806,6 @@ private :
    double d_quat_threshold_tagged;
    double d_quat_threshold_untagged;
 
-   solv::LocationIndexRobinBcCoefs* d_temperature_bc_coefs;
-   
    std::string d_fenergy_diag_filename;
    
    bool d_use_warm_start;

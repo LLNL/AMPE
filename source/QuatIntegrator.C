@@ -1265,6 +1265,17 @@ void QuatIntegrator::setupBC()
             d_boundary_cond_db->getDatabase( "Temperature" );
          d_temperature_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temp_bc_db );
+         if( d_model_parameters.with_rescaled_temperature() ){
+            double a,b,g;
+            double rescaled_temperature_coeff=1./d_model_parameters.meltingT();
+            for( int n =0; n<2*NDIM; n++){
+               d_temperature_bc_coefs->getCoefficients(n,a,b,g);
+               tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
+               g*=rescaled_temperature_coeff;
+               tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
+               d_temperature_bc_coefs->setRawCoefficients(n,a,b,g);
+            }
+         }
       }
    }
 }
@@ -1333,6 +1344,7 @@ void QuatIntegrator::initializeCoarseRefineOperators(
    setSolversBoundaries();
 
    if ( ! d_all_periodic ) {
+      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
@@ -1341,7 +1353,7 @@ void QuatIntegrator::initializeCoarseRefineOperators(
             d_eta_scratch_id,
             d_quat_scratch_id,
             d_conc_scratch_id,
-            d_temperature_scratch_id );
+            d_temperature_scratch_id, factor );
    }
 }
 

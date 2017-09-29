@@ -30,18 +30,13 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-
 #ifndef included_QuatRefinePatchStrategy
 #define included_QuatRefinePatchStrategy
 
-#include "SAMRAI/hier/BoundaryBox.h"
-#include "SAMRAI/hier/PatchLevel.h"
-#include "SAMRAI/hier/Patch.h"
-#include "SAMRAI/pdat/ArrayData.h"
-#include "SAMRAI/pdat/CellData.h"
-#include "SAMRAI/pdat/NodeData.h"
-#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "CartesianRobinBcHelperWithDepth.h"
+
+#include "SAMRAI/hier/Patch.h"
+#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
@@ -68,7 +63,8 @@ public:
       const int eta_id,
       const int quat_id,
       const int conc_id,
-      const int temperature_id );
+      const int temperature_id,
+      const double rescaled_temperature_coeff=-1. );
 
    /**
     * Destructor for QuatRefinePatchStrategy class does nothing.
@@ -147,7 +143,7 @@ private:
    solv::LocationIndexRobinBcCoefs* d_quat_bc_coefs;
 
    int d_conc_id;
-   solv::CartesianRobinBcHelper* d_conc_refine_strategy;
+   CartesianRobinBcHelperWithDepth* d_conc_refine_strategy;
    solv::LocationIndexRobinBcCoefs* d_conc_bc_coefs;
 
    int d_temperature_id;

@@ -155,6 +155,8 @@ void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
       else
          d_molar_volume_solid_B = d_molar_volume_solid_A;
       data_read=true;
+   }else if ( db->keyExists( "ConcentrationModel" ) ){
+      readMolarVolumes( db->getDatabase( "ConcentrationModel" ) );
    }
 
    if( data_read )
@@ -206,8 +208,6 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
    }
    
-   readMolarVolumes(conc_db);
-
    if ( d_conc_rhs_strategy == Beckermann ){
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_D_solid_A = conc_db->getDouble( "D_solid_A" );
@@ -296,7 +296,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       assert( d_partition_coeff.compare("none")!=0 );
 
    if( d_conc_model==LINEAR ){
-      d_meltingT = conc_db->getDouble( "meltingT" );
+      assert( d_meltingT == d_meltingT );
 
       d_liquidus_slope = conc_db->getDoubleWithDefault( "liquidus_slope", 0. );
       if( fabs(d_liquidus_slope)>0. )
@@ -363,8 +363,6 @@ void QuatModelParameters::readTemperatureModel(
       TBOX_ERROR( "Error: invalid value for temperature_type" );
    }
 
-   //d_meltingT is needed for linear phase diagrams, and could be specified
-   //in "ConcentrationModel" instead
    d_meltingT = temperature_db->getDoubleWithDefault( "meltingT", -1. ); // in [K]
 
    if ( temperature_type[0] == 's' ||
