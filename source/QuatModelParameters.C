@@ -472,9 +472,6 @@ void QuatModelParameters::readTemperatureModel(
       }
 
       if( d_with_rescaled_temperature ){   //rescale units
-         tbox::plog<<"Rescale thermal diffusivity by factor 1./d_meltingT = "<<1./d_meltingT<<endl;
-         d_thermal_diffusivity/=d_meltingT;
-         tbox::plog<<"Rescaled thermal diffusivity: "<<d_thermal_diffusivity<<endl;
          d_H_parameter *= d_meltingT;
       }
       

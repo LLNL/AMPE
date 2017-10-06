@@ -12,3 +12,8 @@ visit -nowin -cli -verbose -s lineout_extract.py >! lineout_extract.dat
 #Plot results of matlab and AMPE together
 gnuplot lineout.plt
 
+#Run AMPE again with a rescaled temperature field
+#Note that atol needs to be adjusted in integrator
+#to obtain same results as before rescaling
+aprun -n 16 ../../build/eos-ext-CC-ftn-opt/exec/ampe2d 1d_rescale.input
+
