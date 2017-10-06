@@ -1,0 +1,14 @@
+#Run benchmark with matlab: heat.m
+
+#Prepare initial conditions for AMPE
+python initialConditions.py -x 60 -y 15 -z 1 test.nc
+
+#Run AMPE
+aprun -n 16 ../../build/eos-ext-CC-ftn-opt/exec/ampe2d 1d.input
+
+#Extract results from visit files
+visit -nowin -cli -verbose -s lineout_extract.py >! lineout_extract.dat
+
+#Plot results of matlab and AMPE together
+gnuplot lineout.plt
+

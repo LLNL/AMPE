@@ -868,13 +868,14 @@ void QuatModel::Initialize(
          model_db->getDatabase( "BoundaryConditions" );
 
       assert( d_phase_scratch_id!=-1 );
-     
+
+      const int phase_id = d_model_parameters.with_phase() ? d_phase_scratch_id : -1; 
       double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
             bc_db,
-            d_phase_scratch_id,
+            phase_id,
             d_eta_scratch_id,
             d_quat_scratch_id,
             d_conc_scratch_id,
@@ -3428,9 +3429,12 @@ void QuatModel::printScalarDiagnostics( void )
    double vol = 1.;
    for(int d=0;d<NDIM;d++)
       vol *= (up[d]-low[d]);
-   
-   const double vphi = evaluateVolumeSolid( d_patch_hierarchy );
-   tbox::pout << "  Volume fraction of solid phase = " << vphi/vol << endl;    
+
+   double vphi=vol;
+   if ( d_model_parameters.with_phase() ){   
+      vphi = evaluateVolumeSolid( d_patch_hierarchy );
+      tbox::pout << "  Volume fraction of solid phase = " << vphi/vol << endl;    
+   }
 
    if ( d_model_parameters.with_third_phase() ) {
       const double vphi_eta = evaluateVolumeEta( d_patch_hierarchy );
@@ -7728,9 +7732,11 @@ double QuatModel::computeThermalEnergy( const boost::shared_ptr<hier::PatchHiera
 {
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
-   double lenergy = cellops.integral(d_phase_id,d_weight_id);
-   lenergy *= (-1.*d_model_parameters.latent_heat() );
-
+   double lenergy = 0.;
+   if( d_model_parameters.with_phase() ){
+      lenergy = cellops.integral(d_phase_id,d_weight_id);
+      lenergy *= (-1.*d_model_parameters.latent_heat() );
+   }
    double refenergy=d_model_parameters.meltingT()*cellops.integral(d_cp_id, d_weight_id );
    if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.meltingT();
 

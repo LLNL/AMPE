@@ -1,0 +1,91 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time = 5000.0  // required
+max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 100.
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   H_parameter    = -0.01 // turn off quaternion
+
+   Temperature{
+      type = "heat"
+      equation_type = "unsteady"
+      cp{  
+         SpeciesA{
+            a = 2.58e1 // rho*Cp in [J/mol*K]
+         }
+         SpeciesB{
+            a = 2.58e1
+         }
+      }
+      thermal_diffusivity = 1.e-13 // [cm^2/s]
+      latent_heat = 1. // unused
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   FreeEnergyModel{
+      type = "linear"
+   }
+
+  BoundaryConditions {
+    // These are the boundary condition specifications.  The number
+    // after "boundary_" is the location index of the boundary.
+    // The inputs are arrays of strings where the first string
+    // indicates the type of values you want to set.  "slope" means
+    // boundary slope, "value" means boundary value, and "coefficients"
+    // mean the raw Robin boundary condition coefficients.
+    // The remaining strings are converted into numbers as
+    // appropriate for what boundary condition you specified with
+    // the first string.  Other boundary conditions are possible.
+    // see the solv_RobinBcCoefStrategy class.
+    // Examples:
+    Temperature{
+      boundary_0 = "value", "1."
+      boundary_1 = "slope", "2."
+      boundary_2 = "slope", "0."
+      boundary_3 = "slope", "0."
+    }
+
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+   Preconditioner {  // optional block
+   }
+}
+
+InitialConditions {  // required block
+   filename = "test.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 60, 15  // required
+   x_lo         =  0.,     0.    // lower end of computational domain.
+   x_up         =  1.,     0.25 // upper end of computational domain.
+}

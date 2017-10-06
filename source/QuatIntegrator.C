@@ -1345,11 +1345,12 @@ void QuatIntegrator::initializeCoarseRefineOperators(
 
    if ( ! d_all_periodic ) {
       double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
+      const int phase_id = d_with_phase ? d_phase_scratch_id : -1;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
             d_boundary_cond_db,
-            d_phase_scratch_id,
+            phase_id,
             d_eta_scratch_id,
             d_quat_scratch_id,
             d_conc_scratch_id,
