@@ -55,6 +55,7 @@ public:
       CALPHAD,
       HBSM,
       LINEAR,
+      INDEPENDENT, // energy does not depend on c
       UNDEFINED
    };
 
@@ -175,6 +176,7 @@ public:
    double Q0_solid_B()const{ return d_Q0_solid_B; }
    std::string conc_avg_func_type()const{ return d_conc_avg_func_type; }
 
+   bool   with_phase()const{ return d_with_phase; }
    bool   with_orientation()const{ return d_with_orientation; }
    bool   with_concentration()const{ return d_with_concentration; }
    bool   with_third_phase()const{ return d_with_third_phase; }
@@ -185,7 +187,7 @@ public:
    bool   with_gradT()const{ return d_with_gradT; }
    bool   with_antitrapping()const{ return d_with_antitrapping; }
    bool   grand_potential()const{ return d_grand_potential; }
-   bool   with_bias_well()const{ return d_with_bias_well>0.; }
+   bool   with_bias_well()const{ return d_with_bias_well; }
    bool   with_Aziz_partition_coeff()const
    { return (d_partition_coeff.compare("Aziz")==0); }
    bool   with_uniform_partition_coeff()const
@@ -222,7 +224,8 @@ public:
    {
       return ( d_conc_model == CALPHAD 
             || d_conc_model == HBSM 
-            || d_conc_model == LINEAR );
+            || d_conc_model == LINEAR
+            || ( d_conc_model == INDEPENDENT && d_with_concentration ) );
    }
    
    bool isConcentrationModelCALPHAD()const
@@ -296,6 +299,8 @@ public:
    }
  
 private:
+   void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
+
    // Model parameters
    double d_H_parameter;
    double d_epsilon_phase;
@@ -379,7 +384,8 @@ private:
    enum CONC_RHS_STRATEGY d_conc_rhs_strategy;
    
    TEMPERATURE_TYPE d_temperature_type;
-   
+  
+   bool   d_with_phase; 
    bool   d_with_orientation;
    bool   d_with_concentration;
    bool   d_with_third_phase;

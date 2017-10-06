@@ -198,6 +198,7 @@ extern "C" {
       const double& latent_heat,
       const double* temperature, const int& ngtemp,
       const double* cpl, const int& ngcpl,
+      const int& with_phase,
       const double* phirhs, const int& ngphirhs,
       double* rhs, const int& ngrhs
       );

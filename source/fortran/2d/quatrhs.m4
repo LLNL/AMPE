@@ -655,6 +655,7 @@ c
      &   latent_heat,
      &   temp, ngtemp,
      &   cp, ngcp,
+     &   with_phase,
      &   phi_rhs, ngphi_rhs,
      &   rhs, ngrhs )
 c***********************************************************************
@@ -667,7 +668,7 @@ c input arrays:
 
       double precision dx(0:1)
       double precision thermal_diffusivity, latent_heat
-      integer ngphi_rhs, ngtemp, ngrhs, ngcp
+      integer ngphi_rhs, ngtemp, ngrhs, ngcp, with_phase
 c
 c variables in 2d cell indexed
       double precision phi_rhs(CELL2d(ifirst,ilast,ngphi_rhs))
@@ -688,8 +689,6 @@ c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0
 
-            gamma = latent_heat/cp(ic0,ic1)
-            
             diff_term_x = 
      &           (temp(ic0-1,ic1)-2.d0*temp(ic0,ic1)+temp(ic0+1,ic1)) 
             diff_term_y = 
@@ -699,11 +698,22 @@ c
 
             rhs(ic0,ic1) = thermal_diffusivity * diff_term
 
-            rhs(ic0,ic1) = rhs(ic0,ic1) +
-     &         gamma * phi_rhs(ic0,ic1)
-
          enddo
       enddo
+
+      if( with_phase /= 0 )then
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               gamma = latent_heat/cp(ic0,ic1)
+c               print*,'gamma=',gamma,', diff=',thermal_diffusivity
+            
+               rhs(ic0,ic1) = rhs(ic0,ic1) +
+     &            gamma * phi_rhs(ic0,ic1)
+
+            enddo
+         enddo
+      endif
 
       return
       end
@@ -815,7 +825,8 @@ c
       integer ic0, ic1
       double precision m, alpha
 c
-      alpha = latentheat/tm
+c      print*,'latentheat=',latentheat,', tm=',tm
+      alpha = 6.d0*latentheat/tm
 
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0

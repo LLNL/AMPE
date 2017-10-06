@@ -398,7 +398,8 @@ protected:
       int fd_flag )
    {
       const int ydot_phase_id = 
-         y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index );
+         d_with_phase ? y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index )
+                    : -1;
       const int ydot_temperature_id =
          y_dot_samvect->getComponentDescriptorIndex( d_temperature_component_index );
       evaluateTemperatureRHS(

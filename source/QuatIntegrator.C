@@ -1409,8 +1409,6 @@ void QuatIntegrator::setModelParameters(
    const string eta_well_func_type,
    const string eta_interp_func_type )
 {
-   assert( epsilon_phase >= 0. );
-
    d_current_time = current_time;
    d_end_time = end_time;
    
@@ -2983,7 +2981,6 @@ void QuatIntegrator::evaluateTemperatureRHS(
    //tbox::pout<<"d_latent_heat="<<d_latent_heat<<endl;
    assert( d_cp_id >= 0 );
    assert( temperature_id >= 0 );
-   assert( phase_rhs_id >= 0 );
    assert( temperature_rhs_id >= 0 );
    assert( d_latent_heat>0. );
    assert( d_latent_heat<1.e32 );
@@ -3017,9 +3014,15 @@ void QuatIntegrator::evaluateTemperatureRHS(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_rhs_id) ) );
          assert( temperature_rhs );
 
-         boost::shared_ptr< pdat::CellData<double> > phase_rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
-         assert( phase_rhs );
+         double* phase_rhs_ptr=NULL;
+         int phase_rhs_nghosts=0;
+         if( d_model_parameters.with_phase() ){
+            boost::shared_ptr< pdat::CellData<double> > phase_rhs (
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
+            assert( phase_rhs );
+            phase_rhs_ptr=phase_rhs->getPointer();
+            phase_rhs_nghosts=phase_rhs->getGhostCellWidth()[0];
+         }
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
@@ -3042,7 +3045,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
             d_latent_heat,
             temperature->getPointer(), temperature->getGhostCellWidth()[0],
             cp->getPointer(),        cp->getGhostCellWidth()[0],
-            phase_rhs->getPointer(),   phase_rhs->getGhostCellWidth()[0],
+            (int)d_model_parameters.with_phase(),
+            phase_rhs_ptr,   phase_rhs_nghosts,
             temperature_rhs->getPointer(), 0 );
       }
    }

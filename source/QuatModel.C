@@ -411,6 +411,8 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
 
 void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryDatabase>& input_db)
 {
+   tbox::plog<<"QuatModel::initializeRHSandEnergyStrategies()"<<endl;
+
    assert( d_ncompositions>=0 );
   
    const double Tref = d_model_parameters.with_rescaled_temperature() ? 1. : d_model_parameters.meltingT();
@@ -597,9 +599,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_meltingT_strategy );
          }
       }
-      else{
-         TBOX_ERROR( "Error: unknown concentration model" );
-      }
 
       if( d_model_parameters.kks_phase_concentration() ){
          if ( d_model_parameters.isConcentrationModelCALPHAD() ){
@@ -707,12 +706,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                Tref,
                d_model_parameters.with_third_phase() );
    
-   } else {
-      if( d_model_parameters.free_energy_type()[0]=='l' ){
-         d_free_energy_strategy =
-            new DeltaTemperatureFreeEnergyStrategy(
-               Tref, d_model_parameters.latent_heat());
-      }else{
+   } else { // no composition, no heat equation
+      if( d_model_parameters.free_energy_type()[0]=='s' ){
          d_free_energy_strategy =
             new PhaseFreeEnergyStrategy(
                d_model_parameters.phase_interp_func_type(),
@@ -725,6 +720,15 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             d_model_parameters.molar_volume_solid_B(),
             d_model_parameters.with_third_phase() );
       }
+   }
+
+   //pure element free energy
+tbox::plog<<"d_model_parameters.free_energy_type()="<<d_model_parameters.free_energy_type()<<endl;
+   if( d_model_parameters.free_energy_type()[0]=='l' ){
+         d_free_energy_strategy =
+            new DeltaTemperatureFreeEnergyStrategy(
+               Tref,
+               d_model_parameters.latent_heat());
    }
    
    if( d_model_parameters.with_Aziz_partition_coeff() ){
@@ -833,9 +837,7 @@ void QuatModel::Initialize(
    // variables.
 
 
-   if ( !d_model_parameters.with_concentration() && !d_model_parameters.with_bias_well() ) {
-      d_model_parameters.readFreeEnergies(model_db);
-   }
+   d_model_parameters.readFreeEnergies(model_db);
 
    EventInterval tmp_interval( input_db, "Visit", 0.0, "step" );
 
@@ -1399,10 +1401,12 @@ void QuatModel::initializeLevelFromData(
    }
 #endif
 #ifdef HAVE_NETCDF4
-   NcVar ncPhase = ncf.getVar( "phase" );
-   if(ncPhase.isNull())
-      TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
-
+   NcVar ncPhase;
+   if ( d_model_parameters.with_phase() ){
+      ncPhase = ncf.getVar( "phase" );
+      if(ncPhase.isNull())
+         TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
+   }
    NcVar ncEta;
    if ( d_model_parameters.with_third_phase() ) {
       ncEta = ncf.getVar( "eta" );
@@ -1435,9 +1439,15 @@ void QuatModel::initializeLevelFromData(
 #endif
 #ifdef HAVE_NETCDF4
    vector<NcDim> dims;
-   dims.push_back(ncPhase.getDim(2));
-   dims.push_back(ncPhase.getDim(1));
-   dims.push_back(ncPhase.getDim(0));
+   if ( d_model_parameters.with_phase() ){
+      dims.push_back(ncPhase.getDim(2));
+      dims.push_back(ncPhase.getDim(1));
+      dims.push_back(ncPhase.getDim(0));
+   }else{
+      dims.push_back(ncTemp.getDim(2));
+      dims.push_back(ncTemp.getDim(1));
+      dims.push_back(ncTemp.getDim(0));
+   }
    size_t nx_file = dims[0].getSize();
    size_t ny_file = dims[1].getSize();
    size_t nz_file = dims[2].getSize();
@@ -1536,7 +1546,7 @@ void QuatModel::initializeLevelFromData(
       if( ncPhase->type() == ncFloat ){
 #endif
 #ifdef HAVE_NETCDF4
-      NcType type=ncPhase.getType();
+      NcType type = d_model_parameters.with_phase() ? ncPhase.getType() : ncTemp.getType();
       if( type.getTypeClassName() == "nc_FLOAT" ){
 #endif
          float* vals = new float[patch_box.size()];
@@ -1602,18 +1612,6 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       nz = patch_box.numberCells( 2 );
       z_lower = patch_box.lower( 2 );
 #endif
-      
-      // initialize phase
-      boost::shared_ptr< pdat::CellData<double> > phase_data (
-         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
-      assert( phase_data );
-
-#ifdef HAVE_NETCDF3
-      ncPhase->set_cur( z_lower, y_lower, x_lower );
-      if ( ! ncPhase->get( vals, nz, ny, nx ) ) {
-         TBOX_ERROR( "Could not read 'phase' data from input data" << endl );
-      }
-#endif
 #ifdef HAVE_NETCDF4
       vector<size_t> startp(3);
       startp[0]=z_lower;
@@ -1623,21 +1621,37 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       countp[0]=nz;
       countp[1]=ny;
       countp[2]=nx;
-      ncPhase.getVar(startp, countp, vals);
 #endif
       
-      pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
-      for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
-         const pdat::CellIndex ccell = *i;
-         int ix = ccell(0) - x_lower;
-         int iy = ccell(1) - y_lower;
-#if (NDIM == 2)
-         int idx = nx * iy + ix;
-#else
-         int iz = ccell(2) - z_lower;
-         int idx = nx * ny * iz + nx * iy + ix;
+      // initialize phase
+      if ( d_model_parameters.with_phase() ) {
+         boost::shared_ptr< pdat::CellData<double> > phase_data (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
+         assert( phase_data );
+
+#ifdef HAVE_NETCDF3
+         ncPhase->set_cur( z_lower, y_lower, x_lower );
+         if ( ! ncPhase->get( vals, nz, ny, nx ) ) {
+            TBOX_ERROR( "Could not read 'phase' data from input data" << endl );
+         }
 #endif
-         (*phase_data)(ccell) = vals[idx];
+#ifdef HAVE_NETCDF4
+         ncPhase.getVar(startp, countp, vals);
+#endif
+      
+         pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
+            const pdat::CellIndex ccell = *i;
+            int ix = ccell(0) - x_lower;
+            int iy = ccell(1) - y_lower;
+#if (NDIM == 2)
+            int idx = nx * iy + ix;
+#else
+            int iz = ccell(2) - z_lower;
+            int idx = nx * ny * iz + nx * iy + ix;
+#endif
+            (*phase_data)(ccell) = vals[idx];
+         }
       }
 
       // initialize eta
@@ -2914,6 +2928,7 @@ bool QuatModel::resetGrains( void )
       well_energy,
       free_energy
    );
+
    if ( d_extra_energy_detail ) {
       tbox::pout << setprecision(8);
       tbox::pout << "  Total energy     = " << total_energy << endl;
@@ -3367,6 +3382,11 @@ void QuatModel::printScalarDiagnostics( void )
       well_energy,
       free_energy,
       d_model_parameters.grand_potential() );
+
+   if( d_model_parameters.with_heat_equation() ){
+      double thermal_energy = computeThermalEnergy(d_patch_hierarchy);
+      tbox::pout << "Thermal energy [pJ]= "<< thermal_energy << endl;
+   }
 
    if ( ! d_time_info_interval->eventOccurredAtTime( d_time ) ) {
        tbox::pout << "cycle # " << d_cycle
@@ -7116,6 +7136,7 @@ void QuatModel::evaluateEnergy(
             }
          }
 
+         if( d_model_parameters.with_phase() ){
          boost::shared_ptr< pdat::CellData<double> > phase (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
          boost::shared_ptr< pdat::CellData<double> > weight (
@@ -7221,6 +7242,7 @@ void QuatModel::evaluateEnergy(
             d_model_parameters.avg_func_type().c_str(),
             d_model_parameters.quat_grad_floor_type().c_str(),
             d_model_parameters.quat_grad_floor());
+         } // with_phase
       }
    }
 
@@ -7699,3 +7721,24 @@ void QuatModel::computeVelocity(const boost::shared_ptr<hier::PatchHierarchy > h
       }
    }
 }
+
+//=======================================================================
+
+double QuatModel::computeThermalEnergy( const boost::shared_ptr<hier::PatchHierarchy > hierarchy )
+{
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+
+   double lenergy = cellops.integral(d_phase_id,d_weight_id);
+   lenergy *= (-1.*d_model_parameters.latent_heat() );
+
+   double refenergy=d_model_parameters.meltingT()*cellops.integral(d_cp_id, d_weight_id );
+   if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.meltingT();
+
+   // store product cp*T in d_fl_id
+   cellops.multiply( d_f_l_id, d_cp_id, d_temperature_id ); // rescaling of cp compensates rescaling of T
+
+   double cenergy = cellops.integral(d_f_l_id,d_weight_id);
+
+   return lenergy+cenergy-refenergy; 
+}
+

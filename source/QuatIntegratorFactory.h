@@ -107,7 +107,7 @@ public:
                input_db,
                grid_geometry,
                bc_db,
-               true, // with phase
+               model_parameters.with_phase(),
                model_parameters.with_orientation(),
                model_parameters.with_concentration(),
                model_parameters.with_third_phase(),

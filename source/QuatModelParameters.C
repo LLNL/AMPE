@@ -38,23 +38,20 @@ static double def_val = tbox::IEEE::getSignalingNaN();
 
 static
 void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
-                   map<short,double>& cp,
-                   const double factor)
+                   map<short,double>& cp)
 {
-   assert( factor==factor );
-
-      double tmp=cp_db->getDouble("a")*factor;
-      cp.insert( std::pair<short,double>(0,tmp) );
-      if ( cp_db->keyExists( "b" ) )
-      {
-         tmp = cp_db->getDouble("b")*factor;
-         cp.insert( std::pair<short,double>(1,tmp) );
-      }
-      if ( cp_db->keyExists( "dm2" ) )
-      {
-         tmp = cp_db->getDouble("dm2")*factor;
-         cp.insert( std::pair<short,double>(-2,tmp) );
-      }
+   double tmp=cp_db->getDouble("a");
+   cp.insert( std::pair<short,double>(0,tmp) );
+   if ( cp_db->keyExists( "b" ) )
+   {
+      tmp = cp_db->getDouble("b");
+      cp.insert( std::pair<short,double>(1,tmp) );
+   }
+   if ( cp_db->keyExists( "dm2" ) )
+   {
+      tmp = cp_db->getDouble("dm2");
+      cp.insert( std::pair<short,double>(-2,tmp) );
+   }
 }
       
 QuatModelParameters::QuatModelParameters()
@@ -119,6 +116,7 @@ QuatModelParameters::QuatModelParameters()
    d_with_concentration = false;
    d_ncompositions=-1;
 
+   d_with_phase = true;
    d_with_orientation = false;
    d_with_third_phase = false;
    d_with_heat_equation = false;
@@ -165,16 +163,23 @@ void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
 
 //=======================================================================
 
+void QuatModelParameters::readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db)
+{
+   int nspecies = conc_db->getIntegerWithDefault( "nspecies", 2 );
+   d_ncompositions=nspecies-1;
+}
+
+//=======================================================================
+
 void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 {
    d_with_concentration = true;
    
    //if concentration is ON, it means we have at least two species
-   int nspecies = conc_db->getIntegerWithDefault( "nspecies", 2 );
-   d_ncompositions=nspecies-1;
+   assert( d_ncompositions>0 );
    
    string conc_model =
-      conc_db->getStringWithDefault( "model", "calphad" );
+      conc_db->getStringWithDefault( "model", "undefined" );
    if ( conc_model[0] == 'c' ) {
       d_conc_model = CALPHAD;
    }
@@ -183,6 +188,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
    else if ( conc_model[0] == 'l' ) {
       d_conc_model = LINEAR;
+   }
+   else if ( conc_model[0] == 'i' ) {
+      d_conc_model = INDEPENDENT; //energy independent of composition
    }
    else {
       TBOX_ERROR( "Error: unknown concentration model in QuatModelParameters" );
@@ -312,6 +320,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          d_bias_well_beckermann = false;
       }
       if( d_with_rescaled_temperature ){
+         tbox::plog<<"Rescale liquidus_slope and gamma..."<<endl;
          d_liquidus_slope /= d_meltingT;
          d_well_bias_gamma *= d_meltingT;
       }
@@ -400,20 +409,19 @@ void QuatModelParameters::readTemperatureModel(
       d_with_rescaled_temperature = ( ( method != "steady" ) && (d_meltingT>0.) );
       if( d_with_rescaled_temperature )
          tbox::plog<<"Solve temperature equation with rescaled T"<<endl; 
-      double factor = d_with_rescaled_temperature ? d_meltingT : 1.; 
       d_cp.push_back(empty_map);
-      readSpeciesCP(cp_db->getDatabase( "SpeciesA" ), d_cp[0], factor);
+      readSpeciesCP(cp_db->getDatabase( "SpeciesA" ), d_cp[0]);
       if( d_ncompositions>0 )
       {
          assert( cp_db->keyExists( "SpeciesB" ) );
          d_cp.push_back(empty_map);
-         readSpeciesCP(cp_db->getDatabase("SpeciesB" ), d_cp[1], factor);
+         readSpeciesCP(cp_db->getDatabase("SpeciesB" ), d_cp[1]);
       }
       if( d_ncompositions>1 )
       {
          assert( cp_db->keyExists( "SpeciesC" ) );
          d_cp.push_back(empty_map);
-         readSpeciesCP(cp_db->getDatabase("SpeciesC" ), d_cp[2], factor);
+         readSpeciesCP(cp_db->getDatabase("SpeciesC" ), d_cp[2]);
       }
       
       tbox::plog<<"Cp for each species: "<<endl;
@@ -423,6 +431,16 @@ void QuatModelParameters::readTemperatureModel(
          {
             itm->second *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol*K] to [pJ/(mu m)^3*K]
             tbox::plog<<"Cp [pJ/(mu m)^3*K]: "<<itm->second<<endl;
+         }
+      }
+      if( d_with_rescaled_temperature ){
+         for(vector< map<short,double> >::iterator it=d_cp.begin(); it!=d_cp.end(); ++it)
+         {
+            for(map<short,double>::iterator itm= it->begin(); itm!=it->end(); ++itm)
+            {
+               itm->second *= d_meltingT;
+               tbox::plog<<"rescaled Cp: "<<itm->second<<endl;
+            }
          }
       }
       
@@ -456,7 +474,7 @@ void QuatModelParameters::readTemperatureModel(
       if( d_with_rescaled_temperature ){   //rescale units
          tbox::plog<<"Rescale thermal diffusivity by factor 1./d_meltingT = "<<1./d_meltingT<<endl;
          d_thermal_diffusivity/=d_meltingT;
-
+         tbox::plog<<"Rescaled thermal diffusivity: "<<d_thermal_diffusivity<<endl;
          d_H_parameter *= d_meltingT;
       }
       
@@ -677,10 +695,12 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
       printDeprecated( "epsilon_parameter", "epsilon_phi" );
    }
    else {
-      TBOX_ERROR( "Error: epsilon_phase not specified" );
+      d_with_phase = false;
+      tbox::pout<<"No epsilon specified -> run without phase..."<<endl;
    }
 
    // Mobility
+   if( d_with_phase ){
    if ( model_db->keyExists( "phi_mobility" ) ) {
       d_phase_mobility = model_db->getDouble( "phi_mobility" );
    }
@@ -696,12 +716,13 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    else {
       TBOX_ERROR( "Error: phi_mobility not specified" );
    }      
+   }
 
    d_q0_phase_mobility = model_db->getDoubleWithDefault(
       "q0_phi_mobility", 0.0 );
 
    // Well energy
-
+   if( d_with_phase ){
    d_phase_well_scale = 1.0;
    if ( model_db->keyExists( "phi_well_scale" ) ) {
       d_phase_well_scale = model_db->getDouble( "phi_well_scale" );
@@ -726,6 +747,7 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
         d_phase_well_func_type[0] != 'd' &&
         d_phase_well_func_type[0] != 'D' ) {
       TBOX_ERROR( "Error: invalid value for phi_well_func_type" );
+   }
    }
    
    if ( !model_db->keyExists( "ConcentrationModel" ) ){
@@ -803,14 +825,20 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
    if ( with_orientation() )
       initializeOrientation(model_db);
-  
+
+   //we need to know how many species we have before reading temperature model
+   //which may include species dependent Cp 
+   if ( model_db->keyExists( "ConcentrationModel" ) ) {
+      readNumberSpecies( model_db->getDatabase( "ConcentrationModel" ) );
+   }else{
+      d_ncompositions=0;
+   } 
+
    readTemperatureModel(model_db);
  
    if ( model_db->keyExists( "ConcentrationModel" ) ) {      
       boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
       readConcDB(conc_db);
-   }else{
-      d_ncompositions=0;
    }
 }
 
@@ -821,7 +849,7 @@ void QuatModelParameters::readFreeEnergies(boost::shared_ptr<tbox::Database> mod
       model_db->getDatabase( "FreeEnergyModel" ) :
       model_db );
 
-   d_free_energy_type = db->getStringWithDefault("type","scalar");
+   d_free_energy_type = db->getStringWithDefault("type","none");
 
    if( d_free_energy_type[0]=='s'){
       d_free_energy_liquid =

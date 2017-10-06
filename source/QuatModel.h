@@ -488,6 +488,8 @@ public :
                                              boost::shared_ptr< pdat::CellVariable<double> > conc_a_var,
                                              boost::shared_ptr< pdat::CellVariable<double> > conc_b_var );
 
+   double computeThermalEnergy( const boost::shared_ptr<hier::PatchHierarchy > hierarchy );
+
 private :
    void copyCurrentToScratch(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
