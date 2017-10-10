@@ -105,14 +105,16 @@ F77_OBJS_2D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		quatdiffs.o grad.o quatgrad.o quattag.o quatlinrefine.o \
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
-		smoothquat.o
+		smoothquat.o \
+		hyprepoisson2d.o
 
 F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.o \
 		quatfacops.o quatlevelsolver.o mobility.o temperature.o \
 		quatdiffs.o grad.o quatgrad.o quattag.o quatlinrefine.o \
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
-		smoothquat.o
+		smoothquat.o \
+		hyprepoisson3d.o
 
 CXXFLAGS += -I$(NETCDF)/include
 LDFLAGS += -L $(NETCDF)/lib
@@ -159,6 +161,21 @@ test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJ
 
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
+
+testHypre2d:
+		$(MAKE) PDIM=2 testHypre-2d
+		mkdir -p ../exec && mv testHyprePoisson2d ../exec/testHyprePoisson2d
+
+testHypre-2d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
+		$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson2d
+
+testHypre3d:
+		$(MAKE) PDIM=3 testHypre-3d
+		mkdir -p ../exec && mv testHyprePoisson3d ../exec/testHyprePoisson3d
+testHypre-3d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_3D) $(F77_OBJS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
+	$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson3d
 
 clean:
 		$(SAMCLEAN)
