@@ -1,5 +1,5 @@
 /*************************************************************************
- * Adapted from SAMRAI test for Hypre
+ * Adapted from SAMRAI test FAC_staticrefinement
  ************************************************************************/
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -8,7 +8,6 @@ using namespace std;
 
 #include "SAMRAI/mesh/BergerRigoutsos.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
-#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/mesh/GriddingAlgorithm.h"
 #include "SAMRAI/tbox/InputDatabase.h"
@@ -22,8 +21,9 @@ using namespace std;
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
+#include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 
-#include "HyprePoisson.h"
+#include "FACPoisson.h"
 
 #include "boost/shared_ptr.hpp"
 
@@ -32,18 +32,21 @@ using namespace SAMRAI;
 /*
  ************************************************************************
  *
- * We set up the simple problem
- *     5.*u - div(grad(u)) = sin(pi*x)*sin(pi*y)
- * in the domain [0:1]x[0:1], with u=1 on the
- * boundary. The exact solution is 1.+sin(pi*x)*sin(pi*y)
+ * This is the driver program to demonstrate
+ * how to use the FAC Poisson solver.
  *
- * HyprePoisson is the primary object used to
+ * We set up the simple problem
+ *          5.*u + div(grad(u)) = sin(pi*x)*sin(pi*y)
+ * in the domain [0:1]x[0:1], with u=1 on the
+ * boundary.
+ *
+ * FACPoisson is the primary object used to
  * set up and solve the system.  It maintains
  * the data for the computed solution u, the
  * exact solution, and the right hand side.
  *
  * The hierarchy created to solve this problem
- * has only one level.  (The Hypre Poisson solver
+ * has only one level.  (The FAC Poisson solver
  * is a single-level solver.)
  *
  *************************************************************************
@@ -52,7 +55,7 @@ using namespace SAMRAI;
 int main(int argc,char* argv[])
 {
    /*
-    * Initialize MPI, SAMRAI, and enable logging.
+    * Initialize MPI, SAMRAI.
     */
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
@@ -63,8 +66,6 @@ int main(int argc,char* argv[])
     * then there will be memory leaks reported.
     */
    {
-      bool converged = true;
-
       /*
        * Process command line arguments.  For each run, the input
        * filename must be specified.  Usage is:
@@ -72,7 +73,6 @@ int main(int argc,char* argv[])
        *    executable <input file name>
        */
       string input_filename;
-
       if (argc != 2) {
          TBOX_ERROR("USAGE:  " << argv[0] << " <input file> \n"
                                << "  options:\n"
@@ -89,13 +89,19 @@ int main(int argc,char* argv[])
       tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
       /*
+       * Set up the timer manager.
+       */
+      if (input_db->isDatabase("TimerManager")) {
+         tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
+      }
+
+      /*
        * Retrieve "Main" section from input database.
        * The main database is used only in main().
        * The base_name variable is a base name for
        * all name strings in this program.
        */
-      boost::shared_ptr<tbox::Database> main_db(
-         input_db->getDatabase("Main"));
+      boost::shared_ptr<tbox::Database> main_db(input_db->getDatabase("Main"));
 
       const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
 
@@ -125,8 +131,8 @@ int main(int argc,char* argv[])
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
          new geom::CartesianGridGeometry(
             dim,
-            base_name + "CartesianGeometry",
-            input_db->getDatabase("CartesianGeometry")));
+            base_name + "CartesianGridGeometry",
+            input_db->getDatabase("CartesianGridGeometry")));
       tbox::plog << "Cartesian Geometry:" << endl;
       grid_geometry->printClassData(tbox::plog);
 
@@ -136,24 +142,46 @@ int main(int argc,char* argv[])
             grid_geometry,
             input_db->getDatabase("PatchHierarchy")));
 
-      /*
-       * The HyprePoisson object is the main user object specific to the
-       * problem being solved.  It provides the implementations for setting
-       * up the grid and plotting data.  It also wraps up the solve
-       * process that includes making the initial guess, specifying the
-       * boundary conditions and call the solver.
-       */
+      std::string fac_poisson_name = base_name + "::FACPoisson";
+      std::string fac_solver_name = fac_poisson_name + "::poisson_hypre";
+      std::string fac_ops_name = fac_solver_name + "::fac_ops";
+      std::string fac_precond_name = fac_solver_name + "::fac_precond";
+      std::string hypre_poisson_name = fac_ops_name + "::hypre_solver";
+      std::string bc_coefs_name = fac_poisson_name + "::bc_coefs";
 
-      std::string hypre_poisson_name = base_name + "::HyprePoisson";
-      std::string hypre_solver_name = hypre_poisson_name + "::poisson_hypre";
-      std::string bc_coefs_name = hypre_poisson_name + "::bc_coefs";
-
-      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_solver(
+      boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_poisson(
          new solv::CellPoissonHypreSolver(
             dim,
             hypre_poisson_name,
             input_db->isDatabase("hypre_solver") ?
             input_db->getDatabase("hypre_solver") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
+         new solv::CellPoissonFACOps(
+            hypre_poisson,
+            dim,
+            fac_ops_name,
+            input_db->isDatabase("fac_ops") ?
+            input_db->getDatabase("fac_ops") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::FACPreconditioner> fac_precond(
+         new solv::FACPreconditioner(
+            fac_precond_name,
+            fac_ops,
+            input_db->isDatabase("fac_precond") ?
+            input_db->getDatabase("fac_precond") :
+            boost::shared_ptr<tbox::Database>()));
+
+      boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver(
+         new solv::CellPoissonFACSolver(
+            dim,
+            fac_solver_name,
+            fac_precond,
+            fac_ops,
+            input_db->isDatabase("fac_solver") ?
+            input_db->getDatabase("fac_solver") :
             boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::LocationIndexRobinBcCoefs> bc_coefs(
@@ -164,11 +192,17 @@ int main(int argc,char* argv[])
             input_db->getDatabase("bc_coefs") :
             boost::shared_ptr<tbox::Database>()));
 
-      HyprePoisson hypre_poisson(
-         hypre_poisson_name,
-         dim,
-         hypre_solver,
-         bc_coefs);
+      /*
+       * The FACPoisson object is the main user object specific to the
+       * problem being solved.  It provides the implementations for setting
+       * up the grid and plotting data.  It also wraps up the solve
+       * process that includes making the initial guess, specifying the
+       * boundary conditions and call the solver.
+       */
+      FACPoisson fac_poisson(fac_poisson_name,
+                             dim,
+                             fac_solver,
+                             bc_coefs);
 
       /*
        * Create the tag-and-initializer, box-generator and load-balancer
@@ -177,14 +211,15 @@ int main(int argc,char* argv[])
       boost::shared_ptr<mesh::StandardTagAndInitialize> tag_and_initializer(
          new mesh::StandardTagAndInitialize(
             "CellTaggingMethod",
-            &hypre_poisson,
+            &fac_poisson,
             input_db->getDatabase("StandardTagAndInitialize")));
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
          new mesh::BergerRigoutsos(dim));
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
          new mesh::TreeLoadBalancer(
             dim,
-            "load balancer"));
+            "load balancer",
+            boost::shared_ptr<tbox::Database>()));
       load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       /*
@@ -194,7 +229,7 @@ int main(int argc,char* argv[])
       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
          new mesh::GriddingAlgorithm(
             patch_hierarchy,
-            "DistributedGridding Algorithm",
+            "Gridding Algorithm",
             input_db->getDatabase("GriddingAlgorithm"),
             tag_and_initializer,
             box_generator,
@@ -206,6 +241,18 @@ int main(int argc,char* argv[])
        * Make the coarsest patch level where we will be solving.
        */
       gridding_algorithm->makeCoarsestLevel(0.0);
+      bool done = false;
+      for (int lnum = 0;
+           patch_hierarchy->levelCanBeRefined(lnum) && !done; lnum++) {
+         tbox::plog << "Adding finner levels with lnum = " << lnum << endl;
+         gridding_algorithm->makeFinerLevel(
+            0,
+            true,
+            0,
+            0.0);
+         tbox::plog << "Just added finer levels with lnum = " << lnum << endl;
+         done = !(patch_hierarchy->finerLevelExists(lnum));
+      }
 
       /*
        * Set up the plotter for the hierarchy just created.
@@ -220,7 +267,7 @@ int main(int argc,char* argv[])
          boost::make_shared<appu::VisItDataWriter>(dim,
                                                    "VisIt Writer",
                                                    vis_filename + ".visit"));
-      hypre_poisson.registerVariablesWithPlotter(*visit_writer);
+      fac_poisson.setupPlotter(*visit_writer);
 #endif
 
       /*
@@ -236,25 +283,26 @@ int main(int argc,char* argv[])
       /*
        * Solve.
        */
-      converged = hypre_poisson.solvePoisson();
+      fac_poisson.solvePoisson();
 
+#ifdef HAVE_HDF5
       /*
        * Plot.
        */
-#ifdef HAVE_HDF5
       visit_writer->writePlotData(patch_hierarchy, 0);
 #endif
 
-      double error=hypre_poisson.compareSolutionWithExact();
+      double error=fac_poisson.compareSolutionWithExact();
       tbox::plog<<"Difference between computed sol. and exact so. = "<<error<<endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
-      if (converged && error<1.e-2 ) {
-         tbox::pout << "\nPASSED:  hypre" << endl;
+      if ( error<1.e-2 ) {
+         tbox::pout << "\nPASSED" << endl;
       } else {
-         tbox::pout << "\nFAILED: Hypre test did not converge to solution."<<endl;
+         tbox::pout << "\nFAILED: FAC Poisson test did not converge to solution."<<endl;
       }
+
    }
 
    tbox::SAMRAIManager::shutdown();

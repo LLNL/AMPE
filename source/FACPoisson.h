@@ -4,29 +4,13 @@
  * information, see COPYRIGHT and COPYING.LESSER.
  *
  * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
- * Description:   Example user class for solving Poisson using Hypre.
+ * Description:   Numerical routines for example FAC Poisson solver
  *
  ************************************************************************/
-#ifndef included_HyprePoisson
-#define included_HyprePoisson
+#ifndef included_FACPoisson
+#define included_FACPoisson
 
-#include "SAMRAI/SAMRAI_config.h"
-
-#if !defined(HAVE_HYPRE)
-
-/*
- *************************************************************************
- * If the library is not compiled with hypre, print an error.
- * If we're running autotests, skip the error and compile an empty
- * class.
- *************************************************************************
- */
-#if (TESTING != 1)
-#error "This example requires SAMRAI be compiled with hypre."
-#endif
-
-#else
-
+#include "SAMRAI/solv/CellPoissonFACSolver.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/hier/Box.h"
@@ -34,8 +18,6 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/hier/PatchLevel.h"
-#include "SAMRAI/hier/IntVector.h"
-#include "SAMRAI/solv/CellPoissonHypreSolver.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
 #include "SAMRAI/hier/VariableContext.h"
@@ -44,13 +26,12 @@
 
 #include "boost/shared_ptr.hpp"
 
-using namespace std;
 using namespace SAMRAI;
 
 /*!
  * @brief Class to solve a sample Poisson equation on a SAMR grid.
  *
- * This class demonstrates how use the HYPRE Poisson solver
+ * This class demonstrates how use the FAC Poisson solver
  * class to solve Poisson's equation on a single level
  * within a hierarchy.
  *
@@ -71,8 +52,13 @@ using namespace SAMRAI;
  *   on the SAMR grid.
  * - appu::VisDerivedDataStrategy to write out certain data
  *   in a vis file, such as the error of the solution.
+ *
+ * Inputs:  The only input parameter for this class is
+ * "fac_poisson", the input database for the solv::CellPoissonFACSolver
+ * object.  See the documentation for solv::CellPoissonFACSolver
+ * for its input parameters.
  */
-class HyprePoisson:
+class FACPoisson:
    public mesh::StandardTagAndInitStrategy,
    public appu::VisDerivedDataStrategy
 {
@@ -86,15 +72,16 @@ public:
     *
     * @param object_name Ojbect name
     * @param dim
-    * @param database
+    * @param fac_solver
+    * @param bc_coefs
     */
-   HyprePoisson(
-      const string& object_name,
+   FACPoisson(
+      const std::string& object_name,
       const tbox::Dimension& dim,
-      boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
-      boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
+      const boost::shared_ptr<solv::CellPoissonFACSolver>& fac_solver,
+      const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
 
-   virtual ~HyprePoisson();
+   virtual ~FACPoisson();
 
    //@{ @name mesh::StandardTagAndInitStrategy virtuals
 
@@ -115,9 +102,8 @@ public:
       const double init_data_time,
       const bool can_be_refined,
       const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel>& old_level =
-         boost::shared_ptr<hier::PatchLevel>(),
-      const bool allocate_data = true);
+      const boost::shared_ptr<hier::PatchLevel>& old_level,
+      const bool allocate_data);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
@@ -139,7 +125,7 @@ public:
       const hier::Box& region,
       const std::string& variable_name,
       int depth_id,
-      double simulation_time = 0.0) const;
+      double simulation_time) const;
 
    //@}
 
@@ -147,24 +133,23 @@ public:
     * @brief Solve using HYPRE Poisson solver
     *
     * Set up the linear algebra problem and use a
-    * solv::CellPoissonHypreSolver object to solve it.
+    * solv::CellPoissonFACSolver object to solve it.
     * -# Set initial guess
     * -# Set boundary conditions
     * -# Specify Poisson equation parameters
     * -# Call solver
-    *
-    * @return whether solver converged
     */
-   bool
+   int
    solvePoisson();
 
+#ifdef HAVE_HDF5
    /*!
     * @brief Set up external plotter to plot internal
     * data from this class.
     *
     * After calling this function, the external
     * data writer may be used to write the
-    * visit file for this object.
+    * viz file for this object.
     *
     * The internal hierarchy is used and must be
     * established before calling this function.
@@ -172,11 +157,12 @@ public:
     * with the mesh::StandardTagAndInitStrategy virtual
     * functions implemented by this class.)
     *
-    * @param visit_writer VisIt data writer
+    * @param viz_writer VisIt writer
     */
    int
-   registerVariablesWithPlotter(
-      appu::VisItDataWriter& visit_writer) const;
+   setupPlotter(
+      appu::VisItDataWriter& plotter) const;
+#endif
 
    double compareSolutionWithExact();
 
@@ -193,9 +179,9 @@ private:
     */
 
    /*!
-    * @brief HYPRE poisson solver.
+    * @brief FAC poisson solver.
     */
-   boost::shared_ptr<solv::CellPoissonHypreSolver> d_poisson_hypre;
+   boost::shared_ptr<solv::CellPoissonFACSolver> d_poisson_fac_solver;
 
    /*!
     * @brief Boundary condition coefficient implementation.
@@ -205,7 +191,7 @@ private:
    //@}
 
    //@{
-private:
+
    /*!
     * @name Private state variables for solution.
     */
@@ -226,6 +212,4 @@ private:
 
 };
 
-
-#endif
-#endif  // included_HyprePoisson
+#endif  // included_FACPoisson

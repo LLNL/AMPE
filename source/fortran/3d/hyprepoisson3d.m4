@@ -1,10 +1,4 @@
-c
-c This file is part of the SAMRAI distribution.  For full copyright
-c information, see COPYRIGHT and COPYING.LESSER.
-c
-c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
-c Description:   3D F77 routines.
-c
+c Adapted from SAMRAI test suite
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
@@ -35,8 +29,6 @@ c
 
       pi=3.141592654
 
-c     write(6,*) "In fluxcorrec()"
-c     ******************************************************************
       do ic2=ifirst2,ilast2
          z = xlower(2) + dx(2)*(ic2-ifirst2+0.5)
          do ic1=ifirst1,ilast1
@@ -44,8 +36,9 @@ c     ******************************************************************
             do ic0=ifirst0,ilast0
                x = xlower(0) + dx(0)*(ic0-ifirst0+0.5)
                sinsin = sin(pi*x) * sin(pi*y) * sin(pi*z)
-               exact(ic0,ic1,ic2) = sinsin
-               rhs(ic0,ic1,ic2) = -NDIM*pi*pi*sinsin
+               exact(ic0,ic1,ic2) = 1.+sinsin
+               rhs(ic0,ic1,ic2) = 5.*exact(ic0,ic1,ic2)
+     &                            +NDIM*pi*pi*sinsin
             enddo
          enddo
       enddo

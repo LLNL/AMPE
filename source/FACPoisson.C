@@ -4,16 +4,15 @@
  * information, see COPYRIGHT and COPYING.LESSER.
  *
  * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
- * Description:   Numerical routines for example Hypre Poisson solver
+ * Description:   Numerical routines for example FAC Poisson solver
  *
  ************************************************************************/
-#include "HyprePoisson.h"
-
-#if defined(HAVE_HYPRE)
+#include "FACPoisson.h"
 
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/solv/SimpleCellRobinBcCoefs.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -31,6 +30,7 @@ void SAMRAI_F77_FUNC(setexactandrhs2d, SETEXACTANDRHS2D) (const int& ifirst0,
    double* rhs,
    const double* dx,
    const double* xlower);
+
 void SAMRAI_F77_FUNC(setexactandrhs3d, SETEXACTANDRHS3D) (const int& ifirst0,
    const int& ilast0,
    const int& ifirst1,
@@ -43,28 +43,28 @@ void SAMRAI_F77_FUNC(setexactandrhs3d, SETEXACTANDRHS3D) (const int& ifirst0,
    const double* xlower);
 }
 
-
 /*
  *************************************************************************
  * Constructor creates a unique context for the object and register
  * all its internal variables with the variable database.
  *************************************************************************
  */
-HyprePoisson::HyprePoisson(
-   const string& object_name,
+FACPoisson::FACPoisson(
+   const std::string& object_name,
    const tbox::Dimension& dim,
-   boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
-   boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs):
+   const boost::shared_ptr<solv::CellPoissonFACSolver>& fac_solver,
+   const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs):
    d_object_name(object_name),
    d_dim(dim),
-   d_poisson_hypre(hypre_solver),
+   d_poisson_fac_solver(fac_solver),
    d_bc_coefs(bc_coefs)
 {
 
-   hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
+   hier::VariableDatabase* vdb =
+      hier::VariableDatabase::getDatabase();
 
    /*
-    * Get a unique context for this object.
+    * Get a unique context for variables owned by this object.
     */
    d_context = vdb->getContext(d_object_name + ":Context");
 
@@ -72,35 +72,45 @@ HyprePoisson::HyprePoisson(
     * Register variables with hier::VariableDatabase
     * and get the descriptor indices for those variables.
     */
+
    boost::shared_ptr<pdat::CellVariable<double> > comp_soln(
       new pdat::CellVariable<double>(
-         d_dim,
+         dim,
          object_name + ":computed solution",
          1));
    d_comp_soln_id =
       vdb->registerVariableAndContext(
          comp_soln,
          d_context,
-         hier::IntVector(d_dim, 1) /* ghost cell width is 1 for stencil widths */);
+         hier::IntVector(dim, 1) /* ghost cell width is 1 for stencil widths */);
+
    boost::shared_ptr<pdat::CellVariable<double> > exact_solution(
       new pdat::CellVariable<double>(
-         d_dim,
+         dim,
          object_name + ":exact solution"));
    d_exact_id =
       vdb->registerVariableAndContext(
          exact_solution,
          d_context,
-         hier::IntVector(d_dim, 1) /* ghost cell width is 1 in case needed */);
+         hier::IntVector(dim, 1) /* ghost cell width is 1 in case needed */);
+
    boost::shared_ptr<pdat::CellVariable<double> > rhs_variable(
       new pdat::CellVariable<double>(
-         d_dim,
+         dim,
          object_name
          + ":linear system right hand side"));
    d_rhs_id =
       vdb->registerVariableAndContext(
          rhs_variable,
          d_context,
-         hier::IntVector(d_dim, 0) /* ghost cell width is 0 */);
+         hier::IntVector(dim, 0) /* ghost cell width is 0 */);
+
+   /*
+    * Specify an implementation of solv::RobinBcCoefStrategy for the solver to use.
+    * We use the implementation solv::LocationIndexRobinBcCoefs, but other
+    * implementations are possible, including user-implemented.
+    */
+   d_poisson_fac_solver->setBcObject(d_bc_coefs.get());
 }
 
 /*
@@ -108,7 +118,7 @@ HyprePoisson::HyprePoisson(
  * Destructor does nothing interesting
  *************************************************************************
  */
-HyprePoisson::~HyprePoisson()
+FACPoisson::~FACPoisson()
 {
 }
 
@@ -120,8 +130,8 @@ HyprePoisson::~HyprePoisson()
  * Fill the rhs and exact solution.
  *************************************************************************
  */
-void HyprePoisson::initializeLevelData(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+void FACPoisson::initializeLevelData(
+   const boost::shared_ptr<hier::PatchHierarchy>& patch_hierarchy,
    const int level_number,
    const double init_data_time,
    const bool can_be_refined,
@@ -134,18 +144,11 @@ void HyprePoisson::initializeLevelData(
    NULL_USE(initial_time);
    NULL_USE(old_level);
 
-   boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy = hierarchy;
-   boost::shared_ptr<geom::CartesianGridGeometry> grid_geom(
-      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
-         patch_hierarchy->getGridGeometry()));
-   TBOX_ASSERT(grid_geom);
+   boost::shared_ptr<hier::PatchHierarchy> hierarchy = patch_hierarchy;
 
    boost::shared_ptr<hier::PatchLevel> level(
       hierarchy->getPatchLevel(level_number));
 
-   /*
-    * If required, allocate all patch data on the level.
-    */
    if (allocate_data) {
       level->allocatePatchData(d_comp_soln_id);
       level->allocatePatchData(d_rhs_id);
@@ -181,7 +184,7 @@ void HyprePoisson::initializeLevelData(
       /*
        * Set source function and exact solution.
        */
- #if NDIM==2
+#if (NDIM==2)
          SAMRAI_F77_FUNC(setexactandrhs2d, SETEXACTANDRHS2D) (
             pbox.lower()[0],
             pbox.upper()[0],
@@ -189,10 +192,10 @@ void HyprePoisson::initializeLevelData(
             pbox.upper()[1],
             exact_data->getPointer(),
             rhs_data->getPointer(),
-            grid_geom->getDx(),
+            patch_geom->getDx(),
             patch_geom->getXLower());
 #endif
-#if NDIM==3
+#if (NDIM==3)
          SAMRAI_F77_FUNC(setexactandrhs3d, SETEXACTANDRHS3D) (
             pbox.lower()[0],
             pbox.upper()[0],
@@ -202,7 +205,7 @@ void HyprePoisson::initializeLevelData(
             pbox.upper()[2],
             exact_data->getPointer(),
             rhs_data->getPointer(),
-            grid_geom->getDx(),
+            patch_geom->getDx(),
             patch_geom->getXLower());
 #endif
 
@@ -214,7 +217,7 @@ void HyprePoisson::initializeLevelData(
  * Reset the hierarchy-dependent internal information.
  *************************************************************************
  */
-void HyprePoisson::resetHierarchyConfiguration(
+void FACPoisson::resetHierarchyConfiguration(
    const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
    int coarsest_level,
    int finest_level)
@@ -227,118 +230,102 @@ void HyprePoisson::resetHierarchyConfiguration(
 
 /*
  *************************************************************************
- * Solve the Poisson problem.
+ * Set up the initial guess and problem parameters
+ * and solve the Poisson problem.  We explicitly initialize and
+ * deallocate the solver state in this example.
  *************************************************************************
  */
-bool HyprePoisson::solvePoisson()
+int FACPoisson::solvePoisson()
 {
 
    if (!d_hierarchy) {
-      TBOX_ERROR("Cannot solve using an uninitialized object.\n");
+      TBOX_ERROR(d_object_name
+         << "Cannot solve using an uninitialized object.\n");
    }
 
-   const int level_number = 0;
-
+   int ln;
    /*
-    * Fill in the initial guess and Dirichlet boundary condition data.
-    * For this example, we want u=0 on all boundaries.
-    * The easiest way to do this is to just write 0 everywhere,
-    * simultaneous setting the boundary values and initial guess.
+    * Fill in the initial guess.
     */
-   boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(
-                                                level_number));
-   for (hier::PatchLevel::iterator ip(level->begin());
-        ip != level->end(); ++ip) {
-      const boost::shared_ptr<hier::Patch>& patch = *ip;
-      boost::shared_ptr<pdat::CellData<double> > data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(d_comp_soln_id)));
-      TBOX_ASSERT(data);
-      data->fill(0.0);
+   for (ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level(
+         d_hierarchy->getPatchLevel(ln));
+      for (hier::PatchLevel::iterator ip(level->begin());
+           ip != level->end(); ++ip) {
+         const boost::shared_ptr<hier::Patch>& patch = *ip;
+         boost::shared_ptr<pdat::CellData<double> > data(
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_comp_soln_id)));
+         TBOX_ASSERT(data);
+         data->fill(0.0);
+      }
    }
-   // d_poisson_hypre->setBoundaries( "Dirichlet" );
-   d_poisson_hypre->setPhysicalBcCoefObject(d_bc_coefs.get());
 
    /*
-    * Set up HYPRE solver object.
-    * The problem specification is set using the
-    * CellPoissonSpecifications object then passed to the solver
-    * for setting the coefficients.
+    * Set the parameters for the Poisson equation
+    *    -div(D grad(u)) + 5*u = f
+    * See classes solv::CellPoissonFACSolver or
+    * solv::PoissonSpecifications.
     */
-   d_poisson_hypre->initializeSolverState(d_hierarchy,
-      level_number);
-   solv::PoissonSpecifications sps("Hypre Poisson solver");
-   sps.setCConstant(5.0);
-   sps.setDConstant(-1.0);
-   d_poisson_hypre->setMatrixCoefficients(sps);
+   d_poisson_fac_solver->setDConstant(-1.0);
+   d_poisson_fac_solver->setCConstant(5.0);
 
-   /*
-    * Solve the system.
-    */
+   d_poisson_fac_solver->initializeSolverState(
+      d_comp_soln_id,
+      d_rhs_id,
+      d_hierarchy,
+      0,
+      d_hierarchy->getFinestLevelNumber());
+
    tbox::plog << "solving..." << std::endl;
    int solver_ret;
-   solver_ret = d_poisson_hypre->solveSystem(d_comp_soln_id,
-         d_rhs_id);
+   solver_ret = d_poisson_fac_solver->solveSystem(d_comp_soln_id, d_rhs_id);
    /*
     * Present data on the solve.
     */
+   double avg_factor, final_factor;
+   d_poisson_fac_solver->getConvergenceFactors(avg_factor, final_factor);
    tbox::plog << "\t" << (solver_ret ? "" : "NOT ") << "converged " << "\n"
-              << "      iterations: " << d_poisson_hypre->getNumberOfIterations()
+              << "      iterations: "
+              << d_poisson_fac_solver->getNumberOfIterations() << "\n"
+              << "      residual: " << d_poisson_fac_solver->getResidualNorm()
               << "\n"
-              << "      residual: " << d_poisson_hypre->getRelativeResidualNorm()
-              << "\n"
+              << "      average convergence: " << avg_factor << "\n"
+              << "      final convergence: " << final_factor << "\n"
               << std::flush;
 
-   /*
-    * Deallocate state.
-    */
-   d_poisson_hypre->deallocateSolverState();
+   d_poisson_fac_solver->deallocateSolverState();
 
-   /*
-    * Return whether solver converged.
-    */
-   return solver_ret ? true : false;
+   return 0;
 }
 
 #ifdef HAVE_HDF5
 /*
  *************************************************************************
- * Set up VisIt to plot internal data from this class.
- * Tell the plotter about the refinement ratios.  Register variables
- * appropriate for plotting.
+ * Set up external plotter to plot internal data from this class.
+ * Register variables appropriate for plotting.
  *************************************************************************
  */
-int HyprePoisson::registerVariablesWithPlotter(
-   appu::VisItDataWriter& visit_writer) const {
-
-   /*
-    * This must be done once.
-    */
+int FACPoisson::setupPlotter(
+   appu::VisItDataWriter& plotter) const {
    if (!d_hierarchy) {
-      TBOX_ERROR(
-         d_object_name << ": No hierarchy in\n"
-                       << " HyprePoisson::registerVariablesWithPlotter\n"
-                       << "The hierarchy must be built before calling\n"
-                       << "this function.\n");
+      TBOX_ERROR(d_object_name << ": No hierarchy in\n"
+                               << " FACPoisson::setupPlotter\n"
+                               << "The hierarchy must be set before calling\n"
+                               << "this function.\n");
    }
-   /*
-    * Register variables with plotter.
-    */
-   visit_writer.registerPlotQuantity("Computed solution",
+   plotter.registerPlotQuantity("Computed solution",
       "SCALAR",
       d_comp_soln_id);
-   visit_writer.registerDerivedPlotQuantity("Error",
+   plotter.registerDerivedPlotQuantity("Error",
       "SCALAR",
       (appu::VisDerivedDataStrategy *)this);
-   visit_writer.registerPlotQuantity("Exact solution",
+   plotter.registerPlotQuantity("Exact solution",
       "SCALAR",
       d_exact_id);
-   visit_writer.registerPlotQuantity("Poisson source",
+   plotter.registerPlotQuantity("Poisson source",
       "SCALAR",
       d_rhs_id);
-   visit_writer.registerDerivedPlotQuantity("Patch level number",
-      "SCALAR",
-      (appu::VisDerivedDataStrategy *)this);
 
    return 0;
 }
@@ -349,7 +336,7 @@ int HyprePoisson::registerVariablesWithPlotter(
  * Write derived data to the given stream.
  *************************************************************************
  */
-bool HyprePoisson::packDerivedDataIntoDoubleBuffer(
+bool FACPoisson::packDerivedDataIntoDoubleBuffer(
    double* buffer,
    const hier::Patch& patch,
    const hier::Box& region,
@@ -357,12 +344,11 @@ bool HyprePoisson::packDerivedDataIntoDoubleBuffer(
    int depth_id,
    double simulation_time) const
 {
-   NULL_USE(region);
    NULL_USE(depth_id);
    NULL_USE(simulation_time);
 
-   pdat::CellData<double>::iterator icell(pdat::CellGeometry::begin(patch.getBox()));
-   pdat::CellData<double>::iterator icellend(pdat::CellGeometry::end(patch.getBox()));
+   pdat::CellData<double>::iterator icell(pdat::CellGeometry::begin(region));
+   pdat::CellData<double>::iterator icellend(pdat::CellGeometry::end(region));
 
    if (variable_name == "Error") {
       boost::shared_ptr<pdat::CellData<double> > current_solution_(
@@ -378,25 +364,21 @@ bool HyprePoisson::packDerivedDataIntoDoubleBuffer(
       for ( ; icell != icellend; ++icell) {
          double diff = (current_solution(*icell) - exact_solution(*icell));
          *buffer = diff;
-         buffer += 1;
-      }
-   } else if (variable_name == "Patch level number") {
-      double pln = patch.getPatchLevelNumber();
-      for ( ; icell != icellend; ++icell) {
-         *buffer = pln;
-         buffer += 1;
+         buffer = buffer + 1;
       }
    } else {
       // Did not register this name.
       TBOX_ERROR(
          "Unregistered variable name '" << variable_name << "' in\n"
-                                        << "HyprePoissonX::writeDerivedDataToStream");
+                                        << "FACPoissonX::packDerivedDataIntoDoubleBuffer");
 
    }
+   // Return true if this patch has derived data on it.
+   // False otherwise.
    return true;
 }
 
-double HyprePoisson::compareSolutionWithExact()
+double FACPoisson::compareSolutionWithExact()
 {
    math::HierarchyCellDataOpsReal<double> mathops( d_hierarchy );
 
@@ -404,4 +386,3 @@ double HyprePoisson::compareSolutionWithExact()
    return mathops.maxNorm(d_exact_id);
 }
 
-#endif

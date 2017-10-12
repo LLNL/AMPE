@@ -174,8 +174,24 @@ testHypre3d:
 		$(MAKE) PDIM=3 testHypre-3d
 		mkdir -p ../exec && mv testHyprePoisson3d ../exec/testHyprePoisson3d
 testHypre-3d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_3D) $(F77_OBJS)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
-	$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson3d
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
+		$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson3d
+
+
+testFAC2d:
+		$(MAKE) PDIM=2 testFAC-2d
+		mkdir -p ../exec && mv testFACPoisson2d ../exec/testFACPoisson2d
+
+testFAC-2d: testFACPoisson.o FACPoisson.o $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) testFACPoisson.o FACPoisson.o \
+		$(LIBSAMRAI) $(LDLIBS) -o testFACPoisson2d
+
+testFAC3d:
+		$(MAKE) PDIM=3 testFAC-3d
+		mkdir -p ../exec && mv testFACPoisson3d ../exec/testFACPoisson3d
+testFAC-3d: testFACPoisson.o FACPoisson.o $(F77_OBJS_3D) $(F77_OBJS)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testFACPoisson.o FACPoisson.o \
+		$(LIBSAMRAI) $(LDLIBS) -o testFACPoisson3d
 
 clean:
 		$(SAMCLEAN)

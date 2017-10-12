@@ -1,10 +1,4 @@
-c
-c This file is part of the SAMRAI distribution.  For full copyright
-c information, see COPYRIGHT and COPYING.LESSER.
-c
-c Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
-c Description:   2D F77 routines.
-c
+c Adapted from SAMRAI test suite
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
@@ -40,8 +34,8 @@ c
         do ic0=ifirst0,ilast0
           x = xlower(0) + dx(0)*(ic0-ifirst0+0.5)
           sinsin = sin(pi*x) * sin(pi*y)
-          exact(ic0,ic1) = sinsin
-          rhs(ic0,ic1) = -NDIM*pi*pi*sinsin
+          exact(ic0,ic1) = 1.+sinsin
+          rhs(ic0,ic1) = 5.*exact(ic0,ic1)+NDIM*pi*pi*sinsin
         enddo
       enddo
 

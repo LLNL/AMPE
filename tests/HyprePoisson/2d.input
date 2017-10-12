@@ -1,0 +1,81 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Description:   Input file for hypre unit test.
+ *
+ ************************************************************************/
+
+Main {
+  // Dimension of problem.
+  dim = 2
+
+  // Base name for log and visualization files.
+  base_name = "default2"
+
+  // If TRUE each process writes a log file.  Otherwise only process 0 does.
+  log_all_nodes = FALSE
+
+  // The name of the visualization file generated if supplied.  Otherwise
+  // visualization file name is derived from base_name.
+  // vis_filename = "default2d"
+}
+
+// Refer to solv::CellPoissonHypreSolver for input.
+hypre_solver {
+  max_iterations = 20             // Max iterations used by Hypre
+  relative_residual_tol = 1.0e-8  // Residual tolerance used by Hypre
+}
+
+// Refer to solv::LocationIndexRobinBcCoefs for input.
+bc_coefs {
+  // These are the boundary condition specifications.  The number
+  // after "boundary_" is the location index of the boundary.
+  // The inputs are arrays of strings where the first string
+  // indicates the type of values you want to set.  "slope" means
+  // boundary slope, "value" means boundary value, and "coefficients"
+  // mean the raw Robin boundary condition coefficients.
+  // The remaining strings are converted into numbers as
+  // appropriate for what boundary condition you specified with
+  // the first string.  Other boundary conditions are possible.
+  // see the solv_RobinBcCoefStrategy class.
+  // Examples:
+  boundary_0 = "value", "1"
+  boundary_1 = "value", "1"
+  boundary_2 = "value", "1"
+  boundary_3 = "value", "1"
+}
+
+// Refer to mesh::CartesianGridGeometry and its base classes for input.
+CartesianGeometry {
+  domain_boxes = [(0,0), (31,31)]
+  x_lo         = 0, 0
+  x_up         = 1, 1
+}
+
+// Refer to mesh::StandardTagAndInitialize for input.
+StandardTagAndInitialize {
+  // Use default settings for this example.
+}
+
+// Refer to hier::PatchHierarchy for input.
+PatchHierarchy {
+   max_levels = 1
+   largest_patch_size {
+      level_0 = -1, -1
+   }
+   smallest_patch_size {
+      level_0 = 2,2
+   }
+   allow_patches_smaller_than_ghostwidth = TRUE
+}
+
+// Refer to mesh::GriddingAlgorithm for input.
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   DEV_extend_to_domain_boundary = FALSE
+   check_nonrefined_tags = "IGNORE"
+   sequentialize_patch_indices = TRUE
+}
