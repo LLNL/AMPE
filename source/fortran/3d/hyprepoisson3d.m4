@@ -1,7 +1,60 @@
-c Adapted from SAMRAI test suite
 define(NDIM,3)dnl
 define(REAL,`double precision')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
+      subroutine multiplyoffdiagbym(
+     &  lo0, hi0, lo1, hi1, lo2, hi2,
+     &  offdiagx, offdiagy, offdiagz, ngoffdiag,
+     &  sqrtm, ngsqrtm)
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1, lo2, hi2,
+     &   ngoffdiag, ngsqrtm
+
+      double precision offdiagx(SIDE3d0(lo,hi,ngoffdiag))
+      double precision offdiagy(SIDE3d1(lo,hi,ngoffdiag))
+      double precision offdiagz(SIDE3d2(lo,hi,ngoffdiag))
+
+      double precision sqrtm(CELL3d(lo,hi,ngsqrtm))
+c local variables:
+      integer i, j, k
+c x component
+      do k = lo2, hi2
+         do j = lo1, hi1
+            do i = lo0, hi0+1
+               offdiagx(i,j,k) = offdiagx(i,j,k)
+     &                         *sqrtm(i-1,j,k)*sqrtm(i,j,k)
+            enddo
+         enddo
+      enddo
+
+c y component
+      do k = lo2, hi2
+         do j = lo1, hi1+1
+            do i = lo0, hi0
+               offdiagy(i,j,k) = offdiagy(i,j,k)
+     &                         *sqrtm(i,j-1,k)*sqrtm(i,j,k)
+            enddo
+         enddo
+      enddo
+
+c z component
+      do k = lo2, hi2+1
+         do j = lo1, hi1
+            do i = lo0, hi0
+               offdiagz(i,j,k) = offdiagz(i,j,k)
+     &                         *sqrtm(i,j,k-1)*sqrtm(i,j,k)
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+c
+
+
+c Adapted from SAMRAI test suite
 
       subroutine setexactandrhs3d(
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,

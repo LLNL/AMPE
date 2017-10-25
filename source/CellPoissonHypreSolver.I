@@ -36,63 +36,6 @@
  */
 #define SAMRAI_INLINE_KEYWORD inline
 
-SAMRAI_INLINE_KEYWORD
-void CellPoissonHypreSolver::setSolnIdDepth( const int depth ) {
-   d_soln_depth = depth;
-   return;
-}
-
-SAMRAI_INLINE_KEYWORD
-void CellPoissonHypreSolver::setRhsIdDepth( const int depth ) {
-   d_rhs_depth = depth;
-   return;
-}
-
-
-
-
-
-/*
-********************************************************************
-* Specify bc using the default internal bc coefficient object.     *
-* Clear up data supporting external bc coefficient setter.         *
-********************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-void CellPoissonHypreSolver::setBoundaries(
-   const std::string& boundary_type,
-   const int fluxes,
-   const int flags,
-   int* bdry_types)
-{
-   d_physical_bc_simple_case.setBoundaries(boundary_type,
-                                           fluxes,
-                                           flags,
-                                           bdry_types);
-   d_physical_bc_coef_strategy = &d_physical_bc_simple_case;
-   d_physical_bc_variable.reset();
-   return;
-}
-
-
-
-/*
-********************************************************************
-* Set the physical boundary condition object.                      *
-********************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-void CellPoissonHypreSolver::setPhysicalBcCoefObject(
-   const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
-   const boost::shared_ptr< hier::Variable > variable )
-{
-   d_physical_bc_coef_strategy = physical_bc_coef_strategy;
-   d_physical_bc_variable = variable;
-   return;
-}
-
 
 SAMRAI_INLINE_KEYWORD
 void CellPoissonHypreSolver::setStoppingCriteria(

@@ -42,6 +42,7 @@
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/math/ArrayDataBasicOps.h"
 #include "SAMRAI/math/PatchSideDataBasicOps.h"
+#include "SAMRAI/math/PatchSideDataOpsReal.h"
 #include "SAMRAI/pdat/ArrayData.h"
 #include "SAMRAI/pdat/CellIndex.h"
 #include "SAMRAI/pdat/CellIterator.h"
@@ -281,6 +282,17 @@ extern "C" {
                      const int *lower, const int *upper ,
                      const int *location );
 
+   void multiplyoffdiagbym_( const int&, const int&,
+      const int&, const int&,
+#if (NDIM>2)
+      const int&, const int&,
+#endif
+      double* const, double* const, 
+#if (NDIM>2)
+      double* const,
+#endif
+      const int&,
+      const double* const, const int&);
 }
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
@@ -961,13 +973,16 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
       if ( ! spec.mIsConstant() ) {
          M_data = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-             patch.getPatchData( spec.getMPatchDataId()) );
+             patch.getPatchData( spec.getMPatchDataId() ) );
          TBOX_ASSERT(M_data);
+         TBOX_ASSERT(M_data->getGhostCellWidth()[0]>0);
 #ifdef DEBUG_CHECK_ASSERTIONS
-         math::ArrayDataNormOpsReal<double> ops;
-         const double norm_u = ops.maxNorm(M_data->getArrayData(),M_data->getArrayData().getBox());
-         assert( norm_u==norm_u );
-         assert( norm_u>0. );
+         math::PatchCellDataNormOpsReal<double> ops;
+         const double norm_M = ops.maxNorm(M_data,M_data->getBox());
+         assert( norm_M==norm_M );
+         const double norm_Mg = ops.maxNorm(M_data,M_data->getGhostBox());
+         assert( norm_Mg==norm_Mg );
+         assert( norm_Mg>0. );
 #endif
          d_msqrt_transform=true;
       }
@@ -1101,18 +1116,17 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
                const double alpha=(*msqrt)(icell);
                assert( alpha>0. );
-               assert( (*msqrt)(icxlow)>0. );
+               TBOX_ASSERT( (*msqrt)(icxlow)>0. );
 
                (off_diagonal)(ixlower)*=alpha;
                (off_diagonal)(ixlower)*=(*msqrt)(icxlow);
-   
                if (NDIM > 1) {
                   pdat::CellIndex icylow(icell);
                   icylow(1)-=1;
                   pdat::SideIndex  iylower(icell,
                                                pdat::SideIndex::Y,
                                                pdat::SideIndex::Lower);
-                  assert( (*msqrt)(icylow)>0. );
+                  TBOX_ASSERT( (*msqrt)(icylow)>0. );
                   (off_diagonal)(iylower)*=alpha;
                   (off_diagonal)(iylower)*=(*msqrt)(icylow);
                }
@@ -1164,6 +1178,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             assert( d_msqrt_transform );
             assert( M_data->getGhostCellWidth()[0]>0 ); 
             assert( msqrt->getGhostCellWidth()[0]>0 ); 
+            if (NDIM > 1)assert( msqrt->getGhostCellWidth()[1]>0 );
 
             /*
               To do: This loop uses inefficient high-level syntax.
@@ -1184,42 +1199,26 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
                diagonal(icell)         *=(*M_data)(icell);
                diagonal(icell)         +=(*C_data)(icell);
 
-               const double alpha=(*msqrt)(icell);
-               assert( alpha>0. );
-               assert( (*msqrt)(icxlow)>0. );
+               TBOX_ASSERT( (*M_data)(icell)>0. );
+               TBOX_ASSERT( (*M_data)(icxlow)>0. );
+               TBOX_ASSERT( (*msqrt)(icxlow)>0. );
 
-               (off_diagonal)(ixlower)*=alpha;
-               (off_diagonal)(ixlower)*=(*msqrt)(icxlow);
-   
-               if (NDIM > 1) {
-                  pdat::CellIndex icylow(icell);
-                  icylow(1)-=1;
-                  pdat::SideIndex  iylower(*ic,
-                                               pdat::SideIndex::Y,
-                                               pdat::SideIndex::Lower);
-                  assert( msqrt->getGhostCellWidth()[1]>0 );
-                  if( (*msqrt)(icylow)<=0. ){
-                     cout<<(*msqrt)(icylow)<<" ... "<<endl;
-                     icylow(1)+=1;
-                     cout<<(*msqrt)(icylow)<<endl;
-                  }
-                  assert( (*msqrt)(icylow)>0. );
-                  (off_diagonal)(iylower)*=alpha;
-                  (off_diagonal)(iylower)*=(*msqrt)(icylow);
-               }
-
-               if (NDIM > 2) {
-                  pdat::CellIndex iczlow(icell);
-                  iczlow(2)-=1;
-                  pdat::SideIndex  izlower(icell,
-                                                pdat::SideIndex::Z,
-                                                pdat::SideIndex::Lower);
-                  assert( (*msqrt)(iczlow)>0. ); 
-                  (off_diagonal)(izlower)*=alpha;
-                  (off_diagonal)(izlower)*=(*msqrt)(iczlow);
-               }
 
             } // end cell loop
+
+            multiplyoffdiagbym_(patch_lo[0],patch_up[0],
+                                patch_lo[1],patch_up[1],
+#if (NDIM>2)
+                                patch_lo[2],patch_up[2],
+#endif
+                                off_diagonal.getPointer(0),
+                                off_diagonal.getPointer(1),
+#if (NDIM>2)
+                                off_diagonal.getPointer(2),
+#endif
+                                off_diagonal.getGhostCellWidth()[0],
+                                msqrt->getPointer(),
+                                msqrt->getGhostCellWidth()[0]);
          } // M not constant
       } // C not constant
 
@@ -1239,10 +1238,10 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       {
          const std::vector< hier::BoundaryBox >& surface_boxes =
             pg->getCodimensionBoundaries(1);
-         const size_t n_bdry_boxes = surface_boxes.size();
+         const size_t n_bdry_boxes = static_cast<int>(surface_boxes.size());
          for ( size_t n=0; n<n_bdry_boxes; ++n ) {
 
-            const hier::BoundaryBox &boundary_box = surface_boxes[n];
+            const hier::BoundaryBox& boundary_box = surface_boxes[n];
             if ( boundary_box.getBoundaryType() != 1 ) {
                TBOX_ERROR(d_object_name << ": Illegal boundary type in "
                           << "CellPoissonHypreSolver::setMatrixCoefficients\n");
@@ -1264,7 +1263,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
                                                      d_physical_bc_variable,
                                                      patch,
                                                      boundary_box);
-            pdat::ArrayData<double> &Ak0_data =
+            pdat::ArrayData<double>& Ak0_data =
                Ak0->getArrayData(location_index/2,
                                  location_index%2);
             adjustBoundaryEntries( diagonal,
@@ -1351,7 +1350,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
       int stencil_indices[stencil_size];
       double mat_entries[stencil_size];
 
-      for (tbox::Dimension::dir_t i=0; i<stencil_size; i++ ) stencil_indices[i] = i;
+      for (int i = 0; i < stencil_size; ++i) stencil_indices[i] = i;
 
       pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box));
       pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));
@@ -1387,8 +1386,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
         mat_entries[NDIM] = (diagonal)(*ic);
         HYPRE_StructMatrixSetValues(d_matrix, &icell[0],
-                                        stencil_size, stencil_indices,
-                                        mat_entries);
+           stencil_size, stencil_indices,
+           mat_entries);
       } // end cell loop
 
    } // end patch loop
@@ -1406,12 +1405,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
    t_set_matrix_coefficients->stop();
 
    setupHypreSolver();
-
-   return;
 }
-
-
-
 
 /*
 **********************************************************************
@@ -1439,7 +1433,9 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
    boost::shared_ptr<pdat::OutersideData<double> >Ak0(
       BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch.getPatchData(d_Ak0_id) ) );
 
-   const size_t n_bdry_boxes = bdry_boxes.size();
+   TBOX_ASSERT(Ak0);
+
+   const size_t n_bdry_boxes = static_cast<int>(bdry_boxes.size());
    for ( size_t n=0; n<n_bdry_boxes; ++n ) {
 
       const hier::BoundaryBox& boundary_box = bdry_boxes[n];
@@ -1803,17 +1799,41 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
    return d_converged;
 }
 
-
-
+/*
+ * Compute diagonal entries using off diagonal entries, calling
+ * fortran function from SAMRAI library.
+ * Note: Assume g value of 0 for BC
+ */
 void CellPoissonHypreSolver::computeDiagonalEntries(
    pdat::CellData<double> &diagonal,
    const pdat::CellData<double> &C_data,
    const pdat::SideData<double> &off_diagonal,
    const hier::Box &patch_box )
 {
-   const hier::Index patch_lo = patch_box.lower();
-   const hier::Index patch_up = patch_box.upper();
+   assert( patch_box.isSpatiallyEqual(C_data.getGhostBox()) );
+
+   const hier::Index& patch_lo = patch_box.lower();
+   const hier::Index& patch_up = patch_box.upper();
    const double c=1.0, d=1.0;
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   math::PatchCellDataNormOpsReal<double> ops;
+   math::PatchSideDataNormOpsReal<double> sops;
+
+   boost::shared_ptr<pdat::CellData<double> > tmp( new
+      pdat::CellData<double>(patch_box,1,hier::IntVector::getZero(d_dim)) );
+
+   tmp->copy(C_data);
+   double l1norm=ops.L1Norm(tmp,patch_box);
+   assert( l1norm==l1norm );
+
+   boost::shared_ptr<pdat::SideData<double> > stmp( new
+      pdat::SideData<double>(patch_box,1,hier::IntVector::getZero(d_dim)) );
+   stmp->copy(off_diagonal);
+   double l1normoff=sops.L1Norm(stmp,patch_box);
+   assert( l1normoff==l1normoff );
+#endif
+
    if (NDIM == 2) {
       compdiagvariablec2d_( diagonal.getPointer(),
                             C_data.getPointer(),
@@ -1834,6 +1854,12 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
                             &c, &d );
    }
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+   tmp->copy(diagonal);
+   l1norm=ops.L1Norm(tmp,patch_box);
+   assert( l1norm==l1norm );
+#endif
+ 
    return;
 }
 
@@ -1909,11 +1935,9 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
 }
 
 
-
-
 void CellPoissonHypreSolver::adjustBoundaryEntries(
    pdat::CellData<double> &diagonal,
-   const pdat::SideData<double> &off_diagonal,
+   pdat::SideData<double> &off_diagonal,
    const hier::Box &patch_box,
    const pdat::ArrayData<double> &acoef_data,
    const pdat::ArrayData<double> &bcoef_data,

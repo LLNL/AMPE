@@ -179,7 +179,10 @@ public:
     * Changing the depth after setting up the matrix is permissible,
     * as the solution data does not affect the matrix.
     */
-   void setSolnIdDepth( const int depth );
+   void setSolnIdDepth( const int depth )
+   {
+      d_soln_depth = depth;
+   }
 
    /*!
     * @brief Set default depth of the rhs data involved in the solve.
@@ -194,7 +197,10 @@ public:
     * Changing the depth after setting up the matrix is permissible,
     * as the rhs data does not affect the matrix.
     */
-   void setRhsIdDepth( const int depth );
+   void setRhsIdDepth( const int depth )
+   {
+      d_rhs_depth = depth;
+   }
 
    /*!
     * @brief Set the stopping criteria (residual
@@ -241,6 +247,26 @@ public:
                     const int f ,
                     bool homogeneous_bc=false );
 
+   /*!
+    * @brief Return the number of iterations taken by the solver to converge.
+    *
+    * @return number of iterations taken by the solver to converge
+    */
+   int
+   getNumberOfIterations() const
+   {
+      return d_number_iterations;
+   }
+
+   /*!
+    * @brief Return the final residual norm returned by the Hypre solve.
+    * @return final residual norm returned by the Hypre solve.
+    */
+   double
+   getRelativeResidualNorm() const
+   {
+      return d_relative_residual_norm;
+   }
 
    /*!
     * @brief Specify boundary condition directly, without using
@@ -257,7 +283,15 @@ public:
    void setBoundaries(const std::string& boundary_type,
                       const int fluxes = -1,
                       const int flags = -1,
-                      int* bdry_types = NULL);
+                      int* bdry_types = NULL)
+   {
+      d_physical_bc_simple_case.setBoundaries(boundary_type,
+         fluxes,
+         flags,
+         bdry_types);
+      d_physical_bc_coef_strategy = &d_physical_bc_simple_case;
+      d_physical_bc_variable.reset();
+   }
 
    /*!
     * @brief Specify boundary condition through the use of a
@@ -281,14 +315,30 @@ public:
    void setPhysicalBcCoefObject(
       const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
       const boost::shared_ptr< hier::Variable > variable
-         = boost::shared_ptr< hier::Variable >() );
+         = boost::shared_ptr< hier::Variable >() )
+   {
+      d_physical_bc_coef_strategy = physical_bc_coef_strategy;
+      d_physical_bc_variable = variable;
+   }
+
 
    void printConvergenceFactors(std::ostream& os);
+
+   /*!
+    * @brief Get the name of this object.
+    *
+    * @return The name of this object.
+    */
+   const std::string&
+   getObjectName() const
+   {
+      return d_object_name;
+   }
 
 private:
 
    /*!
-    * @brief Set state using database
+    * @biief Set state using database
     *
     * See the class description for the parameters that can be set
     * from a database.
@@ -363,7 +413,7 @@ private:
     */
    void adjustBoundaryEntries(
       pdat::CellData<double> &diagonal,
-      const pdat::SideData<double> &variable_off_diagonal,
+      pdat::SideData<double> &variable_off_diagonal,
       const hier::Box &patch_box,
       const pdat::ArrayData<double> &acoef_data,
       const pdat::ArrayData<double> &bcoef_data,
