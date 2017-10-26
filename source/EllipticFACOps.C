@@ -67,26 +67,20 @@ using namespace std;
 boost::shared_ptr<pdat::CellVariable<double> >
 EllipticFACOps::s_cell_scratch_var;
 
-
 boost::shared_ptr<pdat::SideVariable<double> >
 EllipticFACOps::s_flux_scratch_var;
-
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
 EllipticFACOps::s_oflux_scratch_var;
 
-
 boost::shared_ptr<pdat::CellVariable<double> >
 EllipticFACOps::s_m_var;
-
 
 boost::shared_ptr<pdat::CellVariable<double> >
 EllipticFACOps::s_c_var;
 
-
 boost::shared_ptr<pdat::SideVariable<double> >
 EllipticFACOps::s_d_var;
-
 
 boost::shared_ptr<pdat::CellVariable<double> >
 EllipticFACOps::s_soln_var;
@@ -871,7 +865,6 @@ EllipticFACOps::EllipticFACOps(
                                             d_coarse_solver_max_iterations);
    }
 
-
    /*
     * Check input validity and correctness.
     */
@@ -881,14 +874,10 @@ EllipticFACOps::EllipticFACOps(
 }
 
 
-
-
 EllipticFACOps::~EllipticFACOps(void)
 {
    return;
 }
-
-
 
 
 /*
@@ -899,10 +888,9 @@ EllipticFACOps::~EllipticFACOps(void)
 * Look up transfer operators.                                          *
 ************************************************************************
 */
-
 void
 EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &solution ,
-                                              const solv::SAMRAIVectorReal<double> &rhs )
+                                         const solv::SAMRAIVectorReal<double> &rhs )
 {
    deallocateOperatorState();
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
@@ -918,7 +906,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                                                                d_ln_max));
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-
    if ( d_physical_bc_coef == NULL ) {
       /*
        * It's an error not to have bc object set.
@@ -1097,11 +1084,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
       geometry->lookupRefineOperator(variable,
                                      "CONSTANT_REFINE");
 
-   vdb->mapIndexToVariable( d_m_id, variable );
-   d_mobility_refine_operator =
-      geometry->lookupRefineOperator(variable,
-                                     "LINEAR_REFINE");
-
 #ifdef DEBUG_CHECK_ASSERTIONS
    if ( !d_prolongation_refine_operator ) {
       TBOX_ERROR(d_object_name
@@ -1124,10 +1106,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                  << ": Cannot find ghost filling refinement operator");
    }
    if ( !d_ghostfill_nocoarse_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find ghost filling refinement operator");
-   }
-   if ( !d_mobility_refine_operator ) {
       TBOX_ERROR(d_object_name
                  << ": Cannot find ghost filling refinement operator");
    }
@@ -1180,10 +1158,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
    d_ghostfill_nocoarse_refine_algorithm.reset(
       new xfer::RefineAlgorithm() );
 
-   d_mobility_refine_algorithm.reset(
-      new xfer::RefineAlgorithm() );
-
-
    d_prolongation_refine_algorithm->
       registerRefine( d_cell_scratch_id ,
                       solution.getComponentDescriptorIndex(0) ,
@@ -1211,12 +1185,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                       solution.getComponentDescriptorIndex(0) ,
                       solution.getComponentDescriptorIndex(0) ,
                       d_ghostfill_nocoarse_refine_operator );
-
-   d_mobility_refine_algorithm->
-      registerRefine( d_m_id ,
-                      d_m_id ,
-                      d_m_id ,
-                      d_mobility_refine_operator );
 
    for ( int dest_ln=d_ln_min+1; dest_ln<=d_ln_max; ++dest_ln ) {
 
@@ -1292,7 +1260,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual deallocateOperatorState        *
@@ -1337,7 +1304,6 @@ EllipticFACOps::deallocateOperatorState()
       d_flux_coarsen_algorithm.reset();
       d_ghostfill_refine_algorithm.reset();
       d_ghostfill_nocoarse_refine_algorithm.reset();
-      d_mobility_refine_algorithm.reset();
    }
    d_C_is_set = false;
    d_D_is_set = false;
@@ -1347,49 +1313,40 @@ EllipticFACOps::deallocateOperatorState()
 }
 
 
-
-
 /*
 ********************************************************************
-* Set the object specifying the parameters of the Poisson equation *
+* Set the object specifying the parameters of the equation *
 ********************************************************************
 */
-
 void
 EllipticFACOps::setM(const int m_id)
 {
    assert( d_m_id>=0 );
-   
-  for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-    boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   assert( m_id>=0 );
+   assert( d_ln_min>=0 );
 
-    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      
-      // Copy M to local array
-
-      boost::shared_ptr<pdat::CellData<double> > m_data(
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(m_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > local_m_data (
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_m_id) ) );
-      
-      local_m_data->copy(*m_data);
-
-    }
-  }
-
-   d_bc_helper.setTargetDataId(d_m_id);
-   d_bc_helper.setHomogeneousBc(false);
-
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-      d_mobility_refine_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(ln),
-                        ln-1,
-                        d_hierarchy,
-                        &d_bc_helper)
-                        ->fillData(0.0);                        
+   //tbox::pout<<"EllipticFACOps::setM()"<<endl;
+   //copy one patch at a time to include ghost values
+   SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
+   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+      boost::shared_ptr<hier::PatchLevel> level_ptr(
+         d_hierarchy->getPatchLevel(ln));
+      hier::PatchLevel& level = *level_ptr;
+      for (hier::PatchLevel::iterator pi(level.begin());
+           pi != level.end(); ++pi) {
+         hier::Patch& patch = **pi;
+         boost::shared_ptr<pdat::CellData<double> > src(
+            BOOST_CAST<pdat::CellData<double>,hier::PatchData>(patch.getPatchData(m_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > dst(
+            BOOST_CAST<pdat::CellData<double>,hier::PatchData>(patch.getPatchData(d_m_id) ) );
+#ifdef DEBUG_CHECK_ASSERTIONS
+         double l2=ops.L2Norm(src,src->getGhostBox());
+         assert( l2==l2 );
+#endif
+         dst->copy(*src);
+      }
    }
-   
+
    d_poisson_spec.setMPatchDataId(d_m_id);
    d_M_is_set = true;
 
@@ -1441,14 +1398,11 @@ EllipticFACOps::finalizeCoefficients()
 }
 
 
-
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual postprocessOneCycle function.  *
 ********************************************************************
 */
-
 void
 EllipticFACOps::postprocessOneCycle(
    int fac_cycle_num ,
@@ -1479,7 +1433,6 @@ EllipticFACOps::postprocessOneCycle(
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual restrictSolution function.     *
@@ -1487,7 +1440,6 @@ EllipticFACOps::postprocessOneCycle(
 * level.                                                           *
 ********************************************************************
 */
-
 void
 EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s ,
                                       solv::SAMRAIVectorReal<double> &d ,
@@ -1516,20 +1468,16 @@ EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s ,
 }
 
 
-
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual restrictresidual function.     *
 ********************************************************************
 */
-
 void
 EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s ,
                                       solv::SAMRAIVectorReal<double> &d ,
                                       int dest_ln )
 {
-
    t_restrict_residual->start();
 
    xeqScheduleRRestriction(d.getComponentDescriptorIndex(0),
@@ -1541,8 +1489,6 @@ EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s ,
 }
 
 
-
-
 /*
 ***********************************************************************
 * FACOperatorStrategy virtual prolongErrorAndCorrect function.  *
@@ -1551,11 +1497,10 @@ EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s ,
 * which are preset to zero, need not be set.                          *
 ***********************************************************************
 */
-
 void
 EllipticFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> &s ,
-                                            solv::SAMRAIVectorReal<double> &d ,
-                                            int dest_ln )
+   solv::SAMRAIVectorReal<double> &d ,
+   int dest_ln )
 {
    t_prolong->start();
 
@@ -1567,8 +1512,6 @@ EllipticFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> &s ,
    }
 #endif
 
-   boost::shared_ptr< hier::PatchLevel > coarse_level
-      = d_hierarchy->getPatchLevel(dest_ln-1);
    boost::shared_ptr< hier::PatchLevel > fine_level
       = d_hierarchy->getPatchLevel(dest_ln);
 
@@ -1608,19 +1551,12 @@ EllipticFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> &s ,
 }
 
 
-
-/*
-********************************************************************
-********************************************************************
-*/
-
 void
 EllipticFACOps::smoothError(solv::SAMRAIVectorReal<double> &data ,
                                  const solv::SAMRAIVectorReal<double> &residual ,
                                  int ln ,
                                  int num_sweeps )
 {
-
    t_smooth_error->start();
 
    checkInputPatchDataIndices();
@@ -1642,14 +1578,12 @@ EllipticFACOps::smoothError(solv::SAMRAIVectorReal<double> &data ,
 }
 
 
-
 /*
 ********************************************************************
 * Workhorse function to smooth error using red-black               *
 * Gauss-Seidel iterations.                                         *
 ********************************************************************
 */
-
 void
 EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
                                            const solv::SAMRAIVectorReal<double> &residual ,
@@ -1813,15 +1747,12 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
 }
 
 
-
-
 /*
 ********************************************************************
 * Fix flux on coarse-fine boundaries computed from a               *
 * constant-refine interpolation of coarse level data.              *
 ********************************************************************
 */
-
 void
 EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
                                    const pdat::CellData<double> &soln_data ,
@@ -1852,9 +1783,7 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
 
       for ( bn=0; bn<nboxes; ++bn ) {
          const hier::BoundaryBox &boundary_box=bboxes[bn];
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( boundary_box.getBoundaryType() == 1 );
-#endif
          const hier::Box &bdry_box = boundary_box.getBox();
          const hier::Index &blower = bdry_box.lower();
          const hier::Index &bupper = bdry_box.upper();
@@ -1909,9 +1838,7 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
 
       for ( bn=0; bn<nboxes; ++bn ) {
          const hier::BoundaryBox &boundary_box=bboxes[bn];
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( boundary_box.getBoundaryType() == 1 );
-#endif
          const hier::Box &bdry_box = boundary_box.getBox();
          const hier::Index &blower = bdry_box.lower();
          const hier::Index &bupper = bdry_box.upper();
@@ -1959,21 +1886,17 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
 }
 
 
-
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual solveCoarsestLevel             *
 * function                                                         *
 ********************************************************************
 */
-
- int
+int
 EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
                                         const solv::SAMRAIVectorReal<double> &residual ,
                                         int coarsest_ln )
 {
-
    t_solve_coarsest->start();
 
    checkInputPatchDataIndices();
@@ -2024,21 +1947,17 @@ EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
 }
 
 
-
-
 /*
 ********************************************************************
 * Solve coarsest level using Hypre                                 *
 * We only solve for the error, so we always use homogeneous bc.    *
 ********************************************************************
 */
-
- int
+int
 EllipticFACOps::solveCoarsestLevel_HYPRE(solv::SAMRAIVectorReal<double> &data ,
-                                              const solv::SAMRAIVectorReal<double> &residual ,
-                                              int coarsest_ln )
+                                         const solv::SAMRAIVectorReal<double> &residual ,
+                                         int coarsest_ln )
 {
-
    NULL_USE(coarsest_ln);
 
 #ifndef HAVE_HYPRE
@@ -2061,14 +1980,15 @@ EllipticFACOps::solveCoarsestLevel_HYPRE(solv::SAMRAIVectorReal<double> &data ,
     * Present data on the solve.
     * The Hypre solver returns 0 if converged.
     */
-   if (d_verbose)
-      d_hypre_solver.printConvergenceFactors(tbox::plog);
+   if (d_enable_logging) tbox::plog
+      << d_object_name << " Hypre solve " << (solver_ret ? "" : "NOT ")
+      << "converged\n"
+      << "\titerations: " << d_hypre_solver.getNumberOfIterations() << "\n"
+      << "\tresidual: " << d_hypre_solver.getRelativeResidualNorm() << "\n";
 
    return !solver_ret;
 #endif
-
 }
-
 
 
 void
@@ -2115,7 +2035,6 @@ EllipticFACOps::accumulateOperatorOnLevel(
 
    /* S1. Fill solution ghost data. */
    {
-      boost::shared_ptr< xfer::RefineSchedule > ln_refine_schedule;
       if ( ln > d_ln_min ) {
          /* Fill from current, next coarser level and physical boundary */
          xeqScheduleGhostFill(soln_id, ln);
@@ -2153,6 +2072,9 @@ EllipticFACOps::accumulateOperatorOnLevel(
       boost::shared_ptr<pdat::SideData<double> > flux_data ( 
          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
 
+      TBOX_ASSERT(soln_data);
+      TBOX_ASSERT(flux_data);
+
       computeFluxOnPatch(*patch ,
                          level->getRatioToCoarserLevel() ,
                          *soln_data ,
@@ -2182,6 +2104,11 @@ EllipticFACOps::accumulateOperatorOnLevel(
       boost::shared_ptr<pdat::CellData<double> > accum_data (
          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(accum_id) ) );
 
+      TBOX_ASSERT(soln_data);
+      TBOX_ASSERT(m_data);
+      TBOX_ASSERT(accum_data);
+      TBOX_ASSERT(flux_data);
+
       accumulateOperatorOnPatch( *patch, *flux_data, *m_data, *soln_data, *accum_data );
 
       if ( ln > d_ln_min ) {
@@ -2194,9 +2121,7 @@ EllipticFACOps::accumulateOperatorOnLevel(
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
-#endif
          oflux_data->copy(*flux_data);
       }
    }
@@ -2273,7 +2198,6 @@ EllipticFACOps::computeCompositeResidualOnLevel(
 
    /* S1. Fill solution ghost data. */
    {
-      boost::shared_ptr< xfer::RefineSchedule > ln_refine_schedule;
       if ( ln > d_ln_min ) {
          /* Fill from current, next coarser level and physical boundary */
          xeqScheduleGhostFill(soln_id, ln);
@@ -2340,9 +2264,16 @@ EllipticFACOps::computeCompositeResidualOnLevel(
          BOOST_CAST<pdat::CellData<double>, hier::PatchData>( residual.getComponentPatchData( 0 , *patch ) ) );
       boost::shared_ptr<pdat::SideData<double> > flux_data ( 
          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
+
+      TBOX_ASSERT(soln_data);
+      TBOX_ASSERT(m_data);
+      TBOX_ASSERT(rhs_data);
+      TBOX_ASSERT(residual_data);
+      TBOX_ASSERT(flux_data);
+
       computeResidualOnPatch( *patch ,
                               *flux_data ,
-                            *m_data ,
+                              *m_data ,
                               *soln_data ,
                               *rhs_data ,
                               *residual_data );
@@ -2357,9 +2288,7 @@ EllipticFACOps::computeCompositeResidualOnLevel(
           */
          boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
-#ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
-#endif
          oflux_data->copy(*flux_data);
       }
    }
@@ -2381,8 +2310,7 @@ EllipticFACOps::computeCompositeResidualOnLevel(
 * function                                                         *
 ********************************************************************
 */
-
- double
+double
 EllipticFACOps::computeResidualNorm(
    const solv::SAMRAIVectorReal<double> &residual ,
    int fine_ln ,
@@ -2437,14 +2365,12 @@ EllipticFACOps::computeResidualNorm(
 }
 
 
-
 /*
 ********************************************************************
 * Compute the vector weight and put it at a specified patch data   *
 * index.                                                           *
 ********************************************************************
 */
-
 void
 EllipticFACOps::computeVectorWeights(
    boost::shared_ptr< hier::PatchHierarchy > hierarchy ,
@@ -2540,14 +2466,11 @@ EllipticFACOps::computeVectorWeights(
 }
 
 
-
-
 /*
 ********************************************************************
 * Check the validity and correctness of input data for this class. *
 ********************************************************************
 */
-
 void
 EllipticFACOps::checkInputPatchDataIndices() const
 {
@@ -2586,7 +2509,6 @@ EllipticFACOps::checkInputPatchDataIndices() const
 
       TBOX_ASSERT(flux_var);
    }
-
 }
 
 /*
@@ -2596,24 +2518,22 @@ EllipticFACOps::checkInputPatchDataIndices() const
 *                                                                 *
 *******************************************************************
 */
-
 void
 EllipticFACOps::computeFluxOnPatch(
-   const hier::Patch &patch ,
-   const hier::IntVector &ratio_to_coarser_level,
-   const pdat::CellData<double> &w_data ,
-   pdat::SideData<double> &Dgradw_data ) const 
+   const hier::Patch& patch ,
+   const hier::IntVector& ratio_to_coarser_level,
+   const pdat::CellData<double>& w_data ,
+   pdat::SideData<double>& Dgradw_data ) const 
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT( patch.inHierarchy() );
-   TBOX_ASSERT( w_data.getGhostCellWidth() >= hier::IntVector(tbox::Dimension(NDIM),1) );
-#endif
+   TBOX_ASSERT(w_data.getGhostCellWidth() >=
+      hier::IntVector::getOne(ratio_to_coarser_level.getDim()));
 
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
    const hier::Box &box=patch.getBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
+   const int* lower = &box.lower()[0];
+   const int* upper = &box.upper()[0];
    const double *dx = patch_geom->getDx();
 
    double D_value;
@@ -2875,7 +2795,6 @@ EllipticFACOps::accumulateOperatorOnPatch(
 
    return;
 }
-
 
 
 void
@@ -3607,8 +3526,6 @@ EllipticFACOps::xeqScheduleGhostFill(
    return;
 }
 
-
-
 void
 EllipticFACOps::xeqScheduleGhostFillNoCoarse(
    int dst_id,
@@ -3619,7 +3536,6 @@ EllipticFACOps::xeqScheduleGhostFillNoCoarse(
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
-
    refiner.
       registerRefine( dst_id ,
                       dst_id ,
@@ -3632,8 +3548,6 @@ EllipticFACOps::xeqScheduleGhostFillNoCoarse(
       resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
    return;
 }
-
-
 
 void
 EllipticFACOps::freeVariables()

@@ -443,7 +443,7 @@ c***********************************************************************
       double precision dxi, dyi
       integer i, j
 c      print*,'efo_compresvarsca2d'
-
+c      print*,m(ifirst,jfirst)
       dxi = 1./dx(0)
       dyi = 1./dx(1)
 

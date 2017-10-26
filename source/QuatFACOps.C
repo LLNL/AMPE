@@ -532,11 +532,6 @@ QuatFACOps::initializeOperatorState(
 
    boost::shared_ptr< hier::Variable > variable;
 
-   //vdb->mapIndexToVariable( d_sqrt_m_id, variable );
-   //d_sqrt_m_refine_operator =
-   //   geometry->lookupRefineOperator(variable,
-   //                                  "LINEAR_REFINE");
-
    for (int component=0; component<d_num_components; component++) {
      vdb->mapIndexToVariable( d_cell_scratch_id[component], variable );
      d_prolongation_refine_operator.push_back(
@@ -597,14 +592,6 @@ QuatFACOps::initializeOperatorState(
       d_hierarchy->getPatchLevel(ln)->
          allocatePatchData(d_oflux_scratch_id);
    }
-
-   //d_sqrt_m_refine_algorithm.reset;
-
-   //d_sqrt_m_refine_algorithm->
-   //   registerRefine( d_sqrt_m_id ,
-   //                   d_sqrt_m_id ,
-   //                   d_sqrt_m_id ,
-   //                   d_sqrt_m_refine_operator );
 
    /*
      Make space for saving communication schedules.
@@ -860,28 +847,22 @@ QuatFACOps::computeDQuatDPhiFaceCoefs(
 }
 
 
-
 void
 QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double> & data)
 {
-   const hier::Box & box = data.getGhostBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
-
    const hier::Box & gbox = data.getGhostBox();
    const hier::Index& glower = gbox.lower();
    const hier::Index& gupper = gbox.upper();
 
 #if NDIM==2
-   take_square_root2d_(lower[0], upper[0], lower[1], upper[1],
+   take_square_root2d_(glower[0], gupper[0], glower[1], gupper[1],
                        data.getPointer(), glower[0], gupper[0], glower[1], gupper[1]);
 #endif
 #if NDIM==3
-   take_square_root3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+   take_square_root3d_(glower[0], gupper[0], glower[1], gupper[1], glower[2], gupper[2],
                        data.getPointer(), glower[0], gupper[0], glower[1], gupper[1], glower[2], gupper[2]);
 #endif
 }
-
 
 
 void
@@ -927,8 +908,7 @@ QuatFACOps::setOperatorCoefficients(
       
       q_local_data->copy(*q_data);
 
-      // Copy mobility to local array
-
+      // Copy mobility into sqrt_m_data (including ghost values assumed to be filled)
       boost::shared_ptr<pdat::CellData<double> > mobility_data(
         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(mobility_id) ) );
       boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
@@ -962,14 +942,6 @@ QuatFACOps::setOperatorCoefficients(
 
       }
     }
-
-    // Fill mobility square root ghost cells
-//    d_sqrt_m_refine_algorithm->
-//       createSchedule(level,
-//                      ln-1,
-//                      d_hierarchy,
-//                      NULL)
-//       ->fillData(0.0);                        
 
     // Set the matrix coefficients
     d_quat_level_solver[ln-d_ln_min]->setMatrixCoefficients(d_gamma, d_sqrt_m_id, d_face_coef_id);

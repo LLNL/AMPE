@@ -14,6 +14,8 @@ DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
    d_L(latent_heat)
 {
    tbox::plog<<"DeltaTemperatureFreeEnergyStrategy..."<<endl;
+   tbox::plog<<"Tm="<<d_Tm<<endl;
+   tbox::plog<<"L="<<d_L<<endl;
 
    assert( d_L==d_L );
    assert( d_Tm==d_Tm );
@@ -41,6 +43,8 @@ void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
    (void) conc_id;  // unused
    (void) f_l_id; // unused
    (void) f_a_id; // unused
+
+   //tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi()..."<<endl;
 
    boost::shared_ptr< pdat::CellData<double> > phase (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );

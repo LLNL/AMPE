@@ -76,51 +76,6 @@ void EllipticFACOps::setCConstant( const double scalar ) {
    d_C_is_set = true;
 }
 
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setPreconditioner(const FACPreconditioner *preconditioner )
-{
-   d_preconditioner = preconditioner;
-   return;
-}
-
-
-
-/*
-********************************************************************
-* Set the object specifying the parameters of the Poisson equation *
-********************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setPoissonSpecifications(const PoissonSpecifications &spec)
-{
-   d_poisson_spec = spec;
-   return;
-}
-
-
-
-
-/*
-********************************************************************
-* Set the physical boundary condition object.                      *
-********************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setPhysicalBcCoefObject(
-						  const solv::RobinBcCoefStrategy *physical_bc_coef )
-{
-   d_physical_bc_coef = physical_bc_coef;
-   d_bc_helper.setCoefImplementation(physical_bc_coef);
-#ifdef HAVE_HYPRE
-   d_hypre_solver.setPhysicalBcCoefObject(d_physical_bc_coef);
-#endif
-   return;
-}
-
-
-
 
 /*
 ********************************************************************

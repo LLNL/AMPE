@@ -147,6 +147,15 @@ public:
     */
    virtual ~EllipticFACOps(void);
 
+   /*!
+    * @brief Set the scalar Poisson equation specifications.
+    */
+   void
+   setPoissonSpecifications(
+      const PoissonSpecifications& spec)
+   {
+      d_poisson_spec = spec;
+   }
 
    //!@{ @name Specifying PDE parameters
 
@@ -208,11 +217,6 @@ public:
    void setCConstant( const double scalar );
 
    //@}
-
-   /*!
-    * @brief Set the scalar Poisson equation specifications.
-    */
-   void setPoissonSpecifications(const PoissonSpecifications &spec);
 
    void setM(const int m_id);
    void setMConstant(const double scalar);
@@ -355,7 +359,14 @@ public:
     *        set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
-				const solv::RobinBcCoefStrategy *physical_bc_coef );
+      const solv::RobinBcCoefStrategy *physical_bc_coef )
+   {
+      d_physical_bc_coef = physical_bc_coef;
+      d_bc_helper.setCoefImplementation(physical_bc_coef);
+#ifdef HAVE_HYPRE
+      d_hypre_solver.setPhysicalBcCoefObject(d_physical_bc_coef);
+#endif
+   }
 
 
    //@{
@@ -416,7 +427,10 @@ public:
     * The FAC preconditioner is accessed to get convergence data during
     * the cycle postprocessing step.  It is optional.
     */
-   void setPreconditioner( const FACPreconditioner *preconditioner );
+   void setPreconditioner( const FACPreconditioner *preconditioner )
+   {
+      d_preconditioner = preconditioner;
+   }
 
    /*!
     * @brief function to compute flux, using general diffusion
@@ -1021,12 +1035,6 @@ protected:
    std::vector<boost::shared_ptr<xfer::RefineSchedule > >
       d_ghostfill_nocoarse_refine_schedules;
 
-   //! @brief Refine operator for cell-like data from coarser level.
-   boost::shared_ptr<hier::RefineOperator > d_mobility_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_mobility_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_mobility_refine_schedules;
-
    //@}
 
 
@@ -1046,8 +1054,6 @@ protected:
     * boundary condition.
     */
    solv::CartesianRobinBcHelper d_bc_helper;
-
-
 
 
    //@{

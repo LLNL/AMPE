@@ -143,8 +143,8 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
                const double* const ptr_conc = cd_concentration->getPointer(ic);
                const double c = ptr_conc[idx_pf];
 
-               assert( c>=0. );
-               assert( c<=1. );
+//               assert( c>=0. );
+//               assert( c<=1. );
                assert( k>=0. );
 
                double* ptr_c_l = cd_c_l->getPointer(ic);
@@ -155,10 +155,10 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
                ptr_c_l[idx_c_i] = c*factor;
                ptr_c_a[idx_c_i] = k*c*factor;
                
-               assert( ptr_c_l[idx_c_i]>=0. );
-               assert( ptr_c_l[idx_c_i]<=1. );
-               assert( ptr_c_a[idx_c_i]>=0. );
-               assert( ptr_c_a[idx_c_i]<=1. );
+//               assert( ptr_c_l[idx_c_i]>=0. );
+//               assert( ptr_c_l[idx_c_i]<=1. );
+//               assert( ptr_c_a[idx_c_i]>=0. );
+//               assert( ptr_c_a[idx_c_i]<=1. );
             } // ic
          }
       }

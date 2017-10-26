@@ -46,7 +46,7 @@ LinearMeltingTemperatureStrategy::LinearMeltingTemperatureStrategy(const double 
    d_concentration_id(concentration_id),
    d_equilibrium_temperature_id(equilibrium_temperature_id)
 {
-   tbox::plog<<"uses LinearMeltingTemperatureStrategy..."<<std::endl;
+   tbox::plog<<"uses LinearMeltingTemperatureStrategy with Tref = "<<Tref<<"..."<<std::endl;
    
    assert( d_concentration_id>=0 );
    assert( d_equilibrium_temperature_id>=0 );

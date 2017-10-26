@@ -196,9 +196,6 @@ EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& databas
 }
 
 
-
-
-
 /*
 *************************************************************************
 *                                                                       *
@@ -211,7 +208,6 @@ EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& databas
 *                                                                       *
 *************************************************************************
 */
-
 void
 EllipticFACSolver::initializeSolverState(
    const int solution ,
@@ -383,8 +379,7 @@ EllipticFACSolver::setBoundaries(const std::string& boundary_type,
 *                                                                       *
 *************************************************************************
 */
-
- bool
+bool
 EllipticFACSolver::solveSystem(const int u_id,
                                const int f_id,
                                const int ew_id)
@@ -393,7 +388,6 @@ EllipticFACSolver::solveSystem(const int u_id,
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert( u_id!=-1 );
    assert( f_id!=-1 );
-   assert( ew_id!=-1 );
    if ( !d_solver_is_initialized ) {
       TBOX_ERROR(d_object_name << ".solveSystem(int,int): uninitialized\n"
                  << "solver state.  You must call initializeSolverState()\n"
@@ -401,7 +395,7 @@ EllipticFACSolver::solveSystem(const int u_id,
                  << "solveSystem(int,int,...) to initialize the solver,\n"
                  << "solve and deallocate the solver.\n");
    }
-   if ( u_id < 0 || f_id < 0 || ew_id < 0) {
+   if ( u_id < 0 || f_id < 0 ) {
       TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
    }
 #endif

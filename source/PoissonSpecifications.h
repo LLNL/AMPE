@@ -41,6 +41,9 @@
 #ifndef included_SAMRAI_config
 #include "SAMRAI/SAMRAI_config.h"
 #endif
+
+#include "SAMRAI/tbox/Utilities.h"
+
 #include <string>
 
 /*!
@@ -92,8 +95,19 @@ public:
     *
     * Assign everything except name.
     */
-   const PoissonSpecifications &operator=(
-      const PoissonSpecifications &r );
+   PoissonSpecifications&
+   operator = (
+      const PoissonSpecifications& r)
+   {
+      d_D_id = r.d_D_id;
+      d_D_constant = r.d_D_constant;
+      d_C_zero = r.d_C_zero;
+      d_C_id = r.d_C_id;
+      d_C_constant = r.d_C_constant;
+      d_M_id = r.d_M_id;
+      d_M_constant = r.d_M_constant;
+      return *this;
+   }
 
    /*!
     * @brief Print out class data.
@@ -109,7 +123,18 @@ public:
     * In addition, disregard any previous value
     * specified by setDConstant().
     */
-   void setDPatchDataId( int id );
+   void
+   setDPatchDataId(
+      int id)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (id < 0) {
+         TBOX_ERROR(d_object_name << ": Invalid patch data id.\n");
+      }
+#endif
+      d_D_id = id;
+      d_D_constant = 0.0;
+   }
 
    /*!
     * @brief Set the constant value variable D.
@@ -117,7 +142,13 @@ public:
     * In addition, disregard any previous patch data index
     * specified by setDPatchDataId().
     */
-   void setDConstant( double constant );
+   void
+   setDConstant(
+      double constant)
+   {
+      d_D_id = -1;
+      d_D_constant = constant;
+   }
 
    /*!
     * @brief Whether D is variable (described by a patch data id).
@@ -215,7 +246,19 @@ public:
     * In addition, disregard any previous values
     * specified by setCConstant() or setCZero().
     */
-   void setCPatchDataId( int id );
+   void
+   setCPatchDataId(
+      int id)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (id < 0) {
+         TBOX_ERROR(d_object_name << ": Invalid patch data id.\n");
+      }
+#endif
+      d_C_zero = false;
+      d_C_id = id;
+      d_C_constant = 0.0;
+   }
 
    /*!
     * @brief Set C to a constant.
@@ -284,10 +327,29 @@ public:
     *
     * @return C's constant value
     */
-   double getCConstant() const;
+   double
+   getCConstant() const
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (d_C_id != -1 || d_C_zero) {
+         TBOX_ERROR(d_object_name << ": C is not prepresented by a constant.\n");
+      }
+#endif
+      return d_C_constant;
+   }
 
    //@}
 
+   /**
+    * @brief Get the name of this object.
+    *
+    * @return The name of this object.
+    */
+   const std::string&
+   getObjectName() const
+   {
+      return d_object_name;
+   }
 
 private:
 

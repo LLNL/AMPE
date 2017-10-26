@@ -94,59 +94,6 @@ PoissonSpecifications::~PoissonSpecifications() {
    return;
 }
 
-
-/*
-*******************************************************************
-* Assignment operator                                             *
-*******************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-const PoissonSpecifications& PoissonSpecifications::operator=(
-   const PoissonSpecifications &r ) {
-
-   d_D_id = r.d_D_id;
-   d_D_constant = r.d_D_constant;
-
-   d_M_id = r.d_M_id;
-   d_M_constant = r.d_M_constant;
-
-   d_C_zero = r.d_C_zero;
-   d_C_id = r.d_C_id;
-   d_C_constant = r.d_C_constant;
-
-   return *this;
-}
-
-/*
-*******************************************************************
-* Set the patch data index for variable D.                        *
-*******************************************************************
-*/
-SAMRAI_INLINE_KEYWORD
-void PoissonSpecifications::setDPatchDataId( int id ) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   if( id < 0 ) {
-      TBOX_ERROR(d_object_name << ": Invalid patch data id.\n");
-   }
-#endif
-   d_D_id = id;
-   d_D_constant = tbox::IEEE::getSignalingNaN();
-   return;
-}
-
-/*
-*******************************************************************
-* Set the constant value variable D.                              *
-*******************************************************************
-*/
-SAMRAI_INLINE_KEYWORD
-void PoissonSpecifications::setDConstant( double constant ) {
-   d_D_id = -1;
-   d_D_constant = constant;
-   return;
-}
-
 /*
 *******************************************************************
 * Whether D is variable.                                          *
@@ -278,24 +225,6 @@ double PoissonSpecifications::getMConstant() const {
 
 /*
 *******************************************************************
-* Set the constant value variable C.                              *
-*******************************************************************
-*/
-SAMRAI_INLINE_KEYWORD
-void PoissonSpecifications::setCPatchDataId( int id ) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   if( id < 0 ) {
-      TBOX_ERROR(d_object_name << ": Invalid patch data id.\n");
-   }
-#endif
-   d_C_zero = false;
-   d_C_id = id;
-   d_C_constant = tbox::IEEE::getSignalingNaN();
-   return;
-}
-
-/*
-*******************************************************************
 * Set the patch data index for variable C.                        *
 *******************************************************************
 */
@@ -366,17 +295,3 @@ int PoissonSpecifications::getCPatchDataId() const {
    return d_C_id;
 }
 
-/*
-*******************************************************************
-* Get the constant C value.                                       *
-*******************************************************************
-*/
-SAMRAI_INLINE_KEYWORD
-double PoissonSpecifications::getCConstant() const {
-#ifdef DEBUG_CHECK_ASSERTIONS
-   if ( d_C_id != -1 ) {
-     TBOX_ERROR(d_object_name << ": C is not prepresented by a constant.\n");
-   }
-#endif
-   return d_C_constant;
-}

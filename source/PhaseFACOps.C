@@ -71,6 +71,8 @@ void PhaseFACOps::setOperatorCoefficients(
    const double eta_well_scale,
    const string eta_well_func_type )
 {
+   assert( phase_mobility_id>=0 );
+
    setM( phase_mobility_id );
 
    // C to be set after M since it uses M
@@ -110,7 +112,9 @@ void PhaseFACOps::setC(
    assert( d_m_id >= 0 );
    assert( d_c_id >= 0 );
    assert( d_M_is_set );
-   
+  
+   //tbox::pout<<"PhaseFACOps::setC()..."<<endl;
+ 
    for ( int ln = d_ln_min; ln <= d_ln_max; ++ln ) {
       boost::shared_ptr< hier::PatchLevel > level =
          d_hierarchy->getPatchLevel( ln );
@@ -118,9 +122,7 @@ void PhaseFACOps::setC(
       for (hier::PatchLevel::iterator pi(level->begin());
            pi != level->end(); ++pi) {
 
-         boost::shared_ptr< hier::Patch > patch =
-            *pi;
-
+         boost::shared_ptr< hier::Patch > patch = *pi;
          const hier::Box& patch_box = patch->getBox();
       
          boost::shared_ptr< pdat::CellData<double> > phi_data (
