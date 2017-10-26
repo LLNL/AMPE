@@ -1,11 +1,11 @@
 // Input file
 model_type = "KWCcomplex"
 
-end_time            = 10.
+end_time            = 50.
 max_timesteps       = 5000
 
 Visit {
-   interval = 0.02
+   interval = 1.
    interval_type = "time"
 }
 
@@ -19,16 +19,16 @@ ModelParameters {
    H_parameter = -1.
    
    Temperature{
-      meltingT = 1660.
-      temperature = 1659.
-      latent_heat = 1.0852e4 // [J/mol*K]
+      meltingT = 921.12
+      temperature = 920.87
+      latent_heat = 9.5e3 // [J/mol*K]
    }
    
-   epsilon_phi = 0.685   // [(pJ/um)^1/2]
+   epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
 
-   phi_mobility     = 21.94
-   
-   phi_well_scale = 2.4
+   phi_mobility = 1.985 // muk*Tm/(6.*delta*L)
+
+   phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
    phi_well_func_type = "double"
 
    phi_interp_func_type ="pbg"
@@ -37,26 +37,28 @@ ModelParameters {
       type = "linear"
    }
 
-   molar_volume = 6.59e-6 // [m^3/mol]
+   molar_volume = 1.e-5 // [m^3/mol]
 
    BoundaryConditions {
        Phase{
          boundary_0 = "slope", "0"
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
-         boundary_3 = "slope", "0"
+         boundary_3 = "value", "0"
       }
    }
 }
 
 ScalarDiagnostics {
-   interval = 50.
+   interval = 1.
    interval_type = "time"
 }   
 
 Integrator {
-   atol = 3.e-5
-   Preconditioner{}
+   atol = 1.e-5
+   Preconditioner{
+//     enabled = FALSE
+   }
 }
 
 InitialConditions {
@@ -65,7 +67,7 @@ InitialConditions {
 
 Geometry{
    periodic_dimension = 0, 0
-   coarsest_level_resolution = 32, 256
+   coarsest_level_resolution = 64, 512
    x_lo         =  0.,    0. 
-   x_up         =  2.5,  20. 
+   x_up         =  50., 400.
 }
