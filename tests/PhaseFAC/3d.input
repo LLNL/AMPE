@@ -1,0 +1,111 @@
+Main {
+  // Dimension of the problem.
+  dim = 3
+
+  // Base name for output files.
+  base_name = "default3"
+
+  // Whether to log all nodes in a parallel run.
+  log_all_nodes = FALSE
+}
+
+ModelParameters {
+   epsilon_phi = 0.1
+   phi_well_scale = 0.1
+   phi_mobility = 10.
+}
+
+// Refer to EllipticFACSolver for input.
+fac_solver {
+  // This is the input for the cell-centered Poisson FAC solver
+  // class in the SAMRAI library.
+  enable_logging = TRUE   // Bool flag to switch logging on/off
+  verbose = TRUE
+  max_cycles = 10         // Max number of FAC cycles to use
+  residual_tol = 1e-8     // Residual tolerance to solve for
+}
+
+// Refer to solv::CellPoissonFACOps for input.
+fac_ops {
+  prolongation_method = "LINEAR_REFINE" // Type of refinement
+                                        // used in prolongation.
+                                        // Suggested values are
+                                        // "LINEAR_REFINE"
+                                        // "CONSTANT_REFINE"
+  enable_logging = TRUE   // Bool flag to switch logging on/off
+  coarse_solver_tolerance      = 1e-2
+  hypre_solver {
+    //use_smg = FALSE     // Whether to use HYPRE's SMG instead of PFMG.
+    //print_solver_info = TRUE
+  }
+}
+
+// Refer to solv::LocationIndexRobinBcCoefs for input.
+bc_coefs {
+  // These are the boundary condition specifications.  The number
+  // after "boundary_" is the location index of the boundary.
+  // The inputs are arrays of strings where the first string
+  // indicates the type of values you want to set.  "slope" means
+  // boundary slope, "value" means boundary value, and "coefficients"
+  // mean the raw Robin boundary condition coefficients.
+  // The remaining strings are converted into numbers as
+  // appropriate for what boundary condition you specified with
+  // the first string.  Other boundary conditions are possible.
+  // see the solv_RobinBcCoefStrategy class.
+  // Examples:
+  boundary_0 = "value", "0"
+  boundary_1 = "slope", "0"
+  boundary_2 = "slope", "0"
+  boundary_3 = "slope", "0"
+  boundary_4 = "slope", "0"
+  boundary_5 = "slope", "0"
+}
+
+// Refer to mesh::CartesianGridGeometry for input.
+CartesianGridGeometry {
+  //  Specify lower/upper corners of the computational domain and a
+  //  set of non-overlapping boxes defining domain interior.  If union 
+  //  of boxes is not a parallelpiped, lower/upper corner data corresponds 
+  //  to min/max corner indices over all boxes given.
+  //  x_lo  -- (double array) lower corner of computational domain [REQD]
+  //  x_up  -- (double array) upper corner of computational domain [REQD]
+  //  domain_boxes  -- (box array) set of boxes that define interior of 
+  //                   hysical domain. [REQD]
+  //  periodic_dimension -- (int array) coordinate directions in which 
+  //                        domain is periodic.  Zero indicates not
+  //                        periodic, non-zero value indicates periodicity.
+  //                        [0]
+  periodic_dimension = 0, 1, 0
+  domain_boxes = [(0,0,0), (31,15,15)]
+  x_lo         = -1.,  0., 0.
+  x_up         =  1.,  1., 1.
+}
+
+// Refer to mesh::StandardTagAndInitialize for input.
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   level_0 {
+      boxes = [(0,0,0),(31,15,15)]
+   }
+}
+
+// Refer to hier::PatchHierarchy for input.
+PatchHierarchy {
+   // Information used to create patches in AMR hierarchy.
+   max_levels = 1
+   ratio_to_coarser {
+      level_1            = 2, 2
+   }
+}
+
+// Refer to mesh::GriddingAlgorithm for input.
+GriddingAlgorithm {
+
+   // TODO this should be removed
+   sequentialize_patch_indices = TRUE
+}
+
+// Refer to tbox::TimerManager for input.
+TimerManager{
+  timer_list = "hier::*::*", "mesh::*::*"
+}

@@ -210,6 +210,25 @@ testFAC-3d: testFACPoisson.o FACPoisson.o $(F77_OBJS_3D) $(F77_OBJS)
 		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testFACPoisson.o FACPoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testFACPoisson3d
 
+TEST_PHASEFAC_OBJS = PhaseFACOps.o PhaseFACSolver.o QuatModelParameters.o \
+	EllipticFACSolver.o FACPreconditioner.o \
+	EllipticFACOps.o CellPoissonHypreSolver.o tools.o PoissonSpecifications.o \
+	PhaseFAC.o testPhaseFAC.o
+
+testPhaseFAC2d:
+		$(MAKE) PDIM=2 testPhaseFAC-2d
+		mkdir -p ../exec && mv testPhaseFAC2d ../exec/testPhaseFAC2d
+testPhaseFAC-2d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) $(TEST_PHASEFAC_OBJS) \
+	$(LIBSAMRAI) $(LDLIBS) -o testPhaseFAC2d
+
+testPhaseFAC3d:
+		$(MAKE) PDIM=3 testPhaseFAC-3d
+		mkdir -p ../exec && mv testPhaseFAC3d ../exec/testPhaseFAC3d
+testPhaseFAC-3d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_3D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) $(TEST_PHASEFAC_OBJS) \
+	$(LIBSAMRAI) $(LDLIBS) -o testPhaseFAC3d
+
 clean:
 		$(SAMCLEAN)
 		$(RM) *.o *.f ampe ampe2d ampe3d 

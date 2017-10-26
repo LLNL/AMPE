@@ -60,8 +60,8 @@ public:
       const std::string phase_interp_func_type,
       const double phase_well_scale,
       const std::string phase_well_func_type,
-      const double eta_well_scale,
-      const std::string eta_well_func_type );
+      const double eta_well_scale=0.,
+      const std::string eta_well_func_type="" );
 
 private:
    boost::shared_ptr<tbox::Timer> t_set_op_coef;

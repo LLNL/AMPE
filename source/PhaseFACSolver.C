@@ -59,6 +59,9 @@ void PhaseFACSolver::setOperatorCoefficients(
    const double eta_well_scale,
    const string eta_well_func_type )
 {
+   assert( phase_id>=0 );
+   assert( phase_mobility_id>=0 );
+
    t_set_op_coef->start();
 
    boost::shared_ptr<PhaseFACOps> phase_fac_ops (
