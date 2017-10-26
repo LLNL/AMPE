@@ -1,0 +1,77 @@
+Main {
+  // Dimension of the problem.
+  dim = 2
+
+  // Base name for output files.
+  base_name = "default2"
+
+  // Whether to log all nodes in a parallel run.
+  log_all_nodes = FALSE
+}
+
+ModelParameters {
+   epsilon_phi = 0.1
+   phi_well_scale = 0.1
+   phi_mobility = 10.
+}
+
+// Refer to solv::CellPoissonFACOps for input.
+hypre_solver {
+  //use_smg = FALSE     // Whether to use HYPRE's SMG instead of PFMG.
+  print_solver_info = TRUE
+}
+
+// Refer to solv::LocationIndexRobinBcCoefs for input.
+bc_coefs {
+  // These are the boundary condition specifications.  The number
+  // after "boundary_" is the location index of the boundary.
+  // The inputs are arrays of strings where the first string
+  // indicates the type of values you want to set.  "slope" means
+  // boundary slope, "value" means boundary value, and "coefficients"
+  // mean the raw Robin boundary condition coefficients.
+  // The remaining strings are converted into numbers as
+  // appropriate for what boundary condition you specified with
+  // the first string.  Other boundary conditions are possible.
+  // see the solv_RobinBcCoefStrategy class.
+  // Examples:
+  boundary_0 = "value", "0"
+//  boundary_1 = "value", "1"
+//  boundary_1 = "value", "1"
+  boundary_1 = "slope", "0"
+  boundary_2 = "slope", "0"
+  boundary_3 = "slope", "0"
+}
+
+// Refer to mesh::CartesianGridGeometry for input.
+CartesianGridGeometry {
+  periodic_dimension = 0, 1
+  domain_boxes = [(0,0), (31,31)]
+  x_lo         = -1, -1
+  x_up         =  1,  1
+}
+
+// Refer to mesh::StandardTagAndInitialize for input.
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   level_0 {
+      boxes = [(0,0),(31,15)]
+   }
+}
+
+// Refer to hier::PatchHierarchy for input.
+PatchHierarchy {
+   max_levels = 1
+}
+
+// Refer to mesh::GriddingAlgorithm for input.
+GriddingAlgorithm {
+
+   // TODO this should be removed
+   sequentialize_patch_indices = TRUE
+}
+
+
+// Refer to tbox::TimerManager for input.
+TimerManager{
+  timer_list = "hier::*::*", "mesh::*::*"
+}

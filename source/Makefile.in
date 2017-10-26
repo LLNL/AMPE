@@ -106,7 +106,7 @@ F77_OBJS_2D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
 		smoothquat.o \
-		hyprepoisson2d.o
+		hyprepoisson2d.o phase.o
 
 F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.o \
 		quatfacops.o quatlevelsolver.o mobility.o temperature.o \
@@ -114,7 +114,7 @@ F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
 		smoothquat.o \
-		hyprepoisson3d.o
+		hyprepoisson3d.o phase.o
 
 CXXFLAGS += -I$(NETCDF)/include
 LDFLAGS += -L $(NETCDF)/lib
@@ -177,6 +177,23 @@ testHypre-3d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_3D) $(F77_OBJS)
 		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson3d
 
+#test CellPoissonHypreSolver
+TEST_PHASEHYPRE_OBJS = QuatModelParameters.o CellPoissonHypreSolver.o tools.o PoissonSpecifications.o \
+	PhaseHypre.o testPhaseHypre.o
+
+testPhaseHypre2d:
+		$(MAKE) PDIM=2 testPhaseHypre-2d
+		mkdir -p ../exec && mv testPhaseHypre2d ../exec/testPhaseHypre2d
+testPhaseHypre-2d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) $(TEST_PHASEHYPRE_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testPhaseHypre2d
+
+testPhaseHypre3D:
+		$(MAKE) PDIM=3 testPhaseHypre-3d
+		mkdir -p ../exec && mv testPhaseHypre3d ../exec/testPhaseHypre3d
+testPhaseHypre-3d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_3D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) $(TEST_PHASEHYPRE_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testPhaseHypre3d
 
 testFAC2d:
 		$(MAKE) PDIM=2 testFAC-2d
