@@ -887,11 +887,12 @@ void QuatIntegrator::RegisterVariables(
 
    if ( d_with_phase ) {
       d_phase_mobility_var = phase_mobility_var;
+      //1 ghost layer needed for non-periodic BC
       d_phase_mobility_id =
          variable_db->registerVariableAndContext(
             d_phase_mobility_var,
             d_current,
-            hier::IntVector(tbox::Dimension(NDIM),0) );
+            hier::IntVector(tbox::Dimension(NDIM),1) );
       assert( d_phase_mobility_id >= 0 );
    }
 

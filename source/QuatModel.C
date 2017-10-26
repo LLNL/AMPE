@@ -2232,7 +2232,7 @@ void QuatModel::registerEtaVariables( void )
       variable_db->registerVariableAndContext(
          d_eta_mobility_var,
          current,
-         hier::IntVector(tbox::Dimension(NDIM),0) );
+         hier::IntVector(tbox::Dimension(NDIM),1) );
 }
 
 //=======================================================================
@@ -2306,7 +2306,7 @@ void QuatModel::registerPhaseVariables( void )
       variable_db->registerVariableAndContext(
          d_phase_mobility_var,
          current,
-         hier::IntVector(tbox::Dimension(NDIM),0) );
+         hier::IntVector(tbox::Dimension(NDIM),1) );
 }
 
 //=======================================================================
@@ -6461,7 +6461,7 @@ void QuatModel::computeUniformPhaseMobility(
          BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
       assert( mobility_data );
       assert( mobility_data->getGhostCellWidth() ==
-              hier::IntVector(tbox::Dimension(NDIM),0) );
+              hier::IntVector(tbox::Dimension(NDIM),1) );
 
       mobility_data->fillAll( d_model_parameters.phase_mobility() );
 
