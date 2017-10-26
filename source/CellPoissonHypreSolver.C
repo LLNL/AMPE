@@ -1103,46 +1103,26 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             for ( ; ic != icend; ++ic) {
 
                const pdat::CellIndex& icell( *ic );
-               pdat::SideIndex  ixlower(icell,
-                                       pdat::SideIndex::X,
-                                       pdat::SideIndex::Lower);
-              
-               pdat::CellIndex icxlow(icell);
-               icxlow(0)-=1;
 
                diagonal(icell)         -=cval;
                diagonal(icell)         *=(*M_data)(icell);
                diagonal(icell)         +=cval;
 
-               const double alpha=(*msqrt)(icell);
-               assert( alpha>0. );
-               TBOX_ASSERT( (*msqrt)(icxlow)>0. );
-
-               (off_diagonal)(ixlower)*=alpha;
-               (off_diagonal)(ixlower)*=(*msqrt)(icxlow);
-               if (NDIM > 1) {
-                  pdat::CellIndex icylow(icell);
-                  icylow(1)-=1;
-                  pdat::SideIndex  iylower(icell,
-                                               pdat::SideIndex::Y,
-                                               pdat::SideIndex::Lower);
-                  TBOX_ASSERT( (*msqrt)(icylow)>0. );
-                  (off_diagonal)(iylower)*=alpha;
-                  (off_diagonal)(iylower)*=(*msqrt)(icylow);
-               }
-
-               if (NDIM > 2) {
-                  pdat::CellIndex iczlow(icell);
-                  iczlow(2)-=1;
-                  pdat::SideIndex  izlower(icell,
-                                                pdat::SideIndex::Z,
-                                                pdat::SideIndex::Lower);
-                  assert( (*msqrt)(iczlow)>0. ); 
-                  (off_diagonal)(izlower)*=alpha;
-                  (off_diagonal)(izlower)*=(*msqrt)(iczlow);
-               }
-
             } // end cell loop
+            multiplyoffdiagbym_(patch_lo[0],patch_up[0],
+                                patch_lo[1],patch_up[1],
+#if (NDIM>2)
+                                patch_lo[2],patch_up[2],
+#endif
+                                off_diagonal.getPointer(0),
+                                off_diagonal.getPointer(1),
+#if (NDIM>2)
+                                off_diagonal.getPointer(2),
+#endif
+                                off_diagonal.getGhostCellWidth()[0],
+                                msqrt->getPointer(),
+                                msqrt->getGhostCellWidth()[0]);
+
          } // M not constant
       }else{ // C not constant
          assert( spec.getCPatchDataId()>=0 );
@@ -1188,21 +1168,10 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             for (pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box)) ; ic!=icend; ++ic) {
 
                const pdat::CellIndex& icell( *ic );
-               pdat::SideIndex  ixlower(*ic,
-                                       pdat::SideIndex::X,
-                                       pdat::SideIndex::Lower);
-              
-               pdat::CellIndex icxlow(icell);
-               icxlow(0)-=1;
 
                diagonal(icell)         -=(*C_data)(icell);
                diagonal(icell)         *=(*M_data)(icell);
                diagonal(icell)         +=(*C_data)(icell);
-
-               TBOX_ASSERT( (*M_data)(icell)>0. );
-               TBOX_ASSERT( (*M_data)(icxlow)>0. );
-               TBOX_ASSERT( (*msqrt)(icxlow)>0. );
-
 
             } // end cell loop
 
@@ -1369,15 +1338,15 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
         mat_entries[0] = (off_diagonal)(ixlower);
         if (NDIM > 1) {
            pdat::SideIndex  iylower(*ic,
-                                         pdat::SideIndex::Y,
-                                         pdat::SideIndex::Lower);
+                                    pdat::SideIndex::Y,
+                                    pdat::SideIndex::Lower);
            mat_entries[1] = (off_diagonal)(iylower);
         }
 
         if (NDIM > 2) {
            pdat::SideIndex  izlower(*ic,
-                                         pdat::SideIndex::Z,
-                                         pdat::SideIndex::Lower);
+                                    pdat::SideIndex::Z,
+                                    pdat::SideIndex::Lower);
            // The "funny" indexing prevents a warning when compiling for 
            // DIM < 2.  This code is only reached if DIM > 2 when 
            // executing.
