@@ -46,8 +46,8 @@ class PhaseFACSolver
 public:
 
    PhaseFACSolver(
-      const std::string &object_name,
-      boost::shared_ptr<PhaseFACOps> fac_ops,
+      const std::string& object_name,
+      boost::shared_ptr<PhaseFACOps>& fac_ops,
       const boost::shared_ptr<tbox::Database> database =
          boost::shared_ptr<tbox::Database>() );
 

@@ -882,7 +882,6 @@ CellPoissonHypreSolver::copyFromHypre(
 }
 
 
-
 /*
 *************************************************************************
 *                                                                       *
@@ -1488,8 +1487,6 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
 }
 
 
-
-
 /*
 *************************************************************************
 * Create the hypre solver and set it according to the current state.    *
@@ -1536,8 +1533,6 @@ void CellPoissonHypreSolver::setupHypreSolver()
 }
 
 
-
-
 void CellPoissonHypreSolver::destroyHypreSolver()
 {
    if ( d_mg_data != NULL ) {
@@ -1551,9 +1546,6 @@ void CellPoissonHypreSolver::destroyHypreSolver()
    }
    return;
 }
-
-
-
 
 
 /*
@@ -1828,10 +1820,7 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
    l1norm=ops.L1Norm(tmp,patch_box);
    assert( l1norm==l1norm );
 #endif
- 
-   return;
 }
-
 
 
 void CellPoissonHypreSolver::computeDiagonalEntries(
@@ -1865,10 +1854,7 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
       TBOX_ERROR("CellPoissonHypreSolver error...\n"
                        << "DIM > 3 not supported." << std::endl);
    }
-
-   return;
 }
-
 
 
 void CellPoissonHypreSolver::computeDiagonalEntries(
@@ -1899,8 +1885,6 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
       TBOX_ERROR("CellPoissonHypreSolver error...\n"
                  << "DIM > 3 not supported." << std::endl);
    }
-
-   return;
 }
 
 

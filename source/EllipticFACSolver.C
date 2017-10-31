@@ -268,16 +268,12 @@ EllipticFACSolver::initializeSolverState(
       createVectorWrappers(solution,rhs);
 
       d_fac_precond.initializeSolverState(*d_uv, *d_fv);
-      //d_hopscell.reset(new math::HierarchyCellDataOpsReal<double>(hierarchy,
-      //                                                         d_ln_min,
-      //                                                         d_ln_max));
 
       d_solver_is_initialized = true;
    }
 
    return;
 }
-
 
 
 void

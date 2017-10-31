@@ -77,6 +77,9 @@ public:
       const double time,
       const CACHE_TYPE cache = CACHE ) = 0;
 
+   virtual void computePhaseTemperatureMobility(
+      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      int&, int&, int&);
 };
 
 #endif

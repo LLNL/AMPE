@@ -40,6 +40,10 @@
 #include "PartitionCoefficientStrategy.h"
 #include "TemperatureStrategy.h"
 #include "QuatModelParameters.h"
+#include "TemperatureFACOps.h"
+#include "PhaseFACOps.h"
+#include "PhaseTemperatureFACOps.h"
+#include "EllipticFACSolver.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -478,6 +482,8 @@ protected:
    boost::shared_ptr< pdat::CellVariable<double> > d_phase_mobility_var;
    int d_phase_mobility_id;
 
+   boost::shared_ptr< pdat::CellVariable<double> > d_phase_temperature_mobility_var;
+   int d_phase_temperature_mobility_id;
    const int d_ncompositions;
 
    bool d_with_phase;
@@ -486,6 +492,7 @@ protected:
    bool d_with_unsteady_temperature;
 
    bool d_precond_has_dquatdphi;
+   bool d_precond_has_dTdphi;
 
    boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
    
@@ -562,7 +569,7 @@ private :
                        const double delta);
    int TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                                int r_temperature_id, int ewt_temperature_id, int z_temperature_id, 
-                               const double delta);
+                               const double delta, const double gamma);
    int ConcentrationPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
@@ -902,10 +909,18 @@ private :
 #endif
 
    boost::shared_ptr< QuatSysSolver > d_quat_sys_solver;
+
+   boost::shared_ptr< PhaseFACOps >    d_phase_fac_ops;
    boost::shared_ptr< PhaseFACSolver > d_phase_sys_solver;
+
    boost::shared_ptr< EtaFACSolver >   d_eta_sys_solver;
    boost::shared_ptr< ConcFACSolver >  d_conc_sys_solver;
+
+   boost::shared_ptr< TemperatureFACOps >     d_temperature_fac_ops;
    boost::shared_ptr< TemperatureFACSolver >  d_temperature_sys_solver;
+
+   boost::shared_ptr<PhaseTemperatureFACOps> d_phase_temperature_fac_ops;
+   boost::shared_ptr< EllipticFACSolver >    d_phase_temperature_sys_solver;
 
    double d_end_time;
 

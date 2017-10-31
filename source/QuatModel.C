@@ -2564,11 +2564,13 @@ void QuatModel::RegisterVariables( void )
       d_cp_var.reset (
          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "cp" ));
       assert( d_cp_var );
+      //ghost value needed in particular for mobility of off-diagonal
+      //phase-temperature block in preconditioner
       d_cp_id =
          variable_db->registerVariableAndContext(
             d_cp_var,
             current,
-            hier::IntVector(tbox::Dimension(NDIM),0) );
+            hier::IntVector(tbox::Dimension(NDIM),1) );
       assert( d_cp_id >= 0 );
    }
    

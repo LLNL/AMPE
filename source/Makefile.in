@@ -69,7 +69,7 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 BiasDoubleWellFreeEnergyStrategy.o BiasDoubleWellBeckermannFreeEnergyStrategy.o \
                 BiasDoubleWellUTRCFreeEnergyStrategy.o \
                 SimpleGradStrategy.o \
-                SimpleQuatGradStrategy.o SimpleQuatMobilityStrategy.o \
+                SimpleQuatGradStrategy.o SimpleQuatMobilityStrategy.o QuatMobilityStrategy.o \
                 QuatSysSolver.o QuatFACOps.o QuatLevelSolver.o \
                 QuatLinearRefine.o QuatWeightedAverage.o \
                 MinIntCoarsen.o PhaseFreeEnergyStrategy.o \
@@ -85,7 +85,7 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 SteadyStateTemperatureStrategy.o SteadyStateTemperatureGaussianSource.o SteadyStateTemperatureCompositionSource.o \
                 EllipticFACSolver.o EllipticFACOps.o \
                 PhaseConcentrationRefinePatchStrategy.o PhaseConcentrationsStrategy.o \
-                PhaseFACSolver.o PhaseFACOps.o \
+                PhaseFACSolver.o PhaseFACOps.o PhaseTemperatureFACOps.o \
                 EtaFACSolver.o EtaFACOps.o \
                 ConcFACSolver.o ConcFACOps.o \
                 KKSCompositionRHSStrategy.o EBSCompositionRHSStrategy.o \

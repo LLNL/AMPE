@@ -144,6 +144,7 @@ QuatIntegrator::QuatIntegrator(
      d_quat_grad_side_copy_id( -1 ),
      d_quat_grad_modulus_id( -1 ),
      d_phase_mobility_id( -1 ),
+     d_phase_temperature_mobility_id( -1 ),
      d_eta_mobility_id( -1 ),
      d_quat_mobility_id( -1 ),
      d_quat_diffusion_id( -1 ),
@@ -202,6 +203,7 @@ QuatIntegrator::QuatIntegrator(
      d_show_temperature_sys_stats( false ),
      d_use_preconditioner( true ),
      d_precond_has_dquatdphi( true ),
+     d_precond_has_dTdphi( true ),
      d_compute_velocity( false ),
      d_max_precond_steps( 1 ),
      d_cum_newton_iter( 0 ),
@@ -342,7 +344,7 @@ void QuatIntegrator::setupPreconditionersPhase(boost::shared_ptr<tbox::Database>
          phase_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   boost::shared_ptr<PhaseFACOps> fac_ops(
+   boost::shared_ptr<PhaseFACOps> d_phase_fac_ops(
       new PhaseFACOps(
          d_name+"_QIPhaseFACOps",
          d_with_third_phase,
@@ -351,7 +353,7 @@ void QuatIntegrator::setupPreconditionersPhase(boost::shared_ptr<tbox::Database>
    d_phase_sys_solver.reset(
       new PhaseFACSolver(
          d_name+"QIPhaseSysSolver",
-         fac_ops,
+         d_phase_fac_ops,
          phase_sys_solver_database ) );
 }
 
@@ -414,7 +416,7 @@ void QuatIntegrator::setupPreconditionersTemperature(boost::shared_ptr<tbox::Dat
          temperature_sys_solver_database->getBoolWithDefault( "verbose", false );
    }
 
-   boost::shared_ptr<TemperatureFACOps> fac_ops (
+   boost::shared_ptr<TemperatureFACOps> d_temperature_fac_ops (
       new TemperatureFACOps(
          d_name+"_QITemperatureFACOps",
          temperature_sys_solver_database ) );
@@ -422,8 +424,19 @@ void QuatIntegrator::setupPreconditionersTemperature(boost::shared_ptr<tbox::Dat
    d_temperature_sys_solver.reset(
       new TemperatureFACSolver(
          d_name+"_QITemperatureSysSolver",
-         fac_ops,
+         d_temperature_fac_ops,
          temperature_sys_solver_database ) );
+
+   if( d_precond_has_dTdphi ){
+      d_phase_temperature_fac_ops.reset(
+         new PhaseTemperatureFACOps(
+            d_name+"_QIPhaseTemperatureFACOps",
+            temperature_sys_solver_database ) );
+      d_phase_temperature_sys_solver.reset(
+         new EllipticFACSolver(d_name+"_QIPhaseTemperatureFACOSolver",
+               d_phase_temperature_fac_ops,
+               temperature_sys_solver_database ) );
+   }
 }
 
 //-----------------------------------------------------------------------
@@ -465,6 +478,10 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
       bool default_value = d_model_parameters.concRHSstrategyIsKKS() ? true : false;
       d_precond_has_dquatdphi =
          precond_db->getBoolWithDefault( "precond_has_dquatdphi", default_value );
+
+      d_precond_has_dTdphi =
+         precond_db->getBoolWithDefault( "precond_has_dTdphi", false );
+
       }
       else
       {
@@ -811,7 +828,7 @@ void QuatIntegrator::RegisterVariables(
          variable_db->registerVariableAndContext(
             d_cp_var,
             d_current,
-            hier::IntVector(tbox::Dimension(NDIM),0) );
+            hier::IntVector(tbox::Dimension(NDIM),1) );
       assert( d_cp_id >= 0 );
    }
 
@@ -894,6 +911,17 @@ void QuatIntegrator::RegisterVariables(
             d_current,
             hier::IntVector(tbox::Dimension(NDIM),1) );
       assert( d_phase_mobility_id >= 0 );
+
+      if( d_precond_has_dTdphi ){
+         d_phase_temperature_mobility_var.reset(
+            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_QI_phase_Temperature_mobility", 1) );
+         d_phase_temperature_mobility_id =
+            variable_db->registerVariableAndContext(
+               d_phase_temperature_mobility_var,
+               d_current,
+               hier::IntVector(tbox::Dimension(NDIM),1) );
+         d_local_data.setFlag( d_phase_temperature_mobility_id );
+      }
    }
 
    if ( d_with_third_phase ) {
@@ -1379,6 +1407,8 @@ void QuatIntegrator::setSolversBoundaries()
       if ( d_temperature_sys_solver )
       if( d_with_unsteady_temperature ) {
          d_temperature_sys_solver->setBoundaries( "Dirichlet" );
+         if( d_precond_has_dTdphi )
+            d_phase_temperature_sys_solver->setBoundaries( "Dirichlet" );
       }
    }
 }
@@ -1806,6 +1836,16 @@ void QuatIntegrator::resetSolversState(
            hierarchy,
            coarsest_level,
            finest_level );
+
+      if( d_precond_has_dTdphi )
+      d_phase_temperature_sys_solver->
+        resetSolverState(
+           d_temperature_sol_id,
+           d_temperature_rhs_id,
+           hierarchy,
+           coarsest_level,
+           finest_level );
+
    }
 
    resetSolversStateConcentration(hierarchy,coarsest_level,finest_level);
@@ -1912,6 +1952,8 @@ void QuatIntegrator::initializeNonPeriodicBC()
       if ( d_temperature_sys_solver ) {
          assert( d_temperature_bc_coefs!=NULL );
          d_temperature_sys_solver->setBcObject(d_temperature_bc_coefs);
+         if( d_precond_has_dTdphi )
+            d_phase_temperature_sys_solver->setBcObject(d_temperature_bc_coefs);
       }
    }
 }
@@ -1955,6 +1997,11 @@ void QuatIntegrator::initializeSolvers(
       d_temperature_sys_solver->initializeSolverState(
          d_temperature_sol_id, d_temperature_rhs_id,
          hierarchy, 0, finest );
+
+      if( d_precond_has_dTdphi )
+         d_phase_temperature_sys_solver->initializeSolverState(
+            d_temperature_sol_id, d_temperature_rhs_id,
+            hierarchy, 0, finest );
    }
 
    initializeConcentrationSolver(hierarchy);
@@ -3447,6 +3494,14 @@ void QuatIntegrator::computeMobilities(double time,boost::shared_ptr<hier::Patch
             QuatMobilityStrategy::FORCE );
       }
    }
+   if( d_precond_has_dTdphi )
+   {
+      assert( d_phase_temperature_mobility_id>=0 );
+      d_mobility_strategy->computePhaseTemperatureMobility(
+         hierarchy,
+         d_phase_mobility_id, d_cp_id,
+         d_phase_temperature_mobility_id);
+   }
 }
 
 //-----------------------------------------------------------------------
@@ -3835,6 +3890,12 @@ CVSpgmrPrecondSet
       const double c=1.;
       
       d_temperature_sys_solver->setOperatorCoefficients( m,c,d );
+
+      if( d_precond_has_dTdphi ){
+         TBOX_ASSERT( d_phase_temperature_fac_ops );
+         d_phase_temperature_fac_ops->setOperatorCoefficients(d_phase_scratch_id, d_phase_temperature_mobility_id,
+            d_epsilon_phase, d_latent_heat, d_phase_interp_func_type, d_phase_well_scale, d_phase_well_func_type);
+      }
    }
 
    setCompositionOperatorCoefficients(gamma);
@@ -3945,7 +4006,7 @@ int QuatIntegrator::EtaPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hie
 //-----------------------------------------------------------------------
 int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                                    int r_temperature_id, int ewt_temperature_id, int z_temperature_id, 
-                                   const double delta)
+                                   const double delta, const double gamma)
 {
    if ( d_show_temperature_sys_stats ) {
       tbox::pout << "Preconditioner for temperature block" << endl;
@@ -3953,11 +4014,25 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
+   if ( d_precond_has_dTdphi ){
+      TBOX_ASSERT( d_phase_temperature_fac_ops );
+
+      // Compute the product of DTDPhi block of the Jacobian with the
+      // just computed phi correction
+      //double norm_phase=cellops.L2Norm(d_phase_sol_id);
+      //tbox::pout << "Off-diagonal Preconditioner for temperature block, norm phase="<<norm_phase << endl;
+      d_phase_temperature_fac_ops->multiplyDTDPhiBlock( d_phase_sol_id, d_temperature_rhs_id );
+
+      // Add gamma times the just computed product to the right-hand side
+      cellops.axpy( d_temperature_rhs_id, gamma, d_temperature_rhs_id, r_temperature_id, false );
+   }
+   else{
+      // Copy the right-hand side to the temporary right-hand side array
+      cellops.copyData( d_temperature_rhs_id, r_temperature_id, false );
+   }
+
    // Zero out the initial guess in the temporary solution array
    cellops.setToScalar( d_temperature_sol_id, 0., false );
-
-   // Copy the right-hand side to the temporary right-hand side array
-   cellops.copyData( d_temperature_rhs_id, r_temperature_id, false );
 
    // Set the tolerance for the FAC solve as requested by integrator
    d_temperature_sys_solver->setResidualTolerance( delta );
@@ -4259,7 +4334,7 @@ CVSpgmrPrecondSolve
             cellops.copyData( z_temperature_id, r_temperature_id, false );
          }
          else {
-            int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta);
+            int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta,gamma);
             retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
       }

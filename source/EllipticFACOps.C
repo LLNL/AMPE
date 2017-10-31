@@ -1340,8 +1340,10 @@ EllipticFACOps::setM(const int m_id)
          boost::shared_ptr<pdat::CellData<double> > dst(
             BOOST_CAST<pdat::CellData<double>,hier::PatchData>(patch.getPatchData(d_m_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
-         double l2=ops.L2Norm(src,src->getGhostBox());
+         double l2=ops.L2Norm(src,src->getBox());
          assert( l2==l2 );
+         double l2g=ops.L2Norm(src,src->getGhostBox());
+         assert( l2g==l2g );
 #endif
          dst->copy(*src);
       }
@@ -1354,8 +1356,6 @@ EllipticFACOps::setM(const int m_id)
 }
 
 // could use fact that mobility is uniform and not store it,
-// but need to implement some functions in EllipticFACOps
-// jlf 9/11/08
 void
 EllipticFACOps::setMConstant(const double mobility)
 {
