@@ -52,6 +52,7 @@
 #include "CompositionRHSStrategy.h"
 #include "PhaseFluxStrategySimple.h"
 #include "PhaseConcentrationsStrategy.h"
+#include "DeltaTemperatureFreeEnergyStrategy.h"
 
 #include "QuatParams.h"
 
@@ -204,6 +205,7 @@ QuatIntegrator::QuatIntegrator(
      d_use_preconditioner( true ),
      d_precond_has_dquatdphi( true ),
      d_precond_has_dTdphi( true ),
+     d_precond_has_dPhidT( false ),
      d_compute_velocity( false ),
      d_max_precond_steps( 1 ),
      d_cum_newton_iter( 0 ),
@@ -481,7 +483,8 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
 
       d_precond_has_dTdphi =
          precond_db->getBoolWithDefault( "precond_has_dTdphi", false );
-
+      d_precond_has_dPhidT  =
+         precond_db->getBoolWithDefault( "precond_has_dPhidT", false);
       }
       else
       {
@@ -3932,7 +3935,7 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 //returns 0 if converged
 int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                                       int r_phase_id, int ewt_phase_id, int z_phase_id, 
-                                      const double delta)
+                                      const double delta, const double gamma)
 {
    if ( d_show_phase_sys_stats ) {
       tbox::pout << "Preconditioner for Phase block" << endl;
@@ -3944,8 +3947,21 @@ int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > h
    assert( cellops.max(r_phase_id)==cellops.max(r_phase_id) );
 #endif
 
-   // Copy the right-hand side (r_phase_id) to the temporary right-hand side array (d_phase_rhs_id)
-   cellops.copyData( d_phase_rhs_id, r_phase_id, false );
+   if ( d_precond_has_dPhidT ){
+      DeltaTemperatureFreeEnergyStrategy* free_energy_strategy(
+         dynamic_cast<DeltaTemperatureFreeEnergyStrategy*>(d_free_energy_strategy) );
+      TBOX_ASSERT( free_energy_strategy!=0 );
+      free_energy_strategy->applydPhidTBlock(hierarchy,d_temperature_sol_id,z_phase_id,d_phase_rhs_id,
+         d_model_parameters.phase_mobility());
+
+      // Add -1.*gamma times the just computed product to the right-hand side
+      cellops.axpy( d_phase_rhs_id, -1.*gamma, d_phase_rhs_id, r_phase_id, false );
+
+   }else{
+
+      // Copy the right-hand side (r_phase_id) to the temporary right-hand side array (d_phase_rhs_id)
+      cellops.copyData( d_phase_rhs_id, r_phase_id, false );
+   }
 
    // Zero out the initial guess in the temporary solution array
    cellops.setToScalar( d_phase_sol_id, 0., false );
@@ -4221,52 +4237,14 @@ CVSpgmrPrecondSolve
          r_samvect->getPatchHierarchy();
       math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
+      if( d_with_unsteady_temperature && d_precond_has_dPhidT ){
+         int converged = applyTemperaturePreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         retcode = ( converged==0 && retcode==0) ? 0 : 1;
+      }
       if ( d_with_phase ) {
          // Apply the preconditioner phase block
-         int z_phase_id =
-            z_samvect->getComponentDescriptorIndex( d_phase_component_index );
-         int r_phase_id =
-            r_samvect->getComponentDescriptorIndex( d_phase_component_index );
-         int ewt_phase_id =
-            ewt_samvect->getComponentDescriptorIndex( d_phase_component_index );
-
-         assert( z_phase_id >= 0 );
-         assert( r_phase_id >= 0 );
-         assert( ewt_phase_id >= 0 );
-
-         if ( !d_phase_sys_solver ) {
-            cellops.copyData( z_phase_id, r_phase_id, false );
-
-            if ( d_precond_has_dquatdphi ) {
-
-               // Copy the phase correction to an array with ghost cells and fill them
-               xfer::RefineAlgorithm copy_with_ghosts ;
-
-               copy_with_ghosts.registerRefine(
-                  d_phase_sol_id,  // destination
-                  z_phase_id,      // source
-                  d_phase_sol_id,  // temporary work space
-                  d_phase_refine_op );
-
-               for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-                  boost::shared_ptr< hier::PatchLevel > level =
-                     hierarchy->getPatchLevel( ln );
-
-                  boost::shared_ptr<xfer::RefineSchedule > schedule (
-                  copy_with_ghosts.createSchedule(
-                     level,
-                     ln-1,
-                     hierarchy,
-                     d_all_refine_patch_strategy ) );
-                  schedule->fillData( t );
-               }
-            }
-         }
-         else {
-
-            int converged = PhasePrecondSolve(hierarchy,r_phase_id,ewt_phase_id,z_phase_id,delta);
-            retcode = ( converged==0 && retcode==0) ? 0 : 1;
-         }
+         int converged = applyPhasePreconditioner(hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       
       if ( d_with_third_phase ) {
@@ -4317,26 +4295,10 @@ CVSpgmrPrecondSolve
       }
 
       // Apply the preconditioner temperature block
-      if ( d_with_unsteady_temperature ) {
+      if ( d_with_unsteady_temperature && !d_precond_has_dPhidT ) {
 
-         const int z_temperature_id =
-            z_samvect->getComponentDescriptorIndex( d_temperature_component_index );
-         const int r_temperature_id =
-            r_samvect->getComponentDescriptorIndex( d_temperature_component_index );
-         int ewt_temperature_id =
-            ewt_samvect->getComponentDescriptorIndex( d_temperature_component_index );
-
-         assert( z_temperature_id >= 0 );
-         assert( r_temperature_id >= 0 );
-         assert( ewt_temperature_id >= 0 );
-
-         if ( !d_temperature_sys_solver ) {
-            cellops.copyData( z_temperature_id, r_temperature_id, false );
-         }
-         else {
-            int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta,gamma);
-            retcode = ( converged==0 && retcode==0) ? 0 : 1;
-         }
+         int converged = applyTemperaturePreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       
       // Apply the preconditioner concentration block
@@ -4351,6 +4313,101 @@ CVSpgmrPrecondSolve
    }
 
    t_psolve_solve_timer->stop();
+
+   return retcode;
+}
+
+//-----------------------------------------------------------------------
+
+int QuatIntegrator::applyPhasePreconditioner(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const double t,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
+   const double delta, const double gamma)
+{
+   int retcode = 0;
+
+   const int z_phase_id =
+      z_samvect->getComponentDescriptorIndex( d_phase_component_index );
+   const int r_phase_id =
+      r_samvect->getComponentDescriptorIndex( d_phase_component_index );
+   int ewt_phase_id =
+      ewt_samvect->getComponentDescriptorIndex( d_phase_component_index );
+
+   assert( z_phase_id >= 0 );
+   assert( r_phase_id >= 0 );
+   assert( ewt_phase_id >= 0 );
+
+   if ( !d_phase_sys_solver ) {
+      math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+      cellops.copyData( z_phase_id, r_phase_id, false );
+
+      if ( d_precond_has_dquatdphi || d_precond_has_dTdphi ) {
+
+         // Copy the phase correction to an array with ghost cells and fill them
+         xfer::RefineAlgorithm copy_with_ghosts ;
+
+         copy_with_ghosts.registerRefine(
+            d_phase_sol_id,  // destination
+            z_phase_id,      // source
+            d_phase_sol_id,  // temporary work space
+            d_phase_refine_op );
+
+         for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
+            boost::shared_ptr< hier::PatchLevel > level =
+               hierarchy->getPatchLevel( ln );
+
+            boost::shared_ptr<xfer::RefineSchedule > schedule (
+            copy_with_ghosts.createSchedule(
+               level,
+               ln-1,
+               hierarchy,
+               d_all_refine_patch_strategy ) );
+            schedule->fillData( t );
+         }
+      }
+   }
+   else {
+
+      int converged = PhasePrecondSolve(hierarchy,r_phase_id,ewt_phase_id,z_phase_id,delta,gamma);
+      retcode = ( converged==0 && retcode==0) ? 0 : 1;
+   }
+
+   return retcode;
+}
+
+//-----------------------------------------------------------------------
+
+int QuatIntegrator::applyTemperaturePreconditioner(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
+   const double delta, const double gamma)
+{
+   int retcode = 0;
+
+   const int z_temperature_id =
+      z_samvect->getComponentDescriptorIndex( d_temperature_component_index );
+   const int r_temperature_id =
+      r_samvect->getComponentDescriptorIndex( d_temperature_component_index );
+   int ewt_temperature_id =
+      ewt_samvect->getComponentDescriptorIndex( d_temperature_component_index );
+
+   assert( z_temperature_id >= 0 );
+   assert( r_temperature_id >= 0 );
+   assert( ewt_temperature_id >= 0 );
+
+   if ( !d_temperature_sys_solver ) {
+      math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+      cellops.copyData( z_temperature_id, r_temperature_id, false );
+   }
+   else {
+      int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta,gamma);
+      retcode = ( converged==0 && retcode==0) ? 0 : 1;
+   }
 
    return retcode;
 }

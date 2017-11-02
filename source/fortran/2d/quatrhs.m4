@@ -842,3 +842,43 @@ c      print*,'latentheat=',latentheat,', tm=',tm
       return
       end
 
+c***********************************************************************
+c
+      subroutine computedphidtemperaturedeltatemperature(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   phi, ngphi,
+     &   temp, ngtemp,
+     &   tm, latentheat, mobility,
+     &   rhs, ngrhs )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngphi, ngtemp, ngrhs
+      double precision tm, latentheat, mobility
+c
+c variables in 2d cell indexed
+      double precision phi(CELL2d(ifirst,ilast,ngphi))
+      double precision rhs(CELL2d(ifirst,ilast,ngrhs))
+      double precision temp(CELL2d(ifirst,ilast,ngtemp))
+c
+      integer ic0, ic1
+      double precision m, alpha
+c
+c      print*,'latentheat=',latentheat,', tm=',tm
+      alpha = 6.d0*mobility*latentheat/tm
+
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0
+
+            rhs(ic0,ic1) = alpha*
+     &          phi(ic0,ic1)*(1.d0-phi(ic0,ic1))*temp(ic0,ic1)
+
+         enddo
+      enddo
+
+      return
+      end
+
+

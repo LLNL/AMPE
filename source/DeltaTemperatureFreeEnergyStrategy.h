@@ -23,6 +23,12 @@ public:
       const int fb_id,
       const int rhs_id );
 
+   void applydPhidTBlock(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      const int temperature_id,
+      const int phase_id,
+      const int rhs_id,
+      const double phase_mobility);
+
 private:
 
    //melting temperature

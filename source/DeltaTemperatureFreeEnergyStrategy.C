@@ -8,6 +8,23 @@
 using namespace SAMRAI;
 using namespace std;
 
+#define FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE computedphidtemperaturedeltatemperature_
+
+extern "C" {
+
+   void FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const double*, const int&,
+      const double*, const int&,
+      const double&,const double&,const double&,
+      double* rhs, const int&
+      );
+}
+
 DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
    const double Tm, const double latent_heat):
    d_Tm(Tm),
@@ -74,5 +91,45 @@ void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
       temp->getPointer(), temp->getGhostCellWidth()[0],
       d_Tm, d_L,
       rhs->getPointer(), 0 );
+}
+//=======================================================================
+
+void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const int temperature_id,
+   const int phase_id,
+   const int rhs_id,
+   const double phase_mobility)
+{
+   const int maxln = hierarchy->getFinestLevelNumber();
+   for ( int ln = 0; ln <= maxln; ln++ ) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         hierarchy->getPatchLevel( ln );
+
+      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ) {
+         boost::shared_ptr<hier::Patch > patch = *p;
+
+         const hier::Box& box = patch->getBox();
+         const hier::Index& ifirst = box.lower();
+         const hier::Index& ilast = box.upper();
+
+         boost::shared_ptr< pdat::CellData<double> > temp(
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id ) ) );
+         boost::shared_ptr< pdat::CellData<double> > phase(
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id ) ) );
+         boost::shared_ptr< pdat::CellData<double> > rhs(
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( rhs_id ) ) );
+
+         FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+            ifirst(0),ilast(0),
+            ifirst(1),ilast(1),
+#if (NDIM == 3)
+            ifirst(2),ilast(2),
+#endif
+            phase->getPointer(), phase->getGhostCellWidth()[0],
+            temp->getPointer(), temp->getGhostCellWidth()[0],
+            d_Tm, d_L, phase_mobility,
+            rhs->getPointer(), rhs->getGhostCellWidth()[0]);
+      }
+   }
 }
 

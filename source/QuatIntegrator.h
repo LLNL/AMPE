@@ -493,6 +493,7 @@ protected:
 
    bool d_precond_has_dquatdphi;
    bool d_precond_has_dTdphi;
+   bool d_precond_has_dPhidT;
 
    boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
    
@@ -561,12 +562,25 @@ private :
    void RegisterLocalEtaVariables();
    void RegisterLocalVisitVariables();
 
+   virtual int applyPhasePreconditioner(
+      boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      const double t,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
+      const double delta, const double gamma);
    int PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                          int r_phase_id, int ewt_phase_id, int z_phase_id,
-                         const double delta);
+                         const double delta, const double gamma);
    int EtaPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                        int r_eta_id, int ewt_eta_id, int z_eta_id, 
                        const double delta);
+   virtual int applyTemperaturePreconditioner(
+      boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
+      const double delta, const double gamma);
    int TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                                int r_temperature_id, int ewt_temperature_id, int z_temperature_id, 
                                const double delta, const double gamma);
