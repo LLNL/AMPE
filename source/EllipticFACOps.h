@@ -1105,6 +1105,27 @@ protected:
    int d_ew_id;  // weight for L2-norm
    int d_vol_id; // control volume
 
+   /*!
+    * @brief Get the name of this object.
+    *
+    * @return The name of this object.
+    */
+   const std::string&
+   getObjectName() const
+   {
+      return d_object_name;
+   }
+
+protected:
+   /*!
+    * @brief Read parameters from input database.
+    *
+    * @param input_db Input Database.
+    */
+   void
+   getFromInput(
+      const boost::shared_ptr<tbox::Database>& input_db);
+
 private:
    /*!
     * @brief Externally provided physical boundary condition object.

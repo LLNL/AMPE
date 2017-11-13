@@ -321,8 +321,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       }
       if( d_with_rescaled_temperature ){
          tbox::plog<<"Rescale liquidus_slope and gamma..."<<endl;
-         d_liquidus_slope /= d_meltingT;
-         d_well_bias_gamma *= d_meltingT;
+         d_liquidus_slope /= d_rescale_factorT;
+         d_well_bias_gamma *= d_rescale_factorT;
       }
    }
 }
@@ -407,8 +407,12 @@ void QuatModelParameters::readTemperatureModel(
       map<short,double> empty_map;
      
       d_with_rescaled_temperature = ( ( method != "steady" ) && (d_meltingT>0.) );
-      if( d_with_rescaled_temperature )
-         tbox::plog<<"Solve temperature equation with rescaled T"<<endl; 
+      if( d_with_rescaled_temperature ){
+         d_rescale_factorT=d_meltingT;
+         tbox::plog<<"Solve temperature equation with rescaled Ti, factor "<<d_rescale_factorT<<endl; 
+      }else{
+          d_rescale_factorT=-1;
+      }
       d_cp.push_back(empty_map);
       readSpeciesCP(cp_db->getDatabase( "SpeciesA" ), d_cp[0]);
       if( d_ncompositions>0 )
@@ -438,7 +442,7 @@ void QuatModelParameters::readTemperatureModel(
          {
             for(map<short,double>::iterator itm= it->begin(); itm!=it->end(); ++itm)
             {
-               itm->second *= d_meltingT;
+               itm->second *= d_rescale_factorT;
                tbox::plog<<"rescaled Cp: "<<itm->second<<endl;
             }
          }
@@ -472,7 +476,7 @@ void QuatModelParameters::readTemperatureModel(
       }
 
       if( d_with_rescaled_temperature ){   //rescale units
-         d_H_parameter *= d_meltingT;
+         d_H_parameter *= d_rescale_factorT;
       }
       
    }
@@ -764,13 +768,9 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    readMolarVolumes(model_db);
 
    // Interpolation
-
-   d_phase_interp_func_type = "pbg";
-   if ( model_db->keyExists( "phi_interp_func_type" ) ) {
-      d_phase_interp_func_type =
-         model_db->getString( "phi_interp_func_type" );
-   }
-   else if ( model_db->keyExists( "energy_interp_func_type" ) ) {
+   d_phase_interp_func_type =
+      model_db->getStringWithDefault( "phi_interp_func_type", "pbg" );
+   if ( model_db->keyExists( "energy_interp_func_type" ) ) {
       d_phase_interp_func_type =
          model_db->getString( "energy_interp_func_type" );
       printDeprecated( "energy_interp_func_type", "phi_interp_func_type" );

@@ -909,7 +909,8 @@ c
      &   phi, ngphi,
      &   temp, ngtemp,
      &   tm, latentheat,
-     &   rhs, ngrhs )
+     &   rhs, ngrhs,
+     &   phi_interp_type )
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -917,6 +918,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
       integer ngphi, ngtemp, ngrhs
       double precision tm, latentheat
+      character*(*) phi_interp_type
 c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi))
@@ -924,18 +926,29 @@ c variables in 3d cell indexed
       double precision temp(CELL3d(ifirst,ilast,ngtemp))
 c
       integer ic0, ic1, ic2
-      double precision m, alpha
+      double precision m, alpha, wtemp, h_prime, woff
+      double precision deriv_interp_func
 c
-      alpha = 6.*latentheat/tm
+      alpha = latentheat/tm
+      woff = 0.25/6.
 c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
 
-               m = alpha*(tm-temp(ic0,ic1,ic2))
+               wtemp = 0.75*temp(ic0,ic1,ic2)
+     &           +woff*( temp(ic0-1,ic1,ic2)
+     &                  +temp(ic0,ic1-1,ic2)
+     &                  +temp(ic0+1,ic1,ic2)
+     &                  +temp(ic0,ic1+1,ic2)
+     &                  +temp(ic0,ic1,ic2-1)
+     &                  +temp(ic0,ic1,ic2+1) )
 
-               rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2) +
-     &          m*phi(ic0,ic1,ic2)*(1.d0-phi(ic0,ic1,ic2))
+               m = alpha*( tm-wtemp )
+               h_prime =
+     &            deriv_interp_func( phi(ic0,ic1,ic2), phi_interp_type )
+
+               rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2) + m*h_prime
 
             enddo
          enddo
@@ -949,9 +962,9 @@ c
       subroutine computedphidtemperaturedeltatemperature(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   phi, ngphi,
-     &   temp, ngtemp,
      &   tm, latentheat, mobility,
-     &   rhs, ngrhs )
+     &   rhs, ngrhs,
+     &   phi_interp_type )
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -959,24 +972,27 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
       integer ngphi, ngtemp, ngrhs
       double precision tm, latentheat, mobility
+      character*(*) phi_interp_type
 c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi))
       double precision rhs(CELL3d(ifirst,ilast,ngrhs))
-      double precision temp(CELL3d(ifirst,ilast,ngtemp))
 c
       integer ic0, ic1, ic2
-      double precision m, alpha
+      double precision alpha, h_prime
+      double precision deriv_interp_func
 c
 c      print*,'latentheat=',latentheat,', tm=',tm
-      alpha = 6.d0*mobility*latentheat/tm
+      alpha = mobility*latentheat/tm
 
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
             do ic0 = ifirst0, ilast0
 
-               rhs(ic0,ic1, ic2) = alpha*temp(ic0,ic1,ic2)*
-     &             phi(ic0,ic1,ic2)*(1.d0-phi(ic0,ic1,ic2))
+               h_prime =
+     &            deriv_interp_func( phi(ic0,ic1,ic2), phi_interp_type )
+
+               rhs(ic0,ic1, ic2) = alpha*h_prime
 
             enddo
          enddo

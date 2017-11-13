@@ -460,23 +460,15 @@ public:
       return d_object_name;
    }
 
-  /*!
-   *     * @brief Set the max number of iterations (cycles) to use per solve.
-   *         */
-   void
-   setMaxCycles(
-      int max_cycles)
-   {
-      d_max_iterations = max_cycles;
-   }
-
+   /*!
+    * This is the only function we are missing in SAMRAI solv::FACPreconditioner class
+    * and requires the implementation of this class
+    */
    void
    setResidualTolerance(
-      double residual_tol,
-      double relative_residual_tol = -1.0)
+      double residual_tol)
    {
       d_residual_tolerance = residual_tol;
-      d_relative_residual_tolerance = relative_residual_tol;
    }
 
 

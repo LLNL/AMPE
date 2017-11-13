@@ -79,11 +79,6 @@ QuatSysSolver::setCoarseFineDiscretization(const std::string & coarsefine_method
 }
 
 SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setMaxCycles(int max_cycles) {
-  d_fac_solver.setMaxCycles(max_cycles);
-}
-
-SAMRAI_INLINE_KEYWORD void
 QuatSysSolver::setResidualTolerance(double residual_tol) {
   d_fac_solver.setResidualTolerance(residual_tol);
 }

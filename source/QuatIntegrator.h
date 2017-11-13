@@ -577,6 +577,7 @@ private :
                        const double delta);
    virtual int applyTemperaturePreconditioner(
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      const double t,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,

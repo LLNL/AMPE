@@ -3,12 +3,15 @@
 
 #include "BiasDoubleWellFreeEnergyStrategy.h"
 
+#include <cstring>
+
 class DeltaTemperatureFreeEnergyStrategy:
    public BiasDoubleWellFreeEnergyStrategy
 {
 public:
    DeltaTemperatureFreeEnergyStrategy(const double Tm,
-                                      const double latentHeat);
+                                      const double latentHeat,
+                                      const std::string phase_interp_func_type);
 
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
  
@@ -32,10 +35,12 @@ public:
 private:
 
    //melting temperature
-   double d_Tm;
+   const double d_Tm;
 
    //latent heat
-   double d_L;
+   const double d_L;
+
+   const std::string d_phase_interp_func_type;
 };
 
 #endif

@@ -57,6 +57,7 @@
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/xfer/RefineSchedule.h"
 #include "SAMRAI/xfer/PatchLevelFullFillPattern.h"
+#include "SAMRAI/tbox/Database.h"
 
 #include "boost/make_shared.hpp"
 
@@ -706,13 +707,11 @@ extern "C" {
 
 }
 
-
 /*
 ********************************************************************
 * Constructor.                                                     *
 ********************************************************************
 */
-
 EllipticFACOps::EllipticFACOps(
    const std::string &object_name ,
    boost::shared_ptr<tbox::Database> database)
@@ -761,6 +760,9 @@ EllipticFACOps::EllipticFACOps(
    d_M_is_set(false),
    d_physical_bc_coef(NULL)
 {
+   if (NDIM == 1) {
+      TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
+   }
 
    t_restrict_solution = tbox::TimerManager::getManager()->
       getTimer("EllipticFACOps::restrictSolution()");
@@ -780,10 +782,6 @@ EllipticFACOps::EllipticFACOps(
       getTimer("EllipticFACOps::computeResidualNorm()");
    t_compute_rhs = tbox::TimerManager::getManager()->
       getTimer("EllipticFACOps::evaluateRHS()");
-
-   if (NDIM == 1) {
-      TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
-   }
 
    if ( !s_cell_scratch_var ) {
       TBOX_ASSERT( !s_cell_scratch_var );
@@ -833,37 +831,7 @@ EllipticFACOps::EllipticFACOps(
    /*
     * Some variables initialized by default are overriden by input.
     */
-   if ( database ) {
-      d_smoothing_choice =
-         database->getStringWithDefault("smoothing_choice",
-                                        d_smoothing_choice);
-
-      d_cf_discretization =
-         database->getStringWithDefault( "cf_discretization" ,
-                                         d_cf_discretization );
-
-      d_prolongation_method =
-         database->getStringWithDefault( "prolongation_method" ,
-                                         d_prolongation_method );
-
-      d_enable_logging =
-         database->getBoolWithDefault( "enable_logging" ,
-                                       d_enable_logging );
-
-      // coarse solver parameters
-      d_coarse_solver_choice =
-         database->getStringWithDefault("coarse_solver_choice",
-                                        d_coarse_solver_choice);
-      d_coarse_solver_tolerance =
-         database->getDoubleWithDefault("coarse_solver_tolerance",
-                                        d_coarse_solver_tolerance);
-      if ( d_coarse_solver_choice == "hypre" )
-         d_coarse_solver_max_iterations = -1; // not used
-      else
-         d_coarse_solver_max_iterations =
-            database->getIntegerWithDefault("coarse_solver_max_iterations",
-                                            d_coarse_solver_max_iterations);
-   }
+   getFromInput(database);
 
    /*
     * Check input validity and correctness.
@@ -871,6 +839,57 @@ EllipticFACOps::EllipticFACOps(
    checkInputPatchDataIndices();
 
    return;
+}
+
+void EllipticFACOps::getFromInput(
+   const boost::shared_ptr<tbox::Database>& input_db)
+{
+   if (input_db) {
+      d_verbose =
+         input_db->getBoolWithDefault("verbose", d_verbose);
+      d_coarse_solver_choice =
+         input_db->getStringWithDefault("coarse_solver_choice",
+            d_coarse_solver_choice);
+      if (!(d_coarse_solver_choice == "hypre" ||
+            d_coarse_solver_choice == "redblack" ||
+            d_coarse_solver_choice == "jacobi")) {
+         INPUT_VALUE_ERROR("coarse_solver_choice");
+      }
+
+      d_coarse_solver_tolerance =
+         input_db->getDoubleWithDefault("coarse_solver_tolerance",
+            d_coarse_solver_tolerance);
+      if (!(d_coarse_solver_tolerance > 0)) {
+         INPUT_RANGE_ERROR("coarse_solver_tolerance");
+      }
+
+      d_coarse_solver_max_iterations =
+         input_db->getIntegerWithDefault("coarse_solver_max_iterations",
+            d_coarse_solver_max_iterations);
+      if (!(d_coarse_solver_max_iterations >= 1)) {
+         INPUT_RANGE_ERROR("coarse_solver_max_iterations");
+      }
+
+      d_cf_discretization =
+         input_db->getStringWithDefault("cf_discretization", "Ewing");
+      if (!(d_cf_discretization == "Ewing" ||
+            d_cf_discretization == "CONSTANT_REFINE" ||
+            d_cf_discretization == "LINEAR_REFINE" ||
+            d_cf_discretization == "CONSERVATIVE_LINEAR_REFINE")) {
+         INPUT_VALUE_ERROR("cf_discretization");
+      }
+
+      d_prolongation_method =
+         input_db->getStringWithDefault("prolongation_method",
+            "CONSTANT_REFINE");
+      if (!(d_prolongation_method == "CONSTANT_REFINE" ||
+            d_prolongation_method == "LINEAR_REFINE" ||
+            d_prolongation_method == "CONSERVATIVE_LINEAR_REFINE")) {
+         INPUT_VALUE_ERROR("prolongation_method");
+      }
+
+      d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
+   }
 }
 
 

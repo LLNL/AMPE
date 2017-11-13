@@ -330,23 +330,6 @@ public:
    //@{ @name Functions for setting solver mathematic algorithm controls
 
    /*!
-    * @brief Set coarse level solver.
-    *
-    * Select from these:
-    * - @c "redblack"
-    * - @c "hypre" (only if the HYPRE library is available).
-    */
-   void setCoarsestLevelSolverChoice( const std::string &choice );
-
-   /*!
-    * @brief Set tolerance for coarse level solve.
-    *
-    * If the coarse level solver requires a tolerance
-    * (currently, they all do), the specified value is used.
-    */
-   void setCoarsestLevelSolverTolerance( double tol );
-
-   /*!
     * @brief Set max iterations for coarse level solve.
     *
     * If the coarse level solver requires a max iteration limit
@@ -398,26 +381,6 @@ public:
    void setVerbose(const bool verbose);
 
    /*!
-    * @brief Set the name of the prolongation method.
-    *
-    * Specify the @c op_name string which will be passed to
-    * xfer::Geometry::lookupRefineOperator() to get the operator
-    * for prolonging the coarse-grid correction.
-    *
-    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to 
-    * to lead to faster convergence, but it does NOT satisfy the Galerkin
-    * condition.
-    *
-    * Prolonging using linear refinement requires a Robin bc
-    * coefficient implementation that is capable of delivering
-    * coefficients for non-hierarchy data, because linear refinement
-    * requires boundary conditions to be set on temporary levels.
-    *
-    * @param prolongation_method String selecting the coarse-fine discretization method.
-    */
-   void setProlongationMethod( const std::string &prolongation_method );
-
-   /*!
     * @brief Set the number of pre-smoothing sweeps during
     * FAC iteration process.
     *
@@ -440,11 +403,6 @@ public:
    void setPostsmoothingSweeps( int num_post_sweeps );
 
    /*!
-    * @brief Set the max number of iterations (cycles) to use per solve.
-    */
-   void setMaxCycles( int max_cycles );
-
-   /*!
     * @brief Set the residual tolerance for stopping.
     *
     * If you want the prescribed maximum number of cycles to always be taken,
@@ -452,11 +410,10 @@ public:
     * 
     * Relative tolerance is used only if it is smaller than absolute tolerance
     */
-   void setResidualTolerance( double residual_tol, 
-                              double relative_residual_tol=-1. )
+   void setResidualTolerance( double residual_tol )
    {
       //tbox::pout << "  EllipticFACSolver::setResidualTolerance for precond to "<<residual_tol<<endl;
-      d_fac_precond.setResidualTolerance( residual_tol, relative_residual_tol );
+      d_fac_precond.setResidualTolerance( residual_tol );
    }
 
    //@}
@@ -523,7 +480,10 @@ public:
     * @brief Return FAC iteration count from last (or current
     * if there is one) FAC iteration process.
     */
-   int getNumberOfIterations() const;
+   int getNumberOfIterations() const{
+      return d_fac_precond.getNumberOfIterations();
+   }
+
 
    /*!
     * @brief Get average convergance rate and convergence rate of
@@ -533,7 +493,11 @@ public:
     * @param final_factor convergence factor of the last FAC cycle
     */
    void getConvergenceFactors(double &avg_factor,
-                              double &final_factor) const;
+                              double &final_factor) const{
+      d_fac_precond.getConvergenceFactors(avg_factor,final_factor);
+      return;
+   }
+
 
    /*!
     * @brief Return residual norm from the just-completed FAC iteration.
@@ -544,7 +508,10 @@ public:
     *
     * The latest computed norm is the one returned.
     */
-   double getResidualNorm() const;
+   double getResidualNorm() const{
+      return d_fac_precond.getResidualNorm();
+   }
+
 
    void printFACConvergenceFactors(const int solver_ret);
 
@@ -633,8 +600,5 @@ protected:
    
    //boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 };
-
-
-#include "EllipticFACSolver.I"
 
 #endif  // included_EllipticFACSolver

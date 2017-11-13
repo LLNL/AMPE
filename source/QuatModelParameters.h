@@ -120,6 +120,7 @@ public:
       return d_ncompositions;
    }
    double meltingT()const{ return d_meltingT; }
+   double rescale_factorT()const{ return d_rescale_factorT; }
    double vd()const{
       assert( d_vd>0. );
       return d_vd;
@@ -397,6 +398,8 @@ private:
    bool   d_with_bias_well;
    bool   d_bias_well_beckermann;  
    bool   d_with_rescaled_temperature;
+
+   double d_rescale_factorT;
  
    int d_ncompositions;
    

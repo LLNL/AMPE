@@ -64,7 +64,7 @@ EllipticFACSolver::EllipticFACSolver (
    :
    d_object_name(object_name),
    d_fac_ops(fac_ops),
-   d_fac_precond(object_name+"::fac_precond",d_fac_ops),
+   d_fac_precond(object_name+"::fac_precond",d_fac_ops, database),
    d_bc_object(NULL),
    d_simple_bc(tbox::Dimension(NDIM),object_name+"::bc"),
    d_ln_min(-1),
@@ -79,26 +79,6 @@ EllipticFACSolver::EllipticFACSolver (
       new pdat::CellVariable<double>(tbox::Dimension(NDIM),object_name+"::weight"));
    d_vol_id= hier::VariableDatabase::getDatabase()->
       registerVariableAndContext(vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM),0) );
-
-   setMaxCycles(10);
-   setResidualTolerance(1e-6);
-   setCoarseFineDiscretization("Ewing");
-#ifdef HAVE_HYPRE
-   setCoarsestLevelSolverChoice("hypre");
-   setCoarsestLevelSolverTolerance(1e-2);
-#else
-   setCoarsestLevelSolverChoice("redblack");
-   setCoarsestLevelSolverTolerance(1e-8);
-   setCoarsestLevelSolverMaxIterations(500);
-#endif
-
-   /*
-    * The default RobinBcCoefStrategy used,
-    * SimpleCellRobinBcCoefs only works with constant refine
-    * for prolongation.  So we use constant refinement
-    * for prolongation by default.
-    */
-   setProlongationMethod("CONSTANT_REFINE");
 
    /*
     * The FAC operator optionally uses the preconditioner
@@ -144,7 +124,6 @@ EllipticFACSolver::~EllipticFACSolver()
 * instead of setting the parameters directly in this function.     *
 ********************************************************************
 */
-
 void
 EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& database )
 {
@@ -152,49 +131,7 @@ EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& databas
       bool logging = database->getBool("enable_logging");
       enableLogging(logging);
    }
-   if ( database->isBool("verbose") ) {
-      bool verbose = database->getBool("verbose");
-      setVerbose(verbose);
-   }
-   if ( database->isInteger("max_cycles") ) {
-      int max_cycles = database->getInteger("max_cycles");
-      setMaxCycles(max_cycles);
-   }
-   
-   double residual_tol = 1.e-6;
-   if (database->isDouble("residual_tol")) {
-      residual_tol = database->getDouble("residual_tol");
-      setResidualTolerance(residual_tol, -1.);
-   }
-   if (database->isDouble("relative_residual_tol")) {
-      double relative_residual_tol = database->getDouble(
-            "relative_residual_tol");
-      setResidualTolerance(residual_tol, relative_residual_tol);
-   }
-   if ( database->isString("coarse_fine_discretization") ) {
-      std::string s = database->getString("coarse_fine_discretization");
-      setCoarseFineDiscretization(s);
-   }
-   if ( database->isString("prolongation_method") ) {
-      std::string s = database->getString("prolongation_method");
-      setProlongationMethod(s);
-   }
-   if ( database->isString("coarse_solver_choice") ) {
-      std::string s = database->getString("coarse_solver_choice");
-      setCoarsestLevelSolverChoice(s);
-   }
-   if ( database->isDouble("coarse_solver_tolerance") ) {
-      double tol = database->getDouble("coarse_solver_tolerance");
-      setCoarsestLevelSolverTolerance(tol);
-   }
-   if ( database->isInteger("coarse_solver_max_iterations") ) {
-      int itr = database->getInteger("coarse_solver_max_iterations");
-      setCoarsestLevelSolverMaxIterations(itr);
-   }
-
-   return;
 }
-
 
 /*
 *************************************************************************

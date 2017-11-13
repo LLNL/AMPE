@@ -86,9 +86,6 @@ QuatSysSolver::QuatSysSolver(
     Set some default parameters.  These may be overridden by the respective
     values in the input database (if supplied).
   */
-  setMaxCycles(d_precond_maxiters);
-  setResidualTolerance(1.e-6);
-  setCoarseFineDiscretization("Ewing");
   setLevelSolverTolerance(1.e-2);
   setLevelSolverMaxIterations(20);
   setCoarsestLevelSolverTolerance(1.e-2);
@@ -383,8 +380,7 @@ QuatSysSolver::setOperatorCoefficients(
 }
 
 
-
- bool
+bool
 QuatSysSolver::solveSystem(const int q_soln_id,
                            const int q_rhs_id,
                            const int q_ewt_id)
@@ -407,7 +403,6 @@ QuatSysSolver::solveSystem(const int q_soln_id,
   d_fac_ops->divideMobilitySqrt(q_rhs_id);
 
   //  setResidualTolerance(d_precond_tol);
-  setMaxCycles(d_precond_maxiters);
 
   solution->setToScalar(0., false);
 

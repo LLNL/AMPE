@@ -19,16 +19,17 @@ extern "C" {
       const int& ifirst2, const int& ilast2,
 #endif
       const double*, const int&,
-      const double*, const int&,
       const double&,const double&,const double&,
-      double* rhs, const int&
+      double* rhs, const int&, const char* const
       );
 }
 
 DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
-   const double Tm, const double latent_heat):
+   const double Tm, const double latent_heat,
+   const std::string phase_interp_func_type):
    d_Tm(Tm),
-   d_L(latent_heat)
+   d_L(latent_heat),
+   d_phase_interp_func_type(phase_interp_func_type)
 {
    tbox::plog<<"DeltaTemperatureFreeEnergyStrategy..."<<endl;
    tbox::plog<<"Tm="<<d_Tm<<endl;
@@ -90,7 +91,8 @@ void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
       phase->getPointer(), phase->getGhostCellWidth()[0],
       temp->getPointer(), temp->getGhostCellWidth()[0],
       d_Tm, d_L,
-      rhs->getPointer(), 0 );
+      rhs->getPointer(), rhs->getGhostCellWidth()[0],
+      d_phase_interp_func_type.c_str() );
 }
 //=======================================================================
 
@@ -126,9 +128,9 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(const boost::shared_pt
             ifirst(2),ilast(2),
 #endif
             phase->getPointer(), phase->getGhostCellWidth()[0],
-            temp->getPointer(), temp->getGhostCellWidth()[0],
             d_Tm, d_L, phase_mobility,
-            rhs->getPointer(), rhs->getGhostCellWidth()[0]);
+            rhs->getPointer(), rhs->getGhostCellWidth()[0],
+            d_phase_interp_func_type.c_str() );
       }
    }
 }

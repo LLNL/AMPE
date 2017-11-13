@@ -1299,7 +1299,7 @@ void QuatIntegrator::setupBC()
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temp_bc_db );
          if( d_model_parameters.with_rescaled_temperature() ){
             double a,b,g;
-            double rescaled_temperature_coeff=1./d_model_parameters.meltingT();
+            double rescaled_temperature_coeff=1./d_model_parameters.rescale_factorT();
             for( int n =0; n<2*NDIM; n++){
                d_temperature_bc_coefs->getCoefficients(n,a,b,g);
                tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
@@ -1376,7 +1376,7 @@ void QuatIntegrator::initializeCoarseRefineOperators(
    setSolversBoundaries();
 
    if ( ! d_all_periodic ) {
-      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
+      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.rescale_factorT() : -1.;
       const int phase_id = d_with_phase ? d_phase_scratch_id : -1;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
@@ -3938,7 +3938,7 @@ int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > h
                                       const double delta, const double gamma)
 {
    if ( d_show_phase_sys_stats ) {
-      tbox::pout << "Preconditioner for Phase block" << endl;
+      tbox::pout << "Preconditioner for Phase block with tol "<< delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4025,7 +4025,7 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
                                    const double delta, const double gamma)
 {
    if ( d_show_temperature_sys_stats ) {
-      tbox::pout << "Preconditioner for temperature block" << endl;
+      tbox::pout << "Preconditioner for temperature block with tol "<< delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4062,7 +4062,8 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
 
    int retcode = converged ? 0 : 1;
 
-   // Copy solution from the local temporary to the output array
+   // Copy solution from the local temporary temperature_sol to the output array,
+   // z_temperature, including ghost values
    cellops.copyData( z_temperature_id, d_temperature_sol_id, false );
    
    return retcode;
@@ -4077,7 +4078,7 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    const double delta)
 {
    if ( d_show_conc_sys_stats ) {
-      tbox::pout << "Preconditioner for Concentration block" << endl;
+      tbox::pout << "Preconditioner for Concentration block with tol "<< delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4123,7 +4124,7 @@ int QuatIntegrator::QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hi
                                      const double delta, const double gamma)
 {
    if ( d_show_quat_sys_stats ) {
-      tbox::pout << "Preconditioner for Quaternion block" << endl;
+      tbox::pout << "Preconditioner for Quaternion block with tol "<< delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4238,7 +4239,7 @@ CVSpgmrPrecondSolve
       math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
       if( d_with_unsteady_temperature && d_precond_has_dPhidT ){
-         int converged = applyTemperaturePreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         int converged = applyTemperaturePreconditioner(hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
          retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       if ( d_with_phase ) {
@@ -4297,7 +4298,7 @@ CVSpgmrPrecondSolve
       // Apply the preconditioner temperature block
       if ( d_with_unsteady_temperature && !d_precond_has_dPhidT ) {
 
-         int converged = applyTemperaturePreconditioner(hierarchy,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         int converged = applyTemperaturePreconditioner(hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
          retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       
@@ -4382,6 +4383,7 @@ int QuatIntegrator::applyPhasePreconditioner(
 
 int QuatIntegrator::applyTemperaturePreconditioner(
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const double t,
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > r_samvect,
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > ewt_samvect,
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
@@ -4403,6 +4405,33 @@ int QuatIntegrator::applyTemperaturePreconditioner(
    if ( !d_temperature_sys_solver ) {
       math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
       cellops.copyData( z_temperature_id, r_temperature_id, false );
+
+      //save computed T correction in d_temperature_sol_id to use in
+      //Phase off-diagonal block preconditioner
+      //(done by TemperaturePrecondSolve if called)
+      if ( d_precond_has_dPhidT ){
+         // Copy the T correction to an array with ghost cells and fill them
+         xfer::RefineAlgorithm copy_with_ghosts ;
+
+         copy_with_ghosts.registerRefine(
+            d_temperature_sol_id,  // destination
+            z_temperature_id,      // source
+            d_temperature_sol_id,  // temporary work space
+            d_temperature_refine_op );
+
+         for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
+            boost::shared_ptr< hier::PatchLevel > level =
+               hierarchy->getPatchLevel( ln );
+
+            boost::shared_ptr<xfer::RefineSchedule > schedule (
+               copy_with_ghosts.createSchedule(
+                  level,
+                  ln-1,
+                  hierarchy,
+                  d_all_refine_patch_strategy ) );
+            schedule->fillData( t );
+         }
+      }
    }
    else {
       int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta,gamma);

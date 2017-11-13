@@ -415,7 +415,9 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
 
    assert( d_ncompositions>=0 );
   
-   const double Tref = d_model_parameters.with_rescaled_temperature() ? 1. : d_model_parameters.meltingT();
+   const double Tref = d_model_parameters.with_rescaled_temperature() ? 
+                       d_model_parameters.meltingT()/d_model_parameters.rescale_factorT() : 
+                       d_model_parameters.meltingT();
  
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
@@ -692,7 +694,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          d_free_energy_strategy =
             new DeltaTemperatureFreeEnergyStrategy(
                Tref,
-               d_model_parameters.latent_heat());
+               d_model_parameters.latent_heat(),
+               d_model_parameters.phase_interp_func_type() );
       }else
          d_free_energy_strategy =
             new TemperatureFreeEnergyStrategy(
@@ -723,12 +726,12 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    }
 
    //pure element free energy
-tbox::plog<<"d_model_parameters.free_energy_type()="<<d_model_parameters.free_energy_type()<<endl;
    if( d_model_parameters.free_energy_type()[0]=='l' ){
          d_free_energy_strategy =
             new DeltaTemperatureFreeEnergyStrategy(
                Tref,
-               d_model_parameters.latent_heat());
+               d_model_parameters.latent_heat(),
+               d_model_parameters.phase_interp_func_type());
    }
    
    if( d_model_parameters.with_Aziz_partition_coeff() ){
@@ -870,7 +873,7 @@ void QuatModel::Initialize(
       assert( d_phase_scratch_id!=-1 );
 
       const int phase_id = d_model_parameters.with_phase() ? d_phase_scratch_id : -1; 
-      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.meltingT() : -1.;
+      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.rescale_factorT() : -1.;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
@@ -1724,7 +1727,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
          if( d_model_parameters.with_rescaled_temperature() ){
             assert( d_model_parameters.meltingT()==d_model_parameters.meltingT() );
             math::PatchCellDataBasicOps<double> cellops;
-            cellops.scale(temp_data,1./d_model_parameters.meltingT(),temp_data,patch_box);
+            cellops.scale(temp_data,1./d_model_parameters.rescale_factorT(),temp_data,patch_box);
          }
       }
 
@@ -7739,8 +7742,8 @@ double QuatModel::computeThermalEnergy( const boost::shared_ptr<hier::PatchHiera
       lenergy = cellops.integral(d_phase_id,d_weight_id);
       lenergy *= (-1.*d_model_parameters.latent_heat() );
    }
-   double refenergy=d_model_parameters.meltingT()*cellops.integral(d_cp_id, d_weight_id );
-   if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.meltingT();
+   double refenergy=d_model_parameters.rescale_factorT()*cellops.integral(d_cp_id, d_weight_id );
+   if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.rescale_factorT();
 
    // store product cp*T in d_fl_id
    cellops.multiply( d_f_l_id, d_cp_id, d_temperature_id ); // rescaling of cp compensates rescaling of T

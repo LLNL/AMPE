@@ -238,7 +238,8 @@ extern "C" {
       const double*, const int&,
       const double*, const int&,
       const double&,const double&,
-      double* rhs, const int&
+      double* rhs, const int&,
+      const char* const
       );
 
    void FORT_COMP_RHS_ETA(
