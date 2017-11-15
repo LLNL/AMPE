@@ -55,8 +55,6 @@ using namespace std;
 *                                                                       *
 *************************************************************************
 */
-
-
 EllipticFACSolver::EllipticFACSolver (
    const std::string &object_name,
    boost::shared_ptr<EllipticFACOps> fac_ops,
@@ -128,8 +126,7 @@ void
 EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& database )
 {
    if ( database->isBool("enable_logging") ) {
-      bool logging = database->getBool("enable_logging");
-      enableLogging(logging);
+      d_enable_logging = database->getBool("enable_logging");
    }
 }
 
@@ -376,7 +373,6 @@ EllipticFACSolver::solveSystem(const int u_id,
 }
 
 
-
 /*
 *************************************************************************
 *                                                                       *
@@ -389,8 +385,7 @@ EllipticFACSolver::solveSystem(const int u_id,
 *                                                                       *
 *************************************************************************
 */
-
- bool
+bool
 EllipticFACSolver::solveSystem(const int u_id,
                                const int f_id,
                                const int w_id,

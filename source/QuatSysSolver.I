@@ -102,9 +102,3 @@ QuatSysSolver::getFACConvergenceFactors(double &   avg_factor,
   d_fac_solver.getConvergenceFactors(avg_factor, final_factor);
 }
 
-SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setLogging(bool logging)
-{
-  d_fac_ops->enableLogging(logging);
-}
-

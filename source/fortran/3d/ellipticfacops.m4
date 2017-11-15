@@ -104,65 +104,6 @@ c***********************************************************************
       end
 c***********************************************************************
 c***********************************************************************
-      subroutine efo_compfluxcondc3d(
-     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
-     &dc ,
-     &soln , solngi, solngj , solngk ,
-     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
-     &dx )
-
-      implicit none
-      integer ifirst, ilast, jfirst, jlast, kfirst, klast
-      integer fluxgi, fluxgj, fluxgk, 
-     &        solngi, solngj, solngk
-      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
-     &                       jfirst-fluxgj:jlast+fluxgj,
-     &                       kfirst-fluxgk:klast+fluxgk)
-      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
-     &                       jfirst-fluxgj:jlast+1+fluxgj,
-     &                       kfirst-fluxgk:klast+fluxgk)
-      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
-     &                       jfirst-fluxgj:jlast+fluxgj,
-     &                       kfirst-fluxgk:klast+1+fluxgk)
-      double precision dc
-      double precision soln(ifirst-solngi:ilast+solngi,
-     &                      jfirst-solngj:jlast+solngj,
-     &                      kfirst-solngk:klast+solngk)
-      double precision dx(0:2)
-
-      double precision dxi, dyi, dzi
-      integer i, j, k
-
-      dxi = 1./dx(0)
-      dyi = 1./dx(1)
-      dzi = 1./dx(2)
-
-      do k=kfirst,klast
-      do j=jfirst,jlast
-      do i=ifirst,ilast+1
-         xflux(i,j,k) = dxi*dc*( soln(i,j,k) - soln(i-1,j,k) )
-      enddo
-      enddo
-      enddo
-      do k=kfirst,klast
-      do j=jfirst,jlast+1
-      do i=ifirst,ilast
-         yflux(i,j,k) = dyi*dc*( soln(i,j,k) - soln(i,j-1,k) )
-      enddo
-      enddo
-      enddo
-      do k=kfirst,klast+1
-      do j=jfirst,jlast
-      do i=ifirst,ilast
-         zflux(i,j,k) = dzi*dc*( soln(i,j,k) - soln(i,j,k-1) )
-      enddo
-      enddo
-      enddo
-
-      return
-      end
-c***********************************************************************
-c***********************************************************************
       subroutine efo_rbgswithfluxmaxvardcvarsf3d(
      &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
      &xdc , ydc , zdc, dcgi, dcgj , dcgk ,

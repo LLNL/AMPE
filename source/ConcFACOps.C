@@ -67,5 +67,4 @@ void ConcFACOps::setOperatorCoefficients(
    setMConstant(mobility);
    setCConstant(1.);
    setDPatchDataId(d_d_id);
-   //setDConstant(0.);
 }

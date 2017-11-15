@@ -168,17 +168,6 @@ public:
     */
    virtual ~EllipticFACSolver(void);
 
-   /*!
-    * @brief Enable logging.
-    *
-    * To disable, pass in @c false.
-    */
-   void enableLogging( bool logging )
-   {
-      d_enable_logging = logging;
-      d_fac_ops->enableLogging(d_enable_logging);
-   }
-
    /*
     * This function must be called after any of the C,D or A
     * coefficients are set or changed.  This lets the solver know

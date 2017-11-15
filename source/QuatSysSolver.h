@@ -127,7 +127,6 @@ using namespace SAMRAI;
  * as well as through the input database (if supplied).  The following
  * parameters can be set.  Each is shown with its default value
  *
- * enable_logging = FALSE                  // Bool flag to switch logging on/off
  * max_cycles = 10                         // Maximum number of FAC cycles allowed
  * residual_tol = 1.e-6                    // Desired residual tolerance
  * coarse_fine_discretization = "Ewing"    // Name of coarse-fine discretization
@@ -337,13 +336,6 @@ public:
     * verbose: Print to tbox::pout?
     */
    void setVerbose(bool verbose);
-
-   /*
-    * Enable logging to log files.
-    *
-    * logging: Logging enabled?
-    */
-   void setLogging(bool logging);
 
    /*
     * Set the relative residual tolerance to which each

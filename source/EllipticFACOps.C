@@ -106,20 +106,39 @@ extern "C" {
       const int *jfirst ,
       const int *jlast ,
       const double *dx );
-   void efo_compfluxcondc2d_(
-      double *xflux ,
-      double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double &diff_coef ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
+void SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D) (
+   double* xflux,
+   double* yflux,
+   const int* fluxgi,
+   const int* fluxgj,
+   const double& diff_coef,
+   const double* soln,
+   const int* solngi,
+   const int* solngj,
+   const int* ifirst,
+   const int* ilast,
+   const int* jfirst,
+   const int* jlast,
+   const double* dx);
+void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
+   double* xflux,
+   double* yflux,
+   double* zflux,
+   const int* fluxgi,
+   const int* fluxgj,
+   const int* fluxgk,
+   const double& diff_coef,
+   const double* soln,
+   const int* solngi,
+   const int* solngj,
+   const int* solngk,
+   const int* ifirst,
+   const int* ilast,
+   const int* jfirst,
+   const int* jlast,
+   const int* kfirst,
+   const int* klast,
+   const double* dx);
   void efo_rbgswithfluxmaxvardcvarsf2d_(
       const double *xflux ,
       const double *yflux ,
@@ -365,25 +384,6 @@ extern "C" {
       const int *dcgi ,
       const int *dcgj ,
       const int *dcgk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void efo_compfluxcondc3d_(
-      double *xflux ,
-      double *yflux ,
-      double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double &diff_coef ,
       const double *soln ,
       const int *solngi ,
       const int *solngj ,
@@ -802,6 +802,11 @@ EllipticFACOps::EllipticFACOps(
          (tbox::Dimension(NDIM),"EllipticFACOps::private_c"));
    }
 
+   /*
+    * Some variables initialized by default are overriden by input.
+    */
+   getFromInput(database);
+
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
    d_cell_scratch_id = vdb->
       registerVariableAndContext( s_cell_scratch_var,
@@ -829,16 +834,9 @@ EllipticFACOps::EllipticFACOps(
                                   hier::IntVector(tbox::Dimension(NDIM),0) );
 
    /*
-    * Some variables initialized by default are overriden by input.
-    */
-   getFromInput(database);
-
-   /*
     * Check input validity and correctness.
     */
    checkInputPatchDataIndices();
-
-   return;
 }
 
 void EllipticFACOps::getFromInput(
@@ -1461,8 +1459,8 @@ EllipticFACOps::postprocessOneCycle(
 */
 void
 EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s ,
-                                      solv::SAMRAIVectorReal<double> &d ,
-                                      int dest_ln )
+   solv::SAMRAIVectorReal<double> &d ,
+   int dest_ln )
 {
    t_restrict_solution->start();
 
@@ -1483,9 +1481,7 @@ EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s ,
    }
 
    t_restrict_solution->stop();
-   return;
 }
-
 
 /*
 ********************************************************************
@@ -1493,9 +1489,10 @@ EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s ,
 ********************************************************************
 */
 void
-EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s ,
-                                      solv::SAMRAIVectorReal<double> &d ,
-                                      int dest_ln )
+EllipticFACOps::restrictResidual(
+   const solv::SAMRAIVectorReal<double> &s ,
+   solv::SAMRAIVectorReal<double> &d ,
+   int dest_ln )
 {
    t_restrict_residual->start();
 
@@ -1504,9 +1501,7 @@ EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s ,
                            dest_ln);
 
    t_restrict_residual->stop();
-   return;
 }
-
 
 /*
 ***********************************************************************
@@ -1565,11 +1560,13 @@ EllipticFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> &s ,
    fine_level->deallocatePatchData(d_cell_scratch_id);
 
    t_prolong->stop();
-
-   return;
 }
 
 
+/*
+ ********************************************************************
+ ********************************************************************
+ */
 void
 EllipticFACOps::smoothError(solv::SAMRAIVectorReal<double> &data ,
                                  const solv::SAMRAIVectorReal<double> &residual ,
@@ -1579,21 +1576,13 @@ EllipticFACOps::smoothError(solv::SAMRAIVectorReal<double> &data ,
    t_smooth_error->start();
 
    checkInputPatchDataIndices();
-   if ( d_smoothing_choice == "redblack" ) {
-      smoothErrorByRedBlack ( data ,
-                              residual ,
-                              ln ,
-                              num_sweeps ,
-                              d_residual_tolerance_during_smoothing );
-   }
-   else {
-      TBOX_ERROR(d_object_name << ": Bad smoothing choice '"
-                 << d_smoothing_choice
-                 << "' in EllipticFACOps.");
-   }
+   smoothErrorByRedBlack ( data ,
+      residual ,
+      ln ,
+      num_sweeps ,
+      d_residual_tolerance_during_smoothing );
 
    t_smooth_error->stop();
-   return;
 }
 
 
@@ -1682,6 +1671,10 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
          boost::shared_ptr<pdat::SideData<double> > flux_data (
             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
 
+         TBOX_ASSERT(err_data);
+         TBOX_ASSERT(residual_data);
+         TBOX_ASSERT(flux_data);
+
          computeFluxOnPatch(
                             *patch ,
                             level->getRatioToCoarserLevel() ,
@@ -1725,6 +1718,10 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::SideData<double> > flux_data ( 
             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
+
+         TBOX_ASSERT(err_data);
+         TBOX_ASSERT(residual_data);
+         TBOX_ASSERT(flux_data);
 
          computeFluxOnPatch(
                             *patch ,
@@ -2155,14 +2152,12 @@ EllipticFACOps::accumulateOperatorOnLevel(
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual                                *
 * computeCompositeResidualOnLevel function                         *
 ********************************************************************
 */
-
 void
 EllipticFACOps::computeCompositeResidualOnLevel(
    solv::SAMRAIVectorReal<double> &residual ,
@@ -2320,7 +2315,6 @@ EllipticFACOps::computeCompositeResidualOnLevel(
    t_compute_composite_residual->stop();
    return;
 }
-
 
 
 /*
@@ -2550,25 +2544,16 @@ EllipticFACOps::computeFluxOnPatch(
 
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
-   const hier::Box &box=patch.getBox();
+   TBOX_ASSERT(patch_geom);
+   const hier::Box& box=patch.getBox();
    const int* lower = &box.lower()[0];
    const int* upper = &box.upper()[0];
    const double *dx = patch_geom->getDx();
 
-   double D_value;
-   boost::shared_ptr<pdat::SideData<double> > D_data;
    if ( d_poisson_spec.dIsConstant() ) {
-      D_value = d_poisson_spec.getDConstant();
-   }
-   else {
-       D_data =
-         boost::dynamic_pointer_cast<pdat::SideData<double>, hier::PatchData>(
-            patch.getPatchData(d_poisson_spec.getDPatchDataId()));
-   }
-
-   if ( d_poisson_spec.dIsConstant() ) {
+      double D_value = d_poisson_spec.getDConstant();
 #if NDIM==2      
-      efo_compfluxcondc2d_(
+      SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D) (
          Dgradw_data.getPointer(0) ,
          Dgradw_data.getPointer(1) ,
          &Dgradw_data.getGhostCellWidth()[0],
@@ -2581,7 +2566,7 @@ EllipticFACOps::computeFluxOnPatch(
          &lower[1], &upper[1] ,
          dx );
 #else
-      efo_compfluxcondc3d_(
+      SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
          Dgradw_data.getPointer(0) ,
          Dgradw_data.getPointer(1) ,
          Dgradw_data.getPointer(2) ,
@@ -2599,6 +2584,10 @@ EllipticFACOps::computeFluxOnPatch(
          dx );
 #endif
    } else {
+      boost::shared_ptr<pdat::SideData<double> > D_data(
+         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            patch.getPatchData(d_poisson_spec.getDPatchDataId())));
+      TBOX_ASSERT(D_data);
 #if NDIM==2
       efo_compfluxvardc2d_(
          Dgradw_data.getPointer(0) ,
@@ -2659,7 +2648,6 @@ EllipticFACOps::accumulateOperatorOnPatch(
    const pdat::CellData<double> &soln_data ,
    pdat::CellData<double> &accum_data ) const
 {
-
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
    const hier::Box &box=patch.getBox();
@@ -3003,7 +2991,6 @@ EllipticFACOps::computeResidualOnPatch(
 }
 
 
-
 void
 EllipticFACOps::evaluateRHS(
    const int             soln_id,
@@ -3020,8 +3007,6 @@ EllipticFACOps::evaluateRHS(
 
    t_compute_rhs->stop();
 }
-
-
 
 
 void
@@ -3417,7 +3402,6 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
 }
 
 
-
 void
 EllipticFACOps::xeqScheduleProlongation(
    int dst_id,
@@ -3445,7 +3429,6 @@ EllipticFACOps::xeqScheduleProlongation(
 }
 
 
-
 void
 EllipticFACOps::xeqScheduleURestriction(
    int dst_id,
@@ -3466,9 +3449,7 @@ EllipticFACOps::xeqScheduleURestriction(
    d_urestriction_coarsen_schedules[dest_ln]->coarsenData();
    d_urestriction_coarsen_algorithm->
       resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
-   return;
 }
-
 
 
 void
@@ -3491,9 +3472,7 @@ EllipticFACOps::xeqScheduleRRestriction(
    d_rrestriction_coarsen_schedules[dest_ln]->coarsenData();
    d_rrestriction_coarsen_algorithm->
       resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
-   return;
 }
-
 
 
 void
@@ -3516,9 +3495,7 @@ EllipticFACOps::xeqScheduleFluxCoarsen(
    d_flux_coarsen_schedules[dest_ln]->coarsenData();
    d_flux_coarsen_algorithm->
       resetSchedule(d_flux_coarsen_schedules[dest_ln]);
-   return;
 }
-
 
 
 void
@@ -3542,7 +3519,6 @@ EllipticFACOps::xeqScheduleGhostFill(
    d_ghostfill_refine_schedules[dest_ln]->fillData(0.0);
    d_ghostfill_refine_algorithm->
       resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
-   return;
 }
 
 void
@@ -3565,7 +3541,6 @@ EllipticFACOps::xeqScheduleGhostFillNoCoarse(
    d_ghostfill_nocoarse_refine_schedules[dest_ln]->fillData(0.0);
    d_ghostfill_nocoarse_refine_algorithm->
       resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
-   return;
 }
 
 void
@@ -3575,5 +3550,5 @@ EllipticFACOps::freeVariables()
    s_flux_scratch_var.reset();
    s_oflux_scratch_var.reset();
    s_m_var.reset();
-   return;
 }
+

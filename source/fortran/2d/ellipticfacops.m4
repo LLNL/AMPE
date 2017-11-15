@@ -81,47 +81,6 @@ c***********************************************************************
       end
 c***********************************************************************
 c***********************************************************************
-      subroutine efo_compfluxcondc2d(
-     &xflux , yflux , fluxgi, fluxgj ,
-     &dc ,
-     &soln , solngi, solngj ,
-     &ifirst, ilast, jfirst, jlast ,
-     &dx )
-
-      implicit none
-      integer ifirst, ilast, jfirst, jlast
-      integer fluxgi, fluxgj,
-     &        solngi, solngj
-      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
-     &                       jfirst-fluxgj:jlast+fluxgj)
-      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
-     &                       jfirst-fluxgj:jlast+1+fluxgj)
-      double precision dc
-      double precision soln(ifirst-solngi:ilast+solngi,
-     &                      jfirst-solngj:jlast+solngj)
-      double precision dx(0:1)
-
-      double precision dxi, dyi
-      integer i, j
-
-      dxi = 1./dx(0)
-      dyi = 1./dx(1)
-
-      do j=jfirst,jlast
-      do i=ifirst,ilast+1
-         xflux(i,j) = dxi*dc*( soln(i,j) - soln(i-1,j) )
-      enddo
-      enddo
-      do j=jfirst,jlast+1
-      do i=ifirst,ilast
-         yflux(i,j) = dyi*dc*( soln(i,j) - soln(i,j-1) )
-      enddo
-      enddo
-
-      return
-      end
-c***********************************************************************
-c***********************************************************************
       subroutine efo_rbgswithfluxmaxvardcvarsf2d(
      &xflux , yflux , fluxgi, fluxgj ,
      &xdc , ydc , dcgi, dcgj ,
@@ -169,7 +128,6 @@ c***********************************************************************
       rcoef = 1.0
 
       maxres = 0.0
-c      print*,'efo_rbgswithfluxmaxvardcvarsf2d'
 
       do j=jfirst,jlast
 c        offset must be 0 (red) or 1 (black)
@@ -541,7 +499,6 @@ c***********************************************************************
 
       double precision dxi, dyi
       integer i, j
-c      print*,'accumopvarsca2d'
 
       dxi = 1./dx(0)
       dyi = 1./dx(1)
@@ -590,7 +547,6 @@ c***********************************************************************
 
       double precision dxi, dyi
       integer i, j
-
       dxi = 1./dx(0)
       dyi = 1./dx(1)
 

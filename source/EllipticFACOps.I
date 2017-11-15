@@ -77,20 +77,6 @@ void EllipticFACOps::setCConstant( const double scalar ) {
 }
 
 
-/*
-********************************************************************
-********************************************************************
-*/
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::enableLogging( bool enable_logging )
-{
-   d_enable_logging = enable_logging;
-   return;
-}
-
-
-
 
 /*
 ********************************************************************
@@ -237,9 +223,3 @@ void EllipticFACOps::setProlongationMethod(
    return;
 }
 
-
-SAMRAI_INLINE_KEYWORD void
-EllipticFACOps::setVerbose(const bool verbose)
-{
-  d_verbose = verbose;
-}

@@ -129,20 +129,6 @@ public:
     */
    ~QuatFACOps(void);
 
-
-   /*!
-    * @brief Enable logging.
-    *
-    * By default, logging is disabled.  The logging flag is
-    * propagated to the major components used by this class.
-    */
-   void
-   enableLogging(
-      bool enable_logging)
-   {
-      d_enable_logging = enable_logging;
-   }
-
    /*
     * Enable verbosity.
     *

@@ -148,7 +148,7 @@ c***********************************************************************
 c     local variables
       integer i, j, p
       REAL c, t, cpvals(2)
-
+ 
       do j = ifirst1, ilast1
          do i = ifirst0, ilast0
             c=conc(i,j)
@@ -253,6 +253,7 @@ c
          do i = ifirst0, ilast0
             
             temp(i,j)=tref+slope*(conc(i,j)-cref)
+c            temp(i,j)=tref
 
          enddo
       enddo

@@ -682,13 +682,18 @@ c
       integer ic0, ic1
       double precision gamma, dxinv2, dyinv2
       double precision diff_term_x, diff_term_y, diff_term
-      
+     
+c      print*,'thermal diff=',thermal_diffusivity
+ 
       dxinv2 = 1.d0/(dx(0)*dx(0))
       dyinv2 = 1.d0/(dx(1)*dx(1))
 c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0
-
+c check derivative for boundary 0
+c            if( ic0 .eq. 0 )then
+c               print*,ic0,ic1,(temp(ic0,ic1)-temp(ic0-1,ic1))/dx(0)
+c            endif
             diff_term_x = 
      &           (temp(ic0-1,ic1)-2.d0*temp(ic0,ic1)+temp(ic0+1,ic1)) 
             diff_term_y = 

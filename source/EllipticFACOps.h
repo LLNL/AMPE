@@ -223,16 +223,6 @@ public:
 
    void finalizeCoefficients();
 
-   /*!
-    * @brief Enable logging.
-    *
-    * By default, logging is disabled.  The logging flag is
-    * propagated to the major components used by this class.
-    */
-   void enableLogging( bool enable_logging );
-
-   void setVerbose(bool verbose);
-
    //@{
    /*!
     * @name Functions for setting solver mathematic algorithm controls

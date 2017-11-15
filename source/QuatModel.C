@@ -7742,14 +7742,14 @@ double QuatModel::computeThermalEnergy( const boost::shared_ptr<hier::PatchHiera
       lenergy = cellops.integral(d_phase_id,d_weight_id);
       lenergy *= (-1.*d_model_parameters.latent_heat() );
    }
-   double refenergy=d_model_parameters.rescale_factorT()*cellops.integral(d_cp_id, d_weight_id );
-   if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.rescale_factorT();
+   //double refenergy=d_model_parameters.rescale_factorT()*cellops.integral(d_cp_id, d_weight_id );
+   //if ( d_model_parameters.with_rescaled_temperature() )refenergy/d_model_parameters.rescale_factorT();
 
    // store product cp*T in d_fl_id
    cellops.multiply( d_f_l_id, d_cp_id, d_temperature_id ); // rescaling of cp compensates rescaling of T
 
    double cenergy = cellops.integral(d_f_l_id,d_weight_id);
 
-   return lenergy+cenergy-refenergy; 
+   return lenergy+cenergy;//-refenergy; 
 }
 
