@@ -82,6 +82,21 @@ using namespace std;
 
 //-----------------------------------------------------------------------
 
+void setBChomogeneous(solv::LocationIndexRobinBcCoefs* bc_coefs){
+   tbox::plog<<"BC for "<<bc_coefs->getObjectName()<<" set to homogeneous"<<endl;
+   for( int n =0; n<2*NDIM; n++){
+      double a,b,g;
+      bc_coefs->getCoefficients(n,a,b,g);
+      //tbox::plog<<"BC for Temperature linear solver:"<<endl;
+      //tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
+      g=0.;
+      //tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
+      bc_coefs->setRawCoefficients(n,a,b,g);
+   }
+}
+
+//-----------------------------------------------------------------------
+
 QuatIntegrator::QuatIntegrator(
    const string& name,
    const QuatModelParameters& model_parameters,
@@ -160,8 +175,10 @@ QuatIntegrator::QuatIntegrator(
      d_f_l_id( -1 ),
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
+     d_phase_rhs_visit_id(-1),
      d_modulus_q_rhs_visit_id(-1),
      d_q_rhs_visit_id(-1),
+     d_temperature_rhs_visit_id(-1),
      d_q_rhs1_visit_id(-1),
      d_phase_sol_id( -1 ),
      d_phase_rhs_id( -1 ),
@@ -1263,6 +1280,8 @@ void QuatIntegrator::RegisterLocalUnsteadyTemperatureVariables()
    d_local_data.setFlag( d_temperature_rhs_id );
 }
 
+//setup BC for linear solvers
+//Values of g are set to 0 since these linear solvers compute corrections
 void QuatIntegrator::setupBC()
 {
    // boundary conditions
@@ -1273,41 +1292,35 @@ void QuatIntegrator::setupBC()
             d_boundary_cond_db->getDatabase( "Phase" );
          d_phase_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"PhaseBcCoefs", phase_bc_db );
+         setBChomogeneous(d_phase_bc_coefs);
       }
       if ( d_with_concentration ) {
          boost::shared_ptr<tbox::Database> conc_bc_db =
             d_boundary_cond_db->getDatabase( "Conc" );
          d_conc_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"ConcBcCoefs", conc_bc_db );
+         setBChomogeneous(d_conc_bc_coefs);
       }
       if ( d_with_orientation ) {
          boost::shared_ptr<tbox::Database> quat_bc_db =
             d_boundary_cond_db->getDatabase( "Quat" );
          d_quat_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"QuatBcCoefs", quat_bc_db );
+         setBChomogeneous(d_quat_bc_coefs);
       }
       if ( d_with_third_phase ) {
          boost::shared_ptr<tbox::Database> eta_bc_db =
             d_boundary_cond_db->getDatabase( "Eta" );
          d_eta_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"EtaBcCoefs", eta_bc_db );
+         setBChomogeneous(d_eta_bc_coefs);
       }
       if( d_with_unsteady_temperature ){
          boost::shared_ptr<tbox::Database> temp_bc_db =
             d_boundary_cond_db->getDatabase( "Temperature" );
          d_temperature_bc_coefs
             =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temp_bc_db );
-         if( d_model_parameters.with_rescaled_temperature() ){
-            double a,b,g;
-            double rescaled_temperature_coeff=1./d_model_parameters.rescale_factorT();
-            for( int n =0; n<2*NDIM; n++){
-               d_temperature_bc_coefs->getCoefficients(n,a,b,g);
-               tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
-               g*=rescaled_temperature_coeff;
-               tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
-               d_temperature_bc_coefs->setRawCoefficients(n,a,b,g);
-            }
-         }
+         setBChomogeneous(d_temperature_bc_coefs);
       }
    }
 }
@@ -1499,10 +1512,11 @@ void QuatIntegrator::RegisterWithVisit(
    }
    
    if( d_model_parameters.with_rhs_visit_output() ){
-      assert( d_phase_rhs_visit_id>0 );
-      visit_data_writer->registerPlotQuantity(
-         "phase_rhs", "SCALAR", d_phase_rhs_visit_id, 0 );
-
+      if( d_with_phase ){
+         assert( d_phase_rhs_visit_id>=0 );
+         visit_data_writer->registerPlotQuantity(
+            "phase_rhs", "SCALAR", d_phase_rhs_visit_id, 0 );
+      }
       if ( d_with_heat_equation ) {
          assert( d_temperature_rhs_visit_id>0 );
          visit_data_writer->registerPlotQuantity(
@@ -3099,7 +3113,7 @@ void QuatIntegrator::evaluateTemperatureRHS(
             cp->getPointer(),        cp->getGhostCellWidth()[0],
             (int)d_model_parameters.with_phase(),
             phase_rhs_ptr,   phase_rhs_nghosts,
-            temperature_rhs->getPointer(), 0 );
+            temperature_rhs->getPointer(), temperature_rhs->getGhostCellWidth()[0] );
       }
    }
 
@@ -3673,7 +3687,8 @@ int QuatIntegrator::evaluateRHSFunction(
 //#endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   int temperature_id  = d_with_unsteady_temperature ? y_samvect->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
+   int temperature_id  = d_with_unsteady_temperature ? 
+                         y_samvect->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
    if( temperature_id>=0 ){
       math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
       const double norm_y_temp = mathops.L2Norm( temperature_id );
@@ -4032,7 +4047,6 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
 
    if ( d_precond_has_dTdphi ){
       TBOX_ASSERT( d_phase_temperature_fac_ops );
-
       // Compute the product of DTDPhi block of the Jacobian with the
       // just computed phi correction
       //double norm_phase=cellops.L2Norm(d_phase_sol_id);
@@ -4059,7 +4073,22 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
          d_temperature_sol_id, 
          d_temperature_rhs_id,
          ewt_temperature_id );
+#if 0
+   int maxln = hierarchy->getFinestLevelNumber();
+   for (int ln = 0; ln <= maxln; ln++ ) {
 
+      boost::shared_ptr<hier::PatchLevel > level = hierarchy->getPatchLevel(ln);
+      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
+         boost::shared_ptr<hier::Patch > patch = *p;
+
+         boost::shared_ptr< pdat::CellData<double> > y (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_sol_id ) ) );
+         const hier::Box& pbox = patch->getBox();
+
+         y->print(y->getGhostBox() );
+      }
+   }
+#endif
    int retcode = converged ? 0 : 1;
 
    // Copy solution from the local temporary temperature_sol to the output array,
