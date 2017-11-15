@@ -1,0 +1,4 @@
+python ../../utils/make_bilayer.py -r 60 -x 600 -y 30 -z 1 \
+   --concentration-in 0.00672 --concentration-out 0.048 --centerx 60 --delta 1 \
+   --temperature 921.12 600x30.nc
+
