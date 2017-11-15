@@ -1,0 +1,16 @@
+python initialConditions.py -x 60 -y 60 -z 1 -t 0. 60x60.nc
+
+Heat flow:
+alpha*(rho*cp)*gradT*L for each surface
+
+We have:
+1.e-3 (cm2/s) * 1.e-4 (m2/cm2) * 10 (J/mol*k) * 1.e5 (mol/m3) * L * gradT
+=
+1.e-1 (J/K*m) * L * gradT
+=
+1.e5 (pJ/K*um) * L * gradT
+
+That is 10 (pJ/s) for L=1 um and gradT = 1.e-4 (K/um).
+
+In this test, thermal energy should grow by 10 (pJ/s) and T should increase 
+by 10 (K/s) since rho*cp/Vm = 10 (J/mol*K) * 1.e5 (mol/m3) = 1.e6 (J/m3) = 1. (pJ/um3) 
