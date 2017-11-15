@@ -2,7 +2,7 @@
 //   length: um = 10^-6 m
 //   energy: pJ = 10^-12 J
 //
-model_type = "KWCcomplex"
+model_type = "Quat"
 
 end_time = 5000.0  // required
 max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
@@ -57,10 +57,12 @@ ModelParameters {  // required block
     // see the solv_RobinBcCoefStrategy class.
     // Examples:
     Temperature{
-      boundary_0 = "slope", "1.e-4"
+      boundary_0 = "slope", "0."
       boundary_1 = "slope", "0."
       boundary_2 = "slope", "-1.e-4"
-      boundary_3 = "slope", "1.e-4"
+      boundary_3 = "slope", "0."
+      boundary_4 = "slope", "1.e-4"
+      boundary_5 = "slope", "1.e-4"
     }
 
    }
@@ -78,12 +80,12 @@ Integrator {
 }
 
 InitialConditions {  // required block
-   filename = "60x60.nc"
+   filename = "60x60x60.nc"
 }
 
 Geometry{
-   periodic_dimension = 0, 0
-   coarsest_level_resolution = 60, 60  // required
-   x_lo         =  0.,  0.    // lower end of computational domain.
-   x_up         =  1.,  1.    // upper end of computational domain.
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 60, 60, 60  // required
+   x_lo         =  0., 0., 0.    // lower end of computational domain.
+   x_up         =  1., 1., 1. // upper end of computational domain.
 }
