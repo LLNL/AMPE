@@ -109,14 +109,14 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
       temperature_db = model_db;
    }
    
-   if( model_db->keyExists("BoundaryConditions") ) {
+   if( model_db->keyExists("BoundaryConditions") && model_parameters.with_steady_temperature() ) {
       boost::shared_ptr<tbox::Database> bc_db =
          model_db->getDatabase( "BoundaryConditions" );
       if( bc_db->keyExists( "Temperature" ) ){
          boost::shared_ptr<tbox::Database> temperature_bc_db =
             bc_db->getDatabase( "Temperature" );
          d_temperature_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temperature_bc_db );
+            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TFactoryTemperatureBcCoefs", temperature_bc_db );
       }
    }
    

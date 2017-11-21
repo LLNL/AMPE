@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "QuatRefinePatchStrategy.h"
+#include "TimeLocationIndexRobinBcCoefs.h"
 
 #include <boost/make_shared.hpp>
 
@@ -63,7 +64,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       boost::shared_ptr<tbox::Database> phase_bc_db =
          input_bc_db->getDatabase( "Phase" );
       d_phase_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
-         "PhaseBcCoefs", phase_bc_db );
+         "QRPSPhaseBcCoefs", phase_bc_db );
       d_phase_refine_strategy->setCoefImplementation( d_phase_bc_coefs );
    }
 
@@ -74,7 +75,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       boost::shared_ptr<tbox::Database> eta_bc_db =
          input_bc_db->getDatabase( "Eta" );
       d_eta_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
-         "EtaBcCoefs", eta_bc_db );
+         "QRPSEtaBcCoefs", eta_bc_db );
       d_eta_refine_strategy->setCoefImplementation( d_eta_bc_coefs );
    }
 
@@ -85,7 +86,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       boost::shared_ptr<tbox::Database> quat_bc_db =
          input_bc_db->getDatabase( "Quat" );
       d_quat_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
-         "QuatBcCoefs", quat_bc_db );
+         "QRPSQuatBcCoefs", quat_bc_db );
       d_quat_refine_strategy->setCoefImplementation( d_quat_bc_coefs );
    }
 
@@ -96,7 +97,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       boost::shared_ptr<tbox::Database> conc_bc_db =
          input_bc_db->getDatabase( "Conc" );
       d_conc_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
-         "ConcBcCoefs", conc_bc_db );
+         "QRPSConcBcCoefs", conc_bc_db );
       d_conc_refine_strategy->setCoefImplementation( d_conc_bc_coefs );
    }
 
@@ -106,17 +107,36 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       d_temp_refine_strategy->setTargetDataId( d_temperature_id );
       boost::shared_ptr<tbox::Database> temp_bc_db =
          input_bc_db->getDatabase( "Temperature" );
-      d_temp_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
-         "TemperatureBcCoefs", temp_bc_db );
-      if( rescaled_temperature_coeff>0. ){
-         tbox::plog<<"Rescale Temperature boundary conditions by factor "<<rescaled_temperature_coeff<<endl;
-         double a,b,g;
-         for( int n =0; n<2*NDIM; n++){
-            d_temp_bc_coefs->getCoefficients(n,a,b,g);
-            tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
-            g*=rescaled_temperature_coeff;
-            tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
-            d_temp_bc_coefs->setRawCoefficients(n,a,b,g);
+      bool flag=false;
+      string name("boundary_0");
+      if (temp_bc_db->isString(name)) {
+         std::vector<std::string> specs = temp_bc_db->getStringVector(name);
+         if (specs[0] == "file")flag=true;
+      }
+      if(flag){
+         tbox::plog<<"Use TimeLocationIndexRobinBcCoefs for temperature"<<endl;
+         d_temp_bc_coefs = new TimeLocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
+            "QRPSTemperatureBcCoefs", temp_bc_db );
+         if( rescaled_temperature_coeff>0. ){
+            tbox::plog<<"Rescale Temperature boundary conditions by factor "<<rescaled_temperature_coeff<<endl;
+            TimeLocationIndexRobinBcCoefs* bc_coefs = dynamic_cast<TimeLocationIndexRobinBcCoefs*>(d_temp_bc_coefs);
+            bc_coefs->rescaleGcoefficients(rescaled_temperature_coeff);
+         }
+      }else{
+         tbox::plog<<"Use solv::LocationIndexRobinBcCoefs for temperature"<<endl;
+         d_temp_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
+            "QRPSTemperatureBcCoefs", temp_bc_db );
+         if( rescaled_temperature_coeff>0. ){
+            tbox::plog<<"Rescale Temperature boundary conditions by factor "<<rescaled_temperature_coeff<<endl;
+            double a,b,g;
+            solv::LocationIndexRobinBcCoefs* bc_coefs = dynamic_cast<solv::LocationIndexRobinBcCoefs*>(d_temp_bc_coefs);
+            for( int n =0; n<2*NDIM; n++){
+               bc_coefs->getCoefficients(n,a,b,g);
+               tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
+               g*=rescaled_temperature_coeff;
+               tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
+               bc_coefs->setRawCoefficients(n,a,b,g);
+            }
          }
       }
       d_temp_refine_strategy->setCoefImplementation( d_temp_bc_coefs );

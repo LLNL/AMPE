@@ -1316,10 +1316,11 @@ void QuatIntegrator::setupBC()
          setBChomogeneous(d_eta_bc_coefs);
       }
       if( d_with_unsteady_temperature ){
-         boost::shared_ptr<tbox::Database> temp_bc_db =
+         boost::shared_ptr<tbox::Database> temp_bc_db = d_boundary_cond_db->isDatabase( "TemperatureCorrections" ) ?
+            d_boundary_cond_db->getDatabase( "TemperatureCorrections" ) :
             d_boundary_cond_db->getDatabase( "Temperature" );
          d_temperature_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"TemperatureBcCoefs", temp_bc_db );
+            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"LSTemperatureBcCoefs", temp_bc_db );
          setBChomogeneous(d_temperature_bc_coefs);
       }
    }

@@ -80,7 +80,6 @@
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
-#include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/hier/PatchDataRestartManager.h"
 

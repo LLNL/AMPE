@@ -148,7 +148,7 @@ private:
 
    int d_temperature_id;
    solv::CartesianRobinBcHelper* d_temp_refine_strategy;
-   solv::LocationIndexRobinBcCoefs* d_temp_bc_coefs;
+   solv::RobinBcCoefStrategy* d_temp_bc_coefs;
 };
 
 #endif
