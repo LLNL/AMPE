@@ -1,0 +1,99 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time = 5000.0  // required
+max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 100.
+   interval_type = "time"
+   rhs_output = TRUE
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   H_parameter    = -1 // turn off quaternion
+
+   Temperature{
+      type = "heat"
+      equation_type = "unsteady"
+      cp{  
+         SpeciesA{
+            a = 10. // rho*Cp in [J/mol*K]
+         }
+      }
+      thermal_diffusivity = 1.e-3 // [cm^2/s]
+      latent_heat = 1. // unused
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   FreeEnergyModel{
+      type = "linear"
+   }
+
+  BoundaryConditions {
+    // These are the boundary condition specifications.  The number
+    // after "boundary_" is the location index of the boundary.
+    // The inputs are arrays of strings where the first string
+    // indicates the type of values you want to set.  "slope" means
+    // boundary slope, "value" means boundary value, and "coefficients"
+    // mean the raw Robin boundary condition coefficients.
+    // The remaining strings are converted into numbers as
+    // appropriate for what boundary condition you specified with
+    // the first string.  Other boundary conditions are possible.
+    // see the solv_RobinBcCoefStrategy class.
+    // Examples:
+    Temperature{
+      boundary_0 = "file", "flux0.dat"
+      boundary_1 = "file", "flux1.dat"
+      boundary_2 = "file", "flux2.dat"
+      boundary_3 = "file", "flux3.dat"
+      boundary_4 = "file", "flux4.dat"
+      boundary_5 = "file", "flux5.dat"
+    }
+    TemperatureCorrections{
+      boundary_0 = "slope", "0."
+      boundary_1 = "slope", "0."
+      boundary_2 = "slope", "0."
+      boundary_3 = "slope", "0."
+      boundary_4 = "slope", "0."
+      boundary_5 = "slope", "0."
+    }
+
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-6
+   Preconditioner {  // optional block
+   }
+}
+
+InitialConditions {  // required block
+   filename = "60x60x60.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 60, 60, 60  // required
+   x_lo         =  0., 0., 0.    // lower end of computational domain.
+   x_up         =  1., 1., 1. // upper end of computational domain.
+}
