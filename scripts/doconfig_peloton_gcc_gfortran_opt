@@ -1,10 +1,10 @@
 #!/bin/sh
 ./configure --disable-debug --enable-opt \
-            --with-CXX=/usr/local/bin/mpig++-4.4.6 \
-            --with-CC=/usr/local/bin/mpigcc-4.4.6 \
-            --with-F77=/usr/local/bin/mpigfortran-4.4.6 \
-            --with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0 \
-            --with-hdf5=/usr/local/tools/hdf5-gnu-parallel-1.8.8 \
-            --with-netcdf=/usr/local/tools/netcdf-gnu-4.3.3.1 \
+            --with-CXX=/usr/local/bin/mpig++ \
+            --with-CC=/usr/local/bin/mpigcc \
+            --with-F77=/usr/local/bin/mpigfortran \
+            --with-boost=/usr/local/tools/boost-nompi \
+            --with-hdf5=/usr/local/tools/hdf5-gnu-parallel-1.8.5 \
+            --with-netcdf=/usr/gapps/phasefield/lib/netcdf-cxx-gnu \
             --with-hypre=/usr/gapps/phasefield/hypre/2.11.1-gnu \
             --prefix=$PWD/build
