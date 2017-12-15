@@ -118,7 +118,9 @@ QuatModel::QuatModel( int ql ) :
    
    d_diffusion_for_conc_in_phase=NULL;
    d_composition_strategy_mobilities=NULL;
-      
+   d_composition_rhs_strategy=NULL;
+   d_free_energy_strategy_for_diffusion=NULL;
+ 
    d_heat_capacity_strategy = NULL;
    
 
@@ -421,9 +423,9 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
-   double epsilon_anisotropy = model_db->getDoubleWithDefault( "epsilon_anisotropy" , 0.);
+   double epsilon_anisotropy = model_db->getDoubleWithDefault( "epsilon_anisotropy" , -1.);
    
-   if( epsilon_anisotropy>0. )
+   if( epsilon_anisotropy>=0. )
       d_phase_flux_strategy = new PhaseFluxStrategyAnisotropy(d_model_parameters.epsilon_phase(), 
                                                               epsilon_anisotropy, 
                                                               4);
