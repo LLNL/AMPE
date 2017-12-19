@@ -420,6 +420,7 @@ nspecies=0
 if ( not ( nomconc is None ) ):
   c = map( float, string.split( options.nomconc, ',' ) )
   nspecies=len(c)
+  print "Nominal composition=",c
 if ( not ( conc_inside is None ) ):
   ci = map( float, string.split( options.concentration_in, ',' ) )
   if nspecies==0:
@@ -431,9 +432,9 @@ if ( not ( conc_outside is None ) ):
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "Nominal composition=",c
 print "Composition inside=",ci
 print "Composition outside=",co
+print "nspecies=",nspecies
 
 #-----------------------------------------------------------------------
 # Open and define file
@@ -457,10 +458,9 @@ if double_precision:
   for n in range( QLEN ) :
     q_comp = f.createVariable( 'quat%d' % (n+1), 'd', ('z','y','x') )
     ncquat.append( q_comp )
-  if ( not ( nomconc is None ) ):
-    for s in range(nspecies):
-      c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
-      ncconc.append(c_comp)
+  for s in range(nspecies):
+    c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
+    ncconc.append(c_comp)
 else:
   ncphase       = f.createVariable( 'phase', 'f', ('z','y','x') )
   if( not eta_inside is None ):
@@ -469,10 +469,9 @@ else:
   for n in range( QLEN ) :
     q_comp = f.createVariable( 'quat%d' % (n+1), 'f', ('z','y','x') )
     ncquat.append( q_comp )
-  if ( not ( nomconc is None ) ):
-    for s in range(nspecies):
-      c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
-      ncconc.append(c_comp)
+  for s in range(nspecies):
+    c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
+    ncconc.append(c_comp)
 
 
 
@@ -609,7 +608,8 @@ for k in range( nz ) :
 
       d = distance_sq1 - r_sq
       if( delta>0. ):
-        v = 0.5*(1.+math.tanh(-0.5*d*invdelta))
+        sd=math.sqrt(distance_sq1)-math.sqrt(r_sq)
+        v = 0.5*(1.+math.tanh(-0.5*sd*invdelta))
       else :
         if( d>0. ):
           v=0.; #outside

@@ -37,10 +37,6 @@ parser.add_option( "-z", "--nz", type="int",
                    help="number of cells in z direction" )
 parser.add_option( "-q", "--qlen", type="int", default=0,
                    help="number of component for q [default: %default]" )
-parser.add_option( "-i", "--phase-in", type="float", default=1.0,
-                   help="phase in interior region [default: %default]" )
-parser.add_option( "-o", "--phase-out", type="float", default=0.0,
-                   help="phase in exterior region [default: %default]" )
 parser.add_option( "-c", "--nomconc", type="float", 
                    help="nominal concentration" )
 parser.add_option( "--concentration-in", type="float", 
@@ -50,8 +46,13 @@ parser.add_option( "--concentration-out", type="float",
 parser.add_option( "--temperature", type="float",
                    help="temperature" )
 parser.add_option( "-w", "--width", type="float",
-                   help="interface width", default=0.0 )
-parser.add_option( "--double", action="store_true", dest="double_precision", default=False)
+                   help="interface width (in mesh points)", default=5.0 )
+parser.add_option( "--solid-fraction", type="float", default=1./60.,
+                  help="solid-fraction at bottom")
+parser.add_option( "--noise", type="float", default=0.,
+                  help="amplitude of noise in y interface")
+parser.add_option( "--double", action="store_true", dest="double_precision", 
+                  default=False)
 
 (options, args) = parser.parse_args()
 
@@ -66,14 +67,13 @@ ny = options.ny
 nz = options.nz
 
 ngrains = options.ngrains
-
-width = 0.
-if ( options.width ) : width = options.width
+sf      = options.solid_fraction
+widthy  = options.width/ny
+noise   = options.noise
 
 if ( not ( nx and ny and nz ) ) :
   print "Error: all of -nx -ny -nz are required"
   sys.exit(1)
-
 
 ndim = options.dimension
 if ndim < 3:
@@ -81,9 +81,6 @@ if ndim < 3:
 
 QLEN = options.qlen
 print "qlen=",QLEN
-
-phase_inside  = options.phase_in
-phase_outside = options.phase_out
 
 nomconc       = options.nomconc
 conc_inside   = options.concentration_in
@@ -107,15 +104,14 @@ h3=h2
 def setRandomQinGrains():
   print 'setRandomQinGrains...'
   if QLEN>0:
-    if ( QLEN == 4 ) :
-      qref = Q.makeNormalizedQuat() # (1,0,0,0)
-    else:
-      qref = Q.makeNormalizedQuat2()
     
     for g in range(ngrains):
 
       #pich a discrete angle between -pi and pi
-      t = math.pi * random.uniform(-1, 1.)
+      if ( ngrains == 1 ):
+        t = 0.
+      else:
+        t = math.pi * random.uniform(-1, 1.)
       n = math.floor( t/h )
       t = n*h
 
@@ -133,7 +129,9 @@ def setRandomQinGrains():
           u1 = random.uniform(0, 1.)
           u2 = random.uniform(0, 1.)
           u3 = random.uniform(0, 1.)
+          #print u1,u2,u3
 
+          #restricts possible orientations
           n  = math.floor( u1/h1 )
           u1 = n*h1
           n  = math.floor( u2/h2 )
@@ -145,7 +143,7 @@ def setRandomQinGrains():
           x = math.sqrt(1.-u1)*math.cos(2.*math.pi*u2)
           y = math.sqrt(u1)*math.sin(2.*math.pi*u3)
           z = math.sqrt(u1)*math.cos(2.*math.pi*u3)
-
+ 
         else : #QLEN=2
           w = math.cos( t )
           x = math.sin( t)
@@ -214,12 +212,6 @@ else:
 #-----------------------------------------------------------------------
 
 # Fill data arrays
-print 'Fill Phase values'
-if ( options.phase_out ) :
-  for k in range( nz ) :
-    for j in range( ny ) :
-      for i in range( nx ) :
-        phase[k,j,i] = phase_outside
 
 vol=nx*ny*nz
 vs=0.
@@ -227,41 +219,48 @@ vl=0.;
 
 shift=[]
 for i in range( nx ) :
-  shift.append(0.001*random.uniform(-1., 1.))
+  shift.append(noise*random.uniform(-1., 1.))
+  #shift.append(0.001*random.uniform(-1., 1.))
   #shift.append(0.0)
-  
+ 
+fraction=1./ngrains; 
 for k in range( nz ) :
   z = k + 0.5
   for j in range( ny ) :
-    y = j + 0.5
-    d = (6.*y)/(1.*ny)-0.1
+    #get a y in [0,1]
+    y = (j + 0.5)/(1.*ny)
+    
+    #d is negative for the lowest y 
+    #(1/60 fraction of domain)
+    #d = (6.*y)-0.1
+    d = (y-sf)
     #print 'd=',d
     for i in range( nx ) :
       x = i + 0.5
       
       d=d+shift[i]
       
-      if( width>0. ):
-        sq=abs(d)
-        if( sq<0.15 ):
-          phase[k,j,i] = 0.5*(1.+N.tanh(-0.5*d/width))
-          vs=vs+phase[k,j,i]
-      else:
+      if( widthy>0. ):
         if( d<0.1 ):
-          phase[k,j,i] = phase_inside
-          vs=vs+phase[k,j,i]
-      if ngrains>1: 
-        dx=abs(x-0.5*nx)
+          phase[k,j,i] = 0.5*(1.+N.tanh(-3.*d/widthy))
+      else:
+        if( d<0. ):
+          phase[k,j,i] = 1.
+
+      for g in range(1,ngrains):
+        dx=abs(x-g*fraction*nx)
         if( dx<5 ):
           s=N.sin(0.5*pi*dx/5)
           phase[k,j,i]=phase[k,j,i]*s*s
 
+      vs=vs+phase[k,j,i]
 
 vl=vol-vs
 
 #fill quat values
 setRandomQinGrains()
 
+offset=0.5*fraction*nx
 if QLEN>0:
   gmin=0
   print 'Fill quaternion values...'
@@ -269,16 +268,15 @@ if QLEN>0:
     x = i + 0.5
 
     #select quaternion based on x position
-    if( x<=0.5*nx or ngrains==1):
-      gmin=0
-    else:
-      gmin=1
+    gmin=0
+    for g in range(ngrains):
+      dx=abs(x-g*fraction*nx-offset)
+      if dx<0.5*fraction*nx:
+        gmin=g
     
-    print 'Plane x=',x
+    print 'Plane x=',x,', grain=',gmin,', q=',quat_inside[gmin]
     for j in range( ny ) :
-      y = j + 0.5
       for k in range( nz ) :
-        z = k + 0.5
 
         qi=quat_inside[gmin]
 
