@@ -236,7 +236,7 @@ c need to enforce q to be within that range before call to acos
             epstheta=epsilon*(1.d0+nu*cos(knumber*(theta-phi)))
             depsdtheta=-knumber*epsilon*nu*sin(knumber*(theta-phi))
             
-            flux0(i,j) = epsilon2*dphidx 
+            flux0(i,j) = epstheta*epstheta*dphidx 
      &                 - epstheta*depsdtheta*dphidy
 c            if( flux0(i,j) /= flux0(i,j) )then
 c               print*,'flux0,',i,j,q,phi,theta,epstheta,
@@ -272,7 +272,7 @@ c y faces
             epstheta=epsilon*(1.+nu*cos(knumber*(theta-phi)))
             depsdtheta=-knumber*epsilon*nu*sin(knumber*(theta-phi))
             
-            flux1(i,j) = epsilon2*dphidy 
+            flux1(i,j) = epstheta*epstheta*dphidy 
      &                 + epstheta*depsdtheta*dphidx
          enddo
       enddo
