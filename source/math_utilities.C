@@ -1,4 +1,5 @@
 #include "math_utilities.h"
+#include <math.h>
 
 using namespace std;
 
@@ -53,4 +54,31 @@ double Determinant4( double** const m )
    return d;
 }
 
+//=======================================================================
 
+double DeterminantN(double** mat, const short n)
+{
+   double* submat[5];  
+   if (n == 2) 
+   {
+      return( (mat[0][0] * mat[1][1]) - (mat[1][0] * mat[0][1]));
+   }
+   else
+   {  
+      double d=0.;
+      for(short c = 0; c < n; c++)
+      {  
+         //loop over rows
+         short subi = 0;
+         for(short i = 0; i < n; i++)
+         {
+            if (i==c)continue;
+
+            submat[subi]=&mat[i][1];
+            subi++;
+         }
+         d += (pow(-1 ,c) * mat[c][0] * DeterminantN(submat,n-1));
+      }
+      return d;
+   }
+}
