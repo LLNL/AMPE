@@ -38,6 +38,7 @@
 using namespace SAMRAI;
 
 #include <vector>
+#include <string>
 
 class CALPHADSpeciesPhaseGibbsEnergy
 {
@@ -60,6 +61,8 @@ private :
 public :
 
    CALPHADSpeciesPhaseGibbsEnergy(){};
+
+   std::string name()const{return d_name;}
 
    void initialize(
       const std::string& name,

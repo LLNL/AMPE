@@ -155,8 +155,8 @@ double CALPHADSpeciesPhaseGibbsEnergy::fenergy(const double T) // expect T in Ke
 void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os, 
    const double T0, const double T1)
 {
-   const int npts=300;
-   double dT=(T1-T0)/(double)npts;
+   const double dT=10.;
+   const int npts=trunc((T1-T0)/dT);
    os<<"# fenergy(J/mol) vs. T(K) for species "<<d_name<<endl;
    for(int i=0;i<npts;i++)
    {
