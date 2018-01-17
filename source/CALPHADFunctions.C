@@ -374,22 +374,19 @@ double CALPHADcomputeFMixTernary(
 {
    double cC=1.-cA-cB;
    
-   double fmix =
-      cA*cB*
+   double fmix = cA*cB*
       ( lAB[0] +
         lAB[1] * (cA-cB) +
         lAB[2] * (cA-cB)*(cA-cB) +
         lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
 
-   fmix +=
-      cA*cC*
+   fmix += cA*cC*
       ( lAC[0] +
         lAC[1] * (cA-cC) +
         lAC[2] * (cA-cC)*(cA-cC) +
         lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
 
-   fmix +=
-      cB*cC*
+   fmix += cB*cC*
       ( lBC[0] +
         lBC[1] * (cB-cC) +
         lBC[2] * (cB-cC)*(cB-cC) +
@@ -421,59 +418,86 @@ void CALPHADcomputeFMix_derivTernary(
 {
    double cC=1.-cA-cB;
   
+   //
    // d/dcA 
-   deriv[0] =
-      cB*
+   //
+
+   // AB terms
+   deriv[0] = cB*
       ( lAB[0] +
         lAB[1] * (cA-cB) +
         lAB[2] * (cA-cB)*(cA-cB) +
         lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
 
-   deriv[0] +=
-      cA*cB*
+   deriv[0] += cA*cB*
       ( lAB[1] +
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[0] +=
-      cC*
+   // AC terms
+   deriv[0] += (1.-2.*cA-cB)*
       ( lAC[0] +
         lAC[1] * (cA-cC) +
         lAC[2] * (cA-cC)*(cA-cC) +
         lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
 
-   deriv[0] +=
-      cA*cC*
-      ( lAC[1] +
-        lAC[2] * 2. *(cA-cC) +
-        lAC[3] * 3. *(cA-cC)*(cA-cC) );
+   deriv[0] += cA*cC*
+      ( lAC[1] * 2. + // factor 2. because d(cA-cC)/dcA=2
+        lAC[2] * 4. *(cA-cC) +
+        lAC[3] * 6. *(cA-cC)*(cA-cC) );
 
-   // d/dcB
-   deriv[1] =
-      cA*
-      ( lAB[0] +
-        lAB[1] * (cA-cB) +
-        lAB[2] * (cA-cB)*(cA-cB) +
-        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
-
-   deriv[1] +=
-      -1.*cA*cB*
-      ( lAB[1] +
-        lAB[2] * 2. *(cA-cB) +
-        lAB[3] * 3. *(cA-cB)*(cA-cB) );
-
-   deriv[1] +=
-      cC*
+   // BC terms
+   deriv[0] -= cB*
       ( lBC[0] +
         lBC[1] * (cB-cC) +
         lBC[2] * (cB-cC)*(cB-cC) +
         lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
 
-   deriv[1] +=
-      cB*cC*
+   deriv[0] += cB*cC*
       ( lBC[1]  +
-        lBC[2] * 2. *(cB-cC) +
-        lBC[3] * 3. *(cB-cC)*(cB-cC) );
+        lBC[2] * 2. * (cB-cC) +
+        lBC[3] * 3. * (cB-cC)*(cB-cC) );
+
+   //
+   // d/dcB
+   //
+
+   // AB terms
+   deriv[1] = cA*
+      ( lAB[0] +
+        lAB[1] * (cA-cB) +
+        lAB[2] * (cA-cB)*(cA-cB) +
+        lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
+
+   deriv[1] -= cA*cB*
+      ( lAB[1] +
+        lAB[2] * 2. *(cA-cB) +
+        lAB[3] * 3. *(cA-cB)*(cA-cB) );
+
+   // AC terms
+   deriv[1] -= cA*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
+
+   deriv[1] += cA*cC*
+      ( lAC[1] +
+        lAC[2] * 2. * (cA-cC) +
+        lAC[3] * 3. * (cA-cC)*(cA-cC) );
+
+   // BC terms
+   deriv[1] += (1.-cA-2.*cB)*
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   deriv[1] += cB*cC*
+      ( lBC[1] * 2. +
+        lBC[2] * 4. *(cB-cC) +
+        lBC[3] * 6. *(cB-cC)*(cB-cC) );
+
 }
 
 // compute the 4 components of the second order derivative
@@ -489,8 +513,12 @@ void CALPHADcomputeFMix_deriv2Ternary(
    assert( deriv!=0 );
    
    double cC=1.-cA-cB;
-   
-   // /dcA*dcA
+
+   //   
+   // d/dcA*dcA
+   //
+
+   // AB term
    deriv[0] = cB*
       ( lAB[1] +
         lAB[2] * 2.*(cA-cB) +
@@ -501,108 +529,234 @@ void CALPHADcomputeFMix_deriv2Ternary(
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[0] +=
-      cA*cB*
+   deriv[0] += cA*cB*
       ( lAB[2] * 2. +
         lAB[3] * 6.*(cA-cB) );
 
-   deriv[0] += cC*
-      ( lAC[1]  +
-        lAC[2] * 2.*(cA-cC) +
-        lAC[3] * 3.*(cA-cC)*(cA-cC) );
+   // AC terms
+   deriv[0] += -2.*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
 
-   deriv[0] += cC*
-      ( lAC[1] +
-        lAC[2] * 2. *(cA-cC) +
-        lAC[3] * 3. *(cA-cC)*(cA-cC) );
+   deriv[0] += (1.-2.*cA-cB)*
+      ( lAC[1] * 2.  +
+        lAC[2] * 4.*(cA-cC) +
+        lAC[3] * 6.*(cA-cC)*(cA-cC) );
 
-   deriv[0] +=
-      cA*cC*
-      ( lAC[2] * 2.  +
-        lAC[3] * 6. *(cA-cC) );
+   deriv[0] += (1.-2.*cA-cB)* // d(cA*cC)/dcA=1-cB-2.*cA
+      ( lAC[1] * 2. + 
+        lAC[2] * 4. *(cA-cC) +
+        lAC[3] * 6. *(cA-cC)*(cA-cC) );
 
-   // /dcA*dcB
+   deriv[0] += cA*cC*
+      ( lAC[2] * 8. +
+        lAC[3] * 24.*(cA-cC) );
+  
+   // BC terms
+   deriv[0] -= cB*
+      ( lBC[1] +
+        lBC[2] * 2. * (cB-cC) +
+        lBC[3] * 3. * (cB-cC)*(cB-cC) );
+
+   deriv[0] -= cB*
+      ( lBC[1]  +
+        lBC[2] * 2. * (cB-cC) +
+        lBC[3] * 3. * (cB-cC)*(cB-cC) );
+
+   deriv[0] += cB*cC*
+      ( lBC[2] * 2. +
+        lBC[3] * 6. * (cB-cC) );
+ 
+   //
+   // d/dcA*dcB (cross term)
+   //
+
+   // AB terms
    deriv[1] =
       ( lAB[0] +
         lAB[1] * (cA-cB) +
         lAB[2] * (cA-cB)*(cA-cB) +
         lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
 
-   deriv[1] +=
-      -1.*cB*
-      ( lAB[1]  +
-        lAB[2] * 2.*(cA-cB) +
-        lAB[3] * 3.*(cA-cB)*(cA-cB) );
+   deriv[1] -= cB*
+      ( lAB[1] +
+        lAB[2] * 2. * (cA-cB) +
+        lAB[3] * 3. * (cA-cB)*(cA-cB) );
 
-   deriv[1] +=
-      cA*
+   deriv[1] += cA*
       ( lAB[1] +
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[1] +=
-      -1.*cA*cB*
+   deriv[1] -= cA*cB*
       ( lAB[2] * 2. +
         lAB[3] * 6.*(cA-cB) );
 
-   // /dcB*dcA
+   // AC terms
+   deriv[1] += -1.*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
+
+   deriv[1] += (1.-2.*cA-cB)*
+      ( lAC[1] +
+        lAC[2] * 2.*(cA-cC) +
+        lAC[3] * 3.*(cA-cC)*(cA-cC) );
+
+   deriv[1] += -cA*
+      ( lAC[1] * 2. + 
+        lAC[2] * 4. *(cA-cC) +
+        lAC[3] * 6. *(cA-cC)*(cA-cC) );
+
+   deriv[1] += cA*cC*
+      ( lAC[2] * 4. +
+        lAC[3] * 12. *(cA-cC) );
+
+   // BC tersm
+   deriv[1] -=
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   deriv[1] -= cB*
+      ( lBC[1] * 2. +
+        lBC[2] * 4. * (cB-cC) +
+        lBC[3] * 6. * (cB-cC)*(cB-cC) );
+
+   deriv[1] += (1.-cA-2.*cB)*
+      ( lBC[1]  +
+        lBC[2] * 2. * (cB-cC) +
+        lBC[3] * 3. * (cB-cC)*(cB-cC) );
+
+   deriv[1] += cB*cC*
+      ( lBC[2] * 4. +
+        lBC[3] * 12. * (cB-cC) );
+
+   //
+   // d/dcB*dcA (cross term)
+   //
+
+   // AB terms
    deriv[2] =
       ( lAB[0] +
         lAB[1] * (cA-cB) +
         lAB[2] * (cA-cB)*(cA-cB) +
         lAB[3] * (cA-cB)*(cA-cB)*(cA-cB) );
 
-   deriv[2] +=
-      cA*
+   deriv[2] += cA*
       ( lAB[1]  +
         lAB[2] * 2.*(cA-cB) +
         lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[2] +=
-      -1.*cB*
+   deriv[2] -= cB*
       ( lAB[1] +
         lAB[2] * 2. *(cA-cB) +
         lAB[3] * 3. *(cA-cB)*(cA-cB) );
 
-   deriv[2] +=
-      -1.*cA*cB*
+   deriv[2] -= cA*cB*
       ( lAB[2] * 2.  +
         lAB[3] * 6. *(cA-cB) );
 
-   // /dcB*dcB
-   deriv[3] =
-      cA*
+   // AC terms
+   deriv[2] += -1.*
+      ( lAC[0] +
+        lAC[1] * (cA-cC) +
+        lAC[2] * (cA-cC)*(cA-cC) +
+        lAC[3] * (cA-cC)*(cA-cC)*(cA-cC) );
+
+   deriv[2] += (1.-2.*cA-cB)*
+      ( lAC[1] +
+        lAC[2] * 2. * (cA-cC) +
+        lAC[3] * 3. * (cA-cC)*(cA-cC) );
+
+   deriv[2] += -cA*
+      ( lAC[1] * 2. + 
+        lAC[2] * 4. *(cA-cC) +
+        lAC[3] * 6. *(cA-cC)*(cA-cC) );
+
+   deriv[2] += cA*cC*
+      ( lAC[2] * 4. +
+        lAC[3] * 12. *(cA-cC) );
+
+   // BC terms
+   deriv[2] -= 
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   deriv[2] -= cB*
+      ( lBC[1] * 2. + 
+        lBC[2] * 4.*(cB-cC) +
+        lBC[3] * 6.*(cB-cC)*(cB-cC) );
+
+   deriv[2] += (1.-2.*cB-cA)*
+      ( lBC[1]  +
+        lBC[2] * 2. * (cB-cC) +
+        lBC[3] * 3. * (cB-cC)*(cB-cC) );
+
+   deriv[2] += cB*cC*
+      ( lBC[2] * 4.  +
+        lBC[3] * 12. * (cB-cC) );
+
+   //
+   // d/dcB*dcB
+   //
+
+   // AB terms
+   deriv[3] = cA*
       ( -lAB[1] +
         -lAB[2] * 2.*(cA-cB) +
-        -lAB[3] * 3.*(cA-cB)*(cA-cB)*(cA-cB) );
+        -lAB[3] * 3.*(cA-cB)*(cA-cB) );
 
-   deriv[3] +=
-      -1.*cA*
+   deriv[3] -= cA*
       ( lAB[1] +
         lAB[2] * 2. *(cA-cB) +
         lAB[3] * 3. *(cA-cB)*(cA-cB) );
 
-   deriv[3] +=
-      -1.*cA*cB*
-      ( -lAB[2] * 2. +
-        -lAB[3] * 6. *(cA-cB) );
+   deriv[3] += cA*cB*
+      ( lAB[2] * 2. +
+        lAB[3] * 6. *(cA-cB) );
 
-   deriv[3] +=
-      cC*
-      ( lBC[1]  +
-        lBC[2] * 2.*(cB-cC) +
-        lBC[3] * 3.*(cB-cC)*(cB-cC) );
+   // AC terms
+   deriv[3] += -cA*
+      ( lAC[1] +
+        lAC[2] * 2.*(cA-cC) +
+        lAC[3] * 3.*(cA-cC)*(cA-cC) );
 
-   deriv[3] +=
-      cC*
-      ( lBC[1]  +
-        lBC[2] * 2. *(cB-cC) +
-        lBC[3] * 3. *(cB-cC)*(cB-cC) );
+   deriv[3] += -cA*
+      ( lAC[1] +
+        lAC[2] * 2. * (cA-cC) +
+        lAC[3] * 3. * (cA-cC)*(cA-cC) );
 
-   deriv[3] +=
-      cB*cC*
-      ( lBC[2] * 2. +
-        lBC[3] * 6. *(cB-cC) );
+   deriv[3] += cA*cC*
+      ( lAC[2] * 2. +
+        lAC[3] * 6. *(cA-cC) );
+
+   // BC terms
+   deriv[3] += -2.*
+      ( lBC[0] +
+        lBC[1] * (cB-cC) +
+        lBC[2] * (cB-cC)*(cB-cC) +
+        lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
+
+   deriv[3] += (1.-cA-2.*cB)*
+      ( lBC[1] * 2. +
+        lBC[2] * 4.*(cB-cC) +
+        lBC[3] * 6.*(cB-cC)*(cB-cC) );
+
+   deriv[3] += (1.-cA-2.*cB)*
+      ( lBC[1] * 2. +
+        lBC[2] * 4. *(cB-cC) +
+        lBC[3] * 6. *(cB-cC)*(cB-cC) );
+
+   deriv[3] += cB*cC*
+      ( lBC[2] * 8. +
+        lBC[3] * 24. *(cB-cC) );
 }
 
 void CALPHADcomputeFIdealMix_derivTernary(
