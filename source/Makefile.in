@@ -164,6 +164,9 @@ test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJ
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
 
+testCALPHADFunctions: CALPHADFunctions.o testCALPHADFunctions.o
+		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o -o testCALPHADFunctions
+
 testHypre2d:
 		$(MAKE) PDIM=2 testHypre-2d
 		mkdir -p ../exec && mv testHyprePoisson2d ../exec/testHyprePoisson2d
