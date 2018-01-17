@@ -49,6 +49,7 @@ CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADFreeEnergyStrategyBinary.o CALPHADFreeEnergyStrategyTernary.o \
 		CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
 		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
+		CALPHADEqPhaseConcSolverTernary.o \
 		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
 		FreeEnergyStrategy.o math_utilities.o
 
