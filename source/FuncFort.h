@@ -30,6 +30,9 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
+#ifndef FuncFort_H
+#define FuncFort_H
+
 // Link between C/C++ and Fortran files
 //       name in             name in
 //      C/C++ code            Fortran code
@@ -42,14 +45,6 @@
 #define FORT_SECOND_DERIV_INTERP_FUNC second_deriv_interp_func_
 #define FORT_AVERAGE_FUNC average_func_
 #define FORT_DERIV_AVERAGE_FUNC deriv_average_func_
-#if (NDIM == 2)
-#define FORT_SINGLE_INDEX_STIFFNESS single_index_stiffness2d_
-#define FORT_STORAGE_INDEX_STIFFNESS storage_index_stiffness2d_
-#endif
-#if (NDIM == 3)
-#define FORT_SINGLE_INDEX_STIFFNESS single_index_stiffness3d_
-#define FORT_STORAGE_INDEX_STIFFNESS storage_index_stiffness3d_
-#endif
 
 // Function argument list interfaces
 extern "C" {
@@ -61,6 +56,7 @@ extern "C" {
    double FORT_SECOND_DERIV_INTERP_FUNC( const double&, const char* );
    double FORT_AVERAGE_FUNC( const double&, const double&, const char* );
    double FORT_DERIV_AVERAGE_FUNC( const double&, const double&, const char* );
-   int    FORT_SINGLE_INDEX_STIFFNESS( const int&, const int& );
-   int    FORT_STORAGE_INDEX_STIFFNESS( const int&, const int& );
 }
+
+#endif
+
