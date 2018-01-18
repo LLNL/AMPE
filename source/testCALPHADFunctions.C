@@ -31,7 +31,6 @@ int main( int argc, char *argv[] )
    double ad=CALPHADcomputeFMix_derivBinary(l0,l1,l2,l3,c);
    cout<<"Analytical derivative = "<<ad<<endl;
 
-   
    if( fabs(fd-ad)>tol )
    {
       cerr<<"TEST: CALPHADcomputeFMix_derivBinary failed!!!"<<endl;
@@ -39,6 +38,39 @@ int main( int argc, char *argv[] )
    }else{
       cout<<"TEST successful!"<<endl;
    }
+   }
+
+   {
+   double rt=10.;
+   double cA=0.33;
+   double cB=0.21;
+   double f0=CALPHADcomputeFIdealMixTernary(rt,cA,cB);
+   double f1=CALPHADcomputeFIdealMixTernary(rt,cA+epsilon,cB);
+   double f2=CALPHADcomputeFIdealMixTernary(rt,cA,cB+epsilon);
+   double deriv[2];
+   CALPHADcomputeFIdealMix_derivTernary(rt,cA,cB,deriv);
+   cout<<"Analytical derivative = "<<deriv[0]<<","<<deriv[1]<<endl;
+
+   double fd1=(f1-f0)/epsilon;
+   cout<<"Numerical derivative   = "<<fd1<<endl;
+   if( fabs(fd1-deriv[0])>tol )
+   {
+      cerr<<"TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"<<endl;
+      cerr<<"Difference = "<<fd1-deriv[0]<<endl;
+   }else{
+      cout<<"TEST CALPHADcomputeFIdealMix_derivTernary, c0, successful!"<<endl;
+   }
+
+   double fd2=(f2-f0)/epsilon;
+   cout<<"Numerical derivative   = "<<fd2<<endl;
+   if( fabs(fd2-deriv[1])>tol )
+   {
+      cerr<<"TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"<<endl;
+      cerr<<"Difference = "<<fd2-deriv[1]<<endl;
+   }else{
+      cout<<"TEST CALPHADcomputeFIdealMix_derivTernary, c1, successful!"<<endl;
+   }
+
    }
 
    {
@@ -122,10 +154,6 @@ int main( int argc, char *argv[] )
       cout<<"TEST CALPHADcomputeFMix_deriv2Ternary, c1, c0, successful!"<<endl;
    }
 
-
-
-
-   
 
    }
 

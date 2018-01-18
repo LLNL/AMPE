@@ -31,7 +31,11 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
 
    d_L_AB_L[0]=def_val;
    d_L_AB_L[1]=def_val;
+   d_L_AC_L[0]=def_val;
    d_L_AC_L[2]=def_val;
+   d_L_BC_L[0]=def_val;
+
+   d_L_AB_S[0]=def_val;
    d_L_BC_S[0]=def_val;
    d_L_BC_S[3]=def_val;
 
@@ -268,7 +272,7 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    double fe =
       conc0 * g_species[0].fenergy( temperature ) +
       conc1 * g_species[1].fenergy( temperature ) + 
-      conc2 * g_species[1].fenergy( temperature ) + 
+      conc2 * g_species[2].fenergy( temperature ) + 
       CALPHADcomputeFMixTernary( lAB, lAC, lBC, conc0, conc1 ) +
       CALPHADcomputeFIdealMixTernary(
          gas_constant_R_JpKpmol * temperature,
@@ -324,7 +328,10 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
    CALPHADcomputeFMix_derivTernary( lAB, lAC, lBC, conc[0], conc[1], deriv );
 
    deriv[0] += g_species[0].fenergy( temperature );
+   deriv[0] -= g_species[2].fenergy( temperature );
+
    deriv[1] += g_species[1].fenergy( temperature );
+   deriv[1] -= g_species[2].fenergy( temperature );
  
    double tmp[2];
    CALPHADcomputeFIdealMix_derivTernary(
@@ -513,6 +520,50 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
       tbox::pout<<"CALPHADFreeEnergyFunctionsTernary, WARNING: ceq computation did not converge"<<endl;
    }
    
+   return (ret>=0);
+}
+
+//=======================================================================
+
+bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
+   const double temperature,
+   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const double c0, const double c1,
+   double* ceq,
+   const int maxits,
+   const bool verbose )
+{
+   assert( temperature>0. );
+
+   setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
+   double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
+   CALPHADEqPhaseConcentrationSolverTernary eq_solver(c0,c1);
+   eq_solver.SetMaxIterations(maxits);
+
+   int ret = eq_solver.ComputeConcentration(
+      ceq,
+      RTinv,
+      d_L_AB_L, d_L_AC_L, d_L_BC_L,
+      d_L_AB_S, d_L_AC_S, d_L_BC_S,
+      d_fA, d_fB, d_fC );
+
+   if( ret>=0 )
+   {
+      if(verbose){
+         tbox::pout<<"CALPHAD, c0 phase0="<<ceq[0]<<endl;
+         tbox::pout<<"CALPHAD, c1 phase0="<<ceq[1]<<endl;
+         tbox::pout<<"CALPHAD, c0 phase1="<<ceq[2]<<endl;
+         tbox::pout<<"CALPHAD, c1 phase1="<<ceq[3]<<endl;
+      }
+
+      d_ceq_l[0]=ceq[0];
+      d_ceq_l[1]=ceq[1];
+      d_ceq_s[0]=ceq[2];
+      d_ceq_s[1]=ceq[3];
+   }else{
+      tbox::pout<<"CALPHADFreeEnergyFunctionsTernary, WARNING: ceq computation did not converge"<<endl;
+   }
+
    return (ret>=0);
 }
 
@@ -852,52 +903,101 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
    const double temperature,
    const int npts )
 {
-   ofstream os("FvsC.dat", ios::out);
-
    const double dc = 1.0 / (double)(npts-1);
-   
-   os << "#phi=0, c1=0" << endl;
+ 
+   string filename1("Fl");
+   filename1+=d_g_species_phaseL[0].name();
+   filename1+=d_g_species_phaseL[2].name();
+   filename1+=".dat"; 
+   ofstream os1(filename1.c_str(), ios::out);
+   os1 << "#phi=0, c1=0, temperature="<< temperature << endl;
    for ( int i = 0; i < npts; i++ ) {
       double conc[2];
       conc[0] = i*dc;
       conc[1] = 0.;
 
       double e = fenergy( 0., 0., conc, temperature );
-      os << conc[0] <<"\t"<< e << endl;
+      os1 << conc[0] <<"\t"<< e << endl;
    }
-   os << endl;
+   os1 << endl;
 
-   os << "#phi=1, c1=0" << endl;
+   string filename2("Fs");
+   filename2+=d_g_species_phaseA[0].name();
+   filename2+=d_g_species_phaseA[2].name();
+   filename2+=".dat";
+   ofstream os2(filename2.c_str(), ios::out);
+   os2 << "#phi=1, c1=0, temperature="<< temperature << endl;
    for ( int i = 0; i < npts; i++ ) {
       double conc[2];
       conc[0] = i*dc;
       conc[1] = 0.;
 
       double e = fenergy( 1., 0., conc, temperature );
-      os << conc[0] <<"\t"<< e << endl;
+      os2 << conc[0] <<"\t"<< e << endl;
    }
-   os << endl;
+   os2 << endl;
 
-   os << "#phi=0, c0=0" << endl;
+   string filename3("Fl");
+   filename3+=d_g_species_phaseL[1].name();
+   filename3+=d_g_species_phaseL[2].name();
+   filename3+=".dat";
+   ofstream os3(filename3.c_str(), ios::out);
+   os3 << "#phi=0, c0=0, temperature="<< temperature << endl;
    for ( int i = 0; i < npts; i++ ) {
       double conc[2];
       conc[0] = 0.;
       conc[1] = i*dc;
 
       double e = fenergy( 0., 0., conc, temperature );
-      os << conc[1] <<"\t"<< e << endl;
+      os3 << conc[1] <<"\t"<< e << endl;
    }
-   os << endl;
+   os3 << endl;
 
-   os << "#phi=1, c0=0" << endl;
+   string filename4("Fs");
+   filename4+=d_g_species_phaseA[1].name();
+   filename4+=d_g_species_phaseA[2].name();
+   filename4+=".dat";
+   ofstream os4(filename4.c_str(), ios::out);
+   os4 << "#phi=1, c0=0, temperature="<< temperature << endl;
    for ( int i = 0; i < npts; i++ ) {
       double conc[2];
       conc[0] = 0.;
       conc[1] = i*dc;
 
       double e = fenergy( 1., 0., conc, temperature );
-      os << conc[1] <<"\t"<< e << endl;
+      os4 << conc[1] <<"\t"<< e << endl;
    }
-   os << endl;
-   
+   os4 << endl;
+  
+   string filename5("Fl");
+   filename5+=d_g_species_phaseL[0].name();
+   filename5+=d_g_species_phaseL[1].name();
+   filename5+=".dat";
+   ofstream os5(filename5.c_str(), ios::out);
+   os5 << "#phi=0, temperature="<< temperature << endl;
+   for ( int i = 0; i < npts; i++ ) {
+      double conc[2];
+      conc[0] = i*dc;
+      conc[1] = 1.-i*dc;
+
+      double e = fenergy( 0., 0., conc, temperature );
+      os5 << conc[0] <<"\t"<< e << endl;
+   }
+   os5 << endl;
+
+   string filename6("Fs");
+   filename6+=d_g_species_phaseA[0].name();
+   filename6+=d_g_species_phaseA[1].name();
+   filename6+=".dat";
+   ofstream os6(filename6.c_str(), ios::out);
+   os6 << "#phi=1, temperature="<< temperature << endl;
+   for ( int i = 0; i < npts; i++ ) {
+      double conc[2];
+      conc[0] = i*dc;
+      conc[1] = 1.-i*dc;
+
+      double e = fenergy( 1., 0., conc, temperature );
+      os6 << conc[0] <<"\t"<< e << endl;
+   }
+   os6 << endl;
 }

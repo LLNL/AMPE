@@ -5,6 +5,7 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverTernary.h"
 #include "CALPHADEqConcSolverTernary.h"
+#include "CALPHADEqPhaseConcSolverTernary.h"
 #include "CALPHADFreeEnergyFunctions.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -50,20 +51,39 @@ public:
       const int maxits=20,
       const bool verbose = false);
 
+   virtual bool computeCeqT(
+      const double temperature,
+      const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+      const double c0, const double c1,
+      double* ceq,
+      const int maxits=20,
+      const bool verbose = false);
+
    void preRunDiagnostics(std::ostream& os, const double T0=300., const double T1=3000.)
    {
-      os<<"#Species 0, Phase L"<<std::endl;
-      d_g_species_phaseL[0].plotFofT(os, T0, T1);
-      os<<"#Species 1, Phase L"<<std::endl;
-      d_g_species_phaseL[1].plotFofT(os, T0, T1);
-      os<<"#Species 2, Phase L"<<std::endl;
-      d_g_species_phaseL[2].plotFofT(os, T0, T1);
-      os<<"#Species 0, Phase A"<<std::endl;
-      d_g_species_phaseA[0].plotFofT(os, T0, T1);
-      os<<"#Species 1, Phase A"<<std::endl;
-      d_g_species_phaseA[1].plotFofT(os, T0, T1);
-      os<<"#Species 2, Phase A"<<std::endl;
-      d_g_species_phaseA[2].plotFofT(os, T0, T1);
+      std::ofstream os1("FlC0vsT.dat", std::ios::out);
+      os1<<"#Species 0, Phase L"<<std::endl;
+      d_g_species_phaseL[0].plotFofT(os1, T0, T1);
+
+      std::ofstream os2("FlC1vsT.dat", std::ios::out);
+      os2<<"#Species 1, Phase L"<<std::endl;
+      d_g_species_phaseL[1].plotFofT(os2, T0, T1);
+
+      std::ofstream os3("FlC2vsT.dat", std::ios::out);
+      os3<<"#Species 2, Phase L"<<std::endl;
+      d_g_species_phaseL[2].plotFofT(os3, T0, T1);
+
+      std::ofstream os4("FsC0vsT.dat", std::ios::out);
+      os4<<"#Species 0, Phase A"<<std::endl;
+      d_g_species_phaseA[0].plotFofT(os4, T0, T1);
+
+      std::ofstream os5("FsC1vsT.dat", std::ios::out);
+      os5<<"#Species 1, Phase A"<<std::endl;
+      d_g_species_phaseA[1].plotFofT(os5, T0, T1);
+
+      std::ofstream os6("FsC2vsT.dat", std::ios::out);
+      os6<<"#Species 2, Phase A"<<std::endl;
+      d_g_species_phaseA[2].plotFofT(os6, T0, T1);
    }
 
    int computePhaseConcentrations(

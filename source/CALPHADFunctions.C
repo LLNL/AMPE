@@ -202,7 +202,13 @@ void CALPHADcomputeFIdealMix_deriv2Ternary(
    deriv[0] =
       rt * ( xlogx_deriv2( cA ) 
            + xlogx_deriv2( 1.0 - cA - cB ) );
+
    deriv[1] =
+      rt * ( xlogx_deriv2( 1.0 - cA - cB ) );
+
+   deriv[2] = deriv[1];
+
+   deriv[3] =
       rt * ( xlogx_deriv2( cB ) 
            + xlogx_deriv2( 1.0 - cA - cB ) );
 }
