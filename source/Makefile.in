@@ -40,10 +40,15 @@ NETCDF         = @netcdf_PREFIX@
 GITVERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DGITVERSION="$(GITVERSION)"
 
-CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
+CALPHAD_SCALAR_OBJS = CALPHADFunctions.o \
+		NewtonSolver.o \
+		DampedNewtonSolver.o \
+		math_utilities.o
+
+CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADConcSolverTernary.o CALPHADEqConcSolverTernary.o \
 		CALPHADFreeEnergyFunctionsTernary.o \
-		NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
+		QuatModelParameters.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
 		CALPHADFreeEnergyStrategyBinary.o CALPHADFreeEnergyStrategyTernary.o \
@@ -51,7 +56,7 @@ CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
 		CALPHADEqPhaseConcSolverTernary.o \
 		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
-		FreeEnergyStrategy.o math_utilities.o
+		FreeEnergyStrategy.o
 
 CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 QuatIntegrator.o \
@@ -167,6 +172,16 @@ testMath: math_utilities.o testMath.o
 
 testCALPHADFunctions: CALPHADFunctions.o testCALPHADFunctions.o
 		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o -o testCALPHADFunctions
+
+testCALPHADEqPhaseConcSolverTernary:
+		$(MAKE) PDIM=2 test-CALPHADEqPhaseConcSolverTernary
+		mkdir -p ../exec && mv testCALPHADEqPhaseConcSolverTernary ../exec/testCALPHADEqPhaseConcSolverTernary
+
+TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ = testCALPHADEqPhaseConcSolverTernary.o
+
+test-CALPHADEqPhaseConcSolverTernary:   $(CALPHAD_OBJS) $(TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADEqPhaseConcSolverTernary
 
 testHypre2d:
 		$(MAKE) PDIM=2 testHypre-2d

@@ -24,8 +24,23 @@ public :
       const double* const fA,
       const double* const fB,
       const double* const fC );
+
+   int ComputeConcentration(
+      double* const conc);
+
+   void setup(
+      const double RTinv,
+      const double* const L_AB_L,
+      const double* const L_AC_L,
+      const double* const L_BC_L,
+      const double* const L_AB_S,
+      const double* const L_AC_S,
+      const double* const L_BC_S,
+      const double* const fA,
+      const double* const fB,
+      const double* const fC );
    
-protected :
+//protected :
 
    virtual void RHS(
       const double* const x,
@@ -34,6 +49,8 @@ protected :
    virtual void Jacobian(
       const double* const x,
       double** const fjac );
+
+private:
 
    double d_RTinv;
    double d_RT;
