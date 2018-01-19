@@ -66,6 +66,7 @@ void CALPHADEqConcentrationSolverBinary::RHS(
       - CALPHADcomputeFMixBinary( d_L0[1], d_L1[1], d_L2[1], d_L3[1], c[1] )
       - (c[0]-c[1])* ( dfdci[1] );
 
+   // dfL/dcL - dfS/dcS
    fvec[1] = dfdci[0] - dfdci[1];
 }
 
@@ -78,6 +79,7 @@ void CALPHADEqConcentrationSolverBinary::Jacobian(
    //tbox::pout<<"Compute Jacobian for CALPHAD..."<<endl;
    double dfdci[2];
 
+   //loop over phases
    for ( int ii = 0; ii < 2; ii++ ) {
 
       dfdci[ii] = d_fA[ii] - d_fB[ii]

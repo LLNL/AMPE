@@ -51,13 +51,13 @@ public :
    
    void SetVerbose(const bool verbose){ d_verbose=verbose; }
 
-   double Determinant( double** const m );
+   double Determinant( double** const mat );
 
    void CopyMatrix(
       double** const dst,
       double** const src );
 
-   int size()const{ return d_N; };
+   int size()const{ return s_N; };
 
    virtual void UpdateSolution(
       double* const x,
@@ -80,7 +80,7 @@ private :
    /*
     * Number of equations in system
     */
-   int d_N;
+   static int s_N;
 
    int d_max_iters;
    double d_tolerance;

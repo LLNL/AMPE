@@ -136,6 +136,15 @@ double CALPHADSpeciesPhaseGibbsEnergy::fenergy(const double T) // expect T in Ke
                    <<", Tmax="<<d_tc[n-1]<<endl;
       TBOX_ERROR( "T out of range for fenergy" << endl );
    }
+
+#if 0
+   cout<<"a="<<d_a[index]<<endl;
+   cout<<"b="<<d_b[index]<<endl;
+   cout<<"c="<<d_c[index]<<endl;
+   cout<<"d2="<<d_d2[index]<<endl;
+   cout<<"d3="<<d_d3[index]<<endl;
+   cout<<"dm1="<<d_dm1[index]<<endl;
+#endif
    
    const double t2=T*T;
    double f= (d_a[index]+d_b[index]*T+d_c[index]*T*log(T)

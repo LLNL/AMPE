@@ -46,6 +46,8 @@
 
 using namespace std;
 
+int NewtonSolver::s_N=0;
+
 //=======================================================================
 
 NewtonSolver::NewtonSolver() :
@@ -59,7 +61,7 @@ NewtonSolver::NewtonSolver() :
 bool NewtonSolver::CheckTolerance(
    const double* const fvec )
 {
-   for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( int ii = 0; ii < s_N; ii++ ) {
       if ( abs( fvec[ii] ) >= d_tolerance ) return false;
    }
    return true;
@@ -83,8 +85,8 @@ void NewtonSolver::CopyMatrix(
    assert( src!=NULL );
    assert( dst!=NULL );
 
-   for ( int jj = 0; jj < d_N; jj++ ) {
-      for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( int jj = 0; jj < s_N; jj++ ) {
+      for ( int ii = 0; ii < s_N; ii++ ) {
          dst[jj][ii] = src[jj][ii];
       }
    }
@@ -95,15 +97,18 @@ void NewtonSolver::CopyMatrix(
 double NewtonSolver::Determinant(
    double** const m )
 {
-   assert( d_N == 2 || d_N == 3 || d_N == 4 );
+   assert( s_N == 2 || s_N == 3 || s_N == 4 || s_N == 5 );
 
-   if ( d_N == 4 ) {
+   if ( s_N == 5 ) {
+      return DeterminantN(m,5);
+   }
+   else if ( s_N == 4 ) {
       return Determinant4(m);
    }
-   else if ( d_N == 3 ) {
+   else if ( s_N == 3 ) {
       return Determinant3(m);
    }
-   else if ( d_N == 2 ) {
+   else if ( s_N == 2 ) {
       return m[0][0] * m[1][1] - m[1][0] * m[0][1];
    }
 
@@ -119,8 +124,8 @@ void NewtonSolver::UpdateSolution(
 {
    static double* mwork[3];
    static double mtmp[9];
-   for ( int ii = 0; ii < d_N; ii++ ) {
-      mwork[ii] = &mtmp[ii*d_N];
+   for ( int ii = 0; ii < s_N; ii++ ) {
+      mwork[ii] = &mtmp[ii*s_N];
    }
 
    const double D = Determinant( fjac );
@@ -131,10 +136,10 @@ void NewtonSolver::UpdateSolution(
    static double del_c[4];
 
    // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < d_N; jj++ ) {
+   for ( int jj = 0; jj < s_N; jj++ ) {
 
       CopyMatrix( mwork, fjac );
-      for ( int ii = 0; ii < d_N; ii++ ) {
+      for ( int ii = 0; ii < s_N; ii++ ) {
          mwork[ii][jj] = fvec[ii];
       }
 
@@ -145,7 +150,7 @@ void NewtonSolver::UpdateSolution(
    }
 
    double w = 1.0;
-   for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( int ii = 0; ii < s_N; ii++ ) {
       c[ii] = c[ii] - w * del_c[ii];
    }
    
@@ -153,13 +158,13 @@ void NewtonSolver::UpdateSolution(
    do
    {
       flag=false;
-      for ( int ii = 0; ii < d_N; ii++ ) {
+      for ( int ii = 0; ii < s_N; ii++ ) {
          if(c[ii]<0. || c[ii]>1. )
          {
             w*=0.5;
             //cout<<"c="<<c[ii]<<", rescale w..."<<w<<endl;
             
-            for ( int jj = 0; jj < d_N; jj++ )
+            for ( int jj = 0; jj < s_N; jj++ )
             {
                c[jj] += 2.*w * del_c[jj];
                c[jj] -=    w * del_c[jj];
@@ -182,23 +187,28 @@ int NewtonSolver::ComputeSolution(
 {
    assert( d_max_iters>1 );
 
-   d_N = N;
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
    ctmp.reserve(40);
-   //cout<<"NewtonSolver::ComputeSolution(), Initial conc="
-   //    <<conc[0]<<","<<conc[1]<<","<<conc[2]<<","<<conc[3]<<endl;
+   cout<<"NewtonSolver::ComputeSolution(), Initial conc=";
+   for(short i=0;i<N;i++)cout<<conc[i]<<",";
+   cout<<endl;
 #endif
 
    static double* fvec=NULL;
    static double** fjac;
    static double* ftmp=NULL;
-   if( ftmp==NULL){
+   if( ftmp==NULL || s_N!=N){
+      if(fvec!=NULL)delete[] fvec;
+      if(fjac!=NULL)delete[] fjac;
+      if(ftmp!=NULL)delete[] ftmp;
+
+      s_N=N;
       fvec=new double[N];
       fjac=new double*[N];
       ftmp=new double[N*N];
-      for ( int ii = 0; ii < d_N ; ii++ ) {
-         fjac[ii] = &ftmp[ii*d_N];
+      for ( int ii = 0; ii < s_N ; ii++ ) {
+         fjac[ii] = &ftmp[ii*s_N];
       }
    }
 
@@ -210,10 +220,16 @@ int NewtonSolver::ComputeSolution(
    while ( 1 ) {
 
 #ifdef DEBUG_CONVERGENCE
+      //for ( int ii = 0; ii < N ; ii++ )cout<<conc[ii]<<endl;
+      //cout<<endl;
+
       for ( int ii = 0; ii < N ; ii++ )assert( conc[ii]==conc[ii] );
       for ( int ii = 0; ii < N ; ii++ )ctmp.push_back(conc[ii]);
 #endif
       RHS( conc, fvec );
+#ifdef DEBUG_CONVERGENCE
+      for ( int ii = 0; ii < N ; ii++ )assert( fvec[ii]==fvec[ii] );
+#endif
 
       if ( CheckTolerance( fvec ) )
       {
@@ -234,18 +250,18 @@ int NewtonSolver::ComputeSolution(
 #ifdef DEBUG_CONVERGENCE
       cout<<setprecision(12);
       cout<<"Concentration history..."<<endl;
-      for( unsigned j=0;j<ctmp.size();j=j+d_N){
+      for( unsigned j=0;j<ctmp.size();j=j+s_N){
          cout << "  conc= ";
-         for ( int ii = 0; ii < d_N; ii++ ) {
+         for ( int ii = 0; ii < s_N; ii++ ) {
             cout<<ctmp[j+ii]<< "   ";
          }
          cout<<endl;
       }
-      for ( int ii = 0; ii < d_N; ii++ ) {
+      for ( int ii = 0; ii < s_N; ii++ ) {
          cout << "  conc[" << ii << "] = " << conc[ii]
               << endl;
       }
-      for ( int ii = 0; ii < d_N; ii++ ) {
+      for ( int ii = 0; ii < s_N; ii++ ) {
          cout << "  rhs[" << ii << "] = " << fvec[ii]
               << endl;
       }

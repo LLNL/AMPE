@@ -59,8 +59,8 @@ void DampedNewtonSolver::UpdateSolution(
 {
    int nn=size();
 
-   static double* mwork[4];
-   static double mtmp[16];
+   static double* mwork[5];
+   static double mtmp[25];
    for ( int ii = 0; ii < nn; ii++ ) {
       mwork[ii] = &mtmp[ii*nn];
    }
@@ -68,9 +68,9 @@ void DampedNewtonSolver::UpdateSolution(
    const double D = Determinant( fjac );
    const double D_inv = 1.0 / D;
 
-   //cout << "DampedNewtonSolver::UpdateSolution(), D = " << D << endl;
+   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
 
-   static double del_c[4];
+   static double del[5];
 
    // use Cramer's rule to solve linear system
    for ( int jj = 0; jj < nn; jj++ ) {
@@ -82,7 +82,7 @@ void DampedNewtonSolver::UpdateSolution(
          mwork[ii][jj] = fvec[ii];
       }
 
-      del_c[jj] = D_inv * Determinant( mwork );
+      del[jj] = D_inv * Determinant( mwork );
 
       //cout << "del_c[" << jj << "] = " << del_c[jj] << endl;
    }
@@ -122,17 +122,17 @@ void DampedNewtonSolver::UpdateSolution(
       if( c[ii] <tol )
       {
          c[ii]=tol;
-         if( del_c[ii]<0.) del_c[ii]=0.;
+         if( del[ii]<0.) del[ii]=0.;
       }
       if( c[ii] >1.-tol )
       {
          c[ii]=1.-tol;
-         if( del_c[ii]>0.) del_c[ii]=0.;
+         if( del[ii]>0.) del[ii]=0.;
       }
 
    }
    for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del_c[ii];
+      c[ii] = c[ii] - w * del[ii];
    }
    
    bool flag;
@@ -147,8 +147,8 @@ void DampedNewtonSolver::UpdateSolution(
             
             for ( int jj = 0; jj < nn; jj++ )
             {
-               c[jj] += 2.*w * del_c[jj];
-               c[jj] -=    w * del_c[jj];
+               c[jj] += 2.*w * del[jj];
+               c[jj] -=    w * del[jj];
             }
             flag=true;
             break;
