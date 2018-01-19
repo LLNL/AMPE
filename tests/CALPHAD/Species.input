@@ -1,0 +1,15 @@
+ModelParameters {
+
+   species = "Ta"
+   
+   Temperature {
+      temperature        = 2923. // [K]
+   }
+
+   ConcentrationModel {
+      Calphad {
+         filename ="calphadMoNbTa.dat"
+      }
+   }
+}
+
