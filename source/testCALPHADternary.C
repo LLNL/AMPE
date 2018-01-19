@@ -83,33 +83,10 @@ int main( int argc, char *argv[] )
    boost::shared_ptr<tbox::MemoryDatabase> input_db(new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
-   //-----------------------------------------------------------------------
-   // Read key input settings
-   
-   std::string run_name;
-   if ( input_db->keyExists( "run_name" ) ) {
-      run_name = input_db->getString( "run_name" );
-   }
-   else {
-      // make from input file name
-      run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
-   }
+   std::string run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
 
-   //-----------------------------------------------------------------------
-   //
-   // Logfile
-   //
    bool log_all_nodes = false;
    std::string log_file_name = run_name + ".log";
-
-   if ( input_db->isDatabase( "Logging" ) ) {
-      boost::shared_ptr<tbox::Database> log_db = input_db->getDatabase( "Logging" );
-
-      if ( log_db->keyExists( "filename" ) ) {
-         log_file_name = log_db->getString( "filename" );
-      }
-   }
-
    tbox::PIO::logOnlyNodeZero( log_file_name );
 
 #ifdef GITVERSION
@@ -163,33 +140,38 @@ int main( int argc, char *argv[] )
    cafe.printEnergyVsComposition(temperature);
 
    ofstream ffile("FvsT.dat", ios::out);
-   cafe.preRunDiagnostics(ffile,300., 5000.);
+   cafe.preRunDiagnostics(ffile,303., 5000.);
 
-   // choose pair of phases: phaseL, phaseA, phaseB
+   // initial guesses
+   double init_guess[5];
+   model_db->getDoubleArray("initial_guess", &init_guess[0], 5);
+
+   double nominalc[2];
+   model_db->getDoubleArray("concentration",&nominalc[0],2);
+   double lceq[5]={init_guess[0], init_guess[1], // liquid
+                   init_guess[2], init_guess[3], // solid
+                   init_guess[4]};
+
+   // choose pair of phases: phaseL, phaseA
    const PHASE_INDEX pi0=phaseL;
    const PHASE_INDEX pi1=phaseA;
-   
-   // initial guesses
-   double lceq[4]={0.33, 0.33,  // liquid
-                   0.33, 0.33}; // solid
-   
-   // compute equilibrium concentrations
+
    bool found_ceq =
-      cafe.computeCeqT(temperature,pi0,pi1,&lceq[0], maxits);
+      cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],nominalc[1],&lceq[0], maxits);
    if( lceq[0]>1. )found_ceq = false;
    if( lceq[0]<0. )found_ceq = false;
    if( lceq[1]>1. )found_ceq = false;
    if( lceq[1]<0. )found_ceq = false;
-   
+
    if( found_ceq ){
-      cout<<"Found equilibrium concentrations: "
-          <<"Liquid: "<<lceq[0]<<","<<lceq[1]
-          <<"--- Solid: "<<lceq[2]<<","<<lceq[3]<<endl;
+      cout<<"For nominal composition "<<nominalc[0]<<","<<nominalc[1]
+          <<", found equilibrium concentrations: "<<endl;
+      cout<<"Liquid: "<<lceq[0]<<","<<lceq[1]<<endl;
+      cout<<"Solid:  "<<lceq[2]<<","<<lceq[3]<<endl;
+      cout<<"Solid fraction: "<<lceq[4]<<endl;
    }else{
       cout<<"WARNING: Equilibrium concentrations not found... "<<endl;
    }
-   
-   //cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
 
    input_db.reset();
 

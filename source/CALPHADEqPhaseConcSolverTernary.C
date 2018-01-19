@@ -93,6 +93,7 @@ void CALPHADEqPhaseConcentrationSolverTernary::RHS(
    fvec[3] = phi*cS[0]+(1.-phi)*cL[0] - d_c[0];
    fvec[4] = phi*cS[1]+(1.-phi)*cL[1] - d_c[1];
 
+#if 0
    cout<<"nominal c="<<d_c[0]<<","<<d_c[1]<<endl;
    cout<<"cL="<<cL[0]<<","<<cL[1]<<", cS="<<cS[0]<<","<<cS[1]<<endl;
    cout<<"phi="<<phi<<endl;
@@ -102,7 +103,7 @@ void CALPHADEqPhaseConcentrationSolverTernary::RHS(
    cout<<"dfSdciS[0]="<<dfSdciS[0]<<endl;
    cout<<"dfSdciS[1]="<<dfSdciS[1]<<endl;
    cout<<"fL="<<fL<<", fS="<<fS<<endl;
-
+#endif
 }
 
 //=======================================================================
@@ -219,14 +220,6 @@ void CALPHADEqPhaseConcentrationSolverTernary::Jacobian(
    fjac[4][2] = 0.;
    fjac[4][3] = phi;
    fjac[4][4] = cS[1]-cL[1];
-
-   cout<<"Jacobian:"<<endl;
-   cout<<"("<<fjac[0][0]<<","<<fjac[0][1]<<","<<fjac[0][2]<<","<<fjac[0][3]<<","<<fjac[0][4]<<")"<<endl;
-   cout<<"("<<fjac[1][0]<<","<<fjac[1][1]<<","<<fjac[1][2]<<","<<fjac[1][3]<<","<<fjac[1][4]<<")"<<endl;
-   cout<<"("<<fjac[2][0]<<","<<fjac[2][1]<<","<<fjac[2][2]<<","<<fjac[2][3]<<","<<fjac[2][4]<<")"<<endl;
-   cout<<"("<<fjac[3][0]<<","<<fjac[3][1]<<","<<fjac[3][2]<<","<<fjac[3][3]<<","<<fjac[3][4]<<")"<<endl;
-   cout<<"("<<fjac[4][0]<<","<<fjac[4][1]<<","<<fjac[4][2]<<","<<fjac[4][3]<<","<<fjac[4][4]<<")"<<endl;
-
 }
 
 //=======================================================================
