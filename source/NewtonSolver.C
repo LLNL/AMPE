@@ -190,9 +190,9 @@ int NewtonSolver::ComputeSolution(
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
    ctmp.reserve(40);
-   cout<<"NewtonSolver::ComputeSolution(), Initial conc=";
-   for(short i=0;i<N;i++)cout<<conc[i]<<",";
-   cout<<endl;
+   //cout<<"NewtonSolver::ComputeSolution(), Initial conc=";
+   //for(short i=0;i<N;i++)cout<<conc[i]<<",";
+   //cout<<endl;
 #endif
 
    static double* fvec=NULL;

@@ -221,7 +221,7 @@ QuatIntegrator::QuatIntegrator(
      d_show_temperature_sys_stats( false ),
      d_use_preconditioner( true ),
      d_precond_has_dquatdphi( true ),
-     d_precond_has_dTdphi( true ),
+     d_precond_has_dTdphi( false ),
      d_precond_has_dPhidT( false ),
      d_compute_velocity( false ),
      d_max_precond_steps( 1 ),
