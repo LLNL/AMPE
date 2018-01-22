@@ -33,11 +33,15 @@ int main( int argc, char *argv[] )
    double L_AC_S[4]={6.,8.,5.,1.};
    double L_BC_S[4]={2.,6.,4.,9.};
 
+   double L_ABC_L[3]={3.1,4.1,5.1};
+   double L_ABC_S[3]={2.1,3.1,4.1};
+
    double RTinv=10.;
 
    solver.setup(RTinv,
                 L_AB_L,L_AC_L,L_BC_L,
                 L_AB_S,L_AC_S,L_BC_S,
+                L_ABC_L,L_ABC_S,
                 fA,fB,fC);
 
    double fvec1[5];

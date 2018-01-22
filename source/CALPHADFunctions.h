@@ -110,6 +110,7 @@ double CALPHADcomputeFMixTernary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB );
 double CALPHADcomputeFIdealMixTernary(
@@ -131,6 +132,7 @@ void CALPHADcomputeFMix_derivTernary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB,
    double* deriv );
@@ -138,6 +140,7 @@ void CALPHADcomputeFMix_deriv2Ternary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB,
    double* deriv );

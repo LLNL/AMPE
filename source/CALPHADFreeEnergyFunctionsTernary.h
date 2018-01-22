@@ -170,6 +170,9 @@ private:
    double d_LmixBCPhaseL[4][2];
    double d_LmixBCPhaseA[4][2];
 
+   double d_LmixABCPhaseL[3][2];
+   double d_LmixABCPhaseA[3][2];
+
    double d_L_AB_L[4];
    double d_L_AB_S[4];
 
@@ -178,6 +181,9 @@ private:
 
    double d_L_BC_L[4];
    double d_L_BC_S[4];
+
+   double d_L_ABC_L[3];
+   double d_L_ABC_S[3];
 
    double d_fA[2];
    double d_fB[2];
@@ -256,7 +262,7 @@ private:
          return 0.;
       }
    }
-   
+
    double lmix0ABPhaseL( const double temperature )
    {
       return d_LmixABPhaseL[0][0] + d_LmixABPhaseL[0][1] * temperature;
@@ -487,6 +493,81 @@ private:
    double lmix3BCPhaseA( const double temperature )
    {
       return d_LmixBCPhaseA[3][0] + d_LmixBCPhaseA[3][1] * temperature;
+   }
+
+   //ABC
+   double lmix0ABCPhase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix0ABCPhaseL( temperature );
+         case phaseA:
+            return lmix0ABCPhaseA( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix0ABCPhase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+
+   double lmix1ABCPhase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix1ABCPhaseL( temperature );
+         case phaseA:
+            return lmix1ABCPhaseA( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix1ABCPhase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+
+   double lmix2ABCPhase( const PHASE_INDEX pi, const double temperature )
+   {
+      switch( pi ){
+         case phaseL:
+            return lmix2ABCPhaseL( temperature );
+         case phaseA:
+            return lmix2ABCPhaseA( temperature );
+         default:
+            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix2ABCPhase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::SAMRAI_MPI::abort();
+         return 0.;
+      }
+   }
+
+   // ABC liquid
+   double lmix0ABCPhaseL( const double temperature )
+   {
+      return d_LmixABCPhaseL[0][0] + d_LmixABCPhaseL[0][1] * temperature;
+   }
+
+   double lmix1ABCPhaseL( const double temperature )
+   {
+      return d_LmixABCPhaseL[1][0] + d_LmixABCPhaseL[1][1] * temperature;
+   }
+
+   double lmix2ABCPhaseL( const double temperature )
+   {
+      return d_LmixABCPhaseL[2][0] + d_LmixABCPhaseL[2][1] * temperature;
+   }
+
+   // ABC solid
+   double lmix0ABCPhaseA( const double temperature )
+   {
+      return d_LmixABCPhaseA[0][0] + d_LmixABCPhaseA[0][1] * temperature;
+   }
+
+   double lmix1ABCPhaseA( const double temperature )
+   {
+      return d_LmixABCPhaseA[1][0] + d_LmixABCPhaseA[1][1] * temperature;
+   }
+
+   double lmix2ABCPhaseA( const double temperature )
+   {
+      return d_LmixABCPhaseA[2][0] + d_LmixABCPhaseA[2][1] * temperature;
    }
 
    void computePhasesFreeEnergies(

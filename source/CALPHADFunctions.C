@@ -375,6 +375,7 @@ double CALPHADcomputeFMixTernary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB )
 {
@@ -398,6 +399,8 @@ double CALPHADcomputeFMixTernary(
         lBC[2] * (cB-cC)*(cB-cC) +
         lBC[3] * (cB-cC)*(cB-cC)*(cB-cC) );
 
+   fmix += cA*cB*cC*(cA*lABC[0]+cB*lABC[1]+cC*lABC[2]);
+
    return fmix;
 }   
 
@@ -418,6 +421,7 @@ void CALPHADcomputeFMix_derivTernary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB,
    double* deriv )
@@ -504,6 +508,14 @@ void CALPHADcomputeFMix_derivTernary(
         lBC[2] * 4. *(cB-cC) +
         lBC[3] * 6. *(cB-cC)*(cB-cC) );
 
+   // ABC terms
+   const double lphi=cA*lABC[0]+cB*lABC[1]+cC*lABC[2];
+   deriv[0] += cB*cC*lphi
+             - cA*cB*lphi
+             + cA*cB*cC*(lABC[0]-lABC[2]);
+   deriv[1] += cA*cC*lphi
+             - cA*cB*lphi
+             + cA*cB*cC*(lABC[1]-lABC[2]);
 }
 
 // compute the 4 components of the second order derivative
@@ -512,6 +524,7 @@ void CALPHADcomputeFMix_deriv2Ternary(
    const double* lAB,
    const double* lAC,
    const double* lBC,
+   const double* lABC,
    const double cA,
    const double cB,
    double* deriv )
@@ -763,6 +776,20 @@ void CALPHADcomputeFMix_deriv2Ternary(
    deriv[3] += cB*cC*
       ( lBC[2] * 8. +
         lBC[3] * 24. *(cB-cC) );
+
+   //ABC terms
+   const double lphi=cA*lABC[0]+cB*lABC[1]+cC*lABC[2];
+   deriv[0] += -2.*cB*lphi
+             + 2.*(cB*cC-cA*cB)*(lABC[0]-lABC[2]);
+   deriv[1] += (cC-cB-cA)*lphi
+             + cB*(cC-cA)*(lABC[1]-lABC[2])
+             + cA*(cC-cB)*(lABC[0]-lABC[2]);
+   deriv[2] += (cC-cA-cB)*lphi
+             + cA*(cC-cB)*(lABC[0]-lABC[2])
+             + cB*(cC-cA)*(lABC[1]-lABC[2]);
+   deriv[3] += -2.*cA*lphi
+             + 2.*(cA*cC-cA*cB)*(lABC[1]-lABC[2]);
+
 }
 
 void CALPHADcomputeFIdealMix_derivTernary(

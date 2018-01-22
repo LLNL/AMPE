@@ -77,16 +77,17 @@ int main( int argc, char *argv[] )
    double lAB[4]={1.2,3.5,6.1,-1.2};
    double lAC[4]={3.2,4.5,-3.1,7.1};
    double lBC[4]={0.2,0.7,4.1,-8.2};
+   double lABC[3]={3.7,6.3,-1.1};
 
    double cA=0.33;
    double cB=0.21;
 
-   double f0=CALPHADcomputeFMixTernary(lAB,lAC,lBC,cA,cB);
-   double f1=CALPHADcomputeFMixTernary(lAB,lAC,lBC,cA+epsilon,cB);
-   double f2=CALPHADcomputeFMixTernary(lAB,lAC,lBC,cA,cB+epsilon);
+   double f0=CALPHADcomputeFMixTernary(lAB,lAC,lBC,lABC,cA,cB);
+   double f1=CALPHADcomputeFMixTernary(lAB,lAC,lBC,lABC,cA+epsilon,cB);
+   double f2=CALPHADcomputeFMixTernary(lAB,lAC,lBC,lABC,cA,cB+epsilon);
 
    double deriv[2];
-   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,cA,cB,deriv);
+   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,lABC,cA,cB,deriv);
 
    double fd1=(f1-f0)/epsilon;
    if( fabs(fd1-deriv[0])>tol )
@@ -106,12 +107,12 @@ int main( int argc, char *argv[] )
    }
 
    double deriv2[4];
-   CALPHADcomputeFMix_deriv2Ternary(lAB,lAC,lBC,cA,cB,deriv2);
+   CALPHADcomputeFMix_deriv2Ternary(lAB,lAC,lBC,lABC,cA,cB,deriv2);
 
    double fderiv0[2];
-   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,cA+epsilon,cB,fderiv0);
+   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,lABC,cA+epsilon,cB,fderiv0);
    double fderiv1[2];
-   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,cA,cB+epsilon,fderiv1);
+   CALPHADcomputeFMix_derivTernary(lAB,lAC,lBC,lABC,cA,cB+epsilon,fderiv1);
 
    double fd=(fderiv0[0]-deriv[0])/epsilon;
    cout<<"FD="<<fd<<", exact="<<deriv2[0]<<endl;

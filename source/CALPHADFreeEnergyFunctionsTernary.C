@@ -39,6 +39,13 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    d_L_BC_S[0]=def_val;
    d_L_BC_S[3]=def_val;
 
+   d_L_ABC_L[0]=def_val;
+   d_L_ABC_L[1]=def_val;
+   d_L_ABC_L[2]=def_val;
+   d_L_ABC_S[0]=def_val;
+   d_L_ABC_S[1]=def_val;
+   d_L_ABC_S[2]=def_val;
+
    d_fenergy_diag_filename = "energy.vtk";
 
    d_ceq_l[0]=-1;
@@ -224,7 +231,64 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
    }
    }
 
-  // print database just read
+   //ABC
+   {
+   string dbnamemixL("LmixABCPhaseL");
+   if(calphad_db->keyExists( dbnamemixL ) ){
+      boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
+      if ( Lmix0_db->keyExists( "L0" ) ) {
+         Lmix0_db->getDoubleArray( "L0", &d_LmixABCPhaseL[0][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseL[0][0] = 0.0;
+         d_LmixABCPhaseL[0][1] = 0.0;
+      }
+      if ( Lmix0_db->keyExists( "L1" ) ) {
+         Lmix0_db->getDoubleArray( "L1", &d_LmixABCPhaseL[1][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseL[1][0] = 0.0;
+         d_LmixABCPhaseL[1][1] = 0.0;
+      }
+      if ( Lmix0_db->keyExists( "L2" ) ) {
+         Lmix0_db->getDoubleArray( "L2", &d_LmixABCPhaseL[2][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseL[2][0] = 0.0;
+         d_LmixABCPhaseL[2][1] = 0.0;
+      }
+   }
+
+   string dbnamemixA("LmixABCPhaseA");
+   if(calphad_db->keyExists( dbnamemixA ) ){
+
+      boost::shared_ptr<tbox::Database> Lmix1_db = calphad_db->getDatabase(dbnamemixA);
+      if ( Lmix1_db->keyExists( "L0" ) ) {
+         Lmix1_db->getDoubleArray( "L0", &d_LmixABCPhaseA[0][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseA[0][0] = 0.0;
+         d_LmixABCPhaseA[0][1] = 0.0;
+      }
+      if ( Lmix1_db->keyExists( "L1" ) ) {
+         Lmix1_db->getDoubleArray( "L1", &d_LmixABCPhaseA[1][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseA[1][0] = 0.0;
+        d_LmixABCPhaseA[1][1] = 0.0;
+      }
+      if ( Lmix1_db->keyExists( "L2" ) ) {
+         Lmix1_db->getDoubleArray( "L2", &d_LmixABCPhaseA[2][0], 2 );
+      }
+      else {
+         d_LmixABCPhaseA[2][0] = 0.0;
+         d_LmixABCPhaseA[2][1] = 0.0;
+      }
+   }
+
+   }
+
+   // print database just read
    tbox::plog << "CALPHAD database..." << endl;
    calphad_db->printClassData( tbox::plog );
 }
@@ -252,6 +316,10 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
                     lmix1BCPhase( pi, temperature ),
                     lmix2BCPhase( pi, temperature ),
                     lmix3BCPhase( pi, temperature )};
+
+   double lABC[3] = {lmix0ABCPhase( pi, temperature ),
+                     lmix1ABCPhase( pi, temperature ),
+                     lmix2ABCPhase( pi, temperature )};
    
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
@@ -273,7 +341,7 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
       conc0 * g_species[0].fenergy( temperature ) +
       conc1 * g_species[1].fenergy( temperature ) + 
       conc2 * g_species[2].fenergy( temperature ) + 
-      CALPHADcomputeFMixTernary( lAB, lAC, lBC, conc0, conc1 ) +
+      CALPHADcomputeFMixTernary( lAB, lAC, lBC, lABC, conc0, conc1 ) +
       CALPHADcomputeFIdealMixTernary(
          gas_constant_R_JpKpmol * temperature,
          conc0, conc1 );
@@ -309,6 +377,9 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
                     lmix1BCPhase( pi, temperature ),
                     lmix2BCPhase( pi, temperature ),
                     lmix3BCPhase( pi, temperature )};
+   double lABC[3] = {lmix0ABCPhase( pi, temperature ),
+                     lmix1ABCPhase( pi, temperature ),
+                     lmix2ABCPhase( pi, temperature )};
    
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
@@ -325,7 +396,7 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
       return;
    }
    
-   CALPHADcomputeFMix_derivTernary( lAB, lAC, lBC, conc[0], conc[1], deriv );
+   CALPHADcomputeFMix_derivTernary( lAB, lAC, lBC, lABC, conc[0], conc[1], deriv );
 
    deriv[0] += g_species[0].fenergy( temperature );
    deriv[0] -= g_species[2].fenergy( temperature );
@@ -366,18 +437,21 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
                     lmix1BCPhase( pi, temp ),
                     lmix2BCPhase( pi, temp ),
                     lmix3BCPhase( pi, temp )};
+   double lABC[3] = {lmix0ABCPhase( pi, temp ),
+                     lmix1ABCPhase( pi, temp ),
+                     lmix2ABCPhase( pi, temp )};
    const double rt = gas_constant_R_JpKpmol * temp;
 
-   double deriv1[2];
+   double deriv1[4];
    CALPHADcomputeFIdealMix_deriv2Ternary(rt,conc[0], conc[1], &deriv1[0]);
 
    double deriv2[4]; 
-   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, conc[0], conc[1], &deriv2[0]);
+   CALPHADcomputeFMix_deriv2Ternary(lAB, lAC, lBC, lABC, conc[0], conc[1], &deriv2[0]);
 
    d2fdc2[0]=deriv1[0]+deriv2[0];
-   d2fdc2[1]=          deriv2[1];
-   d2fdc2[2]=          deriv2[2];
-   d2fdc2[3]=deriv1[1]+deriv2[3];
+   d2fdc2[1]=deriv1[1]+deriv2[1];
+   d2fdc2[2]=deriv1[2]+deriv2[2];
+   d2fdc2[3]=deriv1[3]+deriv2[3];
 }
 
 //=======================================================================
@@ -407,6 +481,10 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(const doub
             d_L_BC_L[1] = lmix1BCPhaseL( temperature );
             d_L_BC_L[2] = lmix2BCPhaseL( temperature );
             d_L_BC_L[3] = lmix3BCPhaseL( temperature );
+            d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
+            d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
+            d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
+
             break;
    
          case phaseA:         
@@ -425,6 +503,10 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(const doub
             d_L_BC_S[1] = lmix1BCPhaseA( temperature );
             d_L_BC_S[2] = lmix2BCPhaseA( temperature );
             d_L_BC_S[3] = lmix3BCPhaseA( temperature );
+            d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
+            d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
+            d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
+
             break;
       
          default:
@@ -476,6 +558,14 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForThreePhasesSolver(const do
    d_L_BC_S[1] = lmix1BCPhaseA( temperature );
    d_L_BC_S[2] = lmix2BCPhaseA( temperature );
    d_L_BC_S[3] = lmix3BCPhaseA( temperature );
+
+   d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
+   d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
+   d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
+
+   d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
+   d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
+   d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
 }
 
 //=======================================================================
@@ -501,6 +591,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
       RTinv,
       d_L_AB_L, d_L_AC_L, d_L_BC_L,
       d_L_AB_S, d_L_AC_S, d_L_BC_S,
+      d_L_ABC_L, d_L_ABC_S,
       d_fA, d_fB, d_fC );
 
    if( ret>=0 )
@@ -545,6 +636,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
       RTinv,
       d_L_AB_L, d_L_AC_L, d_L_BC_L,
       d_L_AB_S, d_L_AC_S, d_L_BC_S,
+      d_L_ABC_L, d_L_ABC_S,
       d_fA, d_fB, d_fC );
 
    if( ret>=0 )
@@ -601,6 +693,7 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
       RTinv,
       d_L_AB_L, d_L_AC_L, d_L_BC_L,
       d_L_AB_S, d_L_AC_S, d_L_BC_S,
+      d_L_ABC_L, d_L_ABC_S,
       d_fA, d_fB, d_fC );
 
    if( ret<0 )
@@ -682,6 +775,14 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    d_L_BC_S[2] = lmix2BCPhaseA( temperature );
    d_L_BC_S[3] = lmix3BCPhaseA( temperature );
 
+   d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
+   d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
+   d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
+
+   d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
+   d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
+   d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
+
    const double hphi =
       FORT_INTERP_FUNC(
          phi,
@@ -705,6 +806,7 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
       RTinv,
       d_L_AB_L, d_L_AC_L, d_L_BC_L,
       d_L_AB_S, d_L_AC_S, d_L_BC_S,
+      d_L_ABC_L, d_L_ABC_S,
       d_fA, d_fB, d_fC );
    if( ret==-1 )
    {

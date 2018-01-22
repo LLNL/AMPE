@@ -21,6 +21,8 @@ public :
       const double* const L_AB_S,
       const double* const L_AC_S,
       const double* const L_BC_S,
+      const double* const L_ABC_L,
+      const double* const L_ABC_S,
       const double* const fA,
       const double* const fB,
       const double* const fC );
@@ -54,6 +56,8 @@ protected :
    double d_L_AC_S[4];
    double d_L_BC_S[4];
 
+   double d_L_ABC_L[3];
+   double d_L_ABC_S[3];
 };
 
 #endif
