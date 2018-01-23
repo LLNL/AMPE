@@ -88,18 +88,18 @@ void CALPHADConcentrationSolverTernary::Jacobian(
    const double* const cL=&c[0];
    const double* const cS=&c[2];
 
-   double deriv2IdealMixL[2]; // no cross terms
+   double deriv2IdealMixL[4];
    CALPHADcomputeFIdealMix_deriv2Ternary( d_RT, cL[0], cL[1], deriv2IdealMixL );
 
    double deriv2FMixL[4];
    CALPHADcomputeFMix_deriv2Ternary( d_L_AB_L, d_L_AC_L, d_L_BC_L, d_L_ABC_L, cL[0], cL[1], deriv2FMixL );
 
    double d2fLdciL2[3]; // include only one cross term (other one equal by symmetry)
-   d2fLdciL2[0] = deriv2FMixL[0]+ deriv2IdealMixL[0];
-   d2fLdciL2[1] = deriv2FMixL[1];
-   d2fLdciL2[2] = deriv2FMixL[3] + deriv2IdealMixL[1];
+   d2fLdciL2[0] = deriv2FMixL[0] + deriv2IdealMixL[0];
+   d2fLdciL2[1] = deriv2FMixL[1] + deriv2IdealMixL[1];
+   d2fLdciL2[2] = deriv2FMixL[3] + deriv2IdealMixL[3];
 
-   double deriv2IdealMixS[2];
+   double deriv2IdealMixS[4];
    CALPHADcomputeFIdealMix_deriv2Ternary( d_RT, cS[0], cS[1], deriv2IdealMixS );
 
    double deriv2FMixS[4];
@@ -107,8 +107,8 @@ void CALPHADConcentrationSolverTernary::Jacobian(
 
    double d2fSdciS2[3];
    d2fSdciS2[0] = deriv2FMixS[0] + deriv2IdealMixS[0];
-   d2fSdciS2[1] = deriv2FMixS[1];
-   d2fSdciS2[2] = deriv2FMixS[3] + deriv2IdealMixS[1];
+   d2fSdciS2[1] = deriv2FMixS[1] + deriv2IdealMixS[1];
+   d2fSdciS2[2] = deriv2FMixS[3] + deriv2IdealMixS[3];
 
    /*
     * Jacobian:
@@ -174,7 +174,7 @@ int CALPHADConcentrationSolverTernary::ComputeConcentration(
       d_L_AC_S[ii] = L_AC_S[ii];
       d_L_BC_S[ii] = L_BC_S[ii];
    }
-   for ( int ii = 0; ii < 4; ii++ ) {
+   for ( int ii = 0; ii < 3; ii++ ) {
       d_L_ABC_S[ii] = L_ABC_S[ii];
       d_L_ABC_L[ii] = L_ABC_L[ii];
    }
