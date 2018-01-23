@@ -13,6 +13,8 @@ int main( int argc, char *argv[] )
 
    const double epsilon=1.e-8;
    const double tol=1.e-6;
+   int nfailures=0;
+
    cout<<setprecision(12);
    cerr<<setprecision(12);
 
@@ -33,6 +35,7 @@ int main( int argc, char *argv[] )
 
    if( fabs(fd-ad)>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_derivBinary failed!!!"<<endl;
       cerr<<"Difference = "<<fd-ad<<endl;
    }else{
@@ -55,6 +58,7 @@ int main( int argc, char *argv[] )
    cout<<"Numerical derivative   = "<<fd1<<endl;
    if( fabs(fd1-deriv[0])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"<<endl;
       cerr<<"Difference = "<<fd1-deriv[0]<<endl;
    }else{
@@ -65,6 +69,7 @@ int main( int argc, char *argv[] )
    cout<<"Numerical derivative   = "<<fd2<<endl;
    if( fabs(fd2-deriv[1])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"<<endl;
       cerr<<"Difference = "<<fd2-deriv[1]<<endl;
    }else{
@@ -92,6 +97,7 @@ int main( int argc, char *argv[] )
    double fd1=(f1-f0)/epsilon;
    if( fabs(fd1-deriv[0])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_derivTernary failed!!!"<<endl;
       cerr<<"Difference = "<<fd1-deriv[0]<<endl;
    }else{
@@ -100,6 +106,7 @@ int main( int argc, char *argv[] )
    double fd2=(f2-f0)/epsilon;
    if( fabs(fd2-deriv[1])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_derivTernary failed!!!"<<endl;
       cerr<<"Difference = "<<fd2-deriv[1]<<endl;
    }else{
@@ -118,6 +125,7 @@ int main( int argc, char *argv[] )
    cout<<"FD="<<fd<<", exact="<<deriv2[0]<<endl;
    if( fabs(fd-deriv2[0])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"<<endl;
       cerr<<"Difference = "<<fd-deriv2[0]<<endl;
    }else{
@@ -128,6 +136,7 @@ int main( int argc, char *argv[] )
    cout<<"FD="<<fd<<", exact="<<deriv2[3]<<endl;
    if( fabs(fd-deriv2[3])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"<<endl;
       cerr<<"Difference = "<<fd-deriv2[3]<<endl;
    }else{
@@ -139,6 +148,7 @@ int main( int argc, char *argv[] )
    cout<<"FD="<<fd<<", exact="<<deriv2[1]<<endl;
    if( fabs(fd-deriv2[1])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"<<endl;
       cerr<<"Difference = "<<fd-deriv2[0]<<endl;
    }else{
@@ -149,6 +159,7 @@ int main( int argc, char *argv[] )
    cout<<"FD="<<fd<<", exact="<<deriv2[2]<<endl;
    if( fabs(fd-deriv2[2])>tol )
    {
+      nfailures++;
       cerr<<"TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"<<endl;
       cerr<<"Difference = "<<fd-deriv2[0]<<endl;
    }else{
@@ -158,5 +169,6 @@ int main( int argc, char *argv[] )
 
    }
 
-   return(0);
+   if( nfailures==0 )cout<<"TEST PASSED"<<endl;
+   return nfailures;
 }

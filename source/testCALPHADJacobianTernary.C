@@ -10,8 +10,10 @@ using namespace std;
 
 int main( int argc, char *argv[] )
 {
-   cout<<"====================================="<<endl;
-   cout<<"Test CALPHADEqPhaseConcSolverTernary."<<endl;
+   cout<<"======================================="<<endl;
+   cout<<"Test CALPHADEqPhaseConcSolverTernary..."<<endl;
+
+   int nfailures=0;
 
    double epsilon=1.e-8;
    double tol=1.e-6;
@@ -74,6 +76,7 @@ int main( int argc, char *argv[] )
       {
          if( fabs(fd[i]-fjac[i][j])>tol )
          {
+            nfailures++;
             cerr<<"ERROR: Equation "<<i<<", FD="<<fd[i]<<", fjac="<<fjac[i][j]<<endl;
          }
       }
@@ -81,8 +84,8 @@ int main( int argc, char *argv[] )
       x[j]-=epsilon;
    }
 
-   cout<<"====================================="<<endl;
-   cout<<"Test CALPHADConcentrationSolverTernary"<<endl;
+   cout<<"========================================="<<endl;
+   cout<<"Test CALPHADConcentrationSolverTernary..."<<endl;
    CALPHADConcentrationSolverTernary solver2;
 
    solver2.setup(cA,cB,0.5,
@@ -114,6 +117,7 @@ int main( int argc, char *argv[] )
       {
          if( fabs(fd[i]-fjac[i][j])>tol )
          {
+            nfailures++;
             cerr<<"ERROR: Equation "<<i<<", FD="<<fd[i]<<", fjac="<<fjac[i][j]<<endl;
          }
       }
@@ -121,6 +125,8 @@ int main( int argc, char *argv[] )
       x[j]-=epsilon;
    }
 
-   return(0);
+   if( nfailures==0 )cout<<"TEST PASSED"<<endl;
+
+   return nfailures;
 }
 
