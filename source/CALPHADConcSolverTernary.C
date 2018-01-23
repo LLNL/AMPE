@@ -138,8 +138,7 @@ void CALPHADConcentrationSolverTernary::Jacobian(
 
 //=======================================================================
 
-int CALPHADConcentrationSolverTernary::ComputeConcentration(
-   double* const conc,
+void CALPHADConcentrationSolverTernary::setup(
    const double c0,
    const double c1,
    const double hphi,
@@ -185,6 +184,29 @@ int CALPHADConcentrationSolverTernary::ComputeConcentration(
       d_fB[ii] = fB[ii];
       d_fC[ii] = fC[ii];
    }
+}
+
+int CALPHADConcentrationSolverTernary::ComputeConcentration(
+   double* const conc,
+   const double c0,
+   const double c1,
+   const double hphi,
+   const double RTinv,
+   const double* const L_AB_L,
+   const double* const L_AC_L,
+   const double* const L_BC_L,
+   const double* const L_AB_S,
+   const double* const L_AC_S,
+   const double* const L_BC_S,
+   const double* const L_ABC_L,
+   const double* const L_ABC_S,
+   const double* const fA,
+   const double* const fB,
+   const double* const fC )
+{
+   setup(c0,c1,hphi,RTinv,L_AB_L,L_AC_L,L_BC_L,
+                          L_AB_S,L_AC_S,L_BC_S,
+                          L_ABC_L,L_ABC_S,fA,fB,fC);
 
    int ret= NewtonSolver::ComputeSolution( conc, 4 );
 

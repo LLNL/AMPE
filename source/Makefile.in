@@ -177,15 +177,15 @@ testCALPHADSpeciesPhaseGibbsEnergy: CALPHADSpeciesPhaseGibbsEnergy.o testCALPHAD
 testCALPHADFunctions: CALPHADFunctions.o testCALPHADFunctions.o
 		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o -o testCALPHADFunctions
 
-testCALPHADEqPhaseConcSolverTernary:
-		$(MAKE) PDIM=2 test-CALPHADEqPhaseConcSolverTernary
-		mkdir -p ../exec && mv testCALPHADEqPhaseConcSolverTernary ../exec/testCALPHADEqPhaseConcSolverTernary
+testCALPHADJacobianTernary:
+		$(MAKE) PDIM=2 test-CALPHADJacobianTernary
+		mkdir -p ../exec && mv testCALPHADJacobianTernary ../exec/testCALPHADJacobianTernary
 
-TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ = testCALPHADEqPhaseConcSolverTernary.o
+TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ = testCALPHADJacobianTernary.o
 
-test-CALPHADEqPhaseConcSolverTernary:   $(CALPHAD_OBJS) $(TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_EQ_TERNARY_MAIN_OBJ) $(F77_OBJS) \
-		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADEqPhaseConcSolverTernary
+test-CALPHADJacobianTernary:   $(CALPHAD_OBJS) $(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADJacobianTernary
 
 testHypre2d:
 		$(MAKE) PDIM=2 testHypre-2d
