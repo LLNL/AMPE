@@ -2015,7 +2015,7 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_conc_phase_coupling_diffusion_id >= 0 );
    }else{
       d_conc_diffusion_l_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_l", d_ncompositions ) );
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_l", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_l_var );
       d_conc_diffusion_l_id =
          variable_db->registerVariableAndContext(
@@ -2025,7 +2025,7 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_conc_diffusion_l_id >= 0 );
 
       d_conc_diffusion_coeff_l_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_l", d_ncompositions ) );
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_l", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_coeff_l_var );
       d_conc_diffusion_coeff_l_id =
          variable_db->registerVariableAndContext(
@@ -2035,7 +2035,7 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_conc_diffusion_coeff_l_id >= 0 );
 
       d_conc_diffusion_a_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_a", d_ncompositions ) );
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_a", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_a_var );
       d_conc_diffusion_a_id =
          variable_db->registerVariableAndContext(
@@ -2045,7 +2045,7 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_conc_diffusion_a_id >= 0 );
 
       d_conc_diffusion_coeff_a_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_a", d_ncompositions ) );
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_a", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_coeff_a_var );
       d_conc_diffusion_coeff_a_id =
          variable_db->registerVariableAndContext(
@@ -2070,7 +2070,7 @@ void QuatModel::registerConcentrationVariables( void )
 
       if ( d_model_parameters.with_third_phase() ) {
          d_conc_diffusion_b_var.reset(
-            new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_b", d_ncompositions ) );
+            new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_b", d_ncompositions*d_ncompositions ) );
          assert( d_conc_diffusion_b_var );
          d_conc_diffusion_b_id =
             variable_db->registerVariableAndContext(
@@ -2080,7 +2080,7 @@ void QuatModel::registerConcentrationVariables( void )
          assert( d_conc_diffusion_b_id >= 0 );
 
          d_conc_diffusion_coeff_b_var.reset(
-            new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_b", d_ncompositions ) );
+            new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_b", d_ncompositions*d_ncompositions ) );
          assert( d_conc_diffusion_coeff_b_var );
          d_conc_diffusion_coeff_b_id =
             variable_db->registerVariableAndContext(
