@@ -124,7 +124,7 @@ F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		smoothquat.o \
 		hyprepoisson3d.o phase.o
 
-CXXFLAGS += -I$(NETCDF)/include
+CXXFLAGS += -isystem $(NETCDF)/include
 LDFLAGS += -L $(NETCDF)/lib
 
 LDLIBS += -lnetcdf_c++4 -lnetcdf 
