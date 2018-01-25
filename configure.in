@@ -374,7 +374,7 @@ AC_ARG_ENABLE(debug,
    yes)
       case $CXX_ID in
          kai) debug_switches="+K0" ;;
-         *)   debug_switches="-g" ;;
+         *)   debug_switches="-g -O0" ;;
       esac ;;
    *) debug_switches="$enable_debug" ;;
 esac
