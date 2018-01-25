@@ -167,6 +167,14 @@ test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJ
 		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternary
 
+testCALPHADternaryEnergy:
+		$(MAKE) PDIM=2 test-CALPHAD-ternaryEnergy
+		mkdir -p ../exec && mv testCALPHADternaryEnergy  ../exec/testCALPHADternaryEnergy
+
+test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o $(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) testCALPHADternaryEnergy.o $(F77_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternaryEnergy
+
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
 
