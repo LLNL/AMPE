@@ -65,6 +65,8 @@ public:
       const std::string& diff_interp_func_type,
       CompositionStrategyMobilities* mobilities_strategy,
       FreeEnergyStrategy* free_energy_strategy);
+
+   ~DiffusionForConcInPhaseStrategy(){};
    
    void setDiffusionForConcInPhase(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
@@ -103,6 +105,16 @@ private:
       boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_b,
       const hier::Box& pbox );
 
+   void computeLocalDiffusionMatrixL(
+      const double temperature,
+      const std::vector<double>& c);
+   void computeLocalDiffusionMatrixA(
+      const double temperature,
+      const std::vector<double>& c);
+   void computeLocalDiffusionMatrixB(
+      const double temperature,
+      const std::vector<double>& c);
+
    bool d_same_composition_for_third_phase;
    
    unsigned short d_ncompositions;
@@ -140,6 +152,13 @@ private:
     * at cell centers and define quantity at cell boundary
     */
    std::string d_avg_func_type;
+
+   /*!
+    * small work arrays
+    */
+   std::vector<double> d_d2f;
+   std::vector<double> d_mobmat;
+   std::vector<double> d_local_dmat;
 };
 
 #endif

@@ -37,6 +37,16 @@
 #include <vector>
 using namespace std;
 
+void small_mat_mult(const int n, const double* const a, const double* const b, double* c)
+{
+   for(short k=0;k<n;k++)
+   for(short i=0;i<n;i++){
+      c[n*k+i]=0.;
+      for(short j=0;j<n;j++)
+         c[n*k+i]+=a[n*k+j]*b[n*j+k];
+   }
+}
+
 DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    const unsigned short ncompositions,
    const int conc_l_scratch_id,
@@ -77,6 +87,44 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    d_same_composition_for_third_phase=false;
    
    assert( d_free_energy_strategy!=NULL );
+
+   d_d2f.resize(       d_ncompositions*d_ncompositions);
+   d_mobmat.resize(    d_ncompositions*d_ncompositions);
+   d_local_dmat.resize(d_ncompositions*d_ncompositions);
+}
+
+void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
+   const double temperature,
+   const vector<double>& c)
+{
+   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(temperature, c, d_d2f, false);
+   d_mobilities_strategy->computeDiffusionMobilityPhaseL(c, temperature, d_mobmat);
+
+   small_mat_mult(d_ncompositions,&d_mobmat[0],&d_d2f[0],&d_local_dmat[0]);
+
+   for(short i=0;i<d_ncompositions*d_ncompositions;i++)assert( d_local_dmat[i]==d_local_dmat[i] );
+}
+
+void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
+   const double temperature,
+   const vector<double>& c)
+{
+   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(temperature, c, d_d2f, false);
+   d_mobilities_strategy->computeDiffusionMobilityPhaseA(c, temperature, d_mobmat);
+
+   small_mat_mult(d_ncompositions,&d_mobmat[0],&d_d2f[0],&d_local_dmat[0]);
+
+   for(short i=0;i<d_ncompositions*d_ncompositions;i++)assert( d_local_dmat[i]==d_local_dmat[i] );
+}
+
+void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
+   const double temperature,
+   const vector<double>& c)
+{
+   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(temperature, c, d_d2f, false);
+   d_mobilities_strategy->computeDiffusionMobilityPhaseB(c, temperature, d_mobmat);
+
+   small_mat_mult(d_ncompositions,&d_mobmat[0],&d_d2f[0],&d_local_dmat[0]);
 }
 
 void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhase(
@@ -242,9 +290,9 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
       }
    }
    
-   vector<double*> ptr_dx_coeff_a;ptr_dx_coeff_a.resize(nc2);
-   vector<double*> ptr_dy_coeff_a;ptr_dy_coeff_a.resize(nc2);
-   vector<double*> ptr_dz_coeff_a;ptr_dz_coeff_a.resize(nc2, NULL);
+   vector<double*> ptr_dx_coeff_a(nc2);
+   vector<double*> ptr_dy_coeff_a(nc2);
+   vector<double*> ptr_dz_coeff_a(nc2,NULL);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -255,10 +303,14 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
       }
    }
    
-   vector<double*> ptr_dx_coeff_b;ptr_dx_coeff_b.resize(nc2, NULL);
-   vector<double*> ptr_dy_coeff_b;ptr_dy_coeff_b.resize(nc2, NULL);
-   vector<double*> ptr_dz_coeff_b;ptr_dz_coeff_b.resize(nc2, NULL);
+   vector<double*> ptr_dx_coeff_b;
+   vector<double*> ptr_dy_coeff_b;
+   vector<double*> ptr_dz_coeff_b;
    if ( d_with_third_phase ) {
+      ptr_dx_coeff_b.resize(nc2, NULL);
+      ptr_dy_coeff_b.resize(nc2, NULL);
+      ptr_dz_coeff_b.resize(nc2, NULL);
+
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
          const unsigned ijc=ic+jc*d_ncompositions;
@@ -321,9 +373,6 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
    vector<double> c_b(d_ncompositions);
    vector<double> c_s(d_ncompositions);
    
-   vector<double> d2f(nc2);
-   vector<double> mobmat(nc2);
-
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -352,13 +401,10 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                c_l[ic] = 0.5 * ( ptr_c_l[ic][idx_c] + ptr_c_l[ic][idxm1_c] );
                c_a[ic] = 0.5 * ( ptr_c_a[ic][idx_c] + ptr_c_a[ic][idxm1_c] );
             }
-            
-            d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(
-               temp, c_l,
-               d2f, false);            
-            d_mobilities_strategy->computeDiffusionMobilityPhaseL(c_l, temp, mobmat);
-
-            ptr_dx_coeff_l[0][idx_dcoeff] = mobmat[0]*d2f[0];
+           
+            computeLocalDiffusionMatrixL(temp, c_l); 
+            for(int ic=0;ic<nc2;ic++)
+               ptr_dx_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
 
             double eta=0.;
             if ( d_with_third_phase ) {
@@ -375,29 +421,20 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                for(unsigned short ic=0;ic<d_ncompositions;ic++){
                   c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
                }
-               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                  temp, c_s,
-                  d2f, false);
-               d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_s, temp, mobmat);
-
-               ptr_dx_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
-               ptr_dx_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
-               
+               computeLocalDiffusionMatrixA(temp, c_s);
+               for(int ic=0;ic<nc2;ic++){
+                  ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
+                  ptr_dx_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
+               }
             }else{
-               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                  temp, c_a,
-                  d2f, false);
-               d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_a, temp, mobmat);
-
-               ptr_dx_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
+               computeLocalDiffusionMatrixA(temp, c_a);
+               for(int ic=0;ic<nc2;ic++)
+                  ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
             
                if ( d_with_third_phase ) {
-                  d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(
-                     temp, c_b,
-                     d2f, false);
-                  d_mobilities_strategy->computeDiffusionMobilityPhaseB(c_b, temp, mobmat);
-
-                  ptr_dx_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
+                  computeLocalDiffusionMatrixB(temp, c_b);
+                  for(int ic=0;ic<nc2;ic++)
+                     ptr_dx_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                }
             }
          }
@@ -437,12 +474,9 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                   c_b[ic] = 0.5 * ( ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c] );
             }
 
-            d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(
-               temp, c_l,
-               d2f, false);
-            d_mobilities_strategy->computeDiffusionMobilityPhaseL(c_l, temp, mobmat);
-
-            ptr_dy_coeff_l[0][idx_dcoeff] = mobmat[0]*d2f[0];
+            computeLocalDiffusionMatrixL(temp,c_l);
+            for(int ic=0;ic<nc2;ic++)
+               ptr_dy_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
             
             double eta=0.;
             if ( d_with_third_phase ) {
@@ -460,28 +494,20 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                   c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
                }
                
-               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                  temp, c_s,
-                  d2f, false);
-               d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_s, temp, mobmat);
-
-               ptr_dy_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
-               ptr_dy_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
+               computeLocalDiffusionMatrixA(temp, c_s);
+               for(int ic=0;ic<nc2;ic++){
+                  ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
+                  ptr_dy_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
+               }
             }else{
-               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                  temp, c_a,
-                  d2f, false);
-               d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_a, temp, mobmat);
-
-               ptr_dy_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
+               computeLocalDiffusionMatrixA(temp, c_a);
+               for(int ic=0;ic<nc2;ic++)
+                  ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
             
                if ( d_with_third_phase ) {
-                  d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(
-                     temp, c_b,
-                     d2f, false);
-                  d_mobilities_strategy->computeDiffusionMobilityPhaseB(c_b, temp, mobmat);
-
-                  ptr_dy_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
+                  computeLocalDiffusionMatrixB(temp, c_b);
+                  for(int ic=0;ic<nc2;ic++)
+                     ptr_dy_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                }
             }
          }
@@ -522,12 +548,9 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                      c_b[ic] = 0.5 * ( ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c] );
                }
 
-               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(
-                  temp, c_l,
-                  d2f, false);
-               d_mobilities_strategy->computeDiffusionMobilityPhaseL(c_l, temp, mobmat);
-               
-               ptr_dz_coeff_l[0][idx_dcoeff] = mobmat[0]*d2f[0];
+               computeLocalDiffusionMatrixL(temp, c_l);
+               for(int ic=0;ic<nc2;ic++)
+                  ptr_dz_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
                
                double eta=0.;
                if ( d_with_third_phase ) {
@@ -545,29 +568,21 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
                      c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
                   }
                
-                  d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                     temp, c_s,
-                     d2f, false);
-                  d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_s, temp, mobmat);
-
-                  ptr_dz_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
-                  ptr_dz_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
+                  computeLocalDiffusionMatrixA(temp, c_s);
+                  for(int ic=0;ic<nc2;ic++){
+                     ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
+                     ptr_dz_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
+                  }
                }else{
                
-                  d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
-                     temp, c_a,
-                     d2f, false);
-                  d_mobilities_strategy->computeDiffusionMobilityPhaseA(c_a, temp, mobmat);
-
-                  ptr_dz_coeff_a[0][idx_dcoeff] = mobmat[0]*d2f[0];
+                  computeLocalDiffusionMatrixA(temp, c_a);
+                  for(int ic=0;ic<nc2;ic++)
+                     ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
                
                   if ( d_with_third_phase ) {
-                     d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(
-                        temp, c_b,
-                        d2f, false);
-                     d_mobilities_strategy->computeDiffusionMobilityPhaseB(c_b, temp, mobmat);
-
-                     ptr_dz_coeff_b[0][idx_dcoeff] = mobmat[0]*d2f[0];
+                     computeLocalDiffusionMatrixB(temp, c_b);
+                     for(int ic=0;ic<nc2;ic++)
+                        ptr_dz_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                   }
                }
             }
@@ -748,10 +763,12 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
                      d_diff_interp_func_type.c_str() );
             }
 
-            ptr_dx_l[0][idx_dcoeff] = (1.-hphi)*ptr_dx_coeff_l[0][idx_dcoeff];
-            ptr_dx_a[0][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dx_coeff_a[0][idx_dcoeff];
-            if ( d_with_third_phase ) {
-               ptr_dx_b[0][idx_dcoeff] = hphi*heta*ptr_dx_coeff_b[0][idx_dcoeff];
+            for(int ic=0;ic<nc2;ic++){
+               ptr_dx_l[ic][idx_dcoeff] = (1.-hphi)*ptr_dx_coeff_l[ic][idx_dcoeff];
+               ptr_dx_a[ic][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dx_coeff_a[ic][idx_dcoeff];
+               if ( d_with_third_phase ) {
+                  ptr_dx_b[ic][idx_dcoeff] = hphi*heta*ptr_dx_coeff_b[ic][idx_dcoeff];
+               }
             }
          }
       }
@@ -787,10 +804,12 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
                      d_diff_interp_func_type.c_str() );
             }
 
-            ptr_dy_l[0][idx_dcoeff] = (1.-hphi)*ptr_dy_coeff_l[0][idx_dcoeff];
-            ptr_dy_a[0][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dy_coeff_a[0][idx_dcoeff];
-            if ( d_with_third_phase ) {
-               ptr_dy_b[0][idx_dcoeff] = hphi*heta*ptr_dy_coeff_b[0][idx_dcoeff];
+            for(int ic=0;ic<nc2;ic++){
+               ptr_dy_l[ic][idx_dcoeff] = (1.-hphi)*ptr_dy_coeff_l[ic][idx_dcoeff];
+               ptr_dy_a[ic][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dy_coeff_a[ic][idx_dcoeff];
+               if ( d_with_third_phase ) {
+                  ptr_dy_b[ic][idx_dcoeff] = hphi*heta*ptr_dy_coeff_b[ic][idx_dcoeff];
+               }
             }
          }
       }
@@ -827,10 +846,12 @@ void DiffusionForConcInPhaseStrategy::setDiffusionForConcInPhaseOnPatch(
                         d_diff_interp_func_type.c_str() );
                }
 
-               ptr_dz_l[0][idx_dcoeff] = (1.-hphi)*ptr_dz_coeff_l[0][idx_dcoeff];
-               ptr_dz_a[0][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dz_coeff_a[0][idx_dcoeff];
-               if ( d_with_third_phase ) {
-                  ptr_dz_b[0][idx_dcoeff] = hphi*heta*ptr_dz_coeff_b[0][idx_dcoeff];
+               for(int ic=0;ic<nc2;ic++){
+                  ptr_dz_l[ic][idx_dcoeff] = (1.-hphi)*ptr_dz_coeff_l[ic][idx_dcoeff];
+                  ptr_dz_a[ic][idx_dcoeff] = hphi*( 1.0 - heta )*ptr_dz_coeff_a[ic][idx_dcoeff];
+                  if ( d_with_third_phase ) {
+                     ptr_dz_b[ic][idx_dcoeff] = hphi*heta*ptr_dz_coeff_b[ic][idx_dcoeff];
+                  }
                }
             }
          }
