@@ -31,7 +31,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 ln -sf ../../../utils/make_bilayer.py
-ln -sf ../../../build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/exec/ampe2d 
 ln -sf ../../../thermodynamic_data/calphadAuNi.dat  
 
 #generate initial conditions
@@ -49,5 +48,7 @@ ln -sf ../../../../utils/lineplotPhiQuat.py
 #create 1d plots of composition profiles -> concentration0_*.dat
 visit -nowin -cli -verbose -s lineplotPhiQuat.py
 
-#visualize results with xmgrace
-xmgrace concentration0_*.dat
+#visualize results
+python plotConcentrations.py
+display figure.png
+ 
