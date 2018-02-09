@@ -91,9 +91,9 @@ if conc_inside is None :
 temperature = options.temperature
 
 # generate quaternions corresponding to random orientations
-random.seed( 11234 )
+random.seed( 112345 )
 quat_inside=[]
-nangles = 20.
+nangles = 20. #actually means fewer different angles if symmetry is on
 h = 2.*math.pi/nangles
 
 h1=0.1
@@ -107,13 +107,14 @@ def setRandomQinGrains():
     
     for g in range(ngrains):
 
-      #pich a discrete angle between -pi and pi
+      #pick a discrete angle between 0 and 2*pi
       if ( ngrains == 1 ):
-        t = 0.
+        n = 0
       else:
-        t = math.pi * random.uniform(-1, 1.)
-      n = math.floor( t/h )
+        n = random.randint(0,nangles-1)
+      #print 'random number =',n
       t = n*h
+      print 'angle=',t
 
       if ( QLEN == 1 ) :
 
