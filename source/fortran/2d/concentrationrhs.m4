@@ -170,22 +170,19 @@ c
       dyinv = 1.d0 / dx(1)
 
       do ic = 1, ncomp
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0+1
-               do jc = 1, ncomp
-                  ijc=ic+(jc-1)*ncomp
+         do jc = 1, ncomp
+            ijc=ic+(jc-1)*ncomp
+            do ic1 = ifirst1, ilast1
+               do ic0 = ifirst0, ilast0+1
                   flux0(ic0,ic1,ic) = flux0(ic0,ic1,ic) + dxinv * (
      &              diffconc0(ic0,ic1,ijc) *
      &              ( conc(ic0,ic1,jc) - conc(ic0-1,ic1,jc) )
      &              )
                enddo
             enddo
-         enddo
 
-         do ic1 = ifirst1, ilast1+1
-            do ic0 = ifirst0, ilast0
-               do jc = 1, ncomp
-                  ijc=ic+(jc-1)*ncomp
+            do ic1 = ifirst1, ilast1+1
+               do ic0 = ifirst0, ilast0
                   flux1(ic0,ic1,ic) = flux1(ic0,ic1,ic) + dyinv * (
      &              diffconc1(ic0,ic1,ijc) *
      &              ( conc(ic0,ic1,jc) - conc(ic0,ic1-1,jc) )

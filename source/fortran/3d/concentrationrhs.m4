@@ -212,11 +212,11 @@ c
       dzinv = 1.d0 / dx(2)
 
       do ic = 1, ncomp
-         do ic2 = ifirst2, ilast2
-            do ic1 = ifirst1, ilast1
-               do ic0 = ifirst0, ilast0+1
-                  do jc = 1, ncomp
-                     ijc=ic+(jc-1)*ncomp
+         do jc = 1, ncomp
+            ijc=ic+(jc-1)*ncomp
+            do ic2 = ifirst2, ilast2
+               do ic1 = ifirst1, ilast1
+                  do ic0 = ifirst0, ilast0+1
                      flux0(ic0,ic1,ic2,ic) = flux0(ic0,ic1,ic2,ic)
      &                  +dxinv * (
      &                   diffconc0(ic0,ic1,ic2,ijc) *
@@ -225,13 +225,10 @@ c
                   enddo
                enddo
             enddo
-         enddo
 
-         do ic2 = ifirst2, ilast2
-            do ic1 = ifirst1, ilast1+1
-               do ic0 = ifirst0, ilast0
-                  do jc = 1, ncomp
-                     ijc=ic+(jc-1)*ncomp
+            do ic2 = ifirst2, ilast2
+               do ic1 = ifirst1, ilast1+1
+                  do ic0 = ifirst0, ilast0
                      flux1(ic0,ic1,ic2,ic) = flux1(ic0,ic1,ic2,ic)
      &                  +dyinv * (
      &                   diffconc1(ic0,ic1,ic2,ijc) *
@@ -240,13 +237,10 @@ c
                   enddo
                enddo
             enddo
-         enddo
 
-         do ic2 = ifirst2, ilast2+1
-            do ic1 = ifirst1, ilast1
-               do ic0 = ifirst0, ilast0
-                  do jc = 1, ncomp
-                     ijc=ic+(jc-1)*ncomp
+            do ic2 = ifirst2, ilast2+1
+               do ic1 = ifirst1, ilast1
+                  do ic0 = ifirst0, ilast0
                      flux2(ic0,ic1,ic2,ic) = flux2(ic0,ic1,ic2,ic)
      &                  +dzinv * (
      &                   diffconc2(ic0,ic1,ic2,ijc) *

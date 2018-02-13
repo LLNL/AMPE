@@ -185,10 +185,12 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    boost::shared_ptr< pdat::CellData<double> > conc_l (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_scratch_id) ) );
    assert( conc_l );
+   assert( conc_l->getDepth()==d_ncompositions );
 
    boost::shared_ptr< pdat::CellData<double> > conc_a (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_scratch_id) ) );
    assert( conc_a );
+   assert( conc_a->getDepth()==d_ncompositions );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusionl (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_l_id) ) );
@@ -208,7 +210,6 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    flux->fillAll(0.);
 
    // now add components of concentration flux
-   for(int ic=0;ic<conc_l->getDepth();++ic)
    FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -216,7 +217,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_l->getPointer(ic), NGHOSTS,
+            conc_l->getPointer(0), NGHOSTS,
             d_ncompositions,
             conc_diffusionl->getPointer(0),
             conc_diffusionl->getPointer(1),
@@ -224,14 +225,13 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusionl->getPointer(2),
 #endif
             0,
-            flux->getPointer(0,ic),
-            flux->getPointer(1,ic),
+            flux->getPointer(0),
+            flux->getPointer(1),
 #if (NDIM == 3)
-            flux->getPointer(2,ic),
+            flux->getPointer(2),
 #endif
             flux->getGhostCellWidth()[0] );
 
-   for(int ic=0;ic<conc_a->getDepth();++ic)
    FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -239,7 +239,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_a->getPointer(ic), NGHOSTS,
+            conc_a->getPointer(), NGHOSTS,
             d_ncompositions,
             conc_diffusiona->getPointer(0),
             conc_diffusiona->getPointer(1),
@@ -247,10 +247,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusiona->getPointer(2),
 #endif
             0,
-            flux->getPointer(0,ic),
-            flux->getPointer(1,ic),
+            flux->getPointer(0),
+            flux->getPointer(1),
 #if (NDIM == 3)
-            flux->getPointer(2,ic),
+            flux->getPointer(2),
 #endif
             flux->getGhostCellWidth()[0] );
 
@@ -270,7 +270,6 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
       assert( conc_diffusionb->getPointer(2)!=NULL );
 #endif
 
-      for(int ic=0;ic<conc_b->getDepth();++ic)
       FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -278,7 +277,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_b->getPointer(ic), NGHOSTS,
+            conc_b->getPointer(), NGHOSTS,
             d_ncompositions,
             conc_diffusionb->getPointer(0),
             conc_diffusionb->getPointer(1),
@@ -286,10 +285,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             conc_diffusionb->getPointer(2),
 #endif
             0,
-            flux->getPointer(0,ic),
-            flux->getPointer(1,ic),
+            flux->getPointer(0),
+            flux->getPointer(1),
 #if (NDIM == 3)
-            flux->getPointer(2,ic),
+            flux->getPointer(2),
 #endif
             flux->getGhostCellWidth()[0] );
    }
@@ -685,6 +684,8 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    boost::shared_ptr< pdat::SideData<double> > sd_mq, // output
    const hier::Box& pbox )
 {
+   assert( d_ncompositions==1 );
+
    vector<double*> ptr_c_l(d_ncompositions);
    vector<double*> ptr_c_a(d_ncompositions);
    vector<double*> ptr_c_b(d_ncompositions);
