@@ -37,13 +37,15 @@
 #include <vector>
 using namespace std;
 
-void small_mat_mult(const int n, const double* const a, const double* const b, double* c)
+void small_mat_mult(const short n, 
+                    const double* const a, const double* const b, 
+                    double* c)
 {
    for(short k=0;k<n;k++)
    for(short i=0;i<n;i++){
       c[n*k+i]=0.;
       for(short j=0;j<n;j++)
-         c[n*k+i]+=a[n*k+j]*b[n*j+k];
+         c[n*k+i]+=a[n*k+j]*b[n*j+i];
    }
 }
 
@@ -109,12 +111,28 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
    const double temperature,
    const vector<double>& c)
 {
-   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(temperature, c, d_d2f, false);
-   d_mobilities_strategy->computeDiffusionMobilityPhaseA(c, temperature, d_mobmat);
+   d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
+      temperature, c, d_d2f, false);
+   //cout<<"d_d2f: ";
+   //for(short i=0;i<d_ncompositions*d_ncompositions;i++)
+   //   cout<<d_d2f[i]<<"  ";
+   //cout<<endl;
+
+   d_mobilities_strategy->computeDiffusionMobilityPhaseA(
+      c, temperature, d_mobmat);
+   //cout<<"d_mobmat: ";
+   //for(short i=0;i<d_ncompositions*d_ncompositions;i++)
+   //   cout<<d_mobmat[i]<<"  ";
+   //cout<<endl;
 
    small_mat_mult(d_ncompositions,&d_mobmat[0],&d_d2f[0],&d_local_dmat[0]);
-
-   for(short i=0;i<d_ncompositions*d_ncompositions;i++)assert( d_local_dmat[i]==d_local_dmat[i] );
+   //cout<<"c="<<c[0]<<","<<c[1]<<endl;
+   //cout<<"d_local_dmat: ";
+   //for(short i=0;i<d_ncompositions*d_ncompositions;i++)
+   //   cout<<d_local_dmat[i]<<"  ";
+   //cout<<endl;
+   for(short i=0;i<d_ncompositions*d_ncompositions;i++)
+      assert( d_local_dmat[i]==d_local_dmat[i] );
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
@@ -396,8 +414,10 @@ void DiffusionForConcInPhaseStrategy::setDiffusionCoeffForConcInPhaseOnPatch(
             double temp = 0.5 * ( ptr_temp[idx_temp] + ptr_temp[idxm1_temp] );
 
             for(unsigned short ic=0;ic<d_ncompositions;ic++){
-               assert( ptr_c_l[ic][idx_c]>=0. );
-               assert( ptr_c_l[ic][idxm1_c]>=0. );
+               assert( ptr_c_l[ic][idx_c]>=-0.05 );
+               assert( ptr_c_l[ic][idxm1_c]>=-0.05 );
+               assert( ptr_c_l[ic][idx_c]<=1.05 );
+               assert( ptr_c_l[ic][idxm1_c]<=1.05 );
                c_l[ic] = 0.5 * ( ptr_c_l[ic][idx_c] + ptr_c_l[ic][idxm1_c] );
                c_a[ic] = 0.5 * ( ptr_c_a[ic][idx_c] + ptr_c_a[ic][idxm1_c] );
             }
