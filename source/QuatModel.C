@@ -64,6 +64,7 @@
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
+#include "PhaseIndependentConcentrationsStrategy.h"
 #include "AzizPartitionCoefficientStrategy.h"
 #include "UniformPartitionCoefficientStrategy.h"
 #include "ConstantMeltingTemperatureStrategy.h"
@@ -631,15 +632,22 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters,
                   conc_db );
          }
-      }else
-      if( d_model_parameters.partition_phase_concentration() ){
-         d_phase_conc_strategy =
-            new PartitionPhaseConcentrationsStrategy(
-               d_conc_l_id,
-               d_conc_a_id,
-               d_conc_b_id,
-               d_model_parameters.phase_interp_func_type(),
-               d_partition_coeff_id);
+      }else{
+         if( d_model_parameters.partition_phase_concentration() ){
+            d_phase_conc_strategy =
+               new PartitionPhaseConcentrationsStrategy(
+                  d_conc_l_id,
+                  d_conc_a_id,
+                  d_conc_b_id,
+                  d_model_parameters.phase_interp_func_type(),
+                  d_partition_coeff_id);
+         }else{ // simply use cl=ca=c
+            d_phase_conc_strategy =
+               new PhaseIndependentConcentrationsStrategy(
+                  d_conc_l_id,
+                  d_conc_a_id,
+                  d_conc_b_id);
+         }
       }
 
       math::HierarchyCellDataOpsReal<double> mathops( d_patch_hierarchy );
