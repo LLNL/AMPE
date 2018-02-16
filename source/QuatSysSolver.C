@@ -64,8 +64,7 @@ QuatSysSolver::QuatSysSolver(
    const int ql,
    const string &             object_name,
    boost::shared_ptr<tbox::Database> database )
-  : qlen(ql),
-    d_object_name(object_name),
+  : d_object_name(object_name),
     d_fac_ops(new QuatFACOps(ql, object_name+"::fac_ops",database)),
     d_fac_solver(object_name+"::fac_precond",d_fac_ops),
     d_bc_object(NULL),
@@ -110,21 +109,15 @@ QuatSysSolver::QuatSysSolver(
   }
 }
 
-
-/*
-*************************************************************************
+/*************************************************************************
 *                                                                       *
-* Destructor for QuatSysSolver.                              *
 * Deallocate internal data.                                             *
 *                                                                       *
-*************************************************************************
-*/
-
+*************************************************************************/
 QuatSysSolver::~QuatSysSolver()
 {
   deallocateSolverState();
 }
-
 
 
 /*
@@ -144,7 +137,6 @@ QuatSysSolver::~QuatSysSolver()
 * for some inconsistent or unintended parameter specification.     *
 ********************************************************************
 */
-
 void
 QuatSysSolver::getFromInput(const boost::shared_ptr<tbox::Database>& input_db )
 {
@@ -201,8 +193,7 @@ void QuatSysSolver::initializeLevelData(
 }
 
 
-/*
-*************************************************************************
+/*************************************************************************
 *                                                                       *
 * Prepare internal data for solve.                                      *
 * Allocate scratch data.  Create vectors for u and f                    *
@@ -211,9 +202,7 @@ void QuatSysSolver::initializeLevelData(
 * Share data to coordinate with FAC preconditioner and                  *
 * QuatFAC operator.                                                     *
 *                                                                       *
-*************************************************************************
-*/
-
+*************************************************************************/
 void
 QuatSysSolver::initializeSolverState(const int q_soln_id,
    const int q_rhs_id,

@@ -156,7 +156,8 @@ public:
    QuatSysSolver(
       const int qlen,
       const std::string &object_name,
-      boost::shared_ptr<tbox::Database> database = boost::shared_ptr<tbox::Database>() );
+      boost::shared_ptr<tbox::Database> database = 
+         boost::shared_ptr<tbox::Database>() );
 
    /*
     * Destructor
@@ -169,7 +170,8 @@ public:
       const double time,
       const bool can_be_refined,
       const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel > old_level =  boost::shared_ptr<hier::PatchLevel >(),
+      const boost::shared_ptr<hier::PatchLevel > old_level =
+         boost::shared_ptr<hier::PatchLevel >(),
       const bool allocate_data = true );
 
    /*
@@ -335,7 +337,11 @@ public:
     *
     * verbose: Print to tbox::pout?
     */
-   void setVerbose(bool verbose);
+   void setVerbose(bool verbose)
+   {
+      d_verbose = verbose;
+      d_fac_ops->setVerbose(verbose);
+   }
 
    /*
     * Set the relative residual tolerance to which each
@@ -345,7 +351,10 @@ public:
     *
     * tol: Desired relative residual tolerance
     */
-   void setLevelSolverTolerance(double tol);
+   void setLevelSolverTolerance(double tol)
+   {
+      d_fac_ops->setLevelSolverTolerance(tol);
+   }
 
    /*
     * Set the maximum number of iterations allowed for
@@ -355,7 +364,10 @@ public:
     *
     * max_iterations: Maximum allowed number of level solve iterations
     */
-   void setLevelSolverMaxIterations(int max_iterations);
+   void setLevelSolverMaxIterations(int max_iterations)
+   {
+      d_fac_ops->setLevelSolverMaxIterations(max_iterations);
+   }
 
    /*
     * Set the relative residual tolerance to which the
@@ -364,7 +376,10 @@ public:
     *
     * tol: Desired relative residual tolerance on the coarsest level
     */
-   void setCoarsestLevelSolverTolerance(double tol);
+   void setCoarsestLevelSolverTolerance(double tol)
+   {
+      d_fac_ops->setCoarsestLevelSolverTolerance(tol);
+   }
 
    /*
     * Set the maximum number of iterations allowed for
@@ -374,7 +389,10 @@ public:
     * max_iterations: Maximum allowed number of level solve iterations
     *                 on the coarsest level
     */
-   void setCoarsestLevelSolverMaxIterations(int max_iterations);
+   void setCoarsestLevelSolverMaxIterations(int max_iterations)
+   {
+      d_fac_ops->setCoarsestLevelSolverMaxIterations(max_iterations);
+   }
 
    /*
     * Set the coarse-fine boundary discretization method.
@@ -396,7 +414,10 @@ public:
     *
     * coarsefine_method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization( const std::string &coarsefine_method );
+   void setCoarseFineDiscretization( const std::string &coarsefine_method )
+   {
+      d_fac_ops->setCoarseFineDiscretization(coarsefine_method);
+   }
 
    /*
     * Set the name of the prolongation method.
@@ -405,7 +426,7 @@ public:
     * xfer::Geometry::lookupRefineOperator() to get the operator
     * for prolonging the coarse-grid correction.
     *
-    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to
+    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems t
     * to lead to faster convergence, but it does NOT satisfy the Galerkin
     * condition.
     *
@@ -416,7 +437,10 @@ public:
     *
     * prolongation_method: String selecting the coarse-fine discretization method.
     */
-   void setProlongationMethod(const std::string & prolongation_method);
+   void setProlongationMethod(const std::string & prolongation_method)
+   {
+      d_fac_ops->setProlongationMethod(prolongation_method);
+   }
 
    /*
     * Set the maximum number of FAC iterations (cycles) to use per solve.
@@ -433,13 +457,19 @@ public:
     *
     * residual_tol: Residual tolerance
     */
-   void setResidualTolerance(double residual_tol);
+   void setResidualTolerance(double residual_tol)
+   {
+      d_fac_solver.setResidualTolerance(residual_tol);
+   }
 
    /*
     * Return the FAC iteration count from last (or current if there is one)
     * FAC iteration process.
     */
-   int getNumberOfIterations() const;
+   int getNumberOfIterations() const
+   {
+      return d_fac_solver.getNumberOfIterations();
+   }
 
    /*
     * Get the average convergance rate and convergence rate of
@@ -448,7 +478,10 @@ public:
     * avg_factor:   Average convergence factor over current FAC cycles
     * final_factor: Convergence factor of the last FAC cycle
     */
-   void getFACConvergenceFactors(double & avg_factor, double & final_factor) const;
+   void getFACConvergenceFactors(double& avg_factor, double& final_factor)const
+   {
+      d_fac_solver.getConvergenceFactors(avg_factor, final_factor);
+   }
 
    /*
     * Return the relative residual norm from the just-completed FAC iteration.
@@ -459,7 +492,10 @@ public:
     *
     * The latest computed norm is the one returned.
     */
-   double getResidualNorm() const;
+   double getResidualNorm() const
+   {
+      return d_fac_solver.getResidualNorm();
+   }
 
    /*
     * Print solver data
@@ -469,13 +505,13 @@ public:
    void printFACConvergenceFactors(const int solver_ret);
 
    int getFaceDiffCoeffId()
-      {
-         return d_fac_ops->getFaceDiffCoeffId();
-      }
+   {
+      return d_fac_ops->getFaceDiffCoeffId();
+   }
    int getFaceDiffCoeffScratchId()
-      {
-         return d_fac_ops->getFaceDiffCoeffScratchId();
-      }
+   {
+      return d_fac_ops->getFaceDiffCoeffScratchId();
+   }
   
 private:
 
@@ -494,18 +530,18 @@ private:
     * Set d_uv and d_fv to vectors wrapping the data
     * specified by patch data indices.
     */
-   void createVectorWrappers(int q_u, int q_f,
-                             boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-                             boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
+   void createVectorWrappers(
+      int q_u, int q_f,
+      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
+      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
 
    /*
     * Destroy the vector wrappers referenced to by d_uv and d_fv.
     */
-   void destroyVectorWrappers(boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-                              boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
+   void destroyVectorWrappers(
+      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
+      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
   
-   int qlen;
-
    /*
     * Object name.
     */
@@ -595,7 +631,5 @@ private:
    int d_precond_maxiters;
 
 };
-
-#include "QuatSysSolver.I"
 
 #endif  // included_QuatSysSolver_h
