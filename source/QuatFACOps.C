@@ -54,10 +54,7 @@ using namespace std;
 // Static class member definitions
 
 boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_cell_scratch_var0;
-
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_cell_scratch_var1;
+QuatFACOps::s_cell_scratch_var;
 
 boost::shared_ptr<pdat::SideVariable<double> >
 QuatFACOps::s_flux_scratch_var;
@@ -126,15 +123,12 @@ QuatFACOps::QuatFACOps(
     d_solver(NULL),
     d_hopscell(),
     d_gamma(tbox::MathUtilities<double>::getSignalingNaN()),
-    d_num_components(1),
     d_ewt_id(-1),
     d_weight_id(-1),
     d_rotation_index_id(-1)
 {
   // Since one can't initialize arrays in the initializer list, we do it here
-  for (int component=0; component<d_num_components; component++ ) {
-    d_cell_scratch_id[component] = -1;
-  }
+   d_cell_scratch_id = -1;
 
    t_restrict_solution = tbox::TimerManager::getManager()->
       getTimer("QuatFACOps::restrictSolution()");
@@ -157,13 +151,12 @@ QuatFACOps::QuatFACOps(
       TBOX_ERROR(d_object_name << ": 1D is not implemented.\n");
    }
 
-   if ( !s_cell_scratch_var0 || !s_cell_scratch_var1 ||
+   if ( !s_cell_scratch_var ||
         !s_flux_scratch_var || !s_oflux_scratch_var ||
         !s_q_local_var || !s_residual_var ||
         !s_sqrt_m_var || !s_m_deriv_var ) {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      assert( !s_cell_scratch_var0 );
-      assert( !s_cell_scratch_var1 );
+      assert( !s_cell_scratch_var );
       assert( !s_flux_scratch_var );
       assert( !s_oflux_scratch_var );
       assert( !s_q_local_var );
@@ -171,14 +164,9 @@ QuatFACOps::QuatFACOps(
       assert( !s_sqrt_m_var );
       assert( !s_m_deriv_var );
 #endif
-      if ( !s_cell_scratch_var0 ) {
-        s_cell_scratch_var0.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_cell_scratch0", d_qlen));
-      }
-
-      if ( !s_cell_scratch_var1 ) {
-        s_cell_scratch_var1.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_cell_scratch1", 1));
+      if ( !s_cell_scratch_var ) {
+        s_cell_scratch_var.reset( new pdat::CellVariable<double>
+          (tbox::Dimension(NDIM),"QuatFACOps::private_cell_scratch", d_qlen));
       }
 
       if ( !s_flux_scratch_var ) {
@@ -226,15 +214,10 @@ QuatFACOps::QuatFACOps(
    boost::shared_ptr<hier::VariableContext> private_context = vdb->getContext(object_name+"::PRIVATE_CONTEXT");
    boost::shared_ptr<hier::VariableContext> scratch_context = vdb->getContext("SCRATCH");
 
-   d_cell_scratch_id[0] = vdb->
-      registerVariableAndContext( s_cell_scratch_var0,
+   d_cell_scratch_id = vdb->
+      registerVariableAndContext( s_cell_scratch_var,
                                   private_context ,
                                   hier::IntVector(tbox::Dimension(NDIM),1) );
-
-   d_cell_scratch_id[1] = vdb->
-      registerVariableAndContext( s_cell_scratch_var1,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
 
    d_flux_scratch_id = vdb->
       registerVariableAndContext( s_flux_scratch_var,
@@ -368,15 +351,15 @@ QuatFACOps::initializeOperatorState(
                  << "to set one before calling initializeOperatorState\n");
    }
 
-   if (  solution.getNumberOfComponents() != d_num_components ) {
+   if (  solution.getNumberOfComponents() != 1 ) {
       TBOX_WARNING(d_object_name
                    << ": Solution vector has invalid number of components.\n"
-                   << "Solver is for " << d_num_components << " components only.\n");
+                   << "Solver is for 1 components only.\n");
    }
-   if ( rhs.getNumberOfComponents() != d_num_components ) {
+   if ( rhs.getNumberOfComponents() != 1 ) {
       TBOX_WARNING(d_object_name
                    << ": RHS vector has invalid number of components.\n"
-                   << "Solver is for " << d_num_components << " components only.\n");
+                   << "Solver is for 1 components only.\n");
    }
 
    /*
@@ -387,46 +370,41 @@ QuatFACOps::initializeOperatorState(
     */
    boost::shared_ptr< hier::Variable > var;
    {
-     for (int component=0; component<d_num_components; component++) {
-       vdb->mapIndexToVariable( rhs.getComponentDescriptorIndex(component),
+       vdb->mapIndexToVariable( rhs.getComponentDescriptorIndex(0),
                                 var );
        if ( !var ) {
-         TBOX_ERROR(d_object_name << ": RHS component " << component << " does not\n"
+         TBOX_ERROR(d_object_name << ": RHS component does not\n"
                     << "correspond to a variable.\n");
        }
        boost::shared_ptr<pdat::CellVariable<double> > cell_var (
           BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) ); 
        if ( !cell_var ) {
          TBOX_ERROR(d_object_name
-                    << ": RHS component " << component << " variable is not cell-centered double\n");
+                    << ": RHS component variable is not cell-centered double\n");
        }
-     }
    }
    {
-     for (int component=0; component<d_num_components; component++) {
-       vdb->mapIndexToVariable( solution.getComponentDescriptorIndex(component),
+       vdb->mapIndexToVariable( solution.getComponentDescriptorIndex(0),
                                 var );
        if ( !var ) {
-         TBOX_ERROR(d_object_name << ": Solution component " << component << " does not\n"
+         TBOX_ERROR(d_object_name << ": Solution component does not\n"
                     << "correspond to a variable.\n");
        }
        boost::shared_ptr<pdat::CellVariable<double> > cell_var ( 
           BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
        if ( !cell_var ) {
          TBOX_ERROR(d_object_name
-                    << ": Solution component " << component << " variable is not cell-centered double\n");
+                    << ": Solution component variable is not cell-centered double\n");
        }
-     }
    }
    for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
       boost::shared_ptr<hier::PatchLevel > level =
          d_hierarchy->getPatchLevel(ln);
       for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
          hier::Patch &patch = **pi;
-         for (int component=0; component<d_num_components; component++) {
-           int var_depth = (component==0)? d_qlen: 1;
+         {
            boost::shared_ptr< hier::PatchData > fd =
-             patch.getPatchData( rhs.getComponentDescriptorIndex(component) );
+             patch.getPatchData( rhs.getComponentDescriptorIndex(0) );
            if ( fd ) {
              /*
                Some data checks can only be done if the data already exists.
@@ -435,15 +413,15 @@ QuatFACOps::initializeOperatorState(
                 BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd) ); 
              if ( !cd ) {
                TBOX_ERROR(d_object_name
-                          << ": RHS data component " << component << " is not cell-centered double\n");
+                          << ": RHS data component is not cell-centered double\n");
              }
-             if ( cd->getDepth() > var_depth ) {
+             if ( cd->getDepth() > d_qlen ) {
                TBOX_WARNING(d_object_name
-                            << ": Depth of RHS data component " << component << " is greater than " << var_depth << "\n");
+                            << ": Depth of RHS data component is greater than " << d_qlen << "\n");
              }
            }
            boost::shared_ptr< hier::PatchData > ud =
-             patch.getPatchData( solution.getComponentDescriptorIndex(component) );
+             patch.getPatchData( solution.getComponentDescriptorIndex(0) );
            if ( ud ) {
              /*
                Some data checks can only be done if the data already exists.
@@ -452,13 +430,13 @@ QuatFACOps::initializeOperatorState(
                 BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud) );
              if ( !cd ) {
                TBOX_ERROR(d_object_name
-                          << ": Solution data component " << component << " is not cell-centered double\n");
+                          << ": Solution data component is not cell-centered double\n");
              }
-             if ( cd->getDepth() > var_depth ) {
+             if ( cd->getDepth() > d_qlen ) {
                TBOX_WARNING(d_object_name
-                            << ": Depth of solution data component " << component << " is greater than " << var_depth << "\n");
+                            << ": Depth of solution data component is greater than " << d_qlen << "\n");
              }
-             if ( component==0 && cd->getGhostCellWidth() < hier::IntVector(tbox::Dimension(NDIM),1) ) {
+             if ( cd->getGhostCellWidth() < hier::IntVector(tbox::Dimension(NDIM),1) ) {
                TBOX_ERROR(d_object_name
                           << ": Solution component 0 data has insufficient ghost width\n");
              }
@@ -532,47 +510,43 @@ QuatFACOps::initializeOperatorState(
 
    boost::shared_ptr< hier::Variable > variable;
 
-   for (int component=0; component<d_num_components; component++) {
-     vdb->mapIndexToVariable( d_cell_scratch_id[component], variable );
-     d_prolongation_refine_operator.push_back(
-       geometry->lookupRefineOperator( variable,
-                                       d_prolongation_method ) );
-     d_urestriction_coarsen_operator[component] =
-     d_rrestriction_coarsen_operator[component] =
-       geometry->lookupCoarsenOperator(variable,
+   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   d_prolongation_refine_operator =
+      geometry->lookupRefineOperator( variable,
+                                       d_prolongation_method );
+   d_urestriction_coarsen_operator =
+   d_rrestriction_coarsen_operator =
+      geometry->lookupCoarsenOperator(variable,
                                        "CONSERVATIVE_COARSEN");
-   }
 
    vdb->mapIndexToVariable( d_oflux_scratch_id, variable );
    d_flux_coarsen_operator =
       geometry->lookupCoarsenOperator(variable,
                                       "CONSERVATIVE_COARSEN");
 
-   vdb->mapIndexToVariable( d_cell_scratch_id[0], variable );
+   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
    d_ghostfill_refine_operator =
       geometry->lookupRefineOperator(variable,
                                      d_cf_discretization == "Ewing" ?
                                      "CONSTANT_REFINE" : d_cf_discretization);
 
-   vdb->mapIndexToVariable( d_cell_scratch_id[0], variable );
+   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
    d_ghostfill_nocoarse_refine_operator =
       geometry->lookupRefineOperator(variable,
                                      "CONSTANT_REFINE");
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   for (int component=0; component<d_num_components; component++ ) {
-     if ( !d_prolongation_refine_operator[component] ) {
+   if ( !d_prolongation_refine_operator ) {
        TBOX_ERROR(d_object_name
                   << ": Cannot find prolongation refine operator");
-     }
-     if ( !d_urestriction_coarsen_operator[component] ) {
+   }
+   if ( !d_urestriction_coarsen_operator ) {
        TBOX_ERROR(d_object_name
                   << ": Cannot find restriction coarsening operator");
-     }
-     if ( !d_rrestriction_coarsen_operator[component] ) {
+   }
+   if ( !d_rrestriction_coarsen_operator ) {
        TBOX_ERROR(d_object_name
                   << ": Cannot find restriction coarsening operator");
-     }
    }
    if ( !d_flux_coarsen_operator ) {
       TBOX_ERROR(d_object_name
@@ -598,28 +572,16 @@ QuatFACOps::initializeOperatorState(
      There is no need to delete the old schedules first
      because we have deallocated the solver state above.
    */
-   for (int component=0; component<d_num_components; component++) {
-     d_prolongation_refine_schedules[component].resize(d_ln_max+1);
-     d_urestriction_coarsen_schedules[component].resize(d_ln_max+1);
-     d_rrestriction_coarsen_schedules[component].resize(d_ln_max+1);
-   }
-   /*
-     The following schedules are only needed for component 0,
-     since component 1 does not involve fluxes or ghost cells.
-   */
+   d_prolongation_refine_schedules.resize(d_ln_max+1);
+   d_urestriction_coarsen_schedules.resize(d_ln_max+1);
+   d_rrestriction_coarsen_schedules.resize(d_ln_max+1);
    d_ghostfill_refine_schedules.resize(d_ln_max+1);
    d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max+1);
    d_flux_coarsen_schedules.resize(d_ln_max+1);
 
-   for (int component=0; component<d_num_components; component++) {
-     d_prolongation_refine_algorithm[component].reset( new xfer::RefineAlgorithm() );
-     d_urestriction_coarsen_algorithm[component].reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-     d_rrestriction_coarsen_algorithm[component].reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-   }
-   /*
-     The following algorithms are only needed for component 0,
-     since component 1 does not involve fluxes or ghost cells.
-   */
+   d_prolongation_refine_algorithm.reset( new xfer::RefineAlgorithm() );
+   d_urestriction_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+   d_rrestriction_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
    d_flux_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
    d_ghostfill_refine_algorithm.reset( new xfer::RefineAlgorithm() );
    d_ghostfill_nocoarse_refine_algorithm.reset( new xfer::RefineAlgorithm() );
@@ -628,22 +590,20 @@ QuatFACOps::initializeOperatorState(
    /*
      Register the transfer operations
    */
-   for (int component=0; component<d_num_components; component++) {
-      assert( d_cell_scratch_id[component]>=0 );
-      d_prolongation_refine_algorithm[component]->
-         registerRefine( d_cell_scratch_id[component] ,
-                       solution.getComponentDescriptorIndex(component) ,
-                       d_cell_scratch_id[component] ,
-                       d_prolongation_refine_operator[component] );
-     d_urestriction_coarsen_algorithm[component]->
-       registerCoarsen( solution.getComponentDescriptorIndex(component) ,
-                        solution.getComponentDescriptorIndex(component) ,
-                        d_urestriction_coarsen_operator[component] );
-     d_rrestriction_coarsen_algorithm[component]->
-       registerCoarsen( rhs.getComponentDescriptorIndex(component) ,
-                        rhs.getComponentDescriptorIndex(component) ,
-                        d_rrestriction_coarsen_operator[component] );
-   }
+   assert( d_cell_scratch_id>=0 );
+   d_prolongation_refine_algorithm->
+      registerRefine( d_cell_scratch_id ,
+                      solution.getComponentDescriptorIndex(0) ,
+                      d_cell_scratch_id,
+                      d_prolongation_refine_operator );
+   d_urestriction_coarsen_algorithm->
+      registerCoarsen( solution.getComponentDescriptorIndex(0) ,
+                       solution.getComponentDescriptorIndex(0) ,
+                       d_urestriction_coarsen_operator );
+   d_rrestriction_coarsen_algorithm->
+      registerCoarsen( rhs.getComponentDescriptorIndex(0) ,
+                       rhs.getComponentDescriptorIndex(0) ,
+                       d_rrestriction_coarsen_operator );
 
    d_ghostfill_refine_algorithm->
       registerRefine( solution.getComponentDescriptorIndex(0) ,
@@ -665,22 +625,19 @@ QuatFACOps::initializeOperatorState(
    /*
      Create the refine schedules
    */
-
    for ( int dest_ln=d_ln_min+1; dest_ln<=d_ln_max; ++dest_ln ) {
-     for (int component=0; component<d_num_components; component++) {
-       xfer::RefinePatchStrategy * strategy = (component==0)? &d_bc_helper: NULL;
-       d_prolongation_refine_schedules[component][dest_ln] =
-         d_prolongation_refine_algorithm[component]->
+      xfer::RefinePatchStrategy * strategy = &d_bc_helper;
+      d_prolongation_refine_schedules[dest_ln] =
+         d_prolongation_refine_algorithm->
          createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
                          boost::shared_ptr<hier::PatchLevel >() ,
                          dest_ln-1 ,
                          d_hierarchy ,
                          strategy );
-       if ( ! d_prolongation_refine_schedules[component][dest_ln] ) {
+       if ( ! d_prolongation_refine_schedules[dest_ln] ) {
          TBOX_ERROR(d_object_name
                     << ": Cannot create a refine schedule for prolongation!\n");
        }
-     }
      d_ghostfill_refine_schedules[dest_ln] =
        d_ghostfill_refine_algorithm->
        createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
@@ -706,24 +663,22 @@ QuatFACOps::initializeOperatorState(
    */
 
    for ( int dest_ln=d_ln_min; dest_ln<d_ln_max; ++dest_ln ) {
-     for (int component=0; component<d_num_components; component++) {
-       d_urestriction_coarsen_schedules[component][dest_ln] =
-         d_urestriction_coarsen_algorithm[component]->
+      d_urestriction_coarsen_schedules[dest_ln] =
+         d_urestriction_coarsen_algorithm->
          createSchedule(d_hierarchy->getPatchLevel(dest_ln),
                         d_hierarchy->getPatchLevel(dest_ln+1));
-       if ( ! d_urestriction_coarsen_schedules[component][dest_ln] ) {
+      if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
          TBOX_ERROR(d_object_name
                     << ": Cannot create a coarsen schedule for U restriction!\n");
-       }
-       d_rrestriction_coarsen_schedules[component][dest_ln] =
-         d_rrestriction_coarsen_algorithm[component]->
+      }
+      d_rrestriction_coarsen_schedules[dest_ln] =
+         d_rrestriction_coarsen_algorithm->
          createSchedule(d_hierarchy->getPatchLevel(dest_ln),
                         d_hierarchy->getPatchLevel(dest_ln+1));
-       if ( ! d_rrestriction_coarsen_schedules[component][dest_ln] ) {
+      if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
          TBOX_ERROR(d_object_name
                     << ": Cannot create a coarsen schedule for R restriction!\n");
        }
-     }
      d_flux_coarsen_schedules[dest_ln] =
        d_flux_coarsen_algorithm->
        createSchedule(d_hierarchy->getPatchLevel(dest_ln),
@@ -957,9 +912,7 @@ QuatFACOps::setOperatorCoefficients(
 * State is allocated iff hierarchy is set.                         *
 ********************************************************************
 */
-
-void
-QuatFACOps::deallocateOperatorState()
+void QuatFACOps::deallocateOperatorState()
 {
    if ( d_hierarchy ) {
       int ln;
@@ -989,11 +942,10 @@ QuatFACOps::deallocateOperatorState()
       d_ln_min = -1;
       d_ln_max = -1;
 
-      for (int component=0; component<d_num_components; component++) {
-        d_prolongation_refine_algorithm[component].reset();
-        d_urestriction_coarsen_algorithm[component].reset();
-        d_rrestriction_coarsen_algorithm[component].reset();
-      }
+      d_prolongation_refine_algorithm.reset();
+      d_urestriction_coarsen_algorithm.reset();
+      d_rrestriction_coarsen_algorithm.reset();
+      
       d_flux_coarsen_algorithm.reset();
       d_ghostfill_refine_algorithm.reset();
       d_ghostfill_nocoarse_refine_algorithm.reset();
@@ -1001,15 +953,12 @@ QuatFACOps::deallocateOperatorState()
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual postprocessOneCycle function.  *
 ********************************************************************
 */
-
-void
-QuatFACOps::postprocessOneCycle(
+void QuatFACOps::postprocessOneCycle(
    int fac_cycle_num,
    const solv::SAMRAIVectorReal<double> & current_soln,
    const solv::SAMRAIVectorReal<double> &     residual )
@@ -1036,8 +985,6 @@ QuatFACOps::postprocessOneCycle(
   }
 }
 
-
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual restrictSolution function.      *
@@ -1045,7 +992,6 @@ QuatFACOps::postprocessOneCycle(
 * level.                                                           *
 ********************************************************************
 */
-
 void
 QuatFACOps::restrictSolution(
    const solv::SAMRAIVectorReal<double> & s,
@@ -1054,12 +1000,9 @@ QuatFACOps::restrictSolution(
 {
    t_restrict_solution->start();
 
-   for (int component=0; component<d_num_components; component++) {
-     xeqScheduleURestriction(component,
-                             d.getComponentDescriptorIndex(component),
-                             s.getComponentDescriptorIndex(component),
-                             dest_ln);
-   }
+   xeqScheduleURestriction(d.getComponentDescriptorIndex(0),
+                           s.getComponentDescriptorIndex(0),
+                           dest_ln);
 
      // Fill ghost cells.  Only component 0 has them.
    int id = d.getComponentDescriptorIndex(0);
@@ -1077,14 +1020,11 @@ QuatFACOps::restrictSolution(
    t_restrict_solution->stop();
 }
 
-
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual restrictresidual function.      *
 ********************************************************************
 */
-
 void
 QuatFACOps::restrictResidual(
    const solv::SAMRAIVectorReal<double> & s,
@@ -1093,17 +1033,12 @@ QuatFACOps::restrictResidual(
 {
    t_restrict_residual->start();
 
-   int component;
-   for (component=0; component<d_num_components; component++) {
-     xeqScheduleRRestriction(component,
-                             d.getComponentDescriptorIndex(component),
-                             s.getComponentDescriptorIndex(component),
-                             dest_ln);
-   }
+   xeqScheduleRRestriction(d.getComponentDescriptorIndex(0),
+                           s.getComponentDescriptorIndex(0),
+                           dest_ln);
 
    t_restrict_residual->stop();
 }
-
 
 
 /*
@@ -1114,7 +1049,6 @@ QuatFACOps::restrictResidual(
 * which are preset to zero, need not be set.                          *
 ***********************************************************************
 */
-
 void
 QuatFACOps::prolongErrorAndCorrect(
    const solv::SAMRAIVectorReal<double> & s,
@@ -1141,39 +1075,33 @@ QuatFACOps::prolongErrorAndCorrect(
    math::HierarchyCellDataOpsReal<double>
      hierarchy_math_ops( d_hierarchy, dest_ln, dest_ln );
 
-   for (int component=0; component<d_num_components; component++) {
-
-     fine_level->allocatePatchData(d_cell_scratch_id[component]);
+   fine_level->allocatePatchData(d_cell_scratch_id);
 
      /*
       * Refine solution into scratch space to fill the fine level
       * interior in the scratch space, then use that refined data
       * to correct the fine level error.
       */
-     if (component==0) {  // Only component 0 has boundary conditions
-       d_bc_helper.setTargetDataId(d_cell_scratch_id[component]);
-       d_bc_helper.setHomogeneousBc(true);
-     }
-     const int src_index = s.getComponentDescriptorIndex(component);
-     xeqScheduleProlongation(component,
-                             d_cell_scratch_id[component],
-                             src_index,
-                             d_cell_scratch_id[component],
-                             dest_ln);
+   d_bc_helper.setTargetDataId(d_cell_scratch_id);
+   d_bc_helper.setHomogeneousBc(true);
+   
+   const int src_index = s.getComponentDescriptorIndex(0);
+   xeqScheduleProlongation(d_cell_scratch_id,
+                           src_index,
+                           d_cell_scratch_id,
+                           dest_ln);
 
      /*
       * Add the refined error in the scratch space
       * to the error currently residing in the destination level.
       */
-     const int dst_index = d.getComponentDescriptorIndex(component);
-     hierarchy_math_ops.add( dst_index, dst_index, d_cell_scratch_id[component] );
+   const int dst_index = d.getComponentDescriptorIndex(0);
+   hierarchy_math_ops.add( dst_index, dst_index, d_cell_scratch_id );
 
-     fine_level->deallocatePatchData(d_cell_scratch_id[component]);
-   }
+   fine_level->deallocatePatchData(d_cell_scratch_id);
 
    t_prolong->stop();
 }
-
 
 
 void
@@ -1202,12 +1130,12 @@ QuatFACOps::smoothError(
     * determine whether or not to perform the level solve.
     */
    if (num_sweeps > 0) {
-     doLevelSolve(error, residual, ln, d_levelsolver_max_iterations, d_levelsolver_tolerance);
+     doLevelSolve(error, residual, ln, d_levelsolver_max_iterations, 
+                  d_levelsolver_tolerance);
    }
 
    t_smooth_error->stop();
 }
-
 
 
 void
@@ -1268,7 +1196,6 @@ QuatFACOps::doLevelSolve(
 * constant-refine interpolation of coarse level data.              *
 ********************************************************************
 */
-
 void
 QuatFACOps::ewingFixFlux(
    const hier::Patch &                    patch,
@@ -1347,15 +1274,13 @@ QuatFACOps::ewingFixFlux(
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual solveCoarsestLevel             *
 * function                                                         *
 ********************************************************************
 */
-
- int
+int
 QuatFACOps::solveCoarsestLevel(
    solv::SAMRAIVectorReal<double> &           data,
    const solv::SAMRAIVectorReal<double> & residual,
@@ -1372,15 +1297,13 @@ QuatFACOps::solveCoarsestLevel(
 }
 
 
-
 /*
 ********************************************************************
 * FACOperatorStrategy virtual computeResidualNorm             *
 * function                                                         *
 ********************************************************************
 */
-
- double
+double
 QuatFACOps::computeResidualNorm(
    const solv::SAMRAIVectorReal<double> & residual,
    int                                         fine_ln,
@@ -1433,7 +1356,6 @@ QuatFACOps::computeResidualNorm(
 
    return norm;
 }
-
 
 
 void
@@ -1508,7 +1430,6 @@ QuatFACOps::computeLambdaOnPatch(
 * Check the validity of the flux variable id.                      *
 ********************************************************************
 */
-
 void
 QuatFACOps::checkFluxPatchDataIndex() const
 {
@@ -1525,7 +1446,6 @@ QuatFACOps::checkFluxPatchDataIndex() const
 }
 
 
-
 /*
 *******************************************************************
 *                                                                 *
@@ -1533,7 +1453,6 @@ QuatFACOps::checkFluxPatchDataIndex() const
 *                                                                 *
 *******************************************************************
 */
-
 void
 QuatFACOps::computeFaceCoefsOnPatch(
    const hier::Patch &                   patch,
@@ -1598,8 +1517,6 @@ QuatFACOps::computeFaceCoefsOnPatch(
 #endif
 }
 
-
-
 void
 QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
    const hier::Patch &                    patch,
@@ -1652,7 +1569,6 @@ QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
       face_coef_data.getPointer(2), fclower[0], fcupper[0]  , fclower[1], fcupper[1]  , fclower[2], fcupper[2]+1);
 #endif
 }
-
 
 
 void
@@ -2708,7 +2624,6 @@ QuatFACOps::applyProjectionOnLevel(
 
 void
 QuatFACOps::xeqScheduleProlongation(
-   int component,
    int dst_id,
    int src_id,
    int scr_id,
@@ -2716,7 +2631,7 @@ QuatFACOps::xeqScheduleProlongation(
 {
    //tbox::plog<<"xeqScheduleProlongation for component "<<component<<", dest_ln="<<dest_ln<<endl;
 
-   if ( ! d_prolongation_refine_schedules[component][dest_ln] ) {
+   if ( ! d_prolongation_refine_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
@@ -2725,59 +2640,57 @@ QuatFACOps::xeqScheduleProlongation(
       registerRefine( dst_id ,
                       src_id ,
                       scr_id ,
-                      d_prolongation_refine_operator[component] );
-   refiner.resetSchedule(d_prolongation_refine_schedules[component][dest_ln]);
-   d_prolongation_refine_schedules[component][dest_ln]->fillData(0.0);
-   d_prolongation_refine_algorithm[component]->
-      resetSchedule(d_prolongation_refine_schedules[component][dest_ln]);
+                      d_prolongation_refine_operator );
+   refiner.resetSchedule(d_prolongation_refine_schedules[dest_ln]);
+   d_prolongation_refine_schedules[dest_ln]->fillData(0.0);
+   d_prolongation_refine_algorithm->
+      resetSchedule(d_prolongation_refine_schedules[dest_ln]);
 }
 
 
 
 void
 QuatFACOps::xeqScheduleURestriction(
-   int component,
    int dst_id,
    int src_id,
    int dest_ln )
 {
-   if ( ! d_urestriction_coarsen_schedules[component][dest_ln] ) {
+   if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
    coarsener.
       registerCoarsen( dst_id ,
                        src_id ,
-                       d_urestriction_coarsen_operator[component] );
+                       d_urestriction_coarsen_operator );
    coarsener.
-      resetSchedule(d_urestriction_coarsen_schedules[component][dest_ln]);
-   d_urestriction_coarsen_schedules[component][dest_ln]->coarsenData();
-   d_urestriction_coarsen_algorithm[component]->
-      resetSchedule(d_urestriction_coarsen_schedules[component][dest_ln]);
+      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
+   d_urestriction_coarsen_schedules[dest_ln]->coarsenData();
+   d_urestriction_coarsen_algorithm->
+      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
 }
 
 
 
 void
 QuatFACOps::xeqScheduleRRestriction(
-   int component,
    int dst_id,
    int src_id,
    int dest_ln )
 {
-   if ( ! d_rrestriction_coarsen_schedules[component][dest_ln] ) {
+   if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
    coarsener.
       registerCoarsen( dst_id ,
                        src_id ,
-                       d_rrestriction_coarsen_operator[component] );
+                       d_rrestriction_coarsen_operator );
    coarsener.
-      resetSchedule(d_rrestriction_coarsen_schedules[component][dest_ln]);
-   d_rrestriction_coarsen_schedules[component][dest_ln]->coarsenData();
-   d_rrestriction_coarsen_algorithm[component]->
-      resetSchedule(d_rrestriction_coarsen_schedules[component][dest_ln]);
+      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
+   d_rrestriction_coarsen_schedules[dest_ln]->coarsenData();
+   d_rrestriction_coarsen_algorithm->
+      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
 }
 
 
@@ -2869,8 +2782,7 @@ QuatFACOps::xeqScheduleGhostFillNoCoarse(
 void
 QuatFACOps::freeVariables()
 {
-   s_cell_scratch_var0.reset();
-   s_cell_scratch_var1.reset();
+   s_cell_scratch_var.reset();
    s_flux_scratch_var.reset();
    s_oflux_scratch_var.reset();
    s_face_coef_var.reset();

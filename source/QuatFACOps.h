@@ -561,8 +561,7 @@ private:
     *
     * Returns refinement schedule for prolongation
     */
-   void xeqScheduleProlongation(int component,
-				int dst_id,
+   void xeqScheduleProlongation(int dst_id,
 				int src_id,
 				int scr_id,
 				int dest_ln);
@@ -576,8 +575,7 @@ private:
     *
     * Returns coarsening schedule for restriction
     */
-   void xeqScheduleURestriction(int component,
-				int dst_id,
+   void xeqScheduleURestriction(int dst_id,
 				int src_id,
 				int dest_ln);
 
@@ -590,8 +588,7 @@ private:
     *
     * Returns coarsening schedule for restriction
     */
-   void xeqScheduleRRestriction(int component,
-				int dst_id,
+   void xeqScheduleRRestriction(int dst_id,
 				int src_id,
 				int dest_ln);
 
@@ -765,9 +762,7 @@ private:
     */
    const solv::RobinBcCoefStrategy *d_physical_bc_coef;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var0;
-
-   static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var1;
+   static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var;
 
    static boost::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
 
@@ -794,7 +789,7 @@ private:
     * Scratch data is allocated and removed as needed
     * to reduce memory usage.
     */
-   int d_cell_scratch_id[2];
+   int d_cell_scratch_id;
 
    /*
     * ID of the side-centered scratch data.
@@ -847,22 +842,22 @@ private:
     */
 
    // Error prolongation (refinement) operator.
-   std::vector< boost::shared_ptr<hier::RefineOperator > > d_prolongation_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_prolongation_refine_algorithm[2];
+   boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
    std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_prolongation_refine_schedules[2];
+      d_prolongation_refine_schedules;
 
    // Solution restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_urestriction_coarsen_operator[2];
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_urestriction_coarsen_algorithm[2];
+   boost::shared_ptr<hier::CoarsenOperator > d_urestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm > d_urestriction_coarsen_algorithm;
    std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_urestriction_coarsen_schedules[2];
+      d_urestriction_coarsen_schedules;
 
    // Residual restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_rrestriction_coarsen_operator[2];
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_rrestriction_coarsen_algorithm[2];
+   boost::shared_ptr<hier::CoarsenOperator > d_rrestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm > d_rrestriction_coarsen_algorithm;
    std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_rrestriction_coarsen_schedules[2];
+      d_rrestriction_coarsen_schedules;
 
    // Coarsen operator for outerflux-to-flux
    boost::shared_ptr<hier::CoarsenOperator > d_flux_coarsen_operator;
@@ -943,8 +938,6 @@ private:
 
    int d_sqrt_m_id;
    int d_m_deriv_id;
-
-   int d_num_components;
 
    int GetNumCellFacesInBox(const int * lower, const int * upper, const int dim) const;
 
