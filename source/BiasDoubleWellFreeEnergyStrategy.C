@@ -44,6 +44,7 @@ BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy()
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,

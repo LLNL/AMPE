@@ -2729,7 +2729,8 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
 
 //-----------------------------------------------------------------------
 
-void QuatIntegrator::evaluatePhaseRHS( 
+void QuatIntegrator::evaluatePhaseRHS(
+   const double time, 
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int phase_id,
    const int eta_id,
@@ -2882,6 +2883,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 
          // then add component from chemical energy
          d_free_energy_strategy->addComponentRhsPhi(
+            time,
             *patch,
             temperature_id,
             phase_id,
@@ -2921,6 +2923,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::evaluateEtaRHS( 
+   const double time,
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int phase_id,
    const int eta_id,
@@ -3012,6 +3015,7 @@ void QuatIntegrator::evaluateEtaRHS(
             d_phase_interp_func_type.c_str() );
 
          d_free_energy_strategy->addComponentRhsEta(
+            time,
             *patch,
             temperature_id,
             phase_id,
@@ -3189,7 +3193,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast  = pbox.upper();
 
-         // now compute r.h.s.
+         // now compute r.h.s., one species at a time
          for ( int ic = 0; ic < d_ncompositions; ic++ )
          FORT_COMPUTERHSCONCENTRATION(
             ifirst(0),ilast(0),
@@ -3733,6 +3737,7 @@ int QuatIntegrator::evaluateRHSFunction(
       
       //tbox::pout<<"Evaluate phase rhs..."<<endl;
       evaluatePhaseRHS(
+         time,
          hierarchy,
          y_dot_samvect, fd_flag );
    
@@ -3784,6 +3789,7 @@ int QuatIntegrator::evaluateRHSFunction(
          y_dot_samvect->getComponentDescriptorIndex( d_eta_component_index );
 
       evaluateEtaRHS(
+         time,
          hierarchy,
          d_phase_scratch_id,
          d_eta_scratch_id,

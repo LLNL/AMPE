@@ -16,6 +16,7 @@ public:
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
  
    virtual void addComponentRhsPhi(
+      const double time,
       hier::Patch& patch,
       const int temperature_id,
       const int phase_id,

@@ -576,6 +576,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,
@@ -586,6 +587,8 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
    const int f_b_id,
    const int rhs_id )
 {
+   (void)time;
+
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );
    assert( f_l_id >= 0 );
@@ -851,6 +854,7 @@ double CALPHADFreeEnergyStrategyBinary::computeMuL(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addComponentRhsEta(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,
@@ -861,6 +865,8 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsEta(
    const int f_b_id,
    const int rhs_id )
 {
+   (void)time;
+
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );
    assert( f_l_id >= 0 );

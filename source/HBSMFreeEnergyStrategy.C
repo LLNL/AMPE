@@ -724,6 +724,7 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addComponentRhsPhi(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,
@@ -987,6 +988,7 @@ double HBSMFreeEnergyStrategy::computeMu(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addComponentRhsEta(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,

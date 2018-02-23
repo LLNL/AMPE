@@ -129,6 +129,7 @@ public:
       const bool gp );
 
    virtual void addComponentRhsPhi(
+      const double time,
       hier::Patch& patch,
       const int temperature_id,
       const int phase_id,
@@ -140,6 +141,7 @@ public:
       const int rhs_id);
 
    void addComponentRhsEta(
+      const double time,
       hier::Patch& patch,
       const int temperature_id,
       const int phase_id,

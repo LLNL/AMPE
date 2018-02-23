@@ -518,6 +518,7 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergyPrivatePatch(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,
@@ -751,6 +752,7 @@ void CALPHADFreeEnergyStrategyTernary::computeMuL(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyTernary::addComponentRhsEta(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,

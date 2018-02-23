@@ -24,6 +24,7 @@ BiasDoubleWellUTRCFreeEnergyStrategy::BiasDoubleWellUTRCFreeEnergyStrategy(
 //=======================================================================
 
 void BiasDoubleWellUTRCFreeEnergyStrategy::addComponentRhsPhi(
+   const double time,
    hier::Patch& patch,
    const int temperature_id,
    const int phase_id,
@@ -39,6 +40,7 @@ void BiasDoubleWellUTRCFreeEnergyStrategy::addComponentRhsPhi(
    assert( temperature_id >= 0 );
    assert( d_meltingTstrat!=NULL );
 
+   (void)time; // unused
    (void) conc_id;  // unused
    (void) f_l_id; // unused
    (void) f_a_id; // unused

@@ -363,13 +363,16 @@ public :
 protected:
 
    void evaluatePhaseRHS(
+      const double time,
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot_samvect,
       int fd_flag )
    {
-      const int ydot_phase_id = y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index );
+      const int ydot_phase_id =
+         y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index );
       
       evaluatePhaseRHS(
+         time,
          hierarchy,
          d_phase_scratch_id,
          d_eta_scratch_id,
@@ -634,6 +637,7 @@ private :
       const double                                               time );
 
    void evaluatePhaseRHS(
+      const double time,
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int phase_id,
       const int eta_id,
@@ -643,6 +647,7 @@ private :
       const int temperature_id,
       const bool visit_flag );
    void evaluateEtaRHS( 
+      const double time,
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int phase_id,
       const int eta_id,
