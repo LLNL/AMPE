@@ -166,7 +166,6 @@ QuatIntegrator::QuatIntegrator(
      d_quat_diffusion_id( -1 ),
      d_quat_diffusion_deriv_id( -1 ),
      d_quat_symm_rotation_id( -1 ),
-     d_conc_diffusion0_id( -1 ),
      d_conc_diffusion_id( -1 ),
      d_conc_phase_coupling_diffusion_id( -1 ),
      d_conc_eta_coupling_diffusion_id( -1 ),
@@ -390,7 +389,7 @@ void QuatIntegrator::setupPreconditionersConcentration(boost::shared_ptr<tbox::D
 
    boost::shared_ptr<ConcFACOps> fac_ops(
       new ConcFACOps(
-         d_name+"_QIConcFACOps",
+         d_name+"_QIConcFACOps", d_ncompositions,
          conc_sys_solver_database ) );
    
    d_conc_sys_solver.reset(
@@ -677,7 +676,7 @@ void QuatIntegrator::RegisterConcentrationVariables(
    assert( d_ncompositions>0 );
 
    d_conc_var = conc_var;
-   d_conc_diffusion0_var = conc_diffusion0_var;
+   d_conc_diffusion0_var.push_back( conc_diffusion0_var );
    d_conc_diffusion_var = conc_diffusion_var;
    d_conc_phase_coupling_diffusion_var = conc_phase_coupling_diffusion_var;
    d_conc_eta_coupling_diffusion_var = conc_eta_coupling_diffusion_var;
@@ -708,12 +707,12 @@ void QuatIntegrator::RegisterConcentrationVariables(
          assert( d_conc_diffusion_id >= 0 );
       }
       if( conc_diffusion0_var ){
-         d_conc_diffusion0_id =
+         d_conc_diffusion0_id.push_back(
             variable_db->registerVariableAndContext(
-               d_conc_diffusion0_var,
+               d_conc_diffusion0_var[0],
                d_current,
-               hier::IntVector(tbox::Dimension(NDIM),0) );
-         assert( d_conc_diffusion0_id >= 0 );
+               hier::IntVector(tbox::Dimension(NDIM),0) ) );
+         assert( d_conc_diffusion0_id[0] >= 0 );
       }
       
       if( d_conc_phase_coupling_diffusion_var ){
@@ -738,12 +737,12 @@ void QuatIntegrator::RegisterConcentrationVariables(
          // schedules
          boost::shared_ptr<hier::CoarsenOperator > diff_coarsen_op =
             d_grid_geometry->lookupCoarsenOperator(
-               d_conc_diffusion0_var,
+               d_conc_diffusion0_var[0],
                "CONSERVATIVE_COARSEN" );
 
          d_conc_diffusion_coarsen.registerCoarsen(
-            d_conc_diffusion0_id,
-            d_conc_diffusion0_id,
+            d_conc_diffusion0_id[0],
+            d_conc_diffusion0_id[0],
             diff_coarsen_op );
 
          if( d_conc_phase_coupling_diffusion_var )
@@ -1185,7 +1184,8 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
    d_local_data.setFlag( d_conc_rhs_id );
 
    d_conc_sol_var.reset (
-      new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_QI_conc_sol_", d_ncompositions ));
+      new pdat::CellVariable<double>(
+         tbox::Dimension(NDIM), d_name+"_QI_conc_sol_", d_ncompositions ));
    d_conc_sol_id =
       variable_db->registerVariableAndContext(
          d_conc_sol_var,
@@ -3918,8 +3918,10 @@ CVSpgmrPrecondSet
 
       if( d_precond_has_dTdphi ){
          TBOX_ASSERT( d_phase_temperature_fac_ops );
-         d_phase_temperature_fac_ops->setOperatorCoefficients(d_phase_scratch_id, d_phase_temperature_mobility_id,
-            d_epsilon_phase, d_latent_heat, d_phase_interp_func_type, d_phase_well_scale, d_phase_well_func_type);
+         d_phase_temperature_fac_ops->setOperatorCoefficients(
+            d_phase_scratch_id, d_phase_temperature_mobility_id,
+            d_epsilon_phase, d_latent_heat, d_phase_interp_func_type, 
+            d_phase_well_scale, d_phase_well_func_type);
       }
    }
 
@@ -3948,8 +3950,9 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 {
    if ( d_with_concentration && d_conc_sys_solver ) {
       // Set concentration block coefficients
-      d_conc_sys_solver->setOperatorCoefficients(
-         gamma, d_conc_diffusion0_id, d_conc_mobility );
+      for(int ic=0;ic<d_ncompositions;ic++)
+         d_conc_sys_solver->setOperatorCoefficients(
+            gamma, d_conc_diffusion0_id[ic], d_conc_mobility, ic );
    }
 }
 

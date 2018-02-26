@@ -16,11 +16,6 @@ PhaseTemperatureFACOps::PhaseTemperatureFACOps(
    :
    EllipticFACOps( object_name, database )
 {
-   d_C_is_set = false;
-   d_D_is_set = false;
-   d_M_is_set = false;
-
-   return;
 }
 
 //======================================================================
@@ -64,7 +59,7 @@ void PhaseTemperatureFACOps::setC(
 {
    assert( phi_id >= 0 );
    assert( d_m_id >= 0 );
-   assert( d_c_id >= 0 );
+   assert( d_c_id[0] >= 0 );
    assert( d_M_is_set );
   
    //tbox::pout<<"PhaseTemperatureFACOps::setC()..."<<endl;
@@ -80,13 +75,16 @@ void PhaseTemperatureFACOps::setC(
          const hier::Box& patch_box = patch->getBox();
       
          boost::shared_ptr< pdat::CellData<double> > phi_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phi_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phi_id) ) );
          
          boost::shared_ptr< pdat::CellData<double> > local_m_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_m_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_m_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cdata (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_c_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_c_id[0]) ) );
 
          setCOnPatchForPreconditionODE(
             phi_data,
@@ -99,11 +97,9 @@ void PhaseTemperatureFACOps::setC(
             patch_box );
       }
    }
-   
-   d_poisson_spec.setCPatchDataId( d_c_id );
-   d_C_is_set = true;
 
-   return;
+   setCPatchDataId(d_c_id[0],0);   
+
 }
 
 void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(

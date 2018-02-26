@@ -46,14 +46,16 @@ class ConcFACOps
 public:
 
    ConcFACOps(
-      const std::string &object_name=std::string() ,
+      const std::string& object_name,
+      const int depth,
       const boost::shared_ptr<tbox::Database>& database=
          boost::shared_ptr<tbox::Database>() );
 
    void setOperatorCoefficients(
       const double gamma,
       const int diffusion_id,
-      const double mobility );
+      const double mobility,
+      const int depth );
 
 };
 

@@ -41,30 +41,27 @@ using namespace std;
 
 ConcFACOps::ConcFACOps(
    const std::string &object_name ,
+   const int depth,
    const boost::shared_ptr<tbox::Database>& database)
    :
-   EllipticFACOps( object_name, database )
+   EllipticFACOps( object_name, database, depth )
 {
-   return;
 }
 
 void ConcFACOps::setOperatorCoefficients(
    const double gamma,
    const int diffusion_id,
-   const double mobility )
+   const double mobility,
+   const int depth )
 {
    assert( gamma>=0. );
    assert( diffusion_id>=0 );
-   assert( d_d_id>=0 );
+   assert( d_d_id[depth]>=0 );
    assert( mobility>0. );
 
-   d_C_is_set = false;
-   d_D_is_set = false;
-   d_M_is_set = false;
+   d_hopsside->scale(d_d_id[depth],-gamma,diffusion_id);
 
-   d_hopsside->scale(d_d_id,-gamma,diffusion_id);
-
-   setMConstant(mobility);
-   setCConstant(1.);
-   setDPatchDataId(d_d_id);
+   if( depth==0 )setMConstant(mobility);
+   setCConstant(1.,depth);
+   setDPatchDataId(d_d_id[depth],depth);
 }

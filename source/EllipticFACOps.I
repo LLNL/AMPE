@@ -32,52 +32,6 @@
 // 
 #define SAMRAI_INLINE_KEYWORD inline
 
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setDPatchDataId( int id ) {
-   d_poisson_spec.setDPatchDataId(id);
-   d_D_is_set = true;
-}
-
-SAMRAI_INLINE_KEYWORD
-int EllipticFACOps::getDPatchDataId() const{
-   return d_poisson_spec.getDPatchDataId();
-}
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setDConstant( const double scalar ) {
-   d_poisson_spec.setDConstant(scalar);
-   d_D_is_set = true;
-}
-
-SAMRAI_INLINE_KEYWORD
-double EllipticFACOps::getDConstant( ) const{
-   return d_poisson_spec.getDConstant();
-}
-
-SAMRAI_INLINE_KEYWORD
-bool EllipticFACOps::dIsConstant( ) const{
-   return d_poisson_spec.dIsConstant();
-}
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setCPatchDataId( int id ) {
-   d_poisson_spec.setCPatchDataId(id);
-   d_C_is_set = true;
-}
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACOps::setCConstant( const double scalar ) {
-   if ( scalar == 0.0 ) {
-      d_poisson_spec.setCZero();
-   }
-   else {
-      d_poisson_spec.setCConstant(scalar);
-   }
-   d_C_is_set = true;
-}
-
-
-
 /*
 ********************************************************************
 * Set the patch data id for the flux.                              *
@@ -87,12 +41,7 @@ void EllipticFACOps::setCConstant( const double scalar ) {
 SAMRAI_INLINE_KEYWORD
 void EllipticFACOps::setFluxId( int flux_id ) {
    d_flux_id = flux_id;
-#ifdef DEBUG_CHECK_ASSERTIONS
-   checkInputPatchDataIndices();
-#endif
 }
-
-
 
 
 /*
@@ -155,8 +104,11 @@ SAMRAI_INLINE_KEYWORD
 void EllipticFACOps::setCoarsestLevelSolverTolerance( double tol ) {
    d_coarse_solver_tolerance = tol;
 #ifdef HAVE_HYPRE
-   if( d_coarse_solver_choice == "hypre" )
-      d_hypre_solver.setStoppingCriteria( tol );
+   if( d_coarse_solver_choice == "hypre" ){
+      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
+      for( ; it!=d_hypre_solver.end(); ++it)
+         (*it)->setStoppingCriteria( tol );
+   }
 #endif
    return;
 }

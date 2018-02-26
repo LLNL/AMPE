@@ -63,10 +63,6 @@ void TemperatureFACOps::setOperatorCoefficients(
    assert( fabs(d)>0. );
    assert( d<1.e15 );
 
-   d_C_is_set = false;
-   d_D_is_set = false;
-   d_M_is_set = false;
-
    //tbox::pout<<"TemperatureFACOps::setOperatorCoefficients: m="<<m<<", c="<<c<<", d="<<d<<endl;
    setMConstant(m);
    setCConstant(c);

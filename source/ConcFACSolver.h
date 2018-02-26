@@ -53,7 +53,8 @@ public:
    void setOperatorCoefficients(
       const double gamma,
       const int diffusion_id,
-      const double mobility );
+      const double mobility,
+      const int depth );
 
 private:
    boost::shared_ptr<tbox::Timer> t_set_op_coef;

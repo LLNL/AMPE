@@ -74,9 +74,11 @@ EllipticFACSolver::EllipticFACSolver (
    d_verbose(false)
 {
    boost::shared_ptr<pdat::CellVariable<double> > vol_var(
-      new pdat::CellVariable<double>(tbox::Dimension(NDIM),object_name+"::weight"));
+      new pdat::CellVariable<double>(
+         tbox::Dimension(NDIM),object_name+"::weight"));
    d_vol_id= hier::VariableDatabase::getDatabase()->
-      registerVariableAndContext(vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM),0) );
+      registerVariableAndContext(
+         vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM),0) );
 
    /*
     * The FAC operator optionally uses the preconditioner
@@ -89,7 +91,6 @@ EllipticFACSolver::EllipticFACSolver (
       getFromInput(database);
    }
 
-   return;
 }
 
 /*
@@ -100,12 +101,9 @@ EllipticFACSolver::EllipticFACSolver (
 *                                                                       *
 *************************************************************************
 */
-
-
 EllipticFACSolver::~EllipticFACSolver()
 {
    deallocateSolverState();
-   return;
 }
 
 
@@ -122,8 +120,8 @@ EllipticFACSolver::~EllipticFACSolver()
 * instead of setting the parameters directly in this function.     *
 ********************************************************************
 */
-void
-EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& database )
+void EllipticFACSolver::getFromInput(
+   const boost::shared_ptr<tbox::Database>& database )
 {
    if ( database->isBool("enable_logging") ) {
       d_enable_logging = database->getBool("enable_logging");
@@ -206,7 +204,6 @@ EllipticFACSolver::initializeSolverState(
       d_solver_is_initialized = true;
    }
 
-   return;
 }
 
 
@@ -227,8 +224,6 @@ EllipticFACSolver::finalizeCoefficients()
   }
 
    d_fac_ops->finalizeCoefficients();
-
-   return;
 }
 
 void
@@ -255,7 +250,6 @@ EllipticFACSolver::deallocateSolverState()
    }
    return;
 }
-
 
 
 void
@@ -421,8 +415,6 @@ EllipticFACSolver::solveSystem(const int u_id,
 }
 
 
-
-
 void
 EllipticFACSolver::createVectorWrappers(int u,
                                         int f)
@@ -473,7 +465,6 @@ EllipticFACSolver::createVectorWrappers(int u,
       d_fv->addComponent( variable, f, d_vol_id );
    }
 
-   return;
 }
 
 

@@ -63,10 +63,6 @@ void EtaFACOps::setOperatorCoefficients(
    const double eta_well_scale,
    const string eta_well_func_type )
 {
-   d_C_is_set = false;
-   d_D_is_set = false;
-   d_M_is_set = false;
-
    setM( eta_mobility_id );
 
    // C to be set after M since it uses M
@@ -97,7 +93,7 @@ void EtaFACOps::setC(
    assert( phi_id >= 0 );
    assert( eta_id >= 0 );
    assert( d_m_id >= 0 );
-   assert( d_c_id >= 0 );
+   assert( d_c_id[0] >= 0 );
    assert( d_M_is_set );
    
    for ( int ln = d_ln_min; ln <= d_ln_max; ++ln ) {
@@ -122,7 +118,7 @@ void EtaFACOps::setC(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_m_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cdata (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_c_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_c_id[0]) ) );
 
          setCOnPatchPrivate(
             phi_data,
@@ -137,8 +133,7 @@ void EtaFACOps::setC(
       }
    }
    
-   d_poisson_spec.setCPatchDataId( d_c_id );
-   d_C_is_set = true;
+   setCPatchDataId( d_c_id[0], 0 );
 
    return;
 }

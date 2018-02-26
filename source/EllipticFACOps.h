@@ -138,23 +138,26 @@ public:
    EllipticFACOps(
       const std::string &object_name=std::string() ,
       const boost::shared_ptr<tbox::Database> database=
-         boost::shared_ptr<tbox::Database>() );
+         boost::shared_ptr<tbox::Database>(),
+      const int depth=1 );
 
    /*!
     * @brief Destructor.
     *
     * Deallocate internal data.
     */
-   virtual ~EllipticFACOps(void);
+   virtual ~EllipticFACOps(void){};
 
    /*!
     * @brief Set the scalar Poisson equation specifications.
     */
-   void
-   setPoissonSpecifications(
-      const PoissonSpecifications& spec)
+   void setPoissonSpecifications(
+      const PoissonSpecifications& spec, 
+      const int depth)
    {
-      d_poisson_spec = spec;
+      assert( depth<d_poisson_spec.size() );
+
+      d_poisson_spec[depth] = spec;
    }
 
    //!@{ @name Specifying PDE parameters
@@ -165,7 +168,11 @@ public:
     * In addition, disregard any previous D
     * specified by setDConstant().
     */
-   void setDPatchDataId( int id );
+   void setDPatchDataId( int id, const int depth=0 ){
+      d_poisson_spec[depth].setDPatchDataId(id);
+      d_D_is_set[depth] = true;
+   }
+
 
    /*!
     * @brief Set the scalar value variable D.
@@ -173,14 +180,21 @@ public:
     * In addition, disregard any previous D
     * specified by setDPatchDataId().
     */
-   void setDConstant( const double scalar );
+   void setDConstant( const double scalar, const int depth=0 ){
+      d_poisson_spec[depth].setDConstant(scalar);
+      d_D_is_set[depth] = true;
+
+   }
 
    /*!
     * @brief Whether D is constant.
     *
     * @return True if D is constant, as specified by setCConstant().
     */
-   bool dIsConstant() const;
+   bool dIsConstant(const int depth=0) const{
+      return d_poisson_spec[depth].dIsConstant();
+   }
+
 
    /*!
     * @brief Get D's patch data id
@@ -189,7 +203,10 @@ public:
     *
     * @return D's id
     */
-   int getDPatchDataId() const;
+   int getDPatchDataId(const int depth=0) const{
+      return d_poisson_spec[depth].getDPatchDataId();
+   }
+
 
    /*!
     * @brief Get D constant value
@@ -198,7 +215,10 @@ public:
     *
     * @return D's constant value
     */
-   double getDConstant() const;
+   double getDConstant(const int depth=0) const{
+      return d_poisson_spec[depth].getDConstant();
+   }
+
 
    /*!
     * @brief Set the scalar value variable C.
@@ -206,7 +226,10 @@ public:
     * In addition, disregard any previous C
     * specified by setCConstant().
     */
-   void setCPatchDataId( int id );
+   void setCPatchDataId( int id, const int depth=0 ){
+      d_poisson_spec[depth].setCPatchDataId(id);
+      d_C_is_set[depth] = true;
+   }
 
    /*!
     * @brief Set the patch data index for variable C.
@@ -214,12 +237,36 @@ public:
     * In addition, disregard any previous C
     * specified by setCConstant().
     */
-   void setCConstant( const double scalar );
+   void setCConstant( const double scalar, const int depth=0 )
+   {
+      if ( scalar == 0.0 ) {
+         d_poisson_spec[depth].setCZero();
+      }
+      else {
+         d_poisson_spec[depth].setCConstant(scalar);
+      }
+      d_C_is_set[depth] = true;
+   }
 
    //@}
 
+
    void setM(const int m_id);
-   void setMConstant(const double scalar);
+
+   // could use fact that mobility is uniform and not store it
+   void setMConstant(const double mobility){
+
+      assert( mobility>0. );
+      assert( d_m_id>=0 );
+
+      // initialize mobility data with constant scalar
+      d_hopscell->setToScalar(d_m_id, mobility);
+
+      for(int i=0;i<d_depth;i++){
+         d_poisson_spec[i].setMConstant(mobility);
+      }
+      d_M_is_set = true;
+   }
 
    void finalizeCoefficients();
 
@@ -354,7 +401,9 @@ public:
       d_physical_bc_coef = physical_bc_coef;
       d_bc_helper.setCoefImplementation(physical_bc_coef);
 #ifdef HAVE_HYPRE
-      d_hypre_solver.setPhysicalBcCoefObject(d_physical_bc_coef);
+      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
+      for( ; it!=d_hypre_solver.end(); ++it)
+         (*it)->setPhysicalBcCoefObject(d_physical_bc_coef);
 #endif
    }
 
@@ -373,7 +422,7 @@ public:
     * -# Flux (see setFluxId())
     * -# Source (see setScalarFieldId())
     */
-   void checkInputPatchDataIndices() const;
+   void checkInputPatchDataIndices(const int depth=0) const;
 
    //@}
 
@@ -456,7 +505,8 @@ public:
       const hier::Patch &patch ,
       const hier::IntVector &ratio_to_coarser_level,
       const pdat::CellData<double> &w_data ,
-      pdat::SideData<double> &Dgradw_data ) const;
+      pdat::SideData<double> &Dgradw_data,
+      const int depth ) const;
 
 
    void setWeightIds(const int ew_id, const int vol_id)
@@ -500,14 +550,14 @@ public:
       const int soln_id,
       const int accum_id,
       int ln ,
-      bool error_equation_indicator );
+      bool error_equation_indicator);
 
    virtual void computeCompositeResidualOnLevel(
       solv::SAMRAIVectorReal<double> &residual ,
       const solv::SAMRAIVectorReal<double> &solution ,
       const solv::SAMRAIVectorReal<double> &rhs ,
       int ln ,
-      bool error_equation_indicator );
+      bool error_equation_indicator);
 
    virtual double computeResidualNorm(
       const solv::SAMRAIVectorReal<double> &residual ,
@@ -612,7 +662,8 @@ protected:
       const pdat::SideData<double> &flux_data ,
       const pdat::CellData<double> &m_data ,
       const pdat::CellData<double> &soln_data ,
-      pdat::CellData<double> &accum_data ) const;
+      pdat::CellData<double> &accum_data,
+      const int depth ) const;
 
 
    /*!
@@ -634,7 +685,8 @@ protected:
       const pdat::CellData<double> &rhs_data ,
       pdat::CellData<double> &soln_data ,
       char red_or_black ,
-      double *p_maxres=NULL ) const;
+      const int depth,
+      double *p_maxres=NULL) const;
 
    //@}
 
@@ -847,7 +899,7 @@ protected:
     * @brief Scalar Poisson equations specifications.
     * @see setPoissonSpecifications().
     */
-   PoissonSpecifications d_poisson_spec;
+   std::vector<PoissonSpecifications> d_poisson_spec;
 
    /*!
     * @brief Smoothing choice.
@@ -918,7 +970,7 @@ protected:
    /*!
     * @brief HYPRE coarse-level solver object.
     */
-   CellPoissonHypreSolver d_hypre_solver;
+   std::vector<CellPoissonHypreSolver*> d_hypre_solver;
 #endif
 
 
@@ -938,9 +990,9 @@ protected:
 
    static boost::shared_ptr<pdat::CellVariable<double> > s_m_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_c_var;
+   static std::vector<boost::shared_ptr<pdat::CellVariable<double> > > s_c_var;
 
-   static boost::shared_ptr<pdat::SideVariable<double> > s_d_var;
+   static std::vector<boost::shared_ptr<pdat::SideVariable<double> > > s_d_var;
 
    /*!
     * @brief Default context of internally maintained hierarchy data.
@@ -972,9 +1024,9 @@ protected:
 
    int d_m_id;
 
-   int d_c_id;
+   std::vector<int> d_c_id;
    
-   int d_d_id;
+   std::vector<int> d_d_id;
 
    /*!
     * @brief ID of the outerside-centered scratch data.
@@ -1070,10 +1122,10 @@ protected:
     */
    boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 
-   /*!
-    * @brief Hierarchy side operator used in debugging.
-    */
-   boost::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
+    /*!
+     * @brief Hierarchy side operator used in debugging.
+     */
+    boost::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
 
    /*!
     * @brief Timers for performance measurement.
@@ -1088,8 +1140,8 @@ protected:
    boost::shared_ptr<tbox::Timer> t_compute_residual_norm;
    boost::shared_ptr<tbox::Timer> t_compute_rhs;
 
-   bool d_C_is_set;
-   bool d_D_is_set;
+   std::vector<bool> d_C_is_set;
+   std::vector<bool> d_D_is_set;
    bool d_M_is_set;
 
    int d_ew_id;  // weight for L2-norm
@@ -1124,6 +1176,7 @@ private:
     */
    const solv::RobinBcCoefStrategy *d_physical_bc_coef;
 
+   const int d_depth;
 };
 
 
