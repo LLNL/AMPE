@@ -51,18 +51,24 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		QuatModelParameters.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
-		CALPHADFreeEnergyStrategyBinary.o CALPHADFreeEnergyStrategyTernary.o \
+		CALPHADFreeEnergyStrategyBinary.o \
+		CALPHADFreeEnergyStrategyTernary.o \
 		CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
-		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
+		CALPHADEqConcSolverBinaryWithPenalty.o \
+		CALPHADEqConcSolverBinary.o \
 		CALPHADEqPhaseConcSolverTernary.o \
-		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
+		CALPHADConcSolverBinaryWithPenalty.o \
+		CALPHADConcSolverBinary.o tools.o \
 		FreeEnergyStrategy.o
 
 CXX_OBJS      = GradientTemperatureStrategy.o \
+		toolsSAMRAI.o \
 		DiffusionForConcInPhaseStrategy.o \
                 QuatIntegrator.o \
-                BeckermannCompositionRHSStrategy.o DeltaTemperatureFreeEnergyStrategy.o \
-                ConstantHeatCapacityStrategy.o PFModel.o \
+                BeckermannCompositionRHSStrategy.o \
+		DeltaTemperatureFreeEnergyStrategy.o \
+                ConstantHeatCapacityStrategy.o \
+		PFModel.o \
                 CartesianRobinBcHelperWithDepth.o \
                 ConstantMeltingTemperatureStrategy.o \
                 LinearMeltingTemperatureStrategy.o \
@@ -73,13 +79,17 @@ CXX_OBJS      = GradientTemperatureStrategy.o \
                 UniformPartitionCoefficientStrategy.o \
                 PartitionPhaseConcentrationsStrategy.o \
                 NKRHeatCapacityStrategy.o \
-                PhaseFluxStrategySimple.o PhaseFluxStrategyIsotropic.o PhaseFluxStrategyAnisotropy.o \
-                TemperatureStrategyFactory.o QuatModel.o QuatRefinePatchStrategy.o \
+                PhaseFluxStrategySimple.o PhaseFluxStrategyIsotropic.o \
+		PhaseFluxStrategyAnisotropy.o \
+                TemperatureStrategyFactory.o QuatModel.o \
+		QuatRefinePatchStrategy.o \
                 ran2.o \
-                BiasDoubleWellFreeEnergyStrategy.o BiasDoubleWellBeckermannFreeEnergyStrategy.o \
+                BiasDoubleWellFreeEnergyStrategy.o \
+		BiasDoubleWellBeckermannFreeEnergyStrategy.o \
                 BiasDoubleWellUTRCFreeEnergyStrategy.o \
                 SimpleGradStrategy.o \
-                SimpleQuatGradStrategy.o SimpleQuatMobilityStrategy.o QuatMobilityStrategy.o \
+                SimpleQuatGradStrategy.o SimpleQuatMobilityStrategy.o \
+		QuatMobilityStrategy.o \
                 QuatSysSolver.o QuatFACOps.o QuatLevelSolver.o \
                 QuatLinearRefine.o QuatWeightedAverage.o \
                 MinIntCoarsen.o PhaseFreeEnergyStrategy.o \
@@ -92,9 +102,12 @@ CXX_OBJS      = GradientTemperatureStrategy.o \
                 CALPHADFreeEnergyStrategyWithPenalty.o \
                 CALPHADequilibriumPhaseConcentrationsStrategy.o \
                 GaussianTemperatureStrategy.o ScalarTemperatureStrategy.o \
-                SteadyStateTemperatureStrategy.o SteadyStateTemperatureGaussianSource.o SteadyStateTemperatureCompositionSource.o \
+                SteadyStateTemperatureStrategy.o \
+		SteadyStateTemperatureGaussianSource.o \
+		SteadyStateTemperatureCompositionSource.o \
                 EllipticFACSolver.o EllipticFACOps.o \
-                PhaseConcentrationRefinePatchStrategy.o PhaseConcentrationsStrategy.o \
+                PhaseConcentrationRefinePatchStrategy.o \
+		PhaseConcentrationsStrategy.o \
                 PhaseFACSolver.o PhaseFACOps.o PhaseTemperatureFACOps.o \
                 EtaFACSolver.o EtaFACOps.o \
                 ConcFACSolver.o ConcFACOps.o \
