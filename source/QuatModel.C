@@ -88,6 +88,9 @@
 
 #include <set>
 #include <map>
+
+#include <boost/lexical_cast.hpp>
+
 using namespace std;
 using namespace netCDF;
 
@@ -167,7 +170,6 @@ QuatModel::QuatModel( int ql ) :
    d_quat_norm_error_id = -1;
    d_weight_id = -1;
    d_conc_diffusion_id = -1;
-   d_conc_diffusion0_id = -1;
    d_conc_phase_coupling_diffusion_id = -1;
    d_conc_eta_coupling_diffusion_id = -1;
    d_conc_diffusion_l_id = -1;
@@ -327,7 +329,7 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
          new KKSCompositionRHSStrategy(
             d_conc_scratch_id,
             d_phase_scratch_id,
-            d_conc_diffusion0_id,
+            d_conc_diffusion0_id[0], // use 1x1 diffusion matrix
             d_conc_phase_coupling_diffusion_id,
             d_temperature_scratch_id,
             d_eta_scratch_id,
@@ -378,30 +380,12 @@ void QuatModel::initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Databas
             d_conc_scratch_id,
             d_phase_scratch_id,
             d_partition_coeff_scratch_id,
-            d_conc_diffusion0_id,
+            d_conc_diffusion0_id[0],
             d_conc_phase_coupling_diffusion_id,
             d_model_parameters.D_liquid(),
             d_model_parameters.D_solid_A(),
             d_model_parameters.diffusion_interp_func_type(),
             d_model_parameters.avg_func_type() );
-// }else if ( d_model_parameters.concRHSstrategyIsSPINODAL() ){
-//    d_composition_rhs_strategy =
-//       new SpinodalCompositionRHSStrategy(
-//          conc_db->getDatabase( "Calphad" ),
-//          d_conc_scratch_id,
-//          d_phase_scratch_id,
-//          d_eta_scratch_id,
-//          d_ncompositions,
-//          d_conc_a_scratch_id,
-//          d_conc_b_scratch_id,
-//          d_temperature_scratch_id,
-//          d_conc_diffusion0_id,
-//          d_model_parameters.kappa(),
-//          d_conc_Mq_id,
-//          d_model_parameters.Q_heat_transport(),
-//          d_model_parameters.diffusion_interp_func_type(),
-//          d_model_parameters.avg_func_type(),
-//          d_free_energy_strategy_for_diffusion );
    }else{
       TBOX_ERROR( "Error: unknown composition RHS Strategy" );
    }
@@ -1810,6 +1794,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                int iz = ccell(2) - z_lower;
                int idx = nx * ny * iz + nx * iy + ix;
 #endif
+               assert( vals[idx]<=1. );
+               assert( vals[idx]>=0. );
                (*conc_data)(ccell,cc) = vals[idx];
             }
          }
@@ -2000,21 +1986,28 @@ void QuatModel::registerConcentrationVariables( void )
       d_conc_diffusion_var.reset();
    }
 
-   d_conc_diffusion0_var.reset(
-      new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion0" ) );
-   assert( d_conc_diffusion0_var );
-   d_conc_diffusion0_id =
-      variable_db->registerVariableAndContext(
-         d_conc_diffusion0_var,
-         current,
-         hier::IntVector(tbox::Dimension(NDIM),0) );
-   assert( d_conc_diffusion0_id >= 0 );
+   for(int ic=0;ic<d_ncompositions;ic++){
+      boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion0_var;
+      conc_diffusion0_var.reset(
+         new pdat::SideVariable<double>(
+            tbox::Dimension(NDIM), 
+            "conc_diffusion0"+boost::lexical_cast<std::string>(ic) ) );
+      assert( conc_diffusion0_var );
+      d_conc_diffusion0_var.push_back( conc_diffusion0_var );
+      d_conc_diffusion0_id.push_back(
+         variable_db->registerVariableAndContext(
+            d_conc_diffusion0_var[ic],
+            current,
+            hier::IntVector(tbox::Dimension(NDIM),0) ) );
+      assert( d_conc_diffusion0_id[ic] >= 0 );
+   }
 
    d_model_parameters.checkValidityConcRHSstrategy();
    if( d_model_parameters.concRHSstrategyIsKKS() 
     || d_model_parameters.concRHSstrategyIsBeckermann()){
       d_conc_phase_coupling_diffusion_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_phase_coupling_diffusion" ) );
+         new pdat::SideVariable<double>(
+            tbox::Dimension(NDIM), "conc_phase_coupling_diffusion" ) );
       assert( d_conc_phase_coupling_diffusion_var );
       d_conc_phase_coupling_diffusion_id =
          variable_db->registerVariableAndContext(
@@ -2024,7 +2017,9 @@ void QuatModel::registerConcentrationVariables( void )
       assert( d_conc_phase_coupling_diffusion_id >= 0 );
    }else{
       d_conc_diffusion_l_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_l", d_ncompositions*d_ncompositions ) );
+         new pdat::SideVariable<double>(
+            tbox::Dimension(NDIM), 
+            "conc_diffusion_l", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_l_var );
       d_conc_diffusion_l_id =
          variable_db->registerVariableAndContext(
@@ -3980,8 +3975,10 @@ void QuatModel::AllocateLocalPatchData(
       }
       AllocateAndZeroData< pdat::CellData<double> >(
          d_conc_scratch_id, level, time, zero_data );
-      AllocateAndZeroData< pdat::SideData<double> >(
-         d_conc_diffusion0_id, level, time, zero_data );
+      for(int ic=0;ic<d_ncompositions;ic++){
+         AllocateAndZeroData< pdat::SideData<double> >(
+            d_conc_diffusion0_id[ic], level, time, zero_data );
+      }
       if( d_model_parameters.concRHSstrategyIsKKS()
        || d_model_parameters.concRHSstrategyIsBeckermann() ){
          AllocateAndZeroData< pdat::SideData<double> >(

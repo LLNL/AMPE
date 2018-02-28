@@ -65,7 +65,7 @@ public:
       const int diffusion_coeff_b_id,
       const int Mq_id,
       const std::vector<double>& Q_heat_transport,
-      const int diffusion_precond_id,
+      const std::vector<int> diffusion_precond_id,
       const std::string& diff_interp_func_type,
       const std::string& avg_func_type,
       FreeEnergyStrategy* free_energy_strategy,
@@ -131,7 +131,7 @@ private:
    bool d_with_gradT;
    
    bool d_with_diffusion_for_preconditioner;
-   int d_diffusion_precond_id;
+   std::vector<int> d_diffusion_precond_id;
    
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
@@ -145,16 +145,18 @@ private:
       const int temperature_id,
       const int flux_id);
 
-   void setDiffusionCoeffForPreconditionConcentration(
+   void setDiffusionCoeffForPreconditioner(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
-   void setDiffusionCoeffForPreconditionConcentrationOnPatch(
+   void setDiffusionCoeffForPreconditionerOnPatch(
       boost::shared_ptr< pdat::SideData<double> > sd_d_l,
       boost::shared_ptr< pdat::SideData<double> > sd_d_a,
       boost::shared_ptr< pdat::SideData<double> > sd_d_b,
+      const int depth_in_Dmatrix,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
       boost::shared_ptr< pdat::CellData<double> > cd_eta,
       boost::shared_ptr< pdat::SideData<double> > sd_d_coeff,
-      const hier::Box& pbox );
+      const hier::Box& pbox,
+      const int depth );
    void setDiffusionCoeffForTOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_c,
       boost::shared_ptr< pdat::CellData<double> > cd_temp,

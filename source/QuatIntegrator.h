@@ -187,7 +187,8 @@ public :
 
    void RegisterConcentrationVariables(
       const boost::shared_ptr< pdat::CellVariable<double> > conc_var,
-      const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion0_var,
+      const std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
+         conc_diffusion0_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_phase_coupling_diffusion_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_eta_coupling_diffusion_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion_var
@@ -533,6 +534,13 @@ protected:
 
    solv::LocationIndexRobinBcCoefs* d_conc_bc_coefs;
 
+   /*!
+    * diffusion coefficient in preconditioner for composition equation
+    */
+   std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
+      d_conc_diffusion0_var;
+   std::vector<int> d_conc_diffusion0_id;
+
    // Timers
    boost::shared_ptr<tbox::Timer> t_rhs_timer;
    boost::shared_ptr<tbox::Timer> t_set_coeff_timer;
@@ -777,13 +785,6 @@ private :
 
    boost::shared_ptr< pdat::SideVariable<int> > d_quat_symm_rotation_var;
    int d_quat_symm_rotation_id;
-
-   /*!
-    * diffusion coefficient in preconditioner for composition equation
-    */
-   std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
-      d_conc_diffusion0_var;
-   std::vector<int> d_conc_diffusion0_id;
 
    boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;

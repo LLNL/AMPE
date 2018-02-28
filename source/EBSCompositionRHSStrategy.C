@@ -65,7 +65,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    const int diffusion_coeff_b_id,
    const int Mq_id,
    const vector<double>& Q_heat_transport,
-   const int diffusion_precond_id,
+   const std::vector<int> diffusion_precond_id,
    const string& phase_interp_func_type,
    const string& avg_func_type,
    FreeEnergyStrategy* free_energy_strategy,
@@ -117,7 +117,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 
    d_with_third_phase = ( conc_b_scratch_id>=0 );
    
-   d_with_diffusion_for_preconditioner = ( diffusion_precond_id>=0 );
+   d_with_diffusion_for_preconditioner = ( !diffusion_precond_id.empty() );
    
    d_with_gradT = ( Mq_id>=0 );
 }
@@ -157,7 +157,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
       d_eta_scratch_id);
 
    if( d_with_diffusion_for_preconditioner )
-      setDiffusionCoeffForPreconditionConcentration(hierarchy);
+      setDiffusionCoeffForPreconditioner(hierarchy);
 }
 
 //-----------------------------------------------------------------------
@@ -217,7 +217,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             ifirst(2),ilast(2),
 #endif
             dx,
-            conc_l->getPointer(0), NGHOSTS,
+            conc_l->getPointer(), NGHOSTS,
             d_ncompositions,
             conc_diffusionl->getPointer(0),
             conc_diffusionl->getPointer(1),
@@ -257,11 +257,13 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    if ( d_with_third_phase ){
       assert( d_conc_b_scratch_id>=0 );
       boost::shared_ptr< pdat::CellData<double> > conc_b (
-         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_b_scratch_id) ) );
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+            patch.getPatchData( d_conc_b_scratch_id) ) );
       assert( conc_b );
       
       boost::shared_ptr< pdat::SideData<double> > conc_diffusionb (
-         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_b_id) ) );
+         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+            patch.getPatchData( d_diffusion_b_id) ) );
       assert( conc_diffusionb );
 
       assert( conc_diffusionb->getPointer(0)!=NULL );
@@ -296,17 +298,17 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
 
 //-----------------------------------------------------------------------
 
-void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
+void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy)
 {
-   //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration"<<endl;
+   //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner"<<endl;
 
    assert( d_diffusion_coeff_l_id >= 0 );
    assert( d_diffusion_coeff_a_id >= 0 );
    if ( d_with_third_phase ) {
       assert( d_diffusion_coeff_b_id >= 0 );
    }
-   assert( d_diffusion_precond_id >= 0 );
+   assert( !d_diffusion_precond_id.empty() );
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -319,9 +321,11 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
             *p;
       
          boost::shared_ptr< pdat::SideData<double> > dl (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_l_id) ) );
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( d_diffusion_coeff_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > da (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_coeff_a_id) ) );
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( d_diffusion_coeff_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > db;
          
          boost::shared_ptr< pdat::CellData<double> > eta;
@@ -331,15 +335,25 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
          }
 
          boost::shared_ptr< pdat::CellData<double> > phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_phase_scratch_id) ) );
 
-         boost::shared_ptr< pdat::SideData<double> > diffusion (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_diffusion_precond_id) ) );
+         assert( d_diffusion_precond_id.size()*d_diffusion_precond_id.size()
+               ==dl->getDepth() );
 
-         setDiffusionCoeffForPreconditionConcentrationOnPatch(
-            dl, da, db,
-            phi, eta,
-            diffusion, patch->getBox() );
+         for(int ic=0;ic<d_diffusion_precond_id.size();ic++){
+
+            boost::shared_ptr< pdat::SideData<double> > diffusion (
+               BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+                  patch->getPatchData( d_diffusion_precond_id[ic]) ) );
+            TBOX_ASSERT( diffusion );
+
+            setDiffusionCoeffForPreconditionerOnPatch(
+               dl, da, db, 2*ic,
+               phi, eta,
+               diffusion, patch->getBox(), 0 );
+         }
+
       }
    }
 }
@@ -347,43 +361,47 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentration(
 //=======================================================================
 // phase weighted average of phase diffusions
 //
-void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionConcentrationOnPatch(
+void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
    boost::shared_ptr< pdat::SideData<double> > sd_d_l,
    boost::shared_ptr< pdat::SideData<double> > sd_d_a,
    boost::shared_ptr< pdat::SideData<double> > sd_d_b,
+   const int depth_in_Dmatrix,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
    boost::shared_ptr< pdat::CellData<double> > cd_eta,
    boost::shared_ptr< pdat::SideData<double> > sd_d_coeff,
-   const hier::Box& pbox )
+   const hier::Box& pbox,
+   const int depth )
 {
-   double* ptr_dx_coeff = sd_d_coeff->getPointer( 0 );
-   double* ptr_dy_coeff = sd_d_coeff->getPointer( 1 );
+   assert( depth_in_Dmatrix<sd_d_l->getDepth() );
+
+   double* ptr_dx_coeff = sd_d_coeff->getPointer( 0, depth );
+   double* ptr_dy_coeff = sd_d_coeff->getPointer( 1, depth );
    double* ptr_dz_coeff = NULL;
    if ( NDIM > 2 ) {
-      ptr_dz_coeff = sd_d_coeff->getPointer( 2 );
-   }
-      
-   double* ptr_dx_l = sd_d_l->getPointer(0);
-   double* ptr_dy_l = sd_d_l->getPointer(1);
-   double* ptr_dz_l = NULL;
-   if ( NDIM > 2 ) {
-      ptr_dz_l = sd_d_l->getPointer( 2 );
+      ptr_dz_coeff = sd_d_coeff->getPointer( 2, depth );
    }
 
-   double* ptr_dx_a = sd_d_a->getPointer(0);
-   double* ptr_dy_a = sd_d_a->getPointer(1);
+   double* ptr_dx_l = sd_d_l->getPointer(0, depth_in_Dmatrix);
+   double* ptr_dy_l = sd_d_l->getPointer(1, depth_in_Dmatrix);
+   double* ptr_dz_l = NULL;
+   if ( NDIM > 2 ) {
+      ptr_dz_l = sd_d_l->getPointer( 2, depth_in_Dmatrix);
+   }
+
+   double* ptr_dx_a = sd_d_a->getPointer(0, depth_in_Dmatrix);
+   double* ptr_dy_a = sd_d_a->getPointer(1, depth_in_Dmatrix);
    double* ptr_dz_a = NULL;
    if ( NDIM > 2 ) {
-      ptr_dz_a = sd_d_a->getPointer( 2 );
+      ptr_dz_a = sd_d_a->getPointer( 2, depth_in_Dmatrix);
    }
 
    double* ptr_dx_b = NULL;
    double* ptr_dy_b = NULL;
    double* ptr_dz_b = NULL;
    if ( d_with_third_phase ) {
-      ptr_dx_b = sd_d_b->getPointer(0);
-      ptr_dy_b = sd_d_b->getPointer(1);
-      if ( NDIM > 2 ) ptr_dz_b = sd_d_b->getPointer(2);
+      ptr_dx_b = sd_d_b->getPointer(0, depth_in_Dmatrix);
+      ptr_dy_b = sd_d_b->getPointer(1, depth_in_Dmatrix);
+      if ( NDIM > 2 ) ptr_dz_b = sd_d_b->getPointer(2, depth_in_Dmatrix);
    }
 
    double* ptr_phi = cd_phi->getPointer();

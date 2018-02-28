@@ -50,18 +50,20 @@ ConcFACOps::ConcFACOps(
 
 void ConcFACOps::setOperatorCoefficients(
    const double gamma,
-   const int diffusion_id,
-   const double mobility,
-   const int depth )
+   const vector<int>& diffusion_id,
+   const double mobility)
 {
    assert( gamma>=0. );
-   assert( diffusion_id>=0 );
-   assert( d_d_id[depth]>=0 );
+   assert( diffusion_id.size()==d_d_id.size() );
+   for(int ic=0;ic<diffusion_id.size();ic++)assert( diffusion_id[ic]>=0 );
+   for(int ic=0;ic<d_d_id.size();ic++)assert( d_d_id[ic]>=0 );
    assert( mobility>0. );
 
-   d_hopsside->scale(d_d_id[depth],-gamma,diffusion_id);
+   for(unsigned ic=0;ic<diffusion_id.size();ic++){
+      d_hopsside->scale(d_d_id[ic],-gamma,diffusion_id[ic]);
+      setDPatchDataId(d_d_id[ic],ic);
+      setCConstant(1.,ic);
+   }
 
-   if( depth==0 )setMConstant(mobility);
-   setCConstant(1.,depth);
-   setDPatchDataId(d_d_id[depth],depth);
+   setMConstant(mobility);
 }

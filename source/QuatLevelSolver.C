@@ -748,16 +748,22 @@ QuatLevelSolver::copyFromHypre(
    hier::Index lower = box.lower();
    hier::Index upper = box.upper();
    HYPRE_SStructVectorGetBoxValues(src_vector, PART, &lower[0], &upper[0], depth, values);
-   
+  
+   //copy from values into dst_data 
 #if NDIM==2
    copy2d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1),
            values, box.lower(0), box.upper(0), box.lower(1), box.upper(1),
-           dst_data.getPointer(component), gbox.lower(0), gbox.upper(0), gbox.lower(1), gbox.upper(1));
+           dst_data.getPointer(component), 
+           gbox.lower(0), gbox.upper(0), gbox.lower(1), gbox.upper(1));
 #endif
 #if NDIM==3
-   copy3d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2), box.upper(2),
-           values, box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2), box.upper(2),
-           dst_data.getPointer(component), gbox.lower(0), gbox.upper(0), gbox.lower(1), gbox.upper(1), gbox.lower(2), gbox.upper(2));
+   copy3d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1), 
+           box.lower(2), box.upper(2),
+           values, box.lower(0), box.upper(0), box.lower(1), box.upper(1), 
+           box.lower(2), box.upper(2),
+           dst_data.getPointer(component), 
+           gbox.lower(0), gbox.upper(0), gbox.lower(1), gbox.upper(1), 
+           gbox.lower(2), gbox.upper(2));
 #endif
     
    delete [] values;
@@ -1629,7 +1635,8 @@ QuatLevelSolver::solveSystem(
         ip != level->end(); ++ip) {
       const boost::shared_ptr<hier::Patch>& patch = *ip;
       boost::shared_ptr<pdat::CellData<double> > q_solution_data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(q_solution_id) ) );
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            patch->getPatchData(q_solution_id) ) );
       
       for (int depth=0; depth<d_qlen; depth++) {
          copyFromHypre(0, d_linear_sol[depth], depth, *q_solution_data);

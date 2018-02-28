@@ -635,7 +635,8 @@ protected:
       const hier::Patch &patch ,
       const pdat::CellData<double> &soln_data ,
       pdat::SideData<double> &flux_data ,
-      const hier::IntVector &ratio_to_coarser ) const;
+      const hier::IntVector &ratio_to_coarser,
+      const int depth ) const;
 
 
    /*!
@@ -654,7 +655,8 @@ protected:
       const pdat::CellData<double> &m_data ,
       const pdat::CellData<double> &soln_data ,
       const pdat::CellData<double> &rhs_data ,
-      pdat::CellData<double> &residual_data ) const;
+      pdat::CellData<double> &residual_data,
+      const int depth ) const;
 
 
    void accumulateOperatorOnPatch(
@@ -985,8 +987,6 @@ protected:
    static boost::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
 
    static boost::shared_ptr<pdat::OutersideVariable<double> > s_oflux_scratch_var;
-
-   static boost::shared_ptr<pdat::CellVariable<double> > s_soln_var;
 
    static boost::shared_ptr<pdat::CellVariable<double> > s_m_var;
 

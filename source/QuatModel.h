@@ -679,8 +679,8 @@ private :
    boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
 
-   boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion0_var;
-   int d_conc_diffusion0_id;
+   std::vector<boost::shared_ptr< pdat::SideVariable<double> > > d_conc_diffusion0_var;
+   std::vector<int> d_conc_diffusion0_id;
 
    /*!
     * holds data for diffusion coefficients in composition equation

@@ -48,9 +48,8 @@ ConcFACSolver::ConcFACSolver (
 
 void ConcFACSolver::setOperatorCoefficients(
    const double gamma,
-   const int diffusion_id,
-   const double mobility,
-   const int depth )
+   const vector<int>& diffusion_id,
+   const double mobility)
 {
    t_set_op_coef->start();
 
@@ -60,7 +59,7 @@ void ConcFACSolver::setOperatorCoefficients(
    conc_fac_ops->setOperatorCoefficients(
       gamma,
       diffusion_id,
-      mobility, depth );
+      mobility );
    
    finalizeCoefficients();
 

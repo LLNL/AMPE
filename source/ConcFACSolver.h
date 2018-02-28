@@ -52,9 +52,8 @@ public:
 
    void setOperatorCoefficients(
       const double gamma,
-      const int diffusion_id,
-      const double mobility,
-      const int depth );
+      const std::vector<int>& diffusion_id,
+      const double mobility);
 
 private:
    boost::shared_ptr<tbox::Timer> t_set_op_coef;

@@ -63,10 +63,13 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 #include <boost/make_shared.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include <cstdlib>
 #include <cassert>
 
 #include "CellPoissonHypreSolver.h"
+#include "toolsSAMRAI.h"
 
 using namespace std;
 
@@ -458,16 +461,16 @@ CellPoissonHypreSolver::CellPoissonHypreSolver(
    // non-constant
    // Ghosts values needed (width of finite difference stencil)
    d_msqrt_var.reset( new
-      pdat::CellVariable<double>(tbox::Dimension(NDIM),d_object_name + "::msqrt", 1) );
+      pdat::CellVariable<double>(
+         tbox::Dimension(NDIM),d_object_name + "::msqrt", 1) );
    d_msqrt_id =
       vdb->registerVariableAndContext( d_msqrt_var,
-                                       d_context,
-                                       hier::IntVector(tbox::Dimension(NDIM),1) );
+         d_context,
+         hier::IntVector(tbox::Dimension(NDIM),1) );
    if ( database ) {
       getFromInput(database);
    }    
    assert( d_msqrt_id>=0 );
-   return;
 }
 
 
@@ -847,6 +850,7 @@ CellPoissonHypreSolver::copyToHypre(
    const hier::Box& box)
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, src, box);
+   TBOX_ASSERT( src.getDepth()>depth );
 
    pdat::CellIterator cend(pdat::CellGeometry::end(box));
    for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c != cend; ++c) {
@@ -1055,7 +1059,8 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          assert( d_msqrt_id>=0 );
          assert( M_data );
          msqrt = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>(patch.getPatchData(d_msqrt_id));
+                                              hier::PatchData>(
+            patch.getPatchData(d_msqrt_id) );
          assert( msqrt );
          sqrtArray(msqrt->getArrayData(),M_data->getArrayData(),msqrt->getGhostBox());
       }
@@ -1390,6 +1395,7 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
    pdat::CellData<double> &rhs )
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, patch, rhs);
+   TBOX_ASSERT( rhs.getDepth()==1 );
 
    /*
     * g*A*k0(a) is the storage for adjustments to be made to the rhs
@@ -1399,7 +1405,8 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
     * to rhs.
     */
    boost::shared_ptr<pdat::OutersideData<double> >Ak0(
-      BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch.getPatchData(d_Ak0_id) ) );
+      BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+         patch.getPatchData(d_Ak0_id) ) );
 
    TBOX_ASSERT(Ak0);
 
@@ -1623,11 +1630,10 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       /*
        * Set up variable data needed to prepare linear system solver.
        */
-      boost::shared_ptr<pdat::CellData<double> > u_data_(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(u) ) );
-      TBOX_ASSERT(u_data_);
-      pdat::CellData<double>& u_data = *u_data_;
-      pdat::CellData<double> rhs_data(box, 1, no_ghosts);
+      boost::shared_ptr<pdat::CellData<double> > u_data(
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            patch->getPatchData(u) ) );
+      TBOX_ASSERT(u_data);
 
       /*
        * Copy rhs and solution from the hierarchy into HYPRE structures.
@@ -1635,13 +1641,23 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
        * needed.  If boundary condition is homogenous, this only adds
        * zero, so we skip it.
        */
-      copyToHypre(d_linear_sol, u_data, d_soln_depth, box );
-      rhs_data.copy( *(patch->getPatchData(f)) );
+      copyToHypre(d_linear_sol, *u_data, d_soln_depth, box );
+
+      boost::shared_ptr<pdat::CellData<double> > fdata(
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            patch->getPatchData(f) ) );
+      boost::shared_ptr<pdat::CellData<double> > rhs_data;
+      rhs_data.reset( new pdat::CellData<double>(box, 1, no_ghosts) );
+      //pdat::CellData<double> rhs_data(box, 1, no_ghosts);
+      assert( fdata->getGhostCellWidth()[0]==0 );
+      copyDepthCellData( rhs_data, 0, fdata, d_rhs_depth);
+      //rhs_data.copy( *fdata );
       
       // divide rhs by M^1/2 if M was used to construct matrix
       if( d_msqrt_transform ){
          boost::shared_ptr<pdat::CellData<double> > msqrt ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_msqrt_id) ) );
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_msqrt_id) ) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          math::ArrayDataNormOpsReal<double> ops;
          double nb=ops.maxNorm(msqrt->getArrayData(),box);
@@ -1649,7 +1665,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
          assert( nb>0. );
 #endif
          math::ArrayDataBasicOps<double> array_math;
-         array_math.divide(rhs_data.getArrayData(), rhs_data.getArrayData(), 
+         array_math.divide(rhs_data->getArrayData(), rhs_data->getArrayData(), 
                                                     msqrt->getArrayData(), box);
       }
       if ( ! homogeneous_bc ) {
@@ -1659,13 +1675,13 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
          add_gAk0_toRhs(*patch,
                         patch->getPatchGeometry()->getCodimensionBoundaries(1),
                         d_physical_bc_coef_strategy,
-                        rhs_data);
+                        *rhs_data);
          add_gAk0_toRhs(*patch,
                         d_cf_boundary->getBoundaries(patch->getGlobalId(),1),
                         &d_cf_bc_coef,
-                        rhs_data);
+                        *rhs_data);
       }
-      copyToHypre(d_linear_rhs, rhs_data, d_rhs_depth, box);
+      copyToHypre(d_linear_rhs, *rhs_data, 0, box);
 
    } // end patch loop
 
@@ -1688,8 +1704,13 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
 
    if (d_print_solver_info) {
       HYPRE_StructVectorPrint("sol0.out", d_linear_sol, 1);
-      HYPRE_StructMatrixPrint("mat0.out",d_matrix,1);
-      HYPRE_StructVectorPrint("rhs.out",d_linear_rhs,1);
+      string filename=
+         "mat"+boost::lexical_cast<std::string>(d_rhs_depth)+".out";
+      HYPRE_StructMatrixPrint(filename.c_str(),
+          d_matrix,1);
+      filename="rhs"+boost::lexical_cast<std::string>(d_rhs_depth)+".out";
+      HYPRE_StructVectorPrint(filename.c_str(),
+          d_linear_rhs,1);
    }
 
    if ( d_use_smg ) {
@@ -1724,7 +1745,6 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       HYPRE_StructPFMGGetFinalRelativeResidualNorm(d_mg_data, 
                                                    &d_relative_residual_norm);
    }
-
    assert( d_relative_residual_norm==d_relative_residual_norm );
 
    /*
@@ -1733,24 +1753,32 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
    for (hier::PatchLevel::iterator ip(level->begin());
         ip != level->end(); ++ip) {
       const boost::shared_ptr<hier::Patch>& patch = *ip;
-      boost::shared_ptr<pdat::CellData<double> > u_data_(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(u) ) );
-      TBOX_ASSERT(u_data_);
 
-      pdat::CellData<double>& u_data = *u_data_;
-      copyFromHypre(u_data,
-         d_soln_depth,
-         d_linear_sol,
-         patch->getBox());
+      boost::shared_ptr<pdat::CellData<double> > u_data(
+         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            patch->getPatchData(u) ) );
+      TBOX_ASSERT(u_data);
+
+      // copy result of solve into a tmp array
+      boost::shared_ptr<pdat::CellData<double> > tmp_data;
+      tmp_data.reset( new pdat::CellData<double>(
+         patch->getBox(), 1, u_data->getGhostCellWidth()) );
+
+      copyFromHypre(*tmp_data,0,d_linear_sol,patch->getBox());
 
       // multiply solution by M^1/2 if M was used to build matrix
       if( d_msqrt_transform ){
          boost::shared_ptr<pdat::CellData<double> > msqrt ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_msqrt_id) ) );
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_msqrt_id) ) );
          math::ArrayDataBasicOps<double> array_math;
-         array_math.multiply(u_data.getArrayData(), u_data.getArrayData(), 
-                                                    msqrt->getArrayData(), patch->getBox());
+         array_math.multiply(tmp_data->getArrayData(), 
+                             tmp_data->getArrayData(), 
+                             msqrt->getArrayData(), patch->getBox());
       }
+
+      // finally copy result into u_data, at the right place
+      copyDepthCellData( u_data,d_soln_depth,tmp_data,0);
    }
 
    t_solve_system->stop();

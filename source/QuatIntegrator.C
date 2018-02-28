@@ -666,7 +666,8 @@ void QuatIntegrator::RegisterFreeEnergyVariables(
 
 void QuatIntegrator::RegisterConcentrationVariables(
    const boost::shared_ptr< pdat::CellVariable<double> > conc_var,
-   const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion0_var,
+   const std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
+      conc_diffusion0_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_phase_coupling_diffusion_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_eta_coupling_diffusion_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion_var
@@ -676,7 +677,7 @@ void QuatIntegrator::RegisterConcentrationVariables(
    assert( d_ncompositions>0 );
 
    d_conc_var = conc_var;
-   d_conc_diffusion0_var.push_back( conc_diffusion0_var );
+   d_conc_diffusion0_var = conc_diffusion0_var;
    d_conc_diffusion_var = conc_diffusion_var;
    d_conc_phase_coupling_diffusion_var = conc_phase_coupling_diffusion_var;
    d_conc_eta_coupling_diffusion_var = conc_eta_coupling_diffusion_var;
@@ -706,10 +707,12 @@ void QuatIntegrator::RegisterConcentrationVariables(
                hier::IntVector(tbox::Dimension(NDIM),0) );
          assert( d_conc_diffusion_id >= 0 );
       }
-      if( conc_diffusion0_var ){
+      for(std::vector<boost::shared_ptr< pdat::SideVariable<double> > >::iterator it =
+          d_conc_diffusion0_var.begin();
+          it!=d_conc_diffusion0_var.end();
+        ++it){
          d_conc_diffusion0_id.push_back(
-            variable_db->registerVariableAndContext(
-               d_conc_diffusion0_var[0],
+            variable_db->registerVariableAndContext(*it,
                d_current,
                hier::IntVector(tbox::Dimension(NDIM),0) ) );
          assert( d_conc_diffusion0_id[0] >= 0 );
@@ -733,17 +736,19 @@ void QuatIntegrator::RegisterConcentrationVariables(
          assert( d_conc_eta_coupling_diffusion_id >= 0 );
       }
 
-      if( conc_diffusion0_var ){
+      if( !conc_diffusion0_var.empty() ){
          // schedules
          boost::shared_ptr<hier::CoarsenOperator > diff_coarsen_op =
             d_grid_geometry->lookupCoarsenOperator(
                d_conc_diffusion0_var[0],
                "CONSERVATIVE_COARSEN" );
 
-         d_conc_diffusion_coarsen.registerCoarsen(
-            d_conc_diffusion0_id[0],
-            d_conc_diffusion0_id[0],
-            diff_coarsen_op );
+         for(std::vector<int>::iterator it=d_conc_diffusion0_id.begin();
+             it!=d_conc_diffusion0_id.end();
+           ++it){
+            d_conc_diffusion_coarsen.registerCoarsen(*it,*it,
+               diff_coarsen_op );
+         }
 
          if( d_conc_phase_coupling_diffusion_var )
          d_conc_diffusion_coarsen.registerCoarsen(
@@ -1120,7 +1125,8 @@ void QuatIntegrator::RegisterLocalEtaVariables()
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    d_eta_sol_var.reset (
-      new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_QI_eta_sol_", 1 ));
+      new pdat::CellVariable<double>(
+         tbox::Dimension(NDIM), d_name+"_QI_eta_sol_", 1 ));
    d_eta_sol_id =
       variable_db->registerVariableAndContext(
          d_eta_sol_var,
@@ -1147,7 +1153,8 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    d_phase_sol_var.reset (
-      new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_QI_phase_sol_", 1 ));
+      new pdat::CellVariable<double>(
+         tbox::Dimension(NDIM), d_name+"_QI_phase_sol_", 1 ));
    d_phase_sol_id =
       variable_db->registerVariableAndContext(
          d_phase_sol_var,
@@ -1208,7 +1215,8 @@ void QuatIntegrator::RegisterLocalQuatVariables()
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    d_quat_sol_var.reset (
-      new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_QI_quat_sol_", d_qlen ));
+      new pdat::CellVariable<double>(
+         tbox::Dimension(NDIM), d_name+"_QI_quat_sol_", d_qlen ));
    d_quat_sol_id = variable_db->registerVariableAndContext(
       d_quat_sol_var,
       d_current,
@@ -2802,7 +2810,8 @@ void QuatIntegrator::evaluatePhaseRHS(
          assert( phase );
 
          boost::shared_ptr< pdat::CellData<double> > phase_rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phase_rhs_id) ) );
          assert( phase_rhs );
          boost::shared_ptr< pdat::CellData<double> > fl (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
@@ -3098,7 +3107,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
          int phase_rhs_nghosts=0;
          if( d_model_parameters.with_phase() ){
             boost::shared_ptr< pdat::CellData<double> > phase_rhs (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_rhs_id) ) );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( phase_rhs_id) ) );
             assert( phase_rhs );
             phase_rhs_ptr=phase_rhs->getPointer();
             phase_rhs_nghosts=phase_rhs->getGhostCellWidth()[0];
@@ -3959,9 +3969,8 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 {
    if ( d_with_concentration && d_conc_sys_solver ) {
       // Set concentration block coefficients
-      for(int ic=0;ic<d_ncompositions;ic++)
-         d_conc_sys_solver->setOperatorCoefficients(
-            gamma, d_conc_diffusion0_id[ic], d_conc_mobility, ic );
+      d_conc_sys_solver->setOperatorCoefficients(
+         gamma, d_conc_diffusion0_id, d_conc_mobility );
    }
 }
 
