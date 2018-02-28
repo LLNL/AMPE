@@ -70,7 +70,8 @@ public:
    enum TEMPERATURE_TYPE {
       CONSTANT = 0,  // read from a file and left constant in time
       SCALAR   = 1,  // constant in space, but possibly not in time
-      GAUSSIAN = 2   // Gaussian in space, varying in time
+      GAUSSIAN = 2,  // Gaussian in space, varying in time
+      GRADIENT = 3   // linear in space and time
    };
 
    void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);
@@ -254,6 +255,10 @@ public:
    bool isTemperatureGaussian()const
    {
       return ( d_temperature_type == GAUSSIAN );
+   }
+   bool isTemperatureGradient()const
+   {
+      return ( d_temperature_type == GRADIENT );
    }
    
    void checkValidityConcRHSstrategy()const

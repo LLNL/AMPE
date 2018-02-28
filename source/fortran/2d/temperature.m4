@@ -261,3 +261,47 @@ c
       return
       end
 
+c***********************************************************************
+
+      subroutine initgradient(dx,xlo,xhi,
+     &  ifirst0,ilast0,ifirst1,ilast1,
+     &  gcw0,gcw1,
+     &  var,
+     &  center,temperature_center,
+     &  gradient)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+      REAL half
+      parameter (half=.5d0)
+
+      integer ifirst0,ilast0,ifirst1,ilast1
+      integer gcw0,gcw1
+      REAL center(0:NDIM-1)
+      REAL temperature_center
+      REAL dx(0:NDIM-1),xlo(0:NDIM-1),xhi(0:NDIM-1)
+      REAL gradient(0:NDIM-1)
+c variables in 2d cell indexed
+      REAL var(CELL2dVECG(ifirst,ilast,gcw))
+
+c***********************************************************************
+      integer ic0,ic1
+      REAL xc(0:NDIM-1),x0,x1
+
+      do ic1=ifirst1,ilast1
+        xc(1) = xlo(1)+dx(1)*(dble(ic1-ifirst1)+half)
+        x1 = xc(1)-center(1)
+        do ic0=ifirst0,ilast0
+           xc(0) = xlo(0)+dx(0)*(dble(ic0-ifirst0)+half)
+           x0 = xc(0)-center(0)
+
+           var(ic0,ic1) = temperature_center
+     &                  + x0*gradient(0)
+     &                  + x1*gradient(1)
+
+         enddo
+      enddo
+
+      return
+      end
+

@@ -58,7 +58,8 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
 		FreeEnergyStrategy.o
 
-CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
+CXX_OBJS      = GradientTemperatureStrategy.o \
+		DiffusionForConcInPhaseStrategy.o \
                 QuatIntegrator.o \
                 BeckermannCompositionRHSStrategy.o DeltaTemperatureFreeEnergyStrategy.o \
                 ConstantHeatCapacityStrategy.o PFModel.o \

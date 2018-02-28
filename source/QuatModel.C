@@ -43,8 +43,6 @@
 #include "KKSCompositionRHSStrategy.h"
 #include "EBSCompositionRHSStrategy.h"
 #include "BeckermannCompositionRHSStrategy.h"
-#include "ScalarTemperatureStrategy.h"
-#include "GaussianTemperatureStrategy.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
 #include "FuncFort.h"
@@ -925,7 +923,9 @@ void QuatModel::Initialize(
          d_tag_buffer_array[ll] = 1;
       }
 
-      if ( d_model_parameters.isTemperatureUniform() || d_model_parameters.isTemperatureGaussian() ) {
+      if ( d_model_parameters.isTemperatureUniform() 
+        || d_model_parameters.isTemperatureGaussian() 
+        || d_model_parameters.isTemperatureGradient() ) {
          d_temperature_strategy->setCurrentTemperature( d_patch_hierarchy, 0.0 );
       }
 

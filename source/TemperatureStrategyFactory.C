@@ -34,6 +34,7 @@
 
 #include "ScalarTemperatureStrategy.h"
 #include "GaussianTemperatureStrategy.h"
+#include "GradientTemperatureStrategy.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureCompositionSource.h"
 #include "SteadyStateTemperatureGaussianSource.h"
@@ -43,16 +44,17 @@
 using namespace std;
 using namespace SAMRAI;
 
-TemperatureStrategyFactory::TemperatureStrategyFactory(const int temperature_id, 
-                                                       const int temperature_scratch_id,
-                                                       const int conc_id, 
-                                                       const int weight_id, 
-                                                       const int temperature_rhs_id,
-                                                       const int cp_id,
-                                                       const double molar_volume, 
-                                                       const bool with_concentration,
-                                                       boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
-                                                       HeatCapacityStrategy* heat_capacity_strategy):
+TemperatureStrategyFactory::TemperatureStrategyFactory(
+   const int temperature_id, 
+   const int temperature_scratch_id,
+   const int conc_id, 
+   const int weight_id, 
+   const int temperature_rhs_id,
+   const int cp_id,
+   const double molar_volume, 
+   const bool with_concentration,
+   boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
+   HeatCapacityStrategy* heat_capacity_strategy):
    d_temperature_id(temperature_id),
    d_temperature_scratch_id(temperature_scratch_id),
    d_conc_id(conc_id),
@@ -73,7 +75,9 @@ double TemperatureStrategyFactory::readTemperature0(boost::shared_ptr<tbox::Data
    assert( temperature_db );
    
    double temperature0=-1.;
-   if( temperature_type == QuatModelParameters::SCALAR || temperature_type == QuatModelParameters::GAUSSIAN ){
+   if( temperature_type == QuatModelParameters::SCALAR 
+    || temperature_type == QuatModelParameters::GAUSSIAN
+    || temperature_type == QuatModelParameters::GRADIENT ){
       if ( temperature_db->keyExists( "temperature0" ) ) {
          temperature0 = temperature_db->getDouble( "temperature0" );
          printDeprecated( "temperature0", "temperature" );
@@ -122,7 +126,8 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
    
    // create strategy
    if ( model_parameters.isTemperatureUniform() ) { // uniform T across spatial domain
-      const double temperature0=readTemperature0(temperature_db,QuatModelParameters::SCALAR);
+      const double temperature0=readTemperature0(
+         temperature_db,QuatModelParameters::SCALAR);
 
       strategy = new ScalarTemperatureStrategy( 
             d_temperature_id,
@@ -138,6 +143,16 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
             d_weight_id,
             temperature_db,
             d_grid_geometry );
+   }
+   else if( model_parameters.isTemperatureGradient() ){
+      const double temperature0=readTemperature0(
+         temperature_db,QuatModelParameters::SCALAR);
+
+      strategy = new GradientTemperatureStrategy(
+            d_temperature_id,
+            d_temperature_scratch_id,
+            temperature0,
+            temperature_db );
    }
    else if( model_parameters.with_heat_equation() ){
       

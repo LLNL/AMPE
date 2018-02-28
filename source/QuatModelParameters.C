@@ -363,6 +363,8 @@ void QuatModelParameters::readTemperatureModel(
    
    if ( temperature_type[0] != 's' &&  // scalar
         temperature_type[0] != 'S' &&
+        temperature_type[0] != 'f' &&  // Frozen (gradient)
+        temperature_type[0] != 'F' &&
         temperature_type[0] != 'g' &&  // Gaussian
         temperature_type[0] != 'G' &&
         temperature_type[0] != 'c' &&  // constant
@@ -387,6 +389,13 @@ void QuatModelParameters::readTemperatureModel(
       d_temperature_type   = GAUSSIAN;
       d_with_heat_equation = false;
       
+   }
+   else if(temperature_type[0] == 'f' || //frozen approx.
+           temperature_type[0] == 'F'){
+
+      d_temperature_type   = GRADIENT;
+      d_with_heat_equation = false;
+
    }
    else if(temperature_type[0] == 'h' ||
            temperature_type[0] == 'H'){

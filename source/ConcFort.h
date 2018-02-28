@@ -49,6 +49,7 @@
 #define FORT_ADD_CONCENTRATION_FLUX_FROM_GRADT addconcentrationfluxfromgradt_
 #define FORT_ADD_CONCENTRATION_FLUX_FROM_AT addconcentrationfluxfromantitrapping_
 #define FORT_INITGAUSSIAN initgaussian_
+#define FORT_INITGRADIENT initgradient_
 #define FORT_INITGAUSSIAN_SOURCE initgaussiansource_
 #define FORT_LINEARMELTINGLINE linearmeltingline_
 #define FORT_COMPUTE_CONCENTRATION_FROM_PHASE_CONCENTRATIONS compute_concentration_from_phase_concentrations_
@@ -310,6 +311,21 @@ extern "C" {
       const double*,
       const double*,const double*,
       const double&, const double&, const double&);
+
+   void FORT_INITGRADIENT(
+      const double*,const double*,const double*,
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const int&, const int&,
+#if (NDIM == 3)
+      const int&,
+#endif
+      const double*,
+      const double*,const double&,
+      const double*);
 
    void FORT_INITGAUSSIAN_SOURCE(
       const double*,const double*,const double*,
