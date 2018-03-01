@@ -319,13 +319,13 @@ c***********************************************************************
       integer ic0,ic1,ic2
       REAL xc(0:NDIM-1),x0,x1,x2
 
-      do ic2=ifirst2,ilast2
+      do ic2=ifirst2-gcw2,ilast2+gcw2
          xc(2) = xlo(2)+dx(2)*(dble(ic2-ifirst2)+half)
          x2 = xc(2)-center(2)
-         do ic1=ifirst1,ilast1
+         do ic1=ifirst1-gcw1,ilast1+gcw1
             xc(1) = xlo(1)+dx(1)*(dble(ic1-ifirst1)+half)
             x1 = xc(1)-center(1)
-            do ic0=ifirst0,ilast0
+            do ic0=ifirst0-gcw0,ilast0+gcw0
                xc(0) = xlo(0)+dx(0)*(dble(ic0-ifirst0)+half)
                x0 = xc(0)-center(0)
 
