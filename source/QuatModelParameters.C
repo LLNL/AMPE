@@ -495,7 +495,9 @@ void QuatModelParameters::readTemperatureModel(
 
    if( temperature_db->keyExists("latent_heat" ) ){
       d_latent_heat = temperature_db->getDouble( "latent_heat" ); // in [J/mol]
-      d_latent_heat *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol] to [pJ/(mu m)^3]
+      assert( d_molar_volume_liquid==d_molar_volume_liquid );
+      // conversion from [J/mol] to [pJ/(mu m)^3]
+      d_latent_heat *= ( 1.e-6 / d_molar_volume_liquid );
       tbox::plog<<"Latent heat [pJ/(mu m)^3]:           "<<d_latent_heat<<endl;
       assert( d_latent_heat>0. );
       assert( d_latent_heat<1.e32 );
