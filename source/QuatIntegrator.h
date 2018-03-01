@@ -420,7 +420,7 @@ protected:
    void setTemperatureField(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                             double time)
    {
-      if ( d_with_heat_equation && d_with_steady_temperature )
+      if ( ! d_model_parameters.with_unsteady_heat_equation() )
       {
          assert( d_temperature_strategy!=NULL );
          d_temperature_strategy->setCurrentTemperature( hierarchy, time );

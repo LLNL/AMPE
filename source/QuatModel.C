@@ -1023,8 +1023,9 @@ void QuatModel::InitializeIntegrator( void )
       d_integrator_quat_only->setTemperatureStrategy( d_temperature_strategy_quat_only );
    }
 
+   d_integrator->setTemperatureStrategy( d_temperature_strategy );
+
    if( d_model_parameters.with_heat_equation() ){
-      d_integrator->setTemperatureStrategy( d_temperature_strategy );
       d_integrator->setHeatCapacityStrategy( d_heat_capacity_strategy );
    }
 
@@ -3105,12 +3106,6 @@ double QuatModel::Advance( void )
 
    d_time += dt;
    
-   // Both _id and _scratch_id can be set by simple calls at present
-   // This will need to change to a communication with a more temperature
-   // sophisticated temperature strategy.
-   d_temperature_strategy->setCurrentTemperature( d_patch_hierarchy, d_time );
-   d_temperature_strategy_quat_only->setCurrentTemperature( d_patch_hierarchy, d_time );
-
    if( d_model_parameters.with_heat_equation() )
       d_heat_capacity_strategy->setCurrentValue( d_patch_hierarchy );
 
