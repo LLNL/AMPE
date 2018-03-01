@@ -53,6 +53,7 @@ private:
    double getCurrentTemperature( const double time );
 
    void setCurrentTemperaturePrivatePatch(
+      const double temperature,
       hier::Patch& patch,
       boost::shared_ptr< pdat::CellData<double> > cd_temp);
 

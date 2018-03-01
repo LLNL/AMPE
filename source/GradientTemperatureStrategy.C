@@ -85,44 +85,42 @@ void GradientTemperatureStrategy::setCurrentTemperature(
    assert( d_temperature_id>=0 );
    assert( d_temperature_scratch_id>=0 );
    
-   if ( d_dtemperaturedt != 0.0 || time == 0.0 ) {
+   double temperature0 = d_temperature0 +d_dtemperaturedt*time;
+   //tbox::pout<<"GradientTemperatureStrategy: set center T to "
+   //          <<temperature0<<std::endl;
+   int maxln = patch_hierarchy->getFinestLevelNumber();
 
-      double t = getCurrentTemperature( time );
+   for ( int ln = 0; ln <= maxln; ln++ ) {
 
-      int maxln = patch_hierarchy->getFinestLevelNumber();
+      boost::shared_ptr<hier::PatchLevel > level =
+         patch_hierarchy->getPatchLevel( ln );
 
-      for ( int ln = 0; ln <= maxln; ln++ ) {
+      for ( hier::PatchLevel::Iterator p(level->begin()); 
+             p!=level->end(); p++ ) {
 
-         boost::shared_ptr<hier::PatchLevel > level =
-            patch_hierarchy->getPatchLevel( ln );
+         boost::shared_ptr<hier::Patch > patch = *p;
 
-         for ( hier::PatchLevel::Iterator p(level->begin()); 
-                p!=level->end(); p++ ) {
+         boost::shared_ptr< pdat::CellData<double> > t_data (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_temperature_id) ) );
 
-            boost::shared_ptr<hier::Patch > patch = *p;
+         setCurrentTemperaturePrivatePatch(temperature0, *patch, t_data);
 
-            boost::shared_ptr< pdat::CellData<double> > t_data (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-                  patch->getPatchData( d_temperature_id) ) );
+         boost::shared_ptr< pdat::CellData<double> > ts_data (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_temperature_scratch_id) ) );
 
-            setCurrentTemperaturePrivatePatch(*patch, t_data);
-
-            boost::shared_ptr< pdat::CellData<double> > ts_data (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-                  patch->getPatchData( d_temperature_scratch_id) ) );
-
-            setCurrentTemperaturePrivatePatch(*patch, ts_data);
-
-         }
+         setCurrentTemperaturePrivatePatch(temperature0,*patch, ts_data);
 
       }
-
    }
+
 }
 
 //=======================================================================
 
 void GradientTemperatureStrategy::setCurrentTemperaturePrivatePatch(
+   const double temperature0,
    hier::Patch& patch,
    boost::shared_ptr< pdat::CellData<double> > cd_temp)
 {
@@ -148,6 +146,6 @@ void GradientTemperatureStrategy::setCurrentTemperaturePrivatePatch(
       ghost_cells(2),
 #endif
       cd_temp->getPointer(),
-      &d_center[0], d_temperature0, &d_gradient[0]);
+      &d_center[0], temperature0, &d_gradient[0]);
 }
 
