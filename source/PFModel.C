@@ -311,7 +311,10 @@ void PFModel::Initialize(
 
    d_patch_hierarchy.reset( new hier::PatchHierarchy(
       "PatchHierarchy",
-      d_grid_geometry ) );
+      d_grid_geometry,
+      input_db->isDatabase("PatchHierarchy") ?
+      input_db->getDatabase("PatchHierarchy") :
+      boost::shared_ptr<tbox::Database>() ) );
 
    d_gridding_algorithm.reset(
       new mesh::GriddingAlgorithm(
