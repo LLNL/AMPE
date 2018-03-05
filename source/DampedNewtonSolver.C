@@ -66,8 +66,11 @@ void DampedNewtonSolver::UpdateSolution(
    }
 
    const double D = Determinant( fjac );
+   assert( fabs(D)>1.e-15 );
+
    const double D_inv = 1.0 / D;
 
+   //cout<<setprecision(12);
    //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
 
    static double del[5];
