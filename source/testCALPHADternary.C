@@ -139,8 +139,7 @@ int main( int argc, char *argv[] )
   
    cafe.printEnergyVsComposition(temperature);
 
-   ofstream ffile("FvsT.dat", ios::out);
-   cafe.preRunDiagnostics(ffile,303., 5000.);
+   cafe.preRunDiagnostics(303., 4000.);
 
    // initial guesses
    double init_guess[5];

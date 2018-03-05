@@ -139,6 +139,13 @@ public:
       std::vector<double>& d2fdc2,
       const bool use_internal_units=true)
    {
+      (void)temperature;
+      (void)c;
+      (void)d2fdc2;
+      (void)use_internal_units;
+
+      tbox::pout<<"Function not implemented"<<std::endl;
+      tbox::SAMRAI_MPI::abort();
    }
    
    void computeSecondDerivativeEnergyPhase(
@@ -167,9 +174,9 @@ public:
       }
    }
    
-   void preRunDiagnostics(std::ostream& os)
+   void preRunDiagnostics()
    {
-      d_calphad_fenergy->preRunDiagnostics(os);
+      d_calphad_fenergy->preRunDiagnostics();
    }
 
 protected:

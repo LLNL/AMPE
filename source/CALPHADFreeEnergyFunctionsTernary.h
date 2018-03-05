@@ -59,7 +59,7 @@ public:
       const int maxits=20,
       const bool verbose = false);
 
-   void preRunDiagnostics(std::ostream& os, const double T0=300., const double T1=3000.)
+   void preRunDiagnostics(const double T0=300., const double T1=3000.)
    {
       std::ofstream os1("FlC0vsT.dat", std::ios::out);
       os1<<"#Species 0, Phase L"<<std::endl;

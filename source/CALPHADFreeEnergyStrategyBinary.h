@@ -209,9 +209,9 @@ public:
       }
    }
    
-   void preRunDiagnostics(std::ostream& os)
+   void preRunDiagnostics()
    {
-      d_calphad_fenergy->preRunDiagnostics(os);
+      d_calphad_fenergy->preRunDiagnostics();
    }
 
 protected:
