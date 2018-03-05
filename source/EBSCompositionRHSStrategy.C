@@ -136,7 +136,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
    assert( d_free_energy_strategy != NULL );
 
    // compute D_L, D_S, ...
-   d_diffusion_for_conc_in_phase->setDiffusionCoeffForConcInPhase(
+   d_diffusion_for_conc_in_phase->setDiffCoeffInEachPhase(
       hierarchy,
       d_temperature_scratch_id,
       d_eta_scratch_id);
@@ -151,7 +151,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
          d_temperature_scratch_id);
 
    // compute actual diffusion by weighting with phase fraction
-   d_diffusion_for_conc_in_phase->setDiffusionForConcInPhase(
+   d_diffusion_for_conc_in_phase->setDiffCoeff(
       hierarchy,
       d_phase_scratch_id,
       d_eta_scratch_id);

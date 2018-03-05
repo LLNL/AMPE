@@ -68,11 +68,19 @@ public:
 
    ~DiffusionForConcInPhaseStrategy(){};
    
-   void setDiffusionForConcInPhase(
+   /*
+    * compute actual diffusion by weighting diffusion in each pahse
+    * using phase variable
+    */
+   void setDiffCoeff(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int phase_id,
       const int eta_id);
-   void setDiffusionCoeffForConcInPhase(
+
+   /*
+    * Compute diffusion coefficient in each phase
+    */
+   void setDiffCoeffInEachPhase(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int eta_scratch_id);
@@ -83,7 +91,7 @@ private:
       return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
    }
 
-   void setDiffusionForConcInPhaseOnPatch(
+   void setDiffCoeffOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
       boost::shared_ptr< pdat::CellData<double> > cd_eta,
       boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l,
@@ -94,7 +102,7 @@ private:
       boost::shared_ptr< pdat::SideData<double> > sd_d_b,
       const hier::Box& pbox );
 
-    void setDiffusionCoeffForConcInPhaseOnPatch(
+    void setDiffCoeffInEachPhaseOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_c_l,
       boost::shared_ptr< pdat::CellData<double> > cd_c_a,
       boost::shared_ptr< pdat::CellData<double> > cd_c_b,
