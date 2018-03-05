@@ -208,15 +208,17 @@ double CALPHADMobility::getDeltaG(const double c0, const double c1,
                );
 }
 
-double CALPHADMobility::getDeltaG(const double c0, const double c1, const double c2,
-                 const double temp)const
+double CALPHADMobility::getDeltaG(const double c0,
+                                  const double c1,
+                                  const double c2,
+                                  const double temp)const
 {
    return c0*getQ(0,temp)
          +c1*getQ(1,temp)
          +c2*getQ(2,temp)
-         +c0*c1*getQQ0(0,1,temp)
-         +c0*c2*getQQ0(0,2,temp)
-         +c1*c2*getQQ0(1,2,temp);
+         +c0*c1*(getQQ0(0,1,temp)+(c0-c1)*getQQ1(0,1,temp))
+         +c0*c2*(getQQ0(0,2,temp)+(c0-c2)*getQQ1(0,2,temp))
+         +c1*c2*(getQQ0(1,2,temp)+(c1-c2)*getQQ1(1,2,temp));
 }
 
 //=======================================================================
@@ -232,7 +234,8 @@ void CALPHADMobility::printDiffusionVsTemperature(
    for ( int i = 0; i < npts; i++ ) {
       const double temperature = tempmin+i*dtemp;
       const double m=getAtomicMobility(1., 0., temperature);
-      os << 10000./temperature <<"\t"<< m*temperature*gas_constant_R_JpKpmol << endl;
+      os << 10000./temperature <<"\t"
+         << m*temperature*gas_constant_R_JpKpmol << endl;
    }
 }
 
@@ -269,12 +272,12 @@ void computeDiffusionMobilityTernaryPhase(
    assert( calphad_mobilities_phase.size()==3 );
 
    const double c2=1.-c0-c1;
-   const double m0=calphad_mobilities_phase[0].getAtomicMobility(c0, c1, c2, temp);
-   const double m1=calphad_mobilities_phase[1].getAtomicMobility(c0, c1, c2, temp);
-   const double m2=calphad_mobilities_phase[2].getAtomicMobility(c0, c1, c2, temp);
+   const double m0=calphad_mobilities_phase[0].getAtomicMobility(c0,c1,c2,temp);
+   const double m1=calphad_mobilities_phase[1].getAtomicMobility(c0,c1,c2,temp);
+   const double m2=calphad_mobilities_phase[2].getAtomicMobility(c0,c1,c2,temp);
 
-   mobility[0] = c0*( (1-c0)*(1.-c0)*m0+c0*c1*m1+c0*c2*m2 )*m2toum2;
+   mobility[0] = c0*( (1.-c0)*(1.-c0)*m0+c0*c1*m1+c0*c2*m2 )*m2toum2;
    mobility[1] = 
-   mobility[2] = c0*c1*( -(1-c0)*m0-(1.-c1)*m1+c2*m2 )*m2toum2;
+   mobility[2] = c0*c1*( -(1.-c0)*m0-(1.-c1)*m1+c2*m2 )*m2toum2;
    mobility[3] = c1*( c0*c1*m0+(1.-c1)*(1.-c1)*m1+c1*c2*m2 )*m2toum2;
 }
