@@ -75,15 +75,7 @@ EllipticFACOps::s_flux_scratch_var;
 boost::shared_ptr<pdat::OutersideVariable<double> >
 EllipticFACOps::s_oflux_scratch_var;
 
-boost::shared_ptr<pdat::CellVariable<double> >
-EllipticFACOps::s_m_var;
-
-std::vector<boost::shared_ptr<pdat::CellVariable<double> > >
-EllipticFACOps::s_c_var;
-
-std::vector<boost::shared_ptr<pdat::SideVariable<double> > >
-EllipticFACOps::s_d_var;
-
+int EllipticFACOps::s_depth=1;
 
 extern "C" {
 
@@ -747,10 +739,10 @@ EllipticFACOps::EllipticFACOps(
    d_hopsside(),
    d_physical_bc_coef(NULL)
 {
-
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
    }
+   assert( depth<=s_depth ); // depth compatible with local work arrays
 
    for(int i=0;i<depth;i++){
 #ifdef HAVE_HYPRE
@@ -796,32 +788,35 @@ EllipticFACOps::EllipticFACOps(
 
       s_cell_scratch_var.reset ( new pdat::CellVariable<double>
          (tbox::Dimension(NDIM),"EllipticFACOps::private_cell_scratch",
-         depth) );
+         s_depth) );
       s_flux_scratch_var.reset ( new pdat::SideVariable<double>
          (tbox::Dimension(NDIM),"EllipticFACOps::private_flux_scratch",
-         depth) );
+         s_depth) );
       s_oflux_scratch_var.reset ( new pdat::OutersideVariable<double>
          (tbox::Dimension(NDIM),"EllipticFACOps::private_oflux_scratch",
-         depth) );
-      s_m_var.reset ( new pdat::CellVariable<double>
-         (tbox::Dimension(NDIM),"EllipticFACOps::private_m", 1) );
-      for(int i=0;i<depth;i++){
-         boost::shared_ptr<pdat::SideVariable<double> > d_var;
-         d_var.reset(
-            new pdat::SideVariable<double>(
-               tbox::Dimension(NDIM),
-               "EllipticFACOps::privateD"+boost::lexical_cast<std::string>(i), 
-               1) );
-         s_d_var.push_back ( d_var );
+         s_depth) );
+   }
 
-         boost::shared_ptr<pdat::CellVariable<double> > c_var;
-         c_var.reset(
-            new pdat::CellVariable<double>(
-               tbox::Dimension(NDIM),
-               "EllipticFACOps::privateC"+boost::lexical_cast<std::string>(i), 
-               1) );
-         s_c_var.push_back ( c_var );
-      }
+   d_m_var.reset ( new pdat::CellVariable<double>
+      (tbox::Dimension(NDIM),object_name+"EllipticFACOps::private_m", 1) );
+   for(int i=0;i<depth;i++){
+      boost::shared_ptr<pdat::SideVariable<double> > d_var;
+      d_var.reset(
+         new pdat::SideVariable<double>(
+            tbox::Dimension(NDIM),
+            object_name+"EllipticFACOps::privateD"
+                       +boost::lexical_cast<std::string>(i), 
+            1) );
+      d_d_var.push_back ( d_var );
+
+      boost::shared_ptr<pdat::CellVariable<double> > c_var;
+      c_var.reset(
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM),
+            object_name+"EllipticFACOps::privateC"
+                       +boost::lexical_cast<std::string>(i), 
+            1) );
+      d_c_var.push_back ( c_var );
    }
 
    /*
@@ -843,19 +838,19 @@ EllipticFACOps::EllipticFACOps(
                                   d_context,
                                   hier::IntVector(tbox::Dimension(NDIM),0) );
    d_m_id = vdb->
-         registerVariableAndContext( s_m_var,
+         registerVariableAndContext( d_m_var,
                                      d_context ,
                                      hier::IntVector(tbox::Dimension(NDIM),1) );
 
    for(int i=0;i<depth;i++){
-      assert( i<s_d_var.size() );
+      assert( i<d_d_var.size() );
       d_d_id.push_back( vdb->
-         registerVariableAndContext( s_d_var[i],
+         registerVariableAndContext( d_d_var[i],
             d_context ,
             hier::IntVector(tbox::Dimension(NDIM),0) ) );
 
       d_c_id.push_back( vdb->
-         registerVariableAndContext( s_c_var[i],
+         registerVariableAndContext( d_c_var[i],
             d_context ,
             hier::IntVector(tbox::Dimension(NDIM),0) ) );
    }
@@ -1661,15 +1656,19 @@ EllipticFACOps::smoothErrorByRedBlack(
          }
 
          boost::shared_ptr<pdat::CellData<double> > err_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(data.getComponentPatchData ( 0 , *patch ) ) );
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               data.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::CellData<double> > residual_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData ( 0 , *patch ) ) );
+            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+               residual.getComponentPatchData ( 0 , *patch ) ) );
          boost::shared_ptr<pdat::SideData<double> > flux_data (
-            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( flux_id) ) );
 
          TBOX_ASSERT(err_data);
          TBOX_ASSERT(residual_data);
          TBOX_ASSERT(flux_data);
+         TBOX_ASSERT(err_data->getDepth()==flux_data->getDepth());
 
          for(int depth=0;depth<residual_data->getDepth();depth++){
             computeFluxOnPatch(
@@ -1693,7 +1692,8 @@ EllipticFACOps::smoothErrorByRedBlack(
       xeqScheduleGhostFillNoCoarse(data_id, ln);
 
       // Black sweep.
-      for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
+      for (hier::PatchLevel::Iterator pi(level->begin()); 
+           pi!=level->end(); pi++ ) {
          boost::shared_ptr< hier::Patch > patch = *pi;
 
          bool deallocate_flux_data_when_done=false;
@@ -1763,7 +1763,6 @@ EllipticFACOps::smoothErrorByRedBlack(
       << d_object_name << " RBGS smoothing maxres = " << maxres << "\n"
       << "  after " << isweep << " sweeps.\n";
 
-   return;
 }
 
 
@@ -2401,7 +2400,22 @@ EllipticFACOps::computeResidualNorm(
    if (d_ew_id > -1 && d_vol_id > -1) {
 
       const int r_id = residual.getComponentDescriptorIndex(0);
+#if 0
+      hier::VariableDatabase &vdb(*hier::VariableDatabase::getDatabase());
+      boost::shared_ptr<hier::Variable > var1;
+      vdb.mapIndexToVariable(r_id,var1);
+      boost::shared_ptr<pdat::CellVariable<double> > cvar1(
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var1) );
+      
+      boost::shared_ptr<hier::Variable > var2;
+      vdb.mapIndexToVariable(d_ew_id,var2);
+      boost::shared_ptr<pdat::CellVariable<double> > cvar2(
+         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var2) );
 
+      tbox::pout<<"Depth of residual = "<<cvar1->getDepth()<<endl;
+      tbox::pout<<"Depth of weight   = "<<cvar2->getDepth()<<endl;
+      TBOX_ASSERT( cvar1->getDepth()==cvar2->getDepth() );
+#endif
       norm = d_hopscell->weightedRMSNorm(r_id, d_ew_id, d_vol_id);
 
      if (d_verbose) {
@@ -3612,6 +3626,5 @@ EllipticFACOps::freeVariables()
    s_cell_scratch_var.reset();
    s_flux_scratch_var.reset();
    s_oflux_scratch_var.reset();
-   s_m_var.reset();
 }
 

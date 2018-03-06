@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "QuatModelParameters.h"
+#include "EllipticFACOps.h"
 
 using namespace std;
 
@@ -167,6 +168,9 @@ void QuatModelParameters::readNumberSpecies(boost::shared_ptr<tbox::Database> co
 {
    int nspecies = conc_db->getIntegerWithDefault( "nspecies", 2 );
    d_ncompositions=nspecies-1;
+
+   if( d_ncompositions>1 )
+      EllipticFACOps::setDepthScratch(d_ncompositions);
 }
 
 //=======================================================================

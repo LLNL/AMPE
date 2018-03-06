@@ -148,6 +148,9 @@ public:
     */
    virtual ~EllipticFACOps(void){};
 
+   static void setDepthScratch(const int depth)
+   { s_depth=depth; }
+
    /*!
     * @brief Set the scalar Poisson equation specifications.
     */
@@ -981,6 +984,7 @@ protected:
 
 
    //@{ @name Internal context and scratch data
+   static int s_depth;
 
    static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var;
 
@@ -988,11 +992,11 @@ protected:
 
    static boost::shared_ptr<pdat::OutersideVariable<double> > s_oflux_scratch_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_m_var;
+   boost::shared_ptr<pdat::CellVariable<double> > d_m_var;
 
-   static std::vector<boost::shared_ptr<pdat::CellVariable<double> > > s_c_var;
+   std::vector<boost::shared_ptr<pdat::CellVariable<double> > > d_c_var;
 
-   static std::vector<boost::shared_ptr<pdat::SideVariable<double> > > s_d_var;
+   std::vector<boost::shared_ptr<pdat::SideVariable<double> > > d_d_var;
 
    /*!
     * @brief Default context of internally maintained hierarchy data.
