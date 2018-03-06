@@ -35,7 +35,7 @@
 #include "QuatParams.h"
 #include "ConcFort.h"
 #include "QuatFort.h"
-#include "DiffusionForConcInPhaseStrategy.h"
+#include "CompositionDiffusionStrategy.h"
 #include "CompositionStrategyMobilities.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -70,7 +70,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    const string& avg_func_type,
    FreeEnergyStrategy* free_energy_strategy,
    CompositionStrategyMobilities* mobilities_strategy,
-   DiffusionForConcInPhaseStrategy* diffusion_for_conc_in_phase):
+   CompositionDiffusionStrategy* diffusion_for_conc_in_phase):
       CompositionRHSStrategy(avg_func_type),
       d_mobilities_strategy(mobilities_strategy),
       d_diffusion_for_conc_in_phase(diffusion_for_conc_in_phase),
@@ -135,12 +135,6 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
    assert( hierarchy );
    assert( d_free_energy_strategy != NULL );
 
-   // compute D_L, D_S, ...
-   d_diffusion_for_conc_in_phase->setDiffCoeffInEachPhase(
-      hierarchy,
-      d_temperature_scratch_id,
-      d_eta_scratch_id);
-
    // set coefficient for (grad T)/T term
    if( d_with_gradT )
       setDiffusionCoeffForT(
@@ -153,6 +147,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
    // compute actual diffusion by weighting with phase fraction
    d_diffusion_for_conc_in_phase->setDiffCoeff(
       hierarchy,
+      d_temperature_scratch_id,
       d_phase_scratch_id,
       d_eta_scratch_id);
 
@@ -173,7 +168,8 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    assert( d_diffusion_a_id>=0 );
 
    const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+      BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(
+         patch.getPatchGeometry()) );
    const double * dx  = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
@@ -183,33 +179,39 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    const unsigned nc2=d_ncompositions*d_ncompositions;
 
    boost::shared_ptr< pdat::CellData<double> > conc_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_scratch_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( d_conc_l_scratch_id) ) );
    assert( conc_l );
    assert( conc_l->getDepth()==d_ncompositions );
 
    boost::shared_ptr< pdat::CellData<double> > conc_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_scratch_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( d_conc_a_scratch_id) ) );
    assert( conc_a );
    assert( conc_a->getDepth()==d_ncompositions );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusionl (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_l_id) ) );
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+         patch.getPatchData( d_diffusion_l_id) ) );
    assert( conc_diffusionl );
    assert( conc_diffusionl->getDepth()==(nc2) );
 
    boost::shared_ptr< pdat::SideData<double> > conc_diffusiona (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion_a_id) ) );
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+         patch.getPatchData( d_diffusion_a_id) ) );
    assert( conc_diffusiona );
    assert( conc_diffusiona->getDepth()==(nc2) );
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+         patch.getPatchData( flux_id) ) );
    assert( flux );
    assert( flux->getDepth()==d_ncompositions );
 
    flux->fillAll(0.);
 
-   // now add components of concentration flux
+   // now add components of concentration flux,
+   // one phase at a time
    FORT_ADD_CONCENTRATION_FLUX_EBS(
             ifirst(0),ilast(0),
             ifirst(1),ilast(1),
@@ -660,25 +662,33 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForT(
             *p;
 
          boost::shared_ptr< pdat::CellData<double> > temp (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( temperature_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cl (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_l_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( concentration_l_id) ) );
          boost::shared_ptr< pdat::CellData<double> > ca (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_a_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( concentration_a_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cb;
 
          boost::shared_ptr< pdat::CellData<double> > phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_phase_scratch_id) ) );
 
+         // data array where result of this operation is stored
          boost::shared_ptr< pdat::SideData<double> > mq (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_Mq_id) ) );
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( d_Mq_id) ) );
          assert( mq );
 
          boost::shared_ptr< pdat::CellData<double> > eta;
          if ( d_with_third_phase ) {
-            cb  = boost::dynamic_pointer_cast<pdat::CellData<double>,hier::PatchData>( patch->getPatchData( concentration_b_id ));
-            eta = boost::dynamic_pointer_cast<pdat::CellData<double>,hier::PatchData>( patch->getPatchData( d_eta_scratch_id ));
+            cb  = BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
+               patch->getPatchData( concentration_b_id ));
+            eta = BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
+               patch->getPatchData( d_eta_scratch_id ));
          }
 
          setDiffusionCoeffForTOnPatch(

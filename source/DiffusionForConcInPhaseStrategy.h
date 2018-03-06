@@ -34,7 +34,7 @@
 #define included_DIFFUSIONFORCONCINPHASESTRATEGY
 
 #include "FuncFort.h"
-//#include "CALPHADFreeEnergyStrategy.h"
+#include "CompositionDiffusionStrategy.h"
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -47,7 +47,8 @@ using namespace SAMRAI;
 class CompositionStrategyMobilities;
 class FreeEnergyStrategy;
 
-class DiffusionForConcInPhaseStrategy
+class DiffusionForConcInPhaseStrategy 
+   : public CompositionDiffusionStrategy
 {
 public:
    DiffusionForConcInPhaseStrategy(
@@ -74,8 +75,15 @@ public:
     */
    void setDiffCoeff(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+      const int temperature_id,
       const int phase_id,
       const int eta_id);
+
+private:   
+   double average(const double a, const double b)const
+   {
+      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
+   }
 
    /*
     * Compute diffusion coefficient in each phase
@@ -84,12 +92,6 @@ public:
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int eta_scratch_id);
-
-private:   
-   double average(const double a, const double b)const
-   {
-      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
-   }
 
    void setDiffCoeffOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_phi,

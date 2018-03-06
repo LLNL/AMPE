@@ -84,7 +84,7 @@ class PhaseFluxStrategy;
 class PhaseConcentrationsStrategy;
 class MeltingTemperatureStrategy;
 class CompositionStrategyMobilities;
-class DiffusionForConcInPhaseStrategy;
+class CompositionDiffusionStrategy;
 
 class QuatModel :
    public PFModel
@@ -433,7 +433,7 @@ public :
       return d_conc_diffusion_a_id;
    }
    
-   DiffusionForConcInPhaseStrategy* getDiffusionForConcInPhaseStrategy()
+   CompositionDiffusionStrategy* getCompositionDiffusionStrategy()
    {
       return d_diffusion_for_conc_in_phase;
    }
@@ -796,7 +796,7 @@ private :
    PhaseFluxStrategy* d_phase_flux_strategy;
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
-   DiffusionForConcInPhaseStrategy* d_diffusion_for_conc_in_phase;
+   CompositionDiffusionStrategy* d_diffusion_for_conc_in_phase;
 
    bool d_tag_phase;
    bool d_tag_eta;

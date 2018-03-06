@@ -152,6 +152,7 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
 
 void DiffusionForConcInPhaseStrategy::setDiffCoeff(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+   const int temperature_id,
    const int phase_id,
    const int eta_id)
 {
@@ -168,6 +169,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeff(
    if ( d_with_third_phase ) {
       assert( d_diffusion_coeff_b_id >= 0 );
    }
+
+   // compute D_L, D_S, ...
+   setDiffCoeffInEachPhase(hierarchy,temperature_id,eta_id);
 
    const int maxl = hierarchy->getNumberOfLevels();
 

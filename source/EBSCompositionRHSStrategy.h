@@ -41,7 +41,7 @@
 #include <vector>
 #include <string>
 
-class DiffusionForConcInPhaseStrategy;
+class CompositionDiffusionStrategy;
 class CompositionStrategyMobilities;
 
 class EBSCompositionRHSStrategy:
@@ -70,7 +70,7 @@ public:
       const std::string& avg_func_type,
       FreeEnergyStrategy* free_energy_strategy,
       CompositionStrategyMobilities* mobilities_strategy,
-      DiffusionForConcInPhaseStrategy* diffusion_for_conc_in_phase
+      CompositionDiffusionStrategy* diffusion_for_conc_in_phase
    );
    
    ~EBSCompositionRHSStrategy(){};
@@ -136,7 +136,7 @@ private:
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
 
-   DiffusionForConcInPhaseStrategy* d_diffusion_for_conc_in_phase;
+   CompositionDiffusionStrategy* d_diffusion_for_conc_in_phase;
 
    CompositionStrategyMobilities* d_mobilities_strategy;
 

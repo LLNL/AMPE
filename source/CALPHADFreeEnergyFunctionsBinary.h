@@ -92,11 +92,9 @@ public:
       const int maxits = 20,
       const bool verbose = false);
 
-   void preRunDiagnostics(std::ostream& os,
+   void preRunDiagnostics(
       const double T0=300., const double T1=3000.)
    {
-      (void)os;
-
       std::ofstream os1("FlC0vsT.dat", std::ios::out);
       os1<<"#Species 0, Phase L"<<std::endl;
       d_g_species_phaseL[0].plotFofT(os1, T0, T1);

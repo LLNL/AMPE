@@ -74,6 +74,11 @@ public:
       GRADIENT = 3   // linear in space and time
    };
 
+   enum CONC_DIFFUSION_TYPE {
+      TD, // depends on T
+      CTD // depends on C and T
+   };
+
    void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);
    void readTemperatureModel(
       boost::shared_ptr<tbox::Database> model_db);
@@ -282,7 +287,10 @@ public:
    { return ( d_conc_rhs_strategy == SPINODAL ); }
    bool concRHSstrategyIsBeckermann()const
    { return ( d_conc_rhs_strategy == Beckermann ); }
-   
+
+   bool conDiffusionStrategyIsCTD()const
+   { return ( d_conc_diffusion_type == CTD ); }
+ 
    bool isHeatSourceCompositionDependent()const
    { return d_heat_source_type=="composition"; }
    
@@ -390,7 +398,8 @@ private:
    enum CONC_RHS_STRATEGY d_conc_rhs_strategy;
    
    TEMPERATURE_TYPE d_temperature_type;
-  
+   CONC_DIFFUSION_TYPE d_conc_diffusion_type;
+ 
    bool   d_with_phase; 
    bool   d_with_orientation;
    bool   d_with_concentration;

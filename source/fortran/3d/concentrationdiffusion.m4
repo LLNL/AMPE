@@ -200,6 +200,131 @@ c
       return
       end
 c
+c same as function concentrationdiffusion0, without accumulating
+c component into single D
+c
+      subroutine concentrationdiffusion_of_temperature(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, ngphi,
+     &   diffL0, diffL1, diffL2, 
+     &   diffA0, diffA1, diffA2, ngdiff,
+     &   temp, ngtemp,
+     &   d_liquid, q0_liquid,
+     &   d_solid_A, q0_solid_A,
+     &   gas_constant_R,
+     &   interp_type,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer ngphi, ngdiff, ngtemp
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solid_A
+      double precision q0_liquid, q0_solid_A
+      double precision gas_constant_R
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi))
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+      double precision diffL0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffL1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffL2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffA0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffA2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2
+      double precision vphi, hphi, invT
+      double precision q0_liquid_invR, q0_solid_A_invR
+      double precision diff_liquid, diff_solid_A
+      double precision interp_func
+      double precision average_func
+c
+      q0_liquid_invR = q0_liquid / gas_constant_R
+      q0_solid_A_invR = q0_solid_A / gas_constant_R
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2), phi(ic0,ic1,ic2), avg_type )
+
+               hphi = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 /
+     &            ( temp(ic0-1,ic1,ic2) + temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+
+
+               diffL0(ic0,ic1,ic2) =
+     &            ( 1.0d0 - hphi ) * diff_liquid
+               diffA0(ic0,ic1,ic2) =
+     &            hphi * diff_solid_A
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2), phi(ic0,ic1,ic2), avg_type )
+
+               hphi = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 /
+     &            ( temp(ic0,ic1-1,ic2) + temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+
+               diffL1(ic0,ic1,ic2) =
+     &            ( 1.0d0 - hphi ) * diff_liquid 
+               diffA1(ic0,ic1,ic2) =
+     &             hphi * diff_solid_A
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1), phi(ic0,ic1,ic2), avg_type )
+
+               hphi = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 /
+     &            ( temp(ic0,ic1,ic2-1) + temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+
+               diffL2(ic0,ic1,ic2) =
+     &            ( 1.0d0 - hphi ) * diff_liquid
+               diffA2(ic0,ic1,ic2) =
+     &            hphi * diff_solid_A
+
+            end do
+         end do
+      end do
+c
+      return
+      end
+
+c
 c Coefficient \tilde D from Beckermann, Diepers, Steinbach, Karma, Tong, 1999
 c
       subroutine concentrationdiffusion_beckermann(

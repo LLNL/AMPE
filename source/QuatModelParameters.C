@@ -215,14 +215,29 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    else {
       TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
    }
-   
+
+   // default setup so that older inputs files need not to be changed
+   string default_concdiff_type = d_conc_rhs_strategy == EBS ?
+                                  "composition_dependent" : 
+                                  "temperature_dependent";
+   string conc_diffusion_strategy =
+      conc_db->getStringWithDefault( "diffusion_type", default_concdiff_type);
+   if( conc_diffusion_strategy[0] == 'c' ){
+      d_conc_diffusion_type = CTD;
+   }else if( conc_diffusion_strategy[0] == 't' ){
+      d_conc_diffusion_type = TD;
+   }else {
+      TBOX_ERROR( "Error: unknown concentration diffusion strategy" );
+   }
+
+ 
    if ( d_conc_rhs_strategy == Beckermann ){
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_D_solid_A = conc_db->getDouble( "D_solid_A" );
    }
-   if ( d_conc_rhs_strategy == KKS ){
+   if ( d_conc_diffusion_type == TD ){
       d_D_liquid = conc_db->getDouble( "D_liquid" );
-      d_Q0_liquid = conc_db->getDouble( "Q0_liquid" );
+      d_Q0_liquid = conc_db->getDoubleWithDefault( "Q0_liquid", 0. );
 
       if ( ! d_with_third_phase ) {
          if( conc_db->keyExists( "D_solid_A" ) )
@@ -230,9 +245,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          else
             d_D_solid_A = conc_db->getDouble( "D_solid" );
          if( conc_db->keyExists( "Q0_solid_A" ) )
-            d_Q0_solid_A = conc_db->getDouble( "Q0_solid_A" );
+            d_Q0_solid_A = conc_db->getDoubleWithDefault( "Q0_solid_A", 0. );
          else
-            d_Q0_solid_A = conc_db->getDouble( "Q0_solid" );
+            d_Q0_solid_A = conc_db->getDoubleWithDefault( "Q0_solid", 0. );
          d_D_solid_B = 0.;
          d_Q0_solid_B = 0.;
       }

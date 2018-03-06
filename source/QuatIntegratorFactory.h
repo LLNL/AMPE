@@ -40,15 +40,15 @@ class QuatIntegratorFactory
 {
 public:
    static QuatIntegrator* create(const std::string integrator_name,
-                                 QuatModelParameters& model_parameters,
-                                 QuatModel* quat_model,
-                                 boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
-                                 const int qlen,
-                                 const int ncompositions,
-                                 boost::shared_ptr<tbox::Database> input_db,
-                                 const bool use_warm_start,
-                                 const bool symmetry_aware,
-                                 const bool all_periodic)
+               QuatModelParameters& model_parameters,
+               QuatModel* quat_model,
+               boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
+               const int qlen,
+               const int ncompositions,
+               boost::shared_ptr<tbox::Database> input_db,
+               const bool use_warm_start,
+               const bool symmetry_aware,
+               const bool all_periodic)
    {
       hier::VariableDatabase* variable_db =
          hier::VariableDatabase::getDatabase();
