@@ -1723,7 +1723,7 @@ void QuatIntegrator::createSolutionvector(const boost::shared_ptr<hier::PatchHie
       assert( d_conc_id>-1 );
       d_solution_vec->addComponent( d_conc_var, d_conc_id, d_weight_id );
       d_conc_component_index = ncomponents;
-      ncomponents += d_ncompositions;
+      ncomponents ++;
    }
 
    if ( d_with_orientation ) {
