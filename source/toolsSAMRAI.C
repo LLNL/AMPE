@@ -94,11 +94,13 @@ void copyDepthCellData(
 {
    TBOX_ASSERT(dst && src);
    TBOX_ASSERT(dst->getGhostBox().lower()==src->getGhostBox().lower());
+   TBOX_ASSERT( dst->getDepth()>dst_depth );
+   TBOX_ASSERT( src->getDepth()>src_depth );
 
    const hier::Box& pbox(dst->getGhostBox());
 
-   double* ptr_src = src->getPointer();
-   double* ptr_dst = dst->getPointer();
+   double* ptr_src = src->getPointer(src_depth);
+   double* ptr_dst = dst->getPointer(dst_depth);
 
    hier::IntVector nc(pbox.numberCells());
    unsigned n=nc[0]*nc[1];
