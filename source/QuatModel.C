@@ -74,6 +74,8 @@
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "toolsSAMRAI.h"
+#include "tools.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -82,8 +84,6 @@
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
 #include "SAMRAI/tbox/RestartManager.h"
 #include "SAMRAI/hier/PatchDataRestartManager.h"
-
-#include "tools.h"
 
 #include "PhysicalConstants.h"
 
@@ -170,6 +170,7 @@ QuatModel::QuatModel( int ql ) :
    d_quat_mobility_id = -1;
    d_quat_norm_error_id = -1;
    d_weight_id = -1;
+   d_work_id = -1;
    d_conc_diffusion_id = -1;
    d_conc_phase_coupling_diffusion_id = -1;
    d_conc_eta_coupling_diffusion_id = -1;
@@ -2583,6 +2584,15 @@ void QuatModel::RegisterVariables( void )
          current,
          hier::IntVector(tbox::Dimension(NDIM),0) );
 
+   d_work_var.reset (
+      new pdat::CellVariable<double>(tbox::Dimension(NDIM),"work"));
+   assert( d_work_var );
+   d_work_id =
+      variable_db->registerVariableAndContext(
+         d_work_var,
+         current,
+         hier::IntVector(tbox::Dimension(NDIM),0) );
+
    if( d_model_parameters.with_heat_equation() ){
       d_cp_var.reset (
          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "cp" ));
@@ -3460,19 +3470,20 @@ void QuatModel::printScalarDiagnostics( void )
       tbox::pout << "  Volume fraction of eta phase = " << vphi_eta/vol << endl;    
    }
 
-   if ( d_model_parameters.with_concentration() ) {
-      const double c0V0 = evaluateIntegralConcentration( d_patch_hierarchy );
-      tbox::pout << "  Integral concentration = " << c0V0 << endl;;
+   if ( d_model_parameters.with_concentration() )
+   for(int ic=0;ic<d_ncompositions;ic++){
+      const double c0V0 = evaluateIntegralConcentration(d_patch_hierarchy,ic);
+      tbox::pout << "  Integral concentration "<<ic<<"= " << c0V0 << endl;;
             
       // average concentration
       const double c0 = c0V0 / vol;
       
       // now computes coring factor according to HBSM formula
       const double cphi = 
-         evaluateIntegralPhaseConcentration( d_patch_hierarchy );
+         evaluateIntegralPhaseConcentration( d_patch_hierarchy, ic );
       
       const double cex = ( cphi - c0*vphi ) / c0V0;
-      tbox::pout << "  Cex (HBSM) = " << cex << endl;
+      tbox::pout << "  Cex (HBSM) for component "<<ic<<" = " << cex << endl;
    }
 }
 
@@ -4104,6 +4115,9 @@ void QuatModel::AllocateLocalPatchData(
 
    AllocateAndZeroData< pdat::CellData<double> >(
       d_weight_id, level, time, zero_data );
+
+   AllocateAndZeroData< pdat::CellData<double> >(
+      d_work_id, level, time, zero_data );
 
    AllocateAndZeroData< pdat::CellData<double> >(
       d_f_l_id, level, time, zero_data );
@@ -6963,10 +6977,12 @@ void QuatModel::computeVectorWeights(
 
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel(ln);
-      for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p ) {
+      for ( hier::PatchLevel::iterator p(level->begin());
+            p != level->end(); ++p ) {
          boost::shared_ptr< hier::Patch > patch = *p;
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geometry (
-            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(
+               patch->getPatchGeometry()) );
          TBOX_ASSERT(patch_geometry);
 
          const double* dx = patch_geometry->getDx();
@@ -6979,7 +6995,8 @@ void QuatModel::computeVectorWeights(
 	 }
 
          boost::shared_ptr< pdat::CellData<double> > w (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData(d_weight_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData(d_weight_id) ) );
          if ( !w ) {
             TBOX_ERROR(d_object_name
                        << ": weight id must refer to a pdat::CellVariable");
@@ -7433,31 +7450,49 @@ void QuatModel::makeQuatFundamental(
 //=======================================================================
 
 double QuatModel::evaluateIntegralConcentration(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy )
+   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+   const int component )
 {
    assert( d_weight_id != -1 );
 
    if ( ! d_model_parameters.with_concentration() ) return 0.;
 
    math::HierarchyCellDataOpsReal<double> mathops( hierarchy );
-    
-   double value = mathops.L1Norm( d_conc_id, d_weight_id );
-    
+
+   int conc_id = d_conc_id;
+   if( d_ncompositions>1 ){
+      assert( d_work_id != -1 );
+
+      copyDepthCellData(hierarchy, d_work_id, 0,
+                                   d_conc_id, component);
+      conc_id = d_work_id;
+   }
+
+   double value = mathops.L1Norm( conc_id, d_weight_id );
+
    return value;
 }
 
 //=======================================================================
 
 double QuatModel::evaluateIntegralPhaseConcentration(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy )
+   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+   const int component )
 {
    assert( d_weight_id != -1 );
 
    if ( ! d_model_parameters.with_concentration() ) return 0.;
 
    math::HierarchyCellDataOpsReal<double> mathops( hierarchy );
-    
-   mathops.multiply(d_phase_scratch_id, d_conc_id, d_phase_id);
+
+   int conc_id = d_conc_id;
+   if( d_ncompositions>1 ){
+      copyDepthCellData(hierarchy, d_work_id, 0,
+                                   d_conc_id, component);
+      conc_id = d_work_id;
+   }
+
+   mathops.multiply(d_phase_scratch_id, conc_id, d_phase_id);
         
    double value = mathops.L1Norm( d_phase_scratch_id, d_weight_id );
     

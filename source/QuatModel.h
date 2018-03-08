@@ -412,13 +412,15 @@ public :
       double& total_free_e,
       const bool gp = false );
    double evaluateIntegralConcentration(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
+      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+      const int component);
    double evaluateVolumeSolid(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
    double evaluateVolumeEta(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
    double evaluateIntegralPhaseConcentration(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
+      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+      const int component);
 
    void computeVelocity(boost::shared_ptr<hier::Patch > patch,
       int phi_dot_id);
@@ -742,6 +744,12 @@ private :
     */
    boost::shared_ptr< pdat::CellVariable<double> > d_weight_var;
    int d_weight_id;
+
+  /*
+    * Variable containing temporary work data of depth 1
+    */
+   boost::shared_ptr< pdat::CellVariable<double> > d_work_var;
+   int d_work_id;
 
    /*!
     * Temperature field.
