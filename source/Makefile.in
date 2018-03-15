@@ -192,6 +192,15 @@ test-CALPHADbinaryKKS: $(testCALPHADbinaryKKSobjs)
 		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(testCALPHADbinaryKKSobjs) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADbinaryKKS
 
+testCALPHADternaryKKSobjs = testCALPHADternaryKKS.o \
+		$(CALPHAD_OBJS) $(F77_OBJS)
+testCALPHADternaryKKS:
+		$(MAKE) PDIM=2 test-CALPHADternaryKKS
+		mkdir -p ../exec && mv testCALPHADternaryKKS ../exec
+test-CALPHADternaryKKS: $(testCALPHADternaryKKSobjs)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(testCALPHADternaryKKSobjs) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternaryKKS
+
 testCALPHADFunctions: CALPHADFunctions.o testCALPHADFunctions.o
 		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o -o testCALPHADFunctions
 
