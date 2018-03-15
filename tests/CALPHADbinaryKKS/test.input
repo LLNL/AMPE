@@ -1,0 +1,36 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+
+ModelParameters {
+   concentration = 0.3
+   phi = 0.5
+
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature        = 1450. // [K]
+   }
+   
+   phi_well_scale = 2.5  //  [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   ConcentrationModel {
+      model    = "calphad"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+}
+
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","PFModel::*"
+    print_threshold = 0.0
+}
