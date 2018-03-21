@@ -167,9 +167,43 @@ c
       end
 
 c***********************************************************************
+c input: quat,n
+c output: dgamma,n4
+c
+      subroutine compute_dgamma(quat,n,dgamma,n4)
+
+      implicit none
+      double precision quat(4),n(4),dgamma(4),n4
+
+c     local variables
+      double precision qp(4),qtmp(4),np(4)
+
+      call quatconj(quat,qp)
+
+c rotation applied to np
+      call quatmult4(n,qp,qtmp)
+      call quatmult4(quat,qtmp,np)
+c      print 100,n(2),n(3),n(4),np(1),np(2),np(3),np(4)
+c100   format (7F6.3)
+
+      n4=np(2)**4+np(3)**4+np(4)**4
+
+      dgamma(1)=0.
+      dgamma(2)=np(2)*(np(2)*np(2)-n4)
+      dgamma(3)=np(3)*(np(3)*np(3)-n4)
+      dgamma(4)=np(4)*(np(4)*np(4)-n4)
+
+c inverse rotation applied to dgamma
+      call quatmult4(dgamma,quat,qtmp)
+      call quatmult4(qp,qtmp,dgamma)
+
+      return
+      end
+
+c***********************************************************************
       subroutine anisotropic_gradient_flux(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &   h, epsilon, e4, knumber,
+     &   h, epsilon, eps4, knumber,
      &   phase, ngphase,
      &   quat, ngq, qlen,
      &   flux0, flux1, flux2, ngflux)
@@ -183,22 +217,25 @@ c***********************************************************************
      &     flux0(SIDE3d0(ifirst,ilast,ngflux)),
      &     flux1(SIDE3d1(ifirst,ilast,ngflux)),
      &     flux2(SIDE3d2(ifirst,ilast,ngflux)),
-     &     e4, h(3)
+     &     eps4, h(3)
 
 c     local variables
       integer i, j, k
       double precision dxinv, dyinv, dzinv, epsilon
-      double precision pi, q(4), qp(4), n(4), qtmp(4), np(4)
+      double precision q(4), n(4), dgamma(4)
       double precision epsilon2, dphidx, dphidy, dphidz
-      double precision gphi2, nni, gamma
+      double precision gphi2, nni, gamma, factor, n4
+      double precision threshold
 c
-      pi = 4.*atan(1.)
-c
+c      print*,'anisotropic_gradient_flux, eps4=',eps4
       epsilon2 = epsilon * epsilon
 
       dxinv = 1. / h(1)
       dyinv = 1. / h(2)
       dzinv = 1. / h(3)
+
+      factor = 4.*eps4/(1.-3.*eps4)
+      threshold = 1.e-12
 
 c do averaging across face when taking derivative parallel to face
 
@@ -216,32 +253,31 @@ c x faces
          
                gphi2=dphidx*dphidx+dphidy*dphidy+dphidz*dphidz
                
-               n(1)=0.
-               if( abs(gphi2)>1.e-12 )then
+               if( abs(gphi2)>threshold )then
                   nni=1./sqrt(gphi2)
-                  n(2)=dphidx*nni;
-                  n(3)=dphidy*nni;
-                  n(4)=dphidz*nni;
+                  n(1)=0.
+                  n(2)=dphidx*nni
+                  n(3)=dphidy*nni
+                  n(4)=dphidz*nni
+
+                  q(1)=0.5*(quat(i-1,j,k,1)+quat(i,j,k,1))
+                  q(2)=0.5*(quat(i-1,j,k,2)+quat(i,j,k,2))
+                  q(3)=0.5*(quat(i-1,j,k,3)+quat(i,j,k,3))
+                  q(4)=0.5*(quat(i-1,j,k,4)+quat(i,j,k,4))
+
+                  call compute_dgamma(q,n,dgamma,n4)
                else
-                  n(2)=0.;
-                  n(3)=0.;
-                  n(4)=1.;
+                  dgamma(1)=0.
+                  dgamma(2)=0.
+                  dgamma(3)=0.
+                  dgamma(4)=1.
+                  n4=0.
                endif
                
-               q(1)=0.5*(quat(i-1,j,k,1)+quat(i,j,k,1))
-               q(2)=0.5*(quat(i-1,j,k,2)+quat(i,j,k,2))
-               q(3)=0.5*(quat(i-1,j,k,3)+quat(i,j,k,3))
-               q(4)=0.5*(quat(i-1,j,k,4)+quat(i,j,k,4))
-
-               call quatconj(q,qp)
-               call quatmult4(n,qp,qtmp)
-               call quatmult4(q,qtmp,np)
-
-               gamma=(1.-3.*e4)*(1.+4.*e4*(np(2)**4+np(3)**4+np(4)**4)
-     &                          /(1.-3.*e4))
+               gamma=epsilon*(1.-3.*eps4)*(1.+factor*n4)
                
-               flux0(i,j,k) = epsilon2*dphidx 
-     &            + gphi2*epsilon2*gamma*e4*16.*np(2)*np(2)*np(2)
+               flux0(i,j,k) = gamma*gamma*dphidx 
+     &            + 16.*epsilon*gamma*eps4*sqrt(gphi2)*dgamma(2)
             enddo
          enddo
       enddo
@@ -260,32 +296,31 @@ c y faces
             
                gphi2=dphidx*dphidx+dphidy*dphidy+dphidz*dphidz
                
-               n(1)=0.
-               if( abs(gphi2)>1.e-12 )then
+               if( abs(gphi2)>threshold )then
                   nni=1./sqrt(gphi2)
-                  n(2)=dphidx*nni;
-                  n(3)=dphidy*nni;
-                  n(4)=dphidz*nni;
+                  n(1)=0.
+                  n(2)=dphidx*nni
+                  n(3)=dphidy*nni
+                  n(4)=dphidz*nni
+
+                  q(1)=0.5*(quat(i,j-1,k,1)+quat(i,j,k,1))
+                  q(2)=0.5*(quat(i,j-1,k,2)+quat(i,j,k,2))
+                  q(3)=0.5*(quat(i,j-1,k,3)+quat(i,j,k,3))
+                  q(4)=0.5*(quat(i,j-1,k,4)+quat(i,j,k,4))
+
+                  call compute_dgamma(q,n,dgamma,n4)
                else
-                  n(2)=0.;
-                  n(3)=0.;
-                  n(4)=1.;
+                  dgamma(1)=0.
+                  dgamma(2)=0.
+                  dgamma(3)=0.
+                  dgamma(4)=1.
+                  n4=0.
                endif
-               
-               q(1)=0.5*(quat(i-1,j,k,1)+quat(i,j,k,1))
-               q(2)=0.5*(quat(i-1,j,k,2)+quat(i,j,k,2))
-               q(3)=0.5*(quat(i-1,j,k,3)+quat(i,j,k,3))
-               q(4)=0.5*(quat(i-1,j,k,4)+quat(i,j,k,4))
 
-               call quatconj(q,qp)
-               call quatmult4(n,qp,qtmp)
-               call quatmult4(q,qtmp,np)
-
-               gamma=(1.-3.*e4)*(1.+4.*e4*(np(2)**4+np(3)**4+np(4)**4)
-     &                          /(1.-3.*e4))
+               gamma=epsilon*(1.-3.*eps4)*(1.+factor*n4)
                
-               flux1(i,j,k) = epsilon2*dphidy 
-     &              + gphi2*epsilon2*gamma*e4*16.*np(3)*np(3)*np(3)
+               flux1(i,j,k) = gamma*gamma*dphidy 
+     &              + 16.*epsilon*gamma*eps4*sqrt(gphi2)*dgamma(3)
             enddo
          enddo
       enddo
@@ -297,39 +332,38 @@ c z faces
                dphidx = 0.25*(phase(i+1,j,k-1) - phase(i-1,j,k-1)
      &                      + phase(i+1,j,k  ) - phase(i-1,j,k  )) 
      &                      * dxinv 
-               dphidy = 0.25*(phase(i-1,j+1,k-1) - phase(i,j-1,k-1)
-     &                      + phase(i  ,j+1,k  ) - phase(i,j-1,k  )) 
+               dphidy = 0.25*(phase(i,j+1,k-1) - phase(i,j-1,k-1)
+     &                      + phase(i,j+1,k  ) - phase(i,j-1,k  )) 
      &                      * dyinv             
                dphidz = (phase(i,j,k) - phase(i,j,k-1)) * dzinv
 
                gphi2=dphidx*dphidx+dphidy*dphidy+dphidz*dphidz
                
-               n(1)=0.
-               if( abs(gphi2)>1.e-12 )then
+               if( abs(gphi2)>threshold )then
                   nni=1./sqrt(gphi2)
-                  n(2)=dphidx*nni;
-                  n(3)=dphidy*nni;
-                  n(4)=dphidz*nni;
+                  n(1)=0.
+                  n(2)=dphidx*nni
+                  n(3)=dphidy*nni
+                  n(4)=dphidz*nni
+
+                  q(1)=0.5*(quat(i,j,k-1,1)+quat(i,j,k,1))
+                  q(2)=0.5*(quat(i,j,k-1,2)+quat(i,j,k,2))
+                  q(3)=0.5*(quat(i,j,k-1,3)+quat(i,j,k,3))
+                  q(4)=0.5*(quat(i,j,k-1,4)+quat(i,j,k,4))
+
+                  call compute_dgamma(q,n,dgamma,n4)
                else
-                  n(2)=0.;
-                  n(3)=0.;
-                  n(4)=1.;
+                  dgamma(1)=0.
+                  dgamma(2)=0.
+                  dgamma(3)=1.
+                  dgamma(4)=0.
+                  n4=0.
                endif
                
-               q(1)=0.5*(quat(i-1,j,k,1)+quat(i,j,k,1))
-               q(2)=0.5*(quat(i-1,j,k,2)+quat(i,j,k,2))
-               q(3)=0.5*(quat(i-1,j,k,3)+quat(i,j,k,3))
-               q(4)=0.5*(quat(i-1,j,k,4)+quat(i,j,k,4))
-
-               call quatconj(q,qp)
-               call quatmult4(n,qp,qtmp)
-               call quatmult4(q,qtmp,np)
-
-               gamma=(1.-3.*e4)*(1.+4.*e4*(np(2)**4+np(3)**4+np(4)**4)
-     &                          /(1.-3.*e4))
+               gamma=epsilon*(1.-3.*eps4)*(1.+factor*n4)
                
-               flux2(i,j,k) = epsilon2*dphidz
-     &              + gphi2*epsilon2*gamma*e4*16.*np(4)*np(4)*np(4)
+               flux2(i,j,k) = gamma*gamma*dphidz
+     &              + 16.*epsilon*gamma*eps4*sqrt(gphi2)*dgamma(4)
 
             enddo
          enddo
