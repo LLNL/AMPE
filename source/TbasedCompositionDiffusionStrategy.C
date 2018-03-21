@@ -17,7 +17,9 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
       d_diffusion_l_id(diffusion_l_id),
       d_diffusion_a_id(diffusion_a_id),
       d_D_liquid(D_liquid),
+      d_Q0_liquid(Q0_liquid),
       d_D_solid_A(D_solid_A),
+      d_Q0_solid_A(Q0_solid_A),
       d_phase_interp_func_type(phase_interp_func_type),
       d_avg_func_type(avg_func_type)
 {
