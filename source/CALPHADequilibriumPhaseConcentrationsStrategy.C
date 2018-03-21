@@ -35,6 +35,7 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
+#include "SAMRAI/tbox/IEEE.h"
 
 using namespace std;
 
@@ -192,6 +193,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    double c[2]; // up to 2 concentrations/3 species
    int offset=cd_concentration->getDepth();
    double* x = new double[N];
+   for(short i=0;i<N;i++)x[i]=tbox::IEEE::getSignalingNaN();
 
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {

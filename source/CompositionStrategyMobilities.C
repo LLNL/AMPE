@@ -171,6 +171,8 @@ double CompositionStrategyMobilities::computeDiffusionMobilityBinaryPhaseL(
    const double c0,
    const double temp)
 {
+   assert( d_ncompositions==1 );
+
    return computeDiffusionMobilityBinaryPhase(c0, temp, d_calphad_mobilities_phaseL);
 }
 
@@ -196,6 +198,8 @@ void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseL(
    const double temp,
    vector<double>& mobility)
 {
+   assert( d_ncompositions==2 );
+
    computeDiffusionMobilityTernaryPhase(c0, c1, temp, d_calphad_mobilities_phaseL, mobility);
 }
 

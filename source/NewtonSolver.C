@@ -186,6 +186,7 @@ int NewtonSolver::ComputeSolution(
    const int N )
 {
    assert( d_max_iters>1 );
+   for ( int ii = 0; ii < N ; ii++ )assert( conc[ii]==conc[ii] );
 
 #ifdef DEBUG_CONVERGENCE
    vector<double> ctmp;
