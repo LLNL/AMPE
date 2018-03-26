@@ -66,17 +66,6 @@
 using namespace std;
 
 
-boost::shared_ptr<pdat::CellVariable<double> >
-EllipticFACOps::s_cell_scratch_var;
-
-boost::shared_ptr<pdat::SideVariable<double> >
-EllipticFACOps::s_flux_scratch_var;
-
-boost::shared_ptr<pdat::OutersideVariable<double> >
-EllipticFACOps::s_oflux_scratch_var;
-
-int EllipticFACOps::s_depth=1;
-
 extern "C" {
 
   void efo_compfluxvardc2d_(
@@ -742,7 +731,6 @@ EllipticFACOps::EllipticFACOps(
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
    }
-   assert( depth<=s_depth ); // depth compatible with local work arrays
 
    for(int i=0;i<depth;i++){
 #ifdef HAVE_HYPRE
@@ -783,19 +771,17 @@ EllipticFACOps::EllipticFACOps(
    t_compute_rhs = tbox::TimerManager::getManager()->
       getTimer("EllipticFACOps::evaluateRHS()");
 
-   if ( !s_cell_scratch_var ) {
-      TBOX_ASSERT( !s_cell_scratch_var );
+   TBOX_ASSERT( !d_cell_scratch_var );
 
-      s_cell_scratch_var.reset ( new pdat::CellVariable<double>
-         (tbox::Dimension(NDIM),"EllipticFACOps::private_cell_scratch",
-         s_depth) );
-      s_flux_scratch_var.reset ( new pdat::SideVariable<double>
-         (tbox::Dimension(NDIM),"EllipticFACOps::private_flux_scratch",
-         s_depth) );
-      s_oflux_scratch_var.reset ( new pdat::OutersideVariable<double>
-         (tbox::Dimension(NDIM),"EllipticFACOps::private_oflux_scratch",
-         s_depth) );
-   }
+   d_cell_scratch_var.reset ( new pdat::CellVariable<double>
+      (tbox::Dimension(NDIM),object_name+"::private_cell_scratch",
+      d_depth) );
+   d_flux_scratch_var.reset ( new pdat::SideVariable<double>
+      (tbox::Dimension(NDIM),object_name+"::private_flux_scratch",
+      d_depth) );
+   d_oflux_scratch_var.reset ( new pdat::OutersideVariable<double>
+      (tbox::Dimension(NDIM),object_name+"::private_oflux_scratch",
+      d_depth) );
 
    d_m_var.reset ( new pdat::CellVariable<double>
       (tbox::Dimension(NDIM),object_name+"EllipticFACOps::private_m", 1) );
@@ -826,15 +812,15 @@ EllipticFACOps::EllipticFACOps(
 
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
    d_cell_scratch_id = vdb->
-      registerVariableAndContext( s_cell_scratch_var,
+      registerVariableAndContext( d_cell_scratch_var,
                                   d_context ,
                                   hier::IntVector(tbox::Dimension(NDIM),1) );
    d_flux_scratch_id = vdb->
-      registerVariableAndContext( s_flux_scratch_var,
+      registerVariableAndContext( d_flux_scratch_var,
                                   d_context,
                                   hier::IntVector(tbox::Dimension(NDIM),0) );
    d_oflux_scratch_id = vdb->
-      registerVariableAndContext( s_oflux_scratch_var,
+      registerVariableAndContext( d_oflux_scratch_var,
                                   d_context,
                                   hier::IntVector(tbox::Dimension(NDIM),0) );
    d_m_id = vdb->
@@ -3618,13 +3604,5 @@ EllipticFACOps::xeqScheduleGhostFillNoCoarse(
    d_ghostfill_nocoarse_refine_schedules[dest_ln]->fillData(0.0);
    d_ghostfill_nocoarse_refine_algorithm->
       resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
-}
-
-void
-EllipticFACOps::freeVariables()
-{
-   s_cell_scratch_var.reset();
-   s_flux_scratch_var.reset();
-   s_oflux_scratch_var.reset();
 }
 

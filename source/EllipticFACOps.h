@@ -148,9 +148,6 @@ public:
     */
    virtual ~EllipticFACOps(void){};
 
-   static void setDepthScratch(const int depth)
-   { s_depth=depth; }
-
    /*!
     * @brief Set the scalar Poisson equation specifications.
     */
@@ -838,9 +835,6 @@ protected:
    //! @brief Return the patch data index for outerflux scratch data.
    int registerOfluxScratch() const;
 
-   //! @brief Free static variables at shutdown time.
-   static void freeVariables();
-
 
    /*!
     * @brief Object name.
@@ -984,13 +978,11 @@ protected:
 
 
    //@{ @name Internal context and scratch data
-   static int s_depth;
+   boost::shared_ptr<pdat::CellVariable<double> > d_cell_scratch_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var;
+   boost::shared_ptr<pdat::SideVariable<double> > d_flux_scratch_var;
 
-   static boost::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
-
-   static boost::shared_ptr<pdat::OutersideVariable<double> > s_oflux_scratch_var;
+   boost::shared_ptr<pdat::OutersideVariable<double> > d_oflux_scratch_var;
 
    boost::shared_ptr<pdat::CellVariable<double> > d_m_var;
 
