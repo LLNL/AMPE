@@ -3470,20 +3470,32 @@ void QuatModel::printScalarDiagnostics( void )
       tbox::pout << "  Volume fraction of eta phase = " << vphi_eta/vol << endl;    
    }
 
-   if ( d_model_parameters.with_concentration() )
-   for(int ic=0;ic<d_ncompositions;ic++){
-      const double c0V0 = evaluateIntegralConcentration(d_patch_hierarchy,ic);
-      tbox::pout << "  Integral concentration "<<ic<<"= " << c0V0 << endl;;
-            
-      // average concentration
-      const double c0 = c0V0 / vol;
-      
-      // now computes coring factor according to HBSM formula
-      const double cphi = 
-         evaluateIntegralPhaseConcentration( d_patch_hierarchy, ic );
-      
-      const double cex = ( cphi - c0*vphi ) / c0V0;
-      tbox::pout << "  Cex (HBSM) for component "<<ic<<" = " << cex << endl;
+   if ( d_model_parameters.with_concentration() ){
+      assert( d_work_id != -1 );
+
+      math::HierarchyCellDataOpsReal<double> mathops( d_patch_hierarchy );
+
+      for(int ic=0;ic<d_ncompositions;ic++){
+         const double c0V0 = 
+            evaluateIntegralConcentration(d_patch_hierarchy,ic);
+         tbox::pout << "  Integral concentration "<<ic<<"= " << c0V0 << endl;
+
+         copyDepthCellData(d_patch_hierarchy, d_work_id, 0,
+                                              d_conc_id, ic);
+
+         double cmax = mathops.max( d_work_id );
+         tbox::pout << "  Max. concentration "<<ic<<"= " << cmax << endl;
+
+         // average concentration
+         const double c0 = c0V0 / vol;
+
+         // now computes coring factor according to HBSM formula
+         const double cphi = 
+            evaluateIntegralPhaseConcentration( d_patch_hierarchy, ic );
+
+         const double cex = ( cphi - c0*vphi ) / c0V0;
+         tbox::pout << "  Cex (HBSM) for component "<<ic<<" = " << cex << endl;
+      }
    }
 }
 
