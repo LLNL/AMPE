@@ -1,6 +1,9 @@
 #Test computation of equiliibrium values for given nominal composition
+#at two different temperatures
 
 ln -sf ../../thermodynamic_data/calphadMoNbTa.dat
 
-aprun -n1 ~/GIT/ampe/build/eos-ext-CC-ftn-opt/exec/testCALPHADternary test.input
+aprun -n1 ~/GIT/ampe/build/eos-ext-CC-ftn-opt/exec/testCALPHADternary test1.input
+
+aprun -n1 ~/GIT/ampe/build/eos-ext-CC-ftn-opt/exec/testCALPHADternary test2.input
 
