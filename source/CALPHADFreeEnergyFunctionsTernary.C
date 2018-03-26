@@ -60,7 +60,8 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsTernary::setupSolver(
+   boost::shared_ptr<tbox::Database> newton_db)
 {
    tbox::pout << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..." << endl;
    d_solver = new CALPHADConcentrationSolverTernary( );
@@ -70,7 +71,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupSolver(boost::shared_ptr<tbox::Data
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsTernary::readNewtonparameters(
+   boost::shared_ptr<tbox::Database> newton_db)
 {
    if( newton_db!=NULL ){
       double tol =newton_db->getDoubleWithDefault( "tol", 1.e-8 );
@@ -87,7 +89,8 @@ void CALPHADFreeEnergyFunctionsTernary::readNewtonparameters(boost::shared_ptr<t
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::Database> calphad_db)
+void CALPHADFreeEnergyFunctionsTernary::readParameters(
+   boost::shared_ptr<tbox::Database> calphad_db)
 {   
    boost::shared_ptr<tbox::Database> species0_db = calphad_db->getDatabase( "SpeciesA" );
    string name = species0_db->getStringWithDefault( "name", "unknown" );
@@ -234,55 +237,46 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
    //ABC
    {
    string dbnamemixL("LmixABCPhaseL");
+   //default values
+   d_LmixABCPhaseL[0][0] = 0.0;
+   d_LmixABCPhaseL[0][1] = 0.0;
+   d_LmixABCPhaseL[1][0] = 0.0;
+   d_LmixABCPhaseL[1][1] = 0.0;
+   d_LmixABCPhaseL[2][0] = 0.0;
+   d_LmixABCPhaseL[2][1] = 0.0;
+
    if(calphad_db->keyExists( dbnamemixL ) ){
       boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
       if ( Lmix0_db->keyExists( "L0" ) ) {
          Lmix0_db->getDoubleArray( "L0", &d_LmixABCPhaseL[0][0], 2 );
       }
-      else {
-         d_LmixABCPhaseL[0][0] = 0.0;
-         d_LmixABCPhaseL[0][1] = 0.0;
-      }
       if ( Lmix0_db->keyExists( "L1" ) ) {
          Lmix0_db->getDoubleArray( "L1", &d_LmixABCPhaseL[1][0], 2 );
-      }
-      else {
-         d_LmixABCPhaseL[1][0] = 0.0;
-         d_LmixABCPhaseL[1][1] = 0.0;
       }
       if ( Lmix0_db->keyExists( "L2" ) ) {
          Lmix0_db->getDoubleArray( "L2", &d_LmixABCPhaseL[2][0], 2 );
       }
-      else {
-         d_LmixABCPhaseL[2][0] = 0.0;
-         d_LmixABCPhaseL[2][1] = 0.0;
-      }
    }
 
    string dbnamemixA("LmixABCPhaseA");
+   //default values
+   d_LmixABCPhaseA[0][0] = 0.0;
+   d_LmixABCPhaseA[0][1] = 0.0;
+   d_LmixABCPhaseA[1][0] = 0.0;
+   d_LmixABCPhaseA[1][1] = 0.0;
+   d_LmixABCPhaseA[2][0] = 0.0;
+   d_LmixABCPhaseA[2][1] = 0.0;
    if(calphad_db->keyExists( dbnamemixA ) ){
 
       boost::shared_ptr<tbox::Database> Lmix1_db = calphad_db->getDatabase(dbnamemixA);
       if ( Lmix1_db->keyExists( "L0" ) ) {
          Lmix1_db->getDoubleArray( "L0", &d_LmixABCPhaseA[0][0], 2 );
       }
-      else {
-         d_LmixABCPhaseA[0][0] = 0.0;
-         d_LmixABCPhaseA[0][1] = 0.0;
-      }
       if ( Lmix1_db->keyExists( "L1" ) ) {
          Lmix1_db->getDoubleArray( "L1", &d_LmixABCPhaseA[1][0], 2 );
       }
-      else {
-         d_LmixABCPhaseA[1][0] = 0.0;
-        d_LmixABCPhaseA[1][1] = 0.0;
-      }
       if ( Lmix1_db->keyExists( "L2" ) ) {
          Lmix1_db->getDoubleArray( "L2", &d_LmixABCPhaseA[2][0], 2 );
-      }
-      else {
-         d_LmixABCPhaseA[2][0] = 0.0;
-         d_LmixABCPhaseA[2][1] = 0.0;
       }
    }
 
@@ -456,8 +450,9 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(const double temperature,
-                                                     const PHASE_INDEX pi0, const PHASE_INDEX pi1)
+void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
+   const double temperature,
+   const PHASE_INDEX pi0, const PHASE_INDEX pi1)
 {
    PHASE_INDEX pis[2]={pi0,pi1};
    
@@ -518,7 +513,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(const doub
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::setupValuesForThreePhasesSolver(const double temperature)
+void CALPHADFreeEnergyFunctionsTernary::setupValuesForThreePhasesSolver(
+   const double temperature)
 {
    d_fA[0] = d_g_species_phaseL[0].fenergy( temperature );
    d_fA[1] = d_g_species_phaseA[0].fenergy( temperature );
@@ -582,6 +578,9 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    assert( temperature>0. );
 
    setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
+
+   assert( d_L_ABC_L[0]==d_L_ABC_L[0] );
+
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqConcentrationSolverTernary eq_solver;
    eq_solver.SetMaxIterations(maxits);
@@ -627,6 +626,10 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    assert( temperature>0. );
 
    setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
+
+   //make sure "ABC" coefficients have been set
+   assert( d_L_ABC_L[0]==d_L_ABC_L[0] );
+
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqPhaseConcentrationSolverTernary eq_solver(c0,c1);
    eq_solver.SetMaxIterations(maxits);

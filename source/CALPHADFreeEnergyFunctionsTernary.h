@@ -541,6 +541,8 @@ private:
    // ABC liquid
    double lmix0ABCPhaseL( const double temperature )
    {
+      assert( d_LmixABCPhaseL[0][0]==d_LmixABCPhaseL[0][0] );
+
       return d_LmixABCPhaseL[0][0] + d_LmixABCPhaseL[0][1] * temperature;
    }
 
