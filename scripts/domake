@@ -1,0 +1,3 @@
+#!/bin/sh
+cd build/$1/base
+doinstall

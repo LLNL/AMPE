@@ -1,0 +1,241 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for the entire SAMRAI distribution 
+##
+#########################################################################
+
+default: library tools
+
+SAMRAI  = @top_srcdir@
+SUBDIR  = .
+SRCDIR  = @srcdir@
+OBJECT  = .
+
+include ./config/Makefile.config
+
+INCLUDE_SAM = @top_srcdir@/source/SAMRAI
+INSTALL	    = sh @srcdir@/config/install-sh
+INSTDIR	    = @INSTDIR@
+
+#
+# GNUMake script to reverse strings.  This is recursive.
+#
+reverse = $(if $(1),$(call reverse,$(wordlist 2,$(words $(1)),$(1)))) $(firstword $(1))
+
+#
+# List of packages to process. 
+# 
+# Packages available : appu algs solv geom mesh math pdat xfer hier tbox
+SAMRAI_LIBRARIES:=@SAMRAI_LIBRARIES@
+SAMRAI_LIBRARIES_R:=$(call reverse,@SAMRAI_LIBRARIES@)
+
+# These targets are based on the current config chosen (standard, noxargs, 
+# or shared).
+library: Makefile
+	(cd source && $(MAKE) library) || exit 1
+	$(MAKE) archive_lib_$(SAMRAI_TARGET) || exit 1
+
+tools: forcetools library
+	@if test ! -d bin; then mkdir bin; fi
+	(cd tools && $(MAKE) $@) || exit 1
+
+# Since directory tools exists create a target that is not directory
+# so tools will evaluate
+forcetools:
+
+clean:
+	( cd source && $(MAKE) $@ ) || exit 1
+	( cd tools  && $(MAKE) $@ ) || exit 1
+	( cd source/test   && $(MAKE) $@ ) || exit 1
+	$(RM) lib/libSAMRAI*.a
+	$(RM) lib/libSAMRAI*.so
+	$(RM) bin/*
+
+# Clean out the test directory.
+cleantest:
+	cd source/test && $(MAKE) clean
+
+checkclean:
+	cd source/test && $(MAKE) clean
+
+# Build temporary files containing list of object files for each
+# library.
+archive_gather_obj_names: archive_remove_obj_names
+	@find source -name "*.o" -print | egrep -v "(test)" > obj.all
+	@cp obj.all obj.remain
+	@-for i in $(SAMRAI_LIBRARIES); \
+	do \
+	   grep $$i obj.remain >> obj.$$i; \
+	   grep -v $$i obj.remain > obj.tmp; \
+           mv obj.tmp obj.remain; \
+	done
+	@mv obj.remain obj.shouldbeempty 
+
+# Remove temporary lists of object files
+archive_remove_obj_names:
+	@for i in $(SAMRAI_LIBRARIES); \
+	do \
+	   $(RM) obj.$$i; \
+	done
+	@$(RM) obj.all obj.all obj.shouldbeempty
+
+#=============================================================================
+# 
+# Static library with xargs targets
+#
+#=============================================================================
+
+
+archive_lib_standard:
+	@if test ! -d lib; then mkdir lib; fi
+	$(MAKE) archive_gather_obj_names
+	@for i in $(SAMRAI_LIBRARIES); \
+	do \
+	   echo "Creating archive lib/libSAMRAI_$$i$(LIB_SUFFIX)"; \
+	   $(RM) lib/libSAMRAI_$$i$(LIB_SUFFIX); \
+	   cat obj.$$i | @XARGS@ @AR@ ru lib/libSAMRAI_$$i$(LIB_SUFFIX); \
+	done
+	$(MAKE) archive_remove_obj_names
+
+#=============================================================================
+# 
+# Static library without xargs targets
+#
+#=============================================================================
+archive_lib_noxargs:
+	@if test ! -d lib; then mkdir lib; fi
+	$(MAKE) archive_gather_obj_names
+	@for i in $(SAMRAI_LIBRARIES); \
+	do \
+	   echo "Creating archive lib/libSAMRAI_$$i$(LIB_SUFFIX)"; \
+	   $(RM) lib/libSAMRAI_$$i$(LIB_SUFFIX); \
+	   @AR@ ru lib/libSAMRAI_$$i$(LIB_SUFFIX) `cat obj.$$i`; \
+	done
+	$(MAKE) archive_remove_obj_names
+
+#=============================================================================
+# 
+# Shared library targets
+#
+#=============================================================================
+archive_lib_shared:
+	@if test ! -d lib; then mkdir lib; fi
+	$(MAKE) archive_gather_obj_names
+	@LIBLIST=""; \
+	for i in $(SAMRAI_LIBRARIES_R); \
+	do \
+	   echo "Creating archive lib/libSAMRAI_$$i$(LIB_SUFFIX)"; \
+	   $(RM) lib/libSAMRAI_$$i$(LIB_SUFFIX); \
+	   $(CXX) $(CXXLD_FLAGS) -o lib/libSAMRAI_$$i$(LIB_SUFFIX) `cat obj.$$i` -L./lib $$LIBLIST $(CXXLDLIBS); \
+	   LIBLIST="$$LIBLIST -lSAMRAI_$$i"; \
+	done
+	$(MAKE) archive_remove_obj_names
+
+install: library tools
+	$(INSTALL) -d -m 755 $(INSTDIR)/config
+	$(INSTALL) -d -m 755 $(INSTDIR)/lib
+	$(INSTALL) -d -m 755 $(INSTDIR)/bin
+	$(INSTALL) -d -m 755 $(INSTDIR)/include
+	$(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI
+	$(INSTALL) -c -m 644 COPYRIGHT $(INSTDIR)
+	$(INSTALL) -c -m 644 config.status $(INSTDIR)/config
+	$(INSTALL) -c -m 644 config/Makefile.config $(INSTDIR)/config
+	cat config/Makefile.config.install >> $(INSTDIR)/config/Makefile.config 
+	$(INSTALL) -c -m 644 include/SAMRAI/SAMRAI_config.h $(INSTDIR)/include/SAMRAI/
+	@for i in $(SAMRAI_LIBRARIES); \
+	do \
+           $(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI/$$i;                    \
+           for f in $(INCLUDE_SAM)/$$i/*.[hICi]; do                               \
+              $(INSTALL) -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i;             \
+           done;                                                                  \
+           if test -d $(INCLUDE_SAM)/$$i/fortran; then                            \
+              for f in $(INCLUDE_SAM)/$$i/fortran/*.[i]; do		          \
+		if test -f $$f; then                                              \
+	           if ! test -d $(INSTDIR)/include/SAMRAI/$$i/fortran; then       \
+		      $(INSTALL) -d -m 755 $(INSTDIR)/include/SAMRAI/$$i/fortran; \
+	           fi;                                                            \
+	           $(INSTALL) -c -m 644 $$f $(INSTDIR)/include/SAMRAI/$$i/fortran;\
+		fi                                                                \
+	     done;                                                                \
+	   fi                                                           	  \
+	done
+	@if test -f lib/libSAMRAI_tbox.a; then                           \
+		for i in lib/libSAMRAI*.a; do				\
+		   $(INSTALL) -c -m 644 $$i $(INSTDIR)/lib;             \
+		done                                                    \
+	fi 
+	@if test -f lib/libSAMRAI_tbox.so; then                          \
+		for i in lib/libSAMRAI*.so; do				\
+		   $(INSTALL) -c -m 644 $$i $(INSTDIR)/lib;             \
+		done                                                    \
+	fi
+	@if test -f bin/restart-redistribute; then                       \
+		for i in bin/*; do               			\
+		   $(INSTALL) -c -m 755 $$i $(INSTDIR)/bin;             \
+		done                                                    \
+	fi
+
+# Rebuild config.status if configure changed.
+config.status: @top_srcdir@/configure
+	./config.status --recheck
+
+# Rules for making documentation from top level.
+dox redox devdox redevdox:
+	(cd docs && $(MAKE) $@)
+
+# Run the SAMRAI test suite
+check:
+	(cd source/test; $(MAKE) check)
+
+# Compile the SAMRAI test suite
+checkcompile:
+	(cd source/test; $(MAKE) checkcompile)
+
+# Run the SAMRAI test suite as it is run in autotests
+checktest:
+	(cd source/test; $(MAKE) checktest)
+
+memtest: 
+	rm -f ~/insure.out 
+	$(MAKE) checktest
+	@NUM_INSURE_RUNS=`grep "PROBLEM SUMMARY - by type" ~/insure.out| wc -l`;            \
+	NO_LEAKS=`grep "No leaks were found" ~/insure.out | wc -l`;                         \
+        NUM_INSURE_ERRORS=`grep TOTAL ~/insure.out | awk '{ sum += $$2}; END {print sum}'`; \
+	if test $$NO_LEAKS -ne $$NUM_INSURE_RUNS;                                           \
+	then                                                                                \
+	   echo "FAIL: Insure++ reported memory leaks";                                     \
+	else                                                                                \
+	   echo "PASSED: Insure++ reported no memory leaks";                                \
+	fi;                                                                                 \
+        if test "$$NUM_INSURE_ERRORS" -ne "0";                                              \
+	then                                                                                \
+	   echo "FAIL: Insure++ reported unexpected errors";                                \
+	else                                                                                \
+	   echo "PASSED: Insure++ reported no unexpected errors";                           \
+	fi                                                                      
+
+# Update copies/links in the include directory
+# Only needed if you modifiy SAMRAI files, normal
+# users don't need to do this.
+update:
+	(cd @top_srcdir@ && ./source/scripts/update)
+
+#
+# Run automatic indenter on SAMRAI source files.
+#
+indent:
+	(cd @top_srcdir@ && ./source/scripts/indent.pl)
+
+# Generate the automatically created files.
+# Only needed if you modifiy SAMRAI files, normal
+# users don't need to do this.
+genfiles: update indent
+	@-(cd @top_srcdir@; \
+	for i in `find . -name genfiles.sh`; \
+	do \
+		(cd `dirname $$i` && ./genfiles.sh) \
+	done)

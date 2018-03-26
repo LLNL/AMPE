@@ -1,0 +1,48 @@
+CVODES: An ODE solver with sensitivity analysis capabilities
+Radu Serban and Alan C. Hindmarsh
+
+This paper describes a stiff and nonstiff ODE IVP solver with forward and adjoint sensitivity
+analysis capabilities. The presented software, which is a part of SUNDIALS software suite, is an
+updated version of the VODE solver written in C and extended to sensitivity analysis capabilities.
+All the algorithms presented have been published elsewhere by other workers, and cannot be seen
+as novel contributions of the current paper. Therefore the first 10 pages of the paper can be
+summarized with appropriate citations. The rest of the paper describes the code organization and
+its usage briefly. There are no numerical examples demonstrating any advantages of using this
+particular software. There is no mention of existing forward/adjoint sensitivity analysis tool(s)
+with virtually identical capabilities, i.e., DASPKADJOINT.
+
+Considering the editorial charter which states that "..., papers that are essentially user manuals
+for a computer program are also not acceptable" and noting that most of the material presented
+in the paper can be found in [1], a significant rewrite of the paper is recommended emphasizing
+the advantages and novelties of the software with specific examples. However, it is not clear to this
+reviewer that there are sufficient advantages and novelties in the software to satisfy the requirements
+of the editorial charter.
+
+Detailed Comments
+* p. 7 paragraph 3: while it is indeed an important observation that the staggered corrector
+method combined with an iterative linear solver is equivalent to the staggered direct method,
+this observation has already been made in [2].
+
+Response: We have added the citation.
+
+* p. 14 paragraph 3 from bottom of the page: SPGMR is not a direct linear solver.
+
+Response: We have rephrased this sentence.
+
+* p. 15 paragraph 2:"sensitvity" should be "sensitivity".
+
+Response: fixed the typo.
+
+* the Maly and Petzold reference is from 1996.
+
+Response: fixed biblio entry.
+
+Experience with the Code
+The code is user friendly and has obvious advantages inherited from the usage of the C programming
+language. We did not undertake performance comparisons.
+
+References
+[1] A. C. Hindmarsh and R. Serban. User documentation for CVODES: An ODE solver with
+sensitivity analysis capabilities. Technical Report UCRL-MA-148813, LLNL, July 2002.
+[2] M. D. Tocci. Sensitivity analysis of large-scale time dependent PDEs. Applied Numerical
+Mathematics, 37:109­125, 2001.

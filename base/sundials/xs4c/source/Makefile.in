@@ -1,0 +1,110 @@
+#--------------------------------------------------------------------------------------
+# File        : Makefile
+# Programmers : Radu Serban @ LLNL
+#--------------------------------------------------------------------------------------
+# Makefile for the SHARED module.
+# @configure_input@
+#--------------------------------------------------------------------------------------
+
+# Shell
+SHELL = @SHELL@
+
+# SUNDIALS instalation directory
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+includedir = @includedir@
+libdir = @libdir@
+
+# Path to sources
+srcdir = @srcdir@
+VPATH = @srcdir@
+
+# SHARED include directory
+SHARED_INC_DIR = ${srcdir}/../include
+
+# SHARED library
+SHARED_LIB = libshared.a
+
+# Source and object files
+SRC =	${srcdir}/band.c \
+	${srcdir}/dense.c \
+	${srcdir}/iterativ.c \
+	${srcdir}/sundialsmath.c \
+	${srcdir}/nvector.c \
+	${srcdir}/smalldense.c \
+	${srcdir}/spgmr.c
+
+SRC_CS = ${srcdir}/mpi_cplx.cpp
+
+OBJ = band.o dense.o iterative.o sundialsmath.o nvector.o smalldense.o spgmr.o
+OBJ_CS = mpi_cplx.o
+
+#OBJ = ${SRC:.c=.o} ${SRC_CS:.cpp=.o}
+
+# Includes
+SHAREDINCLUDE = -I${SHARED_INC_DIR}
+INCS =  ${SHAREDINCLUDE}
+
+# Compiler and compiler options
+CC       = @CC@
+CFLAGS   = @CFLAGS@
+CXX      = @CXX@
+CXXFLAGS = @CXXFLAGS@
+
+#--------------------------------------------------------------------------------------
+# Make rules
+#--------------------------------------------------------------------------------------
+
+all: ${OBJ} ${OBJ_CS}
+
+install:
+	ar rc ${SHARED_LIB} ${OBJ} ${OBJ_CS}
+	cp ${SHARED_LIB} ${libdir}
+	cp ${SHARED_INC_DIR}/band.h             ${includedir}
+	cp ${SHARED_INC_DIR}/dense.h            ${includedir}
+	cp ${SHARED_INC_DIR}/fcmixpar.h         ${includedir}
+	cp ${SHARED_INC_DIR}/iterative.h        ${includedir}
+	cp ${SHARED_INC_DIR}/sundialsmath.h     ${includedir}
+	cp ${SHARED_INC_DIR}/sundialstypes.h    ${includedir}
+	cp ${SHARED_INC_DIR}/nvector.h          ${includedir}
+	cp ${SHARED_INC_DIR}/smalldense.h       ${includedir}
+	cp ${SHARED_INC_DIR}/spgmr.h            ${includedir}
+	cp ${SHARED_INC_DIR}/complexify.h       ${includedir}
+	cp ${SHARED_INC_DIR}/mpi_cplx.h         ${includedir}
+
+clean:
+	rm -f ${OBJ} ${OBJ_CS}
+	rm -f ${SHARED_LIB}
+
+uninstall:
+	rm -f ${libdir}/${SHARED_LIB}
+	rm -f ${includedir}/band.h
+	rm -f ${includedir}/dense.h
+	rm -f ${includedir}/fcmixpar.h
+	rm -f ${includedir}/iterative.h
+	rm -f ${includedir}/sundialsmath.h
+	rm -f ${includedir}/sundialstypes.h
+	rm -f ${includedir}/nvector.h
+	rm -f ${includedir}/smalldense.h
+	rm -f ${includedir}/spgmr.h
+	rm -f ${includedir}/complexify.h
+	rm -f ${includedir}/mpi_cplx.h
+
+nvector.o: ${srcdir}/nvector.c
+	${CC} ${CFLAGS} ${INCS} -c -o nvector.o ${srcdir}/nvector.c
+band.o: ${srcdir}/band.c
+	${CC} ${CFLAGS} ${INCS} -c -o band.o ${srcdir}/band.c
+dense.o: ${srcdir}/dense.c
+	${CC} ${CFLAGS} ${INCS} -c -o dense.o ${srcdir}/dense.c
+smalldense.o: ${srcdir}/smalldense.c
+	${CC} ${CFLAGS} ${INCS} -c -o smalldense.o ${srcdir}/smalldense.c
+spgmr.o: ${srcdir}/spgmr.c
+	${CC} ${CFLAGS} ${INCS} -c -o spgmr.o ${srcdir}/spgmr.c
+iterative.o: ${srcdir}/iterative.c
+	${CC} ${CFLAGS} ${INCS} -c -o iterative.o ${srcdir}/iterative.c
+sundialsmath.o: ${srcdir}/sundialsmath.c
+	${CC} ${CFLAGS} ${INCS} -c -o sundialsmath.o ${srcdir}/sundialsmath.c
+mpi_cplx.o: ${srcdir}/mpi_cplx.cpp
+	${CXX} ${CXXFLAGS} ${INCS} -c -o mpi_cplx.o ${srcdir}/mpi_cplx.cpp
+
+#---End of Makefile---

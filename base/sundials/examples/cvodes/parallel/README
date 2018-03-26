@@ -1,0 +1,34 @@
+List of parallel CVODES examples
+
+(1) Simulation
+
+  cvsAdvDiff_non_p           : 1-D advection-diffusion (nonstiff)
+  cvsDiurnal_kry_bbd_p       : 2-D 2-species diurnal advection-diffusion
+                               BBD preconditioner
+  cvsDiurnal_kry_p           : 2-D 2-species diurnal advection-diffusion
+
+
+(2) Forward sensitivity
+
+  cvsAdvDiff_FSA_non_p       : 1-D advection difusion PDE -
+                               Adams with Functional iteration
+  cvsDiurnal_FSA_kry_p       : 2-D 2-species diurnal advection-diffusion PDE -
+                               BDF with Newton GMRES
+
+(3) Adjoint sensitivity
+
+  cvsAdvDiff_ASAp_non_p      : 1-D advection-diffusion (nonstiff)
+  cvsAtmDisp_ASAi_kry_bbd_p  : 2-D (or 3-D) advection-diffusion-reaction PDE
+                               BDF/SPGMR/BBD
+
+Sample results:
+
+  SUNDIALS was built with the following options:
+
+  ./configure CC=gcc F77=gfortran CFLAGS="-g3 -O0" FFLAGS="-g3 -O0" --enable-examples
+
+  System Architecture: IA-32
+  Processor Type: Intel Pentium 4 Xeon DP (i686)
+  Operating System: Red Hat Enterprise Linux WS 3 (Taroon Update 7)
+  C/Fortran Compilers: gcc/gfortran v4.1.0
+  MPI Implementation: Open MPI v1.1

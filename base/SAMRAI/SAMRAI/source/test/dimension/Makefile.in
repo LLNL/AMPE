@@ -1,0 +1,55 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for timer and statistician main programs 
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/dimension
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+main:  main.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main.o \
+	       $(LIBSAMRAI) $(LDLIBS) -o main
+
+NUM_TESTS = 1
+
+TEST_NPROCS = @TEST_NPROCS@
+
+checkcompile: main
+
+check:  checkcompile
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main
+
+check2d:
+	$(MAKE) check
+
+check3d:
+	$(MAKE) check
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+
+clean:
+	$(SAMCLEAN)
+	$(RM) main
+	$(RM) -rf *.log.* stats
+
+include $(SRCDIR)/Makefile.depend

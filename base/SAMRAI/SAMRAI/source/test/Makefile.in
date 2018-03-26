@@ -1,0 +1,83 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for testing parts of SAMRAI library 
+##
+#########################################################################
+
+SAMRAI         = @top_srcdir@
+SRCDIR        = @srcdir@
+OBJECT        = ../..
+SUBDIR        = source/test
+
+SUBDIRS = \
+   pointer \
+   logger \
+   ieee \
+   dimension \
+   dataaccess \
+   inputdb \
+   restartdb \
+   timers \
+   variables \
+   indexdata \
+   sparsedata \
+   transformation \
+   samrai_mpi \
+   async_comm \
+   mapped_box_set_iterators \
+   hierarchy \
+   MappingConnector \
+   mblktree \
+   MappedBoxLevelConnectorUtilsTests \
+   clustering \
+   LoadBalanceCorrectness \
+   dlbg \
+   communication \
+   patchbdrysum \
+   dataops \
+   hypre \
+   FAC_nonadaptive \
+   FAC_adaptive \
+   vector \
+   sundials \
+   boundary \
+   performance \
+   mblkcomm \
+   MblkEuler \
+   MblkLinAdv \
+   nonlinear \
+   rank_group \
+   fill_pattern \
+   applications 
+
+default: check 
+
+include $(OBJECT)/config/Makefile.config
+
+library:
+
+check:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+check2d:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+check3d:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+
+checkcompile:
+	@echo "Starting " $@ " in source/test at `date`"
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+	@echo "Completed " $@ " in source/test at `date`"
+
+checktest:
+	@echo "Starting " $@ " in source/test at `date`"
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done
+	@echo "Completed " $@ " in source/test at `date`"
+
+clean:
+	for DIR in $(SUBDIRS); do (cd $$DIR && $(MAKE) $@); done

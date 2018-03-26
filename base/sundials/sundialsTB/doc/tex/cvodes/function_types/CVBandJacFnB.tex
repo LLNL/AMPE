@@ -1,0 +1,70 @@
+%% # foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVBandJacFnB!}
+\label{p:CVBandJacFnB}
+\index{CVBandJacFnB}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVBandJacFnB - type for user provided banded Jacobian function for backward problems.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+This is a script file. 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVBandJacFnB - type for user provided banded Jacobian function for backward problems.
+
+   The function BJACFUNB must be defined either as
+        FUNCTION [JB, FLAG] = BJACFUNB(T, Y, YB, FYB)
+   or as
+        FUNCTION [JB, FLAG, NEW_DATA] = BJACFUNB(T, Y, YB, FYB, DATA)
+   depending on whether a user data structure DATA was specified in
+   CVodeMalloc. In either case, it must return the matrix JB, the
+   Jacobian of fB(t,y,yB), with respect to yB. The input argument
+   FYB contains the current value of f(t,y,yB).
+
+   The function BJACFUNB must set FLAG=0 if successful, FLAG&lt;0 if an
+   unrecoverable failure occurred, or FLAG&gt;0 if a recoverable error
+   occurred.
+
+   See also CVodeSetOptions
+
+   See the CVODES user guide for more informaiton on the structure of
+   a banded Jacobian.
+
+   NOTE: BJACFUNB is specified through the property JacobianFn to
+   CVodeSetOptions and is used only if the property LinearSolver
+   was set to 'Band'.
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

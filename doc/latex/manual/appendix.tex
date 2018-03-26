@@ -1,0 +1,955 @@
+\chapter{Further model derivation}
+\label{sec:appendix}
+
+\section{Functional derivatives}
+\label{sec:fderiv}
+
+Let
+%
+\begin{equation}
+\begin{split}
+  F(u) &=
+     F( u_1, \ldots, u_n, \nabla u_1, \ldots, \nabla u_n )
+     \\
+     &= \int_{\Omega} I(u_1, \ldots, u_n, \nabla u_1, \ldots,
+       \nabla u_n ) d\Omega
+\end{split}
+\end{equation}
+%
+be a functional on a space of function tuples $u = (u_1,\ldots,u_n)$
+where the $u_i$ are defined and periodic on the domain
+$\Omega$.  By definition, the functional derivative of $F$ with
+respect to $u_i$ at any point $\hat{u} = (\hat{u}_1,\ldots,\hat{u}_n)$
+is the functional whose action is defined by
+%
+\begin{equation}
+\begin{split}
+ \left < \frac{\delta F}{\delta u_i}(\hat{u}), v \right > = {} &
+    \left . \frac{d}{d \epsilon} \int_{\Omega}
+    I(\hat{u}_1, \ldots, \hat{u}_i + \epsilon
+    v, \ldots, \hat{u}_n, \right .
+    \\ &
+    \left . \nabla \hat{u}_1, \ldots, \nabla \hat{u}_i + \epsilon
+    \nabla v, \ldots, \nabla \hat{u}_n) d\Omega \right |_{\epsilon=0}
+    ~~{\rm for~all~}v.
+\end{split}
+\end{equation}
+%
+Hence, for all $v$,
+%
+\begin{eqnarray}
+  \left < \frac{\delta F}{\delta
+      u_i}(\hat{u}), v \right >
+  &=& \int_{\Omega} \left ( \frac{\partial I}{\partial u_i}(\hat{u})v + \frac{\partial
+    I}{\partial \nabla u_i}(\hat{u}) \cdot \nabla v \right ) d\Omega
+      \\
+  &=& \int_{\Omega} \left [ \frac{\partial I}{\partial u_i}(\hat{u})v +
+      \nabla \cdot \left ( \frac{\partial
+    I}{\partial u_i}(\hat{u}) v \right ) 
+  - \left ( \nabla \cdot \frac{\partial
+    I}{\partial u_i}(\hat{u}) \right ) v
+  \right ] d\Omega \label{eq:divterm} \\
+  &=& \left < \frac{\partial I}{\partial u_i}(\hat{u})
+  - \nabla \cdot \frac{\partial
+    I}{\partial u_i}(\hat{u}) , v
+  \right > ,
+\end{eqnarray}
+%
+where the second term in (\ref{eq:divterm}) vanishes due to the
+divergence theorem and the assumed periodicity of $v$.
+Thus,
+%
+\begin{equation}
+  \frac{\delta F}{\delta u_i} = \frac{\partial I}{\partial u_i}
+  - \nabla \cdot \frac{\partial
+    I}{\partial \nabla u_i} .  \label{funcderiv}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Quaternions}
+\label{sec:quaternions}
+
+By analogy with complex numbers, a quaternion $q$ can be written as a
+linear combination
+%
+\begin{equation}
+  q = (a+ib+jc+kd)
+\end{equation}
+%
+with 3 imaginary dimensions $i,j,k$.  In the following we will assume
+that all of the quaternions are normalized, {\it i.e.}
+$a^2+b^2+c^2+d^2=1$.  A rotation by an angle $\theta$ around an axis
+of direction $(x,y,z)$ can be described by a quaternion
+%
+\begin{equation}
+  q=\cos(\theta/2)+i(x*\sin(\theta/2))+j(y*\sin(\theta/2))+k(z*\sin(\theta/2))
+\end{equation}
+%
+where $(x,y,z)$ is assumed to be normalized.  We denote by
+%
+\begin{equation}
+  q^*=a-ib-jc-kd
+\end{equation}
+%
+the conjugate of $q$.  Using the quaternion multiplication
+rules, {\em i.e.}, $ij = k, jk = i, ki = j, ji = -k, kj = -i, ik = -j, i^2 =
+j^2 = k^2 = -1$, the rotation between two quaternions, $q_1$ and
+$q_2$, can be computed as either $q_1^* q_2$ or $q_2 q_1^*$, depending
+on an arbitrary convention.  Due to the non-commutative nature of the
+quaternion multiplication, these two are not equivalent, but are the
+conjugate of each other.  They correspond to a rotation by the same
+angle around an axis of opposite direction.
+
+The formula for the misorientation angle between two unit-length
+quaternions is given by
+%
+\begin{equation}
+  |d_{21}| = 2\sin(\theta_{12}/4).
+\label{eq:angle}
+\end{equation}
+%
+where $|d_{21}|$ is the distance between $q_1$ and $q_2$ in the 4D
+space, and $\theta_{12}$ is the angle between $q_1$ and $q_2$ (note
+the factor of 2).  The mapping from unit quaternions to rotations is
+2-to-1.  Multiplying a quaternion by an overall factor of -1 has no
+physical effect.  Two quaternions on opposite sides of the hypersphere
+are a distance $|d_{21}| = 2$ apart, which gives $\theta_{12} = 2\pi$,
+which is no rotation at all.  To first order, (\ref{eq:angle}) gives
+%
+\begin{equation}
+   \theta\simeq 2|d_{21}|
+\end{equation}
+%
+and justifies using quaternion differences to approximate local
+misorientation \cite{0295-5075-71-1-131}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Kim, Kim, Suzuki (KKS) model for a binary alloy}
+\label{sec:kks}
+
+Following the model proposed by Kim et al. \cite{PhysRevE.60.7186}, we
+introduce auxiliary variables $c_l$, $c_\alpha$, and $c_\beta$ that
+describe the composition in each of the two crystal phases, such that
+%
+\begin{equation}
+  c = 
+    ( 1 - h_\phi ) c_l +
+    h_\phi \left[
+    ( 1 - h_\eta ) c_\alpha + h_\eta c_\beta
+    \right],
+\label{eq:cmixappendix}
+\end{equation}
+%
+which is the same as given in (\ref{eq:cmix}).  Then we define the
+relation between the variables $(c_l,c_\alpha,c_\beta)$, and
+$(c,\phi,\eta)$ by imposing the condition
+%
+\begin{equation}
+  \left.\frac{\partial f^l}{\partial c_l}
+    \right|_{c_l=c_l(x,t)} =
+  \left.\frac{\partial f^\alpha}{\partial c_\alpha}
+    \right|_{c_\alpha=c_\alpha(x,t)} =
+  \left.\frac{\partial f^\beta}{\partial c_\beta}
+    \right|_{c_\beta=c_\beta(x,t)} =
+  \mu(x,t).
+\label{eq:mu}
+\end{equation}
+%
+This means that the chemical potential is equal in all phases at the
+infinitesimal point $x$, and thus there would be no change in free
+energy by exchanging an infinitesimal amount of species between phases
+$l$, $\alpha$, and $\beta$.
+
+We also define
+%
+\begin{equation}
+  D_c(c,\phi,\eta,T) = 
+  D_c^0(\phi,\eta,T)
+  \left( \frac{\partial^2 f}{\partial c^2} \right)^{-1},
+\label{eq:diffcoeff}
+\end{equation}
+%
+with
+%
+$D_c^0(\phi,\eta,T)$ modeled as
+%
+\begin{equation}
+\begin{split}
+  D_c^0(\phi,\eta,T) = {} &
+    \left( 1 - h_\phi \right)
+    D^0_l exp \left( -Q^0_l / RT \right)
+  \\ & +
+    h_\phi \left[ \left( 1 - h_\eta \right)
+    D^0_\alpha exp \left( -Q^0_\alpha / RT \right) +
+    \left( 1 - h_\eta \right)
+    D^0_\beta exp \left( -Q^0_\beta / RT \right)
+    \right].
+\end{split}
+\end{equation}
+
+Taking derivatives of (\ref{eq:cmixappendix}), we obtain
+%
+\begin{equation}
+  \frac{\partial c}{\partial c} = 1 = 
+  ( 1 - h_\phi ) \frac{\partial c_l}{\partial c} +
+  h_\phi \left [
+  ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial c} +
+  h_\eta \frac{\partial c_\beta}{\partial c} \right].
+\label{eq:dcdc}
+\end{equation}
+%
+Since $c$ is independent of $\phi$, we also have
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial c}{\partial \phi} = 0 = {}
+  & - h'_\phi c_l + ( 1 - h_\phi ) \frac{\partial c_l}{\partial \phi}
+  + h'_\phi \left [
+  ( 1 - h_\eta ) c_\alpha + h_\eta c_\beta \right]
+  \\ & + h_\phi \left [
+  ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial \phi}
+  + h_\eta \frac{\partial c_\beta}{\partial \phi} \right].
+\label{eq:dcdphi}
+\end{split}
+\end{equation}
+%
+And likewise, since $c$ is independent of $\eta$, we have
+\begin{equation}
+\begin{split}
+  \frac{\partial c}{\partial \eta} = 0 = {}
+  & ( 1 - h_\phi ) \frac{\partial c_l}{\partial \eta}
+  + h_\phi h'_\eta ( c_\beta - c_\alpha )
+  \\ & + h_\phi \left [
+  ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial \eta}
+  + h_\eta \frac{\partial c_\beta}{\partial \eta} \right].
+\label{eq:dcdeta}
+\end{split}
+\end{equation}
+%
+From (\ref{eq:fmix}) and (\ref{eq:mu}),
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f}{\partial c} & =
+  ( 1 - h_\phi )
+    \frac{\partial f^l}{\partial c_l}
+    \frac{\partial c_l}{\partial c} +
+  h_\phi \left[
+    ( 1 - h_\eta )
+    \frac{\partial f^\alpha}{\partial c_\alpha}
+    \frac{\partial c_\alpha}{\partial c}
+    + h_\eta
+    \frac{\partial f^\beta}{\partial c_\beta}
+    \frac{\partial c_\beta}{\partial c} \right]
+  \\ & =
+  \mu ( 1 - h_\phi )
+    \frac{\partial c_l}{\partial c} +
+  \mu h_\phi \left[
+    ( 1 - h_\eta )
+    \frac{\partial c_\alpha}{\partial c}
+    + h_\eta \frac{\partial c_\beta}{\partial c} \right].
+\end{split}
+\end{equation}
+%
+Using (\ref{eq:dcdc}), this simplifies to
+%
+\begin{equation}
+  \frac{\partial f}{\partial c} = \mu
+\label{eq:dfdc}
+\end{equation}
+%
+which is Eq.~28 of \cite{PhysRevE.60.7186}.  We note here that 
+%
+\begin{equation}
+  \frac{\partial \mu}{\partial c} = 
+  \frac{\partial^2 f}{\partial c^2},
+\label{eq:dmudc}
+\end{equation}
+%
+From (\ref{eq:fmix}) and (\ref{eq:mu}), we also have
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f}{\partial\phi} = {}
+  & - h'_\phi f^l + \omega_\phi g'_\phi +
+    \omega_\eta h'_\phi g_\eta
+    + h'_\phi \left[
+    ( 1 - h_\eta ) f^\alpha + h_\eta f^\beta \right]
+  \\
+  & + \mu \left\{ ( 1 - h_\phi )
+    \frac{\partial c_l}{\partial \phi}
+    + h_\phi \left[
+    ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial \phi}
+    + h_\eta \frac{\partial c_\beta}{\partial \phi}
+    \right] \right\}.
+\end{split}
+\end{equation}
+%
+Then using (\ref{eq:dcdphi}) this becomes
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f}{\partial\phi} = {}
+  & - h'_\phi f^l + \omega_\phi g'_\phi +
+    \omega_\eta h'_\phi g_\eta
+    + h'_\phi \left[
+    ( 1 - h_\eta ) f^\alpha + h_\eta f^\beta \right]
+  \\
+  & + \mu h'_\phi c_l - \mu h'_\phi \left[
+    ( 1 - h_\eta ) c_\alpha + h_\eta c_\beta \right].
+\label{eq:dfdphi}
+\end{split}
+\end{equation}
+%
+Using (\ref{eq:dfdphi}) allows the derivation of the phase equation
+(\ref{eq:phaseeom}).
+
+Taking a further derivative with respect to $c$ and using
+(\ref{eq:mu}) and (\ref{eq:dmudc}) gives
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial^2 f}{\partial c \partial \phi} = {}
+  & - \mu h'_\phi \frac{\partial c_l}{\partial c}
+    + \mu h'_\phi \left[
+    ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial c}
+    + h_\eta \frac{\partial c_\beta}{\partial c} \right]
+    + \mu h'_\phi \frac{\partial c_l}{\partial c}
+    + h'_\phi c_l \frac{\partial^2 f}{\partial c^2}
+  \\ & - \mu h'_\phi \left[
+    ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial c}
+    + h_\eta \frac{\partial c_\beta}{\partial c} \right]
+    - h'_\phi \left[
+    ( 1 - h_\eta ) c_\alpha + h_\eta c_\beta \right]
+    \frac{\partial^2 f}{\partial c^2},
+\end{split}
+\end{equation}
+%
+which simplifies to
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial^2 f}{\partial c \partial \phi} = {}
+  & h'_\phi \left[ c_l - ( 1 - h_\eta ) c_\alpha
+    - h_\eta c_\beta \right]
+    \frac{\partial^2 f}{\partial c^2}.
+\label{eq:dfdcdphi}
+\end{split}
+\end{equation}
+%
+Again from (\ref{eq:fmix}), we have
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f}{\partial\eta} = {}
+  & \mu ( 1 - h_\phi ) \frac{\partial c_l}{\partial \eta}
+    + \omega_\eta h_\phi g'_\eta
+    + h_\phi h'_\eta ( f^\beta - f^\alpha )
+  \\ & + \mu h_\phi \left[
+    ( 1 - h_\eta ) \frac{\partial c_\alpha}{\partial \eta}
+    + h_\eta \frac{\partial c_\beta}{\partial \eta} \right].
+\end{split}
+\end{equation}
+%
+Using (\ref{eq:dcdeta}) this becomes
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f}{\partial\eta} = {}
+  & \omega_\eta h_\phi g'_\eta
+    + h_\phi h'_\eta ( f^\beta - f^\alpha )
+  \\ & - \mu h_\phi h'_\eta ( c_\beta - c_\alpha ).
+\label{eq:dfdeta}
+\end{split}
+\end{equation}
+%
+Using (\ref{eq:dfdeta}) allows the derivation of the phase equation
+(\ref{eq:etaeom}).
+
+Taking a further derivative with respect to $c$ and using 
+(\ref{eq:mu}) and (\ref{eq:dmudc}) gives
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial^2 f}{\partial c \partial \eta} = {}
+  & h_\phi h'_\eta ( c_\alpha - c_\beta ) 
+    \frac{\partial^2 f}{\partial c^2}.
+\label{eq:dfdcdeta}
+\end{split}
+\end{equation}
+%
+Since $f$ is a function of $c$, $\phi$, and $\eta$,
+%
+\begin{equation}
+  \frac{\partial}{\partial x}\frac{\partial f}{\partial c} =
+  \frac{\partial^2 f}{\partial c^2}\frac{\partial c}{\partial x} +
+  \frac{\partial^2 f}{\partial c
+  \partial \phi}\frac{\partial \phi}{\partial x} +
+  \frac{\partial^2 f}{\partial c
+  \partial \eta}\frac{\partial \eta}{\partial x}
+\end{equation}
+%
+and we have
+%
+\begin{equation}
+  \nabla\mu = \nabla\frac{\partial f}{\partial c} =
+  \frac{\partial^2 f}{\partial c^2} \nabla c +
+  \frac{\partial^2 f}{\partial c\partial\phi} \nabla \phi +
+  \frac{\partial^2 f}{\partial c\partial\eta} \nabla \eta
+\label{eq:gradmu}
+\end{equation}
+%
+Using (\ref{eq:diffcoeff}), (\ref{eq:dfdcdphi}), (\ref{eq:dfdcdeta}),
+and (\ref{eq:gradmu}) allows the derivation of the composition
+equation (\ref{eq:ceomkks}).
+
+To actually compute the right hand side of the phase and composition
+equations (\ref{eq:phaseeom}), (\ref{eq:etaeom}), and
+(\ref{eq:ceomkks}), we need to know $c_l(c,\phi,\eta)$,
+$c_\alpha(c,\phi,\eta)$, and $c_\beta(c,\phi,\eta)$.  For that, we
+need to know explicit forms of $f^l$, $f^\alpha$, and $f^\beta$, which
+we give examples for in Sections~\ref{sec:hbsm} and \ref{sec:calphad}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\subsection{Hu, Baskes, Stan, Mitchell (HBSM) model}
+\label{sec:hbsm}
+
+In \cite{HuBaskesStanMitchell07}, Hu {\em et al.} propose a
+phase-field model for a binary alloy.  The two phases are $\alpha$
+(body-centered cubic, bcc) and $\beta$ (face-centered cubic, fcc).  We
+extend this with a third phase, $l$, or liquid.  The following
+explicit forms for $f^l$, $f^\alpha$, and $f^\beta$ are proposed:
+%
+\begin{align}
+  f^l(c_l,T) &=
+    A_l \left[ c_l - c_l^\mathit{eq}(T) \right]^2,
+    \label{eq:fl} \\
+  f^\alpha(c_\alpha,T) &=
+    A_\alpha \left[ c_\alpha - c_\alpha^\mathit{eq}(T) \right]^2,
+    \label{eq:falpha} \\
+  f^\beta(c_\beta,T) &= 
+    A_\beta \left[ c_\beta - c_\beta^\mathit{eq}(T) \right]^2.
+    \label{eq:fbeta}
+\end{align}
+%
+Using (\ref{eq:mu}), we obtain
+%
+\begin{equation}
+  A_l ( c_l - c_l^\mathit{eq} ) = 
+  A_\alpha ( c_\alpha - c_\alpha^\mathit{eq} ) = 
+  A_\beta ( c_\beta - c_\beta^\mathit{eq} ),
+\end{equation}
+%
+and thus
+%
+\begin{align}
+  c_l(c_l,T) &=
+    c_l^\mathit{eq}(T) + \frac{A_\alpha}{A_l}
+    \left[ c_\alpha - c_\alpha^\mathit{eq}(T) \right]
+  \\
+  c_\alpha(c_\beta,T) &=
+    c_\alpha^\mathit{eq}(T) + \frac{A_l}{A_\alpha}
+    \left[ c_l - c_l^\mathit{eq}(T) \right]
+  \\
+  c_\beta(c_\beta,T) &=
+    c_\beta^\mathit{eq}(T) + \frac{A_l}{A_\beta}
+    \left[ c_l - c_l^\mathit{eq}(T) \right]
+\end{align}
+%
+From (\ref{eq:cmixappendix}), we then get
+%
+\begin{equation}
+  c_l(c,\phi,\eta,T) =
+  \frac{ c -
+    h_\phi (1 - h_\eta) \left[ c_\alpha^\mathit{eq}(T) - 
+      \frac{A_l}{A_\alpha} c_l^\mathit{eq}(T) \right] -
+    h_\phi h_\eta \left[ c_\beta^\mathit{eq}(T) -
+      \frac{A_l}{A_\beta} c_l^\mathit{eq}(T) \right] }
+    { (1 - h_\phi) +
+      h_\phi (1 - h_\eta) \frac{A_l}{A_\alpha} +
+      h_\phi h_\eta \frac{A_l}{A_\beta} }.
+\label{eq:cl}
+\end{equation}
+%
+Likewise,
+%
+\begin{equation}
+  c_\alpha(c,\phi,\eta,T) =
+  \frac{ c -
+    (1 - h_\phi) \left[ c_l^\mathit{eq}(T) - 
+      \frac{A_\alpha}{A_l} c_\alpha^\mathit{eq}(T) \right] -
+    h_\phi h_\eta \left[ c_\beta^\mathit{eq}(T) -
+      \frac{A_\alpha}{A_\beta} c_\alpha^\mathit{eq}(T) \right] }
+    { (1 - h_\phi) \frac{A_\alpha}{A_l} +
+      h_\phi (1 - h_\eta) +
+      h_\phi h_\eta \frac{A_\alpha}{A_\beta} }.
+\label{eq:calpha}
+\end{equation}
+%
+and
+%
+\begin{equation}
+  c_\beta(c,\eta,T) =
+  \frac{ c -
+    (1 - h_\phi) \left[ c_l^\mathit{eq}(T) - 
+      \frac{A_\beta}{A_l} c_\beta^\mathit{eq}(T) \right] -
+    h_\phi ( 1 - h_\eta ) \left[ c_\alpha^\mathit{eq}(T) -
+      \frac{A_\beta}{A_\alpha} c_\beta^\mathit{eq}(T) \right] }
+    { (1 - h_\phi) \frac{A_\beta}{A_l} +
+      h_\phi (1 - h_\eta) \frac{A_\beta}{A_\alpha} +
+      h_\phi h_\eta }.
+\label{eq:cbeta}
+\end{equation}
+%
+These expressions for $c_l$, $c_\alpha$, and $c_\beta$ can then be
+used to compute the $f_l$, $f_\alpha$, and $f_\beta$ from
+(\ref{eq:fl}), (\ref{eq:falpha}), and (\ref{eq:fbeta}).  Then all of
+these can be substituted into the phase and composition equations
+(\ref{eq:phaseeom}), (\ref{eq:etaeom}), and (\ref{eq:ceomkks}) to have
+right-hand sides that depend explicitly on $\phi$, $\eta$, and $c$.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\subsection{CALPHAD model}
+\label{sec:calphad}
+
+For the CALPHAD model of a binary alloy, in the $l$, $\alpha$, and
+$\beta$ phases, we have free energies modeled by
+%
+\begin{equation}
+  f^i(c_i,T) = f_0^i(c_i,T) + f_\mathit{mix}^\mathit{ideal}(c_i,T) +
+    f^i_\mathit{mix}(c_i,T)
+\end{equation}
+%
+where
+%
+\begin{equation}
+  f_0^i(c_i,T) = c_i f_A^i(T) + (1 - c_i) f_B^i(T),
+\end{equation}
+%
+\begin{equation}
+  f_\mathit{mix}^\mathit{ideal}(c,T)  =
+    R T [ c_i \ln(c_i ) + (1 - c_i) \ln(1 - c_i ) ],
+\end{equation}
+%
+and
+%
+\begin{equation}
+  f^i_\mathit{mix}(c_i,T) = c_i (1 - c_i)
+    [ L_0^i(T) + L_1^i(T) (2 c_i - 1) +
+      L_2^i(T) (2 c_i - 1)^2 ]
+\end{equation}
+%
+for $i = l, \alpha$, and $\beta$.
+Taking derivatives,
+%
+\begin{equation}
+\begin{split}
+  \frac{\partial f^i}{\partial c_i} = {} &
+    f_A^i(T) - f_B^i(T) +
+    RT \left[ \ln c_i - \ln ( 1 - c_i ) \right] +
+    \\ &
+    ( 1 - 2 c_i ) \left[ L_0^i + L_1^i ( 2 c_i - 1 ) +
+      L_2^i ( 2 c_i - 1 )^2 \right] +
+    \\ &
+    c_i ( 1 - c_i ) \left[ 2 L_1^i +
+      4 L_2^i ( 2 c_i - 1 ) \right]
+\label{eq:dfdci0}
+\end{split}
+\end{equation}
+%
+Let
+%
+\begin{equation}
+\begin{split}
+  \xi_i = {} &
+  ( 1 - 2 c_i ) \left[ L_0^i + L_1^i ( 2 c_i - 1 ) +
+    L_2^i ( 2 c_i - 1 )^2 \right] +
+  \\ &
+    c_i ( 1 - c_i ) \left[ 2 L_1^i +
+      4 L_2^i ( 2 c_i - 1 ) \right] +
+    f_A^i(T) - f_B^i(T),
+\end{split}
+\end{equation}
+%
+so that (\ref{eq:dfdci0}) becomes
+%
+\begin{equation}
+  \frac{\partial f^i}{\partial c_i} = 
+    RT \ln \frac{c_i}{1 - c_i} + \xi_i
+\label{eq:dfdci}
+\end{equation}
+%
+Using (\ref{eq:mu}), we get
+%
+\begin{align}
+  \frac{ c_\alpha (1 - c_l) }{ (1 - c_\alpha) c_l } &=
+    \exp \left( \frac{ \xi_l - \xi_\alpha }{ RT } \right) \\
+  \frac{ c_\beta (1 - c_l) }{ (1 - c_\beta) c_l } &=
+    \exp \left( \frac{ \xi_l - \xi_\beta }{ RT } \right).
+\end{align}
+%
+Together with (\ref{eq:cmix}), we have a nonlinear system of
+3~equations and the 3~unknowns $c_l, c_\alpha$, and $c_\beta$
+that can be solved by a suitable root-finding algorithm to enable
+calculation of the free energies $f^l, f^\alpha$, and $f^\beta$.
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Elasticity}
+\label{sec:elasticityappendix}
+
+This section is essentially based on \cite{LaiRubinKrempl} and
+\cite{HBSMZC07}.  A first attempt at adapting the approach for
+quaternions is included.
+
+\subsection{Strain tensor}
+
+A typical material point $P$ at location $\vec X$ undergoes a
+displacement $\vec u$ so that it arrives at position
+%
+\begin{equation}
+  \vec x=\vec X+\vec u(\vec X).
+\end{equation}
+%
+A neighboring point $Q$ at $\vec X+d\vec X$ arrives at
+%
+\begin{equation}
+  \vec x+d\vec x=\vec X+d\vec X+\vec u(\vec X+d\vec X).
+\end{equation}
+%
+Subtracting the two previous equations, one gets
+%
+\begin{equation}
+  d\vec x=d\vec X+\vec u(\vec X+d\vec X)-\vec u(\vec X).
+\end{equation}
+%
+Using the second order tensor $\nabla\vec u$, given in cartesian coordinates by
+%
+\begin{equation}
+  \nabla\vec u=
+  \left(
+     \begin{array}{ccc}
+       \frac{\partial u_1}{\partial X_1} & \frac{\partial u_1}{\partial X_2} & \frac{\partial u_1}{\partial X_3} \\
+       \frac{\partial u_2}{\partial X_1} & \frac{\partial u_2}{\partial X_2} & \frac{\partial u_2}{\partial X_3} \\
+       \frac{\partial u_3}{\partial X_1} & \frac{\partial u_3}{\partial X_2} & \frac{\partial u_3}{\partial X_3} \\
+     \end{array}
+  \right)
+\end{equation}
+%
+we can write
+%
+\begin{equation}
+  d\vec x=d\vec X+(\nabla\vec u) d\vec X=(I+\nabla\vec u)d\vec X.
+\end{equation}
+%
+Now, looking at the length of $d\vec x$, we have
+%
+\begin{eqnarray}
+  d\vec x^T d\vec x&=&d\vec X^T (I+\nabla\vec u)^T (I+\nabla\vec u) d\vec X \nonumber \\
+  &=&d\vec X^T \left(
+  I+(\nabla\vec u)^T+(\nabla\vec u)+(\nabla\vec u)^T(\nabla\vec u)
+  \right) d\vec X).
+\end{eqnarray}
+%
+Assuming small displacements, we have
+%
+\begin{eqnarray}
+  d\vec x^T d\vec x&\approx &d\vec X^T \left(
+  I+(\nabla\vec u)^T+(\nabla\vec u)
+  \right) d\vec X \nonumber \\
+  &=&
+  d\vec X^T (I+2\varepsilon) d\vec X
+\end{eqnarray}
+%
+where $\varepsilon$ is defined as the symmetric tensor
+%
+\begin{equation}
+  \varepsilon=\frac{1}{2}\left[(\nabla\vec u)^T+(\nabla\vec u)\right]
+\end{equation}
+%
+$\varepsilon$ is known as the {\bf strain tensor}.
+
+Geometrical meaning: In the simple case of a material elongated along
+a cartesian axis $\vec e_i$, $\varepsilon$ is $0$ except for
+$\varepsilon_{ii}$ which is given by the increase in length per unit
+original length.
+
+%-----------------------------------------------------------------------
+
+\subsection{Stress tensor}
+
+Let $P$ be a typical material point, $S$ a plane passing through $P$
+with a normal unit $\vec n$.  The stress vector at $P$ is defined by
+%
+\begin{equation}
+  \vec t_{\vec n}=lim_{\triangle A\rightarrow 0}\frac{\triangle\vec F}{\triangle A}
+\end{equation}
+%
+where $\triangle\vec F$ is a resultant force acting on a small area
+$\triangle A$ of $S$ containing $P$.
+
+The Cauchy's stress principle says that the stress vector is the same
+at any point in the material living on the same side of a common
+plane.  Further, using Newton's second law at static equilibrium, one
+can show that
+%
+\begin{equation}\label{eq:stress_tensor}
+  \vec t_{\vec n}=\sigma\vec n
+\end{equation}
+%
+where $\sigma$ is the {\bf stress tensor}.  Also, using the moment of
+the momentum equation for a small volume of a material, one can also
+show that $\sigma$ is symmetric.
+
+For example, for a solid under hydrostatic pressure $p$, we have
+$\sigma=-p I$.
+
+If we consider a small volume $\triangle x_1 \triangle x_2 \triangle
+x_3$ at static equilibrium, using the fact that the sum of the forces
+vanishes, we obtain
+%
+\begin{equation}
+  \left[\frac{\partial\vec t_{\vec e_1}}{\partial x_1}+ \frac{\partial\vec t_{\vec e_2}}{\partial x_2} + \frac{\partial\vec t_{\vec e_3}}{\partial x_3} \right]=0
+\end{equation}
+%
+where $\vec t_{\vec e_i}$ denotes the stress vector on the surface
+orthogonal to $\vec e_i$.  Since $\vec t_{\vec e_i}=\sigma\vec
+e_i=\sum_{j=1}^3 \sigma_{ji}\vec e_j$, we have
+
+%
+\begin{equation}\label{eq:equilibrium}
+  \sum_{i=1}^3 \frac{\partial\sigma_{ji}}{\partial x_i}=0, \;\; j=1,2,3
+\end{equation}
+%
+This can also be written as
+%
+\begin{equation}
+  div(\sigma)\equiv \sum_{i,j=1}^3\frac{\partial\sigma_{ij}}{\partial x_j}\vec e_j=0.
+\end{equation}
+%
+
+%-----------------------------------------------------------------------
+
+\subsection{Hooke's law}
+
+Hooke's law expresses a general linear relation between the applied
+stress and the deformation
+%
+\begin{equation}\label{eq:hooke}
+  \sigma_{ij}=\sum_{k,l=1}^3 C_{ijkl}\varepsilon_{kl}.
+\end{equation}
+%
+where $C$ is a fourth-order tensor, known as {\bf elasticity tensor}.
+There are 81 coefficients ($3^4$) in Eq.(\ref{eq:hooke}).  However
+using the symmetry of $\varepsilon$ and the symmetry of $\sigma$, one
+can choose
+%
+\begin{equation}
+  C_{ijkl}=C_{ijlk}
+\end{equation}
+%
+and
+%
+\begin{equation}
+  C_{ijkl}=C_{jikl}
+\end{equation}
+%
+and reduce the number of independent coefficients to 36.
+
+One can further reduce this number to 21 elastic constants by assuming
+that one can introduce a {\bf strain energy function} $U$ such that
+%
+\begin{equation}\label{eq:dUdepsilon}
+  \sigma_{ij}=\frac{\partial U}{\partial \varepsilon_{ij}}.
+\end{equation}
+%
+One can show that Eq.(\ref{eq:dUdepsilon}) implies
+%
+\begin{equation}
+  C_{ijkl}=C_{klij}.
+\end{equation}
+%
+In summary, one can write the general Hooke's law as
+%
+\begin{equation}\label{eq:general_stress_strain}
+  \left(\begin{array}{c}
+    \sigma_{11} \\
+    \sigma_{22} \\
+    \sigma_{33} \\
+    \sigma_{23} \\
+    \sigma_{31} \\
+    \sigma_{12}
+  \end{array}\right)
+  =
+  \left(
+    \begin{array}{cccccc}
+      C_{1111} & C_{1122} & C_{1133} & C_{1123} & C_{1113} & C_{1112} \\
+      C_{1122} & C_{2222} & C_{2233} & C_{2223} & C_{2213} & C_{1222} \\
+      C_{1133} & C_{2233} & C_{3333} & C_{2333} & C_{1333} & C_{1233} \\
+      C_{1123} & C_{2223} & C_{2333} & C_{2323} & C_{2313} & C_{1223} \\
+      C_{1113} & C_{2213} & C_{1333} & C_{2313} & C_{1313} & C_{1213} \\
+      C_{1112} & C_{1222} & C_{1233} & C_{1223} & C_{1213} & C_{1212} \\
+    \end{array}
+  \right)
+  \left(\begin{array}{c}
+    \varepsilon_{11} \\
+    \varepsilon_{22} \\
+    \varepsilon_{33} \\
+    2\varepsilon_{23} \\
+    2\varepsilon_{31} \\
+    2\varepsilon_{12}
+  \end{array}\right).
+\end{equation}
+%
+This leads to the introduction of a contracted form for the tensor $C$
+with 2 indices
+%
+\begin{equation}\label{eq:stress_matrix}
+  \left(\begin{array}{c}
+    \sigma_{11} \\
+    \sigma_{22} \\
+    \sigma_{33} \\
+    \sigma_{23} \\
+    \sigma_{31} \\
+    \sigma_{12}
+  \end{array}\right)
+  =
+  \left(
+    \begin{array}{cccccc}
+      C_{11} & C_{12} & C_{13} & C_{14} & C_{15} & C_{16} \\
+      C_{12} & C_{22} & C_{23} & C_{24} & C_{25} & C_{26} \\
+      C_{13} & C_{23} & C_{33} & C_{34} & C_{35} & C_{36} \\
+      C_{14} & C_{24} & C_{34} & C_{44} & C_{45} & C_{46} \\
+      C_{15} & C_{25} & C_{35} & C_{45} & C_{55} & C_{56} \\
+      C_{16} & C_{26} & C_{36} & C_{46} & C_{56} & C_{66} \\
+    \end{array}
+  \right)
+  \left(\begin{array}{c}
+    \varepsilon_{11} \\
+    \varepsilon_{22} \\
+    \varepsilon_{33} \\
+    2\varepsilon_{23} \\
+    2\varepsilon_{31} \\
+    2\varepsilon_{12}
+  \end{array}\right).
+\end{equation}
+%
+We write the same equation in the matrix-vector form
+%
+\begin{equation}
+\label{eq:sigmavector}
+\vec\sigma=\bar C\vec\varepsilon.
+\end{equation}
+%
+Note that the factors 2 in the definition of $\vec\varepsilon$ gives
+the factors 2 needed for the double sum in case of different indexes
+in (\ref{eq:hooke}).  The matrix C is known as the {\bf stiffness
+matrix} for the elastic solid.
+
+Depending on crystal symmetry, the number of independent coefficients
+can be further reduced.  For a cubic symmetry, there are only 3
+independent coefficients.
+%
+\begin{equation}\label{eq:Cijkl_cubic}
+  C_{ijkl}=C_{12}\delta_{ij}\delta_{kl}+C_{44}(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk})
+  + (C_{11}-C_{12}-2C_{44})\sum_{r=1}^3 \delta_{ir}\delta_{jr}\delta_{kr}\delta_{lr}
+\end{equation}
+%
+\begin{equation}
+\left(
+  \begin{array}{cccccc}
+    C_{11} & C_{12} & C_{12} & 0 & 0 & 0 \\
+    . & C_{11} & C_{12} & 0 & 0 & 0 \\
+    . & . & C_{11} & 0 & 0 & 0 \\
+    . & . & . & C_{44} & 0 & 0 \\
+    . & . & . & . & C_{44} & 0 \\
+    . & . & . & . & . & C_{44} \\
+  \end{array}
+\right)
+\end{equation}
+%
+In the isotropic case, we have
+%
+\begin{equation}\label{eq:Cijkl_isotropic}
+  C_{ijkl}=K\delta_{ij}\delta_{kl}
+    +\mu(\delta_{ik}\delta_{jl}+\delta_{il}\delta_{jk}
+    -\frac{2}{3}\delta_{ij}\delta_{kl})
+\end{equation}
+%
+$K$ is the bulk modulus and $\mu$ the shear modulus.  In that case, we
+also have $C_{11}=K+4\mu/3$, $C_{12}=K-2\mu/3$, and
+$C_{44}=\mu=(C_{11}-C_{12})/2$.
+
+In 2D, Eq.(\ref{eq:general_stress_strain}) reduces to
+%
+\begin{equation}\label{eq:general_stress_strain2D}
+  \left(\begin{array}{c}
+    \sigma_{11} \\
+    \sigma_{22} \\
+    \sigma_{12}
+  \end{array}\right)
+  =
+  \left(
+    \begin{array}{cccccc}
+      C_{1111} & C_{1122} & C_{1112} \\
+      C_{1122} & C_{2222} & C_{1222} \\
+      C_{1112} & C_{1222} & C_{1212} \\
+    \end{array}
+  \right)
+  \left(\begin{array}{c}
+    \varepsilon_{11} \\
+    \varepsilon_{22} \\
+    2\varepsilon_{12}
+  \end{array}\right).
+\end{equation}
+%
+or in the contracted form
+%
+\begin{equation}\label{eq:general_stress_strain2D_b}
+  \left(\begin{array}{c}
+    \sigma_{11} \\
+    \sigma_{22} \\
+    \sigma_{12}
+  \end{array}\right)
+  =
+  \left(
+    \begin{array}{cccccc}
+      C_{11} & C_{12} & C_{13} \\
+      C_{12} & C_{22} & C_{23} \\
+      C_{13} & C_{23} & C_{33} \\
+    \end{array}
+  \right)
+  \left(\begin{array}{c}
+    \varepsilon_{11} \\
+    \varepsilon_{22} \\
+    2\varepsilon_{12}
+  \end{array}\right).
+\end{equation}
+
+%-----------------------------------------------------------------------
+
+\subsection{Strain energy}
+
+\begin{equation}\label{eq:strain_energy}
+  U=\frac{1}{2}\sum_{i,j,k,l=1}^3 C_{ijkl}\varepsilon_{ij}\varepsilon_{kl}
+  =\frac{1}{2}\sum_{k,l=1}^3 \sigma_{kl}\varepsilon_{kl}.
+\end{equation}
+%
+Using matrix notations from (\ref{eq:sigmavector}), it can also be
+written as
+%
+\begin{equation}
+  U=\frac{1}{2}\vec\varepsilon^T \bar C\vec\varepsilon.
+\end{equation}
+%
+Again, note that the factors 2 in the definition of $\vec\varepsilon$
+gives the factors 2 needed for the double sum of different indexes in
+(\ref{eq:strain_energy}).
+
+%-----------------------------------------------------------------------
+

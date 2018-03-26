@@ -1,0 +1,29 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for algs directory 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/SAMRAI/algs/fortran
+VPATH	      =	@srcdir@
+OBJECT        = ../../../..
+
+OBJS= 	 algs_upfluxsum1d.o algs_upfluxsum2d.o algs_upfluxsum3d.o\
+	algs_nodeouternodeops2d.o algs_nodeouternodeops3d.o\
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+library: $(OBJS)
+
+clean:
+	$(SAMCLEAN)
+
+include $(SRCDIR)/Makefile.depend

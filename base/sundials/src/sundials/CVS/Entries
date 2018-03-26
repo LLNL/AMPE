@@ -1,0 +1,14 @@
+/sundials_iterative.c/1.1/Wed Jul  5 15:32:38 2006//
+/sundials_math.c/1.1/Wed Jul  5 15:32:38 2006//
+/sundials_band.c/1.5/Wed Nov 22 00:12:51 2006//
+/sundials_dense.c/1.5/Wed Nov 22 00:12:51 2006//
+/sundials_lapack.c/1.3/Wed Nov 22 00:12:51 2006//
+/sundials_direct.c/1.2/Wed Nov 29 00:05:10 2006//
+/sundials_nvector.c/1.3/Fri Apr  6 20:33:30 2007//
+/sundials_spbcgs.c/1.2/Fri Apr  6 20:33:30 2007//
+/sundials_spgmr.c/1.2/Fri Apr  6 20:33:30 2007//
+/sundials_sptfqmr.c/1.2/Fri Apr  6 20:33:30 2007//
+/README/1.7/Wed Dec  5 22:47:38 2007//
+/CMakeLists.txt/1.3/Wed Dec 19 20:34:01 2007//
+/Makefile.in/1.11/Wed Dec 19 20:34:01 2007//
+D

@@ -1,0 +1,267 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright 
+ * information, see COPYRIGHT and COPYING.LESSER. 
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Input file for SAMRAI LinAdv example problem 
+ *
+ ************************************************************************/
+MblkGeometry {
+   problem_type = "SPHERICAL_SHELL"
+
+   ShellGeometry {
+      rmin = 1.e0 
+      rmax = 2.e0 
+
+      shell_type = "OCTANT"
+   }
+
+
+   // The refinement boxes are specified here because the MultiblockGriddingAlg does not have any
+   // way to take in refinement boxes for multiple blocks.  The format is "refine_boxes[block][lev]".
+   // level 0
+   refine_boxes_0_0 = [(5,0,0),(5,9,9)]
+   refine_boxes_1_0 = [(5,0,0),(5,9,9)]
+   refine_boxes_2_0 = [(5,0,0),(5,9,9)]
+   // level 1
+   refine_boxes_0_1 = [(20,0,0),(20,39,39)]
+   refine_boxes_1_1 = [(20,0,0),(20,39,39)]
+   refine_boxes_2_1 = [(20,0,0),(20,39,39)]
+}
+
+
+MblkLinAdv {
+
+   advection_velocity = 0.0e0 , 2.0e0 , 0.0e0
+   godunov_order    = 2                // order of Goduov slopes (1, 2, or 4)
+   corner_transport = "CORNER_TRANSPORT_1"  
+
+   data_problem      = "SPHERE" 
+
+   Initial_data {
+      radius            = 0.2   
+      center            = 0.75 , 1.0 , 0.75
+
+      uval_inside       = 80.0
+      uval_outside      = 5.0
+ 
+   }
+
+   Refinement_data {
+      refine_criteria = "USER_DEFINED"
+   }
+
+   // valid boundary_condition values are "REFLECT", "REFLECT", "DIRICHLET"
+   Boundary_data {
+      boundary_face_xlo {
+         boundary_condition      = "REFLECT"
+      }
+      boundary_face_xhi {
+         boundary_condition      = "REFLECT"
+      }
+      boundary_face_ylo {
+         boundary_condition      = "REFLECT"
+      }
+      boundary_face_yhi {
+         boundary_condition      = "REFLECT"
+      }
+      boundary_face_zlo {
+         boundary_condition      = "REFLECT"
+      }
+      boundary_face_zhi {
+         boundary_condition      = "REFLECT"
+      }
+
+
+      boundary_edge_ylo_zlo { // XREFLECT, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZREFLECT"
+      }
+      boundary_edge_yhi_zlo { // XREFLECT, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZREFLECT"
+      }
+      boundary_edge_ylo_zhi { // XREFLECT, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZREFLECT"
+      }
+      boundary_edge_yhi_zhi { // XREFLECT, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZREFLECT"
+      }
+      boundary_edge_xlo_zlo { // YREFLECT, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_edge_xlo_zhi { // YREFLECT, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_edge_xhi_zlo { // YREFLECT, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_edge_xhi_zhi { // YREFLECT, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_edge_xlo_ylo { // ZREFLECT, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YREFLECT"
+      }
+      boundary_edge_xhi_ylo { // ZREFLECT, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YREFLECT"
+      }
+      boundary_edge_xlo_yhi { // ZREFLECT, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YREFLECT"
+      }
+      boundary_edge_xhi_yhi { // ZREFLECT, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YREFLECT"
+      }
+
+      boundary_node_xlo_ylo_zlo {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xhi_ylo_zlo {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xlo_yhi_zlo {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xhi_yhi_zlo {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xlo_ylo_zhi {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xhi_ylo_zhi {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xlo_yhi_zhi {
+         boundary_condition      = "XREFLECT"
+      }
+      boundary_node_xhi_yhi_zhi {
+         boundary_condition      = "XREFLECT"
+      }
+
+   }
+
+}
+
+Main {
+   dim = 3
+// log file parameters 
+   log_file_name    = "octant.log"
+   log_all_nodes    = TRUE
+
+// visualization dump parameters 
+   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
+   viz_dump_interval     = 5          // zero to turn off
+   viz_dump_dirname      = "viz_octant-3blk"
+   viz_dump_filename     = "octant"    // not used by VisIt
+   visit_number_procs_per_file = 1    // not used by Vizamrai
+
+
+// restart dump parameters
+   restart_interval       = 0         // zero to turn off
+   restart_write_dirname  = "restart_octant"
+
+}
+
+TimerManager {
+   timer_list               = "apps::*::*",
+                              "algs::*::*",
+                              "mesh::*::*"
+//   print_exclusive      = TRUE
+   print_summed           = TRUE
+   print_max              = TRUE
+//   print_timer_overhead   = TRUE
+   print_threshold        = 0.0
+}
+
+
+BlockGeometry {
+   num_blocks = 3
+   domain_boxes_0 = [ (0,0,0) , (19,19,19) ]
+   domain_boxes_1 = [ (0,0,0) , (19,19,19) ]
+   domain_boxes_2 = [ (0,0,0) , (19,19,19) ]
+
+   // Singularity defn and neighbors
+   Singularity0 {
+      blocks = 0 , 1 , 2
+      sing_box_0 = [(0,20,20),(19,20,20)]
+      sing_box_1 = [(0,20,20),(19,20,20)]
+      sing_box_2 = [(0,-1,20),(19,-1,20)]
+   }
+
+   BlockNeighbors0 {
+      block_a = 0
+      block_b = 1
+
+      rotation_b_to_a = "I_UP", "K_UP", "J_DOWN" 
+      point_in_a_space = 0, 0, 20
+      point_in_b_space = 0, 19, 0
+   }
+
+   BlockNeighbors1 {
+      block_a = 0
+      block_b = 2
+
+      rotation_b_to_a = "I_UP", "J_UP" , "K_UP"
+      point_in_a_space = 0, 20, 0
+      point_in_b_space = 0, 0, 0
+   }
+
+   BlockNeighbors2 {
+      block_a = 2
+      block_b = 1
+
+      rotation_b_to_a = "I_UP", "J_DOWN" , "K_DOWN"
+      point_in_a_space = 0, 0, 20
+      point_in_b_space = 0, 19 , 19
+   }
+}
+
+PatchHierarchy {
+   allow_patches_smaller_than_ghostwidth = TRUE
+   max_levels = 1         // Maximum number of levels in hierarchy.
+   ratio_to_coarser {      // vector ratio to next coarser level
+      level_1 = 2 , 2 , 2
+   }
+   largest_patch_size {
+      level_0 = 40, 40, 40
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 2 , 2 , 2
+      // all finer levels will use same values as level_0...
+   }
+}
+
+
+
+
+
+
+GriddingAlgorithm{
+   sequentialize_patch_indices = TRUE
+
+   efficiency_tolerance    = 0.85e0   // min % of tag cells in new patch level
+   combine_efficiency      = 0.95e0   // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+HyperbolicLevelIntegrator{
+   cfl                       = 0.5e0    // max cfl factor used in problem
+   cfl_init                  = 0.5e0    // initial cfl factor
+   lag_dt_computation        = TRUE
+   use_ghosts_to_compute_dt  = TRUE
+}
+
+TimeRefinementIntegrator{
+   tag_buffer           = 2, 2, 2 // number of zones used in the tag buffer
+   start_time           = 0.e0     // initial simulation time
+   end_time             = 100.e0   // final simulation time
+   grow_dt              = 1.1e0    // growth factor for timesteps
+   max_integrator_steps = 50    // max number of simulation timesteps
+}
+
+TreeLoadBalancer {
+}

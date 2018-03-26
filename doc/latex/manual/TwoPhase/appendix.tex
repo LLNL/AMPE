@@ -1,0 +1,550 @@
+\chapter{Further model derivation}
+\label{sec:appendix}
+
+\section{Functional derivatives}
+\label{sec:fderiv}
+
+Let
+%
+\begin{equation}
+  F(u) = F(u_1, \ldots, u_n) = \int_{\Omega} I(u_1, \ldots, u_n) d\Omega
+\end{equation}
+%
+be a functional on a space of function tuples $u = (u_1,\ldots,u_n)$
+where the $u_i$ are defined and periodic on the domain
+$\Omega$.  By definition, the functional derivative of $F$ with
+respect to $u_i$ at any point $\hat{u} = (\hat{u}_1,\ldots,\hat{u}_n)$
+is the functional whose action is defined by
+%
+\begin{equation}
+  \left .  \left < \frac{\delta F}{\delta
+      u_i}(\hat{u}), v \right >
+  = \frac{d}{d \epsilon} \int_{\Omega} I(\hat{u}_1, \ldots, \hat{u}_i + \epsilon
+  v, \ldots, \hat{u}_n) d\Omega \right |_{\epsilon=0} ~~{\rm for~all~}v.
+\end{equation}
+%
+Hence, for all $v$,
+%
+\begin{eqnarray}
+  \left < \frac{\delta F}{\delta
+      u_i}(\hat{u}), v \right >
+  &=& \int_{\Omega} \left ( \frac{\partial I}{\partial u_i}(\hat{u})v + \frac{\partial
+    I}{\partial \nabla u_i}(\hat{u}) \cdot \nabla v \right ) d\Omega
+      \\
+  &=& \int_{\Omega} \left [ \frac{\partial I}{\partial u_i}(\hat{u})v +
+      \nabla \cdot \left ( \frac{\partial
+    I}{\partial u_i}(\hat{u}) v \right ) 
+  - \left ( \nabla \cdot \frac{\partial
+    I}{\partial u_i}(\hat{u}) \right ) v
+  \right ] d\Omega \label{eq:divterm} \\
+  &=& \left < \frac{\partial I}{\partial u_i}(\hat{u})
+  - \nabla \cdot \frac{\partial
+    I}{\partial u_i}(\hat{u}) , v
+  \right > ,
+\end{eqnarray}
+%
+where the second term in (\ref{eq:divterm}) vanishes due to the
+divergence theorem and the assumed periodicity of $v$.
+Thus,
+%
+\begin{equation}
+  \frac{\delta F}{\delta u_i} = \frac{\partial I}{\partial u_i}
+  - \nabla \cdot \frac{\partial
+    I}{\partial \nabla u_i} .  \label{funcderiv}
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Quaternions}
+\label{sec:quaternions}
+
+By analogy with complex numbers, a quaternion $q$ can be written as a
+linear combination
+%
+\begin{equation}
+  q = (a+ib+jc+kd)
+\end{equation}
+%
+with 3 imaginary dimensions $i,j,k$.  In the following we will assume
+that all of the quaternions are normalized, {\it i.e.}
+$a^2+b^2+c^2+d^2=1$.  A rotation by an angle $\theta$ around an axis
+of direction $(x,y,z)$ can be described by a quaternion
+%
+\begin{equation}
+  q=\cos(\theta/2)+i(x*\sin(\theta/2))+j(y*\sin(\theta/2))+k(z*\sin(\theta/2))
+\end{equation}
+%
+where $(x,y,z)$ is assumed to be normalized.  We denote by
+%
+\begin{equation}
+  q^*=a-ib-jc-kd
+\end{equation}
+%
+the conjugate of $q$.  Using the quaternion multiplication
+rules, {\em i.e.}, $ij = k, jk = i, ki = j, ji = -k, kj = -i, ik = -j, i^2 =
+j^2 = k^2 = -1$, the rotation between two quaternions, $q_1$ and
+$q_2$, can be computed as either $q_1^* q_2$ or $q_2 q_1^*$, depending
+on an arbitrary convention.  Due to the non-commutative nature of the
+quaternion multiplication, these two are not equivalent, but are the
+conjugate of each other.  They correspond to a rotation by the same
+angle around an axis of opposite direction.
+
+The formula for the misorientation angle between two unit-length
+quaternions is given by
+%
+\begin{equation}
+  |d_{21}| = 2\sin(\theta_{12}/4).
+\label{eq:angle}
+\end{equation}
+%
+where $|d_{21}|$ is the distance between $q_1$ and $q_2$ in the 4D
+space, and $\theta_{12}$ is the angle between $q_1$ and $q_2$ (note
+the factor of 2).  The mapping from unit quaternions to rotations is
+2-to-1.  Multiplying a quaternion by an overall factor of -1 has no
+physical effect.  Two quaternions on opposite sides of the hypersphere
+are a distance $|d_{21}| = 2$ apart, which gives $\theta_{12} = 2\pi$,
+which is no rotation at all.  To first order, (\ref{eq:angle}) gives
+%
+\begin{equation}
+   \theta\simeq 2|d_{21}|
+\end{equation}
+%
+and justifies using quaternion differences to approximate local
+misorientation \cite{0295-5075-71-1-131}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Derivation of the Kim, Kim, Suzuki (KKS) model}
+\label{sec:kks}
+
+In \cite{PhysRevE.60.7186}, Kim {\em et al.}
+define the relation between the variables $(c_S,c_L)$, and
+$(c,\phi)$ in (\ref{eq:cmix}) by imposing the condition
+%
+\begin{equation}
+  \left.\frac{\partial f^S}{\partial c_S}\right|_{c_S=c_S(x,t)} =
+  \left.\frac{\partial f^L}{\partial c_L}\right|_{c_L=c_L(x,t)} =
+  \mu(x,t).
+\label{eq:mu}
+\end{equation}
+%
+This means that the chemical potential is equal for both phases
+at the infinitesimal point $x$, and thus there would be no change
+in free energy by exchanging an infinitesimal amount of species
+between phases S and L.
+
+In the KKS model, we also define
+%
+\begin{equation}
+  D_c(c,\phi,T)=D_c^0(\phi,T)\left(\frac{\partial^2 f}{\partial
+  c^2}\right)^{-1}.
+\label{eq:diffcoeff}
+\end{equation}
+%
+From (\ref{eq:fmix}) and (\ref{eq:mu}), we obtain
+%
+\begin{eqnarray}
+  \frac{\partial f}{\partial c} &=& h(\phi)\frac{\partial
+  f^S}{\partial c_S}\frac{\partial c_S}{\partial c} +
+  [1-h(\phi)]\frac{\partial f^L}{\partial c_L}\frac{\partial
+  c_L}{\partial c} \nonumber \\ &=&
+  \mu\left(h(\phi)\frac{\partial c_S}{\partial c} +
+  [1-h(\phi)]\frac{\partial c_L}{\partial c}\right)
+\label{eq:dfdc} 
+\end{eqnarray}
+%
+and from (\ref{eq:cmix})
+%
+\begin{equation}
+  1 = \frac{\partial c}{\partial c} = h(\phi)\frac{\partial
+  c_S}{\partial c} + [1-h(\phi)]\frac{\partial c_L}{\partial c}
+\label{eq:dcdc}
+\end{equation}
+%
+From (\ref{eq:dfdc}) and (\ref{eq:dcdc}), we then get
+%
+\begin{equation}
+  \left.\frac{\partial f}{\partial c}\right|_{c=c(x,t)} = \mu(x,t)
+\label{eq:dfdcmu}
+\end{equation}
+%
+(Eq.~28 of \cite{PhysRevE.60.7186}).
+
+From (\ref{eq:fmix}), we also have
+%
+\begin{eqnarray}
+  \frac{\partial f}{\partial\phi} = & & h'(\phi)(f^S(c_S)-f^L(c_L))+
+  \omega g'(\phi)
+  \nonumber \\
+  & & {} + h(\phi)\mu\frac{\partial c_S}{\partial\phi} +
+  (1-h(\phi))\mu\frac{\partial c_L}{\partial\phi}.
+\label{eq:dfdphi}
+\end{eqnarray}
+%
+Noticing that, since $c$ is independent of $\phi$,
+%
+\begin{eqnarray}
+  h(\phi)\frac{\partial c_S}{\partial\phi} +
+  (1-h(\phi))\frac{\partial c_L}{\partial\phi} &=& \frac{\partial
+  c}{\partial\phi} - h'(\phi)(c_S-c_L) \nonumber \\
+  &=& - h'(\phi)(c_S-c_L),
+\end{eqnarray}
+%
+we get
+%
+\begin{equation}
+  \frac{\partial f}{\partial\phi} =
+  - h'(\phi) \left( f^L(c_L) - f^S(c_S) - \mu (c_L - c_S) \right)
+  + \omega g'(\phi)
+\label{eq:dfdphi2}
+\end{equation}
+%
+(Eq. (27) of \cite{PhysRevE.60.7186}). We also get
+%
+\begin{eqnarray}
+  \frac{\partial}{\partial c}\left(\frac{\partial
+  f}{\partial\phi}\right) &=& -h'(\phi) \left[\frac{\partial
+  f^L}{\partial c_L}\frac{\partial c_L}{\partial c} - \frac{\partial
+  f^S}{\partial c_S}\frac{\partial c_S}{\partial c}
+  -\mu\left(\frac{\partial c_L}{\partial c}-\frac{\partial
+  c_S}{\partial c}\right) - \frac{\partial^2 f}{\partial
+  c^2}(c_L-c_S)\right] \nonumber \\ &=&
+  h'(\phi)(c_L-c_S)\frac{\partial^2 f}{\partial c^2}
+\label{eq:dfdcdphi}
+\end{eqnarray}
+%
+using (\ref{eq:mu}). This is Eq. (30) of
+\cite{PhysRevE.60.7186}.
+
+Now, since $f$ is a function of $c$ and $\phi$,
+%
+\begin{equation}
+  \frac{\partial}{\partial x}\frac{\partial f}{\partial c} =
+  \frac{\partial^2 f}{\partial c^2}\frac{\partial c}{\partial x} +
+  \frac{\partial^2 f}{\partial c
+  \partial\phi}\frac{\partial\phi}{\partial x}
+\end{equation}
+%
+and we have
+%
+\begin{equation}
+  \nabla\mu = \nabla\frac{\partial f}{\partial c} = \frac{\partial^2
+  f}{\partial c^2}\nabla c + \frac{\partial^2 f}{\partial
+  c\partial\phi}\nabla\phi
+\label{eq:gradmu}
+\end{equation}
+%
+From Eqs. (\ref{eq:crelax}),
+(\ref{eq:diffcoeff}),(\ref{eq:dfdcdphi}),(\ref{eq:gradmu}), we
+obtain
+%
+\begin{equation}
+  \frac{\partial c}{\partial t}
+  =M_c\nabla\cdot D_c^0(\phi,T)\nabla c+ M_c\nabla\cdot
+  D_c^0(\phi,T)h'(\phi)(c_L-c_S)\nabla\phi
+\label{eq:ct}
+\end{equation}
+%
+which is Eq. (33) of \cite{PhysRevE.60.7186}.
+
+To actually compute the right hand side of (\ref{eq:ct}), we need to
+know $c_S(c,\phi)$ and $c_L(c,\phi)$. For that, we need to know an
+explicit form of $f^S$ and $f^L$. See, for example, Section
+\ref{sec:hbsm}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Hu, Baskes, Stan, Mitchell (HBSM) model for a binary alloy}
+\label{sec:hbsm}
+
+In \cite{HuBaskesStanMitchell07}, Hu {\em et al.} propose a phase-field
+model for a binary alloy.  The two phases are $\epsilon$, or body-centered cubic (bcc) and $\delta$, or face-centered cubic (fcc) (to
+substitute for L and S, respectively, in the preceding section).  The following explicit
+forms for $f^\epsilon$ and $f^\delta$ are proposed:
+%
+\begin{equation}
+  f^\epsilon(c_\epsilon,T)=A_\epsilon\left(c_\epsilon-c_\epsilon^{eq}(T)\right)^2,
+\label{eq:fepsilon}
+\end{equation}
+%
+\begin{equation}
+  f^\delta(c_\delta,T)=A_\delta\left(c_\delta-c_\delta^{eq}(T)\right)^2.
+\label{eq:fdelta}
+\end{equation}
+%
+Using (\ref{eq:mu}), we obtain
+%
+\begin{equation}
+  A_\epsilon(c_\epsilon-c_\epsilon^{eq})=A_\delta(c_\delta-c_\delta^{eq})
+\end{equation}
+%
+and thus
+%
+\begin{equation}
+  c_\epsilon(c_\delta,T) =
+  c_\epsilon^{eq}+A_\delta(c_\delta-c_\delta^{eq}(T))/A_\epsilon
+\end{equation}
+%
+\begin{equation}
+  c_\delta(c_\epsilon,T) =
+  c_\delta^{eq}+A_\epsilon(c_\epsilon-c_\epsilon^{eq}(T))/A_\delta
+\end{equation}
+%
+From (\ref{eq:cmix}), we then get
+%
+\begin{equation}
+  c_\epsilon(c,\phi,T) =
+  \frac{c-h(\phi)\left(c_\delta^{eq}(T)-\frac{A_\epsilon}{A_\delta}c_\epsilon^{eq}(T)\right)}
+  {(1-h(\phi))+h(\phi)\frac{A_\epsilon}{A_\delta}}
+\label{eq:cepsilon}
+\end{equation}
+%
+\begin{equation}
+  c_\delta(c,\phi,T) =
+  \frac{c-(1-h(\phi))\left(c_\epsilon^{eq}(T)-\frac{A_\delta}{A_\epsilon}c_\delta^{eq}(T)\right)}
+  {h(\phi)+(1-h(\phi))\frac{A_\delta}{A_\epsilon}}
+\label{eq:cdelta}
+\end{equation}
+%
+These expressions for $c_\epsilon(c,\phi,T)$ and $c_\delta(c,\phi,T)$
+can be substituted into (\ref{eq:ct}) to have a right-hand side
+function that depends explicitly on $\phi$ and $c$.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Wheeler, Boettinger, McFadden (WBM) model}
+
+The WBM model \cite{PhysRevA.45.7424} is
+characterized by the free energy density
+%
+\begin{equation}
+  f(c,\phi)=c f_B(\phi)+(1-c)f_A(\phi)+RT[c
+  \ln(c)+(1-c)\ln(1-c)].
+\label{eq:fwbm}
+\end{equation}
+%
+and a function $D_c^0(\phi,T)$ independant of $\phi$
+%
+\begin{equation}
+  D_c^0(\phi,T)=RT
+\label{eq:dconst}
+\end{equation}
+%
+where $R$ is the universal gas constant.
+Thus, we have
+%
+\begin{align}
+  \frac{\partial f}{\partial c} & =
+  f_B(\phi)-f_A(\phi)+RT\ln{\frac{c}{1-c}}
+  \\
+  \frac{\partial f}{\partial\phi} & =
+  c\frac{\partial f_B}{\partial\phi} + (1-c)\frac{\partial
+  f_A}{\partial\phi},
+  \label{eq:dfdphiWBM}
+  \\
+  \frac{\partial^2 f}{\partial c^2} & =
+  RT\frac{1}{c(1-c)},
+  \label{eq:d2fdc2WBM}
+  \\
+  \frac{\partial^2 f}{\partial\phi\partial c}
+  & = \frac{\partial f_B}{\partial\phi} -\frac{\partial
+  f_A}{\partial\phi}.
+  \label{eq:dfdcdphiWBM} 
+\end{align}
+%
+Using the last two relations with (\ref{eq:ceomkks}) and (\ref{eq:dconst}),
+we obtain
+%
+\begin{equation}
+  \frac{d}{dt}c=M_c D_c^0\nabla^2 c + M_c \nabla\cdot\left(
+  c(1-c)\left(\frac{\partial f_B}{\partial\phi} -\frac{\partial
+  f_A}{\partial\phi}\right)\nabla\phi\right).
+\label{eq:ctWBM}
+\end{equation}
+%
+This formulation is equivalent --- at least before discretization
+--- to Equation (18) of Ref. \cite{PhysRevA.45.7424}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{CALPHAD model}
+
+For the CALPHAD model of alloys, in the S and L phases, we have free energies
+modeled by
+%
+\begin{equation}
+  f^{L,S}(c,T)= f_0^{L,S}(c,T)+f_{mix}^{ideal}(c,T)+f^{L,S}_{mix}(c,T)
+\end{equation}
+%
+where
+%
+\begin{equation}
+  f_0^{L,S}(c,T)=c f_A^{L,S}(T)+(1-c)f_B^{L,S}(T),
+\end{equation}
+%
+\begin{equation}
+  f_{mix}^{ideal}(c,T)=
+  RT[c\ln(c)+(1-c)\ln(1-c)],
+\end{equation}
+%
+and
+%
+\begin{equation}
+  f^{L,S}_{mix}(c,T)=c(1-c)[L_0^{L,S}(T)+L_1^{L,S}(T)(2c-1)+L_2^{L,S}(T)(2c-1)^2].
+\end{equation}
+
+For a phase value $\phi$ between 0 and 1, we can use the following model
+%
+\begin{equation}
+  f(\phi,T)=h(\phi)f^S(T)+(1-h(\phi))f^L(T)
+\end{equation}
+%
+and define
+%
+\begin{equation}
+  f(c,\phi,T)=h(\phi)f^{S}(c,T)+(1-h(\phi))f^{L}(c,T)+\omega g(\phi)
+\end{equation}
+%
+We obtain
+%
+\begin{equation}
+\begin{split}
+  f(c,\phi,T) = {} &
+  c \left[h(\phi)f_A^{S}(T)+(1-h(\phi))f_A^{L}(T) \right] \\
+  & + (1-c)\left[h(\phi)f_B^{S}(T)+(1-h(\phi))f_B^{L}(T) \right] \\
+  & + RT[c\ln(c)+(1-c)\ln(1-c)] \\
+  & + h(\phi)f^S_{mix}(c,T)+(1-h(\phi))f^{L}_{mix}(c,T) \\
+  & + \omega g(\phi)
+\end{split}
+\end{equation}
+
+Compared to the WBM model of the previous section, we have the additional
+mixing terms
+%
+\begin{equation}
+  h(\phi)f^S_{mix}(c)+(1-h(\phi))f^{L}_{mix}(c).
+\end{equation}
+%
+It affects the quantities
+$\partial^2 f/\partial c^2$, 
+$\partial^2 f/\partial c \partial\phi$ used in particular to compute
+the right hand side of the concentration time evolution equation.
+
+Assuming that 
+(\ref{eq:diffcoeff})
+still holds, the time evolution equation for $c$ is given by
+%
+\begin{equation}
+  \frac{d}{dt}c
+  =\nabla D_c^0(\phi,T)\nabla c 
+  + \nabla\cdot\left(
+  D_c^0(\phi,T)\left(\frac{\partial^2 f}{\partial c^2}\right)^{-1}
+  \frac{\partial^2 f}{\partial c \partial\phi}
+  \nabla\phi\right).
+\end{equation}
+%
+where
+%
+\begin{equation}
+  \frac{\partial^2 f}{\partial c^2}=
+  \frac{RT}{c(1-c)}
+  +h(\phi)\frac{\partial^2 f^S_{mix}}{\partial c^2}
+  +(1-h(\phi))\frac{\partial^2 f^L_{mix}}{\partial c^2}
+\end{equation}
+%
+and
+%
+\begin{equation}
+  \frac{\partial^2 f}{\partial c\partial\phi}=
+  h'(\phi)
+  \left[
+  f_A^S-f_A^L-f_B^S+f_B^L
+  +\frac{\partial f^S_{mix}}{\partial c}-\frac{\partial f^L_{mix}}{\partial c}
+  \right].
+\end{equation}
+%
+$D_c^0(\phi,T)$ can be modeled as
+%
+\begin{equation}
+  D_c^0(\phi,T)=h(\phi) D^0_S exp(-Q^0_S/RT)
+  +(1-h(\phi)) D^0_L exp(-Q^0_L/RT).
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Phase variable equation}
+
+The phase variable $\phi$ evolves in time according to
+%
+\begin{equation}
+  \frac{d}{dt}\phi=-M_\phi\frac{\delta F}{\delta\phi} = M_\phi
+  \left[\nabla\left(\frac{\partial I}{\partial\nabla\phi}\right)-
+  \frac{\partial I}{\partial\phi}\right]
+\label{eq:phi_evolution}
+\end{equation}
+%
+with $I$ given by (\ref{eq:integrand}). Thus we have
+%
+\begin{equation}
+  \frac{d}{dt}\phi=M_\phi\left(\epsilon^2\nabla\cdot\nabla\phi-
+  \frac{\partial f}{\partial\phi}\right).
+\label{eq:dphidt}
+\end{equation}
+
+When coupling the phase variable with a quaternion field, we
+introduce an additional misorientation energy density of the form
+\cite{0295-5075-71-1-131}
+%
+\begin{equation}
+  f_{ori} = 2 H T p(\phi) | \nabla {\bf q} |.
+\label{eq:fori}
+\end{equation}
+%
+which we simply add to $f$.
+Note that we use the opposite convention compared to
+\cite{0295-5075-71-1-131}, that is we have replaced the polynomial
+$p$ by $1-p$, and used the convention $p(0)=0$ and $p(1)=1$.
+
+\subsection{KKS model}
+
+For the KKS model, using Eq.(\ref{eq:dfdphi2}), we obtain
+%
+\begin{equation}
+  \frac{d}{dt}\phi=M_\phi\left(\epsilon^2\nabla\cdot\nabla\phi
+  +h'(\phi)\left(f^L(c_L)-f^S(c_S)-\mu(c_L-c_S)\right)-\omega
+  g'(\phi)\right).
+\label{eq:dphidt2}
+\end{equation}
+
+Adding the misorientation energy, 
+the time evolution equation for $\phi$ becomes
+%
+\begin{equation}
+\begin{split}
+  \frac{d}{dt}\phi =
+  M_\phi\Big\{ & \epsilon^2 \nabla^2 \phi
+  + h'(\phi)\left[ f^L(c_L) - f^S(c_S) - \mu (c_L - c_S) \right]
+  \\
+  & - \omega g'(\phi) - 2HTp'(\phi) | \nabla {\bf q} | \Big\}
+\label{eq:dphidtwithq}
+\end{split}
+\end{equation}
+%
+Note that for the particular case of one species --- no
+concentration variable --- $f^S$ and $f^L$ are scalar constants
+and the term $\mu(c_L-c_S)$ drops.
+
+\subsection{CALPHAD}
+The time evolution equation for $\phi$ is given by
+%
+\begin{equation}
+\begin{split}
+  \frac{d}{dt}\phi = {}
+  M_\phi\Big\{ & \epsilon^2 \nabla^2 \phi
+  - h'(\phi) \left[
+  c (f_A^S- f_A^L) + (1 - c)(f_B^S - f_B^L)
+  + f^S_{mix}(c) - f^L_{mix}(c) \right] \\
+  & - \omega g'(\phi) - 2HTp'(\phi) | \nabla {\bf q} | \Big\} .
+\label{eq:dphidtwithqCALPHAD}
+\end{split}
+\end{equation}

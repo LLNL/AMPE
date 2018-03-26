@@ -1,0 +1,124 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for linear advection performance test 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/performance/LinAdv
+VPATH         = @top_srcdir@/$(SUBDIR)
+OBJECT        = ../../../..
+
+default:      main
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=0
+
+NUM_TESTS = 2
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS      = main.o LinAdv.o SinusoidalFrontTagger.o
+F_OBJS      = \
+	    flux3d.o grad3d.o init3d.o stable3d.o stufprobc3d.o trace3d.o trace1d3d.o fluxcorner3d.o \
+	    flux2d.o grad2d.o init2d.o stable2d.o stufprobc2d.o trace2d.o trace1d2d.o
+
+main:		$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS)	\
+		$(LIBSAMRAI) $(LDLIBS) -o $@
+
+clean:
+		$(SAMCLEAN)
+		$(RM) *.f main
+
+check:
+#               $(MAKE) check2d
+		$(MAKE) check3d
+
+check2d:	main
+
+check3d:	main
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./main performance_inputs/domainexpansion.input;
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+			./main performance_inputs/domainexpansionb.input;
+
+checkcompile: main
+
+checktest:
+		rm -f makecheck.logfile
+		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+		$(OBJECT)/source/test/testtools/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -f makecheck.logfile
+
+include $(SRCDIR)/Makefile.depend
+
+FORTRAN       = @srcdir@/fortran
+M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
+
+flux2d.o:		$(FORTRAN)/2d/flux2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/flux2d.m4 > flux2d.f
+		$(F77) $(FFLAGS) -c flux2d.f -o $@
+
+grad2d.o:		$(FORTRAN)/2d/grad2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/grad2d.m4 > grad2d.f
+		$(F77) $(FFLAGS) -c grad2d.f -o $@
+
+init2d.o:		$(FORTRAN)/2d/init2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/init2d.m4 > init2d.f
+		$(F77) $(FFLAGS) -c init2d.f -o $@
+
+stable2d.o:	$(FORTRAN)/2d/stable2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/stable2d.m4 > stable2d.f
+		$(F77) $(FFLAGS) -c stable2d.f -o $@
+
+stufprobc2d.o:	$(FORTRAN)/2d/stufprobc2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/stufprobc2d.m4 > stufprobc2d.f
+		$(F77) $(FFLAGS) -c stufprobc2d.f -o $@
+
+trace2d.o:	$(FORTRAN)/2d/trace2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/trace2d.m4 > trace2d.f
+		$(F77) $(FFLAGS) -c trace2d.f -o $@
+
+trace1d2d.o:	$(FORTRAN)/2d/trace1d2d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/2d/trace1d2d.m4 > trace1d2d.f
+		$(F77) $(FFLAGS) -c trace1d2d.f -o $@
+
+
+
+flux3d.o:		$(FORTRAN)/3d/flux3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/flux3d.m4 > flux3d.f
+		$(F77) $(FFLAGS) -c flux3d.f -o $@
+
+fluxcorner3d.o:	$(FORTRAN)/3d/fluxcorner3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/fluxcorner3d.m4 > fluxcorner3d.f
+		$(F77) $(FFLAGS) -c fluxcorner3d.f -o $@
+
+grad3d.o:		$(FORTRAN)/3d/grad3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/grad3d.m4 > grad3d.f
+		$(F77) $(FFLAGS) -c grad3d.f -o $@
+
+init3d.o:		$(FORTRAN)/3d/init3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/init3d.m4 > init3d.f
+		$(F77) $(FFLAGS) -c init3d.f -o $@
+
+stable3d.o:	$(FORTRAN)/3d/stable3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/stable3d.m4 > stable3d.f
+		$(F77) $(FFLAGS) -c stable3d.f -o $@
+
+stufprobc3d.o:	$(FORTRAN)/3d/stufprobc3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/stufprobc3d.m4 > stufprobc3d.f
+		$(F77) $(FFLAGS) -c stufprobc3d.f -o $@
+
+trace3d.o:	$(FORTRAN)/3d/trace3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/trace3d.m4 > trace3d.f
+		$(F77) $(FFLAGS) -c trace3d.f -o $@
+
+trace1d3d.o:	$(FORTRAN)/3d/trace1d3d.m4
+		$(M4) $(M4DIRS) $(FORTRAN)/3d/trace1d3d.m4 > trace1d3d.f
+		$(F77) $(FFLAGS) -c trace1d3d.f -o $@

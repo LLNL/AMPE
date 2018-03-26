@@ -1,0 +1,12 @@
+Performance tests for mesh generations.
+
+The two bottle-neck steps (clustering and partitioning) are tested here for:
+
+* run-time performance
+
+* quality of generated metadata
+
+We don't test all steps in mesh generation or remeshing here, just the
+most expensive steps.  These steps have the same characteristics
+whether generating the mesh or remeshing, so we omit remesh-specific
+steps.

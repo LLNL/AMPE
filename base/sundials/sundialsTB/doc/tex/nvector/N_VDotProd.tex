@@ -1,0 +1,59 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!N_VDotProd!}
+\label{p:N_VDotProd}
+\index{N_VDotProd}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+N_VDotProd returns the dot product of two vectors
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function ret = N_VDotProd(x,y,comm) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+N_VDotProd returns the dot product of two vectors
+
+   Usage:  RET = N_VDotProd ( X, Y [, COMM] )
+
+If COMM is not present, N_VDotProd returns the dot product of the
+local portions of X and Y. Otherwise, it returns the global dot
+product.
+\end{alltt}
+
+
+
+
+
+ 
+%% source -------------------
+
+\noindent{\bf \sc Source Code}
+
+\input{nvector/N_VDotProdsrc}
+\vspace{0.1in}

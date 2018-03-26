@@ -1,0 +1,125 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Input for Hu, Baskes, Stan and Mitchell grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+//model_type = "KWCcomplex"
+
+max_timesteps       = 10000
+end_time            = 5.
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 1.
+   interval_type = "time"
+   extra_output = TRUE  // optional
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatLevelSolver::*","QuatSysSolver::*",
+                 "QuatUnsplitIntegrator::*","EllipticFACOps::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = 0.0
+   epsilon_orient = 0.1
+   
+   temperature = 873.
+
+   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
+   orient_mobility  = 200.
+   phi_mobility     = 1.e-6
+   
+   // free energy parameters:
+   // f(phi) = scale_energy_well*g(phi) + p(phi)*(free_energy_solid-free_energy_liquid)
+   // where g is a double well potential and p an interpolation function s.t.
+   // p(0)=0 and p(1)=1
+   // scale_energy_well set to zero to simulate KWC model
+   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="hbsm"
+   
+   orient_grad_floor = 0.1
+
+   ConcentrationModel{
+      model    = "hbsm"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid  =  1.3e8
+      D_liquid  = 5.6e4
+      Q0_solid  = 156377.   // Edwards et al. [J/mol]
+      Q0_liquid = 55329.    // Wade 1971      [J/mol]
+      mobility = 1.e-6
+      HBSM {
+         A_liquid = 1.e4 
+         A_solid  = 1.e4
+         Ceq_liquid = 0.05
+         Ceq_solid  = 0.10
+      }
+   }
+}
+
+Integrator {
+   rtol = 1.e-15
+   atol = 1.e-4
+}
+
+ScalarDiagnostics {
+   interval = 0.2
+   interval_type = "time"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+   extra_energy_detail = TRUE
+}   
+
+InitialConditions {
+   filename = "2spheres_init.nc"
+   WriteEndingFile {  // optional block
+      filename = "restart_2spheres_init.nc"  // required
+   }
+}
+
+Geometry{
+   coarsest_level_resolution = 128, 128
+   x_lo         = -3.2, -3.2 // lower end of computational domain.
+   x_up         =  3.2,  3.2 // upper end of computational domain.
+}

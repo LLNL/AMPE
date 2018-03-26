@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# This is a short, non-critical script to issue the commands
+# for rebuilding the configure script.
+
+topdir="`echo $0 | sed 's:/[^/]\{1,\}$::'`/.."
+
+set -x
+
+# Go to the top-level directory.
+cd "$topdir"
+
+# This generates the aclocal.m4 file.
+# aclocal grabs macros an put them in aclocal.m4
+aclocal -I config --output=config/aclocal.m4 || exit 1
+
+# This generates configure
+autoconf"$AUTOCONF_VERSION" -I config || exit 1

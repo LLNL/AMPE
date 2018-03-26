@@ -1,0 +1,656 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright 
+ * information, see COPYRIGHT and COPYING.LESSER. 
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Input file for SAMRAI Linadv example problem
+ *                (3d sinusoidal fronusoidal frontt) 
+ *
+ ************************************************************************/
+log_actions = 'n'
+check_input_connectors = 'n'
+check_output_connectors = 'n'
+check_connectors = 'n'
+print_layer_hierarchy = 'n'
+DistributedLoadBalancer_print_steps = 'n'
+DistributedLoadBalancer_check_connectivity = 'n'
+check_map = 'n'
+check_connectivity = 'n'
+print_steps = 'n'
+print_swap_steps = 'n'
+print_break_steps = 'n'
+print_edge_steps = 'n'
+
+
+LinAdv {
+   advection_velocity = 2.0e0 , 0.01e0, 0.01e0
+
+   godunov_order    = 4
+   corner_transport = "CORNER_TRANSPORT_1"
+
+   data_problem      = "SINE_CONSTANT_X"
+
+   Initial_data {
+      front_position    = 0.0
+      interval_0 {
+         uval      = 40.0
+      }
+      interval_1 {
+         uval      = 1.0
+      }
+      amplitude = 0.3
+      frequency = 2.0, 2.0, 2.0
+
+   }
+
+   Refinement_data {
+      refine_criteria = "UVAL_GRADIENT", "UVAL_SHOCK"
+
+      UVAL_GRADIENT {
+         grad_tol = 10.0
+      }
+
+      UVAL_SHOCK {
+         shock_tol = 10.0
+         shock_onset = 0.85
+      }
+   }
+
+  // valid boundary_condition values are "FLOW", "REFLECT", "DIRICHLET"
+   Boundary_data {
+      boundary_face_xlo {
+         boundary_condition      = "FLOW"
+      }
+      boundary_face_xhi {
+         boundary_condition      = "FLOW"
+      }
+      boundary_face_ylo {
+         boundary_condition      = "FLOW"
+      }
+      boundary_face_yhi {
+         boundary_condition      = "FLOW"
+      }
+      boundary_face_zlo {
+         boundary_condition      = "FLOW"
+      }
+      boundary_face_zhi {
+         boundary_condition      = "FLOW"
+      }
+
+      boundary_edge_ylo_zlo { // XFLOW, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZFLOW"
+      }
+      boundary_edge_yhi_zlo { // XFLOW, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZFLOW"
+      }
+      boundary_edge_ylo_zhi { // XFLOW, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZFLOW"
+      }
+      boundary_edge_yhi_zhi { // XFLOW, XREFLECT, XDIRICHLET not allowed
+         boundary_condition      = "ZFLOW"
+      }
+      boundary_edge_xlo_zlo { // YFLOW, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XFLOW"
+      }
+      boundary_edge_xlo_zhi { // YFLOW, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XFLOW"
+      }
+      boundary_edge_xhi_zlo { // YFLOW, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XFLOW"
+      }
+      boundary_edge_xhi_zhi { // YFLOW, YREFLECT, YDIRICHLET not allowed
+         boundary_condition      = "XFLOW"
+      }
+      boundary_edge_xlo_ylo { // ZFLOW, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YFLOW"
+      }
+      boundary_edge_xhi_ylo { // ZFLOW, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YFLOW"
+      }
+      boundary_edge_xlo_yhi { // ZFLOW, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YFLOW"
+      }
+      boundary_edge_xhi_yhi { // ZFLOW, ZREFLECT, ZDIRICHLET not allowed
+         boundary_condition      = "YFLOW"
+      }
+
+      boundary_node_xlo_ylo_zlo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_ylo_zlo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xlo_yhi_zlo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_yhi_zlo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xlo_ylo_zhi {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_ylo_zhi {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xlo_yhi_zhi {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_yhi_zhi {
+         boundary_condition      = "XFLOW"
+      }
+
+   }
+
+   use_analytical_tagger = TRUE
+}
+
+BergerRigoutsos {
+   algo_advance_mode = "ADVANCE_SOME"
+   owner_mode = "MOST_OVERLAP"
+   log_node_history = FALSE
+   use_level_boxes = FALSE
+   use_private_communicator = TRUE
+   sort_output_nodes = TRUE
+   log_cluster_summary = TRUE
+   barrier_before = TRUE
+   barrier_after = TRUE
+}
+
+Main {
+   dim = 3
+   base_name    = "newf3d"
+   log_all_nodes    = TRUE
+
+// visualization dump parameters
+   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
+   viz_dump_interval     = 0          // zero to turn off
+   visit_number_procs_per_file = 1    // not used by Vizamrai
+
+// restart dump parameters
+   restart_interval        = 0        // zero to turn off
+
+   run_time_plotting = FALSE
+
+   // which_br: 'o' = old, 'n' = new
+   which_br = 'n'
+   use_scaled_input = TRUE
+}
+
+BaselineMain {
+   base_name    = "bslf3d"
+   log_all_nodes    = TRUE
+
+// visualization dump parameters
+   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
+   viz_dump_interval     = 0          // zero to turn off
+   visit_number_procs_per_file = 1    // not used by Vizamrai
+
+// restart dump parameters
+   restart_interval        = 0        // zero to turn off
+
+   run_time_plotting = FALSE
+
+   // which_br: 'o' = old, 'n' = new
+   which_br = 'o'
+   use_scaled_input = TRUE
+}
+
+TimerManager {
+//   print_exclusive      = TRUE
+   print_summed           = TRUE
+   print_max              = TRUE
+   print_threshold        = 0.
+   timer_list               = "hier::*::*",
+                              "apps::*::*",
+                              "algs::*::*",
+                              "mesh::*::*",
+                              "tbox::AsyncCommGroup::*",
+                              "tbox::AsyncCommStage::*",
+                              "tbox::JobRelauncher::*",
+                              "xfer::*::*"
+}
+
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , ( 9, 9, 4) ]   //    1proc
+   //domain_boxes  = [ (0,0,0) , ( 9, 9, 9) ]   //    2proc
+   //domain_boxes  = [ (0,0,0) , (19, 9, 9) ]   //    4proc
+   //domain_boxes  = [ (0,0,0) , (19,19, 9) ]   //    8proc
+   //domain_boxes  = [ (0,0,0) , (19,19,19) ]   //   16proc
+   //domain_boxes  = [ (0,0,0) , (39,19,19) ]   //   32proc
+   //domain_boxes  = [ (0,0,0) , (39,39,19) ]   //   64proc
+   //domain_boxes  = [ (0,0,0) , (39,39,39) ]   //  128proc
+   //domain_boxes  = [ (0,0,0) , (79,39,39) ]   //  256proc
+   //domain_boxes  = [ (0,0,0) , (79,79,39) ]   //  512proc
+   //domain_boxes  = [ (0,0,0) , (79,79,79) ]   // 1024proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+
+PatchHierarchy {
+   max_levels = 3
+   largest_patch_size {
+      // level_0 = -1,-1,-1
+      level_0 = 20,20,20
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 5,5,5
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 4, 4, 4
+      level_2            = 4, 4, 4
+      level_3            = 4, 4, 4
+      level_4            = 4, 4, 4
+      level_5            = 4, 4, 4
+      level_6            = 4, 4, 4
+      level_7            = 4, 4, 4
+      level_8            = 4, 4, 4
+      level_9            = 4, 4, 4
+      //  etc.
+   }
+   allow_patches_smaller_than_ghostwidth = TRUE
+}
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   extend_to_domain_boundary = TRUE
+   check_nonrefined_tags = "IGNORE"
+   // load_balance = FALSE
+   combine_efficiency = 0.7
+   efficiency_tolerance = 0.85
+   barrier_before_regrid = TRUE
+   barrier_before_find_refinement = TRUE
+   barrier_before_cluster = TRUE
+   barrier_before_nest = TRUE
+   barrier_before_limit = TRUE
+   barrier_before_extend = TRUE
+   barrier_before_balance = TRUE
+   barrier_after_find_refinement = TRUE
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+
+HyperbolicLevelIntegrator {
+   //cfl                      = 0.9e0    // procs 256, 512, 1024
+   //cfl_init                 = 0.9e0    // procs 256, 512, 1024
+   //cfl                      = 0.45e0   // procs 32, 64, 128
+   //cfl_init                 = 0.45e0   // procs 32, 64, 128
+   //cfl                      = 0.225e0  // procs 4, 8, 16
+   //cfl_init                 = 0.225e0  // procs 4, 8, 16
+   cfl                      = 0.1125e0 // procs 1, 2
+   cfl_init                 = 0.1125e0 // procs 1, 2
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+
+TimeRefinementIntegrator {
+   start_time            = 0.e0     // initial simulation time
+   end_time              = 0.6      // final simulation time
+   grow_dt               = 1.1e0    // growth factor for timesteps
+   // max_integrator_steps  = 5     // max number of simulation timesteps
+   max_integrator_steps  = 25     // max number of simulation timesteps
+   // tag_buffer            = 0, 0, 0, 0, 0, 0
+}
+
+LoadBalancer{
+  processors = 1, 1
+  bin_pack_method = "GREEDY"
+  // bin_pack_method = "SPATIAL"
+  ignore_level_box_union_is_single_box = TRUE
+}
+
+DistributedLoadBalancer{
+  algorithm_index = 1
+  report_load_balance = FALSE
+  dummy = FALSE
+  OldLoadBalancer{
+    processors = 1, 1
+    bin_pack_method = "GREEDY"
+    // bin_pack_method = "SPATIAL"
+    ignore_level_box_union_is_single_box = TRUE
+  }
+  barrier_before_balance = FALSE
+}
+
+TreeLoadBalancer {
+  report_load_balance = FALSE
+  barrier_before = TRUE
+  barrier_after = TRUE
+  n_root_cycles = 2
+}
+
+
+ScaledInput {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , ( 9, 9, 9) ]
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.1125e0 // procs 1, 2
+   cfl_init                 = 0.1125e0 // procs 1, 2
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .08, .08, .08
+      buffer_space_1 = .04, .04, .04
+      buffer_space_2 = .02, .02, .02
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+////////////////////////////////////////////////////////////////////////
+// Specific databases for scaling tests.
+////////////////////////////////////////////////////////////////////////
+
+ScaledInput1 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , ( 9, 9, 4) ]   //    1proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.1125e0 // procs 1, 2
+   cfl_init                 = 0.1125e0 // procs 1, 2
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput2 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , ( 9, 9, 9) ]   //    2proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.1125e0 // procs 1, 2
+   cfl_init                 = 0.1125e0 // procs 1, 2
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput4 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (19, 9, 9) ]   //    4proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.225e0  // procs 4, 8, 16
+   cfl_init                 = 0.225e0  // procs 4, 8, 16
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput8 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (19,19, 9) ]   //    8proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.225e0  // procs 4, 8, 16
+   cfl_init                 = 0.225e0  // procs 4, 8, 16
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput16 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (19,19,19) ]   //   16proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.225e0  // procs 4, 8, 16
+   cfl_init                 = 0.225e0  // procs 4, 8, 16
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput32 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (39,19,19) ]   //   32proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.45e0   // procs 32, 64, 128
+   cfl_init                 = 0.45e0   // procs 32, 64, 128
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput64 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (39,39,19) ]   //   64proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.45e0   // procs 32, 64, 128
+   cfl_init                 = 0.45e0   // procs 32, 64, 128
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput128 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (39,39,39) ]   //  128proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.45e0   // procs 32, 64, 128
+   cfl_init                 = 0.45e0   // procs 32, 64, 128
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput256 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (79,39,39) ]   //  256proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.9e0    // procs 256, 512, 1024
+   cfl_init                 = 0.9e0    // procs 256, 512, 1024
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput512 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (79,79,39) ]   //  512proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.9e0    // procs 256, 512, 1024
+   cfl_init                 = 0.9e0    // procs 256, 512, 1024
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}
+
+ScaledInput1024 {
+CartesianGeometry {
+   domain_boxes  = [ (0,0,0) , (79,79,79) ]   // 1024proc
+   x_lo          = -2.e0, -1.e0,-1.e0     // lower end of computational domain.
+   x_up          = 2.e0, 1.e0, 1.e0  // upper end of computational domain.
+   periodic_dimension = 0,0,0
+}
+HyperbolicLevelIntegrator {
+   cfl                      = 0.9e0    // procs 256, 512, 1024
+   cfl_init                 = 0.9e0    // procs 256, 512, 1024
+   lag_dt_computation       = TRUE
+   use_ghosts_to_compute_dt = TRUE
+   distinguish_mpi_reduction_costs = TRUE
+}
+   SinusoidalFrontTagger {
+      allocate_data = FALSE
+      buffer_cells = 0,0,0
+      buffer_space_0 = .25, .25, .25
+      buffer_space_1 = .05, .05, .05
+      buffer_space_2 = .01, .01, .01
+      period = 1
+      amplitude = .3
+      velocity = 2.0e0, 0.01e0, 0.01e0
+      init_disp = 0.0, 0.25, 0.25
+   }
+}

@@ -1,0 +1,782 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   $Description
+ *
+ ************************************************************************/
+
+#include <cassert>
+#include <cstdlib>
+
+#include "SAMRAI/pdat/IndexVariable.h"
+#include "SAMRAI/pdat/IndexVariable.C"
+#include "SAMRAI/tbox/Array.h"
+#include "SAMRAI/tbox/Array.C"
+#include "SAMRAI/tbox/SAMRAI_MPI.h"
+#include "SAMRAI/tbox/SAMRAIManager.h"
+#include "SAMRAI/tbox/TimerManager.h"
+#include "SAMRAI/tbox/Timer.h"
+#include "SAMRAI/pdat/CellData.C"
+#include "SAMRAI/pdat/CellGeometry.C"
+#include "SAMRAI/pdat/IndexData.h"
+#include "SAMRAI/pdat/IndexData.C"
+#include "SAMRAI/pdat/IndexDataFactory.h"
+#include "SAMRAI/pdat/IndexDataFactory.C"
+
+#include <boost/shared_ptr.hpp>
+#include <list>
+
+using namespace SAMRAI;
+using namespace hier;
+using namespace pdat;
+using namespace tbox;
+
+using namespace std;
+
+#define NN 10
+
+class Item
+{
+
+public:
+   Item()
+   {
+   }
+
+   ~Item()
+   {
+   }
+
+   void copySourceItem(
+      const hier::Index& idx,
+      const hier::IntVector& src_offset,
+      const Item& src_item)
+   {
+      NULL_USE(idx);
+      NULL_USE(src_offset);
+      for (int n = 0; n < NN; n++) {
+         x[n] = src_item.x[n];
+      }
+   }
+
+   size_t getDataStreamSize()
+   {
+      return 0;
+   }
+
+   void packStream(
+      MessageStream& stream)
+   {
+      NULL_USE(stream);
+   }
+
+   void unpackStream(
+      MessageStream& stream,
+      const hier::IntVector offset)
+   {
+      NULL_USE(stream);
+      NULL_USE(offset);
+   }
+
+   void putUnregisteredToDatabase(
+      boost::shared_ptr<tbox::Database> dbase)
+   {
+      NULL_USE(dbase);
+   }
+   void getFromDatabase(
+      boost::shared_ptr<tbox::Database> dbase)
+   {
+      NULL_USE(dbase);
+   }
+
+   double x[NN];
+};
+
+/*
+ * SGH: BG{L,P} et. al. do not like to have explicit template instantiations
+ * outside of the namespace in which the template is defined.  This causes
+ * a compile-time error, so we'll just avoid this on BG{L,P} platforms.
+ *
+ * Reference:  XL C/C++ V9.0 for Linux documentation, i
+ * section: Templates
+ * subsection: Explicit instantiation
+ * URL:
+ * http://publib.boulder.ibm.com/infocenter/lnxpcomp/v9v111/index.jsp?topic=/com.ibm.xlcpp9.linux.doc/language_ref/templates.htm
+ *
+ */
+#ifndef __xlC__
+template class pdat::IndexData<Item, pdat::CellGeometry>;
+template class pdat::IndexDataFactory<Item, pdat::CellGeometry>;
+template class pdat::IndexDataNode<Item, pdat::CellGeometry>;
+template class pdat::IndexIterator<Item, pdat::CellGeometry>;
+template class pdat::IndexVariable<Item, pdat::CellGeometry>;
+
+template class tbox::Array<pdat::IndexDataNode<Item, pdat::CellGeometry> >;
+template class boost::shared_ptr<pdat::IndexData<Item, pdat::CellGeometry> >;
+template class boost::shared_ptr<pdat::IndexVariable<Item, pdat::CellGeometry> >;
+template class boost::shared_ptr<pdat::IndexDataFactory<Item, pdat::CellGeometry> >;
+#endif
+
+int main(
+   int argc,
+   char* argv[])
+{
+   SAMRAI_MPI::init(&argc, &argv);
+   SAMRAIManager::initialize();
+   SAMRAIManager::startup();
+
+   {
+      tbox::Dimension dim(2);
+
+      Index box_lo = Index(dim, 0);
+      Index box_hi = Index(dim, 100);
+      Box box(box_lo, box_hi, BlockId(0));
+
+      srand(1);
+
+      hier::IntVector v(dim, 0);
+      hier::IntVector ghosts(dim, 0);
+
+      /******************************************************************************
+      * InedxData interface tests.
+      ******************************************************************************/
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         Item* item = new Item;
+
+         v[0] = 0;
+         v[1] = 0;
+         Index idx(v);
+         idx_data.addItemPointer(idx, item);
+
+         // isElement()
+         assert(idx_data.isElement(idx));
+         v[0] = 1;
+         v[1] = 0;
+         Index idx2(v);
+         assert(!idx_data.isElement(idx2));
+         v[0] = 0;
+         v[1] = 1;
+         Index idx3(v);
+         assert(!idx_data.isElement(idx3));
+
+         // addItem()/getItem()
+         assert(idx_data.getItem(idx) == item);
+
+         assert(idx_data.getNumberOfItems() == 1);
+
+         // removeItem()
+         idx_data.removeItem(idx);
+         assert(!idx_data.isElement(idx));
+
+         assert(idx_data.getNumberOfItems() == 0);
+      }
+
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         Item* item = new Item;
+
+         v[0] = 0;
+         v[1] = 0;
+         Index idx(v);
+         idx_data.addItem(idx, *item);
+         delete item;
+
+         // isElement()
+         assert(idx_data.isElement(idx));
+         v[0] = 1;
+         v[1] = 0;
+         Index idx2(v);
+         assert(!idx_data.isElement(idx2));
+         v[0] = 0;
+         v[1] = 1;
+         Index idx3(v);
+         assert(!idx_data.isElement(idx3));
+
+         // addItem()/getItem()
+         assert(idx_data.getNumberOfItems() == 1);
+
+         // removeItem()
+         idx_data.removeItem(idx);
+         assert(!idx_data.isElement(idx));
+
+         assert(idx_data.getNumberOfItems() == 0);
+      }
+
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         Item* item = new Item;
+         v[0] = 0;
+         v[1] = 0;
+         Index idx(v);
+         idx_data.replaceAddItem(idx, *item);
+         delete item;
+
+         // isElement()
+         assert(idx_data.isElement(idx));
+         v[0] = 1;
+         v[1] = 0;
+         Index idx2(v);
+         assert(!idx_data.isElement(idx2));
+         v[0] = 0;
+         v[1] = 1;
+         Index idx3(v);
+         assert(!idx_data.isElement(idx3));
+
+         // addItem()/getItem()
+         assert(idx_data.getNumberOfItems() == 1);
+
+         item = new Item;
+         idx_data.replaceAddItem(idx, *item);
+         delete item;
+
+         assert(idx_data.getNumberOfItems() == 1);
+
+         // removeItem()
+         idx_data.removeItem(idx);
+         assert(!idx_data.isElement(idx));
+      }
+
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         // getNumberItems()
+
+         v[0] = 0;
+         v[1] = 0;
+         Index idx1(v);
+         idx_data.addItemPointer(idx1, new Item);
+
+         v[0] = 1;
+         v[1] = 0;
+         Index idx2(v);
+         idx_data.addItemPointer(idx2, new Item);
+
+         assert(idx_data.getNumberOfItems() == 2);
+
+         // remove 1
+         idx_data.removeItem(idx1);
+         assert(idx_data.getNumberOfItems() == 1);
+
+         // replace 1 at same index, no change
+         idx_data.addItemPointer(idx2, new Item);
+         assert(idx_data.getNumberOfItems() == 1);
+      }
+
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         // removeInsideBox()
+         v[0] = 2;
+         v[1] = 2;
+         Index lo(v);
+
+         v[0] = 3;
+         v[1] = 5;
+         Index hi(v);
+
+         Box box1(lo, hi, BlockId(0));
+         hier::Box::iterator biend(box1, false);
+         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+
+            Index idx = *bi;
+
+            idx_data.addItemPointer(idx, new Item);
+
+         }
+
+         assert(idx_data.getNumberOfItems() == box1.size());
+
+         idx_data.removeInsideBox(box1);
+
+         assert(idx_data.getNumberOfItems() == 0);
+      }
+      {
+         IndexData<Item, pdat::CellGeometry> idx_data(box, ghosts);
+
+         // removeAllItems()
+         v[0] = 0;
+         v[1] = 0;
+         Index lo(v);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index hi(v);
+
+         Box box1(lo, hi, BlockId(0));
+         hier::Box::iterator biend(box1, false);
+         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+
+            Index idx = *bi;
+
+            idx_data.addItemPointer(idx, new Item);
+
+         }
+
+         assert(idx_data.getNumberOfItems() == box1.size());
+
+         idx_data.removeAllItems();
+
+         assert(idx_data.getNumberOfItems() == 0);
+      }
+
+      {
+         // copy() where src and dst are same box
+
+         IndexData<Item, pdat::CellGeometry> src(box, ghosts);
+         IndexData<Item, pdat::CellGeometry> dst(box, ghosts);
+
+         v[0] = 0;
+         v[1] = 0;
+         Index lo(v);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index hi(v);
+
+         Box box1(lo, hi, BlockId(0));
+         hier::Box::iterator biend(box1, false);
+         for (Box::iterator bi(box1, true); bi != biend; ++bi) {
+            src.addItemPointer(*bi, new Item);
+         }
+
+         assert(src.getNumberOfItems() == box1.size());
+         assert(dst.getNumberOfItems() == 0);
+
+         dst.copy(src);
+
+         assert(dst.getNumberOfItems() == src.getNumberOfItems());
+      }
+
+      {
+
+         // copy() where src and dst partially overlap, and only
+         // some of src's items are contained in overlap.
+
+         v[0] = 0;
+         v[1] = 0;
+         Index lo_src(v);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index hi_src(v);
+
+         Box box_src(lo_src, hi_src, BlockId(0));
+         IndexData<Item, pdat::CellGeometry> src(box_src, ghosts);
+
+         // Two of these three items should end up in dst
+         v[0] = 0;
+         v[1] = 0;
+         Index idx_item1(v);
+         src.addItemPointer(idx_item1, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index idx_item2(v);
+         src.addItemPointer(idx_item2, new Item);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index idx_item3(v);
+         src.addItemPointer(idx_item3, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index lo_dst(v);
+         v[0] = 3;
+         v[1] = 3;
+         Index hi_dst(v);
+         Box box_dst(lo_dst, hi_dst, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> dst(box_dst, ghosts);
+
+         assert(src.getNumberOfItems() == 3);
+         assert(dst.getNumberOfItems() == 0);
+
+         dst.copy(src);
+
+         assert(dst.getNumberOfItems() == 2);
+      }
+
+      {
+         // copy() with overlap argument
+
+         // src
+         // x . . . . . x "
+         // .   .   . 3 . " // 2
+         // . . . . . . . "
+         // .   . 2 .   . " // 1
+         // . . . . . . . "
+         // . 1 .   .   . " // 0
+         // x . . . . . x "
+
+         // dst orig
+         // . . x . . . x "
+         // .   . 4 .   . " // 2
+         // . . . . . . . "
+         // .   .   .   . " // 1
+         // . . x . . . x "
+         // .   .   .   . " // 0
+         // . . . . . . . "
+
+         // dst expected
+         // . . x . . . x "
+         // .   .   . 3 . "
+         // . . . . . . . "
+         // .   . 2 .   . "
+         // . . x . . . x "
+         // .   .   .   . "
+         // . . . . . . . "
+
+         v[0] = 0;
+         v[1] = 0;
+         Index lo_src(v);
+         v[0] = 2;
+         v[1] = 2;
+         Index hi_src(v);
+         Box box_src(lo_src, hi_src, BlockId(0));
+         IndexData<Item, pdat::CellGeometry> src(box_src, ghosts);
+
+         // Two of these three items should end up in dst
+         v[0] = 0;
+         v[1] = 0;
+         Index idx_item1(v);
+         src.addItemPointer(idx_item1, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index idx_item2(v);
+         src.addItemPointer(idx_item2, new Item);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index idx_item3(v);
+         src.addItemPointer(idx_item3, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index lo_dst(v);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index hi_dst(v);
+         Box box_dst(lo_dst, hi_dst, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> dst(box_dst, ghosts);
+
+         // This item should be removed
+         v[0] = 1;
+         v[1] = 2;
+         Index idx_item4(v);
+         dst.addItemPointer(idx_item4, new Item);
+
+         assert(src.getNumberOfItems() == 3);
+         assert(dst.getNumberOfItems() == 1);
+
+         IntVector src_offset(dim, 0);
+         BoxContainer boxes(box_src);
+         boxes.pushFront(box_dst);
+         BoxContainer intersection(box_src * box_dst);
+         CellOverlap overlap(intersection, hier::Transformation(src_offset));
+
+         BoxContainer dst_boxlist(overlap.getDestinationBoxContainer());
+
+         dst.copy(src, overlap);
+
+         assert(dst.getNumberOfItems() == 2);
+      }
+
+      {
+         // copy(): Same as test7 using copy2 which reverses src and dst
+
+         v[0] = 0;
+         v[1] = 0;
+         Index lo_src(v);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index hi_src(v);
+         Box box_src(lo_src, hi_src, BlockId(0));
+         IndexData<Item, pdat::CellGeometry> src(box_src, ghosts);
+
+         // Two of these three items should end up in dst
+         v[0] = 0;
+         v[1] = 0;
+         Index idx_item1(v);
+         src.addItemPointer(idx_item1, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index idx_item2(v);
+         src.addItemPointer(idx_item2, new Item);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index idx_item3(v);
+         src.addItemPointer(idx_item3, new Item);
+
+         v[0] = 1;
+         v[1] = 1;
+         Index lo_dst(v);
+
+         v[0] = 3;
+         v[1] = 3;
+         Index hi_dst(v);
+         Box box_dst(lo_dst, hi_dst, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> dst(box_dst, ghosts);
+
+         assert(src.getNumberOfItems() == 3);
+         assert(dst.getNumberOfItems() == 0);
+
+         src.copy2(dst);
+
+         assert(dst.getNumberOfItems() == 2);
+      }
+
+      {
+         v[0] = 0;
+         v[1] = 0;
+         Index lo(v);
+
+         v[0] = 2;
+         v[1] = 2;
+         Index hi(v);
+         Box data_box(lo, hi, BlockId(0));
+         IndexData<Item, pdat::CellGeometry> data(data_box, ghosts);
+
+         // Add three items
+         v[0] = 0;
+         v[1] = 0;
+         Index idx_item1(v);
+         data.addItemPointer(idx_item1, new Item);
+
+         v[0] = 0;
+         v[1] = 1;
+         Index idx_item2(v);
+         data.addItemPointer(idx_item2, new Item);
+
+         v[0] = 2;
+         v[1] = 1;
+         Index idx_item3(v);
+         data.addItemPointer(idx_item3, new Item);
+
+         int count = 0;
+         IndexIterator<Item, pdat::CellGeometry> itend(data, false);
+         for (IndexIterator<Item, pdat::CellGeometry> it(data, true);
+              it != itend; ++it) {
+            count++;
+         }
+         assert(3 == count);
+      }
+
+      int size = 100;
+      {
+         boost::shared_ptr<tbox::Timer> timer(
+            tbox::TimerManager::getManager()->
+            getTimer("IndexDataAppendItemSequential", true));
+
+         tbox::plog << "Begin Timing" << endl;
+
+         Index lo = Index(dim, 0);
+         Index hi = Index(dim, size);
+         Box data_box(lo, hi, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> idx_data(data_box, ghosts);
+
+         timer->start();
+
+         for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+               v[0] = i;
+               v[1] = j;
+               Index idx(v);
+
+               Item new_item;
+               idx_data.appendItem(idx, new_item);
+            }
+         }
+
+         int numberOfItems = idx_data.getNumberOfItems();
+         timer->stop();
+
+         tbox::plog << numberOfItems << endl;
+
+         tbox::plog.precision(16);
+
+         tbox::plog << "IndexData appendItem Sequential insert time : "
+                    << timer->getTotalWallclockTime() << endl;
+
+         tbox::plog << "End Timing" << endl;
+      }
+
+      {
+         boost::shared_ptr<tbox::Timer> timer(
+            tbox::TimerManager::getManager()->
+            getTimer("IndexDataAppendItemPointerSequential", true));
+
+         tbox::plog << "Begin Timing" << endl;
+
+         Index lo = Index(dim, 0);
+         Index hi = Index(dim, size);
+         Box data_box(lo, hi, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> idx_data(data_box, ghosts);
+
+         timer->start();
+
+         for (int i = 0; i < size; ++i) {
+            for (int j = 0; j < size; ++j) {
+               v[0] = i;
+               v[1] = j;
+               Index idx(v);
+
+               Item* new_item = new Item();
+               idx_data.appendItemPointer(idx, new_item);
+            }
+         }
+
+         timer->stop();
+
+         tbox::plog.precision(16);
+
+         tbox::plog << "IndexData appendItemPointer sequential insert time : "
+                    << timer->getTotalWallclockTime() << endl;
+
+         tbox::plog << "End Timing" << endl;
+      }
+
+      size = 100;
+      int num_inserts = 100000;
+
+      {
+         boost::shared_ptr<tbox::Timer> timer(
+            tbox::TimerManager::getManager()->
+            getTimer("IndexDataAppendItemRandom", true));
+
+         tbox::plog << "Begin Timing" << endl;
+
+         Index lo = Index(dim, 0);
+         Index hi = Index(dim, size);
+         Box data_box(lo, hi, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> idx_data(data_box, ghosts);
+
+         timer->start();
+
+         for (int n = 0; n < num_inserts; n++) {
+            int i = rand() % size;
+            int j = rand() % size;
+
+            v[0] = i;
+            v[1] = j;
+            Index idx(v);
+
+            Item new_item;
+            idx_data.appendItem(idx, new_item);
+         }
+
+         int numberOfItems = idx_data.getNumberOfItems();
+         timer->stop();
+
+         tbox::plog << numberOfItems << endl;
+
+         tbox::plog.precision(16);
+
+         tbox::plog << "IndexData appendItem random insert time : "
+                    << timer->getTotalWallclockTime() << endl;
+
+         tbox::plog << "End Timing" << endl;
+      }
+
+      {
+         boost::shared_ptr<tbox::Timer> timer(
+            tbox::TimerManager::getManager()->
+            getTimer("IndexDataAppendItemPointerRandom", true));
+
+         tbox::plog << "Begin Timing" << endl;
+
+         Index lo = Index(dim, 0);
+         Index hi = Index(dim, size);
+         Box data_box(lo, hi, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> idx_data(data_box, ghosts);
+
+         timer->start();
+
+         for (int n = 0; n < num_inserts; n++) {
+            int i = rand() % size;
+            int j = rand() % size;
+
+            v[0] = i;
+            v[1] = j;
+            Index idx(v);
+
+            Item* new_item = new Item();
+            idx_data.appendItemPointer(idx, new_item);
+         }
+
+         timer->stop();
+
+         tbox::plog.precision(16);
+
+         tbox::plog << "IndexData appendItemPointer random insert time : "
+                    << timer->getTotalWallclockTime() << endl;
+
+         tbox::plog << "End Timing" << endl;
+      }
+
+      size = 100;
+
+      {
+         boost::shared_ptr<tbox::Timer> timer(
+            tbox::TimerManager::getManager()->
+            getTimer("IndexDataReplace", true));
+
+         tbox::plog << "Begin Timing" << endl;
+
+         Index lo = Index(dim, 0);
+         Index hi = Index(dim, size);
+         Box data_box(lo, hi, BlockId(0));
+
+         IndexData<Item, pdat::CellGeometry> idx_data(data_box, ghosts);
+
+         timer->start();
+
+         for (int n = 0; n < num_inserts; n++) {
+            int i = rand() % size;
+            int j = rand() % size;
+
+            v[0] = i;
+            v[1] = j;
+            Index idx(v);
+
+            Item* new_item = new Item();
+            idx_data.replaceAddItemPointer(idx, new_item);
+         }
+
+         timer->stop();
+
+         tbox::plog.precision(16);
+
+         tbox::plog << "IndexData replaceAddItemPointer random insert time : "
+                    << timer->getTotalWallclockTime() << endl;
+
+         tbox::plog << "End Timing" << endl;
+      }
+   }
+
+   tbox::pout << "PASSED" << endl;
+
+   SAMRAIManager::shutdown();
+   SAMRAIManager::finalize();
+   SAMRAI_MPI::finalize();
+
+   exit(0);
+}

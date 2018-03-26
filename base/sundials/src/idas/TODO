@@ -1,0 +1,4 @@
+Add all input legality tests in IDAGetSens and IDAGetSens1
+
+Implement consistent sensitivity IC calculation function
+

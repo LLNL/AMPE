@@ -1,0 +1,131 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   README SAMRAI test package.
+##
+#########################################################################
+
+The SAMRAI/source/test directory contains test codes that
+verify correctness of various components in the library.  
+All tests included here are run through our autotest suite
+to assure accurate results.
+
+The following summarizes the tests carried out in the 
+different sub-directories:
+
+applications:   
+   Compile cases in the /source/applications directory
+   with the local "AutoTester" class included.  The AutoTester
+   class checks the state of various objects used in the 
+   application at the end of the run and compares them to 
+   the expected "correct" result entered in the input file.
+
+   The Euler case carries out one additional test on the
+   correctness of the Riemann problem.  Data files specify 
+   the correct fluxes after a certain number of steps (to
+   10 digits accuracy).  The solution can be verified by
+   doing a "diff" on the output data file with these
+   correct result files.
+
+async_comm:
+
+boundary:
+   A set of tests to check the correctness of the routines to set various 
+   physical boundary conditions supplied by the CartesianBoundaryUtilities
+   classes in the Application Utilities package.
+
+   All test source code is contained in the SAMRAI/examples/boundary directory.
+
+clustering:
+
+communication:
+   Performs a set of tests that invoke data transfer operations
+   between patches using cell, face, node, and side datatypes.
+   In addition to communication, this test verifies the accuracy
+   of the interpolation (i.e. coarsen and refine) operations 
+   carried out on these various datatypes.  The grid hierarchy 
+   configuration and number of processors may be set through the 
+   input file.  
+
+dataaccess:
+
+dataops:
+   Tests various data operations with cell, face, node, side,
+   and edge datatypes across the hierarchy and for complex
+   operations.  The operations set data on patches and 
+   test operations like linear_sum(), dot_product(), 
+   axmy(), etc. on the hierarchy.  The grid hierarchy is
+   fixed so it must be run on 1 or 2 processors.
+   of processors.
+
+dlbg:
+
+emb_bdry:
+
+FAC:
+
+HDF5:
+   A set of tests to check the correctness of the routines to read from and 
+   write to an HDF5 file in the tbox::HDFDatabase class (used for writing and
+   reading SAMRAI restart files).
+
+   All test source code is contained in the SAMRAI/source/test/HDF5 directory.
+
+hierarchy:
+   A set of tests to check the correctness of the PatchHierarchy operations
+   to make coarsened and refined versions of a given AMR patch hierarchy.
+
+   All test source code is contained in the SAMRAI/source/test/hierarchy directory.
+
+hypre:
+
+ieee:
+
+inputdb:
+   A set of tests to check the correctness of the routines to read data
+   from SAMRAI inut files defined in the tbox:InputDatabase class.
+
+   All test source code is contained in the SAMRAI/source/test/inputdb directory.
+
+locally_active:
+   A set of tests to check coarsening and refinement communication operations for
+   locally-active data defined on a SAMRAI patch hierarchy.
+
+   All test source code is contained in the SAMRAI/source/test/locally_active directory.
+
+mblkcomm:
+
+nonlinear:
+
+patchbdrysum:
+   A set of tests to check operations for summing node and edge data across shared points
+   on the boundaries of patches in a SAMRAI patch hierarchy. 
+
+   All test source code is contained in the SAMRAI/examples/patchbdrysum directory.
+
+pointer:
+   A set of tests to basic operation of SAMRAI smart pointers.
+
+   All test source code is contained in the SAMRAI/source/test/pointer directory.
+
+sundials:
+
+schedules:
+
+timers:
+   Tests use of timers, verifying nested structure, input,
+   parallel usage, and restart capability.
+
+variables:
+   A set of tests to check operations provided by the SAMRAI VariableDatabase class.
+
+   All test source code is contained in the SAMRAI/source/test/variables directory.
+
+vector:
+   Tests the SAMRAI vector classes. In particular, the SAMRAI-PETSc
+   and SAMRAI-Kinsol vector interfaces.  Tests use a specific
+   grid hierarchy layout and can only be tested on 1 or 2 processors.
+

@@ -1,0 +1,62 @@
+%% # foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVRhsFnB!}
+\label{p:CVRhsFnB}
+\index{CVRhsFnB}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVRhsFnB - type for user provided RHS function for backward problems.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+This is a script file. 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVRhsFnB - type for user provided RHS function for backward problems.
+
+   The function ODEFUNB must be defined either as
+        FUNCTION [YBD, FLAG] = ODEFUNB(T,Y,YB)
+   or as
+        FUNCTION [YBD, FLAG, NEW_DATA] = ODEFUNB(T,Y,YB,DATA)
+   depending on whether a user data structure DATA was specified in
+   CVodeMalloc. In either case, it must return the vector YBD
+   corresponding to fB(t,y,yB).
+
+   The function ODEFUNB must set FLAG=0 if successful, FLAG&lt;0 if an
+   unrecoverable failure occurred, or FLAG&gt;0 if a recoverable error
+   occurred.
+
+   See also CVodeInitB
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

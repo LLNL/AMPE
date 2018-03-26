@@ -1,0 +1,11 @@
+##
+## File:        Makefile.config.in
+## Description: configuration makefile included by all DEV makefiles
+##
+
+DEV_DIR			 = @DEV_DIR@
+F77LIBDIRS	 	 = @F77LIBDIRS@
+LIB_TOTALVIEW		 = @LIB_TOTALVIEW@
+IS_AIX			 = @IS_AIX@
+
+CXXFLAGS += @CXX_FLAGS@

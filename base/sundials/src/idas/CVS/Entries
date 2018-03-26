@@ -1,0 +1,23 @@
+/LICENSE/1.1/Wed Jul  5 15:32:35 2006//
+/idas_bbdpre.c/1.8/Thu Jul  5 19:15:45 2007//
+/idas_bbdpre_impl.h/1.5/Thu Jul  5 19:15:45 2007//
+/idas_direct.c/1.5/Thu Jul  5 19:15:45 2007//
+/idas_direct_impl.h/1.5/Thu Jul  5 19:15:45 2007//
+/idas_spils.c/1.6/Thu Jul  5 19:15:45 2007//
+/idas_spils_impl.h/1.7/Thu Jul  5 19:15:45 2007//
+/idaa_io.c/1.1/Thu Jul  5 19:20:58 2007//
+/idas_ic.c/1.5/Sun Jul 29 19:04:51 2007//
+/idaa.c/1.14/Mon Nov 26 16:20:00 2007//
+/idas.c/1.32/Mon Nov 26 16:20:00 2007//
+/idas_band.c/1.10/Mon Nov 26 16:20:00 2007//
+/idas_dense.c/1.10/Mon Nov 26 16:20:00 2007//
+/idas_impl.h/1.21/Mon Nov 26 16:20:00 2007//
+/idas_io.c/1.22/Mon Nov 26 16:20:01 2007//
+/idas_lapack.c/1.7/Mon Nov 26 16:20:01 2007//
+/idas_spbcgs.c/1.7/Mon Nov 26 16:20:01 2007//
+/idas_spgmr.c/1.7/Mon Nov 26 16:20:01 2007//
+/idas_sptfqmr.c/1.7/Mon Nov 26 16:20:01 2007//
+/README/1.2/Wed Dec  5 22:50:31 2007//
+/CMakeLists.txt/1.3/Wed Dec 19 20:34:01 2007//
+/Makefile.in/1.10/Wed Dec 19 20:34:01 2007//
+D

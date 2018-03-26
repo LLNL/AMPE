@@ -1,0 +1,34 @@
+D/examples_ser////
+D/idm////
+D/function_types////
+/IDACalcIC.m/1.3/Tue Aug 21 17:38:42 2007//
+/IDACalcICB.m/1.3/Tue Aug 21 17:38:42 2007//
+/IDAFree.m/1.3/Tue Aug 21 17:38:42 2007//
+/IDAMonitor.m/1.3/Tue Aug 21 17:38:42 2007//
+/IDAMonitorB.m/1.1/Tue Aug 21 17:38:42 2007//
+/IDAMonitorB_octave.m/1.1/Tue Aug 21 17:38:42 2007//
+/IDAMonitor_octave.m/1.1/Tue Aug 21 17:38:42 2007//
+/IDAQuadSetOptions.m/1.1/Tue Aug 21 17:38:42 2007//
+/IDASensSetOptions.m/1.1/Tue Aug 21 17:38:43 2007//
+/IDASolve.m/1.3/Tue Aug 21 17:38:43 2007//
+/IDASolveB.m/1.3/Tue Aug 21 17:38:43 2007//
+/Contents.m/1.3/Fri Oct 26 16:22:44 2007//
+/IDAAdjInit.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAAdjReInit.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAGet.m/1.4/Wed Dec  5 21:58:18 2007//
+/IDAGetStats.m/1.3/Wed Dec  5 21:58:18 2007//
+/IDAGetStatsB.m/1.4/Wed Dec  5 21:58:18 2007//
+/IDAInit.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAInitB.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAQuadInit.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAQuadInitB.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAQuadReInit.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAQuadReInitB.m/1.2/Wed Dec  5 21:58:18 2007//
+/IDAReInit.m/1.3/Wed Dec  5 21:58:18 2007//
+/IDAReInitB.m/1.3/Wed Dec  5 21:58:18 2007//
+/IDASensInit.m/1.2/Wed Dec  5 21:58:19 2007//
+/IDASensReInit.m/1.3/Wed Dec  5 21:58:19 2007//
+/IDASensToggleOff.m/1.3/Wed Dec  5 21:58:19 2007//
+/IDASet.m/1.2/Wed Dec  5 21:58:19 2007//
+/IDASetB.m/1.2/Wed Dec  5 21:58:19 2007//
+/IDASetOptions.m/1.5/Wed Dec  5 21:58:19 2007//

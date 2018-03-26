@@ -1,0 +1,79 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for cvode sample application 
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/sundials
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DDISPLAY -DNDIM=$(PDIM) -DTESTING=1
+
+CXX_OBJS      = main.o CVODEModel.o tbox_Pointer-CVODEModel.o
+F_OBJS        = FACjacobian2d.o FACjacobian3d.o 
+
+NUM_TESTS = 4
+
+TEST_NPROCS = @TEST_NPROCS@
+
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+	$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o main
+
+checkcompile:   main
+
+check:
+	$(MAKE) check2d
+	$(MAKE) check3d
+
+check2d:	main
+	@for i in test_inputs/*2d*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+check3d:	main
+	@for i in test_inputs/*3d*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+
+clean-check:
+	$(SAMCLEAN)
+
+clean:
+	$(RM) *.o main
+
+include $(SRCDIR)/Makefile.depend
+
+FORTRAN       = $(SRCDIR)
+M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
+
+FACjacobian2d.o:	$(FORTRAN)/FACjacobian2d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/FACjacobian2d.m4 > FACjacobian2d.f
+	$(F77) $(FFLAGS) -c FACjacobian2d.f -o $@
+
+FACjacobian3d.o:	$(FORTRAN)/FACjacobian3d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/FACjacobian3d.m4 > FACjacobian3d.f
+	$(F77) $(FFLAGS) -c FACjacobian3d.f -o $@
+
+

@@ -1,0 +1,120 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+Step 0:
+Run autoconf:
+
+   autoconf
+
+This should generate the 'configure' file
+
+Step 1: Configure for a specific combination of platform, compiler and
+        optimization level
+
+After checking out from the repository, cd into the top level
+directory and execute the configure script for the
+platform-compiler-optimization you want to build.  For example, to
+configure for cab using the Intel C++ and Fortran compilers with
+optimization, execute
+
+   scripts/doconfig_peloton_icpc_ifort_opt
+
+If a script does not exist for the platform-compiler_optimization
+combination you want, you'll have to create your own using one of the
+existing scripts as an example.  Note that all of the scripts
+currently in the "scripts" subdirectory assume that they are being
+executed from the top level directory (as indicated above), which is
+the location of of the configure script the "doconfig" scripts depend
+upon.
+
+Step 2: Install the base (i.e., third-party) libraries for the
+        new platform-compiler-optimization combination
+
+The configuration step just performed will create a subdirectory
+"build" of the top level directory (if it didn't already exist) and a
+subdirectory of the "build" directory labeled by the associated
+platform-compiler-optimization combination.  Underneath that
+subdirectory are three more subdirectories: base, config, and objects.
+In other words, for the current example, the following directory tree
+is created if ruuning the script on cab:
+
+(top level directory)
+          |
+          |
+        build
+          |
+          |
+  cab-mpiicpc-14.0.174-ifort-14.0.174-opt
+    |     |      |
+    |     |      |
+  base  config  objects
+
+To install the base libraries, cd into the base subdirectory and
+execute the doinstall script located there:
+
+  cd build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/base
+  doinstall
+
+This will compile and install the base libraries, which currently
+consist of Hypre, Sundials and SAMRAI.  The SAMRAI build takes a while, so
+patience is required.
+
+Step 3: Build the AMPE code
+
+Under the build/platform-compiler-optimization/objects directory
+created by the configuration step performed in Step 1, you will find a
+directory tree that mirrors all of the subdirectories of the top level
+source directory that contain a "Makefile.in" file.
+                    
+To build the AMPE code, just cd to the objects directory amd gmake:
+
+   cd build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/objects
+   gmake
+
+The object files and executable are generated in the current
+directory.  You can run the code from there.  Note that the input
+files (which do not depend on the specific choice of
+platform-compiler-optimization) will still be over in the common
+source directory, so you will have to specify the path (or perhaps
+make a link).  For example,
+
+srun -n32 -ppdebug ampe2d top-level-directory/ampe/trunk/examples/AuNi_2D/9grains_AuNi_initial.input
+
+
+Miscellaneous notes:
+
+1. The configuration performed in Step 1 generates the Makefile in
+build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/objects from the template Makefile.in in
+source.  This includes the generation of the file Makefile.depend in
+source, which describes the build dependencies.  This means that if
+any changes are made to the source code that could affect the
+dependencies, the configuration step should be redone.

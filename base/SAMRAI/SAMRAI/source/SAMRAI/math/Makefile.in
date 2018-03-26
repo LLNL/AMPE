@@ -1,0 +1,62 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   primary makefile for compiling the SAMRAI math package 
+##
+#########################################################################
+
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/SAMRAI/math
+VPATH         = @srcdir@
+OBJECT        = ../../..
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+OBJS = 	\
+	PatchSideDataOpsInteger.o \
+	PatchFaceDataOpsInteger.o \
+	PatchEdgeDataOpsInteger.o \
+	PatchCellDataOpsInteger.o \
+	PatchNodeDataOpsInteger.o \
+	PatchSideDataOpsComplex.o \
+	PatchNodeDataNormOpsComplex.o \
+	PatchSideDataNormOpsComplex.o \
+	PatchFaceDataOpsComplex.o \
+	PatchFaceDataNormOpsComplex.o \
+	PatchNodeDataOpsComplex.o \
+	PatchEdgeDataOpsComplex.o \
+	PatchEdgeDataNormOpsComplex.o \
+	PatchCellDataOpsComplex.o \
+	PatchCellDataNormOpsComplex.o \
+	HierarchyCellDataOpsInteger.o \
+	HierarchyEdgeDataOpsInteger.o \
+	HierarchyFaceDataOpsInteger.o \
+	HierarchySideDataOpsInteger.o \
+	HierarchyNodeDataOpsInteger.o \
+	HierarchyDataOpsManager.o \
+	HierarchyDataOpsInteger.o \
+	HierarchyCellDataOpsComplex.o \
+	HierarchyEdgeDataOpsComplex.o \
+	HierarchyFaceDataOpsComplex.o \
+	HierarchySideDataOpsComplex.o \
+	HierarchyNodeDataOpsComplex.o \
+	HierarchyDataOpsComplex.o \
+	ArrayDataNormOpsComplex.o \
+	ArrayDataNormOpsInteger.o
+
+library: $(OBJS)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+clean:
+	$(SAMCLEAN)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+include $(SRCDIR)/Makefile.depend

@@ -1,0 +1,115 @@
+\documentclass[12pt]{letter}
+\setlength{\textheight}{9.0in}
+\setlength{\textwidth}{6.0in}
+\setlength{\topmargin}{-0.4in}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{letter}
+
+\vspace{0.2in}
+\centerline{\bf Code Abstract for IDA v2.2.0}
+
+\begin{enumerate}
+
+\item {\bf Identification}
+
+Software acronym: IDA v2.2.0
+
+Short title: Stiff DAE integrator.
+
+\item {\bf Developer name(s) and affiliations}
+
+Alan C. Hindmarsh and Radu Serban (CASC, LLNL)
+
+\item {\bf Software Completion Date}
+
+November 19, 2004
+
+\item {\bf Brief description}
+
+IDA is a general purpose (serial and parallel) solver for differential algebraic
+equation (DAE) systems or implicit ordinary differential equation (ODE) systems.
+
+\item {\bf Method of solution}
+
+Integration is by the BDF method. Corrector iteration is by Newton iteration. 
+For the solution of linear systems within Newton iteration, users can select a 
+dense solver, a band solver, or a preconditioned GMRES solver.
+
+\item {\bf Computer(s) for which software is written}
+
+IDA should run on any computer with an ANSI C compiler. The appropriate 
+precision (single, double, or extended) is selected at the configuration phase.
+
+\item {\bf Operating system}
+
+No system-dependency in the software itself. But installation is system-dependent. 
+The package supplied consists of a single archived file. Installation from this file 
+assumes a UNIX system with the tar utility. Configuration is done through a 
+configure script. Compilation of libraries is done by way of UNIX makefiles.
+
+\item {\bf Programming language(s) used}
+
+ANSI C (100\%)
+
+\item {\bf Software limitations}
+
+none
+
+\item {\bf Unique features of the software}
+
+IDA is organized in a highly modular manner. The basic integrator
+is separate from, and independent of, the linear system 
+solvers, as well as the vector operation modules. Thus the set of linear solvers can be 
+expanded and the internal vector representation can be replaced with no impact on 
+the main solver.
+
+\item {\bf Related and auxiliary software}
+
+IDA is part of SUNDIALS (Suite of Nonlinear and Differential/Algebraic equation 
+Solvers). 
+
+\item {\bf Other Programming or Operating Information or Restrictions}
+
+none
+
+
+\item {\bf Hardware Requirements}
+
+none
+
+
+\item {\bf Time Requirements}
+
+Timing is highly dependent on machine and problem.
+
+
+\item {\bf References}
+
+Document provided with the distribution
+\begin{itemize}
+\item A. C. Hindmarsh and R. Serban, "User Documentation for IDA v2.2.0," 
+    LLNL technical report UCRL-SM-208112, November 2004.
+\item A. C. Hindmarsh and R. Serban, "Example Programs for IDA v2.2.0," 
+    LLNL technical report UCRL-SM-208113, November 2004.
+\end{itemize}
+Additional background references
+\begin{itemize}
+\item A. C. Hindmarsh, P. N. Brown, K. E. Grant, S. L. Lee, R. Serban, 
+    D. E. Shumaker, and C. S. Woodward, "SUNDIALS, Suite of Nonlinear and 
+    Differential/Algebraic Equation Solvers," ACM Trans. Math. Softw., 
+    accepted, 2004.
+\item P. N. Brown, A. C. Hindmarsh, and L. R. Petzold, Using Krylov Methods 
+    in the Solution of Large-Scale Differential-Algebraic Systems, 
+    SIAM J. Sci. Comp., 15 (1994), pp. 1467-1488.
+\item P. N. Brown, A. C. Hindmarsh, and L. R. Petzold, Consistent Initial 
+    Condition Calculation for Differential-Algebraic Systems, 
+    SIAM J. Sci. Comp., 19 (1998), pp. 1495-1512.
+\end{itemize}
+\end{enumerate}
+
+\end{letter}
+\end{document}

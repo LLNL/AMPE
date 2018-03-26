@@ -1,0 +1,33 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   README file for vector test.
+##
+#########################################################################
+
+The SAMRAI/source/test/vector directory contains source code 
+to test the SAMRAI vector classes, the SAMRAI-PETSc vector
+interface and the SAMRAI-Kinsol vector interface.  Each of these test programs
+creates a 2 level patch hierarchy with 2 patches on each level and may only 
+be run on 1 or 2 processors.
+
+
+Compilation:
+              pvtest - make pvtest
+              kvtest - make kvtest
+
+Execution:
+   serial -
+              pvtest - ./pvtest
+              kvtest - ./kvtest
+
+   parallel -
+              pvtest - mpirun -np <procs> pvtest
+              kvtest - mpirun -np <procs> kvtest
+
+Output:
+              pvtest - pvtest.log.*
+              kvtest - kvtest.log.*

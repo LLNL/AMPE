@@ -1,0 +1,95 @@
+Comments on
+CVODES: An ODE solver with sensitivity analysis capabilities
+by Radu Serban and Alan C. Hindmarsh
+TOMS-2003-0041
+
+1 Summary of the contents
+The paper describes the software tool CVODES as a multistep ODE solver
+with comprehensive capabilities for sensitivity analysis. The ODE integra-
+tion itself is performed by a BDF method for stiff systems or an Adams-
+Moulton formula for non-stiff systems. Arising linear systems can be solved
+by either a dense direct method, a banded direct method or an iterative
+Krylov subspace method.
+The sensitivity analysis features of CVODES comprise forward sensitiv-
+ity analysis by the simultaneous corrector method as described in [5], or
+two versions of the staggered corrector method as introduced in [1]. The
+right-hand sides of the arising sensitivity systems can be currently obtained
+through analytical user input, finite differences or directional derivatives,
+and an automatic differentiation option is envisaged in the conclusion sec-
+tion.Furthermore, CVODES also allows to compute sensitivities via adjoint
+sensitivity analysis by implementing a check-pointing strategy.
+In Section 3, the paper describes details of the software setup and code
+organization, as part of a larger family of solvers, the SUNDIALS package.
+Section 4 of the paper is concerned with giving a detailed overview about
+the usage of the tool.
+
+2 Comments on the contents and assessment of relevance for a publication in TOMS
+The features of the tool mentioned in this paper are apparently not new. A
+BDF solver for DAE systems with dense direct, banded direct or Krylov sub-
+space based linear solvers is available as the well-established code DDASPK
+[2]. DDASPK also contains the three common methods for forward sensi-
+tivity analysis, i.e. the staggered direct, the simultaneous corrector and the
+staggered corrector method. The code DSL48S [1] contains a BDF solver
+for DAE systems with the staggered corrector sensitivity method using the
+sparse direct linear algebra solver MA48. 
+
+The statement in Section 2.2.1 of the paper, that the staggered direct method 
+is always unattractive, is not correct. As shown in [4], it can outperform the 
+other methods in case that Ns >>  N. 
+
+Response: We have changed this paragraph to include the citation [4] and 
+clarify that the staggered direct method is not attractive for problems that 
+have many states (such as those arising from semidiscretization of PDES).
+For the cases in which the number of parameters is very large (comparable
+to the problem size) adjoint sensitivity is (generally) a better choice than 
+any forward sensitivity method.
+
+In contrast to CVODES, DDASPK already contains automatic differentiation capabilities 
+according to [2].
+
+Regarding the adjoint approach, the concepts and implementation in
+this paper appear to be close to what has been reported in [3]. The check-
+pointing has already been described in that reference. 
+
+Response: We have changed this paragraph to mention that we are 
+using a checkpointing scheme similar to the one in DASPKADJOINT
+and a justification why truly optimal checkpointing (as described
+by Griewank and Walther) cannot be employed.
+
+DDASPKADJOINT additionally contains optional automatic differentiation facilities 
+for obtaining the required derivative information.
+
+According to the paper, the key benefit of CVODES appears to be the
+modular software implementation, which collects all subelements for ODE
+integration and sensitivity evaluation under one common roof. The modular
+approach allows an easy exchange of low-level tools such as linear solvers
+etc.The editorial charter of TOMS states that "the purpose of a TOMS
+communication is the presentation of the results of novel research and de-
+velopment efforts in support of significant mathematical computer applica-
+tion". Taking the findings above into account, it is rarely possible to accept
+the paper as "novel research". An acceptable paper should also contain "a
+demonstration of superiority compared to alternative approaches", typically
+carried out by an experimental evaluation of computer implementations.
+The paper at hand is completely lacking this issue. Basically it is a descrip-
+tion of a new software implementation of well-known numerical concepts.
+
+3 Recommendation
+In line with the argumentation above we would recommend to reject the
+paper in the current form.
+
+References
+[1] W. Feehery, J. Tolsma, and P.I. Barton. Efficient sensitivity analysis of
+large­scale differential­algebraic systems. Appl. Numer. Math., 25:41­
+54, 1997.
+[2] S. Li and L. Petzold. Design of new DDASPK for sensitivity analysis.
+Technical report, Dept. of Mech. and Env. Eng., University of California,
+Santa Barbara, 1999.
+[3] S. Li and L. Petzold. Description of DASPKADJOINT: An Adjoint
+Sensitivity Solver for Differential-Algebraic Equations. Technical report,
+Department of Computer Science, University of California Santa Bar-
+bara, USA, 2002.
+[4] S. Li, L. Petzold, and W. Zhu. Sensitivity analysis of differential-
+algebraic equations: A comparison of methods on a special problem.
+Appl. Numer. Math., 32:161­174, 2000.
+[5] T. Maly and L. Petzold. Numerical methods and software for sensitivity
+analysis of differential-algebraic systems. Appl. Numer. Math., 20, 1996.

@@ -1,0 +1,116 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright 
+ * information, see COPYRIGHT and COPYING.LESSER. 
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Input file for 3D DLBG test. 
+ *
+ ************************************************************************/
+
+Main {
+  dim = 3
+  which_br = 'n'
+  base_name = "front3d"
+  log_all = TRUE
+  plot_step = 1
+  check_graph = FALSE
+  // restart_write_dirname = "restart"
+  // time_nlbg_random_rmi = TRUE
+  log_hierarchy = FALSE
+  num_steps = 3
+}
+
+ABRTest {
+  sine_tagger {
+    allocate_data = FALSE
+    adaption_buffer = 1
+    period = 1
+    amplitude = .3
+    init_disp = 0.5, 0.0, 0.0
+    velocity = 0.02, 0.005, 0.005
+  }
+}
+
+
+BergerRigoutsos {
+  // log_node_history = TRUE
+  log_cluster_summary = TRUE
+    // algo_advance_mode = "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
+  // algo_advance_mode = "ADVANCE_ANY"
+  algo_advance_mode = "ADVANCE_SOME"
+  // algo_advance_mode = "SYNCHRONOUS"
+  // owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
+  // owner_mode = "SINGLE_OWNER"
+  owner_mode = "MOST_OVERLAP"
+  // owner_mode = "FEWEST_OWNED"
+  // owner_mode = "LEAST_ACTIVE"
+  use_level_boxes = FALSE
+  use_private_communicator = TRUE
+  max_gcw = 0, 0, 0
+}
+
+
+CartesianGridGeometry {
+  domain_boxes = [(0,0,0), (23,15,15)]
+  // domain_boxes = [(0,0,0), (9,3,3)]
+  x_lo         = 0, 0, 0
+  x_up         = 3, 2, 2
+}
+
+StandardTagAndInitialize {
+  tagging_method = "GRADIENT_DETECTOR"
+}
+
+TreeLoadBalancer {
+  report_load_balance = TRUE
+  num_cycles = 2
+}
+
+PatchHierarchy {
+   max_levels = 3
+   largest_patch_size {
+      level_0 = 32,32,32
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 4,4,4
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 2, 2, 2
+      level_2            = 2, 2, 2
+      level_3            = 2, 2, 2
+      level_4            = 2, 2, 2
+      level_5            = 2, 2, 2
+      level_6            = 2, 2, 2
+      level_7            = 2, 2, 2
+      level_8            = 2, 2, 2
+      level_9            = 2, 2, 2
+      //  etc.
+   }
+   allow_patches_smaller_than_ghostwidth = TRUE
+
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+}
+
+GriddingAlgorithm {
+   combine_efficiency = 0.88
+   efficiency_tolerance = 0.88
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+}
+
+
+GlobalInputs{
+   tag_clustering_method = "BINARY_TREE"
+}
+
+
+TimerManager{
+  timer_list = "hier::*::*", "mesh::*::*", "tbox::*::*", "apps::*::*"
+  print_user = TRUE
+  // print_timer_overhead = TRUE
+  print_threshold = 0
+  print_summed = TRUE
+  print_max = TRUE
+}

@@ -1,0 +1,102 @@
+Referee 1 Comments:
+
+This paper describes an ODE solver with sensitivity analysis 
+capabilities. Sensitivity analysis is an extremely important
+subject that can be applied in a number of situations such as
+optimum design, experimental design, uncertainty analysis etc. 
+
+This paper is very well written and can be decomposed into two
+main parts: algorithms and code description. It is difficult to
+find something new in the algorithm part. The authors should
+give proper citations on the things they have used. For example, on
+page 4, the quadrature computation has been proposed and
+documented in DASPK3.0 package (see Li and Petzold (2000 and
+2001), Cao et al (2002)). 
+
+The evaluation of the sensitivity right-hand side is the key
+part for users who want to use the sensitivity analysis
+capabilities. I suggest the authors describe and compare all the
+approaches, not only the finite-difference approaches, and give
+appropriate citations. 
+
+Response: 
+The mechanism provided in CVODES for user-defined routines
+for the evaluation of derivative information (Jacobian-related data
+and/or sensitivity right-hand sides) can be used to wrap AD-generated
+routines.
+We have included a paragraph discussing our own efforts 
+in developing complex-step derivative approximations through automatic 
+code generation and a short discussion on the challenges in 
+designing general interfaces to automatic differentiation tools
+for C codes.
+
+In section 2.3, the authors ignore that the check-pointing
+scheme has also been used in other adjoint packages (e.g.,
+Giering, TAMC) and DAE solver DASPKADJOINT code (see Cao et
+al.(2002), Li and Petzold(2001)). 
+
+Response: we have changed this paragraph to mention that we are 
+using a checkpointing scheme similar to the one in DASPKADJOINT
+and a justification why truly optimal checkpointing (as described
+by Griewank and Walther) cannot be employed.
+
+The authors do not mention how to evaluate the adjoint sensitivity 
+right-hand side (15) or (17) in the paper. This is the key for the users. 
+I find that in the code, the analytic input by hand is used, which is impossible
+for many of users and applications. 
+
+The last sentence about the adjoint PDE on page 10 is wrong. 
+You cannot replace the adjoint of the discretized PDE with the 
+discretized adjoint PDE system directly without modifying the 
+sensitivity evaluation formula (14). The boundary conditions, 
+which is absent in ODE solver and formula (14), must be incorporated 
+(see Li and Petzold (2003) about adjoint PDE). 
+
+Response: We are aware that these two formulations are different and this
+is what we were trying to say. Exactly because of this, we designed 
+CVODES such that it does not assume one formulation or the other.
+We have now explicitely stated that the two formulations are different
+(with two citations).
+
+The code description part is quite clear. I would like to see
+the following points to be addressed. 
+
+1) Since there are many FORTRAN ODE/DAE codes available, the authors need to 
+state explicitly what the advantages are to rewrite the code to C or C++
+language. 
+
+Response: We have included a paragraph in the introduction that lists
+some of the advantages of using C: portability, availability, standard
+dynamic memory allocation and data structures, etc.
+
+2) Many numerical users are still using Fortran in writing their right-hand 
+side. The authors need to give a clear and easy-used interface between the 
+Fortran user and CVODES package. 
+
+Response: In the introduction, we point to the Fortran-C interface provided
+with CVODE as an example of using a SUNDIALS solver with Fortran user code.
+Moreover, as mentioned in the Conlcusions section, we are planning on
+providing interlanguage operability for all of the SUNDIALS codes by using
+Babel technology.
+
+3) The authors need to describe how to incorporate efficiently the existing 
+nonlinear or linear solvers. For example, many PDE packages now use the sparse 
+data structure and multi-grid preconditioners. How to use the modern solver
+techniques  in CVODES is an interesting field. The author need
+to give some related examples in the code. 
+
+4) The authors do not state much about the parallelization. I would like to 
+see more about that topic in the paper and numerical efficiency and speed-up
+comparison with the serial code in the packages.
+
+Response: We have included a section on parallel speedup on a sensitivity
+problem.
+
+I recommend the paper for publications after the suggested
+changes have been made. 
+
+P.S.: The references mentioned in this report can be found in 
+http://www.engineering.ucsb.edu/~cse
+
+
+

@@ -1,0 +1,60 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVodeQuadInitB!}
+\label{p:CVodeQuadInitB}
+\index{CVodeQuadInitB}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVodeQuadInitB allocates and initializes memory for backward quadrature integration.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function CVodeQuadInitB(idxB, fctQB, yQB0, optionsB) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVodeQuadInitB allocates and initializes memory for backward quadrature integration.
+
+   Usage: CVodeQuadInitB ( IDXB, QBFUN, YQB0 [, OPTIONS ] ) 
+
+   IDXB     is the index of the backward problem, returned by
+            CVodeInitB.
+   QBFUN    is a function defining the righ-hand sides of the
+            backward ODEs yQB' = fQB(t,y,yB).
+   YQB0     is the final conditions vector yQB(tB0).
+   OPTIONS  is an (optional) set of QUAD options, created with
+            the CVodeSetQuadOptions function. 
+
+   See also: CVodeInitB, CVodeSetQuadOptions, CVQuadRhsFnB
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

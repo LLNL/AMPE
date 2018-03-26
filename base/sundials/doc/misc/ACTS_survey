@@ -1,0 +1,68 @@
+1. How many years has your project been in development? 
+(If your current project involves the integration of other tools, 
+please mention that in your answer as well.)
+
+SUNDIALS evolved from a long series of solvers for ODE, DAE, and
+nonlinear systems, starting with the Fortran codes VODE and VODPK,
+DASSL and DASPK, and NKSOL written in the late '80s.
+Starting in 1993, the push to solve large systems in parallel
+motivated work to write or rewrite solvers in C. The resulting
+codes were CVODE (94) and PVODE (98), IDA (99), and KINSOL (98).
+
+These codes have been combined into the core of SUNDIALS, the  
+SUite of Nonlinear and DIfferential/Algebraic equation Solvers,
+first released in 2002. At this time, this suite consists of
+CVODE, IDA, KINSOL, and CVODES (an augmentation of CVODE with
+forward and adjoint sensitivity capabilities). All codes run
+in both serial and parallel (MPI) environments.
+
+2. What are your current development and support efforts?
+
+A new release of SUNDIALS is expected soon. This will include
+a new build system (based on configure scripts) and extensive 
+documentation. The user interface has been modified to make
+it more consistent across solvers and to facilitate coupling
+between the SUNDIALS solvers and user applications (for example,
+we have renounced the mechanism of using arrays of optional
+inputs and outputs in favor of a set of set/get functions).
+
+Current development focuses on IDAS, the equivalent of CVODES for
+the DAE solver IDA and on providing more linear solver options
+for all of the SUNDIALS solvers. These will be available in
+future releases.
+
+We actively support users that fund us (e.g., SciDAC and NNSA-ASC)
+and, as time permits, we support other users as well. As mentioned 
+above, the next release of SUNDIALS will include Bugzilla which 
+will streamline support efforts.
+
+3. How large is your user base?
+
+The SUNDIALS solvers, as well as some of their predecessors, are
+extensively used by researchers within LLNL. 
+
+Since October 2002, when SUNDIALS was first released under a BSD 
+license, there have been over 2000 downloads of either the entire
+suite or a component of it. Note that we only monitor downloads 
+from our download site (www.llnl.gov/CASC/sundials/).
+
+4. Are the mechanisms and guidelines for inclusion and 
+retirement of tools proposed in LBNL-PUB-3175 adequate?
+
+Yes, although some terms need a more precise definition 
+(e.g., 'proof of correctness' in sec. 3.1)
+
+5. Any other comment or feedback?
+
+The LBNL-PUB-3175 document still refers to SUNDIALS as 'PVODE'
+(Table 1). PVODE was the initial parallel extension of CVODE.
+Within SUNDIALS, with the new design of the generic NVECTOR module
+(shared by all four solvers), there is only one ODE solver, CVODE,
+which runs both on serial and parallel environments, depending on 
+the particular vector representation used.
+
+Also, we would like it mentioned that SUNDIALS also contains
+solvers with sensitivity analysis capabilities (currently CVODES,
+with IDAS to follow in a future release).
+
+

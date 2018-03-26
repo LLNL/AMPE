@@ -1,0 +1,116 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   primary makefile for compiling the SAMRAI pdat package 
+##
+#########################################################################
+
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/SAMRAI/pdat
+VPATH         = @srcdir@
+OBJECT        = ../../..
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+OBJS = 	\
+	CellComplexLinearTimeInterpolateOp.o \
+	CellDoubleLinearTimeInterpolateOp.o \
+	CellFloatLinearTimeInterpolateOp.o \
+	EdgeComplexLinearTimeInterpolateOp.o \
+	EdgeDoubleLinearTimeInterpolateOp.o \
+	EdgeFloatLinearTimeInterpolateOp.o \
+	FaceComplexLinearTimeInterpolateOp.o \
+	FaceDoubleLinearTimeInterpolateOp.o \
+	FaceFloatLinearTimeInterpolateOp.o \
+	NodeComplexLinearTimeInterpolateOp.o \
+	NodeDoubleLinearTimeInterpolateOp.o \
+	NodeFloatLinearTimeInterpolateOp.o \
+	OuterfaceComplexLinearTimeInterpolateOp.o \
+	OuterfaceDoubleLinearTimeInterpolateOp.o \
+	OuterfaceFloatLinearTimeInterpolateOp.o \
+	OutersideComplexLinearTimeInterpolateOp.o \
+	OutersideDoubleLinearTimeInterpolateOp.o \
+	OutersideFloatLinearTimeInterpolateOp.o \
+	SideComplexLinearTimeInterpolateOp.o \
+	SideDoubleLinearTimeInterpolateOp.o \
+	SideFloatLinearTimeInterpolateOp.o \
+	CellComplexConstantRefine.o \
+	CellDoubleConstantRefine.o \
+	CellFloatConstantRefine.o \
+	CellIntegerConstantRefine.o \
+	EdgeComplexConstantRefine.o \
+	EdgeDoubleConstantRefine.o \
+	EdgeFloatConstantRefine.o \
+	EdgeIntegerConstantRefine.o \
+	FaceComplexConstantRefine.o \
+	FaceDoubleConstantRefine.o \
+	FaceFloatConstantRefine.o \
+	FaceIntegerConstantRefine.o \
+	OuterfaceComplexConstantRefine.o \
+	OuterfaceDoubleConstantRefine.o \
+	OuterfaceFloatConstantRefine.o \
+	OuterfaceIntegerConstantRefine.o \
+	SideComplexConstantRefine.o \
+	SideDoubleConstantRefine.o \
+	SideFloatConstantRefine.o \
+	SideIntegerConstantRefine.o \
+	NodeComplexInjection.o \
+	NodeDoubleInjection.o \
+	NodeFloatInjection.o \
+	NodeIntegerInjection.o \
+	OuternodeDoubleConstantCoarsen.o \
+	CellIterator.o \
+	EdgeIterator.o \
+	FaceIterator.o \
+	NodeIterator.o \
+	SideIterator.o \
+	CellIndex.o \
+	EdgeIndex.o \
+	FaceIndex.o \
+	NodeIndex.o \
+	SideIndex.o \
+	CellGeometry.o \
+	EdgeGeometry.o \
+	FaceGeometry.o \
+	NodeGeometry.o \
+	OuteredgeGeometry.o \
+	OuterfaceGeometry.o \
+	OuternodeGeometry.o \
+	OutersideGeometry.o \
+	SideGeometry.o \
+	CellOverlap.o \
+	EdgeOverlap.o \
+	FaceOverlap.o \
+	NodeOverlap.o \
+	SideOverlap.o \
+	ArrayDataIterator.o \
+	FirstLayerCellVariableFillPattern.o \
+	FirstLayerCellNoCornersVariableFillPattern.o \
+	FirstLayerNodeVariableFillPattern.o \
+	SecondLayerNodeVariableFillPattern.o \
+	SecondLayerNodeNoCornersVariableFillPattern.o \
+	SparseData.o \
+	SparseDataFactory.o \
+	SparseDataVariable.o \
+	IntegerAttributeId.o \
+	DoubleAttributeId.o
+
+        
+
+library: $(OBJS)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+clean:
+	$(SAMCLEAN)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+include $(SRCDIR)/Makefile.depend

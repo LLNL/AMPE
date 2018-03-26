@@ -1,0 +1,62 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVodeSensReInit!}
+\label{p:CVodeSensReInit}
+\index{CVodeSensReInit}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVodeSensReInit reinitializes CVODES's FSA-related memory
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function CVodeSensReInit(yS0, options) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVodeSensReInit reinitializes CVODES's FSA-related memory
+   assuming it has already been allocated in prior calls to CVodeInit 
+   and CVodeSensInit.
+   The number of sensitivities Ns is assumed to be unchanged since the 
+   previous call to CVodeSensInit.
+
+   Usage: CVodeSensReInit ( YS0 [, OPTIONS ] ) 
+
+   YS0      Initial conditions for sensitivity variables.
+            YS0 must be a matrix with N rows and Ns columns, where N is the problem
+            dimension and Ns the number of sensitivity systems.
+   OPTIONS  is an (optional) set of FSA options, created with
+            the CVodeSensSetOptions function. 
+
+   See also: CVodeSensSetOptions, CVodeReInit, CVodeSensInit
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

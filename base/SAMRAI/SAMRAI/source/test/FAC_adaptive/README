@@ -1,0 +1,32 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   README file for FAC solver test.
+##
+#########################################################################
+
+Test problems for FAC solver
+============================
+
+To generate the 2D and 3D sources, use the genfiles.sh script.
+This script should be run in the SAMRAI/source/test/FAC directory
+or one of the dimensional subdirectories.
+
+To regenerate the source while in the object directory of this
+test, use "make src".
+
+To run:
+======
+
+Compilation:
+              make
+
+Execution:
+              make check
+  or  
+              make check2d
+  or  
+              make check2d

@@ -1,0 +1,32 @@
+\begin{thebibliography}{1}
+
+\bibitem{kinsol_ug}
+A.~M. Collier, A.~C. Hindmarsh, R.~Serban, and C.S. Woodward.
+\newblock {User Documentation for KINSOL v2.2.0}.
+\newblock Technical Report UCRL-SM-208116, LLNL, 2004.
+
+\bibitem{HBGLSSW:04}
+A.~C. Hindmarsh, P.~N. Brown, K.~E. Grant, S.~L. Lee, R.~Serban, D.~E.
+  Shumaker, and C.~S. Woodward.
+\newblock \mbox{SUNDIALS}, suite of nonlinear and differential/algebraic
+  equation solvers.
+\newblock {\em ACM Trans. Math. Softw.}, (in press), 2004.
+
+\bibitem{cvodes_ug}
+A.~C. Hindmarsh and R.~Serban.
+\newblock {User Documentation for CVODES v2.1.0}.
+\newblock Technical report, LLNL, 2004.
+\newblock UCRL-SM-208111.
+
+\bibitem{ida_ug}
+A.~C. Hindmarsh and R.~Serban.
+\newblock {User Documentation for IDA v2.2.0}.
+\newblock Technical Report UCRL-SM-208112, LLNL, 2004.
+
+\bibitem{idas_ug}
+R.~Serban and C.~Petra.
+\newblock {User Documentation for IDAS v1.0.0}.
+\newblock Technical report, LLNL, 2007.
+\newblock UCRL-SM-******.
+
+\end{thebibliography}

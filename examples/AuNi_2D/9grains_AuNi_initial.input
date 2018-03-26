@@ -1,0 +1,168 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 0.125
+max_timesteps       = 5000
+
+FreeEnergyDiagnostics{
+   filename = "calphadAuNi.vtk" // where to dump f(phi,c) 
+}
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.025
+   interval_type = "time"
+   include_first_step = FALSE  // optional
+}
+
+ModelParameters {
+   H_parameter    = 0.25
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature        = 1450. // [K]
+   }
+
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+
+   phi_mobility = 6.4
+   orient_mobility = 0.64
+   
+   phi_well_scale = 2.5  //  [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   avg_func_type = "arithmetic"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      mobility = 1.0e-8 // to essentially set diffusion to 0 for all phases
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+   }
+}
+
+Symmetry {  // optional block
+   enabled = TRUE  // optional
+}
+
+GrainExtension {  // optional block
+   interval = 1000000  // optional
+   interval_type = "step"  // optional
+}   
+
+ScalarDiagnostics {
+   interval = 0.02
+   interval_type = "time"
+   extra_energy_detail = TRUE
+}   
+
+GrainDiagnostics {  // optional block
+   interval = 0.02  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = TRUE  // optional
+   phase_threshold = 0.85  // optional
+   minimum_size = 0.0  // optional
+}
+
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {
+   }
+}
+
+InitialConditions {
+   filename = "9grains_512_r22.nc"
+   WriteEndingFile {  // optional block
+      filename = "new_9grains_512.nc"  // required
+   }
+}
+
+Geometry{
+   coarsest_level_resolution = 512, 512
+   x_lo         = -1.6, -1.6 // [um]
+   x_up         =  1.6,  1.6 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatLevelSolver::*","QuatSysSolver::*",
+                 "QuatIntegrator::*","EllipticFACOps::*",
+                 "CellPoissonHypreSolver::*"
+    print_threshold = 0.0
+}

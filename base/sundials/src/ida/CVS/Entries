@@ -1,0 +1,21 @@
+/LICENSE/1.1/Wed Jul  5 15:32:34 2006//
+D/fcmix////
+/ida_bbdpre_impl.h/1.4/Mon Apr 30 17:43:09 2007//
+/ida_direct_impl.h/1.5/Mon Apr 30 17:43:09 2007//
+/ida_direct.c/1.4/Mon Apr 30 19:29:00 2007//
+/ida_ic.c/1.3/Mon Apr 30 19:29:00 2007//
+/ida_spils.c/1.4/Mon Apr 30 19:29:00 2007//
+/ida_spils_impl.h/1.4/Mon Apr 30 19:29:00 2007//
+/ida_bbdpre.c/1.7/Fri Jun  8 14:14:04 2007//
+/ida.c/1.21/Mon Nov 26 16:20:00 2007//
+/ida_band.c/1.9/Mon Nov 26 16:20:00 2007//
+/ida_dense.c/1.9/Mon Nov 26 16:20:00 2007//
+/ida_impl.h/1.13/Mon Nov 26 16:20:00 2007//
+/ida_io.c/1.12/Mon Nov 26 16:20:00 2007//
+/ida_lapack.c/1.7/Mon Nov 26 16:20:00 2007//
+/ida_spbcgs.c/1.6/Mon Nov 26 16:20:00 2007//
+/ida_spgmr.c/1.6/Mon Nov 26 16:20:00 2007//
+/ida_sptfqmr.c/1.6/Mon Nov 26 16:20:00 2007//
+/README/1.9/Wed Dec  5 22:48:10 2007//
+/CMakeLists.txt/1.3/Wed Dec 19 20:34:01 2007//
+/Makefile.in/1.10/Wed Dec 19 20:34:01 2007//

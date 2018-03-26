@@ -1,0 +1,57 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for testing variable database operations 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/variables
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA	= -DNDIM=$(PDIM) -DTESTING=1
+
+CXX_OBJS	= main-var_db.o
+
+main:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) \
+	$(LIBSAMRAI2D) $(LIBSAMRAI) $(LDLIBS) -o $@
+
+NUM_TESTS  = 1
+
+TEST_NPROCS = @TEST_NPROCS@
+
+checkcompile: main
+
+check:
+		$(MAKE) check2d
+		$(MAKE) check3d
+
+check2d:	checkcompile
+		$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main
+
+check3d:
+
+checktest:
+		rm -f makecheck.logfile
+		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -f makecheck.logfile
+
+clean-check:
+		$(SAMCLEAN)
+
+clean:		clean-check
+		$(RM) *.f main*
+
+include $(SRCDIR)/Makefile.depend

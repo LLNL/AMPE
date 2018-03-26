@@ -1,0 +1,80 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for multiblock sample application 
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/MblkEuler
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default:      check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=1
+
+NUM_TESTS     = 1
+
+TEST_NPROCS   = @TEST_NPROCS@
+
+CXX_OBJS      = MblkGeometry.o main.o MblkEuler.o MblkHyperbolicLevelIntegrator.o \
+                MblkHyperbolicPatchStrategy.o Pointer-MblkHyperbolicLevelIntegrator.o
+
+F_OBJS      = upfluxsum.o boundaryconditions.o
+
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+	$(LIBSAMRAI) $(LDLIBS) -o $@
+
+check:
+	$(MAKE) check3d
+
+check3d:	main
+	@for i in test_inputs/*.3d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+examples3d: main
+	@for i in test_inputs/*.3d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+examples:
+	$(MAKE) examples3d	
+
+checkcompile: main
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+clean-check:
+	$(SAMCLEAN)
+
+clean: 
+	$(SAMCLEAN)
+	$(RM) *.f main viz*
+
+redo: 
+	$(RM) main
+
+include $(SRCDIR)/Makefile.depend
+
+boundaryconditions.o:	$(SRCDIR)/boundaryconditions.f $(SRCDIR)/bc_common.f
+	$(F77) $(FFLAGS) -c $(SRCDIR)/boundaryconditions.f -o $@
+
+upfluxsum.o:	$(SRCDIR)/upfluxsum.f
+	$(F77) $(FFLAGS) -c $(SRCDIR)/upfluxsum.f -o $@
+

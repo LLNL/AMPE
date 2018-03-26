@@ -1,0 +1,124 @@
+\documentclass[12pt]{letter}
+\setlength{\textheight}{9.0in}
+\setlength{\textwidth}{6.0in}
+\setlength{\topmargin}{-0.4in}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{letter}
+
+\vspace{0.2in}
+\centerline{\bf Code Abstract for sundialsTB v2.1.1}
+
+\begin{enumerate}
+
+\item {\bf Identification}
+
+Software acronym: sundialsTB v2.1.1
+
+Short title: Matlab MEX-binding for SUNDIALS v2.1.1
+
+\item {\bf Developer name(s) and affiliations}
+
+Radu Serban (CASC, LLNL)
+
+\item {\bf Software Completion Date}
+
+May 09, 2005
+
+\item {\bf Brief description}
+
+sundialsTB is a Matlab interface to the SUNDIALS (Suite of Nonlinear, Algebraic/Differential
+equation Solvers). 
+
+\item {\bf Method of solution}
+
+The core of each sundialsTB interface is a MEX file which wraps around various
+user-callable SUNDIALS functions. Communication Matlab-C is bidirectional, in the
+sense that both the program driver and various user-provided functions are to be
+supplied in Matlab.
+
+\item {\bf Computer(s) for which software is written}
+
+sundialsTB should run on any computer with an ANSI C compiler (for building the
+SUNDIALS libraries) and with the Matlab software installed.
+
+Optionally, for parallel support, LAM-MPI v > 7.1.1 is required (for MPI-2 features,
+in particular spawning dynamic processes).
+
+\item {\bf Operating system}
+
+No system-dependency in the software itself. But installation is system-dependent. 
+The package supplied consists of a single archived file. Installation from this file 
+assumes a UNIX system with the tar utility. Compilation of libraries is done by way 
+of UNIX makefiles.
+
+\item {\bf Programming language(s) used}
+
+ANSI C and Matlab scripting
+
+\item {\bf Software limitations}
+
+none
+
+\item {\bf Unique features of the software}
+
+sundialsTB combines the ease of use of the Matlab environment with the flexible
+and robust solvers in SUNDIALS. As such, it provides several valuable extensions
+to the integrators already available in Matlab, in particular sensitivity analysis
+capabilities, both forward and adjoint.
+
+
+\item {\bf Related and auxiliary software}
+
+sundialsTB is build on top of SUNDIALS (Suite of Nonlinear and Differential/Algebraic 
+equation Solvers). For parallel support, it uses mpiTB, an MPI toolbox for Matlab.
+
+\item {\bf Other Programming or Operating Information or Restrictions}
+
+none
+
+
+\item {\bf Hardware Requirements}
+
+none
+
+
+\item {\bf Time Requirements}
+
+Timing is highly dependent on machine and problem.
+
+
+\item {\bf References}
+
+Document provided with the distribution
+\begin{itemize}
+\item R. Serban, "sundialsTB, a Matlab Interface to SUNDIALS," 
+      LLLNL technical report UCRL-SM-xxxxxx, May 2005.
+\end{itemize}
+Additional background references
+\begin{itemize}
+\item A. C. Hindmarsh and R. Serban, "User Documentation for CVODES v2.1.0," 
+    LLNL technical report UCRL-SM-208111, November 2004.
+\item A. C. Hindmarsh and R. Serban, "Example Programs for CVODES v2.1.0," 
+    LLNL technical report UCRL-SM-208115, November 2004.
+\item A. C. Hindmarsh and R. Serban, "User Documentation for IDA v2.2.0," 
+    LLNL technical report UCRL-SM-208112, November 2004.
+\item A. C. Hindmarsh and R. Serban, "Example Programs for IDA v2.2.0," 
+    LLNL technical report UCRL-SM-208113, November 2004.
+\item A. M. Collier, A. C. Hindmarsh, R. Serban, and C. S. Woodward,
+    "User Documentation for KINSOL v2.2.0," LLNL technical report
+    UCRL-SM-208116, November 2004. 
+\item A. M. Collier and R. Serban, "Example Programs for KINSOL v2.2.0,"
+    LLNL technical report UCRL-SM-208114, November 2004.
+\item A. C. Hindmarsh, P. N. Brown, K. E. Grant, S. L. Lee, R. Serban, 
+    D. E. Shumaker, and C. S. Woodward, "SUNDIALS, Suite of Nonlinear and 
+    Differential/Algebraic Equation Solvers," ACM Trans. Math. Softw., 
+    accepted, 2004.
+\end{itemize}
+\end{enumerate}
+
+\end{letter}
+\end{document}

@@ -1,0 +1,117 @@
+\documentclass[12pt]{letter}
+\setlength{\textheight}{9.0in}
+\setlength{\textwidth}{6.0in}
+\setlength{\topmargin}{-0.4in}
+
+\begin{document}
+
+\pagestyle{empty}
+
+\begin{letter}
+
+\vspace{0.2in}
+\centerline{\bf Code Abstract for CVODE v2.2.0}
+
+\begin{enumerate}
+
+\item {\bf Identification}
+
+Software acronym: CVODE v2.2.0
+
+Short title: Stiff/nonstiff ODE integrator.
+
+\item {\bf Developer name(s) and affiliations}
+
+Alan C. Hindmarsh and Radu Serban (CASC, LLNL)
+
+\item {\bf Software Completion Date}
+
+November 19, 2004
+
+\item {\bf Brief description}
+
+CVODE is a general purpose (serial and parallel) initial value ordinary differential 
+equation solver for both stiff and nonstiff systems.
+
+\item {\bf Method of solution}
+
+Integration is by Adams or BDF methods, at user option. Corrector iteration is by 
+functional iteration or Newton iteration. For the solution of linear systems within 
+Newton iteration, users can select a dense solver, a band solver, a diagonal 
+approximation, or a preconditioned GMRES solver.
+
+\item {\bf Computer(s) for which software is written}
+
+CVODE should run on any computer with an ANSI C compiler. The appropriate 
+precision (single, double, or extended) is selected at the configuration phase.
+
+For use with Fortran applications, a set of Fortran/C interface routines,
+called FKINSOL, is also supplied.  These are written in C, but assume that
+the user calling program and all user-supplied routines are in Fortran.
+
+\item {\bf Operating system}
+
+No system-dependency in the software itself. But installation is system-dependent. 
+The package supplied consists of a single archived file. Installation from this file 
+assumes a UNIX system with the tar utility. Configuration is done through a 
+configure script. Compilation of libraries is done by way of UNIX makefiles.
+
+\item {\bf Programming language(s) used}
+
+ANSI C (100\%)
+
+\item {\bf Software limitations}
+
+none
+
+\item {\bf Unique features of the software}
+
+CVODE is organized in a highly modular manner. The basic integrator
+is separate from, and independent of, the linear system 
+solvers, as well as the vector operation modules. Thus the set of linear solvers can be 
+expanded and the internal vector representation can be replaced with no impact on 
+the main solver.
+
+
+\item {\bf Related and auxiliary software}
+
+CVODE is part of SUNDIALS (Suite of Nonlinear and Differential/Algebraic equation 
+Solvers). 
+
+\item {\bf Other Programming or Operating Information or Restrictions}
+
+none
+
+
+\item {\bf Hardware Requirements}
+
+none
+
+
+\item {\bf Time Requirements}
+
+Timing is highly dependent on machine and problem.
+
+
+\item {\bf References}
+
+Document provided with the distribution
+\begin{itemize}
+\item A. C. Hindmarsh and R. Serban, "User Documentation for CVODE v2.2.0," 
+      LLLNL technical report UCRL-SM-208108, November 2004.
+\item A. C. Hindmarsh and R. Serban, "Example Programs for CVODE v2.2.0," 
+    LLNL technical report UCRL-SM-208110, November 2004.
+\end{itemize}
+Additional background references
+\begin{itemize}
+\item A. C. Hindmarsh, P. N. Brown, K. E. Grant, S. L. Lee, R. Serban, 
+    D. E. Shumaker, and C. S. Woodward, "SUNDIALS, Suite of Nonlinear and 
+    Differential/Algebraic Equation Solvers," ACM Trans. Math. Softw., 
+    accepted, 2004.
+\item S.D. Cohen and A.C. Hindmarsh, "CVODE, a Stiff/nonstiff ODE Solver in C,"
+    Computers in Physics, 10(2), pp. 138-143, 1996.
+\end{itemize}
+\end{enumerate}
+
+\end{letter}
+\end{document}

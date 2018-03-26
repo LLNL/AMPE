@@ -1,0 +1,46 @@
+Copyright © 2006 Entelos, Inc. 
+
+Permission to use, copy, modify and redistribute this software without fees is hereby granted by Entelos, Inc. (“Entelos”) to you (“User”), provided that the following conditions are met:
+
+This permission notice (including the above copyright notice and the disclaimer below) must appear in its entirety in all copies and modifications of the software, in the accompanying “Read Me” file, and in any accompanying documentation.
+
+Neither the name of Entelos, nor any of its trade names, trademarks or other designations may be used by the User for any purpose, including without limitation the endorsement or promotion of any products derived from or developed using this software, without the express prior written permission of Entelos.
+
+THIS SOFTWARE IS PROVIDED BY ENTLEOS "AS IS" WITHOUT ANY EXPRESS OR IMPLIED WARRANTY.  ENTELOS DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+
+IN NO EVENT SHALL ENTELOS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING OUT OF OR IN CONECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+-------------------------------------------------------------------------------
+
+Description
+This package contains project files needed to compile and build selected packages (shared, nvec_ser and cvode) Sundials V2.2.0 using Microsoft Visual C++ .NET (VC7.1). 
+
+Instructions
+1. Download the Sundials V2.2.0 tarball and unpack it. 
+2. Create the folders Build, include and Projects at the Sundials root level (same level as config, cvode etc).
+3. Generate or get a copy of sundials_config.h and put it inside include. Consult Sundials documentation on how to generate this file.
+4. Extract the contents of the current package under Projects. It produces these files:
+	- README (this file)
+	- VC7.1\cvode.vcproj
+	- VC7.1\nvec_ser.vcproj
+	- VC7.1\shared.vcproj
+	- VC7.1\sundials.sln
+5. Launch VC7.1; File->"Open Solution" and open sundials.sln. Make the builds.
+	Each of the 3 vcproj files have 'debug' and 'release' as configurations. 
+	The resulting binaries are deposited in the Build folder.
+
+FAQ
+1. Does this work with VC8?
+	No. VC8 project file formats are incompatible and I don't have VC8.
+2. Does this work with VC*?
+	I have only used it on my Visual C++, which is Version 7.1.3088 with .NET Framework 1.1 Version 1.1.4322 SP1. I would expect it to work with any VC7 builds more recent that that, but I have no way to find out.
+3. Are project files for other Sundials packages available?
+	No. I only use and make the packages I built. However, one should be able to use the existing ones as templates for the others.
+
+Contact
+Send comments and questions to sundials-users@llnl.gov so everyone can share.  I'll monitor the mailing list as time permits. 
+
+Sze-Ping Wong
+Software Architect
+Entelos
+wong@entelos.com

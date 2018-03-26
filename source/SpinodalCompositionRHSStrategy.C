@@ -1,0 +1,400 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+#include "SpinodalCompositionRHSStrategy.h"
+#include "ConcFort.h"
+#include "QuatParams.h"
+
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+
+using namespace std;
+using namespace SAMRAI;
+
+SpinodalCompositionRHSStrategy::SpinodalCompositionRHSStrategy(
+   boost::shared_ptr<tbox::Database> input_db,
+   const int conc_scratch_id,
+   const int phase_scratch_id,
+   const int eta_scratch_id,
+   const unsigned int ncompositions,
+   const int conc_a_scratch_id,
+   const int conc_b_scratch_id,
+   const int temperature_scratch_id,
+   const int diffusion_id,
+   const double kappa,
+   const int Mq_id,
+   const vector<double>& Q_heat_transport,
+   const string& phase_interp_func_type,
+   const string& avg_func_type,
+   FreeEnergyStrategy* free_energy_strategy
+   ):
+      CompositionRHSStrategyWithMobilities(
+         input_db,
+         phase_scratch_id,
+         eta_scratch_id,
+         ncompositions,temperature_scratch_id,
+         Mq_id,Q_heat_transport,
+         phase_interp_func_type,avg_func_type,
+         free_energy_strategy)
+{
+   assert( eta_scratch_id>-1 );
+   assert( conc_a_scratch_id>-1 );
+   assert( conc_b_scratch_id>-1 );
+   assert( diffusion_id>-1 );
+   assert( ncompositions>0 );
+   
+   d_conc_scratch_id  = conc_scratch_id;
+   d_phase_scratch_id  = phase_scratch_id;
+   d_eta_scratch_id = phase_scratch_id;
+   
+   d_ncompositions = ncompositions;
+   
+   d_diffusion_id = diffusion_id;
+   d_conc_a_scratch_id=conc_a_scratch_id;
+   d_conc_b_scratch_id=conc_b_scratch_id;
+   d_temperature_scratch_id = temperature_scratch_id;
+   
+   d_kappa = kappa;
+}
+
+//-----------------------------------------------------------------------
+
+void SpinodalCompositionRHSStrategy::computeFluxOnPatch(
+   hier::Patch& patch,
+   const int flux_id)
+{
+   //tbox::pout<<"EBSCompositionRHSStrategy::computeFluxOnPatch"<<endl;
+   assert( d_conc_scratch_id>=0 );
+   assert( d_diffusion_id>=0 );
+   assert( d_eta_scratch_id>=0 );
+
+   const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
+      patch.getPatchGeometry(),
+      boost::detail::dynamic_cast_tag());
+   const double * dx  = patch_geom->getDx();
+
+   const hier::Box& pbox = patch.getBox();
+   const hier::Index& ifirst = pbox.lower();
+   const hier::Index& ilast  = pbox.upper();
+
+   boost::shared_ptr< pdat::CellData<double> > conc (
+      patch.getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+   assert( conc );
+
+   boost::shared_ptr< pdat::CellData<double> > conca (
+      patch.getPatchData( d_conc_a_scratch_id ), boost::detail::dynamic_cast_tag());
+   assert( conca );
+
+   boost::shared_ptr< pdat::CellData<double> > concb (
+      patch.getPatchData( d_conc_b_scratch_id ), boost::detail::dynamic_cast_tag());
+   assert( concb );
+
+   boost::shared_ptr< pdat::CellData<double> > eta (
+      patch.getPatchData( d_eta_scratch_id ), boost::detail::dynamic_cast_tag());
+   assert( eta );
+
+   boost::shared_ptr< pdat::SideData<double> > conc_diffusion (
+      patch.getPatchData( d_diffusion_id ), boost::detail::dynamic_cast_tag());
+   assert( conc_diffusion );
+   assert( conc_diffusion->getDepth()==(1) );
+
+
+   boost::shared_ptr< pdat::SideData<double> > flux (
+      patch.getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+   assert( flux );
+   assert( flux->getDepth()==1 );
+
+   // now compute concentration flux
+   FORT_CONCENTRATION_FLUX_SPINODAL(
+            ifirst(0),ilast(0),
+            ifirst(1),ilast(1),
+#if (NDIM == 3)
+            ifirst(2),ilast(2),
+#endif
+            dx,
+            conc->getPointer(), NGHOSTS,
+            1,
+            conca->getPointer(), NGHOSTS,
+            concb->getPointer(), NGHOSTS,
+            conc_diffusion->getPointer(0),
+            conc_diffusion->getPointer(1),
+#if (NDIM == 3)
+            conc_diffusion->getPointer(2),
+#endif
+            0,
+            eta->getPointer(), NGHOSTS,
+            d_kappa,
+            flux->getPointer(0),
+            flux->getPointer(1),
+#if (NDIM == 3)
+            flux->getPointer(2),
+#endif
+            flux->getGhostCellWidth()[0] );
+
+}
+
+//-----------------------------------------------------------------------
+
+void SpinodalCompositionRHSStrategy::setDiffusionCoeff(
+   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+   const double                                               time)
+{
+   //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeff"<<endl;
+   assert( hierarchy );
+   assert( d_free_energy_strategy != NULL );
+
+   // set coefficient for (grad T)/T term
+   //if( d_with_gradT )
+   //   setDiffusionCoeffForT(
+   //      hierarchy,
+   //      d_conc_l_scratch_id,
+   //      d_conc_a_scratch_id,
+   //      d_conc_b_scratch_id,
+   //      d_temperature_scratch_id);
+
+   setDiffusionForConc(hierarchy);
+}
+
+//=======================================================================
+
+void SpinodalCompositionRHSStrategy::setDiffusionForConc(
+   const boost::shared_ptr< hier::PatchHierarchy > hierarchy)
+{
+   //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionForConcInPhase"<<endl;
+   assert( d_diffusion_id >= 0 );
+
+   const int maxl = hierarchy->getNumberOfLevels();
+
+   for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         hierarchy->getPatchLevel( amr_level );
+
+      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
+         boost::shared_ptr<hier::Patch > patch =
+            *p;
+      
+         boost::shared_ptr< pdat::CellData<double> > conc (
+            patch->getPatchData( d_conc_scratch_id ), boost::detail::dynamic_cast_tag());
+         
+         boost::shared_ptr< pdat::CellData<double> > temp (
+            patch->getPatchData( d_temperature_scratch_id ), boost::detail::dynamic_cast_tag());
+         
+         boost::shared_ptr< pdat::SideData<double> > diffusion (
+            patch->getPatchData( d_diffusion_id ), boost::detail::dynamic_cast_tag());
+         
+         setDiffusionCoeffForConcOnPatch(
+            conc, temp,
+            diffusion, 
+            patch->getBox() );
+      }
+   }
+}
+
+//-----------------------------------------------------------------------
+
+void SpinodalCompositionRHSStrategy::setDiffusionCoeffForConcOnPatch(
+   boost::shared_ptr< pdat::CellData<double> > cd_c,
+   boost::shared_ptr< pdat::CellData<double> > cd_temp,
+   boost::shared_ptr< pdat::SideData<double> > sd_d_coeff,
+   const hier::Box& pbox )
+{
+   vector<double*> ptr_c(d_ncompositions);
+   for(unsigned int ic=0;ic<d_ncompositions;ic++){
+      ptr_c[ic] = cd_c->getPointer(ic);
+   }
+   
+   double* ptr_temp = cd_temp->getPointer();
+
+   vector<double*> ptr_dx_coeff(d_ncompositions*d_ncompositions);
+   vector<double*> ptr_dy_coeff(d_ncompositions*d_ncompositions);
+   vector<double*> ptr_dz_coeff(d_ncompositions*d_ncompositions, NULL);
+   for(unsigned int ic=0;ic<d_ncompositions;ic++)
+   for(unsigned int jc=0;jc<d_ncompositions;jc++){
+      const unsigned int ijc=ic+jc*d_ncompositions;
+      ptr_dx_coeff[ijc] = sd_d_coeff->getPointer( 0, ijc );
+      ptr_dy_coeff[ijc] = sd_d_coeff->getPointer( 1, ijc );
+      if ( NDIM > 2 ) {
+         ptr_dz_coeff[ijc] = sd_d_coeff->getPointer( 2, ijc );
+      }
+   }
+      
+   // Assuming all sd_d_* have same box
+   const hier::Box& dcoeff_gbox = sd_d_coeff->getGhostBox();
+   int imin_dcoeff = dcoeff_gbox.lower(0);
+   int jmin_dcoeff = dcoeff_gbox.lower(1);
+   int jp_dcoeff = dcoeff_gbox.numberCells(0);
+   int kmin_dcoeff = 0;
+   int kp_dcoeff = 0;
+#if (NDIM == 3)
+   kmin_dcoeff = dcoeff_gbox.lower(2);
+   kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
+#endif
+
+   // assumes all c have same number of ghosts
+   const hier::Box& c_gbox = cd_c->getGhostBox();
+   int imin_c = c_gbox.lower(0);
+   int jmin_c = c_gbox.lower(1);
+   int jp_c   = c_gbox.numberCells(0);
+   int kmin_c = 0;
+   int kp_c   = 0;
+#if (NDIM == 3)
+   kmin_c = c_gbox.lower(2);
+   kp_c   = jp_c * c_gbox.numberCells(1);
+#endif
+
+   const hier::Box& temp_gbox = cd_temp->getGhostBox();
+   int imin_temp = temp_gbox.lower(0);
+   int jmin_temp = temp_gbox.lower(1);
+   int jp_temp   = temp_gbox.numberCells(0);
+   int kmin_temp = 0;
+   int kp_temp   = 0;
+#if (NDIM == 3)
+   kmin_temp = temp_gbox.lower(2);
+   kp_temp   = jp_temp * temp_gbox.numberCells(1);
+#endif
+
+   int imin = pbox.lower(0);
+   int imax = pbox.upper(0);
+   int jmin = pbox.lower(1);
+   int jmax = pbox.upper(1);
+   int kmin = 0;
+   int kmax = 0;
+#if (NDIM == 3)
+   kmin = pbox.lower(2);
+   kmax = pbox.upper(2);
+#endif
+         
+   vector<double> c(d_ncompositions);
+   
+   vector<double> d2f(d_ncompositions*d_ncompositions);
+   vector<double> mobmat(d_ncompositions*d_ncompositions);
+
+   // X-side
+   for ( int kk = kmin; kk <= kmax; kk++ ) {
+      for ( int jj = jmin; jj <= jmax; jj++ ) {
+         for ( int ii = imin; ii <= imax+1; ii++ ) {
+
+            const int idx_dcoeff = (ii - imin_dcoeff) +
+               (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
+               (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1) );
+
+            const int idx_c = (ii - imin_c) +
+               (jj - jmin_c) * jp_c + (kk - kmin_c) * kp_c;
+            const int idxm1_c = idx_c - 1;
+
+            const int idx_temp = (ii - imin_temp) +
+               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idxm1_temp = idx_temp - 1;
+            
+            double temp = 0.5 * ( ptr_temp[idx_temp] + ptr_temp[idxm1_temp] );
+
+            for(unsigned int ic=0;ic<d_ncompositions;ic++){
+               c[ic] = 0.5 * ( ptr_c[ic][idx_c] + ptr_c[ic][idxm1_c] );
+            }
+            
+            d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
+               temp, c,
+               d2f, false);            
+            computeDiffusionMobilityPhaseA(c, temp, mobmat);
+
+            ptr_dx_coeff[0][idx_dcoeff] = mobmat[0]*d2f[0];
+         }
+      }
+   }
+
+   // Y-side
+   for ( int kk = kmin; kk <= kmax; kk++ ) {
+      for ( int jj = jmin; jj <= jmax+1; jj++ ) {
+         for ( int ii = imin; ii <= imax; ii++ ) {
+
+            const int idx_dcoeff = (ii - imin_dcoeff) +
+               (jj - jmin_dcoeff) * jp_dcoeff +
+               (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
+
+            const int idx_c = (ii - imin_c) +
+               (jj - jmin_c) * jp_c + (kk - kmin_c) * kp_c;
+            const int idxm1_c = idx_c - jp_c;
+
+            const int idx_temp = (ii - imin_temp) +
+               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idxm1_temp = idx_temp - jp_temp;
+
+            for(unsigned int ic=0;ic<d_ncompositions;ic++){
+               c[ic] = 0.5 * ( ptr_c[ic][idx_c] + ptr_c[ic][idxm1_c] );
+            }
+
+            double temp = 0.5 * ( ptr_temp[idx_temp] + ptr_temp[idxm1_temp] );
+
+            d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
+               temp, c,
+               d2f, false);
+            computeDiffusionMobilityPhaseA(c, temp, mobmat);
+
+            ptr_dy_coeff[0][idx_dcoeff] = mobmat[0]*d2f[0];
+         }
+      }
+   }
+
+   if ( NDIM > 2 ) {
+      // Z-side
+      for ( int kk = kmin; kk <= kmax+1; kk++ ) {
+         for ( int jj = jmin; jj <= jmax; jj++ ) {
+            for ( int ii = imin; ii <= imax; ii++ ) {
+
+               const int idx_dcoeff = (ii - imin_dcoeff) +
+                  (jj - jmin_dcoeff) * jp_dcoeff +
+                  (kk - kmin_dcoeff) * kp_dcoeff;
+
+               const int idx_c = (ii - imin_c) +
+                  (jj - jmin_c) * jp_c + (kk - kmin_c) * kp_c;
+               const int idxm1_c = idx_c - kp_c;
+
+               const int idx_temp = (ii - imin_temp) +
+                  (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+               const int idxm1_temp = idx_temp - kp_temp;
+
+               for(unsigned int ic=0;ic<d_ncompositions;ic++){
+                  c[ic] = 0.5 * ( ptr_c[ic][idx_c] + ptr_c[ic][idxm1_c] );
+               }
+
+               double temp = 0.5 * ( ptr_temp[idx_temp] + ptr_temp[idxm1_temp] );
+
+               d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(
+                  temp, c,
+                  d2f, false);
+               computeDiffusionMobilityPhaseA(c, temp, mobmat);
+               
+               ptr_dz_coeff[0][idx_dcoeff] = mobmat[0]*d2f[0];
+            }
+         }
+      }
+   }  // if ( NDIM > 2 )
+}

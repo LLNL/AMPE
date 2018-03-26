@@ -1,0 +1,81 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for the FAC test directory 
+##
+#########################################################################
+
+SAMRAI	      = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/FAC_adaptive
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+
+NUM_TESTS = 15
+
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS      = main.o AdaptivePoisson.o \
+	get-input-filename.o \
+	printObject.o \
+	patchFcns.o \
+	setArrayData.o \
+	SinusoidFcn.o \
+	GaussianFcn.o \
+	QuarticFcn.o \
+	PoissonSineSolution.o \
+	PoissonGaussianDiffcoefSolution.o \
+	PoissonGaussianSolution.o \
+	PoissonMultigaussianSolution.o \
+	PoissonPolynomialSolution.o
+
+main:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS)	\
+	$(LIBSAMRAI3D) $(LIBSAMRAI) $(LDLIBS) -o main
+
+check:
+	$(MAKE) check2d
+	$(MAKE) check3d
+
+check2d:	main
+	@for i in test_inputs/*.2d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+check3d:	main
+	@for i in test_inputs/*.3d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+checkcompile: main
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+examples:
+
+clean-check:
+	$(SAMCLEAN)
+
+clean:
+	$(SAMCLEAN)
+	$(RM) *.f *main* 
+	$(RM) -rf *visit
+
+include $(SRCDIR)/Makefile.depend

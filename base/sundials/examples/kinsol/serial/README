@@ -1,0 +1,18 @@
+List of serial KINSOL examples
+
+  kinFerTron_dns:   Ferraris-Tronconi example (DENSE)
+  kinFoodWeb_kry:   2-D food web system, block-diagonal preconditioner
+  kinKrylovDemo_ls: demonstration program with 3 Krylov solvers
+  kinLaplace_bnd:   2-D elliptic PDE (BAND)
+  kinRoboKin_dns:   Robot kinematics problem (DENSE)
+
+Sample result:
+
+  SUNDIALS was built with the following options:
+
+  ./configure CC=gcc F77=gfortran CFLAGS="-g3 -O0" FFLAGS="-g3 -O0" --enable-examples
+
+  System Architecture: IA-32
+  Processor Type: Intel Pentium 4 Xeon DP (i686)
+  Operating System: Red Hat Enterprise Linux WS 3 (Taroon Update 7)
+  C/Fortran Compilers: gcc/gfortran v4.1.0 (GCC)

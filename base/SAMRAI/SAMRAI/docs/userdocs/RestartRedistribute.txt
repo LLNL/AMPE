@@ -1,0 +1,70 @@
+RESTART-REDISTRIBUTE TOOL
+
+The restart-redistribute tool is a tool allows a SAMRAI user to take
+restart files that came from a run on a certain number of processors and
+create a new set of restart files which can be used to launch a restarted
+run on a different number of processors.
+
+SAMRAI's restart mechanism works by having each processor write a single
+restart file for each restart dump.  The ordinary usage of these restart files
+requires that a restarted run be launched on exactly the same number of
+processors as was used on the run that created the restart files.  The
+restart-redistribute tool is only to be used when a restarted run on a
+different number of processors is desired.
+
+The tool is located in the bin directory at the root of the top level
+SAMRAI directory or the installation directory.
+
+To use the tool, one must first have a set of restart files that was dumped
+from a run of a SAMRAI-based application.  The restart files will be in a
+directory tree that looks something like:
+
+restart-dir/restore.00005/nodes.00008/proc.00000
+                                     /proc.00001
+                                     /proc.00002
+                                     /proc.00003
+                                     /proc.00004
+                                     /proc.00005
+                                     /proc.00006
+                                     /proc.00007
+
+'restart-dir' is the directory containing all of the restart dumps.
+The name of this directory is specified in the input file for the
+application.  'restart-dir' contains a set of subdirectories with
+names in the format of 'restore.DDDDD',where the DDDDD is a a 5-digit
+integer that identifies the timestep of the dump. The 'restore.DDDDD'
+subdirectory contains a subdirectory 'nodes.NNNNN', where NNNNN is a 5
+digit integer that specifies the number of processors on which the
+application ran.  The 'nodes.NNNNN' subdirectory then contains the set
+of HDF files containing the restart data.  The HDF files are named
+with the format 'proc.PPPPP', where PPPPP is a 5-digit integer that
+indicates the MPI rank of the the processor that wrote the file.
+
+NOTE: If there is more than one 'nodes.NNNNN' subdirectory the
+resdistribute utility will fail.
+
+The usage of the restart redistribute tool is:
+
+restart-redistribute INPUT-DIR OUTPUT-DIR TIMESTEP NUM_PROCS_IN NUM_PROCS_OUT
+
+INPUT-DIR        - the directory containing the restart dumps from a run
+
+OUTPUT-DIR       - the name of the directory to contain new restart files
+
+TIMESTEP         - integer identifier of the timestep of the restart 
+		   to be redistributed.
+
+NUM_PROCS_OUT    - the number of processors desired for a new restarted
+                   run of the application.
+
+To run the tool on the example given above to redistribute 8 processor restart files to a 16 processor restart file, one would use:
+
+restart-redistribute restart-dir new-restart-dir 5 16
+
+The resulting restart files could then be used to restart the run on
+16 procsessors.
+
+NOTE: The restart-redistribute utility is compiled using the compiler
+and compile options of the node processors.  For machines where the
+host and node are different things means the utilty must be run on the
+node processors (e.g. in a batch file).

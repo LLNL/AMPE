@@ -1,0 +1,171 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Performance input file for TreeLoadBalancer
+ *
+ ************************************************************************/
+
+
+
+Main {
+   dim = 3
+
+   base_name = "scaled_front.3d.treelb"
+   log_all_nodes = FALSE
+   write_visit = FALSE
+
+   // Balancer types: TreeLoadBalancer, ChopAndPackLoadBalancer
+   load_balancer_type = "TreeLoadBalancer"
+
+   /*
+     Specify domain as a box array in the reference index space.
+   */
+   domain_boxes = [(0,0,0),(15,7,7)]
+
+   /*
+     Specify physical domain box.
+   */
+   xlo = 0.0, 0.0, 0.0
+   xhi = 2.0, 1.0, 1.0
+
+   /*
+     Use num_procs_in_tile if you want to scale up the problem
+     size by tiling the domain.  Tiling doubles the domain
+     size one direction at a time, starting with the j-direction
+     and cycles through all directions repeatedly.
+
+     When tiling, we keep constant the ratio of the domain size to
+     num_procs_in_tile and double the domain as many times as needed
+     for the number of MPI processes running.  We require that the
+     number of MPI processes be a power-of-two times
+     num_procs_in_tile.
+   */
+   num_procs_in_tile = 8
+
+   /*
+     Specify ghost-cell-width between L0 and unbalanced.
+   */
+   ghost_cell_width = 4, 4, 4
+
+   L1_box_gen_method = "PrebalanceBySinusoidalFront"
+
+   PrebalanceBySinusoidalFront {
+      /*
+        Specify unbalanced layer by tagging a set of sinusoidal fronts
+        oriented in perpendicular to the x-axis.
+      */
+      efficiency_tol = 0.85
+      combine_tol = 0.85
+      tag_buffer = 2, 2, 2
+      SinusoidalFrontTagger {
+         init_disp = 1.0, 1.0, 1.0
+         period = 2.0, 4.0, 4.0
+         amplitude = 0.5
+      }
+      BergerRigoutsos {
+         sort_output_nodes = TRUE
+         log_node_history = FALSE
+         log_cluster_summary = TRUE
+         log_cluster = FALSE
+         sequentialize_output_indices = FALSE
+         barrier_before_cluster = FALSE
+         // owner_mode = "SINGLE_OWNER"
+         // algo_advance_mode = "SYNCHRONOUS"
+      }
+   }
+
+   PrebalanceByShrinkingLevel {
+      shrink_width = 5, 5, 5
+      BergerRigoutsos {
+         sort_output_nodes = TRUE
+         log_node_history = FALSE
+         log_cluster_summary = TRUE
+         log_cluster = FALSE
+         sequentialize_output_indices = FALSE
+         barrier_before_cluster = FALSE
+         // owner_mode = "SINGLE_OWNER"
+         // algo_advance_mode = "SYNCHRONOUS"
+      }
+   }
+
+}
+
+TreeLoadBalancer {
+  report_load_balance = FALSE // Reported in main
+  n_root_cycles = -1
+  min_load_fraction_per_box = 0.03
+  balance_penalty_wt = 1.0
+  surface_penalty_wt = 1.0
+  slender_penalty_wt = 1.0
+  precut_penalty_wt = 1.0
+
+  // Debugging options
+  check_map = FALSE
+  check_connectivity = FALSE
+  print_steps = FALSE
+  print_swap_steps = FALSE
+  print_break_steps = FALSE
+  print_edge_steps = FALSE
+}
+
+TreeLoadBalancerOld {
+  report_load_balance = FALSE // Reported in main
+  n_root_cycles = -1
+  min_load_fraction_per_box = 0.03
+  balance_penalty_wt = 1.0
+  surface_penalty_wt = 1.0
+  slender_penalty_wt = 1.0
+  precut_penalty_wt = 1.0
+
+  // Debugging options
+  check_map = FALSE
+  check_connectivity = FALSE
+  print_steps = FALSE
+  print_swap_steps = FALSE
+  print_break_steps = FALSE
+  print_edge_steps = FALSE
+}
+
+TimerManager {
+//   print_exclusive      = TRUE
+   print_summed           = TRUE
+   print_max              = TRUE
+   print_threshold        = 0.
+   timer_list             = "hier::*::*", "mesh::*::*", "apps::*::*"
+}
+
+PatchHierarchy {
+
+   /*
+     Specify number of levels (1, 2 or 3 for this test).
+   */
+   max_levels = 3
+
+   enforce_proper_nesting = FALSE
+   extend_to_domain_boundary = FALSE
+   check_nonrefined_tags = "IGNORE"
+   // load_balance = FALSE
+   largest_patch_size {
+      level_0 = -1,-1,-1
+      // level_0 = 20,20,20
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 3,3,3
+      level_1 = 6,6,6
+      level_2 = 6,6,6
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 3, 3, 3
+      level_2            = 3, 3, 3
+      //  etc.
+   }
+
+   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   proper_nesting_buffer = 1, 1, 1
+}

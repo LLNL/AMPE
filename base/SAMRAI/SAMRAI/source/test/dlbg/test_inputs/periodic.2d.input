@@ -1,0 +1,177 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright 
+ * information, see COPYRIGHT and COPYING.LESSER. 
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Input file for DLBG tests.
+ *
+ ************************************************************************/
+
+Main {
+  dim = 2
+  check_dlbg_in_main = FALSE
+  which_br = 'n'
+  base_name = "periodic2d"
+  log_all = TRUE
+  plot_step = 1
+  check_graph = FALSE
+  // restart_write_dirname = "restart"
+  // time_nlbg_random_rmi = TRUE
+  log_hierarchy = TRUE
+  num_steps = 100
+  // num_steps = 10
+  build_cross_edge = TRUE
+  build_peer_edge = TRUE
+  globalize_node_sets = FALSE
+  node_log_detail = 2
+  edge_log_detail = 3
+//   tag_buffer = 0, 0, 0, 0, 0, 0, 0, 0
+  verbose = 0
+}
+
+DLBGTest {
+  sine_tagger {
+    allocate_data = FALSE
+    period = 1
+    amplitude = .3
+    init_disp = -0.42, 0.0
+    // init_disp = -0.00, 0.25
+    velocity = 0.018, 0.005
+  }
+}
+
+
+BergerRigoutsos {
+  log_node_history = FALSE
+  log_cluster_summary = TRUE
+  log_cluster = TRUE
+    // algo_advance_mode: "SYNCHRONOUS", "ADVANCE_SOME", "ROUND_ROBIN" or "ADVANCE_ANY"
+  algo_advance_mode = "ADVANCE_SOME"
+  // algo_advance_mode = "SYNCHRONOUS"
+  // owner_mode: "SINGLE_OWNER", "MOST_OVERLAP" (default), "FEWEST_OWNED", "LEAST_ACTIVE"
+  // owner_mode = "FEWEST_OWNED"
+  owner_mode = "MOST_OVERLAP"
+  // owner_mode = "SINGLE_OWNER"
+  use_level_boxes = FALSE
+  use_private_communicator = TRUE
+  sequentialize_output_indices = FALSE
+  max_box_size = 40, 40
+  barrier_before_cluster = FALSE
+}
+
+
+CartesianGridGeometry {
+  // domain_boxes = [(0,0), (3,3)]
+  //
+  // Domain of a single box:
+  domain_boxes = [(0,0), (15,31)]
+  //
+  // Domain of a single box, described as 4 boxes:
+  // domain_boxes = [(0,0), (7,15)], [(8,0), (15,15)], [(0,15), (7,31)], [(7,15), (15,31)]
+  //
+  // Domain with hole in the middle:
+  // domain_boxes = [(0,0), (4,17)], [(5,0), (15,13)], [(11,14), (15,31)], [(0,18), (10,31)]
+
+  periodic_dimension = 1, 1
+  x_lo         = 0, 0
+  x_up         = 1, 2
+}
+
+StandardTagAndInitialize {
+  tagging_method = "GRADIENT_DETECTOR"
+}
+
+TreeLoadBalancer {
+  report_load_balance = TRUE
+  barrier_before = FALSE
+  barrier_after = FALSE
+  n_root_cycles = -1
+  interlace_groups = FALSE
+  balance_penalty_wt = 0.0
+  surface_penalty_wt = 1.0
+
+  // Debugging options
+  check_map = FALSE
+  check_connectivity = FALSE
+  print_steps = FALSE
+  print_swap_steps = FALSE
+  print_break_steps = FALSE
+  print_edge_steps = FALSE
+}
+
+PatchHierarchy {
+   max_levels = 4
+   proper_nesting_buffer = 2, 2, 2, 2, 2, 2
+   largest_patch_size {
+      // level_0 = 8, 8
+      level_0 = -1, -1
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 2, 2
+      level_2            = 2, 2
+      level_3            = 2, 2
+      level_4            = 2, 2
+      level_5            = 2, 2
+      level_6            = 2, 2
+      level_7            = 2, 2
+      level_8            = 2, 2
+      level_9            = 2, 2
+      //  etc.
+   }
+   allow_patches_smaller_than_ghostwidth = FALSE
+}
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   extend_to_domain_boundary = FALSE
+   // load_balance = FALSE
+   efficiency_tolerance = 0.80
+   combine_efficiency = 0.85
+   // write_regrid_boxes = TRUE
+   // read_regrid_boxes = TRUE
+   // regrid_boxes_filename = "grid"
+   check_nonrefined_tags = "WARN"
+   check_overlapping_patches = "WARN"
+   extend_tags_to_bdry = TRUE
+   sequentialize_patch_indices = TRUE
+   barrier_before_regrid = TRUE
+   barrier_before_find_refinement = TRUE
+   barrier_before_cluster = TRUE
+   barrier_before_nest = TRUE
+   barrier_before_limit = TRUE
+   barrier_before_extend = TRUE
+   barrier_before_balance = TRUE
+   barrier_after_find_refinement = TRUE
+   coalesce_boxes = FALSE
+
+   check_overflow_nesting = FALSE
+   check_proper_nesting = FALSE
+   check_connectors = FALSE
+   print_layer_hierarchy = FALSE
+   print_steps = TRUE
+}
+
+
+GlobalInputs{
+   tag_clustering_method = "BINARY_TREE"
+}
+
+
+TimerManager{
+  timer_list = "*::*::*"
+  print_user = TRUE
+  // print_timer_overhead = TRUE
+  print_threshold = 0
+  print_summed = TRUE
+  print_max = TRUE
+}
+
+OverlapConnectorUtil {
+   print_bridge_steps = 'n'
+}

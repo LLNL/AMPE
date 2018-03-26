@@ -1,0 +1,104 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for linear advection sample application 
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/MblkLinAdv
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default:      check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=0
+
+NUM_TESTS     = 2
+
+TEST_NPROCS   = @TEST_NPROCS@
+
+CXX_OBJS      = MblkGeometry.o main.o MblkLinAdv.o MblkHyperbolicLevelIntegrator.o \
+	MblkHyperbolicPatchStrategy.o Pointer-MblkHyperbolicLevelIntegrator.o \
+	SkeletonCellDoubleConservativeLinearRefine.o Pointer-SkeletonCellDoubleConservativeLinearRefine.o \
+	SkeletonCellDoubleWeightedAverage.o Pointer-SkeletonCellDoubleWeightedAverage.o \
+	SkeletonOutersideDoubleWeightedAverage.o Pointer-SkeletonOutersideDoubleWeightedAverage.o \
+	SkeletonBoundaryUtilities2.o \
+	SkeletonBoundaryUtilities3.o
+
+F_OBJS      = upfluxsum2d.o skelbdry2d.o upfluxsum3d.o skelbdry3d.o
+
+main:	$(CXX_OBJS) $(F_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(F_OBJS) \
+	$(LIBSAMRAI) $(LDLIBS) -o $@
+
+check:
+	$(MAKE) check3d
+
+check2d:
+
+check3d:       main
+	@for i in test_inputs/*.3d.input ; do \
+	 $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+	       ./main $${i}; \
+	done
+
+checkcompile: main
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+examples2d: 
+
+examples3d: main
+	@for i in $(SRCDIR)/example_inputs/*.3d.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+examples:
+	$(MAKE) examples2d
+	$(MAKE) examples3d
+
+clean-check:
+	$(SAMCLEAN)
+
+clean: 
+	$(SAMCLEAN)
+	$(RM) *.f main viz*
+
+redo: 
+	$(RM) main
+
+include $(SRCDIR)/Makefile.depend
+
+FORTRAN       = $(SRCDIR)/fortran
+M4DIRS        = -DFORTDIR=$(FORTRAN) $(SAMRAI_M4_FLAGS)
+
+skelbdry2d.o:	$(FORTRAN)/2d/skelbdry2d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/2d/skelbdry2d.m4 > skelbdry2d.f
+	$(F77) $(FFLAGS) -c skelbdry2d.f -o $@
+
+upfluxsum2d.o:	$(FORTRAN)/2d/upfluxsum2d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/2d/upfluxsum2d.m4 > upfluxsum2d.f
+	$(F77) $(FFLAGS) -c upfluxsum2d.f -o $@
+
+
+skelbdry3d.o:	$(FORTRAN)/3d/skelbdry3d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/3d/skelbdry3d.m4 > skelbdry3d.f
+	$(F77) $(FFLAGS) -c skelbdry3d.f -o $@
+
+upfluxsum3d.o:	$(FORTRAN)/3d/upfluxsum3d.m4
+	$(M4) $(M4DIRS) $(FORTRAN)/3d/upfluxsum3d.m4 > upfluxsum3d.f
+	$(F77) $(FFLAGS) -c upfluxsum3d.f -o $@
+

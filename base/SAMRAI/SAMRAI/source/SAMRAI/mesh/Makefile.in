@@ -1,0 +1,49 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   primary makefile for compiling the SAMRAI mesh package 
+##
+#########################################################################
+
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/SAMRAI/mesh
+VPATH         = @srcdir@
+OBJECT        = ../../..
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+OBJS = 	\
+	SpatialKey.o \
+	BoxGeneratorStrategy.o \
+	GriddingAlgorithm.o \
+	GriddingAlgorithmConnectorWidthRequestor.o \
+	StandardTagAndInitStrategy.o \
+	StandardTagAndInitialize.o \
+	StandardTagAndInitializeConnectorWidthRequestor.o \
+	TagAndInitializeStrategy.o \
+	BalanceUtilities.o \
+	TreeLoadBalancer.o \
+	TreeLoadBalancerOld.o \
+	ChopAndPackLoadBalancer.o \
+	LoadBalanceStrategy.o \
+	GriddingAlgorithmStrategy.o \
+	BergerRigoutsos.o \
+	BergerRigoutsosNode.o \
+	MultiblockGriddingTagger.o
+
+library: $(OBJS)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+clean:
+	$(SAMCLEAN)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+include $(SRCDIR)/Makefile.depend

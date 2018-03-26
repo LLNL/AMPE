@@ -1,0 +1,19 @@
+[general]
+        -genCwrapper = true
+
+[function]
+        -call = sin(a1)
+        -replacement = sin
+
+[function]
+        -call = exp(a1)
+        -replacement = exp
+
+[function]
+        -call = cos(a1)
+        -replacement = cos
+
+[parsing]
+        -entry_point = f
+        -user_data_type = UserData
+        -user_data_arg = f_data

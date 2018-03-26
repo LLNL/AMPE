@@ -1,0 +1,58 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVodeQuadReInit!}
+\label{p:CVodeQuadReInit}
+\index{CVodeQuadReInit}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVodeQuadReInit reinitializes CVODES's quadrature-related memory
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function CVodeQuadReInit(yQ0, options) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVodeQuadReInit reinitializes CVODES's quadrature-related memory
+   assuming it has already been allocated in prior calls to CVodeInit 
+   and CVodeQuadInit.
+
+   Usage: CVodeQuadReInit ( YQ0 [, OPTIONS ] ) 
+
+   YQ0      Initial conditions for quadrature variables yQ(t0).
+   OPTIONS  is an (optional) set of QUAD options, created with
+            the CVodeSetQuadOptions function. 
+
+   See also: CVodeSetQuadOptions, CVodeQuadInit
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

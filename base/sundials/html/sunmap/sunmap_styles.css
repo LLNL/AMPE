@@ -1,0 +1,210 @@
+body {
+ margin: 10px;
+ padding: 0px;
+ background-color: #ffffff;
+}
+
+body, td {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size: 11px;
+ text-decoration: none;
+ color: #1c1b55;
+}
+
+
+#content {
+ height: 100%;
+ overflow: auto;
+}
+
+/* ----------------------------------------------- */
+
+A:link {text-decoration: none; color:#1c1b55}
+A:visited {text-decoration: none; color:#1c1b55}
+A:active {text-decoration: none; color:#1c1b55;}
+A:hover {text-decoration: underline; color: #1c1b55;}
+
+/* ----------------------------------------------- */
+
+#Title {
+ position: absolute;
+ top:15px;
+ left: 10px;
+ width:600px;
+ height: 160px;
+ border: 0px;
+ padding-top: 5px;
+ border-top: 1px dotted #1c1b55;
+ border-right: 1px dotted #1c1b55;
+}
+
+#title_txt {
+ position: absolute;
+ top:-10px;
+ left: 140px;
+ width: 490px;
+ font-weight: bold;
+ letter-spacing: 2px;
+ font-size: 26px;
+ padding-top:50px;
+ padding-left:40px;
+ border-left: 1px dotted #1c1b55;
+ border-bottom: 1px dotted #1c1b55;
+}
+
+/* ----------------------------------------------- */
+
+#map {
+ position: absolute;
+ top: 150px;
+ width:900px;
+
+ text-align:left;
+ padding:0px;
+ border: 0px;
+}
+
+
+#map_overview {
+ position: absolute;
+ left: 700px;
+ top: 500px;
+}
+
+.markerTooltip, .markerDetail {
+ color: black;
+ background-color:  white;
+ white-space: nowrap;
+ margin: 0;
+ padding: 2px 4px;
+ border: 1px solid black;
+}
+
+.markerTooltipAlternate {
+ color: white;
+ background-color:  #666;
+ white-space: nowrap;
+ margin: 0;
+ padding: 2px 4px;
+ border: 1px solid black;
+}
+
+.markerTooltip a, .markerDetail a, .markerTooltipAlternate a {
+ text-decoration: underline; 
+ color: blue;
+}
+
+/* ----------------------------------------------- */
+
+#message {
+ position: absolute;
+ left:11px;
+ top: 750px;
+ height: 20px;
+ width:550px;
+ margin-top: 5px;
+ padding-left: 5px;
+ border-left: 1px dotted #1c1b55;
+ border-bottom: 1px dotted #1c1b55;
+}
+
+#help_button {
+ position: absolute;
+ left:545px;
+ top: 120px;
+ width: 359px;
+ text-align: right;
+ font-weight: bold;
+ font-size: 16px;
+
+ padding-right: 5px;
+ border-top: 1px dotted #1c1b55;
+ border-right: 1px dotted #1c1b55;
+}
+
+/* ----------------------------------------------- */
+
+#listing_container {
+ position: absolute;
+ left: 10px;
+ top:760px;
+ width: 540px;
+ padding-top: 30px;
+ padding-bottom:10px;
+ margin-bottom: 10px;
+ border-right: 1px dotted #1c1b55;
+ border-bottom: 1px dotted #1c1b55;
+}
+
+#listing {
+ margin-top: 20px;
+ display: none;
+}
+
+.default{background-color: #ffffff;}
+.selected{background-color: #99b3cc;}
+
+/* ----------------------------------------------- */
+
+#add_container {
+ position: absolute;
+ top:740px;
+ left: 610px;
+ width: 300px;
+ text-align:right;
+ padding-top: 50px;
+ padding-bottom:10px;
+ margin-bottom: 10px;
+ border-left: 1px dotted #1c1b55;
+ border-bottom: 1px dotted #1c1b55;
+}
+
+#add_form {
+ margin-top: 10px;
+}
+
+/*
+ -------------------------------------------------------
+ Styles for Forms
+ ------------------------------------------------------
+*/
+
+input, textarea{
+ font-family: sans-serif;
+ font-size: 11px;
+ text-decoration: none;
+}
+
+input.button {
+ padding: 0px 5px 0px 5px;
+ cursor: pointer;
+
+ border: 1px solid;
+ border-color: #ccc #666 #666 #ccc;
+ background-color: #e5e4d9;
+}
+
+input.button:active {
+ border-color: #666 #ccc #ccc #666;
+}
+
+input.textfield {
+ padding: 0px 5px 0px 5px;
+
+ border: 1px solid;
+ border-color: #666 #ccc #ccc #666;
+ width: 200px;
+}
+
+input.textfield:focus {
+ background-color: #e5e4d9;
+}
+
+textarea{
+ border: 1px solid;
+ border-color: #666 #ccc #ccc #666;
+}
+
+textarea:focus {
+ background-color: #e5e4d9;
+}

@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<title>The SUNDIALS users Google Map</title>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8"></meta>
+<meta http-equiv="cache-control" content="no-cache"></meta>
+
+<meta name="author" content="Radu Serban"></meta>
+<meta name="description" content="suite of nonlinear differential algebraic equation solvers"></meta>
+<meta name="keywords" content="SUNDIALS, CVODE, CVODES, IDA, KINSOL"></meta>
+<meta name="keywords" content="ODE, DAE, sensitivity"></meta>
+<meta name="keywords" content="differential, algebraic"></meta>
+
+<link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon"></link>
+<link rel="icon" href="../img/favicon.ico" type="image/x-icon"></link>
+
+<link href="sunmap_styles.css" rel="stylesheet" type="text/css"></link>
+
+<!-- Gogle Maps API key for localhost -->
+<script src="http://maps.google.com/maps?file=api&v=2&key=ABQIAAAAjHY4H4GWZLJP6Bldr3YQ4BSw-rZd5qlMzzza300rtu9pH9MKrxRb_LFOpTpnhSod_RUxh9s6Axc6lA" type="text/javascript"></script>
+
+
+<script type="text/javascript" src="pdmarker.js"></script>
+<script type="text/javascript" src="sunmap.js"></script>
+
+</head>
+
+
+<body onunload="GUnload()"><div id="content">
+
+<script type="text/javascript">
+window.onload = onPageLoad;
+</script>
+
+
+<!-- BEGIN TITLE -->
+<div id="Title">
+<img src="img/map_logo.png" alt="logo" align="middle"></img>
+<div id="title_txt">User, where art thou?</div>
+</div>
+
+<!-- GOOGLE MAP -->
+<div id="map" style="width: 900px; height: 600px;"></div>
+
+<!-- INFO MESSAGE -->
+<div id="message"></div>
+
+<div id="listing_container"> <!-- BEGIN LISTING -->
+
+<INPUT TYPE="submit" ID="list" NAME="list" VALUE="Show List" CLASS="button" onClick="toggleList(); return true;"></INPUT>
+
+<div id="listing">
+<table width=500 border=1 cellspacing=1>
+<tbody id="listing_table">
+<tr style="font-weight:bold;" >
+<td></td>
+<td align="center">Name</td>
+<td align="center">City</td>
+<td align="center">Country</td>
+<td align="center" width=60>Latitude</td>
+<td align="center" width=60>Longitude</td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<br><br>
+<form id="CheckPassword" action="../cgi/editmap.cgi" method="post">
+Enter password: 
+<input type="password" id="password" name="password" maxlength="12" size="12" style="margin-left: 10px;" />
+<input type="submit" name="check" value="Submit">
+</form>
+
+</div>
+
+</div> <!-- END LISTING -->
+
+
+<div id="add_container"> <!-- BEGIN FORM FOR ADDING ENTRY -->
+
+<INPUT TYPE="submit" ID="add" NAME="add" VALUE="Add" CLASS="button" onClick="toggleAdd(); return true;"></INPUT>
+
+<FORM NAME="sunMapAdd" ACTION="../cgi/add2map.cgi" METHOD="post">
+<table id="add_form" style="display:none; margin-top: 20px;" width=300 border=0 cellspacing=3>
+<tr>
+ <td width=100 align="right" valign="middle"><B>Name</B></td>
+ <td align="left" valign="middle"><INPUT TYPE="text" ID="realname" NAME="realname" MAXLENGTH=40 CLASS="textfield"></INPUT></td>
+</tr>
+<tr>
+ <td width=100 align="right" valign="middle"><B>City</B></td>
+ <td align="left" valign="middle"><INPUT TYPE="text" ID="city" NAME="city" MAXLENGTH=80 CLASS="textfield"></INPUT></td>
+</tr>
+<tr>
+ <td width=100 align="right" valign="middle"><B>Country</B></td>
+ <td align="left" valign="middle"><INPUT TYPE="text" ID="country" NAME="country" MAXLENGTH=80 CLASS="textfield"></INPUT></td>
+</tr>
+<tr>
+ <td width=100 align="right" valign="middle"><B>Link to photo</B></td>
+ <td align="left" valign="middle"><INPUT TYPE="text" ID="photo" NAME="photo" MAXLENGTH=80 CLASS="textfield"></INPUT></td>
+</tr>
+<tr>
+ <td></td>
+ <td>
+ <INPUT TYPE="submit" NAME="submit" VALUE="Submit" CLASS="button" onClick="submitAdd(); return true;"></INPUT>
+ <INPUT TYPE="reset" VALUE="Clear Form" CLASS="button"></INPUT>
+ </td>
+</tr>
+</table>
+
+<INPUT TYPE="hidden" ID="lat" NAME="lat" VALUE=""></INPUT>
+<INPUT TYPE="hidden" ID="lng" NAME="lng" VALUE=""></INPUT>
+<INPUT TYPE="hidden" ID="new_id" NAME="new_id" VALUE=""></INPUT>
+<INPUT TYPE="hidden" ID="old_id" NAME="old_id" VALUE=""></INPUT>
+<INPUT TYPE="hidden" ID="action" NAME="action" VALUE="none"></INPUT>
+
+</FORM>
+
+</div> <!-- END FORM FOR ADDING ENTRY -->
+
+
+<div id="help_button">
+<a href="help.html" onclick="window.open('help.html', 'popup', 'width=600,height=800,scrollbars=yes,menubar=no');return false">Help</a>
+</div>
+
+
+</div></body>
+</html>
+

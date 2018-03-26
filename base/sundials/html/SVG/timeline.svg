@@ -1,0 +1,1586 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="680.00000px"
+   height="200.00000px"
+   id="svg1306"
+   sodipodi:version="0.32"
+   inkscape:version="0.43+devel"
+   inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\img\timeline.png"
+   inkscape:export-xdpi="90.000000"
+   inkscape:export-ydpi="90.000000"
+   sodipodi:docbase="C:\cygwin\home\serban1\CODES\sundials\html\SVG"
+   sodipodi:docname="timeline.svg">
+  <defs
+     id="defs1308">
+    <marker
+       inkscape:stockid="Arrow2Send"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Send"
+       style="overflow:visible;">
+      <path
+         sodipodi:nodetypes="cccc"
+         id="path5608"
+         style="font-size:12.0;fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(0.3) rotate(180) translate(-5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="TriangleOutM"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="TriangleOutM"
+       style="overflow:visible">
+      <path
+         sodipodi:nodetypes="cccc"
+         id="path5546"
+         d="M 5.77,0.0 L -2.88,5.0 L -2.88,-5.0 L 5.77,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         transform="scale(0.4)" />
+    </marker>
+    <marker
+       inkscape:stockid="StopM"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="StopM"
+       style="overflow:visible">
+      <path
+         id="path5538"
+         d="M 0.0,5.65 L 0.0,-5.65"
+         style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt"
+         transform="scale(0.4)" />
+    </marker>
+    <marker
+       inkscape:stockid="SquareM"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="SquareM"
+       style="overflow:visible">
+      <path
+         sodipodi:nodetypes="ccccc"
+         id="path5571"
+         d="M -5.0,-5.0 L -5.0,5.0 L 5.0,5.0 L 5.0,-5.0 L -5.0,-5.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         transform="scale(0.4)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lstart"
+       style="overflow:visible">
+      <path
+         sodipodi:nodetypes="ccccc"
+         id="path5622"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         transform="scale(0.8)" />
+    </marker>
+    <marker
+       inkscape:stockid="TriangleOutL"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="TriangleOutL"
+       style="overflow:visible">
+      <path
+         sodipodi:nodetypes="cccc"
+         id="path5549"
+         d="M 5.77,0.0 L -2.88,5.0 L -2.88,-5.0 L 5.77,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;marker-start:none"
+         transform="scale(0.8)" />
+    </marker>
+    <linearGradient
+       id="linearGradient3695">
+      <stop
+         style="stop-color:#000000;stop-opacity:0.54639173;"
+         offset="0.0000000"
+         id="stop3697" />
+      <stop
+         style="stop-color:#000000;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop3699" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3725">
+      <stop
+         id="stop3733"
+         offset="0.0000000"
+         style="stop-color:#7eb6d0;stop-opacity:1.0000000;" />
+      <stop
+         style="stop-color:#5e808c;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop3735" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient2044">
+      <stop
+         style="stop-color:#9fbfcd;stop-opacity:1;"
+         offset="0"
+         id="stop2046" />
+      <stop
+         style="stop-color:#9fbfcd;stop-opacity:0;"
+         offset="1"
+         id="stop2048" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3701"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,92.43850)" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3724"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,72.43850)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3728"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,52.43850)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3732"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,32.43850)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3736"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,12.43850)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3740"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,-7.561500)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3744"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,-27.56150)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3695"
+       id="linearGradient3748"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(5.712781,0.000000,0.000000,1.000000,1265.374,-47.56150)"
+       x1="-220.50000"
+       y1="76.714286"
+       x2="-105.92857"
+       y2="76.714286" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.9411765"
+     inkscape:cx="340"
+     inkscape:cy="100"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1411"
+     inkscape:window-height="1107"
+     inkscape:window-x="70"
+     inkscape:window-y="-6"
+     showgrid="true" />
+  <metadata
+     id="metadata1311">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <image
+       id="image2957"
+       height="200.00000"
+       width="680.00000"
+       sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/time_bck.png"
+       xlink:href="time_bck.png"
+       x="0.42139927"
+       y="0.29948083"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png" />
+    <path
+       style="fill:#6c97a6;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+       d="M 603.37546,56.500854 C 603.46930,56.500760 603.56408,56.513792 603.65796,56.514312 L 646.44910,56.514312 L 646.44910,99.493764 L 646.44910,99.561027 C 646.45341,105.13100 645.37924,110.78740 643.08607,116.24163 C 633.87657,138.14615 608.62628,148.45421 586.72176,139.24472 C 564.81725,130.03521 554.50918,104.78492 563.71867,82.880429 L 563.78594,82.705543 C 570.74539,66.353139 586.64623,56.518759 603.37546,56.500854 z "
+       id="path1306"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="fill:#618592;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+       id="path1313"
+       sodipodi:cx="357.85715"
+       sodipodi:cy="528.43359"
+       sodipodi:rx="72.500000"
+       sodipodi:ry="72.500000"
+       d="M 424.69039,500.33435 A 72.500000,72.500000 0 1 1 424.56692,500.04247"
+       sodipodi:start="5.8851849"
+       sodipodi:end="12.163999"
+       sodipodi:open="true"
+       transform="matrix(0.508376,0.000000,0.000000,0.504164,421.4725,-166.8572)"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="star"
+       style="fill:#6c97a6;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+       id="path2050"
+       sodipodi:sides="5"
+       sodipodi:cx="110.00000"
+       sodipodi:cy="496.64789"
+       sodipodi:r1="100.41750"
+       sodipodi:r2="20.406609"
+       sodipodi:arg1="0.69473828"
+       sodipodi:arg2="1.3230568"
+       inkscape:flatsided="false"
+       inkscape:rounded="0.0000000"
+       inkscape:randomized="0.0000000"
+       d="M 187.14286,560.93361 L 115.00397,516.43147 L 72.699103,589.88049 L 92.731010,507.52041 L 9.8039153,489.98309 L 94.323209,483.58390 L 85.376311,399.29621 L 117.58020,477.70138 L 194.97781,443.14605 L 130.36161,498.00229 L 187.14286,560.93361 z "
+       transform="matrix(0.360755,-8.063761e-2,8.063761e-2,0.360755,523.9521,-70.57173)"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3701);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 8.5614980,168.86707 L 657.37006,169.43850"
+       id="path2967"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3722"
+       d="M 8.5614980,148.86707 L 657.37006,149.43850"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3724);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3726"
+       d="M 8.5614980,128.86707 L 657.37006,129.43850"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3728);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3732);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 8.5614980,108.86707 L 657.37006,109.43850"
+       id="path3730"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3734"
+       d="M 8.5614980,88.867072 L 657.37006,89.438502"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3736);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3740);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 8.5614980,68.867072 L 657.37006,69.438502"
+       id="path3738"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3742"
+       d="M 8.5614980,48.867072 L 657.37006,49.438502"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3744);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:url(#linearGradient3748);stroke-width:1.1229961;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 8.5614980,28.867072 L 657.37006,29.438502"
+       id="path3746"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3750"
+       d="M 554.83675,169.73468 L 554.26532,24.868170"
+       style="opacity:0.70000000;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 522.83732,169.73468 L 522.26532,24.868170"
+       id="path4480"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4482"
+       d="M 490.83732,169.73468 L 490.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 458.83732,169.73468 L 458.26532,24.868170"
+       id="path4484"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4486"
+       d="M 426.83732,169.73468 L 426.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.70000000;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 394.83732,169.73468 L 394.26532,24.868170"
+       id="path4488"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4490"
+       d="M 362.83732,169.73468 L 362.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 330.83732,169.73468 L 330.26532,24.868170"
+       id="path4492"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4494"
+       d="M 298.83732,169.73468 L 298.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 266.83732,169.73468 L 266.26532,24.868170"
+       id="path4496"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="129.45163"
+       x="259.28226"
+       height="19.581636"
+       width="45.491062"
+       id="rect2361"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.66080362;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4498"
+       d="M 234.83732,169.73468 L 234.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 202.83732,169.73468 L 202.26532,24.868170"
+       id="path4500"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.6567269;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect2351"
+       width="44.931492"
+       height="19.581636"
+       x="197.22437"
+       y="88.97773"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4502"
+       d="M 170.83732,169.73468 L 170.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 138.83732,169.73468 L 138.26532,24.868170"
+       id="path4504"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4506"
+       d="M 106.83732,169.73468 L 106.26532,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 74.837322,169.73468 L 74.265322,24.868170"
+       id="path4508"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path4510"
+       d="M 42.837322,169.73468 L 42.265322,24.868170"
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.68235296;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#000000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.72891569"
+       d="M 10.837322,169.73468 L 10.265322,24.868170"
+       id="path4512"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.70000000;fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:0.53064483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+       d="M 610.83675,169.73468 L 610.26532,24.868170"
+       id="path5275"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="68.985535"
+       x="555.30157"
+       height="19.581636"
+       width="54.396851"
+       id="rect3246"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.72259718;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="559.29602"
+       y="83.821999"
+       id="text5277"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5279"
+         x="559.29602"
+         y="83.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">cvodes</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.68902117;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect3244"
+       width="49.459118"
+       height="19.581636"
+       x="555.19635"
+       y="49.073853"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5281"
+       y="62.835938"
+       x="560.45313"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5285"
+         x="560.45313"
+         y="62.835938"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">cvode</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.55566418;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect3248"
+       width="32.166664"
+       height="19.581636"
+       x="555.55548"
+       y="89.140533"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="561.29602"
+       y="103.2281"
+       id="text5287"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5291"
+         x="561.29602"
+         y="103.2281"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">ida</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="109.36458"
+       x="611.14185"
+       height="19.581636"
+       width="39.597523"
+       id="rect3252"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.61651468;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5293"
+       y="123.696"
+       x="617.92529"
+       style="font-size:14.000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr;text-anchor:start;fill:#ff0000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L;opacity:1.0000000"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5297"
+         x="617.92529"
+         y="123.696">idas</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="129.45163"
+       x="555.2207"
+       height="19.581636"
+       width="44.507225"
+       id="rect3250"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.65361893;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="558.211"
+       y="143.96201"
+       id="text5299"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5303"
+         x="558.211"
+         y="143.96201"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">kinsol</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="28.977728"
+       x="400.83215"
+       height="19.581636"
+       width="49.807796"
+       id="rect2367"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.69144565;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="406.74268"
+       y="42.821999"
+       id="text5305"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         y="42.821999"
+         x="406.74268"
+         id="tspan5307"
+         sodipodi:role="line"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">cvode</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="48.97773"
+       x="435.25171"
+       height="19.581636"
+       width="49.459118"
+       id="rect2365"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.68902117;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5309"
+       y="62.821999"
+       x="440.25577"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5313"
+         x="440.25577"
+         y="62.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">pvode</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.86565834;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect2363"
+       width="78.068222"
+       height="19.581636"
+       x="456.44125"
+       y="68.97773"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="462.694"
+       y="82.821999"
+       id="text5315"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5319"
+         x="462.694"
+         y="82.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">senspvode</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="88.97773"
+       x="460.14249"
+       height="19.581636"
+       width="32.166664"
+       id="rect2353"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.55566418;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5321"
+       y="103.962"
+       x="466.54895"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         y="103.962"
+         x="466.54895"
+         id="tspan5323"
+         sodipodi:role="line"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">ida</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.7291615;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect2355"
+       width="55.389652"
+       height="19.581636"
+       x="481.28641"
+       y="109.45164"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5325"
+       y="123.02148"
+       x="483.56934"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5329"
+         x="483.56934"
+         y="123.02148"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">sensida</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="149.45163"
+       x="477.3938"
+       height="19.581636"
+       width="74.115662"
+       id="rect2357"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.84345978;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="480.58496"
+       y="163.02148"
+       id="text5331"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5335"
+         x="480.58496"
+         y="163.02148"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">senskinsol</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.65361893;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect2359"
+       width="44.507225"
+       height="19.581636"
+       x="435.2207"
+       y="129.45163"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5337"
+       y="143.82201"
+       x="440.11801"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         y="143.82201"
+         x="440.11801"
+         id="tspan5339"
+         sodipodi:role="line"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">kinsol</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.65368015;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       id="rect2347"
+       width="44.51556"
+       height="19.581636"
+       x="340.22232"
+       y="28.977728"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5341"
+       y="42.821999"
+       x="343.97559"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5353"
+         x="343.97559"
+         y="42.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">vodpk</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="28.977728"
+       x="287.24594"
+       height="19.581636"
+       width="40.557114"
+       id="rect2345"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.62394011;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="291.30655"
+       y="42.821999"
+       id="text5347"
+       sodipodi:linespacing="125%"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5351"
+         x="291.30655"
+         y="42.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">vode</tspan></text>
+    <rect
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000008;stroke-width:0.82413208;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.50196081"
+       id="rect2343"
+       width="70.757889"
+       height="19.581636"
+       x="170.39087"
+       y="28.977728"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       ry="10.714286"
+       rx="10.714286"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5355"
+       y="42.821999"
+       x="180.01466"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5359"
+         x="180.01466"
+         y="42.821999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">odepack</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="30.539375"
+       y="17.23"
+       id="text5361"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5365"
+         x="30.539375"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1972</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5367"
+       y="17.23"
+       x="62.539375"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5427"
+         x="62.539375"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1974</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="94.539375"
+       y="17.23"
+       id="text5371"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5429"
+         x="94.539375"
+         y="17.23">1976</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5375"
+       y="17.23"
+       x="125.53938"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5431"
+         x="125.53938"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1978</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="158.53937"
+       y="17.23"
+       id="text5379"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5433"
+         x="158.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1980</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5383"
+       y="17.23"
+       x="190.53937"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5435"
+         x="190.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1982</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="223.53937"
+       y="17.23"
+       id="text5387"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5437"
+         x="223.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1984</tspan></text>
+    <text
+       sodipodi:linespacing="125.00000%"
+       id="text5391"
+       y="17.23"
+       x="254.53937"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5439"
+         x="254.53937"
+         y="17.23">1986</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="286.53937"
+       y="17.23"
+       id="text5395"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5441"
+         x="286.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1988</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5399"
+       y="17.23"
+       x="510.53937"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5455"
+         x="510.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">2002</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5403"
+       y="17.23"
+       x="318.53937"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5443"
+         x="318.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1990</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="479.45001"
+       y="17.23"
+       id="text5407"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5453"
+         x="479.45001"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">2000</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5411"
+       y="17.23"
+       x="447.45001"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5451"
+         x="447.45001"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1998</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="415.45001"
+       y="17.23"
+       id="text5415"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5449"
+         x="415.45001"
+         y="17.23">1996</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="351.53937"
+       y="17.23"
+       id="text5419"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5445"
+         x="351.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1992</tspan></text>
+    <text
+       sodipodi:linespacing="125%"
+       id="text5423"
+       y="17.23"
+       x="383.45001"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5447"
+         x="383.45001"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">1994</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       x="542.53937"
+       y="17.23"
+       id="text5457"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"><tspan
+         sodipodi:role="line"
+         id="tspan5461"
+         x="542.53937"
+         y="17.23"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">2004</tspan></text>
+    <text
+       sodipodi:linespacing="125.00000%"
+       id="text5463"
+       y="25.17"
+       x="571.08936"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5467"
+         x="571.08936"
+         y="25.17">today</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#384251;fill-opacity:1;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="615.88"
+       y="25.155001"
+       id="text5469"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5473"
+         x="615.88"
+         y="25.155001">next</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="203.03122"
+       y="102.696"
+       id="text5475"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5479"
+         x="203.03122"
+         y="102.696">dassl</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="88.97773"
+       x="325.23886"
+       height="19.581636"
+       width="47.471077"
+       id="rect2349"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000000;stroke-width:0.6750313;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.53333336"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5481"
+       y="102.696"
+       x="331.33801"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5485"
+         x="331.33801"
+         y="102.696"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">daspk</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:14.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="265.11801"
+       y="142.82201"
+       id="text5487"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5491"
+         x="265.11801"
+         y="142.82201">nksol</tspan></text>
+    <rect
+       rx="10.714286"
+       ry="10.714286"
+       inkscape:r_cy="true"
+       inkscape:r_cx="true"
+       y="28.977728"
+       x="9.2245836"
+       height="19.581636"
+       width="39.536644"
+       id="rect2369"
+       style="opacity:1;fill:#84adbc;fill-opacity:1;stroke:#000008;stroke-width:0.61604053;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.50196081"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       sodipodi:linespacing="125%"
+       id="text5493"
+       y="42.723999"
+       x="13.802625"
+       style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5497"
+         x="13.802625"
+         y="42.723999"
+         inkscape:r_cx="true"
+         inkscape:r_cy="true">gear</tspan></text>
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       d="M 49.449350,39.374034 L 167.30065,39.375000"
+       id="path5499"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path5646"
+       d="M 241.23403,39.375000 L 283.93730,39.323162"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009;marker-mid:none"
+       d="M 328.02958,39.375000 L 336.43493,39.262920"
+       id="path5652"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cc"
+       id="path5654"
+       d="M 384.96965,39.737080 L 397.41561,40.130076"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       d="M 484.88843,59.375000 L 550.36740,59.262920"
+       id="path5656"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.63253009"
+       d="M 423.5,48.397935 L 423.5,59.473499 L 435.43908,59.5"
+       id="path5658"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cc"
+       id="path5660"
+       d="M 535.62500,79.375000 L 551.10142,79.262920"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cc"
+       id="path5662"
+       d="M 492.88843,99.375000 L 550.79125,99.262920"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:url(#StopM);marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       d="M 536.62500,119.37500 L 607.15473,119.26292"
+       id="path5664"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cc"
+       id="path5666"
+       d="M 479.88843,139.37500 L 551.42831,139.26292"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       d="M 304.88843,139.37500 L 431.48163,139.26292"
+       id="path5668"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="cc"
+       id="path5670"
+       d="M 242.62500,99.375000 L 321.74103,99.262920"
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:1.0000000;fill:#616b6a;fill-opacity:1.0000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.2500000;stroke-linecap:butt;stroke-linejoin:miter;marker-start:none;marker-end:url(#TriangleOutM);stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:0.63253009"
+       d="M 372.88843,99.375000 L 457.05522,99.262920"
+       id="path5672"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="ccc"
+       id="path5674"
+       d="M 451.5,68.250001 L 451.5,79.473499 L 455.86294,79.5"
+       style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.63253009"
+       d="M 474.5,108.54587 L 474.5,119.4735 L 481.38832,119.5"
+       id="path5676"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:nodetypes="ccc"
+       id="path5678"
+       d="M 454.97462,149.05095 L 454.97462,159.4735 L 476.51015,159.5"
+       style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.63253009"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#ff0000;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.63253009"
+       d="M 450.7306,39.682932 L 507.86549,39.4735 L 508.18782,59.197975"
+       id="path5680"
+       sodipodi:nodetypes="ccc"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:12.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#3b525a;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       x="214.2195"
+       y="193.024"
+       id="text5682"
+       sodipodi:linespacing="125.00000%"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan5684"
+         x="214.2195"
+         y="193.024">FORTRAN</tspan></text>
+    <text
+       sodipodi:linespacing="125.00000%"
+       id="text5686"
+       y="193.024"
+       x="491.35101"
+       style="font-size:12.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#3b525a;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:URW Gothic L"
+       xml:space="preserve"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         y="193.024"
+         x="491.35101"
+         id="tspan5688"
+         sodipodi:role="line">ANSI C</tspan></text>
+    <path
+       inkscape:export-ydpi="90"
+       inkscape:export-xdpi="90"
+       inkscape:export-filename="C:\cygwin\home\serban1\CODES\sundials\html\SVG\timeline.png"
+       style="opacity:0.68235294;fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#253c4c;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 394.73468,195.82216 L 394.66776,181.26532"
+       id="path1489"
+       inkscape:r_cx="true"
+       inkscape:r_cy="true"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

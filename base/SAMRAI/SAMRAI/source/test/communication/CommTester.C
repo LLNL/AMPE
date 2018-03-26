@@ -1,0 +1,696 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Manager class for patch data communication tests.
+ *
+ ************************************************************************/
+
+#include "CommTester.h"
+
+#include "SAMRAI/mesh/BergerRigoutsos.h"
+#include "SAMRAI/hier/OverlapConnectorAlgorithm.h"
+#include "SAMRAI/hier/CoarsenOperator.h"
+#include "SAMRAI/mesh/StandardTagAndInitialize.h"
+#include "SAMRAI/mesh/GriddingAlgorithm.h"
+#include "SAMRAI/hier/RefineOperator.h"
+#include "SAMRAI/mesh/TreeLoadBalancer.h"
+#include "SAMRAI/tbox/Utilities.h"
+#include "SAMRAI/hier/VariableDatabase.h"
+
+namespace SAMRAI {
+
+using namespace std;
+
+/*
+ *************************************************************************
+ *
+ * The constructor initializes object state.  The destructor is empty.
+ *
+ *************************************************************************
+ */
+
+CommTester::CommTester(
+   const string& object_name,
+   const tbox::Dimension& dim,
+   boost::shared_ptr<tbox::Database> main_input_db,
+   PatchDataTestStrategy* data_test,
+   bool do_refine,
+   bool do_coarsen,
+   const string& refine_option):
+   RefinePatchStrategy(dim),
+   CoarsenPatchStrategy(dim),
+   d_dim(dim),
+   d_fill_source_algorithm(dim),
+   d_refine_algorithm(dim),
+   d_coarsen_algorithm(dim),
+   d_reset_refine_algorithm(dim),
+   d_reset_coarsen_algorithm(dim)
+{
+   NULL_USE(main_input_db);
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(!object_name.empty());
+   TBOX_ASSERT(main_input_db);
+   TBOX_ASSERT(data_test != (PatchDataTestStrategy *)NULL);
+#endif
+
+   d_object_name = object_name;
+   d_data_test_strategy = data_test;
+
+   d_fake_time = 0.0;
+
+   d_is_reset = false;
+
+   d_do_refine = do_refine;
+   d_do_coarsen = false;
+   if (!do_refine) {
+      d_do_coarsen = do_coarsen;
+   }
+
+   d_refine_option = refine_option;
+   if (!((d_refine_option == "INTERIOR_FROM_SAME_LEVEL")
+         || (d_refine_option == "INTERIOR_FROM_COARSER_LEVEL"))) {
+      TBOX_ERROR(object_name << " input error: illegal refine_option = "
+                             << d_refine_option << endl);
+   }
+
+   d_patch_data_components.clrAllFlags();
+   d_fill_source_schedule.resizeArray(0);
+   d_refine_schedule.resizeArray(0);
+   d_coarsen_schedule.resizeArray(0);
+
+   d_source =
+      hier::VariableDatabase::getDatabase()->getContext("SOURCE");
+   d_destination =
+      hier::VariableDatabase::getDatabase()->getContext("DESTINATION");
+   d_refine_scratch =
+      hier::VariableDatabase::getDatabase()->getContext("REFINE_SCRATCH");
+
+   d_reset_source =
+      hier::VariableDatabase::getDatabase()->getContext("SOURCE");
+   d_reset_destination =
+      hier::VariableDatabase::getDatabase()->getContext("DESTINATION");
+   d_reset_refine_scratch =
+      hier::VariableDatabase::getDatabase()->getContext("REFINE_SCRATCH");
+
+   d_data_test_strategy->registerVariables(this);
+
+}
+
+CommTester::~CommTester()
+{
+
+}
+
+/*
+ *************************************************************************
+ *
+ * Add variable with associated attributes to set of test variables.
+ *
+ *************************************************************************
+ */
+
+void CommTester::registerVariable(
+   const boost::shared_ptr<hier::Variable> src_variable,
+   const boost::shared_ptr<hier::Variable> dst_variable,
+   const hier::IntVector& src_ghosts,
+   const hier::IntVector& dst_ghosts,
+   const boost::shared_ptr<hier::BaseGridGeometry> xfer_geom,
+   const string& operator_name)
+{
+   TBOX_DIM_ASSERT_CHECK_ARGS2(src_ghosts, dst_ghosts);
+
+   TBOX_ASSERT(src_variable);
+   TBOX_ASSERT(dst_variable);
+   TBOX_ASSERT(xfer_geom);
+   TBOX_ASSERT(!operator_name.empty());
+
+   const tbox::Dimension dim(src_ghosts.getDim());
+
+   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+
+   int src_id = variable_db->registerVariableAndContext(src_variable,
+         d_source,
+         src_ghosts);
+
+   int dst_id = variable_db->registerVariableAndContext(dst_variable,
+         d_destination,
+         dst_ghosts);
+
+   TBOX_ASSERT(src_id != -1);
+   TBOX_ASSERT(dst_id != -1);
+
+   d_patch_data_components.setFlag(src_id);
+   d_patch_data_components.setFlag(dst_id);
+
+   if (d_do_refine) {
+      boost::shared_ptr<hier::RefineOperator> refine_operator(
+         xfer_geom->lookupRefineOperator(src_variable, operator_name));
+
+      hier::IntVector scratch_ghosts(hier::IntVector::max(src_ghosts,
+                                        dst_ghosts));
+      scratch_ghosts.max(hier::IntVector(scratch_ghosts.getDim(), 1));
+      if (refine_operator) {
+         scratch_ghosts.max(refine_operator->getStencilWidth());
+      }
+      int scratch_id =
+         variable_db->registerVariableAndContext(src_variable,
+            d_refine_scratch,
+            scratch_ghosts);
+      TBOX_ASSERT(scratch_id != -1);
+
+      d_patch_data_components.setFlag(scratch_id);
+
+      d_refine_algorithm.registerRefine(dst_id,
+         src_id,
+         scratch_id,
+         refine_operator);
+
+      if (src_ghosts >= scratch_ghosts) {
+         d_fill_source_algorithm.registerRefine(src_id,
+            src_id,
+            src_id,
+            refine_operator);
+      }
+   } else if (d_do_coarsen) {
+      boost::shared_ptr<hier::CoarsenOperator> coarsen_operator(
+         xfer_geom->lookupCoarsenOperator(src_variable, operator_name));
+      d_coarsen_algorithm.registerCoarsen(dst_id,
+         src_id,
+         coarsen_operator);
+   }
+
+   registerVariableForReset(src_variable, dst_variable,
+      src_ghosts, dst_ghosts, xfer_geom,
+      operator_name);
+}
+
+void CommTester::registerVariableForReset(
+   const boost::shared_ptr<hier::Variable> src_variable,
+   const boost::shared_ptr<hier::Variable> dst_variable,
+   const hier::IntVector& src_ghosts,
+   const hier::IntVector& dst_ghosts,
+   const boost::shared_ptr<hier::BaseGridGeometry> xfer_geom,
+   const string& operator_name)
+{
+   TBOX_DIM_ASSERT_CHECK_ARGS2(src_ghosts, dst_ghosts);
+
+   TBOX_ASSERT(src_variable);
+   TBOX_ASSERT(dst_variable);
+   TBOX_ASSERT(xfer_geom);
+   TBOX_ASSERT(!operator_name.empty());
+
+   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+
+   int src_id = variable_db->registerVariableAndContext(src_variable,
+         d_reset_source,
+         src_ghosts);
+
+   int dst_id = variable_db->registerVariableAndContext(dst_variable,
+         d_reset_destination,
+         dst_ghosts);
+
+   d_patch_data_components.setFlag(src_id);
+   d_patch_data_components.setFlag(dst_id);
+
+   if (d_do_refine) {
+      boost::shared_ptr<hier::RefineOperator> refine_operator(
+         xfer_geom->lookupRefineOperator(src_variable, operator_name));
+
+      hier::IntVector scratch_ghosts(hier::IntVector::max(src_ghosts,
+                                        dst_ghosts));
+      scratch_ghosts.max(hier::IntVector(scratch_ghosts.getDim(), 1));
+      if (refine_operator) {
+         scratch_ghosts.max(refine_operator->getStencilWidth());
+      }
+      int scratch_id =
+         variable_db->registerVariableAndContext(src_variable,
+            d_reset_refine_scratch,
+            scratch_ghosts);
+
+      d_patch_data_components.setFlag(scratch_id);
+
+      d_reset_refine_algorithm.registerRefine(dst_id,
+         src_id,
+         scratch_id,
+         refine_operator);
+
+   } else if (d_do_coarsen) {
+      boost::shared_ptr<hier::CoarsenOperator> coarsen_operator(
+         xfer_geom->lookupCoarsenOperator(src_variable, operator_name));
+      d_reset_coarsen_algorithm.registerCoarsen(dst_id,
+         src_id,
+         coarsen_operator);
+   }
+
+}
+
+/*
+ *************************************************************************
+ *
+ * Create refine and coarsen communication schedules for hierarchy.
+ *
+ *************************************************************************
+ */
+
+void CommTester::createRefineSchedule(
+   const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT((level_number >= 0)
+      && (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
+#endif
+
+   boost::shared_ptr<hier::PatchLevel> level(
+      d_patch_hierarchy->getPatchLevel(level_number));
+
+   if (d_do_refine) {
+
+      d_fill_source_schedule.resizeArray(d_patch_hierarchy->getNumberOfLevels());
+      d_fill_source_schedule[level_number].reset();
+      d_refine_schedule.resizeArray(d_patch_hierarchy->getNumberOfLevels());
+      d_refine_schedule[level_number].reset();
+
+      const hier::Connector& peer_cnect =
+         d_patch_hierarchy->getConnector(level_number, level_number);
+      const hier::Connector* cnect_to_coarser = level_number > 0 ?
+         &d_patch_hierarchy->getConnector(level_number, level_number - 1) : NULL;
+      const hier::Connector* cnect_from_coarser = level_number > 0 ?
+         &d_patch_hierarchy->getConnector(level_number - 1, level_number) : NULL;
+
+      if (0) {
+         // These are expensive checks.
+         hier::OverlapConnectorAlgorithm oca;
+         oca.assertOverlapCorrectness(peer_cnect);
+         if (cnect_to_coarser)
+            oca.assertOverlapCorrectness(*cnect_to_coarser);
+         if (cnect_from_coarser)
+            oca.assertOverlapCorrectness(*cnect_from_coarser);
+         d_patch_hierarchy->recursivePrint(tbox::plog, "", 3);
+      }
+
+      d_fill_source_schedule[level_number] =
+         d_fill_source_algorithm.createSchedule(level, this);
+
+      if ((level_number == 0) ||
+          (d_refine_option == "INTERIOR_FROM_SAME_LEVEL")) {
+         d_refine_schedule[level_number] =
+            d_refine_algorithm.createSchedule(level,
+               level_number - 1,
+               d_patch_hierarchy,
+               this);
+      } else if (d_refine_option == "INTERIOR_FROM_COARSER_LEVEL") {
+         d_refine_schedule[level_number] =
+            d_refine_algorithm.createSchedule(level,
+               boost::shared_ptr<hier::PatchLevel>(),
+               level_number - 1,
+               d_patch_hierarchy,
+               this);
+      }
+
+   }
+
+}
+
+void CommTester::resetRefineSchedule(
+   const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT((level_number >= 0)
+      && (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
+#endif
+
+   if (d_do_refine) {
+
+      d_reset_refine_algorithm.resetSchedule(d_refine_schedule[level_number]);
+
+   }
+
+   d_is_reset = true;
+}
+
+void CommTester::createCoarsenSchedule(
+   const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT((level_number >= 0)
+      && (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
+#endif
+
+   if (d_do_coarsen && (level_number > 0)) {
+
+      d_coarsen_schedule.resizeArray(d_patch_hierarchy->getNumberOfLevels());
+      d_coarsen_schedule[level_number].reset();
+
+      boost::shared_ptr<hier::PatchLevel> level(
+         d_patch_hierarchy->getPatchLevel(level_number));
+      boost::shared_ptr<hier::PatchLevel> coarser_level(
+         d_patch_hierarchy->getPatchLevel(level_number - 1));
+
+      d_coarsen_schedule[level_number] =
+         d_coarsen_algorithm.createSchedule(coarser_level,
+            level,
+            this);
+
+   }
+
+}
+
+void CommTester::resetCoarsenSchedule(
+   const int level_number)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT((level_number >= 0)
+      && (level_number <= d_patch_hierarchy->getFinestLevelNumber()));
+#endif
+
+   if (d_do_coarsen && (level_number > 0)) {
+
+      d_reset_coarsen_algorithm.resetSchedule(d_coarsen_schedule[level_number]);
+
+   }
+
+   d_is_reset = true;
+}
+
+/*
+ *************************************************************************
+ *
+ * Perform data refine and coarsen operations.
+ *
+ *************************************************************************
+ */
+
+void CommTester::performRefineOperations(
+   const int level_number)
+{
+   if (d_do_refine) {
+      if (d_fill_source_schedule[level_number] &&
+          level_number < d_fill_source_schedule.size() - 1) {
+         d_data_test_strategy->setDataContext(d_source);
+         d_fill_source_schedule[level_number]->fillData(d_fake_time);
+      }
+      if (d_is_reset) {
+         d_data_test_strategy->setDataContext(d_reset_refine_scratch);
+      } else {
+         d_data_test_strategy->setDataContext(d_refine_scratch);
+      }
+      if (d_refine_schedule[level_number]) {
+         d_refine_schedule[level_number]->fillData(d_fake_time);
+      }
+      d_data_test_strategy->clearDataContext();
+   }
+}
+
+void CommTester::performCoarsenOperations(
+   const int level_number)
+{
+   if (d_do_coarsen) {
+      if (d_is_reset) {
+         d_data_test_strategy->setDataContext(d_reset_source);
+      } else {
+         d_data_test_strategy->setDataContext(d_source);
+      }
+      if (d_coarsen_schedule[level_number]) {
+         d_coarsen_schedule[level_number]->coarsenData();
+      }
+      d_data_test_strategy->clearDataContext();
+   }
+}
+
+/*
+ *************************************************************************
+ *
+ * Verify results of communication operations.
+ *
+ *************************************************************************
+ */
+
+bool CommTester::verifyCommunicationResults() const
+{
+   bool tests_pass = true;
+   if (d_is_reset) {
+      d_data_test_strategy->setDataContext(d_reset_destination);
+   } else {
+      d_data_test_strategy->setDataContext(d_destination);
+   }
+   for (int ln = 0;
+        ln <= d_patch_hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level(
+         d_patch_hierarchy->getPatchLevel(ln));
+
+      for (hier::PatchLevel::iterator p(level->begin());
+           p != level->end(); ++p) {
+         const boost::shared_ptr<hier::Patch>& patch = *p;
+
+         tests_pass &=
+            d_data_test_strategy->verifyResults(*patch, d_patch_hierarchy, ln);
+      }
+   }
+   d_data_test_strategy->clearDataContext();
+
+   return tests_pass;
+}
+
+/*
+ *************************************************************************
+ *
+ * Cell tagging and patch level data initialization routines declared
+ * in the GradientDetectorStrategy interface.  They are used to
+ * construct the hierarchy initially.
+ *
+ *************************************************************************
+ */
+
+void CommTester::initializeLevelData(
+   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+   const int level_number,
+   const double time,
+   const bool can_be_refined,
+   const bool initial_time,
+   const boost::shared_ptr<hier::PatchLevel>& old_level,
+   const bool allocate_data)
+{
+   NULL_USE(can_be_refined);
+   NULL_USE(initial_time);
+   NULL_USE(old_level);
+   NULL_USE(allocate_data);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(hierarchy);
+   TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
+   TBOX_ASSERT(level_number >= 0);
+#endif
+
+   hier::PatchLevel& level =
+      (hier::PatchLevel &) * hierarchy->getPatchLevel(level_number);
+
+   level.allocatePatchData(d_patch_data_components, time);
+
+   for (hier::PatchLevel::iterator p(level.begin());
+        p != level.end(); ++p) {
+      hier::Patch& patch = **p;
+
+      d_data_test_strategy->setDataContext(d_source);
+      d_data_test_strategy->initializeDataOnPatch(patch,
+         hierarchy,
+         level.getLevelNumber(),
+         's');
+      d_data_test_strategy->clearDataContext();
+
+      d_data_test_strategy->setDataContext(d_reset_source);
+      d_data_test_strategy->initializeDataOnPatch(patch,
+         hierarchy,
+         level.getLevelNumber(),
+         's');
+      d_data_test_strategy->clearDataContext();
+
+      if (d_do_coarsen) {
+
+         /*
+          * TODO: Why are we initializing destination data?  Shouldn't
+          * it be uninitialized so we can check whether coarsening
+          * actually set the data correctly?  Maybe we initialize it
+          * so the un-refined coarse cells (which are unchanged by
+          * coarsening) won't trigger a false positive during
+          * verification.  If that is the problem, it should be fixed
+          * by limiting the verification to refined coarse cells.
+          * --BTNG
+          */
+
+         d_data_test_strategy->setDataContext(d_destination);
+         d_data_test_strategy->initializeDataOnPatch(patch,
+            hierarchy,
+            level.getLevelNumber(),
+            'd');
+         d_data_test_strategy->clearDataContext();
+
+         d_data_test_strategy->setDataContext(d_reset_destination);
+         d_data_test_strategy->initializeDataOnPatch(patch,
+            hierarchy,
+            level.getLevelNumber(),
+            'd');
+         d_data_test_strategy->clearDataContext();
+
+      }
+
+   }
+
+}
+
+void CommTester::resetHierarchyConfiguration(
+   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+   const int coarsest_level,
+   const int finest_level)
+{
+   NULL_USE(hierarchy);
+   NULL_USE(coarsest_level);
+   NULL_USE(finest_level);
+}
+
+/*
+ *************************************************************************
+ *
+ * Physical boundary condition and user-defined coarsen and refine
+ * operations declared in RefinePatchStrategy and CoarsenPatchStrategy.
+ * They are passed off to patch data test object.
+ *
+ *************************************************************************
+ */
+
+void CommTester::setPhysicalBoundaryConditions(
+   hier::Patch& patch,
+   const double time,
+   const hier::IntVector& gcw)
+{
+   NULL_USE(time);
+   d_data_test_strategy->setPhysicalBoundaryConditions(patch,
+      d_fake_time,
+      gcw);
+}
+
+hier::IntVector CommTester::getRefineOpStencilWidth() const
+{
+   return hier::IntVector::getOne(d_dim);
+}
+
+void CommTester::preprocessRefine(
+   hier::Patch& fine,
+   const hier::Patch& coarse,
+   const hier::Box& fine_box,
+   const hier::IntVector& ratio)
+{
+   d_data_test_strategy->preprocessRefine(fine, coarse, fine_box, ratio);
+}
+
+void CommTester::postprocessRefine(
+   hier::Patch& fine,
+   const hier::Patch& coarse,
+   const hier::Box& fine_box,
+   const hier::IntVector& ratio)
+{
+   d_data_test_strategy->postprocessRefine(fine, coarse, fine_box, ratio);
+}
+
+hier::IntVector CommTester::getCoarsenOpStencilWidth() const
+{
+   return hier::IntVector::getZero(d_dim);
+}
+
+void CommTester::preprocessCoarsen(
+   hier::Patch& coarse,
+   const hier::Patch& fine,
+   const hier::Box& coarse_box,
+   const hier::IntVector& ratio)
+{
+   d_data_test_strategy->preprocessCoarsen(coarse, fine, coarse_box, ratio);
+}
+
+void CommTester::postprocessCoarsen(
+   hier::Patch& coarse,
+   const hier::Patch& fine,
+   const hier::Box& coarse_box,
+   const hier::IntVector& ratio)
+{
+   d_data_test_strategy->postprocessCoarsen(coarse, fine, coarse_box, ratio);
+}
+
+/*
+ *************************************************************************
+ *
+ * Create and configure gridding objects used to build the hierarchy.
+ * Then, create hierarchy and initialize data.  Note this routine
+ * must be called after variables are registered with this tester object.
+ *
+ *************************************************************************
+ */
+
+void CommTester::setupHierarchy(
+   boost::shared_ptr<tbox::Database> main_input_db,
+   boost::shared_ptr<mesh::StandardTagAndInitialize> cell_tagger)
+{
+#ifdef DEBUG_CHECK_ASSERTIONS
+   TBOX_ASSERT(main_input_db);
+#endif
+
+   d_patch_hierarchy.reset(
+      new hier::PatchHierarchy("PatchHierarchy",
+         d_data_test_strategy->getGridGeometry(),
+         main_input_db->getDatabase("PatchHierarchy")));
+
+   boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
+      new mesh::BergerRigoutsos(d_dim));
+
+   boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
+      new mesh::TreeLoadBalancer(
+         d_dim,
+         "TreeLoadBalancer",
+         main_input_db->getDatabase("TreeLoadBalancer")));
+   load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
+
+   boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
+      new mesh::GriddingAlgorithm(
+         d_patch_hierarchy,
+         "GriddingAlgorithm",
+         main_input_db->getDatabase("GriddingAlgorithm"),
+         cell_tagger,
+         box_generator,
+         load_balancer));
+
+   int fake_tag_buffer = 0;
+
+   gridding_algorithm->makeCoarsestLevel(d_fake_time);
+
+   bool initial_time = true;
+   for (int ln = 0; d_patch_hierarchy->levelCanBeRefined(ln); ln++) {
+      gridding_algorithm->makeFinerLevel(
+         d_fake_time,
+         initial_time,
+         fake_tag_buffer);
+   }
+
+   /*
+    * Clear the PersistentOverlapConnectors so we can test whether
+    * the communication schedules can work properly in the mode where
+    * there are no precomputed Connectors.
+    */
+   for (int ln = 0; ln < d_patch_hierarchy->getNumberOfLevels(); ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level(
+         d_patch_hierarchy->getPatchLevel(ln));
+      level->getBoxLevel()->getPersistentOverlapConnectors().clear();
+   }
+
+   if (0) {
+      tbox::plog << "h:  generated hierarchy:\n";
+      d_patch_hierarchy->recursivePrint(tbox::plog, "h:  ", 3);
+      tbox::plog << "h:  mapped_box_level hierarchy:\n";
+      d_patch_hierarchy->recursivePrint(tbox::plog,
+         "",
+         3);
+   }
+
+}
+
+}

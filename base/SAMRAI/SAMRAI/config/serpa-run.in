@@ -1,0 +1,382 @@
+#!/bin/sh
+
+# This script runs an executable program serially or in parallel.
+
+# The syntax for running programs in parallel differs from platform to platform,
+# software to software.  This script automatically uses the correct syntax for
+# the environments that it knows about.  For the environments it does not know,
+# it has a default that may work.
+
+# This script defines the set of tests to put the program through.
+# This set is parametrized by these variables:
+# nproc_list: space- or comma-separated list of number of processors to use.
+
+
+# The name and directory of this script
+# (Do not rely on existence of dirname and basename programs.)
+script_name=`echo ${0} | sed -e 's:.*/::'`;
+dir_name=`echo ${0} | sed -e 's:^\([^/]*\)$:./\1:' -e 's:/[^/]*$::'`;
+
+# Define a way to gracefully die from within this script.
+# The die function is similar to Perl's.
+# Arguments are: <exit_value> <exit_message>
+die () {
+    echo "ERROR_MESSAGE_FROM ${script_name}:"
+    if [ -n "${2}" ]; then echo "Error ${2}"; fi
+    if [ -n "${1}" ]; then exit ${1}; fi
+    exit 99
+}
+
+
+# When no argument is given, print the help message and exit.
+if [ "${1}" = '-h' ] || [ "${1}" = '--help' ] || [ ${#} -lt 2 ] ; then
+  cat <<-_EOF_
+	Usage: ${script_name} <list of nproc> <program name>
+
+	This is a generalized script to run a program in serial
+	and/or parallel.
+
+	The number of processors are given by <list of nproc>,
+	which must be a comma- or space-delimited list of integers.
+	Example: "${script_name} 1,2,5 parallel_program" runs
+	parallel_program 3 times with 1, 2 and 5 processors in turn.
+
+	The special case of number of processors = 0 means to run serially.
+	This differs from one processor in that one processor means to run
+	in parallel, but with one processor.
+
+	This script exits with an error if any instance of
+	running the program fails.
+
+	If SERPA_REDIRECT_OUTPUT_TO is defined in the environment,
+	standard output of the program is redirected there.
+	If SERPA_REDIRECT_ERRORS_TO is defined in the environment,
+	error output of the program is redirected there.
+	Outputs directly from THIS script are NOT affected
+	by these environment variables.
+
+	If SERPA_MAX_FAILS is defined, ${script_name} will
+	continue until that many failures before exiting.
+	The default is 1 failure (${script_name} exits on the
+	first failure).  The exit value will always be the
+	failure count.
+
+	When a serial run os made, if SERPA_PERFORMANCE_FILE
+	is defined and is the name of a file, that file is searched
+	for performance data.  The run is timed and the result
+	is compared to the performance data found.
+	_EOF_
+exit
+fi
+
+# How to invoke a GNU compatible time command
+if [ -z "${SERPA_GNUTIME}" ]; then
+    SERPA_GNUTIME=/usr/bin/time
+fi
+
+# Percent difference for performance comparisons
+if [ -z "${SERPA_DIFFERENCE}" ]; then
+    SERPA_DIFFERENCE=0.1
+fi
+
+
+# Check the redirection environment variables.
+# See the help message for how these are used.
+if [ -n "${SERPA_REDIRECT_OUTPUT_TO}" ]; then
+  output_redirection_string="1> ${SERPA_REDIRECT_OUTPUT_TO}"
+else
+  unset output_redirection_string
+fi
+if [ -n "${SERPA_REDIRECT_ERRORS_TO}" ]; then
+  errors_redirection_string="2> ${SERPA_REDIRECT_ERRORS_TO}"
+else
+  unset errors_redirection_string
+fi
+
+# Save the arguments for later reference.
+serpa_args="${@}"
+
+
+# Get the number of processors from the first argument of this script.
+nproc_list=${1}; shift;
+# We allow comma-delimited lists, so we now remove those commas.
+echo ${nproc_list} | grep '^[0-9 ,]\{1,\}$' > /dev/null	\
+  || die 1 "Invalid number of processors list '${nproc_list}'"
+nproc_list=`echo ${nproc_list} | sed 's/,/ /g'`
+
+# Get the program name from the next argument of this script.
+program=${1}; shift;
+test -x ${program} || die 1 "No execute permission on '${program}'"
+
+
+# Determine host name for use below.
+if [ ${?}{HOST} ]; then
+  HOST=`uname -n`
+  export HOST
+fi
+
+
+# Use additional_env to specify additional environments that
+# should be set before running.  Although you can, do not use
+# this to set environments for programs.  It is meant to be
+# environments for the parallel execution program such as
+# mpirun.
+additional_env=
+
+
+# Variables required for using parallelrun.  These may not be needed,
+# but if they are needed and unset, there will be an error.
+# Some of these strings are determined at configure time.
+parallelrun_prog="@PARALLEL_RUN_BIN@";	# Name of parallelrun program.
+
+
+# Determine what platform we are on.
+target_cpu=@target_cpu@
+target_os=@target_os@
+target_vendor=@target_vendor@
+
+
+# Determine the machine file name.
+serpa_machine_file='serpa.machines'
+
+# If valgrind is being used this will be executable to invoke
+SAMRAI_VALGRIND_EXE=@valgrind_EXE@
+if [ "$SAMRAI_VALGRIND_EXE" != "" ];  then
+   export SAMRAI_VALGRIND_EXE
+   SAMRAI_MEMCHECK_EXE=$dir_name/@top_srcdir@/source/scripts/memcheck
+fi
+
+# Define a function to run a program in parallel.
+# We have to do this because different environments require different syntaxes.
+# The function arguments are:
+#   program name
+#   number of processor
+#
+# We define the function in a big if-else statement based on the
+# target computer.  We assume that there is a one-to-one correspondence.
+# If there is not, there may have to be a nested if-structure.
+#
+if echo "${HOST}" | egrep '^(up)[0-9]' > /dev/null ; then
+
+  run_multiproc () {
+  # IBM shell functions eat their parameters after the first assignment
+  # from them so save the parameters first.
+    case "${HOST}" in
+      up*) proc_per_node=8;;
+    esac
+    export LDR_CNTRL="LARGE_PAGE_DATA=Y"
+    program=${1}; nproc=${2}; shift 2
+    nodes=`expr 1 + \( ${nproc} - 1 \) / ${proc_per_node}`
+    com="${additional_env} ${program} -nodes ${nodes} -procs ${nproc} ${@}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+elif echo "${HOST}" | grep '^tc2k' > /dev/null ; then
+
+  # For tc2k, a specific singleton platform (contributed by Brian Miller).
+  run_multiproc () {
+    program=${1}; nproc=${2}; shift 2
+    com="${additional_env} prun -n ${nproc} ${program} ${@}"
+    com="${program} ${@} -p ${nproc}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+elif echo "${HOST}" | egrep '^(cab|hera|sierra|ansel|atlas|rzzeus|rzalastor)[0-9]' > /dev/null ; then
+
+  # For LC Linux clusters using srun.
+  run_multiproc () {
+    program=${1}; nproc=${2}; shift 2
+    if [ -n "${REGRESSION}" ] ; then
+      cmd="mpirun -np ${nproc}"
+    else
+      cmd="srun -n${nproc} -ppdebug"
+    fi
+    #com="${additional_env} srun -n${nproc} ${program} ${@}"
+    com="${cmd} ${program} ${@}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+elif echo "${HOSTNAME}" | egrep '^(ubgl|bgl|dawn|rzdawndev)[0-9]' > /dev/null ; then
+
+  # ubgl has a different way to use mpirun (contributed by Susan Hazlett)
+  run_multiproc() {
+    cwd=`pwd`
+    program=${1}; nproc=${2}; shift 2
+    if [ x"${@}" = x ] ; then
+      args=""
+    else
+      args="-args \"${@}\""
+    fi
+    com="mpirun -np ${nproc} -exe ${program} -cwd ${cwd} ${args}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+elif echo "${target_os}" | grep '^osf'	> /dev/null ; then
+
+  # For Dec OSF.
+  run_multiproc () {
+    program=${1}; nproc=${2}; shift 2
+    com="${additional_env} dmpirun -np ${nproc} ${program} ${@}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+elif echo "${target_os}" | grep '^solaris' > /dev/null	\
+  || echo "${target_os}" | grep '^irix' > /dev/null	\
+  || echo "${target_os}" | grep '^linux' > /dev/null	\
+  || echo "${target_os}" | grep '^darwin' > /dev/null	\
+  || echo "${target_os}" | grep '^cygwin' > /dev/null	\
+  ; then
+
+  # Most platforms fall into this case.
+  run_multiproc () {
+    program=${1}; nproc=${2}; shift 2
+    com="${additional_env} ${parallelrun_prog}"
+    if [ "$SAMRAI_VALGRIND_EXE" = "" ];  then
+	com="${com} -machinefile ${dir_name}/${serpa_machine_file} -np ${nproc} ${program} ${@}"
+    else
+	com="${com} -machinefile ${dir_name}/${serpa_machine_file} -np ${nproc} ${SAMRAI_MEMCHECK_EXE} ${program} ${@}"
+    fi
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+else
+
+  # Simplest case.
+  # This is generic.  It may not work, but it is our best guess
+  # without knowledge of the system.
+  run_multiproc () {
+    program=${1}; nproc=${2}; shift 2
+    com="${additional_env} ${program} -np ${nproc} ${@}"
+    echo ${com}
+    eval ${com} ${output_redirection_string} ${errors_redirection_string}
+    return ${?}
+  }
+
+fi
+
+
+# Initialize the failure count.
+serpa_num_failures=0
+test -z "${SERPA_MAX_FAILS}" && SERPA_MAX_FAILS=1
+
+# Run the program.
+for nproc in ${nproc_list}; do
+  cat <<-_EOM_
+	${script_name}================================================
+	RUNNING: ${script_name} ${nproc} ${program} ${@}
+	${script_name}::::::::::::::::::::::::::::::::::::::::::::::::
+	_EOM_
+  if test "${nproc}" = 0 ; then
+    # Run serially.
+
+    # If performance file exists then with performance testing
+    # otherwise do a normal sequential run
+    if test "${SERPA_PERFORMANCE_FILE+set}" = set &&
+       test -f "${SERPA_PERFORMANCE_FILE}"; then
+
+	# Run with performance check. 
+	com="${additional_env} ${program} ${@}"
+	echo "${com}"
+	${SERPA_GNUTIME} -o $$.time -f "%e %t" ${com} \
+	    ${output_redirection_string} ${errors_redirection_string}
+	exit_value=${?}
+
+	# Parse temporary file to get recorded time/memory usage
+	read etime memory < $$.time
+	rm $$.time
+	
+	# Report the run time/memory usage 
+	echo "serpa-perf ${nproc} <${com}> ${etime} ${memory}"
+
+	# Check if time is out of bounds
+	search=`grep "serpa-perf ${nproc} <${com}>" ${SERPA_PERFORMANCE_FILE}`
+	if test "$?" = "0";then
+	    search=`echo $search | sed 's/.*>//'`
+	    read compare_time compare_memory <<EOF	    
+$search
+EOF
+        else
+	    compare_time=999999
+	    compare_memory=0
+	fi
+
+	difference=`bc -l <<EOF
+a=${etime}
+b=${compare_time}
+t=${SERPA_DIFFERENCE}
+d=a-b
+if ( d < 0 ) {
+	d = -d
+}
+p=d/b
+print (p < t), "\n"
+EOF`
+	if test "${difference}" = "1"; then
+	    echo "PERFORMANCE PASSED: target ${compare_time} (seconds) current ${etime} sec"
+	else
+	    echo "PERFORMANCE FAIL: target ${compare_time} (seconds) current ${etime}"
+	fi
+
+	# Currently don't do memory check since it is not reporting anything.
+
+    else
+	# Run without performance testing
+	com="${additional_env} ${program} ${@}"
+	echo "${com}"
+	eval ${com} ${output_redirection_string} ${errors_redirection_string}
+	exit_value=${?}
+    fi
+  else
+    # Because parallel runs sometimes fails due to problems unrelated
+    # to the program, we give it several tries before declaring failure.
+    if test -z "${SERPA_PARALLEL_TRIES}"; then SERPA_PARALLEL_TRIES=1; fi
+    c=1
+    while test ${c} -le ${SERPA_PARALLEL_TRIES} ; do
+      if test ${c} -gt 1 ; then
+        echo "possibly failed.  TRY number ${c}"
+      fi
+      run_multiproc ${program} ${nproc} "${@}"
+      exit_value=${?}
+      if [ ${exit_value} = 0 ]; then
+        break
+      fi
+      c=`expr ${c} + 1`
+    done
+  fi
+  # Report pass or fail.
+  # pf_string=FAILED; test "${exit_value}" = 0 && pf_string=PASSED
+  pf_string=FAILED; test "${exit_value}" = 0 && pf_string=COMPLETED
+  cat <<-_EOM_
+	${script_name}::::::::::::::::::::::::::::::::::::::::::::::::
+	${pf_string}: ${script_name} ${nproc} ${program} ${@}
+	${script_name}================================================
+	_EOM_
+  # Count failures and possibly exit.
+  if test ${exit_value} -ne 0 ; then
+    serpa_num_failures=`expr ${serpa_num_failures} + 1`;
+    if test ${serpa_num_failures} -eq ${SERPA_MAX_FAILS}; then
+      die 1 "FAIL running ${program} with ${nproc} processors"
+    fi
+  fi
+done
+
+if test ${serpa_num_failures} -eq 0; then
+  echo "${script_name} ${serpa_args} passed."
+else
+  echo "${script_name} ${serpa_args} had ${serpa_num_failures} failures."
+fi
+exit ${serpa_num_failures}
+
+# End of script.

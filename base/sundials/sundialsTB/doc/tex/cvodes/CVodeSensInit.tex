@@ -1,0 +1,62 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVodeSensInit!}
+\label{p:CVodeSensInit}
+\index{CVodeSensInit}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVodeSensInit allocates and initializes memory for FSA with CVODES.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function [] = CVodeSensInit(Ns,fctS,yS0,options) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVodeSensInit allocates and initializes memory for FSA with CVODES.
+
+   Usage: CVodeSensInit ( NS, SFUN, YS0 [, OPTIONS ] ) 
+
+   NS       is the number of parameters with respect to which sensitivities
+            are desired
+   SFUN     is a function defining the righ-hand sides of the sensitivity
+            ODEs yS' = fS(t,y,yS).
+   YS0      Initial conditions for sensitivity variables.
+            YS0 must be a matrix with N rows and Ns columns, where N is the problem
+            dimension and Ns the number of sensitivity systems.
+   OPTIONS  is an (optional) set of FSA options, created with
+            the CVodeSetFSAOptions function. 
+
+   See also CVodeSensSetOptions, CVodeInit, CVSensRhsFn
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

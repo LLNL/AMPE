@@ -1,0 +1,341 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+model_type = "Quat"  // optional, also: "KWC", "KWCcomplex"
+
+run_name = "start_full"  // optional, default is input filename minus extension
+
+start_time = 0.0  // optional
+end_time = 10.0  // required
+max_timesteps = 20  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 2  // optional, default=1
+   amr_level = 1  // optional, default=1
+   silent = TRUE  // optional, default=FALSE, overrides level
+}
+
+TimestepOutput {  // optional block
+   interval = 50  // optional, default=1
+   interval_type = "step"  // optional, default="step"
+   include_first_step = TRUE  // optional, default=FALSE
+}
+
+Logging {  // optional block
+   filename = "start_full.log"  // optional, default is run_name + .log
+   log_all_nodes = FALSE  // optional
+}
+
+Restart {  // optional block
+   interval = 500  // optional, default=0
+   interval_type = "step"  // optional
+   dirname = "r.start_full"  // optional, default= "r." + run_name
+   include_first_step = FALSE  // optional, default=FALSE
+   include_last_step = TRUE  // optional, default=TRUE
+}
+
+Amr {  // optional block, single level run if not present
+   enabled = FALSE  // optional, default=true when Amr block is present
+
+   use_warm_start = TRUE  // optional, default=false
+
+   Regrid {  // optional block
+      interval = 5  // optional
+      interval_type = "step"  // optional
+      include_first_step = FALSE  // optional
+   }
+
+   TaggingCriteria {  // optional block
+      Phi {  // optional block
+         threshold_untagged = 0.04  // required
+         threshold_tagged = 0.02  // required
+      }
+      Orient {  // optional block
+         threshold_untagged = 0.04  // required
+         threshold_tagged = 0.02  // required
+      }
+   }
+
+   GriddingAlgorithm {  // required if Amr is enable, see SAMRAI docs
+      max_levels = 2
+
+      ratio_to_coarser {
+         level_1 = 2, 2
+      }
+
+      largest_patch_size {
+         level_0 = 1280, 1280
+      }
+
+      smallest_patch_size {
+         level_0 = 10, 10
+      }
+
+      efficiency_tolerance    = 0.85e0
+      combine_efficiency      = 0.95e0
+
+      allow_patches_smaller_than_ghostwidth = TRUE
+      resolve_nonnesting_tags = 'e'
+   }
+}
+
+GrainDiagnostics {  // optional block
+   interval = 2.0  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = FALSE  // optional
+   phase_threshold = 0.85  // optional
+   minimum_size = 0.0  // optional
+}
+
+InitialConditions {  // required block
+   filename = "init_sphere_128_q4_two.nc"  // required
+   amr_level_of_data = 0  // optional
+   slice_index = 0  // optional, default=(nz_input/2)
+
+   WriteEndingFile {  // optional block
+      filename = "new_ic_file.nc"  // required
+      amr_level_of_data = 0  // optional
+   }
+}
+
+Geometry {  // required block
+   coarsest_level_resolution = 128, 128  // required
+   x_lo = -1.0, -1.0  // required
+   x_up =  1.0,  1.0  // required
+}
+
+Visit {  // optional block
+   interval = 0.5  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = FALSE  // optional
+
+   dirname = "v.start_full"  // optional, default= "v." + run_name
+   number_procs_per_file = 1  // optional   
+
+   extra_output = FALSE  // optional
+   energy_output = FALSE  // optional
+   grain_output = FALSE  // optional
+}
+
+ModelParameters {  // required block
+   time_integration = "unsplit"  // optional, no other choices
+
+   three_phase = FALSE  // optional
+
+   H_parameter = 1.5  // optional, default=-1 (no orientation)
+
+   temperature = 1.0  // required
+   dtemperaturedt = 0.0  // optional
+   target_temperature = -1.0  // optional
+   temperature_type = "constant"  // optional, default="scalar"
+
+   epsilon_phi = 0.125  // required
+   epsilon_orient = 0.075  // required
+
+   phi_mobility = 1.0  // required
+   q0_phi_mobility = 0.0  // optional
+
+   eta_mobility = 1.0  // required when three_phase is TRUE
+   q0_eta_mobility = 0.0  // optional
+   min_eta_mobility = 1.e-6  // optional, default = eta_mobility
+
+   orient_mobility = 10.0  // required with orientation
+   min_orient_mobility = 1.e-6  // optional
+   orient_mobility_func_type = "pbg"  // optional
+
+   phi_well_scale = 1.0  // optional
+
+   orient_grad_floor = 1.0e-2  // optional
+   orient_grad_floor_type = "max"  // optional
+
+   orient_interp_func_type = "quadratic"  // optional, also: pbg, linear, constant
+
+   avg_func_type = "harmonic"  // optional, also: arithmetic
+
+   phi_well_func_type = "double"  // optional, also: single
+   phi_interp_func_type = "pbg"  // optional, also: quadratic, hu
+
+   eta_well_func_type = "double"  // optional, also: single
+   eta_interp_func_type = "pbg"  // optional, also: quadratic, hu
+
+   free_energy_solid = 0.0  // required unless using concentration model
+   free_energy_liquid = 1.0  // required unless using concentration model
+
+   ConcentrationModel {  // optional block, enabled concentration
+      model = "calphad"  // optional, also: calphad only
+      D_solid = 1.3e8  // required
+      D_liquid = 5.6e4  // required
+      Q0_solid = 10425.133  // required
+      Q0_liquid = 3688.6  // required
+      mobility = 1.0  // required
+   }
+   
+   ElasticityParameters{ // optional block, enabled elasticity
+
+      epsilonSolid11 = -0.03 // required
+      epsilonSolid22 = -0.03 // required
+      epsilonSolid33 = -0.03 // required
+      
+      epsilon0 = 0.05 // required when using concentration model
+      
+      // homogeneousStrain
+      // epsilon: 11, 12, 22 in 2D
+      // epsilon: 11, 12, 13, 22, 23, 33 in 3D
+      homogeneousStrain = -0.01, 0.0, -0.01 // required: 3 values in 2d, 6 in 3d
+
+      stiffness_interp_func_type = "p" // optional, default = "pbg"
+      strain_interp_func_type    = "p" // optional, default = "pbg"
+      Liquid{
+         C11 = 2320. // required
+         C12 = 1530. // required
+         C44 = 1170. // required
+      }
+      Solid{
+         C11 = 2043.5 // required
+         C12 = 1806.5 // required
+         C44 = 351.   // required
+      }
+   }
+}
+
+Symmetry {  // optional block
+   enabled = FALSE  // optional
+   Fundamental {  // optional block
+      interval = 0.0  // optional
+      interval_type = "step"  // optional
+   }
+}
+
+ScalarDiagnostics {  // optional block
+   interval = 0.0  // optional
+   interval_type = "step"  // optional
+   include_first_step = FALSE  // optional
+   include_last_step  = TRUE   // optional
+   extra_energy_detail = FALSE  // optional
+}   
+
+GrainExtension {  // optional block
+   interval = 0.0  // optional
+   interval_type = "step"  // optional
+}   
+
+Integrator {  // required block
+   tolerance = 3.e-4  // optional, alias: "atol"
+   rtol = 1.e-6  // optional, default=(tolerance*1.e-2)
+
+   verbose = TRUE  // optional, default=FALSE, also set when verbosity > 3
+
+   max_step_size = 0.0  // optional
+   max_order = 2  // optional
+
+   uniform_diffusion_time_threshold = 0.0  // optional
+   
+   lag_quat_sidegrad = TRUE  // optional
+   max_krylov_dimension = 5  // optional
+
+   Preconditioner {  // optional block
+      enabled = TRUE  // optional, default=TRUE
+      max_steps = 5  // optional, default=1
+      precondition_phase = TRUE  // optional, default=TRUE
+      precondition_eta = TRUE  // optional, default=TRUE
+      precondition_concentration = TRUE  // optional, default=TRUE
+      precond_has_dquatdphi = TRUE  // optional, default=TRUE
+   }
+   
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      verbose = FALSE  // optional, also set when verbosity > 4
+      enable_logging = FALSE  // optional
+      max_cycles = 10  // optional
+      residual_tol = 1.0e-6  // optional      
+      num_pre_sweeps = 1  // optional
+      num_post_sweeps = 1  // optional
+      coarse_fine_discretization = "Ewing"  // optional
+      prolongation_method = "CONSTANT_REFINE"  // optional
+      coarse_solver_choice = "hypre"  // optional
+      coarse_solver_tolerance = 1.0e-2  // optional
+      
+      hypre_solver {  // optional block
+         print_solver_info = FALSE  // optional
+         max_iterations = 20  // optional
+         num_pre_relax_steps = 1  // optional
+         num_post_relax_steps = 1  // optional
+         use_smg = FALSE  // optional
+      }
+   }
+
+   // also ConcentrationSysSolver and EtaSysSolver as PhaseSysSolver block
+
+   QuatSysSolver {  // optional block, only meaningful with use_preconditioner
+      verbose = FALSE  // optional, also set TRUE when verbosity > 4
+      enable_logging = FALSE  // optional
+      max_cycles = 10  // optional
+      num_pre_sweeps = 1  // optional
+      num_post_sweeps = 1  // optional
+      coarse_fine_discretization = "Ewing"  // optional
+      levelsolver_tolerance = 1.0e-2  // optional
+      coarse_levelsolver_tolerance = 1.0e-2  // optional, default=levelsolver_tolerance
+      levelsolver_max_iterations = 20  // optional
+      coarse_levelsolver_max_iterations = 20  // optional, default=levelsolver_max_iterations
+      prolongation_method = "CONSTANT_REFINE"  // optional
+
+      hypre_solver {  // optional block
+         print_solver_info = FALSE  // optional
+         solver_id = 0 // optional
+         max_iterations = 20  // optional
+         relative_residual_tol = 1e-10 // optional
+         num_pre_relax_steps = 1  // optional
+         num_post_relax_steps = 1  // optional
+      }
+   }
+
+   ElasticitySolver { // optional block only meaningful with ElasticityParameters block
+      verbose = FALSE  // optional
+      enable_logging = FALSE  // optional
+      max_cycles = 10  // optional
+      num_pre_sweeps = 1  // optional
+      num_post_sweeps = 1  // optional
+      coarse_fine_discretization = "Ewing"  // optional
+      levelsolver_tolerance = 1.0e-2  // optional
+      coarse_levelsolver_tolerance = 1.0e-2  // optional, default=levelsolver_tolerance
+      levelsolver_max_iterations = 20  // optional
+      coarse_levelsolver_max_iterations = 20  // optional, default=levelsolver_max_iterations
+      prolongation_method = "CONSTANT_REFINE"  // optional
+
+      ElasticityLevelSolver { // optional block
+         verbose           = FALSE // optional
+         print_solver_info = FALSE // optional
+      }
+   }
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+}

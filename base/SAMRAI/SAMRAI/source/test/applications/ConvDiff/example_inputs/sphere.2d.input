@@ -1,0 +1,139 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright 
+ * information, see COPYRIGHT and COPYING.LESSER. 
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Advecting sphere input for SAMRAI ConvDiff example problem 
+ *
+ ************************************************************************/
+ConvDiff {
+   convection_coeff  = 40.0, 20.0  // vector [NDIM]
+   diffusion_coeff   = 0.1       // scalar
+   source_coeff      = 0.0       // scalar
+
+   cfl               = 0.5
+   cell_tagging_tolerance = 20.0  // vector [NEQU] 
+
+   data_problem      = "SPHERE"
+
+   Initial_data {
+      radius            = 2.9   
+      center            = 5.5, 5.5    // vector [NDIM]
+
+      val_inside     = 80.0          // vector [NEQU]
+      val_outside    = 10.            // vector [NEQU]
+   }
+
+   // valid boundary_condition values are "FLOW", "REFLECT", "DIRICHLET", 
+   // and "NEUMANN"
+   Boundary_data {
+      boundary_edge_xlo {
+         boundary_condition      = "FLOW"
+      }
+      boundary_edge_xhi {
+         boundary_condition      = "FLOW"
+      }
+      boundary_edge_ylo {
+         boundary_condition      = "FLOW"
+      }
+      boundary_edge_yhi {
+         boundary_condition      = "FLOW"
+      }
+
+      // IMPORTANT: If a *REFLECT, *DIRICHLET, or *FLOW condition is given
+      //            for a node, the condition must match that of the
+      //            appropriate adjacent edge above.  This is enforced for
+      //            consistency.  However, note when a REFLECT edge condition
+      //            is given and the other adjacent edge has either a FLOW
+      //            or REFLECT condition, the resulting node boundary values
+      //            will be the same regardless of which edge is used.
+      boundary_node_xlo_ylo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_ylo {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xlo_yhi {
+         boundary_condition      = "XFLOW"
+      }
+      boundary_node_xhi_yhi {
+         boundary_condition      = "XFLOW"
+      }
+   }
+}
+
+Main {
+   dim = 2
+   base_name = "sphere.2d"
+// log file parameters 
+   log_all_nodes    = TRUE
+
+// visualization dump parameters 
+   viz_writer            = "VisIt" // use: "Vizamrai", "VisIt" for both
+   viz_dump_interval     = 1          // zero to turn off
+   viz_dump_dirname      = "viz_sphere2d"
+   visit_number_procs_per_file = 1    // not used by Vizamrai
+
+// restart dump parameters
+   restart_interval       = 0         // zero to turn off
+
+   plotting_interval = 5   
+}
+
+MainRestartData{
+   max_timesteps       = 50 
+   start_time          = 0.
+   end_time            = 100.
+   regrid_step         = 3
+   tag_buffer          = 2
+}
+
+
+CartesianGeometry{
+   domain_boxes	= [(0,0),(59,39)]
+   x_lo = 0.e0 , 0.e0   // lower end of computational domain.
+   x_up = 30.e0 , 20.e0   // upper end of computational domain.
+//   periodic_dimension = 1, 0
+}
+
+StandardTagAndInitialize {
+   tagging_method = "GRADIENT_DETECTOR"
+}
+
+PatchHierarchy {
+   max_levels = 3         // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {      // vector ratio to next coarser level
+      level_1 = 4 , 4
+      level_2 = 4 , 4
+      level_3 = 4 , 4
+   }
+
+   largest_patch_size {
+      level_0 = 48 , 48
+      // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 = 8 , 8 
+      // all finer levels will use same values as level_0...
+   }
+
+}
+
+GriddingAlgorithm{
+
+   efficiency_tolerance    = 0.70e0   // min % of tag cells in new patch level
+   combine_efficiency      = 0.85e0   // chop box if sum of volumes of smaller
+                                      // boxes < efficiency * vol of large box
+}
+
+MethodOfLinesIntegrator{
+   order              = 2
+   alpha              = 0.5 , 1.0
+}
+
+LoadBalancer {
+// using default uniform load balance configuration (see mesh_LoadBalancerX.h.sed)
+}

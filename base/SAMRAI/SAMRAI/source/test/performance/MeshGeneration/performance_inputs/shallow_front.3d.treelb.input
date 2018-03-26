@@ -1,0 +1,138 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Performance input file for TreeLoadBalancer
+ *
+ ************************************************************************/
+
+
+
+Main {
+   dim = 3
+
+   base_name = "shallow_front.3d.treelb"
+   log_all_nodes = FALSE
+   write_visit = FALSE
+   enforce_nesting = FALSE
+   load_balance = TRUE
+
+   // Balancer types: TreeLoadBalancer, ChopAndPackLoadBalancer
+   load_balancer_type = "TreeLoadBalancer"
+
+   /*
+     Specify domain as a box array in the reference index space.
+   */
+   domain_boxes = [(0,0,0),(15,7,7)]
+
+   /*
+     Specify physical domain box.
+   */
+   xlo = 0.0, 0.0, 0.0
+   xhi = 2.0, 1.0, 1.0
+
+   ghost_cell_width = 4, 4, 4
+
+   /*
+     Base nprocs for automatic scaling.
+   */
+   autoscale_base_nprocs = 4
+
+   efficiency_tol = 0.80
+   combine_tol = 0.80
+
+   BergerRigoutsos {
+      laplace_cut_threshold_ar = 4
+      sort_output_nodes = TRUE
+      log_node_history = FALSE
+      log_cluster_summary = FALSE
+      log_cluster = FALSE
+      sequentialize_output_indices = FALSE
+      barrier_before_cluster = FALSE
+      // owner_mode = "SINGLE_OWNER"
+      // algo_advance_mode = "SYNCHRONOUS"
+   }
+
+   mesh_generator_name = "SinusoidalFrontGenerator"
+
+   SinusoidalFrontGenerator {
+      /*
+        Define a set of sinusoidal fronts oriented in perpendicular to the x-axis.
+      */
+      init_disp = 1.0, 0.0, 0.0
+      period = 2.0, 4.0, 4.0
+      amplitude = 0.25
+
+      // Tag L0 by buffering and L1 by buffering.
+      buffer_distance_0 = 0.08, 0.08, 0.08
+      buffer_distance_1 = 0.04, 0.04, 0.04
+
+      // Tag L0 by buffering and l1 by shrinking.
+      // buffer_distance_0 = 0.02, 0.02, 0.02
+      // shrink_distance_1 = 0.06, 0.06, 0.06
+   }
+
+}
+
+TreeLoadBalancer {
+  report_load_balance = FALSE // Reported in main
+  n_root_cycles = -1
+  min_load_fraction_per_box = 0.03
+  balance_penalty_wt = 1.0
+  surface_penalty_wt = 1.0
+  slender_penalty_wt = 1.0
+  precut_penalty_wt = 1.0
+
+  // Debugging options
+  check_map = FALSE
+  check_connectivity = FALSE
+  print_steps = FALSE
+  print_swap_steps = FALSE
+  print_break_steps = FALSE
+  print_edge_steps = FALSE
+}
+
+TimerManager {
+//   print_exclusive      = TRUE
+   print_summed           = TRUE
+   print_max              = TRUE
+   print_threshold        = 0.
+   timer_list             = "hier::*::*", "mesh::*::*", "apps::*::*"
+}
+
+
+PatchHierarchy {
+
+   /*
+     Specify number of levels (1, 2 or 3 for this test).
+   */
+   max_levels = 3
+
+   enforce_proper_nesting = FALSE
+   extend_to_domain_boundary = FALSE
+   check_nonrefined_tags = "IGNORE"
+   // load_balance = FALSE
+   largest_patch_size {
+      level_0 = -1,-1,-1
+      // level_0 = 20,20,20
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 3, 3, 3
+      level_1 = 6, 6, 6
+      level_2 = 9, 9, 9
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 3, 3, 3
+      level_2            = 3, 3, 3
+      level_3            = 2, 2, 2
+      //  etc.
+   }
+
+   allow_patches_smaller_than_ghostwidth = TRUE
+   allow_patches_smaller_than_minimum_size_to_prevent_overlaps = TRUE
+   proper_nesting_buffer = 1, 1, 1
+}

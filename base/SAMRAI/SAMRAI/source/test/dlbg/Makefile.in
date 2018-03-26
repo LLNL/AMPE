@@ -1,0 +1,67 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for DLBG test 
+##
+#########################################################################
+
+SAMRAI	      = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/dlbg
+VPATH         = @top_srcdir@/source/test/dlbg
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DTESTING=1
+
+CXX_OBJS      = main.o DLBGTest.o SinusoidalFrontTagger.o intToString.o get-input-filename.o
+NUM_TESTS = 3
+
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS      = main.o DLBGTest.o SinusoidalFrontTagger.o get-input-filename.o
+
+main:	$(CXX_OBJS) $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS)	\
+	$(LIBSAMRAI) $(LDLIBS) -o $@
+
+check:
+	$(MAKE) check2d
+	$(MAKE) check3d
+
+check2d:	main
+	@for i in test_inputs/*2d*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+check3d:	main
+	@for i in test_inputs/*3d*.input ; do	\
+	  $(OBJECT)/config/serpa-run $(TEST_NPROCS) \
+		./main $${i};	\
+	done
+
+checkcompile: main
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+clean-check:
+	$(SAMCLEAN)
+
+clean:
+	$(SAMCLEAN)
+	$(RM) *.f *main*
+	$(RM) -rf restart-*d*
+
+include $(SRCDIR)/Makefile.depend

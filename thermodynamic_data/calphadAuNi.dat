@@ -1,0 +1,140 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Units:
+// Temperature: Kelvin
+// Energies:    J/mol
+//
+// G = a + b*T + c*T*ln(T)+sum_i di*T^i
+//
+SpeciesA{ // Au
+   name = "Au"
+   PhaseL{ // liquid
+      Tc =298.15, 933.51, 1337.58, 1735.8, 3000.
+      a  =5613.147, -81023.261, 326614.987, 413.343
+      b  =97.446385, 1012.21732, -2025.7579, 155.893158
+      c  =-22.75455, -155.6947, 263.2523, -30.9616
+      d2 =-0.00385924, .08756015, -0.11821685, 0.
+      d3 =3.79625e-7, -1.1518713e-05, 8.923845e-06, 0.
+      dm1=-25097., 10637210., -67999850., 0.
+   }
+   PhaseA{ // fcc
+      Tc =298.15, 933.51, 1337.58, 1735.8, 3000.
+      a  =-6938.853, -93575.261, 314062.987, -12138.657
+      b  =106.830495, 1021.60143, -2016.37379, 165.277268
+      c  =-22.75455, -155.6947, 263.2523, -30.9616
+      d2 =-0.00385924, .08756015, -0.11821685, 0.
+      d3 =3.79625e-7, -1.1518713e-05, 8.923845e-06, 0.
+      dm1=-25097., 10637210., -67999850., 0.
+   }
+}
+
+SpeciesB{ // Ni
+   name = "Ni"
+   PhaseL{ // liquid
+      Tc =298.15, 1728., 3000.
+      a  =11235.527, -9549.775
+      b  =108.457, 268.598
+      c  =-22.096, -43.1
+      d2 =-.0048407, 0.
+      d7 =-3.82318e-21, 0.
+   }
+   PhaseA{ // fcc
+      Tc =298.15, 1728., 3000.
+      a  =-5179.159, -27840.655
+      b  = 117.854, 279.135
+      c  =-22.096, -43.1
+      d2 =-.0048407, 0.
+      dm9=0., 1.12754E+31
+   }
+}
+
+//
+// Gmix_phase = c(1-c)*[ L0(T)+L1(T)*(2c-1)+L2(T)*(2c-1)^2 ]  [J/mol]
+// where Li(T) = Li[0] + Li[1]*T
+//
+LmixPhaseL{ // liquid
+   L0 = 9500., -5.429
+   L1 = 1614.,  0.
+}
+
+LmixPhaseA{ // fcc
+   L0 =  28696., -11.274
+   L1 = -10945.,   6.154
+   L2 =   2519.,   0.
+}
+
+// bcc data from Wang et al., Computer Coupling of Phase Diagrams and
+// Thermochemistry 31 (2007), 249-255
+MobilityParameters{
+   Species0{ // Au
+      PhaseL{ // liquid
+         qA   = -35921.87,  3.1514e-8
+         qB   = -46353.23,  5.9576e-8
+         q0AB = 0.,  1.
+         q1AB = 0.,  1.
+      }
+      PhaseA{ // fcc
+         qA   = -176600.,  1.002878e-05 // Au in Au
+         qB   = -306500.,  4.49132e-2   // Au in Ni
+         q0AB =  232300.,  7.6881435e-08
+         q1AB =   15900.,    1.
+      }
+//      PhaseA{ // liquid
+//         qA   = -35921.87,  3.1514e-8
+//         qB   = -46353.23,  5.9576e-8
+//         q0AB = 0.,  1.
+//         q1AB = 0.,  1.
+//      }
+   }
+   
+   Species1{  // Ni
+      PhaseL{ // liquid
+         qA   = -35921.87, 3.6471e-8
+         qB   = -46353.23, 6.8948e-8
+         q0AB = 0.,  1.
+         q1AB = 0.,  1.
+      }
+//      PhaseA{ // liquid
+//         qA   = -35921.87, 3.6471e-8
+//         qB   = -46353.23, 6.8948e-8
+//         q0AB = 0.,  1.
+//         q1AB = 0.,  1.
+//      }
+      PhaseA{ // fcc
+         qA   = -188800., 1.702455873e-05 // Ni in Au
+         qB   = -287000., 2.25994e-4      // Ni in Ni
+         q0AB =  136200.,   1.
+         q1AB =  -42800.,   1.
+      }
+   }
+}

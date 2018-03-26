@@ -1,0 +1,4 @@
+cvodes/cvm/src/cvm.c
+ - finish cvmSolveB_more
+ - decide what to do with CVodeGet: add CVodeGetB or add separate CVodeGet*** functions.
+

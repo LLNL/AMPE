@@ -1,0 +1,98 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   README file for LinAdv test.
+##
+#########################################################################
+
+This directory contains a Makefile to build an Automatic testing
+version of the LinAdv application.  It is used in the autotest
+suite of SAMRAI.
+
+The Makefile operates on the LinAdv code in the applications
+directory.  However, it performs two functions not done in the
+standard LinAdv application.  First, it builds and links the 
+AutoTester class, located in /SAMRAI/source/test/applications.
+This class reads information from input and performs an
+"evaluate" function to assure the computed information is 
+correct.  Second, it sets to TRUE the TESTING preprocessor
+option so that the autotest part of LinAdv is included.
+
+The following segment should be added to the input file 
+to satisfy the input requirements for AutoTester:
+
+// Automated testing arguments.
+//    test_iter_num  -- (int) iteration number (i.e. coarse-grid
+//                      timestep) for which to check result [10].
+//    test_fluxes    -- (bool) test Riemann solver.
+//                      If TRUE, it outputs primitive variables to a
+//                      file which can then be verified against some
+//                      known "correct" result.  If FALSE, it will
+//                      simply check timesteps in the
+//                      HyperbolicLevelIntegrator. [FALSE]
+//    correct_result -- (double array) specification of correct result
+//                      for the different test performed.  If the
+//                      computed result does not match the specified
+//                      result, the code will report an error [0].
+//    output_correct -- (bool) output computed result.  Useful for
+//                      setting baseline "correct_result" values for a
+//                      new problem.  That is, set to TRUE and run the
+//                      case. Enter the output values in the
+//                      correct_result array in input, and use the
+//                      input file for automated testing. [FALSE]
+AutoTester {
+   test_iter_num = 10
+   test_fluxes = FALSE
+   correct_result = 2.25, 0.0140625, 0.0140625
+   output_correct = FALSE
+}
+
+A 2D and a 3D test input file are included with LinAdv:
+   test-2d.input - contains input and "correct" output data for 2D
+                   test of LinAdv
+   test-3d.input - same, but for 3D test. 
+
+
+RESETTING BASELINES
+
+The tests that are run from this directory include comparisons of the results
+to baseline data that represent expected results.  The tests compare the
+box configuration of the hierarchy, and certain timestep floating point values,
+as specified in the AutoTester input described above.  The baseline boxes
+are stored in HDF data files, and the expected timestep values are listed
+in the AutoTester input.
+
+If a SAMRAI developer makes changes to the library that can legitimately change
+the box configuration of a hierarchy, then the baselines here need to be reset,
+according to the following steps
+
+1. Change the AutoTester input block in each input file to include these
+   two entries:
+ 
+     write_patch_boxes = TRUE
+     read_patch_boxes = FALSE
+
+2. Comment out all of the lines that read restart files in the
+   Makefile's check2d and check3d rules.
+
+3. make check.  The baseline HDF files will be regenerated here.
+
+4. If you get floating-point-difference errors when the "correct_result"
+   values are compared, do the following
+
+   a. set output_correct = TRUE in the AutoTester input
+
+   b. make check
+
+   c. Find the new values of the three floating-point outputs in the log
+      file, and put them on the line "correct_result = ..."
+      (make sure they don't differ too much).
+
+5. Undo all makefile and input file changes (except for changes to
+   correct_results).
+
+6. make checktest (there should be no more errors).
+

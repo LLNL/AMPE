@@ -1,0 +1,35 @@
+######################################################################
+#                                                                    #
+#           Login      Version 1.5.5                                 #
+#                                                                    #
+#               By Andrew Cantino (cantino@tectonicdesigns.com)      #
+#               (c) 1998 by Andrew Cantino.    Do not edit without   #
+#                permission.  Thank you.  If you like this program,  #
+#                please e-mail me!                                   #
+#                                                                    #
+#                Please send me bug reports as well.                 #
+#								     #
+#		 Get updates at:				     #
+#			http://tectonicdesigns.com/freecgi           #
+#                                                                    #
+#                                                                    #
+#     What it does:                                                  #
+#       Login is a simple password protection script that I have     #
+#       written on request by many different people.  This script    #
+#       is only intended to be a simple password protection system.  #
+#       This script is not intended to be used to protect anything   #
+#       that needs high level security.  I take no responsibility    #
+#       for stolen or lost data because of this script.              #
+#       Generally, just use this at your own risk.  Now enjoy!       #
+#                                                                    #
+#     How to set up:                                                 #
+#      1) Put login.cgi where it can be run from the web.  This may  #
+#         just be in your directory or it my be in your server's     #
+#         cgi-bin area.                                              #
+#      2) chmod 755 login.cgi     (make login.cgi executable)        #
+#      3) configure login.cgi     (edit it)                          #
+#      4) chmod 777 log           (make the log file editable)       #
+#      5) If you use this script, please tell me your URL and I will #
+#         make a link to you from my pages!                          #
+#                                                                    #
+######################################################################

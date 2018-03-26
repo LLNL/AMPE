@@ -1,0 +1,29 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Interface to operations for complex data on hierarchy.
+ *
+ ************************************************************************/
+
+#ifndef included_math_HierarchyDataOpsComplex_C
+#define included_math_HierarchyDataOpsComplex_C
+
+#include "SAMRAI/math/HierarchyDataOpsComplex.h"
+
+namespace SAMRAI {
+namespace math {
+
+HierarchyDataOpsComplex::HierarchyDataOpsComplex()
+{
+}
+
+HierarchyDataOpsComplex::~HierarchyDataOpsComplex()
+{
+}
+
+}
+}
+#endif

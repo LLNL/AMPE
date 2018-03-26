@@ -1,0 +1,63 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright
+## information, see COPYRIGHT and COPYING.LESSER.
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for the MultiblockMappedBoxTree tests
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/mblktree
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+CPPFLAGS_EXTRA =  -DTESTING=1
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+NUM_TESTS = 6
+
+TEST_NPROCS = @TEST_NPROCS@
+ifeq (${TEST_NPROCS},0)
+TEST_NPROCS = 0
+else
+TEST_NPROCS = 1
+endif
+
+main:	main-mbtree.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main-mbtree.o $(LIBSAMRAI) $(LDLIBS) -o $@
+
+
+check:		main
+	$(MAKE) check2d
+	$(MAKE) check3d
+
+check2d:
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.3blk.simple.2d.input
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.3blk.subdivided.2d.input
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.5blk.simple.2d.input
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.5blk.subdivided.2d.input
+
+check3d:
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.full.simple.3d.input
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main test_inputs/mbtree.full.subdivided.3d.input
+
+checkcompile: main
+
+checktest:
+		rm -f makecheck.logfile
+		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+		$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -f makecheck.logfile
+
+clean:
+		$(SAMCLEAN)
+		$(RM) main
+
+include $(SRCDIR)/Makefile.depend

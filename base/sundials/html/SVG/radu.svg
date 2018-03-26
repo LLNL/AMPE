@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg1376"
+   sodipodi:version="0.32"
+   inkscape:version="0.42.2"
+   sodipodi:docbase="/home/radu/apps/lsws/SUNDIALS/html/SVG"
+   sodipodi:docname="radu.svg"
+   inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+   inkscape:export-xdpi="90.000000"
+   inkscape:export-ydpi="90.000000">
+  <defs
+     id="defs1378">
+    <linearGradient
+       id="linearGradient3725">
+      <stop
+         id="stop3733"
+         offset="0.0000000"
+         style="stop-color:#7eb6d0;stop-opacity:1.0000000;" />
+      <stop
+         style="stop-color:#5e808c;stop-opacity:1.0000000;"
+         offset="1.0000000"
+         id="stop3735" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient1399"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.374076,0.000000,0.000000,0.552996,148.5181,578.8690)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient2155"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.374076,0.000000,0.000000,0.552996,148.5181,578.8690)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient2136"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.538669,0.000000,0.000000,0.796314,136.0992,448.5516)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient2164"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.538669,0.000000,0.000000,0.796314,136.0992,448.5516)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient2170"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.538669,0.000000,0.000000,0.796314,-37.64700,453.6024)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient1442"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.538669,0.000000,0.000000,0.796314,67.40886,631.3892)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3725"
+       id="linearGradient1444"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0.538669,0.000000,0.000000,0.796314,67.40886,631.3892)"
+       x1="328.57144"
+       y1="-215.85001"
+       x2="657.00000"
+       y2="-215.85001" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.9798990"
+     inkscape:cx="349.39291"
+     inkscape:cy="619.07268"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1192"
+     inkscape:window-height="958"
+     inkscape:window-x="1637"
+     inkscape:window-y="23"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       orientation="vertical"
+       position="252.53814"
+       id="guide2320" />
+    <sodipodi:guide
+       orientation="vertical"
+       position="413.21429"
+       id="guide2350" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata1381">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g1378"
+       transform="translate(2.525381,185.3630)">
+      <rect
+         style="opacity:1.0000000;fill:url(#linearGradient1442);fill-opacity:1.0000000;stroke:none;stroke-width:11.300000;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+         id="rect1380"
+         width="176.91428"
+         height="172.80000"
+         x="244.40001"
+         y="373.10504"
+         rx="0.00000000"
+         ry="0.00000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png" />
+      <path
+         style="opacity:0.80000001;fill:#76a8bf;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+         d="M 333.21894,384.40478 C 333.38575,384.40461 333.55424,384.42779 333.72115,384.42870 L 409.79428,384.42870 L 409.79428,460.83664 L 409.79428,460.95620 C 409.80194,470.85838 407.89230,480.91421 403.81556,490.61061 C 387.44312,529.55199 342.55371,547.87744 303.61237,531.50500 C 264.67099,515.13256 246.34554,470.24315 262.71798,431.30179 L 262.83756,430.99091 C 275.20991,401.91996 303.47809,384.43662 333.21894,384.40478 z "
+         id="path1382"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <path
+         sodipodi:type="arc"
+         style="opacity:0.80000001;fill:#638897;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+         id="path1384"
+         sodipodi:cx="357.85715"
+         sodipodi:cy="528.43359"
+         sodipodi:rx="72.500000"
+         sodipodi:ry="72.500000"
+         d="M 424.69039,500.33435 A 72.500000,72.500000 0 1 1 424.56692,500.04247"
+         sodipodi:start="5.8851849"
+         sodipodi:end="12.163999"
+         sodipodi:open="true"
+         transform="matrix(0.903779,0.000000,0.000000,0.896289,9.835792,-12.67618)"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <path
+         sodipodi:type="star"
+         style="opacity:0.80000001;fill:#76a8bf;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+         id="path1386"
+         sodipodi:sides="5"
+         sodipodi:cx="110.00000"
+         sodipodi:cy="496.64789"
+         sodipodi:r1="100.41750"
+         sodipodi:r2="20.406609"
+         sodipodi:arg1="0.69473828"
+         sodipodi:arg2="1.3230568"
+         inkscape:flatsided="false"
+         inkscape:rounded="0.00000000"
+         inkscape:randomized="0.00000000"
+         d="M 187.14286,560.93361 L 115.00397,516.43147 L 72.699103,589.88049 L 92.731010,507.52041 L 9.8039153,489.98309 L 94.323209,483.58390 L 85.376311,399.29621 L 117.58020,477.70138 L 194.97781,443.14605 L 130.36161,498.00229 L 187.14286,560.93361 z "
+         transform="matrix(0.641341,-0.143355,0.143355,0.641341,192.0220,158.4981)"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <text
+         xml:space="preserve"
+         style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#9b0000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         x="260.57709"
+         y="387.36218"
+         id="text1388"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1390"
+           x="260.57709"
+           y="387.36218">webdesign by radu serban</tspan></text>
+      <image
+         id="image1392"
+         height="32.767998"
+         width="32.767998"
+         sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/gimp.png"
+         xlink:href="gimp.png"
+         x="252.00000"
+         y="405.97818"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <image
+         id="image1394"
+         height="32.767998"
+         width="32.767998"
+         sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/inkscape.png"
+         xlink:href="inkscape.png"
+         x="250.34047"
+         y="434.04456"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <text
+         xml:space="preserve"
+         style="font-size:14.000000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Bitstream Charter"
+         x="252.16014"
+         y="519.78064"
+         id="text1396"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1398"
+           x="252.16014"
+           y="519.78064"
+           style="letter-spacing:1.2857144"
+           dy="0 0 6.0714293 0 -2.1428571 0 4.08906e-007 -4.08906e-007 -3.957567e-007 4.08906e-007"
+           dx="0 0 0 0 0 0 0 -8.3265075e-009 0 1.0217939e-007">L<tspan
+   style="font-size:9.0000000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Charter"
+   id="tspan1400"
+   dy="-6.4285717"
+   dx="-0.71428567">A</tspan>T<tspan
+   style="font-size:9.0000000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;font-family:Bitstream Charter"
+   id="tspan1402"
+   dx="-0.71428573"
+   dy="2.5">E</tspan>X2HTML</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:14.000000px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Bitstream Charter"
+         x="252.18814"
+         y="537.85211"
+         id="text1404"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1406"
+           x="252.18814"
+           y="537.85211">M2HTML</tspan></text>
+      <image
+         id="image1408"
+         height="18.000000"
+         width="26.100000"
+         sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/mhonarc.png"
+         xlink:href="mhonarc.png"
+         x="252.53815"
+         y="484.79077"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <text
+         xml:space="preserve"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         x="394.29587"
+         y="426.64792"
+         id="text1410"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1412"
+           x="394.29587"
+           y="426.64792">gimp</tspan></text>
+      <text
+         sodipodi:linespacing="125.00000%"
+         id="text1414"
+         y="451.50507"
+         x="375.00003"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         xml:space="preserve"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1416"
+           x="375.00003"
+           y="451.50507">inkscape</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         x="380.19305"
+         y="496.14285"
+         id="text1418"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1420"
+           x="380.19305"
+           y="496.14285">mhonarc</tspan></text>
+      <text
+         sodipodi:linespacing="125.00000%"
+         id="text1422"
+         y="518.07654"
+         x="365.73041"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         xml:space="preserve"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1424"
+           x="365.73041"
+           y="518.07654">latex2html</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         x="384.91791"
+         y="537.09686"
+         id="text1426"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1428"
+           x="384.91791"
+           y="537.09686">m2html</tspan></text>
+      <text
+         sodipodi:linespacing="125.00000%"
+         id="text1430"
+         y="406.64792"
+         x="299.44946"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         xml:space="preserve"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1432"
+           x="299.44946"
+           y="406.64792">graphics tools</tspan></text>
+      <text
+         xml:space="preserve"
+         style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+         x="294.60858"
+         y="479.64795"
+         id="text1434"
+         sodipodi:linespacing="125.00000%"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000"><tspan
+           sodipodi:role="line"
+           id="tspan1436"
+           x="294.60858"
+           y="479.64795">conversion tools</tspan></text>
+      <path
+         style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#9b0000;stroke-width:1.0000000;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+         d="M 252.71356,396.64790 L 413.00075,397.36218"
+         id="path1438"
+         sodipodi:nodetypes="cc"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+      <path
+         sodipodi:nodetypes="cc"
+         id="path1440"
+         d="M 252.71356,470.21933 L 413.00075,470.93361"
+         style="fill:none;fill-opacity:0.75000000;fill-rule:evenodd;stroke:#9b0000;stroke-width:1.0000000;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4.0000000;stroke-dasharray:none;stroke-opacity:1.0000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-ydpi="90.000000" />
+    </g>
+    <g
+       id="g2109"
+       inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+       inkscape:export-xdpi="90.000000"
+       inkscape:export-ydpi="90.000000">
+      <path
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         id="path8716"
+         d="M 333.21894,384.40478 C 333.38575,384.40461 333.55424,384.42779 333.72115,384.42870 L 409.79428,384.42870 L 409.79428,460.83664 L 409.79428,460.95620 C 409.80194,470.85838 407.89230,480.91421 403.81556,490.61061 C 387.44312,529.55199 342.55371,547.87744 303.61237,531.50500 C 264.67099,515.13256 246.34554,470.24315 262.71798,431.30179 L 262.83756,430.99091 C 275.20991,401.91996 303.47809,384.43662 333.21894,384.40478 z "
+         style="opacity:0.80000001;fill:#76a8bf;fill-opacity:1.0000000;stroke:#638897;stroke-opacity:1.0000000" />
+      <path
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         transform="matrix(0.903779,0.000000,0.000000,0.896289,9.835792,-12.67618)"
+         sodipodi:open="true"
+         sodipodi:end="12.163999"
+         sodipodi:start="5.8851849"
+         d="M 424.69039,500.33435 A 72.500000,72.500000 0 1 1 424.56692,500.04247"
+         sodipodi:ry="72.500000"
+         sodipodi:rx="72.500000"
+         sodipodi:cy="528.43359"
+         sodipodi:cx="357.85715"
+         id="path8718"
+         style="opacity:0.80000001;fill:#638897;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+         sodipodi:type="arc" />
+      <path
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         transform="matrix(0.641341,-0.143355,0.143355,0.641341,192.0220,158.4981)"
+         d="M 187.14286,560.93361 L 115.00397,516.43147 L 72.699103,589.88049 L 92.731010,507.52041 L 9.8039153,489.98309 L 94.323209,483.58390 L 85.376311,399.29621 L 117.58020,477.70138 L 194.97781,443.14605 L 130.36161,498.00229 L 187.14286,560.93361 z "
+         inkscape:randomized="0.00000000"
+         inkscape:rounded="0.00000000"
+         inkscape:flatsided="false"
+         sodipodi:arg2="1.3230568"
+         sodipodi:arg1="0.69473828"
+         sodipodi:r2="20.406609"
+         sodipodi:r1="100.41750"
+         sodipodi:cy="496.64789"
+         sodipodi:cx="110.00000"
+         sodipodi:sides="5"
+         id="path8720"
+         style="opacity:0.80000001;fill:#76a8bf;fill-opacity:1.0000000;stroke:none;stroke-opacity:1.0000000"
+         sodipodi:type="star" />
+      <text
+         transform="matrix(-0.973971,0.226674,-0.226674,-0.973971,759.8287,832.9453)"
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         sodipodi:linespacing="125.00000%"
+         id="text1313"
+         style="font-size:9.9999971px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#9b0000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Sans"
+         xml:space="preserve"><textPath
+           id="textPath1491"
+           xlink:href="#path8718"><tspan
+   style="font-size:9.9999971px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:124.99996%;writing-mode:lr-tb;text-anchor:start;font-family:Sans"
+   id="tspan1331">webdesign by radu serban</tspan></textPath></text>
+      <text
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         sodipodi:linespacing="125.00000%"
+         id="text2276"
+         y="496.43585"
+         x="291.58408"
+         style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Bookman Old Style"
+         xml:space="preserve"><tspan
+           y="496.43585"
+           x="291.58408"
+           id="tspan2278"
+           sodipodi:role="line">M2HTML</tspan></text>
+      <g
+         transform="translate(-5.050763,-1.010153)"
+         id="g2094">
+        <image
+           id="image1370"
+           height="32.767998"
+           width="32.767998"
+           sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/gimp.png"
+           xlink:href="gimp.png"
+           x="315.13452"
+           y="399.91727"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000" />
+        <text
+           xml:space="preserve"
+           style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+           x="349.84918"
+           y="421.59714"
+           id="text2322"
+           sodipodi:linespacing="125.00000%"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000"><tspan
+             sodipodi:role="line"
+             id="tspan2324"
+             x="349.84918"
+             y="421.59714">gimp</tspan></text>
+      </g>
+      <g
+         id="g2099">
+        <image
+           id="image1429"
+           height="32.767998"
+           width="32.767998"
+           sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/inkscape.png"
+           xlink:href="inkscape.png"
+           x="278.11966"
+           y="425.45828"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000" />
+        <text
+           sodipodi:linespacing="125.00000%"
+           id="text2326"
+           y="443.92892"
+           x="311.86551"
+           style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+           xml:space="preserve"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000"><tspan
+             sodipodi:role="line"
+             id="tspan2330"
+             x="311.86551"
+             y="443.92892">inkscape</tspan></text>
+      </g>
+      <g
+         id="g2104">
+        <image
+           id="image2317"
+           height="18.000000"
+           width="26.100000"
+           sodipodi:absref="/home/radu/apps/lsws/SUNDIALS/html/graphics/SVG/mhonarc.png"
+           xlink:href="mhonarc.png"
+           x="278.80212"
+           y="465.59787"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000" />
+        <text
+           xml:space="preserve"
+           style="font-size:8.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Luxi Mono"
+           x="307.46207"
+           y="476.94995"
+           id="text2332"
+           sodipodi:linespacing="125.00000%"
+           inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+           inkscape:export-xdpi="90.000000"
+           inkscape:export-ydpi="90.000000"><tspan
+             sodipodi:role="line"
+             id="tspan2336"
+             x="307.46207"
+             y="476.94995">mhonarc</tspan></text>
+      </g>
+      <text
+         inkscape:export-ydpi="90.000000"
+         inkscape:export-xdpi="90.000000"
+         inkscape:export-filename="/home/radu/apps/lsws/SUNDIALS/html/graphics/radu.png"
+         sodipodi:linespacing="125.00000%"
+         id="text1481"
+         y="511.42548"
+         x="310.62192"
+         style="font-size:10.000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1.0000000;stroke:none;stroke-width:1.0000000px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1.0000000;font-family:Bookman Old Style"
+         xml:space="preserve"><tspan
+           dy="0 -4.0406098 4.0406098 3.5355337 -3.5355337"
+           dx="0 0.50507635"
+           y="511.42548"
+           x="310.62192"
+           id="tspan1483"
+           sodipodi:role="line">L<tspan
+   id="tspan1489"
+   style="font-size:6.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;font-family:Bookman Old Style">A</tspan>T<tspan
+   id="tspan1485"
+   style="font-size:6.0000000px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125.00000%;writing-mode:lr-tb;text-anchor:start;font-family:Bookman Old Style">E</tspan>X2HTML</tspan></text>
+    </g>
+  </g>
+</svg>

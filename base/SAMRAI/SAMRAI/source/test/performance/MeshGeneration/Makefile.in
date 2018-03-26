@@ -1,0 +1,70 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   Test program for performance of load balancers. 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/performance/MeshGeneration
+VPATH	      =	@srcdir@
+OBJECT        = ../../../..
+
+CPPFLAGS_EXTRA= -DNDIM=$(PDIM)  -DTESTING=1
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+NUM_TESTS = 4
+
+TEST_NPROCS = @TEST_NPROCS@
+
+CXX_OBJS      = mg.o MeshGenerationStrategy.o DerivedVisOwnerData.o SinusoidalFrontGenerator.o SphericalShellGenerator.o
+
+INPUTS2D =	test_inputs/small_sphere.2d.treelb.input	\
+		test_inputs/small_front.2d.treelb.input
+
+INPUTS3D =	test_inputs/small_sphere.3d.treelb.input	\
+		test_inputs/small_front.3d.treelb.input
+
+main: $(CXX_OBJS) $(LIBSAMRAI)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) \
+	$(LIBSAMRAI) $(LDLIBS) -o $@
+
+check:
+		$(MAKE) check2d
+		$(MAKE) check3d
+
+check1d:	main
+
+check2d:	main
+		for f in $(INPUTS2D); do	\
+			$(OBJECT)/config/serpa-run $(TEST_NPROCS) \ ./main "$$f";	\
+		done
+
+check3d:	main
+		for f in $(INPUTS3D); do	\
+			$(OBJECT)/config/serpa-run $(TEST_NPROCS) \ ./main "$$f";	\
+		done
+
+checkcompile: main
+
+checktest:
+		rm -f makecheck.logfile
+		$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+		$(OBJECT)/source/test/testtools/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+		rm -f makecheck.logfile
+
+clean-check:
+		$(SAMCLEAN)
+
+clean:
+		$(SAMCLEAN)
+		$(RM) *.f main
+
+include $(SRCDIR)/Makefile.depend

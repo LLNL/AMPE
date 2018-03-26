@@ -1,0 +1,33 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for pdat directory 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/SAMRAI/pdat/fortran
+VPATH	      =	@srcdir@
+OBJECT        = ../../../..
+
+# For classes that are non-dimensional.
+OBJS= 	 pdat_dbugfort1d.o pdat_dbugfort2d.o pdat_dbugfort3d.o\
+	pdat_concoarsen1d.o pdat_concoarsen3d.o pdat_conrefine2d.o\
+	pdat_concoarsen2d.o pdat_conrefine1d.o pdat_conrefine3d.o\
+	pdat_lintimint1d.o pdat_lintimint2d.o pdat_lintimint3d.o\
+
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+library:	$(OBJS)
+
+clean:
+	$(SAMCLEAN)
+
+include $(SRCDIR)/Makefile.depend

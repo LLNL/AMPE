@@ -1,0 +1,95 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   CVODE example
+##
+#########################################################################
+
+This example demonstrates use of CVODE vectors to solve the heat eqn. in
+SAMRAI.  The files included in this directory are as follows:
+ 
+          main.C               -  example main program
+          CVODEModel.[Ch]      -  example user routines that supply interface
+                                  methods to CVODE operations in the library 
+          cvode-[2d,3d].input  -  2d and 3d input files
+ 
+COMPILE and RUN
+---------------
+Compile:  make     
+Run:      main2d sundials-2d-[dir,neu].input                        
+
+"dir" indicates dirichlet BCs, while "neu" indicates neumann BCs.
+ 
+
+INPUTS:
+------------
+
+Each input file contains 4 sections to initialize the various objects 
+involved inthe test.
+
+The "Main" section includes the number of steps, the initial and final
+time, relative and absolute tolerance, the stepping method type, and
+specification of whether or not the case uses newton sub-iterations.
+An example input might look like:
+
+Main {
+   max_internal_steps = 500
+   init_time = 0.0
+   final_time = 1
+   relative_tolerance = 1e-15
+   absolute_tolerance = 1e-15
+   stepping_method = 0
+   uses_newton = TRUE
+}
+
+The "CVODEModel" section sets up the problem to be solved. It specifies 
+the problem type, the initial value and its type, the diffusion
+coefficient, and values of dirichlet boundary conditions.
+An example input might look like:
+
+CVODEModel {
+   Problem_type= 2
+   Initial_value_type = 0
+   Initial_value = 1.0
+   Diffusion_Coefficient = .1
+   Boundary_value = 0.0
+}
+
+The "Geometry" section describes the spatial layout of the problem.
+It specifies the domain boxes, which specify the index space, and
+the low and high spatial dimensions of the domain.  
+An example input might look like:
+
+Geometry {
+   domain_boxes  = [ (0,0) , (9,9) ]
+   x_lo          = 0.e0 , 0.e0  // lower end of computational domain.
+   x_up          = 1.e1 , 1.e1  // upper end of computational domain.
+}
+
+The "GriddingAlgorithm" section describes parameters used for 
+adaptive gridding.  It specifies the number of levels, the ratios
+between coarse and fine levels, and the largest and smallest allowed
+patch size.  An example input might look like:
+
+GriddingAlgorithm {
+   max_levels              = 1 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {         // vector ratio to next coarser level
+      level_1               = 2 , 2
+      level_2               = 2 , 2
+   }
+
+   largest_patch_size {
+      level_0 = 10,10
+      // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 = 1,1
+      // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance     = 0.70e0   // min % of tag cells in new patch level   combine_efficiency       = 0.85e0   // chop box if sum of volumes of smaller                                       // boxes < efficiency * vol of large box}

@@ -1,0 +1,70 @@
+%% # foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!KINDenseJacFn!}
+\label{p:KINDenseJacFn}
+\index{KINDenseJacFn}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+KINDenseJacFn - type for user provided dense Jacobian function.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+This is a script file. 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+KINDenseJacFn - type for user provided dense Jacobian function.
+
+   The function DJACFUN must be defined as 
+        FUNCTION [J, FLAG] = DJACFUN(Y,FY)
+   and must return a matrix J corresponding to the Jacobian of f(y).
+   The input argument FY contains the current value of f(y).
+   If a user data structure DATA was specified in KINMalloc, then
+   DJACFUN must be defined as
+        FUNCTION [J, FLAG, NEW_DATA] = DJACFUN(Y,FY,DATA)
+   If the local modifications to the user data structure are needed in
+   other user-provided functions then, besides setting the matrix J and
+   the flag FLAG, the DJACFUN function must also set NEW_DATA. Otherwise, 
+   it should set NEW_DATA=[] (do not set NEW_DATA = DATA as it would lead
+   to unnecessary copying).
+
+   The function DJACFUN must set FLAG=0 if successful, FLAG&lt;0 if an
+   unrecoverable failure occurred, or FLAG&gt;0 if a recoverable error
+   occurred.
+
+   See also KINSetOptions
+
+   NOTE: DJACFUN is specified through the property JacobianFn to KINSetOptions
+   and is used only if the property LinearSolver was set to 'Dense'.
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

@@ -1,0 +1,10 @@
+DONE - implement CVodeSetQuadSensErrCon
+DONE - if needed, carry QuadSens in check points...
+
+- see if ftempQ is really needed. cold we use tempvQS[0] or something else?
+
+
+
+When using a staggered FSA method, we basically double the number of fevals
+(because we need to re-evaluate f before propagating sensitivities). See if we
+can test for this and not re-evaluate f at the next step.

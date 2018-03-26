@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd mailArchive
+files=$(ls msg*)
+echo $files
+for i in $files ; do
+  echo $i
+  sed 's/<tt>//g' $i > tmp;
+  mv tmp $i ;
+  sed 's#</tt>##g' $i > tmp;
+  mv tmp $i ;
+done
+

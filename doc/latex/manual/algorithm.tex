@@ -1,0 +1,344 @@
+\chapter{Numerical algorithm}
+\label{sec:algorithm}
+
+We next consider the numerical discretization of the phase-field
+system given by (\ref{eq:phaseeom}), (\ref{eq:qeom2}), and
+(\ref{eq:ceomkks}).  Our approach combines a finite volume spatial
+discretization with an implicit method of lines temporal
+discretization.
+
+We begin by introducing a uniform grid on the physical domain $\Omega$
+and treating the dependent variables $\phi$, ${\bf q}$ and $c$ as
+cell-centered quantities with respect to this grid.  All divergences
+are also cell-centered and therefore computable using the divergence
+theorem and face-centered quantities.  The latter are obtained either
+by averaging the respective cell-centered quantities or by
+differencing if the quantity is a gradient.  The quaternion gradients
+that appear in the right-hand side of (\ref{eq:phaseeom}) are obtained
+by averaging face-centered gradients to the cell centers.  We note
+that this sort of finite volume discretization yields a conservative
+discretization of the concentration equations (\ref{eq:ceomkks}).  For
+notational convenience in the discussion to follow, we will continue
+to use continuous spatial operators ({\em i.e.}, gradients and
+divergences) to represent their discrete analogs.
+
+Since the diffusion coefficient in (\ref{eq:qeom2}) becomes unbounded in
+the limit of small $|\nabla {\bf q}|$, we impose a lower bound
+%
+\begin{equation}
+  |\nabla {\bf q}| \ge \beta > 0
+\label{eq:gradqfloor}
+\end{equation}
+%
+in the evaluation of this coefficient on cell faces.  The quantity
+$\beta$ is therefore a parameter in the discrete algorithm.  The goal
+in choosing $\beta$ is to set it small enough so that the diffusion
+coefficient in (\ref{eq:qeom2}) is large enough to flatten the components
+of ${\bf q}$ inside the grains ({\em i.e.}, where $\phi$ is near unity) while
+not setting it so small that an unnecessarily fast time scale is
+introduced.  A justification for the use of such bounds based on the
+theory of semigroups and extended gradient systems is presented in
+\cite{KoGi99}.  Although a smoother bound involving a hyperbolic
+tangent is actually proposed in \cite{KoGi99}, we have found in our
+tests that the simpler and less expensive bound (\ref{eq:gradqfloor}) is
+equally effective.
+
+The spatially discretized model can be written as a system of ordinary
+differential equations
+%
+\begin{equation}
+  \dot{y}(t) = f(t,y(t)), \hspace{3em} y(0) = y_0,
+\label{eq:abstractode}
+\end{equation}
+%
+where
+%
+\begin{equation}
+  y(t) \equiv \left (
+    \begin{array}{c}
+      y_{\phi}(t) \\ y_\eta(t) \\ y_{\bf q}(t) \\ y_c(t)
+    \end{array}
+  \right ) \equiv \left (
+    \begin{array}{c}
+      \phi(t) \\ \eta(t) \\ {\bf q}(t) \\ c(t)
+    \end{array}
+  \right )
+\end{equation}
+%
+and
+%
+\begin{equation}
+  f(t,y(t)) \equiv \left (
+    \begin{array}{c}
+      f_{\phi}(t,y_{\phi}(t),y_\eta(t),y_{\bf q}(t),y_c(t)) \\
+      f_{\eta}(t,y_{\phi}(t),y_\eta(t),y_{\bf q}(t),y_c(t)) \\
+      f_{\bf q}(t,y_{\phi}(t),y_\eta(t),y_{\bf q}(t),y_c(t)) \\
+      f_c(t,y_{\phi}(t),y_\eta(t),y_{\bf q}(t),y_c(t))
+    \end{array}
+  \right ),
+\end{equation}
+%
+where $f_{\phi}$, $f_\eta$, and $f_{\bf q}$ are the spatially
+discretized right-hand sides of (\ref{eq:phaseeom}),
+(\ref{eq:etaeom}), and (\ref{eq:qeom2}), respectively, while $f_c$ is
+the right-hand side of (\ref{eq:ceomkks}).
+
+The inclusion of the orientation components in (\ref{eq:abstractode})
+imposes important requirements for numerical integration.  Since the
+coefficients $ D_{\bf q}(\phi,T) / |\nabla {\bf q} |$ in (\ref{eq:qeom2}) can be
+large, introducing a potentially fast time scale, an implicit method
+is recommended for the integration of (\ref{eq:abstractode}) to avoid the
+stability-imposed time step limitation of an explicit scheme.
+Moreover, the solution invariant (\ref{eq:invariant}) must be preserved.
+We note that a simple implicit rule such as backward Euler
+%
+\begin{equation}
+  {\bf q}^{n+1} = {\bf q}^n + (t^{n+1} - t^n) f_{\bf q}(t^{n+1},{\bf q}^{n+1}),
+\end{equation}
+%
+does not preserve this invariant: if ${\bf q}^n$ lies on the unit
+sphere, then ${\bf q}^{n+1}$ cannot also lie on the unit sphere and be
+orthogonal to $f_{\bf q}(t^{n+1},{\bf q}^{n+1})$.
+
+To accommodate the above requirements, we employ variable-order,
+variable-step backwards difference formulas (BDFs) combined with a
+coordinate projection.  Our choice of integration method is also
+influenced by the availability of a well-developed software package
+implementing the algorithms we now summarize.  At each discrete time
+$t^n$, the use of a BDF results in a nonlinear system to be solved for
+the discrete solution $y^n$ at time $t^n$
+%
+\begin{equation}
+  G(y^n) = h_n^{-1} \sum_{i=0}^k \sigma_{n,i} y^{n-i} - f(t^n,y^n) = 0,
+\label{eq:nonlin}
+\end{equation}
+%
+where $h_n$ is the current time step, $k$ is the integration order, and
+the $\sigma_{n,i}$ are the BDF coefficients.  The quantities $h_n$,
+$k$ and the $\sigma_{n,i}$ can be chosen adaptively during the
+integration, based on estimates of the local truncation error and
+other factors, to maintain stability and achieve accuracy to
+user-prescribed tolerances.  Following the solution of
+(\ref{eq:nonlin}), described in more detail below, and the subsequent
+computation of a corresponding estimate $e^n$ of the local truncation
+error satisfying a prescribed tolerance, the orientation component
+$y_{\bf q}^n$ of the solution $y^n$ is renormalized (projected) onto
+the unit sphere
+%
+\begin{equation}
+  y_{\bf q}^n \rightarrow y_{\bf q}^n / |y_{\bf q}^n|,
+\end{equation}
+%
+and the orientation component $e_{\bf q}^n$ of $e^n$ is projected
+orthogonally onto the subspace orthogonal to the resulting $y_{\bf q}^n$
+%
+\begin{equation}
+  e_{\bf q}^n \rightarrow e_{\bf q}^n - y_{\bf q}^n \cdot e_{\bf q}^n.
+\label{eq:errorproject}
+\end{equation}
+%
+The fact that such seemingly {\em ad hoc} projections do not degrade
+the stability or accuracy of a BDF integration is proved in
+\cite{Eich1993}, in which it is shown that the use of a BDF with
+coordinate projection is stable if the underlying non-projected method
+is, and the order of convergence remains the same, including variable
+order (through sixth-order) and variable step BDFs.  For linear
+multistep methods applied to linear systems, the analysis of
+\cite{Eich1993} concluded that the only error components that matter are
+those lying in the invariant manifold, so one can (and should) project
+out the extraneous components of the local truncation error estimates
+as in (\ref{eq:errorproject}).  In applying coordinate projection to
+the integration of the particular system (\ref{eq:abstractode}), since
+the solution invariant only involves the $y_{\bf q}$ component, the
+identity is used in projecting the remaining components $y_{\phi}$ and
+$y_c$, {\em i.e.}, the latter components and their corresponding local
+error estimates are unaffected by the coordinate projection step.
+
+The nonlinear system (\ref{eq:nonlin}) is solved using a Newton-Krylov
+algorithm.  Starting with a predicted solution value at the new time
+step, $y_{m+1}^n$, an inexact Newton iteration
+%
+\begin{equation}
+  J(\tilde{y}^n)(y_{m+1}^n - y_m^n) = - G(y_m^n),
+\label{eq:jacobiansystem}
+\end{equation}
+%
+is performed, where $J(\tilde{y})$ is some approximation to the system
+Jacobian, {\em i.e.},
+%
+\begin{equation}
+  J(\tilde{y}) \approx  \frac{\partial G}{\partial y}(\tilde{y}) = \frac{\sigma_{n,0}}{h_n} I
+     - \frac{\partial
+     f}{\partial y}(\tilde{y})
+\label{eq:jacobian}
+\end{equation}
+%
+evaluated at $\tilde{y}$, which can be the current Newton iterate,
+$y_m^n$, an earlier Newton iterate or some other prediction of the
+solution at time $t^n$.  The Jacobian system (\ref{eq:jacobiansystem})
+is solved using a Generalized Minimum Residual (GMRES) iteration \cite{SaSch86}.  The
+advantage of using a Krylov subspace method like GMRES is that only
+products of the Jacobian matrix $\partial G / \partial y$ times
+vectors are required, which are computed using finite differences of
+the system right-hand side $f$.  That is, for an arbitrary vector $v$
+%
+\begin{equation}
+  \frac{\partial f}{\partial y}(\tilde{y}) v \approx
+    \frac{f(\tilde{y} + \sigma v) - f(\tilde{y})}{\sigma}
+\label{eq:finitedifferencejac}
+\end{equation}
+%
+for small $\sigma$.
+
+Although the Newton-Krylov approach avoids the need to evaluate and
+store the Jacobian matrix, a preconditioner is nevertheless required
+for effective convergence of the GMRES iteration.  Since the
+preconditioner is only required to approximate the system Jacobian, we
+construct one containing the most dominant terms, which include the
+diffusive operators whose eigenvalues scale like the inverse square of
+the mesh size.  Specifically, we take
+%
+\begin{equation}
+  P \equiv \left (
+    \begin{array}{cccc}
+      P_{\phi,\phi} & 0 & 0 & 0 \\
+      0 & P_{\eta,\eta} & 0 & 0 \\
+      P_{{\bf q},\phi} & 0 & P_{{\bf q},{\bf q}} & 0 \\
+      0 & 0 & 0 & P_{c,c}
+    \end{array}
+  \right ),
+\label{eq:Pdef}
+\end{equation}
+%
+where
+%
+\begin{align}
+  P_{\phi,\phi} & \equiv \left \{ \frac{\sigma_{n,0}}{h_n} + 
+    M_\phi(\widetilde{\phi}) \left[ \omega_\phi(\widetilde{\phi})
+      g''_\phi(\widetilde{\phi}) +
+      \omega_\eta(\widetilde{\eta}) g_\eta(\widetilde{\eta})
+      h''_\phi(\widetilde{\phi}) \right]
+    \right \} I - M_\phi(\widetilde{\phi}) \epsilon_{\phi}^2 \nabla^2 \\
+  P_{\eta,\eta} & \equiv \left \{ \frac{\sigma_{n,0}}{h_n} + 
+    M_\eta(\widetilde{\eta}) \omega_\eta(\widetilde{\eta})
+    h_\phi(\widetilde{\phi}) g''_\eta(\widetilde{\eta})
+    \right \} I - M_\eta(\widetilde{\eta}) \epsilon_{\eta}^2 \nabla^2 \\
+  P_{{\bf q},\phi} & \equiv \left (
+    L, L, L, L \right )^T, \\
+  P_{{\bf q},{\bf q}} & \equiv \left (
+    \begin{array}{cccc}
+      K & 0 & 0 & 0 \\
+      0 & K & 0 & 0 \\
+      0 & 0 & K & 0 \\
+      0 & 0 & 0 & K
+    \end{array}
+    \right ), \\
+  P_{c,c} & \equiv \frac{\sigma_{n,0}}{h_n} I - \nabla D_c^0\nabla,
+\end{align}
+%
+and $K$ and $L$ are the linear operators defined by
+%
+\begin{eqnarray}
+  Kq_i &\equiv & \frac{\sigma_{n,0}}{h_n} q_i - M_{\bf q}
+    (\widetilde{\phi}) \nabla \cdot \left (
+    \epsilon_{\bf q} +
+    \frac{D ( \widetilde{\phi} ) }
+    { | \nabla \widetilde{\bf q} | } \right )
+    \nabla q_i, \hspace{1em} i = 1, \ldots, 4, \\
+  L\phi &\equiv& 
+    - M'_{\bf q} ( \widetilde{\phi} ) \phi \nabla \cdot
+    \left( \epsilon_{\bf q} +
+    \frac{D ( \widetilde{\phi} ) }
+    { | \nabla \widetilde{\bf q} | }
+    \right) \nabla \widetilde{\bf q}
+    - M_{\bf q} ( \widetilde{\phi} ) \nabla \cdot 
+    \frac{D'(\widetilde{\phi}) \phi}{ | \nabla \widetilde{\bf q} | }
+    \nabla \widetilde{\bf q}.
+\end{eqnarray}
+%
+Here, $\widetilde{\phi}$ and $\widetilde{\bf q}$ denote the components
+of the vector about which the linearization is being performed.  For
+example, these could be the components of the current Newton iterate
+or even the solution at a previous time step, depending upon how
+frequently the preconditioner is being updated.  At certain steps in
+the GMRES algorithm, the solution $z$ of the linear system
+%
+\begin{equation}
+  Pz = r
+\label{eq:peq}
+\end{equation}
+%
+for a given right-hand side $r$ is required, which can be performed
+using forward block elimination.  The only nontrivial step involves
+the (approximate) inversion of the matrix $K$.  Since $K$ is symmetric
+and positive definite, a variety of appropriate solvers can be
+employed.  For robustness, we employ a multigrid preconditioned
+conjugate gradient algorithm.
+
+In our phase-field code AMPE, we employ the general-purpose integrator
+CPODES to integrate the system (\ref{eq:abstractode}).  CPODES solves
+systems of ordinary differential equations with invariants using the
+combination of BDF, coordinate projection, and Newton-Krylov type
+algorithms summarized above.  CPODES is closely related to the
+predecessor CVODE integrator, primarily adding the coordinate-projection capability.  Distributed as part of the {\em Sundials}
+\cite{Sundials} suite of time integrators and nonlinear solvers, CVODE
+uses linear multistep methods to integrate stiff or nonstiff systems
+of ordinary differential equations, automating the problem-independent
+portions of local error estimation, step size and order selection, and
+nonlinear solves.  Following a beta test period and the creation of
+appropriate documentation, the recently developed CPODES integrator
+will also be publically available as part of the {\em Sundials} suite.
+For the solution of the linear systems in (\ref{eq:peq}), we employ a
+multigrid preconditioned conjugate-gradient solver from the {\em
+Hypre} library \cite{Hypre}.
+
+A complication in the use of Newton iteration for the solution of the
+nonlinear equation (\ref{eq:nonlin}) is the presence of the $|\nabla
+{\bf q}|$ factors in the phase equation (\ref{eq:phaseeom}) and the
+diffusion coefficient of the orientation equation (\ref{eq:qeom2}),
+since these factors are not differentiable at $\nabla {\bf q} = 0$.
+Even when a smooth lower bound is placed on $|\nabla {\bf q}|$ to maintain a
+finite diffusion coefficient in (\ref{eq:qeom2}), the evaluation of an
+approximate Jacobian product via finite differencing as in
+(\ref{eq:finitedifferencejac}) can still result in the generation of
+poor search directions for the Newton root-finding algorithm.  To
+avoid the finite differencing of the non-differentiable $|\nabla {\bf
+q}|$ factors, we simply suppress them during the computation of the
+Jacobian-vector products.  Specifically, we ensure that both function
+evaluations in the calculation of the finite difference
+(\ref{eq:finitedifferencejac}) are performed using the same value of
+$|\nabla {\bf q}|$.  This removes the contribution of the $|\nabla
+{\bf q}|$ term in the phase equation to the Jacobian product.
+Compared with the time scales embedded in the discrete diffusion
+terms, neglecting the latter term in this manner does not significantly
+affect the accuracy of the Jacobian approximation.  The elimination of
+this term is also consistent with the preconditioner described above, where
+the (1,2) block $P_{\phi,{\bf q}}$ is zero as well.  The latter is
+important, since it enables (\ref{eq:peq}) to be solved by forward
+elimination rather than a more complicated block solve.  Lagging
+$|\nabla {\bf q}|$ in the quaternion diffusion coefficient results in
+a term that is linear in ${\bf q}$, and therefore easily and accurately
+(except for the small lagging error) differentiated by the finite
+difference (\ref{eq:finitedifferencejac}).
+
+We remark that the numerical difficulty in applying Newton iteration
+to the quaternion diffusion operator is similar to that encountered in
+total variation-based approaches to image restoration.  In the
+approach of \cite{Chan99}, a dual variable $w \equiv \nabla{\bf q} /
+|\nabla{\bf q}|$ is introduced, and the original problem is replaced
+by a system involving ${\bf q}$ and $w$ which is easier to linearize
+and solve via Newton iteration, provided that Newton steps are
+appropriately chosen to maintain a feasibility condition $|w| < 1$.
+Because such an algorithm would require specialized changes to the
+Newton solver contained in the CPODES integrator, we employ the
+simpler approximation described above.  The likely cost, if any, of
+such an approximation relative to a more sophisticated algorithm like
+the primal-dual method would be a reduction of the convergence rate of
+the Newton algorithm.  Our method is, in fact, similar to the linearly
+convergence fixed point iteration employed in \cite{Vogel96}.
+Nevertheless, unlike the image restoration application in which a
+steady-state minimization is performed starting from some arbitrary
+condition, the fact that we are performing our nonlinear solve as a
+part of a time integration means that we will always have a good
+initial guess from earlier timesteps, and therefore the converge rate
+of the Newton iteration is perhaps less important.

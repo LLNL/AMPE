@@ -1,0 +1,13 @@
+#!/bin/sh
+
+cd mailArchive
+files=$(cvs -n update)
+tar cf newmsg.tar maillist.html
+for i in $files ; do
+  if [ "$i" != "M" ] && [ "$i" != "?" ] && [ "$i" != ".mhonarc.db" ] && [ "$i" != "maillist.html" ] ; then
+      echo $i;
+      tar uf newmsg.tar $i
+  fi
+done
+mv newmsg.tar ../
+

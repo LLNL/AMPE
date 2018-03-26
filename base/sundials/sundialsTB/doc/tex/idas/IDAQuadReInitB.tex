@@ -1,0 +1,58 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!IDAQuadReInitB!}
+\label{p:IDAQuadReInitB}
+\index{IDAQuadReInitB}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+IDAQuadReInitB reinitializes memory for backward quadrature integration.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function [] = IDAQuadReInitB(idxB, yQB0, optionsB) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+IDAQuadReInitB reinitializes memory for backward quadrature integration.
+
+   Usage: IDAQuadReInitB ( IDXB, YS0 [, OPTIONS ] ) 
+
+   IDXB     is the index of the backward problem, returned by
+            IDAInitB.
+   YQB0     is the final conditions vector yQB(tB0).
+   OPTIONS  is an (optional) set of QUAD options, created with
+            the IDASetQuadOptions function. 
+
+   See also: IDASetQuadOptions, IDAReInitB, IDAQuadInitB
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

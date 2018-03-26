@@ -1,0 +1,244 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Weighted averaging operator for outerface complex data on
+ *                a Cartesian mesh.
+ *
+ ************************************************************************/
+
+#ifndef included_geom_CartesianOuterfaceComplexWeightedAverage_C
+#define included_geom_CartesianOuterfaceComplexWeightedAverage_C
+
+#include "SAMRAI/geom/CartesianOuterfaceComplexWeightedAverage.h"
+#include "SAMRAI/tbox/Complex.h"
+
+#include <float.h>
+#include <math.h>
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/hier/Index.h"
+#include "SAMRAI/pdat/OuterfaceData.h"
+#include "SAMRAI/pdat/OuterfaceVariable.h"
+#include "SAMRAI/tbox/Utilities.h"
+
+/*
+ *************************************************************************
+ *
+ * External declarations for FORTRAN  routines.
+ *
+ *************************************************************************
+ */
+extern "C" {
+
+#ifdef __INTEL_COMPILER
+#pragma warning (disable:1419)
+#endif
+
+// in cartcoarsen1d.f:
+void F77_FUNC(cartwgtavgoutfacecplx1d, CARTWGTAVGOUTFACECPLX1D) (const int&,
+   const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+// in cartcoarsen2d.f:
+void F77_FUNC(cartwgtavgoutfacecplx2d0, CARTWGTAVGOUTFACECPLX2D0) (const int&,
+   const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+
+void F77_FUNC(cartwgtavgoutfacecplx2d1, CARTWGTAVGOUTFACECPLX2D1) (const int&,
+   const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+// in cartcoarsen3d.f:
+void F77_FUNC(cartwgtavgoutfacecplx3d0, CARTWGTAVGOUTFACECPLX3D0) (const int&,
+   const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+void F77_FUNC(cartwgtavgoutfacecplx3d1, CARTWGTAVGOUTFACECPLX3D1) (const int&,
+   const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+void F77_FUNC(cartwgtavgoutfacecplx3d2, CARTWGTAVGOUTFACECPLX3D2) (const int&,
+   const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int&, const int&, const int&,
+   const int *, const double *, const double *,
+   const dcomplex *, dcomplex *);
+}
+
+namespace SAMRAI {
+namespace geom {
+
+// using namespace std;
+
+CartesianOuterfaceComplexWeightedAverage::
+CartesianOuterfaceComplexWeightedAverage(
+   const tbox::Dimension& dim):
+   hier::CoarsenOperator(dim, "CONSERVATIVE_COARSEN")
+{
+}
+
+CartesianOuterfaceComplexWeightedAverage::~
+CartesianOuterfaceComplexWeightedAverage()
+{
+}
+
+int
+CartesianOuterfaceComplexWeightedAverage::getOperatorPriority() const
+{
+   return 0;
+}
+
+hier::IntVector
+CartesianOuterfaceComplexWeightedAverage::getStencilWidth() const
+{
+   return hier::IntVector::getZero(getDim());
+}
+
+void
+CartesianOuterfaceComplexWeightedAverage::coarsen(
+   hier::Patch& coarse,
+   const hier::Patch& fine,
+   const int dst_component,
+   const int src_component,
+   const hier::Box& coarse_box,
+   const hier::IntVector& ratio) const
+{
+   const tbox::Dimension& dim(getDim());
+
+   TBOX_DIM_ASSERT_CHECK_DIM_ARGS4(dim, coarse, fine, coarse_box, ratio);
+
+   boost::shared_ptr<pdat::OuterfaceData<dcomplex> > fdata(
+      fine.getPatchData(src_component),
+      boost::detail::dynamic_cast_tag());
+   boost::shared_ptr<pdat::OuterfaceData<dcomplex> > cdata(
+      coarse.getPatchData(dst_component),
+      boost::detail::dynamic_cast_tag());
+   TBOX_ASSERT(fdata);
+   TBOX_ASSERT(cdata);
+   TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
+
+   const hier::Index filo = fdata->getGhostBox().lower();
+   const hier::Index fihi = fdata->getGhostBox().upper();
+   const hier::Index cilo = cdata->getGhostBox().lower();
+   const hier::Index cihi = cdata->getGhostBox().upper();
+
+   const boost::shared_ptr<CartesianPatchGeometry> fgeom(
+      fine.getPatchGeometry(),
+      boost::detail::dynamic_cast_tag());
+   const boost::shared_ptr<CartesianPatchGeometry> cgeom(
+      coarse.getPatchGeometry(),
+      boost::detail::dynamic_cast_tag());
+
+   const hier::Index ifirstc = coarse_box.lower();
+   const hier::Index ilastc = coarse_box.upper();
+
+   for (int d = 0; d < cdata->getDepth(); d++) {
+      // loop over lower and upper outerface arrays
+      for (int i = 0; i < 2; i++) {
+         if ((dim == tbox::Dimension(1))) {
+            F77_FUNC(cartwgtavgoutfacecplx1d,
+               CARTWGTAVGOUTFACECPLX1D) (ifirstc(0), ilastc(0),
+               filo(0), fihi(0),
+               cilo(0), cihi(0),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(0, i, d),
+               cdata->getPointer(0, i, d));
+         } else if ((dim == tbox::Dimension(2))) {
+            F77_FUNC(cartwgtavgoutfacecplx2d0,
+               CARTWGTAVGOUTFACECPLX2D0) (ifirstc(0), ifirstc(1), ilastc(0),
+               ilastc(1),
+               filo(0), filo(1), fihi(0), fihi(1),
+               cilo(0), cilo(1), cihi(0), cihi(1),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(0, i, d),
+               cdata->getPointer(0, i, d));
+            F77_FUNC(cartwgtavgoutfacecplx2d1,
+               CARTWGTAVGOUTFACECPLX2D1) (ifirstc(0), ifirstc(1), ilastc(0),
+               ilastc(1),
+               filo(0), filo(1), fihi(0), fihi(1),
+               cilo(0), cilo(1), cihi(0), cihi(1),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(1, i, d),
+               cdata->getPointer(1, i, d));
+         } else if ((dim == tbox::Dimension(3))) {
+            F77_FUNC(cartwgtavgoutfacecplx3d0,
+               CARTWGTAVGOUTFACECPLX3D0) (ifirstc(0), ifirstc(1), ifirstc(2),
+               ilastc(0), ilastc(1), ilastc(2),
+               filo(0), filo(1), filo(2),
+               fihi(0), fihi(1), fihi(2),
+               cilo(0), cilo(1), cilo(2),
+               cihi(0), cihi(1), cihi(2),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(0, i, d),
+               cdata->getPointer(0, i, d));
+            F77_FUNC(cartwgtavgoutfacecplx3d1,
+               CARTWGTAVGOUTFACECPLX3D1) (ifirstc(0), ifirstc(1), ifirstc(2),
+               ilastc(0), ilastc(1), ilastc(2),
+               filo(0), filo(1), filo(2),
+               fihi(0), fihi(1), fihi(2),
+               cilo(0), cilo(1), cilo(2),
+               cihi(0), cihi(1), cihi(2),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(1, i, d),
+               cdata->getPointer(1, i, d));
+            F77_FUNC(cartwgtavgoutfacecplx3d2,
+               CARTWGTAVGOUTFACECPLX3D2) (ifirstc(0), ifirstc(1), ifirstc(2),
+               ilastc(0), ilastc(1), ilastc(2),
+               filo(0), filo(1), filo(2),
+               fihi(0), fihi(1), fihi(2),
+               cilo(0), cilo(1), cilo(2),
+               cihi(0), cihi(1), cihi(2),
+               &ratio[0],
+               fgeom->getDx(),
+               cgeom->getDx(),
+               fdata->getPointer(2, i, d),
+               cdata->getPointer(2, i, d));
+         } else {
+            TBOX_ERROR("CartesianOuterfaceComplexWeightedAverage error...\n"
+               << "dim > 3 not supported." << std::endl);
+         }
+      }
+   }
+}
+
+}
+}
+#endif

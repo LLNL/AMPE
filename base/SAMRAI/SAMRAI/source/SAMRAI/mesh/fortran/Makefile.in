@@ -1,0 +1,31 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for fortran files for mesh directory 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/SAMRAI/mesh/fortran
+VPATH	      =	@srcdir@
+OBJECT        = ../../../..
+
+# For classes that are non-dimensional.
+OBJS= 	 mesh_coarsentags1d.o mesh_coarsentags2d.o\
+	mesh_coarsentags3d.o\
+
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+library: $(OBJS)
+
+clean:
+	$(SAMCLEAN)
+
+include $(SRCDIR)/Makefile.depend

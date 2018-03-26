@@ -1,0 +1,55 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!mpirun!}
+\label{p:mpirun}
+\index{mpirun}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+MPIRUN runs parallel examples.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function [] = mpirun(fct,npe,dbg) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+MPIRUN runs parallel examples.
+
+  Usage: MPIRUN ( FCT , NPE [, DBG] )
+
+  FCT - function to be executed on all MATLAB processes.
+  NPE - number of processes to be used (including the master).
+  DBG - flag for debugging [ true | {false} ]
+        If true, spawn MATLAB child processes with a visible xterm.
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

@@ -1,0 +1,1228 @@
+c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+c Produced at the Lawrence Livermore National Laboratory
+c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+c LLNL-CODE-747500
+c All rights reserved.
+c This file is part of AMPE. 
+c For details, see https://github.com/LLNL/AMPE
+c Please also read AMPE/LICENSE.
+c Redistribution and use in source and binary forms, with or without 
+c modification, are permitted provided that the following conditions are met:
+c - Redistributions of source code must retain the above copyright notice,
+c   this list of conditions and the disclaimer below.
+c - Redistributions in binary form must reproduce the above copyright notice,
+c   this list of conditions and the disclaimer (as noted below) in the
+c   documentation and/or other materials provided with the distribution.
+c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+c   used to endorse or promote products derived from this software without
+c   specific prior written permission.
+c
+c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+c POSSIBILITY OF SUCH DAMAGE.
+c 
+c  Description: F77 routines for elliptic FAC operator, which is
+c  a generalization of the SAMRAI poisson FAC operator, from which
+c  these subroutines have been adapted.
+c
+c
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_compfluxvardc3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &xdc , ydc , zdc, dcgi, dcgj , dcgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer dcgi, dcgj, dcgk, fluxgi, fluxgj, fluxgk, 
+     &        solngi, solngj, solngk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision xdc(ifirst-dcgi:ilast+1+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision ydc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+1+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision zdc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+1+dcgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision dx(0:2)
+
+      double precision dxi, dyi, dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast+1
+         xflux(i,j,k) = dxi*xdc(i,j,k)*( soln(i,j,k) - soln(i-1,j,k) )
+      enddo
+      enddo
+      enddo
+      do k=kfirst,klast
+      do j=jfirst,jlast+1
+      do i=ifirst,ilast
+         yflux(i,j,k) = dyi*ydc(i,j,k)*( soln(i,j,k) - soln(i,j-1,k) )
+      enddo
+      enddo
+      enddo
+      do k=kfirst,klast+1
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         zflux(i,j,k) = dzi*zdc(i,j,k)*( soln(i,j,k) - soln(i,j,k-1) )
+      enddo
+      enddo
+      enddo
+
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_compfluxcondc3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &dc ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer fluxgi, fluxgj, fluxgk, 
+     &        solngi, solngj, solngk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision dc
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision dx(0:2)
+
+      double precision dxi, dyi, dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast+1
+         xflux(i,j,k) = dxi*dc*( soln(i,j,k) - soln(i-1,j,k) )
+      enddo
+      enddo
+      enddo
+      do k=kfirst,klast
+      do j=jfirst,jlast+1
+      do i=ifirst,ilast
+         yflux(i,j,k) = dyi*dc*( soln(i,j,k) - soln(i,j-1,k) )
+      enddo
+      enddo
+      enddo
+      do k=kfirst,klast+1
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         zflux(i,j,k) = dzi*dc*( soln(i,j,k) - soln(i,j,k-1) )
+      enddo
+      enddo
+      enddo
+
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_rbgswithfluxmaxvardcvarsf3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &xdc , ydc , zdc, dcgi, dcgj , dcgk ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &scalar_field , sfgi, sfgj , sfgk ,
+     &m , mgi , mgj , mgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx ,
+     &offset, maxres )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer dcgi, dcgj, dcgk, fluxgi, fluxgj, fluxgk, 
+     &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
+     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision xdc(ifirst-dcgi:ilast+1+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision ydc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+1+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision zdc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+1+dcgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field(ifirst-sfgi:ilast+sfgi,
+     &                              jfirst-sfgj:jlast+sfgj,
+     &                              kfirst-sfgk:klast+sfgk)
+      double precision dx(0:2)
+      integer offset
+      double precision maxres
+
+      double precision residual, du
+      double precision dxi, dyi, dzi, dxi2, dyi2, dzi2
+      double precision dudr
+      double precision rcoef
+      integer i, j, k
+      integer ioffset
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+      dxi2 = dxi*dxi
+      dyi2 = dyi*dyi
+      dzi2 = dzi*dzi
+      rcoef = 1.0
+
+      maxres = 0.0
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+c        offset must be 0 (red) or 1 (black)
+         if ( (ifirst+j+k)-((ifirst+j+k)/2*2) .ne. offset ) then
+            ioffset = 1
+         else
+            ioffset = 0
+         endif
+         do i=ifirst+ioffset,ilast,2
+             residual
+     &          = rhs(i,j,k)
+     &          - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &            + dyi*( yflux(i,j+1,k) - yflux(i,j,k) )
+     &            + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &          - scalar_field(i,j,k)*soln(i,j,k)
+             dudr = 1./( m(i,j,k)*( dxi2*( xdc(i+1,j,k)+xdc(i,j,k) )
+     &                   + dyi2*( ydc(i,j+1,k)+ydc(i,j,k) )
+     &                   + dzi2*( zdc(i,j,k+1)+zdc(i,j,k) ) )
+     &                   - scalar_field(i,j,k) )
+             du = -residual*dudr
+             soln(i,j,k) = soln(i,j,k) + du*rcoef
+             if ( maxres .lt. abs(residual) ) maxres = abs(residual)
+         enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_rbgswithfluxmaxcondcvarsf3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &dc ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &scalar_field , sfgi, sfgj , sfgk ,
+     &m , mgi , mgj , mgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx ,
+     &offset, maxres )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer fluxgi, fluxgj, fluxgk, 
+     &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
+     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision dc
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field(ifirst-sfgi:ilast+sfgi,
+     &                              jfirst-sfgj:jlast+sfgj,
+     &                              kfirst-sfgk:klast+sfgk)
+      double precision dx(0:2)
+      integer offset
+      double precision maxres
+
+      double precision residual, du
+      double precision dxi, dyi, dzi, dxi2, dyi2, dzi2
+      double precision dudr
+      double precision rcoef
+      integer i, j, k
+      integer ioffset
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+      dxi2 = dxi*dxi
+      dyi2 = dyi*dyi
+      dzi2 = dzi*dzi
+      rcoef = 1.0
+
+      maxres = 0.0
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+c        offset must be 0 (red) or 1 (black)
+         if ( (ifirst+j+k)-((ifirst+j+k)/2*2) .ne. offset ) then
+            ioffset = 1
+         else
+            ioffset = 0
+         endif
+         do i=ifirst+ioffset,ilast,2
+             residual
+     &          = rhs(i,j,k)
+     &          - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &            + dyi*( yflux(i,j+1,k) - yflux(i,j,k) )
+     &            + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &          - scalar_field(i,j,k)*soln(i,j,k)
+             dudr = 1./( m(i,j,k)*( dxi2*( dc + dc )
+     &                   + dyi2*( dc + dc )
+     &                   + dzi2*( dc + dc ) )
+     &                   - scalar_field(i,j,k) )
+             du = -residual*dudr
+             soln(i,j,k) = soln(i,j,k) + du*rcoef
+             if ( maxres .lt. abs(residual) ) maxres = abs(residual)
+         enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_rbgswithfluxmaxvardcconsf3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &xdc , ydc , zdc, dcgi, dcgj , dcgk ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &scalar_field ,
+     &m , mgi , mgj , mgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx ,
+     &offset, maxres )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer dcgi, dcgj, dcgk, fluxgi, fluxgj, fluxgk, 
+     &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
+     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision xdc(ifirst-dcgi:ilast+1+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision ydc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+1+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision zdc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+1+dcgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field
+      double precision dx(0:2)
+      integer offset
+      double precision maxres
+
+      double precision residual, du
+      double precision dxi, dyi, dzi, dxi2, dyi2, dzi2
+      double precision dudr
+      double precision rcoef
+      integer i, j, k
+      integer ioffset
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+      dxi2 = dxi*dxi
+      dyi2 = dyi*dyi
+      dzi2 = dzi*dzi
+      rcoef = 1.0
+
+      maxres = 0.0
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+c        offset must be 0 (red) or 1 (black)
+         if ( (ifirst+j+k)-((ifirst+j+k)/2*2) .ne. offset ) then
+            ioffset = 1
+         else
+            ioffset = 0
+         endif
+         do i=ifirst+ioffset,ilast,2
+             residual
+     &          = rhs(i,j,k)
+     &          - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &            + dyi*( yflux(i,j+1,k) - yflux(i,j,k) )
+     &            + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &          - scalar_field*soln(i,j,k)
+             dudr = 1./( m(i,j,k)*( dxi2*( xdc(i+1,j,k)+xdc(i,j,k) )
+     &                   + dyi2*( ydc(i,j+1,k)+ydc(i,j,k) )
+     &                   + dzi2*( zdc(i,j,k+1)+zdc(i,j,k) ) )
+     &                   - scalar_field )
+             du = -residual*dudr
+             soln(i,j,k) = soln(i,j,k) + du*rcoef
+             if ( maxres .lt. abs(residual) ) maxres = abs(residual)
+         enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_rbgswithfluxmaxcondcconsf3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &dc ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &scalar_field ,
+     &m , mgi , mgj , mgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &dx ,
+     &offset, maxres )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer fluxgi, fluxgj, fluxgk, 
+     &        rhsgi, rhsgj, rhsgk, solngi, solngj, solngk,
+     &        sfgi, sfgj, sfgk, mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision dc
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field
+      double precision dx(0:2)
+      integer offset
+      double precision maxres
+
+      double precision residual, du
+      double precision dxi, dyi, dzi, dxi2, dyi2, dzi2
+      double precision dudr
+      double precision rcoef
+      integer i, j, k
+      integer ioffset
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+      dxi2 = dxi*dxi
+      dyi2 = dyi*dyi
+      dzi2 = dzi*dzi
+      rcoef = 1.0
+
+      maxres = 0.0
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+c        offset must be 0 (red) or 1 (black)
+         if ( (ifirst+j+k)-((ifirst+j+k)/2*2) .ne. offset ) then
+            ioffset = 1
+         else
+            ioffset = 0
+         endif
+         do i=ifirst+ioffset,ilast,2
+             residual
+     &          = rhs(i,j,k)
+     &          - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &            + dyi*( yflux(i,j+1,k) - yflux(i,j,k) )
+     &            + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &          - scalar_field*soln(i,j,k)
+             dudr = 1./( m(i,j,k)*( dxi2*( dc + dc )
+     &                   + dyi2*( dc + dc )
+     &                   + dzi2*( dc + dc ) )
+     &                   - scalar_field )
+             du = -residual*dudr
+             soln(i,j,k) = soln(i,j,k) + du*rcoef
+             if ( maxres .lt. abs(residual) ) maxres = abs(residual)
+         enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+
+c***********************************************************************
+      subroutine efo_compresvarsca3d(
+     &xflux , yflux , zflux , fluxgi, fluxgj , fluxgk ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &residual , residualgi, residualgj , residualgk ,
+     &scalar_field , sfgi, sfgj , sfgk ,
+     &m , mgi, mgj, mgk,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst , klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast , kfirst , klast
+      integer fluxgi, fluxgj, fluxgk , rhsgi, rhsgj, rhsgk ,
+     &        residualgi, residualgj, residualgk ,
+     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision residual(ifirst-rhsgi:ilast+rhsgi,
+     &                          jfirst-rhsgj:jlast+rhsgj,
+     &                          kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field(ifirst-sfgi:ilast+sfgi,
+     &                              jfirst-sfgj:jlast+sfgj,
+     &                              kfirst-sfgk:klast+sfgk)
+      double precision dx(0:2)
+
+      double precision dxi, dyi , dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         residual(i,j,k)
+     &      = rhs(i,j,k)
+     &      - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &        + dyi*( yflux(i,j+1,k) - yflux(i,j,k) ) 
+     &        + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &      - scalar_field(i,j,k)*soln(i,j,k)
+      enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_compresconsca3d(
+     &xflux , yflux , zflux , fluxgi, fluxgj , fluxgk ,
+     &rhs , rhsgi, rhsgj , rhsgk ,
+     &residual , residualgi, residualgj , residualgk ,
+     &scalar_field ,
+     &m , mgi, mgj, mgk,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst , klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast , kfirst , klast
+      integer fluxgi, fluxgj, fluxgk , rhsgi, rhsgj, rhsgk ,
+     &        residualgi, residualgj, residualgk ,
+     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision rhs(ifirst-rhsgi:ilast+rhsgi,
+     &                     jfirst-rhsgj:jlast+rhsgj,
+     &                     kfirst-rhsgk:klast+rhsgk)
+      double precision residual(ifirst-rhsgi:ilast+rhsgi,
+     &                          jfirst-rhsgj:jlast+rhsgj,
+     &                          kfirst-rhsgk:klast+rhsgk)
+      double precision scalar_field
+      double precision dx(0:2)
+
+      double precision dxi, dyi , dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         residual(i,j,k)
+     &      = rhs(i,j,k)
+     &      - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &        + dyi*( yflux(i,j+1,k) - yflux(i,j,k) ) 
+     &        + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &      - scalar_field*soln(i,j,k)
+      enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+
+c***********************************************************************
+      subroutine accumopvarsca3d(
+     &xflux , yflux , zflux , fluxgi, fluxgj , fluxgk ,
+     &accum , accumgi, accumgj , accumgk ,
+     &scalar_field , sfgi, sfgj , sfgk ,
+     &m , mgi, mgj, mgk,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst , klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast , kfirst , klast
+      integer fluxgi, fluxgj, fluxgk , accumgi, accumgj, accumgk ,
+     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision accum(ifirst-accumgi:ilast+accumgi,
+     &                     jfirst-accumgj:jlast+accumgj,
+     &                     kfirst-accumgk:klast+accumgk)
+      double precision scalar_field(ifirst-sfgi:ilast+sfgi,
+     &                              jfirst-sfgj:jlast+sfgj,
+     &                              kfirst-sfgk:klast+sfgk)
+      double precision dx(0:2)
+
+      double precision dxi, dyi , dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         accum(i,j,k)
+     &      = accum(i,j,k)
+     &      - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &        + dyi*( yflux(i,j+1,k) - yflux(i,j,k) ) 
+     &        + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &      - scalar_field(i,j,k)*soln(i,j,k)
+      enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+
+c***********************************************************************
+      subroutine accumopconsca3d(
+     &xflux , yflux , zflux , fluxgi, fluxgj , fluxgk ,
+     &accum , accumgi, accumgj , accumgk ,
+     &scalar_field ,
+     &m , mgi, mgj, mgk,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst , klast ,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast , kfirst , klast
+      integer fluxgi, fluxgj, fluxgk , accumgi, accumgj, accumgk ,
+     &        solngi, solngj, solngk , sfgi, sfgj , sfgk,
+     &        mgi, mgj, mgk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision m(ifirst-mgi:ilast+mgi,
+     &                      jfirst-mgj:jlast+mgj,
+     &                      kfirst-mgk:klast+mgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision accum(ifirst-accumgi:ilast+accumgi,
+     &                     jfirst-accumgj:jlast+accumgj,
+     &                     kfirst-accumgk:klast+accumgk)
+      double precision scalar_field
+      double precision dx(0:2)
+
+      double precision dxi, dyi , dzi
+      integer i, j, k
+
+      dxi = 1./dx(0)
+      dyi = 1./dx(1)
+      dzi = 1./dx(2)
+
+      do k=kfirst,klast
+      do j=jfirst,jlast
+      do i=ifirst,ilast
+         accum(i,j,k)
+     &      = accum(i,j,k)
+     &      - m(i,j,k) * ( dxi*( xflux(i+1,j,k) - xflux(i,j,k) )
+     &        + dyi*( yflux(i,j+1,k) - yflux(i,j,k) ) 
+     &        + dzi*( zflux(i,j,k+1) - zflux(i,j,k) ) )
+     &      - scalar_field*soln(i,j,k)
+      enddo
+      enddo
+      enddo
+      return
+      end
+c***********************************************************************
+
+c***********************************************************************
+      subroutine efo_ewingfixfluxvardc3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &xdc , ydc , zdc, dcgi, dcgj , dcgk ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &location_index ,
+     &ratio_to_coarser ,
+     &blower, bupper,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer dcgi, dcgj, dcgk, fluxgi, fluxgj, fluxgk, 
+     &        solngi, solngj, solngk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision xdc(ifirst-dcgi:ilast+1+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision ydc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+1+dcgj,
+     &                     kfirst-dcgk:klast+dcgk)
+      double precision zdc(ifirst-dcgi:ilast+dcgi,
+     &                     jfirst-dcgj:jlast+dcgj,
+     &                     kfirst-dcgk:klast+1+dcgk)
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision dx(0:2)
+      integer location_index
+      integer ratio_to_coarser(0:2)
+c     Lower and upper corners of boundary box
+      integer blower(0:2), bupper(0:2)
+
+      double precision h
+      integer i, ibeg, iend, ibnd, igho,
+     &        j, jbeg, jend, jbnd, jgho,
+     &        k, kbeg, kend, kbnd, kgho
+c     Fine grid indices inside one coarse grid.
+      integer ip, jp, kp
+c     Fine grid indices for point diametrically opposite from (ip,jp).
+      integer iq, jq, kq
+c     Weights associated with longtitudinal and transverse
+c     (with respect to boundary normal) gradients.
+      double precision tranwt, longwt
+
+      if ( location_index .eq. 0 ) then
+c        min i face
+         tranwt = 1.0/(1+ratio_to_coarser(0))
+         longwt = 2*tranwt
+         h = dx(0)
+         i = bupper(0)+1
+         ibnd = bupper(0)+1
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do k=kbeg,kend,ratio_to_coarser(2)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do kp=0,ratio_to_coarser(2)-1
+                  kq = ratio_to_coarser(2) - kp - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     xflux(ibnd,j+jp,k+kp)
+     &                  = longwt*xflux(ibnd,j+jp,k+kp)
+     &                  + tranwt*xdc(ibnd,j+jp,k+kp)*( 
+     &                    soln(i,j+jq,k+kq) - soln(i,j+jp,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 1 ) then
+c        max i face
+         tranwt = 1.0/(1+ratio_to_coarser(0))
+         longwt = 2*tranwt
+         h = dx(0)
+         i = blower(0)-1
+         ibnd = blower(0)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do k=kbeg,kend,ratio_to_coarser(2)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do kp=0,ratio_to_coarser(2)-1
+                  kq = ratio_to_coarser(2) - kp - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     xflux(ibnd,j+jp,k+kp)
+     &                  = longwt*xflux(ibnd,j+jp,k+kp)
+     &                  - tranwt*xdc(ibnd,j+jp,k+kp)*( 
+     &                    soln(i,j+jq,k+kq) - soln(i,j+jp,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 2 ) then
+c        min j face
+         tranwt = 1.0/(1+ratio_to_coarser(1))
+         longwt = 2*tranwt
+         h = dx(1)
+         j = bupper(1)+1
+         jbnd = bupper(1)+1
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do k=kbeg,kend,ratio_to_coarser(2)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do kp=0,ratio_to_coarser(2)-1
+                     kq = ratio_to_coarser(2) - kp - 1
+                     yflux(i+ip,jbnd,k+kp)
+     &                  = longwt*yflux(i+ip,jbnd,k+kp)
+     &                  + tranwt*ydc(i+ip,jbnd,k+kp)*( 
+     &                    soln(i+iq,j,k+kq) - soln(i+ip,j,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 3 ) then
+c        max j face
+         tranwt = 1.0/(1+ratio_to_coarser(1))
+         longwt = 2*tranwt
+         h = dx(1)
+         j = blower(1)-1
+         jbnd = blower(1)
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do k=kbeg,kend,ratio_to_coarser(2)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do kp=0,ratio_to_coarser(2)-1
+                     kq = ratio_to_coarser(2) - kp - 1
+                     yflux(i+ip,jbnd,k+kp)
+     &                  = longwt*yflux(i+ip,jbnd,k+kp)
+     &                  - tranwt*ydc(i+ip,jbnd,k+kp)*( 
+     &                    soln(i+iq,j,k+kq) - soln(i+ip,j,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 4 ) then
+c        min k face
+         tranwt = 1.0/(1+ratio_to_coarser(2))
+         longwt = 2*tranwt
+         h = dx(2)
+         k = bupper(2)+1
+         kbnd = bupper(2)+1
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     zflux(i+ip,j+jp,kbnd)
+     &                  = longwt*zflux(i+ip,j+jp,kbnd)
+     &                  + tranwt*zdc(i+ip,j+jp,kbnd)*( 
+     &                    soln(i+iq,j+jq,k) - soln(i+ip,j+jp,k) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 5 ) then
+c        max k face
+         tranwt = 1.0/(1+ratio_to_coarser(2))
+         longwt = 2*tranwt
+         h = dx(2)
+         k = blower(2)-1
+         kbnd = blower(2)
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     zflux(i+ip,j+jp,kbnd)
+     &                  = longwt*zflux(i+ip,j+jp,kbnd)
+     &                  - tranwt*zdc(i+ip,j+jp,kbnd)*( 
+     &                    soln(i+iq,j+jq,k) - soln(i+ip,j+jp,k) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      endif
+
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine efo_ewingfixfluxcondc3d(
+     &xflux , yflux , zflux, fluxgi, fluxgj , fluxgk,
+     &dc ,
+     &soln , solngi, solngj , solngk ,
+     &ifirst, ilast, jfirst, jlast , kfirst, klast ,
+     &location_index ,
+     &ratio_to_coarser ,
+     &blower, bupper,
+     &dx )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer fluxgi, fluxgj, fluxgk, 
+     &        solngi, solngj, solngk
+      double precision xflux(ifirst-fluxgi:ilast+1+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision yflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+1+fluxgj,
+     &                       kfirst-fluxgk:klast+fluxgk)
+      double precision zflux(ifirst-fluxgi:ilast+fluxgi,
+     &                       jfirst-fluxgj:jlast+fluxgj,
+     &                       kfirst-fluxgk:klast+1+fluxgk)
+      double precision dc
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision dx(0:2)
+      integer location_index
+      integer ratio_to_coarser(0:2)
+c     Lower and upper corners of boundary box
+      integer blower(0:2), bupper(0:2)
+
+      double precision h
+      integer i, ibeg, iend, ibnd, igho,
+     &        j, jbeg, jend, jbnd, jgho,
+     &        k, kbeg, kend, kbnd, kgho
+c     Fine grid indices inside one coarse grid.
+      integer ip, jp, kp
+c     Fine grid indices for point diametrically opposite from (ip,jp).
+      integer iq, jq, kq
+c     Weights associated with longtitudinal and transverse
+c     (with respect to boundary normal) gradients.
+      double precision tranwt, longwt
+
+      if ( location_index .eq. 0 ) then
+c        min i face
+         tranwt = 1.0/(1+ratio_to_coarser(0))
+         longwt = 2*tranwt
+         h = dx(0)
+         i = bupper(0)+1
+         ibnd = bupper(0)+1
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do k=kbeg,kend,ratio_to_coarser(2)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do kp=0,ratio_to_coarser(2)-1
+                  kq = ratio_to_coarser(2) - kp - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     xflux(ibnd,j+jp,k+kp)
+     &                  = longwt*xflux(ibnd,j+jp,k+kp)
+     &                  + tranwt*dc*( 
+     &                    soln(i,j+jq,k+kq) - soln(i,j+jp,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 1 ) then
+c        max i face
+         tranwt = 1.0/(1+ratio_to_coarser(0))
+         longwt = 2*tranwt
+         h = dx(0)
+         i = blower(0)-1
+         ibnd = blower(0)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do k=kbeg,kend,ratio_to_coarser(2)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do kp=0,ratio_to_coarser(2)-1
+                  kq = ratio_to_coarser(2) - kp - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     xflux(ibnd,j+jp,k+kp)
+     &                  = longwt*xflux(ibnd,j+jp,k+kp)
+     &                  - tranwt*dc*( 
+     &                    soln(i,j+jq,k+kq) - soln(i,j+jp,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 2 ) then
+c        min j face
+         tranwt = 1.0/(1+ratio_to_coarser(1))
+         longwt = 2*tranwt
+         h = dx(1)
+         j = bupper(1)+1
+         jbnd = bupper(1)+1
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do k=kbeg,kend,ratio_to_coarser(2)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do kp=0,ratio_to_coarser(2)-1
+                     kq = ratio_to_coarser(2) - kp - 1
+                     yflux(i+ip,jbnd,k+kp)
+     &                  = longwt*yflux(i+ip,jbnd,k+kp)
+     &                  + tranwt*dc*( 
+     &                    soln(i+iq,j,k+kq) - soln(i+ip,j,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 3 ) then
+c        max j face
+         tranwt = 1.0/(1+ratio_to_coarser(1))
+         longwt = 2*tranwt
+         h = dx(1)
+         j = blower(1)-1
+         jbnd = blower(1)
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         kbeg = max(blower(2),kfirst)
+         kend = min(bupper(2),klast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do k=kbeg,kend,ratio_to_coarser(2)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do kp=0,ratio_to_coarser(2)-1
+                     kq = ratio_to_coarser(2) - kp - 1
+                     yflux(i+ip,jbnd,k+kp)
+     &                  = longwt*yflux(i+ip,jbnd,k+kp)
+     &                  - tranwt*dc*( 
+     &                    soln(i+iq,j,k+kq) - soln(i+ip,j,k+kp) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 4 ) then
+c        min k face
+         tranwt = 1.0/(1+ratio_to_coarser(2))
+         longwt = 2*tranwt
+         h = dx(2)
+         k = bupper(2)+1
+         kbnd = bupper(2)+1
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     zflux(i+ip,j+jp,kbnd)
+     &                  = longwt*zflux(i+ip,j+jp,kbnd)
+     &                  + tranwt*dc*( 
+     &                    soln(i+iq,j+jq,k) - soln(i+ip,j+jp,k) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      elseif ( location_index .eq. 5 ) then
+c        max k face
+         tranwt = 1.0/(1+ratio_to_coarser(2))
+         longwt = 2*tranwt
+         h = dx(2)
+         k = blower(2)-1
+         kbnd = blower(2)
+         ibeg = max(blower(0),ifirst)
+         iend = min(bupper(0),ilast)
+         jbeg = max(blower(1),jfirst)
+         jend = min(bupper(1),jlast)
+         do i=ibeg,iend,ratio_to_coarser(0)
+            do j=jbeg,jend,ratio_to_coarser(1)
+               do ip=0,ratio_to_coarser(0)-1
+                  iq = ratio_to_coarser(0) - ip - 1
+                  do jp=0,ratio_to_coarser(1)-1
+                     jq = ratio_to_coarser(1) - jp - 1
+                     zflux(i+ip,j+jp,kbnd)
+     &                  = longwt*zflux(i+ip,j+jp,kbnd)
+     &                  - tranwt*dc*( 
+     &                    soln(i+iq,j+jq,k) - soln(i+ip,j+jp,k) )/h
+                  enddo
+               enddo
+            enddo
+         enddo
+      endif
+
+      return
+      end
+c***********************************************************************
+c***********************************************************************
+      subroutine setc3d(
+     & soln, solngi, solngj, solngk, 
+     & mobility, factor,
+     & cval,
+     & ifirst, ilast, jfirst, jlast, kfirst, klast, 
+     & well_type )
+
+      implicit none
+      integer ifirst, ilast, jfirst, jlast, kfirst, klast
+      integer solngi, solngj, solngk
+      double precision soln(ifirst-solngi:ilast+solngi,
+     &                      jfirst-solngj:jlast+solngj,
+     &                      kfirst-solngk:klast+solngk)
+      double precision mobility(ifirst:ilast,
+     &                          jfirst:jlast,
+     &                          kfirst:klast)
+      double precision cval(ifirst:ilast,
+     &                      jfirst:jlast,
+     &                      kfirst:klast)
+      double precision factor
+      character*(*) well_type
+      integer i, j, k
+      double precision w_func, phi
+      double precision second_deriv_well_func
+
+      do j = jfirst, jlast
+         do i = ifirst, ilast
+            do k = kfirst, klast
+
+               phi = soln(i,j,k)
+               w_func = second_deriv_well_func( phi, well_type )
+               cval(i,j,k) = 1.d0 + factor * mobility(i,j,k) * w_func
+
+            enddo
+         enddo
+      enddo
+
+      return
+      end

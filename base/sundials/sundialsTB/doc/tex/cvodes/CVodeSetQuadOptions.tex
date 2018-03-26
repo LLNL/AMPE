@@ -1,0 +1,83 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!CVodeSetQuadOptions!}
+\label{p:CVodeSetQuadOptions}
+\index{CVodeSetQuadOptions}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+CVodeSetQuadOptions creates an options structure for quadrature integration with CVODES.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function options = CVodeSetQuadOptions(varargin) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+CVodeSetQuadOptions creates an options structure for quadrature integration with CVODES.
+
+   Usage: OPTIONS = CVodeSetQuadOptions('NAME1',VALUE1,'NAME2',VALUE2,...)
+          OPTIONS = CVodeSetQuadOptions(OLDOPTIONS,'NAME1',VALUE1,...)
+          OPTIONS = CVodeSetQuadOptions(OLDOPTIONS,NEWOPTIONS)
+
+   OPTIONS = CVodeSetQuadOptions('NAME1',VALUE1,'NAME2',VALUE2,...) creates 
+   a CVODES options structure OPTIONS in which the named properties have 
+   the specified values. Any unspecified properties have default values. 
+   It is sufficient to type only the leading characters that uniquely 
+   identify the property. Case is ignored for property names. 
+   
+   OPTIONS = CVodeSetQuadOptions(OLDOPTIONS,'NAME1',VALUE1,...) alters an 
+   existing options structure OLDOPTIONS.
+   
+   OPTIONS = CVodeSetQuadOptions(OLDOPTIONS,NEWOPTIONS) combines an existing 
+   options structure OLDOPTIONS with a new options structure NEWOPTIONS. 
+   Any new properties overwrite corresponding old properties. 
+   
+   CVodeSetQuadOptions with no input arguments displays all property names 
+   and their possible values.
+   
+CVodeSetQuadOptions properties
+(See also the CVODES User Guide)
+
+QuadErrControl - Error control strategy for quadrature variables [ on | {off} ]
+   Specifies whether quadrature variables are included in the error test.
+QuadRelTol - Relative tolerance for quadrature variables [ scalar {1e-4} ]
+   Specifies the relative tolerance for quadrature variables. This parameter is
+   used only if QuadErrCon=on.
+QuadAbsTol - Absolute tolerance for quadrature variables [ scalar or vector {1e-6} ]
+   Specifies the absolute tolerance for quadrature variables. This parameter is
+   used only if QuadErrCon=on.
+
+   See also
+        CVQuadInit, CvodeQuadInitB
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

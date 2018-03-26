@@ -1,0 +1,61 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!mpistart!}
+\label{p:mpistart}
+\index{mpistart}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+MPISTART invokes lamboot (if required) and MPI_Init (if required).
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function mpistart(nslaves, rpi, hosts) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+MPISTART invokes lamboot (if required) and MPI_Init (if required).
+
+   Usage: MPISTART [ ( NSLAVES [, RPI [, HOSTS] ] ) ]
+
+   MPISTART boots LAM and initializes MPI to match a given number of slave 
+   hosts (and rpi) from a given list of hosts. All three args optional.
+
+   If they are not defined, HOSTS are taken from a builtin HOSTS list
+   (edit HOSTS at the beginning of this file to match your cluster)
+   or from the bhost file if defined through LAMBHOST (in this order).
+
+   If not defined, RPI is taken from the builtin variable RPI (edit it
+   to suit your needs) or from the LAM_MPI_SSI_rpi environment variable
+   (in this order).
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

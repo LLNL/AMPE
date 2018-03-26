@@ -1,0 +1,58 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!N_VMin!}
+\label{p:N_VMin}
+\index{N_VMin}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+N_VMin returns the smallest element of x
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function ret = N_VMin(x,comm) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+N_VMin returns the smallest element of x
+   Usage:  RET = N_VMin ( X [, COMM] )
+
+If COMM is not present, N_VMin returns the minimum value of 
+the local portion of X. Otherwise, it returns the global
+minimum value.
+\end{alltt}
+
+
+
+
+
+ 
+%% source -------------------
+
+\noindent{\bf \sc Source Code}
+
+\input{nvector/N_VMinsrc}
+\vspace{0.1in}

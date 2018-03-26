@@ -1,0 +1,96 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!IDAMonitor!}
+\label{p:IDAMonitor}
+\index{IDAMonitor}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+IDAMonitor is the default IDAS monitoring function.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function [new_data] = IDAMonitor(call, T, Y, YQ, YS, data) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+IDAMonitor is the default IDAS monitoring function.
+   To use it, set the Monitor property in IDASetOptions to
+   'IDAMonitor' or to @IDAMonitor and 'MonitorData' to mondata
+   (defined as a structure).
+  
+   With default settings, this function plots the evolution of the step 
+   size, method order, and various counters.
+   
+   Various properties can be changed from their default values by passing
+   to IDASetOptions, through the property 'MonitorData', a structure
+   MONDATA with any of the following fields. If a field is not defined, 
+   the corresponding default value is used.
+
+   Fields in MONDATA structure:
+     o stats [ {true} | false ]
+         If true, report the evolution of the step size and method order.
+     o cntr [ {true} | false ]
+         If true, report the evolution of the following counters:
+         nst, nfe, nni, netf, ncfn (see IDAGetStats)
+     o mode [ {'graphical'} | 'text' | 'both' ] 
+         In graphical mode, plot the evolutions of the above quantities.
+         In text mode, print a table.
+     o sol  [ true | {false} ]
+         If true, plot solution components.
+     o sensi [ true | {false} ]
+         If true and if FSA is enabled, plot sensitivity components.
+     o select [ array of integers ]
+         To plot only particular solution components, specify their indeces in
+         the field select. If not defined, but sol=true, all components are plotted.
+     o updt [ integer | {50} ]
+         Update frequency. Data is posted in blocks of dimension n.
+     o skip [ integer | {0} ]
+         Number of integrations steps to skip in collecting data to post.
+     o post [ {true} | false ]
+         If false, disable all posting. This option is necessary to disable
+         monitoring on some processors when running in parallel.
+
+   See also IDASetOptions, IDAMonitorFn
+
+   NOTES:
+     1. The argument mondata is REQUIRED. Even if only the default options
+        are desired, set mondata=struct; and pass it to IDASetOptions.
+     2. The yQ argument is currently ignored.
+\end{alltt}
+
+
+ 
+%%function data = initialize_data(data)%%function [] = graphical_init(n, hfg, npg, stats, cntr,%%function [] = graphical_update(n, hfg, npg, stats, cntr,%%function [] = graphical_final(hfg,npg,stats,cntr)%%function [] = text_init(n,hft,stats,cntr,t,h,q,nst,nfe,nni,netf,ncfn)%%function [] = text_update(n,hft,stats,cntr,t,h,q,nst,nfe,nni,netf,ncfn)%%function [] = sol_init(n, hfs, nps, sol, sensi, N, Ns, t, y, ys)%%function [] = sol_update(n, hfs, nps, sol, sensi, N, Ns, t, y, ys)%%function [] = sol_final(hfs, nps, sol, sensi, N, Ns)
+
+
+ 
+%% source -------------------
+
+\noindent{\bf \sc Source Code}
+
+\input{idas/IDAMonitorsrc}
+\vspace{0.1in}

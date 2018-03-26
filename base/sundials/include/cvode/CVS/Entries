@@ -1,0 +1,13 @@
+/cvode_band.h/1.4/Wed Nov 29 00:05:06 2006//
+/cvode_dense.h/1.4/Wed Nov 29 00:05:06 2006//
+/cvode_diag.h/1.3/Wed Nov 29 00:05:06 2006//
+/cvode_lapack.h/1.3/Wed Nov 29 00:05:06 2006//
+/cvode_spbcgs.h/1.2/Wed Nov 29 00:05:06 2006//
+/cvode_spgmr.h/1.3/Wed Nov 29 00:05:06 2006//
+/cvode_sptfqmr.h/1.3/Wed Nov 29 00:05:06 2006//
+/cvode_direct.h/1.4/Mon Apr 30 19:28:58 2007//
+/cvode.h/1.12/Mon Nov 26 16:19:58 2007//
+/cvode_bandpre.h/1.5/Mon Nov 26 16:19:58 2007//
+/cvode_bbdpre.h/1.7/Mon Nov 26 16:19:58 2007//
+/cvode_spils.h/1.8/Mon Nov 26 16:19:58 2007//
+D

@@ -1,0 +1,59 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!N_VMaxNorm!}
+\label{p:N_VMaxNorm}
+\index{N_VMaxNorm}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+N_VMaxNorm returns the L-infinity norm of x
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function ret = N_VMaxNorm(x, comm) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+N_VMaxNorm returns the L-infinity norm of x
+
+   Usage:  RET = N_VMaxNorm ( X [, COMM] )
+
+If COMM is not present, N_VMaxNorm returns the L-infinity norm 
+of the local portion of X. Otherwise, it returns the global
+L-infinity norm..
+\end{alltt}
+
+
+
+
+
+ 
+%% source -------------------
+
+\noindent{\bf \sc Source Code}
+
+\input{nvector/N_VMaxNormsrc}
+\vspace{0.1in}

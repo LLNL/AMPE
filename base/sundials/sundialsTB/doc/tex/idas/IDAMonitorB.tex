@@ -1,0 +1,88 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!IDAMonitorB!}
+\label{p:IDAMonitorB}
+\index{IDAMonitorB}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+IDAMonitorB is the default IDAS monitoring function for backward problems.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function [new_data] = IDAMonitorB(call, idxB, T, Y, YQ, data) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+IDAMonitorB is the default IDAS monitoring function for backward problems.
+   To use it, set the Monitor property in IDASetOptions to
+   'IDAMonitorB' or to @IDAMonitorB and 'MonitorData' to mondata
+   (defined as a structure).
+  
+   With default settings, this function plots the evolution of the step 
+   size, method order, and various counters.
+   
+   Various properties can be changed from their default values by passing
+   to IDASetOptions, through the property 'MonitorData', a structure
+   MONDATA with any of the following fields. If a field is not defined, 
+   the corresponding default value is used.
+
+   Fields in MONDATA structure:
+     o stats [ {true} | false ]
+         If true, report the evolution of the step size and method order.
+     o cntr [ {true} | false ]
+         If true, report the evolution of the following counters:
+         nst, nfe, nni, netf, ncfn (see IDAGetStats)
+     o mode [ {'graphical'} | 'text' | 'both' ] 
+         In graphical mode, plot the evolutions of the above quantities.
+         In text mode, print a table.
+     o sol  [ true | {false} ]
+         If true, plot solution components.
+     o select [ array of integers ]
+         To plot only particular solution components, specify their indeces in
+         the field select. If not defined, but sol=true, all components are plotted.
+     o updt [ integer | {50} ]
+         Update frequency. Data is posted in blocks of dimension n.
+     o skip [ integer | {0} ]
+         Number of integrations steps to skip in collecting data to post.
+     o post [ {true} | false ]
+         If false, disable all posting. This option is necessary to disable
+         monitoring on some processors when running in parallel.
+
+   See also IDASetOptions, IDAMonitorFnB
+
+   NOTES:
+     1. The argument mondata is REQUIRED. Even if only the default options
+        are desired, set mondata=struct; and pass it to IDASetOptions.
+     2. The yQ argument is currently ignored.
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

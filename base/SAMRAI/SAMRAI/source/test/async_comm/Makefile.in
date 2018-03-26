@@ -1,0 +1,56 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for the asynchromous communication class tests 
+##
+#########################################################################
+
+SAMRAI	      =	@top_srcdir@
+SRCDIR	      =	@srcdir@
+SUBDIR        = source/test/async_comm
+VPATH	      =	@srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+CPPFLAGS_EXTRA =  -DTESTING=1
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+NUM_TESTS = 2
+
+TEST_NPROCS = @TEST_NPROCS@
+
+main-async_comm: main-async_comm.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main-async_comm.o $(LIBSAMRAI) $(LDLIBS) -o $@
+
+main-peer_comm: main-peer_comm.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) main-peer_comm.o $(LIBSAMRAI) $(LDLIBS) -o $@
+
+check:		checkcompile
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main-async_comm test_inputs/async.default.input
+	$(OBJECT)/config/serpa-run $(TEST_NPROCS) ./main-peer_comm test_inputs/peer.default.input
+
+check2d:
+	$(MAKE) check
+
+check3d:
+	$(MAKE) check
+
+checkcompile: main-async_comm main-peer_comm
+
+checktest:      checkcompile
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+clean:
+	$(SAMCLEAN)
+	$(RM) main-async_comm main-peer_comm
+
+include $(SRCDIR)/Makefile.depend

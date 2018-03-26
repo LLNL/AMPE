@@ -1,0 +1,58 @@
+%% foo.tex
+\begin{samepage}
+\hrule
+\begin{center}
+\phantomsection
+{\large \verb!IDAQuadInit!}
+\label{p:IDAQuadInit}
+\index{IDAQuadInit}
+\end{center}
+\hrule\vspace{0.1in}
+
+%% one line -------------------
+
+\noindent{\bf \sc Purpose}
+
+\begin{alltt}
+IDAQuadInit allocates and initializes memory for quadrature integration.
+\end{alltt}
+
+\end{samepage}
+
+
+%% definition  -------------------
+
+\begin{samepage}
+
+\noindent{\bf \sc Synopsis}
+
+\begin{alltt}
+function IDAQuadInit(fctQ, yQ0, options) 
+\end{alltt}
+
+\end{samepage}
+
+%% description -------------------
+
+\noindent{\bf \sc Description}
+
+\begin{alltt}
+IDAQuadInit allocates and initializes memory for quadrature integration.
+
+   Usage: IDAQuadInit ( QFUN, YQ0 [, OPTIONS ] ) 
+
+   QFUN     is a function defining the righ-hand sides of the quadrature
+            ODEs yQ' = fQ(t,y).
+   YQ0      is the initial conditions vector yQ(t0).
+   OPTIONS  is an (optional) set of QUAD options, created with
+            the IDASetQuadOptions function. 
+
+   See also: IDASetQuadOptions, IDAQuadRhsFn
+\end{alltt}
+
+
+
+
+
+
+\vspace{0.1in}

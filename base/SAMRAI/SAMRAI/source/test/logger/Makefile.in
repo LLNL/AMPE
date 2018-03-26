@@ -1,0 +1,74 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   makefile for timer and statistician test programs 
+##
+#########################################################################
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/test/logger
+VPATH         = @srcdir@
+TESTTOOLS     = ../testtools
+OBJECT        = ../../..
+
+default: check
+
+include $(OBJECT)/config/Makefile.config
+
+CPPFLAGS_EXTRA= -DTESTING=1
+
+defaultloggertest:  defaultloggertest.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) defaultloggertest.o \
+	   $(LIBSAMRAI) $(LDLIBS) -o $@
+
+userloggertest:  userloggertest.o $(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) userloggertest.o \
+	   $(LIBSAMRAI) $(LDLIBS) -o $@
+
+NUM_TESTS = 2
+
+TEST_NPROCS = @TEST_NPROCS@
+
+check:  defaultloggertest userloggertest
+	@for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+                passed=1; \
+		$(OBJECT)/config/serpa-run $$p ./defaultloggertest; \
+		if ! grep "Test warning" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+		if grep "Test debug1" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+		if ! grep "Test debug2" defaultloggertest.log.0000000 >& /dev/null ; then passed=0; fi; \
+		if [ $$passed == 1 ] ; then echo "PASSED defaultloggertest"; else echo "FAILED defaultloggertest"; fi; \
+	done; \
+	for p in `echo "$(TEST_NPROCS)" | tr "," " "`; do \
+                passed=1; \
+		$(OBJECT)/config/serpa-run $$p ./userloggertest; \
+		if ! grep "Test warning" user.log >& /dev/null ; then passed=0; fi; \
+		if grep "Test debug1" user.log >& /dev/null ; then passed=0; fi; \
+		if ! grep "Test debug2" user.log >& /dev/null ; then passed=0; fi; \
+		passed=1; \
+		if [ $$passed == 1 ] ; then echo "PASSED userloggertest"; else echo "FAILED userloggertest"; fi; \
+	done;
+
+check2d:
+	$(MAKE) check
+
+check3d:
+	$(MAKE) check
+
+checkcompile: userloggertest defaultloggertest
+
+checktest:
+	rm -f makecheck.logfile
+	$(MAKE) check 2>&1 | $(TEE) makecheck.logfile
+	$(TESTTOOLS)/testcount.sh $(TEST_NPROCS) $(NUM_TESTS) makecheck.logfile
+	rm -f makecheck.logfile
+
+clean: 
+	$(SAMCLEAN)
+	$(RM) -rf defaultloggertest userloggertest
+	$(RM) -rf *.log.* stats
+
+include $(SRCDIR)/Makefile.depend

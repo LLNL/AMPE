@@ -1,0 +1,371 @@
+\chapter{The phase field model}
+\label{sec:model}
+
+On a spatial domain $\Omega$, we begin by introducing the total energy functional
+%
+\begin{equation}
+  F_0 \equiv F_0(\phi,c,{\bf q},T)
+    \equiv \int_{\Omega} I_0(\phi,c,{\bf q},T) d\Omega,
+\label{eq:fdef}
+\end{equation}
+%
+where the energy density, $I_0$, is
+%
+\begin{equation}
+  I_0(\phi,c,{\bf q},T) \equiv
+    \frac{\epsilon_{\phi}^2}{2} |\nabla \phi |^2 + f(\phi,c,T) +
+    \frac{\epsilon_{\bf q}^2}{2} |\nabla {\bf q} |^2 +
+    D_{\bf q}(\phi,T) |\nabla {\bf q} |,
+\label{eq:idef}
+\end{equation}
+%
+where $\phi$ is a structural order parameter, $c$ is the composition
+of a particular species (here we assume a binary material so that $1-c$ is
+the composition of the second species), and ${\bf q} \equiv
+(q_1,q_2,q_3,q_4)$ is a quaternion describing local crystallographic
+orientation (see Appendix \ref{sec:quaternions}), with the
+normalization
+%
+\begin{equation}
+  \sum_{i=1}^4 q_i^2 = 1.
+\label{eq:constraint}
+\end{equation}
+%
+$T$ is the temperature and is assumed to be uniform across the
+computational domain $\Omega$ in our current model.  The first term of the
+energy density (\ref{eq:idef}) yields an energy contribution at
+interfaces between the phases identified by $\phi$, with
+$\epsilon_{\phi}$ controlling the interface width.  We further assume
+that at every point in space we have the possibility of coexistence of
+a two-phase mixture.  We denote these two phases S ($\phi=1$) and L
+($\phi=0$) by reference to the classical problem of solid-liquid
+mixture, but they can be used to represent various other general two-phase problems.  Following the model proposed by Kim et
+al. \cite{PhysRevE.60.7186}, we introduce auxiliary variables $c_S$
+and $c_L$ that describe the composition in each of the two phases,
+such that
+%
+\begin{equation}
+  c=h(\phi)c_S+[1-h(\phi)]c_L,
+\label{eq:cmix}
+\end{equation}
+%
+where $h$ is some interpolating monotonic polynomial satisfying
+$h(0)=0$ and $h(1)=1$.  For the examples in this paper, we use
+%
+\begin{equation}
+  h(\phi) = \phi^3 \left( 10 - 15 \phi + 6 \phi^2 \right).
+\end{equation}
+%
+The free energy density, $f(c,\phi,T)$, in the
+second term of (\ref{eq:idef}) is defined by the mixture rule
+%
+\begin{equation}
+  f(c,\phi,T)=h(\phi)f^S(c_S,T)+[1-h(\phi)]f^L(c_L,T)+\omega g(\phi),
+\label{eq:fmix}
+\end{equation}
+%
+where $f^S$ and $f^L$ are the free energy densities of the S and L
+phases, and $g(\phi)$ is a double well potential
+%
+\begin{equation}
+  g(\phi)=16 \phi^2(1-\phi)^2.
+\label{eq:dwell}
+\end{equation}
+%
+Following \cite{0295-5075-71-1-131}, the third term of (\ref{eq:idef})
+is an orientational free energy where
+%
+\begin{equation}
+  | \nabla {\bf q} | = \left ( \sum_{i=1}^4 (\nabla q_i)^2 \right )^{1/2}
+\end{equation}
+%
+and
+%
+\begin{equation}
+  D_{\bf q} (\phi,T) \equiv 2HTp(\phi),
+\label{eq:dqdef}
+\end{equation}
+%
+with $H$ a constant, $T$ the local temperature, and $p$ another
+interpolating monotonic polynomial satisfying $p(0)=0$ and $p(1)=1$.
+This polynomial should have a positive derivative at $\phi=1$. We use
+%
+\begin{equation}
+  p(\phi) = \phi^2.
+\end{equation}
+%
+We note that we have adopted the opposite convention compared to that
+used in \cite{0295-5075-71-1-131}, {\em i.e.}, we have replaced the
+polynomial $p$ by $1-p$.
+
+The final term of (\ref{eq:idef}) involves $|\nabla {\bf q} |^2$ but
+is not scaled with $\phi$.  This is different than other published
+models using a similar orientation term.  We have found that
+preventing this term from approaching zero as $\phi$ goes to zero is
+necessary to prevent physically unmeaningful values of orientation in
+low-order regions from affecting the growth of ordered grains by
+producing a smooth quaternion solution in such regions.  The addition
+of noise terms or the use of a very high relative quaternion mobility
+also have an effect on this issue, though its exploration is beyond
+the scope of this paper.
+
+We seek to minimize (\ref{eq:fdef}) subject to (\ref{eq:constraint}).
+As in \cite{0295-5075-71-1-131}, we use a Lagrange multiplier to
+convert the constrained minimization problem to an unconstrained one.
+This is accomplished by defining the new functional
+%
+\begin{equation}
+  F(\phi,c,{\bf q},T,\lambda) \equiv \int_{\Omega} I(\phi,c,{\bf
+    q},T,\lambda) d\Omega,
+\label{eq:ftildedef}
+\end{equation}
+%
+where
+%
+\begin{equation}
+  I(\phi,c,{\bf q},T,\lambda) = I_0(\phi,c,{\bf q},T) +
+    \lambda \left ( \sum_i q_i^2 - 1 \right )
+\label{eq:integrand}
+\end{equation}
+%
+is the original energy density (\ref{eq:idef}) augmented by the
+Lagrange multiplier term.  The extrema of (\ref{eq:fdef}) then
+correspond to the critical points of $F$, which satisfy the
+Euler-Lagrange equations
+%
+\begin{equation}
+  \frac{\partial F}{\partial \phi} = \frac{\partial
+    F}{\partial c} = \frac{\partial F}{\partial
+    q_i} = \frac{\partial F}{\partial \lambda} = 0.
+\label{eq:critical}
+\end{equation}
+%
+For any particular initial condition $(\phi,c,{\bf q},\lambda)$, it is
+likely that one or more of the quantities in (\ref{eq:critical}) is
+non-zero.  The essential idea behind the time evolution phase-field
+approach is to use the non-zero quantities as source terms in a
+time-dependent relaxation to a steady state satisfying
+(\ref{eq:critical}).  In particular, for the phase and orientation
+variables, we postulate the Allen-Cahn equations \cite{AllenCahn79}
+%
+\begin{eqnarray}
+  \dot{\phi} &=& - M_{\phi} \frac{\delta
+    F}{\delta \phi} ,
+\label{eq:phirelax} \\
+  \dot{q}_i &=& - M_{\bf q} \frac{\delta
+    F}{\delta q_i} , \hspace{2em} i=1,\ldots,4,
+\label{eq:qrelax}
+\end{eqnarray}
+%
+where dots denote temporal derivatives, $M_{\phi}$ and $M_q$ are
+mobility coefficients which may be non-constant, and the functional
+derivatives are computed as described in Appendix \ref{sec:fderiv}.
+For the composition equation, we postulate the governing
+equation to be \cite{PhysRevA.45.7424}
+%
+\begin{equation}
+  \dot{c} = M_c \nabla \cdot D_c(c,\phi,T) \nabla
+  \frac{\partial F}{\partial c},
+\label{eq:crelax}
+\end{equation}
+%
+where $D_c$ is the diffusivity. In
+contrast to (\ref{eq:phirelax}) and (\ref{eq:qrelax}), this equation
+evolves the composition $c$ conservatively.  We next evaluate the
+right-hand sides of (\ref{eq:phirelax}), (\ref{eq:qrelax}) and
+(\ref{eq:crelax}) individually.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Phase equation}
+
+From (\ref{eq:fmix}), (\ref{eq:dqdef}) and (\ref{eq:integrand}), we
+have
+%
+\begin{equation}
+  \frac{\partial I}{\partial \nabla \phi} = \epsilon_{\phi}^2 \nabla \phi
+\end{equation}
+%
+and
+%
+\begin{eqnarray}
+  \frac{\partial I}{\partial \phi} =
+    & & {} - h'(\phi)\left(f^L(c_L,T)-f^S(c_S,T) - \mu (c_L - c_S) \right)
+    \nonumber \\
+    & & {} + \omega g'(\phi) +  2HTp'(\phi) | \nabla {\bf q} |.
+\end{eqnarray}
+%
+Here we used the KKS model and the definition of the chemical
+potential $\mu$ from (\ref{eq:mu})
+%
+%\begin{equation}
+%  \mu(x,t)=\left.\frac{\partial f^S}{\partial c_S}\right|_{c_S=c_S(x,t)} =
+%  \left.\frac{\partial f^L}{\partial c_L}\right|_{c_L=c_L(x,t)}
+%\end{equation}
+%
+and (\ref{eq:dfdphi2}) from Appendix \ref{sec:kks}.
+
+Hence, from (\ref{eq:phirelax}) and the functional derivative formula (\ref{funcderiv})
+given in Appendix \ref{sec:fderiv}, we have
+%
+\begin{eqnarray}
+  \dot{\phi} = & & M_\phi\left\{ \epsilon_{\phi}^2 \nabla^2 \phi
+    + h'(\phi)\left(f^L(c_L,T)-f^S(c_S,T) -\mu (c_L - c_S) \right)
+    \right .
+    \nonumber \\
+    & & {} - \left . \omega g'(\phi)
+    -  2HTp'(\phi) | \nabla {\bf q} | \right\}.
+\label{eq:phaseeom}
+\end{eqnarray}
+
+In the particular case of a single species material, we have
+$c=c_L=c_S=1$ and $f^L$ and $f^S$ are functions of the temperature $T$ only.
+
+In general, $M_\phi$ may be a function of $\phi$ itself, as well as
+its derivatives, and possibly other model variables.  For the examples
+in this paper, $M_\phi$ will be set to a constant value.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Orientation equation}
+\label{sec:orientationmodel}
+
+From (\ref{eq:integrand}), we have, for $i=1,\ldots,4$,
+%
+\begin{equation}
+  \frac{\partial I}{\partial \nabla q_i} =
+    \left ( \epsilon_{\bf q} + \frac{D_{\bf q}(\phi) }{| \nabla {\bf q} |} \right )
+    \nabla q_i
+\label{eq:didnq}
+\end{equation}
+%
+and
+%
+\begin{equation}
+  \frac{\partial I}{\partial q_i} = 2 \lambda q_i.
+\label{eq:didq}
+\end{equation}
+%
+Hence, from (\ref{eq:qrelax}) and (\ref{eq:constraint}) we obtain
+%
+\begin{eqnarray}
+  \dot{q}_i - M_{\bf q} (\phi) \left \{ \nabla \cdot \left ( \epsilon_{\bf q} +
+    \frac{D_{\bf q}(\phi)}{| \nabla {\bf q} |} \right ) \nabla q_i - 2 \lambda
+    q_i \right \} &=& 0, \hspace{1em} i=1,\ldots,4
+\label{eq:dae1} \\
+  \sum_i q_i^2 - 1 &=& 0.
+\label{eq:daeconstraint}
+\end{eqnarray}
+%
+We allow the mobility $M_{\bf q}$ to depend on $\phi$ in order to
+limit rotation in the ordered phase, further detailed below.
+Equations (\ref{eq:dae1})--(\ref{eq:daeconstraint}) comprise a
+semi-explicit, differential-algebraic system of index two (see, {\em
+e.g.}, \cite{BCP89} for more information about the theory and
+numerical solution of differential-algebraic systems).  Although an
+algorithm for the integration of such a system could be pursued, it is
+generally the case that the numerical integration of
+differential-algebraic systems of index two or higher is facilitated
+by first reducing the index of the system.  In the present case, this
+is accomplished by replacing (\ref{eq:daeconstraint}) by its time
+derivative and substituting (\ref{eq:dae1}), giving
+%
+\begin{equation}
+  0 = 2 \sum_i q_i \dot{q}_i =
+    2 \sum_i q_i \left [ \nabla \cdot \left ( \epsilon_{\bf q} +
+    \frac{D_{\bf q}(\phi) }{| \nabla {\bf q} |} \right )
+    \nabla q_i - 2 \lambda q_i \right ],
+\label{eq:difcon}
+\end{equation}
+%
+which yields an explicit expression for $\lambda$.  Upon elimination
+of $\lambda$ in (\ref{eq:dae1}), we obtain the ordinary differential
+equations
+%
+\begin{eqnarray}
+  \dot{q}_i = M_{\bf q}(\phi) & & \left \{
+    \nabla \cdot \left (
+    \epsilon_{\bf q} +  \frac{D_{\bf q}(\phi)}{| \nabla {\bf q} |} \right )
+    \nabla q_i \right . \nonumber \\
+    & & \quad \left . - \frac{q_i}{\sum_\ell q_\ell^2} \sum_k q_k \nabla \cdot
+    \left ( \epsilon_q +  \frac{D_{\bf q}(\phi)}{ | \nabla {\bf q} |} \right )
+    \nabla q_k \right\},
+\label{eq:qeom}
+\end{eqnarray}
+%
+which was originally formulated in \cite{0295-5075-71-1-131} (which
+omits the $\epsilon_{\bf q}$ term and includes a noise term).
+
+For any vector $v \equiv (v_1,v_2,v_3,v_4)$, let $\Pi({\bf q})v$
+denote the orthogonal projection (with respect to the usual Euclidean
+inner product) of $v$ onto ${\bf q}$.  The system (\ref{eq:qeom}) can
+then be written as
+%
+\begin{equation}
+  \dot{\bf q} =
+    M_{\bf q}(\phi) \left (I - \Pi({\bf q}) \right )
+    \nabla \cdot \left ( \epsilon_{\bf q} + 
+    \frac{D_{\bf q}(\phi)}{ |\nabla
+    {\bf q}|} \right ) \nabla {\bf q}.
+\label{eq:qeom2}
+\end{equation}
+%
+In this form, it is clear that solutions of (\ref{eq:qeom2}) also satisfy
+the invariant
+%
+\begin{equation}
+  {\bf q} \cdot \dot{\bf q} = 0,
+\label{eq:invariant}
+\end{equation}
+%
+which is just a restatement of the differentiated constraint
+(\ref{eq:difcon}).  Solutions of (\ref{eq:qeom2}) with an initial
+condition on the constraint surface (\ref{eq:daeconstraint}) therefore
+remain on the surface at all times.  Differentiation of the constraint
+(\ref{eq:daeconstraint}) has thus replaced the problem of integrating
+an index two differential-algebraic system with the equivalent problem
+of enforcing the invariant (\ref{eq:invariant}) in the integration of
+an ordinary differential equation.
+
+As with the mobility for the phase equation, the orientation mobility,
+$M_q$, may be a general function.  It is common to use a functional
+form that reduces $M_q$ as the phase variable, $\phi$, goes to 1 in
+order to slow or prevent the wholesale rotation of ordered grains.
+For the examples in this paper, we will set
+%
+\begin{equation}
+  M_q(\phi) = M_q^{\rm min} + m(\phi) ( M_q^{\rm max} - M_q^{\rm min} ),
+\label{eq:qmobility}
+\end{equation}
+%
+where $M_q^{\rm max}$ varies with the problem and $M_q^{\rm min} =
+10^{-6}$, {\em i.e.},
+very near zero, with $m(\phi)$ an interpolating monotonic polynomial
+satisfying $m(0) = 1$ and $m(1) = 0$.  We use
+%
+\begin{equation}
+  m(\phi) = 1 - \phi^3 \left( 10 - 15 \phi + 6 \phi^2 \right)
+\end{equation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\section{Composition equation}
+
+The particular form of the composition equation depends upon the
+relationship between the variables $(c_S,c_L)$, and $(c,\phi)$ in
+(\ref{eq:cmix}).  In Appendix \ref{sec:kks}, the details for the Kim,
+Kim and Suzuki (KKS) model are briefly recalled, which results in the
+following equation of motion
+%
+\begin{equation}
+  \frac{\partial c}{\partial t} =
+    M_c \nabla \cdot D^0_c(\phi,T)\nabla c +
+    \nabla \cdot D^0_c(\phi,T) h'(\phi) (c_L - c_S) \nabla \phi.
+\label{eq:ceomkks}
+\end{equation}
+%
+To actually compute the right-hand side of (\ref{eq:ceomkks}), we need
+to know $c_S(c,\phi)$ and $c_L(c,\phi)$. For that, we need to know the
+exact form of $f^S$ and $f^L$.  A specific example for the Hu, Baskes,
+Stan and Mitchell (HBSM) model of a binary alloy
+\cite{HuBaskesStanMitchell07} is given in Appendix \ref{sec:hbsm}.

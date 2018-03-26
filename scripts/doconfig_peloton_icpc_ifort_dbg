@@ -1,0 +1,10 @@
+#!/bin/sh
+./configure --enable-debug \
+            --with-CXX=/usr/local/bin/mpiicpc-14.0.174 \
+            --with-CC=/usr/local/bin/mpiicc-14.0.174 \
+            --with-F77=/usr/local/bin/ifort-14.0.174 \
+            --with-boost=/collab/usr/gapps/samrai/devapps/chaos/boost/1.45.0 \
+            --with-hdf5=/usr/local/tools/hdf5-intel-parallel-1.8.8 \
+            --with-netcdf=/usr/local/tools/netcdf-intel-4.3.3.1 \
+            --with-hypre=/usr/gapps/phasefield/hypre/2.11.1 \
+            --without-x --prefix=$PWD/build 

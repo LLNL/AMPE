@@ -1,0 +1,66 @@
+#########################################################################
+##
+## This file is part of the SAMRAI distribution.  For full copyright 
+## information, see COPYRIGHT and COPYING.LESSER. 
+##
+## Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+## Description:   primary makefile for compiling the SAMRAI geom package 
+##
+#########################################################################
+
+
+SAMRAI        = @top_srcdir@
+SRCDIR        = @srcdir@
+SUBDIR        = source/SAMRAI/geom
+VPATH         = @srcdir@
+OBJECT        = ../../..
+
+default: library
+
+include $(OBJECT)/config/Makefile.config
+
+SUBDIRS = fortran
+
+OBJS = 	\
+	GridGeometry.o \
+	CartesianPatchGeometry.o \
+	CartesianGridGeometry.o \
+	CartesianCellDoubleLinearRefine.o \
+	CartesianCellDoubleConservativeLinearRefine.o \
+	CartesianCellDoubleWeightedAverage.o \
+	CartesianOutersideDoubleWeightedAverage.o \
+	CartesianSideDoubleWeightedAverage.o \
+	CartesianSideDoubleConservativeLinearRefine.o \
+	CartesianEdgeDoubleWeightedAverage.o \
+	CartesianEdgeDoubleConservativeLinearRefine.o \
+	CartesianNodeDoubleLinearRefine.o \
+	CartesianOuterfaceDoubleWeightedAverage.o \
+	CartesianFaceDoubleWeightedAverage.o \
+	CartesianFaceDoubleConservativeLinearRefine.o \
+	CartesianCellFloatLinearRefine.o \
+	CartesianCellFloatWeightedAverage.o \
+	CartesianCellFloatConservativeLinearRefine.o \
+	CartesianSideFloatConservativeLinearRefine.o \
+	CartesianSideFloatWeightedAverage.o \
+	CartesianEdgeFloatConservativeLinearRefine.o \
+	CartesianEdgeFloatWeightedAverage.o \
+	CartesianNodeFloatLinearRefine.o \
+	CartesianOuterfaceFloatWeightedAverage.o \
+	CartesianFaceFloatWeightedAverage.o \
+	CartesianFaceFloatConservativeLinearRefine.o \
+	CartesianCellComplexLinearRefine.o \
+	CartesianCellComplexWeightedAverage.o \
+	CartesianCellComplexConservativeLinearRefine.o \
+	CartesianSideComplexWeightedAverage.o \
+	CartesianEdgeComplexWeightedAverage.o \
+	CartesianNodeComplexLinearRefine.o \
+	CartesianOuterfaceComplexWeightedAverage.o \
+	CartesianFaceComplexWeightedAverage.o
+
+library: $(OBJS)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+clean:
+	$(SAMCLEAN)
+	for DIR in $(SUBDIRS); do if test -d $$DIR; then (cd $$DIR && $(MAKE) $@) ; fi || exit 1; done
+
+include $(SRCDIR)/Makefile.depend

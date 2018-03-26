@@ -1,0 +1,151 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+// Produced at the Lawrence Livermore National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+// Input for Hu, Baskes, Stan and Mitchell grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time = 0.8  // required
+max_timesteps = 600  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 0.05
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatLevelSolver::*","QuatSysSolver::*",
+                 "QuatIntegrator::*","EllipticFACOps::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   epsilon_anisotropy = 0.05 //delta
+
+   H_parameter = 0.001 // we need quaternions to define anisotropy
+
+   epsilon_phase = 0.01   // [(pJ/um)^1/2]
+
+   phi_mobility = 3333.3333
+   
+   orient_mobility = 1.
+   epsilon_orient = 1.e3 // to avoid negative diffusion for q
+
+   Temperature{
+      type = "heat"
+      equation_type = "unsteady"
+      meltingT = 1.
+      cp{  
+         SpeciesA{
+            a   = 1.
+         }
+      }
+      thermal_diffusivity = 1.e-8 // cm^2/s
+      latent_heat = 1.
+   }
+
+   // free energy parameters:
+   // f(phi) = scale_energy_well*g(phi)
+   // where g is a double well potential
+   phi_well_scale = 0.015625  // 1./64. [pJ/um^3]
+   phi_well_func_type = "double"
+   
+   bias_well_alpha = 0.9
+   bias_well_gamma = 10.
+   liquidus_slope = 0.
+   
+   
+   molar_volume = 1.e-6
+
+}
+
+ScalarDiagnostics {
+   interval = 0.02
+   interval_type = "time"
+}   
+
+Integrator {
+   rtol = 1.e-15
+   atol = 1.e-4	
+}
+
+InitialConditions {  // required block
+   filename = "1grainR50_1024.nc"
+}
+
+Geometry{
+   periodic_dimension = 1, 1
+   coarsest_level_resolution = 1024, 1024  // required
+   x_lo         = -4.5, -4.5 // lower end of computational domain.
+   x_up         =  4.5,  4.5 // upper end of computational domain.
+}

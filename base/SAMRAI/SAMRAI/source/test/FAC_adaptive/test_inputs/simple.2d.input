@@ -1,0 +1,114 @@
+/*************************************************************************
+ *
+ * This file is part of the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and COPYING.LESSER.
+ *
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
+ * Description:   Input file for FAC solver tests.
+ *
+ ************************************************************************/
+
+Main {
+  dim = 2
+  base_name = "simple2d"
+  do_plot = TRUE
+  max_cycles = 15
+  residual_tol = 3e-10
+  pre_sweeps = 1
+  post_sweeps = 3
+  max_adaptions = 5
+  target_l2norm = 7e-4
+}
+
+AdaptivePoisson {
+  fac_algo = "default"
+  problem_name = "poly"
+  ScalarPoissonOps {
+    enable_logging = TRUE
+    coarse_solver_choice = "hypre"
+    coarse_solver_tolerance = 1e-14
+    coarse_solver_max_iterations = 10000
+    smoothing_choice = "redblack"
+    cf_discretization = "Ewing"
+    prolongation_method = "LINEAR_REFINE"
+  }
+  sine_solution {
+    SinusoidFcnControl = "{ nx=2.0 px=0.0 ny=2.0 py=0.0 }"
+  }
+  polynomial_solution {
+    QuarticFcnControl = "{ 6=1 8=-1 9=-1 12=1 }" // Pernice's problem
+  }
+  adaption_threshold = 1.0e-4
+}
+
+
+CartesianGridGeometry {
+  domain_boxes = [(0,0), (9,9)]
+  x_lo         = 0, 0
+  x_up         = 1, 1
+}
+
+StandardTagAndInitialize {
+  tagging_method = "GRADIENT_DETECTOR"
+}
+
+TreeLoadBalancer{
+}
+
+PatchHierarchy {
+   max_levels = 5
+   proper_nesting_buffer = 2, 2, 2, 2, 2, 2
+   largest_patch_size {
+      // level_0 = 8, 8
+      level_0 = -1, -1
+      // all finer levels will use same values as level_0...
+   }
+   smallest_patch_size {
+      level_0 = 4,4
+      // all finer levels will use same values as level_0...
+   }
+   ratio_to_coarser {
+      level_1            = 2, 2
+      level_2            = 2, 2
+      level_3            = 2, 2
+      level_4            = 2, 2
+      level_5            = 2, 2
+      level_6            = 2, 2
+      level_7            = 2, 2
+      level_8            = 2, 2
+      level_9            = 2, 2
+      //  etc.
+   }
+   allow_patches_smaller_than_ghostwidth = TRUE
+}
+
+GriddingAlgorithm {
+   enforce_proper_nesting = TRUE
+   extend_to_domain_boundary = FALSE
+   // load_balance = FALSE
+   efficiency_tolerance = 0.80
+   combine_efficiency = 0.75
+   // write_regrid_boxes = TRUE
+   // read_regrid_boxes = TRUE
+   // regrid_boxes_filename = "grid"
+   check_nonrefined_tags = "ERROR"
+   check_overlapping_patches = "ERROR"
+   extend_tags_to_bdry = TRUE
+   sequentialize_patch_indices = TRUE
+   barrier_before_regrid = TRUE
+   barrier_before_find_refinement = TRUE
+   barrier_before_cluster = TRUE
+   barrier_before_nest = TRUE
+   barrier_before_limit = TRUE
+   barrier_before_extend = TRUE
+   barrier_before_balance = TRUE
+   barrier_after_find_refinement = TRUE
+   coalesce_boxes = FALSE
+}
+
+
+TimerManager{
+  timer_list = "solv::FACPreconditionerX::*", "solv::ScalarPoissonFacOpsX::*", "solv::CartesianRobinBcHelperX::setBoundaryValuesInCells()_setBcCoefs()"
+  print_user = TRUE
+  // print_timer_overhead = TRUE
+}

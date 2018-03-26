@@ -1,0 +1,717 @@
+The {\sundials} suite (or individual solvers) are distributed as compressed archives
+(\id{.tgz}). The name of the distribution archive is of the form {\em solver}\id{-x.y.z.tgz},
+where {\em solver} is one of: \id{sundials}, \id{cvode}, \id{cvodes}, \id{ida}, or \id{kinsol},
+and \id{x.y.z} represents the version number (of the {\sundials} suite or of the individual solver).
+
+To begin the installation, first uncompress and expand the sources, by issuing
+\begin{verbatim}
+   % tar xzf solver-x.y.z.tgz
+\end{verbatim}
+This will extract source files under a directory {\em solver}\id{-x.y.z}.
+
+The installation procedure outlined below will work on commodity {\linux}/{\unix} 
+systems without modification. However, users are still encouraged to carefully read 
+the entire chapter before attempting to install the {\sundials} suite, in case
+non-default choices are desired for compilers, compilation options, or the like.
+In lieu of reading the option list below, the user may invoke the configuration
+script with the help flag to view a complete listing of available options, which
+may be done by issuing 
+\begin{verbatim}
+   % ./configure --help 
+\end{verbatim}
+from within the directory created above.
+
+In the remainder of this chapter, we make the following distinctions:
+\begin{itemize}
+
+\item {\em srcdir} 
+
+  is the directory {\em solver}\id{-x.y.z} created above; i.e., the 
+  directory containing the {\sundials} sources.
+
+\item {\em builddir}
+
+  is the directory under which {\sundials} is built; i.e., the directory
+  from within which the \id{configure} command is issued. Usually, this is the same as
+  {\em srcdir}.
+
+\item {\em instdir}
+
+  is the directory under which the {\sundials} exported header files
+  and libraries will be installed. Typically, header files are exported under a directory
+  {\em instdir}\id{/include} while libraries are installed under {\em instdir}\id{/lib},
+  with {\em instdir} specified with the \id{--prefix} flag to \id{configure}. 
+  See \S\ref{ss:configuration_options} for more details on the installation directories, 
+  including the special cases of the {\sundials} examples and the {\sundialsTB} toolbox.
+
+\end{itemize}
+{\noindent}{\warn}{\em Note}: The installation directory {\em instdir} should {\em not} be the same as
+the source directory {\em srcdir}.
+
+\vspace{0.2in}
+{\noindent}The installation steps for {\sundials} can be as simple as 
+\begin{verbatim}
+   % tar xzf solver-x.y.z.tgz
+   % cd solver-x.y.z
+   % ./configure
+   % make
+   % make install
+\end{verbatim}
+in which case the {\sundials} header files and libraries are installed under \id{/usr/local/include}
+and \id{/usr/local/lib}, respectively. Note that, by default, neither the example programs nor the 
+{\sundialsTB} toolbox are built and installed.
+
+If disk space is a priority, then to delete all temporary files created by building {\sundials}, issue
+\begin{verbatim}
+   % make clean
+\end{verbatim}
+
+To prepare the {\sundials} distribution for a new install (using, for example, different options and/or
+installation destinations), issue
+\begin{verbatim}
+   % make distclean
+\end{verbatim}
+
+%===============================================================================
+
+\section{Configuration options}\label{ss:configuration_options}
+
+The installation procedure given above will generally work without modification;
+however, if the system includes multiple {\mpi} implementations, then certain
+configure script-related options may be used to indicate which {\mpi}
+implementation should be used. Also, if the user wants to use non-default
+language compilers, then, again, the necessary shell environment variables must
+be appropriately redefined.
+%%
+The remainder of this section provides explanations of available configure script
+options.
+
+
+\subsection*{General options}
+
+%%
+%% General options
+%%
+
+\begin{config}
+  
+\item \id{--prefix=PREFIX}
+  
+  Location for architecture-independent files.
+  
+  Default: \id{PREFIX=}{/usr/local}
+  
+\item \id{--exec-prefix=EPREFIX}
+
+  Location for architecture-dependent files.
+  
+  Default: \id{EPREFIX=}{/usr/local}
+
+\item \id{--includedir=DIR}
+  
+  Alternate location for installation of header files.
+  
+  Default: \id{DIR=PREFIX/include}
+  
+\item \id{--libdir=DIR}
+  
+  Alternate location for installation of libraries.
+  
+  Default: \id{DIR=EPREFIX/lib}
+
+\item \id{--disable-}{\em solver}
+
+  Although each existing solver module is built by default, support for a
+  given solver can be explicitly disabled using this option. 
+  The valid values for {\em solver} are: \id{cvode}, \id{cvodes}, 
+  \id{ida}, and \id{kinsol}.
+
+\item \id{--enable-examples}
+  
+  Available example programs are {\em not} built by default. Use this option
+  to enable compilation of all pertinent example programs. Upon completion of 
+  the \id{make} command, the example executables will be created under solver-specific
+  subdirectories of {\em builddir}\id{/examples}:
+  \begin{config}
+  \item {\em builddir}\id{/examples/}{\em solver}\id{/serial} : serial {\C} examples
+  \item {\em builddir}\id{/examples/}{\em solver}\id{/parallel} : parallel {\C} examples
+  \item {\em builddir}\id{/examples/}{\em solver}\id{/fcmix\_serial} : serial {\F} examples
+  \item {\em builddir}\id{/examples/}{\em solver}\id{/fcmix\_parallel} : parallel {\F} examples
+  \end{config}  
+  {\em Note}: Some of these subdirectories may not exist depending upon the
+  solver and/or the configuration options given.
+
+\item \id{--with-examples-instdir=EXINSTDIR}
+
+  Alternate location for example executables and sample output files (valid only if
+  examples are enabled). Note that installtion of example files can be completely disabled
+  by issuing \id{EXINSTDIR=no} (in case building the examples is desired only as a test of
+  the {\sundials} libraries).
+
+  Default: \id{DIR=EPREFIX/examples}
+
+\item \id{--with-cppflags=ARG}
+
+  Specify additional {\C} preprocessor flags 
+  (e.g., \id{ARG=-I<include\_dir>} if necessary header files are located in
+   nonstandard locations).
+
+\item \id{--with-cflags=ARG}
+
+  Specify additional {\C} compilation flags.
+
+\item \id{--with-ldflags=ARG}
+
+  Specify additional linker flags (e.g., \id{ARG=-L<lib\_dir>} if
+  required libraries are located in nonstandard locations).
+
+\item \id{--with-libs=ARG}
+
+  Specify additional libraries to be used (e.g., \id{ARG=-l<foo>} to
+  link with the library named \id{libfoo.a} or \id{libfoo.so}).
+
+\item \id{--with-precision=ARG}
+
+  By default, {\sundials} will define a real number (internally referred to as
+  \id{realtype}) to be a double-precision floating-point numeric data type
+  (\id{double} {\C}-type); however, this option may be used to build {\sundials}
+  with \id{realtype} alternatively defined as a single-precision floating-point
+  numeric data type (\id{float} {\C}-type) if \id{ARG=single}, or as a
+  \id{long double} {\C}-type if \\ \id{ARG=extended}.
+
+  Default: \id{ARG=double}
+
+  {\warn}Users should {\em not} build {\sundials} with support for
+  single-precision floating-point arithmetic on 32- or 64-bit systems.
+  This will almost certainly result in unreliable numerical solutions.
+  The configuration option \id{--with-precision=single} is intended for
+  systems on which single-precision arithmetic involves at least 14 decimal
+  digits.
+
+\end{config}
+
+%%
+%% Fortran support
+%%
+
+\subsection*{Options for Fortran support}
+
+\begin{config}
+
+\item \id{--disable-fcmix}
+
+  Using this option will disable all {\F} support. The {\fcvode},
+  {\fkinsol}, {\fida}, and {\fnvector} modules will not be built,
+  regardless of availability.
+
+\item \id{--with-fflags=ARG}
+
+  Specify additional {\F} compilation flags.
+
+\end{config}
+
+\noindent The configuration script will attempt to automatically determine the
+function name mangling scheme required by the specified {\F} compiler, but the
+following two options may be used to override the default behavior.
+
+\begin{config}
+
+\item \id{--with-f77underscore=ARG}
+
+  This option pertains to the {\fcvode}, {\fkinsol}, {\fida}, and {\fnvector}
+  {\F}-{\C} interface modules and is used to specify the number of underscores to
+  append to function names so {\F} routines can properly link with the associated
+  {\sundials} libraries. Valid values for \id{ARG} are: \id{none}, \id{one}
+  and \id{two}.
+
+  Default: \id{ARG=one}
+
+\item \id{--with-f77case=ARG}
+
+  Use this option to specify whether the external names of the {\fcvode},
+  {\fkinsol}, {\fida}, and {\fnvector} {\F}-{\C} interface functions should be
+  lowercase or uppercase so {\F} routines can properly link with the associated
+  {\sundials} libraries. Valid values for \id{ARG} are: \id{lower} and \id{upper}.
+
+  Default: \id{ARG=lower}
+
+\end{config}
+
+
+%%
+%% Parallel options
+%%
+
+\subsection*{Options for MPI support}
+
+\noindent The following configuration options are only applicable to the parallel
+{\sundials} packages:
+
+\begin{config}
+  
+\item \id{--disable-mpi}
+
+  Using this option will completely disable {\mpi} support.
+
+\item \id{--with-mpicc=ARG}
+\item \id{--with-mpif77=ARG}
+
+  By default, the configuration utility script will use the {\mpi} compiler
+  scripts named \id{mpicc} and \id{mpif77} to compile the parallelized
+  {\sundials} subroutines; however, for reasons of compatibility, different
+  executable names may be specified via the above options. Also, \id{ARG=no}
+  can be used to disable the use of {\mpi} compiler scripts, thus causing
+  the serial {\C} and {\F} compilers to be used to compile the parallelized
+  {\sundials} functions and examples.
+
+\item \id{--with-mpi-root=MPIDIR}
+
+  This option may be used to specify which {\mpi} implementation should be used.
+  The {\sundials} configuration script will automatically check under the
+  subdirectories \id{MPIDIR/include} and \id{MPIDIR/lib} for the necessary
+  header files and libraries. The subdirectory \id{MPIDIR/bin} will also be
+  searched for the {\C} and {\F} {\mpi} compiler scripts, unless the user uses
+  \id{--with-mpicc=no} or \id{--with-mpif77=no}.
+
+\item \id{--with-mpi-incdir=INCDIR}
+\item \id{--with-mpi-libdir=LIBDIR}
+\item \id{--with-mpi-libs=LIBS}
+
+  These options may be used if the user would prefer not to use a preexisting
+  {\mpi} compiler script, but instead would rather use a serial complier and
+  provide the flags necessary to compile the {\mpi}-aware subroutines in
+  {\sundials}.
+
+  Often an {\mpi} implementation will have unique library names and so it may
+  be necessary to specify the appropriate libraries to use (e.g.,
+  \id{LIBS=-lmpich}).
+
+  Default: \id{INCDIR=MPIDIR/include} and \id{LIBDIR=MPIDIR/lib}
+
+\item \id{--with-mpi-flags=ARG}
+
+  Specify additional {\mpi}-specific flags.
+
+\end{config}
+
+
+\subsection*{Options for library support}
+%%
+%% Shared or Static Libraries
+%%
+
+\noindent By default, only static libraries are built, but the following option
+may be used to build shared libraries on supported platforms.
+
+\begin{config}
+
+\item \id{--enable-shared}
+
+  Using this particular option will result in both static and shared versions of
+  the available {\sundials} libraries being built if the system supports shared
+  libraries. To build only shared libraries also specify \id{--disable-static}.
+
+  {\em Note}: The {\fcvode}, {\fkinsol}, and {\fida} libraries can only be built as
+  static libraries because they contain references to externally defined symbols,
+  namely user-supplied {\F} subroutines.  Although the {\F} interfaces to the serial
+  and parallel implementations of the supplied {\nvector} module do not contain any
+  unresolvable external symbols, the libraries are still built as static libraries
+  for the purpose of consistency.
+
+\end{config}
+
+
+\subsection*{Options for Matlab support}
+%%
+%% Compilation of sundialsTB mex files
+%%
+
+\noindent The following options are relevant only for configuring and building 
+the {\sundialsTB} Matlab toolbox:
+
+\begin{config}
+
+\item \id{--enable-sundialsTB}
+
+  The {\sundialsTB} Matlab toolbox is {\em not} built by default. Use this option
+  to enable configuration and compilation of the \id{mex} files. Upon completion
+  of the \id{make} command, the following \id{mex} files will be created:
+  \begin{config}
+    \item {\em builddir}\id{/sundialsTB/cvodes/cvm/cvm.}{\em{mexext}}
+    \item {\em builddir}\id{/sundialsTB/idas/idm/idm.}{\em{mexext}}
+    \item {\em builddir}\id{/sundialsTB/kinsol/kim/kim.}{\em{mexext}}
+  \end{config}
+  where {\em mexext} is the platform-specific extension of \id{mex} files.
+  
+\item \id{--with-sundialsTB-instdir=STBINSTDIR}
+
+  Alternate location for the installed {\sundialsTB} toolbox (valid only if
+  {\sundialsTB} is enabled). As for the example programs, installation of {\sundialsTB} can 
+  be completely disabled by issuing \id{STBINSTDIR=no} (in case building the toolbox is desired 
+  but its installtion will be done manually afterwards). Otherwise, all required {\sundialsTB} 
+  files will be installed under the directory \id{STBINSTDIR/sundialsTB}.
+
+  Default: \id{DIR=MATLAB/toolbox}  (see below for the definition of \id{MATLAB}).
+
+\item \id{--with-matlab=MATLAB}
+
+  This option can be used to specify the location of the Matlab executable. 
+  The default is to search the path.
+
+\item \id{--with-mexopts=ARG}
+
+  Specify the \id{mex} options file to be used.
+
+  Default: Standard Matlab \id{mex} options file.
+
+\item \id{--with-mexflags=ARG}
+
+  Specify the \id{mex} compiler flags to be used.
+
+  Default: \id{ARG=-O}
+
+\item \id{--with-mexldadd=ARG}
+
+  Specify additional \id{mex} linker flags.
+
+  Default: none
+
+\end{config}
+
+
+\subsection*{Environment variables}
+
+%%
+%% Environment variables
+%%
+
+\noindent The following environment variables can be locally (re)defined for use 
+during the configuration of {\sundials}. See the next section for
+illustrations of these.
+
+\begin{config}
+
+\item \id{CC}
+
+\item \id{F77}
+
+  Since the configuration script uses the first {\C} and {\F} compilers found in
+  the current executable search path, then each relevant shell variable (\id{CC}
+  and \id{F77}) must be locally (re)defined in order to use a different compiler. 
+  For example, to use \id{xcc} (executable name of chosen compiler) as the {\C}
+  language compiler, use \id{CC=xcc} in the configure step.
+
+\item \id{CFLAGS}
+
+\item \id{FFLAGS}
+
+  Use these environment variables to override the default {\C} and {\F}
+  compilation flags.
+
+\end{config}
+
+
+%%===============================================================================
+
+
+\section{Configuration examples}
+
+The following examples are meant to help demonstrate proper usage of the configure options.
+
+
+To build {\sundials} using the default C and Fortran compilers,
+and default \id{mpicc} and \id{mpif77} parallel compilers, enable compilation of examples,
+build the Matlab \id{mex} files for {\sundialsTB}, and install it under 
+\id{/home/myname/matlab/sundialsTB}, use
+\begin{verbatim}
+   % configure --prefix=/home/myname/sundials --enable-examples \
+               --enable-sundialsTB --with-sundialsTB-instdir=/home/myname/matlab
+\end{verbatim}
+
+
+\noindent To disable installation of the examples, use:
+\begin{verbatim}
+   % configure --prefix=/home/myname/sundials \
+               --enable-examples --with-examples-instdir=no \
+               --enable-sundialsTB --with-sundialsTB-instdir=/home/myname/matlab
+\end{verbatim}
+
+
+\noindent The following example builds {\sundials} using \id{gcc} as the serial {\C}
+compiler, \id{g77} as the serial {\F} compiler, \id{mpicc} as the parallel {\C}
+compiler, \id{mpif77} as the parallel {\F} compiler, and appends the \id{-g3}
+compilaton flag to the list of default flags:
+\begin{verbatim}
+   % configure CC=gcc F77=g77 --with-cflags=-g3 --with-fflags=-g3 \
+               --with-mpicc=/usr/apps/mpich/1.2.4/bin/mpicc \ 
+               --with-mpif77=/usr/apps/mpich/1.2.4/bin/mpif77
+\end{verbatim}
+
+
+\noindent The next example again builds {\sundials} using \id{gcc} as the serial
+{\C} compiler, but the \id{--with-mpicc=no} option explicitly disables the use
+of the corresponding {\mpi} compiler script. In addition, since the 
+\id{--with-mpi-root} option is given, the compilation flags
+\id{-I/usr/apps/mpich/1.2.4/include} and \id{-L/usr/apps/mpich/1.2.4/lib} are passed
+to \id{gcc} when compiling the {\mpi}-enabled functions. 
+The \id{--disable-examples} option explicitly disables the examples (which means
+a {\F} compiler is not required).
+The \id{--with-mpi-libs} option is required so that the configure
+script can check if \id{gcc} can link with the appropriate {\mpi}
+library.
+\begin{verbatim}
+   % configure CC=gcc --disable-examples --with-mpicc=no \
+               --with-mpi-root=/usr/apps/mpich/1.2.4 \
+               --with-mpi-libs=-lmpich
+\end{verbatim}
+
+
+
+%%===============================================================================
+
+\section{Installed libraries and exported header files}
+
+Using the standard {\sundials} build system, the command
+\begin{verbatim}
+   % make install
+\end{verbatim}
+will install the libraries under {\em libdir} and the public header
+files under {\em includedir}. The default values for these directories are
+{\em instdir}\id{/lib} and {\em instdir}\id{/include},
+respectively, but can be changed using the configure script options
+\id{--prefix}, \id{--exec-prefix}, \id{--includedir} and \id{--libdir} (see
+\S\ref{ss:configuration_options}). For example, a global installation
+of {\sundials} on a {\sc *NIX} system could be accomplished using
+\begin{verbatim}
+   % configure --prefix=/opt/sundials-2.1.1
+\end{verbatim}
+Although all installed libraries reside under {\em libdir}, the public header files
+are further organized into subdirectories under {\em includedir}.
+
+The installed libraries and exported header files are listed for
+reference in Table~\ref{t:sundials_files}.  The file extension .{\em lib}
+is typically \id{.so} for shared libraries and \id{.a} for static libraries
+(see {\em Options for library support} for additional details).
+
+A typical user program need not explicitly include any of the shared
+{\sundials} header files from under the {\em includedir}\id{/sundials}
+directory since they are explicitly included by the appropriate solver
+header files ({\em e.g.}, \id{cvode\_dense.h} includes
+\id{sundials\_dense.h}). However, it is both legal and safe to do so
+({\em e.g.}, the functions declared in \id{sundials\_smalldense.h} 
+could be used in building a preconditioner).
+
+\begin{table}
+\centering
+\caption{
+  SUNDIALS libraries and header files (names are relative to {\em libdir}
+  for libraries and to {\em includedir} for header files)
+}\label{t:sundials_files}
+\medskip
+\begin{tabular}{|l|l|ll|} 
+\hline %% --------------------------------------------------
+{\shared} & Libraries    & n/a                               &                                 \\ 
+\cline{2-4}
+          & Header files & sundials/sundials\_types.h        & sundials/sundials\_math.h   \\
+          &              & sundials/sundials\_config.h       & sundias/sundials\_nvector.h\\
+          &              & sundials/sunials\_smalldense.h    & sundials/sundials\_dense.h   \\
+          &              & sundials/sundials\_iterative.h    & sundials/sundials\_band.h\\
+          &              & sundials/sundials\_spbcgs.h       & sundials/sundials\_sptfqmr.h\\
+          &              & sundials/sundials\_spgmr.h        &                        \\ 
+\hline %% --------------------------------------------------
+{\nvecs}  & Libraries    & libsundials\_nvecserial.{\em lib} & libsundials\_fnvecserial.a  \\ 
+\cline{2-4}
+          & Header files & nvector/nvector\_serial.h         &                       \\ 
+\hline %% --------------------------------------------------
+{\nvecp}  & Libraries    & libsundials\_nvecparallel.{\em lib} & libsundials\_fnvecparallel.a \\
+\cline{2-4}
+          & Header files & nvector/nvector\_parallel.h               &                    \\ 
+\hline %% --------------------------------------------------
+{\cvode}  & Libraries    & libsundials\_cvode.{\em lib}      & libsundials\_fcvode.a \\
+\cline{2-4}
+          & Header files & cvode/cvode.h                           &                       \\
+          &              & cvode/cvode\_dense.h              & cvode/cvode\_band.h   \\
+          &              & cvode/cvode\_diag.h               & cvode/cvode\_spils.h  \\
+          &              & cvode/cvode\_bandpre.h            & cvode/cvode\_bbdpre.h \\
+          &              & cvode/cvode\_spgmr.h              & cvode/cvode\_spbcgs.h \\
+          &              & cvode/cvode\_sptfqmr.h            & cvode/cvode\_impl.h   \\
+\hline %% --------------------------------------------------
+{\cvodes} & Libraries    & libsundials\_cvodes.{\em lib}     &                        \\
+\cline{2-4}
+          & Header files & cvodes/cvodes.h                   &               \\
+          &              & cvodes/cvodes\_dense.h            & cvodes/cvodes\_band.h   \\
+          &              & cvodes/cvodes\_diag.h             & cvodes/cvodes\_spils.h  \\
+          &              & cvodes/cvodes\_bandpre.h          & cvodes/cvodes\_bbdpre.h \\
+          &              & cvodes/cvodes\_spgmr.h            & cvodes/cvodes\_spbcgs.h \\
+          &              & cvodes/cvodes\_sptfqmr.h          & cvodes/cvodes\_impl.h   \\
+          &              & cvodes/cvodea\_impl.h             &                     \\
+\hline %% --------------------------------------------------
+{\ida}    & Libraries    & libsundials\_ida.{\em lib}        & libsundials\_fida.a \\
+\cline{2-4}
+          & Header files & ida/ida.h                             &                     \\
+          &              & ida/ida\_dense.h                  & ida/ida\_band.h     \\
+          &              & ida/ida\_spils.h                  & ida/ida\_spgmr.h    \\
+          &              & ida/ida\_spbcgs.h                 & ida/ida\_sptfqmr.h  \\
+          &              & ida/ida\_bbdpre.h                 & ida/ida\_impl.h     \\
+\hline %% --------------------------------------------------
+{\idas}    & Libraries    & libsundials\_idas.{\em lib}      & \\
+\cline{2-4}
+          & Header files & idas/idas.h                       &                     \\
+          &              & idas/idas\_dense.h                & idas/idas\_band.h     \\
+          &              & idas/idas\_spils.h                & idas/idas\_spgmr.h    \\
+          &              & idas/idas\_spbcgs.h               & idas/idas\_sptfqmr.h  \\
+          &              & idas/idas\_bbdpre.h               & idas/idas\_impl.h     \\
+\hline %% --------------------------------------------------
+{\kinsol} & Libraries    & libsundials\_kinsol.{\em lib}     & libsundials\_fkinsol.a \\
+\cline{2-4}
+          & Header files & kinsol/kinsol.h                          &                     \\
+          &              & kinsol/kinsol\_dense.h            & kinsol/kinsol\_band.h     \\
+          &              & kinsol/kinsol\_spils.h            & kinsol/kinsol\_spgmr.h    \\
+          &              & kinsol/kinsol\_spbcgs.h           & kinsol/kinsol\_sptfqmr.h  \\
+          &              & kinsol/kinsol\_bbdpre.h           & kinsol/kinsol\_impl.h     \\
+\hline %% --------------------------------------------------
+\end{tabular}
+\end{table}
+
+%%===============================================================================
+
+\section{Building SUNDIALS without the configure script}\label{ss:no_config}
+
+If the \id{configure} script cannot be used ({\em e.g.}, when building
+{\sundials} under Microsoft Windows without using Cygwin), or if the
+user prefers to own the build process ({\em e.g.}, when {\sundials} is
+incorporated into a larger project with its own build system), then
+the header and source files for a given module can be copied from the
+{\em srcdir} to some other location and compiled separately.
+
+The following files are required to compile a {\sundials} solver module:
+\begin{itemize}
+\item public header files located under 
+{\em srcdir}\id{/include/}{\em solver}
+\item implementation header files and source files located under
+{\em srcdir}\id{/src/}{\em solver}
+\item (optional) {\F}/{\C} interface files located under
+{\em srcdir}\id{/src/}{\em solver}\id{/fcmix}
+\item shared public header files located under
+{\em srcdir}\id{/include/sundials}
+\item shared source files located under
+{\em srcdir}\id{/src/sundials}
+\item (optional) {\nvecs} header and source files located under
+{\em srcdir}\id{/include/nvector} and {\em srcdir}\id{/src/nvec\_ser} 
+\item (optional) {\nvecp} header and source files located under
+{\em srcdir}\id{/include/nvector} and {\em srcdir}\id{/src/nvec\_par} 
+\item configuration header file \id{sundials\_config.h} (see below)
+\end{itemize}
+
+A sample header file that, appropriately modified, can be used as
+\id{sundials\_config.h} (otherwise created automatically by the
+\id{configure} script) is provided below. The various preprocessor
+macros defined within \id{sundials\_config.h} have the following uses:
+\begin{itemize}
+
+\item Precision of the {\sundials} \id{realtype} type\\ \\
+  Only one of the macros \id{SUNDIALS\_SINGLE\_PRECISION}, \id{SUNDIALS\_DOUBLE\_PRECISION} and \\
+  \id{SUNDIALS\_EXTENDED\_PRECISION} should be defined to indicate if the {\sundials}
+  \id{realtype} type is an alias for \id{float}, \id{double}, or \id{long double},
+  respectively.
+
+\item Use of generic math functions\\ \\
+  If \id{SUNDIALS\_USE\_GENERIC\_MATH} is defined, then the functions
+  in \id{sundials\_math.(h,c)} will use the \id{pow}, \id{sqrt},
+  \id{fabs}, and \id{exp} functions from the standard math library
+  (see \id{math.h}), regardless of the definition of \id{realtype}.
+  Otherwise, if \id{realtype} is defined to be an alias for the
+  \id{float} {\C}-type, then {\sundials} will use \id{powf},
+  \id{sqrtf}, \id{fabsf}, and \id{expf}.  If \id{realtype} is instead
+  defined to be a synonym for the \id{long double} {\C}-type, then
+  \id{powl}, \id{sqrtl}, \id{fabsl}, and \id{expl} will be used.
+
+  {\em Note}: Although the \id{powf}/\id{powl}, \id{sqrtf}/\id{sqrtl},
+  \id{fabsf}/\id{fabsl}, and \id{expf}/\id{expl} routines are not
+  specified in the ANSI {\C} standard, they are ISO C99 requirements.
+  Consequently, these routines will only be used if available.
+
+\item {\F} name-mangling scheme\\ \\
+  The macros given below are used to transform the {\C}-language
+  function names defined in the {\F}-{\C} inteface modules in a manner
+  consistent with the preferred {\F} compiler, thus allowing native
+  {\C} functions to be called from within a {\F} subroutine. The
+  name-mangling scheme is specified by appropriately
+  defining the parameterized macros (using the stringization operator,
+  \id{\#\#}, if necessary)
+  \begin{itemize}
+  \item \id{F77\_FUNC(name,NAME)}
+  \item \id{F77\_FUNC\_(name,NAME)}
+  \end{itemize}
+
+  For example, to specify that mangled {\C}-language function names
+  should be lowercase with one underscore appended include
+\begin{verbatim}
+  #define F77_FUNC(name,NAME) name ## _
+  #define F77_FUNC_(name,NAME) name ## _
+\end{verbatim}
+  in the \id{sundials\_config.h} header file.
+
+\item Use of an {\mpi} communicator other than \id{MPI\_COMM\_WORLD} in {\F}\\ \\
+  If the macro \id{SUNDIALS\_MPI\_COMM\_F2C} is defined, then the
+  {\mpi} implementation used to build {\sundials} defines the type
+  \id{MPI\_Fint} and the function \id{MPI\_Comm\_f2c}, and it is
+  possible to use {\mpi} communicators other than
+  \id{MPI\_COMM\_WORLD} with the {\F}-{\C} interface modules.
+\end{itemize}
+
+\newpage
+\begin{lstlisting}
+/*
+ * -----------------------------------------------------------------
+ * Copyright (c) 2005, The Regents of the University of California.
+ * Produced at the Lawrence Livermore National Laboratory.
+ * All rights reserved.
+ * For details, see the LICENSE file.
+ *------------------------------------------------------------------
+ * SUNDIALS configuration header file
+ *------------------------------------------------------------------
+ */
+
+/* Define SUNDIALS version number */
+#define SUNDIALS_PACKAGE_VERSION "2.3.0"
+
+/* FCMIX: Define Fortran name-mangling macro 
+ * Depending on the inferred scheme, one of the following 
+ * six macros will be defined:
+ *     #define F77_FUNC(name,NAME) name
+ *     #define F77_FUNC(name,NAME) name ## _
+ *     #define F77_FUNC(name,NAME) name ## __
+ *     #define F77_FUNC(name,NAME) NAME
+ *     #define F77_FUNC(name,NAME) NAME ## _
+ *     #define F77_FUNC(name,NAME) NAME ## __
+ */
+#define F77_FUNC(name,NAME) name ## _
+#define F77_FUNC_(name,NAME) name ## _
+
+/* Define precision of SUNDIALS data type 'realtype' 
+ * Depending on the precision level, one of the following 
+ * three macros will be defined:
+ *     #define SUNDIALS_SINGLE_PRECISION 1
+ *     #define SUNDIALS_DOUBLE_PRECISION 1
+ *     #define SUNDIALS_EXTENDED_PRECISION 1
+ */
+#define SUNDIALS_DOUBLE_PRECISION 1
+
+/* Use generic math functions 
+ * If it was decided that generic math functions can be used, then
+ *     #define SUNDIALS_USE_GENERIC_MATH 1
+ * otherwise
+ *     #define SUNDIALS_USE_GENERIC_MATH 0
+ */
+#define SUNDIALS_USE_GENERIC_MATH 1
+
+/* FNVECTOR: Allow user to specify different MPI communicator
+ * If it was found that the MPI implementation supports MPI_Comm_f2c, then
+ *      #define SUNDIALS_MPI_COMM_F2C 1
+ * otherwise
+ *      #define SUNDIALS_MPI_COMM_F2C 0
+ */
+#define SUNDIALS_MPI_COMM_F2C 1
+
+\end{lstlisting}

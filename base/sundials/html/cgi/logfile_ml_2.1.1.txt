@@ -1,0 +1,393 @@
+09:04:44 01/27/05 | keg@llnl.gov | subscribe sundials-announce sundials-users
+09:08:11 01/27/05 | raduserban@yahoo.com | subscribe sundials-announce
+09:22:44 01/27/05 | collier6@llnl.gov | subscribe sundials-announce sundials-users
+09:24:41 01/27/05 | reynoldd@llnl.gov | subscribe sundials-announce
+09:25:11 01/27/05 | reynoldd@llnl.gov | subscribe sundials-users
+01:37:34 02/01/05 | miha@mpi-magdeburg.mpg.de | subscribe sundials-announce sundials-users
+03:29:34 02/01/05 | xtof@tbi.univie.ac.at | subscribe sundials-announce sundials-users
+13:41:02 02/01/05 | alanh@llnl.gov | subscribe sundials-announce sundials-users
+17:43:05 02/01/05 | davidannetts@aapt.net.au | subscribe sundials-announce sundials-users
+08:40:24 02/02/05 | pwc106@psu.edu | subscribe sundials-announce sundials-users
+14:16:48 02/02/05 | mayya@math.berkeley.edu | subscribe sundials-announce sundials-users
+10:48:10 02/03/05 | krivilli@unberwoot.net | subscribe sundials-announce
+00:48:24 02/05/05 | tompz@netscape.net | subscribe sundials-announce
+03:02:10 02/06/05 | wanglinxiang@yahoo.com | subscribe sundials-announce sundials-users
+10:07:40 02/06/05 | siamak.lina@vif.com | subscribe sundials-announce sundials-users
+18:49:48 02/06/05 | cbean@cs.usfca.edu | subscribe sundials-announce sundials-users
+15:24:29 02/07/05 | jlondono@math.ucr.edu | subscribe sundials-announce
+03:36:07 02/09/05 | ecatinas@ictp.acad.ro | subscribe sundials-announce sundials-users
+04:40:28 02/09/05 | p.vanleemput@skynet.be | subscribe sundials-announce
+04:41:21 02/09/05 | paul.letexier@cea.fr | subscribe sundials-announce sundials-users
+05:05:28 02/09/05 | p.vanleemput@skynet.be | subscribe sundials-announce sundials-users
+10:44:10 02/10/05 | gsohl@jpl.nasa.gov | subscribe sundials-users
+17:36:04 02/10/05 | Cemal.Ercan@conocophillips.com | subscribe sundials-announce sundials-users
+06:04:01 02/11/05 | namesake@willhutchins.org | subscribe sundials-announce sundials-users
+08:40:03 02/11/05 | fox@hogskull.net | subscribe sundials-announce sundials-users
+16:26:51 02/11/05 | jalondon@eafit.edu.co | subscribe sundials-announce
+07:23:06 02/12/05 | wiitanen@paonia.com | subscribe sundials-announce
+18:24:31 02/12/05 | a.kaliazin@aston.ac.uk | subscribe sundials-announce sundials-users
+06:43:00 02/13/05 | sdupree@computational-astronomer.com | subscribe sundials-announce sundials-users
+06:55:17 02/13/05 | sdupree@computational-astronomer.com | subscribe sundials-announce sundials-users
+03:11:46 02/14/05 | petbu@ida.liu.se | subscribe sundials-announce
+08:37:43 02/15/05 | Laurent_Testard@mentor.com | subscribe sundials-announce sundials-users
+14:10:33 02/15/05 | gautam@cc.gatech.edu | subscribe sundials-announce sundials-users
+16:24:03 02/15/05 | chnfld@ayayai.com | subscribe sundials-announce sundials-users
+23:15:58 02/16/05 | godzilla@burningbridges.com | subscribe sundials-announce sundials-users
+03:03:00 02/17/05 | liaohaohui@gmail.com | subscribe sundials-announce
+22:13:40 02/17/05 | imipak@yahoo.com | subscribe sundials-announce
+02:57:53 02/21/05 | p.vanleemput@skynet.be | subscribe sundials-announce
+10:07:23 02/21/05 | werner.scholz@tuwien.ac.at | subscribe sundials-announce sundials-users
+07:17:36 02/23/05 | gus@ldeo.columbia.edu | subscribe sundials-announce sundials-users
+09:28:10 02/23/05 | gus@ldeo.columbia.edu | subscribe sundials-announce sundials-users
+15:46:56 02/23/05 | jptrelles@me.umn.edu | subscribe sundials-announce sundials-users
+17:44:55 02/25/05 | qz27@cornell.edu | subscribe sundials-announce
+07:47:01 02/26/05 | alexandre.donze@imag.fr | subscribe sundials-announce
+12:23:25 02/26/05 | mqt@gridcore.se | subscribe sundials-announce
+02:49:34 03/01/05 | jhussong@atlasmtt.de | subscribe sundials-users
+14:25:12 03/01/05 | stu.t@Ihug.com.au | subscribe sundials-announce sundials-users
+14:25:30 03/01/05 | stu.t@Ihug.com.au | subscribe sundials-announce sundials-users
+18:42:16 03/01/05 | andrey@enginum.com | subscribe sundials-users
+04:50:56 03/02/05 | andrew@eq.uc.pt | subscribe sundials-announce
+10:38:24 03/03/05 | ischoegl@mail.utexas.edu | subscribe sundials-announce
+14:04:18 03/03/05 | ian@ianbparker.co.uk | subscribe sundials-announce sundials-users
+14:32:11 03/03/05 | chnfld@ayayai.com | subscribe sundials-announce sundials-users
+20:52:51 03/03/05 | falpak@mail.utexas.edu | subscribe sundials-announce sundials-users
+20:53:03 03/03/05 | falpak@mail.utexas.edu | subscribe sundials-announce sundials-users
+20:55:09 03/03/05 | falpak@mail.utexas.edu | subscribe sundials-announce sundials-users
+00:09:19 03/04/05 | joachim.franek@pibf.de | subscribe sundials-users
+03:30:16 03/04/05 | andrew491@mail.ru | subscribe sundials-announce
+21:44:17 03/05/05 | wekii@ms52.url.com.tw | subscribe sundials-users
+19:05:32 03/08/05 | cbennett@oger.rutgers.edu | subscribe sundials-announce
+02:57:40 03/11/05 | raoul.holder@gmx.de | subscribe sundials-users
+15:57:48 03/13/05 | TunaMacCheese@hotmail.com | subscribe sundials-announce sundials-users
+15:22:43 03/14/05 | sdupree@computational-astronomer.com | subscribe sundials-announce sundials-users
+19:47:15 03/14/05 | castrove1@allvantage.com | subscribe sundials-announce sundials-users
+01:08:20 03/15/05 | krzych@el.pcz.czest.pl | unsubscribe sundials-announce sundials-users
+10:19:14 03/16/05 | ericssoj@minotstateu.edu | subscribe sundials-announce sundials-users
+18:05:07 03/17/05 | akinjo@genes.nig.ac.jp | subscribe sundials-announce sundials-users
+14:15:58 03/21/05 | reyyankoc@gmail.com | subscribe sundials-announce sundials-users
+03:57:25 03/23/05 | huseman@gmx.de | subscribe sundials-announce
+04:22:10 03/24/05 | ma.meyer@tu-bs.de | subscribe sundials-announce sundials-users
+14:29:26 03/24/05 | jdgleeson@mac.com | subscribe sundials-announce sundials-users
+08:54:00 03/25/05 | paolo.greppi@tiscali.it | subscribe sundials-announce sundials-users
+19:05:04 03/29/05 | andreas.nicolai@gmx.net | subscribe sundials-users
+16:41:27 03/30/05 | msherman@stanford.edu | subscribe sundials-announce sundials-users
+22:25:00 03/31/05 | rdcrowe@charter.net | unsubscribe sundials-announce sundials-users
+05:31:00 04/01/05 | arho.virkki@utu.fi | subscribe sundials-announce sundials-users
+19:58:41 04/01/05 | nedialk@mcmaster.ca | subscribe sundials-announce sundials-users
+05:24:44 04/09/05 | rawat@crsim.utah.edu | subscribe sundials-announce sundials-users
+06:27:51 04/12/05 | mbg@ugr.es | subscribe sundials-announce sundials-users
+11:10:19 04/13/05 | pwc106@psu.edu | subscribe sundials-announce sundials-users
+12:51:43 04/13/05 | septimus_jr@yahoo.com | subscribe sundials-announce
+06:50:41 04/21/05 | inconnu@list.ru | subscribe sundials-announce sundials-users
+08:13:13 04/22/05 | v.rath@geophysik.rwth-aachen.de | subscribe sundials-announce sundials-users
+18:18:07 04/26/05 | bcollins@caltech.edu | unsubscribe sundials-announce sundials-users
+18:18:24 04/26/05 | bfc@tapir.caltech.edu | subscribe sundials-announce sundials-users
+07:28:22 04/27/05 | thuemmle@math.uni-bielefeld.de | subscribe sundials-announce sundials-users
+16:59:01 04/28/05 | wong@entelos.com | subscribe sundials-announce sundials-users
+08:00:25 04/29/05 | hzhang@mcs.anl.gov | subscribe sundials-announce
+15:21:03 04/29/05 | siamak.lina@vif.com | subscribe sundials-announce sundials-users
+13:08:18 05/01/05 | fsaric@yahoo.se | subscribe sundials-announce
+08:21:00 05/03/05 | mostafa@crt.umontreal.ca | subscribe sundials-announce sundials-users
+08:29:29 05/06/05 | hwang1967@yahoo.com | unsubscribe sundials-users
+08:29:44 05/06/05 | hwang1967@yahoo.com | unsubscribe sundials-users
+16:58:59 05/08/05 | bahrens@ucla.edu | subscribe sundials-announce sundials-users
+09:11:01 05/10/05 | e.david.huckaby@netl.doe.gov | subscribe sundials-announce
+22:11:25 05/10/05 | myung@fusma.snu.ac.kr | subscribe sundials-announce sundials-users
+16:21:58 05/11/05 | hsauro@kgi.edu | subscribe sundials-users
+14:34:08 05/12/05 | BerndHausmann@gmx.net | subscribe sundials-users
+10:53:04 05/13/05 | jwe@bevo.che.wisc.edu | subscribe sundials-announce sundials-users
+08:05:17 05/16/05 | william.bailey@afit.edu | subscribe sundials-announce sundials-users
+19:48:26 05/16/05 | thompson@radford.edu | subscribe sundials-announce sundials-users
+00:42:13 05/17/05 | wanglinxiang@yahoo.com | unsubscribe sundials-announce sundials-users
+01:39:37 05/17/05 | bgoli@sun.ac.za | subscribe sundials-announce sundials-users
+08:39:09 05/17/05 | hwang1967@yahoo.com | subscribe sundials-users
+00:02:23 05/18/05 | rmihalich@iol.it | subscribe sundials-announce
+00:19:42 05/18/05 | fechner@ibk.arch.tu-dresden.de | subscribe sundials-users
+08:19:58 05/18/05 | abakis@gsu.edu.tr | subscribe sundials-users
+12:38:03 05/18/05 | mark.davis@uop.com | subscribe sundials-announce sundials-users
+04:12:53 05/19/05 | asanchez@mafalda.cps.unizar.es | subscribe sundials-announce sundials-users
+05:16:32 05/19/05 | shusa@aei.mpg.de | subscribe sundials-announce sundials-users
+15:09:25 05/19/05 | abakis@gsu.edu.tr | subscribe sundials-users
+06:20:10 05/22/05 | sdupree@computational-astronomer.com | subscribe sundials-announce sundials-users
+14:03:51 05/23/05 | wzhang@na-net.ornl.gov | subscribe sundials-users
+08:49:50 05/24/05 | David.Wade@gat.com | subscribe sundials-announce sundials-users
+06:28:04 05/25/05 | Anastasios.Skoulidas@exxonmobil.com | subscribe sundials-users
+21:59:50 05/30/05 | john.pye@student.unsw.edu.au | subscribe sundials-announce sundials-users
+11:29:38 06/01/05 | bjcbfc@mizzou.edu | subscribe sundials-users
+04:43:13 06/02/05 | raim@tbi.univie.ac.at | subscribe sundials-announce sundials-users
+23:34:43 06/05/05 | john.pye@student.unsw.edu.au | subscribe sundials-users
+03:33:42 06/07/05 | w.ruijter@alumnus.utwente.nl | subscribe sundials-users
+05:52:20 06/07/05 | villagra@ensmp.fr | subscribe sundials-announce sundials-users
+14:04:39 06/07/05 | pimanrhoads@yahoo.com | subscribe sundials-announce sundials-users
+08:03:49 06/09/05 | jacklm@stanford.edu | subscribe sundials-users
+13:00:56 06/11/05 | nyabed@yahoo.com | subscribe sundials-announce sundials-users
+23:25:57 06/13/05 | joe.mmbaga@ualberta.CA | subscribe sundials-users
+07:48:42 06/16/05 | schuele@icvt.uni-stuttgart.de | subscribe sundials-announce
+05:25:39 06/17/05 | stg@inf.ed.ac.uk | subscribe sundials-announce sundials-users
+02:28:25 06/30/05 | julio@iim.csic.es | subscribe sundials-announce sundials-users
+07:01:08 07/01/05 | keithsill@mac.com | subscribe sundials-announce sundials-users
+01:24:25 07/05/05 | marcuzzi@math.unipd.it | subscribe sundials-announce sundials-users
+23:34:45 07/05/05 | praveenurs@excite.com | subscribe sundials-announce sundials-users
+11:02:33 07/06/05 | dhalpern@bama.ua.edu | subscribe sundials-announce sundials-users
+10:36:52 07/07/05 | jlinform@worldonline.es | subscribe sundials-announce
+02:18:29 07/08/05 | wwb3@comcast.net | subscribe sundials-announce sundials-users
+16:36:14 07/08/05 | palasek@llnl.gov | subscribe sundials-announce sundials-users
+01:23:15 07/10/05 | casuj@orionmulti.com | subscribe sundials-announce sundials-users
+02:25:46 07/11/05 | john.pye@student.unsw.edu.au | subscribe sundials-announce sundials-users
+14:25:03 07/14/05 | pasacki@sandia.gov | subscribe sundials-announce
+05:15:10 07/18/05 | sijung@tataelxsi.co.in | subscribe sundials-users
+04:20:59 07/19/05 | albert.riego@upc.edu | subscribe sundials-users
+07:56:07 07/19/05 | agml@hellix.com | subscribe sundials-announce sundials-users
+05:50:43 07/20/05 | dhalpern@euler.math.ua.edu | subscribe sundials-users
+13:15:56 07/20/05 | dano4king@yahoo.com | subscribe sundials-announce sundials-users
+23:33:08 07/21/05 | raoul.holder@gmx.de | unsubscribe sundials-users
+23:33:22 07/21/05 | raoul.holder@gmx.de | unsubscribe sundials-announce sundials-users
+06:02:06 07/22/05 | paczko@itm.rwth-aachen.de | subscribe sundials-users
+10:23:32 07/22/05 | lilian@dcc.ufmg.br | subscribe sundials-users
+13:50:00 07/22/05 | shalevy@abac.com | subscribe sundials-announce
+16:07:30 07/22/05 | jianmin.bai@gmail.com | subscribe sundials-announce sundials-users
+18:48:02 07/22/05 | bchachua@mit.edu | subscribe sundials-announce
+07:32:07 07/26/05 | ezander@tu-bs.de | subscribe sundials-announce sundials-users
+10:00:38 07/26/05 | ingehap@start.no | subscribe sundials-announce
+11:32:01 07/26/05 | ischoegl@mail.utexas.edu | subscribe sundials-users
+16:22:25 07/26/05 | alkchen@ucdavis.edu | subscribe sundials-announce sundials-users
+16:22:32 07/26/05 | alkchen@ucdavis.edu | subscribe sundials-announce sundials-users
+10:03:24 07/27/05 | brugolsky@telemetry-investments.com | subscribe sundials-announce
+07:04:31 07/28/05 | peterp@ouzo.njit.edu | subscribe sundials-users
+09:19:24 07/28/05 | raorm@clarkson.edu | subscribe sundials-users
+09:37:16 07/28/05 | a.carl@ngc.com | subscribe sundials-announce sundials-users
+12:53:19 07/29/05 | TunaMacCheese@hotmail.com | subscribe sundials-announce sundials-users
+15:29:24 07/29/05 | fickie@kayjed.com | subscribe sundials-announce
+06:04:49 07/31/05 | hrnajafi@hotmail.com | subscribe sundials-users
+12:07:37 08/01/05 | hugues.dulot@ifp.fr | subscribe sundials-announce
+01:30:13 08/02/05 | eugeniopodda-mail@yahoo.it | subscribe sundials-announce sundials-users
+04:48:47 08/02/05 | gaspari@tin.it | subscribe sundials-users
+19:38:18 08/02/05 | yosifumi@thermo.t.u-tokyo.ac.jp | subscribe sundials-announce sundials-users
+23:41:32 08/02/05 | yoshiie@rri.kyoto-u.ac.jp | subscribe sundials-users
+05:27:19 08/05/05 | u9553878@qub.ac.uk | subscribe sundials-users
+07:19:50 08/05/05 | bakoukhta@mtu-net.ru | subscribe sundials-announce sundials-users
+12:17:58 08/05/05 | Vasyunin@mail.ru | subscribe sundials-announce sundials-users
+17:26:00 08/07/05 | glenn@componic.co.nz | subscribe sundials-users
+19:20:13 08/08/05 | snortysoap@21cn.com | subscribe sundials-announce sundials-users
+09:19:27 08/09/05 | xy2102@columbia.edu | subscribe sundials-announce sundials-users
+09:25:04 08/09/05 | xy2102@gmail.com | subscribe sundials-announce sundials-users
+22:00:01 08/11/05 | ckw@kisti.re.kr | subscribe sundials-announce sundials-users
+00:20:48 08/12/05 | cedric.rustin@fpms.ac.be | subscribe sundials-users
+17:14:30 08/12/05 | shaunak@caltech.edu | subscribe sundials-announce sundials-users
+23:56:54 08/13/05 | yanghaisheng1975@hotmail.com | subscribe sundials-announce sundials-users
+18:06:38 08/14/05 | alkchen@ucdavis.edu | subscribe sundials-announce sundials-users
+18:12:06 08/14/05 | alkchen@ucdavis.edu | subscribe sundials-announce sundials-users
+23:07:12 08/14/05 | vhl30@yahoo.com | subscribe sundials-announce sundials-users
+01:33:43 08/15/05 | rameshkudenatti@rediffmail.com | subscribe sundials-users
+08:49:58 08/15/05 | w.ruijter@alumnus.utwente.nl | unsubscribe sundials-users
+11:53:28 08/15/05 | hang.su@vanderbilt.edu | subscribe sundials-users
+18:26:31 08/16/05 | alkchen@ucdavis.edu | subscribe sundials-announce sundials-users
+07:58:52 08/18/05 | mak@maths.warwick.ac.uk | subscribe sundials-announce sundials-users
+11:22:46 08/18/05 | econrad@vt.edu | subscribe sundials-announce sundials-users
+12:30:50 08/19/05 | hang.su@vanderbilt.edu | subscribe sundials-users
+06:07:37 08/21/05 | aendey@hotmail.com | subscribe sundials-users
+08:00:33 08/21/05 | maxwell5@llnl.gov | subscribe sundials-announce sundials-users
+16:16:12 08/23/05 | klinke@entelos.com | subscribe sundials-users
+07:59:25 08/24/05 | rca@aero-optics.com | subscribe sundials-announce sundials-users
+12:20:04 08/24/05 | sxh333@psu.edu | subscribe sundials-users
+08:34:58 08/25/05 | robert.bell@enginomix.net | subscribe sundials-announce
+03:26:21 08/27/05 | fdurao@clix.pt | subscribe sundials-announce
+17:37:00 08/28/05 | yuanlin1982@etang.com | subscribe sundials-announce sundials-users
+00:37:45 08/29/05 | pclaeys@biomath.ugent.be | subscribe sundials-users
+17:16:37 08/29/05 | rajiv.chaturvedi@sickkids.ca | subscribe sundials-announce
+20:01:57 08/31/05 | schiberg@smmail.cn | subscribe sundials-announce sundials-users
+08:38:55 09/02/05 | w.e.wolski@ncl.ac.uk | subscribe sundials-users
+15:13:50 09/03/05 | d-klinke@mindspring.com | subscribe sundials-announce
+09:59:01 09/05/05 | maxime.barrault@edf.fr | subscribe sundials-announce sundials-users
+04:26:22 09/11/05 | fsilva@dq.ua.pt | subscribe sundials-announce sundials-users
+07:27:36 09/13/05 | smallhare@inbox.ru | subscribe sundials-announce sundials-users
+12:20:15 09/14/05 | simon.see@sun.com | subscribe sundials-announce sundials-users
+03:09:01 09/15/05 | vlasov-vdv@yandex.ru | subscribe sundials-announce
+13:13:15 09/16/05 | mercuriallis@mail.ru | subscribe sundials-users
+02:29:31 09/19/05 | yrjo.leino@csc.fi | subscribe sundials-announce
+09:43:08 09/19/05 | vlasov-vdv@yandex.ru | subscribe sundials-announce
+05:05:48 09/22/05 | a.sbai@brgm.fr | subscribe sundials-announce
+12:37:16 09/23/05 | WLK_chemengr@hotmail.com | subscribe sundials-announce sundials-users
+13:27:38 09/24/05 | kat_iois@hotmail.com | subscribe sundials-users
+02:55:52 09/25/05 | politis@cperi.certh.gr | subscribe sundials-announce sundials-users
+01:27:18 09/26/05 | jamesl.lu@oeaw.ac.at | subscribe sundials-announce sundials-users
+10:14:24 09/26/05 | arnol122@gmail.com | subscribe sundials-announce sundials-users
+19:08:25 09/26/05 | jimh@lobach.jsd.claremont.edu | subscribe sundials-announce sundials-users
+15:52:51 09/27/05 | mikael.mortensen@aeromech.usyd.edu.au | subscribe sundials-announce sundials-users
+14:34:48 09/28/05 | jessefrumkin2@hotmail.com | subscribe sundials-users
+17:26:13 09/28/05 | zeyao_mo@iapcm.ac.cn | subscribe sundials-announce sundials-users
+01:20:23 09/29/05 | bruno.g.noel@renault.com | subscribe sundials-announce sundials-users
+02:48:31 09/29/05 | przykry@mimuw.edu.pl | subscribe sundials-announce sundials-users
+07:49:31 10/03/05 | vinayak.kumar@gmail.com | subscribe sundials-announce sundials-users
+08:52:46 10/03/05 | jouraku@symbio.jst.go.jp | subscribe sundials-announce
+00:01:56 10/04/05 | senff@khslight.com | subscribe sundials-users
+06:37:47 10/04/05 | matteospinella@gmail.com | subscribe sundials-announce
+15:12:31 10/04/05 | flaherty@berkeley.edu | subscribe sundials-announce
+20:47:58 10/04/05 | mourad_benakli@maxtor.com | subscribe sundials-announce
+06:45:14 10/05/05 | lawrence.daniels@aspentech.com | subscribe sundials-announce sundials-users
+18:44:57 10/10/05 | muk139@psu.edu | subscribe sundials-announce sundials-users
+19:36:00 10/12/05 | kamaraju@gmail.com | subscribe sundials-announce sundials-users
+11:24:29 10/13/05 | yan-ming.li@sylvania.com | subscribe sundials-announce
+08:52:12 10/14/05 | jnason@mail.utexas.edu | subscribe sundials-users
+09:46:00 10/14/05 | anastasios.skoulidas@exxonmobil.com | unsubscribe sundials-announce sundials-users
+04:50:57 10/15/05 | kaimovitz@gmail.com | subscribe sundials-announce sundials-users
+06:21:52 10/15/05 | j.w.lu@taisil.com.tw | subscribe sundials-users
+19:15:14 10/15/05 | bjcbfc@mizzou.edu | unsubscribe sundials-users
+15:43:18 10/16/05 | JSL@chem.wayne.edu | subscribe sundials-users
+11:34:16 10/18/05 | prevost@princeton.edu | subscribe sundials-announce sundials-users
+07:52:41 10/21/05 | avassilicos@uss.com | subscribe sundials-announce sundials-users
+17:50:17 10/21/05 | ramiro@willmersdorf.net | subscribe sundials-announce
+09:27:43 10/22/05 | dgoodwin@caltech.edu | subscribe sundials-announce sundials-users
+12:06:32 10/22/05 | grbfe@yahoo.co.uk | subscribe sundials-announce sundials-users
+01:27:51 10/24/05 | david.guibert@cdcsp.univ-lyon1.fr | subscribe sundials-announce sundials-users
+02:09:22 10/25/05 | asesh_r@yahoo.com | subscribe sundials-announce sundials-users
+05:47:17 10/25/05 | jx6@daimlerchrysler.com | subscribe sundials-announce sundials-users
+14:40:18 10/28/05 | alkchen@ucdavis.edu | unsubscribe sundials-announce sundials-users
+19:13:08 10/28/05 | fcelik@sympatico.ca | subscribe sundials-announce
+00:09:11 11/01/05 | aendey@163.com | subscribe sundials-users
+00:09:44 11/01/05 | aendey@163.com | subscribe sundials-users
+13:16:34 11/01/05 | manifold90@yahoo.com | subscribe sundials-announce sundials-users
+00:15:09 11/03/05 | ealopez@ufpe.br | subscribe sundials-users
+07:41:29 11/03/05 | elena.chouteau@lcd.ensma.fr | subscribe sundials-users
+04:58:53 11/04/05 | andras.varga@dlr.de | subscribe sundials-announce
+21:20:35 11/04/05 | vijayasekaranb@rediffmail.com | subscribe sundials-announce sundials-users
+08:15:42 11/05/05 | mrcosta@fe.up.pt | subscribe sundials-announce
+08:52:16 11/10/05 | afinney@physiomics-plc.com | subscribe sundials-users
+12:28:01 11/10/05 | pete@experiment626.plus.com | subscribe sundials-announce sundials-users
+22:21:43 11/10/05 | shaozhi_yu@21cn.com | subscribe sundials-users
+15:30:13 11/13/05 | lery@cp.dias.ie | subscribe sundials-announce sundials-users
+01:32:48 11/14/05 | benedict-geihe@gmx.de | subscribe sundials-announce sundials-users
+08:26:04 11/14/05 | hkmoffa@sandia.gov | subscribe sundials-announce
+00:21:27 11/15/05 | k.m.nauta@tue.nl | subscribe sundials-announce sundials-users
+00:41:07 11/16/05 | admitry311@yandex.ru | subscribe sundials-announce sundials-users
+13:58:14 11/23/05 | gchen@csit.fsu.edu | subscribe sundials-users
+19:24:48 11/24/05 | ifky@tom.com | subscribe sundials-users
+13:49:31 11/26/05 | zxb0412@hotmail.com | subscribe sundials-announce sundials-users
+16:18:41 11/26/05 | litvinov@techem.rub.de | subscribe sundials-announce
+06:09:54 11/27/05 | litvinov@techem.rub.de | subscribe sundials-users
+18:47:45 11/27/05 | iochoa@ieee.org | subscribe sundials-announce sundials-users
+08:37:17 11/28/05 | rieken@is.naist.jp | subscribe sundials-users
+17:35:26 12/01/05 | krlong@sandia.gov | subscribe sundials-announce sundials-users
+22:22:24 12/02/05 | axel@rossberg.net | subscribe sundials-announce
+03:38:32 12/03/05 | Zhang_aiguo@sae.com.hk | subscribe sundials-users
+20:12:27 12/04/05 | matheou@caltech.edu | subscribe sundials-announce sundials-users
+01:32:32 12/06/05 | ltaiyuan@163.com | subscribe sundials-announce sundials-users
+16:47:07 12/06/05 | wladimyrmd@yahoo.com.br | subscribe sundials-announce sundials-users
+23:22:48 12/08/05 | xchen@njnu.edu.cn | subscribe sundials-announce
+16:05:59 12/09/05 | krlong@sandia.gov | subscribe sundials-users
+21:36:01 12/11/05 | derekroconnor@eircom.net | subscribe sundials-announce
+17:04:45 12/12/05 | mcantor@stanford.edu | subscribe sundials-users
+02:11:32 12/13/05 | chalupec@kmlinux.fjfi.cvut.cz | subscribe sundials-announce sundials-users
+03:51:24 12/13/05 | ebalsa@iim.csic.es | subscribe sundials-users
+05:31:55 12/13/05 | emilia.solano@ciemat.es | subscribe sundials-users
+16:01:24 12/15/05 | grs2103@columbia.edu | subscribe sundials-announce
+04:37:55 12/16/05 | kennethk@princeton.edu | subscribe sundials-announce
+06:24:46 12/16/05 | mehmet_morali@hotmail.com | subscribe sundials-announce sundials-users
+03:40:59 12/19/05 | christian.vontoerne@bayertechnology.com | subscribe sundials-announce
+04:06:32 12/19/05 | Adrian.Dietz@gmail.com | subscribe sundials-announce sundials-users
+05:01:55 12/19/05 | matteospinella@gmail.com | subscribe sundials-announce sundials-users
+09:55:13 12/20/05 | james.lu@oeaw.ac.at | subscribe sundials-announce sundials-users
+11:31:07 12/20/05 | mcanto@stanford.edu | subscribe sundials-users
+11:31:14 12/20/05 | mcantor@stanford.edu | subscribe sundials-users
+10:03:27 12/22/05 | kuwahara@cs.utah.edu | subscribe sundials-announce sundials-users
+12:51:41 12/22/05 | richard.burnes@navy.mil | subscribe sundials-announce
+07:24:51 01/04/06 | kkrebs@mindspring.com | subscribe sundials-announce sundials-users
+14:21:45 01/04/06 | duane.whitney@gmail.com | subscribe sundials-announce sundials-users
+00:37:24 01/06/06 | harish.khjauria@honeywell.com | subscribe sundials-announce sundials-users
+09:01:58 01/06/06 | kying@pppl.gov | subscribe sundials-announce sundials-users
+10:29:21 01/06/06 | stefanobaldacci@yahoo.com | subscribe sundials-announce sundials-users
+12:07:16 01/08/06 | mostafa@crt.umontreal.ca | subscribe sundials-announce sundials-users
+04:09:46 01/10/06 | tmkim@kaist.ac.kr | subscribe sundials-announce sundials-users
+20:13:02 01/11/06 | schultz.201@osu.edu | subscribe sundials-announce
+05:35:49 01/13/06 | fl4zhou@gmail.com | subscribe sundials-announce sundials-users
+12:12:37 01/13/06 | henning@hschmidt.de | subscribe sundials-announce sundials-users
+08:21:01 01/17/06 | jarausch@igpm.rwth-aachen.de | subscribe sundials-announce
+22:50:30 01/17/06 | trinhsh@swbell.net | subscribe sundials-announce
+06:39:38 01/18/06 | radek.pecher@eng.ox.ac.uk | subscribe sundials-announce sundials-users
+18:19:19 01/19/06 | luvsharma01@gmail.com | subscribe sundials-announce sundials-users
+17:33:30 01/22/06 | xtq1212@163.com | subscribe sundials-announce sundials-users
+11:11:41 01/25/06 | keithsill@mac.com | unsubscribe sundials-announce sundials-users
+11:11:59 01/25/06 | keith.sill@gmail.com | unsubscribe sundials-announce sundials-users
+11:12:34 01/25/06 | keith.sill@gmail.com | unsubscribe sundials-users
+11:12:47 01/25/06 | keith.sill@gmail.com | unsubscribe sundials-announce
+11:13:06 01/25/06 | keithsill@mac.com | unsubscribe sundials-users
+11:20:02 01/25/06 | raduserban@yahoo.com | subscribe sundials-users
+11:20:19 01/25/06 | raduserban@yahoo.com | subscribe sundials-users
+11:20:51 01/26/06 | kvm@cfdrc.com | subscribe sundials-users
+23:51:18 01/26/06 | nwagner@mecha.uni-stuttgart.de | subscribe sundials-users
+04:58:42 01/31/06 | kjohnk@science.uva.nl | subscribe sundials-announce
+11:44:08 01/31/06 | raj_duffy@yahoo.com | subscribe sundials-announce sundials-users
+07:42:15 02/01/06 | elena.chouteau@lcd.ensma.fr | unsubscribe sundials-announce sundials-users
+15:43:50 02/01/06 | ksinghal@synopsys.com | subscribe sundials-announce sundials-users
+23:24:34 02/01/06 | runghenh@mx.uom.ac.mu | subscribe sundials-users
+09:47:41 02/03/06 | lcchien@berkeley.edu | subscribe sundials-announce sundials-users
+03:15:30 02/05/06 | j.tegner@telia.com | subscribe sundials-announce sundials-users
+18:39:01 02/07/06 | ONG_Eng_Teo@dsi.a-star.edu.sg | subscribe sundials-announce sundials-users
+18:31:28 02/10/06 | hbazzazi@jhmi.edu | subscribe sundials-announce
+16:39:05 02/11/06 | Patrick.Nash@utsa.edu | subscribe sundials-announce
+11:19:39 02/13/06 | kaok@gdls.com | subscribe sundials-announce sundials-users
+14:53:19 02/14/06 | sul19@psu.edu | subscribe sundials-announce sundials-users
+21:43:31 02/16/06 | j.pearce@auckland.ac.nz | unsubscribe sundials-users
+21:44:04 02/16/06 | j.pearce@auckland.ac.nz | subscribe sundials-announce
+09:49:26 02/17/06 | chand1@llnl.gov | subscribe sundials-users
+00:30:40 02/18/06 | ramis.mov@gmail.com | subscribe sundials-announce sundials-users
+17:09:41 02/18/06 | schultz.201@osu.edu | subscribe sundials-announce
+08:19:56 02/19/06 | doncrook@comcast.net | subscribe sundials-users
+22:12:01 02/19/06 | mtruman@kconline.com | subscribe sundials-announce sundials-users
+03:50:33 02/20/06 | alberto.sanchez.insa@unizar.es | subscribe sundials-users
+04:32:39 02/20/06 | arunmurthy@satyam.net.in | subscribe sundials-users
+10:10:15 02/20/06 | ramis.mov@gmail.com | subscribe sundials-users
+16:04:52 02/20/06 | esteban@lovipp.com | subscribe sundials-users
+23:16:57 02/20/06 | krisbeeson80@yahoo.com | subscribe sundials-users
+06:39:35 02/21/06 | Zaloj@tc.cornell.edu | subscribe sundials-announce
+01:47:06 02/22/06 | wlokas@ivg.uni-duisburg.de | subscribe sundials-announce
+02:13:59 02/22/06 | jon@mail.utexas.edu | subscribe sundials-announce sundials-users
+04:31:16 02/22/06 | cheskis@post.tau.ac.il | subscribe sundials-announce sundials-users
+12:48:30 02/22/06 | efvogel@eastman.com | subscribe sundials-announce sundials-users
+22:55:54 02/23/06 | coolcat@postech.ac.kr | subscribe sundials-announce sundials-users
+23:05:07 02/23/06 | coolcat@postech.ac.kr | subscribe sundials-announce sundials-users
+14:49:58 02/25/06 | peter_graf@nrel.gov | subscribe sundials-announce sundials-users
+22:14:12 02/26/06 | gregbrickmason@yahoo.com | subscribe sundials-users
+00:32:53 02/27/06 | anaximander@gmx.de | subscribe sundials-announce sundials-users
+07:59:18 02/27/06 | christos.frouzakis@gmail.com | subscribe sundials-announce sundials-users
+09:09:25 02/27/06 | asalterain@ceit.es | subscribe sundials-users
+21:55:50 02/27/06 | anirudhdevgan@gmail.com | subscribe sundials-announce sundials-users
+09:05:59 02/28/06 | robert@gnsbiotech.com | subscribe sundials-announce sundials-users
+01:28:16 03/02/06 | guillaume.rebitzer@strasbour.gm.com | subscribe sundials-users
+15:47:37 03/02/06 | globalrave@yahoo.com | subscribe sundials-users
+06:14:32 03/03/06 | sven.keesmann@fastmail.fm | subscribe sundials-announce sundials-users
+17:45:54 03/03/06 | doligne@sandia.gov | subscribe sundials-announce sundials-users
+23:43:27 03/03/06 | ramis.mov@gmail.com | unsubscribe sundials-announce sundials-users
+02:12:53 03/04/06 | mehmet_morali@hotmail.com | unsubscribe sundials-users
+02:13:03 03/04/06 | mehmet_morali@hotmail.com | unsubscribe sundials-users
+02:13:14 03/04/06 | mehmet_morali@hotmail.com | subscribe sundials-announce
+05:31:44 03/04/06 | richard_potthoff@compuserve.com | subscribe sundials-announce sundials-users
+21:26:19 03/05/06 | kashmir@postech.ac.kr | subscribe sundials-users
+00:47:47 03/07/06 | cmw44@btinternet.com | subscribe sundials-announce sundials-users
+18:15:44 03/07/06 | kvm@cfdrc.com | unsubscribe sundials-users
+03:00:57 03/08/06 | ingehap@gmail.com | subscribe sundials-announce sundials-users
+07:36:57 03/08/06 | jplasmaex@gmail.com | subscribe sundials-announce sundials-users
+08:17:39 03/08/06 | james.wang6@honeywell.com | subscribe sundials-announce
+09:56:51 03/08/06 | tahaill@sandia.gov | subscribe sundials-announce sundials-users
+08:10:03 03/09/06 | asalterain@ceit.es | subscribe sundials-users
+00:46:49 03/11/06 | crfench@gmail.com | subscribe sundials-announce sundials-users
+01:38:10 03/13/06 | arunmagoo@yahoo.co.in | subscribe sundials-announce sundials-users
+04:31:21 03/13/06 | vasil-yana@mail.ru | subscribe sundials-users
+04:31:57 03/13/06 | vasil-yana@mail.ru | unsubscribe sundials-users
+12:21:04 03/14/06 | abhia7@gmail.com | subscribe sundials-announce sundials-users
+05:30:23 03/15/06 | lmarcin@mimuw.edu.pl | subscribe sundials-announce
+06:30:18 03/18/06 | markyonline@freenet.de | subscribe sundials-announce
+03:52:23 03/19/06 | terra_incognita1@list.ru | subscribe sundials-users
+08:52:29 03/19/06 | anatoly@mao.nikolaev.ua | subscribe sundials-users
+09:05:07 03/19/06 | terra_incognita1@list.ru | unsubscribe sundials-users
+09:06:04 03/19/06 | anatoly@mao.nikolaev.ua | subscribe sundials-announce sundials-users
+02:14:05 03/20/06 | smallhare@inbox.ru | unsubscribe sundials-users
+05:00:46 03/20/06 | stu.t@bigpond.net.au | subscribe sundials-announce sundials-users
+10:16:08 03/20/06 | dapadget@ncsu.edu | subscribe sundials-users
+19:31:40 03/20/06 | yangxiaoyu_epri@sina.com | subscribe sundials-announce
+05:22:58 03/23/06 | andyfu22@126.com | subscribe sundials-announce
+10:09:45 03/23/06 | ansayre@babcock.com | subscribe sundials-announce sundials-users
+12:27:29 03/23/06 | wangzj@email.arizona.edu | subscribe sundials-announce sundials-users
+20:26:03 03/23/06 | javaid_phd@yahoo.com | subscribe sundials-announce sundials-users
+22:22:26 03/23/06 | wanwei118@hotmail.com | subscribe sundials-users

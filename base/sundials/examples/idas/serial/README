@@ -1,0 +1,26 @@
+List of serial IDAS examples
+
+  idasAkzoNob_ASAi_dns  : adjoint sensitivity for the chemical Akzo-Nobel problem
+  idasAkzoNob_dns       : chemical Akzo-Nobel problem
+  idasFoodWeb_bnd       : 2-D food web system, banded Jacobian
+  idasHeat2D_bnd        : 2-D heat equation, banded Jacobian
+  idasHeat2D_kry        : 2-D heat equation, diagonal preconditioner
+  idasHessian_ASA_FSA   : computation of Hessian for Robertson kinetics system
+  idasKrylovDemo_ls     : demonstration program with 3 Krylov solvers
+  idasRoberts_ASAi_dns  : adjoint sensitivity for Robertson kinetics system
+  idasRoberts_dns       : 3-species Robertson kinetics system  with a user-supplied Jacobian
+  idasRoberts_FSA_dns   : forward sensitivity for Robertson kinetics system
+  idasSlCrank_dns       : slider-crank simulation
+  idasSlCrank_FSA_dns   : forward sensitivity for slider-crank
+
+
+Sample results:
+
+  SUNDIALS was built with the following options:
+
+  ./configure CC=gcc F77=gfortran CFLAGS="-g3 -O0" FFLAGS="-g3 -O0" --enable-examples
+
+  System Architecture: IA-32
+  Processor Type: Intel Pentium 4 Xeon DP (i686)
+  Operating System: Red Hat Enterprise Linux WS 3 (Taroon Update 7)
+  C/Fortran Compilers: gcc/gfortran v4.1.0

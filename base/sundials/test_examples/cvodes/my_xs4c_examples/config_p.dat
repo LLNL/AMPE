@@ -1,0 +1,31 @@
+[general]
+        -genCwrapper = true
+
+[frontend]
+        /home/radu/CODES/sundials/include
+        /usr/apps/mpich/1.2.4/include
+
+[parsing]
+        -entry_point = f
+        -user_data_type = UserData
+        -user_data_arg = f_data
+
+[function]
+        -call = sin(a1)
+        -replacement = sin
+
+[function]
+        -call = exp(a1)
+        -replacement = exp
+
+[function]
+        -call = cos(a1)
+        -replacement = cos
+
+[function]
+        -call = MPI_Send( buf, count, datatype, dest, tag, comm )
+        -replacement = MPI_Send_Cplx
+
+[function]
+        -call = MPI_Irecv( buf, count, datatype, dest, tag, comm, request )
+        -replacement = MPI_Irecv_Cplx
