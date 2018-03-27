@@ -1,35 +1,3 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
-// LLNL-CODE-747500
-// All rights reserved.
-// This file is part of AMPE. 
-// For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-// 
 // Ref: Eiken, Boettger, Steinbach, PRE 73, 066122 (2006)
 #include "EBSCompositionRHSStrategy.h"
 #include "QuatParams.h"
@@ -60,9 +28,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    const int diffusion_l_id,
    const int diffusion_a_id,
    const int diffusion_b_id,
-   const int diffusion_coeff_l_id,
-   const int diffusion_coeff_a_id,
-   const int diffusion_coeff_b_id,
    const int Mq_id,
    const vector<double>& Q_heat_transport,
    const std::vector<int> diffusion_precond_id,
@@ -77,7 +42,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
       d_free_energy_strategy(free_energy_strategy)
 {
    assert( diffusion_l_id>=0 );
-   assert( diffusion_coeff_l_id>=0 );
    assert( temperature_scratch_id>=0 );
    assert( d_free_energy_strategy!=NULL );
    
@@ -103,10 +67,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    d_diffusion_l_id=diffusion_l_id;
    d_diffusion_a_id=diffusion_a_id;
    d_diffusion_b_id=diffusion_b_id;
-   
-   d_diffusion_coeff_l_id=diffusion_coeff_l_id;
-   d_diffusion_coeff_a_id=diffusion_coeff_a_id;
-   d_diffusion_coeff_b_id=diffusion_coeff_b_id;
    
    d_Mq_id=Mq_id;
    d_Q_heat_transport=Q_heat_transport;
@@ -305,10 +265,10 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
 {
    //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner"<<endl;
 
-   assert( d_diffusion_coeff_l_id >= 0 );
-   assert( d_diffusion_coeff_a_id >= 0 );
+   assert( d_diffusion_l_id >= 0 );
+   assert( d_diffusion_a_id >= 0 );
    if ( d_with_third_phase ) {
-      assert( d_diffusion_coeff_b_id >= 0 );
+      assert( d_diffusion_b_id >= 0 );
    }
    assert( !d_diffusion_precond_id.empty() );
 
@@ -324,21 +284,16 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
       
          boost::shared_ptr< pdat::SideData<double> > dl (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( d_diffusion_coeff_l_id) ) );
+               patch->getPatchData( d_diffusion_l_id) ) );
          boost::shared_ptr< pdat::SideData<double> > da (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( d_diffusion_coeff_a_id) ) );
+               patch->getPatchData( d_diffusion_a_id) ) );
          boost::shared_ptr< pdat::SideData<double> > db;
          
-         boost::shared_ptr< pdat::CellData<double> > eta;
          if ( d_with_third_phase ) {
-            db  = boost::dynamic_pointer_cast<pdat::SideData<double>,hier::PatchData>( patch->getPatchData( d_diffusion_coeff_b_id ));
-            eta = boost::dynamic_pointer_cast<pdat::CellData<double>,hier::PatchData>( patch->getPatchData( d_eta_scratch_id ));
+            db  = BOOST_CAST<pdat::SideData<double>,hier::PatchData>(
+                     patch->getPatchData( d_diffusion_b_id ));
          }
-
-         boost::shared_ptr< pdat::CellData<double> > phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-               patch->getPatchData( d_phase_scratch_id) ) );
 
          assert( d_diffusion_precond_id.size()*d_diffusion_precond_id.size()
                ==dl->getDepth() );
@@ -352,7 +307,6 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
 
             setDiffusionCoeffForPreconditionerOnPatch(
                dl, da, db, 2*ic,
-               phi, eta,
                diffusion, patch->getBox(), 0 );
          }
 
@@ -368,8 +322,6 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
    boost::shared_ptr< pdat::SideData<double> > sd_d_a,
    boost::shared_ptr< pdat::SideData<double> > sd_d_b,
    const int depth_in_Dmatrix,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
    boost::shared_ptr< pdat::SideData<double> > sd_d_coeff,
    const hier::Box& pbox,
    const int depth )
@@ -406,12 +358,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
       if ( NDIM > 2 ) ptr_dz_b = sd_d_b->getPointer(2, depth_in_Dmatrix);
    }
 
-   double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = NULL;
    vector<double*> ptr_c_b; ptr_c_b.resize(d_ncompositions);
-   if ( d_with_third_phase ) {
-      ptr_eta = cd_eta->getPointer(); 
-   }
    
    // Assuming all sd_d_coeff_* have same box
    const hier::Box& dcoeff_gbox = sd_d_coeff->getGhostBox();
@@ -423,18 +370,6 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
 #if (NDIM == 3)
    kmin_dcoeff = dcoeff_gbox.lower(2);
    kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
-#endif
-
-   // Assuming phi and eta have same box
-   const hier::Box& pf_gbox = cd_phi->getGhostBox();
-   int imin_pf = pf_gbox.lower(0); 
-   int jmin_pf = pf_gbox.lower(1);
-   int jp_pf = pf_gbox.numberCells(0);
-   int kmin_pf = 0;
-   int kp_pf = 0;
-#if (NDIM == 3)
-   kmin_pf = pf_gbox.lower(2);
-   kp_pf = jp_pf * pf_gbox.numberCells(1);
 #endif
 
    int imin = pbox.lower(0);
@@ -453,38 +388,17 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax+1; ii++ ) {
 
-           const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-            const int idxm1_pf = idx_pf - 1;
-
-            double phi =
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_diff_interp_func_type.c_str() );
-
-            double heta = 0.0;
-            if ( d_with_third_phase ) {
-               double eta =
-                  average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-               heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_diff_interp_func_type.c_str() );
-            }
-
             const int idx_dcoeff = (ii - imin_dcoeff) +
                (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
                (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1) );
 
             ptr_dx_coeff[idx_dcoeff] 
-               = (1.-hphi)*ptr_dx_l[idx_dcoeff]
-               + (1.-heta)*phi*ptr_dx_a[idx_dcoeff];
+               = ptr_dx_l[idx_dcoeff]
+               + ptr_dx_a[idx_dcoeff];
             
             if ( d_with_third_phase ) {
                ptr_dx_coeff[idx_dcoeff] +=
-                  hphi*heta*ptr_dx_b[idx_dcoeff];
+                  ptr_dx_b[idx_dcoeff];
             }
          }
       }
@@ -495,38 +409,17 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
       for ( int jj = jmin; jj <= jmax+1; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-            const int idxm1_pf = idx_pf - jp_pf;
-
-            double phi =
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_diff_interp_func_type.c_str() );
-
-            double heta = 0.0;
-            if ( d_with_third_phase ) {
-               double eta =
-                  average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-               heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_diff_interp_func_type.c_str() );
-            }
-
             const int idx_dcoeff = (ii - imin_dcoeff) +
                (jj - jmin_dcoeff) * jp_dcoeff +
                (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
 
             ptr_dy_coeff[idx_dcoeff]
-               = (1.-hphi)*ptr_dy_l[idx_dcoeff]
-               + (1.-heta)*phi*ptr_dy_a[idx_dcoeff];
+               = ptr_dy_l[idx_dcoeff]
+               + ptr_dy_a[idx_dcoeff];
             
             if ( d_with_third_phase ) {
                ptr_dy_coeff[idx_dcoeff] +=
-                  hphi*heta*ptr_dy_b[idx_dcoeff];
+                  ptr_dy_b[idx_dcoeff];
             }
          }
       }
@@ -538,38 +431,17 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
          for ( int jj = jmin; jj <= jmax; jj++ ) {
             for ( int ii = imin; ii <= imax; ii++ ) {
 
-               const int idx_pf = (ii - imin_pf) +
-                  (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-               const int idxm1_pf = idx_pf - kp_pf; 
-
-               double phi =
-                  average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-               double hphi =
-                  FORT_INTERP_FUNC(
-                     phi,
-                     d_diff_interp_func_type.c_str() );
-
-               double heta = 0.0;
-               if ( d_with_third_phase ) {
-                  double eta =
-                     average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
-                  heta =
-                     FORT_INTERP_FUNC(
-                        eta,
-                        d_diff_interp_func_type.c_str() );
-               }
-
                const int idx_dcoeff = (ii - imin_dcoeff) +
                   (jj - jmin_dcoeff) * jp_dcoeff +
                   (kk - kmin_dcoeff) * kp_dcoeff;
 
                ptr_dz_coeff[idx_dcoeff]
-                  = (1.-hphi)*ptr_dz_l[idx_dcoeff]
-                  + (1.-heta)*phi*ptr_dz_a[idx_dcoeff];
+                  = ptr_dz_l[idx_dcoeff]
+                  + ptr_dz_a[idx_dcoeff];
                
                if ( d_with_third_phase ) {
                   ptr_dz_coeff[idx_dcoeff] +=
-                     hphi*heta*ptr_dz_b[idx_dcoeff];
+                     ptr_dz_b[idx_dcoeff];
                }
             }
          }
