@@ -31,7 +31,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "QuatModelParameters.h"
-#include "EllipticFACOps.h"
 
 using namespace std;
 
