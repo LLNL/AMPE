@@ -155,8 +155,10 @@ ampe2d:
 		$(MAKE) PDIM=2 ampe-2d
 		mkdir -p ../exec && mv ampe2d ../exec/ampe2d
 
-ampe-2d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_2D) $(LIBSAMRAIDEPEND)  
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_2D) \
+ampe-2d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_2D) \
+		$(LIBSAMRAIDEPEND)  
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(MAIN_OBJ) \
+		$(F77_OBJS) $(F77_OBJS_2D) \
 		$(LIBSAMRAI) $(LDLIBS) -o ampe2d
 
 ampe3d:		
@@ -165,39 +167,52 @@ ampe3d:
 		$(MAKE) PDIM=3 ampe-3d
 		mkdir -p ../exec && mv ampe3d ../exec/ampe3d
 
-ampe-3d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_3D) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_3D) \
+ampe-3d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_3D) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(MAIN_OBJ) \
+		$(F77_OBJS) $(F77_OBJS_3D) \
 		$(LIBSAMRAI) $(LDLIBS) -o ampe3d
 
 testCALPHADbinary:		
 		$(MAKE) PDIM=2 test-CALPHAD-binary
-		mkdir -p ../exec && mv testCALPHADbinary ../exec/testCALPHADbinary
+		mkdir -p ../exec && mv testCALPHADbinary \
+		../exec/testCALPHADbinary
 
-test-CALPHAD-binary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_BINARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)  
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_BINARY_MAIN_OBJ) $(F77_OBJS) \
+test-CALPHAD-binary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_BINARY_MAIN_OBJ) \
+		$(F77_OBJS) $(LIBSAMRAIDEPEND)  
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) \
+		$(TEST_CALPHAD_BINARY_MAIN_OBJ) $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADbinary
 
 testCALPHADternary:		
 		$(MAKE) PDIM=2 test-CALPHAD-ternary
-		mkdir -p ../exec && mv testCALPHADternary ../exec/testCALPHADternary
+		mkdir -p ../exec && mv testCALPHADternary \
+		../exec/testCALPHADternary
 
-test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)  
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) \
+		$(F77_OBJS) $(LIBSAMRAIDEPEND)  
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) \
+		$(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternary
 
 testCALPHADternaryEnergy:
 		$(MAKE) PDIM=2 test-CALPHAD-ternaryEnergy
-		mkdir -p ../exec && mv testCALPHADternaryEnergy  ../exec/testCALPHADternaryEnergy
+		mkdir -p ../exec && mv testCALPHADternaryEnergy \
+		../exec/testCALPHADternaryEnergy
 
-test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) testCALPHADternaryEnergy.o $(F77_OBJS) \
+test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o \
+		$(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) \
+		testCALPHADternaryEnergy.o $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternaryEnergy
 
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
 
-testCALPHADSpeciesPhaseGibbsEnergy: CALPHADSpeciesPhaseGibbsEnergy.o testCALPHADSpeciesPhaseGibbsEnergy.o
-		$(CXX) $(CXXFLAGS) CALPHADSpeciesPhaseGibbsEnergy.o testCALPHADSpeciesPhaseGibbsEnergy.o \
+testCALPHADSpeciesPhaseGibbsEnergy: CALPHADSpeciesPhaseGibbsEnergy.o \
+		testCALPHADSpeciesPhaseGibbsEnergy.o
+		$(CXX) $(CXXFLAGS) CALPHADSpeciesPhaseGibbsEnergy.o \
+		testCALPHADSpeciesPhaseGibbsEnergy.o \
 		$(LIBSAMRAI) -o testCALPHADSpeciesPhaseGibbsEnergy
 
 testCALPHADbinaryKKSobjs = testCALPHADbinaryKKS.o \
@@ -219,83 +234,107 @@ test-CALPHADternaryKKS: $(testCALPHADternaryKKSobjs)
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternaryKKS
 
 testCALPHADFunctions: CALPHADFunctions.o testCALPHADFunctions.o
-		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o -o testCALPHADFunctions
+		$(CXX) $(CXXFLAGS) CALPHADFunctions.o testCALPHADFunctions.o \
+		-o testCALPHADFunctions
 
 testCALPHADJacobianTernary:
 		$(MAKE) PDIM=2 test-CALPHADJacobianTernary
-		mkdir -p ../exec && mv testCALPHADJacobianTernary ../exec/testCALPHADJacobianTernary
+		mkdir -p ../exec && mv testCALPHADJacobianTernary \
+		../exec/testCALPHADJacobianTernary
 
 TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ = testCALPHADJacobianTernary.o
 
-test-CALPHADJacobianTernary:   $(CALPHAD_OBJS) $(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+test-CALPHADJacobianTernary: $(CALPHAD_OBJS) \
+		$(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) \
+		$(TEST_CALPHAD_JACOBIAN_TERNARY_MAIN_OBJ) $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADJacobianTernary
 
 testHypre2d:
 		$(MAKE) PDIM=2 testHypre-2d
-		mkdir -p ../exec && mv testHyprePoisson2d ../exec/testHyprePoisson2d
+		mkdir -p ../exec && mv testHyprePoisson2d \
+		../exec/testHyprePoisson2d
 
-testHypre-2d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
+testHypre-2d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_2D) $(F77_OBJS) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) \
+		testHyprePoisson.o HyprePoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson2d
 
 testHypre3d:
 		$(MAKE) PDIM=3 testHypre-3d
-		mkdir -p ../exec && mv testHyprePoisson3d ../exec/testHyprePoisson3d
+		mkdir -p ../exec && mv testHyprePoisson3d \
+		../exec/testHyprePoisson3d
 testHypre-3d: testHyprePoisson.o HyprePoisson.o $(F77_OBJS_3D) $(F77_OBJS)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testHyprePoisson.o HyprePoisson.o \
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) \
+		testHyprePoisson.o HyprePoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testHyprePoisson3d
 
 #test CellPoissonHypreSolver
-TEST_PHASEHYPRE_OBJS = QuatModelParameters.o CellPoissonHypreSolver.o tools.o PoissonSpecifications.o \
-	PhaseHypre.o testPhaseHypre.o
+TEST_PHASEHYPRE_OBJS = QuatModelParameters.o CellPoissonHypreSolver.o \
+		tools.o PoissonSpecifications.o \
+		PhaseHypre.o testPhaseHypre.o
 
 testPhaseHypre2d:
 		$(MAKE) PDIM=2 testPhaseHypre-2d
 		mkdir -p ../exec && mv testPhaseHypre2d ../exec/testPhaseHypre2d
-testPhaseHypre-2d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) $(TEST_PHASEHYPRE_OBJS) \
+testPhaseHypre-2d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_2D) $(F77_OBJS) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) \
+		$(TEST_PHASEHYPRE_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testPhaseHypre2d
 
 testPhaseHypre3D:
 		$(MAKE) PDIM=3 testPhaseHypre-3d
 		mkdir -p ../exec && mv testPhaseHypre3d ../exec/testPhaseHypre3d
-testPhaseHypre-3d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_3D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) $(TEST_PHASEHYPRE_OBJS) \
+testPhaseHypre-3d: $(TEST_PHASEHYPRE_OBJS) $(F77_OBJS_3D) $(F77_OBJS) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) \
+		$(TEST_PHASEHYPRE_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testPhaseHypre3d
 
 testFAC2d:
 		$(MAKE) PDIM=2 testFAC-2d
 		mkdir -p ../exec && mv testFACPoisson2d ../exec/testFACPoisson2d
 
-testFAC-2d: testFACPoisson.o FACPoisson.o $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) testFACPoisson.o FACPoisson.o \
+testFAC-2d: testFACPoisson.o FACPoisson.o $(F77_OBJS_2D) $(F77_OBJS) \
+		$(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) \
+		testFACPoisson.o FACPoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testFACPoisson2d
 
 testFAC3d:
 		$(MAKE) PDIM=3 testFAC-3d
-		mkdir -p ../exec && mv testFACPoisson3d ../exec/testFACPoisson3d
+		mkdir -p ../exec && mv testFACPoisson3d \
+		../exec/testFACPoisson3d
 testFAC-3d: testFACPoisson.o FACPoisson.o $(F77_OBJS_3D) $(F77_OBJS)
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) testFACPoisson.o FACPoisson.o \
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) \
+		testFACPoisson.o FACPoisson.o \
 		$(LIBSAMRAI) $(LDLIBS) -o testFACPoisson3d
 
 TEST_PHASEFAC_OBJS = PhaseFACOps.o PhaseFACSolver.o QuatModelParameters.o \
 	EllipticFACSolver.o FACPreconditioner.o \
-	EllipticFACOps.o CellPoissonHypreSolver.o tools.o PoissonSpecifications.o \
+	EllipticFACOps.o CellPoissonHypreSolver.o tools.o \
+	PoissonSpecifications.o \
 	PhaseFAC.o toolsSAMRAI.o testPhaseFAC.o
 
 testPhaseFAC2d:
 		$(MAKE) PDIM=2 testPhaseFAC-2d
 		mkdir -p ../exec && mv testPhaseFAC2d ../exec/testPhaseFAC2d
-testPhaseFAC-2d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_2D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) $(TEST_PHASEFAC_OBJS) \
+testPhaseFAC-2d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_2D) $(F77_OBJS) \
+	$(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_2D) $(F77_OBJS) \
+	$(TEST_PHASEFAC_OBJS) \
 	$(LIBSAMRAI) $(LDLIBS) -o testPhaseFAC2d
 
 testPhaseFAC3d:
 		$(MAKE) PDIM=3 testPhaseFAC-3d
 		mkdir -p ../exec && mv testPhaseFAC3d ../exec/testPhaseFAC3d
-testPhaseFAC-3d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_3D) $(F77_OBJS) $(LIBSAMRAIDEPEND)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) $(TEST_PHASEFAC_OBJS) \
+testPhaseFAC-3d: $(TEST_PHASEFAC_OBJS) $(F77_OBJS_3D) $(F77_OBJS) \
+	$(LIBSAMRAIDEPEND)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(F77_OBJS_3D) $(F77_OBJS) \
+	$(TEST_PHASEFAC_OBJS) \
 	$(LIBSAMRAI) $(LDLIBS) -o testPhaseFAC3d
 
 clean:
