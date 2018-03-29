@@ -1,0 +1,19 @@
+#Create initial conditions file with 15% solid (solid fraction at 3073 K)
+ln -s ../../utils/make_bilayer.py
+python make_bilayer.py -x 256 -y 8 -z 1 -r 20 -c "0.16,0.225" \
+     --concentration-in "0.13675,0.186999" bilayer_256x8_r24.nc
+
+ln -s ../../thermodynamic_data/calphadMoNbTa.dat
+
+#run code with input file bilayer_MoNbTa.input
+
+cd v.bilayer_MoNbTa
+
+#extract composition profiles from visit files
+ln -s ../../utils/lineplotPhiQuat.py
+visit -nowin -cli -verbose -s lineplotPhiQuat.py
+
+#plot composition profiles
+ln -s ../../utils/plotConcentrations.py
+python plotConcentrations.py
+

@@ -49,6 +49,7 @@ ln -sf ../../../../utils/lineplotPhiQuat.py
 visit -nowin -cli -verbose -s lineplotPhiQuat.py
 
 #visualize results
+ln -s ../../../../utils/plotConcentrations.py
 python plotConcentrations.py
 display figure.png
  

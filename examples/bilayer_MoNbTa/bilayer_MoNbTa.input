@@ -1,0 +1,75 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time            = 0.7
+max_timesteps       = 10000
+
+Verbosity {  // optional, block
+   level = 3  // optional, default=1
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 1.e-1
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter = -1
+   
+   Temperature {
+      temperature    = 3073. // [K]
+      dtemperaturedt = -50.
+   }
+   
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+   phi_mobility = 6.4
+   
+   phi_well_scale = 2.5  // [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   ConcentrationModel {
+      nspecies = 3
+      model    = "calphad"
+      rhs_form = "ebs"
+      diffusion_type = "temperature_dependent"
+      molar_volume = 1.e-5 // [m^3/mol]
+      Calphad {
+         filename ="calphadMoNbTa.dat"
+      }
+      D_solid  =  1.3e8
+      D_liquid  = 5.6e5
+      Q0_solid  = 156377.   //  [J/mol]
+      Q0_liquid = 55329.    //  [J/mol]
+   }
+}
+
+ScalarDiagnostics {
+   interval = 5.e-2
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+InitialConditions {
+   filename = "bilayer_256x8_r24.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 256, 8
+   x_lo         = -3.2, -0.1 // [um]
+   x_up         =  3.2,  0.1 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
+                 "QuatIntegrator::*"
+    print_threshold = 0.1
+}
