@@ -56,6 +56,7 @@ for frame in frames:
 Vars=[]
 Vars.append("phase")
 Vars.append("concentration0")
+Vars.append("concentration1")
 Vars.append("q0")
 Vars.append("q1")
 Vars.append("q2")
