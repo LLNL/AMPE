@@ -435,11 +435,6 @@ public :
       return d_conc_diffusion_a_id;
    }
    
-   CompositionDiffusionStrategy* getCompositionDiffusionStrategy()
-   {
-      return d_diffusion_for_conc_in_phase;
-   }
-   
    //-----------------------------------------------------------------------
    //
    // Methods inherited from Serializable (through PFModel)

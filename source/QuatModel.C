@@ -354,7 +354,6 @@ void QuatModel::initializeCompositionRHSStrategy(
       
       d_composition_rhs_strategy =
          new EBSCompositionRHSStrategy(
-            conc_db->getDatabase( "Calphad" ),
             d_phase_scratch_id,
             d_eta_scratch_id,
             d_ncompositions,

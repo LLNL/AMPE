@@ -23,14 +23,20 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
       d_phase_interp_func_type(phase_interp_func_type),
       d_avg_func_type(avg_func_type)
 {
+   assert( D_liquid >= 0. );
+   assert( Q0_liquid >= 0. );
+   assert( Q0_solid_A >= 0. );
+   assert( D_solid_A >= 0. );
 }
 
-void TbasedCompositionDiffusionStrategy::setDiffCoeff(
+void TbasedCompositionDiffusionStrategy::setDiffusion(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int phase_id,
    const int eta_id)
 {
+   (void)eta_id;
+
    //tbox::pout<<"TbasedCompositionDiffusionStrategy::setDiffCoeff()"<<endl;
    assert( temperature_id >= 0 );
    assert( phase_id >= 0 );
@@ -62,6 +68,7 @@ void TbasedCompositionDiffusionStrategy::setDiffCoeff(
          boost::shared_ptr< pdat::SideData<double> > diffusionL (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
                patch->getPatchData( d_diffusion_l_id ) ) );
+         assert( diffusionL->getGhostCellWidth()[0]==0 );
 
          boost::shared_ptr< pdat::SideData<double> > diffusionA (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
@@ -79,15 +86,15 @@ void TbasedCompositionDiffusionStrategy::setDiffCoeff(
             ifirst(2), ilast(2),
 #endif
             phi->getPointer(), phi->getGhostCellWidth()[0],
-            diffusionL->getPointer(0),
-            diffusionL->getPointer(1),
+            diffusionL->getPointer(0,0),
+            diffusionL->getPointer(1,0),
 #if (NDIM == 3)
-            diffusionL->getPointer(2),
+            diffusionL->getPointer(2,0),
 #endif
-            diffusionA->getPointer(0),
-            diffusionA->getPointer(1),
+            diffusionA->getPointer(0,0),
+            diffusionA->getPointer(1,0),
 #if (NDIM == 3)
-            diffusionA->getPointer(2),
+            diffusionA->getPointer(2,0),
 #endif
             0, //assuming no ghosts for diffusion data
             temperature->getPointer(),

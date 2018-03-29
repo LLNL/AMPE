@@ -23,10 +23,10 @@ public:
 
 
 /*
- * compute actual diffusion by weighting diffusion in each pahse
- * using phase variable
+ * compute actual diffusion in each phase by weighting diffusion coefficients 
+ * in each phase with phase variable
  */
-   virtual void setDiffCoeff(
+   virtual void setDiffusion(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int phase_id,
@@ -41,14 +41,13 @@ private:
    int d_diffusion_a_id;
 
    double d_D_liquid;
-   double d_D_solid_A;
    double d_Q0_liquid;
+
+   double d_D_solid_A;
    double d_Q0_solid_A;
 
    std::string d_phase_interp_func_type;
    std::string d_avg_func_type;
-
-   bool d_with_third_phase;
 };
 
 #endif

@@ -11,13 +11,13 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
+#include "SAMRAI/math/PatchSideDataBasicOps.h"
 
 #include <cassert>
 
 using namespace std;
 
 EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
-   boost::shared_ptr<tbox::Database> input_db,
    const int phase_scratch_id,
    const int eta_scratch_id,
    const unsigned short ncompositions,
@@ -104,8 +104,8 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
          d_conc_b_scratch_id,
          d_temperature_scratch_id);
 
-   // compute actual diffusion by weighting with phase fraction
-   d_diffusion_for_conc_in_phase->setDiffCoeff(
+   // compute actual diffusion, including phase fraction weight
+   d_diffusion_for_conc_in_phase->setDiffusion(
       hierarchy,
       d_temperature_scratch_id,
       d_phase_scratch_id,
@@ -156,11 +156,24 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
    assert( conc_diffusionl );
    assert( conc_diffusionl->getDepth()==(nc2) );
 
+   //math::PatchSideDataBasicOps<double> ops;
+   //{
+   //double vmax=ops.max( conc_diffusionl, pbox );
+   //double vmin=ops.min(conc_diffusionl, pbox );
+   //tbox::pout<<"Min-Max. DL on patch="<<vmin<<","<<vmax<<endl;
+   //}
+
    boost::shared_ptr< pdat::SideData<double> > conc_diffusiona (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
          patch.getPatchData( d_diffusion_a_id) ) );
    assert( conc_diffusiona );
    assert( conc_diffusiona->getDepth()==(nc2) );
+
+   //{
+   //double vmax=ops.max( conc_diffusiona, pbox );
+   //double vmin=ops.min(conc_diffusiona, pbox );
+   //tbox::pout<<"Min-Max. DS on patch="<<vmin<<","<<vmax<<endl;
+   //}
 
    boost::shared_ptr< pdat::SideData<double> > flux (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
@@ -298,7 +311,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
          assert( d_diffusion_precond_id.size()*d_diffusion_precond_id.size()
                ==dl->getDepth() );
 
-         for(int ic=0;ic<d_diffusion_precond_id.size();ic++){
+         for(unsigned int ic=0;ic<d_diffusion_precond_id.size();ic++){
 
             boost::shared_ptr< pdat::SideData<double> > diffusion (
                BOOST_CAST< pdat::SideData<double>, hier::PatchData>(

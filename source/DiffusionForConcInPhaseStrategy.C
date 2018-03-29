@@ -150,13 +150,13 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
    small_mat_mult(d_ncompositions,&d_mobmat[0],&d_d2f[0],&d_local_dmat[0]);
 }
 
-void DiffusionForConcInPhaseStrategy::setDiffCoeff(
+void DiffusionForConcInPhaseStrategy::setDiffusion(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int phase_id,
    const int eta_id)
 {
-   //tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffCoeff"<<endl;
+   //tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffusion"<<endl;
    assert( phase_id >= 0 );
    assert( d_diffusion_l_id >= 0 );
    assert( d_diffusion_a_id >= 0 );
@@ -212,7 +212,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeff(
                patch->getPatchData( d_diffusion_coeff_b_id ));
          }
 
-         setDiffCoeffOnPatch(
+         setDiffOnPatch(
             phi, eta,
             diff_coeff_l, diff_coeff_a, diff_coeff_b,
             diffusion_l, diffusion_a, diffusion_b, 
@@ -642,7 +642,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
 //-----------------------------------------------------------------------
 
-void DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch(
+void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
    boost::shared_ptr< pdat::CellData<double> > cd_eta,
    boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l, 
@@ -653,7 +653,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch(
    boost::shared_ptr< pdat::SideData<double> > sd_d_b, // output
    const hier::Box& pbox )
 {
-   //tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch"<<endl;
+   //tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffOnPatch"<<endl;
    assert( cd_phi );
    assert( sd_d_l );
    assert( sd_d_coeff_l );
@@ -812,7 +812,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch(
                      d_diff_interp_func_type.c_str() );
             }
 
-            for(int ic=0;ic<nc2;ic++){
+            for(unsigned int ic=0;ic<nc2;ic++){
                ptr_dx_l[ic][idx_dcoeff] = 
                   (1.-hphi)*ptr_dx_coeff_l[ic][idx_dcoeff];
                ptr_dx_a[ic][idx_dcoeff] = 
@@ -856,7 +856,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch(
                      d_diff_interp_func_type.c_str() );
             }
 
-            for(int ic=0;ic<nc2;ic++){
+            for(unsigned int ic=0;ic<nc2;ic++){
                ptr_dy_l[ic][idx_dcoeff] =
                   (1.-hphi)*ptr_dy_coeff_l[ic][idx_dcoeff];
                ptr_dy_a[ic][idx_dcoeff] =
@@ -901,7 +901,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffOnPatch(
                         d_diff_interp_func_type.c_str() );
                }
 
-               for(int ic=0;ic<nc2;ic++){
+               for(unsigned int ic=0;ic<nc2;ic++){
                   ptr_dz_l[ic][idx_dcoeff] =
                      (1.-hphi)*ptr_dz_coeff_l[ic][idx_dcoeff];
                   ptr_dz_a[ic][idx_dcoeff] =

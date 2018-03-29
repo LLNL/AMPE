@@ -1586,11 +1586,6 @@ void QuatIntegrator::setFreeEnergyStrategy(
 {
    assert( free_energy_strategy != NULL ); 
    d_free_energy_strategy = free_energy_strategy;
-
-   //if ( d_with_concentration ){
-   //   assert( d_composition_rhs_strategy!= NULL );
-   //   d_composition_rhs_strategy->setFreeEnergyStrategy(d_free_energy_strategy);
-   //}
 }
 
 //-----------------------------------------------------------------------
@@ -2424,13 +2419,12 @@ void QuatIntegrator::updateTimeForPatchID(
 
 void QuatIntegrator::setDiffusionCoeffForConcentration(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                               time)
+   const double                                    time)
 {
-   t_set_diffcoeff_conc_timer->start();
-   
-   //tbox::pout<<"QuatIntegrator::setDiffusionCoeffForConcentration"<<endl;
-
    assert( hierarchy );
+
+   t_set_diffcoeff_conc_timer->start();
+   //tbox::pout<<"QuatIntegrator::setDiffusionCoeffForConcentration"<<endl;
 
    // set diffusion coefficients which is a function of the free energy form
    d_composition_rhs_strategy->setDiffusionCoeff(hierarchy, time);
@@ -3171,17 +3165,21 @@ void QuatIntegrator::evaluateConcentrationRHS(
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
+      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+            ++ip ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          assert( d_composition_rhs_strategy!=NULL );
          d_composition_rhs_strategy->computeFluxOnPatch(*patch, d_flux_conc_id);
          if( d_with_gradT )
-            d_composition_rhs_strategy->addFluxFromGradTonPatch(*patch, temperature_id, d_flux_conc_id);
+            d_composition_rhs_strategy->addFluxFromGradTonPatch(
+               *patch, temperature_id, d_flux_conc_id);
          if( d_with_antitrapping )
-            d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(*patch, phase_id, phase_rhs_id, d_alpha_AT, d_flux_conc_id);
+            d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(
+               *patch, phase_id, phase_rhs_id, d_alpha_AT, d_flux_conc_id);
          if( !d_all_periodic )
-            d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(*patch, d_flux_conc_id);
+            d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(
+               *patch, d_flux_conc_id);
       }
 
       // Coarsen flux data from next finer level so that
@@ -3190,23 +3188,28 @@ void QuatIntegrator::evaluateConcentrationRHS(
          d_flux_conc_coarsen_schedule[ln]->coarsenData();
       }
 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
+      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+            ++ip ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(
+               patch->getPatchGeometry() ) );
          const double * dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::SideData<double> > flux (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_conc_id) ) );
+            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( d_flux_conc_id) ) );
          assert( flux );
          assert( flux->getDepth()==d_ncompositions );
 
          boost::shared_ptr< pdat::CellData<double> > conc_rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( conc_rhs_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( conc_rhs_id) ) );
          assert( conc_rhs );
          assert( conc_rhs->getDepth()==d_ncompositions );
-         assert( conc_rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( conc_rhs->getGhostCellWidth() ==
+                 hier::IntVector(tbox::Dimension(NDIM),0) );
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
@@ -3967,6 +3970,8 @@ CVSpgmrPrecondSet
 //-----------------------------------------------------------------------
 void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 {
+   TBOX_ASSERT( d_conc_mobility>0. );
+
    if ( d_with_concentration && d_conc_sys_solver ) {
       // Set concentration block coefficients
       d_conc_sys_solver->setOperatorCoefficients(
@@ -4176,12 +4181,14 @@ int QuatIntegrator::ConcentrationPrecondSolve(
 }
 
 //-----------------------------------------------------------------------
-int QuatIntegrator::QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-                                     int r_quat_id, int ewt_quat_id, int z_quat_id, 
-                                     const double delta, const double gamma)
+int QuatIntegrator::QuatPrecondSolve(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   int r_quat_id, int ewt_quat_id, int z_quat_id, 
+   const double delta, const double gamma)
 {
    if ( d_show_quat_sys_stats ) {
-      tbox::pout << "Preconditioner for Quaternion block with tol "<< delta << endl;
+      tbox::pout << "Preconditioner for Quaternion block with tol "
+                 << delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );

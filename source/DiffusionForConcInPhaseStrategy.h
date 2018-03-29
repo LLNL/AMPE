@@ -70,10 +70,10 @@ public:
    ~DiffusionForConcInPhaseStrategy(){};
    
    /*
-    * compute actual diffusion by weighting diffusion in each pahse
-    * using phase variable
+    * compute actual diffusion in each phase by weighting diffusion coefficients
+    * in each phase with phase variable
     */
-   void setDiffCoeff(
+   void setDiffusion(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int phase_id,
@@ -93,7 +93,11 @@ private:
       const int temperature_id,
       const int eta_scratch_id);
 
-   void setDiffCoeffOnPatch(
+   /*
+    * compute diffusion in each phase based on diffusion coeeficients
+    * in each phase
+    */
+   void setDiffOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
       boost::shared_ptr< pdat::CellData<double> > cd_eta,
       boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l,

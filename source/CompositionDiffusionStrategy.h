@@ -11,10 +11,10 @@ class CompositionDiffusionStrategy
 {
 public:
 /*
- * compute actual diffusion by weighting diffusion in each pahse
+ * compute actual diffusion by weighting diffusion in each phase
  * using phase variable
  */
-   virtual void setDiffCoeff(
+   virtual void setDiffusion(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int phase_id,

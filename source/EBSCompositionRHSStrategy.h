@@ -17,7 +17,6 @@ class EBSCompositionRHSStrategy:
 {
 public:
    EBSCompositionRHSStrategy(
-      boost::shared_ptr<tbox::Database> input_db,
       const int phase_scratch_id,
       const int eta_scratch_id,
       const unsigned short ncompositions,

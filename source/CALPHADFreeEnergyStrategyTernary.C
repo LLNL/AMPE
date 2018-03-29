@@ -227,6 +227,10 @@ void CALPHADFreeEnergyStrategyTernary::computeFreeEnergySolidB(
    const int fs_id,
    const bool gp )
 {
+   (void)patch;
+   (void)temperature_id;
+   (void)fs_id;
+   (void)gp;
 }
 
 //=======================================================================
@@ -529,6 +533,9 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
    const int f_b_id,
    const int rhs_id )
 {
+   (void)f_b_id;
+   (void)eta_id;
+
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );
    assert( f_l_id >= 0 );
@@ -701,7 +708,13 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhiOnPatch(
 
             double mu[2];
             computeMuA( t, c_a[0], c_a[1], mu );
-            //double mu = 0.;
+#ifdef DEBUG_CHECK_ASSERTIONS
+            double muprime[2];
+            computeMuL( t, c_l[0], c_l[1], muprime );
+            const double tol=1.e-6;
+            assert( fabs(mu[0]-muprime[0])<tol );
+            assert( fabs(mu[1]-muprime[1])<tol );
+#endif
 
             double hphi_prime =
                FORT_DERIV_INTERP_FUNC(
