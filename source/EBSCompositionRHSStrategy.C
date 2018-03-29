@@ -167,7 +167,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
          patch.getPatchData( d_diffusion_a_id) ) );
    assert( conc_diffusiona );
-   assert( conc_diffusiona->getDepth()==(nc2) );
+   assert( conc_diffusiona->getDepth()==(int)nc2 );
 
    //{
    //double vmax=ops.max( conc_diffusiona, pbox );
@@ -308,18 +308,20 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
                      patch->getPatchData( d_diffusion_b_id ));
          }
 
-         assert( d_diffusion_precond_id.size()*d_diffusion_precond_id.size()
-               ==dl->getDepth() );
+         assert( (int)(d_diffusion_precond_id.size()
+                      *d_diffusion_precond_id.size())
+                 ==dl->getDepth() );
 
          for(unsigned int ic=0;ic<d_diffusion_precond_id.size();ic++){
 
+            const int depth_in_Dmat=(ic+1)*(ic+1)-1;
             boost::shared_ptr< pdat::SideData<double> > diffusion (
                BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
                   patch->getPatchData( d_diffusion_precond_id[ic]) ) );
             TBOX_ASSERT( diffusion );
 
             setDiffusionCoeffForPreconditionerOnPatch(
-               dl, da, db, 2*ic,
+               dl, da, db, depth_in_Dmat,
                diffusion, patch->getBox(), 0 );
          }
 

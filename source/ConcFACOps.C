@@ -55,12 +55,21 @@ void ConcFACOps::setOperatorCoefficients(
 {
    assert( gamma>=0. );
    assert( diffusion_id.size()==d_d_id.size() );
-   for(int ic=0;ic<diffusion_id.size();ic++)assert( diffusion_id[ic]>=0 );
-   for(int ic=0;ic<d_d_id.size();ic++)assert( d_d_id[ic]>=0 );
+   assert( diffusion_id.size()==1 || diffusion_id.size()==2 );
+
+   for(unsigned ic=0;ic<diffusion_id.size();ic++)assert( diffusion_id[ic]>=0 );
+   for(unsigned ic=0;ic<d_d_id.size();ic++)assert( d_d_id[ic]>=0 );
    assert( mobility>0. );
 
    for(unsigned ic=0;ic<diffusion_id.size();ic++){
       d_hopsside->scale(d_d_id[ic],-gamma,diffusion_id[ic]);
+#ifdef DEBUG_CHECK_ASSERTIONS
+      double vmax=d_hopsside->max( diffusion_id[ic] );
+      double vmin=d_hopsside->min( diffusion_id[ic] );
+      tbox::pout<<"Component "<<ic<<", Max. for D = "<<vmax
+                                  <<", Min. for D = "<<vmin<<endl;
+      assert( vmax>0. );
+#endif
       setDPatchDataId(d_d_id[ic],ic);
       setCConstant(1.,ic);
    }
