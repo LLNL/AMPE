@@ -34,7 +34,6 @@
 #define included_EllipticFACSolver
 
 #include "SAMRAI/tbox/Database.h"
-#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 

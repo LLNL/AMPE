@@ -36,7 +36,6 @@
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "FACPreconditioner.h"
-#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 #include "SAMRAI/pdat/SideVariable.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
@@ -44,6 +43,7 @@
 
 #include "CellPoissonHypreSolver.h"
 #include "PoissonSpecifications.h"
+#include "CartesianRobinBcHelperWithDepth.h"
 
 #include <string>
 using namespace SAMRAI;
@@ -1091,7 +1091,7 @@ protected:
     * to set and whether we are setting data with homogeneous
     * boundary condition.
     */
-   solv::CartesianRobinBcHelper d_bc_helper;
+   CartesianRobinBcHelperWithDepth d_bc_helper;
 
 
    //@{

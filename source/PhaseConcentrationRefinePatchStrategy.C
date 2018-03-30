@@ -55,30 +55,36 @@ PhaseConcentrationRefinePatchStrategy::PhaseConcentrationRefinePatchStrategy(
    assert(!object_name.empty());
 
    d_conc_l_refine_strategy =
-      new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "ConcLBcHelper" );
+      new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
+                                          "ConcLBcHelper" );
    d_conc_l_refine_strategy->setTargetDataId( d_conc_l_id );
    boost::shared_ptr<tbox::Database> conc_l_bc_db =
       input_bc_db->getDatabase( "ConcL" );
-   d_conc_l_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
+   d_conc_l_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+      tbox::Dimension(NDIM),
       "ConcLBcCoefs", conc_l_bc_db );
    d_conc_l_refine_strategy->setCoefImplementation( d_conc_l_bc_coefs );
 
    d_conc_a_refine_strategy =
-      new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "ConcABcHelper" );
+      new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
+                                          "ConcABcHelper" );
    d_conc_a_refine_strategy->setTargetDataId( d_conc_a_id );
    boost::shared_ptr<tbox::Database> conc_a_bc_db =
       input_bc_db->getDatabase( "ConcA" );
-   d_conc_a_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
+   d_conc_a_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+      tbox::Dimension(NDIM),
       "ConcABcCoefs", conc_a_bc_db );
    d_conc_a_refine_strategy->setCoefImplementation( d_conc_a_bc_coefs );
 
    if ( d_conc_b_id >= 0 ) {
       d_conc_b_refine_strategy =
-         new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "ConcBBcHelper" );
+         new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
+                                             "ConcBBcHelper" );
       d_conc_b_refine_strategy->setTargetDataId( d_conc_b_id );
       boost::shared_ptr<tbox::Database> conc_b_bc_db =
          input_bc_db->getDatabase( "ConcB" );
-      d_conc_b_bc_coefs = new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
+      d_conc_b_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+         tbox::Dimension(NDIM),
          "ConcBBcCoefs", conc_b_bc_db );
       d_conc_b_refine_strategy->setCoefImplementation( d_conc_b_bc_coefs );
    }

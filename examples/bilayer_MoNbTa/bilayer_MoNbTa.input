@@ -36,16 +36,45 @@ ModelParameters {
    ConcentrationModel {
       nspecies = 3
       model    = "calphad"
-      rhs_form = "ebs"
-      diffusion_type = "temperature_dependent"
+      rhs_form = "ebs" // use EBS equations for composition evolution
       molar_volume = 1.e-5 // [m^3/mol]
       Calphad {
          filename ="calphadMoNbTa.dat"
       }
+      //for MoNbTa, we don't have kinetic data, so we use 
+      //a phase and temperature dependent diffusion
+      diffusion_type = "temperature_dependent"
       D_solid  =  1.3e8
       D_liquid  = 5.6e5
       Q0_solid  = 156377.   //  [J/mol]
       Q0_liquid = 55329.    //  [J/mol]
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      ConcL{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      ConcA{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+
    }
 }
 
@@ -63,6 +92,7 @@ InitialConditions {
 }
 
 Geometry{
+   periodic_dimension = 0, 0
    coarsest_level_resolution = 256, 8
    x_lo         = -3.2, -0.1 // [um]
    x_up         =  3.2,  0.1 // [um]

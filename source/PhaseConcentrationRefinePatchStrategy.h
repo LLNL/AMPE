@@ -33,13 +33,10 @@
 #ifndef included_PhaseConcentrationRefinePatchStrategy
 #define included_PhaseConcentrationRefinePatchStrategy
 
+#include "CartesianRobinBcHelperWithDepth.h"
+
 #include "SAMRAI/hier/BoundaryBox.h"
-#include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/Patch.h"
-#include "SAMRAI/pdat/ArrayData.h"
-#include "SAMRAI/pdat/CellData.h"
-#include "SAMRAI/pdat/NodeData.h"
-#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
@@ -130,15 +127,15 @@ private:
    std::string d_object_name;
 
    int d_conc_l_id;
-   solv::CartesianRobinBcHelper* d_conc_l_refine_strategy;
+   CartesianRobinBcHelperWithDepth* d_conc_l_refine_strategy;
    solv::LocationIndexRobinBcCoefs* d_conc_l_bc_coefs;
 
    int d_conc_a_id;
-   solv::CartesianRobinBcHelper* d_conc_a_refine_strategy;
+   CartesianRobinBcHelperWithDepth* d_conc_a_refine_strategy;
    solv::LocationIndexRobinBcCoefs* d_conc_a_bc_coefs;
 
    int d_conc_b_id;
-   solv::CartesianRobinBcHelper* d_conc_b_refine_strategy;
+   CartesianRobinBcHelperWithDepth* d_conc_b_refine_strategy;
    solv::LocationIndexRobinBcCoefs* d_conc_b_bc_coefs;
 };
 
