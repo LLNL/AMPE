@@ -1658,7 +1658,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       rhs_data.reset( new pdat::CellData<double>(box, 1, no_ghosts) );
       //pdat::CellData<double> rhs_data(box, 1, no_ghosts);
       assert( fdata->getGhostCellWidth()[0]==0 );
-      copyDepthCellData( rhs_data, 0, fdata, d_rhs_depth);
+      rhs_data->copyDepth( 0, *fdata, d_rhs_depth);
       //rhs_data.copy( *fdata );
       
       // divide rhs by M^1/2 if M was used to construct matrix
@@ -1786,7 +1786,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       }
 
       // finally copy result into u_data, at the right place
-      copyDepthCellData( u_data,d_soln_depth,tmp_data,0);
+      u_data->copyDepth( d_soln_depth,*tmp_data,0);
    }
 
    t_solve_system->stop();

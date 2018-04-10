@@ -107,8 +107,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 
          //fill other diagonal value with same value for ternaries for now
          if( diffusionL->getDepth()>1 ){
-            copyDepthSideData(diffusionL,3,diffusionL,0);
-            copyDepthSideData(diffusionA,3,diffusionA,0);
+            diffusionL->copyDepth(3,*diffusionL,0);
+            diffusionA->copyDepth(3,*diffusionA,0);
          }
       }
    }
