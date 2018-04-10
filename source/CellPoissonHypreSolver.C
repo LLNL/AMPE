@@ -446,6 +446,8 @@ CellPoissonHypreSolver::CellPoissonHypreSolver(
       getTimer("CellPoissonHypreSolver::solveSystem()");
    t_set_matrix_coefficients = tbox::TimerManager::getManager()->
       getTimer("CellPoissonHypreSolver::setMatrixCoefficients()");
+   t_copy_vectors = tbox::TimerManager::getManager()->
+      getTimer("CellPoissonHypreSolver::copyTo/FromHypre()");
 
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
    if (!s_Ak0_var[d_dim.getValue() - 1]) {
@@ -852,11 +854,15 @@ CellPoissonHypreSolver::copyToHypre(
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, src, box);
    TBOX_ASSERT( src.getDepth()>depth );
 
+   t_copy_vectors->start();
+
    pdat::CellIterator cend(pdat::CellGeometry::end(box));
    for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c != cend; ++c) {
       hier::IntVector ic = *c;
       HYPRE_StructVectorSetValues(vector, &ic[0], src(*c, depth));
    }
+
+   t_copy_vectors->stop();
 }
 
 /*
@@ -876,6 +882,8 @@ CellPoissonHypreSolver::copyFromHypre(
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, dst, box);
 
+   t_copy_vectors->start();
+
    pdat::CellIterator cend(pdat::CellGeometry::end(box));
    for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c != cend; ++c) {
       double value;
@@ -883,6 +891,8 @@ CellPoissonHypreSolver::copyFromHypre(
       HYPRE_StructVectorGetValues(vector, &ic[0], &value);
       dst(*c, depth) = value;
    }
+
+   t_copy_vectors->stop();
 }
 
 
