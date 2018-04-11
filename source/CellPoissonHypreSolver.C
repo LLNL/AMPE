@@ -1371,7 +1371,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
             offsetx++;
          }
 #if NDIM>2
-         offsety+=patch_box.numberCells(1);
+         offsety+=patch_box.numberCells(0);
 #endif
       }
 
