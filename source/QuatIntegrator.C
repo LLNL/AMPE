@@ -3947,7 +3947,7 @@ CVSpgmrPrecondSet
       }
    }
 
-   setCompositionOperatorCoefficients(gamma);
+   if( d_with_concentration )setCompositionOperatorCoefficients(gamma);
 
    if ( d_with_orientation ) {
       assert( d_quat_sys_solver );
