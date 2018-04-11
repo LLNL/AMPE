@@ -6,3 +6,7 @@ python ~/GIT/ampe/utils/make_initial_grains_on_boundary.py --ngrains 1 -d 2 \
 python ~/GIT/ampe/utils/make_initial_grains_on_boundary.py --ngrains 1 -d 2 \
         -x 64 -y 512 -z 1 --solid-fraction 0.05 --width 16. test.nc
 
+#3d
+python ~/GIT/ampe/utils/make_initial_grains_on_boundary.py --ngrains 1 -d 3 \
+       -x 64 -y 512 -z 64 --solid-fraction 0.05 --width 16. test.nc
+
