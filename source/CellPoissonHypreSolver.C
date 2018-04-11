@@ -1329,48 +1329,57 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
        */
       const int stencil_size = NDIM+1;
       int stencil_indices[stencil_size];
-      double mat_entries[stencil_size];
+      double* mat_entries=new double[stencil_size*patch_box.size()];
 
       for (int i = 0; i < stencil_size; ++i) stencil_indices[i] = i;
 
-      pdat::CellIterator ic(pdat::CellGeometry::begin(patch_box));
-      pdat::CellIterator icend(pdat::CellGeometry::end(patch_box));
+      int offset=0;
+      int count=0;
+      int offsetx=0;
+      double* offdx=off_diagonal.getPointer(0);
+#if NDIM>1
+      int offsety=0;
+      double* offdy= off_diagonal.getPointer(1);
+#if NDIM>2
+      int offsetz=0;
+      double* offdz= off_diagonal.getPointer(2);
+#endif
+#endif
+      double* diag=diagonal.getPointer();
 
-      /*
-        To do: This loop uses inefficient high-level syntax.
-        See if it can be replaced by a Fortran loop or if we
-        can set matrix entries for an entire box at once.
-       */
-      for ( ; ic!= icend; ic++) {
+      hier::Index lower(patch_box.lower());
+      hier::Index upper(patch_box.upper());
+      int ilower[3]={0,0,0};
+      int iupper[3]={0,0,0};
+      for(int d=0;d<d_dim.getValue();d++){
+         ilower[d]=lower[d];
+         iupper[d]=upper[d];
+      }
+     
+      for(int k=ilower[2];k<=iupper[2];k++){
+         for(int j=ilower[1];j<=iupper[1];j++){
+            for(int i=ilower[0];i<=iupper[0];i++){
+               mat_entries[offset++] = offdx[offsetx++];
+#if NDIM>1
+               mat_entries[offset++] = offdy[offsety++];
+#if NDIM>2
+               mat_entries[offset++] = offdz[offsetz++]; 
+#endif
+#endif
+               mat_entries[offset++] = diag[count++];
+            }
+            offsetx++;
+         }
+#if NDIM>2
+         offsety+=patch_box.numberCells(1);
+#endif
+      }
 
-        hier::IntVector icell = *ic;
-        pdat::SideIndex  ixlower(*ic,
-                                 pdat::SideIndex::X,
-                                 pdat::SideIndex::Lower);
-        mat_entries[0] = (off_diagonal)(ixlower);
-        if (NDIM > 1) {
-           pdat::SideIndex  iylower(*ic,
-                                    pdat::SideIndex::Y,
-                                    pdat::SideIndex::Lower);
-           mat_entries[1] = (off_diagonal)(iylower);
-        }
+      HYPRE_StructMatrixSetBoxValues(d_matrix, &ilower[0], &iupper[0], 
+                                     stencil_size, stencil_indices,
+                                     mat_entries);
 
-        if (NDIM > 2) {
-           pdat::SideIndex  izlower(*ic,
-                                    pdat::SideIndex::Z,
-                                    pdat::SideIndex::Lower);
-           // The "funny" indexing prevents a warning when compiling for 
-           // DIM < 2.  This code is only reached if DIM > 2 when 
-           // executing.
-           mat_entries[NDIM > 2 ? 2 : 0] = (off_diagonal)(izlower);
-        }
-
-        mat_entries[NDIM] = (diagonal)(*ic);
-        HYPRE_StructMatrixSetValues(d_matrix, &icell[0],
-           stencil_size, stencil_indices,
-           mat_entries);
-      } // end cell loop
-
+      delete[] mat_entries;
    } // end patch loop
 
    if (d_print_solver_info) {
