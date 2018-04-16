@@ -181,8 +181,8 @@ print "Composition outside=",co
 print "nspecies=",nspecies
 
 if not(nomconc is None):
-  for isp in  len(species):
-    co[isp]=(c[isp]*vol-ci[isp]*vs)/vl
+  for isp in range(nspecies):
+    co[isp]=(c[isp]-ci[isp]*sf)
     print 'Fill composition values'
     print 'conc_inside =',ci[isp]
     print 'conc_outside=',co[isp]
