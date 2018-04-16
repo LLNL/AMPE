@@ -43,9 +43,13 @@ public:
                                const double vma,
                                const double vmb)
    {
-       d_inv_vm[phaseL] = 1.e-6 / vml;
-       d_inv_vm[phaseA] = 1.e-6 / vma;
-       d_inv_vm[phaseB] = 1.e-6 / vmb;
+      assert( vml==vml );
+      assert( vml>0. );
+      assert( vma>0. );
+
+      d_inv_vm[phaseL] = 1.e-6 / vml;
+      d_inv_vm[phaseA] = 1.e-6 / vma;
+      d_inv_vm[phaseB] = 1.e-6 / vmb;
    }
    
    

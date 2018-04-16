@@ -740,11 +740,17 @@ void CALPHADFreeEnergyStrategyTernary::computeMuA(
    const double c1,
    double* mu )
 {
+   TBOX_ASSERT( c0==c0 );
+   TBOX_ASSERT( c1==c1 );
+
    double c[2]={c0,c1};
    d_calphad_fenergy->computeDerivFreeEnergy(t,c,phaseA,mu);
    double fac=d_mv_strategy->computeInvMolarVolume(t,c,phaseA);
    mu[0]*=fac;
    mu[1]*=fac;
+
+   TBOX_ASSERT( fac==fac );
+   TBOX_ASSERT( mu[0]==mu[0] );
 }
 
 //=======================================================================

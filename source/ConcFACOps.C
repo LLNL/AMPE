@@ -66,6 +66,7 @@ void ConcFACOps::setOperatorCoefficients(
 #ifdef DEBUG_CHECK_ASSERTIONS
       double vmax=d_hopsside->max( diffusion_id[ic] );
       double vmin=d_hopsside->min( diffusion_id[ic] );
+      if( vmax<=0. )
       tbox::pout<<"Component "<<ic<<", Max. for D = "<<vmax
                                   <<", Min. for D = "<<vmin<<endl;
       assert( vmax>0. );

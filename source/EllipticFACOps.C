@@ -938,19 +938,6 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                  << "to set one before calling initializeOperatorState\n");
    }
 
-
-   if (  solution.getNumberOfComponents() != d_depth ) {
-      TBOX_WARNING(d_object_name
-                   << ": Solution vector has multiple components.\n"
-                   << "Solver is for "<<d_depth<<" components only.\n");
-   }
-   if ( rhs.getNumberOfComponents() != d_depth ) {
-      TBOX_WARNING(d_object_name
-                   << ": RHS vector has multiple components.\n"
-                   << "Solver is for "<<d_depth<<"components only.\n");
-   }
-
-
    /*
     * Make sure that solution and rhs data
     *   are of correct type
