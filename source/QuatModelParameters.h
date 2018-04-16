@@ -311,6 +311,19 @@ public:
       assert( d_ncompositions>=0 );
       return d_ncompositions; 
    }
+
+   double surfaceEnergy()const
+   {
+      return d_epsilon_phase*sqrt(16.*d_phase_well_scale)/(3.*sqrt(2.));
+   }
+
+   /*
+    * Interfacial width based on Boettinget at al. formula
+    */
+   double interfacialWidth()const
+   {
+      return d_epsilon_phase/sqrt(32.*d_phase_well_scale);
+   }
  
 private:
    void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);

@@ -3157,11 +3157,17 @@ void QuatModel::preRunDiagnostics( void )
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    math::HierarchyCellDataOpsReal<double> mathops( d_patch_hierarchy );
 
+   double surface_e=d_model_parameters.surfaceEnergy();
+   tbox::pout<<"Surface energy (J/m^2): "<<surface_e<<endl;
+   double width=d_model_parameters.interfacialWidth();
+   tbox::pout<<"Interfacial width (um): "<<width<<endl;
+
    if ( d_model_parameters.with_concentration() )
       d_composition_rhs_strategy->printDiagnostics( d_patch_hierarchy );
 
    const double temperature =
-      d_temperature_strategy->getCurrentMinTemperature( d_patch_hierarchy, d_time );
+      d_temperature_strategy->getCurrentMinTemperature(
+         d_patch_hierarchy, d_time );
 
    if ( d_fenergy_diag_filename != ""  ) {
       
