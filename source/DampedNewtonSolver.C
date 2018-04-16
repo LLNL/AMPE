@@ -90,75 +90,8 @@ void DampedNewtonSolver::UpdateSolution(
       //cout << "del_c[" << jj << "] = " << del_c[jj] << endl;
    }
 
-#if 0
-   double w = 1.0e20;
-
-   for ( int ii = 0; ii < nn; ii++ ) {
-
-      double ctilde = c[ii] - del_c[ii];
-
-      double w_c = 1.0;
-
-      if ( ctilde < 0. ) {
-         w_c = ( del_c[ii] + ctilde ) / del_c[ii];
-         //cout << "ctilde[" << ii << "]  = " << ctilde << endl;
-      }
-      else if ( ctilde > 1 ) {
-         w_c = ( del_c[ii] + ctilde - 1.0 ) / del_c[ii];
-         //cout << "ctilde[" << ii << "]  = " << ctilde << endl;
-      }
-
-      if ( w_c < w ) {
-         w = w_c;
-      }
-
-   }
-#else
-   //double w = 1.0;
    double w = d_alpha;
-#endif
-
-   // make sure c remains between tol and 1-tol
-   double tol=1.e-16;
-   for ( int ii = 0; ii < nn; ii++ ) {
-
-      if( c[ii] <tol )
-      {
-         c[ii]=tol;
-         if( del[ii]<0.) del[ii]=0.;
-      }
-      if( c[ii] >1.-tol )
-      {
-         c[ii]=1.-tol;
-         if( del[ii]>0.) del[ii]=0.;
-      }
-
-   }
    for ( int ii = 0; ii < nn; ii++ ) {
       c[ii] = c[ii] - w * del[ii];
    }
-   
-   bool flag;
-   do
-   {
-      flag=false;
-      for ( int ii = 0; ii < nn; ii++ ) {
-         if(c[ii]<0. || c[ii]>1. )
-         {
-            w*=0.5;
-            //cout<<"c="<<c[ii]<<", rescale w..."<<w<<endl;
-            
-            for ( int jj = 0; jj < nn; jj++ )
-            {
-               c[jj] += 2.*w * del[jj];
-               c[jj] -=    w * del[jj];
-            }
-            flag=true;
-            break;
-         }
-      }
-   
-   }while( flag );
-
-   //cout << endl;
 }

@@ -153,30 +153,6 @@ void NewtonSolver::UpdateSolution(
    for ( int ii = 0; ii < s_N; ii++ ) {
       c[ii] = c[ii] - w * del_c[ii];
    }
-   
-   bool flag;
-   do
-   {
-      flag=false;
-      for ( int ii = 0; ii < s_N; ii++ ) {
-         if(c[ii]<0. || c[ii]>1. )
-         {
-            w*=0.5;
-            //cout<<"c="<<c[ii]<<", rescale w..."<<w<<endl;
-            
-            for ( int jj = 0; jj < s_N; jj++ )
-            {
-               c[jj] += 2.*w * del_c[jj];
-               c[jj] -=    w * del_c[jj];
-            }
-            flag=true;
-            break;
-         }
-      }
-   
-   }while( flag );
-
-   //cout << endl;
 }
 
 //=======================================================================
