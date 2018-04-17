@@ -3254,18 +3254,14 @@ bool QuatModel::computeCeq(const double temperature,
       cmax = min(1.,cmin + 0.1);
       cmin = max(0.,cmin - 0.1);
    }
-   tbox::pout<<"preRunDiagnostics: Try to estimate equilibrium concentrations between cmin="<<cmin
-          <<" and cmax="<<cmax<<"..."<<endl;
+   tbox::pout<<"QuatModel::computeCeq(): "<<endl
+             <<"Try to estimate equilibrium concentrations between cmin="
+             <<cmin <<" and cmax="<<cmax<<"..."<<endl;
    tbox::pout<<"T="<<temperature<<endl;
-//   double ceq_init0=max(cmin,0.01);
-//   double ceq_init1=min(cmax,0.99);
 
-   double val=1./(d_ncompositions+1); 
-   double lceq[4]={val,val,val,val};
-//   lceq[0]=ceq_init0;
-//   lceq[1]=ceq_init1;
-//   lceq[2]=ceq_init0;
-//   lceq[3]=ceq_init1;
+   double ceq_init0=cmin;
+   double ceq_init1=cmax;
+   double lceq[4]={ceq_init0,ceq_init1,ceq_init0,ceq_init1};
  
    // compute equilibrium concentrations
    bool found_ceq = false;
@@ -3278,24 +3274,27 @@ bool QuatModel::computeCeq(const double temperature,
       if( lceq[1]>1. )found_ceq = false;
       if( lceq[1]<0. )found_ceq = false;
       
-//      if( !found_ceq )
-//      {
-//         lceq[0]=ceq_init1;
-//         lceq[1]=ceq_init0;
-//         found_ceq =
-//            d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0],50,true);
-//            //d_free_energy_strategy->computeCeqT(temperature,pi0,pi1,&lceq[0]);
-//      }
+      if( !found_ceq )
+      {
+         tbox::pout<<"Try again with different initial conditions..."<<endl;
+         lceq[0]=ceq_init1;
+         lceq[1]=ceq_init0;
+         found_ceq =
+            d_cafe->computeCeqT(temperature,pi0,pi1,&lceq[0],50,true);
+         if( lceq[0]>1. )found_ceq = false;
+         if( lceq[0]<0. )found_ceq = false;
+         if( lceq[1]>1. )found_ceq = false;
+         if( lceq[1]<0. )found_ceq = false;
+      }
       
       if( found_ceq ){
-         tbox::plog<<"Found equilibrium concentrations: "<<lceq[0]<<", "<<lceq[1]<<"..."<<endl;
+         tbox::plog<<"Found equilibrium concentrations: "
+                   <<lceq[0]<<", "<<lceq[1]<<"..."<<endl;
          if( d_ncompositions>1 )
-            tbox::plog<<"                                  "<<lceq[2]<<", "<<lceq[3]<<"..."<<endl;
+            tbox::plog<<"                                  "
+                      <<lceq[2]<<", "<<lceq[3]<<"..."<<endl;
       }else{
          tbox::plog<<"ERROR: Equilibrium concentrations not found... "<<endl;
-//             <<"Set values to "<<ceq_init0<<" and "<<ceq_init1<<endl;
-//         ceq[pi0]=ceq_init0;
-//         ceq[pi1]=ceq_init1;
       }
    
       if( !found_ceq )mpi.abort();
