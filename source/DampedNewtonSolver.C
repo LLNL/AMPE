@@ -87,6 +87,10 @@ void DampedNewtonSolver::UpdateSolution(
 
       del[jj] = D_inv * Determinant( mwork );
 
+      const double maxdel=0.25;
+      if( fabs(del[jj])>maxdel)
+         del[jj] = del[jj]>0 ? maxdel : -maxdel;
+
       //cout << "del_c[" << jj << "] = " << del_c[jj] << endl;
    }
 
