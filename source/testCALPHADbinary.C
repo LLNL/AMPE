@@ -24,12 +24,11 @@ using namespace std;
 
 int main( int argc, char *argv[] )
 {
-   // Initialize MPI, SAMRAI, and enable logging.
+   // Initialize MPI, SAMRAI
 
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    /* This extra code block is used to scope some temporaries that are
     * created, it forces the destruction before the manager is
@@ -52,46 +51,22 @@ int main( int argc, char *argv[] )
    //-----------------------------------------------------------------------
    // Create input database and parse all data in input file.
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(new tbox::MemoryDatabase("input_db"));
+   boost::shared_ptr<tbox::MemoryDatabase> input_db(
+      new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
    //-----------------------------------------------------------------------
-   // Read key input settings
    
-   std::string run_name;
-   if ( input_db->keyExists( "run_name" ) ) {
-      run_name = input_db->getString( "run_name" );
-   }
-   else {
-      // make from input file name
-      run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
-   }
+   // make from input file name
+   std::string run_name =
+      input_filename.substr( 0, input_filename.rfind( "." ) );
 
    //-----------------------------------------------------------------------
    //
    // Logfile
    //
-   bool log_all_nodes = false;
    std::string log_file_name = run_name + ".log";
-
-   if ( input_db->isDatabase( "Logging" ) ) {
-      boost::shared_ptr<tbox::Database> log_db = input_db->getDatabase( "Logging" );
-
-      if ( log_db->keyExists( "filename" ) ) {
-         log_file_name = log_db->getString( "filename" );
-      }
-
-      if ( log_db->keyExists( "log_all_nodes" ) ) {
-         log_all_nodes = log_db->getBool( "log_all_nodes" );
-      }
-   }
-
-   if ( log_all_nodes ) {
-      tbox::PIO::logAllNodes( log_file_name );
-   }
-   else {
-      tbox::PIO::logOnlyNodeZero( log_file_name );
-   }
+   tbox::PIO::logOnlyNodeZero( log_file_name );
 
 #ifdef GITVERSION
 #define xstr(x) #x
@@ -100,7 +75,6 @@ int main( int argc, char *argv[] )
     tbox::plog<<endl;
 #endif
 
-   tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl; 	
    tbox::plog << "input_filename = " << input_filename << endl;
 
    boost::shared_ptr<tbox::Database> model_db =
@@ -123,17 +97,22 @@ int main( int argc, char *argv[] )
    string phase_interp_func_type = "pbg";
    string eta_interp_func_type   ="pbg";
    
-   boost::shared_ptr<tbox::Database> temperature_db = model_db->getDatabase( "Temperature" );
+   boost::shared_ptr<tbox::Database> temperature_db =
+      model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
 
-   boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
+   boost::shared_ptr<tbox::Database> conc_db(
+      model_db->getDatabase( "ConcentrationModel" ));
    string conc_avg_func_type =
       conc_db->getStringWithDefault( "avg_func_type", "a" );
 
-   boost::shared_ptr<tbox::Database> dcalphad_db=conc_db->getDatabase( "Calphad" );
+   boost::shared_ptr<tbox::Database> dcalphad_db=
+      conc_db->getDatabase( "Calphad" );
    std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db ( new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile( calphad_filename, calphad_db );
+   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
+      new tbox::MemoryDatabase( "calphad_db" ) );
+   tbox::InputManager::getManager()->parseInputFile(
+      calphad_filename, calphad_db );
    
    boost::shared_ptr<tbox::Database> newton_db;
    if ( conc_db->isDatabase( "NewtonSolver" ) )
@@ -159,10 +138,10 @@ int main( int argc, char *argv[] )
    const PHASE_INDEX pi1=phaseA;
    
    // initial guesses
-   double ceq_init0=0.5;
-   double ceq_init1=0.5;
+   double init_guess[2];
+   model_db->getDoubleArray("initial_guess", &init_guess[0], 2);
 
-   double lceq[2]={ceq_init0,ceq_init1};
+   double lceq[2]={init_guess[0], init_guess[1]};
    
    // compute equilibrium concentrations
    bool found_ceq =
@@ -172,27 +151,21 @@ int main( int argc, char *argv[] )
    if( lceq[1]>1. )found_ceq = false;
    if( lceq[1]<0. )found_ceq = false;
    
-   if( !found_ceq )
-   {
-      lceq[0]=ceq_init1;
-      lceq[1]=ceq_init0;
-      found_ceq =
-         cafe.computeCeqT(temperature,pi0,pi1,&lceq[0]);
-   }
-   
    if( found_ceq ){
-      tbox::plog<<"Found equilibrium concentrations: "<<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
+      tbox::pout<<"Found equilibrium concentrations: "
+                <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
    }else{
-      tbox::plog<<"WARNING: Equilibrium concentrations not found... "<<endl;
+      tbox::pout<<"WARNING: Equilibrium concentrations not found... "<<endl;
    }
    
    QuatModelParameters model_parameters;
    model_parameters.readModelParameters(model_db);
 
    tbox::plog<<"ConstantMolarVolumeStrategy... "<<endl;
-   ConstantMolarVolumeStrategy mvstrategy(model_parameters.molar_volume_liquid(),
-                                          model_parameters.molar_volume_solid_A(),
-                                          model_parameters.molar_volume_solid_B());
+   ConstantMolarVolumeStrategy mvstrategy(
+      model_parameters.molar_volume_liquid(),
+      model_parameters.molar_volume_solid_A(),
+      model_parameters.molar_volume_solid_B());
    tbox::plog<<"CALPHADFreeEnergyStrategy... "<<endl;
    CALPHADFreeEnergyStrategyBinary free_energy_strategy(
                calphad_db, newton_db,
@@ -207,19 +180,19 @@ int main( int argc, char *argv[] )
                model_parameters.phase_well_func_type(),
                model_parameters.eta_well_func_type() );
 
-   tbox::plog<<"CompositionStrategyMobilities... "<<endl;
-   CompositionStrategyMobilities composition_strategy_mobilities(dcalphad_db,
-         false,
-         1,
-         &free_energy_strategy );
+   if( calphad_db->keyExists( "MobilityParameters" ) ){
+      tbox::plog<<"CompositionStrategyMobilities... "<<endl;
+      int ncompositions=1;
+      bool with_third_phase=false;
+      CompositionStrategyMobilities composition_strategy_mobilities(
+         dcalphad_db, with_third_phase, ncompositions, &free_energy_strategy );
 
-   composition_strategy_mobilities.printDiagnostics(temperature,temperature);
-
-
-   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
+      composition_strategy_mobilities.printDiagnostics(temperature,temperature);
+   }
+   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase,
+                        101, 100);
 
    input_db.reset();
-
 
    }
 

@@ -76,7 +76,8 @@ public:
 
    enum CONC_DIFFUSION_TYPE {
       TD, // depends on T
-      CTD // depends on C and T
+      CTD, // depends on C and T
+      UNDEFINED_DIFFUSION_TYPE
    };
 
    void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);

@@ -63,7 +63,7 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
 void CALPHADFreeEnergyFunctionsTernary::setupSolver(
    boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..." << endl;
+   tbox::plog << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..." << endl;
    d_solver = new CALPHADConcentrationSolverTernary( );
 
    readNewtonparameters(newton_db);

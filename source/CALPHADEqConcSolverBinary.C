@@ -50,11 +50,10 @@ void CALPHADEqConcentrationSolverBinary::RHS(
    
    //loop over phases
    for ( int ii = 0; ii < 2; ii++ ) {
-
       dfdci[ii] = d_fA[ii] - d_fB[ii]
-       + CALPHADcomputeFMix_derivBinary( d_L0[ii], d_L1[ii], d_L2[ii], d_L3[ii], c[ii] )
+       + CALPHADcomputeFMix_derivBinary(
+            d_L0[ii], d_L1[ii], d_L2[ii], d_L3[ii], c[ii] )
        + CALPHADcomputeFIdealMix_derivBinary( d_RT, c[ii] );
-
    }
       
    fvec[0] =
@@ -83,7 +82,8 @@ void CALPHADEqConcentrationSolverBinary::Jacobian(
    for ( int ii = 0; ii < 2; ii++ ) {
 
       dfdci[ii] = d_fA[ii] - d_fB[ii]
-       + CALPHADcomputeFMix_derivBinary( d_L0[ii], d_L1[ii], d_L2[ii], d_L3[ii], c[ii] )
+       + CALPHADcomputeFMix_derivBinary(
+            d_L0[ii], d_L1[ii], d_L2[ii], d_L3[ii], c[ii] )
        + CALPHADcomputeFIdealMix_derivBinary( d_RT, c[ii] );
 
    }
@@ -92,12 +92,15 @@ void CALPHADEqConcentrationSolverBinary::Jacobian(
    fjac[0][0] = dfdci[0] - dfdci[1];
    fjac[0][1] = - (c[0]-c[1])*
                      ( CALPHADcomputeFIdealMix_deriv2Binary( d_RT, c[1] )
-                     + CALPHADcomputeFMix_deriv2Binary( d_L0[1], d_L1[1], d_L2[1], d_L3[1], c[1] ) );
+                     + CALPHADcomputeFMix_deriv2Binary(
+                          d_L0[1], d_L1[1], d_L2[1], d_L3[1], c[1] ) );
 
-   fjac[1][0] = CALPHADcomputeFMix_deriv2Binary( d_L0[0], d_L1[0], d_L2[0], d_L3[0], c[0] )
+   fjac[1][0] = CALPHADcomputeFMix_deriv2Binary(
+                   d_L0[0], d_L1[0], d_L2[0], d_L3[0], c[0] )
               + CALPHADcomputeFIdealMix_deriv2Binary( d_RT, c[0] );
          
-   fjac[1][1] = - CALPHADcomputeFMix_deriv2Binary( d_L0[1], d_L1[1], d_L2[1], d_L3[1], c[1] )
+   fjac[1][1] = - CALPHADcomputeFMix_deriv2Binary(
+                     d_L0[1], d_L1[1], d_L2[1], d_L3[1], c[1] )
                 - CALPHADcomputeFIdealMix_deriv2Binary( d_RT, c[1] );
 }
 

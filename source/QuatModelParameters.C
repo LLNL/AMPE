@@ -110,6 +110,7 @@ QuatModelParameters::QuatModelParameters()
    
    d_conc_model = UNDEFINED;
    d_conc_rhs_strategy = UNKNOWN;
+   d_conc_diffusion_type = UNDEFINED_DIFFUSION_TYPE;
 
    d_temperature_type = SCALAR;
 
@@ -195,47 +196,49 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    else {
       TBOX_ERROR( "Error: unknown concentration model in QuatModelParameters" );
    }
-   string conc_rhs_strategy =
-      conc_db->getStringWithDefault( "rhs_form", "kks" );
-   if ( conc_rhs_strategy[0] == 'k' ) {
-      d_conc_rhs_strategy = KKS;
-   }
-   else if ( conc_rhs_strategy[0] == 'e' ) {
-      d_conc_rhs_strategy = EBS;
-   }
-   else if ( conc_rhs_strategy[0] == 's' ) {
-      d_conc_rhs_strategy = SPINODAL;
-   }
-   else if ( conc_rhs_strategy[0] == 'u' 
-          || conc_rhs_strategy[0] == 'B'
-          || conc_rhs_strategy[0] == 'b' ) {
-      tbox::plog<<"Using Beckermann's model"<<endl;
-      d_conc_rhs_strategy = Beckermann;
-   }
-   else {
-      TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
+
+   if( conc_db->keyExists("rhs_form") ){
+      string conc_rhs_strategy =
+         conc_db->getStringWithDefault( "rhs_form", "kks" );
+      if ( conc_rhs_strategy[0] == 'k' ) {
+         d_conc_rhs_strategy = KKS;
+      }
+      else if ( conc_rhs_strategy[0] == 'e' ) {
+         d_conc_rhs_strategy = EBS;
+      }
+      else if ( conc_rhs_strategy[0] == 's' ) {
+         d_conc_rhs_strategy = SPINODAL;
+      }
+      else if ( conc_rhs_strategy[0] == 'u' 
+             || conc_rhs_strategy[0] == 'B'
+             || conc_rhs_strategy[0] == 'b' ) {
+         tbox::plog<<"Using Beckermann's model"<<endl;
+         d_conc_rhs_strategy = Beckermann;
+      }
+      else {
+         TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
+      }
    }
 
    // default setup so that older inputs files need not to be changed
    string default_concdiff_type = d_conc_rhs_strategy == EBS ?
                                   "composition_dependent" : 
-                                  "temperature_dependent";
+                                  "unknown";
    string conc_diffusion_strategy =
       conc_db->getStringWithDefault( "diffusion_type", default_concdiff_type);
    if( conc_diffusion_strategy[0] == 'c' ){
       d_conc_diffusion_type = CTD;
    }else if( conc_diffusion_strategy[0] == 't' ){
       d_conc_diffusion_type = TD;
-   }else {
-      TBOX_ERROR( "Error: unknown concentration diffusion strategy" );
    }
-
  
    if ( d_conc_rhs_strategy == Beckermann ){
+      tbox::plog<<"Read diffusion constants for Beckermann's model"<<endl;
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_D_solid_A = conc_db->getDouble( "D_solid_A" );
    }
    if ( d_conc_diffusion_type == TD ){
+      tbox::plog<<"Read T-dependent diffusions"<<endl;
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_Q0_liquid = conc_db->getDoubleWithDefault( "Q0_liquid", 0. );
 
@@ -285,7 +288,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 
    d_grand_potential = conc_db->getBoolWithDefault( "gc", false );
    
-   d_partition_coeff = conc_db->getStringWithDefault( "partition_coeff", "none" );
+   d_partition_coeff = conc_db->getStringWithDefault(
+                          "partition_coeff", "none" );
    tbox::plog<<"Partition coefficient type: "<<d_partition_coeff<<endl;
 
    if( d_partition_coeff.compare("Aziz")==0 ){
@@ -309,7 +313,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    string default_model="none";
    if( d_conc_model==CALPHAD || d_conc_model==HBSM )default_model="kks";
    d_phase_concentration_model = 
-      conc_db->getStringWithDefault( "phase_concentration_model", default_model );
+      conc_db->getStringWithDefault( "phase_concentration_model",
+                                     default_model );
    assert( d_phase_concentration_model.compare("none")==0 
         || d_phase_concentration_model.compare("kks")==0 
         || d_phase_concentration_model.compare("partition")==0 );

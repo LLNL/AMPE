@@ -85,9 +85,10 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsBinary::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsBinary::setupSolver(
+   boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
+   tbox::plog << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
    d_solver = new CALPHADConcentrationSolverBinary( d_with_third_phase );
 
    readNewtonparameters(newton_db);
@@ -351,10 +352,11 @@ void CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(const double temperature,
-                                                     double* L0, double* L1, double* L2, double* L3,
-                                                     double* fA, double* fB,
-                                                     const PHASE_INDEX pi0, const PHASE_INDEX pi1)
+void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(
+   const double temperature,
+   double* L0, double* L1, double* L2, double* L3,
+   double* fA, double* fB,
+   const PHASE_INDEX pi0, const PHASE_INDEX pi1)
 {
    PHASE_INDEX pis[2]={pi0,pi1};
    
@@ -441,7 +443,8 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
    if(verbose)tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeCeqT()"<<endl;
    assert( temperature>0. );
 
-   setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3, d_fA, d_fB, pi0, pi1);
+   setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3,
+                                 d_fA, d_fB, pi0, pi1);
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqConcentrationSolverBinary eq_solver;
    eq_solver.SetMaxIterations(maxits);

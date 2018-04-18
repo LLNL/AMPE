@@ -57,7 +57,6 @@ int main( int argc, char *argv[] )
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    /* This extra code block is used to scope some temporaries that are
     * created, it forces the destruction before the manager is
@@ -80,12 +79,13 @@ int main( int argc, char *argv[] )
    //-----------------------------------------------------------------------
    // Create input database and parse all data in input file.
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(new tbox::MemoryDatabase("input_db"));
+   boost::shared_ptr<tbox::MemoryDatabase> input_db(
+      new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
-   std::string run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
+   std::string run_name =
+      input_filename.substr( 0, input_filename.rfind( "." ) );
 
-   bool log_all_nodes = false;
    std::string log_file_name = run_name + ".log";
    tbox::PIO::logOnlyNodeZero( log_file_name );
 
@@ -96,7 +96,6 @@ int main( int argc, char *argv[] )
     tbox::plog<<endl;
 #endif
 
-   tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl; 	
    tbox::plog << "input_filename = " << input_filename << endl;
 
    boost::shared_ptr<tbox::Database> model_db =
@@ -109,17 +108,22 @@ int main( int argc, char *argv[] )
 
    string phase_interp_func_type = "pbg";
    
-   boost::shared_ptr<tbox::Database> temperature_db = model_db->getDatabase( "Temperature" );
+   boost::shared_ptr<tbox::Database> temperature_db =
+      model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
 
-   boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
+   boost::shared_ptr<tbox::Database> conc_db(
+      model_db->getDatabase( "ConcentrationModel" ));
    string conc_avg_func_type =
       conc_db->getStringWithDefault( "avg_func_type", "a" );
 
-   boost::shared_ptr<tbox::Database> dcalphad_db=conc_db->getDatabase( "Calphad" );
+   boost::shared_ptr<tbox::Database> dcalphad_db=
+      conc_db->getDatabase( "Calphad" );
    std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db ( new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile( calphad_filename, calphad_db );
+   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
+      new tbox::MemoryDatabase( "calphad_db" ) );
+   tbox::InputManager::getManager()->parseInputFile(
+      calphad_filename, calphad_db );
    
    boost::shared_ptr<tbox::Database> newton_db;
    int maxits=20;
@@ -156,7 +160,8 @@ int main( int argc, char *argv[] )
    const PHASE_INDEX pi1=phaseA;
 
    bool found_ceq =
-      cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],nominalc[1],&lceq[0], maxits);
+      cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],
+                       nominalc[1],&lceq[0], maxits);
    if( lceq[0]>1. )found_ceq = false;
    if( lceq[0]<0. )found_ceq = false;
    if( lceq[1]>1. )found_ceq = false;

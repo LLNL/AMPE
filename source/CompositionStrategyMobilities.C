@@ -115,8 +115,9 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 
 //-----------------------------------------------------------------------
 
-void CompositionStrategyMobilities::printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-                                                     const int temperature_scratch_id)
+void CompositionStrategyMobilities::printDiagnostics(
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const int temperature_scratch_id)
 {
    tbox::plog<<"CompositionRHSStrategy::printDiagnostics()"<<endl;
    
@@ -129,7 +130,8 @@ void CompositionStrategyMobilities::printDiagnostics(const boost::shared_ptr<hie
 
 //-----------------------------------------------------------------------
 
-void CompositionStrategyMobilities::printDiagnostics(const double Tmin, const double Tmax)
+void CompositionStrategyMobilities::printDiagnostics(
+   const double Tmin, const double Tmax)
 {
    tbox::plog<<"CompositionRHSStrategy::printDiagnostics()"<<endl;
    
