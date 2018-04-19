@@ -3262,6 +3262,14 @@ bool QuatModel::computeCeq(const double temperature,
    double ceq_init0=cmin;
    double ceq_init1=cmax;
    double lceq[4]={ceq_init0,ceq_init1,ceq_init0,ceq_init1};
+
+   if( d_model_parameters.knownInitCinPhase() ){
+      const unsigned int offset=d_ncompositions;
+      for(unsigned int ic=0;ic<d_ncompositions;ic++){
+         lceq[       ic]=d_model_parameters.getInitCphaseL(ic);
+         lceq[offset+ic]=d_model_parameters.getInitCphaseA(ic);
+      }
+   }
  
    // compute equilibrium concentrations
    bool found_ceq = false;

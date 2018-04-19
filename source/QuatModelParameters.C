@@ -328,7 +328,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 
       d_liquidus_slope = conc_db->getDoubleWithDefault( "liquidus_slope", 0. );
       if( fabs(d_liquidus_slope)>0. )
-         d_average_concentration    = conc_db->getDouble( "average_concentration" );
+         d_average_concentration = conc_db->getDouble("average_concentration");
       d_well_bias_alpha = conc_db->getDouble( "alpha" );
       if( d_well_bias_alpha>0. ){
          d_with_bias_well = true;
@@ -344,6 +344,13 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          d_liquidus_slope /= d_rescale_factorT;
          d_well_bias_gamma *= d_rescale_factorT;
       }
+   }
+
+   if( conc_db->keyExists("initc_in_phase") ){
+      size_t nterms=conc_db->getArraySize("initc_in_phase");
+      assert( nterms==2*d_ncompositions );
+      d_initc_in_phase.resize(nterms);
+      conc_db->getDoubleArray("initc_in_phase",&d_initc_in_phase[0],nterms);
    }
 }
 

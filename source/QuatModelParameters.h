@@ -126,6 +126,13 @@ public:
       assert( d_ncompositions>=0 );
       return d_ncompositions;
    }
+   bool knownInitCinPhase()const{ return !d_initc_in_phase.empty(); }
+   double getInitCphaseL(const int index)const{
+      return d_initc_in_phase[index];
+   }
+   double getInitCphaseA(const int index)const{
+      return d_initc_in_phase[d_ncompositions+index];
+   }
    double meltingT()const{ return d_meltingT; }
    double rescale_factorT()const{ return d_rescale_factorT; }
    double vd()const{
@@ -354,6 +361,12 @@ private:
    std::vector<double> d_T_source;
    std::vector<double> d_Q_heat_transport;
    
+   /*
+    * Initial compositions in each phase:
+    * cL0, cL1, ..., cS0, cS1, ...
+    */
+   std::vector<double> d_initc_in_phase;
+
    // free energy parameters:
    // f(phi) = d_phase_well_scale * g(phi)
    //        + p(phi)*( d_free_energy_solid - d_free_energy_liquid)
