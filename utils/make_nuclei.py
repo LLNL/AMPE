@@ -76,12 +76,12 @@ parser.add_option( "-i", "--phase-in", type="float", default=1.0,
                    help="phase in interior region [default: %default]" )
 parser.add_option( "-o", "--phase-out", type="float", default=0.0,
                    help="phase in exterior region [default: %default]" )
-parser.add_option( "-c", "--nomconc", type="float", 
+parser.add_option( "-c", "--nomconc", type="string", # something like "0.1,0.2",
                    help="nominal concentration" )
-parser.add_option( "--concentration-in", type="float", 
+parser.add_option( "--concentration-in", type="string",
                    help="concentration in interior region" )
-parser.add_option( "--concentration-out", type="float", 
-                   help="concentration in outside region" )
+parser.add_option( "--concentration-out", type="string",
+                   help="concentration in exterior region" )
 parser.add_option( "--temperature-in", type="float",
                    help="temperature in interior region" )
 parser.add_option( "--temperature-out", type="float",
@@ -158,6 +158,27 @@ quat_outside  = options.quat_out
 if( not(quat_outside is None) ):
   qout = map( float, string.split( options.quat_out, ',' ) )
   print 'qout=',qout
+
+#-----------------------------------------------------------------------
+nspecies=0
+if ( not ( nomconc is None ) ):
+  c = map( float, string.split( options.nomconc, ',' ) )
+  nspecies=len(c)
+  print "Nominal composition=",c
+if ( not ( conc_inside is None ) ):
+  ci = map( float, string.split( options.concentration_in, ',' ) )
+  if nspecies==0:
+    nspecies=len(ci)
+  print "Composition inside=",ci
+else:
+  ci = N.zeros( nspecies, N.float32 )
+if ( not ( conc_outside is None ) ):
+  co = map( float, string.split( options.concentration_out, ',' ) )
+  print "Composition outside=",co
+else:
+  co = N.zeros( nspecies, N.float32 )
+
+print "nspecies=",nspecies
 
 # generate quaternions corresponding to random orientations
 random.seed( 11234 )
@@ -447,15 +468,18 @@ f = nc4.Dataset(filename, 'w', format='NETCDF4')
 f.createDimension( 'x', nx )
 f.createDimension( 'y', ny )
 f.createDimension( 'z', nz )
+f.createDimension( 'ns', nspecies )
 if QLEN>0:
   f.createDimension( 'qlen', QLEN )
 
 ncquat=[]
+ncconc = []
 
 if double_precision:
   print 'Data in double precision...'
-  if not(nomconc is None) or not(conc_inside is None):
-    ncconc  = f.createVariable( 'concentration', 'd', ('z','y','x') )
+  for s in range(nspecies):
+    c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
+    ncconc.append(c_comp)
   if not(temperature_outside is None) or not(temperature_inside is None):
     nctemp  = f.createVariable( 'temperature', 'd', ('z','y','x') )
     temperature  = N.ones( (nz,ny,nx), N.float64 )
@@ -468,7 +492,7 @@ if double_precision:
     print name
     ncquat.append( f.createVariable( name, 'd', ('z','y','x') ) )
 
-  conc  = N.ones( (nz,ny,nx), N.float64 )
+  conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
   phase = N.zeros( (nz,ny,nx), N.float64 )
   if QLEN>0:
     quat  = N.zeros( (QLEN,nz,ny,nx), N.float64 )
@@ -476,8 +500,9 @@ if double_precision:
     eta = N.zeros( (nz,ny,nx), N.float64 )
 else:
   print 'Data in single precision...'
-  if not(nomconc is None) or not(conc_inside is None):
-    ncconc  = f.createVariable( 'concentration', 'f', ('z','y','x') )
+  for s in range(nspecies):
+    c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
+    ncconc.append(c_comp)
   if not(temperature_outside is None) or not(temperature_inside is None):
     nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
     temperature  = N.ones( (nz,ny,nx), N.float32 )
@@ -490,7 +515,7 @@ else:
     print name
     ncquat.append( f.createVariable( name, 'f', ('z','y','x') ) )
 
-  conc  = N.ones( (nz,ny,nx), N.float32 )
+  conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
   phase = N.zeros( (nz,ny,nx), N.float32 )
   if QLEN>0:
     quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
@@ -702,22 +727,30 @@ if QLEN>0:
           quat[m,k,j,i] = qi[m]
 
 #fill conc values
-if nomconc is None:
-  if not(conc_inside is None):
-    nomconc=(conc_inside*vs+conc_outside*vl)/vol
+if nspecies>0:
+  if ( not ( conc_inside is None ) ):
+    if ( not ( nomconc is None ) and vl>0 ):
+      for s in range(nspecies):
+        co[s] = (c[s]*vol-ci[s]*vs)/vl
+      print "Calculated composition outside=",co
+  if ( not ( options.concentration_out is None ) ):
+    if ( not ( nomconc is None ) and vs>0 ):
+      conc_inside = (c[0]*vol-conc_outside*vl)/vs
+      print "Calculated composition inside=",conc_inside
+  if( ( conc_outside is None ) and ( conc_inside is None ) ):
+    conc_inside = nomconc
+    conc_outside = nomconc
 
-
-if not(nomconc is None):
-  conc_outside=(nomconc*vol-conc_inside*vs)/vl
-  print 'Fill composition values'
-  print 'conc_inside =',conc_inside
-  print 'conc_outside=',conc_outside
+  if ( not ( conc_outside is None ) and not ( conc_inside is None ) ):
+    for s in range(nspecies):
+      print "Calculated nominal Composition=",(vl*co[s]+vs*ci[s])/vol
 
   print 'set composition...'
   for k in range( nz ) :
     for j in range( ny ) :
       for i in range( nx ) :
-        conc[k,j,i]  = conc_inside*phase[k,j,i]+conc_outside*(1.-phase[k,j,i])
+        for s in range(nspecies):
+          conc[s,k,j,i]  = ci[s]*phase[k,j,i]+co[s]*(1.-phase[k,j,i])
 
 if not(temperature_inside is None):
   print 'Fill temperature values'
@@ -751,8 +784,6 @@ if not(temperature_inside is None):
 # Write data to file and close
 
 print 'Write data to file'
-if not(nomconc is None):
-  ncconc[:,:,:]= conc
 if not(temperature_inside is None):
   nctemp[:,:,:]= temperature
 ncphase[:,:,:]=phase
@@ -760,6 +791,10 @@ if( options.three ):
   nceta[:,:,:]=eta
 for m in range(QLEN):
   ncquat[m][:,:,:]=quat[m,:,:,:]
+
+if ( nspecies>0 ):
+  for s in range(nspecies):
+    ncconc[s][:,:,:]=conc[s,:,:,:]
 
 f.close()
 
