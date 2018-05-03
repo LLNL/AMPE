@@ -60,13 +60,11 @@ parser.add_option( "--ngrains", type="int", default=1,
                    help="number of grains to nucleate [default: %default]" )
 parser.add_option( "-n", "--ncells", type="int",
                    help="number of cells in x,y,z (will all be equal)" )
-parser.add_option( "-d", "--dimension", type="int", default=3,
-                   help="dimension of subspace containing centers [default: %default]" )
 parser.add_option( "-x", "--nx", type="int",
                    help="number of cells in x direction" )
 parser.add_option( "-y", "--ny", type="int",
                    help="number of cells in y direction" )
-parser.add_option( "-z", "--nz", type="int",
+parser.add_option( "-z", "--nz", type="int", default=1,
                    help="number of cells in z direction" )
 parser.add_option( "-q", "--qlen", type="int", default=0,
                    help="number of component for q [default: %default]" )
@@ -100,6 +98,13 @@ parser.add_option( "--symmetry-test", action="store_true",
                    default=False,
                    help="rotate each octant by a random symmetry rotation" )
 parser.add_option( "--double", action="store_true", dest="double_precision", default=False)
+parser.add_option( "--center0", type="string", # something like "12.,14.,23"
+                  help="position of center 0")
+parser.add_option("--periodic", type="string", # something like "1,0,1" for periodic in x and z
+                  default="1,1,1",
+                  help="specify which dimensions are periodic") 
+parser.add_option("--quat0", type="string",
+                  help="specify value of quaternion in grain 0")
 
 (options, args) = parser.parse_args()
 
@@ -130,10 +135,6 @@ if ( not ( nx and ny and nz ) ) :
   sys.exit(1)
 
 
-ndim = options.dimension
-if ndim < 3:
-  nz=1
-
 QLEN = options.qlen
 print "qlen=",QLEN
 
@@ -158,6 +159,8 @@ quat_outside  = options.quat_out
 if( not(quat_outside is None) ):
   qout = map( float, string.split( options.quat_out, ',' ) )
   print 'qout=',qout
+
+periodic = map( int, string.split( options.periodic, ',') )
 
 #-----------------------------------------------------------------------
 nspecies=0
@@ -274,15 +277,30 @@ def setRandomQinSpheres():
       print '--- q=',quat_inside[g]
 
 #distance square function for periodic bc
+if periodic[0]==1:
+  rangex=range(-1,2)
+else:
+  rangex=range(1)
+
+if periodic[1]==1:
+  rangey=range(-1,2)
+else:
+  rangey=range(1)
+
+if periodic[2]==1:
+  rangez=range(-1,2)
+else:
+  rangez=range(1)
+
 def distance2(x1,y1,z1,x2,y2,z2):
   d2=(x1 - x2)**2 + (y1 - y2)**2 + (z1 - z2)**2
-  for ir in range(-1,2):
+  for ir in rangex:
     dx2=(x1-x2+ir*nx)**2
     if dx2<=d2:
-      for jr in range(-1,2):
+      for jr in rangey:
         dy2=(y1-y2+jr*ny)**2
         if dy2<=d2:
-          for kr in range(-1,2):
+          for kr in rangez:
             dz2=(z1-z2+kr*nz)**2
             l2=dx2+dy2+dz2
             if l2<d2:
@@ -292,7 +310,7 @@ def distance2(x1,y1,z1,x2,y2,z2):
 #distance square function for periodic bc
 def distance2_1d_x(x1,x2):
   d2=(x1 - x2)**2
-  for ir in range(-1,2):
+  for ir in rangex:
     l2=(x1-x2+ir*nx)**2
     if l2<d2:
       d2=l2
@@ -300,7 +318,7 @@ def distance2_1d_x(x1,x2):
 
 def distance2_1d_y(y1,y2):
   d2=(y1 - y2)**2
-  for ir in range(-1,2):
+  for ir in rangey:
     l2=(y1-y2+ir*ny)**2
     if l2<d2:
       d2=l2
@@ -308,7 +326,7 @@ def distance2_1d_y(y1,y2):
 
 def distance2_1d_z(z1,z2):
   d2=(z1 - z2)**2
-  for ir in range(-1,2):
+  for ir in rangez:
     l2=(z1-z2+ir*nz)**2
     if l2<d2:
       d2=l2
@@ -528,9 +546,8 @@ def generateRandomCenters(cx,cy,cz,n):
     cx.append( random.randint(1,nx) )
   for g in range(n):
     cy.append( random.randint(1,ny) )
-  if ndim>2:
-    for g in range(n):
-      cz.append( random.randint(1,nz) )
+  for g in range(n):
+    cz.append( random.randint(1,nz) )
   else:
     for g in range(n):
       cz.append( 1 )
@@ -579,12 +596,21 @@ r=[]
 
 if n_spheres==1:
   r.append(radius)
-  cx.append( nx/2 )
-  cy.append( ny/2 )
-  if ndim>2:
-    cz.append( nz/2 )
+  if ( not (options.center0 is None) ):
+    center = map( float, string.split( options.center0, ',' ) )
+    cx.append( center[0] )
+    cy.append( center[1] )
+    if len(center)>2:
+      cz.append( center[2] )
+    else:
+      cz.append(1)
   else:
-    cz.append(1)
+    cx.append( nx/2 )
+    cy.append( ny/2 )
+    if nz>1:
+      cz.append( nz/2 )
+    else:
+      cz.append(1)
 else:
   if n_spheres==2:
     print 'nspheres=',n_spheres
@@ -598,10 +624,10 @@ else:
     r.append(radius* 1.5)
     
   else:
-    if ndim==2:
+    if nz==1:
       rtn=int(math.floor(math.sqrt(n_spheres)))
       nnn=rtn*rtn
-    if ndim==3:
+    if nz>1:
       rtn=int(round(math.pow(n_spheres,1./3.)))
       nnn=rtn*rtn*rtn
     if( nnn==n_spheres ):
@@ -610,9 +636,9 @@ else:
       #jitter= hx-mind
       jitter= options.jitter_factor*hx
       print 'jitter=',jitter
-      if ndim==2:
+      if nz==1:
         generateJitterCenters2D(cx,cy,cz,rtn,rtn,jitter)
-      if ndim==3:
+      if nz>1:
         generateJitterCenters3D(cx,cy,cz,rtn,rtn,rtn,jitter)
     else:
       generateRandomCenters(cx,cy,cz,n_spheres)
@@ -680,10 +706,14 @@ for g in range(n_spheres):
 vl=vol-vs
 
 #fill quat values
-if options.bain :
-  setBainQinSpheres()
+if ( not (options.quat0 is None) ):
+  q = map( float, string.split( options.quat0, ',' ) )
+  quat_inside.append( q )
 else:
-  setRandomQinSpheres()
+  if options.bain :
+    setBainQinSpheres()
+  else:
+    setRandomQinSpheres()
 
 if QLEN>0:
   gmin=0
