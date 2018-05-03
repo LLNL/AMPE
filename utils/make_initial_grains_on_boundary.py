@@ -169,20 +169,21 @@ if not(conc_inside is None):
   ci = map( float, string.split( options.concentration_in, ',' ) )
   if nspecies==0:
     nspecies=len(ci)
+  print "Composition inside=",ci
 else:
   ci = N.zeros( nspecies, N.float32 )
+
 if ( not ( conc_outside is None ) ):
   co = map( float, string.split( options.concentration_out, ',' ) )
+  print "Composition outside=",co
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "Composition inside=",ci
-print "Composition outside=",co
 print "nspecies=",nspecies
 
 if not(nomconc is None):
   for isp in range(nspecies):
-    co[isp]=(c[isp]-ci[isp]*sf)
+    co[isp]=(c[isp]-ci[isp]*sf)/(1.-sf)
     print 'Fill composition values'
     print 'conc_inside =',ci[isp]
     print 'conc_outside=',co[isp]
@@ -237,13 +238,11 @@ if double_precision:
   if QLEN>0:
     quat  = N.zeros( (QLEN,nz,ny,nx), N.float64 )
   conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
-  temperature_field = N.zeros( (nz,ny,nx), N.float64 )
 else:
   phase = N.zeros( (nz,ny,nx), N.float32 )
   if QLEN>0:
     quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
   conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
-  temperature_field = N.zeros( (nz,ny,nx), N.float32 )
 
 #-----------------------------------------------------------------------
 
@@ -330,7 +329,7 @@ if ( nspecies>0 ):
   for s in range(nspecies):
     ncconc[s][:,:,:]=conc[s,:,:,:]
 if not(temperature is None):
-  nctemp[:,:,:]= temperature_field
+  nctemp[:,:,:]= temperature
 ncphase[:,:,:]=phase
 for m in range(QLEN):
   ncquat[m][:,:,:]=quat[m,:,:,:]
