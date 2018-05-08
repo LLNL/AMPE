@@ -113,6 +113,9 @@ ModelParameters {
       Calphad {
          filename ="calphadAuNi.dat"
       }
+      NewtonSolver {
+         max_its = 50
+      }
    }
 }
 
