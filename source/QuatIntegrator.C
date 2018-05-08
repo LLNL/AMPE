@@ -297,6 +297,8 @@ QuatIntegrator::QuatIntegrator(
       tman->getTimer("QuatIntegrator::CVSpgmrPrecondSet()");
    t_psolve_solve_timer =
       tman->getTimer("QuatIntegrator::CVSpgmrPrecondSolve()");
+   t_phase_conc_timer =
+      tman->getTimer("QuatIntegrator::computePhaseConcentrations()");
 
    boost::shared_ptr<tbox::Database> integrator_db = db->getDatabase( "Integrator" );
 
@@ -2782,7 +2784,8 @@ void QuatIntegrator::evaluatePhaseRHS(
          d_flux_coarsen_schedule[ln]->coarsenData();
       }
 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
+      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+            ++ip ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
 
          d_free_energy_strategy->computeFreeEnergyLiquid(
@@ -2796,11 +2799,13 @@ void QuatIntegrator::evaluatePhaseRHS(
             d_f_a_id, false );
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(
+               patch->getPatchGeometry()) );
          const double* dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::CellData<double> > phase (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phase_id) ) );
          assert( phase );
 
          boost::shared_ptr< pdat::CellData<double> > phase_rhs (
@@ -2808,18 +2813,22 @@ void QuatIntegrator::evaluatePhaseRHS(
                patch->getPatchData( phase_rhs_id) ) );
          assert( phase_rhs );
          boost::shared_ptr< pdat::CellData<double> > fl (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_l_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_f_l_id) ) );
          assert( fl );
          boost::shared_ptr< pdat::CellData<double> > fa (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_f_a_id) ) );
          assert( fa );
 
          boost::shared_ptr<pdat::SideData<double> > phase_flux (
-            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_flux_id) ) );
+            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+               patch->getPatchData( d_flux_id) ) );
          assert( phase_flux );
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( temperature_id) ) );
          assert( temperature );
 
          int with_orient = 0;
@@ -2828,7 +2837,8 @@ void QuatIntegrator::evaluatePhaseRHS(
             with_orient = 1;
             assert( d_quat_grad_modulus_id >= 0 );
             boost::shared_ptr< pdat::CellData<double> > qgm (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_quat_grad_modulus_id) ) );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( d_quat_grad_modulus_id) ) );
             ptr_quat_grad_modulus = qgm->getPointer();
          }
 
@@ -2837,7 +2847,8 @@ void QuatIntegrator::evaluatePhaseRHS(
          if ( d_with_third_phase ) {
             three_phase = 1;
             boost::shared_ptr< pdat::CellData<double> > eta (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( eta_id) ) );
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( eta_id) ) );
             ptr_eta = eta->getPointer();
          }
 
@@ -2845,8 +2856,10 @@ void QuatIntegrator::evaluatePhaseRHS(
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast  = pbox.upper();
 
-         assert( phase->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-         assert( phase_rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( phase->getGhostCellWidth() == 
+                 hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
+         assert( phase_rhs->getGhostCellWidth() == 
+                 hier::IntVector(tbox::Dimension(NDIM),0) );
 #ifdef DEBUG_CHECK_ASSERTIONS
          SAMRAI::math::PatchCellDataNormOpsReal<double> opc;
          double l2t=opc.L2Norm(temperature,pbox);
@@ -2912,7 +2925,8 @@ void QuatIntegrator::evaluatePhaseRHS(
 #endif
 
          boost::shared_ptr< pdat::CellData<double> > phase_mobility (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_mobility_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_phase_mobility_id) ) );
          assert( phase_mobility );
 
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
@@ -3634,7 +3648,9 @@ void QuatIntegrator::computePhaseConcentrations(
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > y)
 {
    assert( d_phase_conc_strategy!=NULL );
-   
+
+   t_phase_conc_timer->start();
+ 
    int phase_id = d_with_phase         ? y->getComponentDescriptorIndex( d_phase_component_index ): -1;
    int eta_id   = d_with_third_phase   ? y->getComponentDescriptorIndex( d_eta_component_index   ): -1;
    int conc_id  = d_with_concentration ? y->getComponentDescriptorIndex( d_conc_component_index  ): -1;
@@ -3673,6 +3689,8 @@ void QuatIntegrator::computePhaseConcentrations(
       conc_id );
    
    d_quat_model->fillPhaseConcentrationGhosts();
+
+   t_phase_conc_timer->stop();
 }
 
 
@@ -3890,8 +3908,7 @@ CVSpgmrPrecondSet
    (void)vtemp2;
    (void)vtemp3;
 
-   //   tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok << endl;
-
+   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok << endl;
    t_psolve_setup_timer->start();
 
    // Ignore jok flag
