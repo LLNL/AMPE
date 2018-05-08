@@ -40,6 +40,54 @@
 #include <string>
 using namespace std;
 
+#ifdef HAVE_TLOT
+void readLcoefficients(boost::shared_ptr<tbox::Database> db,
+                       double (&LmixPhase)[4][3]){
+#else
+void readLcoefficients(boost::shared_ptr<tbox::Database> db,
+                       double (&LmixPhase)[4][2]){
+#endif
+   size_t lsize = db->getArraySize("L0");
+   db->getDoubleArray( "L0", LmixPhase[0], lsize );
+#ifdef HAVE_TLOGT
+   if(lsize<3)LmixPhase[0][2]=0.;
+#endif
+
+   lsize = db->getArraySize("L1");
+   db->getDoubleArray( "L1", LmixPhase[1], lsize );
+#ifdef HAVE_TLOGT
+   if(lsize<3)LmixPhase[1][2]=0.;
+#endif
+
+   if ( db->keyExists( "L2" ) ) {
+      lsize = db->getArraySize("L2");
+      db->getDoubleArray( "L2", LmixPhase[2], lsize );
+#ifdef HAVE_TLOGT
+      if(lsize<3)LmixPhase[2][2]=0.;
+#endif
+   }else {
+      LmixPhase[2][0] = 0.0;
+      LmixPhase[2][1] = 0.0;
+#ifdef HAVE_TLOGT
+      LmixPhase[2][2] = 0.0;
+#endif
+   }
+
+   if ( db->keyExists( "L3" ) ) {
+      lsize = db->getArraySize("L3");
+      db->getDoubleArray( "L3", LmixPhase[3], lsize );
+#ifdef HAVE_TLOGT
+      if(lsize<3)LmixPhase[3][2]=0.;
+#endif
+   }else {
+      LmixPhase[3][0] = 0.0;
+      LmixPhase[3][1] = 0.0;
+#ifdef HAVE_TLOGT
+      LmixPhase[3][2] = 0.0;
+#endif
+   }
+}
+
 CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
@@ -113,9 +161,11 @@ void CALPHADFreeEnergyFunctionsBinary::readNewtonparameters(boost::shared_ptr<tb
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsBinary::readParameters(boost::shared_ptr<tbox::Database> calphad_db)
+void CALPHADFreeEnergyFunctionsBinary::readParameters(
+   boost::shared_ptr<tbox::Database> calphad_db)
 {   
-   boost::shared_ptr<tbox::Database> species0_db = calphad_db->getDatabase( "SpeciesA" );
+   boost::shared_ptr<tbox::Database> species0_db =
+      calphad_db->getDatabase( "SpeciesA" );
    string name = species0_db->getStringWithDefault( "name", "unknown" );
    string dbnameL("PhaseL");
    if( species0_db->keyExists( "Phase0" ) )
@@ -123,14 +173,14 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(boost::shared_ptr<tbox::Da
       tbox::pout << "Input Phase0 is deprecated.  Use PhaseL."<< endl;
       dbnameL="Phase0";
    }
-   d_g_species_phaseL[0].initialize( name, species0_db->getDatabase( dbnameL ) );
+   d_g_species_phaseL[0].initialize( name, species0_db->getDatabase(dbnameL) );
    string dbnameA("PhaseA");
    if( species0_db->keyExists( "Phase1" ) )
    {
       tbox::pout << "Input Phase1 is deprecated.  Use PhaseA."<< endl;
       dbnameA="Phase1";
    }
-   d_g_species_phaseA[0].initialize( name, species0_db->getDatabase( dbnameA ) );
+   d_g_species_phaseA[0].initialize( name, species0_db->getDatabase(dbnameA) );
    string dbnameB("PhaseB");
    if( species0_db->keyExists( "Phase2" ) )
    {
@@ -138,15 +188,18 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(boost::shared_ptr<tbox::Da
       dbnameB="PhaseB";
    }
    if ( d_with_third_phase ) {
-      d_g_species_phaseB[0].initialize( name, species0_db->getDatabase( dbnameB ) );
+      d_g_species_phaseB[0].initialize( name,
+                                        species0_db->getDatabase(dbnameB) );
    }      
 
-   boost::shared_ptr<tbox::Database> speciesB_db = calphad_db->getDatabase( "SpeciesB" );
+   boost::shared_ptr<tbox::Database> speciesB_db =
+      calphad_db->getDatabase( "SpeciesB" );
    name = speciesB_db->getStringWithDefault( "name", "unknown" );
-   d_g_species_phaseL[1].initialize( name, speciesB_db->getDatabase( dbnameL ) );
-   d_g_species_phaseA[1].initialize( name, speciesB_db->getDatabase( dbnameA ) );
+   d_g_species_phaseL[1].initialize( name, speciesB_db->getDatabase(dbnameL) );
+   d_g_species_phaseA[1].initialize( name, speciesB_db->getDatabase(dbnameA) );
    if ( d_with_third_phase ) {
-      d_g_species_phaseB[1].initialize( name, speciesB_db->getDatabase( dbnameB ) );
+      d_g_species_phaseB[1].initialize( name,
+                                        speciesB_db->getDatabase(dbnameB) );
    }      
 
    // read Lmix coefficients
@@ -168,67 +221,18 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(boost::shared_ptr<tbox::Da
       tbox::pout << "Input LmixPhase2 is deprecated.  Use LmixPhaseB."<< endl;
       dbnamemixB="LmixPhase2";
    }
-   boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
-   Lmix0_db->getDoubleArray( "L0", &d_LmixPhaseL[0][0], 2 );
-   Lmix0_db->getDoubleArray( "L1", &d_LmixPhaseL[1][0], 2 );
-   if ( Lmix0_db->keyExists( "L2" ) ) {
-      Lmix0_db->getDoubleArray( "L2", &d_LmixPhaseL[2][0], 2 );
-   }
-   else {
-      d_LmixPhaseL[2][0] = 0.0;
-      d_LmixPhaseL[2][1] = 0.0;
-   }
-   if ( Lmix0_db->keyExists( "L3" ) ) {
-      Lmix0_db->getDoubleArray( "L3", &d_LmixPhaseL[3][0], 2 );
-   }
-   else {
-      d_LmixPhaseL[3][0] = 0.0;
-      d_LmixPhaseL[3][1] = 0.0;
-   }
+   boost::shared_ptr<tbox::Database> Lmix0_db =
+      calphad_db->getDatabase( dbnamemixL );
+   readLcoefficients(Lmix0_db, d_LmixPhaseL);
 
-   boost::shared_ptr<tbox::Database> Lmix1_db = calphad_db->getDatabase(dbnamemixA);
-   Lmix1_db->getDoubleArray( "L0", &d_LmixPhaseA[0][0], 2 );
-   Lmix1_db->getDoubleArray( "L1", &d_LmixPhaseA[1][0], 2 );
-   if ( Lmix1_db->keyExists( "L2" ) ) {
-      Lmix1_db->getDoubleArray( "L2", &d_LmixPhaseA[2][0], 2 );
-   }
-   else {
-      d_LmixPhaseA[2][0] = 0.0;
-      d_LmixPhaseA[2][1] = 0.0;
-   }
-   if ( Lmix1_db->keyExists( "L3" ) ) {
-      Lmix1_db->getDoubleArray( "L3", &d_LmixPhaseA[3][0], 2 );
-   }
-   else {
-      d_LmixPhaseA[3][0] = 0.0;
-      d_LmixPhaseA[3][1] = 0.0;
-   }
+   boost::shared_ptr<tbox::Database> Lmix1_db =
+      calphad_db->getDatabase(dbnamemixA);
+   readLcoefficients(Lmix1_db, d_LmixPhaseA);
 
    if ( d_with_third_phase ) {
-      boost::shared_ptr<tbox::Database> Lmix2_db = calphad_db->getDatabase(dbnamemixB);
-      Lmix2_db->getDoubleArray( "L0", &d_LmixPhaseB[0][0], 2 );
-      Lmix2_db->getDoubleArray( "L1", &d_LmixPhaseB[1][0], 2 );
-      if ( Lmix2_db->keyExists( "L2" ) ) {
-         Lmix2_db->getDoubleArray( "L2", &d_LmixPhaseB[2][0], 2 );
-      }
-      else {
-         d_LmixPhaseB[2][0] = 0.0;
-         d_LmixPhaseB[2][1] = 0.0;
-      }
-      if ( Lmix2_db->keyExists( "L3" ) ) {
-         Lmix2_db->getDoubleArray( "L3", &d_LmixPhaseB[3][0], 2 );
-      }
-      else {
-         d_LmixPhaseB[3][0] = 0.0;
-         d_LmixPhaseB[3][1] = 0.0;
-      }
-   }
-   else {
-      for ( int ii=0; ii < 4; ii++ ) {
-         for ( int jj=0; jj < 2; jj++ ) {
-            d_LmixPhaseB[ii][jj] = d_LmixPhaseA[ii][jj];
-         }
-      }
+      boost::shared_ptr<tbox::Database> Lmix2_db =
+         calphad_db->getDatabase(dbnamemixB);
+      readLcoefficients(Lmix2_db, d_LmixPhaseB);
    }
 
    // print database just read
@@ -244,10 +248,10 @@ double CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(
    const PHASE_INDEX pi,
    const bool gp )
 {
-   const double l0 = lmix0Phase( pi, temperature );
-   const double l1 = lmix1Phase( pi, temperature );
-   const double l2 = lmix2Phase( pi, temperature );
-   const double l3 = lmix3Phase( pi, temperature );
+   const double l0 = lmixPhase( 0, pi, temperature );
+   const double l1 = lmixPhase( 1, pi, temperature );
+   const double l2 = lmixPhase( 2, pi, temperature );
+   const double l3 = lmixPhase( 3, pi, temperature );
    
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
@@ -262,7 +266,9 @@ double CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(
          g_species=&d_g_species_phaseB[0];
          break;
       default:
-         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<
+            "CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(), undefined phase="
+            <<pi<<"!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return 0.;
    }
@@ -293,10 +299,10 @@ void CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(
    const PHASE_INDEX pi,
    double* deriv )
 {
-   const double l0 = lmix0Phase( pi, temperature );
-   const double l1 = lmix1Phase( pi, temperature );
-   const double l2 = lmix2Phase( pi, temperature );
-   const double l3 = lmix3Phase( pi, temperature );
+   const double l0 = lmixPhase( 0, pi, temperature );
+   const double l1 = lmixPhase( 1, pi, temperature );
+   const double l2 = lmixPhase( 2, pi, temperature );
+   const double l3 = lmixPhase( 3, pi, temperature );
    
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
@@ -339,10 +345,10 @@ void CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(
    assert( conc[0]>=0. );
    assert( conc[0]<=1. );
    
-   const double l0_l=lmix0Phase( pi, temp );
-   const double l1_l=lmix1Phase( pi, temp );
-   const double l2_l=lmix2Phase( pi, temp );
-   const double l3_l=lmix3Phase( pi, temp );
+   const double l0_l=lmixPhase( 0, pi, temp );
+   const double l1_l=lmixPhase( 1, pi, temp );
+   const double l2_l=lmixPhase( 2, pi, temp );
+   const double l3_l=lmixPhase( 3, pi, temp );
    const double rt = gas_constant_R_JpKpmol * temp;
 
    d2fdc2[0] = 
@@ -363,33 +369,26 @@ void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(
    //loop over two phases
    for(short i=0;i<2;i++)
    {
+      L0[i] = lmixPhase( 0, pis[i], temperature );
+      L1[i] = lmixPhase( 1, pis[i], temperature );
+      L2[i] = lmixPhase( 2, pis[i], temperature );
+      L3[i] = lmixPhase( 3, pis[i], temperature );
+
       switch ( pis[i] ) {
-      
+ 
          case phaseL:
             fA[i] = d_g_species_phaseL[0].fenergy( temperature );
             fB[i] = d_g_species_phaseL[1].fenergy( temperature );
-            L0[i] = lmix0PhaseL( temperature );
-            L1[i] = lmix1PhaseL( temperature );
-            L2[i] = lmix2PhaseL( temperature );
-            L3[i] = lmix3PhaseL( temperature );
             break;
    
          case phaseA:
             fA[i] = d_g_species_phaseA[0].fenergy( temperature );
             fB[i] = d_g_species_phaseA[1].fenergy( temperature );
-            L0[i] = lmix0PhaseA( temperature );
-            L1[i] = lmix1PhaseA( temperature );
-            L2[i] = lmix2PhaseA( temperature );
-            L3[i] = lmix3PhaseA( temperature );
             break;
    
          case phaseB:
             fA[i] = d_g_species_phaseB[0].fenergy( temperature );
             fB[i] = d_g_species_phaseB[1].fenergy( temperature );
-            L0[i] = lmix0PhaseB( temperature );
-            L1[i] = lmix1PhaseB( temperature );
-            L2[i] = lmix2PhaseB( temperature );
-            L3[i] = lmix3PhaseB( temperature );
             break;
       
          default:
@@ -409,24 +408,24 @@ void CALPHADFreeEnergyFunctionsBinary::setupValuesForThreePhasesSolver(const dou
    d_fB[0] = d_g_species_phaseL[1].fenergy( temperature );
    d_fB[1] = d_g_species_phaseA[1].fenergy( temperature );
 
-   d_L0[0] = lmix0PhaseL( temperature );
-   d_L1[0] = lmix1PhaseL( temperature );
-   d_L2[0] = lmix2PhaseL( temperature );
-   d_L3[0] = lmix3PhaseL( temperature );
+   d_L0[0] = lmixPhase( 0, phaseL, temperature );
+   d_L1[0] = lmixPhase( 1, phaseL, temperature );
+   d_L2[0] = lmixPhase( 2, phaseL, temperature );
+   d_L3[0] = lmixPhase( 3, phaseL, temperature );
 
-   d_L0[1] = lmix0PhaseA( temperature );
-   d_L1[1] = lmix1PhaseA( temperature );
-   d_L2[1] = lmix2PhaseA( temperature );
-   d_L3[1] = lmix3PhaseA( temperature );
+   d_L0[1] = lmixPhase( 0, phaseA, temperature );
+   d_L1[1] = lmixPhase( 1, phaseA, temperature );
+   d_L2[1] = lmixPhase( 2, phaseA, temperature );
+   d_L3[1] = lmixPhase( 3, phaseA, temperature );
 
    if ( d_with_third_phase ) {
       d_fA[2] = d_g_species_phaseB[0].fenergy( temperature );
       d_fB[2] = d_g_species_phaseB[1].fenergy( temperature );
 
-      d_L0[2] = lmix0PhaseB( temperature );
-      d_L1[2] = lmix1PhaseB( temperature );
-      d_L2[2] = lmix2PhaseB( temperature );
-      d_L3[2] = lmix3PhaseB( temperature );
+      d_L0[2] = lmixPhase( 0, phaseB, temperature );
+      d_L1[2] = lmixPhase( 1, phaseB, temperature );
+      d_L2[2] = lmixPhase( 2, phaseB, temperature );
+      d_L3[2] = lmixPhase( 3, phaseB, temperature );
    }
 }
 
@@ -566,15 +565,15 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    d_fB[0] = getFenergyPhaseL( 1, temperature );
    d_fB[1] = getFenergyPhaseA( 1, temperature );
 
-   d_L0[0] = lmix0Phase( phaseL, temperature );
-   d_L1[0] = lmix1Phase( phaseL, temperature );
-   d_L2[0] = lmix2Phase( phaseL, temperature );
-   d_L3[0] = lmix3Phase( phaseL, temperature );
+   d_L0[0] = lmixPhase( 0, phaseL, temperature );
+   d_L1[0] = lmixPhase( 1, phaseL, temperature );
+   d_L2[0] = lmixPhase( 2, phaseL, temperature );
+   d_L3[0] = lmixPhase( 3, phaseL, temperature );
 
-   d_L0[1] = lmix0Phase( phaseA, temperature );
-   d_L1[1] = lmix1Phase( phaseA, temperature );
-   d_L2[1] = lmix2Phase( phaseA, temperature );
-   d_L3[1] = lmix3Phase( phaseA, temperature );
+   d_L0[1] = lmixPhase( 0, phaseA, temperature );
+   d_L1[1] = lmixPhase( 1, phaseA, temperature );
+   d_L2[1] = lmixPhase( 2, phaseA, temperature );
+   d_L3[1] = lmixPhase( 3, phaseA, temperature );
 
    const double hphi =
       FORT_INTERP_FUNC(
@@ -594,10 +593,10 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       d_fA[2] = getFenergyPhaseB( 0, temperature );
       d_fB[2] = getFenergyPhaseB( 1, temperature );
 
-      d_L0[2] = lmix0Phase( phaseB, temperature );
-      d_L1[2] = lmix1Phase( phaseB, temperature );
-      d_L2[2] = lmix2Phase( phaseB, temperature );
-      d_L3[2] = lmix3Phase( phaseB, temperature );
+      d_L0[2] = lmixPhase( 0, phaseB, temperature );
+      d_L1[2] = lmixPhase( 1, phaseB, temperature );
+      d_L2[2] = lmixPhase( 2, phaseB, temperature );
+      d_L3[2] = lmixPhase( 3, phaseB, temperature );
 
       heta =
          FORT_INTERP_FUNC(
@@ -618,8 +617,8 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    if( ret==-1 )
    {
       cerr<<"ERROR, CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() failed for conc="<<conc0
-                                                                                   <<", hphi="<<hphi
-                                                                                   <<", heta="<<heta<<endl;
+          <<", hphi="<<hphi
+          <<", heta="<<heta<<endl;
       sleep(5);
       tbox::SAMRAI_MPI::abort();
    }
@@ -874,3 +873,4 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
       }
    }
 }
+

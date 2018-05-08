@@ -42,6 +42,12 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
+#ifdef HAVE_TLOGT
+#define MAX_POL_T_INDEX 3
+#else
+#define MAX_POL_T_INDEX 2
+#endif
+
 class CALPHADFreeEnergyFunctionsBinary:
    public CALPHADFreeEnergyFunctions
 {
@@ -112,14 +118,15 @@ public:
    }
 
    int computePhaseConcentrations(
-      const double temperature, const double* conc, const double phi, const double eta,
+      const double temperature, const double* conc,
+      const double phi, const double eta,
       double* x);
    void energyVsPhiAndC(const double temperature, 
                         const double* const ceq,
                         const bool found_ceq,
                         const bool third_phase,
                         const int npts_phi=51,
-                        const int npts_c=50); // number of compositions to use (>1)
+                        const int npts_c=50); // # of compositions to use (>1)
    void printEnergyVsComposition(const double temperature, const int npts=100 );
    double fenergy(
       const double phi,
@@ -149,8 +156,12 @@ public:
 
    // empty default implementation to avoid downcasting
    virtual double computePenalty(const PHASE_INDEX, const double){return 0.;};
-   virtual double computeDerivPenalty(const PHASE_INDEX, const double){return 0.;};
-   virtual double compute2ndDerivPenalty(const PHASE_INDEX, const double){return 0.;};
+   virtual double computeDerivPenalty(const PHASE_INDEX, const double){
+      return 0.;
+   };
+   virtual double compute2ndDerivPenalty(const PHASE_INDEX, const double){
+      return 0.;
+   };
    
 protected:
 
@@ -169,9 +180,9 @@ protected:
    void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
 
    void setupValuesForTwoPhasesSolver(const double temperature,
-                                      double* L0, double* L1, double* L2, double* L3,
-                                      double* fA, double* fB,
-                                      const PHASE_INDEX pi0, const PHASE_INDEX pi1);
+           double* L0, double* L1, double* L2, double* L3,
+           double* fA, double* fB,
+           const PHASE_INDEX pi0, const PHASE_INDEX pi1);
 
    void setupValuesForThreePhasesSolver(const double temperature);
 
@@ -184,10 +195,12 @@ private:
    CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseA[2];
    CALPHADSpeciesPhaseGibbsEnergy d_g_species_phaseB[2];
    
-   // size 4 for L0, L1, L2, L3
-   double d_LmixPhaseL[4][2];
-   double d_LmixPhaseA[4][2];
-   double d_LmixPhaseB[4][2];
+   // size 4 for L0, L1, L2, L3,
+   // can contain up to 3 coefficients a,b,c for a+b*T,
+   // possibly +c*T*ln(T) if compiled with -DHAVE_TLOGT
+   double d_LmixPhaseL[4][MAX_POL_T_INDEX];
+   double d_LmixPhaseA[4][MAX_POL_T_INDEX];
+   double d_LmixPhaseB[4][MAX_POL_T_INDEX];
 
    double* d_fA;
    double* d_fB;
@@ -220,130 +233,43 @@ private:
       return d_g_species_phaseB[is].fenergy( temperature );
    }
 
-   double lmix0Phase( const PHASE_INDEX pi, const double temperature )
+   double lmixPhase( const unsigned index,
+                     const PHASE_INDEX pi,
+                     const double temperature )
    {
+      TBOX_ASSERT( index<4 );
+
       switch( pi ){
          case phaseL:
-            return lmix0PhaseL( temperature );
+            return d_LmixPhaseL[index][0] 
+                 + d_LmixPhaseL[index][1] * temperature
+#ifdef HAVE_TLOGT
+                 + d_LmixPhaseL[index][2] * temperature * log( temperature)
+#endif
+                 ;
          case phaseA:
-            return lmix0PhaseA( temperature );
+            return d_LmixPhaseA[index][0]
+                 + d_LmixPhaseA[index][1] * temperature
+#ifdef HAVE_TLOGT
+                 + d_LmixPhaseA[index][2] * temperature * log( temperature)
+#endif
+                 ;
          case phaseB:
-            return lmix0PhaseB( temperature );
+            return d_LmixPhaseB[index][0]
+                 + d_LmixPhaseB[index][1] * temperature
+#ifdef HAVE_TLOGT
+                 + d_LmixPhaseB[index][2] * temperature * log( temperature)
+#endif
+                 ;
          default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
+            SAMRAI::tbox::pout<<
+               "CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase="
+               <<pi<<"!!!"<<std::endl;
             SAMRAI::tbox::SAMRAI_MPI::abort();
          return 0.;
       }
    }
    
-   double lmix1Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix1PhaseL( temperature );
-         case phaseA:
-            return lmix1PhaseA( temperature );
-         case phaseB:
-            return lmix1PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix1Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix2Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix2PhaseL( temperature );
-         case phaseA:
-            return lmix2PhaseA( temperature );
-         case phaseB:
-            return lmix2PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix2Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix3Phase( const PHASE_INDEX pi, const double temperature )
-   {
-      switch( pi ){
-         case phaseL:
-            return lmix3PhaseL( temperature );
-         case phaseA:
-            return lmix3PhaseA( temperature );
-         case phaseB:
-            return lmix3PhaseB( temperature );
-         default:
-            SAMRAI::tbox::pout<<"CALPHADFreeEnergyStrategy::lmix3Phase(), undefined phase="<<pi<<"!!!"<<std::endl;
-            SAMRAI::tbox::SAMRAI_MPI::abort();
-         return 0.;
-      }
-   }
-   
-   double lmix0PhaseL( const double temperature )
-   {
-      return d_LmixPhaseL[0][0] + d_LmixPhaseL[0][1] * temperature;
-   }
-   
-   double lmix1PhaseL( const double temperature )
-   {
-      return d_LmixPhaseL[1][0] + d_LmixPhaseL[1][1] * temperature;
-   }
-   
-   double lmix2PhaseL( const double temperature )
-   {
-      return d_LmixPhaseL[2][0] + d_LmixPhaseL[2][1] * temperature;
-   }
-
-   double lmix3PhaseL( const double temperature )
-   {
-      return d_LmixPhaseL[3][0] + d_LmixPhaseL[3][1] * temperature;
-   }
-
-   double lmix0PhaseA( const double temperature )
-   {
-      return d_LmixPhaseA[0][0] + d_LmixPhaseA[0][1] * temperature;
-   }
-   
-   double lmix1PhaseA( const double temperature )
-   {
-      return d_LmixPhaseA[1][0] + d_LmixPhaseA[1][1] * temperature;
-   }
-   
-   double lmix2PhaseA( const double temperature )
-   {
-      return d_LmixPhaseA[2][0] + d_LmixPhaseA[2][1] * temperature;
-   }
-
-   double lmix3PhaseA( const double temperature )
-   {
-      return d_LmixPhaseA[3][0] + d_LmixPhaseA[3][1] * temperature;
-   }
-
-   double lmix0PhaseB( const double temperature )
-   {
-      return d_LmixPhaseB[0][0] + d_LmixPhaseB[0][1] * temperature;
-   }
-   
-   double lmix1PhaseB( const double temperature )
-   {
-      return d_LmixPhaseB[1][0] + d_LmixPhaseB[1][1] * temperature;
-   }
-   
-   double lmix2PhaseB( const double temperature )
-   {
-      return d_LmixPhaseB[2][0] + d_LmixPhaseB[2][1] * temperature;
-   }
-   
-   double lmix3PhaseB( const double temperature )
-   {
-      return d_LmixPhaseB[3][0] + d_LmixPhaseB[3][1] * temperature;
-   }
-
    void computePhasesFreeEnergies(
       const double temperature,
       const double hphi,
