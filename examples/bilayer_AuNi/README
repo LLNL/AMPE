@@ -38,13 +38,15 @@ python make_bilayer.py -x 256 -y 8  -z 1 -r 24 -d 4 -c 0.25 --concentration-in 0
 ln -fs ../../thermodynamic_data/calphadAuNi.dat
 
 #run to equilibrate
-srun -ppdebug -n1 /usr/gapps/phasefield/bin/ampe2d bilayer_AuNi.input
+srun -ppdebug -n8 /usr/gapps/phasefield/bin/ampe2d bilayer_AuNi.input
 
 #quench
-srun -ppdebug -n1 /usr/gapps/phasefield/bin/ampe2d bilayer_AuNi_restart.input
+srun -ppdebug -n8 /usr/gapps/phasefield/bin/ampe2d bilayer_AuNi_restart.input
 
 #analyse composition evolution (may need to adapt parameters in lineout_extract.py)
-#note: it seems to be working only if AMPE run was using only one task. 
-#Not clear why as earlier example was using 8 tasks. jlf 11/5/2014
 visit -nowin -cli -verbose -s lineout_extract.py > lineout_extract.dat
+
+#plot results
+gnuplot lineout.plt
+display lineout.png
 
