@@ -425,15 +425,15 @@ if ( not ( conc_inside is None ) ):
   ci = map( float, string.split( options.concentration_in, ',' ) )
   if nspecies==0:
     nspecies=len(ci)
+  print "Composition inside=",ci
 else:
   ci = N.zeros( nspecies, N.float32 )
 if ( not ( conc_outside is None ) ):
   co = map( float, string.split( options.concentration_out, ',' ) )
+  print "Composition outside=",co
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "Composition inside=",ci
-print "Composition outside=",co
 print "nspecies=",nspecies
 
 #-----------------------------------------------------------------------
