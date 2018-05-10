@@ -51,7 +51,7 @@ int NewtonSolver::s_N=0;
 //=======================================================================
 
 NewtonSolver::NewtonSolver() :
-      d_max_iters( 10 ),
+      d_max_iters( 50 ),
       d_tolerance( 1.0e-8 ),
       d_verbose( false )
 {};
