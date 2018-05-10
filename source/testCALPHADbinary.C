@@ -133,6 +133,8 @@ int main( int argc, char *argv[] )
    
    cafe.printEnergyVsComposition(temperature);
 
+   cafe.preRunDiagnostics(303., 2899. );
+
    // choose pair of phases: phaseL, phaseA, phaseB
    const PHASE_INDEX pi0=phaseL;
    const PHASE_INDEX pi1=phaseA;
