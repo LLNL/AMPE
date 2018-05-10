@@ -35,12 +35,19 @@
 
 #include "DampedNewtonSolver.h"
 
+#include <math.h>
+
 class CALPHADEqConcentrationSolverBinary :
    public DampedNewtonSolver
 {
 public :
 
-   CALPHADEqConcentrationSolverBinary(){};
+   CALPHADEqConcentrationSolverBinary(){
+      for(unsigned i=0;i<3;i++)d_L0[i]=NAN;
+      for(unsigned i=0;i<3;i++)d_L1[i]=NAN;
+      for(unsigned i=0;i<3;i++)d_L2[i]=NAN;
+      for(unsigned i=0;i<3;i++)d_L3[i]=NAN;
+   };
       
    virtual ~CALPHADEqConcentrationSolverBinary() {};
       
