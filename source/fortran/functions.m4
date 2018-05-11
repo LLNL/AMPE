@@ -177,11 +177,16 @@ c-----------------------------------------------------------------------
 
          deriv_interp_func = phit * ( 4.d0 - 3.d0 * phit )
 
-c      else if ( type(1:1) .eq. 'l' .or.
-c     &          type(1:1) .eq. 'L' ) then
-c
-c         deriv_interp_func = 1.d0
-c
+      else if ( type(1:1) .eq. 'l' .or.
+     &          type(1:1) .eq. 'L' ) then
+
+         if( phi .gt. 0.d0 .or.
+     &       phi .lt. 1.d0 )then
+            deriv_interp_func = 1.d0
+         else
+             deriv_interp_func = 0.d0
+         endif
+
       else if ( type(1:1) .eq. '3' ) then
 
          phit = max( 0.d0, phi )
@@ -200,7 +205,7 @@ c
 
       else
 
-         print *, "Error in deriv_interp_func: type unknown"
+         print *, "Error in deriv_interp_func: unknown type ",type(1:1)
          stop
 
       endif
