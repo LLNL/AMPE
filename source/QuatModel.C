@@ -662,7 +662,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_diffusion_coeff_a_id,
                   d_conc_diffusion_coeff_b_id,
                   d_model_parameters.avg_func_type(),
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.diffusion_interp_func_type(),
                   d_composition_strategy_mobilities,
                   d_free_energy_strategy);
          }else{

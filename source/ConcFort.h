@@ -373,7 +373,6 @@ extern "C" {
       const double*,const int&,
       const double&, const double&, const double&);
 
-
    void FORT_COMPUTE_CONCENTRATION_FROM_PHASE_CONCENTRATIONS(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
