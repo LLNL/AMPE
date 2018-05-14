@@ -542,7 +542,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                conc_db->getDatabase( "HBSM" ),
                d_model_parameters.phase_interp_func_type(),
                d_model_parameters.eta_interp_func_type(),
-               d_model_parameters.conc_avg_func_type(),
                d_model_parameters.molar_volume_liquid(),
                d_model_parameters.molar_volume_solid_A(),
                d_model_parameters.molar_volume_solid_B(),

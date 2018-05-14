@@ -55,7 +55,6 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    boost::shared_ptr<tbox::Database> input_db,
    const string& phase_interp_func_type,
    const string& eta_interp_func_type,
-   const string& avg_func_type,
    const double vml,
    const double vma,
    const double vmb,
@@ -87,7 +86,6 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
 
    d_phase_interp_func_type = phase_interp_func_type;
    d_eta_interp_func_type = eta_interp_func_type;
-   d_avg_func_type = avg_func_type;
 
    d_vm_L = vml;
    d_vm_A = vma;
