@@ -45,6 +45,8 @@
 #define FORT_SECOND_DERIV_INTERP_FUNC second_deriv_interp_func_
 #define FORT_AVERAGE_FUNC average_func_
 #define FORT_DERIV_AVERAGE_FUNC deriv_average_func_
+#define FORT_INTERP_RATIO_FUNC interp_ratio_
+#define FORT_COMPL_INTERP_RATIO_FUNC compl_interp_ratio_
 
 // Function argument list interfaces
 extern "C" {
@@ -56,6 +58,9 @@ extern "C" {
    double FORT_SECOND_DERIV_INTERP_FUNC( const double&, const char* );
    double FORT_AVERAGE_FUNC( const double&, const double&, const char* );
    double FORT_DERIV_AVERAGE_FUNC( const double&, const double&, const char* );
+   double FORT_INTERP_RATIO_FUNC( const double&, const char*, const char*);
+   double FORT_COMPL_INTERP_RATIO_FUNC( const double&, const char*,
+                                                       const char*);
 }
 
 #endif

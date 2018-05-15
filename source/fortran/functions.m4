@@ -48,7 +48,7 @@ c        Valid values for type are "quadratic" and "pbg"
 
       double precision gamma
       gamma = 10.d0
-      
+
       if ( type(1:1) .eq. 'q' .or.
      &     type(1:1) .eq. 'Q' ) then
 
@@ -555,3 +555,82 @@ c-----------------------------------------------------------------------
       
       return
       end
+
+c-----------------------------------------------------------------------
+
+      function interp_ratio(phi, type1, type2)
+
+      implicit none
+
+      double precision interp_ratio
+      double precision phi, phit
+      character*(*) type1, type2
+
+      if ( type1(1:1) .eq. 'p' )then
+
+         if ( type2(1:1) .eq. 'p' )then 
+
+            interp_ratio = 1.d0
+
+         else if ( type2(1:1) .eq. 'l' )then
+
+            phit = max( 0.d0, min( 1.d0, phi ) )
+
+            interp_ratio = phit * phit * 
+     &                     ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
+
+         else
+
+            print *, "Error, interp_ratio: unknown/incompatible types"
+            stop
+
+         endif
+      else
+
+         print *, "Error, interp_ratio: unknown/incompatible types"
+         stop
+
+      endif
+
+      return
+      end
+
+c-----------------------------------------------------------------------
+
+      function compl_interp_ratio(phi, type1, type2)
+
+      implicit none
+
+      double precision compl_interp_ratio
+      double precision phi, phit
+      character*(*) type1, type2
+
+      if ( type1(1:1) .eq. 'p' )then
+
+         if ( type2(1:1) .eq. 'p' )then
+
+            compl_interp_ratio = 1.d0
+
+         else if ( type2(1:1) .eq. 'l' )then
+
+            phit = max( 0.d0, min( 1.d0, phi ) )
+
+            compl_interp_ratio = (1.d0-phit) * (1.d0-phit) *
+     &                     ( 1.d0 + 3.d0 * phit + 6.d0 * phit * phit )
+
+         else
+
+            print *, "Error, interp_ratio: unknown/incompatible types"
+            stop
+
+         endif
+      else
+
+         print *, "Error, interp_ratio: unknown/incompatible types"
+         stop
+
+      endif
+
+      return
+      end
+

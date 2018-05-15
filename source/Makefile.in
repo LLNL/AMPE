@@ -209,6 +209,10 @@ test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o \
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
 
+testInterpolation: $(F77_OBJS) testInterpolationFunctions.o
+		$(CXX) $(CXXFLAGS) $(F77_OBJS) testInterpolationFunctions.o \
+		-o testInterpolationFunctions
+
 testCALPHADSpeciesPhaseGibbsEnergy: CALPHADSpeciesPhaseGibbsEnergy.o \
 		testCALPHADSpeciesPhaseGibbsEnergy.o
 		$(CXX) $(CXXFLAGS) CALPHADSpeciesPhaseGibbsEnergy.o \
