@@ -302,7 +302,7 @@ c
      &   rhs, ngrhs,
      &   phi_well_type,
      &   eta_well_type,
-     &   phi_interp_type,
+     &   energy_interp_type,
      &   orient_interp_type, 
      &   with_orient,
      &   three_phase )
@@ -320,7 +320,7 @@ c input arrays:
       integer ngflux, ngphi, ngeta, ngogm, ngrhs, ngtemp
       character*(*) phi_well_type
       character*(*) eta_well_type
-      character*(*) phi_interp_type
+      character*(*) energy_interp_type
       character*(*) orient_interp_type
 c
 c variables in 2d cell indexed
@@ -382,7 +382,7 @@ c  Eta energy well
             do ic0 = ifirst0, ilast0
 
                h_prime =
-     &            deriv_interp_func( phi(ic0,ic1), phi_interp_type )
+     &            deriv_interp_func( phi(ic0,ic1), energy_interp_type )
                
                g = well_func( eta(ic0,ic1), eta_well_type )
 
@@ -519,7 +519,7 @@ c
      &   phi, ngphi,
      &   eta, ngeta,
      &   rhs, ngrhs,
-     &   phi_interp_type,
+     &   energy_interp_type,
      &   eta_interp_type,
      &   three_phase )
 c***********************************************************************
@@ -531,7 +531,7 @@ c input arrays:
       integer three_phase
 
       integer ngphi, ngeta, ngrhs
-      character*(*) phi_interp_type
+      character*(*) energy_interp_type
       character*(*) eta_interp_type
 c
 c variables in 2d cell indexed
@@ -556,7 +556,7 @@ c
          do ic0 = ifirst0, ilast0
 
             hphi_prime = 
-     &         deriv_interp_func( phi(ic0,ic1), phi_interp_type )
+     &         deriv_interp_func( phi(ic0,ic1), energy_interp_type )
 
             rhs(ic0,ic1) = rhs(ic0,ic1) +
      &         hphi_prime *
@@ -571,7 +571,7 @@ c
             do ic0 = ifirst0, ilast0
 
                hphi_prime =
-     &            deriv_interp_func( phi(ic0,ic1), phi_interp_type )
+     &            deriv_interp_func( phi(ic0,ic1), energy_interp_type )
 
                heta = interp_func( eta(ic0,ic1), eta_interp_type )
 
@@ -814,7 +814,7 @@ c
      &   temp, ngtemp,
      &   tm, latentheat,
      &   rhs, ngrhs,
-     &   phi_interp_type )
+     &   energy_interp_type )
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -822,7 +822,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngphi, ngtemp, ngrhs
       double precision tm, latentheat
-      character*(*) phi_interp_type
+      character*(*) energy_interp_type
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi))
@@ -847,7 +847,7 @@ c      print*,'latentheat=',latentheat,', tm=',tm
 
             m = alpha*( tm-wtemp )
             h_prime =
-     &            deriv_interp_func( phi(ic0,ic1), phi_interp_type )
+     &            deriv_interp_func( phi(ic0,ic1), energy_interp_type )
 
             rhs(ic0,ic1) = rhs(ic0,ic1) + m*h_prime
 
@@ -864,7 +864,7 @@ c
      &   phi, ngphi,
      &   tm, latentheat, mobility,
      &   rhs, ngrhs,
-     &   phi_interp_type )
+     &   energy_interp_type )
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -872,7 +872,7 @@ c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
       integer ngphi, ngrhs
       double precision tm, latentheat, mobility
-      character*(*) phi_interp_type
+      character*(*) energy_interp_type
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi))
@@ -889,7 +889,7 @@ c      print*,'latentheat=',latentheat,', tm=',tm
          do ic0 = ifirst0, ilast0
 
             h_prime =
-     &            deriv_interp_func( phi(ic0,ic1), phi_interp_type )
+     &            deriv_interp_func( phi(ic0,ic1), energy_interp_type )
 
             rhs(ic0,ic1) = alpha*h_prime
 

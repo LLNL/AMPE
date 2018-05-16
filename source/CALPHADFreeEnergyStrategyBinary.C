@@ -55,7 +55,8 @@ using namespace std;
 CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
-   const string& phase_interp_func_type,
+   const string& energy_interp_func_type,
+   const string& conc_interp_func_type,
    const string& eta_interp_func_type,
    const string& avg_func_type,
    MolarVolumeStrategy* mvstrategy,
@@ -76,7 +77,8 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 {
    d_with_third_phase = with_third_phase;
 
-   d_phase_interp_func_type = phase_interp_func_type;
+   d_energy_interp_func_type = energy_interp_func_type;
+   d_conc_interp_func_type = conc_interp_func_type;
    d_eta_interp_func_type = eta_interp_func_type;
    d_avg_func_type = avg_func_type;
 
@@ -104,7 +106,9 @@ void CALPHADFreeEnergyStrategyBinary::setup(
    boost::shared_ptr<tbox::Database> newton_db)
 {
    d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,d_phase_interp_func_type,
+      CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
+                                 d_energy_interp_func_type,
+                                 d_conc_interp_func_type,
                                  d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,
@@ -804,7 +808,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
             double hphi_prime =
                FORT_DERIV_INTERP_FUNC(
                   phi,
-                  d_phase_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             double heta = 0.0;
 
@@ -1065,7 +1069,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsEtaOnPatchPrivate(
             const double hphi =
                FORT_INTERP_FUNC(
                   phi,
-                  d_phase_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             const double heta_prime =
                FORT_DERIV_INTERP_FUNC(

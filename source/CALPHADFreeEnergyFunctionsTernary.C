@@ -11,11 +11,13 @@ using namespace std;
 CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-   const std::string& phase_interp_func_type,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type,
    const std::string& avg_func_type,
    const double  phase_well_scale,
    const std::string& phase_well_func_type):
-      d_phase_interp_func_type(phase_interp_func_type),
+      d_energy_interp_func_type(energy_interp_func_type),
+      d_conc_interp_func_type(conc_interp_func_type),
       d_avg_func_type(avg_func_type),
       d_phase_well_scale(phase_well_scale),
       d_phase_well_func_type(phase_well_func_type)
@@ -789,7 +791,7 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    const double hphi =
       FORT_INTERP_FUNC(
          phi,
-         d_phase_interp_func_type.c_str() );
+         d_conc_interp_func_type.c_str() );
 
    double heta = 0.0;
    //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -967,8 +969,8 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
    
    (void)eta;
 
-   const double hphi =
-      FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
+   const double hcphi =
+      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
 
    const double tol=1.e-8;
    double fl=0.;
@@ -976,7 +978,7 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
    if( (phi>tol) & (phi<1.-tol) )
    {
       computePhasesFreeEnergies(
-         temperature, hphi, conc0, conc1,
+         temperature, hcphi, conc0, conc1,
          fl, fa);
    }else{
       double conc[2]={conc0,conc1};
@@ -991,8 +993,10 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
       d_phase_well_scale *
       FORT_WELL_FUNC( phi, d_phase_well_func_type.c_str() );
 
+   const double hfphi =
+      FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
    double e =
-      well  + ( 1.0 - hphi ) * fl + hphi * fa;
+      well  + ( 1.0 - hfphi ) * fl + hfphi * fa;
 
 if( fabs(e)>1.e7 )cout<<"phi="<<phi<<", c0="<<conc0<<", c1="<<conc1<<", e="<<e
                 <<", fl="<<fl

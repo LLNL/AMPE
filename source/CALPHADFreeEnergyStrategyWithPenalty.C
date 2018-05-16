@@ -44,7 +44,8 @@ using namespace SAMRAI;
 CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
-   const std::string& phase_interp_func_type,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type,
    const std::string& eta_interp_func_type,
    const std::string& avg_func_type,
    MolarVolumeStrategy* mvstrategy,
@@ -58,7 +59,8 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
    const std::string& phase_well_func_type,
    const std::string& eta_well_func_type ):
       CALPHADFreeEnergyStrategyBinary(calphad_db,newton_db,
-         phase_interp_func_type,
+         energy_interp_func_type,
+         conc_interp_func_type,
          eta_interp_func_type,
          avg_func_type,
          mvstrategy,
@@ -105,11 +107,14 @@ void CALPHADFreeEnergyStrategyWithPenalty::setup(boost::shared_ptr<tbox::Databas
    if(d_calphad_fenergy!=0)delete d_calphad_fenergy;
    
    d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsWithPenaltyBinary(calphad_db,newton_db,d_phase_interp_func_type,
-                                 d_eta_interp_func_type,d_avg_func_type,
-                                 d_with_third_phase,
-                                 d_phase_well_scale,d_eta_well_scale,
-                                 d_phase_well_func_type,d_eta_well_func_type);
+      CALPHADFreeEnergyFunctionsWithPenaltyBinary(
+         calphad_db,newton_db,
+         d_energy_interp_func_type,
+         d_conc_interp_func_type,
+         d_eta_interp_func_type,d_avg_func_type,
+         d_with_third_phase,
+         d_phase_well_scale,d_eta_well_scale,
+         d_phase_well_func_type,d_eta_well_func_type);
 }
 
 //=======================================================================

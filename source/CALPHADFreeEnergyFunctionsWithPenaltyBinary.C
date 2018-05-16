@@ -40,7 +40,8 @@ using namespace std;
 CALPHADFreeEnergyFunctionsWithPenaltyBinary::CALPHADFreeEnergyFunctionsWithPenaltyBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-   const std::string& phase_interp_func_type,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type,
    const std::string& eta_interp_func_type,
    const std::string& avg_func_type,
    const bool with_third_phase,
@@ -50,7 +51,8 @@ CALPHADFreeEnergyFunctionsWithPenaltyBinary::CALPHADFreeEnergyFunctionsWithPenal
    const std::string& eta_well_func_type ):
       CALPHADFreeEnergyFunctionsBinary(
          calphad_db,newton_db,
-         phase_interp_func_type,
+         energy_interp_func_type,
+         conc_interp_func_type,
          eta_interp_func_type,
          avg_func_type,
          with_third_phase,

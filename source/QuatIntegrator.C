@@ -1473,7 +1473,8 @@ void QuatIntegrator::setModelParameters(
    const string orient_interp_func_type,
    const string avg_func_type,
    const string phase_well_func_type,
-   const string phase_interp_func_type,
+   const string energy_interp_func_type,
+   const string conc_interp_func_type,
    const string eta_well_func_type,
    const string eta_interp_func_type )
 {
@@ -1492,7 +1493,8 @@ void QuatIntegrator::setModelParameters(
    d_orient_interp_func_type = orient_interp_func_type;
    d_avg_func_type = avg_func_type;
    d_phase_well_func_type = phase_well_func_type;
-   d_phase_interp_func_type = phase_interp_func_type;
+   d_energy_interp_func_type = energy_interp_func_type;
+   d_conc_interp_func_type = conc_interp_func_type;
    d_eta_well_func_type = eta_well_func_type;
    d_eta_interp_func_type = eta_interp_func_type;
 
@@ -2895,7 +2897,7 @@ void QuatIntegrator::evaluatePhaseRHS(
             phase_rhs->getPointer(), 0,
             d_phase_well_func_type.c_str(),
             d_eta_well_func_type.c_str(),
-            d_phase_interp_func_type.c_str(),
+            d_energy_interp_func_type.c_str(),
             d_orient_interp_func_type.c_str(),
             //d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
             with_orient,
@@ -3038,7 +3040,7 @@ void QuatIntegrator::evaluateEtaRHS(
             eta->getPointer(), NGHOSTS,
             eta_rhs->getPointer(), 0,
             d_eta_well_func_type.c_str(),
-            d_phase_interp_func_type.c_str() );
+            d_energy_interp_func_type.c_str() );
 
          d_free_energy_strategy->addComponentRhsEta(
             time,
@@ -3928,7 +3930,7 @@ CVSpgmrPrecondSet
         d_phase_mobility_id,
         d_epsilon_phase, 
         gamma,
-        d_phase_interp_func_type,
+        d_energy_interp_func_type,
         d_phase_well_scale,
         d_phase_well_func_type,
         d_eta_well_scale,
@@ -3942,7 +3944,7 @@ CVSpgmrPrecondSet
         d_eta_mobility_id,
         d_epsilon_eta, 
         gamma,
-        d_phase_interp_func_type,
+        d_energy_interp_func_type,
         d_eta_well_scale,
         d_eta_well_func_type );
    }
@@ -3959,7 +3961,7 @@ CVSpgmrPrecondSet
          TBOX_ASSERT( d_phase_temperature_fac_ops );
          d_phase_temperature_fac_ops->setOperatorCoefficients(
             d_phase_scratch_id, d_phase_temperature_mobility_id,
-            d_epsilon_phase, d_latent_heat, d_phase_interp_func_type, 
+            d_epsilon_phase, d_latent_heat, d_energy_interp_func_type, 
             d_phase_well_scale, d_phase_well_func_type);
       }
    }

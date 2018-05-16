@@ -151,7 +151,8 @@ public :
       const std::string orient_interp_func_type,
       const std::string avg_func_type,
       const std::string phase_well_func_type,
-      const std::string phase_interp_func_type,
+      const std::string energy_interp_func_type,
+      const std::string conc_interp_func_type,
       const std::string eta_well_func_type,
       const std::string eta_interp_func_type );
 
@@ -520,7 +521,9 @@ protected:
    */       
    bool d_lag_quat_sidegrad;
 
-   std::string d_phase_interp_func_type;
+   std::string d_energy_interp_func_type;
+
+   std::string d_conc_interp_func_type;
 
    FreeEnergyStrategy*   d_free_energy_strategy;
 

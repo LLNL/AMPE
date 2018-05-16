@@ -91,7 +91,8 @@ void readLcoefficients(boost::shared_ptr<tbox::Database> db,
 CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-   const std::string& phase_interp_func_type,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type,
    const std::string& eta_interp_func_type,
    const std::string& avg_func_type,
    const bool with_third_phase,
@@ -99,7 +100,8 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    const double eta_well_scale,
    const std::string& phase_well_func_type,
    const std::string& eta_well_func_type):
-      d_phase_interp_func_type(phase_interp_func_type),
+      d_energy_interp_func_type(energy_interp_func_type),
+      d_conc_interp_func_type(conc_interp_func_type),
       d_eta_interp_func_type(eta_interp_func_type),
       d_avg_func_type(avg_func_type),
       d_with_third_phase(with_third_phase),
@@ -578,7 +580,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    const double hphi =
       FORT_INTERP_FUNC(
          phi,
-         d_phase_interp_func_type.c_str() );
+         d_conc_interp_func_type.c_str() );
 
    double heta = 0.0;
    //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -785,8 +787,8 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
    const double* const conc,
    const double temperature )
 {
-   const double hphi =
-      FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
+   const double hcphi =
+      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
    double heta = 0.0;
    if ( d_with_third_phase ) {
       heta = FORT_INTERP_FUNC( eta, d_eta_interp_func_type.c_str() );
@@ -799,7 +801,7 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
    if( (phi>tol) & (phi<(1.-tol)) )
    {
       computePhasesFreeEnergies(
-         temperature, hphi, heta, conc[0],
+         temperature, hcphi, heta, conc[0],
          fl, fa, fb);
    }else{
       if( phi<=tol )
@@ -821,9 +823,11 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
          d_eta_well_scale *
          FORT_WELL_FUNC( eta, d_eta_well_func_type.c_str() );
    }
+   const double hfphi =
+      FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
    double e =
-      well + eta_well + ( 1.0 - hphi ) * fl +
-      hphi * ( ( 1.0 - heta ) * fa + heta * fb );
+      well + eta_well + ( 1.0 - hfphi ) * fl +
+      hfphi * ( ( 1.0 - heta ) * fa + heta * fb );
 
 if( fabs(e)>1.e7 )cout<<"phi="<<phi<<", eta="<<eta<<", c="<<conc<<", e="<<e
                 <<", fl="<<fl

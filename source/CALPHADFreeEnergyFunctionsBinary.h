@@ -55,7 +55,8 @@ public:
    CALPHADFreeEnergyFunctionsBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-      const std::string& phase_interp_func_type,
+      const std::string& energy_interp_func_type,
+      const std::string& conc_interp_func_type,
       const std::string& eta_interp_func_type,
       const std::string& avg_func_type,
       const bool with_third_phase,
@@ -171,7 +172,8 @@ protected:
    double d_ceq_a;
    double d_ceq_b;
    
-   std::string d_phase_interp_func_type;
+   std::string d_energy_interp_func_type;
+   std::string d_conc_interp_func_type;
    std::string d_eta_interp_func_type;
    std::string d_avg_func_type;
    

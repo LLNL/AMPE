@@ -163,10 +163,19 @@ public:
    double well_bias_alpha()const{ return d_well_bias_alpha; }
    double well_bias_gamma()const{ return d_well_bias_gamma; }
 
-   std::string orient_interp_func_type()const{ return d_orient_interp_func_type; }
-   std::string phase_interp_func_type()const{ return d_phase_interp_func_type; }
+   std::string orient_interp_func_type()const{
+      return d_orient_interp_func_type;
+   }
+   std::string conc_interp_func_type()const{
+      return d_conc_interp_func_type;
+   }
+   std::string energy_interp_func_type()const{
+      return d_energy_interp_func_type;
+   }
    std::string eta_interp_func_type()const{ return d_eta_interp_func_type; }
-   std::string diffusion_interp_func_type()const{ return d_diffusion_interp_func_type; }
+   std::string diffusion_interp_func_type()const{
+      return d_diffusion_interp_func_type;
+   }
    
    std::string avg_func_type()const{ return d_avg_func_type; }
    std::string diffq_avg_func_type()const{ return d_diffq_avg_func_type; }
@@ -391,7 +400,8 @@ private:
     *    "3" for cubic, phi^3
     */
    std::string d_orient_interp_func_type;
-   std::string d_phase_interp_func_type;
+   std::string d_conc_interp_func_type;
+   std::string d_energy_interp_func_type;
    std::string d_eta_interp_func_type;
    std::string d_diffusion_interp_func_type;
    

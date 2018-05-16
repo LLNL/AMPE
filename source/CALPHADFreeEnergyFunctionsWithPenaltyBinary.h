@@ -44,7 +44,8 @@ public:
    CALPHADFreeEnergyFunctionsWithPenaltyBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-      const std::string& phase_interp_func_type,
+      const std::string& energy_interp_func_type,
+      const std::string& conc_interp_func_type,
       const std::string& eta_interp_func_type,
       const std::string& avg_func_type,
       const bool with_third_phase,

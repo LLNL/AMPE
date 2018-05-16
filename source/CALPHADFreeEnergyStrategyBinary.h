@@ -56,7 +56,8 @@ public:
    CALPHADFreeEnergyStrategyBinary(
       boost::shared_ptr<tbox::Database> input_db,
       boost::shared_ptr<tbox::Database> newton_db,
-      const std::string& phase_interp_func_type,
+      const std::string& energy_interp_func_type,
+      const std::string& conc_interp_func_type,
       const std::string& eta_interp_func_type,
       const std::string& avg_func_type,
       MolarVolumeStrategy* mvstrategy,
@@ -240,7 +241,8 @@ protected:
 
    CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
    
-   std::string d_phase_interp_func_type;
+   std::string d_energy_interp_func_type;
+   std::string d_conc_interp_func_type;
    std::string d_eta_interp_func_type;
    std::string d_avg_func_type;
 

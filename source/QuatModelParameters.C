@@ -99,7 +99,8 @@ QuatModelParameters::QuatModelParameters()
    d_phase_well_func_type = "";
 
    d_orient_interp_func_type = "";
-   d_phase_interp_func_type = "";
+   d_conc_interp_func_type = "";
+   d_energy_interp_func_type = "";
    d_diffusion_interp_func_type = "";
    d_eta_well_func_type = "";
    d_eta_interp_func_type = "";
@@ -806,28 +807,31 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    readMolarVolumes(model_db);
 
    // Interpolation
-   d_phase_interp_func_type =
+   d_energy_interp_func_type =
       model_db->getStringWithDefault( "phi_interp_func_type", "pbg" );
    if ( model_db->keyExists( "energy_interp_func_type" ) ) {
-      d_phase_interp_func_type =
+      d_energy_interp_func_type =
          model_db->getString( "energy_interp_func_type" );
       printDeprecated( "energy_interp_func_type", "phi_interp_func_type" );
    }
-   if ( d_phase_interp_func_type[0] != 'q' &&
-        d_phase_interp_func_type[0] != 'Q' &&
-        d_phase_interp_func_type[0] != 'h' &&
-        d_phase_interp_func_type[0] != 'H' &&
-        d_phase_interp_func_type[0] != 'l' &&
-        d_phase_interp_func_type[0] != 'L' &&
-        d_phase_interp_func_type[0] != 'c' &&
-        d_phase_interp_func_type[0] != 'C' &&
-        d_phase_interp_func_type[0] != 'p' &&
-        d_phase_interp_func_type[0] != 'P' ) {
-      TBOX_ERROR( "Error: invalid value for phase_interp_func_type" );
+   if ( d_energy_interp_func_type[0] != 'q' &&
+        d_energy_interp_func_type[0] != 'Q' &&
+        d_energy_interp_func_type[0] != 'h' &&
+        d_energy_interp_func_type[0] != 'H' &&
+        d_energy_interp_func_type[0] != 'l' &&
+        d_energy_interp_func_type[0] != 'L' &&
+        d_energy_interp_func_type[0] != 'c' &&
+        d_energy_interp_func_type[0] != 'C' &&
+        d_energy_interp_func_type[0] != 'p' &&
+        d_energy_interp_func_type[0] != 'P' ) {
+      TBOX_ERROR( "Error: invalid value for energy_interp_func_type" );
    }
-   
+   d_conc_interp_func_type =
+      model_db->getStringWithDefault( "conc_interp_func_type",
+                                      d_energy_interp_func_type );
    d_diffusion_interp_func_type =
-      model_db->getStringWithDefault( "diffusion_interp_func_type", d_phase_interp_func_type );
+      model_db->getStringWithDefault( "diffusion_interp_func_type",
+                                      d_energy_interp_func_type );
 
    // Currently "arithmetic" or "harmonic"
    // arithmetic: (x1+x2)/2

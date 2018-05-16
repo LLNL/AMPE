@@ -445,7 +445,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_free_energy_strategy_for_diffusion =
                   new CALPHADFreeEnergyStrategyBinary(
                      calphad_db, newton_db,
-                     d_model_parameters.phase_interp_func_type(),
+                     d_model_parameters.energy_interp_func_type(),
+                     d_model_parameters.conc_interp_func_type(),
                      d_model_parameters.eta_interp_func_type(),
                      d_model_parameters.conc_avg_func_type(),
                      d_mvstrategy,
@@ -462,11 +463,12 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_free_energy_strategy_for_diffusion =
                   new CALPHADFreeEnergyStrategyTernary(
                      calphad_db, newton_db,
-                     d_model_parameters.phase_interp_func_type(),
+                     d_model_parameters.energy_interp_func_type(),
+                     d_model_parameters.conc_interp_func_type(),
                      d_model_parameters.conc_avg_func_type(),
                      d_mvstrategy,
                      d_conc_l_id,
-                    d_conc_a_id,
+                     d_conc_a_id,
                      d_model_parameters.phase_well_scale(),
                      d_model_parameters.phase_well_func_type() );
             }
@@ -481,7 +483,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             if( d_ncompositions==1 ){
             d_cafe = new CALPHADFreeEnergyFunctionsBinary(
                   calphad_db, newton_db,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
@@ -492,7 +495,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             }else{
             d_cafe = new CALPHADFreeEnergyFunctionsTernary(
                   calphad_db, newton_db,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.phase_well_func_type() );
@@ -507,7 +511,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             d_free_energy_strategy =
                new CALPHADFreeEnergyStrategyWithPenalty(
                   calphad_db, newton_db,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
                   d_mvstrategy,
@@ -523,7 +528,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             
             d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
                   calphad_db, newton_db,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
@@ -540,7 +546,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          d_free_energy_strategy =
             new HBSMFreeEnergyStrategy(
                conc_db->getDatabase( "HBSM" ),
-               d_model_parameters.phase_interp_func_type(),
+               d_model_parameters.energy_interp_func_type(),
                d_model_parameters.eta_interp_func_type(),
                d_model_parameters.molar_volume_liquid(),
                d_model_parameters.molar_volume_solid_A(),
@@ -594,7 +600,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_ref_id,
                   d_conc_a_ref_id,
                   d_conc_b_ref_id,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
                   d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
@@ -621,7 +628,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_id,
                   d_conc_a_id,
                   d_conc_b_id,
-                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
                   d_partition_coeff_id);
          }else{ // simply use cl=ca=c
             d_phase_conc_strategy =
@@ -697,11 +704,11 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             new DeltaTemperatureFreeEnergyStrategy(
                Tref,
                d_model_parameters.latent_heat(),
-               d_model_parameters.phase_interp_func_type() );
+               d_model_parameters.energy_interp_func_type() );
       }else
          d_free_energy_strategy =
             new TemperatureFreeEnergyStrategy(
-               d_model_parameters.phase_interp_func_type(),
+               d_model_parameters.energy_interp_func_type(),
                d_model_parameters.eta_interp_func_type(),
                d_model_parameters.free_energy_solid_A(),
                d_model_parameters.free_energy_solid_B(),
@@ -715,7 +722,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       if( d_model_parameters.free_energy_type()[0]=='s' ){
          d_free_energy_strategy =
             new PhaseFreeEnergyStrategy(
-               d_model_parameters.phase_interp_func_type(),
+               d_model_parameters.energy_interp_func_type(),
                d_model_parameters.eta_interp_func_type(),
                d_model_parameters.free_energy_liquid(),
                d_model_parameters.free_energy_solid_A(),
@@ -733,7 +740,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             new DeltaTemperatureFreeEnergyStrategy(
                Tref,
                d_model_parameters.latent_heat(),
-               d_model_parameters.phase_interp_func_type());
+               d_model_parameters.energy_interp_func_type());
    }
    
    if( d_model_parameters.with_Aziz_partition_coeff() ){
@@ -1046,7 +1053,8 @@ void QuatModel::InitializeIntegrator( void )
       d_model_parameters.orient_interp_func_type(),
       d_model_parameters.diffq_avg_func_type(),
       d_model_parameters.phase_well_func_type(),
-      d_model_parameters.phase_interp_func_type(),
+      d_model_parameters.energy_interp_func_type(),
+      d_model_parameters.conc_interp_func_type(),
       d_model_parameters.eta_well_func_type(),
       d_model_parameters.eta_interp_func_type() );
 
@@ -1065,7 +1073,8 @@ void QuatModel::InitializeIntegrator( void )
          d_model_parameters.orient_interp_func_type(),
          "a", // d_avg_func_type,
          d_model_parameters.phase_well_func_type(),
-         d_model_parameters.phase_interp_func_type(),
+         d_model_parameters.energy_interp_func_type(),
+         d_model_parameters.conc_interp_func_type(),
          d_model_parameters.eta_well_func_type(),
          d_model_parameters.eta_interp_func_type() );
 
@@ -6462,7 +6471,7 @@ void QuatModel::applyPolynomial(
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
          const double hphi =
-             FORT_INTERP_FUNC( phi, d_model_parameters.phase_interp_func_type().c_str() );
+             FORT_INTERP_FUNC( phi, d_model_parameters.energy_interp_func_type().c_str() );
          (*ddata)(cell)=hphi;
       }
    }
@@ -7296,7 +7305,7 @@ void QuatModel::evaluateEnergy(
             total_free_e,
             ptr_energy,
             per_cell,
-            d_model_parameters.phase_interp_func_type().c_str(),
+            d_model_parameters.energy_interp_func_type().c_str(),
             d_model_parameters.eta_interp_func_type().c_str(),
             d_model_parameters.phase_well_func_type().c_str(),
             d_model_parameters.eta_well_func_type().c_str(),

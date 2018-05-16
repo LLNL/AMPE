@@ -42,7 +42,7 @@ HBSMequilibriumPhaseConcentrationsStrategy::HBSMequilibriumPhaseConcentrationsSt
    const int conc_b_id,
    const QuatModelParameters& model_parameters,
    boost::shared_ptr<tbox::Database> conc_db):
-      d_phase_interp_func_type(model_parameters.phase_interp_func_type()),
+      d_phase_interp_func_type(model_parameters.energy_interp_func_type()),
       d_eta_interp_func_type(model_parameters.eta_interp_func_type()),
       PhaseConcentrationsStrategy(
          conc_l_id,
@@ -52,9 +52,8 @@ HBSMequilibriumPhaseConcentrationsStrategy::HBSMequilibriumPhaseConcentrationsSt
 {
    d_hbsm_fenergy = new HBSMFreeEnergyStrategy(
                conc_db->getDatabase( "HBSM" ),
-               model_parameters.phase_interp_func_type(),
+               model_parameters.energy_interp_func_type(),
                model_parameters.eta_interp_func_type(),
-               model_parameters.conc_avg_func_type(),
                model_parameters.molar_volume_liquid(),
                model_parameters.molar_volume_solid_A(),
                model_parameters.molar_volume_solid_B(),
