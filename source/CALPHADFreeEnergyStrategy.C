@@ -105,7 +105,7 @@ void CALPHADFreeEnergyStrategy::setup(
    boost::shared_ptr<tbox::Database> newton_db)
 {
    d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctions(calphad_db,newton_db,d_phase_interp_func_type,
+      CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,d_phase_interp_func_type,
                                  d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,

@@ -34,7 +34,7 @@
 #define included_CALPHADequilibriumPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
-#include "CALPHADFreeEnergyFunctions.h";
+#include "CALPHADFreeEnergyFunctionsBinary.h";
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -79,7 +79,7 @@ private:
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
    
-   CALPHADFreeEnergyFunctions* d_calphad_fenergy;
+   CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
 };
 
 #endif

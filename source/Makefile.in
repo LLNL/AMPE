@@ -40,11 +40,11 @@ NETCDF         = @netcdf_PREFIX@
 SVNVERSION := $(shell svnversion $(VPATH) )
 CPPFLAGS_EXTRA= -DNDIM=$(PDIM) -DSVNVERSION="$(SVNVERSION)"
 
-CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctions.o \
+CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		NewtonSolver.o DampedNewtonSolver.o QuatModelParameters.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
-		CALPHADFreeEnergyStrategy.o CALPHADFreeEnergyFunctionsWithPenalty.o \
+		CALPHADFreeEnergyStrategy.o CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
 		CALPHADEqConcSolverWithPenalty.o CALPHADEqConcSolver.o \
 	   CALPHADConcSolverWithPenalty.o CALPHADConcSolver.o tools.o \
       FreeEnergyStrategy.o

@@ -33,7 +33,7 @@
 #ifndef included_CALPHADFreeEnergyStrategy
 #define included_CALPHADFreeEnergyStrategy 
 
-#include "CALPHADFreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolver.h"
@@ -244,7 +244,7 @@ protected:
 
    bool d_with_third_phase;
 
-   CALPHADFreeEnergyFunctions* d_calphad_fenergy;
+   CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
    
    std::string d_phase_interp_func_type;
    std::string d_eta_interp_func_type;

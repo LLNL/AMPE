@@ -57,7 +57,7 @@
 #include "CALPHADMobility.h"
 #include "QuatParams.h"
 #include "Grains.h"
-#include "CALPHADFreeEnergyFunctionsWithPenalty.h"
+#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 
 #include "EventInterval.h"
 

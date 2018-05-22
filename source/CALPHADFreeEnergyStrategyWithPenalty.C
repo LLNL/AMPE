@@ -32,7 +32,7 @@
 // 
 #include "CALPHADFreeEnergyStrategyWithPenalty.h";
 #include "CALPHADConcSolverWithPenalty.h"
-#include "CALPHADFreeEnergyFunctionsWithPenalty.h"
+#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -104,7 +104,7 @@ void CALPHADFreeEnergyStrategyWithPenalty::setup(boost::shared_ptr<tbox::Databas
    if(d_calphad_fenergy!=0)delete d_calphad_fenergy;
    
    d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsWithPenalty(calphad_db,newton_db,d_phase_interp_func_type,
+      CALPHADFreeEnergyFunctionsWithPenaltyBinary(calphad_db,newton_db,d_phase_interp_func_type,
                                  d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,

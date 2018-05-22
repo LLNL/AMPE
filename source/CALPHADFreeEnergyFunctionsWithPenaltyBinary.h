@@ -33,15 +33,15 @@
 #ifndef included_CALPHADFreeEnergyFunctionsWithPenalty
 #define included_CALPHADFreeEnergyFunctionsWithPenalty
 
-#include "CALPHADFreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFunctions.h"
 #include <vector>
 
-class CALPHADFreeEnergyFunctionsWithPenalty:
-   public CALPHADFreeEnergyFunctions
+class CALPHADFreeEnergyFunctionsWithPenaltyBinary:
+   public CALPHADFreeEnergyFunctionsBinary
 {
 public:
-   CALPHADFreeEnergyFunctionsWithPenalty(
+   CALPHADFreeEnergyFunctionsWithPenaltyBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
       const std::string& phase_interp_func_type,
@@ -53,7 +53,7 @@ public:
       const std::string& phase_well_func_type,
       const std::string& eta_well_func_type );
 
-   ~CALPHADFreeEnergyFunctionsWithPenalty()
+   ~CALPHADFreeEnergyFunctionsWithPenaltyBinary()
    {
    };
 

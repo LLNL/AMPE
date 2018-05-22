@@ -30,14 +30,14 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADFreeEnergyFunctionsWithPenalty.h"
+#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 #include "CALPHADConcSolverWithPenalty.h"
 #include "CALPHADEqConcSolverWithPenalty.h"
 #include "PhysicalConstants.h"
 
 using namespace std;
 
-CALPHADFreeEnergyFunctionsWithPenalty::CALPHADFreeEnergyFunctionsWithPenalty(
+CALPHADFreeEnergyFunctionsWithPenaltyBinary::CALPHADFreeEnergyFunctionsWithPenaltyBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& phase_interp_func_type,
@@ -48,7 +48,7 @@ CALPHADFreeEnergyFunctionsWithPenalty::CALPHADFreeEnergyFunctionsWithPenalty(
    const double eta_well_scale,
    const std::string& phase_well_func_type,
    const std::string& eta_well_func_type ):
-      CALPHADFreeEnergyFunctions(
+      CALPHADFreeEnergyFunctionsBinary(
          calphad_db,newton_db,
          phase_interp_func_type,
          eta_interp_func_type,
@@ -70,9 +70,9 @@ CALPHADFreeEnergyFunctionsWithPenalty::CALPHADFreeEnergyFunctionsWithPenalty(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsWithPenalty::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyFunctionsWithPenalty::setupSolver()..." << std::endl;
+   tbox::pout << "CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver()..." << std::endl;
    
    if( d_solver!=NULL )delete d_solver;
    d_solver = new CALPHADConcentrationSolverWithPenalty( d_with_third_phase,
@@ -83,7 +83,7 @@ void CALPHADFreeEnergyFunctionsWithPenalty::setupSolver(boost::shared_ptr<tbox::
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsWithPenalty::readParameters(
+void CALPHADFreeEnergyFunctionsWithPenaltyBinary::readParameters(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db)
 {
    std::string namemixL("PenaltyPhaseL");
@@ -107,13 +107,13 @@ void CALPHADFreeEnergyFunctionsWithPenalty::readParameters(
 
 //-----------------------------------------------------------------------
 
-double CALPHADFreeEnergyFunctionsWithPenalty::computeFreeEnergy(
+double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeFreeEnergy(
    const double temperature,
    const double conc,
    const PHASE_INDEX pi,
    const bool gp )
 {
-   double fe = CALPHADFreeEnergyFunctions::computeFreeEnergy(temperature,
+   double fe = CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(temperature,
       conc,pi,false);
 
    double extra_energy = computePenalty(pi,conc);
@@ -126,12 +126,12 @@ double CALPHADFreeEnergyFunctionsWithPenalty::computeFreeEnergy(
 
 //=======================================================================
 
-double CALPHADFreeEnergyFunctionsWithPenalty::computeDerivFreeEnergy(
+double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeDerivFreeEnergy(
    const double temperature,
    const double conc,
    const PHASE_INDEX pi )
 {
-   double fe = CALPHADFreeEnergyFunctions::computeDerivFreeEnergy(temperature,
+   double fe = CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(temperature,
       conc,pi);
 
    double extra_energy = computeDerivPenalty(pi,conc);
@@ -141,13 +141,13 @@ double CALPHADFreeEnergyFunctionsWithPenalty::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsWithPenalty::computeSecondDerivativeFreeEnergy(
+void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeSecondDerivativeFreeEnergy(
    const double temp,
    const std::vector<double>& conc,
    const PHASE_INDEX pi,
    std::vector<double>& d2fdc2)
 {
-   CALPHADFreeEnergyFunctions::computeSecondDerivativeFreeEnergy(temp,
+   CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(temp,
       conc,pi,d2fdc2);
 
    double extra_energy = compute2ndDerivPenalty(pi, conc[0]);
@@ -158,7 +158,7 @@ void CALPHADFreeEnergyFunctionsWithPenalty::computeSecondDerivativeFreeEnergy(
 //=======================================================================
 
 // compute equilibrium concentrations in various phases for given temperature
-bool CALPHADFreeEnergyFunctionsWithPenalty::computeCeqT(
+bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
    const double temperature,
    const PHASE_INDEX pi0, const PHASE_INDEX pi1,
    double* ceq )

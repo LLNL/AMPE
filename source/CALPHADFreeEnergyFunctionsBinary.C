@@ -31,7 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADFunctions.h"
-#include "CALPHADFreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "PhysicalConstants.h"
 #include "CALPHADEqConcSolver.h"
 #include "FuncFort.h"
@@ -40,7 +40,7 @@
 #include <string>
 using namespace std;
 
-CALPHADFreeEnergyFunctions::CALPHADFreeEnergyFunctions(
+CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& phase_interp_func_type,
@@ -85,9 +85,9 @@ CALPHADFreeEnergyFunctions::CALPHADFreeEnergyFunctions(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsBinary::setupSolver(boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyFunctions::setupSolver()..." << endl;
+   tbox::pout << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
    d_solver = new CALPHADConcentrationSolver( d_with_third_phase );
 
    readNewtonparameters(newton_db);
@@ -95,7 +95,7 @@ void CALPHADFreeEnergyFunctions::setupSolver(boost::shared_ptr<tbox::Database> n
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyFunctionsBinary::readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db)
 {
    if( newton_db!=NULL ){
       double tol =newton_db->getDoubleWithDefault( "tol", 1.e-8 );
@@ -112,7 +112,7 @@ void CALPHADFreeEnergyFunctions::readNewtonparameters(boost::shared_ptr<tbox::Da
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::readParameters(boost::shared_ptr<tbox::Database> calphad_db)
+void CALPHADFreeEnergyFunctionsBinary::readParameters(boost::shared_ptr<tbox::Database> calphad_db)
 {   
    boost::shared_ptr<tbox::Database> species0_db = calphad_db->getDatabase( "SpeciesA" );
    string name = species0_db->getStringWithDefault( "name", "unknown" );
@@ -237,7 +237,7 @@ void CALPHADFreeEnergyFunctions::readParameters(boost::shared_ptr<tbox::Database
 
 //-----------------------------------------------------------------------
 
-double CALPHADFreeEnergyFunctions::computeFreeEnergy(
+double CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(
    const double temperature,
    const double conc,
    const PHASE_INDEX pi,
@@ -261,7 +261,7 @@ double CALPHADFreeEnergyFunctions::computeFreeEnergy(
          g_species=&d_g_species_phaseB[0];
          break;
       default:
-         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctions::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return 0.;
    }
@@ -282,7 +282,7 @@ double CALPHADFreeEnergyFunctions::computeFreeEnergy(
 
 //=======================================================================
 
-double CALPHADFreeEnergyFunctions::computeDerivFreeEnergy(
+double CALPHADFreeEnergyFunctionsBinary::computeDerivFreeEnergy(
    const double temperature,
    const double conc,
    const PHASE_INDEX pi )
@@ -305,7 +305,7 @@ double CALPHADFreeEnergyFunctions::computeDerivFreeEnergy(
          g_species=&d_g_species_phaseB[0];
          break;
       default:
-         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctions::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return 0.;
    }
@@ -324,7 +324,7 @@ double CALPHADFreeEnergyFunctions::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::computeSecondDerivativeFreeEnergy(
+void CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(
    const double temp,
    const std::vector<double>& conc,
    const PHASE_INDEX pi,
@@ -346,7 +346,7 @@ void CALPHADFreeEnergyFunctions::computeSecondDerivativeFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::setupValuesForTwoPhasesSolver(const double temperature,
+void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(const double temperature,
                                                      double* L0, double* L1, double* L2, double* L3,
                                                      double* fA, double* fB,
                                                      const PHASE_INDEX pi0, const PHASE_INDEX pi1)
@@ -385,7 +385,7 @@ void CALPHADFreeEnergyFunctions::setupValuesForTwoPhasesSolver(const double temp
             break;
       
          default:
-            cerr<<"CALPHADFreeEnergyFunctions::setupValuesForTwoPhasesSolver: Undefined phase"<<endl;
+            cerr<<"CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver: Undefined phase"<<endl;
       }
    
    }
@@ -393,7 +393,7 @@ void CALPHADFreeEnergyFunctions::setupValuesForTwoPhasesSolver(const double temp
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::setupValuesForThreePhasesSolver(const double temperature,
+void CALPHADFreeEnergyFunctionsBinary::setupValuesForThreePhasesSolver(const double temperature,
                                                      double* L0, double* L1, double* L2, double* L3,
                                                      double* fA, double* fB)
 {
@@ -427,13 +427,13 @@ void CALPHADFreeEnergyFunctions::setupValuesForThreePhasesSolver(const double te
 //=======================================================================
 
 // compute equilibrium concentrations in various phases for given temperature
-bool CALPHADFreeEnergyFunctions::computeCeqT(
+bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
    const double temperature,
    const PHASE_INDEX pi0, const PHASE_INDEX pi1,
    double* ceq,
    const bool verbose )
 {
-   if(verbose)tbox::pout<<"CALPHADFreeEnergyFunctions::computeCeqT()"<<endl;
+   if(verbose)tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computeCeqT()"<<endl;
    assert( temperature>0. );
 
    setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3, d_fA, d_fB, pi0, pi1);
@@ -462,7 +462,7 @@ bool CALPHADFreeEnergyFunctions::computeCeqT(
          d_ceq_a=ceq[1];
       }
    }else{
-      tbox::pout<<"CALPHADFreeEnergyFunctions, WARNING: ceq computation did not converge"<<endl;
+      tbox::pout<<"CALPHADFreeEnergyFunctionsBinary, WARNING: ceq computation did not converge"<<endl;
    }
    
    return (ret>=0);
@@ -470,7 +470,7 @@ bool CALPHADFreeEnergyFunctions::computeCeqT(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::computePhasesFreeEnergies(
+void CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies(
    const double temperature,
    const double hphi,
    const double heta,
@@ -479,7 +479,7 @@ void CALPHADFreeEnergyFunctions::computePhasesFreeEnergies(
    double& fa,
    double& fb)
 {
-   //tbox::pout<<"CALPHADFreeEnergyFunctions::computePhasesFreeEnergies()"<<endl;
+   //tbox::pout<<"CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies()"<<endl;
    
    const int N = d_with_third_phase ? 3 : 2;
 
@@ -511,10 +511,10 @@ void CALPHADFreeEnergyFunctions::computePhasesFreeEnergies(
          cerr<<"d_ceq_l="<<d_ceq_l<<endl;
          cerr<<"d_ceq_a="<<d_ceq_a<<endl;
          cerr<<"d_ceq_b="<<d_ceq_b<<endl;
-         cerr<<"ERROR in CALPHADFreeEnergyFunctions::computePhasesFreeEnergies() ---"
+         cerr<<"ERROR in CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies() ---"
              <<"conc="<<conc<<", hphi="<<hphi<<", heta="<<heta<<endl;
       }else{
-         cerr<<"ERROR in CALPHADFreeEnergyFunctions::computePhasesFreeEnergies() ---"
+         cerr<<"ERROR in CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies() ---"
              <<"conc="<<conc<<", hphi="<<hphi<<endl;
       }
       tbox::SAMRAI_MPI::abort();
@@ -537,7 +537,7 @@ void CALPHADFreeEnergyFunctions::computePhasesFreeEnergies(
 
 //-----------------------------------------------------------------------
 
-int CALPHADFreeEnergyFunctions::computePhaseConcentrations(
+int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    const double temperature, const double conc, const double phi, const double eta,
    double* x)
 
@@ -606,7 +606,7 @@ int CALPHADFreeEnergyFunctions::computePhaseConcentrations(
       d_fA, d_fB );
    if( ret==-1 )
    {
-      cerr<<"ERROR, CALPHADFreeEnergyFunctions::computePhaseConcentrations() failed for conc="<<conc
+      cerr<<"ERROR, CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() failed for conc="<<conc
                                                                                    <<", hphi="<<hphi
                                                                                    <<", heta="<<heta<<endl;
       sleep(5);
@@ -618,14 +618,14 @@ int CALPHADFreeEnergyFunctions::computePhaseConcentrations(
 
 //-----------------------------------------------------------------------
 
-void CALPHADFreeEnergyFunctions::energyVsPhiAndC(const double temperature, 
+void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(const double temperature, 
                                                  const double* const ceq,
                                                  const bool found_ceq,
                                                  const bool third_phase,
                                                  const int npts_phi,
                                                  const int npts_c)
 {
-   tbox::plog<<"CALPHADFreeEnergyFunctions::energyVsPhiAndC()..."<<endl;
+   tbox::plog<<"CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC()..."<<endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
@@ -649,7 +649,7 @@ void CALPHADFreeEnergyFunctions::energyVsPhiAndC(const double temperature,
       }
    }
    tbox::plog<<setprecision(8)<<"fc0: "<<fc0<<"..."<<", fc1: "<<fc1<<"..."<<endl;
-   tbox::plog<<"CALPHADFreeEnergyFunctions: Use slope: "<<slopec<<"..."<<endl;
+   tbox::plog<<"CALPHADFreeEnergyFunctionsBinary: Use slope: "<<slopec<<"..."<<endl;
    mpi.Barrier();
       
    if( mpi.getRank()==0 ){
@@ -694,7 +694,7 @@ void CALPHADFreeEnergyFunctions::energyVsPhiAndC(const double temperature,
 // Print out free energy as a function of phase
 // for given composition and temperature
 // File format: ASCII VTK, readble with Visit
-void CALPHADFreeEnergyFunctions::printEnergyVsPhiHeader(
+void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhiHeader(
    const double temperature,
    const int nphi,
    const int nc,
@@ -720,14 +720,14 @@ void CALPHADFreeEnergyFunctions::printEnergyVsPhiHeader(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::printEnergyVsPhi(
+void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
    const double conc,
    const double temperature,
    const int npts,
    const double slopec,
    std::ostream& os )
 {
-   //tbox::pout << "CALPHADFreeEnergyFunctions::printEnergyVsPhi()..." << endl;
+   //tbox::pout << "CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi()..." << endl;
    const double dphi = 1.0 / (double)(npts-1);
    const double eta = 0.0;
    
@@ -745,14 +745,14 @@ void CALPHADFreeEnergyFunctions::printEnergyVsPhi(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::printEnergyVsEta(
+void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
    const double conc,
    const double temperature,
    const int npts,
    const double slopec,
    std::ostream& os )
 {
-   //tbox::pout << "CALPHADFreeEnergyFunctions::printEnergyVsEta()..." << endl;
+   //tbox::pout << "CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta()..." << endl;
    const double deta = 1.0 / (double)(npts-1);
    const double phi = 1.0;
    
@@ -767,7 +767,7 @@ void CALPHADFreeEnergyFunctions::printEnergyVsEta(
 
 //=======================================================================
 // compute free energy in [J/mol]
-double CALPHADFreeEnergyFunctions::fenergy(
+double CALPHADFreeEnergyFunctionsBinary::fenergy(
    const double phi,
    const double eta,
    const double conc,
@@ -823,7 +823,7 @@ if( fabs(e)>1.e7 )cout<<"phi="<<phi<<", eta="<<eta<<", c="<<conc<<", e="<<e
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctions::printEnergyVsComposition(
+void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
    const double temperature,
    const int npts )
 {

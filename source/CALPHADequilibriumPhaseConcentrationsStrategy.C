@@ -31,7 +31,6 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
-#include "CALPHADFreeEnergyFunctions.h"
 
 using namespace std;
 
@@ -62,7 +61,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
    d_conc_b_ref_id(conc_b_ref_id)
 {
    d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctions(calphad_db,newton_db,
+      CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  phase_interp_func_type,
                                  eta_interp_func_type,avg_func_type,
                                  with_third_phase,

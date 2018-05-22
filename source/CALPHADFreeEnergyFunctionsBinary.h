@@ -30,8 +30,8 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#ifndef included_CALPHADFreeEnergyFunctions
-#define included_CALPHADFreeEnergyFunctions 
+#ifndef included_CALPHADFreeEnergyFunctionsBinary
+#define included_CALPHADFreeEnergyFunctionsBinary 
 
 #include "Phases.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
@@ -42,11 +42,11 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
-class CALPHADFreeEnergyFunctions:
+class CALPHADFreeEnergyFunctionsBinary:
    public FreeEnergyFunctions
 {
 public:
-   CALPHADFreeEnergyFunctions(
+   CALPHADFreeEnergyFunctionsBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
       const std::string& phase_interp_func_type,
@@ -58,7 +58,7 @@ public:
       const std::string& phase_well_func_type,
       const std::string& eta_well_func_type );
 
-   ~CALPHADFreeEnergyFunctions()
+   ~CALPHADFreeEnergyFunctionsBinary()
    {
       delete[] d_fA;
       delete[] d_fB;

@@ -453,7 +453,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          if( !calphad_db->keyExists( "PenaltyPhaseL" ) ){
             d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
 
-            d_cafe = new CALPHADFreeEnergyFunctions(
+            d_cafe = new CALPHADFreeEnergyFunctionsBinary(
                   calphad_db, newton_db,
                   d_model_parameters.phase_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
@@ -484,7 +484,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.phase_well_func_type(),
                   d_model_parameters.eta_well_func_type() );
             
-            d_cafe = new CALPHADFreeEnergyFunctionsWithPenalty(
+            d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
                   calphad_db, newton_db,
                   d_model_parameters.phase_interp_func_type(),
                   d_model_parameters.eta_interp_func_type(),
