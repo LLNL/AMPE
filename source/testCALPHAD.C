@@ -30,7 +30,12 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADFreeEnergyFunctionsWithPenalty.h"
+#include "CALPHADFreeEnergyFunctions.h"
+#include "CALPHADMobility.h"
+#include "CompositionStrategyMobilities.h"
+#include "CALPHADFreeEnergyStrategy.h"
+#include "QuatModelParameters.h"
+#include "ConstantMolarVolumeStrategy.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -213,7 +218,41 @@ int main( int argc, char *argv[] )
       tbox::plog<<"WARNING: Equilibrium concentrations not found... "<<endl;
    }
    
-   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 1001, 1000);
+   QuatModelParameters model_parameters;
+   model_parameters.readModelParameters(model_db);
+
+   tbox::plog<<"ConstantMolarVolumeStrategy... "<<endl;
+   ConstantMolarVolumeStrategy mvstrategy(model_parameters.molar_volume_liquid(),
+                                          model_parameters.molar_volume_solid_A(),
+                                          model_parameters.molar_volume_solid_B());
+   tbox::plog<<"CALPHADFreeEnergyStrategy... "<<endl;
+   CALPHADFreeEnergyStrategy free_energy_strategy(
+               calphad_db, newton_db,
+               model_parameters.phase_interp_func_type(),
+               model_parameters.eta_interp_func_type(),
+               model_parameters.conc_avg_func_type(),
+               &mvstrategy,
+               0,
+               1,
+               2,
+               model_parameters.with_third_phase(),
+               model_parameters.phase_well_scale(),
+               model_parameters.eta_well_scale(),
+               model_parameters.phase_well_func_type(),
+               model_parameters.eta_well_func_type() );
+
+   tbox::plog<<"CompositionStrategyMobilities... "<<endl;
+   CompositionStrategyMobilities composition_strategy_mobilities(dcalphad_db,
+         false,
+         1,
+         &free_energy_strategy );
+
+   const double tempmin=temperature*0.5;
+   const double tempmax=temperature*2.;
+   composition_strategy_mobilities.printDiagnostics(tempmin,tempmax);
+
+
+   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase, 101, 100);
 
    input_db.reset();
 

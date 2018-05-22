@@ -34,6 +34,8 @@
 #include "CALPHADFunctions.h"
 
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
+#include "SAMRAI/tbox/InputManager.h"
+
 
 #include <cassert>
 
@@ -57,8 +59,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
    string calphad_filename = input_db->getString( "filename" );
 
    boost::shared_ptr<tbox::MemoryDatabase> calphad_db(new tbox::MemoryDatabase( "calphad_db" ));
-   tbox::InputManager::getManager()->parseInputFile(
-      calphad_filename, calphad_db );
+   tbox::InputManager::getManager()->parseInputFile(calphad_filename, calphad_db );
 
    boost::shared_ptr<tbox::Database> mobility_db
       = calphad_db->getDatabase( "MobilityParameters" );

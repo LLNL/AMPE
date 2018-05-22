@@ -109,8 +109,6 @@ public :
 
    virtual void WriteInitialConditionsFile( void ) {;}
 
-   virtual void printDeprecated( const std::string&, const std::string& );
-
    // deallocate some temporary data to free some memory,
    // for example before some high memory footprint postprocessing
    virtual void DeallocateIntermediateLocalPatchData(

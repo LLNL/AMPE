@@ -565,16 +565,6 @@ void PFModel::Run( void )
 
 //=======================================================================
 
-void PFModel::printDeprecated( const string& s_old, const string& s_new )
-{
-   if ( d_verbosity->notSilent() ) {
-      tbox::pout << "Input " << s_old << " is deprecated.  Use "
-                 << s_new << "." << endl;
-   }
-}
-
-//=======================================================================
-
 void PFModel::postAdvanceDiagnostics( void )
 {
 }

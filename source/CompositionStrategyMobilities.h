@@ -36,7 +36,7 @@
 #include "CALPHADMobility.h"
 #include "FreeEnergyStrategy.h"
 
-#include "SAMRAI/tbox/InputManager.h"
+#include "SAMRAI/tbox/Database.h"
 
 #include <string>
 
