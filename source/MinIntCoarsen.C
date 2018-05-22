@@ -58,7 +58,8 @@ bool MinIntCoarsen::findCoarsenOperator(
    const boost::shared_ptr< hier::Variable >& var,
    const string &op_name) const
 {
-   const boost::shared_ptr< pdat::CellVariable<int> > cast_var(var,
+   const boost::shared_ptr< pdat::CellVariable<int> > cast_var(
+         var,
          boost::detail::dynamic_cast_tag());
    if ( cast_var && (op_name == d_name_id) ) {
       return(true);

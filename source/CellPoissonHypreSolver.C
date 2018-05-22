@@ -1679,7 +1679,8 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
       
       // divide rhs by M^1/2 if M was used to construct matrix
       if( d_msqrt_transform ){
-         boost::shared_ptr<pdat::CellData<double> > msqrt ( patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > msqrt ( 
+            patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
          math::ArrayDataBasicOps<double> array_math;
          array_math.divide(rhs_data.getArrayData(), rhs_data.getArrayData(), 
                                                     msqrt->getArrayData(), box);
@@ -1774,7 +1775,8 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
 
       // multiply solution by M^1/2 if M was used to build matrix
       if( d_msqrt_transform ){
-         boost::shared_ptr<pdat::CellData<double> > msqrt ( patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > msqrt ( 
+            patch->getPatchData(d_msqrt_id), boost::detail::dynamic_cast_tag());
          math::ArrayDataBasicOps<double> array_math;
          array_math.multiply(u_data.getArrayData(), u_data.getArrayData(), 
                                                     msqrt->getArrayData(), patch->getBox());

@@ -1750,12 +1750,12 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> >
-            err_data ( data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr<pdat::CellData<double> >
-            residual_data ( residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr<pdat::SideData<double> >
-            flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > err_data (
+            data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > residual_data (
+            residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::SideData<double> > flux_data (
+            patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
 
          computeFluxOnPatch(
                             *patch ,
@@ -1794,12 +1794,12 @@ EllipticFACOps::smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &data ,
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> >
-            err_data ( data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr<pdat::CellData<double> >
-            residual_data ( residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-         boost::shared_ptr<pdat::SideData<double> >
-            flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > err_data (
+            data.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::CellData<double> > residual_data (
+            residual.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::SideData<double> > flux_data ( 
+            patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
 
          computeFluxOnPatch(
                             *patch ,
@@ -2177,10 +2177,10 @@ EllipticFACOps::accumulateOperatorOnLevel(
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> >
-         soln_data ( patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::SideData<double> >
-         flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > soln_data (
+         patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
+         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
 
       computeFluxOnPatch(*patch ,
                          level->getRatioToCoarserLevel() ,
@@ -2202,14 +2202,14 @@ EllipticFACOps::accumulateOperatorOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
-      boost::shared_ptr<pdat::SideData<double> >
-         flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-        m_data ( patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-         soln_data ( patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-         accum_data ( patch->getPatchData(accum_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<double> > flux_data (
+         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > m_data (
+        patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > soln_data (
+         patch->getPatchData(soln_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > accum_data (
+         patch->getPatchData(accum_id), boost::detail::dynamic_cast_tag());
 
       accumulateOperatorOnPatch( *patch, *flux_data, *m_data, *soln_data, *accum_data );
 
@@ -2221,8 +2221,8 @@ EllipticFACOps::accumulateOperatorOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> >
-            oflux_data ( patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
+            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
 #ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
 #endif
@@ -2335,10 +2335,10 @@ EllipticFACOps::computeCompositeResidualOnLevel(
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> >
-         soln_data ( solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::SideData<double> >
-         flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > soln_data (
+         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
+         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
       computeFluxOnPatch(*patch ,
                          level->getRatioToCoarserLevel() ,
                          *soln_data ,
@@ -2359,16 +2359,16 @@ EllipticFACOps::computeCompositeResidualOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
       boost::shared_ptr< hier::Patch > patch = *pi;
-      boost::shared_ptr<pdat::CellData<double> >
-         soln_data ( solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-        m_data ( patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-         rhs_data ( rhs.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::CellData<double> >
-         residual_data ( residual.getComponentPatchData( 0 , *patch ), boost::detail::dynamic_cast_tag());
-      boost::shared_ptr<pdat::SideData<double> >
-         flux_data ( patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > soln_data (
+         solution.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > m_data (
+         patch->getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > rhs_data (
+         rhs.getComponentPatchData ( 0 , *patch ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::CellData<double> > residual_data (
+         residual.getComponentPatchData( 0 , *patch ), boost::detail::dynamic_cast_tag());
+      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
+         patch->getPatchData( flux_id ), boost::detail::dynamic_cast_tag());
       computeResidualOnPatch( *patch ,
                               *flux_data ,
                             *m_data ,
@@ -2384,8 +2384,8 @@ EllipticFACOps::computeCompositeResidualOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> >
-            oflux_data ( patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
+            patch->getPatchData( d_oflux_scratch_id ), boost::detail::dynamic_cast_tag());
 #ifdef DEBUG_CHECK_ASSERTIONS
          TBOX_ASSERT( oflux_data );
 #endif
@@ -3167,7 +3167,8 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
    else {
       diffcoef_constant = d_poisson_spec.getDConstant();
    }
-   boost::shared_ptr<pdat::CellData<double> > m_data ( patch.getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
+   boost::shared_ptr<pdat::CellData<double> > m_data ( 
+      patch.getPatchData(d_m_id), boost::detail::dynamic_cast_tag());
 
    double maxres=0.0;
    if ( d_poisson_spec.dIsVariable() && d_poisson_spec.cIsVariable() ) {

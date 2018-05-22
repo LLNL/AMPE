@@ -75,7 +75,8 @@ EllipticFACSolver::EllipticFACSolver (
    d_enable_logging(false),
    d_verbose(false)
 {
-   boost::shared_ptr<pdat::CellVariable<double> > vol_var(new pdat::CellVariable<double>(tbox::Dimension(NDIM),object_name+"::weight"));
+   boost::shared_ptr<pdat::CellVariable<double> > vol_var(
+      new pdat::CellVariable<double>(tbox::Dimension(NDIM),object_name+"::weight"));
    d_vol_id= hier::VariableDatabase::getDatabase()->
       registerVariableAndContext(vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM),0) );
 
@@ -528,7 +529,8 @@ EllipticFACSolver::createVectorWrappers(int u,
          TBOX_ERROR(d_object_name << ": No variable for patch data index "
                     << u << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( variable,
+      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
+         variable,
          boost::detail::dynamic_cast_tag() );
       if ( !cell_variable ) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << u
@@ -549,7 +551,8 @@ EllipticFACSolver::createVectorWrappers(int u,
          TBOX_ERROR(d_object_name << ": No variable for patch data index "
                     << f << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( variable,
+      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
+         variable,
          boost::detail::dynamic_cast_tag() );
       if ( !cell_variable ) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << f
