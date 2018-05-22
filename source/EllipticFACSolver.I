@@ -74,21 +74,6 @@ void EllipticFACSolver::setCoarseFineDiscretization(
    d_fac_ops->setCoarseFineDiscretization(coarsefine_method);
 }
 
-
-
-
-
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACSolver::setPresmoothingSweeps( int num_pre_sweeps ) {
-   d_fac_precond.setPresmoothingSweeps( num_pre_sweeps );
-}
-
-SAMRAI_INLINE_KEYWORD
-void EllipticFACSolver::setPostsmoothingSweeps( int num_post_sweeps ) {
-   d_fac_precond.setPostsmoothingSweeps( num_post_sweeps );
-}
-
 SAMRAI_INLINE_KEYWORD
 void EllipticFACSolver::setMaxCycles( int max_cycles ) {
    d_fac_precond.setMaxCycles( max_cycles );

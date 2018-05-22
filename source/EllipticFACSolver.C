@@ -82,8 +82,6 @@ EllipticFACSolver::EllipticFACSolver (
 
    setMaxCycles(10);
    setResidualTolerance(1e-6);
-   setPresmoothingSweeps(1);
-   setPostsmoothingSweeps(1);
    setCoarseFineDiscretization("Ewing");
 #ifdef HAVE_HYPRE
    setCoarsestLevelSolverChoice("hypre");
@@ -173,15 +171,6 @@ EllipticFACSolver::getFromInput(const boost::shared_ptr<tbox::Database>& databas
       double relative_residual_tol = database->getDouble(
             "relative_residual_tol");
       setResidualTolerance(residual_tol, relative_residual_tol);
-   }
-
-   if ( database->isInteger("num_pre_sweeps") ) {
-      int num_pre_sweeps = database->getInteger("num_pre_sweeps");
-      setPresmoothingSweeps(num_pre_sweeps);
-   }
-   if ( database->isInteger("num_post_sweeps") ) {
-      int num_post_sweeps = database->getInteger("num_post_sweeps");
-      setPostsmoothingSweeps(num_post_sweeps);
    }
    if ( database->isString("coarse_fine_discretization") ) {
       std::string s = database->getString("coarse_fine_discretization");

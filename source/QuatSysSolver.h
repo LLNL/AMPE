@@ -130,8 +130,6 @@ using namespace SAMRAI;
  * enable_logging = FALSE                  // Bool flag to switch logging on/off
  * max_cycles = 10                         // Maximum number of FAC cycles allowed
  * residual_tol = 1.e-6                    // Desired residual tolerance
- * num_pre_sweeps = 1                      // Number of presmoothing sweeps
- * num_post_sweeps = 1                     // Number of postsmoothing sweeps
  * coarse_fine_discretization = "Ewing"    // Name of coarse-fine discretization
  * prolongation_method = "CONSTANT_REFINE" // Name of prolongation method
  * levelsolver_tolerance = 1e-8            // Level solver tolerance
@@ -427,30 +425,6 @@ public:
     * prolongation_method: String selecting the coarse-fine discretization method.
     */
    void setProlongationMethod(const std::string & prolongation_method);
-
-   /*
-    * Set the number of pre-smoothing and post-smoothing sweeps
-    * performed during the FAC iteration.  Presmoothing is applied
-    * during the fine-to-coarse phase of the iteration, and post
-    * smoothing is performed in the coarse-to-fine phase.  The
-    * default for each is to use one sweep.
-    *
-    * Since we are calling a Hypre multigrid solver on each level,
-    * rather an some simple iterative method like Gauss-Seidel,
-    * this parameter is somewhat redundant.  Typically, there is
-    * no point to sweeping more than once, since that one "sweep"
-    * actually corresponds to multigrid solve performed with
-    * tolerances and iteration limits set by setLevelSolverTolerance()
-    * and setLevelSolverMaxIterations().  The main use of these
-    * sweep parameters may simply be to turn off either the
-    * pre or post smooth steps by setting the respective
-    * parameter to 0.
-    *
-    * num_pre_sweeps:  Number of presmoothing sweeps
-    * num_post_sweeps: Number of postsmoothing sweeps
-    */
-   //void setPresmoothingSweeps(int num_pre_sweeps);
-   //void setPostsmoothingSweeps(int num_post_sweeps);
 
    /*
     * Set the maximum number of FAC iterations (cycles) to use per solve.
