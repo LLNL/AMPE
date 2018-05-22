@@ -43,7 +43,7 @@ QuatSysSolver::setVerbose(const bool verbose)
 }
 
 SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setProlongationMethod(const string & prolongation_method)
+QuatSysSolver::setProlongationMethod(const std::string & prolongation_method)
 {
   d_fac_ops.setProlongationMethod(prolongation_method);
 }
@@ -73,7 +73,7 @@ QuatSysSolver::setCoarsestLevelSolverMaxIterations(int max_iterations)
 }
 
 SAMRAI_INLINE_KEYWORD void
-QuatSysSolver::setCoarseFineDiscretization(const string & coarsefine_method)
+QuatSysSolver::setCoarseFineDiscretization(const std::string & coarsefine_method)
 {
   d_fac_ops.setCoarseFineDiscretization(coarsefine_method);
 }

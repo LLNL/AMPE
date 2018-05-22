@@ -158,7 +158,7 @@ QuatFACOps::setCoarsestLevelSolverMaxIterations(
 
 SAMRAI_INLINE_KEYWORD void
 QuatFACOps::setCoarseFineDiscretization(
-   const string &coarsefine_method ) {
+   const std::string &coarsefine_method ) {
 #ifdef DEBUG_CHECK_ASSERTIONS
    if ( d_hierarchy ) {
       TBOX_ERROR(d_object_name << ": Cannot change coarse-fine\n"
@@ -179,7 +179,7 @@ QuatFACOps::setCoarseFineDiscretization(
 
 SAMRAI_INLINE_KEYWORD void
 QuatFACOps::setProlongationMethod(
-   const string &prolongation_method ) {
+   const std::string &prolongation_method ) {
 #ifdef DEBUG_CHECK_ASSERTIONS
    if ( d_hierarchy ) {
       TBOX_ERROR(d_object_name << ": Cannot change prolongation method\n"

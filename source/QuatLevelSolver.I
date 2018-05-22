@@ -51,7 +51,7 @@ QuatLevelSolver::setVerbose(const bool verbose)
 */
 
 SAMRAI_INLINE_KEYWORD void
-QuatLevelSolver::setBoundaries(const string & boundary_type,
+QuatLevelSolver::setBoundaries(const std::string & boundary_type,
 					      const int             fluxes,
 					      const int              flags,
 					      int *             bdry_types)
