@@ -70,6 +70,7 @@
 #include "QuatIntegratorFactory.h"
 #include "CompositionStrategyMobilities.h"
 #include "DiffusionForConcInPhaseStrategy.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -450,6 +451,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_conc_l_id,
                d_conc_a_id,
                d_conc_b_id,
+               d_ncompositions,
                d_model_parameters.with_third_phase(),
                d_model_parameters.phase_well_scale(),
                d_model_parameters.eta_well_scale(),
@@ -459,6 +461,14 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          if( !calphad_db->keyExists( "PenaltyPhaseL" ) ){
             d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
 
+            if( d_ncompositions>1 ){
+            d_cafe = new CALPHADFreeEnergyFunctionsTernary(
+                  calphad_db, newton_db,
+                  d_model_parameters.phase_interp_func_type(),
+                  d_model_parameters.conc_avg_func_type(),
+                  d_model_parameters.phase_well_scale(),
+                  d_model_parameters.phase_well_func_type());
+            }else{
             d_cafe = new CALPHADFreeEnergyFunctionsBinary(
                   calphad_db, newton_db,
                   d_model_parameters.phase_interp_func_type(),
@@ -469,7 +479,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.eta_well_scale(),
                   d_model_parameters.phase_well_func_type(),
                   d_model_parameters.eta_well_func_type());
-
+            }
          }else{
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy"
@@ -484,6 +494,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_id,
                   d_conc_a_id,
                   d_conc_b_id,
+                  d_ncompositions,
                   d_model_parameters.with_third_phase(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.eta_well_scale(),

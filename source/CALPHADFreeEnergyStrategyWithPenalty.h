@@ -36,6 +36,7 @@
 #include "CALPHADFreeEnergyStrategy.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 
 
 class CALPHADFreeEnergyStrategyWithPenalty:
@@ -52,6 +53,7 @@ public:
       const int conc_l_id,
       const int conc_a_id,
       const int conc_b_id,
+      const int ncompositions,
       const bool with_third_phase,
       const double  phase_well_scale,
       const double eta_well_scale,

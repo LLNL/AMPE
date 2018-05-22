@@ -74,10 +74,11 @@ public:
       const double* const conc,
       const PHASE_INDEX pi,
       const bool gp=false  );   
-   virtual double computeDerivFreeEnergy(
+   virtual void computeDerivFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi );
+      const PHASE_INDEX pi,
+      double* );
    virtual void computeSecondDerivativeFreeEnergy(
       const double temp,
       const double* const conc,

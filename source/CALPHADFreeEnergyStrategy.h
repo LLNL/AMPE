@@ -33,10 +33,11 @@
 #ifndef included_CALPHADFreeEnergyStrategy
 #define included_CALPHADFreeEnergyStrategy 
 
-#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverBinary.h"
+#include "FreeEnergyStrategy.h"
+#include "FreeEnergyFunctions.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -61,6 +62,7 @@ public:
       const int conc_l_id,
       const int conc_a_id,
       const int conc_b_id,
+      const int ncompositions,
       const bool with_third_phase,
       const double  phase_well_scale,
       const double eta_well_scale,
@@ -272,6 +274,8 @@ protected:
 
 private:
 
+   const int d_ncompositions;
+   
    void addComponentRhsPhiOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,

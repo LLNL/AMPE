@@ -36,6 +36,8 @@
 #include "CALPHADFreeEnergyStrategy.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -60,6 +62,7 @@ CALPHADFreeEnergyStrategy::CALPHADFreeEnergyStrategy(
    const int conc_l_id,
    const int conc_a_id,
    const int conc_b_id,
+   const int ncompositions,
    const bool with_third_phase,
    const double  phase_well_scale,
    const double eta_well_scale,
@@ -67,6 +70,7 @@ CALPHADFreeEnergyStrategy::CALPHADFreeEnergyStrategy(
    const std::string& eta_well_func_type
    ):
       d_mv_strategy(mvstrategy),
+      d_ncompositions(ncompositions),
       d_phase_well_scale(phase_well_scale),
       d_eta_well_scale(eta_well_scale),
       d_phase_well_func_type(phase_well_func_type),
@@ -104,12 +108,21 @@ void CALPHADFreeEnergyStrategy::setup(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db)
 {
+   if(d_ncompositions==1){
    d_calphad_fenergy = new
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,d_phase_interp_func_type,
                                  d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,
                                  d_phase_well_func_type,d_eta_well_func_type);
+   }else{
+   assert( d_ncompositions==2 );
+   d_calphad_fenergy = new
+      CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,d_phase_interp_func_type,
+                                 d_avg_func_type,
+                                 d_phase_well_scale,
+                                 d_phase_well_func_type);
+   }
 }
 
 //=======================================================================
@@ -599,7 +612,7 @@ void CALPHADFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = d_calphad_fenergy->computeDerivFreeEnergy(t,&c_i,pi);
+            d_calphad_fenergy->computeDerivFreeEnergy(t,&c_i,pi, &ptr_f[idx_f]);
             ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
          }
       }
@@ -861,7 +874,8 @@ double CALPHADFreeEnergyStrategy::computeMuA(
    const double t,
    const double c )
 {
-   double mu = d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseA);
+   double mu;
+   d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseA,&mu);
    mu*=d_mv_strategy->computeInvMolarVolume(t,&c,phaseA);
 
    return mu;
@@ -873,7 +887,8 @@ double CALPHADFreeEnergyStrategy::computeMuL(
    const double t,
    const double c )
 {
-   double mu = d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseL);
+   double mu;
+   d_calphad_fenergy->computeDerivFreeEnergy(t,&c,phaseL,&mu);
    mu*=d_mv_strategy->computeInvMolarVolume(t,&c,phaseL);
 
    return mu;
