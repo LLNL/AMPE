@@ -2574,8 +2574,8 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
    boost::shared_ptr<hier::Patch > patch = *(patch_level->begin());
 
    // evaluate vel at finest level
-   boost::shared_ptr< geom::CartesianPatchGeometry >
-      patch_geom ( patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
+      patch->getPatchGeometry(), boost::detail::dynamic_cast_tag());
    const double * dx = patch_geom->getDx();
    double vel=1.;
    for(int i=0;i<NDIM;i++)
@@ -4271,8 +4271,7 @@ void QuatIntegrator::correctRhsForSymmetry(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
-            patch->getPatchGeometry(),
-            boost::detail::dynamic_cast_tag() );
+            patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
          const double* dx = patch_geom->getDx();
 
          const hier::Box& box = patch->getBox();

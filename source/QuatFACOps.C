@@ -1504,8 +1504,8 @@ QuatFACOps::computeLambdaOnPatch(
    assert( q_data.getDepth() == d_qlen );
 #endif
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -1726,8 +1726,8 @@ QuatFACOps::computeFluxOnPatch(
 
    //tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q data..."<<endl;
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -1798,8 +1798,6 @@ QuatFACOps::computeFluxOnPatch(
 
    //tbox::pout<<"QuatFACOps::computeFluxOnPatch() using grad_q data..."<<endl;
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
    const hier::Box & box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
@@ -1859,8 +1857,8 @@ QuatFACOps::computeSymmetricFluxOnPatch(
    assert( face_coef_data.getDepth() == d_qlen );
 #endif
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
    const double * dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -2100,8 +2098,9 @@ QuatFACOps::computeResidualOnPatch(
    const pdat::CellData<double> &       q_rhs_data,
    pdat::CellData<double> &        q_residual_data) const
 {
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
    const double *dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -2473,8 +2472,9 @@ QuatFACOps::accumulateOperatorOnPatch(
 {
    assert( d_rotation_index_id==-1 );
    
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
    const double *dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();
@@ -2528,8 +2528,9 @@ QuatFACOps::accumulateProjectedOperatorOnPatch(
    boost::shared_ptr<pdat::SideData<int> > rotation_index,
    const pdat::CellData<double> &       q_rhs_data ) const
 {
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( patch.getPatchGeometry(),
-                                                                  boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
    const double *dx = patch_geom->getDx();
 
    const hier::Box & box = patch.getBox();

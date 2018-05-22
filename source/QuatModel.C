@@ -4143,9 +4143,9 @@ void QuatModel::tagGradientDetectorCells(
    const hier::Index& tag_gbox_lower = tag_ghost_box.lower();
    const hier::Index& tag_gbox_upper = tag_ghost_box.upper();
 
-   boost::shared_ptr< geom::CartesianPatchGeometry >
-      patch_geom ( patch.getPatchGeometry(),
-                   boost::detail::dynamic_cast_tag() );
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch.getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
    const double * dx = patch_geom->getDx();
 
    if ( d_tag_phase ) {
@@ -5067,9 +5067,9 @@ void QuatModel::computeVarGradCell(
       const hier::Index& g_lower = grad_gbox.lower();
       const hier::Index& g_upper = grad_gbox.upper();
 
-      boost::shared_ptr< geom::CartesianPatchGeometry >
-         patch_geom ( patch->getPatchGeometry(),
-                      boost::detail::dynamic_cast_tag() );
+      boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom (
+         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
       const double * dx = patch_geom->getDx();
 
       assert( grad_cell_data->getDepth() == NDIM );
@@ -5171,9 +5171,9 @@ void QuatModel::computeVarGradSide(
       const hier::Index& g_lower = grad_gbox.lower();
       const hier::Index& g_upper = grad_gbox.upper();
 
-      boost::shared_ptr< geom::CartesianPatchGeometry >
-         patch_geom ( patch->getPatchGeometry(),
-                      boost::detail::dynamic_cast_tag() );
+      boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
       const double * dx = patch_geom->getDx();
 
       // there is a gradient component for each dimension x,y,z
@@ -5447,9 +5447,9 @@ void QuatModel::computeQuatGradCell(
               hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( grad_cell_data->getDepth() == NDIM * d_qlen );
 
-      boost::shared_ptr< geom::CartesianPatchGeometry >
-         patch_geom ( patch->getPatchGeometry(),
-                      boost::detail::dynamic_cast_tag() );
+      boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
       const double * dx = patch_geom->getDx();
 
       if ( d_symmetry_aware ) {
@@ -5580,9 +5580,9 @@ void QuatModel::computeQuatGradSide(
               hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( grad_side_data->getDepth() == NDIM * d_qlen );
 
-      boost::shared_ptr< geom::CartesianPatchGeometry >
-         patch_geom ( patch->getPatchGeometry(),
-                      boost::detail::dynamic_cast_tag() );
+      boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+         patch->getPatchGeometry(), boost::detail::dynamic_cast_tag() );
+
       const double * dx = patch_geom->getDx();
 
       if ( d_symmetry_aware ) {
@@ -6756,8 +6756,8 @@ void QuatModel::evaluateEnergy(
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
 
          boost::shared_ptr<hier::Patch > patch = *p;
-         boost::shared_ptr< geom::CartesianPatchGeometry >
-            patch_geom ( patch->getPatchGeometry(),
+         boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+            patch->getPatchGeometry(),
                          boost::detail::dynamic_cast_tag() );
          const double * dx = patch_geom->getDx();
 
@@ -7282,8 +7282,8 @@ void QuatModel::computeVelocity(boost::shared_ptr<hier::Patch > patch,
    assert( phi_dot_data->getGhostCellWidth()[0]==0 );
    assert( velocity_data->getGhostCellWidth()[0]==0 );
 
-   boost::shared_ptr< geom::CartesianPatchGeometry >
-      patch_geom ( patch->getPatchGeometry(),
+   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      patch->getPatchGeometry(),
                    boost::detail::dynamic_cast_tag() );
    const double * dx = patch_geom->getDx();
    const double threshold = 0.02/dx[0];
