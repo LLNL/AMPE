@@ -31,6 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "PhaseConcentrationsStrategy.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 PhaseConcentrationsStrategy::PhaseConcentrationsStrategy(
       const int conc_l_id,
@@ -64,6 +65,17 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
       assert( eta_id >= 0 );
       assert( d_conc_b_id >= 0 );
    }
+#ifdef DEBUG_CHECK_ASSERTIONS
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+   assert( cellops.max(phase_id)==cellops.max(phase_id) );
+   double maxphi=cellops.max(phase_id);
+   double minphi=cellops.min(phase_id);
+   assert( maxphi>=0. );
+   assert( maxphi<1.1 );
+   assert( minphi>=-0.1 );
+   assert( minphi<=1. );
+#endif
+
    const int maxl = hierarchy->getNumberOfLevels();
 
    for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
@@ -83,6 +95,13 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          boost::shared_ptr< pdat::CellData<double> > phi (
             patch->getPatchData( phase_id ), boost::detail::dynamic_cast_tag());
          assert( phi );
+#ifdef DEBUG_CHECK_ASSERTIONS
+         SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
+         double l2phi=ops.L2Norm(phi,pbox);
+         assert( l2phi==l2phi );
+         assert( l2phi>=0. );
+         assert( l2phi<1000. );
+#endif
          
          boost::shared_ptr< pdat::CellData<double> > eta;
          if ( d_with_third_phase ) {

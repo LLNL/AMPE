@@ -1571,6 +1571,12 @@ void QuatIntegrator::createSolutionvector(const boost::shared_ptr<hier::PatchHie
       d_solution_vec->addComponent( d_temperature_var, d_temperature_id, d_weight_id );
       d_temperature_component_index = ncomponents;
       ncomponents ++;
+#ifdef DEBUG_CHECK_ASSERTIONS
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_temp = mathops.L2Norm( d_temperature_id );
+      assert( norm_y_temp==norm_y_temp );
+#endif
+
    }
 
    if ( d_with_concentration ) {
@@ -1620,6 +1626,16 @@ void QuatIntegrator::resetIntegrator(
      = (solv::Sundials_SAMRAIVector *)solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec);
 
    d_sundials_solver->setInitialConditionVector(y);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if ( d_with_unsteady_temperature ) {
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_samvect
+         = solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
+      int temperature_id  = y_samvect->getComponentDescriptorIndex( d_temperature_component_index  );
+      const double norm_y_temp = mathops.L2Norm( d_temperature_id );
+      assert( norm_y_temp==norm_y_temp );
+   }
+#endif
 
    /*
      Complete the initialization of the integrator having now set the desired
@@ -2715,6 +2731,14 @@ void QuatIntegrator::evaluatePhaseRHS(
             with_orient,
             three_phase );
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+         SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
+         double l2rhs=ops.L2Norm(phase_rhs,pbox);
+         assert( l2rhs==l2rhs );
+         assert( l2rhs>=0. );
+         assert( l2rhs<1000. );
+#endif
+
          // then add component from chemical energy
          d_free_energy_strategy->addComponentRhsPhi(
             *patch,
@@ -2727,6 +2751,12 @@ void QuatIntegrator::evaluatePhaseRHS(
             d_f_b_id,
             phase_rhs_id );
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+         l2rhs=ops.L2Norm(phase_rhs,pbox);
+         assert( l2rhs==l2rhs );
+         assert( l2rhs>=0. );
+         assert( l2rhs<1000. );
+#endif
 
          boost::shared_ptr< pdat::CellData<double> > phase_mobility (
             patch->getPatchData( d_phase_mobility_id ), boost::detail::dynamic_cast_tag());
@@ -2737,8 +2767,13 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    }
 
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+#ifdef DEBUG_CHECK_ASSERTIONS
+   double l2rhs=cellops.L2Norm(phase_rhs_id);
+   assert( l2rhs==l2rhs );
+#endif
+
    if( d_model_parameters.with_rhs_visit_output() && visit_flag ){  
-      math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
       cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
    }
 
@@ -2901,7 +2936,7 @@ void QuatIntegrator::evaluateTemperatureRHS(
          boost::shared_ptr< pdat::CellData<double> > cp (
             patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
          assert( cp );
-
+         
          boost::shared_ptr< pdat::CellData<double> > temperature_rhs (
             patch->getPatchData( temperature_rhs_id ), boost::detail::dynamic_cast_tag());
          assert( temperature_rhs );
@@ -2913,6 +2948,12 @@ void QuatIntegrator::evaluateTemperatureRHS(
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast  = pbox.upper();
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+         math::PatchCellDataBasicOps<double> mathops;
+         const double mincp = mathops.min( cp, pbox );
+         assert( mincp>0. );
+#endif
 
          FORT_COMP_RHS_TEMP(
             ifirst(0),ilast(0),
@@ -3189,7 +3230,9 @@ void QuatIntegrator::fillScratch(
    assert( time>=0. );
    
    boost::shared_ptr<hier::PatchHierarchy > hierarchy = y->getPatchHierarchy();
-
+#ifdef DEBUG_CHECK_ASSERTIONS
+   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+#endif   
    // Copy the input phase/quat/conc vectors to the phase/quat/conc
    // scratch arrays and fill the ghost cells
 
@@ -3198,7 +3241,11 @@ void QuatIntegrator::fillScratch(
    if ( d_with_phase ) {
       int y_phase_id =
          y->getComponentDescriptorIndex( d_phase_component_index );
+#ifdef DEBUG_CHECK_ASSERTIONS
       assert( y_phase_id>-1 );
+      const double norm_y_phi = mathops.L2Norm( y_phase_id );
+      assert( norm_y_phi==norm_y_phi );
+#endif
       copy_to_scratch.registerRefine(
          d_phase_scratch_id,  // destination
          y_phase_id,          // source
@@ -3220,6 +3267,11 @@ void QuatIntegrator::fillScratch(
       const int y_quat_id =
          y->getComponentDescriptorIndex( d_quat_component_index );
       assert( y_quat_id>-1 );
+#ifdef DEBUG_CHECK_ASSERTIONS
+      assert( y_quat_id>-1 );
+      const double norm_y_q = mathops.L2Norm( y_quat_id );
+      assert( norm_y_q==norm_y_q );
+#endif
       copy_to_scratch.registerRefine(
          d_quat_scratch_id,  // destination
          y_quat_id,          // source
@@ -3235,8 +3287,12 @@ void QuatIntegrator::fillScratch(
       assert( d_temperature_scratch_id>=0 );
       int y_temp_id =
          y->getComponentDescriptorIndex( d_temperature_component_index );
-      assert( y_temp_id>-1 );
       assert( d_temperature_scratch_id>-1 );
+#ifdef DEBUG_CHECK_ASSERTIONS
+      assert( y_temp_id>-1 );
+      const double norm_y_temp = mathops.L2Norm( y_temp_id );
+      assert( norm_y_temp==norm_y_temp );
+#endif
       copy_to_scratch.registerRefine(
          d_temperature_scratch_id,  // destination
          y_temp_id,                 // source
@@ -3323,6 +3379,13 @@ void QuatIntegrator::setCoefficients(
    int quat_id  = d_with_orientation   ? y->getComponentDescriptorIndex( d_quat_component_index  ): -1;
    int conc_id  = d_with_concentration ? y->getComponentDescriptorIndex( d_conc_component_index  ): -1;
    int temperature_id  = d_with_unsteady_temperature ? y->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if( temperature_id>=0 ){
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_temp = mathops.L2Norm( temperature_id );
+      assert( norm_y_temp==norm_y_temp );
+   }
+#endif
 
    coarsenData(phase_id, eta_id, quat_id, conc_id, temperature_id, hierarchy);
    fillScratch(time, y);
@@ -3376,6 +3439,18 @@ void QuatIntegrator::computePhaseConcentrations(
    int conc_id  = d_with_concentration ? y->getComponentDescriptorIndex( d_conc_component_index  ): -1;
    int temperature_id  = d_with_unsteady_temperature ? y->getComponentDescriptorIndex( d_temperature_component_index  ): d_temperature_id;
    
+#ifdef DEBUG_CHECK_ASSERTIONS
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+   assert( cellops.max(phase_id)==cellops.max(phase_id) );
+   double maxphi=cellops.max(phase_id);
+   double minphi=cellops.min(phase_id);
+   assert( maxphi>=0. );
+   assert( maxphi<1.1 );
+   assert( minphi>=-0.1 );
+   assert( minphi<=1. );
+#endif
+
+
    //tbox::pout<<"Evaluate k..."<<endl;
    if( d_with_partition_coeff ){
       d_partition_coeff_strategy->evaluate(hierarchy);
@@ -3383,6 +3458,10 @@ void QuatIntegrator::computePhaseConcentrations(
          d_quat_model->fillPartitionCoeffGhosts();
    }
    
+#ifdef DEBUG_CHECK_ASSERTIONS
+   assert( cellops.max(phase_id)==cellops.max(phase_id) );
+#endif
+
    d_phase_conc_strategy->computePhaseConcentrations(
       hierarchy,
       temperature_id,
@@ -3419,6 +3498,8 @@ int QuatIntegrator::evaluateRHSFunction(
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot_samvect =
       solv::Sundials_SAMRAIVector::getSAMRAIVector( y_dot );
 
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy = y_samvect->getPatchHierarchy();
+
 //#ifdef DEBUG_CHECK_ASSERTIONS
    int n = 0;
    if ( d_with_phase ) n++;
@@ -3429,6 +3510,15 @@ int QuatIntegrator::evaluateRHSFunction(
    assert( y_dot_samvect->getNumberOfComponents() == n );
 //#endif
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+   int temperature_id  = d_with_unsteady_temperature ? y_samvect->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
+   if( temperature_id>=0 ){
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_temp = mathops.L2Norm( temperature_id );
+      assert( norm_y_temp==norm_y_temp );
+   }
+#endif
+
    /* 
       If fd_flag != 0, the integrator is calling this function to compute a finite difference
       approximation of the system Jacobian.  In this case, if d_lag_quat_sidegrad is
@@ -3436,9 +3526,14 @@ int QuatIntegrator::evaluateRHSFunction(
    */
    const bool recompute_quat_sidegrad = (fd_flag == 0) || !d_lag_quat_sidegrad;
 
-   boost::shared_ptr<hier::PatchHierarchy > hierarchy = y_samvect->getPatchHierarchy();
-
    setTemperatureField(hierarchy,time);
+#ifdef DEBUG_CHECK_ASSERTIONS
+   if( temperature_id>=0 ){
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_temp = mathops.L2Norm( temperature_id );
+      assert( norm_y_temp==norm_y_temp );
+   }
+#endif
 
    setCoefficients( time, y_samvect, recompute_quat_sidegrad );
    
@@ -3546,6 +3641,12 @@ int QuatIntegrator::evaluateRHSFunction(
    
       evaluateTemperatureRHS(hierarchy,y_dot_samvect);
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+      int Tdot_id  = y_dot_samvect->getComponentDescriptorIndex( d_temperature_component_index  );
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+      const double norm_y_temp = mathops.L2Norm( Tdot_id );
+      assert( norm_y_temp==norm_y_temp );
+#endif
    }
    
    t_rhs_timer->stop();

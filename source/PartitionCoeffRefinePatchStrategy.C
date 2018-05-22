@@ -48,6 +48,7 @@ PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
      d_partition_coeff_id( partition_coeff_id )
 {
    assert(!object_name.empty());
+   assert( partition_coeff_id>=0 );
 
    d_partition_coeff_refine_strategy =
       new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "partition_coeffBcHelper" );
@@ -66,6 +67,7 @@ void PartitionCoeffRefinePatchStrategy::setPhysicalBoundaryConditions(
    const double fill_time,
    const hier::IntVector& ghost_width_to_fill )
 {
+   assert( d_partition_coeff_id>=0 );
    
    d_partition_coeff_refine_strategy->setPhysicalBoundaryConditions(
       patch,

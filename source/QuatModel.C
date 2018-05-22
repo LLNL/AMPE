@@ -237,9 +237,12 @@ void QuatModel::initializeTemperature(
    boost::shared_ptr<tbox::Database> integrator_db)
 {
    if( d_model_parameters.with_heat_equation() )
-      if( d_model_parameters.with_concentration() )
-         d_heat_capacity_strategy = new NKRHeatCapacityStrategy(d_model_parameters.cp(), d_cp_id, d_conc_id, d_temperature_id);
-      else{
+      if( d_model_parameters.with_concentration() ){
+         tbox::pout << "QuatModel::initializeTemperature() "
+                    << "Using NKR model for heat capacity..."
+                    << endl;
+          d_heat_capacity_strategy = new NKRHeatCapacityStrategy(d_model_parameters.cp(), d_cp_id, d_conc_id, d_temperature_id);
+      }else{
          const std::map<short,double>& cp( d_model_parameters.cp(0) );
          std::map<short,double>::const_iterator p=cp.find(0);
          const double cpval=p->second;

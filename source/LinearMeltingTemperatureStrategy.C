@@ -34,6 +34,7 @@
 #include "ConcFort.h"
 
 #include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 
 LinearMeltingTemperatureStrategy::LinearMeltingTemperatureStrategy(const double Tref, const double c0, 
                                  const double liquidus_slope,
@@ -49,6 +50,8 @@ LinearMeltingTemperatureStrategy::LinearMeltingTemperatureStrategy(const double 
    
    assert( d_concentration_id>=0 );
    assert( d_equilibrium_temperature_id>=0 );
+   assert( d_Tref>=0. );
+   assert( d_Tref<100000. );
 }
 
 void LinearMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
@@ -67,6 +70,12 @@ void LinearMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
    assert( temperature );
    assert( concentration );
    
+#ifdef DEBUG_CHECK_ASSERTIONS
+   SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
+   double l2rhs=ops.L2Norm(concentration,patch.getBox());
+   assert( l2rhs==l2rhs );
+#endif
+
    FORT_LINEARMELTINGLINE(
       ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -77,4 +86,8 @@ void LinearMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
       d_Tref, d_c0, d_liquidus_slope
       );
    
+#ifdef DEBUG_CHECK_ASSERTIONS
+   l2rhs=ops.L2Norm(temperature,patch.getBox());
+   assert( l2rhs==l2rhs );
+#endif
 }

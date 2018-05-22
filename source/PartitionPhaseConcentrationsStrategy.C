@@ -119,6 +119,9 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
                (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
 
             const double k = ptr_partition[idx_partition];
+            assert( k==k );
+            assert( k>=0. );
+            assert( k<=1. );
             
             const double phi = ptr_phi[idx_pf];
             assert( phi==phi );

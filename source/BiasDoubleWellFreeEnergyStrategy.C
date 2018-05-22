@@ -95,6 +95,11 @@ void BiasDoubleWellFreeEnergyStrategy::addComponentRhsPhi(
    boost::shared_ptr< pdat::CellData<double> > eq_temp (
       patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id() ), boost::detail::dynamic_cast_tag());
    assert( eq_temp );
+#ifdef DEBUG_CHECK_ASSERTIONS
+   SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
+   double l2rhs=ops.L2Norm(eq_temp,patch.getBox());
+   assert( l2rhs==l2rhs );
+#endif
 
 
    const hier::Box& pbox = patch.getBox();

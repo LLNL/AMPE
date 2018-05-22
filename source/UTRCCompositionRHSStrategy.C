@@ -340,6 +340,9 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
             
             double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
+            assert( k==k );
+            assert( k>=0. );
+            assert( k<=1. );
 
             ptr_phi_diffx[idx_dcoeff] =
                ptr_dx0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);
@@ -382,6 +385,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
             
             double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
+            assert( k==k );
 
             ptr_phi_diffy[idx_dcoeff] =
                ptr_dy0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);
@@ -415,6 +419,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                //double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
                double phi = 
                   average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
+               assert( phi==phi );
 
                double hphi =
                   FORT_INTERP_FUNC(
@@ -425,6 +430,7 @@ void UTRCCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                   average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
             
                double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
+               assert( k==k );
 
                ptr_phi_diffz[idx_dcoeff] =
                   ptr_dz0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);

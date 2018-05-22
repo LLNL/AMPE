@@ -277,6 +277,8 @@ void CPODESSolver::initialize(solv::SundialsAbstractVector* solution)
 #ifdef DEBUG_CHECK_ASSERTIONS
    TBOX_ASSERT(!(solution == (solv::SundialsAbstractVector*)NULL));
    TBOX_ASSERT(d_solution_vector == (solv::SundialsAbstractVector*)NULL);
+   double l1norm=solution->L1Norm();
+   assert( l1norm==l1norm );
 #endif
    d_solution_vector = solution;
    d_CPODE_needs_initialization = true;

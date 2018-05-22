@@ -35,6 +35,10 @@
 
 #include "SAMRAI/pdat/CellData.h"
 
+#ifdef DEBUG_CHECK_ASSERTIONS
+#include "SAMRAI/math/PatchCellDataBasicOps.h"
+#endif
+
 #include <set>
 using namespace std;
 
@@ -66,8 +70,10 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    }
    
    short npowers=powers.size();
-   double* cp_coeffs = new double[d_cp.size()*npowers];
-   memset(cp_coeffs,0,d_cp.size()*npowers*sizeof(double));
+   int ncoeffs=d_cp.size()*npowers;
+
+   double* cp_coeffs = new double[ncoeffs];
+   memset(cp_coeffs,0,ncoeffs*sizeof(double));
 
    //loop over species
    //tbox::pout<<"Setting up Heat capacity using "<<d_cp.size()<<"species"<<endl;
@@ -88,7 +94,14 @@ void NKRHeatCapacityStrategy::setCurrentValue(
       }
       isp++;
    }
-   
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   assert( cp_coeffs[0]>0. );
+   assert( cp_coeffs[npowers]>0. );
+   //tbox::pout << "NKRHeatCapacityStrategy::setCurrentValue(), cp_coeffs[0]="<<cp_coeffs[0]<<endl;
+   //tbox::pout << "NKRHeatCapacityStrategy::setCurrentValue(), cp_coeffs[1]="<<cp_coeffs[1]<<endl;
+#endif
+  
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++ ) {
 
@@ -106,7 +119,10 @@ void NKRHeatCapacityStrategy::setCurrentValue(
             patch->getPatchData( d_temperature_id ), boost::detail::dynamic_cast_tag());
          boost::shared_ptr< pdat::CellData<double> > cp (
             patch->getPatchData( d_cp_id ), boost::detail::dynamic_cast_tag());
-            
+         assert( conc );
+         assert( temp );
+         assert( cp );
+           
          FORT_HEAT_CAPACITY_NKR(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
@@ -117,7 +133,13 @@ void NKRHeatCapacityStrategy::setCurrentValue(
             temp->getPointer(), temp->getGhostCellWidth()[0],
             cp->getPointer(),  cp->getGhostCellWidth()[0],
             cp_powers, npowers,
-            cp_coeffs, d_cp.size()*npowers);
+            cp_coeffs, ncoeffs);
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+            math::PatchCellDataBasicOps<double> mathops;
+            const double mincp = mathops.min( cp, pbox );
+            assert( mincp>0. );
+#endif
       }
    }
    

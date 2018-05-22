@@ -49,6 +49,7 @@ public:
                                    partition_coeff_id),
       d_keq(keq)
    {
+      tbox::plog<<"UniformPartitionCoefficientStrategy with keq="<<keq<<std::endl;
    }
 
 protected:   
