@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADFreeEnergyFunctions.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADMobility.h"
 #include "CompositionStrategyMobilities.h"
 #include "CALPHADFreeEnergyStrategy.h"
@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
 
    bool with_third_phase=false;
    
-   CALPHADFreeEnergyFunctions
+   CALPHADFreeEnergyFunctionsBinary
       cafe(calphad_db, newton_db,
            phase_interp_func_type,
            eta_interp_func_type,
