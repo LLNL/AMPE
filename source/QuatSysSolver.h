@@ -158,7 +158,7 @@ public:
     */
    QuatSysSolver(
       const int qlen,
-      const string &object_name,
+      const std::string &object_name,
       boost::shared_ptr<tbox::Database> database = boost::shared_ptr<tbox::Database>() );
 
    /*
@@ -269,7 +269,7 @@ public:
     * it can sometimes make the PoissonHYPRESolver class more efficient.
     */
 
-   void setBoundaries(const string& boundary_type,
+   void setBoundaries(const std::string& boundary_type,
                       const int fluxes = -1,
                       const int flags = -1,
                       int* bdry_types = NULL);
@@ -311,7 +311,7 @@ public:
       const double time_step, 
       const double epsilon_q,
       const double quat_grad_floor,
-      const string quat_smooth_floor_type,
+      const std::string quat_smooth_floor_type,
       const int mobility_id,
       const int mobility_deriv_id,
       const int diff_coef_id,
@@ -322,7 +322,7 @@ public:
    bool solveSystem(const int q_soln_id, const int  q_rhs_id, const int ewt_id);
 
    void evaluateRHS(
-      const double epsilon_q, const double quat_grad_floor, const string quat_smooth_floor_type,
+      const double epsilon_q, const double quat_grad_floor, const std::string quat_smooth_floor_type,
       const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
       const int        rotations_id,
       const int mobility_id, const int solution_id, int rhs_id,
@@ -406,7 +406,7 @@ public:
     *
     * coarsefine_method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization( const string &coarsefine_method );
+   void setCoarseFineDiscretization( const std::string &coarsefine_method );
 
    /*
     * Set the name of the prolongation method.
@@ -426,7 +426,7 @@ public:
     *
     * prolongation_method: String selecting the coarse-fine discretization method.
     */
-   void setProlongationMethod(const string & prolongation_method);
+   void setProlongationMethod(const std::string & prolongation_method);
 
    /*
     * Set the number of pre-smoothing and post-smoothing sweeps
@@ -543,7 +543,7 @@ private:
    /*
     * Object name.
     */
-   string d_object_name;
+   std::string d_object_name;
 
    /*
     * Context for all internally maintained data.

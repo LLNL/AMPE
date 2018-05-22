@@ -49,7 +49,6 @@
 
 #include <string>
 
-using namespace std;
 using namespace SAMRAI;
 
 /**
@@ -63,7 +62,7 @@ class GrainNumberRefinePatchStrategy :
 public: 
 
    GrainNumberRefinePatchStrategy(
-      const string& object_name,
+      const std::string& object_name,
       boost::shared_ptr< tbox::Database > input_db,
       const int grain_number_id );
 
@@ -125,11 +124,11 @@ public:
    /**
     * Write class data to given output stream.
     */
-   void printClassData( ostream& os ) const;
+   void printClassData( std::ostream& os ) const;
 
 private:
 
-   string d_object_name;
+   std::string d_object_name;
 
    int d_grain_number_id;
    solv::CartesianRobinBcHelper* d_grain_number_refine_strategy;

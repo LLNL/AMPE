@@ -196,7 +196,7 @@ public:
     *
     * method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization( const string &coarsefine_method );
+   void setCoarseFineDiscretization( const std::string &coarsefine_method );
 
    /*
     * Set the name of the prolongation method.
@@ -217,7 +217,7 @@ public:
     * prolongation_method: String selecting the coarse-fine
     *                      discretization method.
     */
-   void setProlongationMethod(const string & prolongation_method);
+   void setProlongationMethod(const std::string & prolongation_method);
 
 
    /*
@@ -284,7 +284,7 @@ public:
 				const int mobility_id, const int mobility_deriv_id,
 				const int diff_coef_id, const int diff_coef_deriv_id,
 				const int grad_q_id, const int q_id,
-				const double gradient_floor, const string grad_floor_type);
+				const double gradient_floor, const std::string grad_floor_type);
 
    // FACOperatorStrategy virtuals
 
@@ -341,7 +341,7 @@ public:
    }
 
    void evaluateRHS(const double epsilon_q, const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
-		    const double gradient_floor, const string gradient_floor_type,
+		    const double gradient_floor, const std::string gradient_floor_type,
 		    const int mobility_id, const int rotations_id, const int q_id, int rhs_id,
           const bool use_gradq_for_flux);
 
@@ -428,7 +428,7 @@ private:
 			 const int diff_coef_id,
 			 const int grad_q_id,
 			 const double gradient_floor,
-			 const string grad_floor_type,
+			 const std::string grad_floor_type,
 			 const int face_coef_id);
 
    void computeFaceCoefsOnPatch(const hier::Patch & patch,
@@ -437,7 +437,7 @@ private:
 				pdat::SideData<double> & grad_q_data,
 				pdat::SideData<double> & face_coef_data,
 				const double gradient_floor,
-				const string grad_floor_type) const;
+				const std::string grad_floor_type) const;
 
    void computeDQuatDPhiFaceCoefs(const int    dprime_id,
 				  const int       phi_id,
@@ -671,7 +671,7 @@ private:
    /*
     * Object name.
     */
-   string d_object_name;
+   std::string d_object_name;
 
 
    // Hierarchy-dependent objects.
@@ -725,7 +725,7 @@ private:
     * Coarse-fine discretization method.
     * See setCoarseFineDiscretization().
     */
-   string d_cf_discretization;
+   std::string d_cf_discretization;
 
    /*
     * Coarse-fine discretization method.
@@ -735,7 +735,7 @@ private:
     *
     * See setProlongationMethod()
     */
-   string d_prolongation_method;
+   std::string d_prolongation_method;
 
    double d_levelsolver_tolerance;
    int d_levelsolver_max_iterations;
@@ -765,7 +765,7 @@ private:
    /*
     * Quaternion system solver objects on each level.
     */
-   vector< QuatLevelSolver * > d_quat_level_solver;
+   std::vector< QuatLevelSolver * > d_quat_level_solver;
 
    /*
     * Level solver input database.

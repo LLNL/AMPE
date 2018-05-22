@@ -42,7 +42,6 @@
 #include "SAMRAI/hier/CoarsenOperator.h"
 
 using namespace SAMRAI;
-using namespace std;
 
 /**
  * Class MinIntCoarsen implements a simple coarsen operator to 
@@ -76,12 +75,12 @@ public:
     */
    bool findCoarsenOperator(
       const boost::shared_ptr< hier::Variable >& var,
-      const string &op_name) const;
+      const std::string &op_name) const;
 
    /**
     * Return name string identifier of this coarsening operation.
     */
-   const string& getOperatorName() const;
+   const std::string& getOperatorName() const;
 
    /**
     * The priority of cell-centered double weighted averaging is 0.
@@ -112,7 +111,7 @@ public:
       const hier::IntVector& ratio) const;
 
 private:
-   string d_name_id;
+   std::string d_name_id;
 };
 
 #endif

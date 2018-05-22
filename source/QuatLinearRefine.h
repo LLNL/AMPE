@@ -44,7 +44,6 @@
 
 #include <string>
 using namespace SAMRAI;
-using namespace std;
 
 /**
  * Class QuatLinearRefine implements linear
@@ -77,12 +76,12 @@ public:
     * double linear interpolation; otherwise, return false.
     */
    bool findRefineOperator(const boost::shared_ptr<hier::Variable >& var,
-                           const string &op_name) const; 
+                           const std::string &op_name) const; 
 
    /**
     * Return name string identifier of this refinement operator.
     */
-   const string& getOperatorName() const;
+   const std::string& getOperatorName() const;
 
    /**
     * The priority of node-centered double linear interpolation is 0.
@@ -119,7 +118,7 @@ public:
                const hier::IntVector& ratio) const;
 
 private:
-   string d_name_id;
+   std::string d_name_id;
    int d_quat_symm_rotation_id;
 };
 

@@ -43,6 +43,7 @@
 #include <cassert>
 
 #include "SAMRAI/tbox/TimerManager.h"
+using namespace std;
 
 /*
 *************************************************************************

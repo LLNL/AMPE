@@ -46,7 +46,6 @@
 #include <boost/make_shared.hpp>
 
 #include <string>
-using namespace std;
 using namespace SAMRAI;
 
 /**
@@ -60,7 +59,7 @@ class PartitionCoeffRefinePatchStrategy :
 public: 
 
    PartitionCoeffRefinePatchStrategy(
-      const string& object_name,
+      const std::string& object_name,
       boost::shared_ptr< tbox::Database > input_db,
       const int partition_coeff_id );
 
@@ -122,11 +121,11 @@ public:
    /**
     * Write class data to given output stream.
     */
-   void printClassData( ostream& os ) const;
+   void printClassData( std::ostream& os ) const;
 
 private:
 
-   string d_object_name;
+   std::string d_object_name;
 
    int d_partition_coeff_id;
    solv::CartesianRobinBcHelper* d_partition_coeff_refine_strategy;

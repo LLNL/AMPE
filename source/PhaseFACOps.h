@@ -57,21 +57,21 @@ public:
       const int phase_mobility_id,
       const double epsilon_phase, 
       const double gamma,
-      const string phase_interp_func_type,
+      const std::string phase_interp_func_type,
       const double phase_well_scale,
-      const string phase_well_func_type,
+      const std::string phase_well_func_type,
       const double eta_well_scale,
-      const string eta_well_func_type );
+      const std::string eta_well_func_type );
 
    void setC(
       const int phi_id,
       const int eta_id,
       const double gamma,
-      const string phi_interp_func_type,
+      const std::string phi_interp_func_type,
       const double phi_well_scale,
-      const string phi_well_func_type,
+      const std::string phi_well_func_type,
       const double eta_well_scale,
-      const string eta_well_func_type );
+      const std::string eta_well_func_type );
 
 private:
 

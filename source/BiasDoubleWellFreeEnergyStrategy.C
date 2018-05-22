@@ -38,6 +38,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
+using namespace std;
 
 BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy(
    const double alpha,

@@ -46,7 +46,6 @@
 #include <boost/make_shared.hpp>
 
 #include <string>
-using namespace std;
 using namespace SAMRAI;
 
 /**
@@ -60,7 +59,7 @@ class PhaseConcentrationRefinePatchStrategy :
 public: 
 
    PhaseConcentrationRefinePatchStrategy(
-      const string& object_name,
+      const std::string& object_name,
       boost::shared_ptr< tbox::Database > input_db,
       const int conc_l_id,
       const int conc_a_id,
@@ -124,11 +123,11 @@ public:
    /**
     * Write class data to given output stream.
     */
-   void printClassData( ostream& os ) const;
+   void printClassData( std::ostream& os ) const;
 
 private:
 
-   string d_object_name;
+   std::string d_object_name;
 
    int d_conc_l_id;
    solv::CartesianRobinBcHelper* d_conc_l_refine_strategy;

@@ -46,7 +46,6 @@
 #include "PoissonSpecifications.h"
 
 #include <string>
-using namespace std;
 using namespace SAMRAI;
 
 /*!

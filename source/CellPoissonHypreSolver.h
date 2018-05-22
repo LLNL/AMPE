@@ -69,7 +69,6 @@ extern "C" {
 #include <boost/make_shared.hpp>
 
 using namespace SAMRAI;
-using namespace std;
 
 /*!
  * @brief Use the HYPRE preconditioner library to solve (the cell-centered)
@@ -284,7 +283,7 @@ public:
       const boost::shared_ptr< hier::Variable > variable
          = boost::shared_ptr< hier::Variable >() );
 
-   void printConvergenceFactors(ostream& os);
+   void printConvergenceFactors(std::ostream& os);
 
 private:
 
@@ -304,13 +303,13 @@ private:
    void allocateHypreData();
    void deallocateHypreData();
 
-   void copyToHypre(HYPRE_StructVector vector,
+   void copyToHypre(HYPRE_StructVector vect,
                     pdat::CellData<double> &src,
                     int depth,
                     const hier::Box &box);
    void copyFromHypre(pdat::CellData<double> &dst,
                       int depth,
-                      HYPRE_StructVector vector,
+                      HYPRE_StructVector vect,
                       const hier::Box box);
 
 

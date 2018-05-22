@@ -38,6 +38,7 @@
 #include <boost/make_shared.hpp>
 
 #include <cassert>
+using namespace std;
 
 PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
    const string& object_name,

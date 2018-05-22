@@ -38,6 +38,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
+using namespace std;
 
 PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
    const string& phase_interp_func_type,

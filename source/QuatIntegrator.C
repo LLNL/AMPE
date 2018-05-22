@@ -76,6 +76,8 @@
 
 #define NUM_FACES 2*NDIM
 
+using namespace std;
+
 //-----------------------------------------------------------------------
 
 QuatIntegrator::QuatIntegrator(

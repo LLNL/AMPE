@@ -36,7 +36,6 @@
 #include "FreeEnergyStrategy.h"
 #include "MeltingTemperatureStrategy.h"
 
-using namespace std;
 /*!
  * @brief Class BiasDoubleWellFreeEnergyStrategy implements the free energy
  * used by Kobayashi in Physica D 63 (1993), p. 410-423
@@ -124,16 +123,16 @@ public:
 
    void computeSecondDerivativeEnergyPhaseL(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
    void computeSecondDerivativeEnergyPhaseA(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
    void computeSecondDerivativeEnergyPhaseB(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
 
 private:
 

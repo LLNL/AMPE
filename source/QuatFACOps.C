@@ -49,6 +49,7 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 
 #include <cassert>
+using namespace std;
 
 // Static class member definitions
 

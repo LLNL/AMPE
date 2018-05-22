@@ -48,6 +48,7 @@
 #include "QuatModel.h"
 
 using namespace SAMRAI;
+using namespace std;
 
 int main( int argc, char *argv[] )
 {

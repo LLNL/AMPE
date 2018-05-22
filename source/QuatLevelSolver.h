@@ -62,7 +62,6 @@ extern "C" {
 #include "SAMRAI/tbox/Database.h"
 
 using namespace SAMRAI;
-using namespace std;
 
 /*
  * Class QuatLevelSolver uses the HYPRE sysPFMG solver
@@ -117,7 +116,7 @@ public:
     */
    QuatLevelSolver(
       const int qlen,
-      const string & object_name,
+      const std::string & object_name,
       boost::shared_ptr<tbox::Database> database=boost::shared_ptr<tbox::Database>() );
 
    /*
@@ -229,7 +228,7 @@ public:
     * See SimpleCellRobinBcCoefs::setBoundaries()
     * for an explanation of the arguments.
     */
-   void setBoundaries(const string& boundary_type,
+   void setBoundaries(const std::string& boundary_type,
                       const int fluxes = -1,
                       const int flags = -1,
                       int* bdry_types = NULL);
@@ -285,8 +284,8 @@ public:
     */
    void setVerbose(const bool verbose);
 
-   void printCellDataComponentNorms(string var_name, pdat::CellData<double> & data);
-   void printSideDataComponentNorms(string var_name, pdat::SideData<double> & data);
+   void printCellDataComponentNorms(std::string var_name, pdat::CellData<double> & data);
+   void printSideDataComponentNorms(std::string var_name, pdat::SideData<double> & data);
 
 private:
 
@@ -395,7 +394,7 @@ private:
    /*
     * Object name.
     */
-   string d_object_name;
+   std::string d_object_name;
 
    /*
     * Associated hierarchy. 

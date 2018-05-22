@@ -60,6 +60,7 @@
 
 
 #include <cassert>
+using namespace std;
 
 #define NPARTS 1
 #define PART 0

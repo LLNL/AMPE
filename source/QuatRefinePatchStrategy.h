@@ -43,12 +43,11 @@
 #include "SAMRAI/solv/CartesianRobinBcHelper.h"
 #include "CartesianRobinBcHelperWithDepth.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
+#include "SAMRAI/xfer/RefinePatchStrategy.h"
+
 #include <boost/make_shared.hpp>
 
 #include <string>
-using namespace std;
-
-#include "SAMRAI/xfer/RefinePatchStrategy.h"
 
 using namespace SAMRAI;
 
@@ -63,7 +62,7 @@ class QuatRefinePatchStrategy :
 public: 
 
    QuatRefinePatchStrategy(
-      const string& object_name,
+      const std::string& object_name,
       boost::shared_ptr< tbox::Database > input_db,
       const int phase_id,
       const int eta_id,
@@ -129,11 +128,11 @@ public:
    /**
     * Write class data to given output stream.
     */
-   void printClassData( ostream& os ) const;
+   void printClassData( std::ostream& os ) const;
 
 private:
 
-   string d_object_name;
+   std::string d_object_name;
 
    int d_phase_id;
    solv::CartesianRobinBcHelper* d_phase_refine_strategy;

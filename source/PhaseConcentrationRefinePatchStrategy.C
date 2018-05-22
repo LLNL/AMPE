@@ -38,6 +38,7 @@
 #include <boost/make_shared.hpp>
 
 #include <cassert>
+using namespace std;
 
 PhaseConcentrationRefinePatchStrategy::PhaseConcentrationRefinePatchStrategy(
    const string& object_name,

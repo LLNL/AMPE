@@ -40,6 +40,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <cassert>
+using namespace std;
 
 /*
 *************************************************************************

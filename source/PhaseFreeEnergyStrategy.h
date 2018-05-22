@@ -35,15 +35,14 @@
 
 #include "FreeEnergyStrategy.h"
 
-using namespace std;
 
 class PhaseFreeEnergyStrategy:
    public FreeEnergyStrategy
 {
 public:
    PhaseFreeEnergyStrategy(
-      const string& phase_interp_func_type,
-      const string& eta_interp_func_type,
+      const std::string& phase_interp_func_type,
+      const std::string& eta_interp_func_type,
       const double fl,
       const double fa,
       const double fb,
@@ -129,24 +128,24 @@ public:
 
    void computeSecondDerivativeEnergyPhaseL(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
    void computeSecondDerivativeEnergyPhaseA(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
    void computeSecondDerivativeEnergyPhaseB(
       const double temperature,
-      const vector<double>& c,
-      vector<double>& d2fdc2, const bool use_internal_units=true);
+      const std::vector<double>& c,
+      std::vector<double>& d2fdc2, const bool use_internal_units=true);
 
 private:
 
    double d_f_l;
    double d_f_a;
    double d_f_b;
-   string d_phase_interp_func_type;
-   string d_eta_interp_func_type;
+   std::string d_phase_interp_func_type;
+   std::string d_eta_interp_func_type;
 
    bool d_with_third_phase;
 };

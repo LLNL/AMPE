@@ -57,9 +57,9 @@ public:
       const int eta_mobility_id,
       const double epsilon_eta,
       const double gamma,
-      const string phase_interp_func_type,
+      const std::string phase_interp_func_type,
       const double eta_well_scale,
-      const string eta_well_func_type );
+      const std::string eta_well_func_type );
 
 };
 

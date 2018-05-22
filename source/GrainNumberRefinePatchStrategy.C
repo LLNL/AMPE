@@ -37,6 +37,7 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 
 #include <cassert>
+using namespace std;
 
 GrainNumberRefinePatchStrategy::GrainNumberRefinePatchStrategy(
    const string& object_name,

@@ -42,6 +42,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
+using namespace std;
 
 MinIntCoarsen::MinIntCoarsen()
    : hier::CoarsenOperator(tbox::Dimension(NDIM), "BASE_MIN_COARSEN")

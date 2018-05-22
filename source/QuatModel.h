@@ -94,9 +94,9 @@ public :
 
    virtual void Initialize(
       boost::shared_ptr<tbox::MemoryDatabase>& input_db,
-      const string& run_name,
+      const std::string& run_name,
       const bool is_from_restart,
-      const string& restart_read_dirname,
+      const std::string& restart_read_dirname,
       const int restore_num );
    
    virtual void Run( void );
@@ -128,8 +128,8 @@ public :
    void printScalarDiagnostics( void );
    
    void listLocalToGlobal(
-      map<int,double>& local_map,
-      map<int,double>& global_map );
+      std::map<int,double>& local_map,
+      std::map<int,double>& global_map );
 
    void readInitialDatabase(
       boost::shared_ptr<tbox::Database> main_input_db );
@@ -794,7 +794,7 @@ private :
 
    solv::LocationIndexRobinBcCoefs* d_temperature_bc_coefs;
    
-   string d_fenergy_diag_filename;
+   std::string d_fenergy_diag_filename;
    
    bool d_use_warm_start;
 

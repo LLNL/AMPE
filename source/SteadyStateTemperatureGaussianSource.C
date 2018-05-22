@@ -40,6 +40,8 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
+using namespace std;
+
 SteadyStateTemperatureGaussianSource::SteadyStateTemperatureGaussianSource(
    const int temperature_scratch_id,
    const int rhs_id,
