@@ -76,7 +76,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(boost::shared_ptr<tbox::D
 
    // read Lmix coefficients
    string dbnamemixL("LmixABPhaseL");
-   string dbnamemixA("LmixPABhaseA");
+   string dbnamemixA("LmixABPhaseA");
    boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
    Lmix0_db->getDoubleArray( "L0", &d_LmixABPhaseL[0][0], 2 );
    Lmix0_db->getDoubleArray( "L1", &d_LmixABPhaseL[1][0], 2 );
@@ -543,8 +543,7 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
 //-----------------------------------------------------------------------
 
 void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature, 
-                                                 const double* const ceqL,
-                                                 const double* const ceqA,
+                                                 const double* const ceq,
                                                  const bool found_ceq,
                                                  const bool third_phase,
                                                  const int npts_phi,
@@ -553,6 +552,8 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
    tbox::plog<<"CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC()..."<<endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   const double* const ceqL=&ceq[0];
+   const double* const ceqA=&ceq[2];
 
    double slopec = 0.;
    double fc0=0.;

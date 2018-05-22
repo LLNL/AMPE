@@ -91,7 +91,8 @@ CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \
                 $(CALPHAD_OBJS)
 
 MAIN_OBJ = main.o
-TEST_CALPHAD_MAIN_OBJ = testCALPHAD.o
+TEST_CALPHAD_BINARY_MAIN_OBJ = testCALPHADbinary.o
+TEST_CALPHAD_TERNARY_MAIN_OBJ = testCALPHADternary.o
 
 F77_OBJS      = quat.o functions.o dnsqe.o
 
@@ -135,13 +136,21 @@ ampe-3d:	$(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_3D) $(LIBSAMRAIDEPEND)
 		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CXX_OBJS) $(MAIN_OBJ) $(F77_OBJS) $(F77_OBJS_3D) \
 		$(LIBSAMRAI) $(LDLIBS) -o ampe3d
 
-testCALPHAD:		
-		$(MAKE) PDIM=2 test-CALPHAD
-		mkdir -p ../exec && mv testCALPHAD ../exec/testCALPHAD
+testCALPHADbinary:		
+		$(MAKE) PDIM=2 test-CALPHAD-binary
+		mkdir -p ../exec && mv testCALPHADbinary ../exec/testCALPHADbinary
 
-test-CALPHAD:	$(CALPHAD_OBJS) $(TEST_CALPHAD_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)  
-		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_MAIN_OBJ) $(F77_OBJS) \
-		$(LIBSAMRAI) $(LDLIBS) -o testCALPHAD
+test-CALPHAD-binary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_BINARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)  
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_BINARY_MAIN_OBJ) $(F77_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADbinary
+
+testCALPHADternary:		
+		$(MAKE) PDIM=2 test-CALPHAD-ternary
+		mkdir -p ../exec && mv testCALPHADternary ../exec/testCALPHADternary
+
+test-CALPHAD-ternary:	$(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) $(LIBSAMRAIDEPEND)  
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(TEST_CALPHAD_TERNARY_MAIN_OBJ) $(F77_OBJS) \
+		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternary
 
 clean:
 		$(SAMCLEAN)

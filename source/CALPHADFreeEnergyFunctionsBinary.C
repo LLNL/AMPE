@@ -353,6 +353,7 @@ void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(const doubl
 {
    PHASE_INDEX pis[2]={pi0,pi1};
    
+   //loop over two phases
    for(short i=0;i<2;i++)
    {
       switch ( pis[i] ) {

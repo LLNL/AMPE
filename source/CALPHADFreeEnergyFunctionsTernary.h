@@ -68,8 +68,7 @@ public:
       const double temperature, const double conc, const double phi, const double eta,
       double* x);
    void energyVsPhiAndC(const double temperature, 
-                        const double* const ceqL,
-                        const double* const ceqA,
+                        const double* const ceq,
                         const bool found_ceq,
                         const bool third_phase,
                         const int npts_phi=51,
