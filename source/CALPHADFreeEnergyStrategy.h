@@ -36,7 +36,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
-#include "CALPHADConcSolver.h"
+#include "CALPHADConcSolverBinary.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"

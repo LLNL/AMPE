@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADEqConcSolverWithPenalty.h"
+#include "CALPHADEqConcSolverBinaryWithPenalty.h"
 #include "CALPHADFunctions.h"
 
 #include <iostream>
@@ -43,14 +43,14 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-void CALPHADEqConcentrationSolverWithPenalty::RHS(
+void CALPHADEqConcentrationSolverBinaryWithPenalty::RHS(
    const double* const c,
    double* const fvec )
 {
    assert( d_penalty_parametersL.size()==6 );
    assert( d_penalty_parametersS.size()==6 );
    
-   CALPHADEqConcentrationSolver::RHS(c,fvec);
+   CALPHADEqConcentrationSolverBinary::RHS(c,fvec);
    
    double dfdci[2];
    dfdci[0]=CALPHADcomputeDerivPenalty(d_penalty_parametersL[0], d_penalty_parametersL[1],  d_penalty_parametersL[2],
@@ -74,12 +74,12 @@ void CALPHADEqConcentrationSolverWithPenalty::RHS(
 
 //=======================================================================
 
-void CALPHADEqConcentrationSolverWithPenalty::Jacobian(
+void CALPHADEqConcentrationSolverBinaryWithPenalty::Jacobian(
    const double* const c,
    double** const fjac )
 {
    //tbox::pout<<"Compute Jacobian for CALPHAD with Penalty..."<<endl;
-   CALPHADEqConcentrationSolver::Jacobian(c,fjac);
+   CALPHADEqConcentrationSolverBinary::Jacobian(c,fjac);
    
    double dfdci[2];
 
@@ -113,7 +113,7 @@ void CALPHADEqConcentrationSolverWithPenalty::Jacobian(
 
 //=======================================================================
 
-int CALPHADEqConcentrationSolverWithPenalty::ComputeConcentrationWithPenalty(
+int CALPHADEqConcentrationSolverBinaryWithPenalty::ComputeConcentrationWithPenalty(
    double* const conc,
    const double RTinv,
    const double* const L0,
@@ -127,7 +127,7 @@ int CALPHADEqConcentrationSolverWithPenalty::ComputeConcentrationWithPenalty(
    d_penalty_parametersL=penalty_parameters[0];
    d_penalty_parametersS=penalty_parameters[1];
 
-   CALPHADEqConcentrationSolver::ComputeConcentration(conc,
+   CALPHADEqConcentrationSolverBinary::ComputeConcentration(conc,
       RTinv, L0, L1, L2, L3, fA, fB );
    
    return DampedNewtonSolver::ComputeSolution( conc, 2 );

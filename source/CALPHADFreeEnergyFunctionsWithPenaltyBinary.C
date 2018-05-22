@@ -31,8 +31,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
-#include "CALPHADConcSolverWithPenalty.h"
-#include "CALPHADEqConcSolverWithPenalty.h"
+#include "CALPHADConcSolverBinaryWithPenalty.h"
+#include "CALPHADEqConcSolverBinaryWithPenalty.h"
 #include "PhysicalConstants.h"
 
 using namespace std;
@@ -75,7 +75,7 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver(boost::shared_ptr<
    tbox::pout << "CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver()..." << std::endl;
    
    if( d_solver!=NULL )delete d_solver;
-   d_solver = new CALPHADConcentrationSolverWithPenalty( d_with_third_phase,
+   d_solver = new CALPHADConcentrationSolverBinaryWithPenalty( d_with_third_phase,
                                                          d_penalty_parameters );
 
    readNewtonparameters(newton_db);
@@ -180,7 +180,7 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
    penalty_parameters.push_back( d_penalty_parameters[pi0] );
    penalty_parameters.push_back( d_penalty_parameters[pi1] );
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
-   CALPHADEqConcentrationSolverWithPenalty  eq_solver;
+   CALPHADEqConcentrationSolverBinaryWithPenalty  eq_solver;
    int ret = eq_solver.ComputeConcentrationWithPenalty(
       ceq,
       RTinv,

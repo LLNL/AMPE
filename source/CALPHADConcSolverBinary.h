@@ -30,46 +30,66 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#ifndef included_CALPHADEqConcSolverWithPenalty
-#define included_CALPHADEqConcSolverWithPenalty
+#ifndef included_CALPHADConcSolverBinary
+#define included_CALPHADConcSolverBinary
 
-#include "CALPHADEqConcSolver.h"
-#include "Phases.h"
-#include <vector>
+#include "DampedNewtonSolver.h"
 
-class CALPHADEqConcentrationSolverWithPenalty :
-   public CALPHADEqConcentrationSolver
+class CALPHADConcentrationSolver :
+   public DampedNewtonSolver
 {
 public :
 
-   CALPHADEqConcentrationSolverWithPenalty()
-   {};
+   CALPHADConcentrationSolver(
+      const bool with_third_phase );
       
-   virtual ~CALPHADEqConcentrationSolverWithPenalty() {};
-
-   int ComputeConcentrationWithPenalty(
+   virtual ~CALPHADConcentrationSolver() {};
+      
+   int ComputeConcentration(
       double* const conc,
+      const double c0,
+      const double hphi,
+      const double heta,
       const double RTinv,
       const double* const L0,
       const double* const L1,
       const double* const L2,
       const double* const L3,
       const double* const fA,
-      const double* const fB,
-      std::vector<std::vector<double> >& penalty_parameters);
-      
+      const double* const fB );
+   
+protected:
+   int d_N;
+   
+   double d_fA[3];
+   double d_fB[3];
+
+   // L coefficients for 3 possible phases (L, A and B)
+   double d_L0[3];
+   double d_L1[3];
+   double d_L2[3];
+   double d_L3[3];
+   double d_RTinv;
+
+   virtual void computeXi(const double* const c, 
+                          double xi[3])const;
+
+   virtual void computeDxiDc(const double* const c, double xi[3], double dxidc[3])const;
+   
 private :
 
-   virtual void RHS(
+   void RHS(
       const double* const x,
       double* const fvec );
 
-   virtual void Jacobian(
+   void Jacobian(
       const double* const x,
       double** const fjac );
-
-   std::vector<double> d_penalty_parametersL;
-   std::vector<double> d_penalty_parametersS;
+   
+   double d_c0;
+   double d_hphi;
+   double d_heta;
+   bool d_with_third_phase;
 };
 
 #endif

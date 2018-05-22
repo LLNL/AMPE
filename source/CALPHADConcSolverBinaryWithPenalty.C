@@ -30,15 +30,15 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADConcSolverWithPenalty.h"
+#include "CALPHADConcSolverBinaryWithPenalty.h"
 #include "CALPHADFunctions.h"
 #include <cassert>
 #include <iostream>
 
-void CALPHADConcentrationSolverWithPenalty::computeXi(const double* const c, 
+void CALPHADConcentrationSolverBinaryWithPenalty::computeXi(const double* const c, 
                                                       double xi[3])const
 {
-   //std::cout<<"CALPHADConcentrationSolverWithPenalty::computeXi()"<<std::endl;
+   //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeXi()"<<std::endl;
    CALPHADConcentrationSolver::computeXi(c,xi);
    
    for ( int ii = 0; ii < d_N; ii++ ) {
@@ -48,20 +48,20 @@ void CALPHADConcentrationSolverWithPenalty::computeXi(const double* const c,
    }
 }
 
-void CALPHADConcentrationSolverWithPenalty::computeDxiDc(const double* const c, 
+void CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc(const double* const c, 
                                                          double xi[3], 
                                                          double dxidc[3])const
 {
-   //std::cout<<"CALPHADConcentrationSolverWithPenalty::computeDxiDc()"<<std::endl;
+   //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc()"<<std::endl;
    CALPHADConcentrationSolver::computeDxiDc(c,xi,dxidc);
 
    for ( int ii = 0; ii < d_N; ii++ ) {
       dxidc[ii] += d_RTinv * compute2ndDerivPenalty(ii, c[ii]);
    }
-   //std::cout<<"CALPHADConcentrationSolverWithPenalty::computeDxiDc() done..."<<std::endl;
+   //std::cout<<"CALPHADConcentrationSolverBinaryWithPenalty::computeDxiDc() done..."<<std::endl;
 }
 
-double CALPHADConcentrationSolverWithPenalty::computeDerivPenalty(const short phase_index, 
+double CALPHADConcentrationSolverBinaryWithPenalty::computeDerivPenalty(const short phase_index, 
                                                                   const double conc)const
 {
    assert( d_penalty_parameters.size()>0 );
@@ -74,7 +74,7 @@ double CALPHADConcentrationSolverWithPenalty::computeDerivPenalty(const short ph
                                      conc);
 }
 
-double CALPHADConcentrationSolverWithPenalty::compute2ndDerivPenalty(const short phase_index, 
+double CALPHADConcentrationSolverBinaryWithPenalty::compute2ndDerivPenalty(const short phase_index, 
                                                                      const double conc)const
 {
    assert( d_penalty_parameters.size()>0 );

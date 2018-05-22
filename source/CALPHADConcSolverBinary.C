@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADConcSolver.h"
+#include "CALPHADConcSolverBinary.h"
 #include "CALPHADFunctions.h"
 
 #include <iostream>

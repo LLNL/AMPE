@@ -33,7 +33,7 @@
 #include "CALPHADFunctions.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "PhysicalConstants.h"
-#include "CALPHADEqConcSolver.h"
+#include "CALPHADEqConcSolverBinary.h"
 #include "FuncFort.h"
 
 
@@ -438,7 +438,7 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
 
    setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3, d_fA, d_fB, pi0, pi1);
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
-   CALPHADEqConcentrationSolver eq_solver;
+   CALPHADEqConcentrationSolverBinary eq_solver;
    eq_solver.SetMaxIterations(20);
 
    int ret = eq_solver.ComputeConcentration(

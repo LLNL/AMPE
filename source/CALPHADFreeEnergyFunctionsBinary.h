@@ -35,8 +35,8 @@
 
 #include "Phases.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
-#include "CALPHADConcSolver.h"
-#include "CALPHADEqConcSolver.h"
+#include "CALPHADConcSolverBinary.h"
+#include "CALPHADEqConcSolverBinary.h"
 #include "FreeEnergyFunctions.h"
 
 #include "SAMRAI/tbox/InputManager.h"

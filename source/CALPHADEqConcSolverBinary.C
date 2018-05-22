@@ -30,7 +30,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "CALPHADEqConcSolver.h"
+#include "CALPHADEqConcSolverBinary.h"
 #include "CALPHADFunctions.h"
 
 #include <iostream>
@@ -44,7 +44,7 @@ using namespace std;
 
 //=======================================================================
 
-void CALPHADEqConcentrationSolver::RHS(
+void CALPHADEqConcentrationSolverBinary::RHS(
    const double* const c,
    double* const fvec )
 {
@@ -72,7 +72,7 @@ void CALPHADEqConcentrationSolver::RHS(
 
 //=======================================================================
 
-void CALPHADEqConcentrationSolver::Jacobian(
+void CALPHADEqConcentrationSolverBinary::Jacobian(
    const double* const c,
    double** const fjac )
 {
@@ -102,7 +102,7 @@ void CALPHADEqConcentrationSolver::Jacobian(
 
 //=======================================================================
 
-int CALPHADEqConcentrationSolver::ComputeConcentration(
+int CALPHADEqConcentrationSolverBinary::ComputeConcentration(
    double* const conc,
    const double RTinv,
    const double* const L0,

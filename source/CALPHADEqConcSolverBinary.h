@@ -30,39 +30,53 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#ifndef included_CALPHADConcSolverWithPenalty
-#define included_CALPHADConcSolverWithPenalty
+#ifndef included_CALPHADEqConcSolverBinary
+#define included_CALPHADEqConcSolverBinary
 
-#include "CALPHADConcSolver.h"
+#include "DampedNewtonSolver.h"
 
-#include <vector>
-
-class CALPHADConcentrationSolverWithPenalty :
-   public CALPHADConcentrationSolver
+class CALPHADEqConcentrationSolverBinary :
+   public DampedNewtonSolver
 {
 public :
-   CALPHADConcentrationSolverWithPenalty(
-      const bool with_third_phase, const std::vector< std::vector<double> >& penalty_parameters)
-      :CALPHADConcentrationSolver(with_third_phase),
-       d_penalty_parameters(penalty_parameters)
-   {};
 
-   virtual ~CALPHADConcentrationSolverWithPenalty() {};
+   CALPHADEqConcentrationSolverBinary(){};
       
-   virtual void computeXi(const double* const c, double xi[3])const;
+   virtual ~CALPHADEqConcentrationSolverBinary() {};
+      
+   int ComputeConcentration(
+      double* const conc,
+      const double RTinv,
+      const double* const L0,
+      const double* const L1,
+      const double* const L2,
+      const double* const L3,
+      const double* const fA,
+      const double* const fB );
+   
+protected :
 
-   virtual void computeDxiDc(const double* const c, 
-                     double xi[3], 
-                     double dxidc[3])const;
+   virtual void RHS(
+      const double* const x,
+      double* const fvec );
 
-private:
+   virtual void Jacobian(
+      const double* const x,
+      double** const fjac );
 
-   std::vector< std::vector<double> > d_penalty_parameters;
-
-   double computeDerivPenalty(const short phase_index, 
-                              const double conc)const;
-   double compute2ndDerivPenalty(const short phase_index, 
-                                 const double conc)const;
+   double d_RTinv;
+   double d_RT;
+   double d_c0;
+   double d_hphi;
+   double d_heta;
+   double d_fA[3];
+   double d_fB[3];
+   
+   // L coefficients for 3 possible phases (L, A and B)
+   double d_L0[3];
+   double d_L1[3];
+   double d_L2[3];
+   double d_L3[3];
 };
 
 #endif

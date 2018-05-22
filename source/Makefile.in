@@ -45,8 +45,8 @@ CALPHAD_OBJS = CALPHADFunctions.o CALPHADFreeEnergyFunctionsBinary.o \
 		CompositionStrategyMobilities.o \
 		CALPHADSpeciesPhaseGibbsEnergy.o CALPHADMobility.o \
 		CALPHADFreeEnergyStrategy.o CALPHADFreeEnergyFunctionsWithPenaltyBinary.o \
-		CALPHADEqConcSolverWithPenalty.o CALPHADEqConcSolver.o \
-	   CALPHADConcSolverWithPenalty.o CALPHADConcSolver.o tools.o \
+		CALPHADEqConcSolverBinaryWithPenalty.o CALPHADEqConcSolverBinary.o \
+	   CALPHADConcSolverBinaryWithPenalty.o CALPHADConcSolverBinary.o tools.o \
       FreeEnergyStrategy.o
 
 CXX_OBJS      = DiffusionForConcInPhaseStrategy.o \

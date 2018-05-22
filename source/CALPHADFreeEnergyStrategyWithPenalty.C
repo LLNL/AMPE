@@ -31,7 +31,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADFreeEnergyStrategyWithPenalty.h";
-#include "CALPHADConcSolverWithPenalty.h"
+#include "CALPHADConcSolverBinaryWithPenalty.h"
 #include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 
 #include "SAMRAI/tbox/InputManager.h"
