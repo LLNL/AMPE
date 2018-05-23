@@ -34,6 +34,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <stddef.h>
 using namespace std;
 
 static const double s_smallx = 1.0e-8;
