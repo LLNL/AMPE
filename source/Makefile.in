@@ -208,6 +208,9 @@ test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o \
 
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
+testNetCDF: simple_xy_wr.o
+		$(CXX) $(CXXFLAGS) simple_xy_wr.o $(LDFLAGS) \
+		$(LDLIBS) -o testNetCDF
 
 testInterpolation: $(F77_OBJS) testInterpolationFunctions.o
 		$(CXX) $(CXXFLAGS) $(F77_OBJS) testInterpolationFunctions.o \
