@@ -2,6 +2,7 @@
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 #include "ConcFort.h"
 
@@ -39,21 +40,33 @@ double GradientTemperatureStrategy::getCurrentMaxTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
-   return getCurrentTemperature(time);
+   (void)time;
+
+   math::HierarchyCellDataOpsReal<double> ops(patch_hierarchy);
+
+   return ops.max(d_temperature_id);
 }
 
 double GradientTemperatureStrategy::getCurrentMinTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
-   return getCurrentTemperature(time);
+   (void)time;
+
+   math::HierarchyCellDataOpsReal<double> ops(patch_hierarchy);
+
+   return ops.min(d_temperature_id);
 }
 
 double GradientTemperatureStrategy::getCurrentAverageTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
-   return getCurrentTemperature(time);
+   (void)time;
+
+   math::HierarchyCellDataOpsReal<double> ops(patch_hierarchy);
+
+   return 0.5*(ops.max(d_temperature_id)+ops.min(d_temperature_id));
 }
 
 double GradientTemperatureStrategy::getCurrentTemperature(
