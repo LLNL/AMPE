@@ -107,7 +107,7 @@ public:
          (void)grad_id;
          (void)mod_id;
          (void)time;
-         assert( "computeGradModulus unimplemented" );
+         std::cerr<<"computeGradModulus unimplemented"<<std::endl;
       }
 
    virtual void computeGradModulus(
