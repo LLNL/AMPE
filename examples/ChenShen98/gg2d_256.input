@@ -93,8 +93,11 @@ ModelParameters {
 
    phi_interp_func_type ="pbg"
    
-   free_energy_liquid = 0.
-   free_energy_solid  = 0.
+   FreeEnergyModel{
+      type = "scalar"
+      free_energy_liquid = 0.
+      free_energy_solid  = 0.
+   }
 
    molar_volume = 1. // arbitrary value > 0.
 }
