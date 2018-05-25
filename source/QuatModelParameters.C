@@ -198,7 +198,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       TBOX_ERROR( "Error: unknown concentration model in QuatModelParameters" );
    }
 
-   if( conc_db->keyExists("rhs_form") ){
+   {
       string conc_rhs_strategy =
          conc_db->getStringWithDefault( "rhs_form", "kks" );
       if ( conc_rhs_strategy[0] == 'k' ) {
@@ -224,7 +224,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    // default setup so that older inputs files need not to be changed
    string default_concdiff_type = d_conc_rhs_strategy == EBS ?
                                   "composition_dependent" : 
-                                  "unknown";
+                                  "time_dependent";
    string conc_diffusion_strategy =
       conc_db->getStringWithDefault( "diffusion_type", default_concdiff_type);
    if( conc_diffusion_strategy[0] == 'c' ){

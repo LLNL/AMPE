@@ -34,14 +34,9 @@ set utilsdir = /usr/gapps/phasefield/utils
 set bindir = /usr/gapps/phasefield/bin
 
 #setup initial conditions
-python $utilsdir/make_nuclei.py -x 128 -y 128 -z 1 -r 10 -b --concentration-in 0.1 --concentration-out 0.06 \
+python $utilsdir/make_nuclei.py -x 128 -y 128 -z 1 -r 10 \
+   --concentration-in 0.1 --concentration-out 0.06 \
    --ngrains 2 -q 4 2spheres_init.nc
-
-python $utilsdir/make_nuclei.py -x 128 -y 128 -z 1 -r 10    --concentration-in 0.1 --concentration-out 0.06 \
-   --ngrains 2 -q 4 --crystal_sym 2spheres_init_crystal.nc
-
-python ~/SVN/PFM/ampe/trunk/utils/make_nuclei.py -x 128 -y 128 -z 1 -r 10    --concentration-in 0.1 --concentration-out 0.06 \
-   --ngrains 2 -q 4 -s --symmetry-test 2spheres_init_symtest.nc
 
 #let q diffuse in bcc region
 srun -ppdebug -N1 -n8 $bindir/ampe2d two_spheres_hbsm_init.input
@@ -49,8 +44,3 @@ srun -ppdebug -N1 -n8 $bindir/ampe2d two_spheres_hbsm_init.input
 #let two grains evolve
 srun -ppdebug -N1 -n8 $bindir/ampe2d two_spheres_hbsm.input
 
-
-python ~/SVN/PFM/ampe/trunk/utils/make_nuclei.py -x 128 -y 128 -z 1 -r 10 -b --concentration-in 0.1 --concentration-out 0.06 \
-   --ngrains 2 -q 4 --symmetry-test 2spheres_init_symtest.nc
-
-srun -ppdebug -N1 -n8 ~/SVN/PFM/ampe/trunk/build/hera-mpig++-mpigfortran-dbg/exec/ampe2d two_spheres_hbsm_symtest.input
