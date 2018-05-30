@@ -1104,8 +1104,6 @@ protected:
     */
    bool d_enable_logging;
 
-   bool d_verbose;
-
    /*!
     * @brief Preconditioner using this object.
     *

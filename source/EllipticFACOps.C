@@ -722,7 +722,6 @@ EllipticFACOps::EllipticFACOps(
    d_oflux_scratch_id(-1),
    d_bc_helper( tbox::Dimension(NDIM), d_object_name+"::bc helper" ),
    d_enable_logging(false) ,
-   d_verbose(false),
    d_preconditioner(NULL) ,
    d_hopscell(),
    d_hopsside(),
@@ -851,8 +850,6 @@ void EllipticFACOps::getFromInput(
    const boost::shared_ptr<tbox::Database>& input_db)
 {
    if (input_db) {
-      d_verbose =
-         input_db->getBoolWithDefault("verbose", d_verbose);
       d_coarse_solver_choice =
          input_db->getStringWithDefault("coarse_solver_choice",
             d_coarse_solver_choice);
@@ -1909,9 +1906,6 @@ EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
       d_residual_tolerance_during_smoothing = -1.0;
    }
    else if ( d_coarse_solver_choice == "redblack" ) {
-      if (d_verbose)
-         tbox::pout<<" redblack smoothing: "
-                   <<d_coarse_solver_max_iterations<<" iterations"<<std::endl;
       d_residual_tolerance_during_smoothing = d_coarse_solver_tolerance;
       smoothError( data ,
                    residual ,
@@ -2391,7 +2385,7 @@ EllipticFACOps::computeResidualNorm(
 #endif
       norm = d_hopscell->weightedRMSNorm(r_id, d_ew_id, d_vol_id);
 
-     if (d_verbose) {
+     if (d_enable_logging) {
         tbox::pout << "EllipticFACOps:: Weighted RMS norm on composite grid spanning levels " << coarse_ln <<
            " thru " << fine_ln << " = " << norm << endl;
      }
@@ -2399,7 +2393,7 @@ EllipticFACOps::computeResidualNorm(
    else {
       norm = residual.RMSNorm();
 
-      if (d_verbose) {
+      if (d_enable_logging) {
          tbox::pout << "EllipticFACOps:: Unweighted RMS norm on composite grid spanning levels " << coarse_ln <<
             " thru " << fine_ln << " = " << norm << endl;
       }
