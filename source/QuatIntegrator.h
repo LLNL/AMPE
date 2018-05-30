@@ -1045,6 +1045,8 @@ private :
    boost::shared_ptr<tbox::Timer> t_psolve_setup_timer;
    boost::shared_ptr<tbox::Timer> t_psolve_solve_timer;
    boost::shared_ptr<tbox::Timer> t_phase_conc_timer;
+   boost::shared_ptr<tbox::Timer> t_phase_precond_timer;
+   boost::shared_ptr<tbox::Timer> t_conc_precond_timer;
 };
 
 #endif

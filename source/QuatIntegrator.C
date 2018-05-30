@@ -299,10 +299,16 @@ QuatIntegrator::QuatIntegrator(
       tman->getTimer("QuatIntegrator::CVSpgmrPrecondSolve()");
    t_phase_conc_timer =
       tman->getTimer("QuatIntegrator::computePhaseConcentrations()");
+   t_phase_precond_timer =
+      tman->getTimer("QuatIntegrator::PhasePrecondSolve()");
+   t_conc_precond_timer =
+      tman->getTimer("QuatIntegrator::ConcPrecondSolve()");
 
-   boost::shared_ptr<tbox::Database> integrator_db = db->getDatabase( "Integrator" );
+   boost::shared_ptr<tbox::Database> integrator_db =
+      db->getDatabase( "Integrator" );
 
-   d_show_integrator_stats = integrator_db->getBoolWithDefault( "verbose", false );
+   d_show_integrator_stats =
+      integrator_db->getBoolWithDefault( "verbose", false );
 
    d_max_step_size = integrator_db->getDoubleWithDefault( "max_step_size", 0. );
 
@@ -4000,10 +4006,13 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
 
 //-----------------------------------------------------------------------
 //returns 0 if converged
-int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-                                      int r_phase_id, int ewt_phase_id, int z_phase_id, 
-                                      const double delta, const double gamma)
+int QuatIntegrator::PhasePrecondSolve(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   int r_phase_id, int ewt_phase_id, int z_phase_id, 
+   const double delta, const double gamma)
 {
+   t_phase_precond_timer->start();
+
    if ( d_show_phase_sys_stats ) {
       tbox::pout << "Preconditioner for Phase block with tol "<< delta << endl;
    }
@@ -4047,7 +4056,9 @@ int QuatIntegrator::PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > h
 
    // Copy solution from the local temporary to the output array (z_phase_id)
    cellops.copyData( z_phase_id, d_phase_sol_id, false );
-   
+
+   t_phase_precond_timer->stop();
+ 
    return retcode;
 }
 
@@ -4158,8 +4169,11 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    boost::shared_ptr< solv::SAMRAIVectorReal<double> > z_samvect,
    const double delta)
 {
+   t_conc_precond_timer->start();
+
    if ( d_show_conc_sys_stats ) {
-      tbox::pout << "Preconditioner for Concentration block with tol "<< delta << endl;
+      tbox::pout << "Preconditioner for Concentration block with tol "
+                 << delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4195,7 +4209,9 @@ int QuatIntegrator::ConcentrationPrecondSolve(
 
    // Copy solution from the local temporary to the output array
    cellops.copyData( z_conc_id, d_conc_sol_id, false );
-   
+
+   t_conc_precond_timer->stop();
+
    return retcode;
 }
 
