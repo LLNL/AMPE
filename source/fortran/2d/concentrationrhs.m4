@@ -414,6 +414,7 @@ c
      &   dx,
      &   phase, ngp,
      &   cl, ca, ngc,
+     &   ncomp,
      &   dphidt, ngd,
      &   alpha,
      &   flux0, flux1, ngflux )
@@ -423,20 +424,20 @@ c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
-      integer ngflux, ngd, ngp, ngc
+      integer ngflux, ngd, ngp, ngc, ncomp
       double precision 
-     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
-     &     flux1(SIDE2d1(ifirst,ilast,ngflux))
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux),ncomp),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux),ncomp)
       double precision phase(CELL2d(ifirst,ilast,ngp))
-      double precision cl(CELL2d(ifirst,ilast,ngc))
-      double precision ca(CELL2d(ifirst,ilast,ngc))
+      double precision cl(CELL2d(ifirst,ilast,ngc),ncomp)
+      double precision ca(CELL2d(ifirst,ilast,ngc),ncomp)
       double precision dphidt(CELL2d(ifirst,ilast,ngd))
       double precision dx(0:1)
       double precision alpha
 c
       double precision dxinv, dyinv
       double precision dphix, dphiy, dphi2, dphin
-      integer          ic0, ic1
+      integer          ic, ic0, ic1
       double precision tol, tol2
       
       tol = 1.e-8
@@ -455,9 +456,11 @@ c
             if( abs(dphin) .gt. tol2 ) then
                dphin = sqrt(dphi2)
                
-               flux0(ic0,ic1) = flux0(ic0,ic1) +
-     &           alpha*(dphix/dphin) *(cl(ic0,ic1)-ca(ic0,ic1))
-     &                * dphidt(ic0,ic1)
+               do ic = 1, ncomp
+                  flux0(ic0,ic1,ic) = flux0(ic0,ic1,ic) +
+     &               alpha*(dphix/dphin)*(cl(ic0,ic1,ic)-ca(ic0,ic1,ic))
+     &                    * dphidt(ic0,ic1)
+               enddo
             endif
          enddo
       enddo
@@ -472,9 +475,11 @@ c
             if( abs(dphin) .gt. tol2 ) then
                dphin = sqrt(dphi2)
                
-               flux1(ic0,ic1) = flux1(ic0,ic1) +
-     &           alpha*(dphiy/dphin) * *(cl(ic0,ic1)-ca(ic0,ic1))
-     &                * dphidt(ic0,ic1)
+               do ic = 1, ncomp
+                  flux1(ic0,ic1,ic) = flux1(ic0,ic1,ic) +
+     &               alpha*(dphiy/dphin)*(cl(ic0,ic1,ic)-ca(ic0,ic1,ic))
+     &                    * dphidt(ic0,ic1)
+               enddo
             endif
          enddo
       enddo

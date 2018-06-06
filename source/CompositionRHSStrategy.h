@@ -66,7 +66,7 @@ public:
    };
    void setZeroFluxAtBoundaryOnPatch(
       hier::Patch& patch, const int flux_id);
-   void addFluxFromAntitrappingonPatch(
+   virtual void addFluxFromAntitrappingonPatch(
       hier::Patch& patch,
       const int phase_scratch_id,
       const int dphidt_id,

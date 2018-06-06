@@ -122,6 +122,7 @@ extern "C" {
       const double* dx,
       const double* phase, const int& ngphase,
       const double* cl, const double* ca, const int& ngc,
+      const int& ncomp,
       const double* dphi, const int& ngdphi,
       const double& alpha,
       const double* flux0, const double* flux1,

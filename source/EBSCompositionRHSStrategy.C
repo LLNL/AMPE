@@ -506,7 +506,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
          patch.getPatchData( flux_id) ) );
    assert( flux );
-   assert( phase->getGhostCellWidth()[0]==1 );
+   assert( flux->getDepth()==d_ncompositions );
 
    // now compute concentration flux
    FORT_ADD_CONCENTRATION_FLUX_FROM_AT(
@@ -518,6 +518,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
             dx,
             phase->getPointer(), NGHOSTS,
             cl->getPointer(), ca->getPointer(), cl->getGhostCellWidth()[0],
+            d_ncompositions,
             dphidt->getPointer(), 0,
             alpha,
             flux->getPointer(0),
