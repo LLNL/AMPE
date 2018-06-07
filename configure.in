@@ -585,6 +585,7 @@ AC_DEFINE(OSTRSTREAM_TYPE_IS_BROKEN,1,The type ostrstream is broken)
 ])
 AC_LANG_POP([C++])
 
+CXX_FLAGS+=" -std=c++11"
 
 #dnl
 #dnl Set dl library on Linux.
