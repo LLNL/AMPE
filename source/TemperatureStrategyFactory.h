@@ -75,7 +75,7 @@ private:
    HeatCapacityStrategy* d_heat_capacity_strategy;
 
    double readTemperature0(boost::shared_ptr<tbox::Database> temperature_db,
-                           QuatModelParameters::TEMPERATURE_TYPE temperature_type);
+                           QuatModelParameters::TemperatureType temperature_type);
 };
 
 #endif

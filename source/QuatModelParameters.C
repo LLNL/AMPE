@@ -109,11 +109,10 @@ QuatModelParameters::QuatModelParameters()
 
    d_conc_avg_func_type = "";
    
-   d_conc_model = UNDEFINED;
-   d_conc_rhs_strategy = UNKNOWN;
-   d_conc_diffusion_type = UNDEFINED_DIFFUSION_TYPE;
-
-   d_temperature_type = SCALAR;
+   d_conc_model          = ConcModel::UNDEFINED;
+   d_conc_rhs_strategy   = ConcRHSstrategy::UNKNOWN;
+   d_conc_diffusion_type = ConcDiffusionType::UNDEFINED;
+   d_temperature_type    = TemperatureType::SCALAR;
 
    d_with_concentration = false;
    d_ncompositions=-1;
@@ -183,16 +182,16 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    string conc_model =
       conc_db->getStringWithDefault( "model", "undefined" );
    if ( conc_model[0] == 'c' ) {
-      d_conc_model = CALPHAD;
+      d_conc_model = ConcModel::CALPHAD;
    }
    else if ( conc_model[0] == 'h' ) {
-      d_conc_model = HBSM;
+      d_conc_model = ConcModel::HBSM;
    }
    else if ( conc_model[0] == 'l' ) {
-      d_conc_model = LINEAR;
+      d_conc_model = ConcModel::LINEAR;
    }
    else if ( conc_model[0] == 'i' ) {
-      d_conc_model = INDEPENDENT; //energy independent of composition
+      d_conc_model = ConcModel::INDEPENDENT; //energy independent of composition
    }
    else {
       TBOX_ERROR( "Error: unknown concentration model in QuatModelParameters" );
@@ -202,19 +201,19 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       string conc_rhs_strategy =
          conc_db->getStringWithDefault( "rhs_form", "kks" );
       if ( conc_rhs_strategy[0] == 'k' ) {
-         d_conc_rhs_strategy = KKS;
+         d_conc_rhs_strategy = ConcRHSstrategy::KKS;
       }
       else if ( conc_rhs_strategy[0] == 'e' ) {
-         d_conc_rhs_strategy = EBS;
+         d_conc_rhs_strategy = ConcRHSstrategy::EBS;
       }
       else if ( conc_rhs_strategy[0] == 's' ) {
-         d_conc_rhs_strategy = SPINODAL;
+         d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       }
       else if ( conc_rhs_strategy[0] == 'u' 
              || conc_rhs_strategy[0] == 'B'
              || conc_rhs_strategy[0] == 'b' ) {
          tbox::plog<<"Using Beckermann's model"<<endl;
-         d_conc_rhs_strategy = Beckermann;
+         d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
       }
       else {
          TBOX_ERROR( "Error: unknown concentration r.h.s. strategy" );
@@ -222,23 +221,23 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
 
    // default setup so that older inputs files need not to be changed
-   string default_concdiff_type = d_conc_rhs_strategy == EBS ?
+   string default_concdiff_type = d_conc_rhs_strategy == ConcRHSstrategy::EBS ?
                                   "composition_dependent" : 
                                   "time_dependent";
    string conc_diffusion_strategy =
       conc_db->getStringWithDefault( "diffusion_type", default_concdiff_type);
    if( conc_diffusion_strategy[0] == 'c' ){
-      d_conc_diffusion_type = CTD;
+      d_conc_diffusion_type = ConcDiffusionType::CTD;
    }else if( conc_diffusion_strategy[0] == 't' ){
-      d_conc_diffusion_type = TD;
+      d_conc_diffusion_type = ConcDiffusionType::TD;
    }
  
-   if ( d_conc_rhs_strategy == Beckermann ){
+   if ( d_conc_rhs_strategy == ConcRHSstrategy::Beckermann ){
       tbox::plog<<"Read diffusion constants for Beckermann's model"<<endl;
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_D_solid_A = conc_db->getDouble( "D_solid_A" );
    }
-   if ( d_conc_diffusion_type == TD ){
+   if ( d_conc_diffusion_type == ConcDiffusionType::TD ){
       tbox::plog<<"Read T-dependent diffusions"<<endl;
       d_D_liquid = conc_db->getDouble( "D_liquid" );
       d_Q0_liquid = conc_db->getDoubleWithDefault( "Q0_liquid", 0. );
@@ -264,7 +263,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
    d_conc_mobility = conc_db->getDoubleWithDefault("mobility", 1.);
    
-   if( d_conc_rhs_strategy == SPINODAL ){
+   if( d_conc_rhs_strategy == ConcRHSstrategy::SPINODAL ){
       d_kappa = conc_db->getDouble("kappa");
    }
 
@@ -312,7 +311,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
         || d_partition_coeff.compare("none")==0 );
    
    string default_model="none";
-   if( d_conc_model==CALPHAD || d_conc_model==HBSM )default_model="kks";
+   if( d_conc_model==ConcModel::CALPHAD
+    || d_conc_model==ConcModel::HBSM )default_model="kks";
    d_phase_concentration_model = 
       conc_db->getStringWithDefault( "phase_concentration_model",
                                      default_model );
@@ -324,7 +324,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    if( d_phase_concentration_model.compare("partition")==0 )
       assert( d_partition_coeff.compare("none")!=0 );
 
-   if( d_conc_model==LINEAR ){
+   if( d_conc_model==ConcModel::LINEAR ){
       assert( d_meltingT == d_meltingT );
 
       d_liquidus_slope = conc_db->getDoubleWithDefault( "liquidus_slope", 0. );
@@ -407,21 +407,21 @@ void QuatModelParameters::readTemperatureModel(
    if ( temperature_type[0] == 's' ||
         temperature_type[0] == 'S' ) {
       
-      d_temperature_type   = SCALAR;
+      d_temperature_type   = TemperatureType::SCALAR;
       d_with_heat_equation = false;
       
    }
    else if(temperature_type[0] == 'g' ||
            temperature_type[0] == 'G'){
       
-      d_temperature_type   = GAUSSIAN;
+      d_temperature_type   = TemperatureType::GAUSSIAN;
       d_with_heat_equation = false;
       
    }
    else if(temperature_type[0] == 'f' || //frozen approx.
            temperature_type[0] == 'F'){
 
-      d_temperature_type   = GRADIENT;
+      d_temperature_type   = TemperatureType::GRADIENT;
       d_with_heat_equation = false;
 
    }
@@ -432,7 +432,7 @@ void QuatModelParameters::readTemperatureModel(
       assert( d_molar_volume_liquid>0. );
       assert( d_molar_volume_liquid<1.e15 );
       
-      d_temperature_type   = CONSTANT;
+      d_temperature_type   = TemperatureType::CONSTANT;
       d_with_heat_equation = true;
 
       tbox::plog<<"Read heat equation parameters..."<<endl;
@@ -518,7 +518,7 @@ void QuatModelParameters::readTemperatureModel(
       
    }
    else {
-      d_temperature_type = CONSTANT;
+      d_temperature_type = TemperatureType::CONSTANT;
    }
 
    if( temperature_db->keyExists("latent_heat" ) ){

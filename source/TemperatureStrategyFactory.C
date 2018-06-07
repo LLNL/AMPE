@@ -69,15 +69,16 @@ TemperatureStrategyFactory::TemperatureStrategyFactory(
    d_temperature_bc_coefs=0;
 }
 
-double TemperatureStrategyFactory::readTemperature0(boost::shared_ptr<tbox::Database> temperature_db,
-                                                    QuatModelParameters::TEMPERATURE_TYPE temperature_type)
+double TemperatureStrategyFactory::readTemperature0(
+   boost::shared_ptr<tbox::Database> temperature_db,
+   QuatModelParameters::TemperatureType temperature_type)
 {
    assert( temperature_db );
    
    double temperature0=-1.;
-   if( temperature_type == QuatModelParameters::SCALAR 
-    || temperature_type == QuatModelParameters::GAUSSIAN
-    || temperature_type == QuatModelParameters::GRADIENT ){
+   if( temperature_type == QuatModelParameters::TemperatureType::SCALAR 
+    || temperature_type == QuatModelParameters::TemperatureType::GAUSSIAN
+    || temperature_type == QuatModelParameters::TemperatureType::GRADIENT ){
       if ( temperature_db->keyExists( "temperature0" ) ) {
          temperature0 = temperature_db->getDouble( "temperature0" );
          printDeprecated( "temperature0", "temperature" );
@@ -127,7 +128,7 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
    // create strategy
    if ( model_parameters.isTemperatureUniform() ) { // uniform T across spatial domain
       const double temperature0=readTemperature0(
-         temperature_db,QuatModelParameters::SCALAR);
+         temperature_db,QuatModelParameters::TemperatureType::SCALAR);
 
       strategy = new ScalarTemperatureStrategy( 
             d_temperature_id,
@@ -146,7 +147,7 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
    }
    else if( model_parameters.isTemperatureGradient() ){
       const double temperature0=readTemperature0(
-         temperature_db,QuatModelParameters::SCALAR);
+         temperature_db,QuatModelParameters::TemperatureType::SCALAR);
 
       strategy = new GradientTemperatureStrategy(
             d_temperature_id,

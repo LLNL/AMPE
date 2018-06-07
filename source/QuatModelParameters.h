@@ -51,7 +51,7 @@ class QuatModelParameters
 public:
    QuatModelParameters();
    
-   enum CONC_MODEL {
+   enum class ConcModel {
       CALPHAD,
       HBSM,
       LINEAR,
@@ -59,7 +59,7 @@ public:
       UNDEFINED
    };
 
-   enum CONC_RHS_STRATEGY {
+   enum class ConcRHSstrategy {
       KKS,
       EBS,
       SPINODAL,
@@ -67,17 +67,17 @@ public:
       UNKNOWN
    };
 
-   enum TEMPERATURE_TYPE {
-      CONSTANT = 0,  // read from a file and left constant in time
-      SCALAR   = 1,  // constant in space, but possibly not in time
-      GAUSSIAN = 2,  // Gaussian in space, varying in time
-      GRADIENT = 3   // linear in space and time
+   enum class TemperatureType {
+      CONSTANT,  // read from a file and left constant in time
+      SCALAR,    // constant in space, but possibly not in time
+      GAUSSIAN,  // Gaussian in space, varying in time
+      GRADIENT   // linear in space and time
    };
 
-   enum CONC_DIFFUSION_TYPE {
+   enum class ConcDiffusionType {
       TD, // depends on T
       CTD, // depends on C and T
-      UNDEFINED_DIFFUSION_TYPE
+      UNDEFINED
    };
 
    void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);
@@ -236,77 +236,78 @@ public:
    
    bool isConcentrationModelLinear()const
    {
-      return ( d_conc_model == LINEAR );
+      return ( d_conc_model == ConcModel::LINEAR );
    }
    
    bool isConcentrationModelCALPHADorHBSM()const
    {
-      return ( d_conc_model == CALPHAD || d_conc_model == HBSM );
+      return ( d_conc_model == ConcModel::CALPHAD
+            || d_conc_model == ConcModel::HBSM );
    }
    
    bool concentrationModelNeedsPhaseConcentrations()const
    {
-      return ( d_conc_model == CALPHAD 
-            || d_conc_model == HBSM 
-            || d_conc_model == LINEAR
-            || ( d_conc_model == INDEPENDENT && d_with_concentration ) );
+      return ( d_conc_model == ConcModel::CALPHAD 
+            || d_conc_model == ConcModel::HBSM 
+            || d_conc_model == ConcModel::LINEAR
+            || ( d_conc_model == ConcModel::INDEPENDENT && d_with_concentration ) );
    }
    
    bool isConcentrationModelCALPHAD()const
    {
-      assert( d_conc_model != UNDEFINED );
+      assert( d_conc_model != ConcModel::UNDEFINED );
       
-      return ( d_conc_model == CALPHAD );
+      return ( d_conc_model == ConcModel::CALPHAD );
    }
    
    bool isConcentrationModelHBSM()const
    {
-      assert( d_conc_model != UNDEFINED );
+      assert( d_conc_model != ConcModel::UNDEFINED );
       
-      return ( d_conc_model == HBSM );
+      return ( d_conc_model == ConcModel::HBSM );
    }
    
    bool isTemperatureUniform()const
    {
-      return ( d_temperature_type == SCALAR );
+      return ( d_temperature_type == TemperatureType::SCALAR );
    }
    bool isTemperatureConstant()const
    {
-      return ( d_temperature_type == CONSTANT );
+      return ( d_temperature_type == TemperatureType::CONSTANT );
    }
    bool isTemperatureGaussian()const
    {
-      return ( d_temperature_type == GAUSSIAN );
+      return ( d_temperature_type == TemperatureType::GAUSSIAN );
    }
    bool isTemperatureGradient()const
    {
-      return ( d_temperature_type == GRADIENT );
+      return ( d_temperature_type == TemperatureType::GRADIENT );
    }
    
    void checkValidityConcRHSstrategy()const
    {
-      assert( d_conc_rhs_strategy==KKS 
-           || d_conc_rhs_strategy==EBS 
-           || d_conc_rhs_strategy==SPINODAL 
-           || d_conc_rhs_strategy==Beckermann );
+      assert( d_conc_rhs_strategy==ConcRHSstrategy::KKS 
+           || d_conc_rhs_strategy==ConcRHSstrategy::EBS 
+           || d_conc_rhs_strategy==ConcRHSstrategy::SPINODAL 
+           || d_conc_rhs_strategy==ConcRHSstrategy::Beckermann );
    }
    
    bool needGhosts4PartitionCoeff()const
    {
-      return ( d_conc_rhs_strategy==Beckermann );
+      return ( d_conc_rhs_strategy==ConcRHSstrategy::Beckermann );
    }
    
    bool concRHSstrategyIsKKS()const
-   { return ( d_conc_rhs_strategy == KKS ); }
+   { return ( d_conc_rhs_strategy == ConcRHSstrategy::KKS ); }
    bool concRHSstrategyIsEBS()const
-   { return ( d_conc_rhs_strategy == EBS ); }
+   { return ( d_conc_rhs_strategy == ConcRHSstrategy::EBS ); }
    bool concRHSstrategyIsSPINODAL()const
-   { return ( d_conc_rhs_strategy == SPINODAL ); }
+   { return ( d_conc_rhs_strategy == ConcRHSstrategy::SPINODAL ); }
    bool concRHSstrategyIsBeckermann()const
-   { return ( d_conc_rhs_strategy == Beckermann ); }
+   { return ( d_conc_rhs_strategy == ConcRHSstrategy::Beckermann ); }
 
    bool conDiffusionStrategyIsCTD()const
-   { return ( d_conc_diffusion_type == CTD ); }
+   { return ( d_conc_diffusion_type == ConcDiffusionType::CTD ); }
  
    bool isHeatSourceCompositionDependent()const
    { return d_heat_source_type=="composition"; }
@@ -431,11 +432,11 @@ private:
    double d_Q0_solid_B;
    std::string d_conc_avg_func_type;
 
-   enum CONC_MODEL d_conc_model;
-   enum CONC_RHS_STRATEGY d_conc_rhs_strategy;
+   ConcModel d_conc_model;
+   ConcRHSstrategy d_conc_rhs_strategy;
    
-   TEMPERATURE_TYPE d_temperature_type;
-   CONC_DIFFUSION_TYPE d_conc_diffusion_type;
+   TemperatureType d_temperature_type;
+   ConcDiffusionType d_conc_diffusion_type;
  
    bool   d_with_phase; 
    bool   d_with_orientation;
