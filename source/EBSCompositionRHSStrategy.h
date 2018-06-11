@@ -5,6 +5,7 @@
 #include "CompositionRHSStrategy.h"
 #include "CALPHADMobility.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
+#include "CompositionDiffusionStrategy.h"
 
 #include <vector>
 #include <string>
@@ -30,7 +31,6 @@ public:
       const int Mq_id,
       const std::vector<double>& Q_heat_transport,
       const std::vector<int> diffusion_precond_id,
-      const std::string& diff_interp_func_type,
       const std::string& avg_func_type,
       FreeEnergyStrategy* free_energy_strategy,
       CompositionStrategyMobilities* mobilities_strategy,
@@ -82,9 +82,6 @@ private:
    
    bool d_with_third_phase;
    
-   std::string d_phase_interp_func_type;
-   std::string d_diff_interp_func_type;
-
    bool d_with_gradT;
    
    bool d_with_diffusion_for_preconditioner;

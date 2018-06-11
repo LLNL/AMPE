@@ -31,7 +31,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    const int Mq_id,
    const vector<double>& Q_heat_transport,
    const std::vector<int> diffusion_precond_id,
-   const string& phase_interp_func_type,
    const string& avg_func_type,
    FreeEnergyStrategy* free_energy_strategy,
    CompositionStrategyMobilities* mobilities_strategy,
@@ -54,9 +53,6 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 
    d_ncompositions=ncompositions;
    
-   d_phase_interp_func_type=phase_interp_func_type;
-   d_diff_interp_func_type = phase_interp_func_type;
-
    d_phase_scratch_id = phase_scratch_id;
    d_eta_scratch_id   = eta_scratch_id;
    
@@ -709,6 +705,8 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    vector<double> mobmat0(d_ncompositions*d_ncompositions);
    vector<double> mobmat1(d_ncompositions*d_ncompositions);
 
+   char interp_type = 'l';
+
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -737,13 +735,13 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
             
             double phi = average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
             double hphi = FORT_INTERP_FUNC( phi,
-                                            d_phase_interp_func_type.c_str() );
+                                            &interp_type );
             double heta=0.;
             if ( d_with_third_phase ) {
                double eta =
                   average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                heta =
-                  FORT_INTERP_FUNC( eta, d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC( eta, &interp_type );
             }
 
             for(unsigned short ic=0;ic<d_ncompositions;ic++){
@@ -817,14 +815,14 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
             double phi = 
                average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
             double hphi =
-               FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC( phi, &interp_type );
             
             double heta = 0.0;
             if ( d_with_third_phase ) {
                double eta =
                   average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                heta =
-                  FORT_INTERP_FUNC( eta, d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC( eta, &interp_type );
             }
 
             double mobmat0=d_mobilities_strategy->computeDiffusionMobilityBinaryPhaseL(c_l[0],    temp);
@@ -885,14 +883,14 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
                double phi = 
                   average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
                double hphi =
-                  FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC( phi, &interp_type );
 
                double heta = 0.0;
                if ( d_with_third_phase ) {
                   double eta =
                      average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                   heta =
-                     FORT_INTERP_FUNC( eta, d_phase_interp_func_type.c_str() );
+                     FORT_INTERP_FUNC( eta, &interp_type );
                }
 
                double mobmat0=d_mobilities_strategy->computeDiffusionMobilityBinaryPhaseL(c_l[0],    temp);

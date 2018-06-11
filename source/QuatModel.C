@@ -367,7 +367,6 @@ void QuatModel::initializeCompositionRHSStrategy(
             d_conc_Mq_id,
             d_model_parameters.Q_heat_transport(),
             d_conc_diffusion0_id,
-            d_model_parameters.diffusion_interp_func_type(),
             d_model_parameters.avg_func_type(),
             d_free_energy_strategy_for_diffusion,
             d_composition_strategy_mobilities,
