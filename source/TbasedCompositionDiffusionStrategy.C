@@ -12,15 +12,15 @@ TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
    const int diffusion_a_id,
    const double D_liquid, const double Q0_liquid,
    const double D_solid_A, const double Q0_solid_A,
-   const string& phase_interp_func_type,
+   const DiffusionInterpolationType interp_func_type,
    const string& avg_func_type):
+      CompositionDiffusionStrategy(interp_func_type),
       d_diffusion_l_id(diffusion_l_id),
       d_diffusion_a_id(diffusion_a_id),
       d_D_liquid(D_liquid),
       d_Q0_liquid(Q0_liquid),
       d_D_solid_A(D_solid_A),
       d_Q0_solid_A(Q0_solid_A),
-      d_phase_interp_func_type(phase_interp_func_type),
       d_avg_func_type(avg_func_type)
 {
    assert( D_liquid >= 0. );
@@ -44,6 +44,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
    assert( d_diffusion_a_id >= 0 );
 
    const int maxl = hierarchy->getNumberOfLevels();
+
+   const char interp_func_type = interpChar();
 
    for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
       boost::shared_ptr<hier::PatchLevel > level =
@@ -102,7 +104,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
             d_D_liquid, d_Q0_liquid,
             d_D_solid_A, d_Q0_solid_A,
             gas_constant_R_JpKpmol,
-            d_phase_interp_func_type.c_str(),
+            &interp_func_type,
             d_avg_func_type.c_str());
 
          //fill other diagonal value with same value for ternaries for now

@@ -61,9 +61,10 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    const int diffusion_coeff_a_id,
    const int diffusion_coeff_b_id,
    const std::string& avg_func_type,
-   const std::string& diff_interp_func_type,
+   DiffusionInterpolationType diff_interp_type,
    CompositionStrategyMobilities* mobilities_strategy,
    FreeEnergyStrategy* free_energy_strategy):
+      CompositionDiffusionStrategy(diff_interp_type),
       d_mobilities_strategy(mobilities_strategy),
       d_free_energy_strategy(free_energy_strategy)
 {
@@ -82,7 +83,6 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    d_diffusion_coeff_b_id=diffusion_coeff_b_id;
 
    d_avg_func_type=avg_func_type;
-   d_diff_interp_func_type=diff_interp_func_type;
 
    d_with_third_phase = ( conc_b_scratch_id>=0 );
 
@@ -464,10 +464,8 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             
             if( d_with_third_phase && d_same_composition_for_third_phase )
             {
-               double heta =
-                  FORT_INTERP_FUNC( eta, d_diff_interp_func_type.c_str() );
                for(unsigned short ic=0;ic<d_ncompositions;ic++){
-                  c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
+                  c_s[ic] = (1.-eta)*c_a[ic]+eta*c_b[ic];
                }
                computeLocalDiffusionMatrixA(temp, c_s);
                for(int ic=0;ic<nc2;ic++){
@@ -536,10 +534,8 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             
             if( d_with_third_phase && d_same_composition_for_third_phase )
             {
-               double heta =
-                  FORT_INTERP_FUNC( eta, d_diff_interp_func_type.c_str() );
                for(unsigned short ic=0;ic<d_ncompositions;ic++){
-                  c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
+                  c_s[ic] = (1.-eta)*c_a[ic]+eta*c_b[ic];
                }
                
                computeLocalDiffusionMatrixA(temp, c_s);
@@ -611,10 +607,8 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             
                if( d_with_third_phase && d_same_composition_for_third_phase )
                {
-                  double heta =
-                     FORT_INTERP_FUNC( eta, d_diff_interp_func_type.c_str() );
                   for(unsigned short ic=0;ic<d_ncompositions;ic++){
-                     c_s[ic] = (1.-heta)*c_a[ic]+heta*c_b[ic];
+                     c_s[ic] = (1.-eta)*c_a[ic]+eta*c_b[ic];
                   }
                
                   computeLocalDiffusionMatrixA(temp, c_s);
@@ -782,6 +776,8 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
+
+   const char interp_func = interpChar();
          
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
@@ -800,7 +796,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
             double hphi =
                FORT_INTERP_FUNC(
                   phi,
-                  d_diff_interp_func_type.c_str() );
+                  &interp_func );
             
             double heta = 0.0;
             if ( d_with_third_phase ) {
@@ -809,7 +805,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
                heta =
                   FORT_INTERP_FUNC(
                      eta,
-                     d_diff_interp_func_type.c_str() );
+                     &interp_func );
             }
 
             for(unsigned int ic=0;ic<nc2;ic++){
@@ -844,7 +840,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
             double hphi =
                FORT_INTERP_FUNC(
                   phi,
-                  d_diff_interp_func_type.c_str() );
+                  &interp_func );
             
             double heta = 0.0;
             if ( d_with_third_phase ) {
@@ -853,7 +849,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
                heta =
                   FORT_INTERP_FUNC(
                      eta,
-                     d_diff_interp_func_type.c_str() );
+                     &interp_func );
             }
 
             for(unsigned int ic=0;ic<nc2;ic++){
@@ -889,7 +885,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
                double hphi =
                   FORT_INTERP_FUNC(
                      phi,
-                     d_diff_interp_func_type.c_str() );
+                     &interp_func );
 
                double heta = 0.0;
                if ( d_with_third_phase ) {
@@ -898,7 +894,7 @@ void DiffusionForConcInPhaseStrategy::setDiffOnPatch(
                   heta =
                      FORT_INTERP_FUNC(
                         eta,
-                        d_diff_interp_func_type.c_str() );
+                        &interp_func );
                }
 
                for(unsigned int ic=0;ic<nc2;ic++){

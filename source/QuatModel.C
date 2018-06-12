@@ -346,7 +346,7 @@ void QuatModel::initializeCompositionRHSStrategy(
             d_model_parameters.Q0_liquid(),
             d_model_parameters.Q0_solid_A(),
             d_model_parameters.Q0_solid_B(),
-            d_model_parameters.diffusion_interp_func_type(),
+            d_model_parameters.energy_interp_func_type(),
             d_model_parameters.avg_func_type() );
    }else if ( d_model_parameters.concRHSstrategyIsEBS() ){
       
@@ -382,7 +382,7 @@ void QuatModel::initializeCompositionRHSStrategy(
             d_conc_phase_coupling_diffusion_id,
             d_model_parameters.D_liquid(),
             d_model_parameters.D_solid_A(),
-            d_model_parameters.diffusion_interp_func_type(),
+            d_model_parameters.conc_interp_func_type(),
             d_model_parameters.avg_func_type() );
    }else{
       TBOX_ERROR( "Error: unknown composition RHS Strategy" );

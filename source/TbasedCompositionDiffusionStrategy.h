@@ -17,7 +17,7 @@ public:
       const int diffusion_a_id,
       const double D_liquid, const double Q0_liquid,
       const double D_solid_A, const double Q0_solid_A,
-      const string& phase_interp_func_type,
+      DiffusionInterpolationType interp_func_type,
       const string& avg_func_type
 );
 
@@ -46,7 +46,6 @@ private:
    double d_D_solid_A;
    double d_Q0_solid_A;
 
-   std::string d_phase_interp_func_type;
    std::string d_avg_func_type;
 };
 

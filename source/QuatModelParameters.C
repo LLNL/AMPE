@@ -101,7 +101,8 @@ QuatModelParameters::QuatModelParameters()
    d_orient_interp_func_type = "";
    d_conc_interp_func_type = "";
    d_energy_interp_func_type = "";
-   d_diffusion_interp_func_type = "";
+   d_diffusion_interp_type =
+      DiffusionInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
    d_eta_interp_func_type = "";
    d_eta_well_func_type = "";
@@ -829,9 +830,25 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    d_conc_interp_func_type =
       model_db->getStringWithDefault( "conc_interp_func_type",
                                       d_energy_interp_func_type );
-   d_diffusion_interp_func_type =
+   string diffusion_interp_type = 
       model_db->getStringWithDefault( "diffusion_interp_func_type",
-                                      d_energy_interp_func_type );
+                                      "linear" );
+   switch( diffusion_interp_type[0] ){
+      case 'l':
+      case 'L':
+         d_diffusion_interp_type =
+            DiffusionInterpolationType::LINEAR;
+         break;
+      case 'p':
+      case 'P':
+         d_diffusion_interp_type =
+            DiffusionInterpolationType::PBG;
+         break;
+      default:
+         tbox::plog<<"diffusion_interp_type="
+                   <<diffusion_interp_type<<endl;
+         TBOX_ERROR( "Error: invalid diffusion_interp_type!!!");
+   }
 
    // Currently "arithmetic" or "harmonic"
    // arithmetic: (x1+x2)/2

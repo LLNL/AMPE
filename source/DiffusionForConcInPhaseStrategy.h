@@ -63,7 +63,7 @@ public:
       const int diffusion_coeff_a_id,
       const int diffusion_coeff_b_id,
       const std::string& avg_func_type,
-      const std::string& diff_interp_func_type,
+      DiffusionInterpolationType diff_interp_type,
       CompositionStrategyMobilities* mobilities_strategy,
       FreeEnergyStrategy* free_energy_strategy);
 
@@ -154,8 +154,6 @@ private:
 
    bool d_with_third_phase;
    
-   std::string d_diff_interp_func_type;
-
    CompositionStrategyMobilities* d_mobilities_strategy;
    
    // free energy needed to compute diffusion in each phase
