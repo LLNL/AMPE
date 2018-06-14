@@ -1,0 +1,4 @@
+
+To generate 'doxygen' documentation, enter:
+doxygen Doxyfile.in
+
