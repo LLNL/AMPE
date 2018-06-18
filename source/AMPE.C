@@ -11,11 +11,6 @@ AMPE::AMPE(MPI_Comm comm)
    tbox::SAMRAI_MPI::init(comm);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
-
-   tbox::plog<<"AMPE: git_version "<<gitCommitID()<<endl;
-
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl;
 }
 
 AMPE::~AMPE()
@@ -31,13 +26,9 @@ void AMPE::initialize(const string input_filename,
                       const string restart_read_dirname,
                       const int restore_num)
 {
-   bool is_from_restart = (restore_num>=0);
-
    boost::shared_ptr<tbox::MemoryDatabase> input_db(
       new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
-
-   string model_type = input_db->getStringWithDefault( "model_type", "Quat" );
 
    string run_name;
    if ( input_db->keyExists( "run_name" ) ) {
@@ -70,6 +61,12 @@ void AMPE::initialize(const string input_filename,
       tbox::PIO::logOnlyNodeZero( log_file_name );
    }
 
+   tbox::plog<<"AMPE: git_version "<<gitCommitID()<<endl;
+
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl;
+
+   bool is_from_restart = (restore_num>=0);
    if ( is_from_restart ) {
       tbox::plog << "restart_read_dirname = " << restart_read_dirname << endl;
       tbox::plog << "restore_num = " << restore_num << endl;
@@ -82,6 +79,7 @@ void AMPE::initialize(const string input_filename,
    d_time_man->resetAllTimers();
 
    // Create a PFModel object
+   string model_type = input_db->getStringWithDefault( "model_type", "Quat" );
    if ( model_type == "Quat" ) {
       d_pfm = new QuatModel( 4 );
    }
