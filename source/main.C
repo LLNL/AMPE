@@ -61,8 +61,8 @@ string gitCommitID()
 int main( int argc, char *argv[] )
 {
    // Initialize MPI, SAMRAI, and enable logging.
-
-   tbox::SAMRAI_MPI::init(&argc, &argv);
+   MPI_Init(&argc, &argv);
+   tbox::SAMRAI_MPI::init(MPI_COMM_WORLD);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
