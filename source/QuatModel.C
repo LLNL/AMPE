@@ -6927,8 +6927,6 @@ void QuatModel::checkQuatNorm(
    if ( ! d_model_parameters.with_orientation() )return;
    if ( d_qlen == 1 ) return;
 
-   cout << setprecision(10) << scientific;
-
    int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++ ) {
 
@@ -6951,7 +6949,8 @@ void QuatModel::checkQuatNorm(
             }
             double qnorm = sqrt(qnorm2);
             if ( fabs(qnorm-1.) > tol ) {
-               cout << "WARNING: q norm=" << qnorm << endl;
+               cerr << setprecision(10) << scientific;
+               cerr << "WARNING: q norm=" << qnorm << endl;
             }
          }
       }

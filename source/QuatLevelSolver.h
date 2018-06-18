@@ -284,9 +284,6 @@ public:
     */
    void setVerbose(const bool verbose);
 
-   void printCellDataComponentNorms(std::string var_name, pdat::CellData<double> & data);
-   void printSideDataComponentNorms(std::string var_name, pdat::SideData<double> & data);
-
 private:
 
    /*

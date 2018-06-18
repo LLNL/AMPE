@@ -1164,19 +1164,19 @@ QuatLevelSolver::add_gAk0_toRhs(
                                  fill_time);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-      
-      pdat::ArrayData<double>& Ak0_data=Ak0->getArrayData(location_index/2, location_index%2);
+      pdat::ArrayData<double>& Ak0_data=
+         Ak0->getArrayData(location_index/2, location_index%2);
       double nak0=ops.maxNorm(Ak0_data,Ak0box);
       if( nak0!=nak0 )
       {
-         Ak0->print(Ak0box,cout);
-         cout<<"Ak0: Norm ="<<nak0<<endl;
+         Ak0->print(Ak0box,cerr);
+         cerr<<"Ak0: Norm ="<<nak0<<endl;
          TBOX_ERROR("Nan in Ak0 before adjusting rhs\n");
       }
       if( nak0>1.e25 )
       {
-         Ak0->print(Ak0box,cout);
-         cout<<"Ak0: Norm ="<<nak0<<endl;
+         Ak0->print(Ak0box,cerr);
+         cerr<<"Ak0: Norm ="<<nak0<<endl;
          TBOX_ERROR("Inf in Ak0 before adjusting rhs\n");
       }
 #endif
@@ -1236,16 +1236,16 @@ QuatLevelSolver::add_gAk0_toRhs(
          nak0=ops.maxNorm(Ak0_data,Ak0box);
          if( nak0!=nak0 )
          {
-            Ak0->print(Ak0box,cout);
-            cout<<"Ak0: Norm ="<<nak0<<endl;
+            Ak0->print(Ak0box,cerr);
+            cerr<<"Ak0: Norm ="<<nak0<<endl;
             TBOX_ERROR("Nan in Ak0 after adjusting rhs\n");
          }
          double na=ops.maxNorm(rhs.getArrayData(),rhsbox);
          if( na!=na )
          {
-            Ak0->print(Ak0box,cout);
-            cout<<"Norm before="<<nb<<endl;
-            cout<<"Norm after="<<na<<endl;
+            Ak0->print(Ak0box,cerr);
+            cerr<<"Norm before="<<nb<<endl;
+            cerr<<"Norm after="<<na<<endl;
             TBOX_ERROR("Nan in rhs\n");
          }
 #endif
@@ -1737,14 +1737,14 @@ QuatLevelSolver::adjustBoundaryEntries(
       double na=ops.maxNorm(Ak0_data,Ak0_box);
       if( na!=na )
       {
-         Ak0.print(Ak0_box,cout);
-         cout<<"depth="<<depth<<", Ak0: Norm after="<<na<<endl;
+         Ak0.print(Ak0_box,cerr);
+         cerr<<"depth="<<depth<<", Ak0: Norm after="<<na<<endl;
          TBOX_ERROR("Nan in Ak0!!!\n");
       }
       if( na>1.e25 )
       {
-         Ak0.print(Ak0_box,cout);
-         cout<<"depth="<<depth<<", Ak0: Norm ="<<na<<endl;
+         Ak0.print(Ak0_box,cerr);
+         cerr<<"depth="<<depth<<", Ak0: Norm ="<<na<<endl;
          TBOX_ERROR("Inf in Ak0!!!\n");
       }
 #endif
@@ -1762,70 +1762,3 @@ QuatLevelSolver::freeVariables()
    }
 }
 
-void
-QuatLevelSolver::printCellDataComponentNorms(
-   string                   var_name,
-   pdat::CellData<double> & data )
-{
-   const hier::Box & gbox = data.getGhostBox();
-
-   int num_values = gbox.size();
-
-   cout << var_name << " ";
-   int component = 0;
-   for (component=0; component<data.getDepth(); component++) {
-      double * ptr = data.getPointer(component);
-
-      double norm = 0.;
-
-      int i;
-      for (i=0; i<num_values; i++) {
-         norm += ptr[i] * ptr[i];
-      }
-
-      norm = sqrt(norm);
-
-      cout << norm << "  ";
-   }
-   cout << endl;
-
-}
-
-void
-QuatLevelSolver::printSideDataComponentNorms(
-   string                   var_name,
-   pdat::SideData<double> & data )
-{
-   cout << var_name << endl;
-
-   int side;
-   for (side=0; side<NDIM; side++) {
-  
-      pdat::ArrayData<double> & arraydata = data.getArrayData(side);
-
-      const hier::Box & gbox = arraydata.getBox();
-
-      int num_values = gbox.size();
-
-      cout << "  Component " << side << ":  " ;
-
-      int component = 0;
-      for (component=0; component<arraydata.getDepth(); component++) {
-
-         double * ptr = arraydata.getPointer(component);
-
-         double norm = 0.;
-
-         int i;
-         for (i=0; i<num_values; i++) {
-            norm += ptr[i] * ptr[i];
-         }
-    
-         norm = sqrt(norm);
-
-         cout << norm << "  ";
-      }
-      cout << endl;
-   }
-
-}

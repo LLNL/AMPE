@@ -126,6 +126,17 @@ QuatIntegrator::QuatIntegrator(
      d_quat_component_index( -1 ),
      d_conc_component_index( -1 ),
      d_temperature_component_index( -1 ),
+     d_phase_id( -1 ),
+     d_phase_scratch_id( -1 ),
+     d_temperature_id( -1 ),
+     d_temperature_scratch_id( -1 ),
+     d_quat_id( -1 ),
+     d_quat_scratch_id( -1 ),
+     d_conc_id( -1 ),
+     d_conc_scratch_id( -1 ),
+     d_weight_id(-1),
+     d_phase_mobility_id( -1 ),
+     d_phase_temperature_mobility_id( -1 ),
      d_ncompositions( ncompositions ),
      d_name( name ),
      d_model_parameters( model_parameters ),
@@ -144,23 +155,13 @@ QuatIntegrator::QuatIntegrator(
      d_phase_flux_strategy( NULL ),
      d_current_time( tbox::IEEE::getSignalingNaN() ),
      d_previous_timestep( 0. ),
-     d_phase_id( -1 ),
-     d_phase_scratch_id( -1 ),
      d_eta_id( -1 ),
      d_eta_scratch_id( -1 ),
-     d_temperature_id( -1 ),
-     d_temperature_scratch_id( -1 ),
-     d_quat_id( -1 ),
-     d_quat_scratch_id( -1 ),
-     d_conc_id( -1 ),
      d_cp_id( -1 ),
-     d_conc_scratch_id( -1 ),
      d_quat_grad_cell_id( -1 ),
      d_quat_grad_side_id( -1 ),
      d_quat_grad_side_copy_id( -1 ),
      d_quat_grad_modulus_id( -1 ),
-     d_phase_mobility_id( -1 ),
-     d_phase_temperature_mobility_id( -1 ),
      d_eta_mobility_id( -1 ),
      d_quat_mobility_id( -1 ),
      d_quat_diffusion_id( -1 ),
@@ -170,7 +171,6 @@ QuatIntegrator::QuatIntegrator(
      d_conc_phase_coupling_diffusion_id( -1 ),
      d_conc_eta_coupling_diffusion_id( -1 ),
      d_quat_diffs_id( -1 ),
-     d_weight_id( -1 ),
      d_f_l_id( -1 ),
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
@@ -2156,8 +2156,8 @@ double QuatIntegrator::Advance(
 
    // Check the return code
    if ( return_code != 0 ) {
-
-      tbox::pout<<"   SUNDIALS solver return code          "<< return_code << ": ";
+      tbox::pout<<"   SUNDIALS solver return code          "
+                << return_code << ": ";
 
       switch( return_code )
       {
@@ -3525,7 +3525,8 @@ void QuatIntegrator::fillScratch(
 
 //-----------------------------------------------------------------------
 
-void QuatIntegrator::computeMobilities(double time,boost::shared_ptr<hier::PatchHierarchy > hierarchy)
+void QuatIntegrator::computeMobilities(
+   double time,boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
    if ( d_with_phase ) {
       d_mobility_strategy->computePhaseMobility(
@@ -3912,6 +3913,8 @@ CVSpgmrPrecondSet
    solv::SundialsAbstractVector * vtemp2,
    solv::SundialsAbstractVector * vtemp3 )
 {
+   (void)fy;
+   (void)jok;
    (void)vtemp1;
    (void)vtemp2;
    (void)vtemp3;
@@ -4098,12 +4101,14 @@ int QuatIntegrator::EtaPrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hie
 }
 
 //-----------------------------------------------------------------------
-int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-                                   int r_temperature_id, int ewt_temperature_id, int z_temperature_id, 
-                                   const double delta, const double gamma)
+int QuatIntegrator::TemperaturePrecondSolve(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   int r_temperature_id, int ewt_temperature_id, int z_temperature_id, 
+   const double delta, const double gamma)
 {
    if ( d_show_temperature_sys_stats ) {
-      tbox::pout << "Preconditioner for temperature block with tol "<< delta << endl;
+      tbox::pout << "Preconditioner for temperature block with tol "
+                 << delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4114,10 +4119,12 @@ int QuatIntegrator::TemperaturePrecondSolve(boost::shared_ptr<hier::PatchHierarc
       // just computed phi correction
       //double norm_phase=cellops.L2Norm(d_phase_sol_id);
       //tbox::pout << "Off-diagonal Preconditioner for temperature block, norm phase="<<norm_phase << endl;
-      d_phase_temperature_fac_ops->multiplyDTDPhiBlock( d_phase_sol_id, d_temperature_rhs_id );
+      d_phase_temperature_fac_ops->multiplyDTDPhiBlock(
+         d_phase_sol_id, d_temperature_rhs_id );
 
       // Add gamma times the just computed product to the right-hand side
-      cellops.axpy( d_temperature_rhs_id, gamma, d_temperature_rhs_id, r_temperature_id, false );
+      cellops.axpy( d_temperature_rhs_id, gamma, d_temperature_rhs_id,
+                    r_temperature_id, false );
    }
    else{
       // Copy the right-hand side to the temporary right-hand side array
@@ -4310,6 +4317,8 @@ CVSpgmrPrecondSolve
    int                               lr,
    solv::SundialsAbstractVector * vtemp )
 {
+   (void)y;
+   (void)fy;
    (void)vtemp;
 
    assert( d_use_preconditioner );
@@ -4338,12 +4347,14 @@ CVSpgmrPrecondSolve
       math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 
       if( d_with_unsteady_temperature && d_precond_has_dPhidT ){
-         int converged = applyTemperaturePreconditioner(hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         int converged = applyTemperaturePreconditioner(
+            hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
          retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       if ( d_with_phase ) {
          // Apply the preconditioner phase block
-         int converged = applyPhasePreconditioner(hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
+         int converged = applyPhasePreconditioner(
+            hierarchy,t,r_samvect,ewt_samvect,z_samvect,delta,gamma);
          retcode = ( converged==0 && retcode==0) ? 0 : 1;
       }
       
@@ -4364,7 +4375,8 @@ CVSpgmrPrecondSolve
             cellops.copyData( z_eta_id, r_eta_id, false );
          }
          else {
-            int converged = EtaPrecondSolve(hierarchy,r_eta_id,ewt_eta_id,z_eta_id,delta);
+            int converged = EtaPrecondSolve(
+               hierarchy,r_eta_id,ewt_eta_id,z_eta_id,delta);
             retcode = ( converged==0 && retcode==0) ? 0 : 1;
          }
       }
@@ -4533,7 +4545,9 @@ int QuatIntegrator::applyTemperaturePreconditioner(
       }
    }
    else {
-      int converged =TemperaturePrecondSolve(hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,delta,gamma);
+      int converged =TemperaturePrecondSolve(
+        hierarchy,r_temperature_id,ewt_temperature_id,z_temperature_id,
+        delta,gamma);
       retcode = ( converged==0 && retcode==0) ? 0 : 1;
    }
 

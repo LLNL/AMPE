@@ -829,11 +829,12 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
       well + eta_well + ( 1.0 - hfphi ) * fl +
       hfphi * ( ( 1.0 - heta ) * fa + heta * fb );
 
-if( fabs(e)>1.e7 )cout<<"phi="<<phi<<", eta="<<eta<<", c="<<conc<<", e="<<e
-                <<", fl="<<fl
-                <<", fa="<<fa
-                <<", well="<<well
-                <<endl;
+   if( fabs(e)>1.e7 )
+      cerr<<"phi="<<phi<<", eta="<<eta<<", c="<<conc<<", e="<<e
+          <<", fl="<<fl
+          <<", fa="<<fa
+          <<", well="<<well
+          <<endl;
    return e;
 }
 
