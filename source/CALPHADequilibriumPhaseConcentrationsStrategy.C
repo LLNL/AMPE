@@ -88,184 +88,178 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
 }
 
 void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
+   boost::shared_ptr< pdat::CellData<double> > cd_te,
+   boost::shared_ptr< pdat::CellData<double> > cd_pf,
    boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_concentration,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
+   boost::shared_ptr< pdat::CellData<double> > cd_conc,
+   boost::shared_ptr< pdat::CellData<double> > cd_cl,
+   boost::shared_ptr< pdat::CellData<double> > cd_ca,
+   boost::shared_ptr< pdat::CellData<double> > cd_cb,
    boost::shared_ptr<hier::Patch > patch )
 {
-   assert( cd_temperature );
-   assert( cd_phi );
-   assert( cd_concentration );
-   assert( cd_c_l );
-   assert( cd_c_a );
+   assert( cd_te );
+   assert( cd_pf );
+   assert( cd_conc );
+   assert( cd_cl );
+   assert( cd_ca );
    assert( d_calphad_fenergy!=NULL );
-   assert( cd_concentration->getDepth()==cd_c_l->getDepth() );
-   assert( cd_concentration->getDepth()==cd_c_a->getDepth() );
+   assert( cd_conc->getDepth()==cd_cl->getDepth() );
+   assert( cd_conc->getDepth()==cd_ca->getDepth() );
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchCellDataNormOpsReal<double> cops;
-   double l2n=cops.L2Norm(cd_concentration,patch->getBox());
+   double l2n=cops.L2Norm(cd_conc,patch->getBox());
    assert( l2n==l2n );
 #endif
 
    const hier::Box& pbox ( patch->getBox() );
 
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l_ref (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_ref_id) ) );
-   assert( cd_c_l_ref );
-   assert( cd_concentration->getDepth()==cd_c_l_ref->getDepth() );
+   boost::shared_ptr< pdat::CellData<double> > cd_cl_ref (
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch->getPatchData( d_conc_l_ref_id) ) );
+   assert( cd_cl_ref );
+   assert( cd_conc->getDepth()==cd_cl_ref->getDepth() );
  
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a_ref (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_ref_id) ) );
-   assert( cd_c_a_ref );
-   assert( cd_concentration->getDepth()==cd_c_a_ref->getDepth() );
+   boost::shared_ptr< pdat::CellData<double> > cd_ca_ref (
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch->getPatchData( d_conc_a_ref_id) ) );
+   assert( cd_ca_ref );
+   assert( cd_conc->getDepth()==cd_ca_ref->getDepth() );
    
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b_ref;
+   boost::shared_ptr< pdat::CellData<double> > cd_cb_ref;
    if ( d_with_third_phase ) {
-      cd_c_b_ref = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                        hier::PatchData>( patch->getPatchData( d_conc_b_ref_id )); 
-      assert( cd_c_b_ref );
+      cd_cb_ref = BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
+                      patch->getPatchData( d_conc_b_ref_id )); 
+      assert( cd_cb_ref );
    }
 
-   
-   const double* const ptr_temp = cd_temperature->getPointer();
-   const double* const ptr_phi = cd_phi->getPointer();
-
+   const double* const ptr_temp = cd_te->getPointer();
+   const double* const ptr_phi = cd_pf->getPointer();
    double* ptr_eta = NULL;
    if ( d_with_third_phase ) {
       ptr_eta = cd_eta->getPointer();
    }
 
-   const hier::Box& temp_gbox = cd_temperature->getGhostBox();
-   int imin_temp = temp_gbox.lower(0);
-   int jmin_temp = temp_gbox.lower(1);
-   int jp_temp = temp_gbox.numberCells(0);
-   int kmin_temp = 0;
-   int kp_temp = 0;
+   const hier::Box& temp_gbox = cd_te->getGhostBox();
+   int imin_te = temp_gbox.lower(0);
+   int jmin_te = temp_gbox.lower(1);
+   int inc_j_te = temp_gbox.numberCells(0);
+   int kmin_te = 0;
+   int inc_k_te = 0;
 #if (NDIM == 3)
-   kmin_temp = temp_gbox.lower(2);
-   kp_temp = jp_temp * temp_gbox.numberCells(1);
+   kmin_te = temp_gbox.lower(2);
+   inc_k_te = inc_j_te * temp_gbox.numberCells(1);
 #endif
 
    // Assuming phi, eta, and concentration all have same box
-   assert( cd_phi->getGhostCellWidth()[0]==cd_concentration->getGhostCellWidth()[0] );
+   assert( cd_pf->getGhostCellWidth()[0]
+         ==cd_conc->getGhostCellWidth()[0] );
    
-   const hier::Box& pf_gbox = cd_phi->getGhostBox();
+   const hier::Box& pf_gbox = cd_pf->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
-   int jp_pf = pf_gbox.numberCells(0);
+   int inc_j_pf = pf_gbox.numberCells(0);
    int kmin_pf = 0;
-   int kp_pf = 0;
+   int inc_k_pf = 0;
 #if (NDIM == 3)
    kmin_pf = pf_gbox.lower(2);
-   kp_pf = jp_pf * pf_gbox.numberCells(1);
+   inc_k_pf = inc_j_pf * pf_gbox.numberCells(1);
 #endif
 
    // Assuming c_l, c_a, and c_b all have same box
-   assert( cd_c_l->getGhostCellWidth()[0]==cd_c_a->getGhostCellWidth()[0] );
-   const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
-   int imin_c_i = c_i_gbox.lower(0);
-   int jmin_c_i = c_i_gbox.lower(1);
-   int jp_c_i = c_i_gbox.numberCells(0);
-   int kmin_c_i = 0;
-   int kp_c_i = 0;
+   assert( cd_cl->getGhostCellWidth()[0]==cd_ca->getGhostCellWidth()[0] );
+   assert( cd_cl->getGhostCellWidth()[0]==cd_cl_ref->getGhostCellWidth()[0] );
+   const hier::Box& ci_gbox = cd_cl->getGhostBox();
+   int imin_ci = ci_gbox.lower(0);
+   int jmin_ci = ci_gbox.lower(1);
+   int inc_j_ci = ci_gbox.numberCells(0);
+   int kmin_ci = 0;
+   int inc_k_ci = 0;
 #if (NDIM == 3)
-   kmin_c_i = c_i_gbox.lower(2);
-   kp_c_i = jp_c_i * c_i_gbox.numberCells(1);
+   kmin_ci = ci_gbox.lower(2);
+   inc_k_ci = inc_j_ci * ci_gbox.numberCells(1);
 #endif
 
-   int imin = pbox.lower(0);
-   int imax = pbox.upper(0);
-   int jmin = pbox.lower(1);
-   int jmax = pbox.upper(1);
-   int kmin = 0;
-   int kmax = 0;
+   int imin[3] = {pbox.lower(0),pbox.lower(1),0};
+   int imax[3] = {pbox.upper(0),pbox.upper(1),0};
 #if (NDIM == 3)
-   kmin = pbox.lower(2);
-   kmax = pbox.upper(2);
+   imin[2] = pbox.lower(2);
+   imax[2] = pbox.upper(2);
 #endif
          
-   int N = 2*cd_concentration->getDepth();
+   int N = 2*cd_conc->getDepth();
    if ( d_with_third_phase ) {
-      N += cd_concentration->getDepth();
+      N += cd_conc->getDepth();
    }
 
    double c[2]; // up to 2 concentrations/3 species
-   int offset=cd_concentration->getDepth();
+   int offset=cd_conc->getDepth();
    double* x = new double[N];
    for(short i=0;i<N;i++)x[i]=tbox::IEEE::getSignalingNaN();
 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   int idx_pf = (imin[0]-imin_pf) 
+              + (imin[1]-jmin_pf)*inc_j_pf
+              + (imin[2]-kmin_pf)*inc_k_pf;
+   int idx_te = (imin[0]-imin_te)
+              + (imin[1]-jmin_te)*inc_j_te
+              + (imin[2]-kmin_te)*inc_k_te;
+   int idx_ci = (imin[0]-imin_ci)
+              + (imin[1]-jmin_ci)*inc_j_ci
+              + (imin[2]-kmin_ci)*inc_k_ci;
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+   const int nc = cd_conc->getDepth();
+   for ( int kk = imin[2]; kk <= imax[2]; kk++ ) {
+      for ( int jj = imin[1]; jj <= imax[1]; jj++ ) {
+         for ( int ii = imin[0]; ii <= imax[0]; ii++ ) {
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
-
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
-
-            const double t = ptr_temp[idx_temp];
-            
-            const double phi = ptr_phi[idx_pf];
-
+            const double temp = ptr_temp[idx_te];
+            const double phi  = ptr_phi[idx_pf];
             double eta = 0.0;
-            if ( d_with_third_phase ) {
-               eta = ptr_eta[idx_pf];
-            }
-           
-            // loop over atomic species
-            for(int ic=0;ic<cd_concentration->getDepth();ic++)
+            if ( d_with_third_phase )eta = ptr_eta[idx_pf]; 
+ 
+            // loop over atomic species to initialize c and x
+            for(int ic=0;ic<nc;ic++)
             {
-               const double* const ptr_conc = cd_concentration->getPointer(ic);
-               double* ptr_c_l_ref = cd_c_l_ref->getPointer(ic);
-               double* ptr_c_a_ref = cd_c_a_ref->getPointer(ic);
-               double* ptr_c_b_ref = NULL;
+               c[ic] = cd_conc->getPointer(ic)[idx_pf];
+               TBOX_ASSERT( c[ic]==c[ic] );
+            }
+            for(int ic=0;ic<nc;ic++)
+            {
+               x[ic]        = cd_cl_ref->getPointer(ic)[idx_ci];
+               x[offset+ic] = cd_ca_ref->getPointer(ic)[idx_ci];
                if ( d_with_third_phase ) {
-                  ptr_c_b_ref = cd_c_b_ref->getPointer(ic);
-               }
-
-               c[ic] = ptr_conc[idx_pf];
-               if( c[ic]!=c[ic] ){
-                  cerr<<"ic="<<ic<<",jj="<<jj<<",ii="<<ii<<endl;
-                  TBOX_ERROR("NaN");
-               }
-
-               x[ic] = ptr_c_l_ref[idx_c_i];
-               x[offset+ic] = ptr_c_a_ref[idx_c_i];
-
-               if ( d_with_third_phase ) {
-                  x[2*offset+ic] = ptr_c_b_ref[idx_c_i];
-
+                  x[2*offset+ic] = cd_cb_ref->getPointer(ic)[idx_ci];
                }
             }
 
-            d_calphad_fenergy->computePhaseConcentrations(t,c,phi,eta,x);
+            // compute cL, cS
+            d_calphad_fenergy->computePhaseConcentrations(temp,c,phi,eta,x);
 
-            for(int ic=0;ic<cd_concentration->getDepth();ic++)
+            //set cell values with cL and cS just computed
+            for(int ic=0;ic<nc;ic++)
             {
-               double* ptr_c_l = cd_c_l->getPointer(ic);
-               double* ptr_c_a = cd_c_a->getPointer(ic);
-               double* ptr_c_b = NULL;
+               cd_cl->getPointer(ic)[idx_ci] = x[ic];
+               cd_ca->getPointer(ic)[idx_ci] = x[offset+ic];
                if ( d_with_third_phase ) {
-                  ptr_c_b = cd_c_b->getPointer(ic);
-               }
-               ptr_c_l[idx_c_i] = x[ic];
-               ptr_c_a[idx_c_i] = x[offset+ic];
-               if ( d_with_third_phase ) {
-                  ptr_c_b[idx_c_i] = x[2*offset+ic];
+                  cd_cb->getPointer(ic)[idx_ci] = x[2*offset+ic];
                }
             } // ic
-         }
-      }
-   }
+
+            idx_pf++;
+            idx_te++;
+            idx_ci++;
+
+         } // ii
+
+         idx_pf+=2*cd_pf->getGhostCellWidth()[0];
+         idx_te+=2*cd_te->getGhostCellWidth()[0];
+         idx_ci+=2*cd_cl->getGhostCellWidth()[0];
+
+      } // jj
+
+      idx_pf+=2*inc_j_pf*cd_pf->getGhostCellWidth()[1];
+      idx_te+=2*inc_j_te*cd_te->getGhostCellWidth()[1];
+      idx_ci+=2*inc_j_ci*cd_cl->getGhostCellWidth()[1];
+   } // kk
 
    delete[] x;
-
 }
