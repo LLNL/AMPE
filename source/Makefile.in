@@ -61,7 +61,8 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADConcSolverBinary.o tools.o \
 		FreeEnergyStrategy.o
 
-CXX_OBJS      = GradientTemperatureStrategy.o \
+CXX_OBJS      = AMPE.o \
+		GradientTemperatureStrategy.o \
 		toolsSAMRAI.o \
 		TbasedCompositionDiffusionStrategy.o \
 		DiffusionForConcInPhaseStrategy.o \
