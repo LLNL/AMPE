@@ -50,6 +50,14 @@
 using namespace SAMRAI;
 using namespace std;
 
+string gitCommitID()
+{
+#define xstr2(x) #x
+#define xstr(x) xstr2(x)
+
+   return xstr(GITVERSION);
+}
+
 int main( int argc, char *argv[] )
 {
    // Initialize MPI, SAMRAI, and enable logging.
@@ -145,12 +153,7 @@ int main( int argc, char *argv[] )
       tbox::PIO::logOnlyNodeZero( log_file_name );
    }
 
-#ifdef GITVERSION
-#define xstr(x) #x
-#define LOG(x) tbox::plog<<" AMPE: git_version "<<xstr(x)<<endl;
-    LOG(GITVERSION);
-    tbox::plog<<endl;
-#endif
+   tbox::plog<<" AMPE: git_version "<<gitCommitID()<<endl;
 
    tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl; 	
    tbox::plog << "input_filename = " << input_filename << endl;
