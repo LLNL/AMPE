@@ -49,15 +49,13 @@ c        Valid values for type are "quadratic" and "pbg"
       double precision gamma
       gamma = 10.d0
 
-      if ( type(1:1) .eq. 'q' .or.
-     &     type(1:1) .eq. 'Q' ) then
+      if ( type(1:1) .eq. 'q' ) then
 
          phit = max( 0.d0, phi )
 
          interp_func = phit * phit
 
-      else if ( type(1:1) .eq. 'p' .or.
-     &          type(1:1) .eq. 'P') then
+      else if ( type(1:1) .eq. 'p') then 
 
          phit = max( 0.d0, min( 1.d0, phi ) )
          
@@ -65,8 +63,7 @@ c        Valid values for type are "quadratic" and "pbg"
      &      phit * phit * phit *
      &      ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
 
-      else if ( type(1:1) .eq. 't' .or.
-     &          type(1:1) .eq. 'T') then
+      else if ( type(1:1) .eq. 't') then
 
          phit = max( 0.05d0, min( 1.d0, phi ) )
          
@@ -74,8 +71,7 @@ c        Valid values for type are "quadratic" and "pbg"
      &      phit * phit * phit *
      &      ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
 
-      else if ( type(1:1) .eq. 'h' .or.
-     &          type(1:1) .eq. 'H') then
+      else if ( type(1:1) .eq. 'h') then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
          
@@ -83,15 +79,13 @@ c        Valid values for type are "quadratic" and "pbg"
      &      phit * phit *
      &      ( 3.d0 - 2.d0 * phit )
 
-      else if ( type(1:1) .eq. 'w' .or.
-     &          type(1:1) .eq. 'W') then
+      else if ( type(1:1) .eq. 'w') then
 
          phit = max( 0.d0, phi )
 
          interp_func = phit * phit * ( 2.d0 - phit )
 
-      else if ( type(1:1) .eq. 'l' .or.
-     &          type(1:1) .eq. 'L' ) then
+      else if ( type(1:1) .eq. 'l' ) then
 
          phit = max( 0.d0, phi )
          phit = min( 1.d0, phit )
@@ -102,14 +96,12 @@ c        Valid values for type are "quadratic" and "pbg"
          phit = max( 0.d0, phi )
          interp_func = phit*phit*phit
 
-      else if ( type(1:1) .eq. 's' .or.
-     &          type(1:1) .eq. 'S' ) then
+      else if ( type(1:1) .eq. 's' ) then
 
          phit = max( 0.d0, phi )
          interp_func = log ( cosh (gamma*phi) )/log(cosh(gamma))
 
-      else if ( type(1:1) .eq. 'c' .or.
-     &          type(1:1) .eq. 'C' ) then
+      else if ( type(1:1) .eq. 'c' ) then
 
          interp_func = 1.d0
 
@@ -137,15 +129,13 @@ c-----------------------------------------------------------------------
       double precision gamma
       gamma = 10.d0
       
-      if ( type(1:1) .eq. 'q' .or.
-     &     type(1:1) .eq. 'Q' ) then
+      if ( type(1:1) .eq. 'q' ) then
 
          phit = max( 0.d0, phi )
 
          deriv_interp_func = 2.d0 * phit
 
-      else if ( type(1:1) .eq. 'p' .or.
-     &          type(1:1) .eq. 'P') then
+      else if ( type(1:1) .eq. 'p' ) then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
          
@@ -153,8 +143,7 @@ c-----------------------------------------------------------------------
      &      30.d0 * phit * phit *
      &      ( 1.d0 - phit  ) * ( 1.d0 - phit )
 
-      else if ( type(1:1) .eq. 't' .or.
-     &          type(1:1) .eq. 'T') then
+      else if ( type(1:1) .eq. 't' ) then
 
          phit = max( 0.05d0, min( 1.d0, phi ) )
          
@@ -162,23 +151,20 @@ c-----------------------------------------------------------------------
      &      30.d0 * phit * phit *
      &      ( 1.d0 - phit  ) * ( 1.d0 - phit )
 
-      else if ( type(1:1) .eq. 'h' .or.
-     &          type(1:1) .eq. 'H') then
+      else if ( type(1:1) .eq. 'h' ) then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
 
          deriv_interp_func =
      &      6.d0 * phit * ( 1.d0 - phit )
 
-      else if ( type(1:1) .eq. 'w' .or.
-     &          type(1:1) .eq. 'W') then
+      else if ( type(1:1) .eq. 'w' ) then
 
          phit = max( 0.d0, phi )
 
          deriv_interp_func = phit * ( 4.d0 - 3.d0 * phit )
 
-      else if ( type(1:1) .eq. 'l' .or.
-     &          type(1:1) .eq. 'L' ) then
+      else if ( type(1:1) .eq. 'l' ) then
 
          if( phi .gt. 0.d0 .or.
      &       phi .lt. 1.d0 )then
@@ -192,14 +178,12 @@ c-----------------------------------------------------------------------
          phit = max( 0.d0, phi )
          deriv_interp_func = 3.d0*phit*phit
 
-      else if ( type(1:1) .eq. 's' .or.
-     &          type(1:1) .eq. 'S' ) then
+      else if ( type(1:1) .eq. 's' ) then
 
          phit = max( 0.d0, phi )
          deriv_interp_func = gamma*tanh(gamma*phit)/log(cosh(gamma))
 
-      else if ( type(1:1) .eq. 'c' .or.
-     &          type(1:1) .eq. 'C' ) then
+      else if ( type(1:1) .eq. 'c' ) then
 
          deriv_interp_func = 0.d0
 
@@ -223,13 +207,11 @@ c=======================================================================
       double precision phi, phit
       character*(*) type
 
-      if ( type(1:1) .eq. 'q' .or.
-     &     type(1:1) .eq. 'Q' ) then
+      if ( type(1:1) .eq. 'q' ) then
 
          second_deriv_interp_func = 2.d0
 
-      else if ( type(1:1) .eq. 'p' .or.
-     &          type(1:1) .eq. 'P') then
+      else if ( type(1:1) .eq. 'p' ) then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
          
@@ -237,28 +219,24 @@ c=======================================================================
      &      60.d0 * phit *
      &      ( 1.d0 - 3.d0 * phit + 2.d0 * phit * phit )
 
-      else if ( type(1:1) .eq. 'h' .or.
-     &          type(1:1) .eq. 'H') then
+      else if ( type(1:1) .eq. 'h' ) then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
 
          second_deriv_interp_func =
      &      6.d0 * ( 1.d0 - 2.d0 * phit )
 
-      else if ( type(1:1) .eq. 'w' .or.
-     &          type(1:1) .eq. 'W') then
+      else if ( type(1:1) .eq. 'w' ) then
 
          phit = max( 0.d0, phi )
 
          second_deriv_interp_func = 4.d0 - 6.d0 * phit
 
-      else if ( type(1:1) .eq. 'l' .or.
-     &          type(1:1) .eq. 'L' ) then
+      else if ( type(1:1) .eq. 'l' ) then
 
          second_deriv_interp_func = 0.d0
 
-      else if ( type(1:1) .eq. 'c' .or.
-     &          type(1:1) .eq. 'C' ) then
+      else if ( type(1:1) .eq. 'c' ) then
 
          second_deriv_interp_func = 0.d0
 
@@ -282,13 +260,11 @@ c=======================================================================
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' .or.
-     &     type(1:1) .eq. 'S' ) then
+      if ( type(1:1) .eq. 's' ) then
 
          well_func = ( 1.d0 - phi ) * ( 1.d0 - phi )
 
-      else if ( type(1:1) .eq. 'd' .or.
-     &          type(1:1) .eq. 'D') then
+      else if ( type(1:1) .eq. 'd' ) then
 
          well_func =
      &      16.d0 * phi * phi * ( 1.d0 - phi ) * ( 1.d0 - phi )
@@ -313,13 +289,11 @@ c-----------------------------------------------------------------------
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' .or.
-     &     type(1:1) .eq. 'S' ) then
+      if ( type(1:1) .eq. 's' ) then
 
          deriv_well_func = 2.d0 * ( phi - 1.d0 )
 
-      else if ( type(1:1) .eq. 'd' .or.
-     &          type(1:1) .eq. 'D') then
+      else if ( type(1:1) .eq. 'd' ) then
 
          deriv_well_func =
      &      32.d0 * phi * ( 1.d0 - phi ) * ( 1.d0 - 2.d0 * phi )
@@ -344,13 +318,11 @@ c-----------------------------------------------------------------------
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' .or.
-     &     type(1:1) .eq. 'S' ) then
+      if ( type(1:1) .eq. 's' ) then
 
          second_deriv_well_func = 2.d0
 
-      else if ( type(1:1) .eq. 'd' .or.
-     &          type(1:1) .eq. 'D') then
+      else if ( type(1:1) .eq. 'd' ) then
 
          second_deriv_well_func =
      &      32.d0 * ( 1.d0 + 6.d0 * phi * ( phi - 1.d0 ) )

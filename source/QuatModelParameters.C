@@ -438,16 +438,19 @@ void QuatModelParameters::readTemperatureModel(
 
       tbox::plog<<"Read heat equation parameters..."<<endl;
 
-      string method = temperature_db->getStringWithDefault( "equation_type", "steady" );
+      string method = temperature_db->getStringWithDefault( "equation_type",
+                                                            "steady" );
       
       // heat capacity value
-      boost::shared_ptr<tbox::Database> cp_db = temperature_db->getDatabase( "cp" );
+      boost::shared_ptr<tbox::Database> cp_db =
+         temperature_db->getDatabase( "cp" );
       map<short,double> empty_map;
      
-      d_with_rescaled_temperature = ( ( method != "steady" ) && (d_meltingT>0.) );
+      d_with_rescaled_temperature = ( ( method!="steady" ) && (d_meltingT>0.) );
       if( d_with_rescaled_temperature ){
          d_rescale_factorT=d_meltingT;
-         tbox::plog<<"Solve temperature equation with rescaled Ti, factor "<<d_rescale_factorT<<endl; 
+         tbox::plog<<"Solve temperature equation with rescaled Ti, factor "
+                   <<d_rescale_factorT<<endl; 
       }else{
           d_rescale_factorT=-1;
       }
@@ -467,9 +470,11 @@ void QuatModelParameters::readTemperatureModel(
       }
       
       tbox::plog<<"Cp for each species: "<<endl;
-      for(vector< map<short,double> >::iterator it=d_cp.begin(); it!=d_cp.end(); ++it)
+      for(vector< map<short,double> >::iterator it=d_cp.begin();
+                                               it!=d_cp.end(); ++it)
       {
-         for(map<short,double>::iterator itm= it->begin(); itm!=it->end(); ++itm)
+         for(map<short,double>::iterator itm = it->begin();
+                                         itm!=it->end(); ++itm)
          {
             itm->second *= ( 1.e-6 / d_molar_volume_liquid ); // conversion from [J/mol*K] to [pJ/(mu m)^3*K]
             tbox::plog<<"Cp [pJ/(mu m)^3*K]: "<<itm->second<<endl;
@@ -613,20 +618,13 @@ void QuatModelParameters::initializeOrientation(
          model_db->getStringWithDefault( "orient_interp_func_type", "quadratic" );
    }
    if ( d_orient_interp_func_type[0] != 'q' &&
-        d_orient_interp_func_type[0] != 'Q' &&
         d_orient_interp_func_type[0] != 'w' &&
-        d_orient_interp_func_type[0] != 'W' &&
         d_orient_interp_func_type[0] != 'p' &&
-        d_orient_interp_func_type[0] != 'P' &&
         d_orient_interp_func_type[0] != 'l' &&
-        d_orient_interp_func_type[0] != 'L' &&
         d_orient_interp_func_type[0] != 't' &&
-        d_orient_interp_func_type[0] != 'T' &&
         d_orient_interp_func_type[0] != 's' &&
-        d_orient_interp_func_type[0] != 'S' &&
         d_orient_interp_func_type[0] != '3' &&
-        d_orient_interp_func_type[0] != 'c' &&
-        d_orient_interp_func_type[0] != 'C' ) {
+        d_orient_interp_func_type[0] != 'c' ) {
       TBOX_ERROR( "Error: invalid value for orient_interp_func_type" );
    }
 
@@ -641,16 +639,12 @@ void QuatModelParameters::initializeOrientation(
          model_db->getStringWithDefault( "orient_mobility_func_type", "pbg");
    }
    if ( d_quat_mobility_func_type[0] != 'p' &&
-        d_quat_mobility_func_type[0] != 'P' &&
         d_quat_mobility_func_type[0] != 'i' &&
-        d_quat_mobility_func_type[0] != 'I' &&
-        d_quat_mobility_func_type[0] != 'e' &&
-        d_quat_mobility_func_type[0] != 'E' ) {
+        d_quat_mobility_func_type[0] != 'e' ) {
       TBOX_ERROR( "Error: invalid value for orient_mobility_func_type" );
    }
 
-   if ( d_quat_mobility_func_type[0] == 'i' ||
-        d_quat_mobility_func_type[0] == 'I' ) {
+   if ( d_quat_mobility_func_type[0] == 'i' ) {
       d_max_quat_mobility = 1.e6;
       if ( model_db->keyExists( "max_orient_mobility" ) ) {
          d_max_quat_mobility = model_db->getDouble( "max_orient_mobility" );
@@ -692,20 +686,15 @@ void QuatModelParameters::initializeEta(boost::shared_ptr<tbox::Database> model_
    d_eta_well_func_type =
       model_db->getStringWithDefault( "eta_well_func_type", "double" );
    if ( d_eta_well_func_type[0] != 's' &&
-        d_eta_well_func_type[0] != 'S' &&
-        d_eta_well_func_type[0] != 'd' &&
-        d_eta_well_func_type[0] != 'D' ) {
+        d_eta_well_func_type[0] != 'd' ) {
       TBOX_ERROR( "Error: invalid value for eta_well_func_type" );
    }
 
    d_eta_interp_func_type =
       model_db->getStringWithDefault( "eta_interp_func_type", "pbg" );
    if ( d_eta_interp_func_type[0] != 'q' &&
-        d_eta_interp_func_type[0] != 'Q' &&
         d_eta_interp_func_type[0] != 'h' &&
-        d_eta_interp_func_type[0] != 'H' &&
-        d_eta_interp_func_type[0] != 'p' &&
-        d_eta_interp_func_type[0] != 'P' ) {
+        d_eta_interp_func_type[0] != 'p' ) {
       TBOX_ERROR( "Error: invalid value for eta_interp_func_type" );
    }
 }
@@ -784,9 +773,7 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
       printDeprecated( "energy_well_func_type", "phi_well_func_type" );
    }
    if ( d_phase_well_func_type[0] != 's' &&
-        d_phase_well_func_type[0] != 'S' &&
-        d_phase_well_func_type[0] != 'd' &&
-        d_phase_well_func_type[0] != 'D' ) {
+        d_phase_well_func_type[0] != 'd' ){
       TBOX_ERROR( "Error: invalid value for phi_well_func_type" );
    }
    }
@@ -816,15 +803,10 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
       printDeprecated( "energy_interp_func_type", "phi_interp_func_type" );
    }
    if ( d_energy_interp_func_type[0] != 'q' &&
-        d_energy_interp_func_type[0] != 'Q' &&
         d_energy_interp_func_type[0] != 'h' &&
-        d_energy_interp_func_type[0] != 'H' &&
         d_energy_interp_func_type[0] != 'l' &&
-        d_energy_interp_func_type[0] != 'L' &&
         d_energy_interp_func_type[0] != 'c' &&
-        d_energy_interp_func_type[0] != 'C' &&
-        d_energy_interp_func_type[0] != 'p' &&
-        d_energy_interp_func_type[0] != 'P' ) {
+        d_energy_interp_func_type[0] != 'p' ) {
       TBOX_ERROR( "Error: invalid value for energy_interp_func_type" );
    }
    d_conc_interp_func_type =
