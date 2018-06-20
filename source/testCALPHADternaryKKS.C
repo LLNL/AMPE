@@ -80,8 +80,9 @@ int main( int argc, char *argv[] )
    string phase_well_func_type =
          model_db->getString( "phi_well_func_type" );
 
-   string phase_interp_func_type = "pbg";
-   
+   string energy_interp_func_type = "pbg";
+   string conc_interp_func_type = "pbg";
+
    boost::shared_ptr<tbox::Database> temperature_db =
       model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
@@ -105,7 +106,8 @@ int main( int argc, char *argv[] )
 
    CALPHADFreeEnergyFunctionsTernary
       cafe(calphad_db, newton_db,
-           phase_interp_func_type,
+           energy_interp_func_type,
+           conc_interp_func_type,
            conc_avg_func_type,
            phase_well_scale,
            phase_well_func_type);

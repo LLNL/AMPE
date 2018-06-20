@@ -53,7 +53,6 @@ int main( int argc, char *argv[] )
 
    std::string run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
 
-   bool log_all_nodes = false;
    std::string log_file_name = run_name + ".log";
    tbox::PIO::logOnlyNodeZero( log_file_name );
 
@@ -74,23 +73,30 @@ int main( int argc, char *argv[] )
 
    string phase_well_func_type = "double";
 
-   string phase_interp_func_type = "pbg";
-   
-   boost::shared_ptr<tbox::Database> temperature_db = model_db->getDatabase( "Temperature" );
+   string energy_interp_func_type = "pbg";
+   string conc_interp_func_type = "pbg";
+
+   boost::shared_ptr<tbox::Database> temperature_db =
+      model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
 
-   boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
+   boost::shared_ptr<tbox::Database> conc_db(
+      model_db->getDatabase( "ConcentrationModel" ));
    string conc_avg_func_type = "a";
 
-   boost::shared_ptr<tbox::Database> dcalphad_db=conc_db->getDatabase( "Calphad" );
+   boost::shared_ptr<tbox::Database> dcalphad_db=
+      conc_db->getDatabase( "Calphad" );
    std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db ( new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile( calphad_filename, calphad_db );
+   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
+      new tbox::MemoryDatabase( "calphad_db" ) );
+   tbox::InputManager::getManager()->parseInputFile(
+      calphad_filename, calphad_db );
    boost::shared_ptr<tbox::Database> newton_db;  
  
    CALPHADFreeEnergyFunctionsTernary
       cafe(calphad_db, newton_db,
-           phase_interp_func_type,
+           energy_interp_func_type,
+           conc_interp_func_type,
            conc_avg_func_type,
            phase_well_scale,
            phase_well_func_type);

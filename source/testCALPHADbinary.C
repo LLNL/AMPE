@@ -94,7 +94,8 @@ int main( int argc, char *argv[] )
       TBOX_ERROR( "Error: invalid value for eta_well_func_type" );
    }
 
-   string phase_interp_func_type = "pbg";
+   string energy_interp_func_type = "pbg";
+   string conc_interp_func_type = "pbg";
    string eta_interp_func_type   ="pbg";
    
    boost::shared_ptr<tbox::Database> temperature_db =
@@ -122,7 +123,8 @@ int main( int argc, char *argv[] )
    
    CALPHADFreeEnergyFunctionsBinary
       cafe(calphad_db, newton_db,
-           phase_interp_func_type,
+           energy_interp_func_type,
+           conc_interp_func_type,
            eta_interp_func_type,
            conc_avg_func_type,
            with_third_phase,
@@ -171,7 +173,8 @@ int main( int argc, char *argv[] )
    tbox::plog<<"CALPHADFreeEnergyStrategy... "<<endl;
    CALPHADFreeEnergyStrategyBinary free_energy_strategy(
                calphad_db, newton_db,
-               model_parameters.phase_interp_func_type(),
+               model_parameters.energy_interp_func_type(),
+               model_parameters.conc_interp_func_type(),
                model_parameters.eta_interp_func_type(),
                model_parameters.conc_avg_func_type(),
                &mvstrategy,

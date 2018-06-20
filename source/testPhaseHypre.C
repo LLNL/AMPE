@@ -240,7 +240,7 @@ int main(int argc,char* argv[])
        * Solve.
        */
       poisson.solve(
-         d_model_parameters.phase_interp_func_type(),
+         d_model_parameters.energy_interp_func_type(),
          d_model_parameters.phase_well_scale(),
          d_model_parameters.phase_well_func_type()
       );
