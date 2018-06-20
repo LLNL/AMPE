@@ -2,7 +2,6 @@
 #include "CALPHADMobility.h"
 #include "CompositionStrategyMobilities.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
-#include "QuatModelParameters.h"
 #include "ConstantMolarVolumeStrategy.h"
 
 #include "SAMRAI/SAMRAI_config.h"
@@ -12,11 +11,9 @@
 #include "SAMRAI/tbox/PIO.h"
 #include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/InputManager.h"
-#include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include <string>
-#include <fstream>
 
 using namespace SAMRAI;
 using namespace std;
@@ -55,16 +52,11 @@ int main( int argc, char *argv[] )
       new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
-   //-----------------------------------------------------------------------
-   
    // make from input file name
    std::string run_name =
       input_filename.substr( 0, input_filename.rfind( "." ) );
 
-   //-----------------------------------------------------------------------
-   //
    // Logfile
-   //
    std::string log_file_name = run_name + ".log";
    tbox::PIO::logOnlyNodeZero( log_file_name );
 
@@ -81,18 +73,9 @@ int main( int argc, char *argv[] )
       input_db->getDatabase("ModelParameters");
 
    double phase_well_scale = model_db->getDouble( "phi_well_scale" );
-   double eta_well_scale   = model_db->getDoubleWithDefault( "eta_well_scale", 0. );
 
-   string eta_well_func_type =
-      model_db->getStringWithDefault( "eta_well_func_type", "double" );
    string phase_well_func_type =
          model_db->getString( "phi_well_func_type" );
-   if ( eta_well_func_type[0] != 's' &&
-        eta_well_func_type[0] != 'S' &&
-        eta_well_func_type[0] != 'd' &&
-        eta_well_func_type[0] != 'D' ) {
-      TBOX_ERROR( "Error: invalid value for eta_well_func_type" );
-   }
 
    string energy_interp_func_type = "pbg";
    string conc_interp_func_type = "pbg";
@@ -129,9 +112,9 @@ int main( int argc, char *argv[] )
            conc_avg_func_type,
            with_third_phase,
            phase_well_scale,
-           eta_well_scale,
+           0.,
            phase_well_func_type,
-           eta_well_func_type);
+           "");
    
    cafe.printEnergyVsComposition(temperature);
 
@@ -161,29 +144,28 @@ int main( int argc, char *argv[] )
    }else{
       tbox::pout<<"WARNING: Equilibrium concentrations not found... "<<endl;
    }
-   
-   QuatModelParameters model_parameters;
-   model_parameters.readModelParameters(model_db);
+
+   double molar_volume = conc_db->getDouble( "molar_volume" );
 
    tbox::plog<<"ConstantMolarVolumeStrategy... "<<endl;
    ConstantMolarVolumeStrategy mvstrategy(
-      model_parameters.molar_volume_liquid(),
-      model_parameters.molar_volume_solid_A(),
-      model_parameters.molar_volume_solid_B());
+      molar_volume,
+      molar_volume,
+      molar_volume);
    tbox::plog<<"CALPHADFreeEnergyStrategy... "<<endl;
    CALPHADFreeEnergyStrategyBinary free_energy_strategy(
                calphad_db, newton_db,
-               model_parameters.energy_interp_func_type(),
-               model_parameters.conc_interp_func_type(),
-               model_parameters.eta_interp_func_type(),
-               model_parameters.conc_avg_func_type(),
+               energy_interp_func_type,
+               conc_interp_func_type,
+               "",
+               conc_avg_func_type,
                &mvstrategy,
                -1,-1,-1,
-               model_parameters.with_third_phase(),
-               model_parameters.phase_well_scale(),
-               model_parameters.eta_well_scale(),
-               model_parameters.phase_well_func_type(),
-               model_parameters.eta_well_func_type() );
+               false,
+               phase_well_scale,
+               0.,
+               phase_well_func_type,
+               "" );
 
    if( calphad_db->keyExists( "MobilityParameters" ) ){
       tbox::plog<<"CompositionStrategyMobilities... "<<endl;
