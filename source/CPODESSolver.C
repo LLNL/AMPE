@@ -847,7 +847,7 @@ int CPODESSolver::getNumberOfInternalStepsTaken() const
    long int r;
    int ierr = CPodeGetNumSteps(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfRHSFunctionCalls() const
@@ -855,7 +855,7 @@ int CPODESSolver::getNumberOfRHSFunctionCalls() const
    long int r;
    int ierr = CPodeGetNumFctEvals(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfLinearSolverSetupCalls() const
@@ -863,7 +863,7 @@ int CPODESSolver::getNumberOfLinearSolverSetupCalls() const
    long int r;
    int ierr = CPodeGetNumLinSolvSetups(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfNewtonIterations() const
@@ -871,7 +871,7 @@ int CPODESSolver::getNumberOfNewtonIterations() const
    long int r;
    int ierr = CPodeGetNumNonlinSolvIters(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfNonlinearConvergenceFailures() const
@@ -879,7 +879,7 @@ int CPODESSolver::getNumberOfNonlinearConvergenceFailures() const
    long int r;
    int ierr = CPodeGetNumNonlinSolvConvFails(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfLocalErrorTestFailures() const
@@ -887,7 +887,7 @@ int CPODESSolver::getNumberOfLocalErrorTestFailures() const
    long int r;
    int ierr = CPodeGetNumErrTestFails(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return static_cast<int>(r);
 }
 
 int CPODESSolver::getOrderUsedDuringLastInternalStep() const
@@ -912,7 +912,7 @@ int CPODESSolver::getCPODESMemoryUsageForDoubles() const
    long int r2;
    int ierr = CPodeGetWorkSpace(d_cpode_mem, &r1, &r2);
    CPODE_SAMRAI_ERROR(ierr);
-   return r1;
+   return  static_cast<int>(r1);
 }
 
 int CPODESSolver::getCPODESMemoryUsageForIntegers() const
@@ -921,7 +921,7 @@ int CPODESSolver::getCPODESMemoryUsageForIntegers() const
    long int r2;
    int ierr = CPodeGetWorkSpace(d_cpode_mem, &r1, &r2);
    CPODE_SAMRAI_ERROR(ierr);
-   return r2;
+   return  static_cast<int>(r2);
 }
 
 double CPODESSolver::getStepSizeForLastInternalStep() const
@@ -996,7 +996,7 @@ int CPODESSolver::getNumberOfPreconditionerEvaluations() const
    long int r;
    int ierr = CPSpilsGetNumPrecEvals(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return  static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfLinearIterations() const
@@ -1004,7 +1004,7 @@ int CPODESSolver::getNumberOfLinearIterations() const
    long int r;
    int ierr = CPSpilsGetNumLinIters(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return  static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfPrecondSolveCalls() const
@@ -1012,7 +1012,7 @@ int CPODESSolver::getNumberOfPrecondSolveCalls() const
    long int r;
    int ierr = CPSpilsGetNumPrecSolves(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return  static_cast<int>(r);
 }
 
 int CPODESSolver::getNumberOfLinearConvergenceFailures() const
@@ -1020,7 +1020,7 @@ int CPODESSolver::getNumberOfLinearConvergenceFailures() const
    long int r;
    int ierr = CPSpilsGetNumConvFails(d_cpode_mem, &r);
    CPODE_SAMRAI_ERROR(ierr);
-   return r;
+   return  static_cast<int>(r);
 }
 
 int CPODESSolver::getCPSpgmrMemoryUsageForDoubles() const
@@ -1029,7 +1029,7 @@ int CPODESSolver::getCPSpgmrMemoryUsageForDoubles() const
    long int r2;
    int ierr = CPodeGetWorkSpace(d_cpode_mem, &r1, &r2);
    CPODE_SAMRAI_ERROR(ierr);
-   return r1;
+   return  static_cast<int>(r1);
 }
 
 int CPODESSolver::getCPSpgmrMemoryUsageForIntegers() const
@@ -1038,7 +1038,7 @@ int CPODESSolver::getCPSpgmrMemoryUsageForIntegers() const
    long int r2;
    int ierr = CPodeGetWorkSpace(d_cpode_mem, &r1, &r2);
    CPODE_SAMRAI_ERROR(ierr);
-   return r2;
+   return  static_cast<int>(r2);
 }
 
 /*

@@ -23,7 +23,6 @@ public:
       const int mobility_id,
       const double epsilon_phase, 
       const double latent_heat,
-      const std::string phase_interp_func_type,
       const double phase_well_scale,
       const std::string phase_well_func_type);
 
@@ -34,7 +33,6 @@ private:
    void setC(
       const int phi_id,
       const double latent_heat,
-      const std::string phi_interp_func_type,
       const double phi_well_scale,
       const std::string phi_well_func_type);
 
@@ -43,7 +41,6 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_m,
       boost::shared_ptr< pdat::CellData<double> > cd_c,
       const double latent_heat,
-      const char* phi_interp_func_type,
       const double phi_well_scale,
       const char* phi_well_func_type,
       const hier::Box& pbox );

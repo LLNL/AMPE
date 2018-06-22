@@ -3027,10 +3027,7 @@ bool QuatModel::resetGrains( void )
    for(int it=1;it<200;it++){
       
       const double dt
-         = d_integrator_quat_only->Advance(
-            d_patch_hierarchy,
-            time,
-            d_cycle );
+         = d_integrator_quat_only->Advance(d_patch_hierarchy);
       time += dt;
       
       double dqe=qint_energy;
@@ -3130,10 +3127,7 @@ double QuatModel::Advance( void )
    }
 
    const double dt =
-      d_integrator->Advance(
-         d_patch_hierarchy,
-         d_time,
-         d_cycle );
+      d_integrator->Advance(d_patch_hierarchy);
 
    d_time += dt;
    

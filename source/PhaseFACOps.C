@@ -47,7 +47,7 @@ PhaseFACOps::PhaseFACOps(
    const bool with_third_phase,
    boost::shared_ptr<tbox::Database> database )
    :
-   EllipticFACOps( object_name, database ),
+   EllipticFACOps( tbox::Dimension(NDIM), object_name, database ),
    d_with_third_phase( with_third_phase )
 {
    return;

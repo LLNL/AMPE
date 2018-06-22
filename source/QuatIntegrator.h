@@ -204,9 +204,7 @@ public :
       boost::shared_ptr<appu::VisItDataWriter > visit_data_writer);
 
    double Advance(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      const double beginning_time,
-      const int cycle );
+      const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
 
    void updateSolution(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -396,7 +394,6 @@ protected:
       evaluateQuatRHS(
          hierarchy,
          d_quat_scratch_id,
-         d_phase_scratch_id,
          ydot_quat_id,
          fd_flag==0 );         
    }
@@ -675,7 +672,6 @@ private :
    void evaluateQuatRHS(
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int quat_id,
-      const int phase_id,
       const int quat_rhs_id,
       const bool visit_flag );
 
@@ -704,7 +700,6 @@ private :
    std::vector< boost::shared_ptr< solv::SAMRAIVectorReal<double> > >*
       getCPODESVectorsRequiringRegrid( void );
 
-   bool d_compute_velocity;
    void computeVelocity(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
                         int phi_dot_id);
    
@@ -736,8 +731,10 @@ private :
 
    bool d_all_periodic;
 
-   boost::shared_ptr<hier::VariableContext> d_scratch;
+   bool d_compute_velocity;
+
    boost::shared_ptr<hier::VariableContext> d_current;
+   boost::shared_ptr<hier::VariableContext> d_scratch;
    
    QuatGradStrategy*     d_quat_grad_strategy;
    QuatMobilityStrategy* d_mobility_strategy;

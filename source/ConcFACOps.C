@@ -44,7 +44,7 @@ ConcFACOps::ConcFACOps(
    const int depth,
    const boost::shared_ptr<tbox::Database>& database)
    :
-   EllipticFACOps( object_name, database, depth )
+   EllipticFACOps( tbox::Dimension(NDIM), object_name, database, depth )
 {
 }
 

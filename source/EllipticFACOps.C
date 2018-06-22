@@ -692,12 +692,12 @@ void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
 ********************************************************************
 */
 EllipticFACOps::EllipticFACOps(
+   const tbox::Dimension& dim,
    const std::string &object_name ,
-   boost::shared_ptr<tbox::Database> database,
-   const int depth)
-   :
+   const boost::shared_ptr<tbox::Database>& database,
+   const int depth):
+   d_dim(dim),
    d_object_name(object_name) ,
-   d_depth(depth),
    d_ln_min(-1) ,
    d_ln_max(-1) ,
    d_cf_boundary() ,
@@ -725,7 +725,8 @@ EllipticFACOps::EllipticFACOps(
    d_preconditioner(NULL) ,
    d_hopscell(),
    d_hopsside(),
-   d_physical_bc_coef(NULL)
+   d_physical_bc_coef(NULL),
+   d_depth(depth)
 {
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
@@ -828,7 +829,7 @@ EllipticFACOps::EllipticFACOps(
                                      hier::IntVector(tbox::Dimension(NDIM),1) );
 
    for(int i=0;i<depth;i++){
-      assert( i<d_d_var.size() );
+      assert( i<static_cast<int>(d_d_var.size()) );
       d_d_id.push_back( vdb->
          registerVariableAndContext( d_d_var[i],
             d_context ,
@@ -1749,8 +1750,8 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
                               const hier::IntVector &ratio_to_coarser,
                               const int depth ) const
 {
-   TBOX_ASSERT_DIM_OBJDIM_EQUALITY4(tbox::Dimension(NDIM), patch, soln_data, flux_data,
-      ratio_to_coarser);
+   TBOX_ASSERT_DIM_OBJDIM_EQUALITY4(tbox::Dimension(NDIM), patch, soln_data,
+      flux_data, ratio_to_coarser);
 
    const int patch_ln = patch.getPatchLevelNumber();
    const hier::GlobalId id = patch.getGlobalId();
@@ -1764,8 +1765,8 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
 
    const std::vector<hier::BoundaryBox>& bboxes =
       d_cf_boundary[patch_ln]->getBoundaries(id, 1);
-   unsigned int bn;
-   size_t nboxes = bboxes.size();
+   int bn;
+   int nboxes = static_cast<int>(bboxes.size());
 
    const double* sol=soln_data.getPointer(depth);
    const double* flux0=flux_data.getPointer(0,depth);

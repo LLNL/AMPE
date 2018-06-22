@@ -136,8 +136,9 @@ public:
     * @param database Input database
     */
    EllipticFACOps(
+      const tbox::Dimension& dim,
       const std::string &object_name=std::string() ,
-      const boost::shared_ptr<tbox::Database> database=
+      const boost::shared_ptr<tbox::Database>& input_db =
          boost::shared_ptr<tbox::Database>(),
       const int depth=1 );
 
@@ -155,7 +156,7 @@ public:
       const PoissonSpecifications& spec, 
       const int depth)
    {
-      assert( depth<d_poisson_spec.size() );
+      assert( depth<static_cast<int>(d_poisson_spec.size()) );
 
       d_poisson_spec[depth] = spec;
    }
@@ -835,13 +836,15 @@ protected:
    //! @brief Return the patch data index for outerflux scratch data.
    int registerOfluxScratch() const;
 
+   /*!
+    * @brief Object dimension.
+    */
+   const tbox::Dimension d_dim;
 
    /*!
     * @brief Object name.
     */
    std::string d_object_name;
-
-
 
    //@{ @name Hierarchy-dependent objects.
 

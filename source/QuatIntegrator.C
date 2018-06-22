@@ -121,7 +121,9 @@ QuatIntegrator::QuatIntegrator(
    const bool symmetry_aware,
    const bool use_gradq_for_flux
  )
-   : d_phase_component_index( -1 ),
+   : 
+     //protected data members
+     d_phase_component_index( -1 ),
      d_eta_component_index( -1 ),
      d_quat_component_index( -1 ),
      d_conc_component_index( -1 ),
@@ -138,16 +140,28 @@ QuatIntegrator::QuatIntegrator(
      d_phase_mobility_id( -1 ),
      d_phase_temperature_mobility_id( -1 ),
      d_ncompositions( ncompositions ),
-     d_name( name ),
+     d_with_phase( with_phase ),
+     d_with_concentration( with_concentration ),
+     d_with_orientation( with_orientation ),
+     d_precond_has_dquatdphi( true ),
+     d_precond_has_dTdphi( false ),
+     d_precond_has_dPhidT( false ),
+     d_grid_geometry( grid_geom ),
+     d_lag_quat_sidegrad( true ),
+     d_free_energy_strategy( NULL ),
+     d_uniform_diffusion_time_threshold( tbox::IEEE::getSignalingNaN() ),
+     d_conc_mobility( tbox::IEEE::getSignalingNaN() ),
+     d_show_conc_sys_stats( false ),
+     d_conc_bc_coefs( NULL ),
+     //private data members
+     d_name(name),
      d_model_parameters( model_parameters ),
      d_qlen( qlen ),
+     d_compute_velocity( false ),
      d_current( current ),
      d_scratch( scratch ),
-     d_with_concentration( with_concentration ),
-     d_grid_geometry( grid_geom ),
      d_quat_grad_strategy( NULL ),
      d_mobility_strategy( NULL ),
-     d_free_energy_strategy( NULL ),
      d_phase_conc_strategy( NULL ),
      d_partition_coeff_strategy( NULL ),
      d_temperature_strategy( NULL ),
@@ -160,7 +174,6 @@ QuatIntegrator::QuatIntegrator(
      d_cp_id( -1 ),
      d_quat_grad_cell_id( -1 ),
      d_quat_grad_side_id( -1 ),
-     d_quat_grad_side_copy_id( -1 ),
      d_quat_grad_modulus_id( -1 ),
      d_eta_mobility_id( -1 ),
      d_quat_mobility_id( -1 ),
@@ -175,8 +188,8 @@ QuatIntegrator::QuatIntegrator(
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
      d_phase_rhs_visit_id(-1),
-     d_modulus_q_rhs_visit_id(-1),
      d_q_rhs_visit_id(-1),
+     d_modulus_q_rhs_visit_id(-1),
      d_temperature_rhs_visit_id(-1),
      d_q_rhs1_visit_id(-1),
      d_phase_sol_id( -1 ),
@@ -195,8 +208,15 @@ QuatIntegrator::QuatIntegrator(
      d_flux_id( -1 ),
      d_flux_conc_id( -1 ),
      d_velocity_id( -1 ),
+     d_quat_grad_side_copy_id( -1 ),
      d_tmp1_id( -1 ),
      d_tmp2_id( -1 ),
+     d_quat_diffusion_coarsen(tbox::Dimension(NDIM)),
+     d_quat_diffusion_deriv_coarsen(tbox::Dimension(NDIM)),
+     d_conc_diffusion_coarsen(tbox::Dimension(NDIM)),
+     d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
+     d_flux_conc_coarsen_algorithm(tbox::Dimension(NDIM)),
+     d_coarsen_alg(tbox::Dimension(NDIM)),
      d_H_parameter( tbox::IEEE::getSignalingNaN() ),
      d_epsilon_phase( tbox::IEEE::getSignalingNaN() ),
      d_epsilon_eta( tbox::IEEE::getSignalingNaN() ),
@@ -207,22 +227,17 @@ QuatIntegrator::QuatIntegrator(
      d_epsilon_q( tbox::IEEE::getSignalingNaN() ),
      d_quat_grad_floor( tbox::IEEE::getSignalingNaN() ),
      d_quat_smooth_floor_type( "max" ),
-     d_uniform_diffusion_time_threshold( tbox::IEEE::getSignalingNaN() ),
      d_sundials_solver( NULL ),
      d_end_time( tbox::IEEE::getSignalingNaN() ),
      d_boundary_cond_db( bc_db ),
+     d_all_refine_patch_strategy( NULL ),
      d_show_integrator_stats( false ),
      d_show_solver_stats( false ),
      d_show_phase_sys_stats( false ),
      d_show_eta_sys_stats( false ),
-     d_show_conc_sys_stats( false ),
      d_show_quat_sys_stats( false ),
      d_show_temperature_sys_stats( false ),
      d_use_preconditioner( true ),
-     d_precond_has_dquatdphi( true ),
-     d_precond_has_dTdphi( false ),
-     d_precond_has_dPhidT( false ),
-     d_compute_velocity( false ),
      d_max_precond_steps( 1 ),
      d_cum_newton_iter( 0 ),
      d_cum_lin_iter( 0 ),
@@ -232,20 +247,10 @@ QuatIntegrator::QuatIntegrator(
      d_cum_f_eval( 0 ),
      d_cum_p_setup( 0 ),
      d_cum_p_apply( 0 ),
-     d_lag_quat_sidegrad( true ),
-     d_conc_mobility( tbox::IEEE::getSignalingNaN() ),
      d_phase_bc_coefs( NULL ),
      d_eta_bc_coefs( NULL ),
      d_temperature_bc_coefs( NULL ),
-     d_conc_bc_coefs( NULL ),
-     d_quat_bc_coefs( NULL ),
-     d_quat_diffusion_coarsen(tbox::Dimension(NDIM)),
-     d_quat_diffusion_deriv_coarsen(tbox::Dimension(NDIM)),
-     d_conc_diffusion_coarsen(tbox::Dimension(NDIM)),
-     d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
-     d_flux_conc_coarsen_algorithm(tbox::Dimension(NDIM)),
-     d_coarsen_alg(tbox::Dimension(NDIM)),
-     d_all_refine_patch_strategy( NULL )
+     d_quat_bc_coefs( NULL )
 {
    assert( db );
    assert( grid_geom );
@@ -256,8 +261,6 @@ QuatIntegrator::QuatIntegrator(
    
    d_quat_model = model;
 
-   d_with_orientation        = with_orientation;
-   d_with_phase              = with_phase;
    d_with_third_phase        = with_third_phase;
    d_with_heat_equation      = with_heat_equation;
    d_with_steady_temperature = with_steady_temperature;
@@ -2141,9 +2144,7 @@ void QuatIntegrator::updateDependentVariables(
 //-----------------------------------------------------------------------
 
 double QuatIntegrator::Advance(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                    beginning_time,
-   const int                                       cycle )
+   const boost::shared_ptr< hier::PatchHierarchy > hierarchy)
 {
    //   tbox::pout<<"QuatIntegrator::advance()"<<endl;
 
@@ -3266,7 +3267,6 @@ void QuatIntegrator::evaluateConcentrationRHS(
 void QuatIntegrator::evaluateQuatRHS( 
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int quat_id,
-   const int phase_id,
    const int quat_rhs_id,
    const bool visit_flag )
 {
@@ -3287,17 +3287,21 @@ void QuatIntegrator::evaluateQuatRHS(
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end(); ++ip ) {
+      for ( hier::PatchLevel::Iterator ip(level->begin());
+                                       ip != level->end(); ++ip ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
          const hier::Box box  (patch->getBox());
 
          boost::shared_ptr< pdat::CellData<double> > rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( quat_rhs_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( quat_rhs_id) ) );
          boost::shared_ptr< pdat::CellData<double> > nrhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_q_rhs1_visit_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_q_rhs1_visit_id) ) );
 
          pdat::CellIterator cend(pdat::CellGeometry::end(box));
-         for (pdat::CellIterator c(pdat::CellGeometry::begin(box)); c!=cend; ++c) {
+         for (pdat::CellIterator c(pdat::CellGeometry::begin(box));
+                                 c!=cend; ++c) {
             pdat::CellIndex cell = *c;
             (*nrhs)(cell) = 0.;
             for(int m=0;m<d_qlen;m++)
@@ -3970,7 +3974,7 @@ CVSpgmrPrecondSet
          TBOX_ASSERT( d_phase_temperature_fac_ops );
          d_phase_temperature_fac_ops->setOperatorCoefficients(
             d_phase_scratch_id, d_phase_temperature_mobility_id,
-            d_epsilon_phase, d_latent_heat, d_energy_interp_func_type, 
+            d_epsilon_phase, d_latent_heat,
             d_phase_well_scale, d_phase_well_func_type);
       }
    }

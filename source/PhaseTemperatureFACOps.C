@@ -14,7 +14,7 @@ PhaseTemperatureFACOps::PhaseTemperatureFACOps(
    const std::string &object_name,
    boost::shared_ptr<tbox::Database> database )
    :
-   EllipticFACOps( object_name, database )
+   EllipticFACOps( tbox::Dimension(NDIM), object_name, database )
 {
 }
 
@@ -25,7 +25,6 @@ void PhaseTemperatureFACOps::setOperatorCoefficients(
    const int mobility_id,
    const double epsilon_phase, 
    const double latent_heat,
-   const string phase_interp_func_type,
    const double phase_well_scale,
    const string phase_well_func_type)
 {
@@ -38,7 +37,6 @@ void PhaseTemperatureFACOps::setOperatorCoefficients(
    setC(
       phase_id,
       latent_heat,
-      phase_interp_func_type,
       phase_well_scale,
       phase_well_func_type);
    
@@ -53,7 +51,6 @@ void PhaseTemperatureFACOps::setOperatorCoefficients(
 void PhaseTemperatureFACOps::setC(
    const int phi_id,
    const double factor,
-   const string phi_interp_func_type,
    const double phi_well_scale,
    const string phi_well_func_type)
 {
@@ -91,7 +88,6 @@ void PhaseTemperatureFACOps::setC(
             local_m_data,
             cdata,
             factor,
-            phi_interp_func_type.c_str(),
             phi_well_scale,
             phi_well_func_type.c_str(),
             patch_box );
@@ -107,7 +103,6 @@ void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(
    boost::shared_ptr< pdat::CellData<double> > cd_m,
    boost::shared_ptr< pdat::CellData<double> > cd_c,
    const double latent_heat,
-   const char* phi_interp_func_type,
    const double phi_well_scale,
    const char* phi_well_func_type,
    const hier::Box& pbox )
@@ -115,7 +110,6 @@ void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_m = cd_m->getPointer();
    double* ptr_c = cd_c->getPointer();
-   double* ptr_eta = NULL;
    
    const hier::Box& c_gbox = cd_c->getGhostBox();
    int imin_c = c_gbox.lower(0);
