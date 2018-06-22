@@ -1933,13 +1933,6 @@ void QuatIntegrator::initializeLevelData(
 
    level->allocatePatchData( d_local_data );
 
-   if (d_with_orientation) {
-      d_quat_sys_solver->initializeLevelData(hierarchy, level_number, time,
-                                             can_be_refined, initial_time,
-                                             old_level, allocate_data );
-   }
-
-
    if ( ! initial_time && d_use_warm_start ) {
 
       // allocate CPODES internal vectors for warm start
@@ -3369,7 +3362,6 @@ void QuatIntegrator::computeQuatGradients(
    // Compute cell-centered gradients
    d_quat_grad_strategy->computeGradCell(
       hierarchy,
-      d_quat_scratch_id,
       diff_id,
       d_quat_grad_cell_id,
       time,
@@ -3378,7 +3370,6 @@ void QuatIntegrator::computeQuatGradients(
    // Compute gradients on cell faces
    d_quat_grad_strategy->computeGradSide(
       hierarchy,
-      d_quat_scratch_id,
       diff_id,
       d_quat_grad_side_id,
       time,

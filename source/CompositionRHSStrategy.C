@@ -104,7 +104,7 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(
    const hier::Index glo(gbox.lower());
    for(int i=0;i<NDIM;i++)assert( glo(i)==plo(i) );
    
-   for ( int i = 0; i < bdry.size(); i++ ) {
+   for ( size_t i = 0; i < bdry.size(); i++ ) {
    
       const int locind=bdry[i].getLocationIndex();
       const int dir =locind>>1;

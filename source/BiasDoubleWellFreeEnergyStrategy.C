@@ -90,6 +90,10 @@ void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_l;
+   (void) use_internal_units;
+
    d2fdc2.assign( d2fdc2.size(), 0. );
 }
 
@@ -101,6 +105,10 @@ void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_a;
+   (void) use_internal_units;
+
    d2fdc2.assign( d2fdc2.size(), 0. );
 }
 
@@ -112,5 +120,9 @@ void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_b;
+   (void) use_internal_units;
+
    d2fdc2.assign( d2fdc2.size(), 0. );
 }

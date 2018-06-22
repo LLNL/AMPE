@@ -142,8 +142,8 @@ public :
       boost::shared_ptr<tbox::Database> main_input_db );
 
    void checkInputFileDimensions(
-      const int nx_file, const int ny_file, const int nz_file,
-      const int qlen_file );
+      const size_t nx_file, const size_t ny_file, const size_t nz_file,
+      const size_t qlen_file );
 
    void WriteInitialConditionsFile( void );
 
@@ -161,7 +161,7 @@ public :
    
    template <typename T>
    void initializePatchFromData(
-      boost::shared_ptr<hier::Patch > patch, unsigned islice,
+      boost::shared_ptr<hier::Patch > patch, size_t islice,
 #ifdef HAVE_NETCDF3
       netCDF::NcVar* ncPhase,
       netCDF::NcVar* ncEta,
@@ -294,14 +294,12 @@ public :
 
    void computeQuatGradCell(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      int& quat_id,
       int& diffs_id,
       int& grad_cell_id,
       const double time,
       const CACHE_TYPE cache = CACHE );
    void computeQuatGradCell(
       const boost::shared_ptr< hier::PatchLevel > patch_level,
-      int& quat_id,
       int& diffs_id,
       int& grad_cell_id,
       const double time );
@@ -574,7 +572,7 @@ private :
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const double time );
    void initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryDatabase>& quat_db);
-   void initializeCompositionRHSStrategy(boost::shared_ptr<tbox::Database> conc_db);
+   void initializeCompositionRHSStrategy();
 
    QuatModelParameters d_model_parameters;
 

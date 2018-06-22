@@ -37,9 +37,6 @@
 
 using namespace std;
 
-static double testT0=300.;
-static double testT1=3000.;
-
 void CALPHADSpeciesPhaseGibbsEnergy::initialize(const string& name, 
    boost::shared_ptr<tbox::Database> db)
 {
@@ -165,11 +162,11 @@ void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os,
    const double T0, const double T1)
 {
    const double dT=10.;
-   const int npts=trunc((T1-T0)/dT);
+   const int npts=(int)trunc((T1-T0)/dT);
    os<<"# fenergy(J/mol) vs. T(K) for species "<<d_name<<endl;
    for(int i=0;i<npts;i++)
    {
-       double testT=testT0+dT*i;
+       double testT=T0+dT*i;
        os<<testT<<'\t';
        os<<fenergy(testT)<<endl;
    }

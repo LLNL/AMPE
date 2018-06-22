@@ -113,7 +113,6 @@ void SimpleQuatGradStrategy::computeDiffs(
 
 void SimpleQuatGradStrategy::computeGradCell(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& quat_id,
    int& diffs_id,
    int& grad_id,
    const double time,
@@ -125,7 +124,6 @@ void SimpleQuatGradStrategy::computeGradCell(
 
    d_quat_model->computeQuatGradCell(
       hierarchy,
-      quat_id,
       diffs_id,
       grad_id,
       time,
@@ -136,7 +134,6 @@ void SimpleQuatGradStrategy::computeGradCell(
 
 void SimpleQuatGradStrategy::computeGradCell(
    const boost::shared_ptr< hier::PatchLevel > patch_level,
-   int& quat_id,
    int& diffs_id,
    int& grad_id,
    const double time )
@@ -145,7 +142,6 @@ void SimpleQuatGradStrategy::computeGradCell(
 
    d_quat_model->computeQuatGradCell(
       patch_level,
-      quat_id,
       diffs_id,
       grad_id,
       time );
@@ -155,7 +151,6 @@ void SimpleQuatGradStrategy::computeGradCell(
 
 void SimpleQuatGradStrategy::computeGradSide(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& quat_id,
    int& diffs_id,
    int& grad_id,
    const double time,
@@ -177,7 +172,6 @@ void SimpleQuatGradStrategy::computeGradSide(
 
 void SimpleQuatGradStrategy::computeGradSide(
    const boost::shared_ptr< hier::PatchLevel > patch_level,
-   int& quat_id,
    int& diffs_id,
    int& grad_id,
    const double time )

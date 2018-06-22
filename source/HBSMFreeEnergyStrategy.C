@@ -733,6 +733,8 @@ void HBSMFreeEnergyStrategy::addComponentRhsPhi(
    const int f_b_id,
    const int rhs_id )
 {
+   (void) time;
+
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );
    assert( f_l_id >= 0 );
@@ -997,6 +999,8 @@ void HBSMFreeEnergyStrategy::addComponentRhsEta(
    const int f_b_id,
    const int rhs_id )
 {
+   (void) time;
+
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );
    assert( f_l_id >= 0 );
@@ -1363,6 +1367,8 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+
    assert( c_l.size()==1 );
    d2fdc2[0] = 2.*d_A_liquid;
    if( use_internal_units )
@@ -1377,6 +1383,8 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+
    assert( c_a.size()==1 );
    d2fdc2[0] = 2.*d_A_solid_A;
    if( use_internal_units )
@@ -1391,6 +1399,8 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+
    assert( c_b.size()==1 );
    d2fdc2[0] = 2.*d_A_solid_B;
    if( use_internal_units )

@@ -1204,6 +1204,12 @@ QuatFACOps::ewingFixFlux(
    pdat::SideData<double> &            flux_data,
    const hier::IntVector &     ratio_to_coarser ) const
 {
+   (void) patch;
+   (void) soln_data;
+   (void) face_coef_data;
+   (void) flux_data;
+   (void) ratio_to_coarser;
+
    TBOX_ERROR("QuatFACOps::ewingFixFlux) not implemented!!!\n");
 #if 0
    const int patch_ln = patch.getPatchLevelNumber();

@@ -181,18 +181,6 @@ QuatSysSolver::getFromInput(const boost::shared_ptr<tbox::Database>& input_db )
 }
 
 
-void QuatSysSolver::initializeLevelData(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int level_number,
-   const double time,
-   const bool can_be_refined,
-   const bool initial_time,
-   const boost::shared_ptr<hier::PatchLevel > old_level,
-   const bool allocate_data )
-{
-}
-
-
 /*************************************************************************
 *                                                                       *
 * Prepare internal data for solve.                                      *

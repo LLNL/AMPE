@@ -69,14 +69,12 @@ public:
 
    virtual void computeGradCell(
       const boost::shared_ptr<hier::PatchLevel > patch_level,
-      int& quat_id,
       int& diffs_id,
       int& grad_id,
       const double time ) = 0;
 
    virtual void computeGradCell(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& quat_id,
       int& diffs_id,
       int& grad_id,
       const double time,
@@ -84,14 +82,12 @@ public:
 
    virtual void computeGradSide(
       const boost::shared_ptr<hier::PatchLevel > patch_level,
-      int& quat_id,
       int& diffs_id,
       int& grad_id,
       const double time ) = 0;
 
    virtual void computeGradSide(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& quat_id,
       int& diffs_id,
       int& grad_id,
       const double time,

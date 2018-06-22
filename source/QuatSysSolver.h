@@ -164,16 +164,6 @@ public:
     */
    ~QuatSysSolver(void);
 
-   void initializeLevelData(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      const int level_number,
-      const double time,
-      const bool can_be_refined,
-      const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel > old_level =
-         boost::shared_ptr<hier::PatchLevel >(),
-      const bool allocate_data = true );
-
    /*
     * Prepare the solver's internal state for solving
     *

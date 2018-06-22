@@ -84,6 +84,7 @@ double TemperatureFreeEnergyStrategy::computeValFreeEnergyLiquid(
    const bool gp )
 {
    (void) conc;  // unused
+   (void) gp;
    return d_f_a + d_latent_heat*(d_meltingT-temperature)*d_invMeltingT;
 }
 
@@ -97,7 +98,8 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
 {
    assert( fl_id>=0 );
    (void) temperature_id;  // unused
- 
+   (void) gp;
+
    for (int ln=0; ln<=hierarchy->getFinestLevelNumber(); ln++) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel(ln);
@@ -132,7 +134,8 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
 {
    assert( fl_id>=0 );
    (void) temperature_id;  // unused
- 
+   (void) gp;
+
    const hier::Box& pbox = patch.getBox();
  
    boost::shared_ptr< pdat::CellData<double> > fl (
@@ -159,6 +162,7 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
 {
    assert( fs_id>=0 );
    (void) temperature_id;  // unused
+   (void) gp;
 
    for (int ln=0; ln<=hierarchy->getFinestLevelNumber(); ln++) {
       boost::shared_ptr< hier::PatchLevel > level =
@@ -186,6 +190,7 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
 {
    assert( fs_id>=0 );
    (void) temperature_id;  // unused
+   (void) gp;
 
    boost::shared_ptr< pdat::CellData<double> > fs (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fs_id) ) );
@@ -204,6 +209,7 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
 {
    assert( fs_id>=0 );
    (void) temperature_id;  // unused
+   (void) gp;
 
    for (int ln=0; ln<=hierarchy->getFinestLevelNumber(); ln++) {
       boost::shared_ptr< hier::PatchLevel > level =
@@ -231,14 +237,13 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
 {
    assert( fs_id>=0 );
    (void) temperature_id;  // unused
+   (void) gp;
 
    boost::shared_ptr< pdat::CellData<double> > fs (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fs_id) ) );
    assert( fs );
  
-   fs->fillAll( d_f_b );
-   
-   
+   fs->fillAll( d_f_b );   
 }
 
 //=======================================================================
@@ -262,6 +267,7 @@ void TemperatureFreeEnergyStrategy::addComponentRhsPhi(
    if ( d_with_third_phase ) {
       assert( eta_id >= 0 );
    }
+   (void) time;
    (void) conc_id;  // unused
    (void) temperature_id;  // unused
 
@@ -338,6 +344,7 @@ void TemperatureFreeEnergyStrategy::addComponentRhsEta(
    assert( f_a_id >= 0 );
    assert( f_b_id >= 0 );
    assert( rhs_id >= 0 );
+   (void) time;
    (void) conc_id;  // unused
    (void) temperature_id;  // unused
 
@@ -395,6 +402,11 @@ void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_l;
+   (void) d2fdc2;
+   (void) use_internal_units;
+
    return;
 }
 
@@ -406,6 +418,11 @@ void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_a;
+   (void) d2fdc2;
+   (void) use_internal_units;
+
    return;
 }
 
@@ -417,5 +434,10 @@ void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
+   (void) temp;
+   (void) c_b;
+   (void) d2fdc2;
+   (void) use_internal_units;
+
    return;
 }

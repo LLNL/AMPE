@@ -59,25 +59,32 @@ void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
    assert( d_Tm>0. );
    assert( d_L>0. );
 
+   (void) time;
+   (void) eta_id;
    (void) conc_id;  // unused
    (void) f_l_id; // unused
    (void) f_a_id; // unused
+   (void) f_b_id; // unused
 
-   //tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi()..."<<endl;
+   //tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi()..."
+   //           <<endl;
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(phase_id) ) );
    assert( phase );
 
    boost::shared_ptr< pdat::CellData<double> > temp (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(temperature_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(temperature_id) ) );
    assert( temp );
 
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( rhs_id) ) );
    assert( rhs );
 
-   assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+   assert( rhs->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
 
    const hier::Box& pbox = patch.getBox();
    const hier::Index& ifirst = pbox.lower();

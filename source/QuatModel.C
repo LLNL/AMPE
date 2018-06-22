@@ -324,8 +324,7 @@ void QuatModel::initializeAmr(boost::shared_ptr<tbox::Database> amr_db)
 
 //=======================================================================
 
-void QuatModel::initializeCompositionRHSStrategy(
-   boost::shared_ptr<tbox::Database> conc_db)
+void QuatModel::initializeCompositionRHSStrategy()
 {
    if ( d_model_parameters.concRHSstrategyIsKKS() ){
       d_composition_rhs_strategy =
@@ -356,7 +355,7 @@ void QuatModel::initializeCompositionRHSStrategy(
          new EBSCompositionRHSStrategy(
             d_phase_scratch_id,
             d_eta_scratch_id,
-            d_ncompositions,
+            static_cast<unsigned short>(d_ncompositions),
             d_conc_l_scratch_id,
             d_conc_a_scratch_id,
             d_conc_b_scratch_id,
@@ -652,11 +651,11 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                new CompositionStrategyMobilities(
                   d_calphad_db,
                   (d_eta_scratch_id>-1),
-                  d_ncompositions,
+                  static_cast<unsigned short>(d_ncompositions),
                   d_free_energy_strategy );
             d_diffusion_for_conc_in_phase=
                new DiffusionForConcInPhaseStrategy(
-                  d_ncompositions,
+                  static_cast<unsigned short>(d_ncompositions),
                   d_conc_l_scratch_id,
                   d_conc_a_scratch_id,
                   d_conc_b_scratch_id,
@@ -684,14 +683,14 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          }
       }
 
-      initializeCompositionRHSStrategy(conc_db);
+      initializeCompositionRHSStrategy();
  
    } // d_model_parameters.with_concentration()
    else if( d_model_parameters.with_heat_equation() ){
       if( d_model_parameters.with_bias_well() ){
          d_meltingT_strategy =
-            new ConstantMeltingTemperatureStrategy(Tref,
-                                                   d_equilibrium_temperature_id);
+            new ConstantMeltingTemperatureStrategy(
+               Tref, d_equilibrium_temperature_id);
          
          d_free_energy_strategy =
             new BiasDoubleWellUTRCFreeEnergyStrategy(
@@ -1380,7 +1379,7 @@ void QuatModel::initializeLevelFromData(
 #endif
    tbox::plog<<"Opened NetCDF file "<<d_init_data_filename<<endl;
 
-   int qlen_file = 999;
+   size_t qlen_file = 999;
 #ifdef HAVE_NETCDF3 
    NcVar* ncPhase = ncf.get_var( "phase" );
    if ( ncPhase == NULL ) {
@@ -1569,15 +1568,13 @@ void QuatModel::initializeLevelFromData(
          float* vals = new float[patch_box.size()];
       
          initializePatchFromData(*p,islice, ncPhase,
-                                 ncEta, ncTemp, ncQuatComponents, ncConcComponents,
-                                 vals);
+            ncEta, ncTemp, ncQuatComponents, ncConcComponents, vals);
          delete[] vals;
       }else{
          double* vals = new double[patch_box.size()];
       
          initializePatchFromData(*p,islice, ncPhase,
-                                 ncEta, ncTemp, ncQuatComponents, ncConcComponents,
-                                 vals);
+             ncEta, ncTemp, ncQuatComponents, ncConcComponents, vals);
       
          delete[] vals;
       }
@@ -1600,7 +1597,7 @@ void QuatModel::initializeLevelFromData(
    
 template <typename T>
 void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
-                                        unsigned islice,
+                                        size_t islice,
 #ifdef HAVE_NETCDF3
                                         NcVar* ncPhase,
                                         NcVar* ncEta,
@@ -1624,7 +1621,10 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       int nz = 1;
       int x_lower = patch_box.lower( 0 );
       int y_lower = patch_box.lower( 1 );
-      int z_lower = islice;
+      int z_lower = static_cast<int>(islice);
+      assert( x_lower>=0 );
+      assert( y_lower>=0 );
+
 #if (NDIM == 3)
       nz = patch_box.numberCells( 2 );
       z_lower = patch_box.lower( 2 );
@@ -1643,7 +1643,8 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
       // initialize phase
       if ( d_model_parameters.with_phase() ) {
          boost::shared_ptr< pdat::CellData<double> > phase_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_phase_id) ) );
          assert( phase_data );
 
 #ifdef HAVE_NETCDF3
@@ -1813,6 +1814,7 @@ void QuatModel::initializePatchFromData(boost::shared_ptr<hier::Patch > patch,
                int iz = ccell(2) - z_lower;
                int idx = nx * ny * iz + nx * iy + ix;
 #endif
+               if( vals[idx]>1. )cerr<<idx<<", vals[idx]="<<vals[idx]<<endl;
                assert( vals[idx]<=1. );
                assert( vals[idx]>=0. );
                (*conc_data)(ccell,cc) = vals[idx];
@@ -3266,7 +3268,7 @@ bool QuatModel::computeCeq(const double temperature,
 
    if( d_model_parameters.knownInitCinPhase() ){
       const unsigned int offset=d_ncompositions;
-      for(unsigned int ic=0;ic<d_ncompositions;ic++){
+      for(int ic=0;ic<d_ncompositions;ic++){
          lceq[       ic]=d_model_parameters.getInitCphaseL(ic);
          lceq[offset+ic]=d_model_parameters.getInitCphaseA(ic);
       }
@@ -4356,7 +4358,6 @@ void QuatModel::applyGradientDetector(
 
       computeQuatGradCell(
          level,
-         d_quat_scratch_id,
          d_quat_diffs_id,
          d_quat_grad_cell_id,
          time );
@@ -4529,16 +4530,16 @@ void QuatModel::readInitialDatabase(
 //=======================================================================
 
 void QuatModel::checkInputFileDimensions(
-   const int nx_file, const int ny_file, const int nz_file,
-   const int qlen_file )
+   const size_t nx_file, const size_t ny_file, const size_t nz_file,
+   const size_t qlen_file )
 {
    hier::Box domain_box =
       d_grid_geometry->getPhysicalDomain().front();
    domain_box.refine( d_ratio_of_init_to_coarsest );
 
-   int nx_prob = domain_box.numberCells( 0 );
-   int ny_prob = domain_box.numberCells( 1 );
-   int nz_prob = nz_file;
+   size_t nx_prob = domain_box.numberCells( 0 );
+   size_t ny_prob = domain_box.numberCells( 1 );
+   size_t nz_prob = nz_file;
 #if (NDIM == 3)
    nz_prob = domain_box.numberCells( 2 );
 #endif
@@ -4546,8 +4547,7 @@ void QuatModel::checkInputFileDimensions(
    if ( nx_file != nx_prob ||
         ny_file != ny_prob ||
         nz_file != nz_prob ||
-        qlen_file < d_qlen ) {
-
+        static_cast<int>(qlen_file) < d_qlen ) {
       TBOX_ERROR(
          "Phase input data dimensions are incorrect"
          << ", nx_file=" << nx_file
@@ -5814,7 +5814,6 @@ void QuatModel::computeQuatDiffs(
 
 void QuatModel::computeQuatGradCell(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& quat_id,
    int& quat_diffs_id,
    int& grad_cell_id,
    const double time,
@@ -5831,13 +5830,12 @@ void QuatModel::computeQuatGradCell(
          hierarchy->getPatchLevel( ln );
 
       computeQuatGradCell(
-         patch_level, quat_id, quat_diffs_id, grad_cell_id, time );
+         patch_level, quat_diffs_id, grad_cell_id, time );
    }
 }
 
 void QuatModel::computeQuatGradCell(
    const boost::shared_ptr< hier::PatchLevel > level,
-   int& quat_id,
    int& quat_diffs_id,
    int& grad_cell_id,
    const double time )
@@ -7113,7 +7111,6 @@ void QuatModel::evaluateEnergy(
       // Compute gradients on cell faces
       d_quat_grad_strategy->computeGradSide(
          hierarchy,
-         d_quat_scratch_id,
          diff_id,
          d_quat_grad_side_id,
          time,

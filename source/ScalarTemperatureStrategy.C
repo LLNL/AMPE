@@ -58,6 +58,8 @@ double ScalarTemperatureStrategy::getCurrentMaxTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void) patch_hierarchy;
+
    return getCurrentTemperature(time);
 }
 
@@ -65,6 +67,8 @@ double ScalarTemperatureStrategy::getCurrentMinTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void) patch_hierarchy;
+
    return getCurrentTemperature(time);
 }
 
@@ -72,6 +76,8 @@ double ScalarTemperatureStrategy::getCurrentAverageTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void) patch_hierarchy;
+
    return getCurrentTemperature(time);
 }
 

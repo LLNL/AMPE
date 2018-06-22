@@ -78,7 +78,8 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    //loop over species
    //tbox::pout<<"Setting up Heat capacity using "<<d_cp.size()<<"species"<<endl;
    short isp=0;
-   for(vector< map<short,double> >::iterator it=d_cp.begin(); it!=d_cp.end(); ++it)
+   for(vector< map<short,double> >::iterator it=d_cp.begin();
+                                            it!=d_cp.end(); ++it)
    {
       //loop over expansion powers
       short ip=0;
@@ -114,11 +115,14 @@ void NKRHeatCapacityStrategy::setCurrentValue(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > conc (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_composition_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_composition_id) ) );
          boost::shared_ptr< pdat::CellData<double> > temp (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_temperature_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cp (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_cp_id) ) );
          assert( conc );
          assert( temp );
          assert( cp );
@@ -132,8 +136,8 @@ void NKRHeatCapacityStrategy::setCurrentValue(
             conc->getPointer(), conc->getGhostCellWidth()[0],
             temp->getPointer(), temp->getGhostCellWidth()[0],
             cp->getPointer(),  cp->getGhostCellWidth()[0],
-            cp_powers, npowers,
-            cp_coeffs, ncoeffs);
+            cp_powers, static_cast<int>(npowers),
+            cp_coeffs, static_cast<int>(ncoeffs));
 
 #ifdef DEBUG_CHECK_ASSERTIONS
             math::PatchCellDataBasicOps<double> mathops;
