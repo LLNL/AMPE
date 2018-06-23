@@ -125,15 +125,15 @@ void HBSMequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPat
    kp_c_i = jp_c_i * c_i_gbox.numberCells(1);
 #endif
 
-   int imin = pbox.lower(0);
-   int imax = pbox.upper(0);
-   int jmin = pbox.lower(1);
-   int jmax = pbox.upper(1);
+   int imin = c_i_gbox.lower(0);
+   int imax = c_i_gbox.upper(0);
+   int jmin = c_i_gbox.lower(1);
+   int jmax = c_i_gbox.upper(1);
    int kmin = 0;
    int kmax = 0;
 #if (NDIM == 3)
-   kmin = pbox.lower(2);
-   kmax = pbox.upper(2);
+   kmin = c_i_gbox.lower(2);
+   kmax = c_i_gbox.upper(2);
 #endif
          
    for ( int kk = kmin; kk <= kmax; kk++ ) {

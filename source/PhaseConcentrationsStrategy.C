@@ -88,11 +88,13 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          boost::shared_ptr<hier::Patch > patch = *p;
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( temperature_id) ) );
          assert( temperature );
          
          boost::shared_ptr< pdat::CellData<double> > phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phase_id) ) );
          assert( phi );
 #ifdef DEBUG_CHECK_ASSERTIONS
          const hier::Box& pbox = patch->getBox();
@@ -106,26 +108,29 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          
          boost::shared_ptr< pdat::CellData<double> > eta;
          if ( d_with_third_phase ) {
-            eta = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>( patch->getPatchData( eta_id ));
+            eta = BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
+                     patch->getPatchData( eta_id ));
          }
 
          boost::shared_ptr< pdat::CellData<double> > concentration (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( concentration_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( concentration_id) ) );
          assert( concentration );
 
          boost::shared_ptr< pdat::CellData<double> > c_l (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_l_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_conc_l_id) ) );
          assert( c_l );
          
          boost::shared_ptr< pdat::CellData<double> > c_a (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_a_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_conc_a_id) ) );
          assert( c_a );
          
          boost::shared_ptr< pdat::CellData<double> > c_b;
          if ( d_with_third_phase ) {
-            c_b = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>( patch->getPatchData( d_conc_b_id )); 
+            c_b = BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
+                     patch->getPatchData( d_conc_b_id )); 
             assert( c_b );
          }
 

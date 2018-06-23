@@ -84,14 +84,16 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(
    const int flux_id)
 {
    boost::shared_ptr< geom::CartesianPatchGeometry > pg (
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(
+         patch.getPatchGeometry()) );
 
    // Get face boundary boxes.
    const std::vector< hier::BoundaryBox > bdry =
       pg->getCodimensionBoundaries(1);
 
    boost::shared_ptr< pdat::SideData<double> > flux (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
+         patch.getPatchData( flux_id) ) );
    assert( flux );
 
    const hier::Box& gbox=flux->getGhostBox();
@@ -111,7 +113,7 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(
       const int side=locind&1;
       if( pg->getTouchesRegularBoundary(dir,side) )
       {
-         //cout<<"EBSCompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch"
+         //cout<<"CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch"
          //          <<" for side "<<side<<" in direction "<<dir<<endl;
 
          hier::Index gup(gbox.upper());

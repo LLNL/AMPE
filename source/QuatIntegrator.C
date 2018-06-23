@@ -1073,11 +1073,13 @@ void QuatIntegrator::RegisterVariables(
 void QuatIntegrator::RegisterLocalVisitVariables()
 {
    if( d_model_parameters.with_rhs_visit_output() ){
-      hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+      hier::VariableDatabase* variable_db =
+         hier::VariableDatabase::getDatabase();
 
       if ( d_with_phase ) {
          d_phase_rhs_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_phase_rhs_visit_", 1 ));
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_phase_rhs_visit_", 1 ));
          d_phase_rhs_visit_id =
             variable_db->registerVariableAndContext(
                d_phase_rhs_visit_var,
@@ -1088,7 +1090,8 @@ void QuatIntegrator::RegisterLocalVisitVariables()
       }
       if( d_with_heat_equation ) {
          d_temperature_rhs_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_temperature_rhs_visit_", 1 ));
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_temperature_rhs_visit_", 1 ));
          d_temperature_rhs_visit_id =
             variable_db->registerVariableAndContext(
                d_temperature_rhs_visit_var,
@@ -1099,7 +1102,8 @@ void QuatIntegrator::RegisterLocalVisitVariables()
       }
       if ( d_with_orientation ) {
          d_modulus_q_rhs_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_modulus_q_rhs_visit_", 1 ));
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_modulus_q_rhs_visit_", 1 ));
          d_modulus_q_rhs_visit_id =
             variable_db->registerVariableAndContext(
                d_modulus_q_rhs_visit_var,
@@ -1109,7 +1113,8 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          d_local_data.setFlag( d_modulus_q_rhs_visit_id );
 
          d_q_rhs_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_q_rhs_visit_", d_qlen ));
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_q_rhs_visit_", d_qlen ));
          d_q_rhs_visit_id =
             variable_db->registerVariableAndContext(
                d_q_rhs_visit_var,
@@ -1119,7 +1124,8 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          d_local_data.setFlag( d_q_rhs_visit_id );
 
          d_q_rhs1_visit_var.reset (
-            new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_q_rhs1_visit_", 1 ));
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_q_rhs1_visit_", 1 ));
          d_q_rhs1_visit_id =
             variable_db->registerVariableAndContext(
                d_q_rhs1_visit_var,
@@ -1318,37 +1324,38 @@ void QuatIntegrator::setupBC()
       if ( d_with_phase ) {
          boost::shared_ptr<tbox::Database> phase_bc_db =
             d_boundary_cond_db->getDatabase( "Phase" );
-         d_phase_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"PhaseBcCoefs", phase_bc_db );
+         d_phase_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+               tbox::Dimension(NDIM),"PhaseBcCoefs", phase_bc_db );
          setBChomogeneous(d_phase_bc_coefs);
       }
       if ( d_with_concentration ) {
          boost::shared_ptr<tbox::Database> conc_bc_db =
             d_boundary_cond_db->getDatabase( "Conc" );
-         d_conc_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"ConcBcCoefs", conc_bc_db );
+         d_conc_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+               tbox::Dimension(NDIM),"ConcBcCoefs", conc_bc_db );
          setBChomogeneous(d_conc_bc_coefs);
       }
       if ( d_with_orientation ) {
          boost::shared_ptr<tbox::Database> quat_bc_db =
             d_boundary_cond_db->getDatabase( "Quat" );
-         d_quat_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"QuatBcCoefs", quat_bc_db );
+         d_quat_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+            tbox::Dimension(NDIM),"QuatBcCoefs", quat_bc_db );
          setBChomogeneous(d_quat_bc_coefs);
       }
       if ( d_with_third_phase ) {
          boost::shared_ptr<tbox::Database> eta_bc_db =
             d_boundary_cond_db->getDatabase( "Eta" );
-         d_eta_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"EtaBcCoefs", eta_bc_db );
+         d_eta_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+            tbox::Dimension(NDIM),"EtaBcCoefs", eta_bc_db );
          setBChomogeneous(d_eta_bc_coefs);
       }
       if( d_with_unsteady_temperature ){
-         boost::shared_ptr<tbox::Database> temp_bc_db = d_boundary_cond_db->isDatabase( "TemperatureCorrections" ) ?
+         boost::shared_ptr<tbox::Database> temp_bc_db =
+            d_boundary_cond_db->isDatabase( "TemperatureCorrections" ) ?
             d_boundary_cond_db->getDatabase( "TemperatureCorrections" ) :
             d_boundary_cond_db->getDatabase( "Temperature" );
-         d_temperature_bc_coefs
-            =new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),"LSTemperatureBcCoefs", temp_bc_db );
+         d_temperature_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+            tbox::Dimension(NDIM),"LSTemperatureBcCoefs", temp_bc_db );
          setBChomogeneous(d_temperature_bc_coefs);
       }
    }
@@ -3588,11 +3595,16 @@ void QuatIntegrator::setCoefficients(
 
    boost::shared_ptr<hier::PatchHierarchy > hierarchy = y->getPatchHierarchy();
 
-   int phase_id = d_with_phase         ? y->getComponentDescriptorIndex( d_phase_component_index ): -1;
-   int eta_id   = d_with_third_phase   ? y->getComponentDescriptorIndex( d_eta_component_index   ): -1;
-   int quat_id  = d_with_orientation   ? y->getComponentDescriptorIndex( d_quat_component_index  ): -1;
-   int conc_id  = d_with_concentration ? y->getComponentDescriptorIndex( d_conc_component_index  ): -1;
-   int temperature_id  = d_with_unsteady_temperature ? y->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
+   int phase_id = d_with_phase         ?
+                  y->getComponentDescriptorIndex(d_phase_component_index): -1;
+   int eta_id   = d_with_third_phase   ?
+                  y->getComponentDescriptorIndex(d_eta_component_index  ): -1;
+   int quat_id  = d_with_orientation   ?
+                  y->getComponentDescriptorIndex(d_quat_component_index ): -1;
+   int conc_id  = d_with_concentration ?
+                  y->getComponentDescriptorIndex(d_conc_component_index ): -1;
+   int temperature_id  = d_with_unsteady_temperature ?
+            y->getComponentDescriptorIndex(d_temperature_component_index): -1;
 #ifdef DEBUG_CHECK_ASSERTIONS
    if( temperature_id>=0 ){
       math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
@@ -3622,8 +3634,10 @@ void QuatIntegrator::setCoefficients(
       if( d_compute_velocity ){
          int phase_diffs_id=-1;
          int phase_grad_cell_id=-1;
-         d_quat_model->computePhaseDiffs(hierarchy,d_phase_scratch_id,phase_diffs_id,time);
-         d_quat_model->computePhaseGradCell(hierarchy,phase_diffs_id,phase_grad_cell_id,time);
+         d_quat_model->computePhaseDiffs(
+            hierarchy,d_phase_scratch_id,phase_diffs_id,time);
+         d_quat_model->computePhaseGradCell(
+            hierarchy,phase_diffs_id,phase_grad_cell_id,time);
       }
    }
 
@@ -3641,38 +3655,31 @@ void QuatIntegrator::setCoefficients(
    }
 
    if ( d_with_concentration ) {
-      computePhaseConcentrations(hierarchy, y);
+      computePhaseConcentrations(hierarchy);
    }
    
    t_set_coeff_timer->stop();
 }
 
 void QuatIntegrator::computePhaseConcentrations(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   boost::shared_ptr< solv::SAMRAIVectorReal<double> > y)
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
    assert( d_phase_conc_strategy!=NULL );
 
    t_phase_conc_timer->start();
  
-   int phase_id = d_with_phase         ? y->getComponentDescriptorIndex( d_phase_component_index ): -1;
-   int eta_id   = d_with_third_phase   ? y->getComponentDescriptorIndex( d_eta_component_index   ): -1;
-   int conc_id  = d_with_concentration ? y->getComponentDescriptorIndex( d_conc_component_index  ): -1;
-   int temperature_id  = d_with_unsteady_temperature ? y->getComponentDescriptorIndex( d_temperature_component_index  ): d_temperature_id;
-   
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
-   assert( cellops.max(phase_id)==cellops.max(phase_id) );
-   double maxphi=cellops.max(phase_id);
-   double minphi=cellops.min(phase_id);
+   assert( cellops.max(d_phase_scratch_id)==cellops.max(d_phase_scratch_id) );
+   double maxphi=cellops.max(d_phase_scratch_id);
+   double minphi=cellops.min(d_phase_scratch_id);
    assert( maxphi>=0. );
    assert( maxphi<1.1 );
    assert( minphi>=-0.1 );
    assert( minphi<=1. );
-   double maxc=cellops.max(conc_id);
+   double maxc=cellops.max(d_conc_scratch_id);
    assert( maxc==maxc );
 #endif
-
 
    //tbox::pout<<"Evaluate k..."<<endl;
    if( d_with_partition_coeff ){
@@ -3682,18 +3689,18 @@ void QuatIntegrator::computePhaseConcentrations(
    }
    
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( cellops.max(phase_id)==cellops.max(phase_id) );
+   assert( cellops.max(d_phase_scratch_id)==cellops.max(d_phase_scratch_id) );
 #endif
 
+   //phase concentrations are computed for ghost values too,
+   //so data with ghosts is needed for phase, conc and temperature
    d_phase_conc_strategy->computePhaseConcentrations(
       hierarchy,
-      temperature_id,
-      phase_id,
-      eta_id,
-      conc_id );
+      d_temperature_scratch_id,
+      d_phase_scratch_id,
+      d_eta_scratch_id,
+      d_conc_scratch_id );
    
-   d_quat_model->fillPhaseConcentrationGhosts();
-
    t_phase_conc_timer->stop();
 }
 
@@ -3752,9 +3759,10 @@ int QuatIntegrator::evaluateRHSFunction(
 #endif
 
    /* 
-      If fd_flag != 0, the integrator is calling this function to compute a finite difference
-      approximation of the system Jacobian.  In this case, if d_lag_quat_sidegrad is
-      true, we lag the computation of the quaternion side gradients.
+      If fd_flag != 0, the integrator is calling this function to compute a
+      finite difference approximation of the system Jacobian. In this case,
+      if d_lag_quat_sidegrad is true, we lag the computation of the quaternion
+      side gradients.
    */
    const bool recompute_quat_sidegrad = (fd_flag == 0) || !d_lag_quat_sidegrad;
 
@@ -3769,11 +3777,11 @@ int QuatIntegrator::evaluateRHSFunction(
 
    setCoefficients( time, y_samvect, recompute_quat_sidegrad );
    
-
    // Set the phase component of the RHS
    int ydot_phase_id = -1;
    if ( d_with_phase ) {
-      ydot_phase_id = y_dot_samvect->getComponentDescriptorIndex( d_phase_component_index );
+      ydot_phase_id = y_dot_samvect->getComponentDescriptorIndex(
+                         d_phase_component_index );
 
       bool need_iterate=false; // is a fixed point iteration needed?
       math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -3816,7 +3824,7 @@ int QuatIntegrator::evaluateRHSFunction(
          
          //compute phase concentrations again if they depend on velocity
          //tbox::pout<<"Evaluate c_L, c_S..."<<endl;
-         computePhaseConcentrations( hierarchy, y_samvect );
+         computePhaseConcentrations( hierarchy );
       }
       
       }while(need_iterate);

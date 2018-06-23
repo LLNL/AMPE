@@ -556,8 +556,7 @@ private :
       const bool recompute_quat_sidegrad );
 
    void createSundialsSolver();
-   void computePhaseConcentrations(const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      boost::shared_ptr< solv::SAMRAIVectorReal<double> > y);
+   void computePhaseConcentrations(const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
    virtual void setupPreconditionersConcentration(boost::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersPhase(boost::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersEta(boost::shared_ptr<tbox::Database> integrator_db);

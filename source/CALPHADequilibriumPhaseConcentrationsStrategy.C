@@ -40,9 +40,9 @@
 using namespace std;
 
 CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrationsStrategy(
-      const int conc_l_id,
-      const int conc_a_id,
-      const int conc_b_id,
+      const int conc_l_scratch_id,
+      const int conc_a_scratch_id,
+      const int conc_b_scratch_id,
       const int conc_l_ref_id,
       const int conc_a_ref_id,
       const int conc_b_ref_id,
@@ -59,9 +59,9 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       boost::shared_ptr<tbox::Database> newton_db,
       const unsigned ncompositions):
    PhaseConcentrationsStrategy(
-      conc_l_id,
-      conc_a_id,
-      conc_b_id,
+      conc_l_scratch_id,
+      conc_a_scratch_id,
+      conc_b_scratch_id,
       with_third_phase),
    d_conc_l_ref_id(conc_l_ref_id),
    d_conc_a_ref_id(conc_a_ref_id),
@@ -105,6 +105,8 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    assert( d_calphad_fenergy!=NULL );
    assert( cd_conc->getDepth()==cd_cl->getDepth() );
    assert( cd_conc->getDepth()==cd_ca->getDepth() );
+   assert( cd_cl->getGhostCellWidth()[0]<=cd_te->getGhostCellWidth()[0] );
+   assert( cd_cl->getGhostCellWidth()[0]<=cd_pf->getGhostCellWidth()[0] );
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchCellDataNormOpsReal<double> cops;
    double l2n=cops.L2Norm(cd_conc,patch->getBox());
@@ -179,11 +181,13 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    inc_k_ci = inc_j_ci * ci_gbox.numberCells(1);
 #endif
 
-   int imin[3] = {pbox.lower(0),pbox.lower(1),0};
-   int imax[3] = {pbox.upper(0),pbox.upper(1),0};
+   //loop indexes are based on internal compositions
+   //ghost boxes since we need to initialize their ghost values
+   int imin[3] = {ci_gbox.lower(0),ci_gbox.lower(1),0};
+   int imax[3] = {ci_gbox.upper(0),ci_gbox.upper(1),0};
 #if (NDIM == 3)
-   imin[2] = pbox.lower(2);
-   imax[2] = pbox.upper(2);
+   imin[2] = ci_gbox.lower(2);
+   imax[2] = ci_gbox.upper(2);
 #endif
          
    int N = 2*cd_conc->getDepth();
@@ -250,15 +254,16 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
 
          } // ii
 
-         idx_pf+=2*cd_pf->getGhostCellWidth()[0];
-         idx_te+=2*cd_te->getGhostCellWidth()[0];
-         idx_ci+=2*cd_cl->getGhostCellWidth()[0];
-
+         idx_pf+=2*(cd_pf->getGhostCellWidth()[0]
+                   -cd_cl->getGhostCellWidth()[0]);
+         idx_te+=2*(cd_te->getGhostCellWidth()[0]
+                   -cd_cl->getGhostCellWidth()[0]);
       } // jj
 
-      idx_pf+=2*inc_j_pf*cd_pf->getGhostCellWidth()[1];
-      idx_te+=2*inc_j_te*cd_te->getGhostCellWidth()[1];
-      idx_ci+=2*inc_j_ci*cd_cl->getGhostCellWidth()[1];
+      idx_pf+=2*inc_j_pf*(cd_pf->getGhostCellWidth()[1]
+                         -cd_cl->getGhostCellWidth()[1]);
+      idx_te+=2*inc_j_te*(cd_te->getGhostCellWidth()[1]
+                         -cd_cl->getGhostCellWidth()[1]);
    } // kk
 
    delete[] x;
