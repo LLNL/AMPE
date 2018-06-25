@@ -245,7 +245,8 @@ public:
     */
    int solveSystem( const int u ,
                     const int f ,
-                    bool homogeneous_bc=false );
+                    bool homogeneous_bc=false,
+                    bool initial_zero=false );
 
    /*!
     * @brief Return the number of iterations taken by the solver to converge.

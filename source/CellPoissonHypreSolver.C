@@ -318,6 +318,7 @@ void sqrtArray(
    const hier::Box dst_box  = dst.getBox();
    const hier::Box src_box = src.getBox();
    const hier::Box ibox = box * dst_box * src_box;
+   const tbox::Dimension dim(tbox::Dimension(NDIM));
 
    if (!ibox.empty()) {
 
@@ -325,7 +326,7 @@ void sqrtArray(
       int dst_w[NDIM];
       int src_w[NDIM];
       int dim_counter[NDIM];
-      for (tbox::Dimension::dir_t i = 0; i < NDIM; i++) {
+      for (tbox::Dimension::dir_t i = 0; i < dim.getValue(); i++) {
          box_w[i] = ibox.numberCells(i);
          dst_w[i] = dst_box.numberCells(i);
          src_w[i] = src_box.numberCells(i);
@@ -351,7 +352,7 @@ void sqrtArray(
 
          size_t dst_b[NDIM];
          size_t src_b[NDIM];
-         for (int nd = 0; nd < NDIM; nd++) {
+         for (int nd = 0; nd < dim.getValue(); nd++) {
             dst_b[nd] = dst_counter;
             src_b[nd] = src_counter;
          }
@@ -366,7 +367,7 @@ void sqrtArray(
             }
             int dim_jump = 0;
 
-            for (int j = 1; j < NDIM; j++) {
+            for (int j = 1; j < dim.getValue(); j++) {
                if (dim_counter[j] < box_w[j]-1) {
                   ++dim_counter[j];
                   dim_jump = j;
@@ -464,11 +465,10 @@ CellPoissonHypreSolver::CellPoissonHypreSolver(
    // Ghosts values needed (width of finite difference stencil)
    d_msqrt_var.reset( new
       pdat::CellVariable<double>(
-         tbox::Dimension(NDIM),d_object_name + "::msqrt", 1) );
+         d_dim,d_object_name + "::msqrt", 1) );
    d_msqrt_id =
       vdb->registerVariableAndContext( d_msqrt_var,
-         d_context,
-         hier::IntVector(tbox::Dimension(NDIM),1) );
+         d_context, hier::IntVector::getOne(d_dim));
    if ( database ) {
       getFromInput(database);
    }    
@@ -609,7 +609,8 @@ CellPoissonHypreSolver::deallocateSolverState()
 */
 void CellPoissonHypreSolver::allocateHypreData()
 {
-   tbox::SAMRAI_MPI::Comm communicator = d_hierarchy->getMPI().getCommunicator();
+   tbox::SAMRAI_MPI::Comm communicator =
+      d_hierarchy->getMPI().getCommunicator();
 
    /*
     * Set up the grid data - only set grid data for local boxes
@@ -622,14 +623,15 @@ void CellPoissonHypreSolver::allocateHypreData()
    hier::IntVector periodic_shift =
       grid_geometry->getPeriodicShift(ratio);
 
-   int periodic_flag[3];
+   int periodic_flag[SAMRAI::MAX_DIM_VAL];
+   tbox::Dimension::dir_t d;
    bool is_periodic = false;
-   for (int d=0; d<NDIM; ++d ) {
+   for (d = 0; d < d_dim.getValue(); ++d) {
       periodic_flag[d] = periodic_shift[d] != 0;
       is_periodic = is_periodic || periodic_flag[d];
    }
 
-   HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
+   HYPRE_StructGridCreate(communicator, d_dim.getValue(), &d_grid);
    for (hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++) {
       const hier::Box& box = (*p)->getBox();
       hier::Index lower = box.lower();
@@ -638,7 +640,6 @@ void CellPoissonHypreSolver::allocateHypreData()
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   tbox::Dimension::dir_t d;
    if (is_periodic) {
       const hier::BoxContainer& level_domain =
          level->getPhysicalDomain(hier::BlockId::zero());
@@ -687,32 +688,32 @@ void CellPoissonHypreSolver::allocateHypreData()
        * Allocate stencil data and set stencil offsets
        */
       
-      if (NDIM == 1) {
+      if (d_dim == tbox::Dimension(1)) {
          const int stencil_size = 2; 
          int stencil_offsets[2][1] = {
             { -1 }, { 0 }
          };
-         HYPRE_StructStencilCreate(NDIM, stencil_size, &d_stencil);
+         HYPRE_StructStencilCreate(d_dim.getValue(), stencil_size, &d_stencil);
          for (int s = 0; s < stencil_size; s++) {
             HYPRE_StructStencilSetElement(d_stencil, s,
                                           stencil_offsets[s]);
          }
-      } else if (NDIM == 2) {
+      } else if (d_dim == tbox::Dimension(2)) {
          const int stencil_size = 3; 
          int stencil_offsets[3][2] = {
             { -1, 0 }, { 0, -1}, { 0, 0 }
          };
-         HYPRE_StructStencilCreate(NDIM, stencil_size, &d_stencil);
+         HYPRE_StructStencilCreate(d_dim.getValue(), stencil_size, &d_stencil);
          for (int s = 0; s < stencil_size; s++) {
             HYPRE_StructStencilSetElement(d_stencil, s,
                                        stencil_offsets[s]);
          }
-      } else if (NDIM == 3) {
+      } else if (d_dim == tbox::Dimension(3)) {
          const int stencil_size = 4;  
          int stencil_offsets[4][3] = {
             { -1,  0,  0}, { 0,  -1,  0}, { 0,  0,  -1}, { 0,  0,  0}
          };
-         HYPRE_StructStencilCreate(NDIM, stencil_size, &d_stencil);
+         HYPRE_StructStencilCreate(d_dim.getValue(), stencil_size, &d_stencil);
          for (int s = 0; s < stencil_size; s++) {
             HYPRE_StructStencilSetElement(d_stencil, s,
                                           stencil_offsets[s]);
@@ -738,15 +739,18 @@ void CellPoissonHypreSolver::allocateHypreData()
       int *full_ghosts;
       int *no_ghosts;
 
-      if (NDIM == 1) {
+      if (d_dim == tbox::Dimension(1)) {
          full_ghosts = full_ghosts1;
          no_ghosts = no_ghosts1;
-      } else if (NDIM == 2) {
+      } else if (d_dim == tbox::Dimension(2)) {
          full_ghosts = full_ghosts2;
          no_ghosts = no_ghosts2;
-      } else if (NDIM == 3) {
+      } else if (d_dim == tbox::Dimension(3)) {
          full_ghosts = full_ghosts3;
          no_ghosts = no_ghosts3;
+      } else {
+         TBOX_ERROR(
+            "CellPoissonHypreSolver does not yet support dimension " << d_dim);
       }
 
       HYPRE_StructMatrixCreate(communicator,
@@ -769,8 +773,6 @@ void CellPoissonHypreSolver::allocateHypreData()
       HYPRE_StructVectorSetNumGhost(d_linear_sol, full_ghosts);
       HYPRE_StructVectorInitialize(d_linear_sol);
    }
-
-   return;
 }
 
 /*
@@ -795,7 +797,6 @@ CellPoissonHypreSolver::~CellPoissonHypreSolver()
       hier::VariableDatabase::getDatabase();
    vdb->removePatchDataIndex(d_Ak0_id);
    vdb->removePatchDataIndex(d_msqrt_id);
-   return;
 }
 
 /*
@@ -813,27 +814,25 @@ void CellPoissonHypreSolver::deallocateHypreData()
 {
    if (d_stencil) {
       HYPRE_StructStencilDestroy(d_stencil);
+      d_stencil = 0;
    }
    if (d_grid) {
       HYPRE_StructGridDestroy(d_grid);
+      d_grid = 0;
    }
    if (d_matrix) {
       HYPRE_StructMatrixDestroy(d_matrix);
+      d_matrix = 0;
    }
    if (d_linear_rhs) {
       HYPRE_StructVectorDestroy(d_linear_rhs);
+      d_linear_rhs = 0;
    }
    if (d_linear_sol) {
       HYPRE_StructVectorDestroy(d_linear_sol);
+      d_linear_sol = 0;
    }
    destroyHypreSolver();
-   d_grid = NULL;
-   d_stencil = NULL;
-   d_matrix = NULL;
-   d_linear_rhs = NULL;
-   d_linear_sol = NULL;
-
-   return;
 }
 
 /*
@@ -856,11 +855,18 @@ CellPoissonHypreSolver::copyToHypre(
 
    t_copy_vectors->start();
 
-   pdat::CellData<double> tmp(box,1,hier::IntVector::getZero(d_dim));
-   tmp.copyDepth(0,src,depth);
    hier::Index lower(box.lower());
    hier::Index upper(box.upper());
-   HYPRE_StructVectorSetBoxValues(vector,&lower[0],&upper[0],tmp.getPointer());
+
+   if (src.getGhostBox().isSpatiallyEqual(box)) {
+      HYPRE_StructVectorSetBoxValues(
+         vector, &lower[0], &upper[0], src.getPointer(depth));
+   } else {
+      pdat::CellData<double> tmp(box, 1, hier::IntVector::getZero(d_dim));
+      tmp.copyDepth(0, src, depth);
+      HYPRE_StructVectorSetBoxValues(
+         vector, &lower[0], &upper[0], tmp.getPointer());
+   }
 
    t_copy_vectors->stop();
 }
@@ -884,11 +890,17 @@ CellPoissonHypreSolver::copyFromHypre(
 
    t_copy_vectors->start();
 
-   pdat::CellData<double> tmp(box,1,hier::IntVector::getZero(d_dim));
    hier::Index lower(box.lower());
    hier::Index upper(box.upper());
-   HYPRE_StructVectorGetBoxValues(vector,&lower[0],&upper[0],tmp.getPointer());
-   dst.copyDepth(depth,tmp,0);
+   if (dst.getGhostBox().isSpatiallyEqual(box)) {
+      HYPRE_StructVectorGetBoxValues(
+         vector, &lower[0], &upper[0], dst.getPointer(depth));
+   } else {
+      pdat::CellData<double> tmp(box, 1, hier::IntVector::getZero(d_dim));
+      HYPRE_StructVectorGetBoxValues(
+         vector, &lower[0], &upper[0], tmp.getPointer());
+      dst.copyDepth(depth,tmp,0);
+   }
 
    t_copy_vectors->stop();
 }
@@ -1024,14 +1036,14 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
         to our central difference formula.
        */
       if ( spec.dIsConstant() ) {
-        for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
+        for (tbox::Dimension::dir_t i=0; i<d_dim.getValue(); ++i ) {
           double dhh = spec.getDConstant() / (h[i]*h[i]);
           pdat::ArrayData<double>& off_diag_array( off_diagonal.getArrayData(i) );
           off_diag_array.fill( dhh );
         }
       }
       else {
-        for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
+        for (tbox::Dimension::dir_t i=0; i<d_dim.getValue(); ++i ) {
           hier::Box sbox(patch_box);
           sbox.growUpper( i, 1 );
           array_math.scale( off_diagonal.getArrayData(i) ,
@@ -1079,7 +1091,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          const double cval=spec.getCConstant();
          if ( spec.mIsConstant() ) {
             const double mscale = spec.getMConstant();
-            for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
+            for (tbox::Dimension::dir_t i=0; i<d_dim.getValue(); ++i ) {
                hier::Box sbox(patch_box);
                sbox.growUpper( i, 1 );
                array_math.scale( off_diagonal.getArrayData(i),
@@ -1141,7 +1153,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
          if ( spec.mIsConstant() ) {
             double mscale = spec.getMConstant();
             assert( fabs(mscale)>0. );
-            for (tbox::Dimension::dir_t i=0; i<NDIM; ++i ) {
+            for (tbox::Dimension::dir_t i=0; i<d_dim.getValue(); ++i ) {
                hier::Box sbox(patch_box);
                sbox.growUpper( i, 1 );
                array_math.scale( off_diagonal.getArrayData(i),
@@ -1268,16 +1280,17 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
           * There are potentially coarse-fine boundaries to deal with.
           */
 
-         std::vector< hier::BoundaryBox > surface_boxes;
+         std::vector<hier::BoundaryBox> empty_vector(0,
+                                                     hier::BoundaryBox(d_dim));
+         const std::vector<hier::BoundaryBox>& surface_boxes =
+            d_dim == tbox::Dimension(2) ? d_cf_boundary->getEdgeBoundaries(pi->getGlobalId()) :
+            (d_dim ==
+             tbox::Dimension(3) ? d_cf_boundary->getFaceBoundaries(pi->getGlobalId()) :
+             empty_vector);
 
-         if (NDIM == 2) {
-            surface_boxes = d_cf_boundary->getEdgeBoundaries(pi->getGlobalId());
-         } else if (NDIM == 3) {
-            surface_boxes = d_cf_boundary->getFaceBoundaries(pi->getGlobalId());
-         } 
+         const int n_bdry_boxes = static_cast<int>(surface_boxes.size());
 
-         const size_t n_bdry_boxes = surface_boxes.size();
-         for ( size_t n=0; n<n_bdry_boxes; ++n ) {
+         for (int n = 0; n < n_bdry_boxes; ++n) {
 
             const hier::BoundaryBox &boundary_box = surface_boxes[n];
             if ( boundary_box.getBoundaryType() != 1 ) {
@@ -1327,7 +1340,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
        * we translate our temporary diagonal/off-diagonal storage into the
        * HYPRE symmetric storage scheme for the stencil specified earlier.
        */
-      const int stencil_size = NDIM+1;
+      const int stencil_size = d_dim.getValue() + 1;
       int stencil_indices[stencil_size];
       double* mat_entries=new double[stencil_size*patch_box.size()];
 
@@ -1581,9 +1594,11 @@ void CellPoissonHypreSolver::destroyHypreSolver()
 *************************************************************************
 */
 
-int CellPoissonHypreSolver::solveSystem( const int u ,
-                                         const int f ,
-                                         bool homogeneous_bc )
+int CellPoissonHypreSolver::solveSystem(
+   const int u ,
+   const int f,
+   bool homogeneous_bc,
+   bool initial_zero)
 {
    //tbox::pout<<"CellPoissonHypreSolver::solveSystem()"<<endl;
    if ( d_physical_bc_coef_strategy == NULL ) {
@@ -1628,8 +1643,8 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
     * copy solution and right-hand-side to HYPRE structures.  
     */
 
-   const hier::IntVector no_ghosts(tbox::Dimension(NDIM),0);
-   const hier::IntVector ghosts(tbox::Dimension(NDIM),1);
+   const hier::IntVector no_ghosts(d_dim, 0);
+   const hier::IntVector ghosts(d_dim, 1);
 
    /*
     * At coarse-fine boundaries, we expect ghost cells to have correct
@@ -1637,7 +1652,7 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
     * Assume that the user only provided data for the immediate first
     * ghost cell, so pass zero for the number of extensions fillable.
     */
-   d_cf_bc_coef.setGhostDataId( u, hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_cf_bc_coef.setGhostDataId(u, hier::IntVector::getZero(d_dim));
 
    for (hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++) {
       boost::shared_ptr< hier::Patch > patch = *p;
@@ -1658,7 +1673,11 @@ int CellPoissonHypreSolver::solveSystem( const int u ,
        * needed.  If boundary condition is homogenous, this only adds
        * zero, so we skip it.
        */
-      copyToHypre(d_linear_sol, *u_data, d_soln_depth, box );
+      if (!initial_zero) {
+         copyToHypre(d_linear_sol, *u_data, d_soln_depth, box );
+      } else {
+         HYPRE_StructVectorSetConstantValues(d_linear_sol, 0.0);
+      }
 
       boost::shared_ptr<pdat::CellData<double> > fdata(
          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(

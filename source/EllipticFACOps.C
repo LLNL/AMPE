@@ -1976,7 +1976,7 @@ EllipticFACOps::solveCoarsestLevel_HYPRE(
          d_hypre_solver[i]->solveSystem(
             data.getComponentDescriptorIndex(0),
             residual.getComponentDescriptorIndex(0) ,
-            true);
+            true,true);
       solver_ret = iret > 0 ? solver_ret : 0;
    }
 
