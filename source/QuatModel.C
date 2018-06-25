@@ -111,7 +111,6 @@ QuatModel::QuatModel( int ql ) :
    d_mobility_strategy = NULL;
    d_all_refine_patch_strategy = NULL;
    d_partition_coeff_refine_patch_strategy = NULL;
-   d_phase_concentration_refine_patch_strategy = NULL;
    d_phase_conc_strategy = NULL;
    d_partition_coeff_strategy = NULL;
 
@@ -897,15 +896,6 @@ void QuatModel::Initialize(
                "PartitionCoeffRefinePatchStrategy",
                bc_db,
                d_partition_coeff_scratch_id );
-
-      if( d_model_parameters.with_concentration() )       
-      d_phase_concentration_refine_patch_strategy =
-         new PhaseConcentrationRefinePatchStrategy(
-            "PhaseConcentrationRefinePatchStrategy",
-            bc_db,
-            d_conc_l_scratch_id,
-            d_conc_a_scratch_id,
-            d_conc_b_scratch_id );
    }
    
    boost::shared_ptr<tbox::Database> integrator_db =
@@ -7137,10 +7127,10 @@ void QuatModel::evaluateEnergy(
       }
       d_phase_conc_strategy->computePhaseConcentrations(
          hierarchy,
-         d_temperature_id,
-         d_phase_id,
-         d_eta_id,
-         d_conc_id );
+         d_temperature_scratch_id,
+         d_phase_scratch_id,
+         d_eta_scratch_id,
+         d_conc_scratch_id );
    }
    
    d_free_energy_strategy->computeFreeEnergyLiquid(
@@ -7552,62 +7542,6 @@ double QuatModel::evaluateVolumeEta(
    double value = mathops.L1Norm( d_eta_id, d_weight_id );
     
    return value;
-}
-
-//=======================================================================
-
-void QuatModel::fillPhaseConcentrationGhosts( void )
-{
-   assert( d_conc_l_id>=0 );
-   assert( d_conc_l_scratch_id>=0 );
-   assert( d_conc_a_id>=0 );
-   assert( d_conc_a_scratch_id>=0 );
-   assert( d_conc_l_var );
-   if ( ! d_all_periodic )assert( d_phase_concentration_refine_patch_strategy!=NULL );
-   
-   //tbox::pout<<"QuatModel::fillPhaseConcentrationGhosts"<<endl;
-   
-   xfer::RefineAlgorithm copy_to_scratch;
-
-
-   boost::shared_ptr<hier::RefineOperator > refine_op =
-      d_grid_geometry->lookupRefineOperator(
-         d_conc_l_var,
-         "LINEAR_REFINE" );
-
-   copy_to_scratch.registerRefine(
-      d_conc_l_scratch_id,  // destination
-      d_conc_l_id,          // source
-      d_conc_l_scratch_id,  // temporary work space
-      refine_op );
-
-   copy_to_scratch.registerRefine(
-      d_conc_a_scratch_id,  // destination
-      d_conc_a_id,          // source
-      d_conc_a_scratch_id,  // temporary work space
-      refine_op );
-
-   if ( d_model_parameters.with_third_phase() ) {
-      copy_to_scratch.registerRefine(
-         d_conc_b_scratch_id,  // destination
-         d_conc_b_id,          // source
-         d_conc_b_scratch_id,  // temporary work space
-         refine_op );
-   }
-
-   const int maxl = d_patch_hierarchy->getNumberOfLevels();
-
-   for ( int ln = 0; ln < maxl; ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         d_patch_hierarchy->getPatchLevel( ln );
-
-      copy_to_scratch.createSchedule(
-         level,
-         ln-1,
-         d_patch_hierarchy,
-         d_phase_concentration_refine_patch_strategy )
-         ->fillData( d_time );
-   }
 }
 
 //=======================================================================

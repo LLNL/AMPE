@@ -60,7 +60,6 @@
 #include "QuatIntegrator.h"
 #include "QuatRefinePatchStrategy.h"
 #include "PartitionCoeffRefinePatchStrategy.h"
-#include "PhaseConcentrationRefinePatchStrategy.h"
 #include "CALPHADMobility.h"
 #include "QuatParams.h"
 #include "Grains.h"
@@ -766,7 +765,6 @@ private :
 
    QuatRefinePatchStrategy* d_all_refine_patch_strategy;
    PartitionCoeffRefinePatchStrategy* d_partition_coeff_refine_patch_strategy;
-   PhaseConcentrationRefinePatchStrategy* d_phase_concentration_refine_patch_strategy;
 
    boost::shared_ptr<hier::RefineOperator > d_phase_refine_op;
    boost::shared_ptr<hier::RefineOperator > d_eta_refine_op;

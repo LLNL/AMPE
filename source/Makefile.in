@@ -108,7 +108,6 @@ CXX_OBJS      = AMPE.o \
 		SteadyStateTemperatureGaussianSource.o \
 		SteadyStateTemperatureCompositionSource.o \
                 EllipticFACSolver.o EllipticFACOps.o \
-                PhaseConcentrationRefinePatchStrategy.o \
 		PhaseConcentrationsStrategy.o \
                 PhaseFACSolver.o PhaseFACOps.o PhaseTemperatureFACOps.o \
                 EtaFACSolver.o EtaFACOps.o \

@@ -62,18 +62,6 @@ ModelParameters {
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
       }
-      ConcL{
-         boundary_0 = "slope", "0"
-         boundary_1 = "slope", "0"
-         boundary_2 = "slope", "0"
-         boundary_3 = "slope", "0"
-      }
-      ConcA{
-         boundary_0 = "slope", "0"
-         boundary_1 = "slope", "0"
-         boundary_2 = "slope", "0"
-         boundary_3 = "slope", "0"
-      }
 
    }
 }
