@@ -49,9 +49,11 @@ ACTA MATERIALIA, 62, (2014), 89-104
 Release
 -------
 
-Copyright (c) 2018, Lawrence Livermore National Security, LLC.
+Copyright (c) 2018, Lawrence Livermore National Security, LLC
+and UT-Battelle, LLC.
 
-Produced at the Lawrence Livermore National Laboratory.
+Produced at the Lawrence Livermore National Laboratory and
+the Oak Ridge National Laboratory.
 
 All rights reserved.
 
