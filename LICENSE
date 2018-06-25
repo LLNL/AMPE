@@ -1,6 +1,8 @@
-Copyright (c) 2006-2018, Lawrence Livermore National Security, LLC.
+Copyright (c) 2006-2018, Lawrence Livermore National Security, LLC and
+UT-Battelle, LLC.
 
-Produced at the Lawrence Livermore National Laboratory
+Produced at the Lawrence Livermore National Laboratory and the Oak Ridge
+National Laboratory
 
 Written by:
 
@@ -31,7 +33,8 @@ are permitted provided that the following conditions are met:
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY, LLC, THE
+DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY, LLC,
+UT-BATTELLE, LLC, THE
 U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -44,10 +47,13 @@ Additional BSD Notice
 
 1. This notice is required to be provided under our contract with the U.S.
 Department of Energy (DOE). This work was produced at Lawrence Livermore
-National Laboratory under Contract No. DE-AC52-07NA27344 with the DOE.
+National Laboratory under Contract No. DE-AC52-07NA27344 with the DOE
+and at Oak Ridge National Laboratory under Contract No. DE-AC05-00OR22725
+with DOE.
 
 2. Neither the United States Government nor Lawrence Livermore National
-Security, LLC nor any of their employees, makes any warranty, express or
+Security, LLC, nor UT-Battelle, LLC, nor any of their employees, makes any
+warranty, express or
 implied, or assumes any liability or responsibility for the accuracy,
 completeness, or usefulness of any information, apparatus, product, or process
 disclosed, or represents that its use would not infringe privately-owned rights.
@@ -55,9 +61,10 @@ disclosed, or represents that its use would not infringe privately-owned rights.
 3. Also, reference herein to any specific commercial products, process, or
 services by trade name, trademark, manufacturer or otherwise does not
 necessarily constitute or imply its endorsement, recommendation, or favoring by
-the United States Government or Lawrence Livermore National Security, LLC. The
-views and opinions of authors expressed herein do not necessarily state or
+the United States Government or Lawrence Livermore National Security, LLC or
+UT-Battelle, LLC.
+The views and opinions of authors expressed herein do not necessarily state or
 reflect those of the United States Government or Lawrence Livermore National
-Security, LLC, and shall not be used for advertising or product endorsement
-purposes.
+Security, LLC, or UT-Battelle, LLC, and shall not be used for advertising or
+product endorsement purposes.
 
