@@ -421,7 +421,7 @@ private:
       const hier::Box bccoef_box,
       pdat::ArrayData<double> &Ak0_data,
       const hier::BoundaryBox &trimmed_boundary_box,
-      const double h[NDIM] );
+      const double h[SAMRAI::MAX_DIM_VAL] );
 
    //@}
 
@@ -434,6 +434,7 @@ private:
     * @brief Object dimension.
     */
    const tbox::Dimension d_dim;
+   unsigned short d_actual_dim;
 
    /*!
     * @brief Object name.

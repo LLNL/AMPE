@@ -4020,7 +4020,7 @@ int QuatIntegrator::PhasePrecondSolve(
    t_phase_precond_timer->start();
 
    if ( d_show_phase_sys_stats ) {
-      tbox::pout << "Preconditioner for Phase block with tol "<< delta << endl;
+      tbox::plog << "Preconditioner for Phase block with tol "<< delta << endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -4110,7 +4110,7 @@ int QuatIntegrator::TemperaturePrecondSolve(
    const double delta, const double gamma)
 {
    if ( d_show_temperature_sys_stats ) {
-      tbox::pout << "Preconditioner for temperature block with tol "
+      tbox::plog << "Preconditioner for temperature block with tol "
                  << delta << endl;
    }
 
@@ -4182,7 +4182,7 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    t_conc_precond_timer->start();
 
    if ( d_show_conc_sys_stats ) {
-      tbox::pout << "Preconditioner for Concentration block with tol "
+      tbox::plog << "Preconditioner for Concentration block with tol "
                  << delta << endl;
    }
 
@@ -4232,7 +4232,7 @@ int QuatIntegrator::QuatPrecondSolve(
    const double delta, const double gamma)
 {
    if ( d_show_quat_sys_stats ) {
-      tbox::pout << "Preconditioner for Quaternion block with tol "
+      tbox::plog << "Preconditioner for Quaternion block with tol "
                  << delta << endl;
    }
 
