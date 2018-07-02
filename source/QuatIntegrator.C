@@ -694,7 +694,8 @@ void QuatIntegrator::RegisterConcentrationVariables(
    d_conc_eta_coupling_diffusion_var = conc_eta_coupling_diffusion_var;
 
    if ( conc_var ){
-      hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+      hier::VariableDatabase* variable_db =
+         hier::VariableDatabase::getDatabase();
 
       d_conc_id =
          variable_db->registerVariableAndContext(
@@ -718,7 +719,7 @@ void QuatIntegrator::RegisterConcentrationVariables(
                hier::IntVector(tbox::Dimension(NDIM),0) );
          assert( d_conc_diffusion_id >= 0 );
       }
-      for(std::vector<boost::shared_ptr< pdat::SideVariable<double> > >::iterator it =
+      for(std::vector<boost::shared_ptr<pdat::SideVariable<double> > >::iterator it =
           d_conc_diffusion0_var.begin();
           it!=d_conc_diffusion0_var.end();
         ++it){
@@ -1225,6 +1226,21 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
    d_local_data.setFlag( d_conc_sol_id );
 
    assert( d_conc_rhs_var->getDepth()==d_conc_var->getDepth() );
+
+   // dphidt is needed in ghost cells to compute
+   // antitrapping fluxes
+   if( d_with_antitrapping ){
+      d_dphidt_scratch_var.reset(
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM), d_name+"_QI_dphidt") );
+      d_dphidt_scratch_id =
+         variable_db->registerVariableAndContext(
+         d_dphidt_scratch_var,
+         d_scratch,
+         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
+      assert( d_dphidt_scratch_id );
+      d_local_data.setFlag( d_dphidt_scratch_id );
+   }
 }
 
 void QuatIntegrator::RegisterLocalQuatVariables()
@@ -3170,8 +3186,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int phase_id,
    const int conc_rhs_id,
-   const int temperature_id,
-   const int phase_rhs_id )
+   const int temperature_id)
 {
    assert( phase_id >= 0 );
    assert( conc_rhs_id >= 0 );
@@ -3199,7 +3214,8 @@ void QuatIntegrator::evaluateConcentrationRHS(
                *patch, temperature_id, d_flux_conc_id);
          if( d_with_antitrapping )
             d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(
-               *patch, phase_id, phase_rhs_id, d_alpha_AT, d_flux_conc_id);
+               *patch, phase_id, d_dphidt_scratch_id, d_alpha_AT,
+               d_flux_conc_id);
          if( !d_all_periodic )
             d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(
                *patch, d_flux_conc_id);
@@ -3431,6 +3447,41 @@ void QuatIntegrator::fillScratchComposition(
       d_conc_refine_op );
 }
 
+void QuatIntegrator::fillScratchDphiDt(
+   double time,
+   boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot)
+{
+   (void)time;
+
+   assert( d_dphidt_scratch_id>=0 );
+
+   int y_phase_rhs_id =
+      y_dot->getComponentDescriptorIndex( d_phase_component_index );
+
+   xfer::RefineAlgorithm copy_to_scratch ;
+
+   copy_to_scratch.registerRefine(
+      d_dphidt_scratch_id,  // destination
+      y_phase_rhs_id,       // source
+      d_dphidt_scratch_id,  // temporary
+      d_phase_refine_op );
+
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy =
+      y_dot->getPatchHierarchy();
+
+   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
+      boost::shared_ptr< hier::PatchLevel > level =
+         hierarchy->getPatchLevel( ln );
+
+      // no physical BC filling performed
+      copy_to_scratch.createSchedule(
+         level,
+         ln-1,
+         hierarchy)
+         ->fillData( time );
+   }
+}
+
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::fillScratch( 
@@ -3447,7 +3498,6 @@ void QuatIntegrator::fillScratch(
    // scratch arrays and fill the ghost cells
 
    xfer::RefineAlgorithm copy_to_scratch ;
-
 
    if ( d_with_phase ) {
       int y_phase_id =
@@ -3864,7 +3914,10 @@ int QuatIntegrator::evaluateRHSFunction(
       
       if( recompute_quat_sidegrad )
          setDiffusionCoeffForConcentration( hierarchy, time );
-   
+
+      if( d_with_antitrapping ){
+         fillScratchDphiDt(time, y_dot_samvect);
+      } 
       
       const int ydot_conc_id =
          y_dot_samvect->getComponentDescriptorIndex( d_conc_component_index );
@@ -3872,8 +3925,7 @@ int QuatIntegrator::evaluateRHSFunction(
          hierarchy,
          d_phase_scratch_id,
          ydot_conc_id,
-         d_temperature_scratch_id,
-         ydot_phase_id );
+         d_temperature_scratch_id);
       //const double norm_ydot_conc_id = mathops.L1Norm( ydot_conc_id );
       //tbox::plog<<"L1 Norm ydot_conc_id="<<norm_ydot_conc_id<<endl;
    }

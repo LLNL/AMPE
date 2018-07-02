@@ -562,7 +562,7 @@ c
       double precision dxinv, dyinv, dzinv
       double precision dphix, dphiy, dphiz, dphi2, dphin
       integer          ic, ic0, ic1, ic2
-      double precision tol, tol2
+      double precision tol, tol2, dpdt, acl, aca
       
       tol = 1.e-8
       tol2 = tol*tol
@@ -589,14 +589,18 @@ c
      &             + phase(ic0-1,ic1+1,ic2+1)-phase(ic0-1,ic1+1,ic2-1) 
      &              )
                dphi2 = dphix*dphix+dphiy*dphiy+dphiz*dphiz
-               if( abs(dphin) .gt. tol2 ) then
+               if( abs(dphi2) .gt. tol2 ) then
                   dphin = sqrt(dphi2)
-               
+                  dpdt=0.5d0*(dphidt(ic0-1,ic1,ic2)+dphidt(ic0,ic1,ic2))
+ 
                   do ic = 1, ncomp
+                     acl=0.5d0*(cl(ic0-1,ic1,ic2,ic)
+     &                         +cl(ic0,ic1,ic2,ic))
+                     aca=0.5d0*(ca(ic0-1,ic1,ic2,ic)
+     &                         +ca(ic0,ic1,ic2,ic))
+
                      flux0(ic0,ic1,ic2,ic) = flux0(ic0,ic1,ic2,ic) +
-     &                  alpha*(dphix/dphin) 
-     &                       *(cl(ic0,ic1,ic2,ic)-ca(ic0,ic1,ic2,ic))
-     &                       *dphidt(ic0,ic1,ic2)
+     &                  alpha*(dphix/dphin)*(acl-aca)*dpdt 
                   enddo
                endif
             enddo
@@ -621,14 +625,17 @@ c
      &          + phase(ic0+1,ic1  ,ic2+1)-phase(ic0+1,ic1  ,ic2-1) 
      &              )
                dphi2 = dphix*dphix+dphiy*dphiy+dphiz*dphiz
-               if( abs(dphin) .gt. tol2 ) then
+               if( abs(dphi2) .gt. tol2 ) then
                   dphin = sqrt(dphi2)
-               
+                  dpdt=0.5d0*(dphidt(ic0,ic1-1,ic2)+dphidt(ic0,ic1,ic2))
+
                   do ic = 1, ncomp
+                     acl=0.5d0*(cl(ic0,ic1-1,ic2,ic)
+     &                         +cl(ic0,ic1,ic2,ic))
+                     aca=0.5d0*(ca(ic0,ic1-1,ic2,ic)
+     &                         +ca(ic0,ic1,ic2,ic))
                      flux1(ic0,ic1,ic2,ic) = flux1(ic0,ic1,ic2,ic) +
-     &                 alpha*(dphiy/dphin) 
-     &                      *(cl(ic0,ic1,ic2,ic)-ca(ic0,ic1,ic2,ic))
-     &                      * dphidt(ic0,ic1,ic2)
+     &                  alpha*(dphix/dphin)*(acl-aca)*dpdt
                   enddo
                endif
             enddo
@@ -653,14 +660,17 @@ c
      &             + phase(ic0-1,ic1+1,ic2  )-phase(ic0-1,ic1-1,ic2  ) 
      &                )
                dphi2 = dphix*dphix+dphiy*dphiy+dphiz*dphiz
-               if( abs(dphin) .gt. tol2 ) then
+               if( abs(dphi2) .gt. tol2 ) then
                   dphin = sqrt(dphi2)
+                  dpdt=0.5d0*(dphidt(ic0,ic1,ic2-1)+dphidt(ic0,ic1,ic2))
                
                   do ic = 1, ncomp
+                     acl=0.5d0*(cl(ic0,ic1,ic2-1,ic)
+     &                         +cl(ic0,ic1,ic2,ic))
+                     aca=0.5d0*(ca(ic0,ic1,ic2-1,ic)
+     &                         +ca(ic0,ic1,ic2,ic))
                      flux2(ic0,ic1,ic2,ic) = flux2(ic0,ic1,ic2,ic) +
-     &                  alpha*(dphiz/dphin) 
-     &                       *(cl(ic0,ic1,ic2,ic)-ca(ic0,ic1,ic2,ic))
-     &                       *dphidt(ic0,ic1,ic2)
+     &                  alpha*(dphix/dphin)*(acl-aca)*dpdt
                   enddo
                endif
             enddo

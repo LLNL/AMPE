@@ -430,8 +430,7 @@ protected:
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int phase_id,
       const int conc_rhs_id,
-      const int temperature_id,
-      const int phase_rhs_id );
+      const int temperature_id);
 
    void resetSolutionVector(const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
    void fillScratch(
@@ -717,7 +716,10 @@ private :
    virtual void initializeConcentrationNonPeriodicBC();
    virtual void initializeConcentrationSolver(const boost::shared_ptr< hier::PatchHierarchy >&);
    virtual void setCompositionOperatorCoefficients(const double gamma);
-   
+
+   void fillScratchDphiDt(
+      double time, boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot);
+ 
    std::string d_name;
 
    const QuatModelParameters& d_model_parameters;
@@ -858,6 +860,9 @@ private :
 
    boost::shared_ptr< pdat::CellVariable<double> > d_conc_rhs_var;
    int d_conc_rhs_id;
+
+   boost::shared_ptr< pdat::CellVariable<double> > d_dphidt_scratch_var;
+   int d_dphidt_scratch_id;
 
    boost::shared_ptr< pdat::CellVariable<double> > d_quat_mobility_deriv_var;
    int d_quat_mobility_deriv_id;
