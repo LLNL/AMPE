@@ -567,15 +567,24 @@ void CellPoissonHypreSolver::initializeSolverState(
    d_number_iterations = -1;
    d_relative_residual_norm = -1.0;
 
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(d_ln);
-   level->allocatePatchData(d_Ak0_id);
-   level->allocatePatchData(d_msqrt_id);
+   boost::shared_ptr< hier::PatchLevel > level_ptr(
+      d_hierarchy->getPatchLevel(d_ln));
+
+   level_ptr->allocatePatchData(d_Ak0_id);
+   level_ptr->allocatePatchData(d_msqrt_id);
 
    d_actual_dim=0;
-   const hier::Box& box = (level->begin())->getBox();
+
+   const hier::BoxContainer& bc( level_ptr->getBoxes() );
+   const hier::Box box = bc.getBoundingBox();
    for (tbox::Dimension::dir_t d = 0; d < d_dim.getValue(); ++d) {
       if( box.upper()[d]>box.lower()[d] )d_actual_dim++;
    }
+
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   int tmp=d_actual_dim;
+   mpi.AllReduce(&tmp,1,MPI_MAX);
+   d_actual_dim=tmp;
 
    //tbox::pout<<"Actual dimension coarse grid problem is "<<d_actual_dim<<endl;
    TBOX_ASSERT( d_actual_dim<=NDIM );
