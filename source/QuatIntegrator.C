@@ -53,6 +53,7 @@
 #include "PhaseFluxStrategySimple.h"
 #include "PhaseConcentrationsStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
+#include "toolsSAMRAI.h"
 
 #include "QuatParams.h"
 
@@ -3196,6 +3197,8 @@ void QuatIntegrator::evaluateConcentrationRHS(
    t_conc_rhs_timer->start();
 
    //tbox::pout<<"QuatIntegrator::evaluateConcentrationRHS()"<<endl;
+   if( d_with_antitrapping )
+      assert( checkForNans(hierarchy,d_dphidt_scratch_id)==0 );
 
    math::PatchCellDataBasicOps<double> mathops;
 
@@ -3454,20 +3457,22 @@ void QuatIntegrator::fillScratchDphiDt(
    (void)time;
 
    assert( d_dphidt_scratch_id>=0 );
+   assert( d_dphidt_bc_helper!=0 );
+
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy =
+      y_dot->getPatchHierarchy();
 
    int y_phase_rhs_id =
       y_dot->getComponentDescriptorIndex( d_phase_component_index );
 
    xfer::RefineAlgorithm copy_to_scratch ;
 
+   assert( checkForNans( hierarchy, y_phase_rhs_id)==0 );
    copy_to_scratch.registerRefine(
       d_dphidt_scratch_id,  // destination
       y_phase_rhs_id,       // source
       d_dphidt_scratch_id,  // temporary
       d_phase_refine_op );
-
-   boost::shared_ptr<hier::PatchHierarchy > hierarchy =
-      y_dot->getPatchHierarchy();
 
    for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
       boost::shared_ptr< hier::PatchLevel > level =
@@ -3662,9 +3667,7 @@ void QuatIntegrator::setCoefficients(
       assert( norm_y_temp==norm_y_temp );
    }
    if( conc_id>=0 ){
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      const double norm_y_c = mathops.L2Norm( conc_id );
-      assert( norm_y_c==norm_y_c );
+      assert( checkForNans(hierarchy,conc_id)==0 );
    }
 #endif
 
@@ -3801,10 +3804,9 @@ int QuatIntegrator::evaluateRHSFunction(
       assert( norm_y_temp==norm_y_temp );
    }
    if( d_with_concentration ){
-      int conc_id = y_samvect->getComponentDescriptorIndex( d_conc_component_index );
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      const double norm_y_c = mathops.L2Norm( conc_id );
-      assert( norm_y_c==norm_y_c );
+      int conc_id = y_samvect->getComponentDescriptorIndex(
+         d_conc_component_index );
+      assert( checkForNans(hierarchy,conc_id)==0 );
    }
 #endif
 
@@ -3819,9 +3821,7 @@ int QuatIntegrator::evaluateRHSFunction(
    setTemperatureField(hierarchy,time);
 #ifdef DEBUG_CHECK_ASSERTIONS
    if( temperature_id>=0 ){
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      const double norm_y_temp = mathops.L2Norm( temperature_id );
-      assert( norm_y_temp==norm_y_temp );
+      assert( checkForNans(hierarchy,temperature_id)==0 );
    }
 #endif
 
@@ -3926,8 +3926,8 @@ int QuatIntegrator::evaluateRHSFunction(
          d_phase_scratch_id,
          ydot_conc_id,
          d_temperature_scratch_id);
-      //const double norm_ydot_conc_id = mathops.L1Norm( ydot_conc_id );
-      //tbox::plog<<"L1 Norm ydot_conc_id="<<norm_ydot_conc_id<<endl;
+
+      assert( checkForNans(hierarchy,ydot_conc_id)==0 );
    }
 
    // Set the temperature component of the RHS
@@ -3936,10 +3936,9 @@ int QuatIntegrator::evaluateRHSFunction(
       evaluateTemperatureRHS(hierarchy,y_dot_samvect, fd_flag);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-      int Tdot_id  = y_dot_samvect->getComponentDescriptorIndex( d_temperature_component_index  );
-      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      const double norm_y_temp = mathops.L2Norm( Tdot_id );
-      assert( norm_y_temp==norm_y_temp );
+      int Tdot_id  = y_dot_samvect->getComponentDescriptorIndex(
+                        d_temperature_component_index  );
+      assert( checkForNans(hierarchy,Tdot_id)==0 );
 #endif
    }
    

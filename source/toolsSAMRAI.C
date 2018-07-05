@@ -2,6 +2,8 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/math/HierarchyCellDataOpsReal.h"
+#include "SAMRAI/math/HierarchySideDataOpsReal.h"
 
 #include <boost/make_shared.hpp>
 
@@ -63,4 +65,35 @@ void copyDepthCellData(
    }
 }
 
+int checkForNans(
+   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+   const int data_id)
+{
+#ifndef NDEBUG
+   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+   const double norm_data = mathops.L1Norm( data_id );
+
+   if( norm_data!=norm_data )return 1;
+#else
+   (void) hierarchy;
+   (void) data_id;
+#endif
+   return 0;
+}
+
+int checkSideDataForNans(
+   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+   const int data_id)
+{
+#ifndef NDEBUG
+   math::HierarchySideDataOpsReal<double> mathops(hierarchy);
+   const double norm_data = mathops.L1Norm( data_id );
+
+   if( norm_data!=norm_data )return 1;
+#else
+   (void) hierarchy;
+   (void) data_id;
+#endif
+   return 0;
+}
 
