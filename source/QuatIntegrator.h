@@ -56,6 +56,7 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/pdat/SideVariable.h"
+#include "SAMRAI/solv/CartesianRobinBcHelper.h"
 
 #ifdef USE_CPODE
 #include "CPODESSolver.h"
@@ -532,6 +533,8 @@ protected:
    bool d_show_conc_sys_stats;
 
    solv::LocationIndexRobinBcCoefs* d_conc_bc_coefs;
+   solv::LocationIndexRobinBcCoefs* d_dphidt_bc_coefs;
+   solv::CartesianRobinBcHelper*    d_dphidt_bc_helper;
 
    /*!
     * diffusion coefficient in preconditioner for composition equation

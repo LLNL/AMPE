@@ -462,7 +462,7 @@ c
                   aca=0.5d0*(ca(ic0-1,ic1,ic)+ca(ic0,ic1,ic))
 
                   flux0(ic0,ic1,ic) = flux0(ic0,ic1,ic) +
-     &               alpha*(dphiy/dphin)*(acl-aca)*dpdt
+     &               alpha*(dphix/dphin)*(acl-aca)*dpdt
                enddo
             endif
          enddo

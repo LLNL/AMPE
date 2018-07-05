@@ -154,6 +154,7 @@ QuatIntegrator::QuatIntegrator(
      d_conc_mobility( tbox::IEEE::getSignalingNaN() ),
      d_show_conc_sys_stats( false ),
      d_conc_bc_coefs( NULL ),
+     d_dphidt_bc_coefs( NULL ),
      //private data members
      d_name(name),
      d_model_parameters( model_parameters ),
@@ -205,6 +206,7 @@ QuatIntegrator::QuatIntegrator(
      d_u_rhs_id( -1 ),
      d_conc_sol_id( -1 ),
      d_conc_rhs_id( -1 ),
+     d_dphidt_scratch_id( -1 ),
      d_quat_mobility_deriv_id( -1 ),
      d_flux_id( -1 ),
      d_flux_conc_id( -1 ),
@@ -1351,6 +1353,18 @@ void QuatIntegrator::setupBC()
          d_conc_bc_coefs = new solv::LocationIndexRobinBcCoefs(
                tbox::Dimension(NDIM),"ConcBcCoefs", conc_bc_db );
          setBChomogeneous(d_conc_bc_coefs);
+         if(d_with_antitrapping){
+            assert( d_dphidt_scratch_id>=0 );
+            d_dphidt_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+               tbox::Dimension(NDIM),"DphiDtBcCoefs", conc_bc_db);
+            for(int i=0;i<2*NDIM;i++){
+               d_dphidt_bc_coefs->setBoundarySlope(i,0.);
+            }
+            d_dphidt_bc_helper = new solv::CartesianRobinBcHelper(
+               tbox::Dimension(NDIM), "DphiDtBcHelper");
+            d_dphidt_bc_helper->setTargetDataId( d_dphidt_scratch_id );
+            d_dphidt_bc_helper->setCoefImplementation( d_dphidt_bc_coefs );
+         }
       }
       if ( d_with_orientation ) {
          boost::shared_ptr<tbox::Database> quat_bc_db =
@@ -3482,9 +3496,12 @@ void QuatIntegrator::fillScratchDphiDt(
       copy_to_scratch.createSchedule(
          level,
          ln-1,
-         hierarchy)
+         hierarchy,
+         d_dphidt_bc_helper)
          ->fillData( time );
    }
+
+   assert( checkForNans( hierarchy, d_dphidt_scratch_id)==0 );
 }
 
 //-----------------------------------------------------------------------

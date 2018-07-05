@@ -2625,7 +2625,6 @@ void QuatModel::RegisterVariables( void )
       d_weight_var,
       d_temperature_var,
       d_cp_var );
-   d_integrator->setupBC();
    
    if ( d_model_parameters.with_orientation() ){
       d_integrator_quat_only->RegisterVariables(
@@ -2644,7 +2643,6 @@ void QuatModel::RegisterVariables( void )
          d_weight_var,
          d_temperature_var,
          d_cp_var );
-      d_integrator_quat_only->setupBC();
    }
 
    //
@@ -2712,6 +2710,11 @@ void QuatModel::RegisterVariables( void )
 
    d_grains->registerVariables();
 
+   d_integrator->setupBC();
+
+   if ( d_model_parameters.with_orientation() ){
+      d_integrator_quat_only->setupBC();
+   }
 }
 
 //=======================================================================
