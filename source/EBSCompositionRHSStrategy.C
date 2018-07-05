@@ -402,14 +402,13 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
             const int idx_dcoeff = (ii - imin_dcoeff) +
                (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
                (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1) );
+            TBOX_ASSERT( idx_dcoeff<sd_d_coeff->getArrayData(0).getOffset() );
 
             ptr_dx_coeff[idx_dcoeff] 
-               = ptr_dx_l[idx_dcoeff]
-               + ptr_dx_a[idx_dcoeff];
+               = ptr_dx_l[idx_dcoeff] + ptr_dx_a[idx_dcoeff];
             
             if ( d_with_third_phase ) {
-               ptr_dx_coeff[idx_dcoeff] +=
-                  ptr_dx_b[idx_dcoeff];
+               ptr_dx_coeff[idx_dcoeff] += ptr_dx_b[idx_dcoeff];
             }
          }
       }
@@ -423,14 +422,13 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
             const int idx_dcoeff = (ii - imin_dcoeff) +
                (jj - jmin_dcoeff) * jp_dcoeff +
                (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
+            TBOX_ASSERT( idx_dcoeff<sd_d_coeff->getArrayData(1).getOffset() );
 
             ptr_dy_coeff[idx_dcoeff]
-               = ptr_dy_l[idx_dcoeff]
-               + ptr_dy_a[idx_dcoeff];
+               = ptr_dy_l[idx_dcoeff] + ptr_dy_a[idx_dcoeff];
             
             if ( d_with_third_phase ) {
-               ptr_dy_coeff[idx_dcoeff] +=
-                  ptr_dy_b[idx_dcoeff];
+               ptr_dy_coeff[idx_dcoeff] += ptr_dy_b[idx_dcoeff];
             }
          }
       }
@@ -445,14 +443,13 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
                const int idx_dcoeff = (ii - imin_dcoeff) +
                   (jj - jmin_dcoeff) * jp_dcoeff +
                   (kk - kmin_dcoeff) * kp_dcoeff;
+               TBOX_ASSERT(idx_dcoeff<sd_d_coeff->getArrayData(2).getOffset());
 
                ptr_dz_coeff[idx_dcoeff]
-                  = ptr_dz_l[idx_dcoeff]
-                  + ptr_dz_a[idx_dcoeff];
+                  = ptr_dz_l[idx_dcoeff] + ptr_dz_a[idx_dcoeff];
                
                if ( d_with_third_phase ) {
-                  ptr_dz_coeff[idx_dcoeff] +=
-                     ptr_dz_b[idx_dcoeff];
+                  ptr_dz_coeff[idx_dcoeff] += ptr_dz_b[idx_dcoeff];
                }
             }
          }
@@ -506,6 +503,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
 
    // needs ghost values to define fluxes through cell boundaries
    assert( cl->getGhostCellWidth()[0]>0 );
+   assert( dphidt->getGhostCellWidth()[0]>0 );
 
    // now compute concentration flux
    FORT_ADD_CONCENTRATION_FLUX_FROM_AT(
