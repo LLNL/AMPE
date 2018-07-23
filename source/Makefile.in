@@ -206,6 +206,16 @@ test-CALPHAD-ternaryEnergy:  $(CALPHAD_OBJS) testCALPHADternaryEnergy.o \
 		testCALPHADternaryEnergy.o $(F77_OBJS) \
 		$(LIBSAMRAI) $(LDLIBS) -o testCALPHADternaryEnergy
 
+testMobilityCALPHADternary:
+		$(MAKE) PDIM=2 test-MobilityCALPHAD-ternary
+		mv testMobilityCALPHADternary ../exec
+
+test-MobilityCALPHAD-ternary: $(CALPHAD_OBJS) testMobilityCALPHADternary.o \
+		$(F77_OBJS) $(LIBSAMRAIDEPEND)
+		$(CXX) $(CXXFLAGS) $(LDFLAGS) $(CALPHAD_OBJS) $(F77_OBJS) \
+		testMobilityCALPHADternary.o \
+		$(LIBSAMRAI) $(LDLIBS) -o testMobilityCALPHADternary
+
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
 testNetCDF: simple_xy_wr.o
