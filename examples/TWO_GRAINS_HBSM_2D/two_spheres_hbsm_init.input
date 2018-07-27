@@ -52,9 +52,7 @@ Visit {
 }
 
 TimerManager {
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
-                 "QuatLevelSolver::*","QuatSysSolver::*",
-                 "QuatUnsplitIntegrator::*","EllipticFACOps::*"
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
     print_threshold = 0.0
 }
 

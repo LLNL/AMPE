@@ -87,7 +87,8 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
-      tman->getTimer("BeckermannCompositionRHSStrategy::setDiffusionCoeff()");
+      tman->getTimer(
+         "AMPE::BeckermannCompositionRHSStrategy::setDiffusionCoeff()");
 }
 
 //-----------------------------------------------------------------------

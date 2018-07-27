@@ -47,10 +47,11 @@ PhaseFACOps::PhaseFACOps(
    const bool with_third_phase,
    boost::shared_ptr<tbox::Database> database )
    :
-   EllipticFACOps( tbox::Dimension(NDIM), object_name, database ),
-   d_with_third_phase( with_third_phase )
+      EllipticFACOps( tbox::Dimension(NDIM), object_name, database ),
+      d_with_third_phase( with_third_phase )
 {
-   return;
+   t_setcoeffs_timer = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::PhaseFACOps::setOperatorCoefficients()");
 }
 
 //======================================================================
@@ -69,6 +70,8 @@ void PhaseFACOps::setOperatorCoefficients(
 {
    assert( phase_mobility_id>=0 );
 
+   t_setcoeffs_timer->start();
+
    setM( phase_mobility_id );
 
    // C to be set after M since it uses M
@@ -83,6 +86,8 @@ void PhaseFACOps::setOperatorCoefficients(
       eta_well_func_type );
    
    setDConstant( -gamma * epsilon_phase * epsilon_phase );
+
+   t_setcoeffs_timer->stop();
 }
 
 //======================================================================

@@ -216,7 +216,7 @@ QuatModel::QuatModel( int ql ) :
    
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_resetGrains_timer =
-      tman->getTimer("QuatModel::resetGrains()");
+      tman->getTimer("AMPE::QuatModel::resetGrains()");
 }
 
 //=======================================================================

@@ -131,21 +131,21 @@ QuatFACOps::QuatFACOps(
    d_cell_scratch_id = -1;
 
    t_restrict_solution = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::restrictSolution()");
+      getTimer("AMPE::QuatFACOps::restrictSolution()");
    t_restrict_residual = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::restrictResidual()");
+      getTimer("AMPE::QuatFACOps::restrictResidual()");
    t_prolong = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::prolongErrorAndCorrect()");
+      getTimer("AMPE::QuatFACOps::prolongErrorAndCorrect()");
    t_smooth_error = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::smoothError()");
+      getTimer("AMPE::QuatFACOps::smoothError()");
    t_solve_coarsest = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::solveCoarsestLevel()");
+      getTimer("AMPE::QuatFACOps::solveCoarsestLevel()");
    t_compute_composite_residual = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::computeCompositeResidualOnLevel()");
+      getTimer("AMPE::QuatFACOps::computeCompositeResidualOnLevel()");
    t_compute_rhs = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::computeRHS()");
+      getTimer("AMPE::QuatFACOps::computeRHS()");
    t_compute_residual_norm = tbox::TimerManager::getManager()->
-      getTimer("QuatFACOps::computeResidualNorm()");
+      getTimer("AMPE::QuatFACOps::computeResidualNorm()");
 
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D is not implemented.\n");

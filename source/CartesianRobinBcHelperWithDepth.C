@@ -133,10 +133,11 @@ CartesianRobinBcHelperWithDepth::CartesianRobinBcHelperWithDepth(
    NULL_USE(coef_strategy);
 
    t_set_boundary_values_in_cells = tbox::TimerManager::getManager()->
-      getTimer("CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells()");
+      getTimer(
+         "AMPE::CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells()");
    t_use_set_bc_coefs = tbox::TimerManager::getManager()->
       getTimer(
-         "CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells()_setBcCoefs");
+         "AMPE::CartesianRobinBcHelperWithDepth::setBcCoefs");
 }
 
 /*

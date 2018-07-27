@@ -50,7 +50,7 @@ FACPreconditioner::FACPreconditioner(
 {
 
    t_solve_system = tbox::TimerManager::getManager()->
-      getTimer("FACPreconditioner::solveSystem()_fac_cycling");
+      getTimer("AMPE::FACPreconditioner::solveSystem()_fac_cycling");
 
    /*
     * Initialize object with data read from input database.

@@ -41,9 +41,8 @@ ConcFACSolver::ConcFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
-   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("ConcFACSolver::setOperatorCoefficients");
-   
-   return;
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::ConcFACSolver::setOperatorCoefficients");
 }
 
 void ConcFACSolver::setOperatorCoefficients(

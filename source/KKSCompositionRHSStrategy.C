@@ -111,7 +111,7 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_set_diffcoeff_timer =
-      tman->getTimer("KKSCompositionRHSStrategy::setDiffusionCoeff()");
+      tman->getTimer("AMPE::KKSCompositionRHSStrategy::setDiffusionCoeff()");
 }
 
 //-----------------------------------------------------------------------

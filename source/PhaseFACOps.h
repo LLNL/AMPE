@@ -74,6 +74,8 @@ public:
       const std::string eta_well_func_type );
 
 private:
+   // Timers
+   boost::shared_ptr<tbox::Timer> t_setcoeffs_timer;
 
    void setCOnPatchPrivate(
       boost::shared_ptr< pdat::CellData<double> > cd_phi,

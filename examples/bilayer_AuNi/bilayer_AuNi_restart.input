@@ -105,9 +105,3 @@ Geometry{
    x_up         =  3.2,  0.1 // [um]
 }
 
-TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*",
-                 "QuatIntegrator::*","EllipticFACOps::*",
-                 "CellPoissonHypreSolver::*"
-    print_threshold = 0.0
-}

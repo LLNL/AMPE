@@ -284,31 +284,31 @@ QuatIntegrator::QuatIntegrator(
    // Get timers
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_advance_timer =
-      tman->getTimer("QuatIntegrator::Advance()");
+      tman->getTimer("AMPE::QuatIntegrator::Advance()");
    t_rhs_timer =
-      tman->getTimer("QuatIntegrator::evaluateRHSFunction()");
+      tman->getTimer("AMPE::QuatIntegrator::evaluateRHSFunction()");
    t_phase_rhs_timer =
-      tman->getTimer("QuatIntegrator::evaluatePhaseRHS()");
+      tman->getTimer("AMPE::QuatIntegrator::evaluatePhaseRHS()");
    t_eta_rhs_timer =
-      tman->getTimer("QuatIntegrator::evaluateEtaRHS()");
+      tman->getTimer("AMPE::QuatIntegrator::evaluateEtaRHS()");
    t_conc_rhs_timer =
-      tman->getTimer("QuatIntegrator::evaluateConcentrationRHS()");
+      tman->getTimer("AMPE::QuatIntegrator::evaluateConcentrationRHS()");
    t_symm_rhs_timer =
-      tman->getTimer("QuatIntegrator::correctRhsForSymmetry()");
+      tman->getTimer("AMPE::QuatIntegrator::correctRhsForSymmetry()");
    t_set_coeff_timer =
-      tman->getTimer("QuatIntegrator::setCoefficients()");
+      tman->getTimer("AMPE::QuatIntegrator::setCoefficients()");
    t_set_diffcoeff_conc_timer =
-      tman->getTimer("QuatIntegrator::setDiffusionCoeffForConcentration()");
+      tman->getTimer("AMPE::QuatIntegrator::setDiffusionCoeffForConcentration()");
    t_psolve_setup_timer =
-      tman->getTimer("QuatIntegrator::CVSpgmrPrecondSet()");
+      tman->getTimer("AMPE::QuatIntegrator::CVSpgmrPrecondSet()");
    t_psolve_solve_timer =
-      tman->getTimer("QuatIntegrator::CVSpgmrPrecondSolve()");
+      tman->getTimer("AMPE::QuatIntegrator::CVSpgmrPrecondSolve()");
    t_phase_conc_timer =
-      tman->getTimer("QuatIntegrator::computePhaseConcentrations()");
+      tman->getTimer("AMPE::QuatIntegrator::computePhaseConcentrations()");
    t_phase_precond_timer =
-      tman->getTimer("QuatIntegrator::PhasePrecondSolve()");
+      tman->getTimer("AMPE::QuatIntegrator::PhasePrecondSolve()");
    t_conc_precond_timer =
-      tman->getTimer("QuatIntegrator::ConcPrecondSolve()");
+      tman->getTimer("AMPE::QuatIntegrator::ConcPrecondSolve()");
 
    boost::shared_ptr<tbox::Database> integrator_db =
       db->getDatabase( "Integrator" );

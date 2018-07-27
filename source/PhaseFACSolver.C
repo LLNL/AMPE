@@ -42,9 +42,8 @@ PhaseFACSolver::PhaseFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
-   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("PhaseFACSolver::setOperatorCoefficients");
-   
-   return;
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::PhaseFACSolver::setOperatorCoefficients");
 }
 
 void PhaseFACSolver::setOperatorCoefficients(

@@ -59,7 +59,7 @@ PFModel::PFModel()
 
    tbox::TimerManager* time_man = tbox::TimerManager::getManager();
    t_run_time =
-      time_man->getTimer("PFModel::run");
+      time_man->getTimer("AMPE::PFModel::run");
 }
 
 //=======================================================================

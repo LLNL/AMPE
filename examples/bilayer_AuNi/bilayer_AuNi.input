@@ -107,9 +107,3 @@ Geometry{
    x_up         =  3.2,  0.1 // [um]
 }
 
-TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
-                 "QuatLevelSolver::*","QuatSysSolver::*",
-                 "QuatIntegrator::*"
-    print_threshold = 0.1
-}

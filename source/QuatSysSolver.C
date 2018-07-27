@@ -78,8 +78,10 @@ QuatSysSolver::QuatSysSolver(
     d_precond_maxiters(10)
 {
   // Get timers
-  t_set_op_coef = tbox::TimerManager::getManager()->getTimer("QuatSysSolver::setOperatorCoefficients");
-  t_solve_system = tbox::TimerManager::getManager()->getTimer("QuatSysSolver::solveSystem");
+  t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::QuatSysSolver::setOperatorCoefficients");
+  t_solve_system = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::QuatSysSolver::solveSystem");
 
   /*
     Set some default parameters.  These may be overridden by the respective

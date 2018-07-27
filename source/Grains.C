@@ -58,9 +58,9 @@ Grains::Grains(const int qlen,
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_findAndNumberGrains_timer =
-      tman->getTimer("Grains::findAndNumberGrains()");
+      tman->getTimer("AMPE::Grains::findAndNumberGrains()");
    t_extendGrainOrientation_timer =
-      tman->getTimer("Grains::extendGrainOrientation()");
+      tman->getTimer("AMPE::Grains::extendGrainOrientation()");
    
    if ( input_db->isDatabase( "GrainDiagnostics" ) ) {
       boost::shared_ptr<tbox::Database> g_diag_db =

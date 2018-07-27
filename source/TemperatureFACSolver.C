@@ -42,9 +42,8 @@ TemperatureFACSolver::TemperatureFACSolver (
    :
    EllipticFACSolver( object_name, fac_ops, database )
 {
-   t_set_op_coef = tbox::TimerManager::getManager()->getTimer("TemperatureFACSolver::setOperatorCoefficients");
-   
-   return;
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::TemperatureFACSolver::setOperatorCoefficients");
 }
 
 // Set coefficiients for Eq. M div (D grad u) + C u = f
@@ -58,7 +57,8 @@ void TemperatureFACSolver::setOperatorCoefficients(
    t_set_op_coef->start();
 
    boost::shared_ptr<TemperatureFACOps> Temperature_fac_ops ( 
-      boost::dynamic_pointer_cast<TemperatureFACOps,EllipticFACOps>( d_fac_ops ) );
+      boost::dynamic_pointer_cast<TemperatureFACOps,EllipticFACOps>(d_fac_ops)
+   );
 
    Temperature_fac_ops->setOperatorCoefficients( m, c, d );
 

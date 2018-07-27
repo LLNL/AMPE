@@ -221,13 +221,13 @@ QuatLevelSolver::QuatLevelSolver(
    }
 
    t_set_matrix_coefficients = tbox::TimerManager::getManager()->
-      getTimer("QuatLevelSolver::setMatrixCoefficients");
+      getTimer("AMPE::QuatLevelSolver::setMatrixCoefficients");
    t_solve_system = tbox::TimerManager::getManager()->
-      getTimer("QuatLevelSolver::solveSystem");
+      getTimer("AMPE::QuatLevelSolver::solveSystem");
    t_create_hypre_solver = tbox::TimerManager::getManager()->
-      getTimer("QuatLevelSolver::createHypreSolver");
+      getTimer("AMPE::QuatLevelSolver::createHypreSolver");
    t_hypre_solve = tbox::TimerManager::getManager()->
-      getTimer("QuatLevelSolver::hypreSolve");
+      getTimer("AMPE::QuatLevelSolver::hypreSolve");
 
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
    if (!s_Ak0_var[d_dim.getValue() - 1]) {

@@ -87,7 +87,6 @@ Geometry{
 }
 
 TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*","QuatFACOps::*",
-                 "QuatIntegrator::*"
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
     print_threshold = 0.1
 }

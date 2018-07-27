@@ -445,11 +445,13 @@ CellPoissonHypreSolver::CellPoissonHypreSolver(
    }
    
    t_solve_system = tbox::TimerManager::getManager()->
-      getTimer("CellPoissonHypreSolver::solveSystem()");
+      getTimer("AMPE::CellPoissonHypreSolver::solveSystem()");
    t_set_matrix_coefficients = tbox::TimerManager::getManager()->
-      getTimer("CellPoissonHypreSolver::setMatrixCoefficients()");
+      getTimer("AMPE::CellPoissonHypreSolver::setMatrixCoefficients()");
    t_copy_vectors = tbox::TimerManager::getManager()->
-      getTimer("CellPoissonHypreSolver::copyTo/FromHypre()");
+      getTimer("AMPE::CellPoissonHypreSolver::copyTo/FromHypre()");
+   t_initsolver = tbox::TimerManager::getManager()->
+      getTimer("AMPE::CellPoissonHypreSolver::initializeSolverState()");
 
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
    if (!s_Ak0_var[d_dim.getValue() - 1]) {
@@ -553,6 +555,8 @@ void CellPoissonHypreSolver::initializeSolverState(
    assert( d_msqrt_id>=0 );
    assert( d_Ak0_id>=0 );
 
+   t_initsolver->start();
+
    deallocateSolverState();
 
    d_hierarchy = hierarchy;
@@ -590,6 +594,8 @@ void CellPoissonHypreSolver::initializeSolverState(
    TBOX_ASSERT( d_actual_dim<=NDIM );
 
    allocateHypreData();
+
+   t_initsolver->stop();
 }
 
 

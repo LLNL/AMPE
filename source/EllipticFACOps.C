@@ -753,23 +753,23 @@ EllipticFACOps::EllipticFACOps(
    d_M_is_set=false;
 
    t_restrict_solution = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::restrictSolution()");
+      getTimer("AMPE::EllipticFACOps::restrictSolution()");
    t_restrict_residual = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::restrictResidual()");
+      getTimer("AMPE::EllipticFACOps::restrictResidual()");
    t_prolong = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::prolongErrorAndCorrect()");
+      getTimer("AMPE::EllipticFACOps::prolongErrorAndCorrect()");
    t_smooth_error = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::smoothError()");
+      getTimer("AMPE::EllipticFACOps::smoothError()");
    t_solve_coarsest = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::solveCoarsestLevel()");
+      getTimer("AMPE::EllipticFACOps::solveCoarsestLevel()");
    t_compute_composite_residual = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::computeCompositeResidualOnLevel()");
+      getTimer("AMPE::EllipticFACOps::computeCompositeResidualOnLevel()");
    t_accumulate_operator = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::accumulateOperatorOnLevel()");
+      getTimer("AMPE::EllipticFACOps::accumulateOperatorOnLevel()");
    t_compute_residual_norm = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::computeResidualNorm()");
+      getTimer("AMPE::EllipticFACOps::computeResidualNorm()");
    t_compute_rhs = tbox::TimerManager::getManager()->
-      getTimer("EllipticFACOps::evaluateRHS()");
+      getTimer("AMPE::EllipticFACOps::evaluateRHS()");
 
    TBOX_ASSERT( !d_cell_scratch_var );
 
