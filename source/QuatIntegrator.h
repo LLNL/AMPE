@@ -491,6 +491,7 @@ protected:
    bool d_with_phase;
    const bool d_with_concentration;
    bool d_with_orientation;
+   bool d_evolve_quat;
    bool d_with_unsteady_temperature;
 
    bool d_precond_has_dquatdphi;

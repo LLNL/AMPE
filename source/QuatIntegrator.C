@@ -529,7 +529,7 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
    if( !d_with_phase )d_precond_has_dquatdphi = false;
 
    //d_quat_sys_solver used not only for preconditioning, but also to evaluate RHS
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
 
       boost::shared_ptr<tbox::Database> quatsys_db;
       if ( integrator_db->isDatabase( "QuatSysSolver" ) ) {
@@ -1104,7 +1104,7 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          assert( d_temperature_rhs_visit_id >= 0 );
          d_local_data.setFlag( d_temperature_rhs_visit_id );
       }
-      if ( d_with_orientation ) {
+      if ( d_evolve_quat ) {
          d_modulus_q_rhs_visit_var.reset (
             new pdat::CellVariable<double>(
                tbox::Dimension(NDIM), d_name+"_modulus_q_rhs_visit_", 1 ));
@@ -1472,8 +1472,6 @@ void QuatIntegrator::initializeCoarseRefineOperators(
 
 void QuatIntegrator::setSolversBoundaries()
 {
-   if ( d_with_orientation )assert( d_quat_sys_solver );
-   
    // This should be okay with periodic boundaries
    // to satisfy solvers
    if ( d_all_periodic ){
@@ -1484,7 +1482,8 @@ void QuatIntegrator::setSolversBoundaries()
          d_eta_sys_solver->setBoundaries( "Dirichlet" );
       }
       setConcentrationSolverBoundaries();
-      if ( d_with_orientation ) {
+      if ( d_evolve_quat ) {
+         assert( d_quat_sys_solver );
          d_quat_sys_solver->setBoundaries( "Dirichlet" );
       }
       if ( d_temperature_sys_solver )
@@ -1550,6 +1549,8 @@ void QuatIntegrator::setModelParameters(
    d_T_source           =d_model_parameters.T_source();
    
    d_alpha_AT = d_epsilon_phase/sqrt(32.*d_phase_well_scale);
+
+   d_evolve_quat = ( d_with_orientation && d_H_parameter>0. );
 }
 
 //-----------------------------------------------------------------------
@@ -1591,7 +1592,7 @@ void QuatIntegrator::RegisterWithVisit(
          visit_data_writer->registerPlotQuantity(
             "temperature_rhs", "SCALAR", d_temperature_rhs_visit_id, 0 );
       }
-      if ( d_with_orientation ) {
+      if ( d_evolve_quat ) {
          assert( d_modulus_q_rhs_visit_id>0 );
          string visit_nameq("modulus_q_rhs");
          visit_data_writer->registerPlotQuantity(
@@ -1733,7 +1734,8 @@ void QuatIntegrator::resetSolutionVector(const boost::shared_ptr<hier::PatchHier
 
 //-----------------------------------------------------------------------
 // Make a new solution vector
-void QuatIntegrator::createSolutionvector(const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
+void QuatIntegrator::createSolutionvector(
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
    boost::shared_ptr<hier::PatchLevel > level (
       hierarchy->getPatchLevel( hierarchy->getFinestLevelNumber() ) );
@@ -1772,7 +1774,7 @@ void QuatIntegrator::createSolutionvector(const boost::shared_ptr<hier::PatchHie
       ncomponents ++;
    }
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       assert( d_quat_id>-1 );
       d_solution_vec->addComponent( d_quat_var, d_quat_id, d_weight_id );
       d_quat_component_index = ncomponents;
@@ -1887,7 +1889,6 @@ void QuatIntegrator::resetSolversState(
    const int finest_level )
 {
    //tbox::pout<<"QuatIntegrator::resetSolversState()"<<endl;
-   if ( d_with_orientation )assert( d_quat_sys_solver );
 
    if ( d_with_phase && d_phase_sys_solver ) {
      d_phase_sys_solver->
@@ -1931,7 +1932,7 @@ void QuatIntegrator::resetSolversState(
 
    resetSolversStateConcentration(hierarchy,coarsest_level,finest_level);
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       assert( d_quat_sys_solver );
       d_quat_sys_solver->
          resetSolverState(
@@ -1960,7 +1961,6 @@ void QuatIntegrator::initializeLevelData(
    const bool                                       allocate_data )
 {
    //tbox::pout<<"QuatIntegrator::initializeLevelData()"<<endl;
-   if ( d_with_orientation )assert( d_quat_sys_solver );
 
    boost::shared_ptr<hier::PatchLevel > level = hierarchy->getPatchLevel(level_number);
 
@@ -2019,7 +2019,7 @@ void QuatIntegrator::initializeNonPeriodicBC()
          d_eta_sys_solver->setBcObject(d_eta_bc_coefs);
       }
       initializeConcentrationNonPeriodicBC();
-      if ( d_with_orientation ) {
+      if ( d_evolve_quat ) {
          assert( d_quat_bc_coefs!=NULL );
          d_quat_sys_solver->setBcObject(d_quat_bc_coefs);
       }
@@ -2049,8 +2049,6 @@ void QuatIntegrator::initializeConcentrationSolver(
 void QuatIntegrator::initializeSolvers(
    const boost::shared_ptr< hier::PatchHierarchy >& hierarchy )
 {
-   if( d_with_orientation )assert( d_quat_sys_solver );
-   
    int finest = hierarchy->getFinestLevelNumber();
 
    if ( d_with_phase && d_phase_sys_solver ) {
@@ -2080,7 +2078,8 @@ void QuatIntegrator::initializeSolvers(
 
    initializeConcentrationSolver(hierarchy);
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
+      assert( d_quat_sys_solver );
       d_quat_sys_solver->initializeSolverState(
          d_quat_sol_id, d_quat_rhs_id, d_weight_id, hierarchy );
    }
@@ -2367,7 +2366,7 @@ void QuatIntegrator::coarsenData(
          d_eta_coarsen_op );
    }
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       coarsen_alg.registerCoarsen(
          quat_id, quat_id,
          d_quat_coarsen_op );
@@ -3546,7 +3545,7 @@ void QuatIntegrator::fillScratch(
          d_eta_refine_op );
    }
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       const int y_quat_id =
          y->getComponentDescriptorIndex( d_quat_component_index );
       assert( y_quat_id>-1 );
@@ -3618,7 +3617,7 @@ void QuatIntegrator::computeMobilities(
          time,
          QuatMobilityStrategy::FORCE );
    }
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       d_mobility_strategy->computeQuatMobility(
          hierarchy,
          d_phase_scratch_id,
@@ -3659,7 +3658,7 @@ void QuatIntegrator::setCoefficients(
    int n = 0;
    if ( d_with_phase ) n++;
    if ( d_with_third_phase ) n++;
-   if ( d_with_orientation ) n++;
+   if ( d_evolve_quat ) n++;
    if ( d_with_concentration ) n++;
    if ( d_with_unsteady_temperature ) n++;
    assert( y->getNumberOfComponents() == n );
@@ -3671,7 +3670,7 @@ void QuatIntegrator::setCoefficients(
                   y->getComponentDescriptorIndex(d_phase_component_index): -1;
    int eta_id   = d_with_third_phase   ?
                   y->getComponentDescriptorIndex(d_eta_component_index  ): -1;
-   int quat_id  = d_with_orientation   ?
+   int quat_id  = (d_evolve_quat)  ?
                   y->getComponentDescriptorIndex(d_quat_component_index ): -1;
    int conc_id  = d_with_concentration ?
                   y->getComponentDescriptorIndex(d_conc_component_index ): -1;
@@ -3711,7 +3710,7 @@ void QuatIntegrator::setCoefficients(
       }
    }
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
 
       // Compute quaternion diffusion coefficient
       if ( time < d_uniform_diffusion_time_threshold ) {
@@ -3786,7 +3785,6 @@ int QuatIntegrator::evaluateRHSFunction(
    solv::SundialsAbstractVector * y_dot,
    int                          fd_flag )
 {
-   if ( d_with_orientation ) assert( d_quat_sys_solver );
    if ( d_with_unsteady_temperature ) assert( d_temperature_sys_solver );
 
    // tbox::pout << "Entering QuatIntegrator::evaluateRHSFunction" << endl;
@@ -3806,15 +3804,17 @@ int QuatIntegrator::evaluateRHSFunction(
    int n = 0;
    if ( d_with_phase ) n++;
    if ( d_with_third_phase ) n++;
-   if ( d_with_orientation ) n++;
+   if ( d_evolve_quat ) n++;
    if ( d_with_concentration ) n++;
    if ( d_with_unsteady_temperature ) n++;
    assert( y_dot_samvect->getNumberOfComponents() == n );
 //#endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   int temperature_id  = d_with_unsteady_temperature ? 
-                         y_samvect->getComponentDescriptorIndex( d_temperature_component_index  ): -1;
+   int temperature_id  =
+      d_with_unsteady_temperature ? 
+      y_samvect->getComponentDescriptorIndex( d_temperature_component_index ):
+      -1;
    if( temperature_id>=0 ){
       math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
       const double norm_y_temp = mathops.L2Norm( temperature_id );
@@ -3919,7 +3919,7 @@ int QuatIntegrator::evaluateRHSFunction(
    }
 
    // Set the quaternion component of the RHS
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
 
       evaluateQuatRHS( hierarchy,y_dot_samvect,fd_flag);
 
@@ -4048,7 +4048,7 @@ CVSpgmrPrecondSet
 
    if( d_with_concentration )setCompositionOperatorCoefficients(gamma);
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       assert( d_quat_sys_solver );
 
       d_quat_sys_solver->setOperatorCoefficients(
@@ -4453,7 +4453,7 @@ CVSpgmrPrecondSolve
       }
 
       // Apply the preconditioner quaternion block
-      if ( d_with_orientation ) {
+      if ( d_evolve_quat) {
 
          int z_quat_id =
             z_samvect->getComponentDescriptorIndex( d_quat_component_index );
@@ -4673,7 +4673,7 @@ int QuatIntegrator::applyProjection(
    // Zero all components of the correction
    corr->setToScalar(0.);
 
-   if ( d_qlen > 1 && d_with_orientation ) {
+   if ( d_qlen > 1 && d_evolve_quat ) {
       //tbox::pout<<"QuatIntegrator::applyProjection()"<<endl;
       // Convert the Sundials vectors to SAMRAI vectors
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_samvect
@@ -4683,9 +4683,12 @@ int QuatIntegrator::applyProjection(
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > err_samvect
          = solv::Sundials_SAMRAIVector::getSAMRAIVector(err);
 
-      const int q_id    = y_samvect->getComponentDescriptorIndex(d_quat_component_index);
-      const int corr_id = corr_samvect->getComponentDescriptorIndex(d_quat_component_index);
-      const int err_id  = err_samvect->getComponentDescriptorIndex(d_quat_component_index);
+      const int q_id    =
+         y_samvect->getComponentDescriptorIndex(d_quat_component_index);
+      const int corr_id =
+         corr_samvect->getComponentDescriptorIndex(d_quat_component_index);
+      const int err_id  =
+         err_samvect->getComponentDescriptorIndex(d_quat_component_index);
       //tbox::pout<<"q_id="<<q_id<<endl;
       d_quat_sys_solver->applyProjection(q_id, corr_id, err_id);
    }
@@ -4870,7 +4873,7 @@ void QuatIntegrator::getCPODESIdsRequiringRegrid(
          }
       }
 
-      if ( d_with_orientation ){
+      if ( d_evolve_quat ){
          int id = (*it)->getComponentDescriptorIndex( d_quat_component_index );
 
          if ( id != d_quat_id && orient_id_set.find( id ) == orient_id_set.end() ) {
