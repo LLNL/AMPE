@@ -598,6 +598,7 @@ private:
    boost::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
    boost::shared_ptr<tbox::Timer> t_copy_vectors;
    boost::shared_ptr<tbox::Timer> t_initsolver;
+   boost::shared_ptr<tbox::Timer> t_setupsolver;
 };
 
 #include "CellPoissonHypreSolver.I"

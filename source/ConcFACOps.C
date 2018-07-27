@@ -46,6 +46,8 @@ ConcFACOps::ConcFACOps(
    :
    EllipticFACOps( tbox::Dimension(NDIM), object_name, database, depth )
 {
+   t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
+      "AMPE::ConcFACOps::setOperatorCoefficients()");
 }
 
 void ConcFACOps::setOperatorCoefficients(
@@ -56,6 +58,8 @@ void ConcFACOps::setOperatorCoefficients(
    assert( gamma>=0. );
    assert( diffusion_id.size()==d_d_id.size() );
    assert( diffusion_id.size()==1 || diffusion_id.size()==2 );
+
+   t_set_op_coef->start();
 
    for(unsigned ic=0;ic<diffusion_id.size();ic++)assert( diffusion_id[ic]>=0 );
    for(unsigned ic=0;ic<d_d_id.size();ic++)assert( d_d_id[ic]>=0 );
@@ -76,4 +80,6 @@ void ConcFACOps::setOperatorCoefficients(
    }
 
    setMConstant(mobility);
+
+   t_set_op_coef->stop();
 }

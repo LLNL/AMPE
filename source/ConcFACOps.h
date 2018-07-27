@@ -57,6 +57,8 @@ public:
       const std::vector<int>& diffusion_id,
       const double mobility);
 
+private:
+   boost::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 
 #endif // included_ConcFACOps

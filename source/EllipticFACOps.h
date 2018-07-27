@@ -1136,6 +1136,7 @@ protected:
    boost::shared_ptr<tbox::Timer> t_accumulate_operator;
    boost::shared_ptr<tbox::Timer> t_compute_residual_norm;
    boost::shared_ptr<tbox::Timer> t_compute_rhs;
+   boost::shared_ptr<tbox::Timer> t_finalizecoeffs;
 
    std::vector<bool> d_C_is_set;
    std::vector<bool> d_D_is_set;

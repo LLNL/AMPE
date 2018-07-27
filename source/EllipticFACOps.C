@@ -770,6 +770,8 @@ EllipticFACOps::EllipticFACOps(
       getTimer("AMPE::EllipticFACOps::computeResidualNorm()");
    t_compute_rhs = tbox::TimerManager::getManager()->
       getTimer("AMPE::EllipticFACOps::evaluateRHS()");
+   t_finalizecoeffs = tbox::TimerManager::getManager()->
+      getTimer("AMPE::EllipticFACOps::finalizeCoefficients()");
 
    TBOX_ASSERT( !d_cell_scratch_var );
 
@@ -1342,6 +1344,10 @@ EllipticFACOps::setM(const int m_id)
 void
 EllipticFACOps::finalizeCoefficients()
 {
+   tbox::SAMRAI_MPI::getSAMRAIWorld().Barrier();
+
+   t_finalizecoeffs->start();
+
    size_t n=d_C_is_set.size();
    for(size_t i=0;i<n;i++)
    if ( !d_C_is_set[i] || !d_D_is_set[i] || !d_M_is_set ) {
@@ -1370,13 +1376,14 @@ EllipticFACOps::finalizeCoefficients()
       }
    }
 #endif
-
+   t_finalizecoeffs->stop();
 }
 
 
 /*
 ********************************************************************
-* FACOperatorStrategy virtual postprocessOneCycle function.  *
+*eFACOperatorStrategy virtual postprocessOneCycle function.  *
+l
 ********************************************************************
 */
 void
