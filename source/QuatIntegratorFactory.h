@@ -83,7 +83,6 @@ public:
             grid_geometry,
             bc_db,
             false, // without phase
-            model_parameters.with_orientation(),
             false, // without concentration
             false,
             false,
@@ -108,7 +107,6 @@ public:
                grid_geometry,
                bc_db,
                model_parameters.with_phase(),
-               model_parameters.with_orientation(),
                model_parameters.with_concentration(),
                model_parameters.with_third_phase(),
                model_parameters.with_heat_equation(),

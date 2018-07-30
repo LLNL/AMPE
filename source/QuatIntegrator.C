@@ -110,7 +110,6 @@ QuatIntegrator::QuatIntegrator(
    boost::shared_ptr<geom::CartesianGridGeometry > grid_geom,
    boost::shared_ptr<tbox::Database> bc_db,
    const bool with_phase,
-   const bool with_orientation,
    const bool with_concentration,
    const bool with_third_phase,
    const bool with_heat_equation,
@@ -143,7 +142,8 @@ QuatIntegrator::QuatIntegrator(
      d_ncompositions( ncompositions ),
      d_with_phase( with_phase ),
      d_with_concentration( with_concentration ),
-     d_with_orientation( with_orientation ),
+     d_with_orientation( model_parameters.with_orientation() ),
+     d_evolve_quat( model_parameters.evolveQuat() ),
      d_precond_has_dquatdphi( true ),
      d_precond_has_dTdphi( false ),
      d_precond_has_dPhidT( false ),
@@ -333,9 +333,7 @@ QuatIntegrator::QuatIntegrator(
 
    d_max_krylov_dimension = integrator_db->getIntegerWithDefault( "max_krylov_dimension", 5 );
 
-   // preconditioner
-
-   setupPreconditioners(integrator_db);
+   d_integrator_db = integrator_db;
 
 
    tbox::Dimension dim(NDIM);
@@ -346,7 +344,8 @@ QuatIntegrator::QuatIntegrator(
    for ( int dd = 0; dd < NDIM; dd++ ) {
       d_all_periodic = d_all_periodic && periodic[dd];
    }
-   
+
+   setupPreconditioners();
 }
 
 //-----------------------------------------------------------------------
@@ -473,7 +472,7 @@ void QuatIntegrator::setupPreconditionersTemperature(boost::shared_ptr<tbox::Dat
 
 //-----------------------------------------------------------------------
 
-void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> integrator_db)
+void QuatIntegrator::setupPreconditioners()
 {
    tbox::pout<<"QuatIntegrator::setupPreconditioners()"<<endl;
    
@@ -484,9 +483,9 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
    bool precondition_conc = true;
    bool precondition_temperature = d_with_steady_temperature ? false : true;
 
-   if ( integrator_db->isDatabase( "Preconditioner" ) ) {
+   if ( d_integrator_db->isDatabase( "Preconditioner" ) ) {
       boost::shared_ptr<tbox::Database> precond_db =
-         integrator_db->getDatabase( "Preconditioner" );
+         d_integrator_db->getDatabase( "Preconditioner" );
 
       d_use_preconditioner = precond_db->getBoolWithDefault( "enabled", true );
 
@@ -532,8 +531,8 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
    if ( d_evolve_quat ) {
 
       boost::shared_ptr<tbox::Database> quatsys_db;
-      if ( integrator_db->isDatabase( "QuatSysSolver" ) ) {
-         quatsys_db = integrator_db->getDatabase( "QuatSysSolver" );
+      if ( d_integrator_db->isDatabase( "QuatSysSolver" ) ) {
+         quatsys_db = d_integrator_db->getDatabase( "QuatSysSolver" );
          d_show_quat_sys_stats =
             quatsys_db->getBoolWithDefault( "verbose", false );
       }
@@ -553,7 +552,7 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
 
       if ( d_with_phase && precondition_phase ) {
 
-         setupPreconditionersPhase(integrator_db);
+         setupPreconditionersPhase(d_integrator_db);
       }
       else {
          d_phase_sys_solver.reset();
@@ -561,7 +560,7 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
 
       if ( d_with_third_phase && precondition_eta ) {
 
-         setupPreconditionersEta(integrator_db);
+         setupPreconditionersEta(d_integrator_db);
       }
       else {
          d_eta_sys_solver.reset();
@@ -569,7 +568,7 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
 
       if ( d_with_concentration && precondition_conc ) {
 
-         setupPreconditionersConcentration(integrator_db);
+         setupPreconditionersConcentration(d_integrator_db);
 
       }
       else {
@@ -578,7 +577,7 @@ void QuatIntegrator::setupPreconditioners(boost::shared_ptr<tbox::Database> inte
 
       if ( d_with_unsteady_temperature && precondition_temperature ) {
 
-         setupPreconditionersTemperature(integrator_db);
+         setupPreconditionersTemperature(d_integrator_db);
       }
       else {
          d_temperature_sys_solver.reset();
@@ -1549,8 +1548,6 @@ void QuatIntegrator::setModelParameters(
    d_T_source           =d_model_parameters.T_source();
    
    d_alpha_AT = d_epsilon_phase/sqrt(32.*d_phase_well_scale);
-
-   d_evolve_quat = ( d_with_orientation && d_H_parameter>0. );
 }
 
 //-----------------------------------------------------------------------

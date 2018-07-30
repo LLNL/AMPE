@@ -113,7 +113,6 @@ public :
       boost::shared_ptr<geom::CartesianGridGeometry > grid_geom,
       boost::shared_ptr<tbox::Database> bc_db,
       const bool with_phase,
-      const bool with_orientation,
       const bool with_concentration,
       const bool with_third_phase,
       const bool with_heat_equation,
@@ -136,7 +135,7 @@ public :
       boost::shared_ptr<hier::CoarsenOperator > quat_coarsen_op );
 
    void setVerbosity( const int v );
-   void setupPreconditioners(boost::shared_ptr<tbox::Database>);
+   void setupPreconditioners();
 
    void setModelParameters(
       const double current_time,
@@ -490,8 +489,8 @@ protected:
 
    bool d_with_phase;
    const bool d_with_concentration;
-   bool d_with_orientation;
-   bool d_evolve_quat;
+   const bool d_with_orientation;
+   const bool d_evolve_quat;
    bool d_with_unsteady_temperature;
 
    bool d_precond_has_dquatdphi;
@@ -1039,6 +1038,8 @@ private :
    solv::LocationIndexRobinBcCoefs* d_eta_bc_coefs;
    solv::LocationIndexRobinBcCoefs* d_temperature_bc_coefs;
    solv::LocationIndexRobinBcCoefs* d_quat_bc_coefs;
+
+   boost::shared_ptr<tbox::Database> d_integrator_db;
    
    // Timers
    boost::shared_ptr<tbox::Timer> t_advance_timer;

@@ -119,7 +119,6 @@ QuatModelParameters::QuatModelParameters()
    d_ncompositions=-1;
 
    d_with_phase = true;
-   d_with_orientation = false;
    d_with_third_phase = false;
    d_with_heat_equation = false;
    d_with_steady_temperature = false;
@@ -705,12 +704,6 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 {
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault( "H_parameter", -1. );
-   if ( d_H_parameter >= 0. ) {
-      d_with_orientation = true;
-   }
-   else {
-      d_with_orientation = false;
-   }
 
    // Interface width
    if ( model_db->keyExists( "epsilon_phi" ) ) {

@@ -92,6 +92,11 @@ public:
 
    //accessors for parameters
    double H_parameter()const{ return d_H_parameter; }
+   bool with_orientation()const{ return (d_H_parameter>=0.); }
+   bool evolveQuat()const{
+      assert( d_H_parameter==d_H_parameter );
+      return (d_H_parameter>0.);
+   }
    double epsilon_phase()const{ return d_epsilon_phase; }
    double epsilon_eta()const{ return d_epsilon_eta; }
    double epsilon_q()const{ return d_epsilon_q; }
@@ -203,7 +208,6 @@ public:
    std::string conc_avg_func_type()const{ return d_conc_avg_func_type; }
 
    bool   with_phase()const{ return d_with_phase; }
-   bool   with_orientation()const{ return d_with_orientation; }
    bool   with_concentration()const{ return d_with_concentration; }
    bool   with_third_phase()const{ return d_with_third_phase; }
    bool   with_heat_equation()const{ return d_with_heat_equation; }
@@ -454,7 +458,6 @@ private:
    ConcDiffusionType d_conc_diffusion_type;
  
    bool   d_with_phase; 
-   bool   d_with_orientation;
    bool   d_with_concentration;
    bool   d_with_third_phase;
    bool   d_with_heat_equation;
