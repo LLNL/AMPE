@@ -931,6 +931,9 @@ void QuatModel::Initialize(
          d_quat_id, d_qlen,
          d_conc_id, d_ncompositions);
 
+      initializer.setCvalue(d_init_c);
+      initializer.setQvalue(d_init_q);
+
       initializer.initializeLevelFromData( d_initial_level,
                                            d_init_data_filename,
                                            d_slice_index );

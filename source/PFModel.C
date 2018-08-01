@@ -401,6 +401,19 @@ void PFModel::readInitialDatabase(
       d_level_of_init_data = data_db->getInteger( "amr_level_of_data" );
    }
 
+   //Read value for uniform quat if available
+   if ( data_db->keyExists( "init_q" ) ){
+      size_t n=data_db->getArraySize("init_q");
+      d_init_q.resize(n);
+      data_db->getFloatArray("init_q",&d_init_q[0],n);
+   }
+   //Read value for uniform concentration if available
+   if ( data_db->keyExists( "init_c" ) ){
+      size_t n=data_db->getArraySize("init_c" );
+      d_init_c.resize(n);
+      data_db->getFloatArray("init_c",&d_init_c[0],n);
+   }
+
 #if (NDIM == 2)
    if ( data_db->keyExists( "slice_index" ) ) {
       d_slice_index = data_db->getInteger( "slice_index" );

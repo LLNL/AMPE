@@ -19,7 +19,9 @@ FieldsInitializer::FieldsInitializer(
    d_eta_id(-1),
    d_temperature_id(-1),
    d_quat_id(-1),
-   d_conc_id(-1)
+   d_conc_id(-1),
+   d_use_uniform_q_value(false),
+   d_use_uniform_c_value(false)
 {
 }
 
@@ -38,6 +40,20 @@ void FieldsInitializer::registerFieldsIds(
 
    d_qlen = qlen;
    d_ncompositions = ncompositions;
+}
+
+void FieldsInitializer::setQvalue(const vector<float>& qvalue)
+{
+   d_qvalue = qvalue;
+
+   d_use_uniform_q_value = true;
+}
+
+void FieldsInitializer::setCvalue(const vector<float>& cvalue)
+{
+   d_cvalue = cvalue;
+
+   d_use_uniform_c_value = true;
 }
 
 void FieldsInitializer::initializeLevelFromData(
@@ -99,7 +115,7 @@ void FieldsInitializer::initializeLevelFromData(
    }
 
    NcDim* ncQlen;
-   if ( d_qlen>0 ) {
+   if ( readQ() ) {
       ncQlen = ncf.get_dim( "qlen" );
       if ( ncQlen == NULL ) {
          TBOX_ERROR( "Could not read variable 'qlen' " <<
@@ -173,7 +189,7 @@ void FieldsInitializer::initializeLevelFromData(
 
 #ifdef HAVE_NETCDF3
    NcVar** ncQuatComponents=NULL;
-   if ( d_qlen>0 ) {
+   if ( readQ() ) {
       ncQuatComponents = new NcVar*[d_qlen];
       for ( int ii = 0; ii < d_qlen; ii++ ) {
          std::ostringstream o;
@@ -189,7 +205,7 @@ void FieldsInitializer::initializeLevelFromData(
 #endif
 #ifdef HAVE_NETCDF4
    NcVar* ncQuatComponents=NULL;
-   if ( d_qlen>0 ) {
+   if ( readQ() ) {
       ncQuatComponents = new NcVar[d_qlen];
       for ( int ii = 0; ii < d_qlen; ii++ ) {
          std::ostringstream o;
@@ -204,7 +220,7 @@ void FieldsInitializer::initializeLevelFromData(
 
 #ifdef HAVE_NETCDF3
   NcVar** ncConcComponents=NULL;
-   if ( d_ncompositions>0 ){
+   if ( readC() ){
       tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
       ncConcComponents = new NcVar*[ncompositions];
       for ( int ii = 0; ii < d_ncompositions; ii++ ) {
@@ -226,7 +242,7 @@ void FieldsInitializer::initializeLevelFromData(
 #endif
 #ifdef HAVE_NETCDF4
    NcVar* ncConcComponents=NULL;
-   if ( d_ncompositions>0 ){
+   if ( readC() ){
       tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
       ncConcComponents = new NcVar[d_ncompositions];
       for ( int ii = 0; ii < d_ncompositions; ii++ ) {
@@ -275,10 +291,10 @@ void FieldsInitializer::initializeLevelFromData(
    ncf.close();  // NcVar memory deletion handled by this call
 #endif
 
-   if ( d_quat_id>=0 ) {
+   if ( readQ() ) {
       delete[] ncQuatComponents;
    }
-   if ( d_conc_id>=0 ){
+   if ( readC() ){
       delete[] ncConcComponents;
    }
 }
@@ -439,7 +455,8 @@ void FieldsInitializer::initializePatchFromData(
                patch->getPatchData( d_quat_id) ) );
          assert( quat_data );
 
-         for ( int qq = 0; qq < d_qlen; qq++ ) {
+         for ( int qq = 0; qq < d_qlen; qq++ )
+         if( readQ() ){
 #ifdef HAVE_NETCDF3
             NcVar* ncQuat = ncQuatComponents[qq];
             ncQuat->set_cur( z_lower, y_lower, x_lower );
@@ -455,7 +472,8 @@ void FieldsInitializer::initializePatchFromData(
 #endif
 
             pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
-            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+                                     i!=iend; ++i ) {
                const pdat::CellIndex ccell = *i;
                int ix = ccell(0) - x_lower;
                int iy = ccell(1) - y_lower;
@@ -466,6 +484,14 @@ void FieldsInitializer::initializePatchFromData(
                int idx = nx * ny * iz + nx * iy + ix;
 #endif
                (*quat_data)(ccell,qq) = vals[idx];
+            }
+         }else{
+            assert( d_qvalue.size()==d_qlen );
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+                                     i!=iend; ++i ) {
+               const pdat::CellIndex ccell = *i;
+               (*quat_data)(ccell,qq) = d_qvalue[qq];
             }
          }
       }
@@ -478,7 +504,8 @@ void FieldsInitializer::initializePatchFromData(
                patch->getPatchData( d_conc_id) ) );
          assert( conc_data );
 
-         for ( int cc = 0; cc < d_ncompositions; cc++ ) {
+         for ( int cc = 0; cc < d_ncompositions; cc++ )
+         if( readC() ){
 #ifdef HAVE_NETCDF3
             NcVar* ncConc = ncConcComponents[cc];
             assert( ncConc!=0 );
@@ -509,6 +536,14 @@ void FieldsInitializer::initializePatchFromData(
                assert( vals[idx]<=1. );
                assert( vals[idx]>=0. );
                (*conc_data)(ccell,cc) = vals[idx];
+            }
+         }else{
+            assert( d_cvalue.size()==d_ncompositions );
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+                                     i!=iend; ++i ) {
+               const pdat::CellIndex ccell = *i;
+               (*conc_data)(ccell,cc) = d_cvalue[cc];
             }
          }
 #ifdef DEBUG_CHECK_ASSERTIONS

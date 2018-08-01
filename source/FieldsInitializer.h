@@ -55,6 +55,9 @@ void initializePatchFromData(
 #endif
    T* vals);
 
+   void setQvalue(const std::vector<float>& qvalue);
+   void setCvalue(const std::vector<float>& cvalue);
+
 private:
 
    boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
@@ -71,6 +74,18 @@ private:
 
    int d_qlen;
    int d_ncompositions;
+
+   /*!
+    * Uniform initial values for fields
+    */
+   std::vector<float> d_qvalue;
+   std::vector<float> d_cvalue;
+
+   bool d_use_uniform_q_value;
+   bool d_use_uniform_c_value;
+
+   bool readQ()const{ return (d_qlen>0 && !d_use_uniform_q_value); }
+   bool readC()const{ return (d_ncompositions>0 && !d_use_uniform_c_value); }
 
    void checkInputFileDimensions(
       const size_t nx_file, const size_t ny_file, const size_t nz_file,

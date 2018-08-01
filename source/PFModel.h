@@ -176,6 +176,8 @@ protected:
    int d_slice_index;
    hier::IntVector d_ratio_of_init_to_coarsest;
    boost::shared_ptr<hier::PatchLevel > d_initial_level;
+   std::vector<float> d_init_q;
+   std::vector<float> d_init_c;
 
    int d_max_cycles;
    double d_start_time;
