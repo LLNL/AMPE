@@ -248,31 +248,21 @@ else:
 
 # Fill data arrays
 
-vol=nx*ny*nz
-vs=0.
-vl=0.;
-
-shift=[]
-for i in range( nx ) :
-  shift.append(noise*random.uniform(-1., 1.))
-  #shift.append(0.001*random.uniform(-1., 1.))
-  #shift.append(0.0)
- 
 fraction=1./ngrains; 
-for k in range( nz ) :
-  z = k + 0.5
-  for j in range( ny ) :
-    #get a y in [0,1]
-    y = (j + 0.5)/(1.*ny)
+for j in range( ny ) :
+  #get a y in [0,1]
+  y = (j + 0.5)/(1.*ny)
     
-    #d is negative for the lowest y 
-    #"sf" fraction of domain)
-    d = (y-sf)
-    #print 'd=',d
+  #d is negative for the lowest y
+  #"sf" fraction of domain)
+  d0 = (y-sf)
+  #print 'd=',d
+  for k in range( nz ) :
+    z = k + 0.5
     for i in range( nx ) :
       x = i + 0.5
       
-      d=d+shift[i]
+      d=d0+noise*random.uniform(-1., 1.)
       
       if( widthy>0. ):
         if( d<0.1 ):
@@ -287,9 +277,7 @@ for k in range( nz ) :
           s=N.sin(0.5*pi*dx/5)
           phase[k,j,i]=phase[k,j,i]*s*s
 
-      vs=vs+phase[k,j,i]
 
-vl=vol-vs
 
 #fill quat values
 setRandomQinGrains()
