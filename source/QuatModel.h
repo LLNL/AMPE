@@ -140,10 +140,6 @@ public :
    void readInitialDatabase(
       boost::shared_ptr<tbox::Database> main_input_db );
 
-   void checkInputFileDimensions(
-      const size_t nx_file, const size_t ny_file, const size_t nz_file,
-      const size_t qlen_file );
-
    void WriteInitialConditionsFile( void );
 
    boost::shared_ptr<hier::PatchLevel > FlattenHierarchy(
@@ -154,28 +150,6 @@ public :
    void setupInitialDataLevel( void );
 
    void setupHierarchy( void );
-
-   void initializeLevelFromData(
-      boost::shared_ptr<hier::PatchLevel > level );
-   
-   template <typename T>
-   void initializePatchFromData(
-      boost::shared_ptr<hier::Patch > patch, size_t islice,
-#ifdef HAVE_NETCDF3
-      netCDF::NcVar* ncPhase,
-      netCDF::NcVar* ncEta,
-      netCDF::NcVar* ncTemp,
-      netCDF::NcVar** ncQuatComponents,
-      netCDF::NcVar** ncConcComponent,
-#endif
-#ifdef HAVE_NETCDF4
-      netCDF::NcVar& ncPhase,
-      netCDF::NcVar& ncEta,
-      netCDF::NcVar& ncTemp,
-      netCDF::NcVar* ncQuatComponents,
-      netCDF::NcVar* ncConcComponent,
-#endif
-      T* vals );
 
    void computeMinMaxQModulus(
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy );
