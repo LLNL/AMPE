@@ -449,8 +449,8 @@ c
       do ic1 = ifirst1, ilast1
          do ic0 = ifirst0, ilast0+1
             dphix = dxinv * ( phase(ic0,ic1) - phase(ic0-1,ic1) )
-            dphiy = dyinv*0.25d0*(phase(ic0, ic1+1)-phase(ic0,  ic1-1)
-     &                         + phase(ic0-1,ic1+1)-phase(ic0-1,ic1-1) 
+            dphiy = dyinv*0.25d0*(phase(ic0-1,ic1+1)-phase(ic0-1,ic1-1)
+     &                          + phase(ic0  ,ic1+1)-phase(ic0  ,ic1-1)
      &                          )
             dphi2 = dphix*dphix+dphiy*dphiy
             if( abs(dphi2) .gt. tol2 ) then
@@ -471,8 +471,8 @@ c
       do ic1 = ifirst1, ilast1+1
          do ic0 = ifirst0, ilast0
             dphiy = dyinv * ( phase(ic0,ic1) - phase(ic0,ic1-1) )
-            dphix = dxinv*0.25d0*(phase(ic0-1,ic1)-phase(ic0-1,ic1-1)
-     &                          + phase(ic0+1,ic1)-phase(ic0+1,ic1-1)
+            dphix = dxinv*0.25d0*(phase(ic0+1,ic1-1)-phase(ic0-1,ic1-1)
+     &                          + phase(ic0+1,ic1  )-phase(ic0-1,ic1  )
      &                           )
             dphi2 = dphix*dphix+dphiy*dphiy
             if( abs(dphi2) .gt. tol2 ) then
