@@ -145,6 +145,7 @@ void FieldsInitializer::initializeLevelFromData(
          TBOX_ERROR( "Could not read variable 'temperature' " <<
                      "from input data" << endl );
    }
+   if ( readQ() )
    for ( int ii = 0; ii < d_qlen; ii++ ) {
       std::ostringstream o;
       o << "quat" << ii+1;
@@ -586,8 +587,7 @@ void FieldsInitializer::checkInputFileDimensions(
 
    if ( nx_file != nx_prob ||
         ny_file != ny_prob ||
-        nz_file != nz_prob ||
-        static_cast<int>(qlen_file) < d_qlen ) {
+        nz_file != nz_prob ){
       TBOX_ERROR(
          "Phase input data dimensions are incorrect"
          << ", nx_file=" << nx_file
@@ -596,6 +596,11 @@ void FieldsInitializer::checkInputFileDimensions(
          << ", nx_prob=" << nx_prob
          << ", ny_prob=" << ny_prob
          << ", nz_prob=" << nz_prob
+         << endl );
+   }
+   if (  readQ() && (static_cast<int>(qlen_file)!=d_qlen) ) {
+      TBOX_ERROR(
+         "Phase input data dimensions are incorrect"
          << ", qlen_file=" << qlen_file
          << ", QLEN=" << d_qlen
          << endl );
