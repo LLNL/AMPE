@@ -87,7 +87,7 @@ void FieldsInitializer::initializeLevelFromData(
 #endif
    tbox::plog<<"Opened NetCDF file "<<init_data_filename<<endl;
 
-   size_t qlen_file = 999;
+   size_t qlen_file = 0;
 #ifdef HAVE_NETCDF3
    NcVar* ncPhase = ncf.get_var( "phase" );
    if ( ncPhase == NULL ) {
@@ -486,7 +486,9 @@ void FieldsInitializer::initializePatchFromData(
                (*quat_data)(ccell,qq) = vals[idx];
             }
          }else{
-            assert( d_qvalue.size()==d_qlen );
+            if( static_cast<int>(d_qvalue.size())!=d_qlen ){
+               TBOX_ERROR( "need "<<d_qlen<<" values to specify q");
+            }
             pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
             for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
                                      i!=iend; ++i ) {
@@ -538,7 +540,10 @@ void FieldsInitializer::initializePatchFromData(
                (*conc_data)(ccell,cc) = vals[idx];
             }
          }else{
-            assert( d_cvalue.size()==d_ncompositions );
+            if( static_cast<int>(d_cvalue.size())!=d_ncompositions ){
+               TBOX_ERROR( "Expect "<<d_ncompositions
+                           <<" to specify alloy concentration");
+            }
             pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
             for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
                                      i!=iend; ++i ) {
@@ -587,9 +592,9 @@ void FieldsInitializer::checkInputFileDimensions(
          "Phase input data dimensions are incorrect"
          << ", nx_file=" << nx_file
          << ", ny_file=" << ny_file
+         << ", nz_file=" << nz_file
          << ", nx_prob=" << nx_prob
          << ", ny_prob=" << ny_prob
-         << ", nz_file=" << nz_file
          << ", nz_prob=" << nz_prob
          << ", qlen_file=" << qlen_file
          << ", QLEN=" << d_qlen
