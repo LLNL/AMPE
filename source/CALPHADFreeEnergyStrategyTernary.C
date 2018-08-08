@@ -23,7 +23,6 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    boost::shared_ptr<tbox::Database> newton_db,
    const string& energy_interp_func_type,
    const string& conc_interp_func_type,
-   const string& avg_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
    const int conc_a_id,
@@ -39,7 +38,6 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    
    d_energy_interp_func_type = energy_interp_func_type;
    d_conc_interp_func_type = conc_interp_func_type;
-   d_avg_func_type = avg_func_type;
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
@@ -68,7 +66,6 @@ void CALPHADFreeEnergyStrategyTernary::setup(
          calphad_db,newton_db,
          d_energy_interp_func_type,
          d_conc_interp_func_type,
-         d_avg_func_type,
          d_phase_well_scale,
          d_phase_well_func_type);
 }

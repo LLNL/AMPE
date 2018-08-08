@@ -13,12 +13,10 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
    const std::string& conc_interp_func_type,
-   const std::string& avg_func_type,
    const double  phase_well_scale,
    const std::string& phase_well_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
-      d_avg_func_type(avg_func_type),
       d_phase_well_scale(phase_well_scale),
       d_phase_well_func_type(phase_well_func_type)
 {

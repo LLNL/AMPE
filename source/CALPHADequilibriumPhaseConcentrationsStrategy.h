@@ -50,8 +50,6 @@ public:
       const int conc_b_ref_id,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
-      const std::string& eta_interp_func_type,
-      const std::string& avg_func_type,
       const bool with_third_phase,
       const double  phase_well_scale,
       const double eta_well_scale,

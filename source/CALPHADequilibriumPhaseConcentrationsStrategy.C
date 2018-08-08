@@ -48,8 +48,6 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       const int conc_b_ref_id,
       const string& energy_interp_func_type,
       const string& conc_interp_func_type,
-      const string& eta_interp_func_type,
-      const string& avg_func_type,
       const bool with_third_phase,
       const double  phase_well_scale,
       const double eta_well_scale,
@@ -72,7 +70,6 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type,
-                                 eta_interp_func_type,avg_func_type,
                                  with_third_phase,
                                  phase_well_scale,eta_well_scale,
                                  phase_well_func_type,eta_well_func_type);
@@ -81,7 +78,6 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type,
-                                 avg_func_type,
                                  phase_well_scale,
                                  phase_well_func_type);
    }

@@ -57,8 +57,6 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    boost::shared_ptr<tbox::Database> newton_db,
    const string& energy_interp_func_type,
    const string& conc_interp_func_type,
-   const string& eta_interp_func_type,
-   const string& avg_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
    const int conc_a_id,
@@ -79,8 +77,6 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 
    d_energy_interp_func_type = energy_interp_func_type;
    d_conc_interp_func_type = conc_interp_func_type;
-   d_eta_interp_func_type = eta_interp_func_type;
-   d_avg_func_type = avg_func_type;
 
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
@@ -109,7 +105,6 @@ void CALPHADFreeEnergyStrategyBinary::setup(
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  d_energy_interp_func_type,
                                  d_conc_interp_func_type,
-                                 d_eta_interp_func_type,d_avg_func_type,
                                  d_with_third_phase,
                                  d_phase_well_scale,d_eta_well_scale,
                                  d_phase_well_func_type,d_eta_well_func_type);
@@ -820,7 +815,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
                heta =
                   FORT_INTERP_FUNC(
                      eta,
-                     d_eta_interp_func_type.c_str() );
+                     d_energy_interp_func_type.c_str() );
 
             }
 
@@ -1074,7 +1069,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsEtaOnPatchPrivate(
             const double heta_prime =
                FORT_DERIV_INTERP_FUNC(
                   eta,
-                  d_eta_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             ptr_rhs[idx_rhs] +=
                hphi * heta_prime * (

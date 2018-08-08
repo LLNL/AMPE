@@ -65,8 +65,7 @@ public:
       boost::shared_ptr<hier::Patch > patch );
 
 private:
-   std::string d_phase_interp_func_type;
-   std::string d_eta_interp_func_type;
+   std::string d_energy_interp_func_type;
 
    HBSMFreeEnergyStrategy* d_hbsm_fenergy;
 };

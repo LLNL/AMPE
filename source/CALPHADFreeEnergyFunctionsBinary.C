@@ -93,8 +93,6 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
    const std::string& conc_interp_func_type,
-   const std::string& eta_interp_func_type,
-   const std::string& avg_func_type,
    const bool with_third_phase,
    const double  phase_well_scale,
    const double eta_well_scale,
@@ -102,8 +100,6 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    const std::string& eta_well_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
-      d_eta_interp_func_type(eta_interp_func_type),
-      d_avg_func_type(avg_func_type),
       d_with_third_phase(with_third_phase),
       d_phase_well_scale(phase_well_scale),
       d_eta_well_scale(eta_well_scale),
@@ -603,7 +599,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       heta =
          FORT_INTERP_FUNC(
             eta,
-            d_eta_interp_func_type.c_str() );
+            d_conc_interp_func_type.c_str() );
    }
    
    // conc could be outside of [0.,1.] in a trial step
@@ -791,7 +787,7 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
       FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
    double heta = 0.0;
    if ( d_with_third_phase ) {
-      heta = FORT_INTERP_FUNC( eta, d_eta_interp_func_type.c_str() );
+      heta = FORT_INTERP_FUNC( eta, d_conc_interp_func_type.c_str() );
    }      
 
    const double tol=1.e-8;

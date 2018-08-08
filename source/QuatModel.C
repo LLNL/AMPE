@@ -447,8 +447,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                      calphad_db, newton_db,
                      d_model_parameters.energy_interp_func_type(),
                      d_model_parameters.conc_interp_func_type(),
-                     d_model_parameters.eta_interp_func_type(),
-                     d_model_parameters.conc_avg_func_type(),
                      d_mvstrategy,
                      d_conc_l_scratch_id,
                      d_conc_a_scratch_id,
@@ -465,7 +463,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                      calphad_db, newton_db,
                      d_model_parameters.energy_interp_func_type(),
                      d_model_parameters.conc_interp_func_type(),
-                     d_model_parameters.conc_avg_func_type(),
                      d_mvstrategy,
                      d_conc_l_scratch_id,
                      d_conc_a_scratch_id,
@@ -485,8 +482,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.eta_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.eta_well_scale(),
@@ -497,7 +492,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.phase_well_func_type() );
             }
@@ -513,8 +507,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.eta_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
                   d_mvstrategy,
                   d_conc_l_scratch_id,
                   d_conc_a_scratch_id,
@@ -530,8 +522,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.eta_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.eta_well_scale(),
@@ -547,7 +537,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             new HBSMFreeEnergyStrategy(
                conc_db->getDatabase( "HBSM" ),
                d_model_parameters.energy_interp_func_type(),
-               d_model_parameters.eta_interp_func_type(),
                d_model_parameters.molar_volume_liquid(),
                d_model_parameters.molar_volume_solid_A(),
                d_model_parameters.molar_volume_solid_B(),
@@ -602,8 +591,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_b_ref_id,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.eta_interp_func_type(),
-                  d_model_parameters.conc_avg_func_type(),
                   d_model_parameters.with_third_phase(),
                   d_model_parameters.phase_well_scale(),
                   d_model_parameters.eta_well_scale(),
@@ -1074,8 +1061,7 @@ void QuatModel::InitializeIntegrator( void )
       d_model_parameters.phase_well_func_type(),
       d_model_parameters.energy_interp_func_type(),
       d_model_parameters.conc_interp_func_type(),
-      d_model_parameters.eta_well_func_type(),
-      d_model_parameters.eta_interp_func_type() );
+      d_model_parameters.eta_well_func_type() );
 
    if( d_model_parameters.with_orientation() )
       d_integrator_quat_only->setModelParameters(
@@ -1094,8 +1080,7 @@ void QuatModel::InitializeIntegrator( void )
          d_model_parameters.phase_well_func_type(),
          d_model_parameters.energy_interp_func_type(),
          d_model_parameters.conc_interp_func_type(),
-         d_model_parameters.eta_well_func_type(),
-         d_model_parameters.eta_interp_func_type() );
+         d_model_parameters.eta_well_func_type() );
 
    if ( d_model_parameters.with_concentration() ) {
       d_integrator->setConcentrationModelParameters(

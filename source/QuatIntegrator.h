@@ -153,8 +153,7 @@ public :
       const std::string phase_well_func_type,
       const std::string energy_interp_func_type,
       const std::string conc_interp_func_type,
-      const std::string eta_well_func_type,
-      const std::string eta_interp_func_type );
+      const std::string eta_well_func_type);
 
    void setAbsTol(const double atol)
    {
@@ -1028,7 +1027,6 @@ private :
    std::string d_avg_func_type;
    std::string d_phase_well_func_type;
    std::string d_eta_well_func_type;
-   std::string d_eta_interp_func_type;
 
    QuatModel* d_quat_model;
    

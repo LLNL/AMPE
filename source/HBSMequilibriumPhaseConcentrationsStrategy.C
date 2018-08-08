@@ -42,8 +42,7 @@ HBSMequilibriumPhaseConcentrationsStrategy::HBSMequilibriumPhaseConcentrationsSt
    const int conc_b_id,
    const QuatModelParameters& model_parameters,
    boost::shared_ptr<tbox::Database> conc_db):
-      d_phase_interp_func_type(model_parameters.energy_interp_func_type()),
-      d_eta_interp_func_type(model_parameters.eta_interp_func_type()),
+      d_energy_interp_func_type(model_parameters.energy_interp_func_type()),
       PhaseConcentrationsStrategy(
          conc_l_id,
          conc_a_id,
@@ -53,7 +52,6 @@ HBSMequilibriumPhaseConcentrationsStrategy::HBSMequilibriumPhaseConcentrationsSt
    d_hbsm_fenergy = new HBSMFreeEnergyStrategy(
                conc_db->getDatabase( "HBSM" ),
                model_parameters.energy_interp_func_type(),
-               model_parameters.eta_interp_func_type(),
                model_parameters.molar_volume_liquid(),
                model_parameters.molar_volume_solid_A(),
                model_parameters.molar_volume_solid_B(),
@@ -156,14 +154,14 @@ void HBSMequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPat
             double hphi =
                FORT_INTERP_FUNC(
                   phi,
-                  d_phase_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             double heta = 0.0;
             if ( d_with_third_phase ) {
                heta =
                   FORT_INTERP_FUNC(
                      eta,
-                     d_eta_interp_func_type.c_str() );
+                     d_energy_interp_func_type.c_str() );
             }
 
             double c_l = d_hbsm_fenergy->computeLiquidConcentration(

@@ -20,7 +20,6 @@ public:
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
-      const std::string& avg_func_type,
       const double  phase_well_scale,
       const std::string& phase_well_func_type );
 
@@ -145,7 +144,6 @@ protected:
    
    std::string d_energy_interp_func_type;
    std::string d_conc_interp_func_type;
-   std::string d_avg_func_type;
    
    void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
 

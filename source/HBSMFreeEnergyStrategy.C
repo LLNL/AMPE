@@ -53,8 +53,7 @@ using namespace std;
 
 HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    boost::shared_ptr<tbox::Database> input_db,
-   const string& phase_interp_func_type,
-   const string& eta_interp_func_type,
+   const string& energy_interp_func_type,
    const double vml,
    const double vma,
    const double vmb,
@@ -84,8 +83,7 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
       assert( D_solid_B >= 0. );
    }
 
-   d_phase_interp_func_type = phase_interp_func_type;
-   d_eta_interp_func_type = eta_interp_func_type;
+   d_energy_interp_func_type = energy_interp_func_type;
 
    d_vm_L = vml;
    d_vm_A = vma;
@@ -943,7 +941,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsPhiOnPatchPrivate(
             double hphi_prime =
                FORT_DERIV_INTERP_FUNC(
                   phi,
-                  d_phase_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             double heta = 0.0;
 
@@ -955,7 +953,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsPhiOnPatchPrivate(
                heta =
                   FORT_INTERP_FUNC(
                      eta,
-                     d_eta_interp_func_type.c_str() );
+                     d_energy_interp_func_type.c_str() );
 
             }
 
@@ -1197,12 +1195,12 @@ void HBSMFreeEnergyStrategy::addComponentRhsEtaOnPatchPrivate(
             double hphi =
                FORT_INTERP_FUNC(
                   phi,
-                  d_phase_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             double heta_prime =
                FORT_DERIV_INTERP_FUNC(
                   eta,
-                  d_eta_interp_func_type.c_str() );
+                  d_energy_interp_func_type.c_str() );
 
             ptr_rhs[idx_rhs] +=
                hphi * heta_prime * (

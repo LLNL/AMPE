@@ -1520,8 +1520,7 @@ void QuatIntegrator::setModelParameters(
    const string phase_well_func_type,
    const string energy_interp_func_type,
    const string conc_interp_func_type,
-   const string eta_well_func_type,
-   const string eta_interp_func_type )
+   const string eta_well_func_type)
 {
    d_current_time = current_time;
    d_end_time = end_time;
@@ -1541,7 +1540,6 @@ void QuatIntegrator::setModelParameters(
    d_energy_interp_func_type = energy_interp_func_type;
    d_conc_interp_func_type = conc_interp_func_type;
    d_eta_well_func_type = eta_well_func_type;
-   d_eta_interp_func_type = eta_interp_func_type;
 
    d_thermal_diffusivity=d_model_parameters.thermal_diffusivity();
    d_latent_heat        =d_model_parameters.latent_heat();
