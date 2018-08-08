@@ -12,5 +12,5 @@ module load boost
             --with-boost=$BOOST_DIR \
             --with-hdf5=$HDF5_DIR \
             --with-netcdf=$NETCDF_DIR \
-            --with-hypre=$HOME/hypre/hypre-2.11.1/src/hypre_intel \
+            --with-hypre=$HOME/hypre/hypre-2.11.1/eos_opt \
             --prefix=$PWD/build
