@@ -1,0 +1,15 @@
+//generate initial conditions 
+python ../../utils/make_nuclei.py --ngrains 1 \
+   --nx 128 --ny 128 --nz 128 -r 20 -c 0.25 \
+   --concentration-in 0.096 1grain_128_r20.nc
+
+#need calphad database
+ln -fs ../../thermodynamic_data/calphadAuNi.dat
+
+#run
+set input = 1grain3D_AuNi.input
+set exe = ampe3d
+set ncpus = 32
+
+srun -ppdebug -n $ncpus $exe $input
+

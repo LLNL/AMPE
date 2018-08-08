@@ -1,0 +1,99 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 0.2
+max_delta_cycles    = 5000
+
+FreeEnergyDiagnostics{
+   filename = "calphadAuNi.vtk" // where to dump f(phi,c) 
+}
+
+Restart {  // optional block
+   interval = 2000  // optional, default=0
+   interval_type = "step"  // optional
+}
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.01
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter    = 0.25
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature        = 1450. // [K]
+      dtemperaturedt     = -200.
+      target_temperature = 1220.
+   }
+   
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+
+   phi_mobility = 6.4
+   orient_mobility = 0.64
+ 
+   phi_well_scale = 2.5  //  [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   avg_func_type = "arithmetic"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.01
+   interval_type = "time"
+   extra_energy_detail = TRUE
+}   
+
+GrainDiagnostics {  // optional block
+   interval = 0.005  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = TRUE  // optional
+   phase_threshold = 0.85  // optional
+   minimum_size = 0.0  // optional
+}
+
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {
+   }
+}
+
+InitialConditions {
+   filename = "1grain_128_r20.nc"
+   init_q = 1., 0., 0., 0.
+}
+
+Geometry{
+   periodic_dimension = 1, 1, 1
+   coarsest_level_resolution = 128, 128, 128
+   x_lo         = -0.4, -0.4, -0.4 // [um]
+   x_up         =  0.4,  0.4,  0.4 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
