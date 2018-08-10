@@ -17,14 +17,19 @@ KimMobilityStrategy::KimMobilityStrategy(
    const string& conc_interp_func_type,
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
-   const unsigned ncompositions):
+   const unsigned ncompositions,
+   const double DL, const double Q0,
+   const double mv):
       SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
       d_conc_s_id(conc_s_id),
       d_temp_id(temp_id),
       d_epsilon(epsilon),
       d_phase_well_scale(phase_well_scale),
-      d_ncompositions(ncompositions)
+      d_ncompositions(ncompositions),
+      d_DL(DL),
+      d_Q0(Q0),
+      d_mv(mv)
 {
    assert( d_conc_l_id>=0 );
    assert( d_conc_s_id>=0 );
@@ -184,6 +189,9 @@ void KimMobilityStrategy::update(
             for(unsigned i=0;i<d_ncompositions;i++)
             for(unsigned j=0;j<d_ncompositions;j++)
                zeta+=(cl[i]-cs[i])*d2fdc2[2*i+j]*(cl[j]-cs[j]);
+            const double DL=d_DL*exp(-d_Q0/(gas_constant_R_JpKpmol*temp));
+            zeta/=DL;
+            zeta*=(1.e-6/d_mv); // convert from J/mol to pJ/um^3
 
             cd_mob->getPointer()[idx_mo]=1./(3.*(2.*xi*xi)*a2*zeta);
 

@@ -1025,6 +1025,8 @@ void QuatModel::InitializeIntegrator( void )
       if( d_model_parameters.isPhaseMobilityScalar() )
          d_mobility_strategy  = new SimpleQuatMobilityStrategy( this );
       else{
+         //no support for composition dependent diffusion for now
+         assert( !d_model_parameters.conDiffusionStrategyIsCTD() );
          string calphad_filename = d_calphad_db->getString( "filename" );
          boost::shared_ptr<tbox::MemoryDatabase> calphad_db
             ( new tbox::MemoryDatabase( "calphad_db" ) );
@@ -1041,7 +1043,10 @@ void QuatModel::InitializeIntegrator( void )
                    d_model_parameters.conc_interp_func_type(),
                    calphad_db,
                    d_newton_db,
-                   d_ncompositions);
+                   d_ncompositions,
+                   d_model_parameters.D_liquid(),
+                   d_model_parameters.Q0_liquid(),
+                   d_model_parameters.molar_volume_liquid());
    }
    d_integrator->setQuatGradStrategy( d_quat_grad_strategy );
    d_integrator->setMobilityStrategy( d_mobility_strategy );

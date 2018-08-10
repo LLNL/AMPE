@@ -33,7 +33,10 @@ public:
       const std::string& conc_interp_func_type,
       boost::shared_ptr<tbox::Database> calphad_db,
       boost::shared_ptr<tbox::Database> newton_db,
-      const unsigned ncompositions);
+      const unsigned ncompositions,
+      const double DL,
+      const double Q0,
+      const double mv);
 
    void computePhaseMobility(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -50,6 +53,17 @@ private:
    const double d_epsilon;
    const double d_phase_well_scale;
    const unsigned d_ncompositions;
+
+   /*!
+    * Diffusivity in liquid
+    */
+   const double d_DL;
+   const double d_Q0;
+
+   /*!
+    * Molar volume
+    */
+   const double d_mv;
 
    CALPHADFreeEnergyFunctions* d_calphad_fenergy;
 
