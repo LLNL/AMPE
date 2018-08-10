@@ -724,21 +724,28 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
    // Mobility
    if( d_with_phase ){
-   if ( model_db->keyExists( "phi_mobility" ) ) {
-      d_phase_mobility = model_db->getDouble( "phi_mobility" );
-   }
-   else if ( model_db->keyExists( "phase_mobility" ) ) {
-      d_phase_mobility = model_db->getDouble( "phase_mobility" );
-      printDeprecated( "phase_mobility", "phi_mobility" );
-   }
-   else if ( model_db->keyExists( "tau_phase" ) ) {
-      double tau = model_db->getDouble( "tau_phase" );
-      d_phase_mobility = 1. / tau;
-      printDeprecated( "tau_phase", "phi_mobility" );
-   }
-   else {
-      TBOX_ERROR( "Error: phi_mobility not specified" );
-   }      
+      d_phi_mobility_type =
+         model_db->getStringWithDefault( "phi_mobility_type", "scalar" );
+      if( isPhaseMobilityScalar() )
+      {
+         if ( model_db->keyExists( "phi_mobility" ) ) {
+            d_phase_mobility = model_db->getDouble( "phi_mobility" );
+         }
+         else if ( model_db->keyExists( "phase_mobility" ) ) {
+            d_phase_mobility = model_db->getDouble( "phase_mobility" );
+            printDeprecated( "phase_mobility", "phi_mobility" );
+         }
+         else {
+            TBOX_ERROR( "Error: phi_mobility not specified" );
+         }
+      }else{
+         if( d_phi_mobility_type.compare("Kim")==0 )
+            d_phi_mobility_type="kim";
+         if( d_phi_mobility_type.compare("kim")!=0 ){
+            tbox::pout<<"phi_mobility_type="<<d_phi_mobility_type<<endl;
+            TBOX_ERROR( "Error: unknown phi_mobility_type");
+         }
+      }
    }
 
    d_q0_phase_mobility = model_db->getDoubleWithDefault(

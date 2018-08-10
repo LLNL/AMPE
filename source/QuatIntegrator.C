@@ -3692,8 +3692,6 @@ void QuatIntegrator::setCoefficients(
          recompute_quat_sidegrad );
    }
    
-   computeMobilities(time,hierarchy);
-
    if ( d_with_phase ) {
       if( d_compute_velocity ){
          int phase_diffs_id=-1;
@@ -3721,7 +3719,11 @@ void QuatIntegrator::setCoefficients(
    if ( d_with_concentration ) {
       computePhaseConcentrations(hierarchy);
    }
-   
+
+   //mobilities may depend on cl and cs, thus they should be computed after
+   //cl and cs
+   computeMobilities(time,hierarchy);
+
    t_set_coeff_timer->stop();
 }
 

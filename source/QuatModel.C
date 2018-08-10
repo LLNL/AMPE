@@ -77,6 +77,7 @@
 #include "toolsSAMRAI.h"
 #include "tools.h"
 #include "FieldsInitializer.h"
+#include "KimMobilityStrategy.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -416,11 +417,13 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    } else {
       d_phase_flux_strategy = new PhaseFluxStrategySimple(d_model_parameters.epsilon_phase());
    }
-   
+  
    boost::shared_ptr<tbox::MemoryDatabase> calphad_db;
-   boost::shared_ptr<tbox::Database> newton_db;
+   boost::shared_ptr<tbox::MemoryDatabase> newton_db;
+ 
    if ( d_model_parameters.with_concentration() ) {
-      boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
+      boost::shared_ptr<tbox::Database> conc_db(
+         model_db->getDatabase( "ConcentrationModel" ));
       
       // setup free energy strategy first since it may be needed 
       // to setup d_composition_rhs_strategy
@@ -431,14 +434,17 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          d_calphad_db=conc_db->getDatabase( "Calphad" );
          std::string calphad_filename = d_calphad_db->getString( "filename" );
          calphad_db.reset ( new tbox::MemoryDatabase( "calphad_db" ) );
-         tbox::InputManager::getManager()->parseInputFile( calphad_filename, calphad_db );
+         tbox::InputManager::getManager()->parseInputFile(
+            calphad_filename, calphad_db );
          
-         if ( conc_db->isDatabase( "NewtonSolver" ) )
-            newton_db = conc_db->getDatabase( "NewtonSolver" );
-         
-         d_mvstrategy = new ConstantMolarVolumeStrategy(d_model_parameters.molar_volume_liquid(),
-                                                        d_model_parameters.molar_volume_solid_A(),
-                                                        d_model_parameters.molar_volume_solid_B());
+         if ( conc_db->isDatabase( "NewtonSolver" ) ){
+            d_newton_db = conc_db->getDatabase( "NewtonSolver" );
+            newton_db.reset ( new tbox::MemoryDatabase( "newton_db" ) );
+         }
+         d_mvstrategy = new ConstantMolarVolumeStrategy(
+            d_model_parameters.molar_volume_liquid(),
+            d_model_parameters.molar_volume_solid_A(),
+            d_model_parameters.molar_volume_solid_B());
          
          {
             if( d_ncompositions==1 ){
@@ -1016,8 +1022,27 @@ void QuatModel::InitializeIntegrator( void )
       assert( d_heat_capacity_strategy );
    }
    
-      d_mobility_strategy  = new SimpleQuatMobilityStrategy( this );
-
+      if( d_model_parameters.isPhaseMobilityScalar() )
+         d_mobility_strategy  = new SimpleQuatMobilityStrategy( this );
+      else{
+         string calphad_filename = d_calphad_db->getString( "filename" );
+         boost::shared_ptr<tbox::MemoryDatabase> calphad_db
+            ( new tbox::MemoryDatabase( "calphad_db" ) );
+         tbox::InputManager::getManager()->parseInputFile(
+            calphad_filename, calphad_db );
+         d_mobility_strategy  =
+            new KimMobilityStrategy(
+                   this,
+                   d_conc_l_scratch_id, d_conc_a_scratch_id,
+                   d_temperature_scratch_id,
+                   d_model_parameters.epsilon_phase(),
+                   d_model_parameters.phase_well_scale(),
+                   d_model_parameters.energy_interp_func_type(),
+                   d_model_parameters.conc_interp_func_type(),
+                   calphad_db,
+                   d_newton_db,
+                   d_ncompositions);
+   }
    d_integrator->setQuatGradStrategy( d_quat_grad_strategy );
    d_integrator->setMobilityStrategy( d_mobility_strategy );
    d_integrator->setPhaseFluxStrategy( d_phase_flux_strategy );

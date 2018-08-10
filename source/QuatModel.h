@@ -786,7 +786,8 @@ private :
    bool d_use_warm_start;
 
    boost::shared_ptr<tbox::Database> d_calphad_db;
-   
+   boost::shared_ptr<tbox::Database> d_newton_db;
+ 
    boost::shared_ptr<Grains> d_grains;
    int d_number_of_grains;
    double d_phase_threshold;

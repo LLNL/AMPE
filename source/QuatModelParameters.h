@@ -193,7 +193,10 @@ public:
 
    bool quat_grad_modulus_from_cells()const
    { return (d_quat_grad_modulus_type.compare("cells")==0); }
-   
+
+   bool isPhaseMobilityScalar()const
+   { return (d_phi_mobility_type.compare("scalar")==0); }
+ 
    double kappa()const{ return d_kappa; }
 
    double molar_volume_liquid()const{ return d_molar_volume_liquid; }
@@ -437,7 +440,9 @@ private:
     * possible options: "cells" (default) or "sides"
     */
    std::string d_quat_grad_modulus_type;
-   
+
+   std::string d_phi_mobility_type;
+ 
    double d_kappa;
 
    double d_molar_volume_liquid;
