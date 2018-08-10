@@ -4,7 +4,7 @@ module load PE-gnu
 module load hdf5
 module load netcdf
 module load hypre
-module load boost
+module load boost/1.61.0
 
 ./configure --disable-debug --enable-opt \
             --with-CXX=mpiCC \
