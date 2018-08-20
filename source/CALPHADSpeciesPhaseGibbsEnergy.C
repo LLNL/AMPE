@@ -46,116 +46,99 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(const string& name,
    d_tc.resize(ntc);
    db->getDoubleArray("Tc",&d_tc[0],ntc);
 
-   size_t nintervals=db->getArraySize("a");
+   const size_t nintervals=db->getArraySize("a");
    assert( nintervals==ntc-1 );
-   d_a.resize(nintervals);
-   db->getDoubleArray("a",&d_a[0],nintervals);
+   vector<double> a(nintervals);
+   db->getDoubleArray("a",&a[0],nintervals);
    
-   nintervals=db->getArraySize("b");
-   d_b.resize(nintervals);
-   db->getDoubleArray("b",&d_b[0],nintervals);
+   assert( nintervals==db->getArraySize("b") );
+   vector<double> b(nintervals);
+   db->getDoubleArray("b",&b[0],nintervals);
    
-   nintervals=db->getArraySize("c");
-   d_c.resize(nintervals);
-   db->getDoubleArray("c",&d_c[0],nintervals);
+   assert( nintervals==db->getArraySize("c") );
+   vector<double> c(nintervals);
+   db->getDoubleArray("c",&c[0],nintervals);
    
-   nintervals=db->getArraySize("d2");
-   d_d2.resize(nintervals);
-   db->getDoubleArray("d2",&d_d2[0],nintervals);
-   
+   assert( nintervals==db->getArraySize("d2") );
+   vector<double> d2(nintervals);
+   db->getDoubleArray("d2",&d2[0],nintervals);
+
+   vector<double> d3(nintervals);   
    if ( db->keyExists( "d3" ) ) {
-      nintervals=db->getArraySize("d3");
-      d_d3.resize(nintervals);
-      db->getDoubleArray("d3",&d_d3[0],nintervals);
+      db->getDoubleArray("d3",&d3[0],nintervals);
    }else{
-      d_d3.resize(nintervals);
-      for(unsigned i=0;i<nintervals;i++)d_d3[i]=0.;
+      for(unsigned i=0;i<nintervals;i++)d3[i]=0.;
    }
    
+   vector<double> d4(nintervals);
    if ( db->keyExists( "d4" ) ) {
-      nintervals=db->getArraySize("d4");
-      d_d4.resize(nintervals);
-      db->getDoubleArray("d4",&d_d4[0],nintervals);
-   }
-   
-   if ( db->keyExists( "d7" ) ) {
-      nintervals=db->getArraySize("d7");
-      d_d7.resize(nintervals);
-      db->getDoubleArray("d7",&d_d7[0],nintervals);
+      db->getDoubleArray("d4",&d4[0],nintervals);
+   }else{
+      for(unsigned i=0;i<nintervals;i++)d4[i]=0.;
    }
 
-   if ( db->keyExists( "dm1" ) ) {
-      nintervals=db->getArraySize("dm1");
-      d_dm1.resize(nintervals);
-      db->getDoubleArray("dm1",&d_dm1[0],nintervals);
+   vector<double> d7(nintervals); 
+   if ( db->keyExists( "d7" ) ) {
+      db->getDoubleArray("d7",&d7[0],nintervals);
    }else{
-      d_dm1.resize(nintervals);
-      for(unsigned i=0;i<nintervals;i++)d_dm1[i]=0.;
+      for(unsigned i=0;i<nintervals;i++)d7[i]=0.;
    }
-   
+
+   vector<double> dm1(nintervals);
+   if ( db->keyExists( "dm1" ) ) {
+      db->getDoubleArray("dm1",&dm1[0],nintervals);
+   }else{
+      for(unsigned i=0;i<nintervals;i++)dm1[i]=0.;
+   }
+
+   vector<double> dm9(nintervals); 
    if ( db->keyExists( "dm9" ) ) {
-      nintervals=db->getArraySize("dm9");
-      d_dm9.resize(nintervals);
-      db->getDoubleArray("dm9",&d_dm9[0],nintervals);
+      db->getDoubleArray("dm9",&dm9[0],nintervals);
+   }else{
+      for(unsigned i=0;i<nintervals;i++)dm9[i]=0.;
    }
    
    if ( db->keyExists( "d5" ) ) {
-      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**5 not implemented!!!" << endl );
+      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**5 not implemented!!!"
+                  << endl );
    }
    if ( db->keyExists( "d6" ) ) {
-      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**6 not implemented!!!" << endl );
+      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**6 not implemented!!!"
+                  << endl );
    }
    if ( db->keyExists( "dm2" ) ) {
-      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**-2 not implemented!!!" << endl );
+      TBOX_ERROR( "CALPHADSpeciesPhaseGibbsEnergy: T**-2 not implemented!!!"
+                  << endl );
    }
 
-   d_test_fenergy_done= false;
+   for(unsigned i=0;i<nintervals;i++){
+      CALPHADSpeciesPhaseGibbsEnergyExpansion expan(a[i],b[i],c[i],
+         d2[i],d3[i],d4[i],d7[i],dm1[i],dm9[i]);
+      d_expansion.push_back(expan);
+   }
 }
 
 /////////////////////////////////////////////////////////////////////
 // Free energy function
 // parameters are in J/mol
 // returned values are in J/mol
-double CALPHADSpeciesPhaseGibbsEnergy::fenergy(const double T) // expect T in Kelvin
+double CALPHADSpeciesPhaseGibbsEnergy::fenergy(
+   const double T) // expect T in Kelvin
 {
-   int index=-1;
    const int n=(int)d_tc.size();
    //tbox::pout<<"n="<<n<<endl;
    assert( n>1 );
    
    for(int i=0;i<n-1;i++)
    if( T>=d_tc[i] && T<d_tc[i+1] ){
-      index=i;
+      return d_expansion[i].value(T);
    }
    
-   if( index<0 ){
-      cout<<"T="<<T<<", Tmin="<<d_tc[0]
-                   <<", Tmax="<<d_tc[n-1]<<endl;
-      TBOX_ERROR( "T out of range for fenergy" << endl );
-   }
+   cerr<<"T="<<T<<", Tmin="<<d_tc[0]
+             <<", Tmax="<<d_tc[n-1]<<endl;
+   TBOX_ERROR( "T out of range for fenergy" << endl );
 
-#if 0
-   cout<<"a="<<d_a[index]<<endl;
-   cout<<"b="<<d_b[index]<<endl;
-   cout<<"c="<<d_c[index]<<endl;
-   cout<<"d2="<<d_d2[index]<<endl;
-   cout<<"d3="<<d_d3[index]<<endl;
-   cout<<"dm1="<<d_dm1[index]<<endl;
-#endif
-   
-   const double t2=T*T;
-   double f= (d_a[index]+d_b[index]*T+d_c[index]*T*log(T)
-             +d_d2[index]*t2
-             +d_d3[index]*t2*T
-             +d_dm1[index]/T);
-   if( d_d4.size()>0 )
-      f += d_d4[index]*t2*t2;
-   if( d_d7.size()>0 )
-      f += d_d7[index]*t2*t2*t2*T;
-   if( d_dm9.size()>0 )
-      f += d_dm9[index]/pow(T,9.);
-
-   return f;
+   return 0.;   
 }
 
 void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os, 

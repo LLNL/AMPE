@@ -33,6 +33,8 @@
 #ifndef included_CALPHADSpeciesPhaseGibbsEnergy
 #define included_CALPHADSpeciesPhaseGibbsEnergy 
 
+#include "CALPHADSpeciesPhaseGibbsEnergyExpansion.h"
+
 #include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/Database.h"
 using namespace SAMRAI;
@@ -46,18 +48,9 @@ private :
 
    std::string         d_name;
    std::vector<double> d_tc; 
-   std::vector<double> d_a;  
-   std::vector<double> d_b;  
-   std::vector<double> d_c;  
-   std::vector<double> d_d2; 
-   std::vector<double> d_d3; 
-   std::vector<double> d_d4; 
-   std::vector<double> d_d7; 
-   std::vector<double> d_dm1;
-   std::vector<double> d_dm9;
-   
-   bool d_test_fenergy_done;
 
+   std::vector<CALPHADSpeciesPhaseGibbsEnergyExpansion> d_expansion;
+   
 public :
 
    CALPHADSpeciesPhaseGibbsEnergy(){};
