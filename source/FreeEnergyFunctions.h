@@ -35,6 +35,8 @@
 
 #include "Phases.h"
 
+#include <string>
+
 class FreeEnergyFunctions
 {
 public:
@@ -45,7 +47,8 @@ public:
    virtual void energyVsPhiAndC(const double temperature, 
                                 const double* const ceq,
                                 const bool found_ceq,
-                                const bool third_phase,
+                                const double phi_well_scale,
+                                const std::string& phi_well_type,
                                 const int npts_phi=51,
                                 const int npts_c=50)=0;
    virtual void printEnergyVsComposition(const double temperature, 

@@ -96,10 +96,12 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyWithPenalty::setup(boost::shared_ptr<tbox::Database> calphad_db,
-                                                 boost::shared_ptr<tbox::Database> newton_db)
+void CALPHADFreeEnergyStrategyWithPenalty::setup(
+   boost::shared_ptr<tbox::Database> calphad_db,
+   boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty::setupSolver()..." << endl;
+   tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty::setupSolver()..."
+              << endl;
    if(d_calphad_fenergy!=0)delete d_calphad_fenergy;
    
    d_calphad_fenergy = new
@@ -107,9 +109,7 @@ void CALPHADFreeEnergyStrategyWithPenalty::setup(boost::shared_ptr<tbox::Databas
          calphad_db,newton_db,
          d_energy_interp_func_type,
          d_conc_interp_func_type,
-         d_with_third_phase,
-         d_phase_well_scale,d_eta_well_scale,
-         d_phase_well_func_type,d_eta_well_func_type);
+         d_with_third_phase);
 }
 
 //=======================================================================

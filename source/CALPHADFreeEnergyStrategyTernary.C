@@ -65,9 +65,7 @@ void CALPHADFreeEnergyStrategyTernary::setup(
       CALPHADFreeEnergyFunctionsTernary(
          calphad_db,newton_db,
          d_energy_interp_func_type,
-         d_conc_interp_func_type,
-         d_phase_well_scale,
-         d_phase_well_func_type);
+         d_conc_interp_func_type);
 }
 
 //=======================================================================
@@ -535,6 +533,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
    const int f_b_id,
    const int rhs_id )
 {
+   (void)time;
    (void)f_b_id;
    (void)eta_id;
 
@@ -784,6 +783,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsEta(
    const int f_b_id,
    const int rhs_id )
 {
+   (void)time;
    (void)eta_id;
    (void)f_b_id;
 
@@ -803,7 +803,8 @@ void CALPHADFreeEnergyStrategyTernary::defaultComputeSecondDerivativeEnergyPhase
    vector<double>& d2fdc2,
    const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_l[0],phaseL,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+      temp,&c_l[0],phaseL,d2fdc2);
 
    if( use_internal_units ){
       double voli = d_mv_strategy->computeInvMolarVolume(temp,&c_l[0],phaseL);

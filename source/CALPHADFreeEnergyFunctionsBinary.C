@@ -93,18 +93,10 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
    const std::string& conc_interp_func_type,
-   const bool with_third_phase,
-   const double  phase_well_scale,
-   const double eta_well_scale,
-   const std::string& phase_well_func_type,
-   const std::string& eta_well_func_type):
+   const bool with_third_phase):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
-      d_with_third_phase(with_third_phase),
-      d_phase_well_scale(phase_well_scale),
-      d_eta_well_scale(eta_well_scale),
-      d_phase_well_func_type(phase_well_func_type),
-      d_eta_well_func_type(eta_well_func_type)
+      d_with_third_phase(with_third_phase)
 {
    d_fenergy_diag_filename = "energy.vtk";
 
@@ -626,12 +618,14 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
 
 //-----------------------------------------------------------------------
 
-void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(const double temperature, 
-                                                 const double* const ceq,
-                                                 const bool found_ceq,
-                                                 const bool third_phase,
-                                                 const int npts_phi,
-                                                 const int npts_c)
+void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(
+   const double temperature, 
+   const double* const ceq,
+   const bool found_ceq,
+   const double phi_well_scale,
+   const std::string& phi_well_type,
+   const int npts_phi,
+   const int npts_c)
 {
    tbox::plog<<"CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC()..."<<endl;
 
@@ -645,16 +639,9 @@ void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(const double temperature,
       // compute slope of f between equilibrium concentrations
       // to add slopec*conc to energy later on
    
-      if(third_phase)
-      {
-         fc0 = computeFreeEnergy(temperature,&ceq[1],phaseA);
-         fc1 = computeFreeEnergy(temperature,&ceq[2],phaseB);
-         slopec = -(fc1-fc0)/(ceq[2]-ceq[1]);
-      }else{
-         fc0 = computeFreeEnergy(temperature,&ceq[0],phaseL);
-         fc1 = computeFreeEnergy(temperature,&ceq[1],phaseA);
-         slopec = -(fc1-fc0)/(ceq[1]-ceq[0]);
-      }
+      fc0 = computeFreeEnergy(temperature,&ceq[0],phaseL);
+      fc1 = computeFreeEnergy(temperature,&ceq[1],phaseA);
+      slopec = -(fc1-fc0)/(ceq[1]-ceq[0]);
    }
    tbox::plog<<setprecision(8)<<"fc0: "<<fc0<<"..."<<", fc1: "<<fc1<<"..."<<endl;
    tbox::plog<<"CALPHADFreeEnergyFunctionsBinary: Use slope: "<<slopec<<"..."<<endl;
@@ -663,16 +650,8 @@ void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(const double temperature,
    if( mpi.getRank()==0 ){
    
       // reset cmin, cmax, deltac
-      double cmin;
-      double cmax;
-      if(third_phase)
-      {
-         cmin = min(ceq[1],ceq[2]);
-         cmax = max(ceq[1],ceq[2]);
-      }else{
-         cmin = min(ceq[0],ceq[1]);
-         cmax = max(ceq[0],ceq[1]);
-      }
+      double cmin = min(ceq[0],ceq[1]);
+      double cmax = max(ceq[0],ceq[1]);
       double dc=cmax-cmin;
       cmin = max( 0.25*cmin,         cmin-0.25*dc );
       cmax = min( 1.-0.25*(1.-cmax), cmax+0.25*dc );
@@ -685,16 +664,10 @@ void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(const double temperature,
                              npts_c, cmin, cmax, slopec,
                              tfile);
 
-      if(third_phase)
       for ( int i = 0; i < npts_c; i++ ) {
          double conc=cmin+deltac*i;
-         printEnergyVsEta( &conc, temperature, npts_phi, slopec,
-                           tfile );
-      }
-      else
-      for ( int i = 0; i < npts_c; i++ ) {
-         double conc=cmin+deltac*i;
-         printEnergyVsPhi( &conc, temperature, npts_phi, slopec,
+         printEnergyVsPhi( &conc, temperature, phi_well_scale, phi_well_type, 
+                           npts_phi, slopec,
                            tfile );
       }
    }
@@ -733,6 +706,8 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhiHeader(
 void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
    const double* const conc,
    const double temperature,
+   const double phi_well_scale,
+   const string& phi_well_type,
    const int npts,
    const double slopec,
    std::ostream& os )
@@ -747,8 +722,12 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
    for ( int i = 0; i < npts; i++ ) {
       const double phi = i*dphi;
 
-      double e = fenergy( phi, eta, conc, temperature );
-      os << e + slopec*conc[0] << endl;
+      double e = fchem( phi, eta, conc, temperature );
+      const double w =
+         phi_well_scale *
+         FORT_WELL_FUNC( phi, phi_well_type.c_str() );
+
+      os << e + w + slopec*conc[0] << endl;
    }
    //os << endl;
 }
@@ -758,6 +737,8 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
 void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
    const double* const conc,
    const double temperature,
+   const double eta_well_scale,
+   const string& eta_well_type,
    const int npts,
    const double slopec,
    std::ostream& os )
@@ -769,15 +750,20 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
    for ( int i = 0; i < npts; i++ ) {
       const double eta = i*deta;
 
-      double e = fenergy( phi, eta, conc, temperature );
-      os << e + slopec*conc[0] << endl;
+      double e = fchem( phi, eta, conc, temperature );
+
+      double eta_well =
+         eta_well_scale *
+         FORT_WELL_FUNC( eta, eta_well_type.c_str() );
+
+      os << e + eta_well + slopec*conc[0] << endl;
    }
    //os << endl;
 }
 
 //=======================================================================
 // compute free energy in [J/mol]
-double CALPHADFreeEnergyFunctionsBinary::fenergy(
+double CALPHADFreeEnergyFunctionsBinary::fchem(
    const double phi,
    const double eta,
    const double* const conc,
@@ -809,28 +795,13 @@ double CALPHADFreeEnergyFunctionsBinary::fenergy(
             fb=computeFreeEnergy(temperature,conc,phaseB);
       }
    }
-   const double well =
-      d_phase_well_scale *
-      FORT_WELL_FUNC( phi, d_phase_well_func_type.c_str() );
 
-   double eta_well = 0.0;
-   if ( d_with_third_phase ) {
-      eta_well =
-         d_eta_well_scale *
-         FORT_WELL_FUNC( eta, d_eta_well_func_type.c_str() );
-   }
    const double hfphi =
       FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
    double e =
-      well + eta_well + ( 1.0 - hfphi ) * fl +
+      ( 1.0 - hfphi ) * fl +
       hfphi * ( ( 1.0 - heta ) * fa + heta * fb );
 
-   if( fabs(e)>1.e7 )
-      cerr<<"phi="<<phi<<", eta="<<eta<<", c="<<conc<<", e="<<e
-          <<", fl="<<fl
-          <<", fa="<<fa
-          <<", well="<<well
-          <<endl;
    return e;
 }
 
@@ -848,7 +819,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
    for ( int i = 0; i < npts; i++ ) {
       const double conc = i*dc;
 
-      double e = fenergy( 0., 0., &conc, temperature );
+      double e = fchem( 0., 0., &conc, temperature );
       os << conc <<"\t"<< e << endl;
    }
    os << endl;
@@ -857,7 +828,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
    for ( int i = 0; i < npts; i++ ) {
       const double conc = i*dc;
 
-      double e = fenergy( 1., 0., &conc, temperature );
+      double e = fchem( 1., 0., &conc, temperature );
       os << conc <<"\t"<< e << endl;
    }
    
@@ -869,7 +840,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
       for ( int i = 0; i < npts; i++ ) {
          const double conc = i*dc;
 
-         double e = fenergy( 1., 1., &conc, temperature );
+         double e = fchem( 1., 1., &conc, temperature );
          os << conc <<"\t"<< e << endl;
       }
    }

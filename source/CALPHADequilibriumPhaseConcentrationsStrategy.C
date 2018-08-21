@@ -70,16 +70,12 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type,
-                                 with_third_phase,
-                                 phase_well_scale,eta_well_scale,
-                                 phase_well_func_type,eta_well_func_type);
+                                 with_third_phase);
    }else{
    d_calphad_fenergy = new
       CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
                                  energy_interp_func_type,
-                                 conc_interp_func_type,
-                                 phase_well_scale,
-                                 phase_well_func_type);
+                                 conc_interp_func_type);
    }
 }
 

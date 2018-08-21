@@ -52,11 +52,12 @@ protected :
    double d_L_AC_L[4];
    double d_L_BC_L[4];
 
+   double d_L_ABC_L[3];
+
    double d_L_AB_S[4];
    double d_L_AC_S[4];
    double d_L_BC_S[4];
 
-   double d_L_ABC_L[3];
    double d_L_ABC_S[3];
 };
 

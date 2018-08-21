@@ -105,9 +105,7 @@ void CALPHADFreeEnergyStrategyBinary::setup(
       CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  d_energy_interp_func_type,
                                  d_conc_interp_func_type,
-                                 d_with_third_phase,
-                                 d_phase_well_scale,d_eta_well_scale,
-                                 d_phase_well_func_type,d_eta_well_func_type);
+                                 d_with_third_phase);
 }
 
 //=======================================================================

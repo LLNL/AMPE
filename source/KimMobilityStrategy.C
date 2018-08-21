@@ -43,16 +43,12 @@ KimMobilityStrategy::KimMobilityStrategy(
          CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type,
-                                 false, // no 3rd phase
-                                 phase_well_scale,0.,
-                                 "double_well","");
+                                 false); // no 3rd phase
    }else{
       d_calphad_fenergy = new
          CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
                                  energy_interp_func_type,
-                                 conc_interp_func_type,
-                                 phase_well_scale,
-                                 "double_well");
+                                 conc_interp_func_type);
    }
 
 }

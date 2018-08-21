@@ -12,13 +12,9 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type,
-   const double  phase_well_scale,
-   const std::string& phase_well_func_type):
+   const std::string& conc_interp_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
-      d_conc_interp_func_type(conc_interp_func_type),
-      d_phase_well_scale(phase_well_scale),
-      d_phase_well_func_type(phase_well_func_type)
+      d_conc_interp_func_type(conc_interp_func_type)
 {
    double def_val = SAMRAI::tbox::IEEE::getSignalingNaN();
 
@@ -826,12 +822,14 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
 
 //-----------------------------------------------------------------------
 
-void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature, 
-                                                 const double* const ceq,
-                                                 const bool found_ceq,
-                                                 const bool third_phase,
-                                                 const int npts_phi,
-                                                 const int npts_c)
+void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(
+   const double temperature, 
+   const double* const ceq,
+   const bool found_ceq,
+   const double phi_well_scale,
+   const std::string& phi_well_type,
+   const int npts_phi,
+   const int npts_c)
 {
    tbox::plog<<"CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC()..."<<endl;
 
@@ -892,7 +890,7 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(const double temperature
          int i1max = i1<npts_c ? i1 : npts_c;
          for ( int i1 = 0; i1 < i1max; i1++ ) {
             double c[2]={c0min+deltac0*i0, c1min+deltac1*i1};
-            printEnergyVsPhi( c, temperature, npts_phi,
+            printEnergyVsPhi( c, temperature, phi_well_scale, phi_well_type, npts_phi,
                               tfile );
          }
       }
@@ -935,6 +933,8 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhiHeader(
 void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
    const double* conc,
    const double temperature,
+   const double phi_well_scale,
+   const string& phi_well_type,
    const int npts,
    std::ostream& os )
 {
@@ -948,15 +948,19 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
    for ( int i = 0; i < npts; i++ ) {
       const double phi = i*dphi;
 
-      double e = fenergy( phi, eta, conc, temperature );
-      os << e << endl;
+      double e = fchem( phi, eta, conc, temperature );
+      const double w =
+         phi_well_scale *
+         FORT_WELL_FUNC( phi, phi_well_type.c_str() );
+
+      os << e+w << endl;
    }
    //os << endl;
 }
 
 //=======================================================================
 // compute free energy in [J/mol]
-double CALPHADFreeEnergyFunctionsTernary::fenergy(
+double CALPHADFreeEnergyFunctionsTernary::fchem(
    const double phi,
    const double eta,
    const double* const conc,
@@ -979,6 +983,8 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
          temperature, hcphi, conc0, conc1,
          fl, fa);
    }else{
+      //don't solve for phases concentrations, just compute energy
+      //in either phase
       double conc[2]={conc0,conc1};
       if( phi<=tol )
       {
@@ -987,21 +993,10 @@ double CALPHADFreeEnergyFunctionsTernary::fenergy(
          fa=computeFreeEnergy(temperature,&conc[0],phaseA);
       }
    }
-   const double well =
-      d_phase_well_scale *
-      FORT_WELL_FUNC( phi, d_phase_well_func_type.c_str() );
 
    const double hfphi =
       FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
-   double e =
-      well  + ( 1.0 - hfphi ) * fl + hfphi * fa;
-
-if( fabs(e)>1.e7 )cout<<"phi="<<phi<<", c0="<<conc0<<", c1="<<conc1<<", e="<<e
-                <<", fl="<<fl
-                <<", fa="<<fa
-                <<", well="<<well
-                <<endl;
-   return e;
+   return ( 1.0 - hfphi ) * fl + hfphi * fa;
 }
 
 //=======================================================================
@@ -1023,7 +1018,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 0., 0., conc, temperature );
+      double e = fchem( 0., 0., conc, temperature );
       os1 << conc[0] <<"\t"<< e << endl;
    }
    os1 << endl;
@@ -1039,7 +1034,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 0.;
 
-      double e = fenergy( 1., 0., conc, temperature );
+      double e = fchem( 1., 0., conc, temperature );
       os2 << conc[0] <<"\t"<< e << endl;
    }
    os2 << endl;
@@ -1055,7 +1050,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = 0.;
       conc[1] = i*dc;
 
-      double e = fenergy( 0., 0., conc, temperature );
+      double e = fchem( 0., 0., conc, temperature );
       os3 << conc[1] <<"\t"<< e << endl;
    }
    os3 << endl;
@@ -1071,7 +1066,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = 0.;
       conc[1] = i*dc;
 
-      double e = fenergy( 1., 0., conc, temperature );
+      double e = fchem( 1., 0., conc, temperature );
       os4 << conc[1] <<"\t"<< e << endl;
    }
    os4 << endl;
@@ -1087,7 +1082,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 1.-i*dc;
 
-      double e = fenergy( 0., 0., conc, temperature );
+      double e = fchem( 0., 0., conc, temperature );
       os5 << conc[0] <<"\t"<< e << endl;
    }
    os5 << endl;
@@ -1103,7 +1098,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
       conc[0] = i*dc;
       conc[1] = 1.-i*dc;
 
-      double e = fenergy( 1., 0., conc, temperature );
+      double e = fchem( 1., 0., conc, temperature );
       os6 << conc[0] <<"\t"<< e << endl;
    }
    os6 << endl;

@@ -19,9 +19,7 @@ public:
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
       const std::string& energy_interp_func_type,
-      const std::string& conc_interp_func_type,
-      const double  phase_well_scale,
-      const std::string& phase_well_func_type );
+      const std::string& conc_interp_func_type);
 
    ~CALPHADFreeEnergyFunctionsTernary()
    {
@@ -93,11 +91,12 @@ public:
    void energyVsPhiAndC(const double temperature, 
                         const double* const ceq,
                         const bool found_ceq,
-                        const bool third_phase,
+                        const double phi_well_scale,
+                        const std::string& phi_well_type,
                         const int npts_phi=51,
                         const int npts_c=50); // number of compositions to use (>1)
    void printEnergyVsComposition(const double temperature, const int npts=100 );
-   double fenergy(
+   double fchem(
       const double phi,
       const double eta,
       const double* const conc,
@@ -115,6 +114,8 @@ public:
    void printEnergyVsPhi(
       const double* const conc,
       const double temperature,
+      const double phi_well_scale,
+      const std::string& phi_well_type,
       const int npts,
       std::ostream& os );
 
@@ -189,10 +190,6 @@ private:
    double d_fB[2];
    double d_fC[2];
 
-   double d_phase_well_scale;
-
-   std::string d_phase_well_func_type;
-   
    void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> calphad_db);
 
    void setupSolver(boost::shared_ptr<tbox::Database> newton_db);

@@ -46,15 +46,10 @@ public:
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
-      const bool with_third_phase,
-      const double  phase_well_scale,
-      const double eta_well_scale,
-      const std::string& phase_well_func_type,
-      const std::string& eta_well_func_type );
+      const bool with_third_phase);
 
    ~CALPHADFreeEnergyFunctionsWithPenaltyBinary()
-   {
-   };
+   {};
 
    virtual double computeFreeEnergy(
       const double temperature,

@@ -488,18 +488,12 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.with_third_phase(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.eta_well_scale(),
-                  d_model_parameters.phase_well_func_type(),
-                  d_model_parameters.eta_well_func_type());
+                  d_model_parameters.with_third_phase());
             }else{
             d_cafe = new CALPHADFreeEnergyFunctionsTernary(
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
-                  d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.phase_well_func_type() );
+                  d_model_parameters.conc_interp_func_type());
             }
          }else{
             tbox::plog << "QuatModel: "
@@ -528,11 +522,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   calphad_db, newton_db,
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
-                  d_model_parameters.with_third_phase(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.eta_well_scale(),
-                  d_model_parameters.phase_well_func_type(),
-                  d_model_parameters.eta_well_func_type());
+                  d_model_parameters.with_third_phase());
          }
       }// d_model_parameters.isConcentrationModelCALPHAD()
       else if( d_model_parameters.isConcentrationModelHBSM() ){
@@ -2777,9 +2767,17 @@ void QuatModel::preRunDiagnostics( void )
          if( d_cafe!=0 && found_ceq )
          {
             if( phi_min<0.1 )
-               d_cafe->energyVsPhiAndC(temperature, &ceq[0], found_ceq, false);
+               d_cafe->energyVsPhiAndC(
+                  temperature, &ceq[0], found_ceq, 
+                  d_model_parameters.phase_well_scale(),
+                  d_model_parameters.phase_well_func_type(),
+                  false);
             if( d_model_parameters.with_third_phase() ){
-               d_cafe->energyVsPhiAndC(temperature, &ceq[0], found_ceq, true);
+               d_cafe->energyVsPhiAndC(
+                  temperature, &ceq[0], found_ceq,
+                  d_model_parameters.phase_well_scale(),
+                  d_model_parameters.phase_well_func_type(),
+                  true);
             }
          }
          mpi.Barrier();
