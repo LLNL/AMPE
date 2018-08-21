@@ -51,11 +51,7 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
    const int conc_a_id,
    const int conc_b_id,
    const int ncompositions,
-   const bool with_third_phase,
-   const double  phase_well_scale,
-   const double eta_well_scale,
-   const std::string& phase_well_func_type,
-   const std::string& eta_well_func_type ):
+   const bool with_third_phase):
       CALPHADFreeEnergyStrategyBinary(calphad_db,newton_db,
          energy_interp_func_type,
          conc_interp_func_type,
@@ -63,11 +59,7 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
          conc_l_id,
          conc_a_id,
          conc_b_id,
-         with_third_phase,
-         phase_well_scale,
-         eta_well_scale,
-         phase_well_func_type,
-         eta_well_func_type)
+         with_third_phase)
 {
    tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty()..." << endl;
    const short n = with_third_phase ? 3 : 2;

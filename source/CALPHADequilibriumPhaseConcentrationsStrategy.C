@@ -49,10 +49,6 @@ CALPHADequilibriumPhaseConcentrationsStrategy::CALPHADequilibriumPhaseConcentrat
       const string& energy_interp_func_type,
       const string& conc_interp_func_type,
       const bool with_third_phase,
-      const double  phase_well_scale,
-      const double eta_well_scale,
-      const std::string& phase_well_func_type,
-      const std::string& eta_well_func_type,
       boost::shared_ptr<tbox::Database> calphad_db,
       boost::shared_ptr<tbox::Database> newton_db,
       const unsigned ncompositions):

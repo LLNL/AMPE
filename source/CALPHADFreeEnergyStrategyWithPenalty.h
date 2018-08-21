@@ -52,11 +52,7 @@ public:
       const int conc_a_id,
       const int conc_b_id,
       const int ncompositions,
-      const bool with_third_phase,
-      const double  phase_well_scale,
-      const double eta_well_scale,
-      const std::string& phase_well_func_type,
-      const std::string& eta_well_func_type );
+      const bool with_third_phase);
       
    ~CALPHADFreeEnergyStrategyWithPenalty(){};
  

@@ -26,9 +26,7 @@ public:
       const std::string& conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
       const int conc_l_id,
-      const int conc_a_id,
-      const double  phase_well_scale,
-      const std::string& phase_well_func_type );
+      const int conc_a_id);
 
    virtual ~CALPHADFreeEnergyStrategyTernary()
    {
@@ -201,10 +199,6 @@ protected:
    std::string d_energy_interp_func_type;
    std::string d_conc_interp_func_type;
 
-   double d_phase_well_scale;
-
-   std::string d_phase_well_func_type;
-   
    void computeMuA(
       const double t,
       const double c0,const double c1,

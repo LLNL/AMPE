@@ -62,11 +62,7 @@ public:
       const int conc_l_id,
       const int conc_a_id,
       const int conc_b_id,
-      const bool with_third_phase,
-      const double  phase_well_scale,
-      const double eta_well_scale,
-      const std::string& phase_well_func_type,
-      const std::string& eta_well_func_type );
+      const bool with_third_phase);
 
    virtual ~CALPHADFreeEnergyStrategyBinary()
    {
@@ -242,12 +238,6 @@ protected:
    std::string d_energy_interp_func_type;
    std::string d_conc_interp_func_type;
 
-   double d_phase_well_scale;
-   double d_eta_well_scale;
-
-   std::string d_phase_well_func_type;
-   std::string d_eta_well_func_type;
-   
    double computeMuA(
       const double t,
       const double c );

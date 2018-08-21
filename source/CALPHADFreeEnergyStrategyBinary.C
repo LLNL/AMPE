@@ -61,17 +61,9 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    const int conc_l_id,
    const int conc_a_id,
    const int conc_b_id,
-   const bool with_third_phase,
-   const double  phase_well_scale,
-   const double eta_well_scale,
-   const std::string& phase_well_func_type,
-   const std::string& eta_well_func_type
+   const bool with_third_phase
    ):
-      d_mv_strategy(mvstrategy),
-      d_phase_well_scale(phase_well_scale),
-      d_eta_well_scale(eta_well_scale),
-      d_phase_well_func_type(phase_well_func_type),
-      d_eta_well_func_type(eta_well_func_type)
+      d_mv_strategy(mvstrategy)
 {
    d_with_third_phase = with_third_phase;
 

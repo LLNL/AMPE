@@ -457,11 +457,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                      d_conc_l_scratch_id,
                      d_conc_a_scratch_id,
                      d_conc_b_scratch_id,
-                     d_model_parameters.with_third_phase(),
-                     d_model_parameters.phase_well_scale(),
-                     d_model_parameters.eta_well_scale(),
-                     d_model_parameters.phase_well_func_type(),
-                     d_model_parameters.eta_well_func_type() );
+                     d_model_parameters.with_third_phase());
             }else{
                assert( d_ncompositions==2 );
                d_free_energy_strategy_for_diffusion =
@@ -471,9 +467,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                      d_model_parameters.conc_interp_func_type(),
                      d_mvstrategy,
                      d_conc_l_scratch_id,
-                     d_conc_a_scratch_id,
-                     d_model_parameters.phase_well_scale(),
-                     d_model_parameters.phase_well_func_type() );
+                     d_conc_a_scratch_id);
             }
          }
 
@@ -512,11 +506,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_a_scratch_id,
                   d_conc_b_scratch_id,
                   d_ncompositions,
-                  d_model_parameters.with_third_phase(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.eta_well_scale(),
-                  d_model_parameters.phase_well_func_type(),
-                  d_model_parameters.eta_well_func_type() );
+                  d_model_parameters.with_third_phase() );
             
             d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
                   calphad_db, newton_db,
@@ -588,10 +578,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.energy_interp_func_type(),
                   d_model_parameters.conc_interp_func_type(),
                   d_model_parameters.with_third_phase(),
-                  d_model_parameters.phase_well_scale(),
-                  d_model_parameters.eta_well_scale(),
-                  d_model_parameters.phase_well_func_type(),
-                  d_model_parameters.eta_well_func_type(),
                   calphad_db, newton_db,
                   d_ncompositions );
          }else{

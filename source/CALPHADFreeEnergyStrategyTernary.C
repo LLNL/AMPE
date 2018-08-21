@@ -25,13 +25,9 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    const string& conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
-   const int conc_a_id,
-   const double  phase_well_scale,
-   const std::string& phase_well_func_type
+   const int conc_a_id
    ):
-      d_mv_strategy(mvstrategy),
-      d_phase_well_scale(phase_well_scale),
-      d_phase_well_func_type(phase_well_func_type)
+      d_mv_strategy(mvstrategy)
 {
    assert( conc_l_id>= 0 );
    assert( conc_a_id>= 0 );
