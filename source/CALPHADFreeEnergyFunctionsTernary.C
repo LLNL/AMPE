@@ -446,6 +446,46 @@ void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
 
 //=======================================================================
 
+void CALPHADFreeEnergyFunctionsTernary::setupValuesL(const double temperature)
+{
+   d_L_AB_L[0] = lmix0ABPhaseL( temperature );
+   d_L_AB_L[1] = lmix1ABPhaseL( temperature );
+   d_L_AB_L[2] = lmix2ABPhaseL( temperature );
+   d_L_AB_L[3] = lmix3ABPhaseL( temperature );
+   d_L_AC_L[0] = lmix0ACPhaseL( temperature );
+   d_L_AC_L[1] = lmix1ACPhaseL( temperature );
+   d_L_AC_L[2] = lmix2ACPhaseL( temperature );
+   d_L_AC_L[3] = lmix3ACPhaseL( temperature );
+   d_L_BC_L[0] = lmix0BCPhaseL( temperature );
+   d_L_BC_L[1] = lmix1BCPhaseL( temperature );
+   d_L_BC_L[2] = lmix2BCPhaseL( temperature );
+   d_L_BC_L[3] = lmix3BCPhaseL( temperature );
+   d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
+   d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
+   d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
+}
+
+//=======================================================================
+
+void CALPHADFreeEnergyFunctionsTernary::setupValuesS(const double temperature)
+{
+   d_L_AB_S[0] = lmix0ABPhaseA( temperature );
+   d_L_AB_S[1] = lmix1ABPhaseA( temperature );
+   d_L_AB_S[2] = lmix2ABPhaseA( temperature );
+   d_L_AB_S[3] = lmix3ABPhaseA( temperature );
+   d_L_AC_S[0] = lmix0ACPhaseA( temperature );
+   d_L_AC_S[1] = lmix1ACPhaseA( temperature );
+   d_L_AC_S[2] = lmix2ACPhaseA( temperature );
+   d_L_AC_S[3] = lmix3ACPhaseA( temperature );
+   d_L_BC_S[0] = lmix0BCPhaseA( temperature );
+   d_L_BC_S[1] = lmix1BCPhaseA( temperature );
+   d_L_BC_S[2] = lmix2BCPhaseA( temperature );
+   d_L_BC_S[3] = lmix3BCPhaseA( temperature );
+   d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
+}
+
+//=======================================================================
+
 void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
    const double temperature,
    const PHASE_INDEX pi0, const PHASE_INDEX pi1)
@@ -460,21 +500,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
             d_fA[i] = d_g_species_phaseL[0].fenergy( temperature );
             d_fB[i] = d_g_species_phaseL[1].fenergy( temperature );
             d_fC[i] = d_g_species_phaseL[2].fenergy( temperature );
-            d_L_AB_L[0] = lmix0ABPhaseL( temperature );
-            d_L_AB_L[1] = lmix1ABPhaseL( temperature );
-            d_L_AB_L[2] = lmix2ABPhaseL( temperature );
-            d_L_AB_L[3] = lmix3ABPhaseL( temperature );
-            d_L_AC_L[0] = lmix0ACPhaseL( temperature );
-            d_L_AC_L[1] = lmix1ACPhaseL( temperature );
-            d_L_AC_L[2] = lmix2ACPhaseL( temperature );
-            d_L_AC_L[3] = lmix3ACPhaseL( temperature );
-            d_L_BC_L[0] = lmix0BCPhaseL( temperature );
-            d_L_BC_L[1] = lmix1BCPhaseL( temperature );
-            d_L_BC_L[2] = lmix2BCPhaseL( temperature );
-            d_L_BC_L[3] = lmix3BCPhaseL( temperature );
-            d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
-            d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
-            d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
+
+            setupValuesL(temperature);
 
             break;
    
@@ -482,21 +509,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
             d_fA[i] = d_g_species_phaseA[0].fenergy( temperature );
             d_fB[i] = d_g_species_phaseA[1].fenergy( temperature );
             d_fC[i] = d_g_species_phaseA[2].fenergy( temperature );
-            d_L_AB_S[0] = lmix0ABPhaseA( temperature );
-            d_L_AB_S[1] = lmix1ABPhaseA( temperature );
-            d_L_AB_S[2] = lmix2ABPhaseA( temperature );
-            d_L_AB_S[3] = lmix3ABPhaseA( temperature );
-            d_L_AC_S[0] = lmix0ACPhaseA( temperature );
-            d_L_AC_S[1] = lmix1ACPhaseA( temperature );
-            d_L_AC_S[2] = lmix2ACPhaseA( temperature );
-            d_L_AC_S[3] = lmix3ACPhaseA( temperature );
-            d_L_BC_S[0] = lmix0BCPhaseA( temperature );
-            d_L_BC_S[1] = lmix1BCPhaseA( temperature );
-            d_L_BC_S[2] = lmix2BCPhaseA( temperature );
-            d_L_BC_S[3] = lmix3BCPhaseA( temperature );
-            d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
-            d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
-            d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
+
+            setupValuesS(temperature);
 
             break;
       
@@ -509,7 +523,7 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsTernary::setupValuesForThreePhasesSolver(
+void CALPHADFreeEnergyFunctionsTernary::setup(
    const double temperature)
 {
    d_fA[0] = d_g_species_phaseL[0].fenergy( temperature );
@@ -521,43 +535,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForThreePhasesSolver(
    d_fC[0] = d_g_species_phaseL[2].fenergy( temperature );
    d_fC[1] = d_g_species_phaseA[2].fenergy( temperature );
 
-   d_L_AB_L[0] = lmix0ABPhaseL( temperature );
-   d_L_AB_L[1] = lmix1ABPhaseL( temperature );
-   d_L_AB_L[2] = lmix2ABPhaseL( temperature );
-   d_L_AB_L[3] = lmix3ABPhaseL( temperature );
-
-   d_L_AB_S[0] = lmix0ABPhaseA( temperature );
-   d_L_AB_S[1] = lmix1ABPhaseA( temperature );
-   d_L_AB_S[2] = lmix2ABPhaseA( temperature );
-   d_L_AB_S[3] = lmix3ABPhaseA( temperature );
-
-   d_L_AC_L[0] = lmix0ACPhaseL( temperature );
-   d_L_AC_L[1] = lmix1ACPhaseL( temperature );
-   d_L_AC_L[2] = lmix2ACPhaseL( temperature );
-   d_L_AC_L[3] = lmix3ACPhaseL( temperature );
-
-   d_L_AC_S[0] = lmix0ACPhaseA( temperature );
-   d_L_AC_S[1] = lmix1ACPhaseA( temperature );
-   d_L_AC_S[2] = lmix2ACPhaseA( temperature );
-   d_L_AC_S[3] = lmix3ACPhaseA( temperature );
-
-   d_L_BC_L[0] = lmix0BCPhaseL( temperature );
-   d_L_BC_L[1] = lmix1BCPhaseL( temperature );
-   d_L_BC_L[2] = lmix2BCPhaseL( temperature );
-   d_L_BC_L[3] = lmix3BCPhaseL( temperature );
-
-   d_L_BC_S[0] = lmix0BCPhaseA( temperature );
-   d_L_BC_S[1] = lmix1BCPhaseA( temperature );
-   d_L_BC_S[2] = lmix2BCPhaseA( temperature );
-   d_L_BC_S[3] = lmix3BCPhaseA( temperature );
-
-   d_L_ABC_L[0] = lmix0ABCPhaseL( temperature );
-   d_L_ABC_L[1] = lmix1ABCPhaseL( temperature );
-   d_L_ABC_L[2] = lmix2ABCPhaseL( temperature );
-
-   d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
-   d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
-   d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
+   setupValuesL(temperature);
+   setupValuesS(temperature);
 }
 
 //=======================================================================
@@ -679,7 +658,7 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
    if( d_ceq_s[0]>=0. )cauxilliary[2]=d_ceq_s[0];
    if( d_ceq_s[1]>=0. )cauxilliary[3]=d_ceq_s[1];
    
-   setupValuesForThreePhasesSolver(temperature);
+   setup(temperature);
 
    assert( d_fC[0]==d_fC[0] );
 

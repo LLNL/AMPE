@@ -390,7 +390,7 @@ void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(
 
 //=======================================================================
 
-void CALPHADFreeEnergyFunctionsBinary::setupValuesForThreePhasesSolver(const double temperature)
+void CALPHADFreeEnergyFunctionsBinary::setup(const double temperature)
 {
    d_fA[0] = d_g_species_phaseL[0].fenergy( temperature );
    d_fA[1] = d_g_species_phaseA[0].fenergy( temperature );
@@ -491,7 +491,7 @@ void CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies(
    if( d_ceq_a>=0. )c[1]=d_ceq_a;
    if( d_ceq_b>=0. )c[2]=d_ceq_b;
    
-   setupValuesForThreePhasesSolver(temperature);
+   setup(temperature);
 
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    int ret = d_solver->ComputeConcentration(
@@ -752,11 +752,11 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
 
       double e = fchem( phi, eta, conc, temperature );
 
-      double eta_well =
+      double w =
          eta_well_scale *
          FORT_WELL_FUNC( eta, eta_well_type.c_str() );
 
-      os << e + eta_well + slopec*conc[0] << endl;
+      os << e + w + slopec*conc[0] << endl;
    }
    //os << endl;
 }

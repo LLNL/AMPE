@@ -148,10 +148,10 @@ protected:
    
    void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
 
-   void setupValuesForTwoPhasesSolver(const double temperature,
-                                      const PHASE_INDEX pi0, const PHASE_INDEX pi1);
+   void setupValuesForTwoPhasesSolver(
+      const double temperature, const PHASE_INDEX pi0, const PHASE_INDEX pi1);
 
-   void setupValuesForThreePhasesSolver(const double temperature);
+   void setup(const double temperature);
 
 private:
 
@@ -175,15 +175,15 @@ private:
    double d_LmixABCPhaseA[3][2];
 
    double d_L_AB_L[4];
-   double d_L_AB_S[4];
-
    double d_L_AC_L[4];
-   double d_L_AC_S[4];
-
    double d_L_BC_L[4];
-   double d_L_BC_S[4];
 
    double d_L_ABC_L[3];
+
+   double d_L_AB_S[4];
+   double d_L_AC_S[4];
+   double d_L_BC_S[4];
+
    double d_L_ABC_S[3];
 
    double d_fA[2];
@@ -193,6 +193,9 @@ private:
    void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> calphad_db);
 
    void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
+
+   void setupValuesL(const double temperature);
+   void setupValuesS(const double temperature);
 
    // energy of species "is" in phase L,A,B
    double getFenergyPhaseL(const short is, const double temperature )

@@ -240,14 +240,18 @@ int CALPHADConcentrationSolverBinary::ComputeConcentration(
    d_heta = heta;
    d_RTinv = RTinv;
 
-   for ( int ii = 0; ii < d_N; ii++ ) {
+   for ( int ii = 0; ii < d_N; ii++ )
       d_L0[ii] = L0[ii];
+   for ( int ii = 0; ii < d_N; ii++ )
       d_L1[ii] = L1[ii];
+   for ( int ii = 0; ii < d_N; ii++ )
       d_L2[ii] = L2[ii];
+   for ( int ii = 0; ii < d_N; ii++ )
       d_L3[ii] = L3[ii];
+   for ( int ii = 0; ii < d_N; ii++ )
       d_fA[ii] = fA[ii];
+   for ( int ii = 0; ii < d_N; ii++ )
       d_fB[ii] = fB[ii];
-   }
 
    int ret= NewtonSolver::ComputeSolution( conc, d_N );
    return ret;

@@ -39,32 +39,38 @@ void BiasDoubleWellUTRCFreeEnergyStrategy::addComponentRhsPhi(
    assert( rhs_id >= 0 );
    assert( temperature_id >= 0 );
    assert( d_meltingTstrat!=NULL );
+   assert( eta_id<0 );
 
    (void)time; // unused
    (void) conc_id;  // unused
    (void) f_l_id; // unused
    (void) f_a_id; // unused
+   (void) f_b_id;
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(phase_id) ) );
    assert( phase );
  
    boost::shared_ptr< pdat::CellData<double> > temp (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(temperature_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(temperature_id) ) );
    assert( temp );
  
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( rhs_id) ) );
    assert( rhs );
  
-   assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+   assert( rhs->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
 
    //evaluate melting temperature field 
    //(which may depend on composition in linear model for instance)
    d_meltingTstrat->evaluate(patch);
    
    boost::shared_ptr< pdat::CellData<double> > eq_temp (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id() ) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id() ) ) );
    assert( eq_temp );
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchCellDataNormOpsReal<double> ops; 	
