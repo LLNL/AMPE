@@ -124,11 +124,7 @@ int main( int argc, char *argv[] )
    CALPHADFreeEnergyFunctionsTernary
       cafe(calphad_db, newton_db,
            energy_interp_func_type,
-           conc_interp_func_type,
-           conc_avg_func_type,
-           phase_well_scale,
-           "double_well");
-  
+           conc_interp_func_type);
 
    // initial guesses
    double init_guess[5];

@@ -101,11 +101,6 @@ int main( int argc, char *argv[] )
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
-   double phase_well_scale = model_db->getDouble( "phi_well_scale" );
-
-   string phase_well_func_type =
-         model_db->getString( "phi_well_func_type" );
-
    string energy_interp_func_type = "pbg";
    string conc_interp_func_type = "pbg";
  
@@ -115,8 +110,6 @@ int main( int argc, char *argv[] )
 
    boost::shared_ptr<tbox::Database> conc_db(
       model_db->getDatabase( "ConcentrationModel" ));
-   string conc_avg_func_type =
-      conc_db->getStringWithDefault( "avg_func_type", "a" );
 
    boost::shared_ptr<tbox::Database> dcalphad_db=
       conc_db->getDatabase( "Calphad" );
@@ -133,16 +126,11 @@ int main( int argc, char *argv[] )
       maxits= newton_db->getIntegerWithDefault("max_its",20);
    }
 
-   bool with_third_phase=false;
-   
    CALPHADFreeEnergyFunctionsTernary
       cafe(calphad_db, newton_db,
            energy_interp_func_type,
-           conc_interp_func_type,
-           conc_avg_func_type,
-           phase_well_scale,
-           phase_well_func_type);
-  
+           conc_interp_func_type);
+ 
    cafe.printEnergyVsComposition(temperature);
 
    cafe.preRunDiagnostics(303., 4000.);

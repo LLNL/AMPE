@@ -75,11 +75,6 @@ int main( int argc, char *argv[] )
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
-   double phase_well_scale = model_db->getDouble( "phi_well_scale" );
-
-   string phase_well_func_type =
-         model_db->getString( "phi_well_func_type" );
-
    string energy_interp_func_type = "pbg";
    string conc_interp_func_type = "pbg";
 
@@ -107,10 +102,7 @@ int main( int argc, char *argv[] )
    CALPHADFreeEnergyFunctionsTernary
       cafe(calphad_db, newton_db,
            energy_interp_func_type,
-           conc_interp_func_type,
-           conc_avg_func_type,
-           phase_well_scale,
-           phase_well_func_type);
+           conc_interp_func_type);
    
    // initial guesses
    double sol[4];

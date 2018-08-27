@@ -59,10 +59,10 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		CALPHADEqPhaseConcSolverTernary.o \
 		CALPHADConcSolverBinaryWithPenalty.o \
 		CALPHADConcSolverBinary.o tools.o \
+		CALPHADSpeciesPhaseGibbsEnergyExpansion.o \
 		FreeEnergyStrategy.o
 
 CXX_OBJS      = AMPE.o \
-		CALPHADSpeciesPhaseGibbsEnergyExpansion.o \
 		KimMobilityStrategy.o \
 		FieldsInitializer.o \
 		GradientTemperatureStrategy.o \

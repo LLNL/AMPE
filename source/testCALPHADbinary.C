@@ -108,14 +108,8 @@ int main( int argc, char *argv[] )
       cafe(calphad_db, newton_db,
            energy_interp_func_type,
            conc_interp_func_type,
-           eta_interp_func_type,
-           conc_avg_func_type,
-           with_third_phase,
-           phase_well_scale,
-           0.,
-           phase_well_func_type,
-           "");
-   
+           with_third_phase);
+ 
    cafe.printEnergyVsComposition(temperature);
 
    cafe.preRunDiagnostics(303., 2899. );
@@ -157,15 +151,9 @@ int main( int argc, char *argv[] )
                calphad_db, newton_db,
                energy_interp_func_type,
                conc_interp_func_type,
-               "",
-               conc_avg_func_type,
                &mvstrategy,
                -1,-1,-1,
-               false,
-               phase_well_scale,
-               0.,
-               phase_well_func_type,
-               "" );
+               false);
 
    if( calphad_db->keyExists( "MobilityParameters" ) ){
       tbox::plog<<"CompositionStrategyMobilities... "<<endl;
@@ -176,7 +164,8 @@ int main( int argc, char *argv[] )
 
       composition_strategy_mobilities.printDiagnostics(temperature,temperature);
    }
-   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq, with_third_phase,
+   cafe.energyVsPhiAndC(temperature, &lceq[0], found_ceq,
+                        phase_well_scale, phase_well_func_type,
                         101, 100);
 
    input_db.reset();
