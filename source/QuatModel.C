@@ -893,11 +893,12 @@ void QuatModel::Initialize(
 
       int temperature_id = d_model_parameters.isTemperatureConstant() ?
                            d_temperature_id : -1;
+      int qlen = (d_model_parameters.H_parameter()>=0. ) ? d_qlen : 0;
       initializer.registerFieldsIds(
          d_phase_id,
          d_eta_id,
          temperature_id,
-         d_quat_id, d_qlen,
+         d_quat_id, qlen,
          d_conc_id, d_ncompositions);
 
       if( !d_init_c.empty() )initializer.setCvalue(d_init_c);
