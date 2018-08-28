@@ -1,0 +1,103 @@
+// Cu-Ni database
+// (see Perron et al., Modelling Simul. Mater. Sci. Eng. 26 (2018), 014002)
+// Units:
+// Temperature: Kelvin
+// Energies:    J/mol
+//
+// G = a + b*T + c*T*ln(T)+sum_i di*T^i
+//
+SpeciesA{ // Cu
+   name = "Cu"
+   PhaseL{ // liquid
+      Tc =298.15, 1357.77, 6000.
+      a  =5194.277, -46.545
+      b  =120.973331, 173.881484
+      c  =-24.112392, -31.38
+      d2 =-0.00265684, 0.
+      d3 =1.29223e-07, 0.
+      dm1=52478, 0.      
+      d7 =-5.8489E-21, 0.
+   }
+   PhaseA{ // fcc
+      Tc =298.15, 1357.77, 6000.
+      a  =-7770.458, -13542.026
+      b  =130.485235, 183.803828
+      c  =-24.112392, -31.38
+      d2 =-0.00265684, 0.
+      d3 =1.29223e-07, 0.
+      dm1=52478, 0.
+      dm9=0., 3.64167e+29
+   }
+}
+
+SpeciesB{ // Ni
+   name = "Ni"
+   PhaseL{ // liquid
+      Tc =298.15, 1728., 6000.
+      a  =11235.527, -9549.817
+      b  =108.457, 268.597977
+      c  =-22.096, -43.1
+      d2 =-0.0048407, 0.
+      d7 =-3.82318E-21, 0.
+   }
+   PhaseA{ // fcc
+      Tc =298.15, 1728., 6000.
+      a  =-5179.159, -27840.62
+      b  =117.854, 279.134977
+      c  =-22.096, -43.1
+      d2 =-0.0048407, 0.
+      dm9=0., 1.12754E+31
+   }
+}
+
+//
+// Gmix_phase = c(1-c)*[ L0(T)+L1(T)*(2c-1)+L2(T)*(2c-1)^2 ]  [J/mol]
+// where Li(T) = Li[0] + Li[1]*T
+//
+// fcc Data from Sabine A. Mey, CALPHAD 16 (3) 255-260 (1992)
+
+LmixPhaseL{ // liquid
+   L0 = 12048.61, 1.29093
+   L1 = -1861.61, 0.94201
+}
+
+LmixPhaseA{ // fcc
+   L0 =  8047.72, 3.42217
+   L1 = -2041.30, 0.99714
+}
+
+// fcc Data from Wang et al, CALPHAD 32 94-100 (2008)
+// and Ghosh G, Acta Mater. 49, 2609 (2001)
+// and Jönsson , Scand. J. Metall. 24, 21 (1995)
+MobilityParameters{
+   Species0{ // Cu
+      PhaseL{ // liquid
+         qA   = -36464.09,  6.82032e-08   //Cu in Cu
+         qB   = -46406.94,  6.72133e-08  //Cu in Ni
+         q0AB = 0.,  1.       //Cu in Cu,Ni
+         q1AB = 0.,  1.
+      }
+      PhaseA{ // fcc
+         qA   = -205872,  4.8883e-05 // Cu in Cu
+         qB   = -250125,  3.50325e-05   // Cu in Ni
+         q0AB =  23887,  0.118977437  //Cu in Cu,Ni
+	 q1AB = 0.,  1.
+
+      }
+   }
+   
+   Species1{  // Ni
+      PhaseL{ // liquid
+         qA   = -36464.09, 6.9953E-08  //Ni in Cu
+         qB   = -46406.94, 6.89332E-08  //Ni in Ni
+         q0AB = 0.,  1.      // Ni in Cu,Ni
+         q1AB = 0.,  1.
+      }
+      PhaseA{ // fcc
+         qA   = -232788, 0.000193281 // Ni in Cu
+         qB   = -287000, 0.000225991      // Ni in Ni
+         q0AB =  106790, 0.000115235      //Ni in Cu,Ni
+	 q1AB = 0.,  1.
+      }
+   }
+}
