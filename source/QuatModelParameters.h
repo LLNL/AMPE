@@ -140,6 +140,7 @@ public:
       return d_initc_in_phase[d_ncompositions+index];
    }
    double meltingT()const{ return d_meltingT; }
+   double interfaceMobility()const{ return d_interface_mobility; }
    double rescale_factorT()const{ return d_rescale_factorT; }
    double vd()const{
       assert( d_vd>0. );
@@ -376,6 +377,8 @@ private:
    //cp for each species
    std::vector< std::map<short,double> > d_cp;
    double d_meltingT;
+   double d_interface_mobility;
+
    std::string d_heat_source_type;
    std::vector<double> d_T_source;
    std::vector<double> d_Q_heat_transport;

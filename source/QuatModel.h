@@ -754,7 +754,7 @@ private :
       d_curr_to_scr_refine_sched;
 
    QuatGradStrategy* d_quat_grad_strategy;
-   QuatMobilityStrategy* d_mobility_strategy;
+   boost::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
    FreeEnergyStrategy* d_free_energy_strategy;
    FreeEnergyStrategy* d_free_energy_strategy_for_diffusion;
    PhaseConcentrationsStrategy* d_phase_conc_strategy;
@@ -785,6 +785,7 @@ private :
    
    bool d_use_warm_start;
 
+   boost::shared_ptr<tbox::Database> d_conc_db;
    boost::shared_ptr<tbox::Database> d_calphad_db;
    boost::shared_ptr<tbox::Database> d_newton_db;
  

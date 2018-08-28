@@ -329,7 +329,7 @@ public :
 #endif
 
    void setQuatGradStrategy( QuatGradStrategy* quat_grad_strategy );
-   void setMobilityStrategy( QuatMobilityStrategy* mobility_strategy );
+   void setMobilityStrategy( boost::shared_ptr<QuatMobilityStrategy>& );
    void setFreeEnergyStrategy( FreeEnergyStrategy* free_energy_strategy);
    void setPhaseConcentrationsStrategy(
       PhaseConcentrationsStrategy* phase_conc_strategy)
@@ -740,7 +740,7 @@ private :
    boost::shared_ptr<hier::VariableContext> d_scratch;
    
    QuatGradStrategy*     d_quat_grad_strategy;
-   QuatMobilityStrategy* d_mobility_strategy;
+   boost::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
    PhaseConcentrationsStrategy* d_phase_conc_strategy;
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
    

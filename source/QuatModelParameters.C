@@ -88,6 +88,7 @@ QuatModelParameters::QuatModelParameters()
    d_thermal_diffusivity = def_val;
    d_latent_heat = def_val;
    d_meltingT = def_val;
+   d_interface_mobility = def_val;
 
    d_well_bias_alpha = 0.;
    d_well_bias_gamma = def_val;
@@ -745,6 +746,8 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
             tbox::pout<<"phi_mobility_type="<<d_phi_mobility_type<<endl;
             TBOX_ERROR( "Error: unknown phi_mobility_type");
          }
+         d_interface_mobility =
+            model_db->getDoubleWithDefault( "interface_mobility", -1.);
       }
    }
 

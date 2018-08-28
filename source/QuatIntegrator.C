@@ -163,7 +163,6 @@ QuatIntegrator::QuatIntegrator(
      d_current( current ),
      d_scratch( scratch ),
      d_quat_grad_strategy( NULL ),
-     d_mobility_strategy( NULL ),
      d_phase_conc_strategy( NULL ),
      d_partition_coeff_strategy( NULL ),
      d_temperature_strategy( NULL ),
@@ -1620,9 +1619,8 @@ void QuatIntegrator::setQuatGradStrategy(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::setMobilityStrategy(
-   QuatMobilityStrategy* mobility_strategy )
+   boost::shared_ptr<QuatMobilityStrategy>& mobility_strategy )
 {
-   assert( mobility_strategy != NULL );
    d_mobility_strategy = mobility_strategy;
 }
  
