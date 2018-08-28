@@ -63,6 +63,7 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		FreeEnergyStrategy.o
 
 CXX_OBJS      = AMPE.o \
+		KimMobilityStrategyInfMob.o \
 		KimMobilityStrategy.o \
 		FieldsInitializer.o \
 		GradientTemperatureStrategy.o \

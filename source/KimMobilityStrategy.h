@@ -27,16 +27,13 @@ public:
       const int conc_l_id,
       const int conc_s_id,
       const int temp_id,
-      const double epsilon,
-      const double phase_well_scale,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
       boost::shared_ptr<tbox::Database> calphad_db,
       boost::shared_ptr<tbox::Database> newton_db,
       const unsigned ncompositions,
       const double DL,
-      const double Q0,
-      const double mv);
+      const double Q0);
 
    void computePhaseMobility(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -45,13 +42,14 @@ public:
       const double time,
       const CACHE_TYPE cache = CACHE );
 
-private:
+   virtual double evaluateMobility(const double temp,
+      const std::vector<double>&  phaseconc)=0;
+
+protected:
    const int d_conc_l_id;
    const int d_conc_s_id;
    const int d_temp_id;
 
-   const double d_epsilon;
-   const double d_phase_well_scale;
    const unsigned d_ncompositions;
 
    /*!
@@ -60,12 +58,9 @@ private:
    const double d_DL;
    const double d_Q0;
 
-   /*!
-    * Molar volume
-    */
-   const double d_mv;
-
    CALPHADFreeEnergyFunctions* d_calphad_fenergy;
+
+private:
 
    void update(
       boost::shared_ptr< pdat::CellData<double> > cd_te,

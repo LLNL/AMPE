@@ -77,7 +77,7 @@
 #include "toolsSAMRAI.h"
 #include "tools.h"
 #include "FieldsInitializer.h"
-#include "KimMobilityStrategy.h"
+#include "KimMobilityStrategyInfMob.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -1010,7 +1010,7 @@ void QuatModel::InitializeIntegrator( void )
          tbox::InputManager::getManager()->parseInputFile(
             calphad_filename, calphad_db );
          d_mobility_strategy  =
-            new KimMobilityStrategy(
+            new KimMobilityStrategyInfMob(
                    this,
                    d_conc_l_scratch_id, d_conc_a_scratch_id,
                    d_temperature_scratch_id,
