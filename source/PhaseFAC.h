@@ -1,5 +1,6 @@
 /*************************************************************************
  * Adapted from SAMRAI test suite
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  ************************************************************************/
 #ifndef included_PhaseFAC
 #define included_PhaseFAC

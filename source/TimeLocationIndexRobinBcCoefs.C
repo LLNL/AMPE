@@ -1,6 +1,7 @@
 /*************************************************************************
  *
  * Adapted from SAMRAI/solv/LocationIndexRobinBcCoefs class
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  *
  ************************************************************************/
 #include <stdlib.h>

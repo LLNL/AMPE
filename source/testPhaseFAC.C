@@ -1,5 +1,6 @@
 /*************************************************************************
- * Adapted from SAMRAI test FAC_staticrefinement
+ * Adapted from SAMRAI test suite
+ * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
  ************************************************************************/
 #include "SAMRAI/SAMRAI_config.h"
 
