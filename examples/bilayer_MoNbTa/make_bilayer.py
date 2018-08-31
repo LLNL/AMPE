@@ -1,6 +1,8 @@
 # Copyright (c) 2018, Lawrence Livermore National Security, LLC and
+// UT-Battelle, LLC.and
 // UT-Battelle, LLC.
 # Produced at the Lawrence Livermore National Laboratory and
+// the Oak Ridge National Laboratory and
 // the Oak Ridge National Laboratory
 # Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 # LLNL-CODE-747500
@@ -24,6 +26,7 @@
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 # ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
 # LLC, UT BATTELLE, LLC,
+// UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 # DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
