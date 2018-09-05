@@ -338,7 +338,7 @@ testFAC-3d: testFACPoisson.o FACPoisson.o $(F77_OBJS_3D) $(F77_OBJS)
 TEST_PHASEFAC_OBJS = PhaseFACOps.o PhaseFACSolver.o QuatModelParameters.o \
 	EllipticFACSolver.o FACPreconditioner.o \
 	EllipticFACOps.o CellPoissonHypreSolver.o tools.o \
-	PoissonSpecifications.o \
+	CartesianRobinBcHelperWithDepth.o PoissonSpecifications.o \
 	PhaseFAC.o toolsSAMRAI.o testPhaseFAC.o
 
 testPhaseFAC2d:
