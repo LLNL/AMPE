@@ -1,7 +1,6 @@
 /*************************************************************************
- *
- * Adapted from SAMRAI/solv/LocationIndexRobinBcCoefs class
- *
+ * This file is adapted from SAMRAI/solv/LocationIndexRobinBcCoefs.h
+ * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
  ************************************************************************/
 #ifndef included_TimeLocationIndexRobinBcCoefs
 #define included_TimeLocationIndexRobinBcCoefs
