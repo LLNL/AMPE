@@ -2279,20 +2279,20 @@ void QuatModel::RegisterWithVisit( void )
          d_visit_data_writer->registerPlotQuantity(
             visit_name, "SCALAR", d_conc_id, n );
 
-         if ( d_model_parameters.concentrationModelNeedsPhaseConcentrations() ) {
-            assert( d_conc_l_id>=0 );
-            assert( d_conc_a_id>=0 );
+         if ( d_model_parameters.concentrationModelNeedsPhaseConcentrations() ){
+            assert( d_conc_l_scratch_id>=0 );
+            assert( d_conc_a_scratch_id>=0 );
             string visit_namel("conc_l" + tbox::Utilities::intToString(n, 1));
             d_visit_data_writer->registerPlotQuantity(
-               visit_namel, "SCALAR", d_conc_l_id, n );
+               visit_namel, "SCALAR", d_conc_l_scratch_id, n );
             string visit_namea("conc_a" + tbox::Utilities::intToString(n, 1));
             d_visit_data_writer->registerPlotQuantity(
-              visit_namea , "SCALAR", d_conc_a_id, n );
+              visit_namea , "SCALAR", d_conc_a_scratch_id, n );
             if ( d_model_parameters.with_third_phase() ){
                assert( d_conc_b_id>=0 );
                string visit_nameb("conc_b" + tbox::Utilities::intToString(n, 1));
                d_visit_data_writer->registerPlotQuantity(
-                  visit_nameb, "SCALAR", d_conc_b_id, n );
+                  visit_nameb, "SCALAR", d_conc_b_scratch_id, n );
             }
          }
       }
@@ -4429,7 +4429,8 @@ void QuatModel::WriteInitialConditionsFile( void )
 
             if ( d_model_parameters.with_concentration() ){
                boost::shared_ptr< pdat::CellData<double> > conc_data (
-                  BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_id) ) );
+                  BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                     patch->getPatchData( d_conc_id) ) );
                assert( conc_data );
 
                for ( int dd = 0; dd < d_ncompositions; dd++ ) {
