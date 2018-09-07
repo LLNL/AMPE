@@ -1862,18 +1862,14 @@ void QuatIntegrator::resetAfterRegrid(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::resetSolversStateConcentration(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int coarsest_level,
-   const int finest_level )
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
    if ( d_with_concentration && d_conc_sys_solver ) {
       d_conc_sys_solver->
          resetSolverState(
             d_conc_sol_id,
             d_conc_rhs_id,
-            hierarchy,
-            coarsest_level,
-            finest_level );
+            hierarchy);
    }
 }
 
@@ -1891,9 +1887,7 @@ void QuatIntegrator::resetSolversState(
         resetSolverState(
            d_phase_sol_id,
            d_phase_rhs_id,
-           hierarchy,
-           coarsest_level,
-           finest_level );
+           hierarchy);
    }
 
    if ( d_with_third_phase && d_eta_sys_solver ) {
@@ -1901,9 +1895,7 @@ void QuatIntegrator::resetSolversState(
         resetSolverState(
            d_eta_sol_id,
            d_eta_rhs_id,
-           hierarchy,
-           coarsest_level,
-           finest_level );
+           hierarchy);
    }
 
    if ( d_with_unsteady_temperature && d_temperature_sys_solver ) {
@@ -1911,22 +1903,17 @@ void QuatIntegrator::resetSolversState(
         resetSolverState(
            d_temperature_sol_id,
            d_temperature_rhs_id,
-           hierarchy,
-           coarsest_level,
-           finest_level );
+           hierarchy);
 
       if( d_precond_has_dTdphi )
       d_phase_temperature_sys_solver->
         resetSolverState(
            d_temperature_sol_id,
            d_temperature_rhs_id,
-           hierarchy,
-           coarsest_level,
-           finest_level );
-
+           hierarchy);
    }
 
-   resetSolversStateConcentration(hierarchy,coarsest_level,finest_level);
+   resetSolversStateConcentration(hierarchy);
 
    if ( d_evolve_quat ) {
       assert( d_quat_sys_solver );

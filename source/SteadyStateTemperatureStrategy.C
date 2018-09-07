@@ -96,16 +96,12 @@ void SteadyStateTemperatureStrategy::initialize(
 //-----------------------------------------------------------------------
 
 void SteadyStateTemperatureStrategy::resetSolversState(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int coarsest_level,
-   const int finest_level )
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
    assert ( d_temperature_sys_solver );
    d_temperature_sys_solver->
       resetSolverState(
          d_temperature_scratch_id,
          d_rhs_id,
-         hierarchy,
-         coarsest_level,
-         finest_level );
+         hierarchy);
 }

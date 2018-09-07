@@ -93,6 +93,8 @@ double GaussianTemperatureStrategy::getCurrentMaxTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void)time;
+
    math::HierarchyCellDataOpsReal<double> mathops( patch_hierarchy );
    return mathops.max(d_temperature_scratch_id);
 }
@@ -101,6 +103,8 @@ double GaussianTemperatureStrategy::getCurrentMinTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void)time;
+
    math::HierarchyCellDataOpsReal<double> mathops( patch_hierarchy );
    return mathops.min(d_temperature_scratch_id);
 }

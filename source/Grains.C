@@ -353,11 +353,11 @@ void Grains::findAndNumberGrains(
          level_offset[ln+1] = level_offset[ln] + bbox_size;
       }
 
-      unsigned nn = NDIM*ln;
+      int nn = NDIM*ln;
       level_stride[nn] = 1;
-      for ( tbox::Dimension::dir_t dd = 1; dd < NDIM; dd++ ) {
-         level_stride[nn+dd] =
-            level_stride[nn+dd-1] * bbox.numberCells(dd-1);
+      for ( tbox::Dimension::dir_t dd = 0; dd <= NDIM; dd++ ) {
+         level_stride[nn+dd+1] =
+            level_stride[nn+dd] * bbox.numberCells(dd);
       }
 
       for ( tbox::Dimension::dir_t dd = 0; dd < NDIM; dd++ ) {

@@ -46,7 +46,7 @@ void listLocalToGlobal(
    map<int,double>& lcl_map,
    map<int,double>& gbl_map )
 {
-   size_t size_in = lcl_map.size();
+   int size_in = static_cast<int>(lcl_map.size());
    int* lcl_n = new int[size_in];
    double* lcl_v = new double[size_in];
 

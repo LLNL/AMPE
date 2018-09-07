@@ -221,19 +221,19 @@ void CALPHADcomputeFIdealMix_deriv2(
    const vector<double>& conc,
    vector<double>& d2fdc2 )
 {
-   const short nc=(int)conc.size();
+   const size_t nc=conc.size();
    double cN = 1.;
-   for(short ic=0;ic<nc;ic++) cN -= conc[ic];
+   for(size_t ic=0;ic<nc;ic++) cN -= conc[ic];
    
    //diagonal terms
-   for(short ic=0;ic<nc;ic++)
+   for(size_t ic=0;ic<nc;ic++)
    {
       d2fdc2[ic+nc*ic]= rt * ( xlogx_deriv2( conc[ic] ) + xlogx_deriv2( cN ) );
    }
    
    const double val = rt * xlogx_deriv2( cN );
-   for(short ic=0;ic<nc;ic++)
-   for(short jc=0;jc<ic;jc++){
+   for(size_t ic=0;ic<nc;ic++)
+   for(size_t jc=0;jc<ic;jc++){
       d2fdc2[ic+nc*jc]= val;
       d2fdc2[jc+nc*ic]= val;
    }
@@ -263,18 +263,18 @@ double CALPHADcomputeGMix_deriv2(
 {
    assert( l3<=1.e-15 );
    
-   const int n=conc.size();
+   const int n=static_cast<int>(conc.size());
    
    double gmix_deriv2 = 0.;
-   for(short i=0;i<ic;i++)
+   for(int i=0;i<ic;i++)
       gmix_deriv2 -= 2.*conc[i]*
          (l1+2.*l2*(conc[i]-conc[ic]));
-   for(short i=ic+1;i<n;i++)
+   for(int i=ic+1;i<n;i++)
       gmix_deriv2 += 2.*conc[i]*
          (l1+2.*l2*(conc[ic]-conc[i]));
-   for(short i=0;i<ic;i++)
+   for(int i=0;i<ic;i++)
       gmix_deriv2 += conc[i]*conc[ic]*l2*2.;
-   for(short i=ic+1;i<n;i++)
+   for(int i=ic+1;i<n;i++)
       gmix_deriv2 += conc[i]*conc[ic]*l2*2.;
 
    return gmix_deriv2;

@@ -101,9 +101,7 @@ public:
       const double time )=0;
    
    void resetSolversState(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      const int coarsest_level,
-      const int finest_level );
+      const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
 
    void solveSystem()
    {

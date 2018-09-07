@@ -173,13 +173,6 @@ void CALPHADEqConcentrationSolverTernary::Jacobian(
    double deriv2FMixS[4];
    CALPHADcomputeFMix_deriv2Ternary( d_L_AB_S, d_L_AC_S, d_L_BC_S, d_L_ABC_S, cS[0], cS[1], deriv2FMixS );
    
-   double dfSdciS[2];
-   //1st species
-   dfSdciS[0] = d_fA[1] - d_fC[1] + derivFMixS[0] + derivIdealMixS[0];
-
-   //2nd species
-   dfSdciS[1] = d_fB[1] - d_fC[1] + derivFMixS[1] + derivIdealMixS[1];
-
    double d2fSdciS2[3];
    d2fSdciS2[0] = deriv2FMixS[0] + deriv2IdealMixS[0];
    d2fSdciS2[1] = deriv2FMixS[1] + deriv2IdealMixS[1];

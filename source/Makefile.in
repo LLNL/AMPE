@@ -129,7 +129,7 @@ MAIN_OBJ = main.o
 TEST_CALPHAD_BINARY_MAIN_OBJ = testCALPHADbinary.o
 TEST_CALPHAD_TERNARY_MAIN_OBJ = testCALPHADternary.o
 
-F77_OBJS      = quat.o functions.o dnsqe.o
+F77_OBJS      = quat.o functions.o
 
 F77_OBJS_2D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.o \
 		quatfacops.o quatlevelsolver.o mobility.o temperature.o \

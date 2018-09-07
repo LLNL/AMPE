@@ -62,15 +62,14 @@ SteadyStateTemperatureGaussianSource::SteadyStateTemperatureGaussianSource(
                                      temperature_sys_solver_database,
                                      bc_coefs),
       d_thermal_diffusivity(thermal_diffusivity),
-      d_grid_geometry(grid_geometry),
+      d_cp_id(cp_id),
       d_heat_capacity_strategy(heat_capacity_strategy),
+      d_grid_geometry(grid_geometry),
       d_verbose(false)
 {
    assert( temperature_scratch_id>=0 );
    assert( thermal_diffusivity>0. );
    assert( thermal_diffusivity<1.e15 );
-   
-   d_cp_id = cp_id;
    
    tbox::plog<<"Read Gaussian Heat Source profile parameters..."<<std::endl;
    d_source_peak =

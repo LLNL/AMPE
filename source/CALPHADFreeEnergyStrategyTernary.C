@@ -576,34 +576,41 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
    assert( temperature_id >= 0 );
 
    boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(phase_id) ) );
    assert( phase );
  
    boost::shared_ptr< pdat::CellData<double> > t (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( temperature_id) ) );
    assert( t ); 
  
    boost::shared_ptr< pdat::CellData<double> > fl (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( f_l_id) ) );
    assert( fl );
  
    boost::shared_ptr< pdat::CellData<double> > fa (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( f_a_id) ) );
    assert( fa );
  
    boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( d_conc_l_id) ) );
    assert( c_l );
  
    boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( d_conc_a_id) ) );
    assert( c_a );
 
    boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( rhs_id) ) );
 
    assert( rhs ); 
-   assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+   assert( rhs->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
 
    boost::shared_ptr< pdat::CellData<double> > eta;
    boost::shared_ptr< pdat::CellData<double> > fb;
@@ -642,7 +649,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhiOnPatch(
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
    
-   const hier::Box& rhs_gbox = cd_rhs->getGhostBox();
+   const hier::Box& rhs_gbox(cd_rhs->getGhostBox());
    int imin_rhs = rhs_gbox.lower(0);
    int jmin_rhs = rhs_gbox.lower(1);
    int jp_rhs = rhs_gbox.numberCells(0);
@@ -817,6 +824,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsEta(
    (void)time;
    (void)eta_id;
    (void)f_b_id;
+   (void)patch;
 
    assert( conc_id >= 0 );
    assert( phase_id >= 0 );

@@ -121,8 +121,10 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
 
 void KKSCompositionRHSStrategy::setDiffusionCoeff(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                               time)
+   const double                                    time)
 {
+   (void)time;
+
    t_set_diffcoeff_timer->start();
    
    // tbox::pout<<"QuatIntegrator::setDiffCoeffForConcentration"<<endl;
@@ -241,6 +243,9 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
    const int conc_phase_coupling_diffusion_id,
    const int conc_eta_coupling_diffusion_id)
 {
+   (void)temperature_id;
+   (void)concentration_id;
+
    assert( phase_id>=0 );
    assert( conc_diffusion0_id>=0 );
    assert( conc_phase_coupling_diffusion_id>=0 );

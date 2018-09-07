@@ -715,9 +715,7 @@ private :
       boost::shared_ptr< solv::SAMRAIVectorReal<double> > y,
       xfer::RefineAlgorithm& copy_to_scratch);
    virtual void resetSolversStateConcentration(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      const int coarsest_level,
-      const int finest_level );
+      const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
    virtual void initializeConcentrationNonPeriodicBC();
    virtual void initializeConcentrationSolver(const boost::shared_ptr< hier::PatchHierarchy >&);
    virtual void setCompositionOperatorCoefficients(const double gamma);

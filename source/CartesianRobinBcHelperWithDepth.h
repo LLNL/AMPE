@@ -62,7 +62,7 @@ public:
    explicit CartesianRobinBcHelperWithDepth(
       const tbox::Dimension& dim,
       std::string object_name = std::string(),
-      solv::RobinBcCoefStrategy* coef_strategy = NULL);
+      solv::RobinBcCoefStrategy* coef_strategy = 0);
 
    /*!
     * @brief Destructor.

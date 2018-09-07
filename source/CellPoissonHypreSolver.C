@@ -1,41 +1,6 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
-// UT-Battelle, LLC.
-// Produced at the Lawrence Livermore National Laboratory and
-// the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
-// LLNL-CODE-747500
-// All rights reserved.
-// This file is part of AMPE. 
-// For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-// 
 /*
- * Description:        Hypre solver interface for diffusion-like elliptic problems.
- * adapted from SAMRAI library class
+ * This file is adapted from SAMRAI library class solv/CellPoissonHypreSolver
+ * Copyright:     (c) 1997-2018 Lawrence Livermore National Security, LLC
  */
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -593,7 +558,7 @@ void CellPoissonHypreSolver::initializeSolverState(
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    int tmp=d_actual_dim;
    mpi.AllReduce(&tmp,1,MPI_MAX);
-   d_actual_dim=tmp;
+   d_actual_dim=static_cast<unsigned short>(tmp);
 
    //tbox::pout<<"Actual dimension coarse grid problem is "<<d_actual_dim<<endl;
    TBOX_ASSERT( d_actual_dim<=NDIM );
@@ -753,9 +718,6 @@ void CellPoissonHypreSolver::allocateHypreData()
    
    
    {
-      int full_ghosts1[2*3] = { 1, 1, 0, 0, 0, 0 };
-      int no_ghosts1  [2*3] = { 0, 0, 0, 0, 0, 0 };
-
       int full_ghosts2[2*3] = { 1, 1, 1, 1, 0, 0 };
       int no_ghosts2  [2*3] = { 0, 0, 0, 0, 0, 0 };
 
@@ -766,8 +728,8 @@ void CellPoissonHypreSolver::allocateHypreData()
        * Allocate the structured matrix
        */
 
-      int *full_ghosts;
-      int *no_ghosts;
+      int *full_ghosts = 0;
+      int *no_ghosts = 0;
 
       if (d_actual_dim==1) {
          full_ghosts = full_ghosts2;
@@ -783,15 +745,13 @@ void CellPoissonHypreSolver::allocateHypreData()
             "CellPoissonHypreSolver does not support dimension "<<d_actual_dim);
       }
 
-      hypre_ierr = HYPRE_StructMatrixCreate(communicator,
+      HYPRE_StructMatrixCreate(communicator,
                                d_grid,
                                d_stencil,
                                &d_matrix);
-      if( hypre_ierr>0 )cerr<<"HYPRE_StructMatrixCreate: HYPRE ERROR"<<endl;
       HYPRE_StructMatrixSetNumGhost(d_matrix, full_ghosts);
       HYPRE_StructMatrixSetSymmetric(d_matrix, 1);
-      hypre_ierr = HYPRE_StructMatrixInitialize(d_matrix);
-      if( hypre_ierr>0 )cerr<<"HYPRE_StructMatrixInitialize: HYPRE ERROR"<<endl;
+      HYPRE_StructMatrixInitialize(d_matrix);
 
       HYPRE_StructVectorCreate(communicator,
                                d_grid,
@@ -1569,7 +1529,7 @@ void CellPoissonHypreSolver::setupHypreSolver()
    tbox::SAMRAI_MPI::Comm communicator = d_hierarchy->getMPI().getCommunicator();
 
    if( d_actual_dim==1 ){
-      int hypre_ierr=HYPRE_StructCycRedCreate(communicator, &d_mg_data);
+      HYPRE_StructCycRedCreate(communicator, &d_mg_data);
       HYPRE_StructCycRedSetup(d_mg_data,
                               d_matrix,
                               d_linear_rhs,
@@ -1577,8 +1537,7 @@ void CellPoissonHypreSolver::setupHypreSolver()
 
    }
    else if ( d_use_smg ) {
-      int hypre_ierr=HYPRE_StructSMGCreate(communicator, &d_mg_data);
-      if( hypre_ierr>0 )cerr<<"HYPRE_StructSMGCreate: HYPRE ERROR"<<endl;
+      HYPRE_StructSMGCreate(communicator, &d_mg_data);
       HYPRE_StructSMGSetMemoryUse(d_mg_data, 0);
       HYPRE_StructSMGSetMaxIter(d_mg_data, d_max_iterations);
       HYPRE_StructSMGSetTol(d_mg_data, d_relative_residual_tol);

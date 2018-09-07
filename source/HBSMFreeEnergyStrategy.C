@@ -151,18 +151,18 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(
 {
    assert( fl_id >= 0 );
    assert( temperature_id >= 0 );
- 
    assert( d_conc_l_id >= 0 );
 
    for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
  
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
+      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
          boost::shared_ptr<hier::Patch > patch = *ip;
       
          computeFreeEnergyPrivate(*patch, temperature_id,
-            d_A_liquid, d_Ceq_liquid,fl_id, d_conc_l_id, d_energy_conv_factor_L);
+            d_A_liquid, d_Ceq_liquid,fl_id, d_conc_l_id,
+            d_energy_conv_factor_L);
       }
    }
 

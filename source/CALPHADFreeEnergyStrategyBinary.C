@@ -299,13 +299,16 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
    const hier::Box& pbox = patch.getBox();
  
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( temperature_id) ) );
  
    boost::shared_ptr< pdat::CellData<double> > f (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( f_id) ) );
    
    boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( conc_i_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( conc_i_id) ) );
    
    computeFreeEnergyPrivatePatch(
       pbox,
@@ -333,13 +336,16 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
    const hier::Box& pbox = patch.getBox();
  
    boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( temperature_id) ) );
  
    boost::shared_ptr< pdat::CellData<double> > df (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( df_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( df_id) ) );
    
    boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( conc_i_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData( conc_i_id) ) );
    
    computeDerivFreeEnergyPrivatePatch(
       pbox,
@@ -364,14 +370,15 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
    assert( f_id >= 0 );
    assert( conc_i_id >= 0 );
    
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
+   for( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
  
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
+      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
          boost::shared_ptr<hier::Patch > patch = *ip;
          
-         computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi, gp);
+         computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi,
+                                  gp);
       }
    }
 }
@@ -393,10 +400,11 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
  
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
+      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
          boost::shared_ptr<hier::Patch > patch = *ip;
          
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id, pi);
+         computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id,
+                                       pi);
       }
    }
 }
@@ -612,13 +620,13 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
    assert( fa );
  
    boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(
-         d_conc_l_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_conc_l_id) ) );
    assert( c_l );
  
    boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(
-         d_conc_a_id) ) );
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+         patch.getPatchData(d_conc_a_id) ) );
    assert( c_a );
 
    boost::shared_ptr< pdat::CellData<double> > rhs (
@@ -626,7 +634,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
          patch.getPatchData( rhs_id) ) );
 
    assert( rhs ); 
-   assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+   assert( rhs->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
 
    boost::shared_ptr< pdat::CellData<double> > eta;
    boost::shared_ptr< pdat::CellData<double> > fb;
@@ -644,7 +652,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
       assert( c_b );
    }
  
-   const hier::Box& pbox = patch.getBox();
+   const hier::Box& pbox( patch.getBox() );
 
    addComponentRhsPhiOnPatch(
       rhs,
@@ -782,7 +790,6 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
 
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_pf];
-            double eta = 0.0;
             double f_l = ptr_f_l[idx_f_i];
             double f_a = ptr_f_a[idx_f_i];
             double f_b = 0.0;
@@ -791,7 +798,6 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
             double c_b = 0.0;
 
             double mu = computeMuA( t, c_a );
-            //double mu = 0.;
 
             double hphi_prime =
                FORT_DERIV_INTERP_FUNC(
@@ -801,7 +807,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
             double heta = 0.0;
 
             if ( d_with_third_phase ) {
-               eta = ptr_eta[idx_pf];
+               double eta = ptr_eta[idx_pf];
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
 
@@ -809,7 +815,6 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
                   FORT_INTERP_FUNC(
                      eta,
                      d_energy_interp_func_type.c_str() );
-
             }
 
             ptr_rhs[idx_rhs] +=

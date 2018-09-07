@@ -104,8 +104,6 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    assert( l2n==l2n );
 #endif
 
-   const hier::Box& pbox ( patch->getBox() );
-
    boost::shared_ptr< pdat::CellData<double> > cd_cl_ref (
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
          patch->getPatchData( d_conc_l_ref_id) ) );

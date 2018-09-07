@@ -3,9 +3,6 @@
  * the SAMRAI distribution.
  * Copyright:     (c) 1997-2012 Lawrence Livermore National Security, LLC
  ************************************************************************/
-#ifndef included_solv_CartesianRobinBcHelperWithDepth_C
-#define included_solv_CartesianRobinBcHelperWithDepth_C
-
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/VariableDatabase.h"
@@ -232,7 +229,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
          boost::shared_ptr<pdat::ArrayData<double> > bcoef_data(
             boost::make_shared<pdat::ArrayData<double> >(coefbox, 1));
          boost::shared_ptr<pdat::ArrayData<double> >gcoef_data(
-            homogeneous_bc ? NULL :
+            homogeneous_bc ? 0 :
             new pdat::ArrayData<double>(coefbox, 1));
          t_use_set_bc_coefs->start();
          d_coef_strategy->setBcCoefs(acoef_data,
@@ -267,7 +264,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   igho, igho, jbeg, jend,
@@ -287,7 +284,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   igho, igho, jbeg, jend,
@@ -307,7 +304,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   ibeg, iend, jgho, jgho,
@@ -327,7 +324,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[1], ghost_box.upper()[1],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   ibeg, iend, jgho, jgho,
@@ -357,7 +354,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -381,7 +378,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -405,7 +402,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -429,7 +426,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -453,7 +450,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -477,7 +474,7 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
                   ghost_box.lower()[2], ghost_box.upper()[2],
                   acoef_data->getPointer(),
                   bcoef_data->getPointer(),
-                  gcoef_data ? gcoef_data->getPointer() : NULL,
+                  gcoef_data ? gcoef_data->getPointer() : 0,
                   coefbox.lower()[0], coefbox.upper()[0],
                   coefbox.lower()[1], coefbox.upper()[1],
                   coefbox.lower()[2], coefbox.upper()[2],
@@ -557,7 +554,8 @@ CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
           * through the nearest interior cell and the three nearest edge values.
           * This data may be used by refinement operators to do interpolation.
           */
-         const std::vector<hier::BoundaryBox>& node_boxes = pg->getNodeBoundaries();
+         const std::vector<hier::BoundaryBox>& node_boxes =
+            pg->getNodeBoundaries();
          const int n_node_boxes = static_cast<int>(node_boxes.size());
          for(int depth=0;depth<data.getDepth();depth++)
          for (int n = 0; n < n_node_boxes; ++n) {
@@ -660,7 +658,8 @@ CartesianRobinBcHelperWithDepth::setPhysicalBoundaryConditions(
 }
 
 hier::IntVector
-CartesianRobinBcHelperWithDepth::getRefineOpStencilWidth(const tbox::Dimension& dim) const
+CartesianRobinBcHelperWithDepth::getRefineOpStencilWidth(
+   const tbox::Dimension& dim) const
 {
    return hier::IntVector::getZero(dim);
 }
@@ -845,4 +844,3 @@ CartesianRobinBcHelperWithDepth::makeNodeBoundaryBox(
    return node_indices;
 }
 
-#endif

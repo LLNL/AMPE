@@ -76,19 +76,23 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
    boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
    const double time )
 {
+   (void)time;
+
    //tbox::pout<<"SteadyStateTemperatureCompositionSource: solve for steady state T"<<endl;
 
    assert( d_temperature_sys_solver );
    assert( d_heat_capacity_strategy );
    
-   d_temperature_sys_solver->setOperatorCoefficients(1.,0.,-1.*d_thermal_diffusivity);
+   d_temperature_sys_solver->setOperatorCoefficients(
+      1.,0.,-1.*d_thermal_diffusivity);
 
    d_heat_capacity_strategy->setCurrentValue(patch_hierarchy);
    
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++ ) {
 
-      boost::shared_ptr<hier::PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
+      boost::shared_ptr<hier::PatchLevel > level =
+         patch_hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++) {
          boost::shared_ptr<hier::Patch > patch = *p;
 
@@ -97,11 +101,14 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
          const hier::Index& ilast =  pbox.upper();
 
          boost::shared_ptr< pdat::CellData<double> > rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_rhs_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_rhs_id) ) );
          boost::shared_ptr< pdat::CellData<double> > conc (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_composition_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_composition_id) ) );
          boost::shared_ptr< pdat::CellData<double> > cp (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_cp_id) ) );
             
          FORT_SOURCE_TEMPERATURE(
             ifirst(0), ilast(0),
@@ -112,7 +119,7 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
             conc->getPointer(), conc->getGhostCellWidth()[0],
             rhs->getPointer(),  rhs->getGhostCellWidth()[0],
             cp->getPointer(),  cp->getGhostCellWidth()[0],
-            &d_T_source[0], d_T_source.size());
+            &d_T_source[0], static_cast<int>(d_T_source.size()));
       }
    }
 
