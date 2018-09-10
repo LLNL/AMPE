@@ -33,7 +33,6 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "FuncFort.h"
 #include "ConcFort.h"
 #include "QuatParams.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
@@ -66,13 +65,14 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    const int conc_b_id,
    const bool with_third_phase
    ):
-      d_mv_strategy(mvstrategy)
+      d_mv_strategy(mvstrategy),
+      d_energy_interp_func_type(energy_interp_func_type),
+      d_conc_interp_func_type(conc_interp_func_type),
+      d_conc_l_id(conc_l_id),
+      d_conc_a_id(conc_a_id),
+      d_conc_b_id(conc_b_id),
+      d_with_third_phase(with_third_phase)
 {
-   d_with_third_phase = with_third_phase;
-
-   d_energy_interp_func_type = energy_interp_func_type;
-   d_conc_interp_func_type = conc_interp_func_type;
-
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
    //d_jpmol2pjpmumcube = 1.e-6 / d_vm;
@@ -83,10 +83,6 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    //tbox::plog << "Molar volume A =" << vma << endl;
    //tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
    
-   d_conc_l_id = conc_l_id;
-   d_conc_a_id = conc_a_id;
-   d_conc_b_id = conc_b_id;
-
    setup(calphad_db,newton_db);
 }
 
@@ -572,7 +568,32 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
+void CALPHADFreeEnergyStrategyBinary::computeDrivingForce(
+   const double time,
+   hier::Patch& patch,
+   const int temperature_id,
+   const int phase_id,
+   const int eta_id,
+   const int conc_id,
+   const int f_l_id,
+   const int f_a_id,
+   const int f_b_id,
+   const int rhs_id )
+{
+   string d_energy_interp_func_type_saved(d_energy_interp_func_type);
+   //use linear interpolation function to get driving force
+   //without polynomial of phi factor
+   d_energy_interp_func_type="lin",
+   
+   FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
+      phase_id, eta_id, conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
+
+   d_energy_interp_func_type=d_energy_interp_func_type_saved;
+};
+
+//=======================================================================
+
+void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -654,7 +675,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
  
    const hier::Box& pbox( patch.getBox() );
 
-   addComponentRhsPhiOnPatch(
+   addDrivingForceOnPatch(
       rhs,
       t,
       phase,
@@ -670,7 +691,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhi(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
+void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
    boost::shared_ptr< pdat::CellData<double> > cd_rhs,
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -799,10 +820,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
 
             double mu = computeMuA( t, c_a );
 
-            double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
+            double hphi_prime = hprime(phi);
 
             double heta = 0.0;
 
@@ -811,10 +829,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsPhiOnPatch(
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
 
-               heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_energy_interp_func_type.c_str() );
+               heta = hprime(eta);
             }
 
             ptr_rhs[idx_rhs] +=
@@ -856,7 +871,7 @@ double CALPHADFreeEnergyStrategyBinary::computeMuL(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addComponentRhsEta(
+void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -921,7 +936,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsEta(
  
    const hier::Box& pbox = patch.getBox();
        
-   addComponentRhsEtaOnPatchPrivate(
+   addDrivingForceEtaOnPatchPrivate(
       rhs,
       t,
       phase,
@@ -937,7 +952,7 @@ void CALPHADFreeEnergyStrategyBinary::addComponentRhsEta(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addComponentRhsEtaOnPatchPrivate(
+void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
    boost::shared_ptr< pdat::CellData<double> > cd_rhs,
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,

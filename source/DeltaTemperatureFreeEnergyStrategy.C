@@ -76,7 +76,7 @@ DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
 
 //=======================================================================
 
-void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
+void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -101,7 +101,7 @@ void DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi(
    (void) f_a_id; // unused
    (void) f_b_id; // unused
 
-   //tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addComponentRhsPhi()..."
+   //tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addDrivingForce()..."
    //           <<endl;
 
    boost::shared_ptr< pdat::CellData<double> > phase (

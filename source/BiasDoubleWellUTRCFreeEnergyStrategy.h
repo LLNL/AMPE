@@ -58,7 +58,7 @@ public:
 
    ~BiasDoubleWellUTRCFreeEnergyStrategy(){};
  
-   void addComponentRhsPhi(
+   void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,

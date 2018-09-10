@@ -126,7 +126,7 @@ public:
       const int fs_id,
       const bool gp = false );
 
-   void addComponentRhsPhi(
+   void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -138,7 +138,7 @@ public:
       const int f_b_id,
       const int rhs_id);
 
-   void addComponentRhsEta(
+   void addDrivingForceEta(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -266,7 +266,7 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
       const double energy_factor );
 
-   void addComponentRhsPhiOnPatchPrivate(
+   void addDrivingForceOnPatchPrivate(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -279,7 +279,7 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_c_b,
       const hier::Box& pbox );
 
-   void addComponentRhsEtaOnPatchPrivate(
+   void addDrivingForceEtaOnPatchPrivate(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,

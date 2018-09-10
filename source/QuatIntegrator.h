@@ -816,6 +816,9 @@ private :
    boost::shared_ptr< pdat::CellVariable<double> > d_phase_rhs_visit_var;
    int d_phase_rhs_visit_id;
 
+   boost::shared_ptr< pdat::CellVariable<double> > d_driving_force_visit_var;
+   int d_driving_force_visit_id;
+
    boost::shared_ptr< pdat::CellVariable<double> > d_q_rhs_visit_var;
    int d_q_rhs_visit_id;
 

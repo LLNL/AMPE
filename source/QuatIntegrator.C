@@ -192,6 +192,7 @@ QuatIntegrator::QuatIntegrator(
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
      d_phase_rhs_visit_id(-1),
+     d_driving_force_visit_id(-1),
      d_q_rhs_visit_id(-1),
      d_modulus_q_rhs_visit_id(-1),
      d_temperature_rhs_visit_id(-1),
@@ -1092,6 +1093,17 @@ void QuatIntegrator::RegisterLocalVisitVariables()
                hier::IntVector(tbox::Dimension(NDIM),0) );
          assert( d_phase_rhs_visit_id >= 0 );
          d_local_data.setFlag( d_phase_rhs_visit_id );
+
+         d_driving_force_visit_var.reset (
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_driving_force_visit_", 1 ));
+         d_driving_force_visit_id =
+            variable_db->registerVariableAndContext(
+               d_driving_force_visit_var,
+               d_current,
+               hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( d_driving_force_visit_id >= 0 );
+         d_local_data.setFlag( d_driving_force_visit_id );
       }
       if( d_with_heat_equation ) {
          d_temperature_rhs_visit_var.reset (
@@ -1583,6 +1595,10 @@ void QuatIntegrator::RegisterWithVisit(
          assert( d_phase_rhs_visit_id>=0 );
          visit_data_writer->registerPlotQuantity(
             "phase_rhs", "SCALAR", d_phase_rhs_visit_id, 0 );
+
+         assert( d_driving_force_visit_id>=0 );
+         visit_data_writer->registerPlotQuantity(
+            "driving_force", "SCALAR", d_driving_force_visit_id, 0 );
       }
       if ( d_with_heat_equation ) {
          assert( d_temperature_rhs_visit_id>0 );
@@ -2783,7 +2799,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    t_phase_rhs_timer->start();
 
-   math::PatchCellDataBasicOps<double> mathops;
+   math::PatchCellDataOpsReal<double> mathops;
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 #ifdef DEBUG_CHECK_ASSERTIONS
    const double norm_y = cellops.L2Norm( phase_id );
@@ -2929,7 +2945,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 #endif
 
          // then add component from chemical energy
-         d_free_energy_strategy->addComponentRhsPhi(
+         d_free_energy_strategy->addDrivingForce(
             time,
             *patch,
             temperature_id,
@@ -2951,7 +2967,30 @@ void QuatIntegrator::evaluatePhaseRHS(
                patch->getPatchData( d_phase_mobility_id) ) );
          assert( phase_mobility );
 
+         if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+            boost::shared_ptr< pdat::CellData<double> > phase_rhs_visit(
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( d_phase_rhs_visit_id) ) );
+            assert( phase_rhs_visit );
+            mathops.copyData( phase_rhs_visit, phase_rhs, pbox );
+         }
+
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
+
+         if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+            assert( d_driving_force_visit_id>=0 );
+            d_free_energy_strategy->computeDrivingForce(
+               time,
+               *patch,
+               temperature_id,
+               phase_id,
+               eta_id,
+               conc_id,
+               d_f_l_id,
+               d_f_a_id,
+               d_f_b_id,
+               d_driving_force_visit_id );
+         }
       }
 
    }
@@ -2961,9 +3000,9 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert( l2rhs==l2rhs );
 #endif
 
-   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){  
-      cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
-   }
+//   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){  
+//      cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
+//   }
 
    t_phase_rhs_timer->stop();
 }
@@ -3062,7 +3101,7 @@ void QuatIntegrator::evaluateEtaRHS(
             d_eta_well_func_type.c_str(),
             d_energy_interp_func_type.c_str() );
 
-         d_free_energy_strategy->addComponentRhsEta(
+         d_free_energy_strategy->addDrivingForceEta(
             time,
             *patch,
             temperature_id,
@@ -4084,7 +4123,8 @@ int QuatIntegrator::PhasePrecondSolve(
 
    if ( d_precond_has_dPhidT ){
       DeltaTemperatureFreeEnergyStrategy* free_energy_strategy(
-         dynamic_cast<DeltaTemperatureFreeEnergyStrategy*>(d_free_energy_strategy) );
+         dynamic_cast<DeltaTemperatureFreeEnergyStrategy*>(
+            d_free_energy_strategy) );
       TBOX_ASSERT( free_energy_strategy!=0 );
       free_energy_strategy->applydPhidTBlock(hierarchy,d_temperature_sol_id,z_phase_id,d_phase_rhs_id,
          d_model_parameters.phase_mobility());

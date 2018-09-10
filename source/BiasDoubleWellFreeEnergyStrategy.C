@@ -46,7 +46,7 @@ BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy()
 
 //=======================================================================
 
-void BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta(
+void BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -67,7 +67,7 @@ void BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta(
    (void)f_a_id;
    (void)f_b_id;
    (void)rhs_id;
-   TBOX_ERROR("BiasDoubleWellFreeEnergyStrategy::addComponentRhsEta() not implemented!!!\n");
+   TBOX_ERROR("BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta() not implemented!!!\n");
 }
 
 //=======================================================================

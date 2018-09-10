@@ -50,7 +50,7 @@ public:
 
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
  
-   virtual void addComponentRhsPhi(
+   virtual void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,

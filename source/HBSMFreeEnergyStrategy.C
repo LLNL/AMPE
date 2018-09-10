@@ -722,7 +722,7 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addComponentRhsPhi(
+void HBSMFreeEnergyStrategy::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -795,7 +795,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsPhi(
  
    const hier::Box& pbox = patch.getBox();
 
-   addComponentRhsPhiOnPatchPrivate(
+   addDrivingForceOnPatchPrivate(
       rhs,
       t,
       phase,
@@ -811,7 +811,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsPhi(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addComponentRhsPhiOnPatchPrivate(
+void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
    boost::shared_ptr< pdat::CellData<double> > cd_rhs,
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -988,7 +988,7 @@ double HBSMFreeEnergyStrategy::computeMu(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addComponentRhsEta(
+void HBSMFreeEnergyStrategy::addDrivingForceEta(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -1057,7 +1057,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsEta(
  
    const hier::Box& pbox = patch.getBox();
        
-   addComponentRhsEtaOnPatchPrivate(
+   addDrivingForceEtaOnPatchPrivate(
       rhs,
       t,
       phase,
@@ -1073,7 +1073,7 @@ void HBSMFreeEnergyStrategy::addComponentRhsEta(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addComponentRhsEtaOnPatchPrivate(
+void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
    boost::shared_ptr< pdat::CellData<double> > cd_rhs,
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,

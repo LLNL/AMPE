@@ -552,7 +552,7 @@ void CALPHADFreeEnergyStrategyTernary::computeDerivFreeEnergyPrivatePatch(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
+void CALPHADFreeEnergyStrategyTernary::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -618,7 +618,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
  
    const hier::Box& pbox = patch.getBox();
 
-   addComponentRhsPhiOnPatch(
+   addDrivingForceOnPatch(
       rhs,
       t,
       phase,
@@ -631,7 +631,7 @@ void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhi(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyTernary::addComponentRhsPhiOnPatch(
+void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
    boost::shared_ptr< pdat::CellData<double> > cd_rhs,
    boost::shared_ptr< pdat::CellData<double> > cd_temperature,
    boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -809,7 +809,7 @@ void CALPHADFreeEnergyStrategyTernary::computeMuL(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyTernary::addComponentRhsEta(
+void CALPHADFreeEnergyStrategyTernary::addDrivingForceEta(
    const double time,
    hier::Patch& patch,
    const int temperature_id,

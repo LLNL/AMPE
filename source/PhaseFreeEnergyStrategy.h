@@ -92,7 +92,7 @@ public:
       const int fs_id,
       const bool gp );
 
-   void addComponentRhsPhi(
+   void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -104,7 +104,7 @@ public:
       const int fb_id,
       const int rhs_id );
 
-   void addComponentRhsEta(
+   void addDrivingForceEta(
       const double time,
       hier::Patch& patch,
       const int temperature_id,

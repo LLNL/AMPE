@@ -220,7 +220,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(
 
 //=======================================================================
 
-void PhaseFreeEnergyStrategy::addComponentRhsPhi(
+void PhaseFreeEnergyStrategy::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
@@ -297,7 +297,7 @@ void PhaseFreeEnergyStrategy::addComponentRhsPhi(
 
 //=======================================================================
 
-void PhaseFreeEnergyStrategy::addComponentRhsEta(
+void PhaseFreeEnergyStrategy::addDrivingForceEta(
    const double time,
    hier::Patch& patch,
    const int temperature_id,

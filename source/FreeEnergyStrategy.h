@@ -40,6 +40,7 @@
 #include "Phases.h"
 
 #include "SAMRAI/hier/PatchHierarchy.h"
+#include "SAMRAI/math/PatchCellDataOpsReal.h"
 
 #include <boost/make_shared.hpp>
 #include <vector>
@@ -109,7 +110,7 @@ public:
       const int f_b_id,
       const bool gp ) = 0;
 
-   virtual void addComponentRhsPhi(
+   virtual void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -121,7 +122,30 @@ public:
       const int f_b_id,
       const int rhs_id ) = 0;
 
-   virtual void addComponentRhsEta(
+   virtual void computeDrivingForce(
+      const double time,
+      hier::Patch& patch,
+      const int temperature_id,
+      const int phase_id,
+      const int eta_id,
+      const int conc_id,
+      const int f_l_id,
+      const int f_a_id,
+      const int f_b_id,
+      const int rhs_id )
+   {
+      boost::shared_ptr< pdat::CellData<double> > rhs (
+         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+            patch.getPatchData( rhs_id) ) );
+      math::PatchCellDataOpsReal<double> ops;
+      ops.setToScalar(rhs, 0., patch.getBox() );
+
+      addDrivingForce(time, patch, temperature_id, phase_id, eta_id,
+                      conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
+   };
+
+
+   virtual void addDrivingForceEta(
       const double time,
       hier::Patch& patch,
       const int temperature_id,

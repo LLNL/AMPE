@@ -119,7 +119,7 @@ public:
       (void)gp;
    };
 
-   virtual void addComponentRhsPhi(
+   virtual void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -131,7 +131,7 @@ public:
       const int fb_id,
       const int rhs_id )=0;
 
-   void addComponentRhsEta(
+   void addDrivingForceEta(
       const double time,
       hier::Patch& patch,
       const int temperature_id,

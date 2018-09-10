@@ -42,6 +42,7 @@
 #include "FreeEnergyStrategy.h"
 #include "FreeEnergyFunctions.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "FuncFort.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -126,7 +127,7 @@ public:
       const int fs_id,
       const bool gp );
 
-   virtual void addComponentRhsPhi(
+   virtual void addDrivingForce(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -138,7 +139,19 @@ public:
       const int f_b_id,
       const int rhs_id);
 
-   void addComponentRhsEta(
+   void computeDrivingForce(
+      const double time,
+      hier::Patch& patch,
+      const int temperature_id,
+      const int phase_id,
+      const int eta_id,
+      const int conc_id,
+      const int f_l_id,
+      const int f_a_id,
+      const int f_b_id,
+      const int rhs_id);
+
+   void addDrivingForceEta(
       const double time,
       hier::Patch& patch,
       const int temperature_id,
@@ -230,10 +243,6 @@ protected:
       std::vector<double>& d2fdc2,
       const bool use_internal_units);
 
-protected:
-
-   bool d_with_third_phase;
-
    MolarVolumeStrategy* d_mv_strategy;
 
    CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
@@ -253,9 +262,16 @@ protected:
    int d_conc_a_id;
    int d_conc_b_id;
 
+   bool d_with_third_phase;
+
 private:
 
-   void addComponentRhsPhiOnPatch(
+   double hprime(const double phi)
+   {
+      return FORT_DERIV_INTERP_FUNC(phi, d_energy_interp_func_type.c_str());
+   }
+
+   void addDrivingForceOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
@@ -313,7 +329,7 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
       const PHASE_INDEX pi );
 
-   void addComponentRhsEtaOnPatchPrivate(
+   void addDrivingForceEtaOnPatchPrivate(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,
       boost::shared_ptr< pdat::CellData<double> > cd_temperature,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,

@@ -55,7 +55,7 @@ BiasDoubleWellBeckermannFreeEnergyStrategy::BiasDoubleWellBeckermannFreeEnergySt
 
 //=======================================================================
 
-void BiasDoubleWellBeckermannFreeEnergyStrategy::addComponentRhsPhi(
+void BiasDoubleWellBeckermannFreeEnergyStrategy::addDrivingForce(
    const double time,
    hier::Patch& patch,
    const int temperature_id,
