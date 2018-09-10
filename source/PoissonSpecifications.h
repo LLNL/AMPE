@@ -46,6 +46,7 @@
 #endif
 
 #include "SAMRAI/tbox/Utilities.h"
+#include "SAMRAI/tbox/IEEE.h"
 
 #include <string>
 
@@ -79,19 +80,38 @@ public:
     *
     * @param object_name Name of object.
     */
-   PoissonSpecifications( const std::string &object_name );
+   PoissonSpecifications( const std::string &object_name )
+      : d_object_name(object_name),
+       d_D_id(-1),
+       d_D_constant(1.0),
+       d_C_zero(true),
+       d_C_id(-1),
+       d_C_constant(0.0),
+       d_M_id(-1),
+       d_M_constant(1.0) {
+   }
+
 
    /*!
     * @brief Copy constructor.
     */
    PoissonSpecifications(
       const std::string &object_name,
-      const PoissonSpecifications &r );
+      const PoissonSpecifications &r )
+      : d_object_name(object_name),
+       d_D_id(r.d_D_id),
+       d_D_constant(r.d_D_constant),
+       d_C_zero(r.d_C_zero),
+       d_C_id(r.d_C_id),
+       d_C_constant(r.d_C_constant),
+       d_M_id(r.d_M_id),
+       d_M_constant(r.d_M_constant) {
+   }
 
    /*!
     * @brief Destructor (does nothing).
     */
-   virtual ~PoissonSpecifications();
+   virtual ~PoissonSpecifications(){}
 
    /*!
     * @brief Assignment operator
@@ -159,14 +179,20 @@ public:
     * @return True if D is variable, described by the patch data
     *         id given in setCPatchDataId().
     */
-   bool dIsVariable() const;
+   bool dIsVariable() const{
+      return d_D_id != -1;
+   }
+
 
    /*!
     * @brief Whether D is constant.
     *
     * @return True if D is constant, as specified by setCConstant().
     */
-   bool dIsConstant() const;
+   bool dIsConstant() const{
+      return d_D_id == -1;
+   }
+
 
    /*!
     * @brief Get D's patch data id
@@ -175,7 +201,15 @@ public:
     *
     * @return D's id
     */
-   int getDPatchDataId() const;
+   int getDPatchDataId() const{
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if ( d_D_id == -1 ) {
+         TBOX_ERROR(d_object_name << ": D not prepresented by a patch data.\n");
+      }
+#endif
+      return d_D_id;
+   }
+
 
    /*!
     * @brief Get D constant value
@@ -184,7 +218,15 @@ public:
     *
     * @return D's constant value
     */
-   double getDConstant() const;
+   double getDConstant() const{
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if ( d_D_id != -1 ) {
+         TBOX_ERROR(d_object_name << ": D not prepresented by a constant.\n");
+      }
+#endif
+      return d_D_constant;
+   }
+
 
    //@{
    //! @name Functions for setting and getting M
@@ -195,7 +237,16 @@ public:
     * In addition, disregard any previous value
     * specified by setMConstant().
     */
-   void setMPatchDataId( int id );
+   void setMPatchDataId( int id ){
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if( id < 0 ) {
+         TBOX_ERROR(d_object_name << ": Invalid patch data id.\n");
+      }
+#endif
+      d_M_id = id;
+      d_M_constant = SAMRAI::tbox::IEEE::getSignalingNaN();
+      return;
+   }
 
    /*!
     * @brief Set the constant value variable M.
@@ -203,7 +254,12 @@ public:
     * In addition, disregard any previous patch data index
     * specified by setMPatchDataId().
     */
-   void setMConstant( double constant );
+   void setMConstant( double constant ){
+      d_M_id = -1;
+      d_M_constant = constant;
+      return;
+   }
+
 
    /*!
     * @brief Whether M is variable (described by a patch data id).
@@ -211,14 +267,19 @@ public:
     * @return True if M is variable, described by the patch data
     *         id given in setMPatchDataId().
     */
-   bool mIsVariable() const;
+   bool mIsVariable() const{
+      return d_M_id != -1;
+   }
+
 
    /*!
     * @brief Whether M is constant.
     *
     * @return True if M is constant, as specified by setMConstant().
     */
-   bool mIsConstant() const;
+   bool mIsConstant() const{
+      return d_M_id == -1;
+   }
 
    /*!
     * @brief Get M's patch data id
@@ -227,7 +288,15 @@ public:
     *
     * @return M's id
     */
-   int getMPatchDataId() const;
+   int getMPatchDataId() const{
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if ( d_M_id == -1 ) {
+         TBOX_ERROR(d_object_name << ": M not prepresented by a patch data.\n");
+      }
+#endif
+      return d_M_id;
+   }
+
 
    /*!
     * @brief Get M constant value
@@ -236,7 +305,14 @@ public:
     *
     * @return M's constant value
     */
-   double getMConstant() const;
+   double getMConstant() const{
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if ( d_M_id != -1 ) {
+         TBOX_ERROR(d_object_name << ": M not prepresented by a constant.\n");
+      }
+#endif
+      return d_M_constant;
+   }
 
    //@}
 
@@ -272,7 +348,14 @@ public:
     * If you want to set C to zero, use setCZero() instead.
     * This allows solvers to take advantage of fact C is absent.
     */
-   void setCConstant( double constant );
+   void setCConstant( double constant ){
+      assert( constant>0. || constant<0. );
+      d_C_zero = false;
+      d_C_id = -1;
+      d_C_constant = constant;
+      return;
+   }
+
 
    /*!
     * @brief Set the value of C to zero.
@@ -281,7 +364,13 @@ public:
     * specified by setCPatchDataId() and any previous constant
     * specified by setCConstant().
     */
-   void setCZero();
+   void setCZero(){
+      d_C_zero = true;
+      d_C_id = -1;
+      d_C_constant = 0.0;
+      return;
+   }
+
 
    /*!
     * @brief Whether C is variable (described by a patch data id).
@@ -289,7 +378,10 @@ public:
     * @return True if C is variable, described by the patch data
     *         id given in setCPatchDataId().
     */
-   bool cIsVariable() const;
+   bool cIsVariable() const{
+      return d_C_id != -1;
+   }
+
 
    /*!
     * @brief Whether C is zero.
@@ -301,7 +393,10 @@ public:
     *
     * @return True if C is exactly zero, as set by setCZero().
     */
-   bool cIsZero() const;
+   bool cIsZero() const{
+      return d_C_zero;
+   }
+
 
    /*!
     * @brief Whether C is constant.
@@ -312,7 +407,10 @@ public:
     *
     * @return True if C is constant, as specified by setCConstant().
     */
-   bool cIsConstant() const;
+   bool cIsConstant() const{
+      return (d_C_id == -1);
+   }
+
 
    /*!
     * @brief Get C's patch data id
@@ -321,7 +419,15 @@ public:
     *
     * @return C's patch data id
     */
-   int getCPatchDataId() const;
+   int getCPatchDataId() const
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if ( d_C_id == -1 ) {
+         TBOX_ERROR(d_object_name << ": C not prepresented by a an index.\n");
+      }
+#endif
+      return d_C_id;
+   }
 
    /*!
     * @brief Get C as a constant value.
@@ -372,7 +478,5 @@ private:
    double d_M_constant;
 
 };
-
-#include "PoissonSpecifications.I"
 
 #endif
