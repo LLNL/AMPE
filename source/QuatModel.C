@@ -2835,6 +2835,25 @@ bool QuatModel::computeCeq(const double temperature,
          if( d_ncompositions>1 )
             tbox::plog<<"                                  "
                       <<lceq[2]<<", "<<lceq[3]<<"..."<<endl;
+
+         if( d_model_parameters.isConcentrationModelCALPHAD() )
+         {
+            vector<double> d2fdc2(1);
+            CALPHADFreeEnergyFunctionsBinary* cafe=
+               dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_cafe);
+            cafe->computeSecondDerivativeFreeEnergy(
+                    temperature,&lceq[0],pi0,d2fdc2);
+            for(vector<double>::const_iterator it=d2fdc2.begin();
+                                               it!=d2fdc2.end();
+                                             ++it)
+            tbox::plog<<"d2fdc2="<<*it<<endl;
+            cafe->computeSecondDerivativeFreeEnergy(
+                    temperature,&lceq[0],pi1,d2fdc2);
+            for(vector<double>::const_iterator it=d2fdc2.begin();
+                                               it!=d2fdc2.end();
+                                             ++it)
+            tbox::plog<<"d2fdc2="<<*it<<endl;
+         }
       }else{
          tbox::plog<<"ERROR: Equilibrium concentrations not found... "<<endl;
       }
