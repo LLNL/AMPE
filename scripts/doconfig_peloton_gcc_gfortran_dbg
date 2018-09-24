@@ -1,10 +1,16 @@
 #!/bin/sh
+#Assumes the following modules have been loaded:
+#module load gcc/4.9.3
+#module load hdf5-serial
+#module load boost/1.62.0
+#module load netcdf
+
 ./configure --enable-debug \
-            --with-CXX=/usr/local/bin/mpig++ \
-            --with-CC=/usr/local/bin/mpigcc \
-            --with-F77=/usr/local/bin/mpigfortran \
-            --with-boost=/usr/local/tools/boost-nompi \
-            --with-hdf5=/usr/local/tools/hdf5-gnu-parallel-1.8.5 \
+            --with-CXX=mpic++ \
+            --with-CC=mpicc \
+            --with-F77=mpif77 \
+            --with-boost=$BOOST_ROOT \
+            --with-hdf5=$HDF5 \
             --with-netcdf=/usr/gapps/phasefield/lib/netcdf-cxx-gnu \
             --with-hypre=/usr/gapps/phasefield/hypre/2.11.1-gnu \
             --prefix=$PWD/build
