@@ -2307,8 +2307,8 @@ void QuatModel::RegisterWithVisit( void )
    if ( d_model_parameters.with_extra_visit_output() ) {
       if ( d_phase_diffs_cell_id >= 0 ) {
          for ( int d = 0; d < NDIM; d++ ) {
-            string visit_name( "phase_diffs_cell" + tbox::Utilities::intToString(d, 1) );
-
+            string visit_name( "phase_diffs_cell"
+                             + tbox::Utilities::intToString(d, 1) );
             d_visit_data_writer->registerPlotQuantity(
                visit_name, "SCALAR", d_phase_diffs_cell_id, d );
          }
@@ -2316,8 +2316,8 @@ void QuatModel::RegisterWithVisit( void )
 
       if ( d_phase_grad_cell_id >= 0 ) {
          for ( int d=0; d<NDIM; d++ ) {
-            string visit_name("phase_grad_cell" + tbox::Utilities::intToString(d, 1));
-
+            string visit_name("phase_grad_cell"
+                            + tbox::Utilities::intToString(d, 1));
             d_visit_data_writer->registerPlotQuantity(
                visit_name, "SCALAR", d_phase_grad_cell_id, d );
          }
@@ -2402,10 +2402,15 @@ void QuatModel::RegisterWithVisit( void )
          d_visit_data_writer->registerPlotQuantity(
             "partition_coeff", "SCALAR", d_partition_coeff_id, 0);
       }
-      
+
+      if ( d_cp_id>=0 ){
+         d_visit_data_writer->registerPlotQuantity(
+            "cp", "SCALAR", d_cp_id, 0);
+      }
    }  // if ( d_model_parameters.with_extra_visit_output() )
 
-   if ( d_model_parameters.with_visit_grain_output() && d_grain_diag_interval->isActive() ) {
+   if ( d_model_parameters.with_visit_grain_output()
+     && d_grain_diag_interval->isActive() ) {
       d_grains->registerWithVisit(d_visit_data_writer);
    }
 

@@ -55,7 +55,8 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    
    //build a set with all powers used in T expansion, for all species
    set<short> powers;
-   for(vector< map<short,double> >::iterator it=d_cp.begin(); it!=d_cp.end(); ++it)
+   for(vector< map<short,double> >::iterator it=d_cp.begin();
+                                             it!=d_cp.end(); ++it)
    {
       for(map<short,double>::iterator itm= it->begin(); itm!=it->end(); ++itm)
       {
@@ -63,7 +64,7 @@ void NKRHeatCapacityStrategy::setCurrentValue(
       }
    }
    
-   //store these powers in an array we can give as an argument to fortran function
+   //store powers in an array we can give as an argument to fortran function
    int* cp_powers=new int[powers.size()];
    short itp=0;
    for(set<short>::iterator its=powers.begin();its!=powers.end();its++)
@@ -79,7 +80,7 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    memset(cp_coeffs,0,ncoeffs*sizeof(double));
 
    //loop over species
-   //tbox::pout<<"Setting up Heat capacity using "<<d_cp.size()<<"species"<<endl;
+   //tbox::pout<<"Setup Heat capacity using "<<d_cp.size()<<"species"<<endl;
    short isp=0;
    for(vector< map<short,double> >::iterator it=d_cp.begin();
                                             it!=d_cp.end(); ++it)
@@ -109,8 +110,9 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++ ) {
 
-      boost::shared_ptr<hier::PatchLevel > level = patch_hierarchy->getPatchLevel(ln);
-      for (hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         patch_hierarchy->getPatchLevel(ln);
+      for (hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++){
          boost::shared_ptr<hier::Patch > patch = *p;
 
          const hier::Box& pbox = patch->getBox();
@@ -137,6 +139,7 @@ void NKRHeatCapacityStrategy::setCurrentValue(
             ifirst(2), ilast(2),
 #endif
             conc->getPointer(), conc->getGhostCellWidth()[0],
+            conc->getDepth(),
             temp->getPointer(), temp->getGhostCellWidth()[0],
             cp->getPointer(),  cp->getGhostCellWidth()[0],
             cp_powers, static_cast<int>(npowers),

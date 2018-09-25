@@ -139,27 +139,27 @@ c***********************************************************************
 
       subroutine heat_capacity_nkr(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &   conc, ngc,
+     &   conc, ngc, nc,
      &   temp, ngt,
      &   cp, ncp,
-     &   cp_powers, npowers,
+     &   cp_powers, npow,
      &   cpcoeffs, ncoeffs)
 
       implicit none
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &        ngc, ngt, ncp, npowers, ncoeffs
-      integer cp_powers(npowers)
+     &        ngc, nc, ngt, ncp, npow, ncoeffs
+      integer cp_powers(npow)
       REAL 
-     &     conc(CELL3d(ifirst,ilast,ngc)),
+     &     conc(CELL3d(ifirst,ilast,ngc),nc),
      &     temp(CELL3d(ifirst,ilast,ngt)),
      &     cp(CELL3d(ifirst,ilast,ncp)),
      &     cpcoeffs(ncoeffs)
 
 c     local variables
-      integer i, j, k, p
-      REAL c, t, cpvals(2)
+      integer i, j, k, p, m
+      REAL mc, te, cpval
 
-c      print*,'heat_capacity_nkr, npowers=',npowers,', ncoeffs=',ncoeffs
+c      print*,'heat_capacity_nkr, npow=',npow,', ncoeffs=',ncoeffs
 c      print*,'cpcoeffs(1)=',cpcoeffs(1)
 c      print*,'cpcoeffs(2)=',cpcoeffs(2)
 c      print*,'cp_powers(1)=',cp_powers(1)
@@ -167,19 +167,27 @@ c      print*,'cp_powers(1)=',cp_powers(1)
       do k = ifirst2, ilast2
          do j = ifirst1, ilast1
             do i = ifirst0, ilast0
-               c=conc(i,j,k)
-               t=temp(i,j,k)
-            
-               cpvals(1)=0.
-               do p=1, npowers
-                 cpvals(1)=cpvals(1)+cpcoeffs(p)*T**cp_powers(p)
+               te=temp(i,j,k)
+
+               mc = 1.d0
+               cp(i,j,k) = 0.d0
+
+c loop over species
+               do m = 1, nc
+                  cpval=0.d0
+                  do p=1, npow
+                     cpval=cpval+cpcoeffs((m-1)*npow+p)*te**cp_powers(p)
+                  enddo
+                  mc = mc - conc(i,j,k,m)
+                  cp(i,j,k) = cp(i,j,k) + cpval*conc(i,j,k,m)
                enddo
-               cpvals(2)=0.
-               do p=1, npowers
-                 cpvals(2)=cpvals(2)+cpcoeffs(npowers+p)*T**cp_powers(p)
+
+               cpval=0.d0
+               do p=1, npow
+                  cpval=cpval+cpcoeffs(nc*npow+p)*te**cp_powers(p)
                enddo
-               cp(i,j,k) = ( cpvals(1)*c
-     &                 +cpvals(2)*(1.d0-c) )
+               cp(i,j,k) = cp(i,j,k) + cpval*mc
+
 c               if(cp(i,j,k).lt.1.E-8)then
 c                  print*,'cp=',cp(i,j,k),', c=',c,', T=',t
 c                  print*,'cpvals(1)=',cpvals(1),', cpvals(2)=',cpvals(2)

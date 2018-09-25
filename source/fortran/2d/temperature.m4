@@ -129,41 +129,49 @@ c***********************************************************************
 
       subroutine heat_capacity_nkr(
      &   ifirst0, ilast0, ifirst1, ilast1,
-     &   conc, ngc,
+     &   conc, ngc, nc,
      &   temp, ngt,
      &   cp, ncp,
-     &   cp_powers, npowers,
+     &   cp_powers, npow,
      &   cpcoeffs, ncoeffs)
 
       implicit none
       integer ifirst0, ilast0, ifirst1, ilast1,
-     &        ngc, ngt, ncp, npowers, ncoeffs
-      integer cp_powers(npowers)
+     &        ngc, nc, ngt, ncp, npow, ncoeffs
+      integer cp_powers(npow)
       REAL 
-     &     conc(CELL2d(ifirst,ilast,ngc)),
+     &     conc(CELL2d(ifirst,ilast,ngc),nc),
      &     temp(CELL2d(ifirst,ilast,ngt)),
      &     cp(CELL2d(ifirst,ilast,ncp)),
      &     cpcoeffs(ncoeffs)
 
 c     local variables
-      integer i, j, p
-      REAL c, t, cpvals(2)
+      integer i, j, p, m
+      REAL mc, te, cpval
  
       do j = ifirst1, ilast1
          do i = ifirst0, ilast0
-            c=conc(i,j)
-            t=temp(i,j)
+            te=temp(i,j)
             
-            cpvals(1)=0.
-            do p=1, npowers
-              cpvals(1)=cpvals(1)+cpcoeffs(p)*T**cp_powers(p)
+            mc = 1.d0
+            cp(i,j) = 0.d0
+
+c loop over species
+            do m = 1, nc
+               cpval=0.d0
+               do p=1, npow
+                  cpval=cpval+cpcoeffs((m-1)*npow+p)*te**cp_powers(p)
+               enddo
+               mc = mc - conc(i,j,m)
+               cp(i,j) = cp(i,j) + cpval*conc(i,j,m)
             enddo
-            cpvals(2)=0.
-            do p=1, npowers
-              cpvals(2)=cpvals(2)+cpcoeffs(npowers+p)*T**cp_powers(p)
+
+            cpval=0.d0
+            do p=1, npow
+               cpval=cpval+cpcoeffs(nc*npow+p)*te**cp_powers(p)
             enddo
-            cp(i,j) = ( cpvals(1)*c
-     &                 +cpvals(2)*(1.d0-c) )
+            cp(i,j) = cp(i,j) + cpval*mc
+
          enddo
       enddo
       

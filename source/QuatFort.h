@@ -105,7 +105,7 @@ extern "C" {
 #if (NDIM == 3)
                   const int&, const int&,
 #endif
-                  const double* const conc, const int&,
+                  const double* const conc, const int&, const int&,
                   const double* const temp, const int&,
                   double* cp,  const int&,
                   const int* const cp_powers, const int&,
