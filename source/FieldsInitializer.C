@@ -56,7 +56,8 @@ FieldsInitializer::FieldsInitializer(
    d_quat_id(-1),
    d_conc_id(-1),
    d_use_uniform_q_value(false),
-   d_use_uniform_c_value(false)
+   d_use_uniform_c_value(false),
+   d_use_uniform_t_value(false)
 {
 }
 
@@ -89,6 +90,13 @@ void FieldsInitializer::setCvalue(const vector<float>& cvalue)
    d_cvalue = cvalue;
 
    d_use_uniform_c_value = true;
+}
+
+void FieldsInitializer::setTvalue(const float tvalue)
+{
+   d_tvalue = tvalue;
+
+   d_use_uniform_t_value = true;
 }
 
 void FieldsInitializer::initializeLevelFromData(
@@ -174,7 +182,7 @@ void FieldsInitializer::initializeLevelFromData(
    }
 
    NcVar ncTemp;
-   if ( d_temperature_id>=0 ) {
+   if ( readT() && d_temperature_id>=0 ) {
       ncTemp = ncf.getVar( "temperature" );
       if(ncTemp.isNull())
          TBOX_ERROR( "Could not read variable 'temperature' " <<
@@ -451,26 +459,29 @@ void FieldsInitializer::initializePatchFromData(
 
       // initialize temperature
 #ifdef HAVE_NETCDF3
-      if ( ncTemp != NULL ) {
+      if ( readT() && ncTemp != NULL ) {
 #endif
 #ifdef HAVE_NETCDF4
-      if ( !ncTemp.isNull() ){
+      if ( readT() && !ncTemp.isNull() ){
 #endif
          boost::shared_ptr< pdat::CellData<double> > temp_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_temperature_id) ) );
          assert( temp_data );
 
 #ifdef HAVE_NETCDF3
          ncTemp->set_cur( z_lower, y_lower, x_lower );
          if ( ! ncTemp->get( vals, nz, ny, nx ) ) {
-            TBOX_ERROR( "Could not read 'temperature' data from input data" << endl );
+            TBOX_ERROR( "Could not read 'temperature' data from input data"
+                        << endl );
          }
 #endif
 #ifdef HAVE_NETCDF4
          ncTemp.getVar(startp, countp, vals);
 #endif
          pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
-         for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box)); i!=iend; ++i ) {
+         for ( pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+               i!=iend; ++i ) {
             const pdat::CellIndex ccell = *i;
             int ix = ccell(0) - x_lower;
             int iy = ccell(1) - y_lower;
@@ -482,6 +493,13 @@ void FieldsInitializer::initializePatchFromData(
 #endif
             (*temp_data)(ccell) = vals[idx];
          }
+      }else if( d_temperature_id>=0 && !readT()){
+         boost::shared_ptr< pdat::CellData<double> > temp_data (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_temperature_id) ) );
+         assert( temp_data );
+
+         temp_data->fill(d_tvalue);
       }
 
       // initialize quaternion

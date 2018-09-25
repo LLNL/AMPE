@@ -903,6 +903,7 @@ void QuatModel::Initialize(
 
       if( !d_init_c.empty() )initializer.setCvalue(d_init_c);
       if( !d_init_q.empty() )initializer.setQvalue(d_init_q);
+      if( d_init_t>=0. )initializer.setTvalue(d_init_t);
 
       initializer.initializeLevelFromData( d_initial_level,
                                            d_init_data_filename,

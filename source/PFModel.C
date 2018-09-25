@@ -56,6 +56,8 @@ PFModel::PFModel()
 
    d_slice_index = -1;
 
+   d_init_t = -1.;
+
    tbox::RestartManager::getManager()->registerRestartItem(
       d_object_name,
       this );
@@ -416,7 +418,10 @@ void PFModel::readInitialDatabase(
       d_init_c.resize(n);
       data_db->getFloatArray("init_c",&d_init_c[0],n);
    }
-
+   //Read value for uniform temperature if available
+   if ( data_db->keyExists( "init_t" ) ){
+      d_init_t=data_db->getFloat("init_t");
+   }
 #if (NDIM == 2)
    if ( data_db->keyExists( "slice_index" ) ) {
       d_slice_index = data_db->getInteger( "slice_index" );

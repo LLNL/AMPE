@@ -181,6 +181,7 @@ protected:
    boost::shared_ptr<hier::PatchLevel > d_initial_level;
    std::vector<float> d_init_q;
    std::vector<float> d_init_c;
+   float d_init_t;
 
    int d_max_cycles;
    double d_start_time;

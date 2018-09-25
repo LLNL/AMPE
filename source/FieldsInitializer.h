@@ -92,6 +92,7 @@ void initializePatchFromData(
 
    void setQvalue(const std::vector<float>& qvalue);
    void setCvalue(const std::vector<float>& cvalue);
+   void setTvalue(const float tvalue);
 
 private:
 
@@ -115,12 +116,15 @@ private:
     */
    std::vector<float> d_qvalue;
    std::vector<float> d_cvalue;
+   float d_tvalue;
 
    bool d_use_uniform_q_value;
    bool d_use_uniform_c_value;
+   bool d_use_uniform_t_value;
 
    bool readQ()const{ return (d_qlen>0 && !d_use_uniform_q_value); }
    bool readC()const{ return (d_ncompositions>0 && !d_use_uniform_c_value); }
+   bool readT()const{ return (!d_use_uniform_t_value); }
 
    void checkInputFileDimensions(
       const size_t nx_file, const size_t ny_file, const size_t nz_file,
