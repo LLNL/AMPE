@@ -18,7 +18,7 @@ case "$with_boost" in
     # BOOST header files are there.
     AC_MSG_CHECKING([for BOOST installation])
     for dir in /usr /usr/local; do
-      if test -f ${dir}/include/boost/tr1/unordered_map.hpp; then
+      if test -f ${dir}/include/boost/random/normal_distribution.hpp; then
         boost_PREFIX=${dir}
         break
       fi
@@ -29,7 +29,7 @@ case "$with_boost" in
     # BOOST install path was specified.
     AC_MSG_CHECKING([for BOOST installation])
 
-    if test -f ${with_boost}/include/boost/tr1/unordered_map.hpp; then
+    if test -f ${with_boost}/include/boost/random/normal_distribution.hpp; then
         boost_PREFIX=$with_boost
         boost_INCLUDES="-I${boost_PREFIX}/include"
         dnl Do not have to set boost_LIBS because SAMRAI does not need it (yet).

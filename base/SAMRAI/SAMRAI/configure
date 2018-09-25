@@ -17781,7 +17781,7 @@ case "$with_boost" in
     { $as_echo "$as_me:$LINENO: checking for BOOST installation" >&5
 $as_echo_n "checking for BOOST installation... " >&6; }
     for dir in /usr /usr/local; do
-      if test -f ${dir}/include/boost/tr1/unordered_map.hpp; then
+      if test -f ${dir}/include/boost/random/normal_distribution.hpp; then
         boost_PREFIX=${dir}
         break
       fi
@@ -17794,7 +17794,7 @@ $as_echo "$boost_PREFIX" >&6; }
     { $as_echo "$as_me:$LINENO: checking for BOOST installation" >&5
 $as_echo_n "checking for BOOST installation... " >&6; }
 
-    if test -f ${with_boost}/include/boost/tr1/unordered_map.hpp; then
+    if test -f ${with_boost}/include/boost/random/normal_distribution.hpp; then
         boost_PREFIX=$with_boost
         boost_INCLUDES="-I${boost_PREFIX}/include"
                         { $as_echo "$as_me:$LINENO: result: $boost_PREFIX" >&5
