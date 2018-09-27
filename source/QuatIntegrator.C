@@ -808,28 +808,30 @@ void QuatIntegrator::RegisterVariables(
 {
    tbox::pout<<"QuatIntegrator::RegisterVariables()"<<endl;
    
-   assert( phase_var );
-   assert( phase_mobility_var );
+   if( d_with_phase ){
+      assert( phase_var );
+      assert( phase_mobility_var );
+   }
    assert( weight_var );
 
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
    
-
    // Variables owned by QuatModel
-
-   d_phase_var = phase_var;
-   d_phase_id =
-      variable_db->registerVariableAndContext(
-         d_phase_var,
-         d_current,
-         hier::IntVector(tbox::Dimension(NDIM),0) );
-   d_phase_scratch_id =
-      variable_db->registerVariableAndContext(
-         d_phase_var,
-         d_scratch,
-         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-   assert( d_phase_id >= 0 );
-   assert( d_phase_scratch_id >= 0 );
+   if( d_with_phase ){
+      d_phase_var = phase_var;
+      d_phase_id =
+         variable_db->registerVariableAndContext(
+            d_phase_var,
+            d_current,
+            hier::IntVector(tbox::Dimension(NDIM),0) );
+      d_phase_scratch_id =
+         variable_db->registerVariableAndContext(
+            d_phase_var,
+            d_scratch,
+            hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
+      assert( d_phase_id >= 0 );
+      assert( d_phase_scratch_id >= 0 );
+   }
 
    d_eta_var = eta_var;
    if ( d_with_third_phase ) {
@@ -1814,7 +1816,6 @@ void QuatIntegrator::resetIntegrator(
    const int coarsest_level,
    const int finest_level )
 {
-   assert( d_phase_id  != -1 );
    assert( d_weight_id != -1 );
    
    boost::shared_ptr<hier::PatchLevel > level (
@@ -1874,7 +1875,6 @@ void QuatIntegrator::resetAfterRegrid(
    //tbox::pout<<"QuatIntegrator::resetAfterRegrid()"<<endl;
 
    assert( d_weight_id != -1 );
-   assert( d_phase_id  != -1 );
 
    // tbox::pout << "QuatIntegrator::resetAfterRegrid()" << endl;
    /*

@@ -848,10 +848,10 @@ void QuatModel::Initialize(
       boost::shared_ptr<tbox::Database> bc_db =
          model_db->getDatabase( "BoundaryConditions" );
 
-      assert( d_phase_scratch_id!=-1 );
-
-      const int phase_id = d_model_parameters.with_phase() ? d_phase_scratch_id : -1; 
-      double factor = d_model_parameters.with_rescaled_temperature() ? 1./d_model_parameters.rescale_factorT() : -1.;
+      const int phase_id = d_model_parameters.with_phase() ?
+                           d_phase_scratch_id : -1; 
+      double factor = d_model_parameters.with_rescaled_temperature() ?
+                      1./d_model_parameters.rescale_factorT() : -1.;
       d_all_refine_patch_strategy =
          new QuatRefinePatchStrategy(
             "QuatRefinePatchStrategy",
@@ -999,7 +999,8 @@ void QuatModel::InitializeIntegrator( void )
       assert( d_temperature_strategy );
       assert( d_heat_capacity_strategy );
    }
-
+ 
+   if ( d_model_parameters.with_phase() )
    d_mobility_strategy  = MobilityFactory::create(
                    this, d_model_parameters,
                    d_conc_l_scratch_id, d_conc_a_scratch_id,
@@ -1094,11 +1095,12 @@ void QuatModel::InitializeIntegrator( void )
 
 void QuatModel::initializeRefineCoarsenAlgorithms()
 {
-   d_phase_refine_op =
-      d_grid_geometry->lookupRefineOperator(
-         d_phase_var,
-         "LINEAR_REFINE" );
-
+   if ( d_model_parameters.with_phase() ) {
+      d_phase_refine_op =
+         d_grid_geometry->lookupRefineOperator(
+            d_temperature_var,
+            "LINEAR_REFINE" );
+   }
    if ( d_model_parameters.with_third_phase() ) {
       d_eta_refine_op =
          d_grid_geometry->lookupRefineOperator(
@@ -1142,12 +1144,13 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
 
 
    // curr to curr
-   d_curr_to_curr_refine_alg->registerRefine(
-      d_phase_id,          // destination
-      d_phase_id,          // source
-      d_phase_scratch_id,  // temporary
-      d_phase_refine_op );
-
+   if ( d_model_parameters.with_phase() ) {
+      d_curr_to_curr_refine_alg->registerRefine(
+         d_phase_id,          // destination
+         d_phase_id,          // source
+         d_phase_scratch_id,  // temporary
+         d_phase_refine_op );
+   }
    if ( d_model_parameters.with_third_phase() ) {
       d_curr_to_curr_refine_alg->registerRefine(
          d_eta_id,          // destination
@@ -1182,12 +1185,13 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
    }
 
    // curr to scr
-   d_curr_to_scr_refine_alg->registerRefine(
-      d_phase_scratch_id,  // destination
-      d_phase_id,          // source
-      d_phase_scratch_id,  // temporary work space
-      d_phase_refine_op );
-
+   if ( d_model_parameters.with_phase() ) {
+      d_curr_to_scr_refine_alg->registerRefine(
+         d_phase_scratch_id,  // destination
+         d_phase_id,          // source
+         d_phase_scratch_id,  // temporary work space
+         d_phase_refine_op );
+   }
    if ( d_model_parameters.with_third_phase() ) {
       d_curr_to_scr_refine_alg->registerRefine(
          d_eta_scratch_id,  // destination
@@ -1226,8 +1230,6 @@ void QuatModel::initializeCoarseRefineOperators()
 {
    tbox::pout<<"QuatModel::InitializeOperators()"<<endl;
 
-   assert( d_phase_id >= 0 );
-   assert( d_phase_scratch_id >= 0 );
    assert( d_temperature_id >= 0 );
    assert( d_temperature_scratch_id >= 0 );
    assert( d_grains );
@@ -1235,7 +1237,8 @@ void QuatModel::initializeCoarseRefineOperators()
 
    initializeRefineCoarsenAlgorithms();
 
-   d_grains->initializeRefineCoarsenAlgorithms( d_grid_geometry, d_quat_coarsen_op);
+   d_grains->initializeRefineCoarsenAlgorithms(
+      d_grid_geometry, d_quat_coarsen_op);
       
    d_integrator->initializeCoarseRefineOperators(
       d_gridding_algorithm,
@@ -1295,7 +1298,6 @@ bool QuatModel::isSymmetryAware( void )
 
 void QuatModel::setupInitialDataLevel( void )
 {
-   assert( d_phase_id >= 0 );
    assert( d_temperature_id >= 0 );
 
    tbox::plog << "\nsetupInitialDataLevel()..." << endl;
@@ -1304,9 +1306,11 @@ void QuatModel::setupInitialDataLevel( void )
    
    assert( d_initial_level );
 
-   if ( !d_initial_level->checkAllocated( d_phase_id ) ) {
-      d_initial_level->allocatePatchData( d_phase_id );
-      d_initial_level->setTime( 0.0, d_phase_id );
+   if ( d_model_parameters.with_phase() ) {
+      if ( !d_initial_level->checkAllocated( d_phase_id ) ) {
+         d_initial_level->allocatePatchData( d_phase_id );
+         d_initial_level->setTime( 0.0, d_phase_id );
+      }
    }
 
    if ( d_model_parameters.with_third_phase() ) {
@@ -2013,8 +2017,9 @@ void QuatModel::registerOrientationVariables( void )
 
 void QuatModel::registerPatchDataForRestart( void )
 {
-   hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_phase_id );
-
+   if ( d_model_parameters.with_phase() ) {
+      hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_phase_id );
+   }
    if ( d_model_parameters.with_third_phase() ) {
       hier::PatchDataRestartManager::getManager()->registerPatchDataForRestart( d_eta_id );
    }
@@ -2055,8 +2060,9 @@ void QuatModel::RegisterVariables( void )
    assert( current );
    assert( scratch );
 
-   registerPhaseVariables();
-
+   if ( d_model_parameters.with_phase() ) {
+      registerPhaseVariables();
+   }
    if ( d_model_parameters.with_third_phase() ) {
       registerEtaVariables();
    }
@@ -2245,12 +2251,12 @@ void QuatModel::RegisterVariables( void )
 
 void QuatModel::RegisterWithVisit( void )
 {
-   assert( d_phase_id >= 0 );
    assert( d_visit_data_writer );
 
-   d_visit_data_writer->registerPlotQuantity(
-      "phase", "SCALAR", d_phase_id, 0 );
-
+   if ( d_model_parameters.with_phase() ) {
+      d_visit_data_writer->registerPlotQuantity(
+         "phase", "SCALAR", d_phase_id, 0 );
+   }
    if ( d_model_parameters.with_third_phase() ) {
       assert( d_eta_id>=0 );
       d_visit_data_writer->registerPlotQuantity(
@@ -3531,15 +3537,16 @@ void QuatModel::AllocateLocalPatchData(
    const double time,
    const bool zero_data )
 {
-   assert( d_phase_id>=0 );
    assert( d_temperature_scratch_id>=0 );
    
-   if ( !level->checkAllocated( d_phase_id ) ) {
-      level->allocatePatchData( d_phase_id, time );
-   }
+   if( d_phase_id>=0 ){
+      if ( !level->checkAllocated( d_phase_id ) ) {
+         level->allocatePatchData( d_phase_id, time );
+      }
 
-   AllocateAndZeroData< pdat::CellData<double> >(
-      d_phase_scratch_id, level, time, zero_data );
+      AllocateAndZeroData< pdat::CellData<double> >(
+         d_phase_scratch_id, level, time, zero_data );
+   }
 
    if ( d_model_parameters.with_third_phase() ) {
       if ( !level->checkAllocated( d_eta_id ) ) {
@@ -3661,19 +3668,20 @@ void QuatModel::AllocateLocalPatchData(
          d_velocity_id, level, time, zero_data );
    }
 
-   AllocateAndZeroData< pdat::SideData<double> >(
-      d_phase_diffs_id, level, time, zero_data );
+   if ( d_model_parameters.with_phase() ) {
+      AllocateAndZeroData< pdat::SideData<double> >(
+         d_phase_diffs_id, level, time, zero_data );
+      if ( d_model_parameters.with_extra_visit_output() ) {
+         AllocateAndZeroData< pdat::CellData<double> >(
+            d_phase_diffs_cell_id, level, time, zero_data );
+      }
 
-   if ( d_model_parameters.with_extra_visit_output() ) {
       AllocateAndZeroData< pdat::CellData<double> >(
-         d_phase_diffs_cell_id, level, time, zero_data );
+         d_phase_grad_cell_id, level, time, zero_data );
+
+      AllocateAndZeroData< pdat::CellData<double> >(
+         d_phase_mobility_id, level, time, zero_data );
    }
-
-   AllocateAndZeroData< pdat::CellData<double> >(
-      d_phase_grad_cell_id, level, time, zero_data );
-
-   AllocateAndZeroData< pdat::CellData<double> >(
-      d_phase_mobility_id, level, time, zero_data );
 
    if ( d_model_parameters.with_third_phase() ) {
       AllocateAndZeroData< pdat::SideData<double> >(
