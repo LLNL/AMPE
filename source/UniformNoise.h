@@ -35,68 +35,36 @@
 //
 #include "Noise.h"
 
-#include "SAMRAI/pdat/CellData.h"
+#include <boost/random/uniform_real.hpp>
+#include "boost/shared_ptr.hpp"
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/linear_congruential.hpp>
 
+typedef boost::minstd_rand    rng_type;
+typedef boost::uniform_real<> distribution_type;
+typedef boost::variate_generator<rng_type,distribution_type> gen_type;
 
-void Noise::setField(
-   boost::shared_ptr<hier::Patch > patch,
-   const int data_id,
-   const int phi_id)
+class UniformNoise:
+   public Noise
 {
-   assert( data_id>=0 );
+public:
 
-   boost::shared_ptr< pdat::CellData<double> > cd(
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch->getPatchData( data_id ) ) );
-   assert( cd );
+   static UniformNoise* instance(){
+      if( s_pinstance==0 ){
+         s_pinstance=new UniformNoise();
+      }
+      return s_pinstance;
+   }
 
-   boost::shared_ptr< pdat::CellData<double> > phi(
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch->getPatchData( phi_id ) ) );
-   assert( phi );
-   assert( phi->getGhostCellWidth()[0]>=cd->getGhostCellWidth()[0] );
+   double gen(){ return (*s_gen)(); }
 
-   double* ptr_data = cd->getPointer();
-   double* ptr_phi = phi->getPointer();
+private:
+   UniformNoise();
 
-   const hier::Box& gbox = cd->getGhostBox();
-   int imin[3] = {gbox.lower(0),gbox.lower(1),0};
-   int imax[3] = {gbox.upper(0),gbox.upper(1),0};
-#if (NDIM == 3)
-   imin[2] = gbox.lower(2);
-   imax[2] = gbox.upper(2);
-#endif
+   static UniformNoise* s_pinstance;
 
-   const hier::Box& phi_gbox = phi->getGhostBox();
-   int min_phi[3] = {phi_gbox.lower(0),phi_gbox.lower(1),0};
-   int inc_j_phi = phi_gbox.numberCells(0);
-#if (NDIM == 3)
-   min_phi[2] = phi_gbox.lower(2);
-   int inc_k_phi = inc_j_phi * temp_gbox.numberCells(1);
-#else
-   int inc_k_phi = 0;
-#endif
-
-   int idx=0;
-   int idx_phi = (imin[0]-min_phi[0])
-               + (imin[1]-min_phi[1])*inc_j_phi
-               + (imin[2]-min_phi[2])*inc_k_phi;
-
-   for ( int kk = imin[2]; kk <= imax[2]; kk++ ) {
-      for ( int jj = imin[1]; jj <= imax[1]; jj++ ) {
-         for ( int ii = imin[0]; ii <= imax[0]; ii++ ) {
-
-            ptr_data[idx] += gen()
-                           * 4.*ptr_phi[idx_phi]*(1.-ptr_phi[idx_phi]);
-            idx++;
-            idx_phi++;
-         } // ii
-         idx_phi+=2*(phi->getGhostCellWidth()[0]
-                     -cd->getGhostCellWidth()[0]);
-      } // jj
-      idx_phi+=2*inc_j_phi*(phi->getGhostCellWidth()[1]
-                           -cd->getGhostCellWidth()[1]);
-   } // kk
-
-}
+   static std::unique_ptr< 
+      boost::variate_generator<rng_type,distribution_type> >
+         s_gen;
+};
 

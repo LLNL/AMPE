@@ -103,6 +103,7 @@ public:
    double epsilon_phase()const{ return d_epsilon_phase; }
    double epsilon_eta()const{ return d_epsilon_eta; }
    double epsilon_q()const{ return d_epsilon_q; }
+   double noise_amplitude()const{ return d_noise_amplitude; }
    double phase_mobility()const
    {
       assert(d_phase_mobility>0.); 
@@ -364,6 +365,7 @@ private:
    double d_epsilon_phase;
    double d_epsilon_eta;
    double d_epsilon_q;
+   double d_noise_amplitude;
    double d_phase_mobility;
    double d_eta_mobility;
    double d_quat_mobility;

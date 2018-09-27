@@ -34,44 +34,20 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "boost/shared_ptr.hpp"
-#include <boost/random/normal_distribution.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
 
 #include "SAMRAI/hier/Patch.h"
 
 using namespace SAMRAI;
 
-typedef boost::mt19937                     rng_type;
-typedef boost::normal_distribution<double> distribution_type;
-typedef boost::variate_generator<rng_type,distribution_type> gen_type;
 
 class Noise
 {
 public:
 
-   static void setup(const int data_id);
+   virtual double gen()=0;
 
-   static Noise* instance(){
-      if( s_pinstance==0 ){
-         s_pinstance=new Noise();
-      }
-      return s_pinstance;
-   }
+   void setField(boost::shared_ptr<hier::Patch > patch,
+                 const int data_id, const int phi_id);
 
-   static void update(boost::shared_ptr<hier::Patch > patch);
-
-   static double gen(){ return (*s_gen)(); }
-
-private:
-   Noise();
-
-   static Noise* s_pinstance;
-
-   static int s_data_id;
-
-   static std::unique_ptr< 
-      boost::variate_generator<rng_type,distribution_type> >
-         s_gen;
 };
 

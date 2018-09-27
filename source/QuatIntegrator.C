@@ -56,6 +56,7 @@
 #include "PhaseFluxStrategySimple.h"
 #include "PhaseConcentrationsStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
+#include "UniformNoise.h"
 #include "toolsSAMRAI.h"
 
 #include "QuatParams.h"
@@ -1067,12 +1068,22 @@ void QuatIntegrator::RegisterVariables(
 
 
    d_quat_grad_side_copy_var.reset(
-      new pdat::SideVariable<double>(tbox::Dimension(NDIM), d_name+"_quat_grad_side_copy", NDIM*d_qlen ));
-   d_quat_grad_side_copy_id = variable_db->registerVariableAndContext(d_quat_grad_side_copy_var,
-                                                                    d_current,
-                                                                    hier::IntVector(tbox::Dimension(NDIM),0));
+      new pdat::SideVariable<double>(
+         tbox::Dimension(NDIM), d_name+"_quat_grad_side_copy", NDIM*d_qlen ));
+   d_quat_grad_side_copy_id = variable_db->registerVariableAndContext(
+      d_quat_grad_side_copy_var, d_current,
+      hier::IntVector(tbox::Dimension(NDIM),0));
    assert( d_quat_grad_side_copy_id>=0 );
    d_local_data.setFlag( d_quat_grad_side_copy_id );
+
+   if( d_model_parameters.noise_amplitude()>0. ){
+      d_noise_var.reset(
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM), d_name+"_noise", 1) );
+      d_noise_id = variable_db->registerVariableAndContext(
+         d_noise_var, d_current, hier::IntVector(tbox::Dimension(NDIM),0) );
+      d_local_data.setFlag( d_noise_id );
+   }
 }
 
 
@@ -2799,12 +2810,17 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    t_phase_rhs_timer->start();
 
+   static double old_time = -1.;
+   static double deltat = 1.e9;
+
    math::PatchCellDataOpsReal<double> mathops;
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
 #ifdef DEBUG_CHECK_ASSERTIONS
    const double norm_y = cellops.L2Norm( phase_id );
    assert( norm_y==norm_y );
 #endif
+
+   UniformNoise& noise(*(UniformNoise::instance()));
 
    // Loop from finest coarsest levels.  We assume that ghost cells
    // on all levels have already been filled by a prior call to
@@ -2975,7 +2991,22 @@ void QuatIntegrator::evaluatePhaseRHS(
             mathops.copyData( phase_rhs_visit, phase_rhs, pbox );
          }
 
+         //multiply by mobility
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
+
+         //add noise
+         if( d_model_parameters.noise_amplitude()>0. ){
+            if( time!=old_time ){
+               noise.setField(patch, d_noise_id, phase_id );
+               deltat=time-old_time;
+            }
+            boost::shared_ptr< pdat::CellData<double> > noise_field(
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( d_noise_id ) ) );
+            double alpha = d_model_parameters.noise_amplitude()/sqrt(deltat);
+            mathops.axpy(phase_rhs, alpha, noise_field, phase_rhs,
+                         patch->getBox());
+         }
 
          if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
             assert( d_driving_force_visit_id>=0 );
@@ -3003,6 +3034,8 @@ void QuatIntegrator::evaluatePhaseRHS(
 //   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){  
 //      cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
 //   }
+
+   old_time = time;
 
    t_phase_rhs_timer->stop();
 }

@@ -888,6 +888,9 @@ private :
    boost::shared_ptr< pdat::SideVariable<double> > d_quat_grad_side_copy_var;
    int d_quat_grad_side_copy_id;
 
+   boost::shared_ptr< pdat::CellVariable<double> > d_noise_var;
+   int d_noise_id;
+
    boost::shared_ptr< pdat::CellVariable<double> > d_tmp1_var;
    int d_tmp1_id;
    boost::shared_ptr< pdat::CellVariable<double> > d_tmp2_var;

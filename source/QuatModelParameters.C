@@ -64,6 +64,7 @@ QuatModelParameters::QuatModelParameters()
    d_epsilon_phase = def_val;
    d_epsilon_eta = def_val;
    d_epsilon_q = def_val;
+   d_noise_amplitude = def_val;
    d_phase_mobility = def_val;
    d_eta_mobility = def_val;
    d_quat_mobility = def_val;
@@ -588,6 +589,12 @@ void QuatModelParameters::initializeOrientation(
    }
    else {
       TBOX_ERROR( "Error: epsilon_quat not specified" );
+   }
+
+   if ( model_db->keyExists( "noise_amplitude" ) ){
+      d_noise_amplitude = model_db->getDouble( "noise_amplitude" );
+   }else{
+      d_noise_amplitude = 0.;
    }
 
    d_quat_grad_floor = model_db->getDoubleWithDefault(

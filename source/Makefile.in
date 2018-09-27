@@ -63,7 +63,7 @@ CALPHAD_OBJS = $(CALPHAD_SCALAR_OBJS) CALPHADFreeEnergyFunctionsBinary.o \
 		FreeEnergyStrategy.o
 
 CXX_OBJS      = AMPE.o \
-		Noise.o \
+		Noise.o NormalNoise.o UniformNoise.o \
 		KimMobilityStrategyInfMob.o \
 		KimMobilityStrategyFiniteMob.o \
 		KimMobilityStrategy.o \
