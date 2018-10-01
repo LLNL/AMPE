@@ -33,6 +33,9 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+#ifndef included_Noise
+#define included_Noise
+
 #include "boost/shared_ptr.hpp"
 
 #include "SAMRAI/hier/Patch.h"
@@ -50,4 +53,6 @@ public:
                  const int data_id, const int phi_id);
 
 };
+
+#endif
 

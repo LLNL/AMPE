@@ -35,7 +35,8 @@
 //
 #include <iostream>
 
-#include "Noise.h"
+#include "NormalNoise.h"
+#include "UniformNoise.h"
 
 using namespace std;
 
@@ -44,7 +45,10 @@ int main( int argc, char *argv[] )
 {
    cout<<"Test noise generation."<<endl;
 
-   Noise& noise(*(Noise::instance()));
+   //1st test
+   {
+   cout<<"Normal distributed noise..."<<endl;
+   NormalNoise& noise(*(NormalNoise::instance()));
 
    int ntotal=1000;
    int count=0;
@@ -63,13 +67,44 @@ int main( int argc, char *argv[] )
    // 68% of values should be between -1 and 1
    if( (double)count>0.71*(double)ntotal
     || (double)count<0.65*(double)ntotal ){
-      cerr<<"TEST failed!!!"<<endl;
+      cerr<<"TEST NormalNoise failed!!!"<<endl;
       return 1;
    }
 
    if( fabs(avg)>0.02 ){
-      cerr<<"TEST failed!!!"<<endl;
+      cerr<<"TEST NormalNoise failed!!!"<<endl;
       return 1;
+   }
+   }
+
+   //2nd test
+   {
+   cout<<"Uniform distributed noise..."<<endl;
+   UniformNoise& noise(*(UniformNoise::instance(42u)));
+
+   int ntotal=1000;
+   int count=0;
+   double avg=0.;
+   for(int i=0;i<ntotal;i++){
+      double val=noise.gen();
+      if( fabs(val)<=0.5 )count++;
+      avg+=val;
+   }
+   avg/=ntotal;
+
+   cout<<count<<" out of "<<ntotal<<" values are between -0.5 and 0.5"<<endl;
+   cout<<"Average value is "<<avg<<endl;
+
+   if( count<ntotal ){
+      cerr<<"TEST NormalNoise failed!!!"<<endl;
+      return 1;
+   }
+
+   if( fabs(avg)>0.02 ){
+      cerr<<"TEST NormalNoise failed!!!"<<endl;
+      return 1;
+   }
+
    }
 
    cout<<"TEST successful!"<<endl;

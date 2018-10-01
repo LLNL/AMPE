@@ -40,18 +40,14 @@
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
 
-typedef boost::minstd_rand    rng_type;
-typedef boost::uniform_real<> distribution_type;
-typedef boost::variate_generator<rng_type,distribution_type> gen_type;
-
 class UniformNoise:
    public Noise
 {
 public:
 
-   static UniformNoise* instance(){
+   static UniformNoise* instance(unsigned seed=0){
       if( s_pinstance==0 ){
-         s_pinstance=new UniformNoise();
+         s_pinstance=new UniformNoise(seed);
       }
       return s_pinstance;
    }
@@ -59,9 +55,13 @@ public:
    double gen(){ return (*s_gen)(); }
 
 private:
-   UniformNoise();
+   UniformNoise(unsigned seed);
 
    static UniformNoise* s_pinstance;
+
+   typedef boost::minstd_rand    rng_type;
+   typedef boost::uniform_real<> distribution_type;
+   typedef boost::variate_generator<rng_type,distribution_type> gen_type;
 
    static std::unique_ptr< 
       boost::variate_generator<rng_type,distribution_type> >

@@ -36,12 +36,13 @@
 #include "UniformNoise.h"
 
 UniformNoise* UniformNoise::s_pinstance=0;
-std::unique_ptr<boost::variate_generator<rng_type,distribution_type> >
-   UniformNoise::s_gen=0;
+std::unique_ptr< boost::variate_generator <
+   UniformNoise::rng_type,UniformNoise::distribution_type > >
+      UniformNoise::s_gen=0;
 
-UniformNoise::UniformNoise()
+UniformNoise::UniformNoise(unsigned seed)
 {
-   rng_type          rng;
+   rng_type          rng(seed);
    distribution_type nd(-0.5, 0.5);
 
    s_gen = std::unique_ptr<gen_type>(new gen_type(rng,nd));

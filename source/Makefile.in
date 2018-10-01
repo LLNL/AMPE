@@ -224,8 +224,8 @@ test-MobilityCALPHAD-ternary: $(CALPHAD_OBJS) testMobilityCALPHADternary.o \
 
 testMath: math_utilities.o testMath.o
 		$(CXX) $(CXXFLAGS) math_utilities.o testMath.o -o testMath
-testNoise: Noise.o testNoise.o
-		$(CXX) $(CXXFLAGS) Noise.o testNoise.o -o testNoise
+testNoise: UniformNoise.o NormalNoise.o testNoise.o
+		$(CXX) $(CXXFLAGS) UniformNoise.o NormalNoise.o testNoise.o -o testNoise
 testNetCDF: simple_xy_wr.o
 		$(CXX) $(CXXFLAGS) simple_xy_wr.o $(LDFLAGS) \
 		$(LDLIBS) -o testNetCDF

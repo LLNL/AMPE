@@ -2800,7 +2800,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    const int quat_id,
    const int phase_rhs_id,
    const int temperature_id,
-   const bool visit_flag )
+   const bool eval_flag )
 {
    assert( d_phase_mobility_id >= 0 );
    assert( phase_id >= 0 );
@@ -2811,7 +2811,6 @@ void QuatIntegrator::evaluatePhaseRHS(
    t_phase_rhs_timer->start();
 
    static double old_time = -1.;
-   static double deltat = 1.e9;
 
    math::PatchCellDataOpsReal<double> mathops;
    math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
@@ -2820,7 +2819,24 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert( norm_y==norm_y );
 #endif
 
-   UniformNoise& noise(*(UniformNoise::instance()));
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   UniformNoise& noise( *(UniformNoise::instance(mpi.getRank())) );
+   //tbox::pout<<"time="<<time<<endl;
+
+   //get time of last accepted step
+   double last_time =
+      d_sundials_solver->getActualFinalValueOfIndependentVariable();
+   //tbox::pout<<"last_time="<<last_time<<endl;
+
+   //if this is not a FD operation and the time has been updated
+   //turn flag ON to recompute random noise
+   bool newtime=false;
+   static double deltat = 1.e9;
+   if( time!=old_time && eval_flag ){
+      deltat=time-last_time;
+      //tbox::pout<<"deltat="<<deltat<<endl;
+      newtime=true;
+   }
 
    // Loop from finest coarsest levels.  We assume that ghost cells
    // on all levels have already been filled by a prior call to
@@ -2983,7 +2999,7 @@ void QuatIntegrator::evaluatePhaseRHS(
                patch->getPatchData( d_phase_mobility_id) ) );
          assert( phase_mobility );
 
-         if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+         if( d_model_parameters.with_rhs_visit_output() && eval_flag ){
             boost::shared_ptr< pdat::CellData<double> > phase_rhs_visit(
                BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
                   patch->getPatchData( d_phase_rhs_visit_id) ) );
@@ -2995,10 +3011,9 @@ void QuatIntegrator::evaluatePhaseRHS(
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
 
          //add noise
-         if( d_model_parameters.noise_amplitude()>0. ){
-            if( time!=old_time ){
+         if( d_model_parameters.noise_amplitude()>0. && deltat>0. ){
+            if( newtime ){
                noise.setField(patch, d_noise_id, phase_id );
-               deltat=time-old_time;
             }
             boost::shared_ptr< pdat::CellData<double> > noise_field(
                BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
@@ -3008,7 +3023,7 @@ void QuatIntegrator::evaluatePhaseRHS(
                          patch->getBox());
          }
 
-         if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+         if( d_model_parameters.with_rhs_visit_output() && eval_flag ){
             assert( d_driving_force_visit_id>=0 );
             d_free_energy_strategy->computeDrivingForce(
                time,
@@ -3031,7 +3046,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert( l2rhs==l2rhs );
 #endif
 
-//   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){  
+//   if( d_model_parameters.with_rhs_visit_output() && eval_flag ){  
 //      cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
 //   }
 
