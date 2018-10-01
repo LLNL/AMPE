@@ -1,0 +1,19 @@
+#!/bin/sh
+#Assumes the following modules have been loaded:
+#module load intel
+#module load hdf5-serial
+#module load boost
+#module load netcdf
+#Before running code, it may be necessary to set
+#the env variable LD_LIBRARY_PATH:
+#setenv LD_LIBRARY_PATH /usr/gapps/phasefield/lib/netcdf-cxx-intel/lib:$LD_LIBRARY_PATH
+
+./configure --disable-debug --enable-opt \
+            --with-CXX=mpic++ \
+            --with-CC=mpicc \
+            --with-F77=mpif77 \
+            --with-boost=$BOOST_ROOT \
+            --with-hdf5=$HDF5 \
+            --with-netcdf=/usr/gapps/phasefield/lib/netcdf-cxx-intel \
+            --with-hypre=/usr/gapps/phasefield/hypre/2.15.0 \
+            --prefix=$PWD/build
