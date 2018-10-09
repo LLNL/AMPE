@@ -1,12 +1,12 @@
 #!/bin/tcsh
-#module purge
+#Assumes the follwoing modules have been loaded
 #module load PrgEnv-gnu
-module swap PrgEnv-pgi PrgEnv-gnu
-module load craype-network-gemini
-module load cray-mpich
-module load cray-netcdf
-module load cray-hdf5
-module load boost/1.62.0
+#(module swap PrgEnv-pgi PrgEnv-gnu)
+#module load craype-network-gemini
+#module load cray-mpich
+#module load cray-netcdf
+#module load cray-hdf5
+#module load boost/1.62.0
 
 ./configure --build=x86_64 --host=x86_64-linux --disable-debug --enable-opt \
             --with-CXX=CC \

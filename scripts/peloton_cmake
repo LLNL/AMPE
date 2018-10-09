@@ -1,0 +1,23 @@
+#!/bin/sh
+#Assumes the following modules have been loaded:
+#module load intel
+#module load hdf5-serial
+#module load boost
+#module load netcdf
+#module load cmake/3.12.1
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+
+cmake -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_C_COMPILER=mpicc \
+        -DCMAKE_Fortran_COMPILER=mpif77 \
+        -DSAMRAI_DIR=$PWD/syrah-mpic++-mpif77-opt/base/SAMRAI \
+        -DHYPRE_DIR=/usr/gapps/phasefield/hypre/2.15.0 \
+        -DSUNDIALS_DIR=$PWD/syrah-mpic++-mpif77-opt/base/sundials \
+        -DNETCDF_DIR=/usr/gapps/phasefield/lib/netcdf-cxx-intel \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DNDIM="2" \
+        ..
+

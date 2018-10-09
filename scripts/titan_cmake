@@ -1,0 +1,25 @@
+#!/bin/sh
+module swap PrgEnv-pgi PrgEnv-gnu
+module load craype-network-gemini
+module load cray-mpich
+module load cray-netcdf
+module load cray-hdf5
+module load boost/1.62.0
+module load cmake3/3.11.3
+
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+
+cmake -DCMAKE_CXX_COMPILER=CC -DCMAKE_C_COMPILER=cc \
+        -DCMAKE_Fortran_COMPILER=ftn \
+        -DSAMRAI_DIR=$PWD/titan-ext-CC-ftn-opt/base/SAMRAI \
+        -DHYPRE_DIR=$HOME/hypre/hypre-2.11.1/src/hypre_gnu \
+        -DSUNDIALS_DIR=$PWD/titan-ext-CC-ftn-opt/base/sundials \
+        -DNETCDF_DIR=$NETCDF_DIR \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DNDIM="2" -DMPI_EXEC="aprun" \
+        ..
+

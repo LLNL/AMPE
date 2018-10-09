@@ -20,7 +20,7 @@ ModelParameters {
    ConcentrationModel {
       model    = "calphad"
       Calphad {
-         filename ="calphadMoNbTa.dat"
+         filename ="../../thermodynamic_data/calphadMoNbTa.dat"
       }
       NewtonSolver {
         max_its = 50

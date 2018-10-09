@@ -33,7 +33,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
 
    string energy_interp_func_type = "pbg";
    string conc_interp_func_type = "pbg";
-
+ 
    boost::shared_ptr<tbox::Database> temperature_db =
       model_db->getDatabase( "Temperature" );
    double temperature = temperature_db->getDouble( "temperature" );
@@ -134,50 +134,50 @@ int main( int argc, char *argv[] )
    if ( conc_db->isDatabase( "NewtonSolver" ) )
       newton_db = conc_db->getDatabase( "NewtonSolver" );
 
-   CALPHADFreeEnergyFunctionsTernary
+   bool with_third_phase=false;
+   
+   CALPHADFreeEnergyFunctionsBinary
       cafe(calphad_db, newton_db,
            energy_interp_func_type,
-           conc_interp_func_type);
-   
+           conc_interp_func_type,
+           false); // no 3rd phase
+
    // initial guesses
-   double sol[4];
-   model_db->getDoubleArray("initial_guess",&sol[0],4);
+   double c_init0=0.5;
+   double c_init1=0.5;
+
+   double sol[2]={c_init0,c_init1};
    
    // compute concentrations satisfying KKS equations
-   double conc[2];
-   model_db->getDoubleArray("concentration",&conc[0],2);
+   double conc = model_db->getDouble("concentration");
    double phi = model_db->getDouble("phi");
-   cafe.computePhaseConcentrations(temperature,&conc[0],phi,0.,&sol[0]);
+   cafe.computePhaseConcentrations(temperature,&conc,phi,0.,&sol[0]);
 
    tbox::pout<<"-------------------------------"<<endl; 
-   tbox::pout<<"Result for c="<<conc[0]<<","<<conc[1]<<" and phi="<<phi<<endl;
-   tbox::pout<<"   cL = "<<sol[0]<<", "<<sol[1]<<endl;
-   tbox::pout<<"   cS = "<<sol[2]<<", "<<sol[3]<<endl;
+   tbox::pout<<"Temperature = "<<temperature<<endl;
+   tbox::pout<<"Result for c = "<<conc<<" and phi = "<<phi<<endl;
+   tbox::pout<<"   cL = "<<sol[0]<<endl;
+   tbox::pout<<"   cS = "<<sol[1]<<endl;
 
    const PHASE_INDEX pi0=phaseL;
    const PHASE_INDEX pi1=phaseA;
 
    tbox::pout<<"Verification:"<<endl;
 
-   double derivL[2];
-   cafe.computeDerivFreeEnergy(temperature,&sol[0],pi0,&derivL[0]);
+   double derivL;
+   cafe.computeDerivFreeEnergy(temperature,&sol[0],pi0,&derivL);
+   tbox::pout<<"   dfL/dcL = "<<derivL<<endl;
 
-   double derivS[2];
-   cafe.computeDerivFreeEnergy(temperature,&sol[2],pi1,&derivS[0]);
+   double derivS;
+   cafe.computeDerivFreeEnergy(temperature,&sol[1],pi1,&derivS);
+   tbox::pout<<"   dfS/dcS = "<<derivS<<endl;
 
-   tbox::pout<<"   dfL/dcL0 = "<<derivL[0]<<endl;
-   tbox::pout<<"   dfS/dcS0 = "<<derivS[0]<<endl;
-   tbox::pout<<"   dfL/dcL1 = "<<derivL[1]<<endl;
-   tbox::pout<<"   dfS/dcS1 = "<<derivS[1]<<endl;
-
-   const double tol=1.e-5;
-   if( fabs(derivS[0]-derivL[0])<tol &&
-       fabs(derivS[0]-derivL[0])<tol ){
+   if( fabs(derivS-derivL)<1.e-5 ){
       tbox::pout<<"TEST PASSED"<<endl;
    }else{
-      tbox::pout<<"Difference between derivatives: "
-                <<derivS[0]-derivL[0]<<","
-                <<derivS[1]-derivL[1]<<endl;
+      tbox::pout<<"TEST FAILED\n!";
+      tbox::pout<<"Difference between derivatives: "<<derivS-derivL<<endl;
+      return 1;
    }
 
    input_db.reset();
@@ -188,5 +188,5 @@ int main( int argc, char *argv[] )
    tbox::SAMRAIManager::finalize();
    tbox::SAMRAI_MPI::finalize();
 
-   return(0);
+   return 0;
 }

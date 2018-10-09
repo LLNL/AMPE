@@ -33,43 +33,81 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "math_utilities.h"
-
 #include <iostream>
-#include <math.h>
+
+#include "NormalNoise.h"
+#include "UniformNoise.h"
 
 using namespace std;
 
 
 int main( int argc, char *argv[] )
 {
-   cout<<"Test determinant computation."<<endl;
+   cout<<"Test noise generation."<<endl;
 
-   double* mat[4];
-   double work[16]={11,2,3,4,5,16,7,8,9,10,11,12,13,14,15,16};
-   for(short i=0;i<4;++i)mat[i]=&work[4*i];
-
-   cout<<"Test function Determinant4..."<<endl;
-   double d=Determinant4(mat); 
-
-   const double tol=1.e-8;
-   if( fabs(d+400.)>tol )
+   //1st test
    {
-      cerr<<"TEST: Determinant of 4x4 matrix failed!!!"<<endl;
-   }else{
-      cout<<"TEST successful!"<<endl;
+   cout<<"Normal distributed noise..."<<endl;
+   NormalNoise& noise(*(NormalNoise::instance()));
+
+   int ntotal=1000;
+   int count=0;
+   double avg=0.;
+   for(int i=0;i<ntotal;i++){
+      double val=noise.gen();
+      //cout<<val<<endl;
+      if( fabs(val)<=1. )count++;
+      avg+=val;
    }
+   avg/=(double)ntotal;
+
+   cout<<count<<" out of "<<ntotal<<" values are between -1 and 1."<<endl;
+   cout<<"Average value is "<<avg<<endl;
+
+   // 68% of values should be between -1 and 1
+   if( (double)count>0.71*(double)ntotal
+    || (double)count<0.65*(double)ntotal ){
+      cerr<<"TEST NormalNoise failed!!!"<<endl;
+      return 1;
+   }
+
+   if( fabs(avg)>0.04 ){
+      cerr<<"TEST average NormalNoise failed!!!"<<endl;
+      return 1;
+   }
+   }
+
+   //2nd test
+   {
+   cout<<"Uniform distributed noise..."<<endl;
+   UniformNoise& noise(*(UniformNoise::instance(42u)));
+
+   int ntotal=1000;
+   int count=0;
+   double avg=0.;
+   for(int i=0;i<ntotal;i++){
+      double val=noise.gen();
+      if( fabs(val)<=0.5 )count++;
+      avg+=val;
+   }
+   avg/=ntotal;
+
+   cout<<count<<" out of "<<ntotal<<" values are between -0.5 and 0.5"<<endl;
+   cout<<"Average value is "<<avg<<endl;
+
+   if( count<ntotal ){
+      cerr<<"TEST UniformNoise failed!!!"<<endl;
+      return 1;
+   }
+
+   if( fabs(avg)>0.02 ){
+      cerr<<"TEST average UniformNoise failed!!!"<<endl;
+      return 1;
+   }
+
+   }
+
+   cout<<"TEST successful!"<<endl;
    
-   cout<<"Test function DeterminantN..."<<endl;
-   d=DeterminantN(mat,4);
-   if( fabs(d+400.)>tol )
-   {
-      cerr<<"TEST: Determinant of 4x4 matrix failed!!!"<<endl;
-      cerr<<"computed d="<<d<<endl;
-      cerr<<"exact d="<<400.<<endl;
-   }else{
-      cout<<"TEST successful!"<<endl;
-   }
-
-   return(0);
+   return 0;
 }

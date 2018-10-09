@@ -112,14 +112,7 @@ int main(int argc,char* argv[])
        * Start logging.
        */
       const string log_file_name = base_name + ".log";
-      bool log_all_nodes = false;
-      log_all_nodes = main_db->getBoolWithDefault("log_all_nodes",
-            log_all_nodes);
-      if (log_all_nodes) {
-         tbox::PIO::logAllNodes(log_file_name);
-      } else {
-         tbox::PIO::logOnlyNodeZero(log_file_name);
-      }
+      tbox::PIO::logOnlyNodeZero(log_file_name);
 
       /*
        * Create major algorithm and data objects which comprise application.
@@ -293,7 +286,7 @@ int main(int argc,char* argv[])
 #endif
 
       double error=fac_poisson.compareSolutionWithExact();
-      tbox::plog<<"Difference between computed sol. and exact so. = "<<error<<endl;
+      tbox::pout<<"Difference between computed sol. and exact so. = "<<error<<endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
@@ -301,6 +294,7 @@ int main(int argc,char* argv[])
          tbox::pout << "\nPASSED" << endl;
       } else {
          tbox::pout << "\nFAILED: FAC Poisson test did not converge to solution."<<endl;
+         return 1;
       }
 
    }

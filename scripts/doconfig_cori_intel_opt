@@ -1,7 +1,9 @@
 #!/bin/tcsh
-module load cray-netcdf
-module load cray-hdf5/1.10.0.3
-module load boost
+#Assumes the following modules have been loaded
+#module load intel
+#module load cray-netcdf
+#module load cray-hdf5
+#module load boost
 
 ./configure --disable-debug --enable-opt \
             --with-CXX=CC \
