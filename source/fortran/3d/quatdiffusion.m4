@@ -308,11 +308,9 @@ c
                      enddo
                   enddo
                   
-                  if (grad_norm2 .gt. floor_grad_norm2) then
-                     grad_normi = grad_norm2 ** -0.5d0
-                  else
-                     grad_normi = max_grad_normi
-                  endif
+                  grad_normi = eval_grad_normi(grad_norm2, floor_type,
+     &                                   floor_grad_norm2,
+     &                                   max_grad_normi)
 
                   do m = 1, depth
 

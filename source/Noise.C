@@ -72,7 +72,7 @@ void Noise::setField(
    int inc_j_phi = phi_gbox.numberCells(0);
 #if (NDIM == 3)
    min_phi[2] = phi_gbox.lower(2);
-   int inc_k_phi = inc_j_phi * temp_gbox.numberCells(1);
+   int inc_k_phi = inc_j_phi * phi_gbox.numberCells(1);
 #else
    int inc_k_phi = 0;
 #endif
