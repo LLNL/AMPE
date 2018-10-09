@@ -21,7 +21,7 @@ ModelParameters {
       model    = "calphad"
       molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
       Calphad {
-         filename ="calphadAuNi.dat"
+         filename ="../../thermodynamic_data/calphadAuNi.dat"
       }
       NewtonSolver {
         max_its = 50

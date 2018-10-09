@@ -1,0 +1,25 @@
+#!/bin/sh
+
+#Assumes teh following modules have been loaded
+#module load cmake/3.11.4
+#module load intel
+#module load cray-netcdf
+#module load cray-hdf5
+#module load boost
+
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+
+cmake -DCMAKE_CXX_COMPILER=CC -DCMAKE_C_COMPILER=cc \
+        -DCMAKE_Fortran_COMPILER=ftn \
+        -DSAMRAI_DIR=$PWD/cori-CC-ftn-opt/base/SAMRAI \
+        -DHYPRE_DIR=$HOME/hypre/cori_intel \
+        -DSUNDIALS_DIR=$PWD/cori-CC-ftn-opt/base/sundials \
+        -DNETCDF_DIR=$NETCDF_DIR \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DNDIM="2" \
+        ..
+
