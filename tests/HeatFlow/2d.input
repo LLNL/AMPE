@@ -78,7 +78,7 @@ Integrator {
 }
 
 InitialConditions {  // required block
-   filename = "60x60.nc"
+   init_t = 0. // initial uniform temperature
 }
 
 Geometry{

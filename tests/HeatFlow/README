@@ -1,5 +1,3 @@
-python initialConditions.py -x 60 -y 60 -z 1 -t 0. 60x60.nc
-
 Heat flow:
 alpha*(rho*cp)*gradT*L for each surface
 

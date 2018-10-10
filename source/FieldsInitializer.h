@@ -39,6 +39,7 @@
 #include <boost/make_shared.hpp>
 
 #define HAVE_NETCDF4
+//#define HAVE_NETCDF3
 
 #ifdef HAVE_NETCDF3
 #include "netcdfcpp.h"
@@ -75,11 +76,11 @@ void initializePatchFromData(
    boost::shared_ptr<hier::Patch > patch,
    size_t islice,
 #ifdef HAVE_NETCDF3
-   netCDF::NcVar* ncPhase,
-   netCDF::NcVar* ncEta,
-   netCDF::NcVar* ncTemp,
-   netCDF::NcVar** ncQuatComponents,
-   netCDF::NcVar** ncConcComponents,
+   NcVar* ncPhase,
+   NcVar* ncEta,
+   NcVar* ncTemp,
+   NcVar** ncQuatComponents,
+   NcVar** ncConcComponents,
 #endif
 #ifdef HAVE_NETCDF4
    netCDF::NcVar& ncPhase,
@@ -129,5 +130,7 @@ private:
    void checkInputFileDimensions(
       const size_t nx_file, const size_t ny_file, const size_t nz_file,
       const size_t qlen_file );
+
+   void getDomainSizes(size_t&, size_t&, size_t&);
 };
 

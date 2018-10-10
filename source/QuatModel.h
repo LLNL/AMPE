@@ -49,15 +49,7 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 
-// Other package headers
-#define HAVE_NETCDF4
-
-#ifdef HAVE_NETCDF3
-#include "netcdfcpp.h"
-#endif
-#ifdef HAVE_NETCDF4
-#include <netcdf>
-#endif
+#include "FieldsInitializer.h"
 
 #include "PFModel.h"
 #include "QuatIntegrator.h"

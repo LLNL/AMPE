@@ -399,8 +399,9 @@ void PFModel::readInitialDatabase(
       TBOX_ERROR( "Input error: no InitialConditions database" << endl );
    }
 
-   d_init_data_filename = data_db->getString( "filename" );
-
+   if ( data_db->keyExists( "filename" ) ){
+      d_init_data_filename = data_db->getString( "filename" );
+   }
    d_level_of_init_data = 0;
    if ( data_db->keyExists( "amr_level_of_data" ) ) {
       d_level_of_init_data = data_db->getInteger( "amr_level_of_data" );

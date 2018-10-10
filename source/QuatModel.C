@@ -78,7 +78,6 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "toolsSAMRAI.h"
 #include "tools.h"
-#include "FieldsInitializer.h"
 #include "MobilityFactory.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -97,7 +96,10 @@
 #include <boost/lexical_cast.hpp>
 
 using namespace std;
+
+#ifdef HAVE_NETCDF4
 using namespace netCDF;
+#endif
 
 const double um2tom2 = 1.e-12;
 

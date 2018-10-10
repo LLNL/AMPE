@@ -40,7 +40,10 @@
 #include "SAMRAI/math/PatchCellDataBasicOps.h"
 
 using namespace std;
+
+#ifdef HAVE_NETCDF4
 using namespace netCDF;
+#endif
 
 FieldsInitializer::FieldsInitializer(
    boost::shared_ptr<geom::CartesianGridGeometry >& grid_geometry,
@@ -110,29 +113,32 @@ void FieldsInitializer::initializeLevelFromData(
                  << ln << endl;
    }
 
+   std::unique_ptr<NcFile> ncf;
 #ifdef HAVE_NETCDF3
    // We take care of NetCDF error checking and messages
    NcError ncerr( NcError::silent_nonfatal );
    //NcError ncerr( NcError::verbose_fatal );
 
-   NcFile ncf( init_data_filename.c_str() );
-   if ( ! ncf.is_valid() ) {
+   ncf.reset( new NcFile( init_data_filename.c_str() ) );
+   if ( ! ncf->is_valid() ) {
       TBOX_ERROR( "Cannot open file " << init_data_filename << endl );
    }
 #endif
 #ifdef HAVE_NETCDF4
-   NcFile ncf( init_data_filename, NcFile::read );
-   if( ncf.isNull() ){
-      TBOX_ERROR( "Cannot open file " << init_data_filename << endl );
+   if( !init_data_filename.empty() ){
+      ncf.reset( new NcFile( init_data_filename, NcFile::read ) );
+      if( ncf->isNull() ){
+         TBOX_ERROR( "Cannot open file " << init_data_filename << endl );
+      }
    }
-   int nvar=ncf.getVarCount();
+   int nvar = init_data_filename.empty() ? 0 : ncf->getVarCount();
    tbox::plog << "Number of variables in NcFile: "<<nvar<<endl;
 #endif
    tbox::plog<<"Opened NetCDF file "<<init_data_filename<<endl;
 
    size_t qlen_file = 0;
 #ifdef HAVE_NETCDF3
-   NcVar* ncPhase = ncf.get_var( "phase" );
+   NcVar* ncPhase = ncf->get_var( "phase" );
    if ( ncPhase == NULL ) {
       TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
    }
@@ -140,7 +146,7 @@ void FieldsInitializer::initializeLevelFromData(
 
    NcVar* ncEta=NULL;
    if ( d_eta_id>=0 ) {
-      ncEta = ncf.get_var( "eta" );
+      ncEta = ncf->get_var( "eta" );
       if ( ncEta == NULL ) {
          TBOX_ERROR( "Could not read variable 'eta' from input data" << endl );
       }
@@ -148,8 +154,8 @@ void FieldsInitializer::initializeLevelFromData(
    }
 
    NcVar* ncTemp = NULL;
-   if ( d_model_parameters.isTemperatureConstant() ) {
-      ncTemp = ncf.get_var( "temperature" );
+   if ( readT() && d_temperature_id>=0 ) {
+      ncTemp = ncf->get_var( "temperature" );
       if ( ncTemp == NULL ) {
          TBOX_ERROR( "Could not read variable 'temperature' " <<
                      "from input data" << endl );
@@ -159,7 +165,7 @@ void FieldsInitializer::initializeLevelFromData(
 
    NcDim* ncQlen;
    if ( readQ() ) {
-      ncQlen = ncf.get_dim( "qlen" );
+      ncQlen = ncf->get_dim( "qlen" );
       if ( ncQlen == NULL ) {
          TBOX_ERROR( "Could not read variable 'qlen' " <<
                      "from input data" << endl );
@@ -170,20 +176,20 @@ void FieldsInitializer::initializeLevelFromData(
 #ifdef HAVE_NETCDF4
    NcVar ncPhase;
    if ( d_phase_id>=0 ){
-      ncPhase = ncf.getVar( "phase" );
+      ncPhase = ncf->getVar( "phase" );
       if(ncPhase.isNull())
          TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
    }
    NcVar ncEta;
    if ( d_eta_id>=0 ) {
-      ncEta = ncf.getVar( "eta" );
+      ncEta = ncf->getVar( "eta" );
       if(ncEta.isNull())
          TBOX_ERROR( "Could not read variable 'eta' from input data" << endl );
    }
 
    NcVar ncTemp;
    if ( readT() && d_temperature_id>=0 ) {
-      ncTemp = ncf.getVar( "temperature" );
+      ncTemp = ncf->getVar( "temperature" );
       if(ncTemp.isNull())
          TBOX_ERROR( "Could not read variable 'temperature' " <<
                      "from input data" << endl );
@@ -192,11 +198,16 @@ void FieldsInitializer::initializeLevelFromData(
    for ( int ii = 0; ii < d_qlen; ii++ ) {
       std::ostringstream o;
       o << "quat" << ii+1;
-      NcVar ncv=ncf.getVar( o.str() );
+      NcVar ncv=ncf->getVar( o.str() );
       if( ncv.isNull() )break;
       qlen_file++;
    }
 #endif
+
+   size_t nx_prob;
+   size_t ny_prob;
+   size_t nz_prob;
+   getDomainSizes(nx_prob, ny_prob, nz_prob);
 
 #ifdef HAVE_NETCDF3
    int nx_file = ncPhase->get_dim(2)->size();
@@ -204,19 +215,24 @@ void FieldsInitializer::initializeLevelFromData(
    int nz_file = ncPhase->get_dim(0)->size();
 #endif
 #ifdef HAVE_NETCDF4
+   size_t nx_file = nx_prob;
+   size_t ny_file = ny_prob;
+   size_t nz_file = nz_prob;
    vector<NcDim> dims;
    if ( d_phase_id>=0 ){
       dims.push_back(ncPhase.getDim(2));
       dims.push_back(ncPhase.getDim(1));
       dims.push_back(ncPhase.getDim(0));
-   }else{
+   }else if( readT() ){
       dims.push_back(ncTemp.getDim(2));
       dims.push_back(ncTemp.getDim(1));
       dims.push_back(ncTemp.getDim(0));
    }
-   size_t nx_file = dims[0].getSize();
-   size_t ny_file = dims[1].getSize();
-   size_t nz_file = dims[2].getSize();
+   if( !dims.empty() ){
+      nx_file = dims[0].getSize();
+      ny_file = dims[1].getSize();
+      nz_file = dims[2].getSize();
+   }
 #endif
 
    size_t islice = 0;
@@ -238,7 +254,7 @@ void FieldsInitializer::initializeLevelFromData(
       for ( int ii = 0; ii < d_qlen; ii++ ) {
          std::ostringstream o;
          o << "quat" << ii+1;
-         ncQuatComponents[ii] = ncf.get_var( o.str().c_str() );
+         ncQuatComponents[ii] = ncf->get_var( o.str().c_str() );
          if ( ncQuatComponents[ii] == NULL ) {
             TBOX_ERROR( "Could not read variable " << o.str() <<
                         " from input data" << endl );
@@ -254,7 +270,7 @@ void FieldsInitializer::initializeLevelFromData(
       for ( int ii = 0; ii < d_qlen; ii++ ) {
          std::ostringstream o;
          o << "quat" << ii+1;
-         ncQuatComponents[ii] = ncf.getVar( o.str() );
+         ncQuatComponents[ii] = ncf->getVar( o.str() );
          if(ncQuatComponents[ii].isNull())
             TBOX_ERROR( "Could not read variable " << o.str() <<
                         " from input data" << endl );
@@ -266,15 +282,15 @@ void FieldsInitializer::initializeLevelFromData(
   NcVar** ncConcComponents=NULL;
    if ( readC() ){
       tbox::pout << "With "<<d_ncompositions<<" composition fields"<<endl;
-      ncConcComponents = new NcVar*[ncompositions];
+      ncConcComponents = new NcVar*[d_ncompositions];
       for ( int ii = 0; ii < d_ncompositions; ii++ ) {
          std::ostringstream o;
          o << "concentration";
          if( d_ncompositions>1 )o << ii;
-         ncConcComponents[ii] = ncf.get_var( o.str().c_str() );
+         ncConcComponents[ii] = ncf->get_var( o.str().c_str() );
          if ( ncConcComponents[ii] == NULL && d_ncompositions==1) {
             o << 0;
-            ncConcComponents[ii] = ncf.get_var( o.str().c_str() );
+            ncConcComponents[ii] = ncf->get_var( o.str().c_str() );
          }
          if ( ncConcComponents[ii] == NULL ) {
             TBOX_ERROR( "Could not read variable " << o.str() <<
@@ -293,10 +309,10 @@ void FieldsInitializer::initializeLevelFromData(
          std::ostringstream o;
          o << "concentration";
          if( d_ncompositions>1 )o << ii;
-         ncConcComponents[ii] = ncf.getVar( o.str() );
+         ncConcComponents[ii] = ncf->getVar( o.str() );
          if ( ncConcComponents[ii].isNull() && d_ncompositions==1) {
             o << 0;
-            ncConcComponents[ii] = ncf.getVar( o.str() );
+            ncConcComponents[ii] = ncf->getVar( o.str() );
          }
          if ( ncConcComponents[ii].isNull())
             TBOX_ERROR( "Could not read variable " << o.str() <<
@@ -312,8 +328,18 @@ void FieldsInitializer::initializeLevelFromData(
       if( ncPhase->type() == ncFloat ){
 #endif
 #ifdef HAVE_NETCDF4
-      NcType type = (d_phase_id>=0) ? ncPhase.getType() : ncTemp.getType();
-      if( type.getTypeClassName() == "nc_FLOAT" ){
+      bool float_flag=true;
+      if( d_phase_id>=0 ){
+         NcType type = ncPhase.getType();
+         if( type.getTypeClassName() == "nc_DOUBLE" )float_flag=false;
+      }else{
+         if( readT() ){
+            NcType type = ncTemp.getType();
+            if( type.getTypeClassName() == "nc_DOUBLE" )float_flag=false;
+         }
+      }
+         
+      if( float_flag ){
 #endif
          float* vals = new float[patch_box.size()];
 
@@ -329,10 +355,10 @@ void FieldsInitializer::initializeLevelFromData(
          delete[] vals;
       }
 
-   }  // for ( hier::PatchLevel::iterator p(level->begin()); p != level->end(); ++p )
+   }  // end loop over patches
 
 #ifdef HAVE_NETCDF3
-   ncf.close();  // NcVar memory deletion handled by this call
+   ncf->close();  // NcVar memory deletion handled by this call
 #endif
 
    if ( readQ() ) {
@@ -623,20 +649,33 @@ void FieldsInitializer::initializePatchFromData(
 
 //=======================================================================
 
+void FieldsInitializer::getDomainSizes(size_t& nx_prob,
+                                       size_t& ny_prob,
+                                       size_t& nz_prob)
+{
+  hier::Box domain_box =
+      d_grid_geometry->getPhysicalDomain().front();
+   domain_box.refine( d_ratio_of_init_to_coarsest );
+
+   nx_prob = domain_box.numberCells( 0 );
+   ny_prob = domain_box.numberCells( 1 );
+#if (NDIM == 3)
+   nz_prob = domain_box.numberCells( 2 );
+#else
+   nz_prob = 1;
+#endif
+}
+
+//=======================================================================
+
 void FieldsInitializer::checkInputFileDimensions(
    const size_t nx_file, const size_t ny_file, const size_t nz_file,
    const size_t qlen_file )
 {
-   hier::Box domain_box =
-      d_grid_geometry->getPhysicalDomain().front();
-   domain_box.refine( d_ratio_of_init_to_coarsest );
-
-   size_t nx_prob = domain_box.numberCells( 0 );
-   size_t ny_prob = domain_box.numberCells( 1 );
-   size_t nz_prob = nz_file;
-#if (NDIM == 3)
-   nz_prob = domain_box.numberCells( 2 );
-#endif
+   size_t nx_prob;
+   size_t ny_prob;
+   size_t nz_prob;
+   getDomainSizes(nx_prob, ny_prob, nz_prob);
 
    if ( nx_file != nx_prob ||
         ny_file != ny_prob ||
