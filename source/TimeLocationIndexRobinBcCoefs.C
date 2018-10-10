@@ -78,7 +78,6 @@ TimeLocationIndexRobinBcCoefs::getFromInput(
                   if( bc_db->keyExists(timestring) ){
                      double tmp[2];
                      bc_db->getDoubleArray(timestring,&tmp[0],2);
-tbox::pout<<"tmp="<<tmp[0]<<","<<tmp[1]<<endl;
                      d_a_map[i].push_back( 1.0 );
                      d_b_map[i].push_back( 0.0 );
                      d_t_map[i].push_back( tmp[0] );
