@@ -1,0 +1,85 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time = 2500.0  // required
+max_timesteps = 500  // optional, default is INT_MAX (alias: max_cycles)
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 10.
+   interval_type = "time"
+   rhs_output = TRUE
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","PFModel::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {  // required block
+
+   H_parameter    = -1 // turn off quaternion
+
+   Temperature{
+      type = "heat"
+      equation_type = "unsteady"
+      cp{  
+         SpeciesA{
+            a = 10. // rho*Cp in [J/mol*K]
+         }
+      }
+      thermal_diffusivity = 1.e-3 // [cm^2/s]
+      latent_heat = 1. // unused
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   FreeEnergyModel{
+      type = "linear"
+   }
+
+  BoundaryConditions {
+    Temperature{
+      boundary_0 = "file", "values0.dat"
+      boundary_1 = "file", "values1.dat"
+      boundary_2 = "file", "values2.dat"
+      boundary_3 = "file", "values3.dat"
+    }
+    TemperatureCorrections{
+      boundary_0 = "value", "0."
+      boundary_1 = "value", "0."
+      boundary_2 = "value", "0."
+      boundary_3 = "value", "0."
+    }
+
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+      max_step_size = 100.
+   }
+}
+
+InitialConditions {  // required block
+   init_t = 0.
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 60, 60  // required
+   x_lo         =  0., 0. // lower end of computational domain.
+   x_up         =  1., 1. // upper end of computational domain.
+}
