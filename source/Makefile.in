@@ -138,7 +138,7 @@ F77_OBJS_2D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
 		smoothquat.o \
-		hyprepoisson2d.o phase.o
+		hyprepoisson.o phase.o
 
 F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.o \
 		quatfacops.o quatlevelsolver.o mobility.o temperature.o \
@@ -146,7 +146,7 @@ F77_OBJS_3D   = settozero.o quatrhs.o quatdiffusion.o correctrhsquatforsymmetry.
 		quatcoarsen.o quatenergy.o concentrationdiffusion.o \
 		concentrations.o concentrationrhs.o quatrotation.o ellipticfacops.o \
 		smoothquat.o \
-		hyprepoisson3d.o phase.o
+		hyprepoisson.o phase.o
 
 CXXFLAGS += -isystem $(NETCDF)/include
 LDFLAGS += -L $(NETCDF)/lib
