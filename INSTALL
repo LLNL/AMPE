@@ -1,5 +1,7 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC.
-// Produced at the Lawrence Livermore National Laboratory
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
+// UT-Battelle, LLC.
+// Produced at the Lawrence Livermore National Laboratory and
+// the Oak Ridge National Laboratory
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
@@ -21,7 +23,8 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// LLC, UT BATTELLE, LLC, 
+// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
 // OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -29,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+
 Step 0:
 Run autoconf:
 
@@ -37,13 +40,15 @@ Run autoconf:
 
 This should generate the 'configure' file
 
+////////////////////////////////////////////////////////////////////////////
+
 Step 1: Configure for a specific combination of platform, compiler and
         optimization level
 
 After checking out from the repository, cd into the top level
 directory and execute the configure script for the
 platform-compiler-optimization you want to build.  For example, to
-configure for cab using the Intel C++ and Fortran compilers with
+configure for syrah (LLNL) using the Intel C++ and Fortran compilers with
 optimization, execute
 
    scripts/doconfig_peloton_icpc_ifort_opt
@@ -56,6 +61,8 @@ executed from the top level directory (as indicated above), which is
 the location of of the configure script the "doconfig" scripts depend
 upon.
 
+////////////////////////////////////////////////////////////////////////////
+
 Step 2: Install the base (i.e., third-party) libraries for the
         new platform-compiler-optimization combination
 
@@ -65,7 +72,7 @@ subdirectory of the "build" directory labeled by the associated
 platform-compiler-optimization combination.  Underneath that
 subdirectory are three more subdirectories: base, config, and objects.
 In other words, for the current example, the following directory tree
-is created if ruuning the script on cab:
+is created if ruuning the script on syrah:
 
 (top level directory)
           |
@@ -73,7 +80,7 @@ is created if ruuning the script on cab:
         build
           |
           |
-  cab-mpiicpc-14.0.174-ifort-14.0.174-opt
+  syrah-mpic++-mpif77-opt
     |     |      |
     |     |      |
   base  config  objects
@@ -81,15 +88,24 @@ is created if ruuning the script on cab:
 To install the base libraries, cd into the base subdirectory and
 execute the doinstall script located there:
 
-  cd build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/base
+  cd build/syrah-mpic++-mpif77-opt/base
   doinstall
 
 This will compile and install the base libraries, which currently
 consist of Hypre, Sundials and SAMRAI.  The SAMRAI build takes a while, so
 patience is required.
 
+////////////////////////////////////////////////////////////////////////////
+
 Step 3: Build the AMPE code
 
+We have two build options to build the main code: autoconf and cmake.
+The advantage of cmake is that it allows you to build and run a suite of
+unit tests
+
+------------------
+Option 1: autoconf
+------------------
 Under the build/platform-compiler-optimization/objects directory
 created by the configuration step performed in Step 1, you will find a
 directory tree that mirrors all of the subdirectories of the top level
@@ -97,7 +113,7 @@ source directory that contain a "Makefile.in" file.
                     
 To build the AMPE code, just cd to the objects directory amd gmake:
 
-   cd build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/objects
+   cd build/syrah-mpic++-mpif77-opt/objects
    gmake
 
 The object files and executable are generated in the current
@@ -109,11 +125,31 @@ make a link).  For example,
 
 srun -n32 -ppdebug ampe2d top-level-directory/ampe/trunk/examples/AuNi_2D/9grains_AuNi_initial.input
 
+---------------
+Option 2: Cmake
+---------------
+From the build directory, run a "cmake script". For example on syrah:
+
+   ../scripts/peloton_cmake
+
+If a script does not exist for the platform-compiler_optimization
+combination you want, you'll have to create your own using one of the
+existing "cmake" scripts as an example.
+Then run:
+   make
+
+It will create the main executable build/source/main as well as executable
+unit tests.
+
+To run the test suite, run:
+   make test
+
+////////////////////////////////////////////////////////////////////////////
 
 Miscellaneous notes:
 
 1. The configuration performed in Step 1 generates the Makefile in
-build/cab-mpiicpc-14.0.174-ifort-14.0.174-opt/objects from the template Makefile.in in
+build/syrah-mpic++-mpif77-opt/objects from the template Makefile.in in
 source.  This includes the generation of the file Makefile.depend in
 source, which describes the build dependencies.  This means that if
 any changes are made to the source code that could affect the
