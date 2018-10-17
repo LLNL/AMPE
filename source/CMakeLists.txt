@@ -169,14 +169,15 @@ foreach(file ${M4FILESDIM})
   list(APPEND SOURCES_FORTRAN_DIM ${SOURCE_FORTRAN_DIM_DIR}/${file}.f)
 endforeach()
 
-add_executable(main ${SOURCES} ${SOURCES_FORTRAN} ${SOURCES_FORTRAN_DIM})
+set(MAIN ampe${NDIM}d)
+add_executable(${MAIN} ${SOURCES} ${SOURCES_FORTRAN} ${SOURCES_FORTRAN_DIM})
 
-target_link_libraries(main ${PROJECT_LINK_LIBS_SAMRAI} 
-                           ${PROJECT_LINK_LIBS_HYPRE}
-                           ${PROJECT_LINK_LIBS_CVODE}
-                           ${PROJECT_LINK_LIBS_CPODES}
-                           ${PROJECT_LINK_LIBS_NETCDFCXX}
-                           ${PROJECT_LINK_LIBS_NETCDF}
-                           ${_hdf5_libs}
+target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
+                              ${PROJECT_LINK_LIBS_HYPRE}
+                              ${PROJECT_LINK_LIBS_CVODE}
+                              ${PROJECT_LINK_LIBS_CPODES}
+                              ${PROJECT_LINK_LIBS_NETCDFCXX}
+                              ${PROJECT_LINK_LIBS_NETCDF}
+                              ${PROJECT_LINK_LIBS_HDF5}
                       )
 

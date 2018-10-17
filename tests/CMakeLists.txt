@@ -126,24 +126,24 @@ add_test(NAME testCALPHADternaryKKS
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}
-                                 ${_hdf5_libs})
+                                 ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testMPI ${PROJECT_LINK_LIBS1})
 target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
-                                     ${_hdf5_libs}
+                                     ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
-                                     ${_hdf5_libs}
+                                     ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
-                                     ${_hdf5_libs}
+                                     ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testCALPHADbinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
-                                     ${_hdf5_libs}
+                                     ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testCALPHADternaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
-                                     ${_hdf5_libs}
+                                     ${PROJECT_LINK_LIBS_HDF5}
                                      )
 

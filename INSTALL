@@ -132,14 +132,15 @@ From the build directory, run a "cmake script". For example on syrah:
 
    ../scripts/peloton_cmake
 
+where the solver dimension is specified (2d or 3d).
 If a script does not exist for the platform-compiler_optimization
 combination you want, you'll have to create your own using one of the
 existing "cmake" scripts as an example.
 Then run:
    make
 
-It will create the main executable build/source/main as well as executable
-unit tests.
+It will create the main executable build/source/ampe2d (or ampe3d) as well
+as executable unit tests.
 
 To run the test suite, run:
    make test
