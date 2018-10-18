@@ -2,6 +2,7 @@ include_directories( ${CMAKE_SOURCE_DIR}/source )
 
 set( fortran_dir ${CMAKE_SOURCE_DIR}/source/fortran )
 set( fortran_dir_dim ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d )
+set( TEST_DIR ${CMAKE_SOURCE_DIR}/tests )
 
 #Within the scope of this file, cmake doesn't know *.f are generated files
 set_source_files_properties( ${fortran_dir}/functions.f 
@@ -77,6 +78,19 @@ add_executable(testCALPHADternaryKKS
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
+add_executable(testCALPHADbinaryEquilibrium
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               )
 
 add_test(NAME testNetCDF
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
@@ -98,17 +112,17 @@ add_test(NAME testHyprePoisson
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG}
                  ${MPIEXEC_MAX_NUMPROCS}
                  ${CMAKE_CURRENT_BINARY_DIR}/testHyprePoisson ${NDIM}d.input
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/HyprePoisson)
+         WORKING_DIRECTORY ${TEST_DIR}/HyprePoisson)
 add_test(NAME testPhaseHypre
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG}
                  ${MPIEXEC_MAX_NUMPROCS}
                  ${CMAKE_CURRENT_BINARY_DIR}/testPhaseHypre ${NDIM}d.input
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/PhaseHypre)
+         WORKING_DIRECTORY ${TEST_DIR}/PhaseHypre)
 add_test(NAME testFACPoisson
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 
                  ${MPIEXEC_MAX_NUMPROCS}
                  ${CMAKE_CURRENT_BINARY_DIR}/testFACPoisson ${NDIM}d.input
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/FACPoisson)
+         WORKING_DIRECTORY ${TEST_DIR}/FACPoisson)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADFunctions)
@@ -118,11 +132,15 @@ add_test(NAME testCALPHADJacobianTernary
 add_test(NAME testCALPHADbinaryKKS
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADbinaryKKS test.input
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/CALPHADbinaryKKS)
+         WORKING_DIRECTORY ${TEST_DIR}/CALPHADbinaryKKS)
 add_test(NAME testCALPHADternaryKKS
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADternaryKKS test.input
-         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/CALPHADternaryKKS)
+         WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryKKS)
+add_test(NAME testCALPHADbinaryEquilibrium
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+         ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADbinaryEquilibrium test.input
+         WORKING_DIRECTORY ${TEST_DIR}/CALPHADbinaryEquilibrium)
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}
@@ -146,4 +164,6 @@ target_link_libraries(testCALPHADbinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testCALPHADternaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      )
+target_link_libraries(testCALPHADbinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
+                     )
 

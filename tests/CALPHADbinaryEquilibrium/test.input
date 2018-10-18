@@ -1,0 +1,28 @@
+ModelParameters {
+   concentration = 0.25
+   phi = 0.05
+   initial_guess = 0.2, 0.1
+
+   Temperature {
+      temperature        = 1423. // [K]
+   }
+
+   ConcentrationModel {
+      model    = "calphad"
+      Calphad {
+         filename ="../../thermodynamic_data/calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+}
+
+ExpectedResults {
+   concentrations = 0.283171, 0.108235
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "AMPE::*::*"
+}
+
