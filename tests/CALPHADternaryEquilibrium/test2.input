@@ -10,11 +10,6 @@ ModelParameters {
       temperature        = 3073. // [K]
    }
 
-   phi_well_scale = 2.5  //  [pJ/um^3]
-   phi_well_func_type = "double"
-
-   avg_func_type = "arithmetic"
-
    concentration = 0.16, 0.225
 
    initial_guess = 0.13, 0.21, 0.12, 0.15, 0.8
@@ -22,12 +17,18 @@ ModelParameters {
    ConcentrationModel {
       model    = "calphad"
       Calphad {
-         filename ="calphadMoNbTa.dat"
+         filename ="../../thermodynamic_data/calphadMoNbTa.dat"
       }
       NewtonSolver {
         max_its = 40
       }
    }
+}
+
+ExpectedResults {
+   cl = 0.164344,0.2321
+   cs = 0.13675,0.186999
+   fs = 0.157429
 }
 
 

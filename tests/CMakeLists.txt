@@ -91,6 +91,20 @@ add_executable(testCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
+add_executable(testCALPHADternaryEquilibrium
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               )
 
 add_test(NAME testNetCDF
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
@@ -141,6 +155,14 @@ add_test(NAME testCALPHADbinaryEquilibrium
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
          ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADbinaryEquilibrium test.input
          WORKING_DIRECTORY ${TEST_DIR}/CALPHADbinaryEquilibrium)
+add_test(NAME testCALPHADternaryEquilibrium1
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+         ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADternaryEquilibrium test1.input
+         WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryEquilibrium)
+add_test(NAME testCALPHADternaryEquilibrium2
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+         ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADternaryEquilibrium test2.input
+         WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryEquilibrium)
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}
@@ -165,5 +187,7 @@ target_link_libraries(testCALPHADternaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testCALPHADbinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
+                     )
+target_link_libraries(testCALPHADternaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                      )
 
