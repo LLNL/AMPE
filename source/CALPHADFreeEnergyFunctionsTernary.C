@@ -277,7 +277,8 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    d_LmixABCPhaseL[2][1] = 0.0;
 
    if(calphad_db->keyExists( dbnamemixL ) ){
-      boost::shared_ptr<tbox::Database> Lmix0_db = calphad_db->getDatabase( dbnamemixL );
+      boost::shared_ptr<tbox::Database> Lmix0_db =
+         calphad_db->getDatabase( dbnamemixL );
       if ( Lmix0_db->keyExists( "L0" ) ) {
          Lmix0_db->getDoubleArray( "L0", &d_LmixABCPhaseL[0][0], 2 );
       }
@@ -288,6 +289,13 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
          Lmix0_db->getDoubleArray( "L2", &d_LmixABCPhaseL[2][0], 2 );
       }
    }
+   assert( d_LmixABCPhaseL[0][0]==d_LmixABCPhaseL[0][0] );
+   assert( d_LmixABCPhaseL[0][1]==d_LmixABCPhaseL[0][1] );
+   assert( d_LmixABCPhaseL[1][0]==d_LmixABCPhaseL[1][0] );
+   assert( d_LmixABCPhaseL[1][1]==d_LmixABCPhaseL[1][1] );
+   assert( d_LmixABCPhaseL[2][0]==d_LmixABCPhaseL[2][0] );
+   assert( d_LmixABCPhaseL[2][1]==d_LmixABCPhaseL[2][1] );
+
 
    string dbnamemixA("LmixABCPhaseA");
    //default values
@@ -310,6 +318,12 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
          Lmix1_db->getDoubleArray( "L2", &d_LmixABCPhaseA[2][0], 2 );
       }
    }
+   assert( d_LmixABCPhaseA[0][0]==d_LmixABCPhaseA[0][0] );
+   assert( d_LmixABCPhaseA[0][1]==d_LmixABCPhaseA[0][1] );
+   assert( d_LmixABCPhaseA[1][0]==d_LmixABCPhaseA[1][0] );
+   assert( d_LmixABCPhaseA[1][1]==d_LmixABCPhaseA[1][1] );
+   assert( d_LmixABCPhaseA[2][0]==d_LmixABCPhaseA[2][0] );
+   assert( d_LmixABCPhaseA[2][1]==d_LmixABCPhaseA[2][1] );
 
    }
 
@@ -517,6 +531,8 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesS(const double temperature)
    d_L_BC_S[2] = lmix2BCPhaseA( temperature );
    d_L_BC_S[3] = lmix3BCPhaseA( temperature );
    d_L_ABC_S[0] = lmix0ABCPhaseA( temperature );
+   d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
+   d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
 }
 
 //=======================================================================
@@ -636,9 +652,6 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    assert( temperature>0. );
 
    setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
-
-   //make sure "ABC" coefficients have been set
-   assert( d_L_ABC_L[0]==d_L_ABC_L[0] );
 
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqPhaseConcentrationSolverTernary eq_solver(c0,c1);
