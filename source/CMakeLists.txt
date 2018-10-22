@@ -194,3 +194,18 @@ add_executable(plotCALPHADbinary plotCALPHADbinary.C
                                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI})
 
+add_executable(plotEquilibriumCompositions
+                  plotEquilibriumCompositions.C
+                  CALPHADEqConcSolverBinary.C
+                  CALPHADFreeEnergyFunctionsBinary.C
+                  CALPHADSpeciesPhaseGibbsEnergy.C
+                  CALPHADSpeciesPhaseGibbsEnergyExpansion.C
+                  CALPHADFunctions.C
+                  CALPHADConcSolverBinary.C
+                  DampedNewtonSolver.C
+                  NewtonSolver.C
+                  math_utilities.C
+                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
+                                                  ${PROJECT_LINK_LIBS_HDF5})
+
