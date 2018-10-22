@@ -209,3 +209,20 @@ add_executable(plotEquilibriumCompositions
 target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5})
 
+add_executable(plotEquilibriumCompositionsTernary
+                  plotEquilibriumCompositionsTernary.C
+                  CALPHADEqConcSolverTernary.C
+                  CALPHADEqPhaseConcSolverTernary.C
+                  CALPHADFreeEnergyFunctionsTernary.C
+                  CALPHADSpeciesPhaseGibbsEnergy.C
+                  CALPHADSpeciesPhaseGibbsEnergyExpansion.C
+                  CALPHADFunctions.C
+                  CALPHADConcSolverTernary.C
+                  DampedNewtonSolver.C
+                  NewtonSolver.C
+                  math_utilities.C
+                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+target_link_libraries(plotEquilibriumCompositionsTernary
+                         ${PROJECT_LINK_LIBS_SAMRAI}
+                         ${PROJECT_LINK_LIBS_HDF5})
+
