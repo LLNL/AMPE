@@ -825,7 +825,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
       double e = fchem( 0., 0., &conc, temperature );
       os << conc <<"\t"<< e << endl;
    }
-   os << endl;
+   os << endl << endl;
 
    os << "#phi=1" << endl;
    for ( int i = 0; i < npts; i++ ) {
