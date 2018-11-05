@@ -65,6 +65,9 @@ KimMobilityStrategy::KimMobilityStrategy(
    assert( d_temp_id>=0 );
    assert( d_ncompositions>0 );
 
+   t_compute = tbox::TimerManager::getManager()->
+      getTimer("AMPE::KimMobilityStrategy::compute");
+
    if( ncompositions==1 ){
       d_calphad_fenergy = new
          CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
@@ -90,6 +93,8 @@ void KimMobilityStrategy::computePhaseMobility(
    (void)phase_id;
    (void)time;
    (void)cache;
+
+   t_compute->start();
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -123,6 +128,8 @@ void KimMobilityStrategy::computePhaseMobility(
          update(temperature, concl, concs, mobility, patch);
       }
    }
+
+   t_compute->stop();
 }
 
 void KimMobilityStrategy::update(

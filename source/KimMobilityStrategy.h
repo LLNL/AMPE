@@ -103,6 +103,11 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_cs,
       boost::shared_ptr< pdat::CellData<double> > cd_mobility,
       boost::shared_ptr<hier::Patch > patch );
+
+   /*
+    * Timers for performance measurement.
+    */
+   boost::shared_ptr<tbox::Timer> t_compute;
 };
 
 #endif
