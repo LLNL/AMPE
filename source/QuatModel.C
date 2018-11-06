@@ -2271,7 +2271,8 @@ void QuatModel::RegisterWithVisit( void )
          "temperature", "SCALAR", d_temperature_id, 0 );
    }
 
-   if ( d_model_parameters.with_orientation() ) {
+   if ( d_model_parameters.with_orientation()
+     && d_model_parameters.evolveQuat() ) {
       assert( d_quat_id >= 0 );
       for ( int n = 0; n < d_qlen; n++ ) {
          string visit_name("q" + tbox::Utilities::intToString(n, 1));
@@ -2288,7 +2289,8 @@ void QuatModel::RegisterWithVisit( void )
          d_visit_data_writer->registerPlotQuantity(
             visit_name, "SCALAR", d_conc_id, n );
 
-         if ( d_model_parameters.concentrationModelNeedsPhaseConcentrations() ){
+         if ( d_model_parameters.concentrationModelNeedsPhaseConcentrations()
+          && d_model_parameters.with_extra_visit_output() ){
             assert( d_conc_l_scratch_id>=0 );
             assert( d_conc_a_scratch_id>=0 );
             string visit_namel("conc_l" + tbox::Utilities::intToString(n, 1));
