@@ -313,6 +313,8 @@ QuatIntegrator::QuatIntegrator(
       tman->getTimer("AMPE::QuatIntegrator::PhasePrecondSolve()");
    t_conc_precond_timer =
       tman->getTimer("AMPE::QuatIntegrator::ConcPrecondSolve()");
+   t_quat_grad_timer =
+      tman->getTimer("AMPE::QuatIntegrator::computeQuatGradients()");
 
    boost::shared_ptr<tbox::Database> integrator_db =
       db->getDatabase( "Integrator" );
@@ -3458,7 +3460,8 @@ void QuatIntegrator::computeQuatGradients(
    const bool                              recompute_quat_sidegrad )
 {
    //tbox::pout<<"QuatIntegrator::computeQuatGradients()..."<<endl;
-   
+   t_quat_grad_timer->start();
+ 
    int diff_id = -1;
    d_quat_grad_strategy->computeDiffs(
       hierarchy,
@@ -3512,6 +3515,7 @@ void QuatIntegrator::computeQuatGradients(
             QuatGradStrategy::FORCE );
       }
    }
+   t_quat_grad_timer->stop();
 }
 
 //-----------------------------------------------------------------------

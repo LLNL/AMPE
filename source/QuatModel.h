@@ -790,6 +790,7 @@ private :
 
    // Timers
    boost::shared_ptr<tbox::Timer> t_resetGrains_timer;
+   boost::shared_ptr<tbox::Timer> t_phase_diffs_timer;
 };
 
 #endif

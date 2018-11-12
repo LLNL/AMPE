@@ -223,6 +223,9 @@ QuatModel::QuatModel( int ql ) :
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_resetGrains_timer =
       tman->getTimer("AMPE::QuatModel::resetGrains()");
+
+   t_phase_diffs_timer =
+      tman->getTimer("AMPE::QuatModel::phaseDiffs");
 }
 
 //=======================================================================
@@ -4605,6 +4608,8 @@ void QuatModel::computePhaseDiffs(
    const double time,
    const CACHE_TYPE cache )
 {
+   t_phase_diffs_timer->start();
+
    static double old_time = tbox::IEEE::getSignalingNaN();
 
    if ( time == old_time && cache == CACHE ) return;
@@ -4617,6 +4622,8 @@ void QuatModel::computePhaseDiffs(
 
       computePhaseDiffs( patch_level, phase_id, phase_diffs_id, time );
    }
+
+   t_phase_diffs_timer->stop();
 }
 
 void QuatModel::computePhaseDiffs(
