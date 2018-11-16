@@ -193,7 +193,7 @@ OuternodeData<TYPE>::operator () (
    TBOX_ASSERT_OBJDIM_EQUALITY2(*this, i);
    TBOX_ASSERT((depth >= 0) && (depth < d_depth));
 
-   for (int d = getDim() - 1; d >= 0; --d) {
+   for (int d = getDim().getValue() - 1; d >= 0; --d) {
       if (i[d] == d_data[d][0]->getBox().lower()[d]) {
          return (*(d_data[d][0]))(i, depth);
       }
