@@ -3764,7 +3764,7 @@ void QuatIntegrator::setCoefficients(
    coarsenData(phase_id, eta_id, quat_id, conc_id, temperature_id, hierarchy);
    fillScratch(time, y);
 
-   if ( d_with_orientation ) {
+   if ( d_evolve_quat ) {
       computeQuatGradients(
          hierarchy,
          time,
