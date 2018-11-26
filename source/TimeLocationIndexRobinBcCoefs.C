@@ -149,34 +149,42 @@ TimeLocationIndexRobinBcCoefs::setBcCoefs(
    TBOX_ASSERT(location >= 0 && location < 2 * d_dim.getValue());
    TBOX_ASSERT(d_t_map[location].size()>0);
 
-   static int previous_time_slot[6] = {0,0,0,0,0,0};
-   static int next_time_slot[6]     = {1,1,1,1,1,1};
+   static int prev_time_slot[6] = {0,0,0,0,0,0};
+   static int next_time_slot[6] = {1,1,1,1,1,1};
 
-   //specify how far from previous interval we should search for current interval
+   //specify how far from previous interval we should search for current
+   // interval. This is necessary since this function may be called for a
+   // time value smaller than in previous call
    int search_range = 10;
 
-   //previous_time_slot+=search_range;
-   //previous_time_slot=min(previous_time_slot,(int)d_t_map[location].size()-1);
-   while( d_t_map[location][previous_time_slot[location]]<=fill_time ){
-      previous_time_slot[location]++;
-      assert( previous_time_slot[location]>=0 );
+   prev_time_slot[location] -= search_range;
+   prev_time_slot[location] = max(prev_time_slot[location],1);
+   // loop over time slot until we reach a time larger than fill_time
+   while( d_t_map[location][prev_time_slot[location]]<=fill_time ){
+      prev_time_slot[location]++;
+      assert( prev_time_slot[location]>0 );
    }
-   previous_time_slot[location]--;
+   prev_time_slot[location]--;
+   assert( prev_time_slot[location]>=0 );
 
-   while( d_t_map[location][next_time_slot[location]]<fill_time )
-      next_time_slot[location]++;
+   next_time_slot[location] = prev_time_slot[location] + 1;
+
    //tbox::plog<<"d_t_map[location][next_time_slot]="<<d_t_map[location][next_time_slot]<<endl;
    //tbox::pout<<"fill_time="<<fill_time<<endl;
-   //tbox::pout<<"previous_time_slot="<<previous_time_slot[location]<<endl;
+   //tbox::pout<<"prev_time_slot="<<prev_time_slot[location]<<endl;
    //tbox::pout<<"next_time_slot="<<next_time_slot[location]<<endl;
-   if( (next_time_slot[location]-previous_time_slot[location])!=1 ){
-      tbox::plog<<"previous_time_slot="<<previous_time_slot[location]<<endl;
-      tbox::plog<<"next_time_slot="<<next_time_slot[location]<<endl;
+   if( d_t_map[location][prev_time_slot[location]] > fill_time
+    || d_t_map[location][next_time_slot[location]] < fill_time ){
+      tbox::plog<<"fill_time = "<<fill_time<<endl;
+      tbox::plog<<"previous_time = "
+                <<d_t_map[location][prev_time_slot[location]]<<endl;
+      tbox::plog<<"next_time = "
+                <<d_t_map[location][next_time_slot[location]]<<endl;
       TBOX_ERROR(d_object_name << ": May need larger search range for time index"<<endl);
    }
 
    const int ntime_slot=next_time_slot[location];
-   const int ptime_slot=previous_time_slot[location];
+   const int ptime_slot=prev_time_slot[location];
    TBOX_ASSERT( fill_time<=d_t_map[location][ntime_slot] );
    TBOX_ASSERT( fill_time>=d_t_map[location][ptime_slot] );
 
