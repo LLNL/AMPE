@@ -819,7 +819,7 @@ void QuatIntegrator::RegisterVariables(
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
    
    // Variables owned by QuatModel
-   if( d_with_phase ){
+   if( phase_var ){
       d_phase_var = phase_var;
       d_phase_id =
          variable_db->registerVariableAndContext(
