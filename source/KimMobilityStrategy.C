@@ -143,14 +143,8 @@ void KimMobilityStrategy::update(
    assert( cd_cl );
    assert( cd_cs );
    assert( cd_mob );
-
-   const hier::Box& pbox ( patch->getBox() );
-   int imin[3] = {pbox.lower(0),pbox.lower(1),0};
-   int imax[3] = {pbox.upper(0),pbox.upper(1),0};
-#if (NDIM == 3)
-   imin[2] = pbox.lower(2);
-   imax[2] = pbox.upper(2);
-#endif
+   assert( cd_mob->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0] );
+   assert( cd_mob->getGhostCellWidth()[0] <= cd_cl->getGhostCellWidth()[0] );
 
    const hier::Box& temp_gbox = cd_te->getGhostBox();
    int min_te[3] = {temp_gbox.lower(0),temp_gbox.lower(1),0};
@@ -175,31 +169,30 @@ void KimMobilityStrategy::update(
 
    const hier::Box& mo_gbox = cd_mob->getGhostBox();
    int min_mo[3] = {mo_gbox.lower(0),mo_gbox.lower(1),0};
-   int inc_j_mo = mo_gbox.numberCells(0);
 #if (NDIM == 3)
    min_mo[2] = mo_gbox.lower(2);
-   int inc_k_mo = inc_j_mo * mo_gbox.numberCells(1);
-#else
-   int inc_k_mo = 0;
 #endif
 
-   int idx_te = (imin[0]-min_te[0])
-              + (imin[1]-min_te[1])*inc_j_te
-              + (imin[2]-min_te[2])*inc_k_te;
-   int idx_ci = (imin[0]-min_ci[0])
-              + (imin[1]-min_ci[1])*inc_j_ci
-              + (imin[2]-min_ci[2])*inc_k_ci;
-   int idx_mo = (imin[0]-min_mo[0])
-              + (imin[1]-min_mo[1])*inc_j_mo
-              + (imin[2]-min_mo[2])*inc_k_mo;
+   int max_mo[3] = {mo_gbox.upper(0),mo_gbox.upper(1),0};
+#if (NDIM == 3)
+   max_mo[2] = mo_gbox.upper(2);
+#endif
+
+   int idx_te = (min_mo[0]-min_te[0])
+              + (min_mo[1]-min_te[1])*inc_j_te
+              + (min_mo[2]-min_te[2])*inc_k_te;
+   int idx_ci = (min_mo[0]-min_ci[0])
+              + (min_mo[1]-min_ci[1])*inc_j_ci
+              + (min_mo[2]-min_ci[2])*inc_k_ci;
+   int idx_mo = 0;
 
    std::vector<double> phaseconc(2*d_ncompositions); // 2 for two phases
    double* cl=&phaseconc[0];
    double* cs=&phaseconc[d_ncompositions];
 
-   for ( int kk = imin[2]; kk <= imax[2]; kk++ ) {
-      for ( int jj = imin[1]; jj <= imax[1]; jj++ ) {
-         for ( int ii = imin[0]; ii <= imax[0]; ii++ ) {
+   for ( int kk = min_mo[2]; kk <= max_mo[2]; kk++ ) {
+      for ( int jj = min_mo[1]; jj <= max_mo[1]; jj++ ) {
+         for ( int ii = min_mo[0]; ii <= max_mo[0]; ii++ ) {
 
             const double temp = cd_te->getPointer()[idx_te];
             for(unsigned ic=0;ic<d_ncompositions;ic++)
@@ -213,13 +206,11 @@ void KimMobilityStrategy::update(
             idx_ci++;
             idx_mo++;
          }
-         idx_te+=2*cd_te->getGhostCellWidth()[0];
-         idx_ci+=2*cd_cl->getGhostCellWidth()[0];
-         idx_mo+=2*cd_mob->getGhostCellWidth()[0];
+         idx_te+=2*(cd_te->getGhostCellWidth()[0]-cd_mob->getGhostCellWidth()[0]);
+         idx_ci+=2*(cd_cl->getGhostCellWidth()[0]-cd_mob->getGhostCellWidth()[0]);
       }
-      idx_te+=2*inc_j_te*cd_te->getGhostCellWidth()[1];
-      idx_ci+=2*inc_j_ci*cd_cl->getGhostCellWidth()[1];
-      idx_mo+=2*inc_j_mo*cd_mob->getGhostCellWidth()[1];
+      idx_te+=2*inc_j_te*(cd_te->getGhostCellWidth()[1]-cd_mob->getGhostCellWidth()[1]);
+      idx_ci+=2*inc_j_ci*(cd_cl->getGhostCellWidth()[1]-cd_mob->getGhostCellWidth()[1]);
    }
 }
 
