@@ -60,7 +60,9 @@ public:
          mobility_strategy.reset( new SimpleQuatMobilityStrategy( model ) );
       else{
          //no support for composition dependent diffusion for now
-         assert( !model_parameters.conDiffusionStrategyIsCTD() );
+         if( model_parameters.conDiffusionStrategyIsCTD() ){
+            TBOX_ERROR("No support for Kim's mobility for composition dependent diffusion!!\n");
+         }
 
          boost::shared_ptr<tbox::Database> conc_calphad_db=
             conc_db->getDatabase( "Calphad" );
