@@ -1,0 +1,105 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time            = 5.e-5
+max_timesteps       = 30000
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+FreeEnergyDiagnostics{
+   filename = "calphadCuNi.vtk" // where to dump f(phi,c) 
+}
+
+Visit {
+   interval = 2.5e-7
+   interval_type = "time"
+   rhs_output = TRUE
+   extra_output = TRUE
+}
+
+ModelParameters {
+   H_parameter = -1
+   
+   Temperature {
+      temperature        = 1550. // [K]
+   }
+   
+   epsilon_phi = 0.125   // [(pJ/um)^1/2]
+
+   phi_mobility_type = "kim"
+ 
+   phi_well_scale = 40. // [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   avg_func_type = "arithmetic"
+   
+   ConcentrationModel {
+      model    = "calphad"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      molar_volume = 6.8812e-6 // [m^3/mol]
+      Calphad {
+         filename ="calphadCuNi.dat"
+      }
+      diffusion_type = "temperature_dependent"
+      D_solid  =  0.e-5 //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+      NewtonSolver{
+         max_its = 50
+      }
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "value", "1."
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "value", "0.457175"
+         boundary_1 = "value", "0.457175"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 2.5e-7
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+   }
+}
+
+InitialConditions {
+   filename = "2048x1.nc"  // required
+   init_c   = 0.457175
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 2048, 1
+   x_lo         =  0.0,  0.0   // [um]
+   x_up         =  2.048,  0.001 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_exclusive = TRUE
+}
+

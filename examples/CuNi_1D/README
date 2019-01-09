@@ -1,0 +1,17 @@
+#create initial conditions
+ln -s ../../utils/make_bilayer.py
+
+python make_bilayer.py -x 2048 -y 1  -z 1 -r 20 -d 1 \
+   --centerx 0. 20148x1.nc
+
+ln -fs ../../thermodynamic_data/calphadCuNi.dat
+
+mpirun -np 8 ../../build/source/ampe2d bilayer.input
+
+#analyse composition evolution (may need to adapt parameters in lineout_extract.py)
+visit -nowin -cli -verbose -s lineout_extract.py > lineout_extract.dat
+
+#plot results
+gnuplot lineout.plt
+display lineout.png
+
