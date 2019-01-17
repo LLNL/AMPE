@@ -92,7 +92,7 @@ void setBChomogeneous(solv::LocationIndexRobinBcCoefs* bc_coefs){
    for( int n =0; n<2*NDIM; n++){
       double a,b,g;
       bc_coefs->getCoefficients(n,a,b,g);
-      //tbox::plog<<"BC for Temperature linear solver:"<<endl;
+      //tbox::plog<<"BC for linear solver:"<<endl;
       //tbox::plog<<"old values: "<<a<<","<<b<<","<<g<<endl;
       g=0.;
       //tbox::plog<<"new values: "<<a<<","<<b<<","<<g<<endl;
@@ -193,6 +193,7 @@ QuatIntegrator::QuatIntegrator(
      d_f_a_id( -1 ),
      d_f_b_id( -1 ),
      d_phase_rhs_visit_id(-1),
+     d_conc_rhs_visit_id(-1),
      d_driving_force_visit_id(-1),
      d_q_rhs_visit_id(-1),
      d_modulus_q_rhs_visit_id(-1),
@@ -1120,6 +1121,18 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          assert( d_driving_force_visit_id >= 0 );
          d_local_data.setFlag( d_driving_force_visit_id );
       }
+      if( d_with_concentration) {
+         d_conc_rhs_visit_var.reset (
+            new pdat::CellVariable<double>(
+               tbox::Dimension(NDIM), d_name+"_conc_rhs_visit_", 1 ));
+         d_conc_rhs_visit_id =
+            variable_db->registerVariableAndContext(
+               d_conc_rhs_visit_var,
+               d_current,
+               hier::IntVector(tbox::Dimension(NDIM),0) );
+         assert( d_conc_rhs_visit_id >= 0 );
+         d_local_data.setFlag( d_conc_rhs_visit_id );
+      }
       if( d_with_heat_equation ) {
          d_temperature_rhs_visit_var.reset (
             new pdat::CellVariable<double>(
@@ -1614,6 +1627,11 @@ void QuatIntegrator::RegisterWithVisit(
          assert( d_driving_force_visit_id>=0 );
          visit_data_writer->registerPlotQuantity(
             "driving_force", "SCALAR", d_driving_force_visit_id, 0 );
+      }
+      if( d_with_concentration ){
+         assert( d_conc_rhs_visit_id>=0 );
+         visit_data_writer->registerPlotQuantity(
+            "conc_rhs", "SCALAR", d_conc_rhs_visit_id, 0 );
       }
       if ( d_with_heat_equation ) {
          assert( d_temperature_rhs_visit_id>0 );
@@ -3272,7 +3290,8 @@ void QuatIntegrator::evaluateConcentrationRHS(
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int phase_id,
    const int conc_rhs_id,
-   const int temperature_id)
+   const int temperature_id,
+   const bool visit_flag )
 {
    assert( phase_id >= 0 );
    assert( conc_rhs_id >= 0 );
@@ -3361,6 +3380,11 @@ void QuatIntegrator::evaluateConcentrationRHS(
             conc_rhs->getPointer(ic), 0);
       }
       
+   }
+   if( d_model_parameters.with_rhs_visit_output() && visit_flag ){
+      assert( d_conc_rhs_visit_id>=0 );
+      math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+      cellops.copyData( d_conc_rhs_visit_id,  conc_rhs_id, false );
    }
 
    t_conc_rhs_timer->stop();
@@ -4018,7 +4042,8 @@ int QuatIntegrator::evaluateRHSFunction(
          hierarchy,
          d_phase_scratch_id,
          ydot_conc_id,
-         d_temperature_scratch_id);
+         d_temperature_scratch_id,
+         fd_flag==0 );
 
       assert( checkForNans(hierarchy,ydot_conc_id)==0 );
    }

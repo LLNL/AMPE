@@ -432,7 +432,8 @@ protected:
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int phase_id,
       const int conc_rhs_id,
-      const int temperature_id);
+      const int temperature_id,
+      const bool visit_flag );
 
    void resetSolutionVector(const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
    void fillScratch(
@@ -827,6 +828,9 @@ private :
 
    boost::shared_ptr< pdat::CellVariable<double> > d_temperature_rhs_visit_var;
    int d_temperature_rhs_visit_id;
+
+   boost::shared_ptr< pdat::CellVariable<double> > d_conc_rhs_visit_var;
+   int d_conc_rhs_visit_id;
 
    boost::shared_ptr< pdat::CellVariable<double> > d_q_rhs1_visit_var;
    int d_q_rhs1_visit_id;
