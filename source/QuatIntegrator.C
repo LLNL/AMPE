@@ -1398,8 +1398,9 @@ void QuatIntegrator::setupBC()
             assert( d_dphidt_scratch_id>=0 );
             d_dphidt_bc_coefs = new solv::LocationIndexRobinBcCoefs(
                tbox::Dimension(NDIM),"DphiDtBcCoefs", conc_bc_db);
+            //set BC values to 0 to have a 0 antitrapping flux at the boundary
             for(int i=0;i<2*NDIM;i++){
-               d_dphidt_bc_coefs->setBoundarySlope(i,0.);
+               d_dphidt_bc_coefs->setBoundaryValue(i,0.);
             }
             d_dphidt_bc_helper = new solv::CartesianRobinBcHelper(
                tbox::Dimension(NDIM), "DphiDtBcHelper");
@@ -3323,9 +3324,6 @@ void QuatIntegrator::evaluateConcentrationRHS(
             d_composition_rhs_strategy->addFluxFromAntitrappingonPatch(
                *patch, phase_id, d_dphidt_scratch_id, d_alpha_AT,
                d_flux_conc_id);
-         if( !d_all_periodic )
-            d_composition_rhs_strategy->setZeroFluxAtBoundaryOnPatch(
-               *patch, d_flux_conc_id);
       }
 
       // Coarsen flux data from next finer level so that
