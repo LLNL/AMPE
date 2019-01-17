@@ -226,3 +226,18 @@ target_link_libraries(plotEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_SAMRAI}
                          ${PROJECT_LINK_LIBS_HDF5})
 
+add_executable(computeCALPHADbinaryEquilibrium
+               computeCALPHADbinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
+               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               )
+target_link_libraries(computeCALPHADbinaryEquilibrium
+                      ${PROJECT_LINK_LIBS_SAMRAI})
