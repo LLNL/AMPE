@@ -14,7 +14,7 @@ x0=1.051772928
 
 lambda=0.0105
 
-c(x)  = (x>0.) ? c0+(ceql-c0)*exp(-v*x/DL) : ceql
+c(x)  = (x>0.) ? c0+(ceql-c0)*exp(-v*x/DL) : ceqs
 
 set xlabel "position in {/Symbol m}m"
 set ylabel "mole fraction of Cu"
