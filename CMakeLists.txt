@@ -80,6 +80,7 @@ add_definitions(-DNDIM=${NDIM})
 
 enable_language(Fortran C CXX)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -std=c++11")
 
 add_subdirectory(source)
