@@ -1,2 +1,2 @@
 # AMPE
-Adaptive Mesh Phase-field Evolution
+See code in "release" branch.
