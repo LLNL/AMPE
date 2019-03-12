@@ -34,7 +34,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #ifndef included_BeckermannCompositionRHSStrategy
-#define included_BeckermannCompositionRHSStrategy 
+#define included_BeckermannCompositionRHSStrategy
 
 #include "CompositionRHSStrategy.h"
 

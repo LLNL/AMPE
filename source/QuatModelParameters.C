@@ -358,6 +358,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
       d_initc_in_phase.resize(nterms);
       conc_db->getDoubleArray("initc_in_phase",&d_initc_in_phase[0],nterms);
    }
+
+   d_init_phase_conc_eq =
+      conc_db->getBoolWithDefault("init_phase_conc_eq", true);
 }
 
 //=======================================================================

@@ -91,6 +91,19 @@ c        Valid values for type are "quadratic" and "pbg"
          phit = min( 1.d0, phit )
          interp_func = phit
 
+      else if ( type(1:1) .eq. 'a' ) then
+
+         if( phi < 0.08333333333333333d0 )then
+            phit = max( 0.d0, phi )
+            interp_func = 54.d0*phit*phit*phit
+         else if( phi>0.9166666666666666d0 )then
+            phit = min( 1.d0, phi )
+            phit = 1.d0-phit
+            interp_func = 1.d0-54.d0*phit*phit*phit
+         else
+            interp_func = 1.125*phi-0.0625
+         endif
+
       else if ( type(1:1) .eq. '3'  ) then
 
          phit = max( 0.d0, phi )
@@ -173,6 +186,19 @@ c-----------------------------------------------------------------------
              deriv_interp_func = 0.d0
          endif
 
+      else if ( type(1:1) .eq. 'a' ) then
+
+         if( phi < 0.08333333333333333d0 )then
+            phit = max( 0.d0, phi )
+            deriv_interp_func = 162.d0*phit*phit
+         else if( phi>0.9166666666666666d0 )then
+            phit = min( 1.d0, phi )
+            phit = 1.d0-phit
+            deriv_interp_func = 162.d0*phit*phit
+         else
+            deriv_interp_func = 1.125
+         endif
+
       else if ( type(1:1) .eq. '3' ) then
 
          phit = max( 0.d0, phi )
@@ -235,6 +261,19 @@ c=======================================================================
       else if ( type(1:1) .eq. 'l' ) then
 
          second_deriv_interp_func = 0.d0
+
+      else if ( type(1:1) .eq. 'a' ) then
+
+         if( phi < 0.08333333333333333d0 )then
+            phit = max( 0.d0, phi )
+            second_deriv_interp_func = 324.d0*phit
+         else if( phi>0.9166666666666666d0 )then
+            phit = min( 1.d0, phi )
+            phit = 1.d0-phit
+            second_deriv_interp_func = -324.d0*phit
+         else
+            second_deriv_interp_func = 0.d0
+         endif
 
       else if ( type(1:1) .eq. 'c' ) then
 
@@ -538,13 +577,13 @@ c-----------------------------------------------------------------------
       double precision phi, phit
       character*(*) type1, type2
 
-      if ( type1(1:1) .eq. 'p' )then
+      if ( type1(1:1) .eq. type2(1:1) )then
 
-         if ( type2(1:1) .eq. 'p' )then 
+         interp_ratio = 1.d0
 
-            interp_ratio = 1.d0
+      else if ( type1(1:1) .eq. 'p' )then
 
-         else if ( type2(1:1) .eq. 'l' )then
+         if ( type2(1:1) .eq. 'l' )then
 
             phit = max( 0.d0, min( 1.d0, phi ) )
 
@@ -577,7 +616,11 @@ c-----------------------------------------------------------------------
       double precision phi, phit
       character*(*) type1, type2
 
-      if ( type1(1:1) .eq. 'p' )then
+      if ( type1(1:1) .eq. type2(1:1) )then
+
+         compl_interp_ratio = 1.d0
+
+      else if ( type1(1:1) .eq. 'p' )then
 
          if ( type2(1:1) .eq. 'p' )then
 
@@ -592,7 +635,7 @@ c-----------------------------------------------------------------------
 
          else
 
-            print *, "Error, interp_ratio: unknown/incompatible types"
+            print *, "Error, compl_interp_ratio: unknown/incomp. types"
             stop
 
          endif

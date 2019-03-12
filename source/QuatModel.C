@@ -2772,7 +2772,8 @@ void QuatModel::preRunDiagnostics( void )
          if( found_ceq && !d_is_from_restart)
          {
             setRefPhaseConcentrationsToEquilibrium(ceq);
-            setPhaseConcentrationsToEquilibrium(ceq);
+            if( d_model_parameters.initPhaseConcAtEq() )
+               setPhaseConcentrationsToEquilibrium(ceq);
          }
          
       } // with_concentration

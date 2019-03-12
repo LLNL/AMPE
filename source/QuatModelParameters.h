@@ -356,7 +356,12 @@ public:
    {
       return d_epsilon_phase/sqrt(32.*d_phase_well_scale);
    }
- 
+
+   bool initPhaseConcAtEq()const
+   {
+      return d_init_phase_conc_eq;
+   }
+
 private:
    void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
 
@@ -508,6 +513,8 @@ private:
    bool d_rhs_visit_output;
    bool d_visit_energy_output;
    bool d_visit_grain_output;
+
+   bool d_init_phase_conc_eq;
 
    void readMolarVolumes(boost::shared_ptr<tbox::Database> db);
 };
