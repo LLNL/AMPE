@@ -60,6 +60,7 @@ public:
       HBSM,
       LINEAR,
       INDEPENDENT, // energy does not depend on c
+      KKSdilute,
       UNDEFINED
    };
 
@@ -279,6 +280,13 @@ public:
       assert( d_conc_model != ConcModel::UNDEFINED );
       
       return ( d_conc_model == ConcModel::HBSM );
+   }
+
+   bool isConcentrationModelKKSdilute()const
+   {
+      assert( d_conc_model != ConcModel::UNDEFINED );
+
+      return ( d_conc_model == ConcModel::KKSdilute );
    }
    
    bool isTemperatureUniform()const

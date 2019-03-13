@@ -35,6 +35,7 @@
 // 
 #include "CALPHADConcSolverBinary.h"
 #include "CALPHADFunctions.h"
+#include "xlogx.h"
 
 #include <iostream>
 #include <cmath>

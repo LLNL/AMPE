@@ -198,6 +198,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    else if ( conc_model[0] == 'i' ) {
       d_conc_model = ConcModel::INDEPENDENT; //energy independent of composition
    }
+   else if ( conc_model[0] == 'd' ) {
+      d_conc_model = ConcModel::KKSdilute;
+   }
    else {
       TBOX_ERROR( "Error: unknown concentration model in QuatModelParameters" );
    }

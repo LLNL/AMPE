@@ -1,0 +1,31 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+
+ModelParameters {
+   concentration = 0.05
+   phi = 0.5
+
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature        = 1710. // [K]
+   }
+   
+   ConcentrationModel {
+      liquidus_slope = -310.9 // K
+      meltingT = 1728. // K
+      keq      = 0.7965
+      //molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+}
+
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","PFModel::*"
+    print_threshold = 0.0
+}

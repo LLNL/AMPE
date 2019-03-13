@@ -33,74 +33,58 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "DampedNewtonSolver.h"
 
-#include <iostream>
-#include <cmath>
-#include <cassert>
-
-#include <iomanip>
-
-using namespace std;
-
-//=======================================================================
-
-DampedNewtonSolver::DampedNewtonSolver() :
-      NewtonSolver(),
-      d_alpha( 1. )
-{};
-
-   
-//=======================================================================
-// note: sizes to accomodate up to ternary alloys
+//====================================================================
+// C2 extension of x(log(x) function for x<=smallx
 //
-// c: solution to be updated
-void DampedNewtonSolver::UpdateSolution(
-   double* const c,
-   const double* const fvec,
-   double** const fjac )
+#include <cmath>
+
+static const double s_smallx = 1.0e-8;
+static const double s_inv_smallx = 1./s_smallx;
+static const double s_log_smallx = log( s_smallx );
+static const double s_smallx_log_smallx = s_smallx * s_log_smallx;
+
+double xlogx( const double x )
 {
-   int nn=size();
+   double r;
 
-   static double* mwork[5];
-   static double mtmp[25];
-   for ( int ii = 0; ii < nn; ii++ ) {
-      mwork[ii] = &mtmp[ii*nn];
+   if ( x > s_smallx ) {
+      r = x * log( x );
+   }
+   else {
+      r = s_smallx_log_smallx +
+         ( x - s_smallx ) * s_log_smallx +
+         0.5 * ( x * x * s_inv_smallx - s_smallx );
    }
 
-   const double D = Determinant( fjac );
-   assert( fabs(D)>1.e-15 );
-
-   const double D_inv = 1.0 / D;
-
-   //cout<<setprecision(12);
-   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
-
-   static double del[5];
-
-   // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < nn; jj++ ) {
-
-      CopyMatrix( mwork, fjac );
-      
-      //replace jth column with rhs
-      for ( int ii = 0; ii < nn; ii++ ) {
-         mwork[ii][jj] = fvec[ii];
-      }
-
-      const double Dmwork = Determinant( mwork );
-      //cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
-      del[jj] = D_inv * Dmwork;
-
-      const double maxdel=0.25;
-      if( fabs(del[jj])>maxdel)
-         del[jj] = del[jj]>0 ? maxdel : -maxdel;
-
-      //cout << "del[" << jj << "] = " << del[jj] << endl;
-   }
-
-   double w = d_alpha;
-   for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del[ii];
-   }
+   return r;
 }
+
+double xlogx_deriv( const double x )
+{
+   double r;
+
+   if ( x > s_smallx ) {
+      r = log( x ) + 1.0;
+   }
+   else {
+      r = s_log_smallx + x * s_inv_smallx;
+   }
+
+   return r;
+}
+
+double xlogx_deriv2( const double x )
+{
+   double r;
+
+   if ( x > s_smallx ) {
+      r = 1./x;
+   }
+   else {
+      r = s_inv_smallx;
+   }
+
+   return r;
+}
+

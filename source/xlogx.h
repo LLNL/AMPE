@@ -33,74 +33,11 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "DampedNewtonSolver.h"
+#ifndef included_xlogx
 
-#include <iostream>
-#include <cmath>
-#include <cassert>
+double xlogx( const double x );
+double xlogx_deriv( const double x );
+double xlogx_deriv2( const double x );
 
-#include <iomanip>
+#endif
 
-using namespace std;
-
-//=======================================================================
-
-DampedNewtonSolver::DampedNewtonSolver() :
-      NewtonSolver(),
-      d_alpha( 1. )
-{};
-
-   
-//=======================================================================
-// note: sizes to accomodate up to ternary alloys
-//
-// c: solution to be updated
-void DampedNewtonSolver::UpdateSolution(
-   double* const c,
-   const double* const fvec,
-   double** const fjac )
-{
-   int nn=size();
-
-   static double* mwork[5];
-   static double mtmp[25];
-   for ( int ii = 0; ii < nn; ii++ ) {
-      mwork[ii] = &mtmp[ii*nn];
-   }
-
-   const double D = Determinant( fjac );
-   assert( fabs(D)>1.e-15 );
-
-   const double D_inv = 1.0 / D;
-
-   //cout<<setprecision(12);
-   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
-
-   static double del[5];
-
-   // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < nn; jj++ ) {
-
-      CopyMatrix( mwork, fjac );
-      
-      //replace jth column with rhs
-      for ( int ii = 0; ii < nn; ii++ ) {
-         mwork[ii][jj] = fvec[ii];
-      }
-
-      const double Dmwork = Determinant( mwork );
-      //cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
-      del[jj] = D_inv * Dmwork;
-
-      const double maxdel=0.25;
-      if( fabs(del[jj])>maxdel)
-         del[jj] = del[jj]>0 ? maxdel : -maxdel;
-
-      //cout << "del[" << jj << "] = " << del[jj] << endl;
-   }
-
-   double w = d_alpha;
-   for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del[ii];
-   }
-}

@@ -34,63 +34,13 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "CALPHADFunctions.h"
+#include "xlogx.h"
 
 #include <cmath>
 #include <cassert>
 #include <stddef.h>
 using namespace std;
 
-static const double s_smallx = 1.0e-8;
-static const double s_inv_smallx = 1./s_smallx;
-static const double s_log_smallx = log( s_smallx );
-static const double s_smallx_log_smallx = s_smallx * s_log_smallx;
-
-//-----------------------------------------------------------------------
-// C2 extension of x(log(x) function for x<=smallx
-//
-double xlogx( const double x )
-{
-   double r;
-   
-   if ( x > s_smallx ) {
-      r = x * log( x );
-   }
-   else {
-      r = s_smallx_log_smallx +
-         ( x - s_smallx ) * s_log_smallx +
-         0.5 * ( x * x * s_inv_smallx - s_smallx );
-   }
-
-   return r;
-}
-
-double xlogx_deriv( const double x )
-{
-   double r;
-   
-   if ( x > s_smallx ) {
-      r = log( x ) + 1.0;
-   }
-   else {
-      r = s_log_smallx + x * s_inv_smallx;
-   }
-
-   return r;
-}
-
-double xlogx_deriv2( const double x )
-{
-   double r;
-   
-   if ( x > s_smallx ) {
-      r = 1./x;
-   }
-   else {
-      r = s_inv_smallx;
-   }
-
-   return r;
-}
 
 double CALPHADcomputeFMixBinary(
    const double l0,

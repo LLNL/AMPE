@@ -33,74 +33,73 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "DampedNewtonSolver.h"
+#include "KKSdiluteBinaryConcentrationSolver.h"
+#include "xlogx.h"
 
 #include <iostream>
 #include <cmath>
 #include <cassert>
 
-#include <iomanip>
-
 using namespace std;
 
 //=======================================================================
 
-DampedNewtonSolver::DampedNewtonSolver() :
-      NewtonSolver(),
-      d_alpha( 1. )
-{};
+KKSdiluteBinaryConcentrationSolver::KKSdiluteBinaryConcentrationSolver()
+{
+   d_N = 2;
+}
 
-   
 //=======================================================================
-// note: sizes to accomodate up to ternary alloys
-//
-// c: solution to be updated
-void DampedNewtonSolver::UpdateSolution(
-   double* const c,
-   const double* const fvec,
+
+// solve for c=(c_L, c_A)
+void KKSdiluteBinaryConcentrationSolver::RHS(
+   const double* const c,
+   double* const fvec )
+{
+   fvec[0] =
+      -d_c0 + ( 1.0 - d_hphi ) * c[0] + 
+      d_hphi * c[1];
+   fvec[1] = xlogx_deriv(c[0])-xlogx_deriv(1.-c[0])
+            -xlogx_deriv(c[1])+xlogx_deriv(1.-c[1])
+            - (d_fA-d_fB);
+   cout<< "d_fA="<<d_fA<<", d_fB="<<d_fB<<endl;
+}
+
+//=======================================================================
+
+void KKSdiluteBinaryConcentrationSolver::Jacobian(
+   const double* const c,
    double** const fjac )
 {
-   int nn=size();
+   fjac[0][0] = ( 1.0 - d_hphi );
+   fjac[0][1] = d_hphi;
 
-   static double* mwork[5];
-   static double mtmp[25];
-   for ( int ii = 0; ii < nn; ii++ ) {
-      mwork[ii] = &mtmp[ii*nn];
-   }
+   fjac[1][0] =  xlogx_deriv2(c[0])+xlogx_deriv2(1.-c[0]);
+   fjac[1][1] = -xlogx_deriv2(c[1])-xlogx_deriv2(1.-c[1]);
+}
 
-   const double D = Determinant( fjac );
-   assert( fabs(D)>1.e-15 );
+/*
+ ********************************************************************
+ * conc: initial guess and final solution (concentration in each phase)
+ * c0: local composition
+ ********************************************************************
+ */
+int KKSdiluteBinaryConcentrationSolver::ComputeConcentration(
+   double* const conc,
+   const double c0,
+   const double hphi,
+   const double RTinv,
+   const double fA,
+   const double fB )
+{
+   (void) RTinv;
 
-   const double D_inv = 1.0 / D;
+   //std::cout<<"KKSdiluteBinaryConcentrationSolver::ComputeConcentration()"<<endl;
+   d_c0 = c0;
+   d_hphi = hphi;
+   d_fA = fA;
+   d_fB = fB;
 
-   //cout<<setprecision(12);
-   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
-
-   static double del[5];
-
-   // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < nn; jj++ ) {
-
-      CopyMatrix( mwork, fjac );
-      
-      //replace jth column with rhs
-      for ( int ii = 0; ii < nn; ii++ ) {
-         mwork[ii][jj] = fvec[ii];
-      }
-
-      const double Dmwork = Determinant( mwork );
-      //cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
-      del[jj] = D_inv * Dmwork;
-
-      const double maxdel=0.25;
-      if( fabs(del[jj])>maxdel)
-         del[jj] = del[jj]>0 ? maxdel : -maxdel;
-
-      //cout << "del[" << jj << "] = " << del[jj] << endl;
-   }
-
-   double w = d_alpha;
-   for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del[ii];
-   }
+   int ret= NewtonSolver::ComputeSolution( conc, d_N );
+   return ret;
 }

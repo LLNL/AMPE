@@ -1,0 +1,502 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
+// UT-Battelle, LLC.
+// Produced at the Lawrence Livermore National Laboratory and
+// the Oak Ridge National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE. 
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+// Redistribution and use in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions are met:
+// - Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the disclaimer below.
+// - Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the disclaimer (as noted below) in the
+//   documentation and/or other materials provided with the distribution.
+// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
+//   used to endorse or promote products derived from this software without
+//   specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
+// LLC, UT BATTELLE, LLC, 
+// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+// 
+#include "xlogx.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "PhysicalConstants.h"
+#include "FuncFort.h"
+
+
+#include <string>
+using namespace std;
+
+
+KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
+   boost::shared_ptr<SAMRAI::tbox::Database> input_db,
+   boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type):
+      d_energy_interp_func_type(energy_interp_func_type),
+      d_conc_interp_func_type(conc_interp_func_type)
+{
+   d_fenergy_diag_filename = "energy.vtk";
+
+   d_ceq_l=-1;
+   d_ceq_a=-1;
+   
+   readParameters(input_db);
+
+   d_fA = log( 1./d_ke);
+
+   setupSolver(newton_db);
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::setupSolver(
+   boost::shared_ptr<tbox::Database> newton_db)
+{
+   tbox::plog << "KKSFreeEnergyFunctionDiluteBinary::setupSolver()..." << endl;
+   d_solver = new KKSdiluteBinaryConcentrationSolver();
+
+   readNewtonparameters(newton_db);
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::readNewtonparameters(
+   boost::shared_ptr<tbox::Database> newton_db)
+{
+   if( newton_db!=NULL ){
+      double tol =newton_db->getDoubleWithDefault( "tol", 1.e-8 );
+      double alpha = newton_db->getDoubleWithDefault( "alpha", 1. );
+      int maxits = newton_db->getIntegerWithDefault( "max_its", 20 );
+      const bool verbose = newton_db->getBoolWithDefault( "verbose", false );
+   
+      d_solver->SetTolerance( tol );
+      d_solver->SetMaxIterations( maxits );
+      d_solver->SetDamping( alpha );
+      d_solver->SetVerbose( verbose );
+   }
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::readParameters(
+   boost::shared_ptr<tbox::Database> input_db)
+{   
+   d_me = input_db->getDouble( "liquidus_slope" );
+   d_Tm = input_db->getDouble( "meltingT" );
+   d_ke = input_db->getDouble( "keq" );
+
+   assert( d_Me < 0. );
+   assert( d_Tm > 0. );
+   assert( d_ke <= 1. );
+}
+
+//-----------------------------------------------------------------------
+
+double KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(
+   const double temperature,
+   const double* const conc,
+   const PHASE_INDEX pi,
+   const bool gp )
+{
+   double fe = xlogx(conc[0]) + xlogx(1.-conc[0]);
+   setupFB( temperature );
+
+   switch( pi ){
+      case phaseL:
+         break;
+      case phaseA:
+         fe += conc[0]*d_fA+(1.-conc[0])*d_fB;
+         break;
+      default:
+         SAMRAI::tbox::pout<<
+            "KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase="
+            <<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::SAMRAI_MPI::abort();
+      return 0.;
+   }
+
+   fe *= gas_constant_R_JpKpmol * temperature;
+ 
+   // subtract -mu*c to get grand potential
+   if( gp ){
+      double deriv;
+      computeDerivFreeEnergy(temperature,conc,pi,&deriv);
+      fe -= deriv*conc[0];
+   }
+   
+   return fe;
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::computeDerivFreeEnergy(
+   const double temperature,
+   const double* const conc,
+   const PHASE_INDEX pi,
+   double* deriv )
+{
+   double mu = xlogx_deriv( conc[0] ) - xlogx_deriv( 1.0 - conc[0] );
+ 
+   switch( pi ){
+      case phaseL:
+         break;
+      case phaseA:
+         setupFB( temperature );
+         mu += (d_fA-d_fB);
+         break;
+      default:
+         SAMRAI::tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::SAMRAI_MPI::abort();
+      return;
+   }
+
+   deriv[0] = gas_constant_R_JpKpmol * temperature * mu;
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::computeSecondDerivativeFreeEnergy(
+   const double temp,
+   const double* const conc,
+   const PHASE_INDEX pi,
+   std::vector<double>& d2fdc2)
+{
+   assert( conc[0]>=0. );
+   assert( conc[0]<=1. );
+   
+   const double rt = gas_constant_R_JpKpmol * temp;
+
+   d2fdc2[0] = rt * ( xlogx_deriv2( conc[0] ) + xlogx_deriv2( 1.0 - conc[0] ) );
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::setupFB(const double temperature)
+{
+   assert( d_ke > 0. );
+
+   const double cLe = (temperature-d_Tm)/d_me;
+   const double cSe = cLe*d_ke;
+
+   d_fB = log( 1.-cLe ) - log( 1.-cSe );
+}
+
+//=======================================================================
+
+// compute equilibrium concentrations in various phases for given temperature
+bool KKSFreeEnergyFunctionDiluteBinary::computeCeqT(
+   const double temperature,
+   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   double* ceq,
+   const int maxits,
+   const bool verbose )
+{
+   if(verbose)tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computeCeqT()"<<endl;
+   assert( temperature>0. );
+
+   d_ceq_l = (temperature-d_Tm)/d_me;
+   d_ceq_a = d_ceq_l*d_ke;
+
+   return true;
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies(
+   const double temperature,
+   const double hphi,
+   const double conc,
+   double& fl,
+   double& fa)
+{
+   //tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies()"<<endl;
+   
+   double c[2]={conc,conc};
+   //tbox::pout<<"d_ceq_l="<<d_ceq_l<<endl;
+   //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
+   if( d_ceq_l>=0. )c[0]=d_ceq_l;
+   if( d_ceq_a>=0. )c[1]=d_ceq_a;
+   
+   setupFB(temperature);
+
+   double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
+   int ret = d_solver->ComputeConcentration(
+      c,
+      conc,
+      hphi,
+      RTinv,
+      d_fA, d_fB );
+
+   if( ret<0 )
+   {
+      cerr<<"ERROR in KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies() ---"
+          <<"conc="<<conc<<", hphi="<<hphi<<endl;
+      tbox::SAMRAI_MPI::abort();
+   }
+
+   assert( c[0]>=0. );
+   fl = computeFreeEnergy(temperature,&c[0],phaseL,false);
+
+   assert( c[1]>=0. );
+   fa = computeFreeEnergy(temperature,&c[1],phaseA,false);
+}
+
+//-----------------------------------------------------------------------
+
+int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
+   const double temperature, const double* const conc, 
+   const double phi, const double eta,
+   double* x)
+
+{
+   assert( x[0]>=0. );
+   assert( x[1]>=0. );
+   assert( x[0]<=1. );
+   assert( x[1]<=1. );
+   
+   const double conc0 = conc[0];
+   
+   const double hphi =
+      FORT_INTERP_FUNC(
+         phi,
+         d_conc_interp_func_type.c_str() );
+
+   //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
+   //x[0] = ( d_ceq_l>=0. ) ? d_ceq_l : 0.5;
+   //x[1] = ( d_ceq_a>=0. ) ? d_ceq_a : 0.5;
+
+   setupFB( temperature );
+
+   // conc could be outside of [0.,1.] in a trial step
+   double c0 = conc[0]>=0. ? conc[0] : 0.;
+   c0 = c0<=1. ? c0 : 1.;
+   int ret = d_solver->ComputeConcentration(
+      x,
+      c0,
+      hphi,
+      -1., //unused parameter
+      d_fA, d_fB );
+   if( ret==-1 )
+   {
+      cerr<<"ERROR, KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations() failed for conc="<<conc0
+          <<", hphi="<<hphi;
+      sleep(5);
+      tbox::SAMRAI_MPI::abort();
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------
+
+void KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC(
+   const double temperature, 
+   const double* const ceq,
+   const bool found_ceq,
+   const double phi_well_scale,
+   const std::string& phi_well_type,
+   const int npts_phi,
+   const int npts_c)
+{
+   tbox::plog<<"KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC()..."<<endl;
+
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+
+   double slopec = 0.;
+   double fc0=0.;
+   double fc1=0.;
+   if( found_ceq )
+   if( mpi.getRank()==0){
+      // compute slope of f between equilibrium concentrations
+      // to add slopec*conc to energy later on
+   
+      fc0 = computeFreeEnergy(temperature,&ceq[0],phaseL);
+      fc1 = computeFreeEnergy(temperature,&ceq[1],phaseA);
+      slopec = -(fc1-fc0)/(ceq[1]-ceq[0]);
+   }
+   tbox::plog<<setprecision(8)<<"fc0: "<<fc0<<"..."<<", fc1: "<<fc1<<"..."<<endl;
+   tbox::plog<<"KKSFreeEnergyFunctionDiluteBinary: Use slope: "<<slopec<<"..."<<endl;
+   mpi.Barrier();
+      
+   if( mpi.getRank()==0 ){
+   
+      // reset cmin, cmax, deltac
+      double cmin = min(ceq[0],ceq[1]);
+      double cmax = max(ceq[0],ceq[1]);
+      double dc=cmax-cmin;
+      cmin = max( 0.25*cmin,         cmin-0.25*dc );
+      cmax = min( 1.-0.25*(1.-cmax), cmax+0.25*dc );
+      cmax = max( cmax, cmin+dc );
+      double deltac = (cmax - cmin) / (npts_c-1);
+
+      ofstream tfile(d_fenergy_diag_filename.data(), ios::out);
+      
+      printEnergyVsPhiHeader(temperature, npts_phi, 
+                             npts_c, cmin, cmax, slopec,
+                             tfile);
+
+      for ( int i = 0; i < npts_c; i++ ) {
+         double conc=cmin+deltac*i;
+         printEnergyVsPhi( &conc, temperature, phi_well_scale, phi_well_type, 
+                           npts_phi, slopec,
+                           tfile );
+      }
+   }
+   
+}
+
+// Print out free energy as a function of phase
+// for given composition and temperature
+// File format: ASCII VTK, readble with Visit
+void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhiHeader(
+   const double temperature,
+   const int nphi,
+   const int nc,
+   const double cmin,
+   const double cmax,
+   const double slopec,
+   std::ostream& os )const
+{
+   os << "# vtk DataFile Version 2.0"<<endl;
+   os << "Free energy + "<<slopec<<"*c [J/mol] at T="<<temperature<<endl;
+   os << "ASCII"<<endl;
+   os << "DATASET STRUCTURED_POINTS"<<endl;
+
+   os << "DIMENSIONS   "<<nphi<<" "<<nc<<" 1"<<endl;
+   double asp_ratio_c = ( nc>1 ) ? (cmax-cmin)/(nc-1) : 1.;
+   os << "ASPECT_RATIO "<<1./(nphi-1)<<" "<<asp_ratio_c<<" 1."
+      <<endl;
+   os << "ORIGIN        0. "<<cmin<<" 0."<<endl;
+   os << "POINT_DATA   "<<nphi*nc<<endl;
+   os << "SCALARS energy float 1"<<endl;
+   os << "LOOKUP_TABLE default"<<endl;
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi(
+   const double* const conc,
+   const double temperature,
+   const double phi_well_scale,
+   const string& phi_well_type,
+   const int npts,
+   const double slopec,
+   std::ostream& os )
+{
+   //tbox::pout << "KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi()..." << endl;
+   const double dphi = 1.0 / (double)(npts-1);
+   const double eta = 0.0;
+   
+   for ( int i = 0; i < npts; i++ ) {
+      const double phi = i*dphi;
+
+      double e = fchem( phi, eta, conc, temperature );
+      const double w =
+         phi_well_scale *
+         FORT_WELL_FUNC( phi, phi_well_type.c_str() );
+
+      os << e + w + slopec*conc[0] << endl;
+   }
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsEta(
+   const double* const conc,
+   const double temperature,
+   const double eta_well_scale,
+   const string& eta_well_type,
+   const int npts,
+   const double slopec,
+   std::ostream& os )
+{
+   (void) conc;
+   (void) temperature;
+   (void) eta_well_scale;
+   (void) eta_well_type;
+   (void) npts;
+   (void) slopec;
+   (void) os;
+}
+
+//=======================================================================
+// compute free energy in [J/mol]
+double KKSFreeEnergyFunctionDiluteBinary::fchem(
+   const double phi,
+   const double eta,
+   const double* const conc,
+   const double temperature )
+{
+   (void) eta;
+
+   const double hcphi =
+      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
+
+   const double tol=1.e-8;
+   double fl=0.;
+   double fa=0.; 
+   if( (phi>tol) & (phi<(1.-tol)) )
+   {
+      computePhasesFreeEnergies(
+         temperature, hcphi, conc[0],
+         fl, fa);
+   }else{
+      if( phi<=tol )
+      {
+         fl=computeFreeEnergy(temperature,conc,phaseL);
+      }else{
+         fa=computeFreeEnergy(temperature,conc,phaseA);
+      }
+   }
+
+   const double hfphi =
+      FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
+   double e = ( 1.0 - hfphi ) * fl + hfphi * fa ;
+
+   return e;
+}
+
+//=======================================================================
+
+void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsComposition(
+   const double temperature,
+   const int npts )
+{
+   ofstream os("FvsC.dat", ios::out);
+
+   const double dc = 1.0 / (double)(npts-1);
+   
+   os << "#phi=0" << endl;
+   for ( int i = 0; i < npts; i++ ) {
+      const double conc = i*dc;
+
+      double e = fchem( 0., 0., &conc, temperature );
+      os << conc <<"\t"<< e << endl;
+   }
+   os << endl << endl;
+
+   os << "#phi=1" << endl;
+   for ( int i = 0; i < npts; i++ ) {
+      const double conc = i*dc;
+
+      double e = fchem( 1., 0., &conc, temperature );
+      os << conc <<"\t"<< e << endl;
+   }
+}
+

@@ -39,6 +39,7 @@
 #include "SimpleQuatGradStrategy.h"
 #include "TemperatureFreeEnergyStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
+#include "KKSdiluteBinary.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -520,6 +521,19 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.with_third_phase());
          }
       }// d_model_parameters.isConcentrationModelCALPHAD()
+      else if( d_model_parameters.isConcentrationModelKKSdilute() ){
+         tbox::pout << "QuatModel: "
+                    << "Using KKS dilute model for concentration"
+                    << endl;
+         d_free_energy_strategy =
+            new KKSdiluteBinary(
+               d_conc_db, newton_db,
+               d_model_parameters.energy_interp_func_type(),
+               d_model_parameters.conc_interp_func_type(),
+               d_mvstrategy, 
+               d_conc_l_scratch_id,
+               d_conc_a_scratch_id );
+      }
       else if( d_model_parameters.isConcentrationModelHBSM() ){
          tbox::pout << "QuatModel: "
                     << "Using HBSM model for concentration"

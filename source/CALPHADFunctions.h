@@ -38,10 +38,6 @@
 
 #include <vector>
 
-double xlogx( const double x );
-double xlogx_deriv( const double x );
-double xlogx_deriv2( const double x );
-
 double CALPHADcomputeFMixBinary(
    const double l0,
    const double l1,

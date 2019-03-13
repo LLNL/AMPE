@@ -19,6 +19,10 @@ MACRO(m4tof filename dir)
 ENDMACRO(m4tof)
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
+            ${CMAKE_SOURCE_DIR}/source/xlogx.C
+            ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
+            ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
+            ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
             ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
             ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
@@ -187,6 +191,7 @@ add_executable(plotCALPHADbinary plotCALPHADbinary.C
                                  CALPHADSpeciesPhaseGibbsEnergy.C
                                  CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                                  CALPHADFunctions.C
+                                 xlogx.C
                                  CALPHADConcSolverBinary.C
                                  DampedNewtonSolver.C
                                  NewtonSolver.C
@@ -201,6 +206,7 @@ add_executable(plotEquilibriumCompositions
                   CALPHADSpeciesPhaseGibbsEnergy.C
                   CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                   CALPHADFunctions.C
+                  xlogx.C
                   CALPHADConcSolverBinary.C
                   DampedNewtonSolver.C
                   NewtonSolver.C
@@ -217,6 +223,7 @@ add_executable(plotEquilibriumCompositionsTernary
                   CALPHADSpeciesPhaseGibbsEnergy.C
                   CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                   CALPHADFunctions.C
+                  xlogx.C
                   CALPHADConcSolverTernary.C
                   DampedNewtonSolver.C
                   NewtonSolver.C
@@ -227,6 +234,7 @@ target_link_libraries(plotEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_HDF5})
 
 add_executable(computeCALPHADbinaryEquilibrium
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                computeCALPHADbinaryEquilibrium.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
@@ -234,6 +242,7 @@ add_executable(computeCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
