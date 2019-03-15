@@ -538,6 +538,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                d_mvstrategy, 
                d_conc_l_scratch_id,
                d_conc_a_scratch_id );
+         d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
       }
       else if( d_model_parameters.isConcentrationModelHBSM() ){
          tbox::pout << "QuatModel: "
