@@ -424,13 +424,22 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    } else {
       d_phase_flux_strategy = new PhaseFluxStrategySimple(d_model_parameters.epsilon_phase());
    }
-  
+
    boost::shared_ptr<tbox::MemoryDatabase> calphad_db;
    boost::shared_ptr<tbox::MemoryDatabase> newton_db;
  
    if ( d_model_parameters.with_concentration() ) {
       d_conc_db = model_db->getDatabase( "ConcentrationModel" );
-      
+
+      if ( d_model_parameters.isConcentrationModelCALPHAD() ||
+           d_model_parameters.isConcentrationModelKKSdilute() )
+      {
+         d_mvstrategy = new ConstantMolarVolumeStrategy(
+            d_model_parameters.molar_volume_liquid(),
+            d_model_parameters.molar_volume_solid_A(),
+            d_model_parameters.molar_volume_solid_B());
+      }
+
       // setup free energy strategy first since it may be needed 
       // to setup d_composition_rhs_strategy
       if ( d_model_parameters.isConcentrationModelCALPHAD() ) {
@@ -447,10 +456,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             d_newton_db = d_conc_db->getDatabase( "NewtonSolver" );
             newton_db.reset ( new tbox::MemoryDatabase( "newton_db" ) );
          }
-         d_mvstrategy = new ConstantMolarVolumeStrategy(
-            d_model_parameters.molar_volume_liquid(),
-            d_model_parameters.molar_volume_solid_A(),
-            d_model_parameters.molar_volume_solid_B());
          
          {
             if( d_ncompositions==1 ){
