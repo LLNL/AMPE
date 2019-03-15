@@ -116,7 +116,7 @@ int main( int argc, char *argv[] )
       newton_db = conc_db->getDatabase( "NewtonSolver" );
 
    KKSFreeEnergyFunctionDiluteBinary
-      cafe(conc_db, newton_db,
+      cafe(conc_db,
            energy_interp_func_type,
            conc_interp_func_type);
 

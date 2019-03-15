@@ -54,8 +54,7 @@ class KKSdiluteBinary:
 {
 public:
    KKSdiluteBinary(
-      boost::shared_ptr<tbox::Database> input_db,
-      boost::shared_ptr<tbox::Database> newton_db,
+      boost::shared_ptr<tbox::Database> conc_db,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
@@ -66,8 +65,7 @@ public:
    {
    };
 
-   virtual void setup(boost::shared_ptr<tbox::Database> calphad_db,
-                      boost::shared_ptr<tbox::Database> newton_db);
+   virtual void setup(boost::shared_ptr<tbox::Database> calphad_db);
 
    void computeFreeEnergyLiquid(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,

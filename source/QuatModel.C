@@ -532,7 +532,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                     << endl;
          d_free_energy_strategy =
             new KKSdiluteBinary(
-               d_conc_db, newton_db,
+               d_conc_db,
                d_model_parameters.energy_interp_func_type(),
                d_model_parameters.conc_interp_func_type(),
                d_mvstrategy, 

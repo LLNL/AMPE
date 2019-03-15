@@ -53,8 +53,7 @@ using namespace std;
 //=======================================================================
 
 KKSdiluteBinary::KKSdiluteBinary(
-   boost::shared_ptr<tbox::Database> input_db,
-   boost::shared_ptr<tbox::Database> newton_db,
+   boost::shared_ptr<tbox::Database> conc_db,
    const string& energy_interp_func_type,
    const string& conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
@@ -77,17 +76,18 @@ KKSdiluteBinary::KKSdiluteBinary(
    //tbox::plog << "Molar volume A =" << vma << endl;
    //tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
    
-   setup(input_db,newton_db);
+   setup(conc_db);
+
+   assert( d_mv_strategy != NULL );
 }
 
 //=======================================================================
 
 void KKSdiluteBinary::setup(
-   boost::shared_ptr<tbox::Database> input_db,
-   boost::shared_ptr<tbox::Database> newton_db)
+   boost::shared_ptr<tbox::Database> conc_db)
 {
    d_kksdilute_fenergy = new
-      KKSFreeEnergyFunctionDiluteBinary(input_db,newton_db,
+      KKSFreeEnergyFunctionDiluteBinary(conc_db,
                                  d_energy_interp_func_type,
                                  d_conc_interp_func_type);
 }

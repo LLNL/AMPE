@@ -50,8 +50,7 @@ class KKSFreeEnergyFunctionDiluteBinary:
 {
 public:
    KKSFreeEnergyFunctionDiluteBinary(
-      boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-      boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+      boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type);
 
@@ -152,7 +151,7 @@ private:
    double d_me;
    double d_ke;
 
-   void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> input_db);
+   void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> conc_db);
 
    void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
    

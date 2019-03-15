@@ -44,8 +44,7 @@ using namespace std;
 
 
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
-   boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-   boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+   boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
    const std::string& energy_interp_func_type,
    const std::string& conc_interp_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
@@ -56,9 +55,13 @@ KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
    d_ceq_l=-1;
    d_ceq_a=-1;
    
-   readParameters(input_db);
+   readParameters(conc_db);
 
    d_fA = log( 1./d_ke);
+
+   boost::shared_ptr<tbox::Database> newton_db;
+   if( conc_db->isDatabase( "NewtonSolver" ) )
+         newton_db = conc_db->getDatabase( "NewtonSolver" );
 
    setupSolver(newton_db);
 }
@@ -79,7 +82,7 @@ void KKSFreeEnergyFunctionDiluteBinary::setupSolver(
 void KKSFreeEnergyFunctionDiluteBinary::readNewtonparameters(
    boost::shared_ptr<tbox::Database> newton_db)
 {
-   if( newton_db!=NULL ){
+   if( newton_db ){
       double tol =newton_db->getDoubleWithDefault( "tol", 1.e-8 );
       double alpha = newton_db->getDoubleWithDefault( "alpha", 1. );
       int maxits = newton_db->getIntegerWithDefault( "max_its", 20 );
@@ -95,13 +98,13 @@ void KKSFreeEnergyFunctionDiluteBinary::readNewtonparameters(
 //=======================================================================
 
 void KKSFreeEnergyFunctionDiluteBinary::readParameters(
-   boost::shared_ptr<tbox::Database> input_db)
+   boost::shared_ptr<tbox::Database> conc_db)
 {   
-   d_me = input_db->getDouble( "liquidus_slope" );
-   d_Tm = input_db->getDouble( "meltingT" );
-   d_ke = input_db->getDouble( "keq" );
+   d_me = conc_db->getDouble( "liquidus_slope" );
+   d_Tm = conc_db->getDouble( "meltingT" );
+   d_ke = conc_db->getDouble( "keq" );
 
-   assert( d_Me < 0. );
+   assert( d_me < 0. );
    assert( d_Tm > 0. );
    assert( d_ke <= 1. );
 }
