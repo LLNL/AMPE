@@ -64,8 +64,7 @@ public:
       const int temp_id,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
-      boost::shared_ptr<tbox::Database> calphad_db,
-      boost::shared_ptr<tbox::Database> newton_db,
+      boost::shared_ptr<tbox::Database> conc_db,
       const unsigned ncompositions,
       const double DL,
       const double Q0);
@@ -93,7 +92,7 @@ protected:
    const double d_DL;
    const double d_Q0;
 
-   CALPHADFreeEnergyFunctions* d_calphad_fenergy;
+   FreeEnergyFunctions* d_fenergy;
 
 private:
 

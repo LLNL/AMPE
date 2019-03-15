@@ -37,6 +37,7 @@
 
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "QuatModel.h"
 
 using namespace std;
@@ -48,8 +49,7 @@ KimMobilityStrategy::KimMobilityStrategy(
    const int temp_id,
    const string& energy_interp_func_type,
    const string& conc_interp_func_type,
-   boost::shared_ptr<tbox::Database> calphad_db,
-   boost::shared_ptr<tbox::Database> newton_db,
+   boost::shared_ptr<tbox::Database> conc_db,
    const unsigned ncompositions,
    const double DL, const double Q0):
       SimpleQuatMobilityStrategy(quat_model),
@@ -68,17 +68,44 @@ KimMobilityStrategy::KimMobilityStrategy(
    t_compute = tbox::TimerManager::getManager()->
       getTimer("AMPE::KimMobilityStrategy::compute");
 
-   if( ncompositions==1 ){
-      d_calphad_fenergy = new
-         CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
+   string conc_model =
+      conc_db->getStringWithDefault( "model", "undefined" );
+
+   if ( conc_model[0] == 'c' ) { 
+
+      boost::shared_ptr<tbox::Database> conc_calphad_db=
+         conc_db->getDatabase( "Calphad" );
+      string calphad_filename = conc_calphad_db->getString( "filename" );
+      boost::shared_ptr<tbox::MemoryDatabase> calphad_db
+         ( new tbox::MemoryDatabase( "calphad_db" ) );
+      tbox::InputManager::getManager()->parseInputFile(
+         calphad_filename, calphad_db );
+
+      boost::shared_ptr<tbox::Database> newton_db;
+      if( conc_db->isDatabase( "NewtonSolver" ) )
+         newton_db = conc_db->getDatabase( "NewtonSolver" );
+
+      if( ncompositions==1 ){
+         d_fenergy = new
+            CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type,
                                  false); // no 3rd phase
-   }else{
-      d_calphad_fenergy = new
-         CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
+      }else{
+         d_fenergy = new
+            CALPHADFreeEnergyFunctionsTernary(calphad_db,newton_db,
                                  energy_interp_func_type,
                                  conc_interp_func_type);
+      }
+   }else if ( conc_model[0] == 'd' ) {
+
+      d_fenergy = new
+         KKSFreeEnergyFunctionDiluteBinary(conc_db,
+            energy_interp_func_type,
+            conc_interp_func_type);
+   }
+   else {
+      TBOX_ERROR( "Error: unknown concentration model in KimMobilityStrategy" );
    }
 
 }
