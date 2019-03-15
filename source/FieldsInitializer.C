@@ -138,6 +138,7 @@ void FieldsInitializer::initializeLevelFromData(
 
    size_t qlen_file = 0;
 #ifdef HAVE_NETCDF3
+   tbox::plog << "Try to read phase values..." << endl;
    NcVar* ncPhase = ncf->get_var( "phase" );
    if ( ncPhase == NULL ) {
       TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
@@ -174,8 +175,10 @@ void FieldsInitializer::initializeLevelFromData(
    }
 #endif
 #ifdef HAVE_NETCDF4
+   tbox::plog << "Reading fields..." <<endl;
    NcVar ncPhase;
    if ( d_phase_id>=0 ){
+      tbox::plog << "Reading phase values..." << endl;
       ncPhase = ncf->getVar( "phase" );
       if(ncPhase.isNull())
          TBOX_ERROR( "Could not read variable 'phase' from input data" << endl );
@@ -189,6 +192,7 @@ void FieldsInitializer::initializeLevelFromData(
 
    NcVar ncTemp;
    if ( readT() && d_temperature_id>=0 ) {
+      tbox::plog << "Reading temperature values..." << endl;
       ncTemp = ncf->getVar( "temperature" );
       if(ncTemp.isNull())
          TBOX_ERROR( "Could not read variable 'temperature' " <<
@@ -196,6 +200,7 @@ void FieldsInitializer::initializeLevelFromData(
    }
    if ( readQ() )
    for ( int ii = 0; ii < d_qlen; ii++ ) {
+      tbox::plog << "Reading quaternion values..." << endl;
       std::ostringstream o;
       o << "quat" << ii+1;
       NcVar ncv=ncf->getVar( o.str() );
@@ -224,6 +229,8 @@ void FieldsInitializer::initializeLevelFromData(
       dims.push_back(ncPhase.getDim(1));
       dims.push_back(ncPhase.getDim(0));
    }else if( readT() ){
+      if(ncTemp.isNull())
+         TBOX_ERROR( "Field 'temperature' was not read" << endl);
       dims.push_back(ncTemp.getDim(2));
       dims.push_back(ncTemp.getDim(1));
       dims.push_back(ncTemp.getDim(0));
