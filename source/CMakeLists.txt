@@ -19,6 +19,7 @@ MACRO(m4tof filename dir)
 ENDMACRO(m4tof)
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
+            ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.C
             ${CMAKE_SOURCE_DIR}/source/xlogx.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
             ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C

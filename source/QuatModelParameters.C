@@ -320,7 +320,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    
    string default_model="none";
    if( d_conc_model==ConcModel::CALPHAD
-    || d_conc_model==ConcModel::HBSM )default_model="kks";
+    || d_conc_model==ConcModel::HBSM
+    || d_conc_model==ConcModel::KKSdilute )default_model="kks";
    d_phase_concentration_model = 
       conc_db->getStringWithDefault( "phase_concentration_model",
                                      default_model );

@@ -40,6 +40,7 @@
 #include "TemperatureFreeEnergyStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
 #include "KKSdiluteBinary.h"
+#include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -591,6 +592,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       }
 
       if( d_model_parameters.kks_phase_concentration() ){
+         tbox::plog<<"Phase concentration determined by KKS"<<endl;
          if ( d_model_parameters.isConcentrationModelCALPHAD() ){
             d_phase_conc_strategy =
                new CALPHADequilibriumPhaseConcentrationsStrategy(
@@ -605,6 +607,18 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.with_third_phase(),
                   calphad_db, newton_db,
                   d_ncompositions );
+         }else if( d_model_parameters.isConcentrationModelKKSdilute() ){
+            d_phase_conc_strategy =
+               new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
+                  d_conc_l_scratch_id,
+                  d_conc_a_scratch_id,
+                  d_conc_b_scratch_id,
+                  d_conc_l_ref_id,
+                  d_conc_a_ref_id,
+                  d_conc_b_ref_id,
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
+                  d_conc_db );
          }else{
          if ( d_model_parameters.isConcentrationModelHBSM() )
             d_phase_conc_strategy =

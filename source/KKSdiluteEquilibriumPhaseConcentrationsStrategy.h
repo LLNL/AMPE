@@ -33,72 +33,49 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "KKSdiluteBinaryConcentrationSolver.h"
-#include "xlogx.h"
+#ifndef included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
+#define included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
 
-#include <iostream>
-#include <cmath>
-#include <cassert>
+#include "PhaseConcentrationsStrategy.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
-using namespace std;
+#include "SAMRAI/tbox/InputManager.h"
 
-//=======================================================================
-
-KKSdiluteBinaryConcentrationSolver::KKSdiluteBinaryConcentrationSolver()
+class KKSdiluteEquilibriumPhaseConcentrationsStrategy:public PhaseConcentrationsStrategy
 {
-   d_N = 2;
-}
+public:
+   KKSdiluteEquilibriumPhaseConcentrationsStrategy(
+      const int conc_l_id,
+      const int conc_a_id,
+      const int conc_b_id,
+      const int conc_l_ref_id,
+      const int conc_a_ref_id,
+      const int conc_b_ref_id,
+      const std::string& energy_interp_func_type,
+      const std::string& conc_interp_func_type,
+      boost::shared_ptr<tbox::Database> conc_db);
 
-//=======================================================================
+   ~KKSdiluteEquilibriumPhaseConcentrationsStrategy()
+   {
+      delete d_fenergy;
+   }
 
-// solve for c=(c_L, c_A)
-void KKSdiluteBinaryConcentrationSolver::RHS(
-   const double* const c,
-   double* const fvec )
-{
-   fvec[0] =
-      -d_c0 + ( 1.0 - d_hphi ) * c[0] + 
-      d_hphi * c[1];
-   fvec[1] = xlogx_deriv(c[0])-xlogx_deriv(1.-c[0])
-            -xlogx_deriv(c[1])+xlogx_deriv(1.-c[1])
-            - (d_fA-d_fB);
-}
+   virtual void computePhaseConcentrationsOnPatch(
+      boost::shared_ptr< pdat::CellData<double> > cd_temperature,
+      boost::shared_ptr< pdat::CellData<double> > cd_phi,
+      boost::shared_ptr< pdat::CellData<double> > cd_eta,
+      boost::shared_ptr< pdat::CellData<double> > cd_concentration,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_l,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_a,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_b,
+      boost::shared_ptr<hier::Patch > patch );
 
-//=======================================================================
+private:
+   int d_conc_l_ref_id;
+   int d_conc_a_ref_id;
+   int d_conc_b_ref_id;
+   
+   KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
+};
 
-void KKSdiluteBinaryConcentrationSolver::Jacobian(
-   const double* const c,
-   double** const fjac )
-{
-   fjac[0][0] = ( 1.0 - d_hphi );
-   fjac[0][1] = d_hphi;
-
-   fjac[1][0] =  xlogx_deriv2(c[0])+xlogx_deriv2(1.-c[0]);
-   fjac[1][1] = -xlogx_deriv2(c[1])-xlogx_deriv2(1.-c[1]);
-}
-
-/*
- ********************************************************************
- * conc: initial guess and final solution (concentration in each phase)
- * c0: local composition
- ********************************************************************
- */
-int KKSdiluteBinaryConcentrationSolver::ComputeConcentration(
-   double* const conc,
-   const double c0,
-   const double hphi,
-   const double RTinv,
-   const double fA,
-   const double fB )
-{
-   (void) RTinv;
-
-   //std::cout<<"KKSdiluteBinaryConcentrationSolver::ComputeConcentration()"<<endl;
-   d_c0 = c0;
-   d_hphi = hphi;
-   d_fA = fA;
-   d_fB = fB;
-
-   int ret= NewtonSolver::ComputeSolution( conc, d_N );
-   return ret;
-}
+#endif
