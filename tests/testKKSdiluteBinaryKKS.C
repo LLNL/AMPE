@@ -120,13 +120,55 @@ int main( int argc, char *argv[] )
            energy_interp_func_type,
            conc_interp_func_type);
 
+   const double tol = 1.e-5;
+
+   const PHASE_INDEX pi0=phaseL;
+   const PHASE_INDEX pi1=phaseA;
+
+   tbox::pout<<"-------------------------------"<<endl; 
+   tbox::pout<<"Temperature = "<<temperature<<endl;
+
+   double ceq[2];
+   cafe.computeCeqT(temperature, pi0, pi1, &ceq[0]);
+   tbox::pout<<"   ceL = "<<ceq[0]<<endl;
+   tbox::pout<<"   ceS = "<<ceq[1]<<endl;
+
+   // test if chemical potentials are equal for equilibrium compositions
+   double derivL;
+   double derivS;
+   cafe.computeDerivFreeEnergy(temperature,&ceq[0],pi0,&derivL);
+   cafe.computeDerivFreeEnergy(temperature,&ceq[1],pi1,&derivS);
+   tbox::pout<<"   dfL/dcL = "<<derivL<<endl;
+   tbox::pout<<"   dfS/dcS = "<<derivS<<endl;
+   if( fabs(derivS-derivL)<tol ){
+      tbox::pout<<"TEST PASSED"<<endl;
+   }else{
+      tbox::pout<<"TEST FAILED\n!";
+      tbox::pout<<"Difference between derivatives: "<<derivS-derivL<<endl;
+      return 1;
+   }
+
+   // test if driving force is 0 for equilibrium compositions
+   double fl = cafe.computeFreeEnergy(temperature, &ceq[0], pi0, false);
+   double fa = cafe.computeFreeEnergy(temperature, &ceq[1], pi1, false);
+   tbox::pout<<"   fL = "<<fl<<endl;
+   tbox::pout<<"   fS = "<<fa<<endl;
+   double diff = fa-fl-derivS*(ceq[1]-ceq[0]);
+   if( fabs(diff)<tol ){
+      tbox::pout<<"TEST PASSED"<<endl;
+   }else{
+      tbox::pout<<"TEST FAILED\n!";
+      tbox::pout<<"Driving force not zero: "<<diff<<endl;
+      return 1;
+   }
+
    // initial guesses
    double c_init0=0.5;
    double c_init1=0.5;
 
    double sol[2]={c_init0,c_init1};
    
-   // compute concentrations satisfying KKS equations
+   // verify computed concentrations satisfy KKS equations
    double conc = model_db->getDouble("concentration");
    double phi = model_db->getDouble("phi");
    cafe.computePhaseConcentrations(temperature,&conc,phi,0.,&sol[0]);
@@ -137,20 +179,15 @@ int main( int argc, char *argv[] )
    tbox::pout<<"   cL = "<<sol[0]<<endl;
    tbox::pout<<"   cS = "<<sol[1]<<endl;
 
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
-
    tbox::pout<<"Verification:"<<endl;
 
-   double derivL;
    cafe.computeDerivFreeEnergy(temperature,&sol[0],pi0,&derivL);
    tbox::pout<<"   dfL/dcL = "<<derivL<<endl;
 
-   double derivS;
    cafe.computeDerivFreeEnergy(temperature,&sol[1],pi1,&derivS);
    tbox::pout<<"   dfS/dcS = "<<derivS<<endl;
 
-   if( fabs(derivS-derivL)<1.e-5 ){
+   if( fabs(derivS-derivL)<tol ){
       tbox::pout<<"TEST PASSED"<<endl;
    }else{
       tbox::pout<<"TEST FAILED\n!";

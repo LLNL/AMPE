@@ -216,6 +216,9 @@ bool KKSFreeEnergyFunctionDiluteBinary::computeCeqT(
    d_ceq_l = (temperature-d_Tm)/d_me;
    d_ceq_a = d_ceq_l*d_ke;
 
+   ceq[0] = d_ceq_l;
+   ceq[1] = d_ceq_a;
+
    return true;
 }
 
@@ -231,8 +234,6 @@ void KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies(
    //tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies()"<<endl;
    
    double c[2]={conc,conc};
-   //tbox::pout<<"d_ceq_l="<<d_ceq_l<<endl;
-   //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
    if( d_ceq_l>=0. )c[0]=d_ceq_l;
    if( d_ceq_a>=0. )c[1]=d_ceq_a;
    
@@ -276,13 +277,7 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
    const double conc0 = conc[0];
    
    const double hphi =
-      FORT_INTERP_FUNC(
-         phi,
-         d_conc_interp_func_type.c_str() );
-
-   //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
-   //x[0] = ( d_ceq_l>=0. ) ? d_ceq_l : 0.5;
-   //x[1] = ( d_ceq_a>=0. ) ? d_ceq_a : 0.5;
+      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
 
    setupFB( temperature );
 
