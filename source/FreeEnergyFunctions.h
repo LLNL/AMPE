@@ -39,6 +39,7 @@
 #include "Phases.h"
 
 #include <string>
+#include <vector>
 
 class FreeEnergyFunctions
 {
@@ -56,6 +57,13 @@ public:
                                 const int npts_c=50)=0;
    virtual void printEnergyVsComposition(const double temperature, 
                                          const int npts=100 )=0;
+
+   virtual void computeSecondDerivativeFreeEnergy(
+      const double temp,
+      const double* const conc,
+      const PHASE_INDEX pi,
+      std::vector<double>& d2fdc2)=0;
+
 
    virtual bool computeCeqT(
       const double temperature,

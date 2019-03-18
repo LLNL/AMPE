@@ -33,74 +33,49 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
-#include "DampedNewtonSolver.h"
+#ifndef included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
+#define included_KKSdiluteEquilibriumPhaseConcentrationsStrategy
 
-#include <iostream>
-#include <cmath>
-#include <cassert>
+#include "PhaseConcentrationsStrategy.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
-#include <iomanip>
+#include "SAMRAI/tbox/InputManager.h"
 
-using namespace std;
-
-//=======================================================================
-
-DampedNewtonSolver::DampedNewtonSolver() :
-      NewtonSolver(),
-      d_alpha( 1. )
-{};
-
-   
-//=======================================================================
-// note: sizes to accomodate up to ternary alloys
-//
-// c: solution to be updated
-void DampedNewtonSolver::UpdateSolution(
-   double* const c,
-   const double* const fvec,
-   double** const fjac )
+class KKSdiluteEquilibriumPhaseConcentrationsStrategy:public PhaseConcentrationsStrategy
 {
-   int nn=size();
+public:
+   KKSdiluteEquilibriumPhaseConcentrationsStrategy(
+      const int conc_l_id,
+      const int conc_a_id,
+      const int conc_b_id,
+      const int conc_l_ref_id,
+      const int conc_a_ref_id,
+      const int conc_b_ref_id,
+      const std::string& energy_interp_func_type,
+      const std::string& conc_interp_func_type,
+      boost::shared_ptr<tbox::Database> conc_db);
 
-   static double* mwork[5];
-   static double mtmp[25];
-   for ( int ii = 0; ii < nn; ii++ ) {
-      mwork[ii] = &mtmp[ii*nn];
+   ~KKSdiluteEquilibriumPhaseConcentrationsStrategy()
+   {
+      delete d_fenergy;
    }
 
-   const double D = Determinant( fjac );
-   assert( fabs(D)>1.e-15 );
+   virtual void computePhaseConcentrationsOnPatch(
+      boost::shared_ptr< pdat::CellData<double> > cd_temperature,
+      boost::shared_ptr< pdat::CellData<double> > cd_phi,
+      boost::shared_ptr< pdat::CellData<double> > cd_eta,
+      boost::shared_ptr< pdat::CellData<double> > cd_concentration,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_l,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_a,
+      boost::shared_ptr< pdat::CellData<double> > cd_c_b,
+      boost::shared_ptr<hier::Patch > patch );
 
-   const double D_inv = 1.0 / D;
+private:
+   int d_conc_l_ref_id;
+   int d_conc_a_ref_id;
+   int d_conc_b_ref_id;
+   
+   KKSFreeEnergyFunctionDiluteBinary* d_fenergy;
+};
 
-   //cout<<setprecision(12);
-   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
-
-   static double del[5];
-
-   // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < nn; jj++ ) {
-
-      CopyMatrix( mwork, fjac );
-      
-      //replace jth column with rhs
-      for ( int ii = 0; ii < nn; ii++ ) {
-         mwork[ii][jj] = fvec[ii];
-      }
-
-      const double Dmwork = Determinant( mwork );
-      //cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
-      del[jj] = D_inv * Dmwork;
-
-      const double maxdel=0.25;
-      if( fabs(del[jj])>maxdel)
-         del[jj] = del[jj]>0 ? maxdel : -maxdel;
-
-      //cout << "del[" << jj << "] = " << del[jj] << endl;
-   }
-
-   double w = d_alpha;
-   for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del[ii];
-   }
-}
+#endif

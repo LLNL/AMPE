@@ -42,21 +42,34 @@ add_executable(testFACPoisson
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C )
 add_executable(testCALPHADJacobianTernary
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
+add_executable(testKKSdiluteBinaryKKS
+               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
+               ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
+               ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
+               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               )
 add_executable(testCALPHADbinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
@@ -70,6 +83,7 @@ add_executable(testCALPHADternaryKKS
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
@@ -86,6 +100,7 @@ add_executable(testCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
@@ -100,6 +115,7 @@ add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
@@ -143,6 +159,10 @@ add_test(NAME testCALPHADFunctions
 add_test(NAME testCALPHADJacobianTernary
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADJacobianTernary)
+add_test(NAME testKKSdiluteBinaryKKS
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testKKSdiluteBinaryKKS test.input
+         WORKING_DIRECTORY ${TEST_DIR}/KKSdiluteBinaryKKS)
 add_test(NAME testCALPHADbinaryKKS
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADbinaryKKS test.input
@@ -178,6 +198,9 @@ target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
                                      )
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
+                                     ${PROJECT_LINK_LIBS_HDF5}
+                                     )
+target_link_libraries(testKKSdiluteBinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testCALPHADbinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}

@@ -64,17 +64,6 @@ public:
             TBOX_ERROR("No support for Kim's mobility for composition dependent diffusion!!\n");
          }
 
-         boost::shared_ptr<tbox::Database> conc_calphad_db=
-            conc_db->getDatabase( "Calphad" );
-         string calphad_filename = conc_calphad_db->getString( "filename" );
-         boost::shared_ptr<tbox::MemoryDatabase> calphad_db
-            ( new tbox::MemoryDatabase( "calphad_db" ) );
-         tbox::InputManager::getManager()->parseInputFile(
-            calphad_filename, calphad_db );
-
-         boost::shared_ptr<tbox::Database> newton_db=
-            conc_db->getDatabase( "NewtonSolver" );
-
          if( model_parameters.interfaceMobility()>0. ){
             mobility_strategy.reset(
                new KimMobilityStrategyFiniteMob(
@@ -86,8 +75,7 @@ public:
                       model_parameters.phase_well_scale(),
                       model_parameters.energy_interp_func_type(),
                       model_parameters.conc_interp_func_type(),
-                      calphad_db,
-                      newton_db,
+                      conc_db,
                       ncompositions,
                       model_parameters.D_liquid(),
                       model_parameters.Q0_liquid(),
@@ -102,8 +90,7 @@ public:
                       model_parameters.phase_well_scale(),
                       model_parameters.energy_interp_func_type(),
                       model_parameters.conc_interp_func_type(),
-                      calphad_db,
-                      newton_db,
+                      conc_db,
                       ncompositions,
                       model_parameters.D_liquid(),
                       model_parameters.Q0_liquid(),

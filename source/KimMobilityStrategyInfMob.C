@@ -35,6 +35,8 @@
 //
 #include "KimMobilityStrategyInfMob.h"
 
+#include <iomanip>
+
 KimMobilityStrategyInfMob::KimMobilityStrategyInfMob(
    QuatModel* quat_model,
    const int conc_l_id,
@@ -44,15 +46,14 @@ KimMobilityStrategyInfMob::KimMobilityStrategyInfMob(
    const double phase_well_scale,
    const std::string& energy_interp_func_type,
    const std::string& conc_interp_func_type,
-   boost::shared_ptr<tbox::Database> calphad_db,
-   boost::shared_ptr<tbox::Database> newton_db,
+   boost::shared_ptr<tbox::Database> conc_db,
    const unsigned ncompositions,
    const double DL,
    const double Q0,
    const double mv)
    :  KimMobilityStrategy(quat_model,conc_l_id,conc_s_id,temp_id,
          energy_interp_func_type,conc_interp_func_type,
-         calphad_db, newton_db,
+         conc_db,
          ncompositions,
          DL, Q0)
 {
@@ -75,9 +76,10 @@ double KimMobilityStrategyInfMob::evaluateMobility(
 {
    const PHASE_INDEX pi0=phaseL;
 
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(
+   d_fenergy->computeSecondDerivativeFreeEnergy(
       temp,&phaseconc[0],pi0,d_d2fdc2);
-
+   //std::cout<<std::setprecision(15);
+   //std::cout<<"c="<<phaseconc[0]<<", d2fdc2="<<d_d2fdc2[0]<<std::endl;
    const double* const cl=&phaseconc[0];
    const double* const cs=&phaseconc[d_ncompositions];
 
@@ -87,5 +89,8 @@ double KimMobilityStrategyInfMob::evaluateMobility(
       zeta+=(cl[i]-cs[i])*d_d2fdc2[2*i+j]*(cl[j]-cs[j]);
    const double DL=d_DL*exp(-d_Q0/(gas_constant_R_JpKpmol*temp));
 
-   return DL/(d_factor*zeta);
+   const double mob = DL/(d_factor*zeta);
+   //std::cout<<"DL="<<DL<<", zeta="<<zeta<<std::endl;
+   assert( mob==mob );
+   return mob;
 }

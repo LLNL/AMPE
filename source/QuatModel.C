@@ -39,6 +39,8 @@
 #include "SimpleQuatGradStrategy.h"
 #include "TemperatureFreeEnergyStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
+#include "KKSdiluteBinary.h"
+#include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -423,13 +425,22 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    } else {
       d_phase_flux_strategy = new PhaseFluxStrategySimple(d_model_parameters.epsilon_phase());
    }
-  
+
    boost::shared_ptr<tbox::MemoryDatabase> calphad_db;
    boost::shared_ptr<tbox::MemoryDatabase> newton_db;
  
    if ( d_model_parameters.with_concentration() ) {
       d_conc_db = model_db->getDatabase( "ConcentrationModel" );
-      
+
+      if ( d_model_parameters.isConcentrationModelCALPHAD() ||
+           d_model_parameters.isConcentrationModelKKSdilute() )
+      {
+         d_mvstrategy = new ConstantMolarVolumeStrategy(
+            d_model_parameters.molar_volume_liquid(),
+            d_model_parameters.molar_volume_solid_A(),
+            d_model_parameters.molar_volume_solid_B());
+      }
+
       // setup free energy strategy first since it may be needed 
       // to setup d_composition_rhs_strategy
       if ( d_model_parameters.isConcentrationModelCALPHAD() ) {
@@ -446,10 +457,6 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
             d_newton_db = d_conc_db->getDatabase( "NewtonSolver" );
             newton_db.reset ( new tbox::MemoryDatabase( "newton_db" ) );
          }
-         d_mvstrategy = new ConstantMolarVolumeStrategy(
-            d_model_parameters.molar_volume_liquid(),
-            d_model_parameters.molar_volume_solid_A(),
-            d_model_parameters.molar_volume_solid_B());
          
          {
             if( d_ncompositions==1 ){
@@ -520,6 +527,20 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.with_third_phase());
          }
       }// d_model_parameters.isConcentrationModelCALPHAD()
+      else if( d_model_parameters.isConcentrationModelKKSdilute() ){
+         tbox::pout << "QuatModel: "
+                    << "Using KKS dilute model for concentration"
+                    << endl;
+         d_free_energy_strategy =
+            new KKSdiluteBinary(
+               d_conc_db,
+               d_model_parameters.energy_interp_func_type(),
+               d_model_parameters.conc_interp_func_type(),
+               d_mvstrategy, 
+               d_conc_l_scratch_id,
+               d_conc_a_scratch_id );
+         d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
+      }
       else if( d_model_parameters.isConcentrationModelHBSM() ){
          tbox::pout << "QuatModel: "
                     << "Using HBSM model for concentration"
@@ -571,6 +592,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       }
 
       if( d_model_parameters.kks_phase_concentration() ){
+         tbox::plog<<"Phase concentration determined by KKS"<<endl;
          if ( d_model_parameters.isConcentrationModelCALPHAD() ){
             d_phase_conc_strategy =
                new CALPHADequilibriumPhaseConcentrationsStrategy(
@@ -585,6 +607,18 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_model_parameters.with_third_phase(),
                   calphad_db, newton_db,
                   d_ncompositions );
+         }else if( d_model_parameters.isConcentrationModelKKSdilute() ){
+            d_phase_conc_strategy =
+               new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
+                  d_conc_l_scratch_id,
+                  d_conc_a_scratch_id,
+                  d_conc_b_scratch_id,
+                  d_conc_l_ref_id,
+                  d_conc_a_ref_id,
+                  d_conc_b_ref_id,
+                  d_model_parameters.energy_interp_func_type(),
+                  d_model_parameters.conc_interp_func_type(),
+                  d_conc_db );
          }else{
          if ( d_model_parameters.isConcentrationModelHBSM() )
             d_phase_conc_strategy =

@@ -1,0 +1,5 @@
+python ~/GIT/AMPE/utils/make_nuclei.py -x 512 -y 512 -z 1 -r 15 \
+   --ngrains 1 --concentration-in 0.003 --concentration-out 0.02 \
+   512x512.nc 
+
+

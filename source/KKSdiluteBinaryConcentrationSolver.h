@@ -33,74 +33,48 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 // 
+#ifndef included_KKSdiluteBinaryConcentrationSolver
+#define included_KKSdiluteBinaryConcentrationSolver
+
 #include "DampedNewtonSolver.h"
 
-#include <iostream>
-#include <cmath>
-#include <cassert>
-
-#include <iomanip>
-
-using namespace std;
-
-//=======================================================================
-
-DampedNewtonSolver::DampedNewtonSolver() :
-      NewtonSolver(),
-      d_alpha( 1. )
-{};
-
-   
-//=======================================================================
-// note: sizes to accomodate up to ternary alloys
-//
-// c: solution to be updated
-void DampedNewtonSolver::UpdateSolution(
-   double* const c,
-   const double* const fvec,
-   double** const fjac )
+class KKSdiluteBinaryConcentrationSolver :
+   public DampedNewtonSolver
 {
-   int nn=size();
+public :
 
-   static double* mwork[5];
-   static double mtmp[25];
-   for ( int ii = 0; ii < nn; ii++ ) {
-      mwork[ii] = &mtmp[ii*nn];
-   }
-
-   const double D = Determinant( fjac );
-   assert( fabs(D)>1.e-15 );
-
-   const double D_inv = 1.0 / D;
-
-   //cout<<setprecision(12);
-   //cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D << endl;
-
-   static double del[5];
-
-   // use Cramer's rule to solve linear system
-   for ( int jj = 0; jj < nn; jj++ ) {
-
-      CopyMatrix( mwork, fjac );
+   KKSdiluteBinaryConcentrationSolver();
       
-      //replace jth column with rhs
-      for ( int ii = 0; ii < nn; ii++ ) {
-         mwork[ii][jj] = fvec[ii];
-      }
+   ~KKSdiluteBinaryConcentrationSolver() {};
+      
+   int ComputeConcentration(
+      double* const conc,
+      const double c0,
+      const double hphi,
+      const double RTinv,
+      const double fA,
+      const double fB );
+   
+private:
+   /*
+    * number of coexisting phases
+    */
+   int d_N;
+   
+   double d_fA;
+   double d_fB;
 
-      const double Dmwork = Determinant( mwork );
-      //cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
-      del[jj] = D_inv * Dmwork;
+   void RHS(
+      const double* const x,
+      double* const fvec );
 
-      const double maxdel=0.25;
-      if( fabs(del[jj])>maxdel)
-         del[jj] = del[jj]>0 ? maxdel : -maxdel;
+   void Jacobian(
+      const double* const x,
+      double** const fjac );
+   
+   double d_c0;
+   double d_hphi;
+   double d_heta;
+};
 
-      //cout << "del[" << jj << "] = " << del[jj] << endl;
-   }
-
-   double w = d_alpha;
-   for ( int ii = 0; ii < nn; ii++ ) {
-      c[ii] = c[ii] - w * del[ii];
-   }
-}
+#endif

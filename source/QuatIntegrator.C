@@ -3566,7 +3566,7 @@ void QuatIntegrator::fillScratchDphiDt(
    (void)time;
 
    assert( d_dphidt_scratch_id>=0 );
-   assert( d_dphidt_bc_helper!=0 );
+   if( !d_all_periodic )assert( d_dphidt_bc_helper!=0 );
 
    boost::shared_ptr<hier::PatchHierarchy > hierarchy =
       y_dot->getPatchHierarchy();
