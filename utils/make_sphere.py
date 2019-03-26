@@ -120,22 +120,22 @@ filename = args[0]
 QLEN = 4
 if ( not options.qlen is None ) : QLEN = options.qlen
 if ( QLEN != 4 and QLEN != 2 and QLEN != 1 ) :
-  print "Error: valid values of qlen are 1, 2, and 4"
+  print("Error: valid values of qlen are 1, 2, and 4")
   sys.exit(1)
 
 n_spheres = "one"
 if ( options.two ) :
   if ( options.one ) :
-    print "Error: cannot use options one and two together"
+    print( "Error: cannot use options one and two together" )
     sys.exit(1)
   if ( not options.random_spheres is None ) :
-    print "Error: cannot use options two and random-spheres together"
+    print( "Error: cannot use options two and random-spheres together" )
     sys.exit(1)
   n_spheres = "two"
 
 if ( not options.random_spheres is None ) :
   if ( options.one ) :
-    print "Error: cannot use options one and random-spheres together"
+    print( "Error: cannot use options one and random-spheres together" )
     sys.exit(1)
   n_spheres = "random"
 
@@ -148,7 +148,7 @@ if ( not options.ny is None ) : ny = options.ny
 if ( not options.nz is None ) : nz = options.nz
 
 if ( not ( nx and ny and nz ) ) :
-  print "Error: either -n or all of -nx -ny -nz are required"
+  print( "Error: either -n or all of -nx -ny -nz are required" )
   sys.exit(1)
 
 radii = []
@@ -159,10 +159,10 @@ radius = options.radius
 if radius is None :
   if ( n_spheres == "one" ) :
     radius = nx / 4
-    print "Radius not specified: using nx/4 = %d" % radius
+    print( "Radius not specified: using nx/4 = %d" % radius )
   else :
     radius = nx / 8
-    print "Radius not specified: using nx/8 = %d" % radius
+    print( "Radius not specified: using nx/8 = %d" % radius )
 
 if ( n_spheres == "one" ) :
   radii.append( radius )
@@ -202,7 +202,7 @@ quat_outside = None
 
 if ( not options.quat_in is None ) :
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-in option is for QLEN=4 or 2"
+    print( "Error: quat-in option is for QLEN=4 or 2" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -214,19 +214,19 @@ if ( not options.quat_in is None ) :
     quat_inside.append( Q.makeNormalizedQuat2( q[0], q[1] ) )
   
   if ( n_spheres == "one" and options.quat_out is None ) :
-    print "Error: must specify quat-in and quat-out together"
+    print( "Error: must specify quat-in and quat-out together" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.quat_in_two is None or
          options.quat_out is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print( "Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together" )
     sys.exit(1)
 
 if ( not options.quat_in_two is None ) :
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-in-two option is for QLEN=4 or 2"
+    print( "Error: quat-in-two option is for QLEN=4 or 2" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -238,19 +238,19 @@ if ( not options.quat_in_two is None ) :
     quat_inside.append( Q.makeNormalizedQuat2( q[0], q[1] ) )
   
   if ( n_spheres == "one" ) :
-    print "Warning: ignoring quat-in-two with only one sphere"
+    print( "Warning: ignoring quat-in-two with only one sphere" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.quat_in is None or
          options.quat_out is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print( "Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together" )
     sys.exit(1)
     
 if ( not options.quat_out is None ) :
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-out option is for QLEN=4 or 2"
+    print( "Error: quat-out option is for QLEN=4 or 2" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -262,14 +262,14 @@ if ( not options.quat_out is None ) :
     quat_outside = Q.makeNormalizedQuat2( q[0], q[1] )
   
   if ( n_spheres == "one" and options.quat_in is None ) :
-    print "Error: must specify quat-in and quat-out together"
+    print( "Error: must specify quat-in and quat-out together" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.quat_in_two is None or
          options.quat_in is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print( "Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together" )
     sys.exit(1)
 
 angle_inside = []
@@ -277,7 +277,7 @@ angle_outside = None
 
 if ( not options.angle_in is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-in option is for QLEN=1"
+    print( "Error: angle-in option is for QLEN=1" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -285,19 +285,19 @@ if ( not options.angle_in is None ) :
   angle_inside.append( options.angle_in * math.pi / 180.0 )
   
   if ( n_spheres == "one" and options.angle_out is None ) :
-    print "Error: must specify angle-in and angle-out together"
+    print( "Error: must specify angle-in and angle-out together" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.angle_in_two is None or
          options.angle_out is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print( "Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together" )
     sys.exit(1)
 
 if ( not options.angle_in_two is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-in-two option is for QLEN=1"
+    print( "Error: angle-in-two option is for QLEN=1" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -305,19 +305,19 @@ if ( not options.angle_in_two is None ) :
   angle_inside.append( options.angle_in_two * math.pi / 180.0 )
   
   if ( n_spheres == "one" ) :
-    print "Warning: ignoring angle-in-two with only one sphere"
+    print( "Warning: ignoring angle-in-two with only one sphere" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.angle_in is None or
          options.angle_out is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print( "Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together" )
     sys.exit(1)
     
 if ( not options.angle_out is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-out option is for QLEN=1"
+    print( "Error: angle-out option is for QLEN=1" )
     sys.exit(1)
 
   use_simple_rotation = False
@@ -325,14 +325,14 @@ if ( not options.angle_out is None ) :
   angle_outside = options.angle_out * math.pi / 180.0
   
   if ( n_spheres == "one" and options.angle_in is None ) :
-    print "Error: must specify angle-in and angle-out together"
+    print( "Error: must specify angle-in and angle-out together" )
     sys.exit(1)
 
   if ( n_spheres == "two" and
        ( options.angle_in_two is None or
          options.angle_in is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print( "Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together" )
     sys.exit(1)
 
 angle = options.angle
@@ -346,7 +346,7 @@ if ( use_simple_rotation ) :
 
   if ( angle is None ) :
     angle = 44.0
-    print "Angle not specified: using %f" % angle
+    print( "Angle not specified: using %f" % angle )
 
   if ( QLEN == 1 ) :
     angle_inside.append( angle * math.pi / 180.0 )
@@ -384,7 +384,7 @@ if ( n_spheres == "random" ) :
     max_radius = min( nx/6, ny/6 )
     use_z = False
 
-  print options.random_spheres
+  print( options.random_spheres )
   for n in range( options.random_spheres ) :
     radius = min_radius + int( round( (max_radius - min_radius) * random.random() ) )
     radii.append( radius )
@@ -496,9 +496,9 @@ else :
 for n in range( len( radii ) ) :
 
   if ( QLEN == 1 ) :
-    print cx[n], cy[n], cz[n], radii[n], angle_inside[n]
+    print( cx[n], cy[n], cz[n], radii[n], angle_inside[n] )
   else :
-    print cx[n], cy[n], cz[n], radii[n], quat_inside[n]
+    print( cx[n], cy[n], cz[n], radii[n], quat_inside[n] )
 
   for k in range( nz ) :
     for j in range( ny ) :

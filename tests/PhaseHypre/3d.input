@@ -18,7 +18,7 @@ ModelParameters {
 // Refer to solv::CellPoissonFACOps for input.
 hypre_solver {
   //use_smg = FALSE     // Whether to use HYPRE's SMG instead of PFMG.
-  print_solver_info = TRUE
+  //print_solver_info = TRUE
 }
 
 // Refer to solv::LocationIndexRobinBcCoefs for input.

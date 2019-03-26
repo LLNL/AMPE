@@ -198,7 +198,7 @@ def normalizeQuat( q ) :
 
 def quatAngle( d ) :
   if ( d > 2.0 ) :
-    print 'd =', d
+    print(  'd =', d )
     return -1
 
   else :
@@ -206,7 +206,7 @@ def quatAngle( d ) :
 
 def quatAngle2( d ) :
   if ( d > 2.0 ) :
-    print 'd =', d
+    print( 'd =', d )
     return -1
 
   else :

@@ -1,0 +1,8 @@
+module load PE-gnu
+module load hdf5
+module load netcdf
+module load hypre
+module load boost
+module load cmake
+module load python
+

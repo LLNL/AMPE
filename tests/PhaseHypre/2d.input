@@ -18,7 +18,7 @@ ModelParameters {
 // Refer to solv::CellPoissonFACOps for input.
 hypre_solver {
   //use_smg = FALSE     // Whether to use HYPRE's SMG instead of PFMG.
-  print_solver_info = TRUE
+  //print_solver_info = TRUE
 }
 
 // Refer to solv::LocationIndexRobinBcCoefs for input.
@@ -35,8 +35,6 @@ bc_coefs {
   // see the solv_RobinBcCoefStrategy class.
   // Examples:
   boundary_0 = "value", "0"
-//  boundary_1 = "value", "1"
-//  boundary_1 = "value", "1"
   boundary_1 = "slope", "0"
   boundary_2 = "slope", "0"
   boundary_3 = "slope", "0"
@@ -65,7 +63,6 @@ PatchHierarchy {
 
 // Refer to mesh::GriddingAlgorithm for input.
 GriddingAlgorithm {
-
    // TODO this should be removed
    sequentialize_patch_indices = TRUE
 }

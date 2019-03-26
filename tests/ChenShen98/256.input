@@ -1,0 +1,57 @@
+model_type = "KWCcomplex"
+
+end_time            = 3000.
+max_timesteps       = 700
+
+Visit {
+   interval = 50.
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = -1.
+   
+   temperature        = 873. // [K]
+   
+   epsilon_phi = 1.   // [(pJ/um)^1/2]
+
+   phi_mobility     = 1.
+   
+   phi_well_scale = 0.0625  // 1./16.
+   phi_well_func_type = "double"
+
+   phi_interp_func_type ="pbg"
+   
+   FreeEnergyModel{
+      type = "scalar"
+      free_energy_liquid = 0.
+      free_energy_solid  = 0.
+   }
+
+   molar_volume = 1. // arbitrary value > 0.
+}
+
+ScalarDiagnostics {
+   interval = 50.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 3.e-5
+   Preconditioner{}
+}
+
+InitialConditions {
+   filename = "initial256.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 256, 256
+   x_lo         = -128., -128. 
+   x_up         =  128.,  128. 
+}

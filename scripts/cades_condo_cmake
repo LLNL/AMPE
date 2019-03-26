@@ -1,11 +1,5 @@
 #!/bin/sh
-module load PE-gnu
-module load hdf5
-module load netcdf
-module load hypre
-module load boost
-module load cmake
-
+source ../scripts/modules.condo
 
 rm -rf CMakeCache.txt
 rm -rf CMakeFiles/

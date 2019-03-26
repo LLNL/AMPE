@@ -1,3 +1,5 @@
+find_package(PythonInterp 3.2 REQUIRED)
+
 include_directories( ${CMAKE_SOURCE_DIR}/source )
 
 set( fortran_dir ${CMAKE_SOURCE_DIR}/source/fortran )
@@ -183,6 +185,14 @@ add_test(NAME testCALPHADternaryEquilibrium2
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
          ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADternaryEquilibrium test2.input
          WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryEquilibrium)
+
+#regression tests
+add_test(NAME ChenShen98
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe2d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/256.input
+         )
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}
