@@ -1,9 +1,5 @@
-#!/bin/sh
-#Assumes the following modules have been loaded:
-#module load intel
-#module load hdf5-serial
-#module load boost
-#module load netcdf
+#!/bin/csh
+source scripts/modules.quartz
 #Before running code, it may be necessary to set
 #the env variable LD_LIBRARY_PATH:
 #setenv LD_LIBRARY_PATH /usr/gapps/phasefield/lib/netcdf-cxx-intel/lib:$LD_LIBRARY_PATH

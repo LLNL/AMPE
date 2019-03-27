@@ -1,0 +1,6 @@
+module load intel
+module load hdf5-serial
+module load boost
+module load netcdf
+module load cmake/3.12.1
+
