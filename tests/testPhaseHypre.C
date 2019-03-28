@@ -217,7 +217,7 @@ int main(int argc,char* argv[])
       /*
        * Set up the plotter for the hierarchy just created.
        */
-#ifdef HAVE_HDF5
+#if 0
       string vis_filename =
          main_db->getStringWithDefault("vis_filename", base_name);
       boost::shared_ptr<appu::VisItDataWriter> visit_writer(
@@ -246,7 +246,7 @@ int main(int argc,char* argv[])
          d_model_parameters.phase_well_func_type()
       );
 
-#ifdef HAVE_HDF5
+#if 0
       /*
        * Plot.
        */

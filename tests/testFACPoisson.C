@@ -253,7 +253,7 @@ int main(int argc,char* argv[])
        * function setupExternalPlotter to register its data
        * with the plotter.
        */
-#ifdef HAVE_HDF5
+#if 0
       string vis_filename =
          main_db->getStringWithDefault("vis_filename", base_name);
       boost::shared_ptr<appu::VisItDataWriter> visit_writer(
@@ -278,7 +278,7 @@ int main(int argc,char* argv[])
        */
       fac_poisson.solvePoisson();
 
-#ifdef HAVE_HDF5
+#if 0
       /*
        * Plot.
        */

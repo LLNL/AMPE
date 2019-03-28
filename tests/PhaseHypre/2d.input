@@ -70,5 +70,5 @@ GriddingAlgorithm {
 
 // Refer to tbox::TimerManager for input.
 TimerManager{
-  timer_list = "hier::*::*", "mesh::*::*"
+  timer_list = "hier::*::*", "mesh::*::*","solv::*::*"
 }

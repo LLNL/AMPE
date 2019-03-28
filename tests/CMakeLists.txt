@@ -128,8 +128,7 @@ add_test(NAME testNetCDF
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testNetCDF)
 add_test(NAME testMPI
-         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 
-                 ${MPIEXEC_MAX_NUMPROCS} 
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testMPI)
 add_test(NAME testMath
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
@@ -141,18 +140,15 @@ add_test(NAME testInterpolation
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testInterpolation)
 add_test(NAME testHyprePoisson
-         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG}
-                 ${MPIEXEC_MAX_NUMPROCS}
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testHyprePoisson ${NDIM}d.input
          WORKING_DIRECTORY ${TEST_DIR}/HyprePoisson)
 add_test(NAME testPhaseHypre
-         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG}
-                 ${MPIEXEC_MAX_NUMPROCS}
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testPhaseHypre ${NDIM}d.input
          WORKING_DIRECTORY ${TEST_DIR}/PhaseHypre)
 add_test(NAME testFACPoisson
-         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 
-                 ${MPIEXEC_MAX_NUMPROCS}
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testFACPoisson ${NDIM}d.input
          WORKING_DIRECTORY ${TEST_DIR}/FACPoisson)
 add_test(NAME testCALPHADFunctions
