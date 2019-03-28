@@ -123,6 +123,7 @@ add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
+
 add_test(NAME testNetCDF
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testNetCDF)
@@ -192,6 +193,13 @@ add_test(NAME ChenShen98
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/${NDIM}d.input
          )
+add_test(NAME HeatFlow
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/test.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/${NDIM}d.input
+         )
+
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}

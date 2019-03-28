@@ -4,17 +4,16 @@
 //
 model_type = "Quat"
 
-end_time = 5000.0  // required
-max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
+end_time = 800.  // required
+max_timesteps = 50  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
    level = 1  // optional, default=1
 }
 
 Visit {
-   interval = 100.
+   interval = 200.
    interval_type = "time"
-   rhs_output = TRUE
 }
 
 TimerManager {
@@ -45,17 +44,6 @@ ModelParameters {  // required block
    }
 
   BoundaryConditions {
-    // These are the boundary condition specifications.  The number
-    // after "boundary_" is the location index of the boundary.
-    // The inputs are arrays of strings where the first string
-    // indicates the type of values you want to set.  "slope" means
-    // boundary slope, "value" means boundary value, and "coefficients"
-    // mean the raw Robin boundary condition coefficients.
-    // The remaining strings are converted into numbers as
-    // appropriate for what boundary condition you specified with
-    // the first string.  Other boundary conditions are possible.
-    // see the solv_RobinBcCoefStrategy class.
-    // Examples:
     Temperature{
       boundary_0 = "slope", "0."
       boundary_1 = "slope", "0."
