@@ -50,7 +50,7 @@ from scipy.io import netcdf as NetCDF
 
 import netCDF4 as nc4
 
-print sys.path
+print (sys.path)
 
 #-----------------------------------------------------------------------
 # command-line arguments and options
@@ -116,11 +116,11 @@ filename = args[0]
 n_spheres = options.ngrains
 crystal_sym = options.crystal_sym
 if crystal_sym:
-  print "use crystal symmetry..."
+  print ("use crystal symmetry...")
 
 double_precision = options.double_precision
 if double_precision:
-  print "use double precision..."
+  print ("use double precision...")
 
 nx = options.ncells
 ny = options.ncells
@@ -134,17 +134,17 @@ width = 0.
 if ( options.width ) : width = options.width
 
 if ( not ( nx and ny and nz ) ) :
-  print "Error: either -n or all of -nx -ny -nz are required"
+  print ("Error: either -n or all of -nx -ny -nz are required")
   sys.exit(1)
 
 
 QLEN = options.qlen
-print "qlen=",QLEN
+print ("qlen={}".format(QLEN))
 
 radius = options.radius
 if radius is None :
   radius = nx / 10
-  print "Radius not specified: using nx/n_spheres = %d" % radius
+  print ("Radius not specified: using nx/n_spheres = {}".format(radius))
 
 phase_inside  = options.phase_in
 phase_outside = options.phase_out
@@ -160,31 +160,34 @@ temperature_outside  = options.temperature_out
 
 quat_outside  = options.quat_out
 if( not(quat_outside is None) ):
-  qout = map( float, string.split( options.quat_out, ',' ) )
-  print 'qout=',qout
+  qout = map( float, options.quat_out.split( ',' ) )
+  print ("qout={}".format(qout))
 
-periodic = map( int, string.split( options.periodic, ',') )
+periodic = options.periodic.split( ',')
 
 #-----------------------------------------------------------------------
 nspecies=0
 if ( not ( nomconc is None ) ):
-  c = map( float, string.split( options.nomconc, ',' ) )
-  nspecies=len(c)
-  print "Nominal composition=",c
+  tmp = options.nomconc.split( ',' )
+  c = [float(i) for i in tmp]
+  nspecies=len(set(c))
+  print ("Nominal composition={}".format(c))
 if ( not ( conc_inside is None ) ):
-  ci = map( float, string.split( options.concentration_in, ',' ) )
+  tmp = options.concentration_in.split( ',' )
+  ci = [float(i) for i in tmp]
   if nspecies==0:
     nspecies=len(ci)
-  print "Composition inside=",ci
+  print ("Composition inside={}".format(ci))
 else:
   ci = N.zeros( nspecies, N.float32 )
 if ( not ( conc_outside is None ) ):
-  co = map( float, string.split( options.concentration_out, ',' ) )
-  print "Composition outside=",co
+  tmp = options.concentration_out.split( ',' )
+  co = [float(i) for i in tmp]
+  print ("Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "nspecies=",nspecies
+print ("nspecies={}".format(nspecies))
 
 # generate quaternions corresponding to random orientations
 random.seed( 11234 )
@@ -198,7 +201,7 @@ h3=h2
 
 #-----------------------------------------------------------------------
 def setRandomQinSpheres():
-  print 'setRandomQinSpheres...'
+  print ('setRandomQinSpheres...')
   if QLEN>0:
     # crystal symmetry
     if ( QLEN == 4 ) :
@@ -262,12 +265,12 @@ def setRandomQinSpheres():
           else:
             q  = Q.makeQuat2( q0,q1 )
           
-          print 'random q=',q
-          print 'qref=',qref
+          print ("random q={}".format(q))
+          print ("qref={}".format(qref))
           q = Q.quatSymm( qref, q )
-          print 'rotated q=',q
+          print ("rotated q={}".format(q))
           q = Q.quatSymm( qref, q )
-          print 'q=',q
+          print ("q={}".format(q))
           q0 = q[0]
           q1 = q[1]
           if ( QLEN == 4 ) :
@@ -277,7 +280,7 @@ def setRandomQinSpheres():
             Q.copyQuat(q,qref)
 
       quat_inside.append( Q.makeQuat( q0, q1, q2, q3 ) )
-      print '--- q=',quat_inside[g]
+      print ("--- q={}".format(quat_inside[g]))
 
 #distance square function for periodic bc
 if periodic[0]==1:
@@ -337,7 +340,7 @@ def distance2_1d_z(z1,z2):
 
 #-----------------------------------------------------------------------
 def setBainQinSpheres():
-  print 'setBainQinSpheres...'
+  print ("setBainQinSpheres...")
   if QLEN>0:
     q0=math.cos( math.pi/8. )
     q1=math.sin( math.pi/8. )
@@ -351,7 +354,7 @@ def setBainQinSpheres():
           q.append(0.)
 
       quat_inside.append( Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] ) )
-      print '--- q=',quat_inside[g]
+      print ("--- q={}".format(quat_inside[g]))
 
 #-----------------------------------------------------------------------
 # Variables and functions for symmetry rotations
@@ -405,7 +408,7 @@ def imposeMinDistance(cx,cy,cz,nx,ny,nz,drmin):
   step=1
   npairs=1000
   while npairs>0:
-    print 'Step ',step,
+    print ("Step {} end=""".format(step))
     npairs=0
 
     #reset forces
@@ -463,7 +466,7 @@ def imposeMinDistance(cx,cy,cz,nx,ny,nz,drmin):
             forces[index1][2]=forces[index1][2]+fz
               
             npairs=npairs+1
-    print '--- number of overlaping pairs=',npairs
+    print ("--- number of overlaping pairs={}".format(npairs))
     step=step+1
    
     # move cx and cy
@@ -478,7 +481,7 @@ def imposeMinDistance(cx,cy,cz,nx,ny,nz,drmin):
       
       if( norm2f>maxf ):
         maxf=norm2f
-    print 'max force=',math.sqrt(maxf)
+    print ("max force={}".format(math.sqrt(maxf)))
 
 #-----------------------------------------------------------------------
 # Open and define file
@@ -497,7 +500,7 @@ ncquat=[]
 ncconc = []
 
 if double_precision:
-  print 'Data in double precision...'
+  print ("Data in double precision...")
   for s in range(nspecies):
     c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
     ncconc.append(c_comp)
@@ -510,7 +513,7 @@ if double_precision:
 
   for m in range(QLEN):
     name = "quat%d" % (m+1)
-    print name
+    print (name)
     ncquat.append( f.createVariable( name, 'd', ('z','y','x') ) )
 
   conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
@@ -520,7 +523,7 @@ if double_precision:
   if( options.three ):
     eta = N.zeros( (nz,ny,nx), N.float64 )
 else:
-  print 'Data in single precision...'
+  print ("Data in single precision...")
   for s in range(nspecies):
     c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
     ncconc.append(c_comp)
@@ -533,7 +536,7 @@ else:
 
   for m in range(QLEN):
     name = "quat%d" % (m+1)
-    print name
+    print (name)
     ncquat.append( f.createVariable( name, 'f', ('z','y','x') ) )
 
   conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
@@ -558,7 +561,7 @@ def generateRandomCenters(cx,cy,cz,n):
 
 #-----------------------------------------------------------------------
 def generateJitterCenters2D(cx,cy,cz,ncx,ncy,jitter):
-  print 'Generate jitter centers in 2D...'
+  print ("Generate jitter centers in 2D...")
   hx=float(nx)/float(ncx)
   hy=float(ny)/float(ncy)
   for gx in range(ncx):
@@ -571,7 +574,7 @@ def generateJitterCenters2D(cx,cy,cz,ncx,ncy,jitter):
         
 #-----------------------------------------------------------------------
 def generateJitterCenters3D(cx,cy,cz,ncx,ncy,ncz,jitter):
-  print 'Generate jitter centers in 3D...'
+  print ("Generate jitter centers in 3D...")
   hx=float(nx)/float(ncx)
   hy=float(ny)/float(ncy)
   hz=float(nz)/float(ncz)
@@ -600,7 +603,7 @@ r=[]
 if n_spheres==1:
   r.append(radius)
   if ( not (options.center0 is None) ):
-    center = map( float, string.split( options.center0, ',' ) )
+    center = options.center0.split( ',' )
     cx.append( center[0] )
     cy.append( center[1] )
     if len(center)>2:
@@ -616,7 +619,7 @@ if n_spheres==1:
       cz.append(1)
 else:
   if n_spheres==2:
-    print 'nspheres=',n_spheres
+    print ("nspheres={}".format(n_spheres))
     cx.append( nx/3 )
     cx.append( 2*nx/3 )
     cy.append( ny/3 )
@@ -635,10 +638,10 @@ else:
       nnn=rtn*rtn*rtn
     if( nnn==n_spheres ):
       hx=float(nx)/float(rtn)
-      print 'hx=',hx
+      print ("hx={}".format(hx))
       #jitter= hx-mind
       jitter= options.jitter_factor*hx
-      print 'jitter=',jitter
+      print ("jitter={}".format(jitter))
       if nz==1:
         generateJitterCenters2D(cx,cy,cz,rtn,rtn,jitter)
       if nz>1:
@@ -654,7 +657,7 @@ else:
 
 #-----------------------------------------------------------------------
 # Fill data arrays
-print 'Fill Phase values'
+print ("Fill Phase values")
 if ( options.phase_out ) :
   for k in range( nz ) :
     for j in range( ny ) :
@@ -678,7 +681,7 @@ vl=0.;
 for g in range(n_spheres):
   r_sq = r[g]**2
   threshold = (r[g]+width)**2
-  print 'sphere ',g,', center: ',cx[g],cy[g],cz[g],', radius: ',r[g]
+  print ("sphere {}, center: {},{},{}, radius: {}".format(g,cx[g],cy[g],cz[g],r[g]))
   for k in range( nz ) :
     z = k + 0.5
     dz2=distance2_1d_z(z,cz[g])
@@ -710,7 +713,7 @@ vl=vol-vs
 
 #fill quat values
 if ( not (options.quat0 is None) ):
-  q = map( float, string.split( options.quat0, ',' ) )
+  q = options.quat0.split( ',' )
   quat_inside.append( q )
 else:
   if options.bain :
@@ -720,10 +723,10 @@ else:
 
 if QLEN>0:
   gmin=0
-  print 'Fill quaternion values...'
+  print ("Fill quaternion values...")
   for i in range( nx ) :
     x = i + 0.5
-    print 'Plane x=',x
+    print ("Plane x={}".format(x))
     for j in range( ny ) :
       y = j + 0.5
       for k in range( nz ) :
@@ -765,30 +768,31 @@ if nspecies>0:
     if ( not ( nomconc is None ) and vl>0 ):
       for s in range(nspecies):
         co[s] = (c[s]*vol-ci[s]*vs)/vl
-      print "Calculated composition outside=",co
+      print ("Calculated composition outside={}".format(co))
   if ( not ( options.concentration_out is None ) ):
     if ( not ( nomconc is None ) and vs>0 ):
       conc_inside = (c[0]*vol-conc_outside*vl)/vs
-      print "Calculated composition inside=",conc_inside
+      print ("Calculated composition inside={}".format(conc_inside))
   if( ( conc_outside is None ) and ( conc_inside is None ) ):
     conc_inside = nomconc
     conc_outside = nomconc
 
   if ( not ( conc_outside is None ) and not ( conc_inside is None ) ):
     for s in range(nspecies):
-      print "Calculated nominal Composition=",(vl*co[s]+vs*ci[s])/vol
+      print ("Calculated nominal Composition={}".format((vl*co[s]+vs*ci[s])/vol))
 
-  print 'set composition...'
+  print ("set composition for {} species".format(nspecies))
   for k in range( nz ) :
     for j in range( ny ) :
       for i in range( nx ) :
         for s in range(nspecies):
-          conc[s,k,j,i]  = ci[s]*phase[k,j,i]+co[s]*(1.-phase[k,j,i])
+          phi=phase[k,j,i]
+          conc[s,k,j,i] = ci[s]*phi+co[s]*(1.-phi)
 
 if not(temperature_inside is None):
-  print 'Fill temperature values'
-  print 'temperature_inside =',temperature_inside
-  print 'temperature_outside=',temperature_outside
+  print ("Fill temperature values")
+  print ("temperature_inside ={}".format(temperature_inside))
+  print ("temperature_outside={}".format(temperature_outside))
   for k in range( nz ) :
     for j in range( ny ) :
       for i in range( nx ) :
@@ -796,7 +800,7 @@ if not(temperature_inside is None):
 
   for g in range(n_spheres):
     r_sq = r[g]**2
-    print 'temperature, grain ',g
+    print ("temperature, grain {}".format(g))
     for k in range( nz ) :
       z = k + 0.5
       dz2=distance2_1d_z(z,cz[g])
@@ -816,7 +820,7 @@ if not(temperature_inside is None):
 #-----------------------------------------------------------------------
 # Write data to file and close
 
-print 'Write data to file'
+print ("Write data to file")
 if not(temperature_inside is None):
   nctemp[:,:,:]= temperature
 ncphase[:,:,:]=phase
