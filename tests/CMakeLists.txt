@@ -123,7 +123,6 @@ add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
-
 add_test(NAME testNetCDF
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testNetCDF)
@@ -188,10 +187,10 @@ add_test(NAME testCALPHADternaryEquilibrium2
 
 #regression tests
 add_test(NAME ChenShen98
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test.py
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe2d
-         ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/256.input
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/${NDIM}d.input
          )
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}

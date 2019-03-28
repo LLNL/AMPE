@@ -1,10 +1,10 @@
-model_type = "KWCcomplex"
+model_type = "Quat"
 
-end_time            = 3000.
+end_time            = 300.
 max_timesteps       = 700
 
 Visit {
-   interval = 50.
+   interval = 10.
    interval_type = "time"
 }
 
@@ -34,10 +34,19 @@ ModelParameters {
    }
 
    molar_volume = 1. // arbitrary value > 0.
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
 }
 
 ScalarDiagnostics {
-   interval = 50.
+   interval = 10.
    interval_type = "time"
 }   
 
@@ -47,11 +56,12 @@ Integrator {
 }
 
 InitialConditions {
-   filename = "initial256.nc"
+   filename = "32x32.nc"
 }
 
 Geometry{
-   coarsest_level_resolution = 256, 256
-   x_lo         = -128., -128. 
-   x_up         =  128.,  128. 
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 32, 32
+   x_lo         =  0.,  0.
+   x_up         = 32., 32.
 }

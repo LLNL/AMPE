@@ -5,8 +5,10 @@ import subprocess
 print("Test ChenShen98...")
 
 #prepare initial conditions file
-subprocess.call(["python3", "../../utils/make_sphere.py", "-x", "256", "-y", "256", "-z", "1", "-r", "100", "--qlen", "1", "initial256.nc"])
-
+subprocess.call(["python3", "../../utils/make_sphere.py",
+  "-x", "32", "-y", "32", "-z", "32", "-r", "25",
+  "--cx", "0", "--cy", "0", "--cz", "0", "--qlen", "1",
+  "32x32x32.nc"])
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
@@ -25,10 +27,10 @@ for line in lines:
   if num_matches:
     print(line)
     words=line.split()
-    if eval(words[6])>3000.:
+    if eval(words[6])>120.:
       end_reached = True
       dt=words[10]
-      if (eval(dt)-5.68)>1.e-2:
+      if (eval(dt)-0.65)>1.e-2:
         print("Wrong dt")
         sys.exit(1)
   num_matches = line.count(b'fraction')
@@ -36,7 +38,7 @@ for line in lines:
     print(line)
     if end_reached:
       words=line.split()
-      if abs(eval(words[6])-0.21)>1.e-2:
+      if abs(eval(words[6])-0.034)>1.e-3:
         print("Wrong solid fraction")
         sys.exit(1)
 

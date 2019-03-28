@@ -165,6 +165,7 @@ if radius is None :
     print( "Radius not specified: using nx/8 = %d" % radius )
 
 if ( n_spheres == "one" ) :
+  print( "One sphere of radius %d" % radius)
   radii.append( radius )
   if( not options.cx is None ) :
     cx.append(options.cx)
@@ -178,6 +179,7 @@ if ( n_spheres == "one" ) :
     cz.append(options.cz)
   else:
     cz.append( nz / 2 )
+  print( "Center: ", cx, cy, cz)
 else :
   radii.append( radius )
   cx.append( nx / 4 )
