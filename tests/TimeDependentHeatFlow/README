@@ -1,0 +1,26 @@
+Heat flow:
+alpha*(rho*cp)*gradT*L for each surface
+
+We have:
+1.e-3 (cm2/s) * 1.e-4 (m2/cm2) * 10 (J/mol*k) * 1.e5 (mol/m3) * L * gradT
+=
+1.e-1 (J/K*m) * L * gradT
+=
+1.e5 (pJ/K*um) * L * gradT
+
+That is 10 (pJ/s) for L=1 um and gradT = 1.e-4 (K/um).
+
+In this test, thermal energy should grow by 10 (pJ/s) and T should increase 
+by 10 (K/s) since rho*cp/Vm = 10 (J/mol*K) * 1.e5 (mol/m3) = 1.e6 (J/m3) = 1. (pJ/um3) 
+
+#time-dependent BC
+#For that case, we create linear-in-time fluxes that add
+#up to the same net flux as above, so that the result shoudl be 
+#the same, that is an increase of 10 K/s
+python createTimeFlux.py 1.e-4 0. > flux0.dat
+python createTimeFlux.py 0. 0. > flux1.dat
+python createTimeFlux.py 0. 0. > flux2.dat
+python createTimeFlux.py 0. -2.e-4 > flux3.dat
+python createTimeFlux.py 0. 2.e-4 > flux4.dat
+python createTimeFlux.py 0. 1.e-4 > flux5.dat
+

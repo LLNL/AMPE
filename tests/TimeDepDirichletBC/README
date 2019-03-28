@@ -1,9 +1,0 @@
-#time-dependent BC
-#For that case, we create linear-in-time values
-python createTimeValues.py 0. 500. > values0.dat
-python createTimeValues.py 0. 500. > values1.dat
-python createTimeValues.py 0. 500. > values2.dat
-python createTimeValues.py 0. 500. > values3.dat
-python createTimeValues.py 0. 500. > values4.dat
-python createTimeValues.py 0. 500. > values5.dat
-

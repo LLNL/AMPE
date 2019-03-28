@@ -169,7 +169,8 @@ TimeLocationIndexRobinBcCoefs::setBcCoefs(
 
    next_time_slot[location] = prev_time_slot[location] + 1;
 
-   //tbox::plog<<"d_t_map[location][next_time_slot]="<<d_t_map[location][next_time_slot]<<endl;
+   //tbox::plog<<"d_t_map[location][next_time_slot[location]]="
+   //          <<d_t_map[location][next_time_slot[location]]<<endl;
    //tbox::pout<<"fill_time="<<fill_time<<endl;
    //tbox::pout<<"prev_time_slot="<<prev_time_slot[location]<<endl;
    //tbox::pout<<"next_time_slot="<<next_time_slot[location]<<endl;

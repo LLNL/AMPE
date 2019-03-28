@@ -4,21 +4,21 @@
 //
 model_type = "Quat"
 
-end_time = 2500.0  // required
-max_timesteps = 500  // optional, default is INT_MAX (alias: max_cycles)
+end_time = 3000.0  // required
+max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
    level = 1  // optional, default=1
 }
 
 Visit {
-   interval = 10.
+   interval = 100.
    interval_type = "time"
    rhs_output = TRUE
 }
 
 TimerManager {
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*"
+    timer_list = "solv::*::*","AMPE::*::*"
     print_threshold = 0.0
 }
 
@@ -45,17 +45,28 @@ ModelParameters {  // required block
    }
 
   BoundaryConditions {
+    // These are the boundary condition specifications.  The number
+    // after "boundary_" is the location index of the boundary.
+    // The inputs are arrays of strings where the first string
+    // indicates the type of values you want to set.  "slope" means
+    // boundary slope, "value" means boundary value, and "coefficients"
+    // mean the raw Robin boundary condition coefficients.
+    // The remaining strings are converted into numbers as
+    // appropriate for what boundary condition you specified with
+    // the first string.  Other boundary conditions are possible.
+    // see the solv_RobinBcCoefStrategy class.
+    // Examples:
     Temperature{
-      boundary_0 = "file", "values0.dat"
-      boundary_1 = "file", "values1.dat"
-      boundary_2 = "file", "values2.dat"
-      boundary_3 = "file", "values3.dat"
+      boundary_0 = "file", "flux0.dat"
+      boundary_1 = "file", "flux3.dat"
+      boundary_2 = "file", "flux4.dat"
+      boundary_3 = "file", "flux5.dat"
     }
     TemperatureCorrections{
-      boundary_0 = "value", "0."
-      boundary_1 = "value", "0."
-      boundary_2 = "value", "0."
-      boundary_3 = "value", "0."
+      boundary_0 = "slope", "0."
+      boundary_1 = "slope", "0."
+      boundary_2 = "slope", "0."
+      boundary_3 = "slope", "0."
     }
 
    }
@@ -67,9 +78,9 @@ ScalarDiagnostics {
 }   
 
 Integrator {
-   atol = 1.e-5
+   atol = 1.e-6
+   max_step_size = 500.
    Preconditioner {  // optional block
-      max_step_size = 100.
    }
 }
 

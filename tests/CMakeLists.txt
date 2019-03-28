@@ -195,7 +195,13 @@ add_test(NAME HeatFlow
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/${NDIM}d.input
          )
-
+add_test(NAME TimeDependentHeatFlow
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/test.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow
+         )
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}
