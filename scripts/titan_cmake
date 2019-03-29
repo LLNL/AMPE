@@ -1,12 +1,5 @@
-#!/bin/sh
-module swap PrgEnv-pgi PrgEnv-gnu
-module load craype-network-gemini
-module load cray-mpich
-module load cray-netcdf
-module load cray-hdf5
-module load boost/1.62.0
-module load cmake3/3.11.3
-
+#!/bin/csh
+source ../scripts/modules.titan
 
 rm -rf CMakeCache.txt
 rm -rf CMakeFiles/
