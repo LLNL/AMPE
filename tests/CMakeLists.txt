@@ -202,6 +202,14 @@ add_test(NAME TimeDependentHeatFlow
          ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow
          )
+add_test(NAME SingleGrainGrowthAuNi
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
+         )
+
 
 target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
                                  ${PROJECT_LINK_LIBS_NETCDF}

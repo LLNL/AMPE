@@ -45,9 +45,6 @@ import quat as Q
 
 # other required packages
 import numpy as N
-#from Scientific.IO import NetCDF
-from scipy.io import netcdf as NetCDF
-
 import netCDF4 as nc4
 
 print (sys.path)
@@ -486,7 +483,6 @@ def imposeMinDistance(cx,cy,cz,nx,ny,nz,drmin):
 #-----------------------------------------------------------------------
 # Open and define file
 
-#f = NetCDF.NetCDFFile( filename, 'w' )
 f = nc4.Dataset(filename, 'w', format='NETCDF4') 
 
 f.createDimension( 'x', nx )
@@ -604,10 +600,10 @@ if n_spheres==1:
   r.append(radius)
   if ( not (options.center0 is None) ):
     center = options.center0.split( ',' )
-    cx.append( center[0] )
-    cy.append( center[1] )
+    cx.append( eval(center[0]) )
+    cy.append( eval(center[1]) )
     if len(center)>2:
-      cz.append( center[2] )
+      cz.append( eval(center[2]) )
     else:
       cz.append(1)
   else:
