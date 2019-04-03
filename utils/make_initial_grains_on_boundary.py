@@ -10,13 +10,11 @@ import quat as Q
 
 # other required packages
 import numpy as N
-#from Scientific.IO import NetCDF
-#from scipy.io import netcdf as NetCDF
 import netCDF4 as nc4
 
 from math import pi
 
-print sys.path
+print( sys.path )
 
 #-----------------------------------------------------------------------
 # command-line arguments and options
@@ -60,7 +58,7 @@ filename = args[0]
 
 double_precision = options.double_precision
 if double_precision:
-  print "use double precision..."
+  print( "use double precision...")
 
 nx = options.nx
 ny = options.ny
@@ -72,7 +70,7 @@ widthy  = options.width/ny
 noise   = options.noise
 
 if ( not ( nx and ny and nz ) ) :
-  print "Error: all of -nx -ny -nz are required"
+  print( "Error: all of -nx -ny -nz are required")
   sys.exit(1)
 
 ndim = options.dimension
@@ -80,7 +78,7 @@ if ndim < 3:
   nz=1
 
 QLEN = options.qlen
-print "qlen=",QLEN
+print( "qlen={}".format(QLEN))
 
 nomconc       = options.nomconc
 conc_inside   = options.concentration_in
@@ -102,7 +100,7 @@ h3=h2
 
 #-----------------------------------------------------------------------
 def setRandomQinGrains():
-  print 'setRandomQinGrains...'
+  print("setRandomQinGrains...")
   if QLEN>0:
     
     for g in range(ngrains):
@@ -112,9 +110,9 @@ def setRandomQinGrains():
         n = 0
       else:
         n = random.randint(0,nangles-1)
-      #print 'random number =',n
+      #print( 'random number =',n
       t = n*h
-      print 'angle=',t
+      print("angle={}".format(t))
 
       if ( QLEN == 1 ) :
 
@@ -130,7 +128,7 @@ def setRandomQinGrains():
           u1 = random.uniform(0, 1.)
           u2 = random.uniform(0, 1.)
           u3 = random.uniform(0, 1.)
-          #print u1,u2,u3
+          #print( u1,u2,u3
 
           #restricts possible orientations
           n  = math.floor( u1/h1 )
@@ -157,36 +155,36 @@ def setRandomQinGrains():
         q3 = z
 
       quat_inside.append( Q.makeQuat( q0, q1, q2, q3 ) )
-      print '--- q=',quat_inside[g]
+      print("--- q={}".format(quat_inside[g]))
 
 #fill conc values
 nspecies=0
 if ( not ( nomconc is None ) ):
   c = map( float, string.split( options.nomconc, ',' ) )
   nspecies=len(c)
-  print "Nominal composition=",c
+  print( "Nominal composition={}".format(c))
 if not(conc_inside is None):
   ci = map( float, string.split( options.concentration_in, ',' ) )
   if nspecies==0:
     nspecies=len(ci)
-  print "Composition inside=",ci
+  print( "Composition inside={}".format(ci))
 else:
   ci = N.zeros( nspecies, N.float32 )
 
 if ( not ( conc_outside is None ) ):
   co = map( float, string.split( options.concentration_out, ',' ) )
-  print "Composition outside=",co
+  print( "Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "nspecies=",nspecies
+print( "nspecies={}".format(nspecies))
 
 if not(nomconc is None):
   for isp in range(nspecies):
     co[isp]=(c[isp]-ci[isp]*sf)/(1.-sf)
-    print 'Fill composition values'
-    print 'conc_inside =',ci[isp]
-    print 'conc_outside=',co[isp]
+    print("Fill composition values")
+    print("conc_inside ={}".format(ci[isp]))
+    print("conc_outside={}".format(co[isp]))
 
 #-----------------------------------------------------------------------
 # Open and define file
@@ -205,27 +203,27 @@ ncquat=[]
 ncconc = []
 
 if double_precision:
-  print 'Data in double precision...'
+  print("Data in double precision...")
   if not(temperature is None):
     nctemp  = f.createVariable( 'temperature', 'd', ('z','y','x') )
   ncphase = f.createVariable( 'phase',         'd', ('z','y','x') )
   for m in range(QLEN):
     name = "quat%d" % (m+1)
-    print name
+    print( name )
     ncquat.append( f.createVariable( name, 'd', ('z','y','x') ) )
   for s in range(nspecies):
     c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
     ncconc.append(c_comp)
 
 else:
-  print 'Data in single precision...'
+  print( 'Data in single precision...')
   if not(temperature is None):
     nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
   ncphase = f.createVariable( 'phase',         'f', ('z','y','x') )
 
   for m in range(QLEN):
     name = "quat%d" % (m+1)
-    print name
+    print( name )
     ncquat.append( f.createVariable( name, 'f', ('z','y','x') ) )
   for s in range(nspecies):
     c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
@@ -256,7 +254,7 @@ for j in range( ny ) :
   #d is negative for the lowest y
   #"sf" fraction of domain)
   d0 = (y-sf)
-  #print 'd=',d
+  #print("d={}".format(d))
   for k in range( nz ) :
     z = k + 0.5
     for i in range( nx ) :
@@ -285,7 +283,7 @@ setRandomQinGrains()
 offset=0.5*fraction*nx
 if QLEN>0:
   gmin=0
-  print 'Fill quaternion values...'
+  print("Fill quaternion values...")
   for i in range( nx ) :
     x = i + 0.5
 
@@ -296,7 +294,7 @@ if QLEN>0:
       if dx<0.5*fraction*nx:
         gmin=g
     
-    print 'Plane x=',x,', grain=',gmin,', q=',quat_inside[gmin]
+    print("Plane x={}, grain={}, q={}".format(x,gmin,quat_inside[gmin]))
     for j in range( ny ) :
       for k in range( nz ) :
 
@@ -312,7 +310,7 @@ for isp in range(nspecies):
 #-----------------------------------------------------------------------
 # Write data to file and close
 
-print 'Write data to file'
+print("Write data to file")
 if ( nspecies>0 ):
   for s in range(nspecies):
     ncconc[s][:,:,:]=conc[s,:,:,:]
