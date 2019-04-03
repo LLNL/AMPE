@@ -183,6 +183,12 @@ add_test(NAME testCALPHADternaryEquilibrium2
          WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryEquilibrium)
 
 #regression tests
+add_test(NAME PlanarFront
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFront/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}//PlanarFront/${NDIM}d.input
+         )
 add_test(NAME ChenShen98
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
