@@ -840,10 +840,10 @@ c      print*,'latentheat=',latentheat,', tm=',tm
          do ic0 = ifirst0, ilast0
 
             wtemp = 0.75*temp(ic0,ic1)
-     &        +0.06125*( temp(ic0-1,ic1)
-     &                  +temp(ic0,ic1-1)
-     &                  +temp(ic0+1,ic1)
-     &                  +temp(ic0,ic1+1) )
+     &        +0.0625*( temp(ic0-1,ic1)
+     &                 +temp(ic0,ic1-1)
+     &                 +temp(ic0+1,ic1)
+     &                 +temp(ic0,ic1+1) )
 
             m = alpha*( tm-wtemp )
             h_prime =
