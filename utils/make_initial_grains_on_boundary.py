@@ -51,6 +51,8 @@ parser.add_option( "--noise", type="float", default=0.,
                   help="amplitude of noise in y interface")
 parser.add_option( "--double", action="store_true", dest="double_precision", 
                   default=False)
+parser.add_option( "--plane", type="int", default=1,
+                  help="direction orthogonal to plane")
 
 (options, args) = parser.parse_args()
 
@@ -60,13 +62,26 @@ double_precision = options.double_precision
 if double_precision:
   print( "use double precision...")
 
+plane = options.plane
+
 nx = options.nx
 ny = options.ny
 nz = options.nz
 
+nn=[nx,ny,nz]
+
+print(nn)
+dir0=0
+dir1=1
+dir2=2
+if plane==0:
+  dir1=0
+  dir0=1
+  
+
 ngrains = options.ngrains
 sf      = options.solid_fraction
-widthy  = options.width/ny
+widthy  = options.width/nn[1]
 noise   = options.noise
 
 if ( not ( nx and ny and nz ) ) :
@@ -192,9 +207,9 @@ if not(nomconc is None):
 #f = NetCDF.NetCDFFile( filename, 'w' )
 f = nc4.Dataset(filename, 'w', format='NETCDF4')
 
-f.createDimension( 'x', nx )
-f.createDimension( 'y', ny )
-f.createDimension( 'z', nz )
+f.createDimension( 'x', nn[0] )
+f.createDimension( 'y', nn[1] )
+f.createDimension( 'z', nn[2] )
 if QLEN>0:
   f.createDimension( 'qlen', QLEN )
 f.createDimension( 'ns', nspecies )
@@ -232,71 +247,75 @@ else:
 
 
 if double_precision:
-  phase = N.zeros( (nz,ny,nx), N.float64 )
+  phase = N.zeros( (nn[2],nn[1],nn[0]), N.float64 )
   if QLEN>0:
-    quat  = N.zeros( (QLEN,nz,ny,nx), N.float64 )
-  conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
+    quat  = N.zeros( (QLEN,nn[2],nn[1],nn[0]), N.float64 )
+  conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float64 )
 else:
-  phase = N.zeros( (nz,ny,nx), N.float32 )
+  phase = N.zeros( (nn[2],nn[1],nn[0]), N.float32 )
   if QLEN>0:
-    quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
-  conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
+    quat  = N.zeros( (QLEN,nn[2],nn[1],nn[0]), N.float32 )
+  conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float32 )
 
 #-----------------------------------------------------------------------
 
 # Fill data arrays
-
+xx = [0., 0., 0.]
+index = [0,0,0]
 fraction=1./ngrains; 
-for j in range( ny ) :
+for j in range( nn[dir1] ) :
   #get a y in [0,1]
-  y = (j + 0.5)/(1.*ny)
-    
+  xx[dir1] = (j + 0.5)/(1.*nn[dir1])
+  index[dir1] = j
+
   #d is negative for the lowest y
   #"sf" fraction of domain)
-  d0 = (y-sf)
+  d0 = (xx[dir1]-sf)
   #print("d={}".format(d))
-  for k in range( nz ) :
-    z = k + 0.5
-    for i in range( nx ) :
-      x = i + 0.5
-      
+  for k in range( nn[dir2] ) :
+    xx[dir2] = k + 0.5
+    index[dir2] = k
+    for i in range( nn[dir0] ) :
+      xx[dir0] = i + 0.5
+      index[dir0] = i
+
       d=d0+noise*random.uniform(-1., 1.)
       
       if( widthy>0. ):
         if( d<0.1 ):
-          phase[k,j,i] = 0.5*(1.+N.tanh(-3.*d/widthy))
+          phase[index[2],index[1],index[0]] = 0.5*(1.+N.tanh(-3.*d/widthy))
       else:
         if( d<0. ):
-          phase[k,j,i] = 1.
+          phase[index[2],index[1],index[0]] = 1.
 
       for g in range(1,ngrains):
-        dx=abs(x-g*fraction*nx)
+        dx=abs(xx[dir0]-g*fraction*nn[dir0])
         if( dx<5 ):
           s=N.sin(0.5*pi*dx/5)
-          phase[k,j,i]=phase[k,j,i]*s*s
+          phase[index[2],index[1],index[0]]=phase[index[2],index[1],index[0]]*s*s
 
 
 
 #fill quat values
 setRandomQinGrains()
 
-offset=0.5*fraction*nx
+offset=0.5*fraction*nn[0]
 if QLEN>0:
   gmin=0
   print("Fill quaternion values...")
-  for i in range( nx ) :
-    x = i + 0.5
+  for i in range( nn[0] ) :
+    xx[0] = i + 0.5
 
     #select quaternion based on x position
     gmin=0
     for g in range(ngrains):
-      dx=abs(x-g*fraction*nx-offset)
-      if dx<0.5*fraction*nx:
+      dx=abs(xx[0]-g*fraction*nn[dir0]-offset)
+      if dx<0.5*fraction*nn[0]:
         gmin=g
     
     print("Plane x={}, grain={}, q={}".format(x,gmin,quat_inside[gmin]))
-    for j in range( ny ) :
-      for k in range( nz ) :
+    for j in range( nn[1] ) :
+      for k in range( nn[2] ) :
 
         qi=quat_inside[gmin]
 

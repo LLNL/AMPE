@@ -58,6 +58,7 @@ void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
 }
       
 QuatModelParameters::QuatModelParameters()
+   : d_moving_frame_velocity(def_val)
 {
 
    d_H_parameter = def_val;
@@ -876,8 +877,10 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
    d_with_third_phase =
       model_db->getBoolWithDefault( "three_phase", false );
-   
-   
+
+   d_moving_frame_velocity =
+      model_db->getDoubleWithDefault( "moving_frame_velocity", 0.);
+
    if ( with_third_phase() )
       initializeEta(model_db);
 

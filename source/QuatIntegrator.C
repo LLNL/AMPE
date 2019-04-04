@@ -3031,6 +3031,22 @@ void QuatIntegrator::evaluatePhaseRHS(
          //multiply by mobility
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
 
+         // add component related to moving frame if moving velocity!=0
+         if( d_model_parameters.inMovingFrame() ){
+            assert(phase->getGhostCellWidth()[0] > 0);
+            FORT_COMP_VDPHIDX(
+               ifirst(0),ilast(0),
+               ifirst(1),ilast(1),
+#if (NDIM == 3)
+               ifirst(2),ilast(2),
+#endif
+               dx,
+               phase->getPointer(),
+               phase->getGhostCellWidth()[0],
+               d_model_parameters.movingVelocity(),
+               phase_rhs->getPointer(), phase_rhs->getGhostCellWidth()[0]);
+         }
+
          //add noise
          if( d_model_parameters.noise_amplitude()>0. && deltat>0. ){
             if( newtime ){

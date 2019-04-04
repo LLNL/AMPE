@@ -47,6 +47,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cmath>
 
 using namespace SAMRAI;
 
@@ -371,6 +372,16 @@ public:
       return d_init_phase_conc_eq;
    }
 
+   bool inMovingFrame()const
+   {
+      return (abs(d_moving_frame_velocity) > 1.e-16 );
+   }
+
+   double movingVelocity()const
+   {
+      return d_moving_frame_velocity;
+   }
+
 private:
    void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
 
@@ -524,6 +535,8 @@ private:
    bool d_visit_grain_output;
 
    bool d_init_phase_conc_eq;
+
+   double d_moving_frame_velocity;
 
    void readMolarVolumes(boost::shared_ptr<tbox::Database> db);
 };

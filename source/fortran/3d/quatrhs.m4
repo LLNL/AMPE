@@ -1035,4 +1035,49 @@ c      print*,'latentheat=',latentheat,', tm=',tm
       return
       end
 
+c***********************************************************************
+c
+      subroutine computevdphidx(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   dx,
+     &   phase, ngphase,
+     &   vel,
+     &   rhs, ngrhs)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+
+      double precision dx(3), vel
+      integer ngphase, ngrhs
+c
+c variables in 3d cell indexed
+      double precision phase(CELL3d(ifirst,ilast,ngphase))
+      double precision rhs(CELL3d(ifirst,ilast,ngrhs))
+
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2
+      double precision dxinv, diff_term_x
+
+      dxinv = 0.5d0 * vel / dx(1)
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               diff_term_x = dxinv *
+     &              (phase(ic0+1,ic1,ic2) - phase(ic0-1,ic1,ic2))
+
+               rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2)
+     &                      + diff_term_x
+
+            enddo
+         enddo
+      enddo
+
+      end
 
