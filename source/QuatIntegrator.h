@@ -723,6 +723,10 @@ private :
 
    void fillScratchDphiDt(
       double time, boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot);
+
+   double computeFrameVelocity(
+      const boost::shared_ptr< hier::PatchHierarchy >&,
+      const double time, int phase_id, const bool newtime);
  
    std::string d_name;
 

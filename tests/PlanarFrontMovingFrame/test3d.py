@@ -27,10 +27,10 @@ os.remove("test.nc")
 
 previous_time = -1.
 
-tol = 0.01
+tol = 1.e-3
 
 ly = 400. #length of domain
-initial_sfraction = 0.5
+sfraction = 0.5
 
 for line in lines:
   num_matches = line.count(b'cycle')
@@ -43,14 +43,15 @@ for line in lines:
   if num_matches:
     print(line)
     words=line.split()
+    previous_sfraction = sfraction
     sfraction=eval(words[6])
 
-    delta_sfraction = (sfraction-initial_sfraction)
+    delta_sfraction = (sfraction-previous_sfraction)
     print("delta_sfraction={}".format(delta_sfraction))
 
-    if time>20:
+    if time>50:
       if abs(delta_sfraction)>tol:
-        print("Wrong solid fraction!")
+        print("Solid fraction is still changing!")
         sys.exit(1)
 
 sys.exit(0)

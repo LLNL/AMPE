@@ -382,6 +382,11 @@ public:
       return d_moving_frame_velocity;
    }
 
+   bool adaptMovingFrame()const
+   {
+      return d_adapt_moving_frame;
+   }
+
 private:
    void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
 
@@ -537,6 +542,7 @@ private:
    bool d_init_phase_conc_eq;
 
    double d_moving_frame_velocity;
+   bool   d_adapt_moving_frame;
 
    void readMolarVolumes(boost::shared_ptr<tbox::Database> db);
 };

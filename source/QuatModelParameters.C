@@ -880,6 +880,8 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
 
    d_moving_frame_velocity =
       model_db->getDoubleWithDefault( "moving_frame_velocity", 0.);
+   d_adapt_moving_frame =
+      model_db->getBoolWithDefault( "adapt_frame", false );
 
    if ( with_third_phase() )
       initializeEta(model_db);

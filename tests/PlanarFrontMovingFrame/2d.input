@@ -1,8 +1,8 @@
 // Input file
 model_type = "KWCcomplex"
 
-end_time            = 200.
-max_timesteps       = 5000
+end_time            = 500.
+max_timesteps       = 500
 
 run_name = "test"
 
@@ -17,7 +17,8 @@ TimerManager {
 }
 
 ModelParameters {
-   moving_frame_velocity = 5.95
+   moving_frame_velocity = 5.
+   adapt_frame = TRUE
 
    H_parameter = -1.
    
@@ -53,7 +54,7 @@ ModelParameters {
 }
 
 ScalarDiagnostics {
-   interval = 1.
+   interval = 10.
    interval_type = "time"
 }   
 

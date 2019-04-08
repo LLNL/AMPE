@@ -2859,6 +2859,10 @@ void QuatIntegrator::evaluatePhaseRHS(
       newtime=true;
    }
 
+   double frame_velocity = d_model_parameters.adaptMovingFrame() ?
+      computeFrameVelocity(hierarchy, time, phase_id, newtime) :
+      d_model_parameters.movingVelocity();
+
    // Loop from finest coarsest levels.  We assume that ghost cells
    // on all levels have already been filled by a prior call to
    // setCoefficients (via fillScratch).
@@ -3043,7 +3047,7 @@ void QuatIntegrator::evaluatePhaseRHS(
                dx,
                phase->getPointer(),
                phase->getGhostCellWidth()[0],
-               d_model_parameters.movingVelocity(),
+               frame_velocity,
                phase_rhs->getPointer(), phase_rhs->getGhostCellWidth()[0]);
          }
 
@@ -5023,3 +5027,48 @@ void QuatIntegrator::getCPODESIdsRequiringRegrid(
    delete cpodes_vec;
 }
 
+double QuatIntegrator::computeFrameVelocity(
+   const boost::shared_ptr<hier::PatchHierarchy >& hierarchy,
+   const double time, int phase_id,
+   const bool newtime)
+{
+   static double frame_velocity          = d_model_parameters.movingVelocity();
+   static double previous_frame_velocity = d_model_parameters.movingVelocity();
+   static double time_previous_frame_velocity = time;
+   static double fs = 0.5;
+   static double previous_fs = 0.5;
+
+   //get time of last accepted step
+   double last_time =
+      d_sundials_solver->getActualFinalValueOfIndependentVariable();
+
+   //update reference frame velocity
+   if( newtime && last_time!=time_previous_frame_velocity ){
+      previous_frame_velocity      = frame_velocity;
+      time_previous_frame_velocity = last_time;
+      previous_fs                  = fs;
+      tbox::plog<<"Update reference frame velocity to "
+                <<previous_frame_velocity<<endl;
+   }
+
+   // computes volume of physical domain
+   const double* low = d_grid_geometry->getXLower();
+   const double* up = d_grid_geometry->getXUpper();
+   double vol = 1.;
+   for(int d=0;d<NDIM;d++)
+      vol *= (up[d]-low[d]);
+
+   // compute new solid fraction
+   math::HierarchyCellDataOpsReal<double> cellops( hierarchy );
+   fs = cellops.L1Norm( phase_id, d_weight_id )/vol;
+   //tbox::plog<<"fs = "<<fs<<endl;
+
+   // compute new frame velocity
+   double dfs=(fs-previous_fs);
+   const double alpha = 5.e1;
+   double acceleration = alpha*dfs;
+   //tbox::plog<<"acceleration = "<<acceleration<<endl;
+   frame_velocity = previous_frame_velocity + acceleration;
+
+   return frame_velocity;
+}
