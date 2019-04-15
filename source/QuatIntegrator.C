@@ -2859,7 +2859,9 @@ void QuatIntegrator::evaluatePhaseRHS(
       newtime=true;
    }
 
-   double frame_velocity = d_model_parameters.adaptMovingFrame() ?
+   //frame velocity saved in class data member so that it can be used
+   //by other functions
+   d_frame_velocity = d_model_parameters.adaptMovingFrame() ?
       computeFrameVelocity(hierarchy, time, phase_id, newtime) :
       d_model_parameters.movingVelocity();
 
@@ -3047,7 +3049,7 @@ void QuatIntegrator::evaluatePhaseRHS(
                dx,
                phase->getPointer(),
                phase->getGhostCellWidth()[0],
-               frame_velocity,
+               d_frame_velocity,
                phase_rhs->getPointer(), phase_rhs->getGhostCellWidth()[0]);
          }
 
@@ -3310,6 +3312,7 @@ void QuatIntegrator::evaluateTemperatureRHS(
 void QuatIntegrator::evaluateConcentrationRHS(
    boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int phase_id,
+   const int conc_id,
    const int conc_rhs_id,
    const int temperature_id,
    const bool visit_flag )
@@ -3361,6 +3364,11 @@ void QuatIntegrator::evaluateConcentrationRHS(
                patch->getPatchGeometry() ) );
          const double * dx  = patch_geom->getDx();
 
+         boost::shared_ptr< pdat::CellData<double> > conc (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( conc_id) ) );
+         assert( conc );
+
          boost::shared_ptr< pdat::SideData<double> > flux (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
                patch->getPatchData( d_flux_conc_id) ) );
@@ -3396,6 +3404,22 @@ void QuatIntegrator::evaluateConcentrationRHS(
             flux->getGhostCellWidth()[0],
             d_conc_mobility,
             conc_rhs->getPointer(ic), 0);
+
+         // add component related to moving frame if moving velocity!=0
+         if( d_model_parameters.inMovingFrame() ){
+            assert(conc->getGhostCellWidth()[0] > 0);
+            FORT_COMP_VDPHIDX(
+               ifirst(0),ilast(0),
+               ifirst(1),ilast(1),
+#if (NDIM == 3)
+               ifirst(2),ilast(2),
+#endif
+               dx,
+               conc->getPointer(),
+               conc->getGhostCellWidth()[0],
+               d_frame_velocity,
+               conc_rhs->getPointer(), conc_rhs->getGhostCellWidth()[0]);
+         }
       }
       
    }
@@ -3928,6 +3952,12 @@ int QuatIntegrator::evaluateRHSFunction(
    assert( y_dot_samvect->getNumberOfComponents() == n );
 //#endif
 
+   int conc_id = -1;
+   if( d_with_concentration ){
+      conc_id = y_samvect->getComponentDescriptorIndex(
+         d_conc_component_index );
+   }
+
 #ifdef DEBUG_CHECK_ASSERTIONS
    int temperature_id  =
       d_with_unsteady_temperature ? 
@@ -3939,8 +3969,6 @@ int QuatIntegrator::evaluateRHSFunction(
       assert( norm_y_temp==norm_y_temp );
    }
    if( d_with_concentration ){
-      int conc_id = y_samvect->getComponentDescriptorIndex(
-         d_conc_component_index );
       assert( checkForNans(hierarchy,conc_id)==0 );
    }
 #endif
@@ -4059,6 +4087,7 @@ int QuatIntegrator::evaluateRHSFunction(
       evaluateConcentrationRHS(
          hierarchy,
          d_phase_scratch_id,
+         d_conc_scratch_id,
          ydot_conc_id,
          d_temperature_scratch_id,
          fd_flag==0 );
@@ -5065,7 +5094,7 @@ double QuatIntegrator::computeFrameVelocity(
 
    // compute new frame velocity
    double dfs=(fs-previous_fs);
-   const double alpha = 5.e1;
+   const double alpha = 5.e5;
    double acceleration = alpha*dfs;
    //tbox::plog<<"acceleration = "<<acceleration<<endl;
    frame_velocity = previous_frame_velocity + acceleration;

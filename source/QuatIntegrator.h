@@ -431,6 +431,7 @@ protected:
    void evaluateConcentrationRHS(
       boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int phase_id,
+      const int conc_id,
       const int conc_rhs_id,
       const int temperature_id,
       const bool visit_flag );
@@ -1046,6 +1047,11 @@ private :
    QuatModel* d_quat_model;
    
    bool d_use_gradq_for_flux;
+
+   /*
+    * Velocity of moving frame
+    */
+   double d_frame_velocity;
 
    solv::LocationIndexRobinBcCoefs* d_phase_bc_coefs;
    solv::LocationIndexRobinBcCoefs* d_eta_bc_coefs;
