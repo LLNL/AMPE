@@ -136,21 +136,21 @@ filename = args[0]
 
 QLEN = options.qlen
 if ( QLEN != 4 and QLEN != 2 and QLEN != 1 ) :
-  print "Error: valid values of qlen are 1, 2, and 4"
+  print( "Error: valid values of qlen are 1, 2, and 4")
   sys.exit(1)
 else:
-  print "QLEN=",QLEN
+  print( "QLEN={}".format(QLEN))
   
 n_solid_layers = "one"
 if ( options.two ) :
   if ( options.one ) :
-    print "Error: cannot use options one and two together"
+    print( "Error: cannot use options one and two together")
     sys.exit(1)
   n_solid_layers = "two"
 
 double_precision = options.double_precision
 if double_precision:
-  print "use double precision..."
+  print( "use double precision...")
 
 nx = options.ncells
 ny = options.ncells
@@ -161,12 +161,12 @@ if ( not options.ny is None ) : ny = options.ny
 if ( not options.nz is None ) : nz = options.nz
 
 if ( not ( nx and ny and nz ) ) :
-  print "Error: either -n or all of -x -y -z are required"
+  print( "Error: either -n or all of -x -y -z are required")
   sys.exit(1)
 
 if ( options.two ) :
   if ( options.one ) :
-    print "Error: cannot use options one and two together"
+    print("Error: cannot use options one and two together")
     sys.exit(1)
 
 if ( not options.centerx is None ) : 
@@ -202,22 +202,22 @@ if ( not options.orient is None ) :
     direction = 2
     width = nz
   else :
-    print "Error: orient should be x, y, or z"
+    print("Error: orient should be x, y, or z")
     sys.exit(1)
 
 radius = options.radius
 if radius is None :
   if ( n_solid_layers == "one" ) :
     radius = width / 4
-    print "Radius not specified: using width/4 = %d" % radius
+    print("Radius not specified: using width/4 = {}".format(radius))
   else :
     radius = width / 8
-    print "Radius not specified: using width/8 = %d" % radius
+    print("Radius not specified: using width/8 = {}".format(radius))
 
 delta = options.delta
 if delta is None :
   delta=0.
-print 'interface width (in cells) =',delta
+print("interface width (in cells) = {}".format(delta))
 
 phase_inside = options.phase_in
 phase_outside = options.phase_out
@@ -245,16 +245,16 @@ quat_outside    = None
 if ( not options.quat_in is None ) :
   #check for incompatible options first...
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-in option is for QLEN=4 or 2"
+    print("Error: quat-in option is for QLEN=4 or 2")
     sys.exit(1)
   if ( n_solid_layers == "one" and options.quat_out is None ) :
-    print "Error: must specify quat-in and quat-out together"
+    print("Error: must specify quat-in and quat-out together")
     sys.exit(1)
   if ( n_solid_layers == "two" and
        ( options.quat_in_two is None or
          options.quat_out is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print("Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together")
     sys.exit(1)
 
   use_simple_rotation = False
@@ -270,16 +270,16 @@ if ( not options.quat_in is None ) :
 if ( not options.quat_in_two is None ) :
   #check for incompatible options first...
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-in-two option is for QLEN=4 or 2"
+    print("Error: quat-in-two option is for QLEN=4 or 2")
     sys.exit(1)
   if ( n_solid_layers == "two" and
        ( options.quat_in is None or
          options.quat_out is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print("Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together")
     sys.exit(1)
   if ( n_solid_layers == "one" ) :
-    print "Warning: ignoring quat-in-two with only one layer"
+    print("Warning: ignoring quat-in-two with only one layer")
   else:
     q = map( float, string.split( options.quat_in_two, ',' ) )
     if ( QLEN == 4 ) :
@@ -292,16 +292,16 @@ if ( not options.quat_in_two is None ) :
 if ( not options.quat_out is None ) :
   #check for incompatible options first...
   if ( QLEN != 4 and QLEN != 2 ) :
-    print "Error: quat-out option is for QLEN=4 or 2"
+    print("Error: quat-out option is for QLEN=4 or 2")
     sys.exit(1)
   if ( n_solid_layers == "one" and options.quat_in is None ) :
-    print "Error: must specify quat-in and quat-out together"
+    print("Error: must specify quat-in and quat-out together")
     sys.exit(1)
   if ( n_solid_layers == "two" and
        ( options.quat_in_two is None or
          options.quat_in is None ) ) :
-    print "Error: must specify quat-in, quat-in-two, " \
-          "and quat-out together"
+    print("Error: must specify quat-in, quat-in-two, " \
+          "and quat-out together")
     sys.exit(1)
 
   use_simple_rotation = False
@@ -316,7 +316,7 @@ if ( not options.quat_out is None ) :
 
 if ( not options.angle_in is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-in option is for QLEN=1"
+    print("Error: angle-in option is for QLEN=1")
     sys.exit(1)
 
   use_simple_rotation = False
@@ -324,19 +324,19 @@ if ( not options.angle_in is None ) :
   angle_inside = options.angle_in * math.pi / 180.0
   
   if ( n_solid_layers == "one" and options.angle_out is None ) :
-    print "Error: must specify angle-in and angle-out together"
+    print("Error: must specify angle-in and angle-out together")
     sys.exit(1)
 
   if ( n_solid_layers == "two" and
        ( options.angle_in_two is None or
          options.angle_out is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print("Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together")
     sys.exit(1)
 
 if ( not options.angle_in_two is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-in-two option is for QLEN=1"
+    print("Error: angle-in-two option is for QLEN=1")
     sys.exit(1)
 
   use_simple_rotation = False
@@ -344,19 +344,19 @@ if ( not options.angle_in_two is None ) :
   angle_inside_two = options.angle_in_two * math.pi / 180.0
   
   if ( n_solid_layers == "one" ) :
-    print "Warning: ignoring angle-in-two with only one layer"
+    print("Warning: ignoring angle-in-two with only one layer")
     sys.exit(1)
 
   if ( n_solid_layers == "two" and
        ( options.angle_in is None or
          options.angle_out is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print("Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together")
     sys.exit(1)
     
 if ( not options.angle_out is None ) :
   if ( QLEN != 1 ) :
-    print "Error: angle-out option is for QLEN=1"
+    print("Error: angle-out option is for QLEN=1")
     sys.exit(1)
 
   use_simple_rotation = False
@@ -364,14 +364,14 @@ if ( not options.angle_out is None ) :
   angle_outside = options.angle_out * math.pi / 180.0
   
   if ( n_solid_layers == "one" and options.angle_in is None ) :
-    print "Error: must specify angle-in and angle-out together"
+    print("Error: must specify angle-in and angle-out together")
     sys.exit(1)
 
   if ( n_solid_layers == "two" and
        ( options.angle_in_two is None or
          options.angle_in is None ) ) :
-    print "Error: must specify angle-in, angle-in-two, " \
-          "and angle-out together"
+    print("Error: must specify angle-in, angle-in-two, " \
+          "and angle-out together")
     sys.exit(1)
 
 #-----------------------------------------------------------------------
@@ -387,7 +387,7 @@ if ( use_simple_rotation ) :
 
   if ( angle is None ) :
     angle = 44.0
-    print "Angle not specified: using %f" % angle
+    print("Angle not specified: using {}".format(angle))
 
   angle = angle * math.pi / 180.0
 
@@ -403,7 +403,7 @@ if ( use_simple_rotation ) :
       quat_outside = Q.makeNormalizedQuat( q0, q1, 0, 0 )
     else :
       quat_outside = Q.makeNormalizedQuat2( q0, q1 )
-    print "Quat outside grain 1 =", quat_outside
+    print("Quat outside grain 1 = {}".format( quat_outside))
 
   if ( n_solid_layers == "two" ) :
     if ( QLEN == 1 ) :
@@ -423,21 +423,21 @@ nspecies=0
 if ( not ( nomconc is None ) ):
   c = map( float, string.split( options.nomconc, ',' ) )
   nspecies=len(c)
-  print "Nominal composition=",c
+  print("Nominal composition={}".format(c))
 if ( not ( conc_inside is None ) ):
   ci = map( float, string.split( options.concentration_in, ',' ) )
   if nspecies==0:
     nspecies=len(ci)
-  print "Composition inside=",ci
+  print("Composition inside={}".format(ci))
 else:
   ci = N.zeros( nspecies, N.float32 )
 if ( not ( conc_outside is None ) ):
   co = map( float, string.split( options.concentration_out, ',' ) )
-  print "Composition outside=",co
+  print("Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
 
-print "nspecies=",nspecies
+print("nspecies={}".format(nspecies))
 
 #-----------------------------------------------------------------------
 # Open and define file
@@ -565,35 +565,35 @@ if ( n_solid_layers == "two" ) :
 
 vs=min(vs,vol)
 vl=vol-vs
-print "Volume           = ",vol
-print "Volume of solid  = ",vs
-print "Volume of liquid = ",vl
+print("Volume           = {}".format(vol))
+print("Volume of solid  = {}".format(vs))
+print("Volume of liquid = {}".format(vl))
 
   
 if ( not ( conc_inside is None ) ):
   if ( not ( nomconc is None ) and vl>0 ):
     for s in range(nspecies):
       co[s] = (c[s]*vol-ci[s]*vs)/vl
-    print "Calculated composition outside=",co
+    print("Calculated composition outside={}".format(co))
 if ( not ( options.concentration_out is None ) ):
   if ( not ( nomconc is None ) and vs>0 ):
     conc_inside = (c[0]*vol-conc_outside*vl)/vs
-    print "Calculated composition inside=",conc_inside
+    print("Calculated composition inside={}".format(conc_inside))
 if( ( conc_outside is None ) and ( conc_inside is None ) ):
   conc_inside = nomconc
   conc_outside = nomconc
 
 if ( not ( conc_outside is None ) and not ( conc_inside is None ) ):
   for s in range(nspecies):
-    print "Calculated nominal Composition=",(vl*co[s]+vs*ci[s])/vol
+    print("Calculated nominal Composition={}".format((vl*co[s]+vs*ci[s])/vol))
 
 if( delta>0. ):
   invdelta = 1./delta
 
 if ( QLEN > 1 ):
-  print "Quat inside grain 1 =", quat_inside
+  print("Quat inside grain 1 = {}".format(quat_inside))
   if ( n_solid_layers == "two" ) :
-    print "Quat inside grain 2 =", quat_inside_two
+    print("Quat inside grain 2 ={}".format(quat_inside_two))
 
 for k in range( nz ) :
   for j in range( ny ) :
