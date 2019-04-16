@@ -37,7 +37,7 @@
 #define included_MobilityFactory
 
 #include "KimMobilityStrategyInfMob.h"
-#include "KimMobilityStrategyFiniteMob.h"
+#include "KimMobilityStrategyFiniteMobAntiTrap.h"
 #include "QuatModelParameters.h"
 
 class QuatModel;
@@ -66,7 +66,7 @@ public:
 
          if( model_parameters.interfaceMobility()>0. ){
             mobility_strategy.reset(
-               new KimMobilityStrategyFiniteMob(
+               new KimMobilityStrategyFiniteMobAntiTrap(
                       model,
                       conc_l_scratch_id, conc_a_scratch_id,
                       temperature_scratch_id,
