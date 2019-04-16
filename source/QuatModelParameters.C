@@ -724,21 +724,50 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault( "H_parameter", -1. );
 
-   // Interface width
-   if ( model_db->keyExists( "epsilon_phi" ) ) {
-      d_epsilon_phase = model_db->getDouble( "epsilon_phi" );
-   }
-   else if ( model_db->keyExists( "epsilon_phase" ) ) {
-      d_epsilon_phase = model_db->getDouble( "epsilon_phase" );
-      printDeprecated( "epsilon_phase", "epsilon_phi" );
-   }
-   else if ( model_db->keyExists( "epsilon_parameter" ) ) {
-      d_epsilon_phase = model_db->getDouble( "epsilon_parameter" );
-      printDeprecated( "epsilon_parameter", "epsilon_phi" );
-   }
-   else {
-      d_with_phase = false;
-      tbox::pout<<"No epsilon specified -> run without phase..."<<endl;
+   // Interface energy
+   if ( model_db->keyExists( "Interface" ) ){
+      boost::shared_ptr<tbox::Database> interface_db =
+         model_db->getDatabase("Interface" );
+      if ( interface_db->keyExists( "sigma" ) ){
+         double sigma = interface_db->getDouble( "sigma" );
+         if ( !interface_db->keyExists( "delta" ) )
+             TBOX_ERROR( "Interface: sigma and delta  needed together!");
+         double delta = interface_db->getDouble( "delta" );
+         d_epsilon_phase = sqrt(6.*sigma*delta);
+         //factor 16 is AMPE convention
+         d_phase_well_scale = (3.*sigma/delta)/16.;
+      }else{
+         d_epsilon_phase = interface_db->getDouble( "epsilon_phi" );
+         d_phase_well_scale = interface_db->getDouble( "phi_well_scale" );
+      }
+      d_with_phase = true;
+   }else{ //specify directly epsilon and double well scale
+
+      if ( model_db->keyExists( "epsilon_phi" ) ) {
+         d_epsilon_phase = model_db->getDouble( "epsilon_phi" );
+      }
+      else if ( model_db->keyExists( "epsilon_phase" ) ) {
+         d_epsilon_phase = model_db->getDouble( "epsilon_phase" );
+         printDeprecated( "epsilon_phase", "epsilon_phi" );
+      }
+      else if ( model_db->keyExists( "epsilon_parameter" ) ) {
+         d_epsilon_phase = model_db->getDouble( "epsilon_parameter" );
+         printDeprecated( "epsilon_parameter", "epsilon_phi" );
+      }
+      else {
+         d_with_phase = false;
+         tbox::pout<<"No epsilon specified -> run without phase..."<<endl;
+      }
+
+      if( d_with_phase ){
+         if ( model_db->keyExists( "phi_well_scale" ) ) {
+            d_phase_well_scale = model_db->getDouble( "phi_well_scale" );
+         }
+         else if ( model_db->keyExists( "scale_energy_well" ) ) {
+            d_phase_well_scale = model_db->getDouble( "scale_energy_well" );
+            printDeprecated( "scale_energy_well", "phi_well_scale" );
+         }
+      }
    }
 
    // Mobility
@@ -772,17 +801,6 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    d_q0_phase_mobility = model_db->getDoubleWithDefault(
       "q0_phi_mobility", 0.0 );
 
-   // Well energy
-   if( d_with_phase ){
-   d_phase_well_scale = 1.0;
-   if ( model_db->keyExists( "phi_well_scale" ) ) {
-      d_phase_well_scale = model_db->getDouble( "phi_well_scale" );
-   }
-   else if ( model_db->keyExists( "scale_energy_well" ) ) {
-      d_phase_well_scale = model_db->getDouble( "scale_energy_well" );
-      printDeprecated( "scale_energy_well", "phi_well_scale" );
-   }
-
    d_phase_well_func_type = "double";
    if ( model_db->keyExists( "phi_well_func_type" ) ) {
       d_phase_well_func_type =
@@ -797,8 +815,7 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
         d_phase_well_func_type[0] != 'd' ){
       TBOX_ERROR( "Error: invalid value for phi_well_func_type" );
    }
-   }
-   
+
    if ( !model_db->keyExists( "ConcentrationModel" ) ){
       if ( model_db->keyExists( "bias_well_alpha" ) ) {
          d_well_bias_alpha = model_db->getDouble( "bias_well_alpha" );
