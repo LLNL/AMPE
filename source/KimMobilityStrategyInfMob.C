@@ -54,8 +54,9 @@ KimMobilityStrategyInfMob::KimMobilityStrategyInfMob(
    :  KimMobilityStrategy(quat_model,conc_l_id,conc_s_id,temp_id,
          energy_interp_func_type,conc_interp_func_type,
          conc_db,
-         ncompositions,
-         DL, Q0)
+         ncompositions),
+      d_DL(DL),
+      d_Q0(Q0)
 {
    assert( epsilon>0. );
    assert( phase_well_scale>=0. );

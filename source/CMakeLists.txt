@@ -52,6 +52,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/NormalNoise.C
             ${CMAKE_SOURCE_DIR}/source/UniformNoise.C
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyInfMob.C
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMob.C
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMobAntiTrap.C
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategy.C
             ${CMAKE_SOURCE_DIR}/source/FieldsInitializer.C

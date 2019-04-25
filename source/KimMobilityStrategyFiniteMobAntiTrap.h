@@ -64,6 +64,12 @@ private:
    double evaluateMobility(const double temp,
       const std::vector<double>&  phaseconc);
 
+   /*!
+    * Diffusivity in liquid
+    */
+   const double d_DL;
+   const double d_Q0;
+
    std::vector<double> d_d2fdc2;
 
    double d_alpha;

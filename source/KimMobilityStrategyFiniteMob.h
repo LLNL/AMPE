@@ -33,42 +33,41 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef included_KimMobilityStrategyInfMob
-#define included_KimMobilityStrategyInfMob
+#ifndef included_KimMobilityStrategyFiniteMob
+#define included_KimMobilityStrategyFiniteMob
 
 #include "KimMobilityStrategy.h"
 
-class KimMobilityStrategyInfMob:
+class KimMobilityStrategyFiniteMob:
    public KimMobilityStrategy
 {
 public:
 
-   KimMobilityStrategyInfMob(
+   KimMobilityStrategyFiniteMob(
       QuatModel* quat_model,
       const int conc_l_id,
       const int conc_s_id,
       const int temp_id,
+      const double interface_mobility,
       const double epsilon,
       const double phase_well_scale,
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
       boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions,
-      const double DL,
-      const double Q0,
-      const double mv);
+      const unsigned ncompositions);
 
 private:
 
    double evaluateMobility(const double temp,
-      const std::vector<double>&  phaseconc);
+      const std::vector<double>&  phaseconc)
+   {
+      (void) temp;
+      (void) phaseconc;
 
-   double d_DL;
-   double d_Q0;
+      return 1./d_alpha;
+   }
 
-   std::vector<double> d_d2fdc2;
-
-   double d_factor; 
+   double d_alpha;
 };
 
 #endif

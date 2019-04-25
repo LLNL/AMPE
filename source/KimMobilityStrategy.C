@@ -50,15 +50,12 @@ KimMobilityStrategy::KimMobilityStrategy(
    const string& energy_interp_func_type,
    const string& conc_interp_func_type,
    boost::shared_ptr<tbox::Database> conc_db,
-   const unsigned ncompositions,
-   const double DL, const double Q0):
+   const unsigned ncompositions):
       SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
       d_conc_s_id(conc_s_id),
       d_temp_id(temp_id),
-      d_ncompositions(ncompositions),
-      d_DL(DL),
-      d_Q0(Q0)
+      d_ncompositions(ncompositions)
 {
    assert( d_conc_l_id>=0 );
    assert( d_conc_s_id>=0 );

@@ -65,9 +65,7 @@ public:
       const std::string& energy_interp_func_type,
       const std::string& conc_interp_func_type,
       boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions,
-      const double DL,
-      const double Q0);
+      const unsigned ncompositions);
 
    void computePhaseMobility(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -85,12 +83,6 @@ protected:
    const int d_temp_id;
 
    const unsigned d_ncompositions;
-
-   /*!
-    * Diffusivity in liquid
-    */
-   const double d_DL;
-   const double d_Q0;
 
    FreeEnergyFunctions* d_fenergy;
 

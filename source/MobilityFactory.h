@@ -37,6 +37,7 @@
 #define included_MobilityFactory
 
 #include "KimMobilityStrategyInfMob.h"
+#include "KimMobilityStrategyFiniteMob.h"
 #include "KimMobilityStrategyFiniteMobAntiTrap.h"
 #include "QuatModelParameters.h"
 
@@ -51,7 +52,7 @@ public:
              const int conc_l_scratch_id,
              const int conc_a_scratch_id,
              const int temperature_scratch_id,
-             const int ncompositions,
+             const unsigned ncompositions,
              boost::shared_ptr<tbox::Database> conc_db)
    {
       boost::shared_ptr<QuatMobilityStrategy> mobility_strategy;
@@ -65,21 +66,36 @@ public:
          }
 
          if( model_parameters.interfaceMobility()>0. ){
-            mobility_strategy.reset(
-               new KimMobilityStrategyFiniteMobAntiTrap(
-                      model,
-                      conc_l_scratch_id, conc_a_scratch_id,
-                      temperature_scratch_id,
-                      model_parameters.interfaceMobility(),
-                      model_parameters.epsilon_phase(),
-                      model_parameters.phase_well_scale(),
-                      model_parameters.energy_interp_func_type(),
-                      model_parameters.conc_interp_func_type(),
-                      conc_db,
-                      ncompositions,
-                      model_parameters.D_liquid(),
-                      model_parameters.Q0_liquid(),
-                      model_parameters.molar_volume_liquid()) );
+            if( model_parameters.with_antitrapping() ){
+               mobility_strategy.reset(
+                  new KimMobilityStrategyFiniteMobAntiTrap(
+                         model,
+                         conc_l_scratch_id, conc_a_scratch_id,
+                         temperature_scratch_id,
+                         model_parameters.interfaceMobility(),
+                         model_parameters.epsilon_phase(),
+                         model_parameters.phase_well_scale(),
+                         model_parameters.energy_interp_func_type(),
+                         model_parameters.conc_interp_func_type(),
+                         conc_db,
+                         ncompositions,
+                         model_parameters.D_liquid(),
+                         model_parameters.Q0_liquid(),
+                         model_parameters.molar_volume_liquid()) );
+            }else{
+               mobility_strategy.reset(
+                  new KimMobilityStrategyFiniteMob(
+                         model,
+                         conc_l_scratch_id, conc_a_scratch_id,
+                         temperature_scratch_id,
+                         model_parameters.interfaceMobility(),
+                         model_parameters.epsilon_phase(),
+                         model_parameters.phase_well_scale(),
+                         model_parameters.energy_interp_func_type(),
+                         model_parameters.conc_interp_func_type(),
+                         conc_db,
+                         ncompositions) );
+            }
          }else{
             mobility_strategy.reset(
                new KimMobilityStrategyInfMob(

@@ -33,44 +33,30 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef included_KimMobilityStrategyInfMob
-#define included_KimMobilityStrategyInfMob
+#include "KimMobilityStrategyFiniteMob.h"
 
-#include "KimMobilityStrategy.h"
-
-class KimMobilityStrategyInfMob:
-   public KimMobilityStrategy
+KimMobilityStrategyFiniteMob::KimMobilityStrategyFiniteMob(
+   QuatModel* quat_model,
+   const int conc_l_id,
+   const int conc_s_id,
+   const int temp_id,
+   const double interface_mobility,
+   const double epsilon,
+   const double phase_well_scale,
+   const std::string& energy_interp_func_type,
+   const std::string& conc_interp_func_type,
+   boost::shared_ptr<tbox::Database> conc_db,
+   const unsigned ncompositions)
+   :  KimMobilityStrategy(quat_model,conc_l_id,conc_s_id,temp_id,
+         energy_interp_func_type,conc_interp_func_type,
+         conc_db,
+         ncompositions)
 {
-public:
+   assert( epsilon>0. );
+   assert( phase_well_scale>=0. );
+   assert( interface_mobility>0. );
 
-   KimMobilityStrategyInfMob(
-      QuatModel* quat_model,
-      const int conc_l_id,
-      const int conc_s_id,
-      const int temp_id,
-      const double epsilon,
-      const double phase_well_scale,
-      const std::string& energy_interp_func_type,
-      const std::string& conc_interp_func_type,
-      boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions,
-      const double DL,
-      const double Q0,
-      const double mv);
+   const double xi = epsilon/sqrt(16.*phase_well_scale);
 
-private:
-
-   double evaluateMobility(const double temp,
-      const std::vector<double>&  phaseconc);
-
-   double d_DL;
-   double d_Q0;
-
-   std::vector<double> d_d2fdc2;
-
-   double d_factor; 
-};
-
-#endif
-
-
+   d_alpha = 3.*sqrt(2.)*xi/interface_mobility;
+}
