@@ -734,8 +734,10 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
              TBOX_ERROR( "Interface: sigma and delta  needed together!");
          double delta = interface_db->getDouble( "delta" );
          d_epsilon_phase = sqrt(6.*sigma*delta);
+         tbox::plog<<"Epsilon_phi = "<<d_epsilon_phase<<endl;
          //factor 16 is AMPE convention
          d_phase_well_scale = (3.*sigma/delta)/16.;
+         tbox::plog<<"Double Well scale = "<<d_phase_well_scale<<endl;
       }else{
          d_epsilon_phase = interface_db->getDouble( "epsilon_phi" );
          d_phase_well_scale = interface_db->getDouble( "phi_well_scale" );
