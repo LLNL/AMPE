@@ -259,7 +259,7 @@ if ( not options.quat_in is None ) :
 
   use_simple_rotation = False
 
-  q = map( float, string.split( options.quat_in, ',' ) )
+  q = list(map( float, options.quat_in.split(',') ))
   if ( QLEN == 4 ) :
     quat_inside = Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] )
   else :
@@ -281,7 +281,7 @@ if ( not options.quat_in_two is None ) :
   if ( n_solid_layers == "one" ) :
     print("Warning: ignoring quat-in-two with only one layer")
   else:
-    q = map( float, string.split( options.quat_in_two, ',' ) )
+    q = list(map( float, options.quat_in_two.split(',') ))
     if ( QLEN == 4 ) :
       quat_inside_two = Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] )
     else :
@@ -306,7 +306,7 @@ if ( not options.quat_out is None ) :
 
   use_simple_rotation = False
 
-  q = map( float, string.split( options.quat_out, ',' ) )
+  q = list(map( float, options.quat_out.split(',') ))
   if ( QLEN == 4 ) :
     quat_outside = Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] )
   else :
@@ -421,18 +421,18 @@ if ( use_simple_rotation ) :
 #-----------------------------------------------------------------------
 nspecies=0
 if ( not ( nomconc is None ) ):
-  c = map( float, string.split( options.nomconc, ',' ) )
+  c = list(map( float, options.nomconc.split(',') ))
   nspecies=len(c)
   print("Nominal composition={}".format(c))
 if ( not ( conc_inside is None ) ):
-  ci = map( float, string.split( options.concentration_in, ',' ) )
+  ci = list(map( float, options.concentration_in.split(',' ) ))
   if nspecies==0:
     nspecies=len(ci)
   print("Composition inside={}".format(ci))
 else:
   ci = N.zeros( nspecies, N.float32 )
 if ( not ( conc_outside is None ) ):
-  co = map( float, string.split( options.concentration_out, ',' ) )
+  co = list(map( float, options.concentration_out.split( ',') ))
   print("Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )

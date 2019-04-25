@@ -209,7 +209,7 @@ if ( not options.quat_in is None ) :
 
   use_simple_rotation = False
 
-  q = map( float, string.split( options.quat_in, ',' ) )
+  q = map( float, options.quat_in.split( ',' ) )
   if ( QLEN == 4 ) :
     quat_inside.append( Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] ) )
   else :
@@ -233,7 +233,7 @@ if ( not options.quat_in_two is None ) :
 
   use_simple_rotation = False
 
-  q = map( float, string.split( options.quat_in_two, ',' ) )
+  q = map( float, options.quat_in_two.split(',') )
   if ( QLEN == 4 ) :
     quat_inside.append( Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] ) )
   else :
