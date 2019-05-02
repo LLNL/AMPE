@@ -63,14 +63,6 @@ c        Valid values for type are "quadratic" and "pbg"
      &      phit * phit * phit *
      &      ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
 
-      else if ( type(1:1) .eq. 't') then
-
-         phit = max( 0.05d0, min( 1.d0, phi ) )
-         
-         interp_func = 
-     &      phit * phit * phit *
-     &      ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
-
       else if ( type(1:1) .eq. 'h') then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
@@ -151,14 +143,6 @@ c-----------------------------------------------------------------------
       else if ( type(1:1) .eq. 'p' ) then
 
          phit = max( 0.d0, min( 1.d0, phi ) )
-         
-         deriv_interp_func = 
-     &      30.d0 * phit * phit *
-     &      ( 1.d0 - phit  ) * ( 1.d0 - phit )
-
-      else if ( type(1:1) .eq. 't' ) then
-
-         phit = max( 0.05d0, min( 1.d0, phi ) )
          
          deriv_interp_func = 
      &      30.d0 * phit * phit *
