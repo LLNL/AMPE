@@ -62,7 +62,19 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
    assert( mv>0. );
    assert( interface_mobility>0. );
 
-   const double a2 = 47./60.;
+   double a2 = 0.;
+   switch (energy_interp_func_type[0]){
+      case 'p':
+         a2 = 47./60.;
+         break;
+      case 'h':
+         a2 = 0.5;
+         break;
+      default:
+         TBOX_ERROR("Invalid interpolation function " <<energy_interp_func_type
+                    <<" in KimMobilityStrategyFiniteMobAntiTrap");
+   }
+   //a2=19./30.; //for Kim2007
    const double xi = epsilon/sqrt(16.*phase_well_scale);
 
    d_alpha = 3.*sqrt(2.)*xi/interface_mobility;
