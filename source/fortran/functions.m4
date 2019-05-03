@@ -83,6 +83,16 @@ c        Valid values for type are "quadratic" and "pbg"
          phit = min( 1.d0, phit )
          interp_func = phit
 
+      else if ( type(1:1) .eq. 'b' ) then
+
+         if( phi < 0.99d0 )then
+            interp_func = 0.d0
+         else
+            phit = (phi-0.99d0)*100.d0
+            interp_func =
+     &         phit * phit * ( 3.d0 - 2.d0 * phit )
+         endif
+
       else if ( type(1:1) .eq. 'a' ) then
 
          if( phi < 0.08333333333333333d0 )then

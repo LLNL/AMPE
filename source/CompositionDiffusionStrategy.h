@@ -46,6 +46,7 @@ enum class DiffusionInterpolationType
 {
    LINEAR,
    PBG,
+   BIASED,
    UNDEFINED
 };
 
@@ -69,8 +70,16 @@ public:
 protected:
    char interpChar()const
    {
-      return ((d_interp_func_type
-       ==DiffusionInterpolationType::LINEAR) ? 'l' : 'p');
+      switch( d_interp_func_type ){
+         case DiffusionInterpolationType::LINEAR:
+            return 'l';
+         case DiffusionInterpolationType::PBG:
+            return 'p';
+         case DiffusionInterpolationType::BIASED:
+            return 'b';
+         default:
+            TBOX_ERROR("Invalid interp_func_type for CompositionDiffusionStrategy");
+      }
    }
 
 private:

@@ -866,6 +866,10 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
          d_diffusion_interp_type =
             DiffusionInterpolationType::PBG;
          break;
+      case 'b':
+         d_diffusion_interp_type =
+            DiffusionInterpolationType::BIASED;
+         break;
       default:
          tbox::plog<<"diffusion_interp_type="
                    <<diffusion_interp_type<<endl;
