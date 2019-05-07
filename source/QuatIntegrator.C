@@ -5066,6 +5066,7 @@ double QuatIntegrator::computeFrameVelocity(
    static double time_previous_frame_velocity = time;
    static double fs = 0.5;
    static double previous_fs = 0.5;
+   static bool   first_time = true;
 
    //get time of last accepted step
    double last_time =
@@ -5078,6 +5079,7 @@ double QuatIntegrator::computeFrameVelocity(
       previous_fs                  = fs;
       tbox::plog<<"Update reference frame velocity to "
                 <<previous_frame_velocity<<endl;
+      first_time = false;
    }
 
    // computes volume of physical domain
@@ -5093,9 +5095,12 @@ double QuatIntegrator::computeFrameVelocity(
    //tbox::plog<<"fs = "<<fs<<endl;
 
    // compute new frame velocity
-   double dfs=(fs-previous_fs);
-   const double alpha = 5.e5;
-   double acceleration = alpha*dfs;
+   double acceleration = 0.;
+   if( !first_time ){
+      double dfs=(fs-previous_fs);
+      const double alpha = 5.e5;
+      acceleration = alpha*dfs;
+   }
    //tbox::plog<<"acceleration = "<<acceleration<<endl;
    frame_velocity = previous_frame_velocity + acceleration;
 
