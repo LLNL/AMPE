@@ -34,6 +34,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "ConcInterpolationType.h"
 
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -87,7 +88,7 @@ int main( int argc, char *argv[] )
       input_db->getDatabase("ModelParameters");
 
    string energy_interp_func_type = "pbg";
-   string conc_interp_func_type = "pbg";
+   ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
  
    boost::shared_ptr<tbox::Database> temperature_db =
       model_db->getDatabase( "Temperature" );

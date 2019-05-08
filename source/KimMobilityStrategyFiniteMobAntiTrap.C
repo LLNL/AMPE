@@ -44,7 +44,7 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
    const double epsilon,
    const double phase_well_scale,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type,
+   const ConcInterpolationType conc_interp_func_type,
    boost::shared_ptr<tbox::Database> conc_db,
    const unsigned ncompositions,
    const double DL,

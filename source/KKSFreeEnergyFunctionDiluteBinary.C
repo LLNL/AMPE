@@ -46,7 +46,7 @@ using namespace std;
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type):
+   const ConcInterpolationType conc_interp_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type)
 {
@@ -193,9 +193,14 @@ void KKSFreeEnergyFunctionDiluteBinary::computeSecondDerivativeFreeEnergy(
 void KKSFreeEnergyFunctionDiluteBinary::setupFB(const double temperature)
 {
    assert( d_ke > 0. );
+   assert( temperature < d_Tm );
+   assert( d_me<0. );
 
    const double cLe = (temperature-d_Tm)/d_me;
    const double cSe = cLe*d_ke;
+
+   assert( cLe<1. );
+   assert( cSe<1. );
 
    d_fB = log( 1.-cLe ) - log( 1.-cSe );
 }
@@ -275,9 +280,10 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
    assert( x[1]<=1. );
    
    const double conc0 = conc[0];
-   
+
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hphi =
-      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC( phi, &interp_func_type );
 
    setupFB( temperature );
 
@@ -443,8 +449,9 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(
 {
    (void) eta;
 
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hcphi =
-      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC( phi, &interp_func_type );
 
    const double tol=1.e-8;
    double fl=0.;

@@ -37,6 +37,7 @@
 #define included_PartitionPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
+#include "ConcInterpolationType.h"
 
 // compute c_l, c_s using partition coefficient
 class PartitionPhaseConcentrationsStrategy:public PhaseConcentrationsStrategy
@@ -47,7 +48,7 @@ public:
       const int conc_l_id,
       const int conc_a_id,
       const int conc_b_id,
-      const std::string& phase_interp_func_type,
+      const ConcInterpolationType phase_interp_func_type,
       const int partition_coeff_id):
          PhaseConcentrationsStrategy(
             conc_l_id,
@@ -58,7 +59,7 @@ public:
          d_partition_coeff_id(partition_coeff_id)
    {
       assert( d_partition_coeff_id>=0 );
-      assert( !phase_interp_func_type.empty() );
+      assert( phase_interp_func_type!=ConcInterpolationType::UNDEFINED );
    };
    
    ~PartitionPhaseConcentrationsStrategy(){};
@@ -75,7 +76,7 @@ public:
 
 private:
 
-   const std::string d_phase_interp_func_type;
+   const ConcInterpolationType d_phase_interp_func_type;
    int d_partition_coeff_id;
 };
 

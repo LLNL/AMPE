@@ -37,6 +37,7 @@
 #define included_BeckermannCompositionRHSStrategy
 
 #include "CompositionRHSStrategy.h"
+#include "ConcInterpolationType.h"
 
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -59,7 +60,7 @@ public:
       const int phase_coupling_diffusion_id,
       const double D_liquid,
       const double D_solid_A,
-      const std::string& phase_interp_func_type,
+      const ConcInterpolationType phase_interp_func_type,
       const std::string& avg_func_type
    );
    ~BeckermannCompositionRHSStrategy(){};
@@ -84,7 +85,7 @@ private:
    int d_diffusion0_id;
    int d_conc_phase_coupling_diffusion_id;
    
-   std::string d_phase_interp_func_type;
+   ConcInterpolationType d_phase_interp_func_type;
    std::string d_avg_func_type;
 
    double d_D_liquid;

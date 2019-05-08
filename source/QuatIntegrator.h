@@ -47,6 +47,7 @@
 #include "PhaseFACOps.h"
 #include "PhaseTemperatureFACOps.h"
 #include "EllipticFACSolver.h"
+#include "ConcInterpolationType.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -155,7 +156,7 @@ public :
       const std::string avg_func_type,
       const std::string phase_well_func_type,
       const std::string energy_interp_func_type,
-      const std::string conc_interp_func_type,
+      const ConcInterpolationType conc_interp_func_type,
       const std::string eta_well_func_type);
 
    void setAbsTol(const double atol)
@@ -524,7 +525,7 @@ protected:
 
    std::string d_energy_interp_func_type;
 
-   std::string d_conc_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
 
    FreeEnergyStrategy*   d_free_energy_strategy;
 

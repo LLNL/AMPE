@@ -38,6 +38,7 @@
 
 #include "PhaseConcentrationsStrategy.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "ConcInterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -52,7 +53,7 @@ public:
       const int conc_a_ref_id,
       const int conc_b_ref_id,
       const std::string& energy_interp_func_type,
-      const std::string& conc_interp_func_type,
+      const ConcInterpolationType conc_interp_func_type,
       boost::shared_ptr<tbox::Database> conc_db);
 
    ~KKSdiluteEquilibriumPhaseConcentrationsStrategy()

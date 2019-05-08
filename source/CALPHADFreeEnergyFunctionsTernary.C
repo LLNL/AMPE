@@ -47,7 +47,7 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type):
+   const ConcInterpolationType conc_interp_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type)
 {
@@ -809,10 +809,9 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    d_L_ABC_S[1] = lmix1ABCPhaseA( temperature );
    d_L_ABC_S[2] = lmix2ABCPhaseA( temperature );
 
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hphi =
-      FORT_INTERP_FUNC(
-         phi,
-         d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC(phi, &interp_func_type);
 
    double heta = 0.0;
    //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -998,8 +997,9 @@ double CALPHADFreeEnergyFunctionsTernary::fchem(
    
    (void)eta;
 
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hcphi =
-      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC( phi, &interp_func_type );
 
    const double tol=1.e-8;
    double fl=0.;

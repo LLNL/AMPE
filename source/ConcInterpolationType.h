@@ -33,49 +33,17 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef included_KimMobilityStrategyFiniteMobAntiTrap
-#define included_KimMobilityStrategyFiniteMobAntiTrap
+#ifndef ConcInterpolationType_H
+#define ConcInterpolationType_H
 
-#include "KimMobilityStrategy.h"
-
-class KimMobilityStrategyFiniteMobAntiTrap:
-   public KimMobilityStrategy
+enum class ConcInterpolationType
 {
-public:
-
-   KimMobilityStrategyFiniteMobAntiTrap(
-      QuatModel* quat_model,
-      const int conc_l_id,
-      const int conc_s_id,
-      const int temp_id,
-      const double interface_mobility,
-      const double epsilon,
-      const double phase_well_scale,
-      const std::string& energy_interp_func_type,
-      const ConcInterpolationType conc_interp_func_type,
-      boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions,
-      const double DL,
-      const double Q0,
-      const double mv);
-
-private:
-
-   double evaluateMobility(const double temp,
-      const std::vector<double>&  phaseconc);
-
-   /*!
-    * Diffusivity in liquid
-    */
-   const double d_DL;
-   const double d_Q0;
-
-   std::vector<double> d_d2fdc2;
-
-   double d_alpha;
-   double d_beta; 
+   LINEAR,
+   PBG,
+   HARMONIC,
+   UNDEFINED
 };
 
+char interpChar(ConcInterpolationType interp_func_type);
+
 #endif
-
-

@@ -39,6 +39,7 @@
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "FuncFort.h"
+#include "ConcInterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -56,7 +57,7 @@ public:
    KKSdiluteBinary(
       boost::shared_ptr<tbox::Database> conc_db,
       const std::string& energy_interp_func_type,
-      const std::string& conc_interp_func_type,
+      const ConcInterpolationType conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
       const int conc_l_id,
       const int conc_a_id);
@@ -212,6 +213,22 @@ public:
 
 private:
 
+   std::string d_energy_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
+
+   int d_conc_l_id;
+   int d_conc_a_id;
+
+   double computeMuA(
+      const double t,
+      const double c );
+
+   double computeMuL(
+      const double t,
+      const double c );
+
+private:
+
    void defaultComputeSecondDerivativeEnergyPhaseL(
       const double temperature,
       const std::vector<double>& c,
@@ -234,20 +251,6 @@ private:
 
    KKSFreeEnergyFunctionDiluteBinary* d_kksdilute_fenergy;
    
-   std::string d_energy_interp_func_type;
-   std::string d_conc_interp_func_type;
-
-   double computeMuA(
-      const double t,
-      const double c );
-
-   double computeMuL(
-      const double t,
-      const double c );
-
-   int d_conc_l_id;
-   int d_conc_a_id;
-
    double hprime(const double phi)
    {
       return FORT_DERIV_INTERP_FUNC(phi, d_energy_interp_func_type.c_str());

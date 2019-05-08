@@ -112,6 +112,9 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
+
+   const char interp = interpChar(d_phase_interp_func_type);
+
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -134,7 +137,7 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
             assert( phi==phi );
             
             const double hphi =
-               FORT_INTERP_FUNC( phi, d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC( phi, &interp );
             assert( hphi>=0. );
             //if( hphi>1. )std::cerr<<"phi="<<phi<<std::endl;
             //if( hphi>1. )std::cerr<<"hphi="<<hphi<<std::endl;

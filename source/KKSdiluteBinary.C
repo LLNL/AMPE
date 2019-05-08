@@ -55,7 +55,7 @@ using namespace std;
 KKSdiluteBinary::KKSdiluteBinary(
    boost::shared_ptr<tbox::Database> conc_db,
    const string& energy_interp_func_type,
-   const string& conc_interp_func_type,
+   const ConcInterpolationType conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
    const int conc_a_id
@@ -123,6 +123,9 @@ void KKSdiluteBinary::computeDerivFreeEnergyLiquid(
 {
    assert( temperature_id >= 0 );
    assert( dfl_id >= 0 );
+   assert( d_conc_l_id>=0 );
+
+   //tbox::pout<<"d_conc_l_id="<<d_conc_l_id<<std::endl;
 
    computeDerivFreeEnergyPrivate(
       hierarchy,
@@ -142,6 +145,7 @@ void KKSdiluteBinary::computeFreeEnergySolidA(
 {
    assert( temperature_id >= 0. );
    assert( fs_id >= 0 );
+   assert( d_conc_a_id >= 0 );
 
    computeFreeEnergyPrivate(
       hierarchy,
@@ -161,6 +165,9 @@ void KKSdiluteBinary::computeDerivFreeEnergySolidA(
 {
    assert( temperature_id >= 0. );
    assert( dfs_id >= 0 );
+   assert( d_conc_a_id >= 0 );
+
+   //tbox::pout<<"d_conc_a_id="<<d_conc_a_id<<std::endl;
 
    computeDerivFreeEnergyPrivate(
       hierarchy,
@@ -207,7 +214,6 @@ void KKSdiluteBinary::computeFreeEnergyLiquid(
 {
    assert( temperature_id >= 0 );
    assert( fl_id >= 0 );
- 
    assert( d_conc_l_id >= 0 );
 
    computeFreeEnergyPrivate(

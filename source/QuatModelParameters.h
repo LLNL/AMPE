@@ -38,6 +38,7 @@
 
 #include "tools.h"
 #include "CompositionDiffusionStrategy.h"
+#include "ConcInterpolationType.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -179,7 +180,7 @@ public:
    std::string orient_interp_func_type()const{
       return d_orient_interp_func_type;
    }
-   std::string conc_interp_func_type()const{
+   ConcInterpolationType conc_interp_func_type()const{
       return d_conc_interp_func_type;
    }
    std::string energy_interp_func_type()const{
@@ -452,7 +453,7 @@ private:
    /*!
     * form of h_r(phi)
     */
-   std::string d_conc_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
 
    /*!
     * form of h_p(phi)

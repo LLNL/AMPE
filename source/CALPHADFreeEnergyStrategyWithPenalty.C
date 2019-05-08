@@ -48,7 +48,7 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type,
+   const ConcInterpolationType conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
    const int conc_a_id,

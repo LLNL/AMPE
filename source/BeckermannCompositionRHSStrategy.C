@@ -60,7 +60,7 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
       const int conc_phase_coupling_diffusion_id,
       const double D_liquid,
       const double D_solid_A,
-      const string& phase_interp_func_type,
+      const ConcInterpolationType phase_interp_func_type,
       const string& avg_func_type
    ):CompositionRHSStrategy(avg_func_type),
    d_quat_model(quat_model)
@@ -167,7 +167,8 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
          assert( cd_partition_coeff );
-         
+
+         const char interp_func_type = interpChar(d_phase_interp_func_type); 
          FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
@@ -185,7 +186,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
             cd_partition_coeff->getGhostCellWidth()[0],
             d_D_liquid,
             d_D_solid_A,
-            d_phase_interp_func_type.c_str(),
+            &interp_func_type,
             d_avg_func_type.c_str() );
       }
    }
@@ -310,7 +311,8 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interp_func_type = interpChar(d_phase_interp_func_type);
+ 
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -334,11 +336,8 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 
             double phi = 
                average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            
             double hphi=
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interp_func_type);
 
             double c = 
                average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
@@ -381,9 +380,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
 
             double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interp_func_type);
 
             double c = 
                average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
@@ -426,9 +423,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                assert( phi==phi );
 
                double hphi =
-                  FORT_INTERP_FUNC(
-                     phi,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(phi, &interp_func_type);
 
                double c = 
                   average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );

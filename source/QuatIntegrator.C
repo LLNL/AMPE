@@ -1562,7 +1562,7 @@ void QuatIntegrator::setModelParameters(
    const string avg_func_type,
    const string phase_well_func_type,
    const string energy_interp_func_type,
-   const string conc_interp_func_type,
+   const ConcInterpolationType conc_interp_func_type,
    const string eta_well_func_type)
 {
    d_current_time = current_time;

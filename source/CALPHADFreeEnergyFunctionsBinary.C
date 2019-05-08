@@ -95,7 +95,7 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
    const std::string& energy_interp_func_type,
-   const std::string& conc_interp_func_type,
+   const ConcInterpolationType conc_interp_func_type,
    const bool with_third_phase):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
@@ -568,10 +568,9 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    d_L2[1] = lmixPhase( 2, phaseA, temperature );
    d_L3[1] = lmixPhase( 3, phaseA, temperature );
 
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hphi =
-      FORT_INTERP_FUNC(
-         phi,
-         d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC(phi, &interp_func_type);
 
    double heta = 0.0;
    //tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -592,9 +591,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       d_L3[2] = lmixPhase( 3, phaseB, temperature );
 
       heta =
-         FORT_INTERP_FUNC(
-            eta,
-            d_conc_interp_func_type.c_str() );
+         FORT_INTERP_FUNC(eta,  &interp_func_type);
    }
    
    // conc could be outside of [0.,1.] in a trial step
@@ -772,11 +769,12 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(
    const double* const conc,
    const double temperature )
 {
+   const char interp_func_type = interpChar(d_conc_interp_func_type);
    const double hcphi =
-      FORT_INTERP_FUNC( phi, d_conc_interp_func_type.c_str() );
+      FORT_INTERP_FUNC( phi, &interp_func_type );
    double heta = 0.0;
    if ( d_with_third_phase ) {
-      heta = FORT_INTERP_FUNC( eta, d_conc_interp_func_type.c_str() );
+      heta = FORT_INTERP_FUNC( eta, &interp_func_type );
    }      
 
    const double tol=1.e-8;

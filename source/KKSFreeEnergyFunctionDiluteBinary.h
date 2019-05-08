@@ -39,6 +39,7 @@
 #include "Phases.h"
 #include "KKSdiluteBinaryConcentrationSolver.h"
 #include "FreeEnergyFunctions.h"
+#include "ConcInterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -52,7 +53,7 @@ public:
    KKSFreeEnergyFunctionDiluteBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
       const std::string& energy_interp_func_type,
-      const std::string& conc_interp_func_type);
+      const ConcInterpolationType conc_interp_func_type);
 
    ~KKSFreeEnergyFunctionDiluteBinary()
    {
@@ -136,7 +137,7 @@ private:
    double d_ceq_a;
    
    std::string d_energy_interp_func_type;
-   std::string d_conc_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
    
    void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
 
