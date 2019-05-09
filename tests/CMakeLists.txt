@@ -30,6 +30,7 @@ add_executable(testHyprePoisson
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
                ${CMAKE_SOURCE_DIR}/source/CellPoissonHypreSolver.C
                ${CMAKE_SOURCE_DIR}/source/tools.C
@@ -57,7 +58,7 @@ add_executable(testCALPHADJacobianTernary
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
 add_executable(testKKSdiluteBinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/ConcInterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
                ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
                ${CMAKE_SOURCE_DIR}/source/xlogx.C
@@ -68,7 +69,7 @@ add_executable(testKKSdiluteBinaryKKS
                )
 add_executable(testCALPHADbinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/ConcInterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
@@ -83,7 +84,7 @@ add_executable(testCALPHADbinaryKKS
                )
 add_executable(testCALPHADternaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/ConcInterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
@@ -99,7 +100,7 @@ add_executable(testCALPHADternaryKKS
                )
 add_executable(testCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/ConcInterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
@@ -114,7 +115,7 @@ add_executable(testCALPHADbinaryEquilibrium
                )
 add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/ConcInterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
                ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C

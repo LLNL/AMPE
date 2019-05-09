@@ -37,6 +37,7 @@
 #define included_TemperatureFreeEnergyStrategy 
 
 #include "FreeEnergyStrategy.h"
+#include "InterpolationType.h"
 
 #include <string>
 #include <vector>
@@ -46,8 +47,8 @@ class TemperatureFreeEnergyStrategy:
 {
 public:
    TemperatureFreeEnergyStrategy(
-      const std::string& phase_interp_func_type,
-      const std::string& eta_interp_func_type,
+      const EnergyInterpolationType phase_interp_func_type,
+      const EnergyInterpolationType eta_interp_func_type,
       const double fa,
       const double fb,
       const double vma,
@@ -138,8 +139,9 @@ private:
    double d_invMeltingT;
    double d_f_a;
    double d_f_b;
-   std::string d_phase_interp_func_type;
-   std::string d_eta_interp_func_type;
+
+   EnergyInterpolationType d_phase_interp_func_type;
+   EnergyInterpolationType d_eta_interp_func_type;
 
    bool d_with_third_phase;
 

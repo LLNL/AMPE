@@ -57,7 +57,7 @@ public:
    CALPHADFreeEnergyStrategyTernary(
       boost::shared_ptr<tbox::Database> input_db,
       boost::shared_ptr<tbox::Database> newton_db,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
       const int conc_l_id,
@@ -231,7 +231,7 @@ protected:
 
    CALPHADFreeEnergyFunctionsTernary* d_calphad_fenergy;
    
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;
 
    void computeMuA(

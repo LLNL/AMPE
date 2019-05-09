@@ -62,7 +62,7 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
       const double Q0_liquid,
       const double Q0_solid_A,
       const double Q0_solid_B,
-      const std::string& phase_interp_func_type,
+      const EnergyInterpolationType phase_interp_func_type,
       const std::string& avg_func_type
    ):CompositionRHSStrategy(avg_func_type)
 {
@@ -168,6 +168,8 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
 
    const int maxl = hierarchy->getNumberOfLevels();
 
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+
    for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
       boost::shared_ptr<hier::PatchLevel > level =
          hierarchy->getPatchLevel( amr_level );
@@ -222,7 +224,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
             d_D_solid_A, d_Q0_solid_A,
             d_D_solid_B, d_Q0_solid_B,
             gas_constant_R_JpKpmol,
-            d_phase_interp_func_type.c_str(),
+            &interpf,
             d_avg_func_type.c_str(),
             three_phase );
       }
@@ -402,7 +404,9 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+ 
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -430,9 +434,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
             double c_b = 0.0;
 
             double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
 
@@ -441,10 +443,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
                c_b = 0.5 * ( ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i] );
 
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
-
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             ptr_phi_diffx[idx_dcoeff] =
@@ -453,14 +452,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
             if ( d_with_third_phase ) {
                double hphi =
-                  FORT_INTERP_FUNC(
-                     phi,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(phi, &interpf);
 
                double heta_prime =
-                  FORT_DERIV_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_DERIV_INTERP_FUNC(eta, &interpf);
                
                ptr_eta_diffx[idx_dcoeff] =
                   ptr_dx0_coeff[idx_dcoeff] * hphi *
@@ -496,9 +491,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
             double c_b = 0.0;
 
             double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
 
@@ -507,10 +500,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
                c_b = 0.5 * ( ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i] );
 
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
-
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             ptr_phi_diffy[idx_dcoeff] =
@@ -519,14 +509,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
             if ( d_with_third_phase ) {
                double hphi =
-                  FORT_INTERP_FUNC(
-                     phi,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(phi, &interpf);
 
                double heta_prime =
-                  FORT_DERIV_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_DERIV_INTERP_FUNC(eta, &interpf);
                
                ptr_eta_diffy[idx_dcoeff] =
                   ptr_dy0_coeff[idx_dcoeff] * hphi *
@@ -563,9 +549,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
                double c_b = 0.0;
 
                double hphi_prime =
-                  FORT_DERIV_INTERP_FUNC(
-                     phi,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_DERIV_INTERP_FUNC(phi, &interpf);
 
                double heta = 0.0;
 
@@ -574,10 +558,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
                   c_b = 0.5 * ( ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i] );
 
                   heta =
-                     FORT_INTERP_FUNC(
-                        eta,
-                        d_phase_interp_func_type.c_str() );
-
+                     FORT_INTERP_FUNC(eta, &interpf);
                }
 
                ptr_phi_diffz[idx_dcoeff] =
@@ -586,14 +567,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
                if ( d_with_third_phase ) {
                   double hphi =
-                     FORT_INTERP_FUNC(
-                        phi,
-                        d_phase_interp_func_type.c_str() );
+                     FORT_INTERP_FUNC(phi, &interpf);
 
                   double heta_prime =
-                     FORT_DERIV_INTERP_FUNC(
-                        eta,
-                        d_phase_interp_func_type.c_str() );
+                     FORT_DERIV_INTERP_FUNC(eta, &interpf);
 
                   ptr_eta_diffz[idx_dcoeff] =
                      ptr_dz0_coeff[idx_dcoeff] * hphi *
@@ -687,7 +664,7 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interpf = energyInterpChar(d_phase_interp_func_type); 
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
@@ -713,18 +690,14 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
                average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
             
             const double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
             if ( d_with_third_phase ) {
                double eta = 
                   average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);
@@ -760,18 +733,14 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
                average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
             
             const double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
             if ( d_with_third_phase ) {
                double eta = 
                   average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);
@@ -808,18 +777,14 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
                average( ptr_temp[idx_temp], ptr_temp[idxm1_temp] );
             
             const double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_phase_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
             if ( d_with_third_phase ) {
                double eta = 
                   average( ptr_eta[idx_pf], ptr_eta[idxm1_pf] );
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_phase_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             const double invd2fdc2 = computeLocalInvD2fDc2(c, hphi, heta, t);

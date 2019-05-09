@@ -38,7 +38,7 @@
 
 #include "PhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyFunctions.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -52,7 +52,7 @@ public:
       const int conc_l_ref_id,
       const int conc_a_ref_id,
       const int conc_b_ref_id,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       const bool with_third_phase,
       boost::shared_ptr<tbox::Database> calphad_db,

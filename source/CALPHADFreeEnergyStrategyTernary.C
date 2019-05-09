@@ -56,7 +56,7 @@ using namespace std;
 CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
-   const string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
@@ -718,7 +718,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -756,9 +756,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
 #endif
 
             double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(phi, &interpf);
 
             ptr_rhs[idx_rhs] +=
                hphi_prime * (

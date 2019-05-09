@@ -33,20 +33,27 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "ConcInterpolationType.h"
+#ifndef InterpolationType_H
+#define InterpolationType_H
 
-#include "SAMRAI/tbox/Utilities.h"
-
-char interpChar(ConcInterpolationType interp_func_type)
+enum class ConcInterpolationType
 {
-   switch( interp_func_type ){
-      case ConcInterpolationType::LINEAR:
-         return 'l';
-      case ConcInterpolationType::PBG:
-         return 'p';
-      case ConcInterpolationType::HARMONIC:
-         return 'h';
-      default:
-         TBOX_ERROR("Invalid interp_func_type for ConcInterpolationType");
-   }
-}
+   LINEAR,
+   PBG,
+   HARMONIC,
+   UNDEFINED
+};
+
+enum class EnergyInterpolationType
+{
+   LINEAR,
+   PBG,
+   HARMONIC,
+   UNDEFINED
+};
+
+
+char energyInterpChar(EnergyInterpolationType interp_func_type);
+char concInterpChar(ConcInterpolationType interp_func_type);
+
+#endif

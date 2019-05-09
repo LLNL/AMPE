@@ -45,7 +45,7 @@ using namespace std;
 
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
-   const std::string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type):
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type)
@@ -281,7 +281,7 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
    
    const double conc0 = conc[0];
 
-   const char interp_func_type = interpChar(d_conc_interp_func_type);
+   const char interp_func_type = concInterpChar(d_conc_interp_func_type);
    const double hphi =
       FORT_INTERP_FUNC( phi, &interp_func_type );
 
@@ -449,7 +449,7 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(
 {
    (void) eta;
 
-   const char interp_func_type = interpChar(d_conc_interp_func_type);
+   const char interp_func_type = concInterpChar(d_conc_interp_func_type);
    const double hcphi =
       FORT_INTERP_FUNC( phi, &interp_func_type );
 
@@ -470,8 +470,8 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(
       }
    }
 
-   const double hfphi =
-      FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+   const double hfphi = FORT_INTERP_FUNC( phi, &interpf );
    double e = ( 1.0 - hfphi ) * fl + hfphi * fa ;
 
    return e;

@@ -55,7 +55,7 @@ void PhaseFACSolver::setOperatorCoefficients(
    const int phase_mobility_id,
    const double epsilon_phase,
    const double gamma,
-   const string phase_interp_func_type,
+   const EnergyInterpolationType phase_interp_func_type,
    const double phase_well_scale,
    const string phase_well_func_type,
    const double eta_well_scale,

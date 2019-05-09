@@ -43,7 +43,7 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
    const double interface_mobility,
    const double epsilon,
    const double phase_well_scale,
-   const std::string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    boost::shared_ptr<tbox::Database> conc_db,
    const unsigned ncompositions,
@@ -63,16 +63,15 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
    assert( interface_mobility>0. );
 
    double a2 = 0.;
-   switch (energy_interp_func_type[0]){
-      case 'p':
+   switch (energy_interp_func_type){
+      case EnergyInterpolationType::PBG:
          a2 = 47./60.;
          break;
-      case 'h':
+      case EnergyInterpolationType::HARMONIC:
          a2 = 0.5;
          break;
       default:
-         TBOX_ERROR("Invalid interpolation function " <<energy_interp_func_type
-                    <<" in KimMobilityStrategyFiniteMobAntiTrap");
+         TBOX_ERROR("Invalid interpolation function in KimMobilityStrategyFiniteMobAntiTrap");
    }
    //a2=19./30.; //for Kim2007
    const double xi = epsilon/sqrt(16.*phase_well_scale);

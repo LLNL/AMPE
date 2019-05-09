@@ -37,7 +37,7 @@
 #define included_PartitionPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 // compute c_l, c_s using partition coefficient
 class PartitionPhaseConcentrationsStrategy:public PhaseConcentrationsStrategy

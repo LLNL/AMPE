@@ -94,7 +94,7 @@ void readLcoefficients(boost::shared_ptr<tbox::Database> db,
 CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-   const std::string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    const bool with_third_phase):
       d_energy_interp_func_type(energy_interp_func_type),
@@ -568,7 +568,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    d_L2[1] = lmixPhase( 2, phaseA, temperature );
    d_L3[1] = lmixPhase( 3, phaseA, temperature );
 
-   const char interp_func_type = interpChar(d_conc_interp_func_type);
+   const char interp_func_type = concInterpChar(d_conc_interp_func_type);
    const double hphi =
       FORT_INTERP_FUNC(phi, &interp_func_type);
 
@@ -769,7 +769,7 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(
    const double* const conc,
    const double temperature )
 {
-   const char interp_func_type = interpChar(d_conc_interp_func_type);
+   const char interp_func_type = concInterpChar(d_conc_interp_func_type);
    const double hcphi =
       FORT_INTERP_FUNC( phi, &interp_func_type );
    double heta = 0.0;
@@ -797,8 +797,9 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(
       }
    }
 
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
    const double hfphi =
-      FORT_INTERP_FUNC( phi, d_energy_interp_func_type.c_str() );
+      FORT_INTERP_FUNC( phi, &interpf );
    double e =
       ( 1.0 - hfphi ) * fl +
       hfphi * ( ( 1.0 - heta ) * fa + heta * fb );

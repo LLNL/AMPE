@@ -37,6 +37,7 @@
 #define included_PhaseFACOps
 
 #include "EllipticFACOps.h"
+#include "InterpolationType.h"
 
 #include <string>
 
@@ -60,7 +61,7 @@ public:
       const int phase_mobility_id,
       const double epsilon_phase, 
       const double gamma,
-      const std::string phase_interp_func_type,
+      const EnergyInterpolationType phase_interp_func_type,
       const double phase_well_scale,
       const std::string phase_well_func_type,
       const double eta_well_scale=0.,
@@ -70,7 +71,7 @@ public:
       const int phi_id,
       const int eta_id,
       const double gamma,
-      const std::string phi_interp_func_type,
+      const EnergyInterpolationType phi_interp_func_type,
       const double phi_well_scale,
       const std::string phi_well_func_type,
       const double eta_well_scale,
@@ -86,7 +87,7 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_m,
       boost::shared_ptr< pdat::CellData<double> > cd_c,
       const double gamma,
-      const char* phi_interp_func_type,
+      const EnergyInterpolationType phi_interp_func_type,
       const double phi_well_scale,
       const char* phi_well_func_type,
       const double eta_well_scale,

@@ -106,10 +106,10 @@ QuatModelParameters::QuatModelParameters()
 
    d_orient_interp_func_type = "";
    d_conc_interp_func_type = ConcInterpolationType::UNDEFINED;
-   d_energy_interp_func_type = "";
+   d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
    d_diffusion_interp_type = DiffusionInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
-   d_eta_interp_func_type = "";
+   d_eta_interp_func_type = EnergyInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
    d_quat_mobility_func_type = "";
 
@@ -707,12 +707,25 @@ void QuatModelParameters::initializeEta(boost::shared_ptr<tbox::Database> model_
       TBOX_ERROR( "Error: invalid value for eta_well_func_type" );
    }
 
-   d_eta_interp_func_type =
+   string eta_interp_func_type =
       model_db->getStringWithDefault( "eta_interp_func_type", "pbg" );
-   if ( d_eta_interp_func_type[0] != 'q' &&
-        d_eta_interp_func_type[0] != 'h' &&
-        d_eta_interp_func_type[0] != 'p' ) {
-      TBOX_ERROR( "Error: invalid value for eta_interp_func_type" );
+   switch( eta_interp_func_type[0]){
+      case 'l':
+      case 'L':
+         d_eta_interp_func_type = EnergyInterpolationType::LINEAR;
+         break;
+      case 'p':
+      case 'P':
+         d_eta_interp_func_type = EnergyInterpolationType::PBG;
+         break;
+      case 'h':
+      case 'H':
+         d_eta_interp_func_type = EnergyInterpolationType::HARMONIC;
+         break;
+      default:
+         tbox::plog<<"eta_interp_func_type="
+                   <<eta_interp_func_type<<endl;
+         TBOX_ERROR( "Error: invalid eta_interp_func_type!!!");
    }
 }
 
@@ -834,24 +847,38 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    readMolarVolumes(model_db);
 
    // Interpolation
-   d_energy_interp_func_type =
+   string energy_interp_func_type =
       model_db->getStringWithDefault( "phi_interp_func_type", "pbg" );
+   {
    if ( model_db->keyExists( "energy_interp_func_type" ) ) {
-      d_energy_interp_func_type =
+      energy_interp_func_type =
          model_db->getString( "energy_interp_func_type" );
       printDeprecated( "energy_interp_func_type", "phi_interp_func_type" );
    }
-   if ( d_energy_interp_func_type[0] != 'q' &&
-        d_energy_interp_func_type[0] != 'h' &&
-        d_energy_interp_func_type[0] != 'l' &&
-        d_energy_interp_func_type[0] != 'c' &&
-        d_energy_interp_func_type[0] != 'p' ) {
-      TBOX_ERROR( "Error: invalid value for energy_interp_func_type" );
+   switch( energy_interp_func_type[0]){
+      case 'l':
+      case 'L':
+         d_energy_interp_func_type = EnergyInterpolationType::LINEAR;
+         break;
+      case 'p':
+      case 'P':
+         d_energy_interp_func_type = EnergyInterpolationType::PBG;
+         break;
+      case 'h':
+      case 'H':
+         d_energy_interp_func_type = EnergyInterpolationType::HARMONIC;
+         break;
+      default:
+         tbox::plog<<"energy_interp_func_type="
+                   <<energy_interp_func_type<<endl;
+         TBOX_ERROR( "Error: invalid energy_interp_func_type!!!");
+   }
    }
 
+   {
    string conc_interp_func_type =
       model_db->getStringWithDefault( "conc_interp_func_type",
-                                      d_energy_interp_func_type );
+                                      energy_interp_func_type );
    switch( conc_interp_func_type[0] ){
       case 'l':
       case 'L':
@@ -869,6 +896,7 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
          tbox::plog<<"conc_interp_func_type="
                    <<conc_interp_func_type<<endl;
          TBOX_ERROR( "Error: invalid conc_interp_func_type!!!");
+   }
    }
 
    string diffusion_interp_type = 

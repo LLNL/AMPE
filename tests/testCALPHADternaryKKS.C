@@ -110,7 +110,7 @@ int main( int argc, char *argv[] )
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
-   string energy_interp_func_type = "pbg";
+   EnergyInterpolationType energy_interp_func_type = EnergyInterpolationType::PBG;
    ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
 
    boost::shared_ptr<tbox::Database> temperature_db =

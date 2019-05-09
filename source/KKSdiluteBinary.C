@@ -54,7 +54,7 @@ using namespace std;
 
 KKSdiluteBinary::KKSdiluteBinary(
    boost::shared_ptr<tbox::Database> conc_db,
-   const string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
@@ -561,10 +561,10 @@ void KKSdiluteBinary::computeDrivingForce(
    const int f_b_id,
    const int rhs_id )
 {
-   string d_energy_interp_func_type_saved(d_energy_interp_func_type);
+   EnergyInterpolationType d_energy_interp_func_type_saved(d_energy_interp_func_type);
    //use linear interpolation function to get driving force
    //without polynomial of phi factor
-   d_energy_interp_func_type="lin",
+   d_energy_interp_func_type=EnergyInterpolationType::LINEAR,
    
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
       phase_id, eta_id, conc_id, f_l_id, f_a_id, f_b_id, rhs_id);

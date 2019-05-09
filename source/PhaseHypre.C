@@ -304,7 +304,7 @@ void PhaseHypre::setCtoZero()
 void PhaseHypre::setC(
    const int phi_id,
    const double gamma,
-   const string phi_interp_func_type,
+   const EnergyInterpolationType phi_interp_func_type,
    const double phi_well_scale,
    const string phi_well_func_type)
 {
@@ -314,6 +314,7 @@ void PhaseHypre::setC(
    assert( d_M_is_set );
 
    //tbox::pout<<"PhaseHypre::setC()..."<<endl;
+   const char interpf = energyInterpChar(phi_interp_func_type);
 
    int ln=0;
    {
@@ -338,7 +339,7 @@ void PhaseHypre::setC(
          setCOnPatchPrivate(
             phi_data, mdata, cdata,
             gamma,
-            phi_interp_func_type.c_str(),
+            &interpf,
             phi_well_scale, phi_well_func_type.c_str(),
             patch_box );
       }
@@ -448,7 +449,7 @@ void PhaseHypre::setCOnPatchPrivate(
  *************************************************************************
  */
 int PhaseHypre::solve(
-   string phase_interp_func_type,
+   EnergyInterpolationType phase_interp_func_type,
    double phase_well_scale,
    string phase_well_func_type)
 {

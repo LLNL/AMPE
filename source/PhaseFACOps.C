@@ -65,7 +65,7 @@ void PhaseFACOps::setOperatorCoefficients(
    const int phase_mobility_id,
    const double epsilon_phase, 
    const double gamma,
-   const string phase_interp_func_type,
+   const EnergyInterpolationType phase_interp_func_type,
    const double phase_well_scale,
    const string phase_well_func_type,
    const double eta_well_scale,
@@ -103,7 +103,7 @@ void PhaseFACOps::setC(
    const int phi_id,
    const int eta_id,
    const double gamma,
-   const string phi_interp_func_type,
+   const EnergyInterpolationType phi_interp_func_type,
    const double phi_well_scale,
    const string phi_well_func_type,
    const double eta_well_scale,
@@ -154,7 +154,7 @@ void PhaseFACOps::setC(
             local_m_data,
             cdata,
             gamma,
-            phi_interp_func_type.c_str(),
+            phi_interp_func_type,
             phi_well_scale,
             phi_well_func_type.c_str(),
             eta_well_scale,
@@ -174,7 +174,7 @@ void PhaseFACOps::setCOnPatchPrivate(
    boost::shared_ptr< pdat::CellData<double> > cd_m,
    boost::shared_ptr< pdat::CellData<double> > cd_c,
    const double gamma,
-   const char* phi_interp_func_type,
+   const EnergyInterpolationType phi_interp_func_type,
    const double phi_well_scale,
    const char* phi_well_func_type,
    const double eta_well_scale,
@@ -234,7 +234,8 @@ void PhaseFACOps::setCOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interp = energyInterpChar(phi_interp_func_type);
+
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -270,8 +271,7 @@ void PhaseFACOps::setCOnPatchPrivate(
 
                const double h_phi_dbl_prime =
                   FORT_SECOND_DERIV_INTERP_FUNC(
-                     phi,
-                     phi_interp_func_type );
+                     phi, &interp);
 
                const double g_eta =
                   FORT_WELL_FUNC(

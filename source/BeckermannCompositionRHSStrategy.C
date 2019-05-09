@@ -168,7 +168,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
          assert( cd_partition_coeff );
 
-         const char interp_func_type = interpChar(d_phase_interp_func_type); 
+         const char interp_func_type = concInterpChar(d_phase_interp_func_type);
          FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
@@ -311,7 +311,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-   const char interp_func_type = interpChar(d_phase_interp_func_type);
+   const char interp_func_type = concInterpChar(d_phase_interp_func_type);
  
    // X-side
    for ( int kk = kmin; kk <= kmax; kk++ ) {

@@ -62,7 +62,7 @@ public:
       const int conc_l_id,
       const int conc_s_id,
       const int temp_id,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       boost::shared_ptr<tbox::Database> conc_db,
       const unsigned ncompositions);

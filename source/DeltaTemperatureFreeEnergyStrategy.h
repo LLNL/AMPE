@@ -37,6 +37,7 @@
 #define included_DeltaTemperatureFreeEnergyStrategy 
 
 #include "BiasDoubleWellFreeEnergyStrategy.h"
+#include "InterpolationType.h"
 
 #include <cstring>
 
@@ -45,8 +46,8 @@ class DeltaTemperatureFreeEnergyStrategy:
 {
 public:
    DeltaTemperatureFreeEnergyStrategy(const double Tm,
-                                      const double latentHeat,
-                                      const std::string phase_interp_func_type);
+      const double latentHeat,
+      const EnergyInterpolationType phase_interp_func_type);
 
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
  
@@ -76,7 +77,7 @@ private:
    //latent heat
    const double d_L;
 
-   const std::string d_phase_interp_func_type;
+   const EnergyInterpolationType d_phase_interp_func_type;
 };
 
 #endif

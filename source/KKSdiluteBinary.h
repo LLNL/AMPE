@@ -39,7 +39,7 @@
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "FreeEnergyStrategy.h"
 #include "FuncFort.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -56,7 +56,7 @@ class KKSdiluteBinary:
 public:
    KKSdiluteBinary(
       boost::shared_ptr<tbox::Database> conc_db,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
       const int conc_l_id,
@@ -213,7 +213,7 @@ public:
 
 private:
 
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;
 
    int d_conc_l_id;
@@ -253,7 +253,8 @@ private:
    
    double hprime(const double phi)
    {
-      return FORT_DERIV_INTERP_FUNC(phi, d_energy_interp_func_type.c_str());
+      const char interp = energyInterpChar( d_energy_interp_func_type );
+      return FORT_DERIV_INTERP_FUNC(phi, &interp);
    }
 
    void addDrivingForceOnPatch(

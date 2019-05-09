@@ -37,7 +37,7 @@
 #define included_BeckermannCompositionRHSStrategy
 
 #include "CompositionRHSStrategy.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/SideData.h"

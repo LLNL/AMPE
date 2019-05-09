@@ -38,7 +38,7 @@
 
 #include "tools.h"
 #include "CompositionDiffusionStrategy.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -183,10 +183,12 @@ public:
    ConcInterpolationType conc_interp_func_type()const{
       return d_conc_interp_func_type;
    }
-   std::string energy_interp_func_type()const{
+   EnergyInterpolationType energy_interp_func_type()const{
       return d_energy_interp_func_type;
    }
-   std::string eta_interp_func_type()const{ return d_eta_interp_func_type; }
+   EnergyInterpolationType eta_interp_func_type()const{
+      return d_eta_interp_func_type;
+   }
    DiffusionInterpolationType
       diffusion_interp_func_type()const{
          return d_diffusion_interp_type;
@@ -458,9 +460,9 @@ private:
    /*!
     * form of h_p(phi)
     */
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
 
-   std::string d_eta_interp_func_type;
+   EnergyInterpolationType d_eta_interp_func_type;
 
    /*!
     * form of h_d(phi)

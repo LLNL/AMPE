@@ -37,6 +37,7 @@
 #define included_KKSCompositionRHSStrategy 
 
 #include "CompositionRHSStrategy.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -65,7 +66,7 @@ public:
       const double Q0_liquid,
       const double Q0_solid_A,
       const double Q0_solid_B,
-      const std::string& phase_interp_func_type,
+      const EnergyInterpolationType phase_interp_func_type,
       const std::string& avg_func_type
    );
    ~KKSCompositionRHSStrategy(){};
@@ -94,7 +95,7 @@ private:
    
    bool d_with_third_phase;
    
-   std::string d_phase_interp_func_type;
+   EnergyInterpolationType d_phase_interp_func_type;
    std::string d_avg_func_type;
 
    double d_D_liquid;

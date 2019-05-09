@@ -44,8 +44,8 @@ using namespace SAMRAI;
 using namespace std;
 
 PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
-   const string& phase_interp_func_type,
-   const string& eta_interp_func_type,
+   const EnergyInterpolationType phase_interp_func_type,
+   const EnergyInterpolationType eta_interp_func_type,
    const double fl,
    const double fa,
    const double fb,
@@ -277,7 +277,10 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    const hier::Box& pbox = patch.getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast  = pbox.upper();
-       
+
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+   const char interpe = energyInterpChar(d_eta_interp_func_type);
+
    FORT_PHASERHS_FENERGY(
       ifirst(0),ilast(0), 
       ifirst(1),ilast(1), 
@@ -290,8 +293,7 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
       phase->getPointer(), phase->getGhostCellWidth()[0],
       ptr_eta, phase->getGhostCellWidth()[0],
       rhs->getPointer(), 0,
-      d_phase_interp_func_type.c_str(),
-      d_eta_interp_func_type.c_str(),
+      &interpf, &interpe,
       three_phase ); 
 }
 
@@ -347,7 +349,10 @@ void PhaseFreeEnergyStrategy::addDrivingForceEta(
    const hier::Box& pbox = patch.getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast  = pbox.upper();
-       
+
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+   const char interpe = energyInterpChar(d_eta_interp_func_type);
+    
    FORT_ETARHS_FENERGY(
       ifirst(0),ilast(0), 
       ifirst(1),ilast(1), 
@@ -360,8 +365,7 @@ void PhaseFreeEnergyStrategy::addDrivingForceEta(
       phase->getPointer(), phase->getGhostCellWidth()[0],
       eta->getPointer(), eta->getGhostCellWidth()[0],
       rhs->getPointer(), 0,
-      d_phase_interp_func_type.c_str(),
-      d_eta_interp_func_type.c_str() );
+      &interpf, &interpe);
 }
 
 //=======================================================================

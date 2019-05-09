@@ -37,6 +37,7 @@
 #define included_HBSMFreeEnergyStrategy 
 
 #include "FreeEnergyStrategy.h"
+#include "InterpolationType.h"
 
 #include <string>
 
@@ -46,7 +47,7 @@ class HBSMFreeEnergyStrategy:
 public:
    HBSMFreeEnergyStrategy(
       boost::shared_ptr<tbox::Database> input_db,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const double vml,
       const double vma,
       const double vmb,
@@ -303,7 +304,7 @@ private:
       const double Ceq,
       const double energy_factor )const;
 
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
 
    double d_vm_L; // molar volume
    double d_vm_A; // molar volume

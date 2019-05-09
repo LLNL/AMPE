@@ -136,7 +136,8 @@ void HBSMequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPat
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-         
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+ 
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -154,17 +155,12 @@ void HBSMequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPat
                eta = ptr_eta[idx_pf];
             }
 
-            double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
+            double hphi = FORT_INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
             if ( d_with_third_phase ) {
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_energy_interp_func_type.c_str() );
+                  FORT_INTERP_FUNC(eta, &interpf);
             }
 
             double c_l = d_hbsm_fenergy->computeLiquidConcentration(
@@ -180,7 +176,6 @@ void HBSMequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOnPat
                   hphi, heta, c );
                ptr_c_b[idx_c_i] = c_b;
             }
-
          }
       }
    }

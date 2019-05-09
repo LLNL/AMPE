@@ -57,7 +57,7 @@ using namespace std;
 CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    boost::shared_ptr<tbox::Database> calphad_db,
    boost::shared_ptr<tbox::Database> newton_db,
-   const string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    MolarVolumeStrategy* mvstrategy,
    const int conc_l_id,
@@ -580,10 +580,10 @@ void CALPHADFreeEnergyStrategyBinary::computeDrivingForce(
    const int f_b_id,
    const int rhs_id )
 {
-   string d_energy_interp_func_type_saved(d_energy_interp_func_type);
+   EnergyInterpolationType d_energy_interp_func_type_saved(d_energy_interp_func_type);
    //use linear interpolation function to get driving force
    //without polynomial of phi factor
-   d_energy_interp_func_type="lin",
+   d_energy_interp_func_type=EnergyInterpolationType::LINEAR,
    
    FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
       phase_id, eta_id, conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
@@ -1043,7 +1043,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -1074,15 +1075,9 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
             const double mu = computeMuA( t, c_a );
             //const double mu = 0.;
 
-            const double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
-
+            const double hphi = FORT_INTERP_FUNC(phi, &interpf);
             const double heta_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  eta,
-                  d_energy_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
                hphi * heta_prime * (

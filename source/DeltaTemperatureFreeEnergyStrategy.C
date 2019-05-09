@@ -61,7 +61,7 @@ extern "C" {
 
 DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
    const double Tm, const double latent_heat,
-   const std::string phase_interp_func_type):
+   const EnergyInterpolationType phase_interp_func_type):
    d_Tm(Tm),
    d_L(latent_heat),
    d_phase_interp_func_type(phase_interp_func_type)
@@ -125,6 +125,8 @@ void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast  = pbox.upper();
 
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+
    FORT_COMP_RHS_DELTA_TEMPERATURE(
       ifirst(0),ilast(0),
       ifirst(1),ilast(1),
@@ -135,7 +137,7 @@ void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
       temp->getPointer(), temp->getGhostCellWidth()[0],
       d_Tm, d_L,
       rhs->getPointer(), rhs->getGhostCellWidth()[0],
-      d_phase_interp_func_type.c_str() );
+      &interpf );
 }
 //=======================================================================
 
@@ -145,6 +147,8 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(const boost::shared_pt
    const int rhs_id,
    const double phase_mobility)
 {
+   const char interpf = energyInterpChar(d_phase_interp_func_type);
+
    const int maxln = hierarchy->getFinestLevelNumber();
    for ( int ln = 0; ln <= maxln; ln++ ) {
       boost::shared_ptr<hier::PatchLevel > level =
@@ -173,7 +177,7 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(const boost::shared_pt
             phase->getPointer(), phase->getGhostCellWidth()[0],
             d_Tm, d_L, phase_mobility,
             rhs->getPointer(), rhs->getGhostCellWidth()[0],
-            d_phase_interp_func_type.c_str() );
+            &interpf );
       }
    }
 }

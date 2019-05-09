@@ -60,7 +60,7 @@ public:
    CALPHADFreeEnergyStrategyBinary(
       boost::shared_ptr<tbox::Database> input_db,
       boost::shared_ptr<tbox::Database> newton_db,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       MolarVolumeStrategy* mvstrategy,
       const int conc_l_id,
@@ -247,7 +247,7 @@ protected:
 
    CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
    
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;
 
    double computeMuA(
@@ -268,7 +268,8 @@ private:
 
    double hprime(const double phi)
    {
-      return FORT_DERIV_INTERP_FUNC(phi, d_energy_interp_func_type.c_str());
+      const char interp = energyInterpChar(d_energy_interp_func_type);
+      return FORT_DERIV_INTERP_FUNC(phi, &interp);
    }
 
    void addDrivingForceOnPatch(

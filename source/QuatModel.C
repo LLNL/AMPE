@@ -6043,13 +6043,13 @@ void QuatModel::applyPolynomial(
       assert( ddata );
 
       // issue:mew: Potentially replace this loop with fortran kernel.
-
+      const char interp = energyInterpChar(d_model_parameters.energy_interp_func_type());
       pdat::CellIterator iend(pdat::CellGeometry::end(gbox));
       for (pdat::CellIterator i(pdat::CellGeometry::begin(gbox)); i!=iend; ++i) {
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
          const double hphi =
-             FORT_INTERP_FUNC( phi, d_model_parameters.energy_interp_func_type().c_str() );
+             FORT_INTERP_FUNC( phi, &interp );
          (*ddata)(cell)=hphi;
       }
    }
@@ -6843,6 +6843,9 @@ void QuatModel::evaluateEnergy(
          if ( d_model_parameters.with_orientation() )assert( pgrad_quat[2]!=NULL );
 #endif
 
+         const char interpf = energyInterpChar(d_model_parameters.energy_interp_func_type());
+         const char interpe = energyInterpChar(d_model_parameters.eta_interp_func_type());
+
          FORT_QUATENERGY(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
@@ -6881,8 +6884,7 @@ void QuatModel::evaluateEnergy(
             total_free_e,
             ptr_energy,
             per_cell,
-            d_model_parameters.energy_interp_func_type().c_str(),
-            d_model_parameters.eta_interp_func_type().c_str(),
+            &interpf, &interpe,
             d_model_parameters.phase_well_func_type().c_str(),
             d_model_parameters.eta_well_func_type().c_str(),
             d_model_parameters.orient_interp_func_type().c_str(),

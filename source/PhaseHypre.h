@@ -5,6 +5,10 @@
 #ifndef included_PhaseHypre
 #define included_PhaseHypre
 
+#include "InterpolationType.h"
+#include "CellPoissonHypreSolver.h"
+#include "PoissonSpecifications.h"
+
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/hier/Box.h"
@@ -19,9 +23,6 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 
 #include "boost/shared_ptr.hpp"
-
-#include "CellPoissonHypreSolver.h"
-#include "PoissonSpecifications.h"
 
 using namespace SAMRAI;
 
@@ -143,7 +144,7 @@ public:
     */
    int
    solve(
-      std::string phase_interp_func_type,
+      EnergyInterpolationType phase_interp_func_type,
       double ,
       std::string phase_well_func_type);
 
@@ -174,7 +175,7 @@ public:
    void setC(
       const int phi_id,
       const double gamma,
-      const std::string phi_interp_func_type,
+      const EnergyInterpolationType phi_interp_func_type,
       const double phi_well_scale,
       const std::string phi_well_func_type);
 

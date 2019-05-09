@@ -1561,7 +1561,7 @@ void QuatIntegrator::setModelParameters(
    const string orient_interp_func_type,
    const string avg_func_type,
    const string phase_well_func_type,
-   const string energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const ConcInterpolationType conc_interp_func_type,
    const string eta_well_func_type)
 {
@@ -2869,6 +2869,8 @@ void QuatIntegrator::evaluatePhaseRHS(
    // on all levels have already been filled by a prior call to
    // setCoefficients (via fillScratch).
 
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+
    for ( int ln=hierarchy->getFinestLevelNumber(); ln>=0; --ln ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel(ln);
@@ -2992,7 +2994,7 @@ void QuatIntegrator::evaluatePhaseRHS(
             phase_rhs->getPointer(), 0,
             d_phase_well_func_type.c_str(),
             d_eta_well_func_type.c_str(),
-            d_energy_interp_func_type.c_str(),
+            &interpf,
             d_orient_interp_func_type.c_str(),
             //d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
             with_orient,
@@ -3120,6 +3122,8 @@ void QuatIntegrator::evaluateEtaRHS(
 
    math::PatchCellDataBasicOps<double> mathops;
 
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+
    for ( int ln=hierarchy->getFinestLevelNumber(); ln>=0; --ln ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel(ln);
@@ -3190,7 +3194,7 @@ void QuatIntegrator::evaluateEtaRHS(
             eta->getPointer(), NGHOSTS,
             eta_rhs->getPointer(), 0,
             d_eta_well_func_type.c_str(),
-            d_energy_interp_func_type.c_str() );
+            &interpf );
 
          d_free_energy_strategy->addDrivingForceEta(
             time,

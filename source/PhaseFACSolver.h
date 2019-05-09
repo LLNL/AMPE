@@ -37,6 +37,7 @@
 #define included_PhaseFACSolver
 
 #include "EllipticFACSolver.h"
+#include "InterpolationType.h"
 
 class PhaseFACOps;
 
@@ -60,7 +61,7 @@ public:
       const int phase_mobility_id,
       const double epsilon_phase,
       const double gamma,
-      const std::string phase_interp_func_type,
+      const EnergyInterpolationType phase_interp_func_type,
       const double phase_well_scale,
       const std::string phase_well_func_type,
       const double eta_well_scale=0.,

@@ -56,7 +56,7 @@ using namespace std;
 
 HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    boost::shared_ptr<tbox::Database> input_db,
-   const string& energy_interp_func_type,
+   const EnergyInterpolationType energy_interp_func_type,
    const double vml,
    const double vma,
    const double vmb,
@@ -909,7 +909,9 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+
+   const char interp = energyInterpChar(d_energy_interp_func_type);
+
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -942,9 +944,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
             double mu = computeMu( t, c_l );
 
             double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(phi, &interp);
 
             double heta = 0.0;
 
@@ -954,10 +954,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
                c_b = ptr_c_b[idx_c_i];
 
                heta =
-                  FORT_INTERP_FUNC(
-                     eta,
-                     d_energy_interp_func_type.c_str() );
-
+                  FORT_INTERP_FUNC(eta, &interp);
             }
 
             ptr_rhs[idx_rhs] +=
@@ -1164,7 +1161,9 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+
+   const char interpf = energyInterpChar(d_energy_interp_func_type);
+ 
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -1196,20 +1195,15 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
             double mu = computeMu( t, c_l );
 
             double hphi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  d_energy_interp_func_type.c_str() );
+               FORT_INTERP_FUNC(phi, &interpf);
 
             double heta_prime =
-               FORT_DERIV_INTERP_FUNC(
-                  eta,
-                  d_energy_interp_func_type.c_str() );
+               FORT_DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
                hphi * heta_prime * (
                   ( f_a - f_b ) - mu * ( c_a - c_b )
                   );
-
          }
       }
    }

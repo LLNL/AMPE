@@ -62,7 +62,7 @@ void EtaFACOps::setOperatorCoefficients(
    const int eta_mobility_id,
    const double epsilon_eta, 
    const double gamma,
-   const string phase_interp_func_type,
+   const EnergyInterpolationType phase_interp_func_type,
    const double eta_well_scale,
    const string eta_well_func_type )
 {
@@ -89,7 +89,7 @@ void EtaFACOps::setC(
    const int phi_id,
    const int eta_id,
    const double gamma,
-   const string phi_interp_func_type,
+   const EnergyInterpolationType phi_interp_func_type,
    const double eta_well_scale,
    const string eta_well_func_type )
 {
@@ -129,7 +129,7 @@ void EtaFACOps::setC(
             local_m_data,
             cdata,
             gamma,
-            phi_interp_func_type.c_str(),
+            phi_interp_func_type,
             eta_well_scale,
             eta_well_func_type.c_str(),
             patch_box );
@@ -147,7 +147,7 @@ void EtaFACOps::setCOnPatchPrivate(
    boost::shared_ptr< pdat::CellData<double> > cd_m,
    boost::shared_ptr< pdat::CellData<double> > cd_c,
    const double gamma,
-   const char* phi_interp_func_type,
+   const EnergyInterpolationType phi_interp_func_type,
    const double eta_well_scale,
    const char* eta_well_func_type,
    const hier::Box& pbox )
@@ -201,7 +201,8 @@ void EtaFACOps::setCOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
+   const char interpf = energyInterpChar(phi_interp_func_type);
+
    for ( int kk = kmin; kk <= kmax; kk++ ) {
       for ( int jj = jmin; jj <= jmax; jj++ ) {
          for ( int ii = imin; ii <= imax; ii++ ) {
@@ -220,9 +221,7 @@ void EtaFACOps::setCOnPatchPrivate(
             const double eta = ptr_eta[idx_pf];
 
             const double h_phi =
-               FORT_INTERP_FUNC(
-                  phi,
-                  phi_interp_func_type );
+               FORT_INTERP_FUNC(phi,&interpf);
 
             const double g_eta_dbl_prime =
                FORT_SECOND_DERIV_WELL_FUNC(

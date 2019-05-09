@@ -41,7 +41,7 @@
 #include "CALPHADConcSolverBinary.h"
 #include "CALPHADEqConcSolverBinary.h"
 #include "CALPHADFreeEnergyFunctions.h"
-#include "ConcInterpolationType.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -59,7 +59,7 @@ public:
    CALPHADFreeEnergyFunctionsBinary(
       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
-      const std::string& energy_interp_func_type,
+      const EnergyInterpolationType energy_interp_func_type,
       const ConcInterpolationType conc_interp_func_type,
       const bool with_third_phase);
 
@@ -175,7 +175,7 @@ protected:
    double d_ceq_a;
    double d_ceq_b;
    
-   std::string d_energy_interp_func_type;
+   EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;
    
    bool d_with_third_phase;
