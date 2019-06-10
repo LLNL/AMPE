@@ -81,6 +81,7 @@
 #include "toolsSAMRAI.h"
 #include "tools.h"
 #include "MobilityFactory.h"
+#include "CompositionDiffusionStrategyFactory.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -657,40 +658,29 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
       if( d_model_parameters.concRHSstrategyIsEBS()
             ){
          if( d_model_parameters.conDiffusionStrategyIsCTD() ){
-            d_composition_strategy_mobilities = 
+            d_composition_strategy_mobilities =
                new CompositionStrategyMobilities(
                   d_calphad_db,
                   (d_eta_scratch_id>-1),
                   static_cast<unsigned short>(d_ncompositions),
                   d_free_energy_strategy );
-            d_diffusion_for_conc_in_phase=
-               new DiffusionForConcInPhaseStrategy(
-                  static_cast<unsigned short>(d_ncompositions),
-                  d_conc_l_scratch_id,
-                  d_conc_a_scratch_id,
-                  d_conc_b_scratch_id,
-                  d_conc_pfm_diffusion_l_id,
-                  d_conc_pfm_diffusion_a_id,
-                  d_conc_pfm_diffusion_b_id,
-                  d_conc_diffusion_coeff_l_id,
-                  d_conc_diffusion_coeff_a_id,
-                  d_conc_diffusion_coeff_b_id,
-                  d_model_parameters.avg_func_type(),
-                  d_model_parameters.diffusion_interp_func_type(),
-                  d_composition_strategy_mobilities,
-                  d_free_energy_strategy);
-         }else{
-            d_diffusion_for_conc_in_phase=
-               new TbasedCompositionDiffusionStrategy(
-                  d_conc_pfm_diffusion_l_id,
-                  d_conc_pfm_diffusion_a_id,
-                  d_model_parameters.D_liquid(),
-                  d_model_parameters.Q0_liquid(),
-                  d_model_parameters.D_solid_A(),
-                  d_model_parameters.Q0_solid_A(),
-                  d_model_parameters.diffusion_interp_func_type(),
-                  d_model_parameters.avg_func_type() );
          }
+
+         d_diffusion_for_conc_in_phase =
+            CompositionDiffusionStrategyFactory::create(
+               this, d_model_parameters,
+               static_cast<unsigned short>(d_ncompositions),
+               d_conc_l_scratch_id,
+               d_conc_a_scratch_id,
+               d_conc_b_scratch_id,
+               d_conc_pfm_diffusion_l_id,
+               d_conc_pfm_diffusion_a_id,
+               d_conc_pfm_diffusion_b_id,
+               d_conc_diffusion_coeff_l_id,
+               d_conc_diffusion_coeff_a_id,
+               d_conc_diffusion_coeff_b_id,
+               d_composition_strategy_mobilities,
+               d_free_energy_strategy);
       }
 
       initializeCompositionRHSStrategy();

@@ -70,7 +70,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    const string& avg_func_type,
    FreeEnergyStrategy* free_energy_strategy,
    CompositionStrategyMobilities* mobilities_strategy,
-   CompositionDiffusionStrategy* diffusion_for_conc_in_phase):
+   boost::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase):
       CompositionRHSStrategy(avg_func_type),
       d_mobilities_strategy(mobilities_strategy),
       d_diffusion_for_conc_in_phase(diffusion_for_conc_in_phase),

@@ -764,7 +764,7 @@ private :
    PhaseFluxStrategy* d_phase_flux_strategy;
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
-   CompositionDiffusionStrategy* d_diffusion_for_conc_in_phase;
+   boost::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
 
    bool d_tag_phase;
    bool d_tag_eta;

@@ -69,7 +69,8 @@ public:
       const std::string& avg_func_type,
       FreeEnergyStrategy* free_energy_strategy,
       CompositionStrategyMobilities* mobilities_strategy,
-      CompositionDiffusionStrategy* diffusion_for_conc_in_phase
+      boost::shared_ptr<CompositionDiffusionStrategy>
+         diffusion_for_conc_in_phase
    );
    
    ~EBSCompositionRHSStrategy(){};
@@ -125,7 +126,8 @@ private:
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
 
-   CompositionDiffusionStrategy* d_diffusion_for_conc_in_phase;
+   boost::shared_ptr<CompositionDiffusionStrategy>
+      d_diffusion_for_conc_in_phase;
 
    CompositionStrategyMobilities* d_mobilities_strategy;
 
