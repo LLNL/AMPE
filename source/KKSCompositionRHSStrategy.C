@@ -45,12 +45,10 @@
 #include "FuncFort.h"
 #include "SAMRAI/tbox/TimerManager.h"
 
-using namespace std;
-
 KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
       const int conc_scratch_id,
       const int phase_scratch_id,
-      const int conc_diffusion0_id,
+      const int conc_pfm_diffusion_id,
       const int conc_phase_coupling_diffusion_id,
       const int temperature_scratch_id,
       const int eta_scratch_id,
@@ -64,13 +62,13 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
       const double Q0_liquid,
       const double Q0_solid_A,
       const double Q0_solid_B,
-      const string& phase_interp_func_type,
-      const string& avg_func_type
+      const std::string& phase_interp_func_type,
+      const std::string& avg_func_type
    ):CompositionRHSStrategy(avg_func_type)
 {
    assert( conc_scratch_id>=0 );
    assert( phase_scratch_id>=0 );
-   assert( conc_diffusion0_id>=0 );
+   assert( conc_pfm_diffusion_id>=0 );
    assert( conc_phase_coupling_diffusion_id>=0 );
    assert( temperature_scratch_id>=0 );
    
@@ -102,7 +100,7 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
    d_conc_scratch_id  = conc_scratch_id;
    d_phase_scratch_id = phase_scratch_id;
    
-   d_diffusion0_id=conc_diffusion0_id;
+   d_pfm_diffusion_id=conc_pfm_diffusion_id;
    d_conc_phase_coupling_diffusion_id=conc_phase_coupling_diffusion_id;
 
    d_temperature_scratch_id = temperature_scratch_id;
@@ -132,19 +130,19 @@ void KKSCompositionRHSStrategy::setDiffusionCoeff(
    assert( hierarchy );
 
    // set diffusion coefficients which is a function of the free energy form
-   setDiffCoeffForConcentration(
+   setPFMDiffCoeffForConcentration(
       hierarchy,
       d_temperature_scratch_id,
       d_phase_scratch_id,
       d_eta_scratch_id,
-      d_diffusion0_id);
+      d_pfm_diffusion_id);
    setDiffCoeffForGradPhi(
       hierarchy,
       d_temperature_scratch_id,
       d_conc_scratch_id,
       d_phase_scratch_id,
       d_eta_scratch_id,
-      d_diffusion0_id,
+      d_pfm_diffusion_id,
       d_conc_phase_coupling_diffusion_id,
       d_conc_eta_coupling_diffusion_id);
    
@@ -153,17 +151,17 @@ void KKSCompositionRHSStrategy::setDiffusionCoeff(
 
 //=======================================================================
 // compute diffusion for div*D0*grad*c term in concentration equation
-void KKSCompositionRHSStrategy::setDiffCoeffForConcentration(
+void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
    const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int phase_id,
    const int eta_id,
-   const int conc_diffusion0_id)
+   const int conc_pfm_diffusion_id)
 {
    //tbox::pout<<"KKSCompositionRHSStrategy::setDiffCoeffForConcentration()"<<endl;
    assert( temperature_id >= 0 );
    assert( phase_id >= 0 );
-   assert( conc_diffusion0_id >= 0 );
+   assert( conc_pfm_diffusion_id >= 0 );
    if ( d_with_third_phase ) {
       assert( eta_id >= 0 );
    }
@@ -189,10 +187,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForConcentration(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
                patch->getPatchData( temperature_id) ) );
          
-         boost::shared_ptr< pdat::SideData<double> > diffusion0 (
+         boost::shared_ptr< pdat::SideData<double> > pfm_diffusion (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( conc_diffusion0_id) ) );
-         assert( diffusion0->getDepth()==1 );
+               patch->getPatchData( conc_pfm_diffusion_id) ) );
+         assert( pfm_diffusion->getDepth()==1 );
          
          int three_phase = 0;
          double* ptr_eta = NULL;
@@ -204,7 +202,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForConcentration(
             ptr_eta = eta->getPointer();
          }
  
-         FORT_CONCENTRATIONDIFFUSION0(
+         FORT_CONCENTRATION_PFMDIFFUSION(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -212,10 +210,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForConcentration(
 #endif
             phi->getPointer(), NGHOSTS,
             ptr_eta, NGHOSTS,
-            diffusion0->getPointer(0),
-            diffusion0->getPointer(1),
+            pfm_diffusion->getPointer(0),
+            pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
-            diffusion0->getPointer(2),
+            pfm_diffusion->getPointer(2),
 #endif
             0,
             temperature->getPointer(),
@@ -239,7 +237,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
    const int concentration_id,
    const int phase_id,
    const int eta_id,
-   const int conc_diffusion0_id,
+   const int conc_pfm_diffusion_id,
    const int conc_phase_coupling_diffusion_id,
    const int conc_eta_coupling_diffusion_id)
 {
@@ -247,7 +245,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
    (void)concentration_id;
 
    assert( phase_id>=0 );
-   assert( conc_diffusion0_id>=0 );
+   assert( conc_pfm_diffusion_id>=0 );
    assert( conc_phase_coupling_diffusion_id>=0 );
 
    // now set diffusion coefficients for div*D*grad*phi term in concentration equation
@@ -269,9 +267,9 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
 
          boost::shared_ptr< pdat::SideData<double> > sd_eta_diff_coeff;
 
-         boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff (
+         boost::shared_ptr< pdat::SideData<double> > sd_pfmd_coeff (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( conc_diffusion0_id) ) );
+               patch->getPatchData( conc_pfm_diffusion_id) ) );
 
          boost::shared_ptr< pdat::CellData<double> > cd_phi (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
@@ -301,7 +299,7 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
          setDiffCoeffForPhaseOnPatch(
             sd_phi_diff_coeff,
             sd_eta_diff_coeff,
-            sd_d0_coeff,
+            sd_pfmd_coeff,
             cd_phi,
             cd_eta,
             cd_c_l,
@@ -858,10 +856,10 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_scratch_id) ) );
    assert( phase );
    
-   boost::shared_ptr< pdat::SideData<double> > conc_diffusion0 (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion0_id) ) );
-   assert( conc_diffusion0 );
-   assert( conc_diffusion0->getDepth()==1 );
+   boost::shared_ptr< pdat::SideData<double> > conc_pfm_diffusion (
+      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_pfm_diffusion_id) ) );
+   assert( conc_pfm_diffusion );
+   assert( conc_pfm_diffusion->getDepth()==1 );
 
    boost::shared_ptr< pdat::SideData<double> > conc_phase_coupling_diffusion (
       BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_conc_phase_coupling_diffusion_id) ) );
@@ -900,10 +898,10 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
             conc->getPointer(ic), NGHOSTS,
             phase->getPointer(), NGHOSTS,
             ptr_eta, NGHOSTS,
-            conc_diffusion0->getPointer(0),
-            conc_diffusion0->getPointer(1),
+            conc_pfm_diffusion->getPointer(0),
+            conc_pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
-            conc_diffusion0->getPointer(2),
+            conc_pfm_diffusion->getPointer(2),
 #endif
             0,
             conc_phase_coupling_diffusion->getPointer(0),
@@ -927,4 +925,3 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
             three_phase );
 
 }
-

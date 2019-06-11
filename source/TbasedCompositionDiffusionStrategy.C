@@ -43,15 +43,15 @@
 #include "SAMRAI/pdat/SideData.h"
 
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
-   const int diffusion_l_id,
-   const int diffusion_a_id,
+   const int pfm_diffusion_l_id,
+   const int pfm_diffusion_a_id,
    const double D_liquid, const double Q0_liquid,
    const double D_solid_A, const double Q0_solid_A,
    const DiffusionInterpolationType interp_func_type,
-   const string& avg_func_type):
+   const std::string& avg_func_type):
       CompositionDiffusionStrategy(interp_func_type),
-      d_diffusion_l_id(diffusion_l_id),
-      d_diffusion_a_id(diffusion_a_id),
+      d_pfm_diffusion_l_id(pfm_diffusion_l_id),
+      d_pfm_diffusion_a_id(pfm_diffusion_a_id),
       d_D_liquid(D_liquid),
       d_Q0_liquid(Q0_liquid),
       d_D_solid_A(D_solid_A),
@@ -75,8 +75,8 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
    //tbox::pout<<"TbasedCompositionDiffusionStrategy::setDiffCoeff()"<<endl;
    assert( temperature_id >= 0 );
    assert( phase_id >= 0 );
-   assert( d_diffusion_l_id >= 0 );
-   assert( d_diffusion_a_id >= 0 );
+   assert( d_pfm_diffusion_l_id >= 0 );
+   assert( d_pfm_diffusion_a_id >= 0 );
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -102,36 +102,36 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
                patch->getPatchData( temperature_id) ) );
 
-         boost::shared_ptr< pdat::SideData<double> > diffusionL (
+         boost::shared_ptr< pdat::SideData<double> > pfm_diffusionL (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( d_diffusion_l_id ) ) );
-         assert( diffusionL->getGhostCellWidth()[0]==0 );
+               patch->getPatchData( d_pfm_diffusion_l_id ) ) );
+         assert( pfm_diffusionL->getGhostCellWidth()[0]==0 );
 
-         boost::shared_ptr< pdat::SideData<double> > diffusionA (
+         boost::shared_ptr< pdat::SideData<double> > pfm_diffusionA (
             BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( d_diffusion_a_id ) ) );
+               patch->getPatchData( d_pfm_diffusion_a_id ) ) );
 
-         assert( diffusionA->getDepth()==diffusionL->getDepth() );
-         assert( diffusionA->getDepth()==1 || // binary
-                 diffusionA->getDepth()==4 ); // ternary
+         assert( pfm_diffusionA->getDepth()==pfm_diffusionL->getDepth() );
+         assert( pfm_diffusionA->getDepth()==1 || // binary
+                 pfm_diffusionA->getDepth()==4 ); // ternary
 
          //compute depth 0 of diffusion variables
-         FORT_CONCENTRATIONDIFFUSION_OF_T(
+         FORT_CONCENTRATION_PFMDIFFUSION_OF_T(
             ifirst(0), ilast(0),
             ifirst(1), ilast(1),
 #if (NDIM == 3)
             ifirst(2), ilast(2),
 #endif
             phi->getPointer(), phi->getGhostCellWidth()[0],
-            diffusionL->getPointer(0,0),
-            diffusionL->getPointer(1,0),
+            pfm_diffusionL->getPointer(0,0),
+            pfm_diffusionL->getPointer(1,0),
 #if (NDIM == 3)
-            diffusionL->getPointer(2,0),
+            pfm_diffusionL->getPointer(2,0),
 #endif
-            diffusionA->getPointer(0,0),
-            diffusionA->getPointer(1,0),
+            pfm_diffusionA->getPointer(0,0),
+            pfm_diffusionA->getPointer(1,0),
 #if (NDIM == 3)
-            diffusionA->getPointer(2,0),
+            pfm_diffusionA->getPointer(2,0),
 #endif
             0, //assuming no ghosts for diffusion data
             temperature->getPointer(),
@@ -143,12 +143,10 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
             d_avg_func_type.c_str());
 
          //fill other diagonal value with same value for ternaries for now
-         if( diffusionL->getDepth()>1 ){
-            diffusionL->copyDepth(3,*diffusionL,0);
-            diffusionA->copyDepth(3,*diffusionA,0);
+         if( pfm_diffusionL->getDepth()>1 ){
+            pfm_diffusionL->copyDepth(3,*pfm_diffusionL,0);
+            pfm_diffusionA->copyDepth(3,*pfm_diffusionA,0);
          }
       }
    }
 }
-
-

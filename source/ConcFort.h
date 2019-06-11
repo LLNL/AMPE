@@ -41,8 +41,8 @@
 #define FORT_CONCENTRATION_FLUX_EBS concentrationflux_ebs_
 #define FORT_ADD_CONCENTRATION_FLUX_EBS add_concentrationflux_ebs_
 #define FORT_CONCENTRATION_FLUX_SPINODAL concentrationflux_spinodal_
-#define FORT_CONCENTRATIONDIFFUSION0 concentrationdiffusion0_
-#define FORT_CONCENTRATIONDIFFUSION_OF_T concentrationdiffusion_of_temperature_
+#define FORT_CONCENTRATION_PFMDIFFUSION concentration_pfmdiffusion_
+#define FORT_CONCENTRATION_PFMDIFFUSION_OF_T concentration_pfmdiffusion_of_temperature_
 #define FORT_CONCENTRATIONDIFFUSIONBECKERMANN concentrationdiffusion_beckermann_
 #define FORT_COMPUTERHSCONCENTRATION computerhsconcentration_
 #define FORT_PHASERHS_FENERGY      phaserhs_fenergy_
@@ -181,7 +181,7 @@ extern "C" {
       const int& ngflux
       );
 
-   void FORT_CONCENTRATIONDIFFUSION0(
+   void FORT_CONCENTRATION_PFMDIFFUSION(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
@@ -203,7 +203,7 @@ extern "C" {
       const char* avg_func_type,
       const int& three_phase );
 
-   void FORT_CONCENTRATIONDIFFUSION_OF_T(
+   void FORT_CONCENTRATION_PFMDIFFUSION_OF_T(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)

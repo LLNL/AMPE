@@ -394,11 +394,11 @@ public :
                         int phi_dot_id);
    int getConcDiffusionLid()const
    {
-      return d_conc_diffusion_l_id;
+      return d_conc_pfm_diffusion_l_id;
    }
    int getConcDiffusionAid()const
    {
-      return d_conc_diffusion_a_id;
+      return d_conc_pfm_diffusion_a_id;
    }
    
    //-----------------------------------------------------------------------
@@ -642,19 +642,19 @@ private :
    boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
 
-   std::vector<boost::shared_ptr< pdat::SideVariable<double> > > d_conc_diffusion0_var;
-   std::vector<int> d_conc_diffusion0_id;
+   std::vector<boost::shared_ptr< pdat::SideVariable<double> > > d_conc_pfm_diffusion_var;
+   std::vector<int> d_conc_pfm_diffusion_id;
 
    /*!
     * holds data for diffusion coefficients in composition equation
     * according to EBS scheme, including weight due to phase fraction
     */
-   boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_l_var;
-   int d_conc_diffusion_l_id;
-   boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_a_var;
-   int d_conc_diffusion_a_id;
-   boost::shared_ptr< pdat::SideVariable<double> > d_conc_diffusion_b_var;
-   int d_conc_diffusion_b_id;
+   boost::shared_ptr< pdat::SideVariable<double> > d_conc_pfm_diffusion_l_var;
+   int d_conc_pfm_diffusion_l_id;
+   boost::shared_ptr< pdat::SideVariable<double> > d_conc_pfm_diffusion_a_var;
+   int d_conc_pfm_diffusion_a_id;
+   boost::shared_ptr< pdat::SideVariable<double> > d_conc_pfm_diffusion_b_var;
+   int d_conc_pfm_diffusion_b_id;
 
 
    /*!

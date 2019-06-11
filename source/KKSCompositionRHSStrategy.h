@@ -88,7 +88,7 @@ private:
    
    int d_temperature_scratch_id;
    
-   int d_diffusion0_id;
+   int d_pfm_diffusion_id;
    int d_conc_phase_coupling_diffusion_id;
    int d_conc_eta_coupling_diffusion_id;
    
@@ -107,26 +107,26 @@ private:
    // Timers
    boost::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
 
-   void setDiffCoeffForConcentration(
+   void setPFMDiffCoeffForConcentration(
       const boost::shared_ptr< hier::PatchHierarchy >,
       const int temperature_id,
       const int phase_id,
       const int eta_id,
-      const int conc_diffusion0_id);
+      const int conc_pfm_diffusion_id);
    void setDiffCoeffForGradPhi(
       const boost::shared_ptr< hier::PatchHierarchy >,
       const int temperature_id,
       const int concentration_id,
       const int phase_id,
       const int eta_id,
-      const int conc_diffusion0_id,
+      const int conc_pfm_diffusion_id,
       const int conc_phase_coupling_diffusion_id,
       const int conc_eta_coupling_diffusion_id);
 
    void setDiffCoeffForPhaseOnPatch(
       boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff,
       boost::shared_ptr< pdat::SideData<double> > sd_eta_diff_coeff,
-      boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff,
+      boost::shared_ptr< pdat::SideData<double> > sd_pfmd_coeff,
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
       boost::shared_ptr< pdat::CellData<double> > cd_eta,
       boost::shared_ptr< pdat::CellData<double> > cd_c_l,
@@ -144,5 +144,3 @@ private:
 };
 
 #endif
-
-

@@ -33,9 +33,9 @@ c
 define(NDIM,3)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
-c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid] from S.Y. Hu et al.
+c Coefficient [h(phi)*d_solid+(1-h(phi))*d_liquid]
 c
-      subroutine concentrationdiffusion0(
+      subroutine concentration_pfmdiffusion(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   phi, ngphi,
      &   eta, ngeta,
@@ -203,7 +203,7 @@ c
 c same as function concentrationdiffusion0, without accumulating
 c component into single D
 c
-      subroutine concentrationdiffusion_of_temperature(
+      subroutine concentration_pfmdiffusion_of_temperature(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   phi, ngphi,
      &   diffL0, diffL1, diffL2, 
@@ -263,7 +263,6 @@ c
 
                diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
                diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
-
 
                diffL0(ic0,ic1,ic2) =
      &            ( 1.0d0 - hphi ) * diff_liquid

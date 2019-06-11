@@ -687,7 +687,7 @@ void QuatIntegrator::RegisterFreeEnergyVariables(
 void QuatIntegrator::RegisterConcentrationVariables(
    const boost::shared_ptr< pdat::CellVariable<double> > conc_var,
    const std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
-      conc_diffusion0_var,
+      conc_pfm_diffusion_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_phase_coupling_diffusion_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_eta_coupling_diffusion_var,
    const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion_var
@@ -697,7 +697,7 @@ void QuatIntegrator::RegisterConcentrationVariables(
    assert( d_ncompositions>0 );
 
    d_conc_var = conc_var;
-   d_conc_diffusion0_var = conc_diffusion0_var;
+   d_conc_pfm_diffusion_var = conc_pfm_diffusion_var;
    d_conc_diffusion_var = conc_diffusion_var;
    d_conc_phase_coupling_diffusion_var = conc_phase_coupling_diffusion_var;
    d_conc_eta_coupling_diffusion_var = conc_eta_coupling_diffusion_var;
@@ -729,14 +729,14 @@ void QuatIntegrator::RegisterConcentrationVariables(
          assert( d_conc_diffusion_id >= 0 );
       }
       for(std::vector<boost::shared_ptr<pdat::SideVariable<double> > >::iterator it =
-          d_conc_diffusion0_var.begin();
-          it!=d_conc_diffusion0_var.end();
+          d_conc_pfm_diffusion_var.begin();
+          it!=d_conc_pfm_diffusion_var.end();
         ++it){
-         d_conc_diffusion0_id.push_back(
+         d_conc_pfm_diffusion_id.push_back(
             variable_db->registerVariableAndContext(*it,
                d_current,
                hier::IntVector(tbox::Dimension(NDIM),0) ) );
-         assert( d_conc_diffusion0_id[0] >= 0 );
+         assert( d_conc_pfm_diffusion_id[0] >= 0 );
       }
       
       if( d_conc_phase_coupling_diffusion_var ){
@@ -757,15 +757,15 @@ void QuatIntegrator::RegisterConcentrationVariables(
          assert( d_conc_eta_coupling_diffusion_id >= 0 );
       }
 
-      if( !conc_diffusion0_var.empty() ){
+      if( !conc_pfm_diffusion_var.empty() ){
          // schedules
          boost::shared_ptr<hier::CoarsenOperator > diff_coarsen_op =
             d_grid_geometry->lookupCoarsenOperator(
-               d_conc_diffusion0_var[0],
+               d_conc_pfm_diffusion_var[0],
                "CONSERVATIVE_COARSEN" );
 
-         for(std::vector<int>::iterator it=d_conc_diffusion0_id.begin();
-             it!=d_conc_diffusion0_id.end();
+         for(std::vector<int>::iterator it=d_conc_pfm_diffusion_id.begin();
+             it!=d_conc_pfm_diffusion_id.end();
            ++it){
             d_conc_diffusion_coarsen.registerCoarsen(*it,*it,
                diff_coarsen_op );
@@ -4222,7 +4222,7 @@ void QuatIntegrator::setCompositionOperatorCoefficients(const double gamma)
    if ( d_with_concentration && d_conc_sys_solver ) {
       // Set concentration block coefficients
       d_conc_sys_solver->setOperatorCoefficients(
-         gamma, d_conc_diffusion0_id, d_conc_mobility );
+         gamma, d_conc_pfm_diffusion_id, d_conc_mobility );
    }
 }
 

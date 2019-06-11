@@ -40,20 +40,18 @@
 
 #include <cstring>
 
-using namespace std;
-
 class TbasedCompositionDiffusionStrategy :
    public CompositionDiffusionStrategy
 {
 public:
 
    TbasedCompositionDiffusionStrategy(
-      const int diffusion_l_id,
-      const int diffusion_a_id,
+      const int pfm_diffusion_l_id,
+      const int pfm_diffusion_a_id,
       const double D_liquid, const double Q0_liquid,
       const double D_solid_A, const double Q0_solid_A,
       DiffusionInterpolationType interp_func_type,
-      const string& avg_func_type
+      const std::string& avg_func_type
 );
 
 
@@ -72,8 +70,8 @@ private:
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction
     */
-   int d_diffusion_l_id;
-   int d_diffusion_a_id;
+   int d_pfm_diffusion_l_id;
+   int d_pfm_diffusion_a_id;
 
    double d_D_liquid;
    double d_Q0_liquid;

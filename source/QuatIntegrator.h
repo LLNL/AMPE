@@ -191,7 +191,7 @@ public :
    void RegisterConcentrationVariables(
       const boost::shared_ptr< pdat::CellVariable<double> > conc_var,
       const std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
-         conc_diffusion0_var,
+         conc_pfm_diffusion_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_phase_coupling_diffusion_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_eta_coupling_diffusion_var,
       const boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion_var
@@ -544,8 +544,8 @@ protected:
     * diffusion coefficient in preconditioner for composition equation
     */
    std::vector<boost::shared_ptr< pdat::SideVariable<double> > >
-      d_conc_diffusion0_var;
-   std::vector<int> d_conc_diffusion0_id;
+      d_conc_pfm_diffusion_var;
+   std::vector<int> d_conc_pfm_diffusion_id;
 
    // Timers
    boost::shared_ptr<tbox::Timer> t_rhs_timer;

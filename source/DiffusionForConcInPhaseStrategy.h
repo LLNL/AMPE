@@ -97,10 +97,10 @@ private:
       const int eta_scratch_id);
 
    /*
-    * compute diffusion in each phase based on diffusion coeeficients
+    * compute PFM diffusion in each phase based on diffusion coefficients
     * in each phase
     */
-   void setDiffOnPatch(
+   void setPFMDiffOnPatch(
       boost::shared_ptr< pdat::CellData<double> > cd_phi,
       boost::shared_ptr< pdat::CellData<double> > cd_eta,
       boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l,
@@ -144,9 +144,9 @@ private:
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction
     */
-   int d_diffusion_l_id;
-   int d_diffusion_a_id;
-   int d_diffusion_b_id;
+   int d_pfm_diffusion_l_id;
+   int d_pfm_diffusion_a_id;
+   int d_pfm_diffusion_b_id;
    
    /*!
     * holds data for diffusion coefficients in each phase

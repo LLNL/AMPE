@@ -181,9 +181,9 @@ QuatModel::QuatModel( int ql ) :
    d_conc_diffusion_id = -1;
    d_conc_phase_coupling_diffusion_id = -1;
    d_conc_eta_coupling_diffusion_id = -1;
-   d_conc_diffusion_l_id = -1;
-   d_conc_diffusion_a_id = -1;
-   d_conc_diffusion_b_id = -1;
+   d_conc_pfm_diffusion_l_id = -1;
+   d_conc_pfm_diffusion_a_id = -1;
+   d_conc_pfm_diffusion_b_id = -1;
    d_conc_diffusion_coeff_l_id = -1;
    d_conc_diffusion_coeff_a_id = -1;
    d_conc_diffusion_coeff_b_id = -1;
@@ -342,7 +342,7 @@ void QuatModel::initializeCompositionRHSStrategy()
          new KKSCompositionRHSStrategy(
             d_conc_scratch_id,
             d_phase_scratch_id,
-            d_conc_diffusion0_id[0], // use 1x1 diffusion matrix
+            d_conc_pfm_diffusion_id[0], // use 1x1 diffusion matrix
             d_conc_phase_coupling_diffusion_id,
             d_temperature_scratch_id,
             d_eta_scratch_id,
@@ -371,12 +371,12 @@ void QuatModel::initializeCompositionRHSStrategy()
             d_conc_a_scratch_id,
             d_conc_b_scratch_id,
             d_temperature_scratch_id,
-            d_conc_diffusion_l_id,
-            d_conc_diffusion_a_id,
-            d_conc_diffusion_b_id,
+            d_conc_pfm_diffusion_l_id,
+            d_conc_pfm_diffusion_a_id,
+            d_conc_pfm_diffusion_b_id,
             d_conc_Mq_id,
             d_model_parameters.Q_heat_transport(),
-            d_conc_diffusion0_id,
+            d_conc_pfm_diffusion_id,
             d_model_parameters.avg_func_type(),
             d_free_energy_strategy_for_diffusion,
             d_composition_strategy_mobilities,
@@ -388,7 +388,7 @@ void QuatModel::initializeCompositionRHSStrategy()
             d_conc_scratch_id,
             d_phase_scratch_id,
             d_partition_coeff_scratch_id,
-            d_conc_diffusion0_id[0],
+            d_conc_pfm_diffusion_id[0],
             d_conc_phase_coupling_diffusion_id,
             d_model_parameters.D_liquid(),
             d_model_parameters.D_solid_A(),
@@ -669,9 +669,9 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
                   d_conc_l_scratch_id,
                   d_conc_a_scratch_id,
                   d_conc_b_scratch_id,
-                  d_conc_diffusion_l_id,
-                  d_conc_diffusion_a_id,
-                  d_conc_diffusion_b_id,
+                  d_conc_pfm_diffusion_l_id,
+                  d_conc_pfm_diffusion_a_id,
+                  d_conc_pfm_diffusion_b_id,
                   d_conc_diffusion_coeff_l_id,
                   d_conc_diffusion_coeff_a_id,
                   d_conc_diffusion_coeff_b_id,
@@ -682,8 +682,8 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
          }else{
             d_diffusion_for_conc_in_phase=
                new TbasedCompositionDiffusionStrategy(
-                  d_conc_diffusion_l_id,
-                  d_conc_diffusion_a_id,
+                  d_conc_pfm_diffusion_l_id,
+                  d_conc_pfm_diffusion_a_id,
                   d_model_parameters.D_liquid(),
                   d_model_parameters.Q0_liquid(),
                   d_model_parameters.D_solid_A(),
@@ -1564,19 +1564,19 @@ void QuatModel::registerConcentrationVariables( void )
    }
 
    for(int ic=0;ic<d_ncompositions;ic++){
-      boost::shared_ptr< pdat::SideVariable<double> > conc_diffusion0_var;
-      conc_diffusion0_var.reset(
+      boost::shared_ptr< pdat::SideVariable<double> > conc_pfm_diffusion_var;
+      conc_pfm_diffusion_var.reset(
          new pdat::SideVariable<double>(
             tbox::Dimension(NDIM), 
-            "conc_diffusion0"+boost::lexical_cast<std::string>(ic) ) );
-      assert( conc_diffusion0_var );
-      d_conc_diffusion0_var.push_back( conc_diffusion0_var );
-      d_conc_diffusion0_id.push_back(
+            "conc_pfm_diffusion"+boost::lexical_cast<std::string>(ic) ) );
+      assert( conc_pfm_diffusion_var );
+      d_conc_pfm_diffusion_var.push_back( conc_pfm_diffusion_var );
+      d_conc_pfm_diffusion_id.push_back(
          variable_db->registerVariableAndContext(
-            d_conc_diffusion0_var[ic],
+            d_conc_pfm_diffusion_var[ic],
             current,
             hier::IntVector(tbox::Dimension(NDIM),0) ) );
-      assert( d_conc_diffusion0_id[ic] >= 0 );
+      assert( d_conc_pfm_diffusion_id[ic] >= 0 );
    }
 
    d_model_parameters.checkValidityConcRHSstrategy();
@@ -1593,20 +1593,22 @@ void QuatModel::registerConcentrationVariables( void )
             hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( d_conc_phase_coupling_diffusion_id >= 0 );
    }else{
-      d_conc_diffusion_l_var.reset(
+      d_conc_pfm_diffusion_l_var.reset(
          new pdat::SideVariable<double>(
             tbox::Dimension(NDIM), 
-            "conc_diffusion_l", d_ncompositions*d_ncompositions ) );
-      assert( d_conc_diffusion_l_var );
-      d_conc_diffusion_l_id =
+            "conc_pfm_diffusion_l", d_ncompositions*d_ncompositions ) );
+      assert( d_conc_pfm_diffusion_l_var );
+      d_conc_pfm_diffusion_l_id =
          variable_db->registerVariableAndContext(
-            d_conc_diffusion_l_var,
+            d_conc_pfm_diffusion_l_var,
             current,
             hier::IntVector(tbox::Dimension(NDIM),0) );
-      assert( d_conc_diffusion_l_id >= 0 );
+      assert( d_conc_pfm_diffusion_l_id >= 0 );
 
       d_conc_diffusion_coeff_l_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_l", d_ncompositions*d_ncompositions ) );
+         new pdat::SideVariable<double>(
+            tbox::Dimension(NDIM),
+            "conc_diffusion_coeff_l", d_ncompositions*d_ncompositions ) );
       assert( d_conc_diffusion_coeff_l_var );
       d_conc_diffusion_coeff_l_id =
          variable_db->registerVariableAndContext(
@@ -1615,15 +1617,16 @@ void QuatModel::registerConcentrationVariables( void )
             hier::IntVector(tbox::Dimension(NDIM),0) );
       assert( d_conc_diffusion_coeff_l_id >= 0 );
 
-      d_conc_diffusion_a_var.reset(
-         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_a", d_ncompositions*d_ncompositions ) );
-      assert( d_conc_diffusion_a_var );
-      d_conc_diffusion_a_id =
+      d_conc_pfm_diffusion_a_var.reset(
+         new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_pfm_diffusion_a",
+            d_ncompositions*d_ncompositions ) );
+      assert( d_conc_pfm_diffusion_a_var );
+      d_conc_pfm_diffusion_a_id =
          variable_db->registerVariableAndContext(
-            d_conc_diffusion_a_var,
+            d_conc_pfm_diffusion_a_var,
             current,
             hier::IntVector(tbox::Dimension(NDIM),0) );
-      assert( d_conc_diffusion_a_id >= 0 );
+      assert( d_conc_pfm_diffusion_a_id >= 0 );
 
       d_conc_diffusion_coeff_a_var.reset(
          new pdat::SideVariable<double>(tbox::Dimension(NDIM), "conc_diffusion_coeff_a", d_ncompositions*d_ncompositions ) );
@@ -1650,17 +1653,17 @@ void QuatModel::registerConcentrationVariables( void )
       }
 
       if ( d_model_parameters.with_third_phase() ) {
-         d_conc_diffusion_b_var.reset(
+         d_conc_pfm_diffusion_b_var.reset(
             new pdat::SideVariable<double>(
-               tbox::Dimension(NDIM), "conc_diffusion_b",
+               tbox::Dimension(NDIM), "conc_pfm_diffusion_b",
                d_ncompositions*d_ncompositions ) );
-         assert( d_conc_diffusion_b_var );
-         d_conc_diffusion_b_id =
+         assert( d_conc_pfm_diffusion_b_var );
+         d_conc_pfm_diffusion_b_id =
             variable_db->registerVariableAndContext(
-               d_conc_diffusion_b_var,
+               d_conc_pfm_diffusion_b_var,
                current,
                hier::IntVector(tbox::Dimension(NDIM),0) );
-         assert( d_conc_diffusion_b_id >= 0 );
+         assert( d_conc_pfm_diffusion_b_id >= 0 );
 
          d_conc_diffusion_coeff_b_var.reset(
             new pdat::SideVariable<double>(
@@ -1757,7 +1760,7 @@ void QuatModel::registerConcentrationVariables( void )
    if( d_model_parameters.with_concentration() )
       d_integrator->RegisterConcentrationVariables(
          d_conc_var,
-         d_conc_diffusion0_var,
+         d_conc_pfm_diffusion_var,
          d_conc_phase_coupling_diffusion_var,
          d_conc_eta_coupling_diffusion_var,
          d_conc_diffusion_var
@@ -3632,7 +3635,7 @@ void QuatModel::AllocateLocalPatchData(
          d_conc_scratch_id, level, time, zero_data );
       for(int ic=0;ic<d_ncompositions;ic++){
          AllocateAndZeroData< pdat::SideData<double> >(
-            d_conc_diffusion0_id[ic], level, time, zero_data );
+            d_conc_pfm_diffusion_id[ic], level, time, zero_data );
       }
       if( d_model_parameters.concRHSstrategyIsKKS()
        || d_model_parameters.concRHSstrategyIsBeckermann() ){
@@ -3640,12 +3643,12 @@ void QuatModel::AllocateLocalPatchData(
             d_conc_phase_coupling_diffusion_id, level, time, zero_data );
       }else{
          AllocateAndZeroData< pdat::SideData<double> >(
-            d_conc_diffusion_l_id, level, time, zero_data );
+            d_conc_pfm_diffusion_l_id, level, time, zero_data );
          AllocateAndZeroData< pdat::SideData<double> >(
-            d_conc_diffusion_a_id, level, time, zero_data );
+            d_conc_pfm_diffusion_a_id, level, time, zero_data );
          if ( d_model_parameters.with_third_phase() ) {
             AllocateAndZeroData< pdat::SideData<double> >(
-               d_conc_diffusion_b_id, level, time, zero_data );
+               d_conc_pfm_diffusion_b_id, level, time, zero_data );
          }
          AllocateAndZeroData< pdat::SideData<double> >(
             d_conc_diffusion_coeff_l_id, level, time, zero_data );
