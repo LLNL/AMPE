@@ -342,6 +342,8 @@ public :
       d_phase_conc_strategy = phase_conc_strategy;
    }
    void setCompositionRHSStrategy( CompositionRHSStrategy* composition_rhs_strategy);
+   void setCompositionDiffusionStrategy(boost::shared_ptr<CompositionDiffusionStrategy>);
+
    void setPhaseFluxStrategy( PhaseFluxStrategy* );
    void setTemperatureStrategy( TemperatureStrategy* );
    void setHeatCapacityStrategy( HeatCapacityStrategy* );
@@ -760,6 +762,8 @@ private :
    
    
    CompositionRHSStrategy* d_composition_rhs_strategy;
+
+   boost::shared_ptr<CompositionDiffusionStrategy> d_composition_diffusion_strategy;
 
    PhaseFluxStrategy* d_phase_flux_strategy;
 

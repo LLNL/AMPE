@@ -60,9 +60,6 @@ public:
       hier::Patch& patch,
       const int temperature_id,
       const int flux_id);
-   virtual void setDiffusionCoeff(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const double                                               time)=0;
    virtual void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
    {
       (void)hierarchy;

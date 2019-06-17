@@ -91,7 +91,16 @@ public:
       const double                                               time);
    
    //void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
-   
+
+/*
+ * Take sum of diffusion coefficients in each phase
+ * to get diffusion used in preconditioner
+ * (same diffusion coefficient as used in KKS equations)
+ * Assumes coefficients in each pahse includes a phase fraction weight
+ */
+   void setDiffusionCoeffForPreconditioner(
+      const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
+
 private:
    unsigned short d_ncompositions;
 
@@ -136,14 +145,6 @@ private:
       const int temperature_id,
       const int flux_id);
 
-   /*
-    * Take sum of diffusion coefficients in each phase
-    * to get diffusion used in preconditioner
-    * (same diffusion coefficient as used in KKS equations)
-    * Assumes coefficients in each pahse includes a phase fraction weight
-    */
-   void setDiffusionCoeffForPreconditioner(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
    void setDiffusionCoeffForPreconditionerOnPatch(
       boost::shared_ptr< pdat::SideData<double> > sd_d_l,
       boost::shared_ptr< pdat::SideData<double> > sd_d_a,

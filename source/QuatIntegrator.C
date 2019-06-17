@@ -58,6 +58,7 @@
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "UniformNoise.h"
 #include "toolsSAMRAI.h"
+#include "EBSCompositionRHSStrategy.h"
 
 #include "QuatParams.h"
 
@@ -1695,6 +1696,13 @@ void QuatIntegrator::setCompositionRHSStrategy(
    d_composition_rhs_strategy = composition_rhs_strategy;
 }
 
+void QuatIntegrator::setCompositionDiffusionStrategy(
+   boost::shared_ptr<CompositionDiffusionStrategy> composition_diffusion_strategy)
+{
+   assert( composition_diffusion_strategy );
+   d_composition_diffusion_strategy = composition_diffusion_strategy;
+}
+
 void QuatIntegrator::setPhaseFluxStrategy(
    PhaseFluxStrategy* phase_flux_strategy)
 {
@@ -2494,13 +2502,20 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
    const double                                    time)
 {
    assert( hierarchy );
+   assert( d_composition_diffusion_strategy );
 
    t_set_diffcoeff_conc_timer->start();
    //tbox::pout<<"QuatIntegrator::setDiffusionCoeffForConcentration"<<endl;
 
    // set diffusion coefficients which is a function of the free energy form
-   d_composition_rhs_strategy->setDiffusionCoeff(hierarchy, time);
-   
+   d_composition_diffusion_strategy->setDiffusion(hierarchy,
+      d_temperature_scratch_id, d_phase_scratch_id, time);
+
+   EBSCompositionRHSStrategy* ebs_rhs = static_cast<EBSCompositionRHSStrategy*>
+      (d_composition_rhs_strategy);
+   if( ebs_rhs )
+      ebs_rhs->setDiffusionCoeffForPreconditioner(hierarchy);
+
    for ( int amr_level = hierarchy->getFinestLevelNumber()-1;
          amr_level >=0;
          amr_level-- ) {

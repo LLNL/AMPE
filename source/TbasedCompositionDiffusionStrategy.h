@@ -48,6 +48,8 @@ public:
    TbasedCompositionDiffusionStrategy(
       const int pfm_diffusion_l_id,
       const int pfm_diffusion_a_id,
+      const int diffusion_coeff_l_id,
+      const int diffusion_coeff_a_id,
       const double D_liquid, const double Q0_liquid,
       const double D_solid_A, const double Q0_solid_A,
       DiffusionInterpolationType interp_func_type,
@@ -65,6 +67,14 @@ public:
       const int phase_id,
       const int eta_id);
 
+   /*
+    * Compute diffusion coefficient in each phase
+    */
+   virtual void setDiffCoeffInEachPhase(
+      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+      const int temperature_id,
+      const int eta_scratch_id);
+
 private:
    /*!
     * holds data for diffusion coefficients in composition equation
@@ -72,6 +82,9 @@ private:
     */
    int d_pfm_diffusion_l_id;
    int d_pfm_diffusion_a_id;
+
+   int d_diffusion_coeff_l_id;
+   int d_diffusion_coeff_a_id;
 
    double d_D_liquid;
    double d_Q0_liquid;

@@ -67,7 +67,14 @@ public:
       const int phase_id,
       const int eta_id)=0;
 
-protected:
+   /*
+    * Compute diffusion coefficient in each phase
+    */
+   virtual void setDiffCoeffInEachPhase(
+      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
+      const int temperature_id,
+      const int eta_scratch_id)=0;
+
    char interpChar()const
    {
       switch( d_interp_func_type ){

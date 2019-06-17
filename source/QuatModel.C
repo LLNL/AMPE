@@ -127,7 +127,6 @@ QuatModel::QuatModel( int ql ) :
    d_temperature_strategy_quat_only = NULL;
    d_meltingT_strategy = NULL;
    
-   d_diffusion_for_conc_in_phase=NULL;
    d_composition_strategy_mobilities=NULL;
    d_composition_rhs_strategy=NULL;
    d_free_energy_strategy_for_diffusion=NULL;
@@ -361,7 +360,7 @@ void QuatModel::initializeCompositionRHSStrategy()
             d_model_parameters.avg_func_type() );
    }else if ( d_model_parameters.concRHSstrategyIsEBS() ){
       
-      assert( d_diffusion_for_conc_in_phase!=NULL );
+      assert( d_diffusion_for_conc_in_phase );
       
       d_composition_rhs_strategy =
          new EBSCompositionRHSStrategy(
@@ -1040,8 +1039,10 @@ void QuatModel::InitializeIntegrator( void )
    d_integrator->setQuatGradStrategy( d_quat_grad_strategy );
    d_integrator->setMobilityStrategy( d_mobility_strategy );
    d_integrator->setPhaseFluxStrategy( d_phase_flux_strategy );
-   if ( d_model_parameters.with_concentration() )
+   if ( d_model_parameters.with_concentration() ){
+      d_integrator->setCompositionDiffusionStrategy( d_diffusion_for_conc_in_phase );
       d_integrator->setCompositionRHSStrategy( d_composition_rhs_strategy );
+   }
    d_integrator->setFreeEnergyStrategy( d_free_energy_strategy );
    if ( d_model_parameters.with_concentration() )
       d_integrator->setPhaseConcentrationsStrategy( d_phase_conc_strategy );

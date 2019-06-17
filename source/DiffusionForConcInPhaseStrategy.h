@@ -59,9 +59,9 @@ public:
       const int conc_l_scratch_id,
       const int conc_a_scratch_id,
       const int conc_b_scratch_id,
-      const int diffusion_l_id,
-      const int diffusion_a_id,
-      const int diffusion_b_id,
+      const int pfm_diffusion_l_id,
+      const int pfm_diffusion_a_id,
+      const int pfm_diffusion_b_id,
       const int diffusion_coeff_l_id,
       const int diffusion_coeff_a_id,
       const int diffusion_coeff_b_id,
@@ -82,12 +82,6 @@ public:
       const int phase_id,
       const int eta_id);
 
-private:   
-   double average(const double a, const double b)const
-   {
-      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
-   }
-
    /*
     * Compute diffusion coefficient in each phase
     */
@@ -95,6 +89,12 @@ private:
       const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int eta_scratch_id);
+
+private:
+   double average(const double a, const double b)const
+   {
+      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
+   }
 
    /*
     * compute PFM diffusion in each phase based on diffusion coefficients

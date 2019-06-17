@@ -320,3 +320,66 @@ c
 c
       return
       end
+
+      subroutine concentration_diffcoeff_of_temperature(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   diffL0, diffL1,
+     &   diffA0, diffA1, ngdiff,
+     &   temp, ngtemp,
+     &   d_liquid, q0_liquid,
+     &   d_solid_A, q0_solid_A,
+     &   gas_constant_R)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngdiff, ngtemp
+      double precision d_liquid, d_solid_A
+      double precision q0_liquid, q0_solid_A
+      double precision gas_constant_R
+c
+c variables in 2d cell indexed
+c
+c variables in 2d cell indexed
+      double precision temp(CELL2d(ifirst,ilast,ngtemp))
+      double precision diffL0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diffL1(SIDE2d1(ifirst,ilast,ngdiff))
+      double precision diffA0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE2d1(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1
+      double precision invT
+      double precision q0_liquid_invR, q0_solid_A_invR
+c
+      q0_liquid_invR = q0_liquid / gas_constant_R
+      q0_solid_A_invR = q0_solid_A / gas_constant_R
+c
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0+1
+
+            invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
+
+            diffL0(ic0,ic1) = d_liquid * exp( -q0_liquid_invR * invT )
+            diffA0(ic0,ic1) = d_solid_A * exp( -q0_solid_A_invR * invT )
+
+         end do
+      end do
+c
+      do ic1 = ifirst1, ilast1+1
+         do ic0 = ifirst0, ilast0
+
+            invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
+
+            diffL1(ic0,ic1) = d_liquid * exp( -q0_liquid_invR * invT )
+            diffA1(ic0,ic1) = d_solid_A * exp( -q0_solid_A_invR * invT )
+
+         end do
+      end do
+c
+      return
+      end

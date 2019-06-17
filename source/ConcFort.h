@@ -43,6 +43,7 @@
 #define FORT_CONCENTRATION_FLUX_SPINODAL concentrationflux_spinodal_
 #define FORT_CONCENTRATION_PFMDIFFUSION concentration_pfmdiffusion_
 #define FORT_CONCENTRATION_PFMDIFFUSION_OF_T concentration_pfmdiffusion_of_temperature_
+#define FORT_CONCENTRATION_DIFFCOEFF_OF_T concentration_diffcoeff_of_temperature_
 #define FORT_CONCENTRATIONDIFFUSIONBECKERMANN concentrationdiffusion_beckermann_
 #define FORT_COMPUTERHSCONCENTRATION computerhsconcentration_
 #define FORT_PHASERHS_FENERGY      phaserhs_fenergy_
@@ -225,6 +226,26 @@ extern "C" {
       const double& gas_constant_R,
       const char* phi_interp_type,
       const char* avg_func_type);
+
+   void FORT_CONCENTRATION_DIFFCOEFF_OF_T(
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const double* diffl0, const double* diffl1,
+#if (NDIM == 3)
+      const double* diffl2,
+#endif
+      const double* diffa0, const double* diffa1,
+#if (NDIM == 3)
+      const double* diffa2,
+#endif
+      const int& ngdiff,
+      const double* t, const int& ngt,
+      const double& d_phase0, const double& q0_phase0,
+      const double& d_phase1, const double& q0_phase1,
+      const double& gas_constant_R);
 
    void FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
       const int& ifirst0, const int& ilast0,
