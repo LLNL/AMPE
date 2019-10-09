@@ -45,19 +45,19 @@ l=len(L)  ## no of lines in file
 search_string1 = 'Volume fraction'
 search_string2 = 'cycle'
 time=0.
-print '#Volume fraction vs. time [s]'
+print('#Volume fraction vs. time [s]')
 for line in range(l): ## loop over lines of file 
-  num_matches1 = string.count(L[line], search_string1)
+  num_matches1 = L[line].count(search_string1)
 
   if num_matches1 :
     #search for time in previous lines
     for line2 in range(line-1,line-1000,-1):
-      num_matches2 = string.count(L[line2], search_string2)
+      num_matches2 = L[line2].count(search_string2)
       if num_matches2:
-        w=string.split(L[line2])
+        w=L[line2].split()
         time=eval(w[6])
         #print time
         break
-    words=string.split(L[line])
+    words=L[line].split()
     vol=eval(words[6])
-    print time,vol
+    print("{}    {}".format(time,vol))
