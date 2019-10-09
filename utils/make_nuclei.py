@@ -676,7 +676,7 @@ vl=0.;
 #fill phase value and compute volume solid
 for g in range(n_spheres):
   r_sq = r[g]**2
-  threshold = (r[g]+width)**2
+  threshold = (r[g]+5.*width)**2
   print ("sphere {}, center: {},{},{}, radius: {}".format(g,cx[g],cy[g],cz[g],r[g]))
   for k in range( nz ) :
     z = k + 0.5
@@ -688,13 +688,15 @@ for g in range(n_spheres):
         if dy2<threshold :
           for i in range( nx ) :
             x = i + 0.5
-       
+
+            #compute distance to center
             distance_sq = distance2(x,y,z,cx[g],cy[g],cz[g])
-            d = distance_sq - r_sq
+
+            #compare with radius
+            d = N.sqrt(distance_sq) - N.sqrt(r_sq)
             if( width>0. ):
-              sq=N.sqrt(abs(d))
-              if( sq<2.*width or d<0. ):
-                phase[k,j,i] = phase_inside*0.5*(1.+N.tanh(0.5*sq/width))
+              if( d<8.*width ):
+                phase[k,j,i] = phase_inside*0.5*(1.+N.tanh(-1.*d/(2.*width)))
                 vs=vs+phase[k,j,i]
                 if( options.three ):
                   eta[k,j,i] = g%2
