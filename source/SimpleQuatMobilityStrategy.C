@@ -48,7 +48,7 @@ SimpleQuatMobilityStrategy::SimpleQuatMobilityStrategy(
 
 SimpleQuatMobilityStrategy::~SimpleQuatMobilityStrategy()
 {
-   d_quat_model = NULL;
+   d_quat_model = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -78,7 +78,7 @@ void SimpleQuatMobilityStrategy::computePhaseMobility(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -99,7 +99,7 @@ void SimpleQuatMobilityStrategy::computeEtaMobility(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -120,7 +120,7 @@ void SimpleQuatMobilityStrategy::computeQuatMobility(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -141,7 +141,7 @@ void SimpleQuatMobilityStrategy::computeQuatMobilityDeriv(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 

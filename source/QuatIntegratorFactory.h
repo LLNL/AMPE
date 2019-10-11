@@ -61,7 +61,7 @@ public:
       boost::shared_ptr<hier::VariableContext> scratch =
          variable_db->getContext( "SCRATCH" );
       
-      QuatIntegrator* integrator=NULL;
+      QuatIntegrator* integrator=nullptr;
       
       boost::shared_ptr<tbox::Database> integrator_db = 
          input_db->getDatabase( "Integrator" );

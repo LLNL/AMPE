@@ -261,8 +261,8 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
 
    int three_phase = 0;
-   double* ptr_fb = NULL;
-   double* ptr_eta = NULL;
+   double* ptr_fb = nullptr;
+   double* ptr_eta = nullptr;
    if ( d_with_third_phase ) {
       three_phase = 1; 
       boost::shared_ptr< pdat::CellData<double> > eta (

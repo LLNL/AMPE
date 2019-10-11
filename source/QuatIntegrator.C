@@ -154,12 +154,12 @@ QuatIntegrator::QuatIntegrator(
      d_precond_has_dPhidT( false ),
      d_grid_geometry( grid_geom ),
      d_lag_quat_sidegrad( true ),
-     d_free_energy_strategy( NULL ),
+     d_free_energy_strategy( nullptr ),
      d_uniform_diffusion_time_threshold( tbox::IEEE::getSignalingNaN() ),
      d_conc_mobility( tbox::IEEE::getSignalingNaN() ),
      d_show_conc_sys_stats( false ),
-     d_conc_bc_coefs( NULL ),
-     d_dphidt_bc_coefs( NULL ),
+     d_conc_bc_coefs( nullptr ),
+     d_dphidt_bc_coefs( nullptr ),
      //private data members
      d_name(name),
      d_model_parameters( model_parameters ),
@@ -167,12 +167,12 @@ QuatIntegrator::QuatIntegrator(
      d_compute_velocity( false ),
      d_current( current ),
      d_scratch( scratch ),
-     d_quat_grad_strategy( NULL ),
-     d_phase_conc_strategy( NULL ),
-     d_partition_coeff_strategy( NULL ),
-     d_temperature_strategy( NULL ),
-     d_composition_rhs_strategy( NULL ),
-     d_phase_flux_strategy( NULL ),
+     d_quat_grad_strategy( nullptr ),
+     d_phase_conc_strategy( nullptr ),
+     d_partition_coeff_strategy( nullptr ),
+     d_temperature_strategy( nullptr ),
+     d_composition_rhs_strategy( nullptr ),
+     d_phase_flux_strategy( nullptr ),
      d_current_time( tbox::IEEE::getSignalingNaN() ),
      d_previous_timestep( 0. ),
      d_eta_id( -1 ),
@@ -236,10 +236,10 @@ QuatIntegrator::QuatIntegrator(
      d_epsilon_q( tbox::IEEE::getSignalingNaN() ),
      d_quat_grad_floor( tbox::IEEE::getSignalingNaN() ),
      d_quat_smooth_floor_type( "max" ),
-     d_sundials_solver( NULL ),
+     d_sundials_solver( nullptr ),
      d_end_time( tbox::IEEE::getSignalingNaN() ),
      d_boundary_cond_db( bc_db ),
-     d_all_refine_patch_strategy( NULL ),
+     d_all_refine_patch_strategy( nullptr ),
      d_show_integrator_stats( false ),
      d_show_solver_stats( false ),
      d_show_phase_sys_stats( false ),
@@ -256,10 +256,10 @@ QuatIntegrator::QuatIntegrator(
      d_cum_f_eval( 0 ),
      d_cum_p_setup( 0 ),
      d_cum_p_apply( 0 ),
-     d_phase_bc_coefs( NULL ),
-     d_eta_bc_coefs( NULL ),
-     d_temperature_bc_coefs( NULL ),
-     d_quat_bc_coefs( NULL )
+     d_phase_bc_coefs( nullptr ),
+     d_eta_bc_coefs( nullptr ),
+     d_temperature_bc_coefs( nullptr ),
+     d_quat_bc_coefs( nullptr )
 {
    assert( db );
    assert( grid_geom );
@@ -1666,7 +1666,7 @@ void QuatIntegrator::RegisterWithVisit(
 void QuatIntegrator::setQuatGradStrategy( 
    QuatGradStrategy* quat_grad_strategy )
 {
-   assert( quat_grad_strategy != NULL );
+   assert( quat_grad_strategy != nullptr );
    d_quat_grad_strategy = quat_grad_strategy;
 }
 
@@ -1683,7 +1683,7 @@ void QuatIntegrator::setMobilityStrategy(
 void QuatIntegrator::setFreeEnergyStrategy(
    FreeEnergyStrategy* free_energy_strategy)
 {
-   assert( free_energy_strategy != NULL ); 
+   assert( free_energy_strategy != nullptr ); 
    d_free_energy_strategy = free_energy_strategy;
 }
 
@@ -1692,7 +1692,7 @@ void QuatIntegrator::setFreeEnergyStrategy(
 void QuatIntegrator::setCompositionRHSStrategy(
    CompositionRHSStrategy* composition_rhs_strategy)
 {
-   assert( composition_rhs_strategy != NULL ); 
+   assert( composition_rhs_strategy != nullptr ); 
    d_composition_rhs_strategy = composition_rhs_strategy;
 }
 
@@ -1706,7 +1706,7 @@ void QuatIntegrator::setCompositionDiffusionStrategy(
 void QuatIntegrator::setPhaseFluxStrategy(
    PhaseFluxStrategy* phase_flux_strategy)
 {
-   assert( phase_flux_strategy != NULL );
+   assert( phase_flux_strategy != nullptr );
    d_phase_flux_strategy = phase_flux_strategy;
 }
 
@@ -1715,7 +1715,7 @@ void QuatIntegrator::setPhaseFluxStrategy(
 void QuatIntegrator::setTemperatureStrategy(
    TemperatureStrategy* temperature_strategy)
 {
-   assert( temperature_strategy != NULL ); 
+   assert( temperature_strategy != nullptr ); 
    d_temperature_strategy = temperature_strategy;
 }
 
@@ -1982,7 +1982,7 @@ void QuatIntegrator::resetSolversState(
    }
 
    
-   if ( d_with_steady_temperature && d_temperature_strategy!=NULL){
+   if ( d_with_steady_temperature && d_temperature_strategy!=nullptr){
       d_temperature_strategy->resetSolversState(hierarchy, coarsest_level, finest_level);
    }
 }
@@ -2039,7 +2039,7 @@ void QuatIntegrator::initializeLevelData(
 void QuatIntegrator::initializeConcentrationNonPeriodicBC()
 {
    if ( d_conc_sys_solver ) {
-      assert( d_conc_bc_coefs!=NULL );
+      assert( d_conc_bc_coefs!=nullptr );
       d_conc_sys_solver->setBcObject(d_conc_bc_coefs);
    }
 }
@@ -2050,20 +2050,20 @@ void QuatIntegrator::initializeNonPeriodicBC()
 {
    if( !d_all_periodic ){
       if ( d_phase_sys_solver ) {
-         assert( d_phase_bc_coefs!=NULL );
+         assert( d_phase_bc_coefs!=nullptr );
          d_phase_sys_solver->setBcObject(d_phase_bc_coefs);
       }
       if ( d_eta_sys_solver ) {
-         assert( d_eta_bc_coefs!=NULL );
+         assert( d_eta_bc_coefs!=nullptr );
          d_eta_sys_solver->setBcObject(d_eta_bc_coefs);
       }
       initializeConcentrationNonPeriodicBC();
       if ( d_evolve_quat ) {
-         assert( d_quat_bc_coefs!=NULL );
+         assert( d_quat_bc_coefs!=nullptr );
          d_quat_sys_solver->setBcObject(d_quat_bc_coefs);
       }
       if ( d_temperature_sys_solver ) {
-         assert( d_temperature_bc_coefs!=NULL );
+         assert( d_temperature_bc_coefs!=nullptr );
          d_temperature_sys_solver->setBcObject(d_temperature_bc_coefs);
          if( d_precond_has_dTdphi )
             d_phase_temperature_sys_solver->setBcObject(d_temperature_bc_coefs);
@@ -2142,7 +2142,7 @@ void QuatIntegrator::initialize(
 
    resetIntegrator( hierarchy, 0, finest );
 
-   if ( d_temperature_strategy!=NULL )
+   if ( d_temperature_strategy!=nullptr )
       d_temperature_strategy->initialize(hierarchy);
 
    initializeSolvers(hierarchy);
@@ -2232,7 +2232,7 @@ double QuatIntegrator::Advance(
       switch( return_code )
       {
       case -1:
-         tbox::pout << "The cvode_mem argument was NULL" << endl;
+         tbox::pout << "The cvode_mem argument was nullptr" << endl;
          break;
       case -2:
          tbox::pout << "One of the inputs to the integrator is illegal"
@@ -2433,7 +2433,7 @@ void QuatIntegrator::coarsenData(
       boost::shared_ptr<hier::PatchLevel > coarse_level = hierarchy->getPatchLevel(amr_level-1);
 
       boost::shared_ptr<xfer::CoarsenSchedule > schedule =
-         coarsen_alg.createSchedule( coarse_level, fine_level, NULL );
+         coarsen_alg.createSchedule( coarse_level, fine_level, nullptr );
 
       schedule->coarsenData();
    }
@@ -2614,7 +2614,7 @@ void QuatIntegrator::setDiffusionCoeffForQuatPatch(
    assert( temperature->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
 
    for(int d=0;d<NDIM;d++) {
-      assert( diffusion->getPointer(d)!=NULL );
+      assert( diffusion->getPointer(d)!=nullptr );
    }
 
 #endif
@@ -2720,7 +2720,7 @@ void QuatIntegrator::setDerivDiffusionCoeffForQuatPatch(
    }
 
    for(int d=0;d<NDIM;d++) {
-      assert( diffusion_deriv->getPointer(d)!=NULL );
+      assert( diffusion_deriv->getPointer(d)!=nullptr );
    }
 
    assert( grad_q );
@@ -2842,7 +2842,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert( phase_id >= 0 );
    assert( phase_rhs_id >= 0 );
    assert( temperature_id >= 0 );
-   assert( d_phase_flux_strategy!=NULL );
+   assert( d_phase_flux_strategy!=nullptr );
 
    t_phase_rhs_timer->start();
 
@@ -2946,7 +2946,7 @@ void QuatIntegrator::evaluatePhaseRHS(
          assert( temperature );
 
          int with_orient = 0;
-         double* ptr_quat_grad_modulus = NULL;
+         double* ptr_quat_grad_modulus = nullptr;
          if ( d_with_orientation ) {
             with_orient = 1;
             assert( d_quat_grad_modulus_id >= 0 );
@@ -2957,7 +2957,7 @@ void QuatIntegrator::evaluatePhaseRHS(
          }
 
          int three_phase = 0;
-         double* ptr_eta = NULL;
+         double* ptr_eta = nullptr;
          if ( d_with_third_phase ) {
             three_phase = 1;
             boost::shared_ptr< pdat::CellData<double> > eta (
@@ -3282,7 +3282,7 @@ void QuatIntegrator::evaluateTemperatureRHS(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_rhs_id) ) );
          assert( temperature_rhs );
 
-         double* phase_rhs_ptr=NULL;
+         double* phase_rhs_ptr=nullptr;
          int phase_rhs_nghosts=0;
          if( d_model_parameters.with_phase() ){
             boost::shared_ptr< pdat::CellData<double> > phase_rhs (
@@ -3357,7 +3357,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
             ++ip ) {
          boost::shared_ptr<hier::Patch > patch = *ip;
 
-         assert( d_composition_rhs_strategy!=NULL );
+         assert( d_composition_rhs_strategy!=nullptr );
          d_composition_rhs_strategy->computeFluxOnPatch(*patch, d_flux_conc_id);
          if( d_with_gradT )
             d_composition_rhs_strategy->addFluxFromGradTonPatch(
@@ -3894,7 +3894,7 @@ void QuatIntegrator::setCoefficients(
 void QuatIntegrator::computePhaseConcentrations(
    const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
 {
-   assert( d_phase_conc_strategy!=NULL );
+   assert( d_phase_conc_strategy!=nullptr );
 
    t_phase_conc_timer->start();
  
@@ -4052,7 +4052,7 @@ int QuatIntegrator::evaluateRHSFunction(
          else 
             tbox::pout<<"Norm diff = "<<norm_diff<<endl;
          
-         assert( d_partition_coeff_strategy!=NULL );
+         assert( d_partition_coeff_strategy!=nullptr );
          
          //compute phase concentrations again if they depend on velocity
          //tbox::pout<<"Evaluate c_L, c_S..."<<endl;
@@ -4983,7 +4983,7 @@ void QuatIntegrator::correctRhsForSymmetry(
 vector< boost::shared_ptr< solv::SAMRAIVectorReal<double> > >*
 QuatIntegrator::getCPODESVectorsRequiringRegrid( void )
 {
-   assert( d_sundials_solver!=NULL );
+   assert( d_sundials_solver!=nullptr );
    
    vector< boost::shared_ptr< solv::SAMRAIVectorReal<double> > >* cpodes_vec =
       new vector< boost::shared_ptr< solv::SAMRAIVectorReal<double> > >;

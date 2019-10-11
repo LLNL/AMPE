@@ -116,22 +116,22 @@ QuatModel::QuatModel( int ql ) :
 
    d_integrator.reset();
    d_integrator_quat_only.reset();
-   d_quat_grad_strategy = NULL;
-   d_mobility_strategy = NULL;
-   d_all_refine_patch_strategy = NULL;
-   d_partition_coeff_refine_patch_strategy = NULL;
-   d_phase_conc_strategy = NULL;
-   d_partition_coeff_strategy = NULL;
+   d_quat_grad_strategy = nullptr;
+   d_mobility_strategy = nullptr;
+   d_all_refine_patch_strategy = nullptr;
+   d_partition_coeff_refine_patch_strategy = nullptr;
+   d_phase_conc_strategy = nullptr;
+   d_partition_coeff_strategy = nullptr;
 
-   d_temperature_strategy = NULL;
-   d_temperature_strategy_quat_only = NULL;
-   d_meltingT_strategy = NULL;
+   d_temperature_strategy = nullptr;
+   d_temperature_strategy_quat_only = nullptr;
+   d_meltingT_strategy = nullptr;
    
-   d_composition_strategy_mobilities=NULL;
-   d_composition_rhs_strategy=NULL;
-   d_free_energy_strategy_for_diffusion=NULL;
+   d_composition_strategy_mobilities=nullptr;
+   d_composition_rhs_strategy=nullptr;
+   d_free_energy_strategy_for_diffusion=nullptr;
  
-   d_heat_capacity_strategy = NULL;
+   d_heat_capacity_strategy = nullptr;
    
 
    d_test_interval.reset();
@@ -237,7 +237,7 @@ QuatModel::~QuatModel()
    delete d_quat_grad_strategy;
    if( d_free_energy_strategy!=d_free_energy_strategy_for_diffusion )
       delete d_free_energy_strategy;
-   if( d_free_energy_strategy_for_diffusion!=NULL )
+   if( d_free_energy_strategy_for_diffusion!=nullptr )
       delete d_free_energy_strategy_for_diffusion;
    delete d_composition_rhs_strategy;
    delete d_temperature_strategy;
@@ -417,9 +417,10 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    double epsilon_anisotropy = model_db->getDoubleWithDefault( "epsilon_anisotropy" , -1.);
    
    if( epsilon_anisotropy>=0. )
-      d_phase_flux_strategy = new PhaseFluxStrategyAnisotropy(d_model_parameters.epsilon_phase(), 
-                                                              epsilon_anisotropy, 
-                                                              4);
+      d_phase_flux_strategy =
+         new PhaseFluxStrategyAnisotropy(d_model_parameters.epsilon_phase(), 
+                                         epsilon_anisotropy, 
+                                         4);
    else if( d_model_parameters.useIsotropicStencil() ) {
       d_phase_flux_strategy = new PhaseFluxStrategyIsotropic(d_model_parameters.epsilon_phase());
    } else {
@@ -1022,7 +1023,7 @@ void QuatModel::InitializeIntegrator( void )
 {
    tbox::pout<<"QuatModel::InitializeIntegrator()"<<endl;
 
-   assert( d_phase_flux_strategy!=NULL );
+   assert( d_phase_flux_strategy!=nullptr );
    if( d_model_parameters.with_heat_equation() ){
       assert( d_temperature_strategy );
       assert( d_heat_capacity_strategy );
@@ -3053,7 +3054,7 @@ void QuatModel::printScalarDiagnostics( void )
       tbox::pout << "  Total energy [pJ] = " << total_energy << endl;
    }
 
-   if ( d_temperature_strategy!=NULL ) {
+   if ( d_temperature_strategy!=nullptr ) {
       double t = d_temperature_strategy->getCurrentMinTemperature( d_patch_hierarchy, d_time );
       tbox::pout << "  Min. Temperature = " << t << endl;
       t = d_temperature_strategy->getCurrentMaxTemperature( d_patch_hierarchy, d_time );
@@ -3455,7 +3456,7 @@ void QuatModel::initializeLevelData(
          }
          boost::shared_ptr<xfer::CoarsenSchedule > schedule =
             coarsen_alg.createSchedule(
-               level, d_initial_level, NULL );
+               level, d_initial_level, nullptr );
 
          schedule->coarsenData();
       }
@@ -4165,10 +4166,10 @@ void QuatModel::WriteInitialConditionsFile( void )
 #ifdef HAVE_NETCDF3
          NcFile* f;
          NcVar* nc_phase;
-         NcVar* nc_eta=NULL;
+         NcVar* nc_eta=nullptr;
          NcVar** nc_conc =new NcVar*[d_ncompositions];
          NcVar** nc_qcomp=new NcVar*[d_qlen];
-         NcVar* nc_temp=NULL;
+         NcVar* nc_temp=nullptr;
 #endif
 #ifdef HAVE_NETCDF4
          NcFile* f;
@@ -4343,11 +4344,11 @@ void QuatModel::WriteInitialConditionsFile( void )
          } // pp==0 or not        
 
 #ifdef HAVE_NETCDF3
-         if ( nc_phase == NULL ) {
+         if ( nc_phase == nullptr ) {
             TBOX_ERROR("Could not create variable 'phase'" << endl);
          }
 
-         if ( d_model_parameters.with_third_phase() && nc_eta == NULL ) {
+         if ( d_model_parameters.with_third_phase() && nc_eta == nullptr ) {
             TBOX_ERROR("Could not create variable 'eta'" << endl);
          }
 
@@ -4355,7 +4356,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             for ( int ii = 0; ii < d_qlen; ii++ ) {
                std::ostringstream o;
                o << "quat" << ii+1;
-               if ( nc_qcomp[ii] == NULL ) {
+               if ( nc_qcomp[ii] == nullptr ) {
                   TBOX_ERROR( "Could not create variable "<< o.str() << endl );
                }
             }
@@ -4366,13 +4367,13 @@ void QuatModel::WriteInitialConditionsFile( void )
                std::ostringstream o;
                o << "concentration";
                if( d_ncompositions>1 )o << ii+1;
-               if ( nc_conc[ii] == NULL ) {
+               if ( nc_conc[ii] == nullptr ) {
                   TBOX_ERROR( "Could not create variable "<< o.str() << endl );
                }
             }
          }
 
-         if ( nc_temp == NULL ) {
+         if ( nc_temp == nullptr ) {
             TBOX_ERROR( "Could not create variable 'temperature'" << endl );
          }
 #endif
@@ -6662,9 +6663,10 @@ void QuatModel::evaluateEnergy(
    const bool gp )
 {
    assert( d_weight_id != -1 );
-   assert( ( d_model_parameters.with_visit_energy_output() && d_energy_diag_id != 1 ) ||
-           !d_model_parameters.with_visit_energy_output() );
-   if( d_model_parameters.with_concentration() )assert( d_phase_conc_strategy!=NULL );
+   if( d_model_parameters.with_visit_energy_output() )
+      assert( d_energy_diag_id != -1 );
+   if( d_model_parameters.with_concentration() )
+      assert( d_phase_conc_strategy!=nullptr );
    
    total_energy = 0.;
    total_phase_e = 0.;
@@ -6700,7 +6702,7 @@ void QuatModel::evaluateEnergy(
       if( d_model_parameters.partition_phase_concentration() ){
          //computeVelocity(hierarchy,ydot_phase_id);
          
-         assert( d_partition_coeff_strategy!=NULL );
+         assert( d_partition_coeff_strategy!=nullptr );
          
          d_partition_coeff_strategy->evaluate(hierarchy);
          if( d_model_parameters.needGhosts4PartitionCoeff() )
@@ -6744,7 +6746,8 @@ void QuatModel::evaluateEnergy(
 
          boost::shared_ptr<hier::Patch > patch = *p;
          boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-            BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+            BOOST_CAST< geom::CartesianPatchGeometry,
+                        hier::PatchGeometry>(patch->getPatchGeometry()) );
          TBOX_ASSERT(patch_geom);
 
          const double * dx = patch_geom->getDx();
@@ -6756,7 +6759,9 @@ void QuatModel::evaluateEnergy(
          double* pgrad_quat[NDIM];
          if ( d_model_parameters.with_orientation() ){
             boost::shared_ptr< pdat::SideData<double> > grad_quat (
-               BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_quat_grad_side_id) ) );
+               BOOST_CAST< pdat::SideData<double>,
+                           hier::PatchData>(patch->getPatchData(
+                              d_quat_grad_side_id) ) );
             assert( grad_quat );
             assert( grad_quat->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
             for ( int d = 0; d < NDIM; d++ ) {
@@ -6770,7 +6775,7 @@ void QuatModel::evaluateEnergy(
          }
          else {
             for ( int d = 0; d < NDIM; d++ ) {
-               pgrad_quat[d] = NULL;
+               pgrad_quat[d] = nullptr;
             }
          }
 
@@ -6807,8 +6812,8 @@ void QuatModel::evaluateEnergy(
 #endif
 
          int three_phase = 0;
-         double* ptr_fb = NULL;
-         double* ptr_eta = NULL;
+         double* ptr_fb = nullptr;
+         double* ptr_eta = nullptr;
          if ( d_model_parameters.with_third_phase() ) {
             three_phase = 1;
             boost::shared_ptr< pdat::CellData<double> > fb (
@@ -6820,18 +6825,20 @@ void QuatModel::evaluateEnergy(
          }
 
          int per_cell = 0;
-         double* ptr_energy = NULL;
+         double* ptr_energy = nullptr;
          if ( d_model_parameters.with_visit_energy_output() ) {
             per_cell = 1; 
             boost::shared_ptr< pdat::CellData<double> > energy (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_energy_diag_id) ) );
+               BOOST_CAST< pdat::CellData<double>,
+                           hier::PatchData>(patch->getPatchData(
+                              d_energy_diag_id) ) );
             ptr_energy = energy->getPointer();
          }
 
          assert( phase->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
          assert( weight->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
 #if (NDIM == 3)
-         if ( d_model_parameters.with_orientation() )assert( pgrad_quat[2]!=NULL );
+         if ( d_model_parameters.with_orientation() )assert( pgrad_quat[2]!=nullptr );
 #endif
 
          const char interpf = energyInterpChar(d_model_parameters.energy_interp_func_type());
@@ -7133,7 +7140,8 @@ void QuatModel::fillPartitionCoeffGhosts( void )
 {
    assert( d_partition_coeff_id>=0 );
    assert( d_partition_coeff_scratch_id>=0 );
-   if ( ! d_all_periodic )assert( d_partition_coeff_refine_patch_strategy!=NULL );
+   if ( ! d_all_periodic )
+      assert( d_partition_coeff_refine_patch_strategy!=nullptr );
    
    //tbox::pout<<"QuatModel::fillPartitionCoeffGhosts"<<endl;
    

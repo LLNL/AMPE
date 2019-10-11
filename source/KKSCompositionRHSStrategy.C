@@ -195,7 +195,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
          assert( pfm_diffusion->getDepth()==1 );
          
          int three_phase = 0;
-         double* ptr_eta = NULL;
+         double* ptr_eta = nullptr;
          boost::shared_ptr< pdat::CellData<double> > eta;
          if ( d_with_third_phase ) {
             three_phase = 1; 
@@ -328,14 +328,14 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 {
    double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer( 0 );
    double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer( 1 );
-   double* ptr_phi_diffz = NULL;
-   double* ptr_eta_diffx = NULL;
-   double* ptr_eta_diffy = NULL;
-   double* ptr_eta_diffz = NULL;
+   double* ptr_phi_diffz = nullptr;
+   double* ptr_eta_diffx = nullptr;
+   double* ptr_eta_diffy = nullptr;
+   double* ptr_eta_diffz = nullptr;
 
    double* ptr_dx0_coeff = sd_d0_coeff->getPointer( 0 );
    double* ptr_dy0_coeff = sd_d0_coeff->getPointer( 1 );
-   double* ptr_dz0_coeff = NULL;
+   double* ptr_dz0_coeff = nullptr;
 
    if ( NDIM > 2 ) {
       ptr_phi_diffz = sd_phi_diff_coeff->getPointer( 2 );
@@ -343,10 +343,10 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
    }
    
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
-   double* ptr_c_b = NULL;
+   double* ptr_c_b = nullptr;
    
    if ( d_with_third_phase ) {
       ptr_eta_diffx = sd_eta_diff_coeff->getPointer( 0 );
@@ -614,7 +614,7 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
    double* ptr_diffusion0_2 = sd_diffusion0->getPointer(2);
    double* ptr_diffusion_2  = sd_diffusion->getPointer(2);
 #endif
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    if ( d_with_third_phase ) {
       assert( cd_eta );
       ptr_eta = cd_eta->getPointer();
@@ -837,11 +837,11 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(
    assert( flux->getDepth()==conc->getDepth() );
 
    int three_phase = 0;
-   double* ptr_eta = NULL;
-   double* ptr_conc_eta_diff0 = NULL;
-   double* ptr_conc_eta_diff1 = NULL;
+   double* ptr_eta = nullptr;
+   double* ptr_conc_eta_diff0 = nullptr;
+   double* ptr_conc_eta_diff1 = nullptr;
 #if (NDIM == 3)
-   double* ptr_conc_eta_diff2 = NULL;
+   double* ptr_conc_eta_diff2 = nullptr;
 #endif
    if ( d_with_third_phase ) {
       three_phase = 1;

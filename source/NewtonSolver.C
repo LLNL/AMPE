@@ -85,8 +85,8 @@ void NewtonSolver::CopyMatrix(
    double** const dst,
    double** const src )
 {
-   assert( src!=NULL );
-   assert( dst!=NULL );
+   assert( src!=nullptr );
+   assert( dst!=nullptr );
 
    for ( int jj = 0; jj < s_N; jj++ ) {
       for ( int ii = 0; ii < s_N; ii++ ) {
@@ -175,13 +175,13 @@ int NewtonSolver::ComputeSolution(
    //cout<<endl;
 #endif
 
-   static double* fvec=NULL;
+   static double* fvec=nullptr;
    static double** fjac;
-   static double* ftmp=NULL;
-   if( ftmp==NULL || s_N!=N){
-      if(fvec!=NULL)delete[] fvec;
-      if(fjac!=NULL)delete[] fjac;
-      if(ftmp!=NULL)delete[] ftmp;
+   static double* ftmp=nullptr;
+   if( ftmp==nullptr || s_N!=N){
+      if(fvec!=nullptr)delete[] fvec;
+      if(fjac!=nullptr)delete[] fjac;
+      if(ftmp!=nullptr)delete[] ftmp;
 
       s_N=N;
       fvec=new double[N];

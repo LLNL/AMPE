@@ -241,11 +241,11 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 {
    double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer( 0 );
    double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer( 1 );
-   double* ptr_phi_diffz = NULL;
+   double* ptr_phi_diffz = nullptr;
 
    double* ptr_dx0_coeff = sd_d0_coeff->getPointer( 0 );
    double* ptr_dy0_coeff = sd_d0_coeff->getPointer( 1 );
-   double* ptr_dz0_coeff = NULL;
+   double* ptr_dz0_coeff = nullptr;
 
    if ( NDIM > 2 ) {
       ptr_phi_diffz = sd_phi_diff_coeff->getPointer( 2 );
@@ -507,10 +507,10 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(
             sd_conc_phase_coupling_diffusion->getPointer(2),
 #endif
             0,
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
 #if (NDIM == 3)
-            NULL,
+            nullptr,
 #endif
             0,
             flux->getPointer(0),

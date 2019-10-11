@@ -52,7 +52,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
    FreeEnergyStrategy* free_energy_strategy
    ):d_free_energy_strategy(free_energy_strategy)
 {
-   assert( d_free_energy_strategy!=NULL );
+   assert( d_free_energy_strategy!=nullptr );
    
    d_ncompositions=ncompositions;
    
@@ -298,7 +298,7 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition( const double t
 {
    assert( temperature>0. );
    assert( temperature<100000. );
-   assert( d_free_energy_strategy != NULL );
+   assert( d_free_energy_strategy != nullptr );
 
    int nc=20;
    double eps=1.e-7;
@@ -350,7 +350,7 @@ void CompositionStrategyMobilities::printDiffusionVsComposition( const double te
 {
    assert( temperature>0. );
    assert( temperature<100000. );
-   assert( d_free_energy_strategy != NULL );
+   assert( d_free_energy_strategy != nullptr );
 
    int nc=50;
    double eps=1.e-7;

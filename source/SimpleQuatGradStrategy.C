@@ -46,7 +46,7 @@ SimpleQuatGradStrategy::SimpleQuatGradStrategy(
 
 SimpleQuatGradStrategy::~SimpleQuatGradStrategy()
 {
-   d_quat_model = NULL;
+   d_quat_model = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -83,7 +83,7 @@ void SimpleQuatGradStrategy::computeDiffs(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -103,7 +103,7 @@ void SimpleQuatGradStrategy::computeDiffs(
    int& diffs_id,
    const double time )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    d_quat_model->computeQuatDiffs(
       patch_level,
@@ -121,7 +121,7 @@ void SimpleQuatGradStrategy::computeGradCell(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -141,7 +141,7 @@ void SimpleQuatGradStrategy::computeGradCell(
    int& grad_id,
    const double time )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    d_quat_model->computeQuatGradCell(
       patch_level,
@@ -159,7 +159,7 @@ void SimpleQuatGradStrategy::computeGradSide(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -179,7 +179,7 @@ void SimpleQuatGradStrategy::computeGradSide(
    int& grad_id,
    const double time )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    d_quat_model->computeQuatGradSide(
       patch_level,
@@ -197,7 +197,7 @@ void SimpleQuatGradStrategy::computeGradModulus(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 
@@ -217,7 +217,7 @@ void SimpleQuatGradStrategy::computeGradModulus(
    int& mod_id,
    const double time )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    d_quat_model->computeQuatGradModulus(
       patch_level,
@@ -235,7 +235,7 @@ void SimpleQuatGradStrategy::computeGradModulusFromSides(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_quat_model != NULL );
+   assert( d_quat_model != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache = translateCacheType( cache );
 

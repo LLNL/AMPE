@@ -91,7 +91,7 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
 
    d_same_composition_for_third_phase=false;
    
-   assert( d_free_energy_strategy!=NULL );
+   assert( d_free_energy_strategy!=nullptr );
 
    d_d2f.resize(       d_ncompositions*d_ncompositions);
    d_mobmat.resize(    d_ncompositions*d_ncompositions);
@@ -317,7 +317,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
       ptr_c_a[ic] = cd_c_a->getPointer(ic);
    }
    
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
          ptr_c_b[ic] = cd_c_b->getPointer(ic);
@@ -329,7 +329,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    const int nc2=d_ncompositions*d_ncompositions;
    vector<double*> ptr_dx_coeff_l(nc2);
    vector<double*> ptr_dy_coeff_l(nc2);
-   vector<double*> ptr_dz_coeff_l(nc2, NULL);
+   vector<double*> ptr_dz_coeff_l(nc2, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -342,7 +342,7 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    
    vector<double*> ptr_dx_coeff_a(nc2);
    vector<double*> ptr_dy_coeff_a(nc2);
-   vector<double*> ptr_dz_coeff_a(nc2,NULL);
+   vector<double*> ptr_dz_coeff_a(nc2,nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -357,9 +357,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    vector<double*> ptr_dy_coeff_b;
    vector<double*> ptr_dz_coeff_b;
    if ( d_with_third_phase ) {
-      ptr_dx_coeff_b.resize(nc2, NULL);
-      ptr_dy_coeff_b.resize(nc2, NULL);
-      ptr_dz_coeff_b.resize(nc2, NULL);
+      ptr_dx_coeff_b.resize(nc2, nullptr);
+      ptr_dy_coeff_b.resize(nc2, nullptr);
+      ptr_dz_coeff_b.resize(nc2, nullptr);
 
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
@@ -659,7 +659,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
    const unsigned nc2=d_ncompositions*d_ncompositions;
    std::vector<double*> ptr_pfmdx_l;ptr_pfmdx_l.resize(nc2);
    std::vector<double*> ptr_pfmdy_l;ptr_pfmdy_l.resize(nc2);
-   std::vector<double*> ptr_pfmdz_l;ptr_pfmdz_l.resize(nc2, NULL);
+   std::vector<double*> ptr_pfmdz_l;ptr_pfmdz_l.resize(nc2, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -672,7 +672,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
    
    std::vector<double*> ptr_pfmdx_a(nc2);
    std::vector<double*> ptr_pfmdy_a(nc2);
-   std::vector<double*> ptr_pfmdz_a(nc2, NULL);
+   std::vector<double*> ptr_pfmdz_a(nc2, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -683,9 +683,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
       }
    }
    
-   std::vector<double*> ptr_pfmdx_b(nc2, NULL);
-   std::vector<double*> ptr_pfmdy_b(nc2, NULL);
-   std::vector<double*> ptr_pfmdz_b(nc2, NULL);
+   std::vector<double*> ptr_pfmdx_b(nc2, nullptr);
+   std::vector<double*> ptr_pfmdy_b(nc2, nullptr);
+   std::vector<double*> ptr_pfmdz_b(nc2, nullptr);
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
@@ -700,7 +700,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
   
    std::vector<double*> ptr_dx_coeff_l(nc2);
    std::vector<double*> ptr_dy_coeff_l(nc2);
-   std::vector<double*> ptr_dz_coeff_l(nc2, NULL);
+   std::vector<double*> ptr_dz_coeff_l(nc2, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -713,7 +713,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
 
    std::vector<double*> ptr_dx_coeff_a(nc2);
    std::vector<double*> ptr_dy_coeff_a(nc2);
-   std::vector<double*> ptr_dz_coeff_a(nc2, NULL);
+   std::vector<double*> ptr_dz_coeff_a(nc2, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;
@@ -724,9 +724,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
       }
    }
 
-   std::vector<double*> ptr_dx_coeff_b(nc2, NULL);
-   std::vector<double*> ptr_dy_coeff_b(nc2, NULL);
-   std::vector<double*> ptr_dz_coeff_b(nc2, NULL);
+   std::vector<double*> ptr_dx_coeff_b(nc2, nullptr);
+   std::vector<double*> ptr_dy_coeff_b(nc2, nullptr);
+   std::vector<double*> ptr_dz_coeff_b(nc2, nullptr);
    if ( d_with_third_phase ) {
       for(unsigned short ic=0;ic<d_ncompositions;ic++)
       for(unsigned short jc=0;jc<d_ncompositions;jc++){
@@ -740,7 +740,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
    }
  
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    vector<double*> ptr_c_b;ptr_c_b.resize(d_ncompositions);
    if ( d_with_third_phase ) {
       ptr_eta = cd_eta->getPointer();

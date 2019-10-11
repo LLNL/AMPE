@@ -48,7 +48,7 @@ SimpleGradStrategy::SimpleGradStrategy(
 
 SimpleGradStrategy::~SimpleGradStrategy()
 {
-   d_pfmodel = NULL;
+   d_pfmodel = nullptr;
 }
 
 //-----------------------------------------------------------------------
@@ -60,7 +60,7 @@ void SimpleGradStrategy::computeDiffs(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache;
    if ( cache == FORCE ) {
@@ -86,7 +86,7 @@ void SimpleGradStrategy::computeDiffs(
    int& diffs_id,
    const double time )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    d_pfmodel->computeVarDiffs(
       patch_level,
@@ -104,7 +104,7 @@ void SimpleGradStrategy::computeGradCell(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache;
    if ( cache == FORCE ) {
@@ -130,7 +130,7 @@ void SimpleGradStrategy::computeGradCell(
    int& grad_id,
    const double time )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    d_pfmodel->computeVarGradCell(
       patch_level,
@@ -148,7 +148,7 @@ void SimpleGradStrategy::computeGradSide(
    const double time,
    const CACHE_TYPE cache )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    enum QuatModel::CACHE_TYPE qm_cache;
    if ( cache == FORCE ) {
@@ -174,7 +174,7 @@ void SimpleGradStrategy::computeGradSide(
    int& grad_id,
    const double time )
 {
-   assert( d_pfmodel != NULL );
+   assert( d_pfmodel != nullptr );
 
    d_pfmodel->computeVarGradSide(
       patch_level,

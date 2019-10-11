@@ -93,7 +93,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
    assert( cd_conc );
    assert( cd_cl );
    assert( cd_ca );
-   assert( d_calphad_fenergy!=NULL );
+   assert( d_calphad_fenergy!=nullptr );
    assert( cd_conc->getDepth()==cd_cl->getDepth() );
    assert( cd_conc->getDepth()==cd_ca->getDepth() );
    assert( cd_cl->getGhostCellWidth()[0]<=cd_te->getGhostCellWidth()[0] );
@@ -125,7 +125,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::computePhaseConcentrationsOn
 
    const double* const ptr_temp = cd_te->getPointer();
    const double* const ptr_phi = cd_pf->getPointer();
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    if ( d_with_third_phase ) {
       ptr_eta = cd_eta->getPointer();
    }

@@ -78,7 +78,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 {
    assert( diffusion_l_id>=0 );
    assert( temperature_scratch_id>=0 );
-   assert( d_free_energy_strategy!=NULL );
+   assert( d_free_energy_strategy!=nullptr );
    
    if( Mq_id>=0 ){
       assert( Q_heat_transport.size()>0 );
@@ -125,7 +125,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
 
    //tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeff"<<endl;
    assert( hierarchy );
-   assert( d_free_energy_strategy != NULL );
+   assert( d_free_energy_strategy != nullptr );
 
    // set coefficient for (grad T)/T term
    if( d_with_gradT )
@@ -273,10 +273,10 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(
             patch.getPatchData( d_diffusion_b_id) ) );
       assert( conc_diffusionb );
 
-      assert( conc_diffusionb->getPointer(0)!=NULL );
-      assert( conc_diffusionb->getPointer(1)!=NULL );
+      assert( conc_diffusionb->getPointer(0)!=nullptr );
+      assert( conc_diffusionb->getPointer(1)!=nullptr );
 #if (NDIM == 3)
-      assert( conc_diffusionb->getPointer(2)!=NULL );
+      assert( conc_diffusionb->getPointer(2)!=nullptr );
 #endif
 
       FORT_ADD_CONCENTRATION_FLUX_EBS(
@@ -377,28 +377,28 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
 
    double* ptr_dx_coeff = sd_d_coeff->getPointer( 0, depth );
    double* ptr_dy_coeff = sd_d_coeff->getPointer( 1, depth );
-   double* ptr_dz_coeff = NULL;
+   double* ptr_dz_coeff = nullptr;
    if ( NDIM > 2 ) {
       ptr_dz_coeff = sd_d_coeff->getPointer( 2, depth );
    }
 
    double* ptr_dx_l = sd_d_l->getPointer(0, depth_in_Dmatrix);
    double* ptr_dy_l = sd_d_l->getPointer(1, depth_in_Dmatrix);
-   double* ptr_dz_l = NULL;
+   double* ptr_dz_l = nullptr;
    if ( NDIM > 2 ) {
       ptr_dz_l = sd_d_l->getPointer( 2, depth_in_Dmatrix);
    }
 
    double* ptr_dx_a = sd_d_a->getPointer(0, depth_in_Dmatrix);
    double* ptr_dy_a = sd_d_a->getPointer(1, depth_in_Dmatrix);
-   double* ptr_dz_a = NULL;
+   double* ptr_dz_a = nullptr;
    if ( NDIM > 2 ) {
       ptr_dz_a = sd_d_a->getPointer( 2, depth_in_Dmatrix);
    }
 
-   double* ptr_dx_b = NULL;
-   double* ptr_dy_b = NULL;
-   double* ptr_dz_b = NULL;
+   double* ptr_dx_b = nullptr;
+   double* ptr_dy_b = nullptr;
+   double* ptr_dz_b = nullptr;
    if ( d_with_third_phase ) {
       ptr_dx_b = sd_d_b->getPointer(0, depth_in_Dmatrix);
       ptr_dy_b = sd_d_b->getPointer(1, depth_in_Dmatrix);
@@ -656,7 +656,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    double* ptr_temp = cd_temp->getPointer();
 
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = NULL;
+   double* ptr_eta = nullptr;
    if ( d_with_third_phase ) {
       ptr_eta = cd_eta->getPointer(); 
    }
@@ -666,7 +666,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    vector<double*> ptr_dy_mq;
    ptr_dy_mq.resize(d_ncompositions*d_ncompositions);
    vector<double*> ptr_dz_mq;
-   ptr_dz_mq.resize(d_ncompositions*d_ncompositions, NULL);
+   ptr_dz_mq.resize(d_ncompositions*d_ncompositions, nullptr);
    for(unsigned short ic=0;ic<d_ncompositions;ic++)
    for(unsigned short jc=0;jc<d_ncompositions;jc++){
       const unsigned ijc=ic+jc*d_ncompositions;

@@ -338,7 +338,7 @@ public :
    void setPhaseConcentrationsStrategy(
       PhaseConcentrationsStrategy* phase_conc_strategy)
    {
-      assert( phase_conc_strategy != NULL ); 
+      assert( phase_conc_strategy != nullptr ); 
       d_phase_conc_strategy = phase_conc_strategy;
    }
    void setCompositionRHSStrategy( CompositionRHSStrategy* composition_rhs_strategy);
@@ -351,7 +351,7 @@ public :
    void setPartitionCoefficientStrategy(
       PartitionCoefficientStrategy* partition_coeff_strategy)
    {
-      assert( partition_coeff_strategy != NULL ); 
+      assert( partition_coeff_strategy != nullptr ); 
       d_partition_coeff_strategy = partition_coeff_strategy;
    }
 
@@ -426,7 +426,7 @@ protected:
    {
       if ( ! d_model_parameters.with_unsteady_heat_equation() )
       {
-         assert( d_temperature_strategy!=NULL );
+         assert( d_temperature_strategy!=nullptr );
          d_temperature_strategy->setCurrentTemperature( hierarchy, time );
       }
    }
