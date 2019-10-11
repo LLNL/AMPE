@@ -59,7 +59,7 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int f_l_id,
-      const bool gp ) = 0;
+      const bool gp );
 
    virtual void computeDerivFreeEnergyLiquid(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -74,7 +74,7 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int f_a_id,
-      const bool gp ) = 0;
+      const bool gp );
 
    virtual void computeDerivFreeEnergySolidA(
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
@@ -89,7 +89,7 @@ public:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int f_b_id,
-      const bool gp ) = 0;
+      const bool gp );
 
    // mesh functions
    virtual void computeFreeEnergyLiquid(

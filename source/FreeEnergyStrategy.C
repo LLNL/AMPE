@@ -59,3 +59,60 @@ void FreeEnergyStrategy::computeDerivFreeEnergy(
       }
    }
 }
+
+void FreeEnergyStrategy::computeFreeEnergyLiquid(
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const int temperature_id,
+   const int fl_id,
+   const bool gp )
+{
+   const int maxln = hierarchy->getFinestLevelNumber();
+   for ( int ln = 0; ln <= maxln; ln++ ) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         hierarchy->getPatchLevel( ln );
+
+      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ){
+         boost::shared_ptr<hier::Patch > patch = *p;
+
+         computeFreeEnergyLiquid(*patch, temperature_id, fl_id, gp);
+      }
+   }
+}
+
+void FreeEnergyStrategy::computeFreeEnergySolidA(
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const int temperature_id,
+   const int fa_id,
+   const bool gp )
+{
+   const int maxln = hierarchy->getFinestLevelNumber();
+   for ( int ln = 0; ln <= maxln; ln++ ) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         hierarchy->getPatchLevel( ln );
+
+      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ){
+         boost::shared_ptr<hier::Patch > patch = *p;
+
+         computeFreeEnergySolidA(*patch, temperature_id, fa_id, gp);
+      }
+   }
+}
+
+void FreeEnergyStrategy::computeFreeEnergySolidB(
+   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const int temperature_id,
+   const int fb_id,
+   const bool gp )
+{
+   const int maxln = hierarchy->getFinestLevelNumber();
+   for ( int ln = 0; ln <= maxln; ln++ ) {
+      boost::shared_ptr<hier::PatchLevel > level =
+         hierarchy->getPatchLevel( ln );
+
+      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ){
+         boost::shared_ptr<hier::Patch > patch = *p;
+
+         computeFreeEnergySolidB(*patch, temperature_id, fb_id, gp);
+      }
+   }
+}

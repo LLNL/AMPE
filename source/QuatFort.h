@@ -72,6 +72,7 @@
 #define FORT_QUATMOBILITY quatmobility_
 #define FORT_QUATMOBILITYDERIV quatmobilityderiv_
 #define FORT_QUATENERGY quatenergy_
+#define FORT_TEMPERATURE_ENERGY temperature_energy_
 #define FORT_QUATAVG quatavg_
 #define FORT_SMOOTHQUAT smoothquat_
 #define FORT_SETTOZERO settozero_
@@ -928,6 +929,16 @@ extern "C" {
       const double& min_mobility,
       const char* func_type,
       const double& alt_scale_factor );
+
+   void FORT_TEMPERATURE_ENERGY(
+      const int& ifirst0, const int& ilast0,
+      const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+      const int& ifirst2, const int& ilast2,
+#endif
+      const double* const temp, const int& ng,
+      double* fs,
+      const double& tm, const double& la );
 
    void FORT_QUATENERGY(
       const int& ifirst0, const int& ilast0,

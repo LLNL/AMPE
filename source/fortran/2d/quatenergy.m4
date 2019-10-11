@@ -350,3 +350,39 @@ c
 
       return
       end
+
+c
+c
+c
+      subroutine temperature_energy(
+     &   lo0, hi0, lo1, hi1,
+     &   temperature, tghosts,
+     &   fs,
+     &   T_M, L_A
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1, i, j,
+     &   tghosts
+
+      double precision temperature(CELL2d(lo,hi,tghosts))
+      double precision fs(CELL2d(lo,hi,0))
+
+      double precision L_A, T_M
+
+      double precision factor
+
+      factor = L_A/T_M;
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+
+             fs(i,j) = factor*(T_M-temperature(i,j))
+
+         enddo
+      enddo
+
+      return
+      end

@@ -76,6 +76,47 @@ DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
 
 //=======================================================================
 
+void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
+   const double temp,
+   const vector<double>& c_l,
+   vector<double>& d2fdc2,
+   const bool use_internal_units)
+{
+   (void) temp;
+   (void) c_l;
+   (void) use_internal_units;
+
+   d2fdc2.assign( d2fdc2.size(), 0. );
+}
+
+//=======================================================================
+
+void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
+   const double temp,
+   const vector<double>& c_a,
+   vector<double>& d2fdc2,
+   const bool use_internal_units)
+{
+   (void) temp;
+   (void) c_a;
+   (void) use_internal_units;
+
+   d2fdc2.assign( d2fdc2.size(), 0. );
+}
+
+void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
+   const double temp,
+   const vector<double>& c_b,
+   vector<double>& d2fdc2,
+   const bool use_internal_units)
+{
+   (void) temp;
+   (void) c_b;
+   (void) use_internal_units;
+
+   d2fdc2.assign( d2fdc2.size(), 0. );
+}
+
 void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
    const double time,
    hier::Patch& patch,
@@ -182,3 +223,62 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(const boost::shared_pt
    }
 }
 
+//=======================================================================
+
+void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
+   hier::Patch& patch,
+   const int temperature_id,
+   const int fl_id,
+   const bool gp )
+{
+   (void)gp;
+
+   const hier::Box& box = patch.getBox();
+   const hier::Index& ifirst = box.lower();
+   const hier::Index& ilast = box.upper();
+
+   boost::shared_ptr< pdat::CellData<double> > temp(
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id ) ) );
+   boost::shared_ptr< pdat::CellData<double> > fl(
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fl_id ) ) );
+
+   FORT_TEMPERATURE_ENERGY(
+      ifirst(0),ilast(0),
+      ifirst(1),ilast(1),
+#if (NDIM == 3)
+      ifirst(2),ilast(2),
+#endif
+      temp->getPointer(), temp->getGhostCellWidth()[0],
+      fl->getPointer(),
+      d_Tm, d_L);
+}
+
+//=======================================================================
+
+void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
+   hier::Patch& patch,
+   const int temperature_id,
+   const int fa_id,
+   const bool gp )
+{
+   (void)temperature_id;
+   (void)gp;
+
+   const hier::Box& box = patch.getBox();
+
+   math::PatchCellDataOpsReal<double> mathops;
+
+   boost::shared_ptr< pdat::CellData<double> > fa(
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fa_id ) ) );
+
+   mathops.setToScalar(fa, 0., box);
+}
+
+void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
+   hier::Patch& patch,
+   const int temperature_id,
+   const int fb_id,
+   const bool gp )
+{
+   computeFreeEnergySolidA(patch, temperature_id, fb_id, gp);
+}
