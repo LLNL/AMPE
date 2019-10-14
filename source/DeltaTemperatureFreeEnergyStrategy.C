@@ -242,6 +242,8 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
    boost::shared_ptr< pdat::CellData<double> > fl(
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fl_id ) ) );
 
+   double factor = 0.5*d_L;
+
    FORT_TEMPERATURE_ENERGY(
       ifirst(0),ilast(0),
       ifirst(1),ilast(1),
@@ -250,7 +252,7 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
 #endif
       temp->getPointer(), temp->getGhostCellWidth()[0],
       fl->getPointer(),
-      d_Tm, d_L);
+      d_Tm, factor);
 }
 
 //=======================================================================
@@ -261,17 +263,29 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
    const int fa_id,
    const bool gp )
 {
-   (void)temperature_id;
    (void)gp;
 
    const hier::Box& box = patch.getBox();
+   const hier::Index& ifirst = box.lower();
+   const hier::Index& ilast = box.upper();
 
-   math::PatchCellDataOpsReal<double> mathops;
+   boost::shared_ptr< pdat::CellData<double> > temp(
+      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id ) ) );
 
    boost::shared_ptr< pdat::CellData<double> > fa(
       BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( fa_id ) ) );
 
-   mathops.setToScalar(fa, 0., box);
+   double factor = -0.5*d_L;
+
+   FORT_TEMPERATURE_ENERGY(
+      ifirst(0),ilast(0),
+      ifirst(1),ilast(1),
+#if (NDIM == 3)
+      ifirst(2),ilast(2),
+#endif
+      temp->getPointer(), temp->getGhostCellWidth()[0],
+      fa->getPointer(),
+      d_Tm, factor);
 }
 
 void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
