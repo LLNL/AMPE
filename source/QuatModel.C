@@ -414,7 +414,7 @@ void QuatModel::initializeRHSandEnergyStrategies(boost::shared_ptr<tbox::MemoryD
    boost::shared_ptr<tbox::Database> model_db =
       input_db->getDatabase("ModelParameters");
 
-   double epsilon_anisotropy = model_db->getDoubleWithDefault( "epsilon_anisotropy" , -1.);
+   double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
    
    if( epsilon_anisotropy>=0. )
       d_phase_flux_strategy =
@@ -6735,7 +6735,9 @@ void QuatModel::evaluateEnergy(
          d_f_b_id,
          gp );
    }
-   
+
+   const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
+
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
 
@@ -6780,6 +6782,7 @@ void QuatModel::evaluateEnergy(
          }
 
          if( d_model_parameters.with_phase() ){
+
          boost::shared_ptr< pdat::CellData<double> > phase (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_phase_scratch_id) ) );
          boost::shared_ptr< pdat::CellData<double> > weight (
@@ -6790,6 +6793,15 @@ void QuatModel::evaluateEnergy(
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_f_a_id) ) );
          boost::shared_ptr< pdat::CellData<double> > temperature (
             BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
+
+         double* quat_ptr = nullptr;
+         if( epsilon_anisotropy>=0. ){
+            boost::shared_ptr< pdat::CellData<double> > quat (
+               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+                  patch->getPatchData( d_quat_scratch_id) ) );
+            quat_ptr = quat->getPointer();
+            assert( quat_ptr != nullptr );
+         }
 
          assert( phase );
          assert( weight );
@@ -6860,9 +6872,11 @@ void QuatModel::evaluateEnergy(
             0,
             phase->getPointer(), NGHOSTS,
             ptr_eta, NGHOSTS,
+            quat_ptr, NGHOSTS,
             d_model_parameters.epsilon_phase(),
             d_model_parameters.epsilon_eta(),
             d_model_parameters.epsilon_q(),
+            epsilon_anisotropy, 4,
             2.*d_model_parameters.H_parameter(),
             temperature->getPointer(),
             temperature->getGhostCellWidth()[0],

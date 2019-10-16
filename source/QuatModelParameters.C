@@ -63,6 +63,7 @@ QuatModelParameters::QuatModelParameters()
 
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
+   d_epsilon_anisotropy = def_val;
    d_epsilon_eta = def_val;
    d_epsilon_q = def_val;
    d_noise_amplitude = def_val;
@@ -783,6 +784,9 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
          }
       }
    }
+
+   d_epsilon_anisotropy
+      = model_db->getDoubleWithDefault( "epsilon_anisotropy" , -1.);
 
    // Mobility
    if( d_with_phase ){

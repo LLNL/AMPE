@@ -33,6 +33,154 @@ c
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 c
+      subroutine interface_anisotropic_energy(
+     &   lo0, hi0, lo1, hi1,
+     &   dx,
+     &   phi, pghosts,
+     &   quat, ngq, qlen,
+     &   epsilon,
+     &   anisotropy, knumber,
+     &   weight,
+     &   total_phi_e,
+     &   energy,
+     &   eval_per_cell
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1,
+     &    pghosts, ngq, qlen, knumber
+      integer eval_per_cell
+
+      double precision total_phi_e, epsilon
+      double precision phi(CELL2d(lo,hi,pghosts))
+      double precision quat(CELL2d(lo,hi,ngq),qlen)
+      double precision energy(CELL2d(lo,hi,0))
+      double precision weight(CELL2d(lo,hi,0))
+
+      double precision dx(NDIM)
+      double precision anisotropy
+
+      double precision dxinv, dyinv, theta, q
+      double precision epstheta, diff_term, dphidx, dphidy
+      double precision pi, e, refangle
+
+      integer i, j
+c
+      pi = 4.d0*atan(1.d0)
+c
+      total_phi_e = 0.d0
+
+      dxinv = 0.5d0 / dx(1)
+      dyinv = 0.5d0 / dx(2)
+c
+      do j = lo1, hi1
+         do i = lo0, hi0
+            dphidx = (phi(i+1,j) - phi(i-1,j)) * dxinv
+            dphidy = (phi(i,j+1) - phi(i,j-1)) * dyinv
+            if( abs(dphidx)>1.e-12 )then
+               theta=atan(dphidy/dphidx)
+            else
+               theta=0.5d0*pi
+            endif
+
+            q=quat(i,j,1)
+c q could be slightly out of the [-1,+1] range due to finite precision
+c need to enforce q to be within that range before call to acos
+            if( q .gt.  1.d0 )q=1.d0
+            if( q .lt. -1.d0 )q=-1.d0
+
+            if( qlen==4 )then
+               refangle=2.d0*acos(q)
+            else
+               refangle=acos(q)
+            endif
+
+            epstheta=epsilon*(1.d0
+     &                  +anisotropy*cos(knumber*(theta-refangle)))
+
+            diff_term = dphidx*dphidx + dphidy*dphidy
+
+            e = 0.5d0 * epstheta * epstheta * diff_term
+            if ( eval_per_cell /= 0 ) then
+               energy(i,j) = e
+            endif
+
+            e = e * weight(i,j)
+            total_phi_e = total_phi_e + e
+         enddo
+      enddo
+
+      return
+      end
+c
+c
+c
+      subroutine phi_interface_energy(
+     &   lo0, hi0, lo1, hi1,
+     &   dx,
+     &   phi, pghosts,
+     &   epsilon_phi,
+     &   weight,
+     &   total_phi_e,
+     &   energy,
+     &   eval_per_cell
+     &   )
+
+      implicit none
+
+      integer
+     &   lo0, hi0, lo1, hi1,
+     &    pghosts
+      integer eval_per_cell
+
+      double precision total_phi_e, epsilon_phi, e
+      double precision phi(CELL2d(lo,hi,pghosts))
+      double precision energy(CELL2d(lo,hi,0))
+      double precision weight(CELL2d(lo,hi,0))
+
+      double precision dx(0:NDIM-1), dx2inv, dy2inv
+      double precision diff_term_x, diff_term_y
+      double precision diff_term
+      double precision epsilonphi2
+
+      integer i, j
+
+      total_phi_e = 0.d0
+c
+      dx2inv = 1.d0 / dx(0)**2
+      dy2inv = 1.d0 / dx(1)**2
+c
+      epsilonphi2 = 0.5d0 * epsilon_phi * epsilon_phi
+c
+      do j = lo1, hi1
+         do i = lo0, hi0
+            diff_term_x = dx2inv * (
+     &         - phi(i+1,j)
+     &         + 2.d0 * phi(i,j)
+     &         - phi(i-1,j) )
+
+            diff_term_y = dy2inv * (
+     &         - phi(i,j+1)
+     &         + 2.d0 * phi(i,j)
+     &         - phi(i,j-1) )
+
+            diff_term = diff_term_x + diff_term_y
+
+            e = epsilonphi2 * diff_term * phi(i,j)
+            if ( eval_per_cell /= 0 ) then
+               energy(i,j) = e
+            endif
+
+            e = e * weight(i,j)
+            total_phi_e = total_phi_e + e
+         enddo
+      enddo
+
+      return
+      end
+c
       subroutine quatenergy(
      &   lo0, hi0, lo1, hi1,
      &   depth,
@@ -40,7 +188,9 @@ c
      &   gqx,gqy,gqghosts,
      &   phi, pghosts,
      &   eta, ngeta,
+     &   quat, ngq,
      &   epsilon_phi, epsilon_eta, epsilon_q,
+     &   anisotropy, knumber,
      &   misorientation_factor,
      &   temperature, tghosts,
      &   phi_well_scale,
@@ -71,12 +221,14 @@ c
 
       integer
      &   lo0, hi0, lo1, hi1,
-     &   depth, gqghosts, pghosts, tghosts, ngeta
+     &   depth, gqghosts, pghosts, tghosts, ngeta, ngq,
+     &   knumber
 
       double precision phi(CELL2d(lo,hi,pghosts))
       double precision eta(CELL2d(lo,hi,ngeta))
       double precision temperature(CELL2d(lo,hi,tghosts))
-      
+
+      double precision quat(CELL2d(lo,hi,ngq),depth)
       double precision gqx(SIDE2d0(lo,hi,gqghosts),depth,NDIM)
       double precision gqy(SIDE2d1(lo,hi,gqghosts),depth,NDIM)
       double precision fl(CELL2d(lo,hi,0))
@@ -96,17 +248,17 @@ c
       integer eval_per_cell
       integer three_phase
 
-      double precision misorientation_factor
+      double precision anisotropy, misorientation_factor
       double precision phi_well_scale, eta_well_scale
       double precision f_l, f_a, f_b
       double precision epsilon_phi, epsilon_q, epsilon_eta
-      double precision epsilonphi2, epsilonq2, epsiloneta2
+      double precision epsilonq2
       double precision total_energy, e, o2
       double precision total_phi_e, total_orient_e
       double precision total_qint_e, total_well_e, total_free_e
       double precision total_eta_e
       double precision p_phi
-      double precision dx(0:NDIM-1), dx2inv, dy2inv
+      double precision dx(NDIM), dx2inv, dy2inv
       double precision diff_term_x, diff_term_y
       double precision diff_term
 
@@ -117,82 +269,48 @@ c
 
       integer i, j, m, n
 c
-      dx2inv = 1.d0 / dx(0)**2
-      dy2inv = 1.d0 / dx(1)**2
+      dx2inv = 1.d0 / dx(1)**2
+      dy2inv = 1.d0 / dx(2)**2
 c
       if ( floor_type(1:1) .eq. 's' )then
          floor2 = gradient_floor*gradient_floor
       else
          floor2 = 0.d0
       endif
-      epsilonphi2 = 0.5d0 * epsilon_phi * epsilon_phi
-      if ( three_phase /= 0 ) then
-         epsiloneta2 = 0.5d0 * epsilon_eta * epsilon_eta
-      endif
 
 c
 c
 c phi interface energy
-c      
-      do j = lo1, hi1
-         do i = lo0, hi0
-            diff_term_x = dx2inv * (
-     &         - phi(i+1,j)
-     &         + 2.d0 * phi(i,j) 
-     &         - phi(i-1,j) )
+c
+      if ( anisotropy .gt. 0.d0 )then
+         call interface_anisotropic_energy(lo0, hi0, lo1, hi1,
+     &      dx, phi, pghosts, quat, ngq, depth,
+     &      epsilon_phi, anisotropy, knumber, weight,
+     &      total_phi_e, energy,
+     &      eval_per_cell)
+      else
+         call phi_interface_energy(lo0, hi0, lo1, hi1, dx, phi, pghosts,
+     &      epsilon_phi, weight, total_phi_e, energy, eval_per_cell)
+      endif
 
-            diff_term_y = dy2inv * (
-     &         - phi(i,j+1) 
-     &         + 2.d0 * phi(i,j) 
-     &         - phi(i,j-1) )
-
-            diff_term = diff_term_x + diff_term_y
-
-            e = epsilonphi2 * diff_term * phi(i,j)
-            if ( eval_per_cell /= 0 ) then
-               energy(i,j) = e
-            endif
-
-            e = e * weight(i,j)
-            total_energy = total_energy + e
-            total_phi_e = total_phi_e + e
-         enddo
-      enddo
+      total_energy = total_phi_e
 
 c
 c eta interface energy
 c    
       if ( three_phase /= 0 ) then
-         do j = lo1, hi1
-            do i = lo0, hi0
-               diff_term_x = dx2inv * (
-     &            - eta(i+1,j)
-     &            + 2.d0 * eta(i,j) 
-     &            - eta(i-1,j) )
+         call phi_interface_energy(lo0, hi0, lo1, hi1, dx, eta, ngeta,
+     &      epsilon_phi, weight, total_eta_e, energy,  eval_per_cell)
 
-               diff_term_y = dy2inv * (
-     &            - eta(i,j+1) 
-     &            + 2.d0 * eta(i,j) 
-     &            - eta(i,j-1) )
+         total_energy = total_energy + total_eta_e
 
-               diff_term = diff_term_x + diff_term_y
-
-               e = epsiloneta2 * diff_term * eta(i,j)
-               if ( eval_per_cell /= 0 ) then
-                  energy(i,j) = energy(i,j) + e
-               endif
-               e = e * weight(i,j)
-
-               total_energy = total_energy + e
-               total_eta_e = total_eta_e + e
-            enddo
-         enddo
       endif
 
 c
 c Orientational energy: average over 2 cell sides in each direction
 c
       if ( misorientation_factor .gt. 0.d0 ) then
+         total_orient_e = 0.d0
          do j = lo1, hi1
             do i = lo0, hi0
 
@@ -257,6 +375,7 @@ c        factor 0.25 because of cell averaging and double counting
 c
 c q interface energy
 c
+         total_qint_e = 0.d0
          epsilonq2 = 0.5d0 * epsilon_q * epsilon_q
          do j = lo1, hi1
             do i = lo0, hi0
@@ -286,6 +405,7 @@ c              factor 0.25 because of cell average and double counting
 c
 c double well energy
 c
+      total_well_e = 0.d0
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -317,6 +437,7 @@ c
 c
 c free energy
 c
+      total_free_e = 0.d0
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -357,7 +478,7 @@ c
       subroutine temperature_energy(
      &   lo0, hi0, lo1, hi1,
      &   temperature, tghosts,
-     &   fs,
+     &   fl,
      &   T_M, L_A
      &   )
 
@@ -368,7 +489,7 @@ c
      &   tghosts
 
       double precision temperature(CELL2d(lo,hi,tghosts))
-      double precision fs(CELL2d(lo,hi,0))
+      double precision fl(CELL2d(lo,hi,0))
 
       double precision L_A, T_M
 
@@ -379,7 +500,7 @@ c
       do j = lo1, hi1
          do i = lo0, hi0
 
-             fs(i,j) = factor*(T_M-temperature(i,j))
+             fl(i,j) = factor*(T_M-temperature(i,j))
 
          enddo
       enddo

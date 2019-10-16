@@ -104,6 +104,7 @@ public:
       return (d_H_parameter>0.);
    }
    double epsilon_phase()const{ return d_epsilon_phase; }
+   double epsilon_anisotropy()const{ return d_epsilon_anisotropy; }
    double epsilon_eta()const{ return d_epsilon_eta; }
    double epsilon_q()const{ return d_epsilon_q; }
    double noise_amplitude()const{ return d_noise_amplitude; }
@@ -396,6 +397,7 @@ private:
    // Model parameters
    double d_H_parameter;
    double d_epsilon_phase;
+   double d_epsilon_anisotropy;
    double d_epsilon_eta;
    double d_epsilon_q;
    double d_noise_amplitude;
