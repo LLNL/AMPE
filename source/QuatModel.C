@@ -4221,7 +4221,7 @@ void QuatModel::WriteInitialConditionsFile( void )
                for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                   std::ostringstream o;
                   o << "concentration";
-                  if( d_ncompositions>1 )o << ii+1;
+                  if( d_ncompositions>1 )o << ii;
                   nc_conc[ii] =
                      f->add_var( o.str().c_str(), ncFloat, nc_nz, nc_ny, nc_nx );
                }
@@ -4262,7 +4262,7 @@ void QuatModel::WriteInitialConditionsFile( void )
                for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                   std::ostringstream o;
                   o << "concentration";
-                  if( d_ncompositions>1 )o << ii+1;
+                  if( d_ncompositions>1 )o << ii;
                   nc_conc[ii] =
                      f->addVar( o.str(), ncFloat, dims);
                }
@@ -4307,7 +4307,7 @@ void QuatModel::WriteInitialConditionsFile( void )
                for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                   std::ostringstream o;
                   o << "concentration";
-                  if( d_ncompositions>1 )o << ii+1;
+                  if( d_ncompositions>1 )o << ii;
                   nc_conc[ii] = f->get_var( o.str().c_str() );
                }
             }
@@ -4334,7 +4334,7 @@ void QuatModel::WriteInitialConditionsFile( void )
                for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                   std::ostringstream o;
                   o << "concentration";
-                  if( d_ncompositions>1 )o << ii+1;
+                  if( d_ncompositions>1 )o << ii;
                   nc_conc[ii] = f->getVar( o.str() );
                }
             }
@@ -4366,7 +4366,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                std::ostringstream o;
                o << "concentration";
-               if( d_ncompositions>1 )o << ii+1;
+               if( d_ncompositions>1 )o << ii;
                if ( nc_conc[ii] == nullptr ) {
                   TBOX_ERROR( "Could not create variable "<< o.str() << endl );
                }
@@ -4401,7 +4401,7 @@ void QuatModel::WriteInitialConditionsFile( void )
             for ( int ii = 0; ii < d_ncompositions; ii++ ) {
                std::ostringstream o;
                o << "concentration";
-               if( d_ncompositions>1 )o << ii+1;
+               if( d_ncompositions>1 )o << ii;
                if ( nc_conc[ii].isNull() ) {
                   TBOX_ERROR( "Could not create variable "<< o.str() << endl );
                }
