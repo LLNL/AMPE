@@ -573,7 +573,7 @@ c
 
       double precision factor
 
-      factor = L_A/T_M;
+      factor = L_A/T_M
 
       do k = lo2, hi2
          do j = lo1, hi1
