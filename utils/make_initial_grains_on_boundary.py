@@ -313,7 +313,7 @@ if QLEN>0:
       if dx<0.5*fraction*nn[0]:
         gmin=g
     
-    print("Plane x={}, grain={}, q={}".format(x,gmin,quat_inside[gmin]))
+    print("Plane x={}, grain={}, q={}".format(xx,gmin,quat_inside[gmin]))
     for j in range( nn[1] ) :
       for k in range( nn[2] ) :
 
