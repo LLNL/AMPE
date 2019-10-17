@@ -228,10 +228,8 @@ eta_outside = options.eta_out
 conc_inside   = options.concentration_in
 conc_outside  = options.concentration_out
 
-n_solid_layers = "one"
 radius_two = 0.
 if ( options.two ) :
-  n_solid_layers = "two"
   ratio = options.ratio
   radius_two = radius * ratio
 
@@ -608,10 +606,11 @@ for k in range( nz ) :
         distance_sq1 = (y - cy_one)**2
       elif ( direction == 2 ) :
         distance_sq1 = (z - cz_one)**2
+      distance_sq1 = math.sqrt(distance_sq1)
 
-      d = distance_sq1 - r_sq
+      d = distance_sq1 - radius
       if( delta>0. ):
-        sd=math.sqrt(distance_sq1)-math.sqrt(r_sq)
+        sd=d
         v = 0.5*(1.+math.tanh(-0.5*sd*invdelta))
       else :
         if( d>0. ):
@@ -652,7 +651,9 @@ for k in range( nz ) :
           distance_sq2 = (y - cy_two)**2
         elif ( direction == 2 ) :
           distance_sq2 = (z - cz_two)**2
-        d = distance_sq2 - r_sq_two
+        distance_sq2 = math.sqrt(distance_sq2)
+        d = distance_sq2 - radius_two
+
         if( delta>0. ):
           v = 0.5*(1.+math.tanh(-0.5*d*invdelta))
         else :
