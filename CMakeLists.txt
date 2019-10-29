@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.1)
-project (PFiSM)
+project (AMPE)
 
-set (CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules)
 
-#set(MPI_CXX_COMPILER CMAKE_CXX_COMPILER)
 find_package(MPI)
 if(MPI_FOUND)
   message(STATUS
@@ -40,7 +39,9 @@ endif()
 link_directories( ${SAMRAI_DIR}/lib )
 link_directories( ${HYPRE_DIR}/lib )
 link_directories( ${SUNDIALS_DIR}/lib )
-link_directories( ${NETCDF_DIR}/lib )
+
+find_package(netCDF REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 
 set( PROJECT_LINK_LIBS1 libSAMRAI_tbox.a )
 set( PROJECT_LINK_LIBS2 libSAMRAI_math.a )
@@ -66,13 +67,12 @@ set( PROJECT_LINK_LIBS_HYPRE libHYPRE.so )
 set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
 set( PROJECT_LINK_LIBS_CPODES libsundials_cpodes.a )
 
-set( PROJECT_LINK_LIBS_NETCDFCXX libnetcdf_c++4.a )
-set( PROJECT_LINK_LIBS_NETCDF libnetcdf.a )
+set( PROJECT_LINK_LIBS_NETCDFCXX NetCDF::NetCDF )
+set( PROJECT_LINK_LIBS_NETCDF NetCDF::NetCDF )
 
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
 include_directories( ${SUNDIALS_DIR}/include )
-include_directories( ${NETCDF_DIR}/include )
 
 enable_testing()
 
@@ -86,6 +86,3 @@ set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -std=c++11")
 add_subdirectory(source)
 
 add_subdirectory(tests)
-
-
-
