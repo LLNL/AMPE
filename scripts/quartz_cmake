@@ -12,8 +12,8 @@ cmake -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_C_COMPILER=mpicc \
         -DSAMRAI_DIR=$PWD/quartz-mpic++-mpif77-opt/base/SAMRAI \
         -DHYPRE_DIR=/usr/gapps/phasefield/hypre/2.15.0 \
         -DSUNDIALS_DIR=$PWD/quartz-mpic++-mpif77-opt/base/sundials \
-        -DNETCDF_DIR=/usr/gapps/phasefield/lib/netcdf-cxx-intel \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_PREFIX_PATH=/usr/gapps/phasefield/lib/netcdf-cxx-intel \
         -DNDIM="2" \
         ..
 
