@@ -6,9 +6,12 @@ Provides the following variables:
   * `NetCDF_LIBRARIES`: Libraries necessary to use NetCDF.
   * `NetCDF_VERSION`: The version of NetCDF found.
   * `NetCDF::NetCDF`: A target to use with `target_link_libraries`.
+Adapted from https://github.com/Kitware/VTK/blob/master/CMake/FindNetCDF.cmake
+Downloaded 10/29/2019
 #]==]
 
 # Try to find a CMake-built NetCDF.
+message(STATUS "Searching for NetCDF...")
 find_package(netCDF CONFIG QUIET)
 if (netCDF_FOUND)
   # Forward the variables in a consistent way.
@@ -25,6 +28,7 @@ if (netCDF_FOUND)
   return ()
 endif ()
 
+message(STATUS "Searching for PkgConfig...")
 find_package(PkgConfig QUIET)
 if (PkgConfig_FOUND)
   pkg_check_modules(_NetCDF QUIET netcdf IMPORTED_TARGET)
@@ -39,11 +43,13 @@ if (PkgConfig_FOUND)
       set_target_properties(NetCDF::NetCDF PROPERTIES
         INTERFACE_LINK_LIBRARIES "PkgConfig::_NetCDF")
     endif ()
+    message(STATUS "NetCDF_LIBRARIES: ${NetCDF_LIBRARIES}")
     # Skip the rest of the logic in this file.
     return ()
   endif ()
 endif ()
 
+message(STATUS "Searching for path to NetCDF include...")
 find_path(NetCDF_INCLUDE_DIR
   NAMES netcdf.h
   DOC "netcdf include directories")
@@ -77,7 +83,7 @@ find_package_handle_standard_args(NetCDF
 if (NetCDF_FOUND)
   set(NetCDF_INCLUDE_DIRS "${NetCDF_INCLUDE_DIR}")
   set(NetCDF_LIBRARIES "${NetCDF_LIBRARY}")
-
+  message(STATUS "NetCDF libraries: ${NetCDF_LIBRARIES}")
   if (NOT TARGET NetCDF::NetCDF)
     add_library(NetCDF::NetCDF UNKNOWN IMPORTED)
     set_target_properties(NetCDF::NetCDF PROPERTIES
