@@ -41,7 +41,7 @@ c
      &   epsilon,
      &   anisotropy, knumber,
      &   weight,
-     &   total_phi_e,
+     &   phi_e,
      &   energy,
      &   eval_per_cell
      &   )
@@ -53,7 +53,7 @@ c
      &    pghosts, ngq, qlen, knumber
       integer eval_per_cell
 
-      double precision total_phi_e, epsilon
+      double precision phi_e, epsilon
       double precision phi(CELL2d(lo,hi,pghosts))
       double precision quat(CELL2d(lo,hi,ngq),qlen)
       double precision energy(CELL2d(lo,hi,0))
@@ -70,10 +70,10 @@ c
 c
       pi = 4.d0*atan(1.d0)
 c
-      total_phi_e = 0.d0
-
       dxinv = 0.5d0 / dx(1)
       dyinv = 0.5d0 / dx(2)
+c
+      phi_e = 0.d0
 c
       do j = lo1, hi1
          do i = lo0, hi0
@@ -108,7 +108,7 @@ c need to enforce q to be within that range before call to acos
             endif
 
             e = e * weight(i,j)
-            total_phi_e = total_phi_e + e
+            phi_e = phi_e + e
          enddo
       enddo
 
@@ -123,7 +123,7 @@ c
      &   phi, pghosts,
      &   epsilon_phi,
      &   weight,
-     &   total_phi_e,
+     &   phi_e,
      &   energy,
      &   eval_per_cell
      &   )
@@ -135,7 +135,7 @@ c
      &    pghosts
       integer eval_per_cell
 
-      double precision total_phi_e, epsilon_phi, e
+      double precision phi_e, epsilon_phi, e
       double precision phi(CELL2d(lo,hi,pghosts))
       double precision energy(CELL2d(lo,hi,0))
       double precision weight(CELL2d(lo,hi,0))
@@ -146,13 +146,13 @@ c
       double precision epsilonphi2
 
       integer i, j
-
-      total_phi_e = 0.d0
 c
       dx2inv = 1.d0 / dx(0)**2
       dy2inv = 1.d0 / dx(1)**2
 c
       epsilonphi2 = 0.5d0 * epsilon_phi * epsilon_phi
+c
+      phi_e = 0.d0
 c
       do j = lo1, hi1
          do i = lo0, hi0
@@ -174,7 +174,7 @@ c
             endif
 
             e = e * weight(i,j)
-            total_phi_e = total_phi_e + e
+            phi_e = phi_e + e
          enddo
       enddo
 
@@ -254,9 +254,9 @@ c
       double precision epsilon_phi, epsilon_q, epsilon_eta
       double precision epsilonq2
       double precision total_energy, e, o2
-      double precision total_phi_e, total_orient_e
+      double precision total_phi_e, phi_e, total_orient_e
       double precision total_qint_e, total_well_e, total_free_e
-      double precision total_eta_e
+      double precision total_eta_e, eta_e
       double precision p_phi
       double precision dx(NDIM), dx2inv, dy2inv
       double precision diff_term_x, diff_term_y
@@ -286,23 +286,25 @@ c
          call interface_anisotropic_energy(lo0, hi0, lo1, hi1,
      &      dx, phi, pghosts, quat, ngq, depth,
      &      epsilon_phi, anisotropy, knumber, weight,
-     &      total_phi_e, energy,
+     &      phi_e, energy,
      &      eval_per_cell)
       else
          call phi_interface_energy(lo0, hi0, lo1, hi1, dx, phi, pghosts,
-     &      epsilon_phi, weight, total_phi_e, energy, eval_per_cell)
+     &      epsilon_phi, weight, phi_e, energy, eval_per_cell)
       endif
 
-      total_energy = total_phi_e
+      total_phi_e = total_phi_e + phi_e
+      total_energy = total_energy + phi_e
 
 c
 c eta interface energy
 c    
       if ( three_phase /= 0 ) then
          call phi_interface_energy(lo0, hi0, lo1, hi1, dx, eta, ngeta,
-     &      epsilon_phi, weight, total_eta_e, energy,  eval_per_cell)
+     &      epsilon_phi, weight, eta_e, energy,  eval_per_cell)
 
-         total_energy = total_energy + total_eta_e
+         total_eta_e = total_eta_e + eta_e
+         total_energy = total_energy + eta_e
 
       endif
 
@@ -310,7 +312,6 @@ c
 c Orientational energy: average over 2 cell sides in each direction
 c
       if ( misorientation_factor .gt. 0.d0 ) then
-         total_orient_e = 0.d0
          do j = lo1, hi1
             do i = lo0, hi0
 
@@ -375,7 +376,6 @@ c        factor 0.25 because of cell averaging and double counting
 c
 c q interface energy
 c
-         total_qint_e = 0.d0
          epsilonq2 = 0.5d0 * epsilon_q * epsilon_q
          do j = lo1, hi1
             do i = lo0, hi0
@@ -405,7 +405,6 @@ c              factor 0.25 because of cell average and double counting
 c
 c double well energy
 c
-      total_well_e = 0.d0
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -437,7 +436,6 @@ c
 c
 c free energy
 c
-      total_free_e = 0.d0
       do j = lo1, hi1
          do i = lo0, hi0
 

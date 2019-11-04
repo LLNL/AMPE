@@ -67,7 +67,7 @@ c
      &   epsilon_phi,
      &   eps4, knumber,
      &   weight,
-     &   total_phi_e,
+     &   phi_e,
      &   energy,
      &   eval_per_cell
      &   )
@@ -79,7 +79,7 @@ c
      &    pghosts, ngq, qlen, knumber
       integer eval_per_cell
 
-      double precision total_phi_e, epsilon_phi
+      double precision phi_e, epsilon_phi
       double precision phi(CELL3d(lo,hi,pghosts))
       double precision quat(CELL3d(lo,hi,ngq),qlen)
       double precision energy(CELL3d(lo,hi,0))
@@ -96,7 +96,7 @@ c
 
       integer i, j, k
 c
-      total_phi_e = 0.d0
+      phi_e = 0.d0
 
       dxinv = 0.5d0 / dx(1)
       dyinv = 0.5d0 / dx(2)
@@ -141,7 +141,7 @@ c
                endif
 
                e = e * weight(i,j,k)
-               total_phi_e = total_phi_e + e
+               phi_e = phi_e + e
             enddo
          enddo
       enddo
@@ -157,7 +157,7 @@ c
      &   phi, pghosts,
      &   epsilon_phi,
      &   weight,
-     &   total_phi_e,
+     &   phi_e,
      &   energy,
      &   eval_per_cell
      &   )
@@ -169,7 +169,7 @@ c
      &    pghosts
       integer eval_per_cell
 
-      double precision total_phi_e, epsilon_phi, e
+      double precision phi_e, epsilon_phi, e
       double precision phi(CELL3d(lo,hi,pghosts))
       double precision energy(CELL3d(lo,hi,0))
       double precision weight(CELL3d(lo,hi,0))
@@ -181,7 +181,7 @@ c
 
       integer i, j, k
 
-      total_phi_e = 0.d0
+      phi_e = 0.d0
 c
       dx2inv = 1.d0 / dx(0)**2
       dy2inv = 1.d0 / dx(1)**2
@@ -215,7 +215,7 @@ c
                endif
 
                e = e * weight(i,j,k)
-               total_phi_e = total_phi_e + e
+               phi_e = phi_e + e
             enddo
          enddo
       enddo
@@ -297,9 +297,9 @@ c
       double precision epsilon_phi, epsilon_q, epsilon_eta
       double precision epsilonq2
       double precision total_energy, e, o2
-      double precision total_phi_e, total_orient_e
+      double precision total_phi_e, phi_e, total_orient_e
       double precision total_qint_e, total_well_e, total_free_e
-      double precision total_eta_e
+      double precision total_eta_e, eta_e
       double precision p_phi
       double precision dx(NDIM), dx2inv, dy2inv, dz2inv
       double precision diff_term_x, diff_term_y, diff_term_z
@@ -331,15 +331,16 @@ c
      &      lo0, hi0, lo1, hi1, lo2, hi2,
      &      dx, phi, pghosts, quat, ngq, depth,
      &      epsilon_phi, anisotropy, knumber, weight,
-     &      total_phi_e, energy,
+     &      phi_e, energy,
      &      eval_per_cell)
       else
          call phi_interface_energy(lo0, hi0, lo1, hi1, lo2, hi2,
      &      dx, phi, pghosts,
-     &      epsilon_phi, weight, total_phi_e, energy, eval_per_cell)
+     &      epsilon_phi, weight, phi_e, energy, eval_per_cell)
       endif
 
-      total_energy = total_phi_e
+      total_phi_e = total_phi_e + phi_e
+      total_energy = total_energy + phi_e
 
 c
 c eta interface energy
@@ -347,9 +348,10 @@ c
       if ( three_phase /= 0 ) then
          call phi_interface_energy(lo0, hi0, lo1, hi1, lo2, hi2,
      &      dx, eta, ngeta,
-     &      epsilon_phi, weight, total_eta_e, energy,  eval_per_cell)
+     &      epsilon_phi, weight, eta_e, energy,  eval_per_cell)
 
-         total_energy = total_energy + total_eta_e
+         total_eta_e = total_eta_e + eta_e
+         total_energy = total_energy + eta_e
       endif
 
 c
