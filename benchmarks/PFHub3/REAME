@@ -1,0 +1,45 @@
+#
+# Generate initial conditions (for phi)
+#
+python make_nuclei.py -x 1440 -y 1440 -z 1 -r 16 \
+    --center0 "0, 0, 0" -w 1.4 1440.nc
+
+#
+# Run ampe
+#
+mpirun -np 32 ampe2d dendrite.input
+
+#
+# Analyze results
+#
+
+#extract solid fraction out of output
+python volfracvstime.py dendrite.log > solid_fraction.csv
+
+#plot it
+gnuplot solid_fraction.plt 
+display SolidFraction.png
+
+#extract tip position out of VisIt dumps
+visit -cli -verbose -nowin -s tipPosition.py
+
+#plot tip position vs time
+gnuplot tip_position.plt 
+display TipPosition.png
+
+#extract phi=0.5 contour out of last VisIt frame
+#into .xyz file
+visit -cli -verbose -nowin -s phase_field_1500.py
+
+#convert data to .csv format
+python xyz2csv.py phase_contour.xyz > phase_field_1500.csv
+
+#plot contour
+gnuplot phase_contour.plt
+display phase_field_1500.png 
+
+#extract energy vs. tim
+python energy.py dendrite.log > free_energy.csv
+gnuplot energy.plt
+display Energy.png 
+

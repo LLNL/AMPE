@@ -34,7 +34,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # 
 #usage:
-#  python volfracvstime.py ampe.log > volfraction.dat
+#  python volfracvstime.py ampe.log > solid_fraction.csv
 #  
 import sys, string
 from math import pi
@@ -60,4 +60,4 @@ for line in range(l): ## loop over lines of file
         break
     words=L[line].split()
     vol=eval(words[6])
-    print("{}    {}".format(time,vol))
+    print("{}, {}".format(time,vol))

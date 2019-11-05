@@ -1,0 +1,102 @@
+model_type = "KWCcomplex"
+
+end_time = 1500.  // required
+max_timesteps = 1600  // optional, default is INT_MAX
+
+Verbosity {  // optional, block
+   level = 1  // optional, default=1
+}
+
+Visit {
+   interval = 15.
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+
+   epsilon_anisotropy = 0.05
+
+   H_parameter = 0.0 // we need quaternions to define anisotropy
+
+   epsilon_phi = 2.
+
+   phi_mobility = 0.25
+   
+   orient_mobility = 1.
+   epsilon_orient = 1.
+
+   Temperature{
+      type = "heat"
+      equation_type = "unsteady"
+      meltingT = 1.
+      cp{  
+         SpeciesA{
+            a   = 17.020371256848037 // to get L/cp =1.
+         }
+      }
+      thermal_diffusivity = 10.e-8 // cm^2/s
+      latent_heat = 17.020371256848037 // 32*lambda/30.
+   }
+
+   // free energy parameters:
+   // f(phi) = scale_energy_well*g(phi)
+   // where g is a double well potential
+   phi_well_scale = 0.25
+   phi_well_func_type = "double"
+
+   phi_interp_func_type ="p"
+
+   FreeEnergyModel{   
+      type = "linear"
+   }
+ 
+   molar_volume = 1.e-6 // used to convert cp and latent heat into (pJ/(mu m)^3*K)
+
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Temperature{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 15.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-4
+}
+
+InitialConditions {  // required block
+   filename = "1440.nc"
+   init_t   = 0.7 // initial temperature
+   init_q   = 1., 0.
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 1440, 1440
+   x_lo         =  0.,  0. // lower end of computational domain.
+   x_up         =  960.,  960. // upper end of computational domain.
+}
