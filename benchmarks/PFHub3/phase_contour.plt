@@ -11,7 +11,7 @@ set ytics 100
 
 set key off
 
-plot 'phase_field_1500.csv' u 1:2 w points
+plot 'phase_field_1500.csv' u 1:2 w lines
 
 
 
