@@ -236,8 +236,7 @@ add_test(NAME AlCu
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/${NDIM}d.input
          )
 
-target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDFCXX}
-                                 ${PROJECT_LINK_LIBS_NETCDF}
+target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testMPI ${PROJECT_LINK_LIBS1})
 target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
