@@ -183,7 +183,6 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_HYPRE}
                               ${PROJECT_LINK_LIBS_CVODE}
                               ${PROJECT_LINK_LIBS_CPODES}
-                              ${PROJECT_LINK_LIBS_NETCDFCXX}
                               ${PROJECT_LINK_LIBS_NETCDF}
                               ${PROJECT_LINK_LIBS_HDF5}
                       )
