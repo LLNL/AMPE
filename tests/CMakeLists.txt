@@ -14,7 +14,8 @@ set_source_files_properties( ${fortran_dir_dim}/hyprepoisson.f
 set_source_files_properties( ${fortran_dir_dim}/phase.f 
                              PROPERTIES GENERATED TRUE)
 
-add_executable(testNetCDF ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.C)
+add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.C)
+add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.C)
 add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.C)
 add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.C
                         ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
@@ -130,9 +131,12 @@ add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 
-add_test(NAME testNetCDF
+add_test(NAME testNetCDFwrite
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
-                 ${CMAKE_CURRENT_BINARY_DIR}/testNetCDF)
+                 ${CMAKE_CURRENT_BINARY_DIR}/testNetCDFwrite)
+add_test(NAME testNetCDFread
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testNetCDFread)
 add_test(NAME testMPI
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testMPI)
@@ -236,7 +240,9 @@ add_test(NAME AlCu
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/${NDIM}d.input
          )
 
-target_link_libraries(testNetCDF ${PROJECT_LINK_LIBS_NETCDF}
+target_link_libraries(testNetCDFwrite ${PROJECT_LINK_LIBS_NETCDF}
+                                 ${PROJECT_LINK_LIBS_HDF5})
+target_link_libraries(testNetCDFread ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testMPI ${PROJECT_LINK_LIBS1})
 target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
