@@ -1037,7 +1037,7 @@ c      print*,'latentheat=',latentheat,', tm=',tm
 
 c***********************************************************************
 c
-      subroutine computevdphidx(
+      subroutine addvdphidx(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   dx,
      &   phase, ngphase,

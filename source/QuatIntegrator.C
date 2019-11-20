@@ -1022,26 +1022,27 @@ void QuatIntegrator::RegisterVariables(
       d_velocity_var.reset (
          new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_velocity_", 1 ));
       d_velocity_id = variable_db->registerVariableAndContext(d_velocity_var,
-                                                           d_current,
-                                                           hier::IntVector(tbox::Dimension(NDIM),0));
+                         d_current,
+                         hier::IntVector(tbox::Dimension(NDIM),0));
       assert( d_velocity_id >= 0 );
       d_local_data.setFlag( d_velocity_id );
-#if 1
       d_tmp1_var.reset (
-         new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_tmp1_", 1 ));
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM), d_name+"_tmp1_", 1 ));
       d_tmp1_id = variable_db->registerVariableAndContext(d_tmp1_var,
-                                                           d_current,
-                                                           hier::IntVector(tbox::Dimension(NDIM),0));
+                     d_current,
+                     hier::IntVector(tbox::Dimension(NDIM),0));
       assert( d_tmp1_id >= 0 );
       d_local_data.setFlag( d_tmp1_id );
+
       d_tmp2_var.reset (
-         new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name+"_tmp2_", 1 ));
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM), d_name+"_tmp2_", 1 ));
       d_tmp2_id = variable_db->registerVariableAndContext(d_tmp2_var,
-                                                           d_current,
-                                                           hier::IntVector(tbox::Dimension(NDIM),0));
+                     d_current,
+                     hier::IntVector(tbox::Dimension(NDIM),0));
       assert( d_tmp2_id >= 0 );
       d_local_data.setFlag( d_tmp2_id );
-#endif
    }
    
    if ( d_with_third_phase ) {
@@ -1237,6 +1238,21 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
          hier::IntVector(tbox::Dimension(NDIM),0) );
    assert( d_phase_rhs_id >= 0 );
    d_local_data.setFlag( d_phase_rhs_id );
+
+   // dphidt is needed in ghost cells to compute
+   // antitrapping fluxes
+   if( d_model_parameters.needDphiDt()){
+      d_dphidt_scratch_var.reset(
+         new pdat::CellVariable<double>(
+            tbox::Dimension(NDIM), d_name+"_QI_dphidt") );
+      d_dphidt_scratch_id =
+         variable_db->registerVariableAndContext(
+         d_dphidt_scratch_var,
+         d_scratch,
+         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
+      assert( d_dphidt_scratch_id );
+      d_local_data.setFlag( d_dphidt_scratch_id );
+   }
 }
 
 void QuatIntegrator::RegisterLocalConcentrationVariables()
@@ -1271,21 +1287,6 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
    d_local_data.setFlag( d_conc_sol_id );
 
    assert( d_conc_rhs_var->getDepth()==d_conc_var->getDepth() );
-
-   // dphidt is needed in ghost cells to compute
-   // antitrapping fluxes
-   if( d_with_antitrapping ){
-      d_dphidt_scratch_var.reset(
-         new pdat::CellVariable<double>(
-            tbox::Dimension(NDIM), d_name+"_QI_dphidt") );
-      d_dphidt_scratch_id =
-         variable_db->registerVariableAndContext(
-         d_dphidt_scratch_var,
-         d_scratch,
-         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-      assert( d_dphidt_scratch_id );
-      d_local_data.setFlag( d_dphidt_scratch_id );
-   }
 }
 
 void QuatIntegrator::RegisterLocalQuatVariables()
@@ -1389,25 +1390,27 @@ void QuatIntegrator::setupBC()
                tbox::Dimension(NDIM),"PhaseBcCoefs", phase_bc_db );
          setBChomogeneous(d_phase_bc_coefs);
       }
+      if( d_model_parameters.needDphiDt() ){
+         boost::shared_ptr<tbox::Database> phase_bc_db =
+            d_boundary_cond_db->getDatabase( "Phase" );
+         assert( d_dphidt_scratch_id>=0 );
+         d_dphidt_bc_coefs = new solv::LocationIndexRobinBcCoefs(
+            tbox::Dimension(NDIM),"DphiDtBcCoefs", phase_bc_db);
+         //set BC values to 0 to have a 0 antitrapping flux at the boundary
+         for(int i=0;i<2*NDIM;i++){
+            d_dphidt_bc_coefs->setBoundaryValue(i,0.);
+         }
+         d_dphidt_bc_helper = new solv::CartesianRobinBcHelper(
+            tbox::Dimension(NDIM), "DphiDtBcHelper");
+         d_dphidt_bc_helper->setTargetDataId( d_dphidt_scratch_id );
+         d_dphidt_bc_helper->setCoefImplementation( d_dphidt_bc_coefs );
+      }
       if ( d_with_concentration ) {
          boost::shared_ptr<tbox::Database> conc_bc_db =
             d_boundary_cond_db->getDatabase( "Conc" );
          d_conc_bc_coefs = new solv::LocationIndexRobinBcCoefs(
                tbox::Dimension(NDIM),"ConcBcCoefs", conc_bc_db );
          setBChomogeneous(d_conc_bc_coefs);
-         if(d_with_antitrapping){
-            assert( d_dphidt_scratch_id>=0 );
-            d_dphidt_bc_coefs = new solv::LocationIndexRobinBcCoefs(
-               tbox::Dimension(NDIM),"DphiDtBcCoefs", conc_bc_db);
-            //set BC values to 0 to have a 0 antitrapping flux at the boundary
-            for(int i=0;i<2*NDIM;i++){
-               d_dphidt_bc_coefs->setBoundaryValue(i,0.);
-            }
-            d_dphidt_bc_helper = new solv::CartesianRobinBcHelper(
-               tbox::Dimension(NDIM), "DphiDtBcHelper");
-            d_dphidt_bc_helper->setTargetDataId( d_dphidt_scratch_id );
-            d_dphidt_bc_helper->setCoefImplementation( d_dphidt_bc_coefs );
-         }
       }
       if ( d_with_orientation ) {
          boost::shared_ptr<tbox::Database> quat_bc_db =
@@ -3054,22 +3057,6 @@ void QuatIntegrator::evaluatePhaseRHS(
          //multiply by mobility
          mathops.multiply( phase_rhs, phase_mobility, phase_rhs, pbox );
 
-         // add component related to moving frame if moving velocity!=0
-         if( d_model_parameters.inMovingFrame() ){
-            assert(phase->getGhostCellWidth()[0] > 0);
-            FORT_COMP_VDPHIDX(
-               ifirst(0),ilast(0),
-               ifirst(1),ilast(1),
-#if (NDIM == 3)
-               ifirst(2),ilast(2),
-#endif
-               dx,
-               phase->getPointer(),
-               phase->getGhostCellWidth()[0],
-               d_frame_velocity,
-               phase_rhs->getPointer(), phase_rhs->getGhostCellWidth()[0]);
-         }
-
          //add noise
          if( d_model_parameters.noise_amplitude()>0. && deltat>0. ){
             if( newtime ){
@@ -3081,6 +3068,55 @@ void QuatIntegrator::evaluatePhaseRHS(
             double alpha = d_model_parameters.noise_amplitude()/sqrt(deltat);
             mathops.axpy(phase_rhs, alpha, noise_field, phase_rhs,
                          patch->getBox());
+         }
+      }
+   }
+
+   // save dphidt if needed for other purposes
+   if( d_model_parameters.needDphiDt() )
+      fillDphiDt(hierarchy, time, phase_rhs_id);
+
+   // add component related to moving frame if moving velocity!=0
+   for ( int ln=hierarchy->getFinestLevelNumber(); ln>=0; --ln ) {
+      boost::shared_ptr< hier::PatchLevel > level =
+         hierarchy->getPatchLevel(ln);
+      for ( hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+            ++ip ) {
+
+         boost::shared_ptr<hier::Patch > patch = *ip;
+
+         const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(
+               patch->getPatchGeometry()) );
+         const double* dx  = patch_geom->getDx();
+
+         const hier::Box& pbox = patch->getBox();
+         const hier::Index& ifirst = pbox.lower();
+         const hier::Index& ilast  = pbox.upper();
+
+         boost::shared_ptr< pdat::CellData<double> > phase (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phase_id) ) );
+         assert( phase );
+
+         boost::shared_ptr< pdat::CellData<double> > phase_rhs (
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( phase_rhs_id) ) );
+         assert( phase_rhs );
+
+         if( d_model_parameters.inMovingFrame() ){
+            assert(phase->getGhostCellWidth()[0] > 0);
+            FORT_ADD_VDPHIDX(
+               ifirst(0),ilast(0),
+               ifirst(1),ilast(1),
+#if (NDIM == 3)
+               ifirst(2),ilast(2),
+#endif
+               dx,
+               phase->getPointer(),
+               phase->getGhostCellWidth()[0],
+               d_frame_velocity,
+               phase_rhs->getPointer(), phase_rhs->getGhostCellWidth()[0]);
          }
 
          if( d_model_parameters.with_rhs_visit_output() && eval_flag ){
@@ -3266,20 +3302,24 @@ void QuatIntegrator::evaluateTemperatureRHS(
             *ip;
 
          const boost::shared_ptr<geom::CartesianPatchGeometry > patch_geom (
-            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(patch->getPatchGeometry()) );
+            BOOST_CAST<geom::CartesianPatchGeometry , hier::PatchGeometry>(
+               patch->getPatchGeometry()) );
          const double * dx  = patch_geom->getDx();
 
          boost::shared_ptr< pdat::CellData<double> > temperature (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( temperature_id) ) );
          assert( temperature );
          assert( temperature->getGhostCellWidth()[0]>0 );
 
          boost::shared_ptr< pdat::CellData<double> > cp (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_cp_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( d_cp_id) ) );
          assert( cp );
          
          boost::shared_ptr< pdat::CellData<double> > temperature_rhs (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_rhs_id) ) );
+            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+               patch->getPatchData( temperature_rhs_id) ) );
          assert( temperature_rhs );
 
          double* phase_rhs_ptr=nullptr;
@@ -3287,7 +3327,7 @@ void QuatIntegrator::evaluateTemperatureRHS(
          if( d_model_parameters.with_phase() ){
             boost::shared_ptr< pdat::CellData<double> > phase_rhs (
                BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-                  patch->getPatchData( phase_rhs_id) ) );
+                  patch->getPatchData(d_dphidt_scratch_id) ) );
             assert( phase_rhs );
             phase_rhs_ptr=phase_rhs->getPointer();
             phase_rhs_nghosts=phase_rhs->getGhostCellWidth()[0];
@@ -3317,6 +3357,23 @@ void QuatIntegrator::evaluateTemperatureRHS(
             (int)d_model_parameters.with_phase(),
             phase_rhs_ptr,   phase_rhs_nghosts,
             temperature_rhs->getPointer(), temperature_rhs->getGhostCellWidth()[0] );
+
+         // add component related to moving frame if moving velocity!=0
+         if( d_model_parameters.inMovingFrame() ){
+            assert(temperature->getGhostCellWidth()[0] > 0);
+            FORT_ADD_VDPHIDX(
+               ifirst(0),ilast(0),
+               ifirst(1),ilast(1),
+#if (NDIM == 3)
+               ifirst(2),ilast(2),
+#endif
+               dx,
+               temperature->getPointer(),
+               temperature->getGhostCellWidth()[0],
+               d_frame_velocity,
+               temperature_rhs->getPointer(),
+               temperature_rhs->getGhostCellWidth()[0]);
+         }
       }
    }
 
@@ -3427,7 +3484,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
          // add component related to moving frame if moving velocity!=0
          if( d_model_parameters.inMovingFrame() ){
             assert(conc->getGhostCellWidth()[0] > 0);
-            FORT_COMP_VDPHIDX(
+            FORT_ADD_VDPHIDX(
                ifirst(0),ilast(0),
                ifirst(1),ilast(1),
 #if (NDIM == 3)
@@ -3622,27 +3679,19 @@ void QuatIntegrator::fillScratchComposition(
       d_conc_refine_op );
 }
 
-void QuatIntegrator::fillScratchDphiDt(
-   double time,
-   boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot)
+void QuatIntegrator::fillDphiDt(
+   boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+   const double time, const int phase_rhs_id)
 {
-   (void)time;
-
    assert( d_dphidt_scratch_id>=0 );
+   assert( checkForNans( hierarchy, phase_rhs_id)==0 );
    if( !d_all_periodic )assert( d_dphidt_bc_helper!=0 );
-
-   boost::shared_ptr<hier::PatchHierarchy > hierarchy =
-      y_dot->getPatchHierarchy();
-
-   int y_phase_rhs_id =
-      y_dot->getComponentDescriptorIndex( d_phase_component_index );
 
    xfer::RefineAlgorithm copy_to_scratch ;
 
-   assert( checkForNans( hierarchy, y_phase_rhs_id)==0 );
    copy_to_scratch.registerRefine(
       d_dphidt_scratch_id,  // destination
-      y_phase_rhs_id,       // source
+      phase_rhs_id,       // source
       d_dphidt_scratch_id,  // temporary
       d_phase_refine_op );
 
@@ -4097,10 +4146,6 @@ int QuatIntegrator::evaluateRHSFunction(
       if( recompute_quat_sidegrad )
          setDiffusionCoeffForConcentration( hierarchy, time );
 
-      if( d_with_antitrapping ){
-         fillScratchDphiDt(time, y_dot_samvect);
-      } 
-      
       const int ydot_conc_id =
          y_dot_samvect->getComponentDescriptorIndex( d_conc_component_index );
       evaluateConcentrationRHS(

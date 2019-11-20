@@ -725,8 +725,9 @@ private :
    virtual void initializeConcentrationSolver(const boost::shared_ptr< hier::PatchHierarchy >&);
    virtual void setCompositionOperatorCoefficients(const double gamma);
 
-   void fillScratchDphiDt(
-      double time, boost::shared_ptr< solv::SAMRAIVectorReal<double> > y_dot);
+   void fillDphiDt(
+      boost::shared_ptr<hier::PatchHierarchy > hierarchy,
+      const double time, const int phase_rhs_id);
 
    double computeFrameVelocity(
       const boost::shared_ptr< hier::PatchHierarchy >&,

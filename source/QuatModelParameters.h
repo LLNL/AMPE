@@ -391,6 +391,11 @@ public:
       return d_adapt_moving_frame;
    }
 
+   bool needDphiDt()const
+   {
+      return (d_with_antitrapping || inMovingFrame() || d_with_heat_equation);
+   }
+
 private:
    void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
 

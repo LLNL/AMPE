@@ -41,7 +41,7 @@
 #define FORT_COMPUTE_FLUX_ISOTROPIC compute_flux_isotropic_ 
 #define FORT_ANISOTROPIC_GRADIENT_FLUX anisotropic_gradient_flux_ 
 #define FORT_COMP_RHS_PBG computerhspbg_
-#define FORT_COMP_VDPHIDX computevdphidx_
+#define FORT_ADD_VDPHIDX addvdphidx_
 #define FORT_COMP_RHS_TEMP computerhstemp_
 #define FORT_COMP_RHS_BIASWELL computerhsbiaswell_
 #define FORT_COMP_RHS_BIASWELL_BECKERMANN computerhsbiaswellbeckermann_
@@ -192,7 +192,7 @@ extern "C" {
       const int& three_phase
       );
 
-   void FORT_COMP_VDPHIDX(
+   void FORT_ADD_VDPHIDX(
       const int& ifirst0, const int& ilast0,
       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
