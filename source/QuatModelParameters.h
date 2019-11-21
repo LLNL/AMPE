@@ -393,7 +393,8 @@ public:
 
    bool needDphiDt()const
    {
-      return (d_with_antitrapping || inMovingFrame() || d_with_heat_equation);
+      return (d_with_phase &&
+             (d_with_antitrapping || inMovingFrame() || d_with_heat_equation) );
    }
 
 private:
