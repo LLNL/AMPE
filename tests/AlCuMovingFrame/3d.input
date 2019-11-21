@@ -1,0 +1,128 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 3.e-3
+max_timesteps       = 1000
+
+FreeEnergyDiagnostics{
+   filename = "calphadCuNi.vtk" // where to dump f(phi,c) 
+}
+
+Visit {
+   interval = 6.e-4
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter = -1
+   
+   Temperature {
+      type = "heat"
+      equation_type = "unsteady"
+      cp{  
+         SpeciesA{
+            a = 24.2 // rho*Cp in [J/mol*K]
+         }
+        SpeciesB{
+            a = 24.2 // rho*Cp in [J/mol*K]
+         }
+      }
+      thermal_diffusivity = 9.7e-1 // [cm^2/s]
+      latent_heat = 10.71e3 // [J/mol]
+   }
+
+   moving_frame_velocity = 5.6e3
+   adapt_frame = TRUE
+ 
+   epsilon_phi = 0.2   // [(pJ/um)^1/2]
+
+   phi_mobility_type = "kim"
+ 
+   phi_well_scale = 0.3 // [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   avg_func_type = "arithmetic"
+   
+   ConcentrationModel {
+      model    = "dilute"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      molar_volume = 1.095e-5 // [m^3/mol]
+      diffusion_type = "temperature_dependent"
+
+      liquidus_slope = -530. // K
+      meltingT = 933.3 // K
+      keq      = 0.15
+
+      D_solid  =  0. //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+      NewtonSolver{
+         max_its = 50
+      }
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "value", "1."
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Temperature{
+         boundary_0 = "slope", "0."
+         boundary_1 = "value", "914."
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 3.e-4
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+      precondition_phase = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "1024x2x2.nc"  // required
+   init_c   = 0.005
+   init_t   = 914.
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 1024, 2, 2
+   x_lo         =  0.0,  0.0, 0.0   // [um]
+   x_up         =  51.2, 0.1, 0.1 // [um]
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_exclusive = TRUE
+}
