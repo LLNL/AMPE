@@ -68,14 +68,14 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
          a2 = 47./60.;
          break;
       case EnergyInterpolationType::HARMONIC:
-         a2 = 0.5;
+         a2 = 5./6.;
          break;
       default:
          TBOX_ERROR("Invalid interpolation function in KimMobilityStrategyFiniteMobAntiTrap");
    }
    //a2=19./30.; //for Kim2007
    const double xi = epsilon/sqrt(16.*phase_well_scale);
-
+   tbox::pout<<"interface_mobility="<<interface_mobility<<std::endl;
    d_alpha = 3.*sqrt(2.)*xi/interface_mobility;
    d_beta  = 3.*a2*xi*xi;
    d_beta *= (1.e-6/mv); // convert zeta from J/mol to pJ/um^3
@@ -99,6 +99,7 @@ double KimMobilityStrategyFiniteMobAntiTrap::evaluateMobility(
    for(unsigned i=0;i<d_ncompositions;i++)
    for(unsigned j=0;j<d_ncompositions;j++)
       zeta+=(cl[i]-cs[i])*d_d2fdc2[2*i+j]*(cl[j]-cs[j]);
+   //tbox::pout<<"zeta="<<zeta<<std::endl;
    const double DL=d_DL*exp(-d_Q0/(gas_constant_R_JpKpmol*temp));
    zeta/=DL;
 
