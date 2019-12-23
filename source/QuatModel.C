@@ -7087,7 +7087,7 @@ double QuatModel::evaluateIntegralConcentration(
       conc_id = d_work_id;
    }
 
-   double value = mathops.L1Norm( conc_id, d_weight_id );
+   double value = mathops.integral( conc_id, d_weight_id );
 
    return value;
 }
