@@ -88,6 +88,8 @@ public:
    };
 
    void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);
+   void readPhaseMobility(boost::shared_ptr<tbox::Database> model_db);
+   void readDiluteAlloy(boost::shared_ptr<tbox::Database> conc_db);
    void readTemperatureModel(
       boost::shared_ptr<tbox::Database> model_db);
    void readConcDB(boost::shared_ptr<tbox::Database> conc_db);

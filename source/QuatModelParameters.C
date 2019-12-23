@@ -34,6 +34,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 // 
 #include "QuatModelParameters.h"
+#include "PhysicalConstants.h"
 
 using namespace std;
 
@@ -356,6 +357,9 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          d_well_bias_gamma *= d_rescale_factorT;
       }
    }
+   if( d_conc_model==ConcModel::KKSdilute ){
+      readDiluteAlloy(conc_db);
+   }
 
    if( conc_db->keyExists("initc_in_phase") ){
       size_t nterms=conc_db->getArraySize("initc_in_phase");
@@ -366,6 +370,14 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 
    d_init_phase_conc_eq =
       conc_db->getBoolWithDefault("init_phase_conc_eq", true);
+}
+
+void QuatModelParameters::readDiluteAlloy(
+   boost::shared_ptr<tbox::Database> conc_db)
+{
+   d_liquidus_slope = conc_db->getDouble( "liquidus_slope" );
+   d_keq = conc_db->getDouble( "keq" );
+   d_meltingT = conc_db->getDouble( "meltingT" ); // in [K]
 }
 
 //=======================================================================
@@ -788,34 +800,6 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    d_epsilon_anisotropy
       = model_db->getDoubleWithDefault( "epsilon_anisotropy" , -1.);
 
-   // Mobility
-   if( d_with_phase ){
-      d_phi_mobility_type =
-         model_db->getStringWithDefault( "phi_mobility_type", "scalar" );
-      if( isPhaseMobilityScalar() )
-      {
-         if ( model_db->keyExists( "phi_mobility" ) ) {
-            d_phase_mobility = model_db->getDouble( "phi_mobility" );
-         }
-         else if ( model_db->keyExists( "phase_mobility" ) ) {
-            d_phase_mobility = model_db->getDouble( "phase_mobility" );
-            printDeprecated( "phase_mobility", "phi_mobility" );
-         }
-         else {
-            TBOX_ERROR( "Error: phi_mobility not specified" );
-         }
-      }else{
-         if( d_phi_mobility_type.compare("Kim")==0 )
-            d_phi_mobility_type="kim";
-         if( d_phi_mobility_type.compare("kim")!=0 ){
-            tbox::pout<<"phi_mobility_type="<<d_phi_mobility_type<<endl;
-            TBOX_ERROR( "Error: unknown phi_mobility_type");
-         }
-         d_interface_mobility =
-            model_db->getDoubleWithDefault( "interface_mobility", -1.);
-      }
-   }
-
    d_q0_phase_mobility = model_db->getDoubleWithDefault(
       "q0_phi_mobility", 0.0 );
 
@@ -976,6 +960,64 @@ void QuatModelParameters::readModelParameters(boost::shared_ptr<tbox::Database> 
    if ( model_db->keyExists( "ConcentrationModel" ) ) {      
       boost::shared_ptr<tbox::Database> conc_db(model_db->getDatabase( "ConcentrationModel" ));
       readConcDB(conc_db);
+   }
+
+   // Mobility
+   if( d_with_phase ){
+      readPhaseMobility(model_db);
+   }
+}
+
+void QuatModelParameters::readPhaseMobility(
+   boost::shared_ptr<tbox::Database> model_db)
+{
+   d_phi_mobility_type =
+      model_db->getStringWithDefault( "phi_mobility_type", "scalar" );
+   if( isPhaseMobilityScalar() )
+   {
+      if ( model_db->keyExists( "phi_mobility" ) ) {
+         d_phase_mobility = model_db->getDouble( "phi_mobility" );
+      }
+      else if ( model_db->keyExists( "phase_mobility" ) ) {
+         d_phase_mobility = model_db->getDouble( "phase_mobility" );
+         printDeprecated( "phase_mobility", "phi_mobility" );
+      }
+      else {
+         TBOX_ERROR( "Error: phi_mobility not specified" );
+      }
+   }else{
+      if( d_phi_mobility_type.compare("Kim")==0 )
+         d_phi_mobility_type="kim";
+      if( d_phi_mobility_type.compare("kim")!=0 ){
+         tbox::pout<<"phi_mobility_type="<<d_phi_mobility_type<<endl;
+         TBOX_ERROR( "Error: unknown phi_mobility_type");
+      }
+      double beta = model_db->getDoubleWithDefault( "kinetics_coefficient", -1.);
+      if( beta<0. ){
+         d_interface_mobility =
+            model_db->getDoubleWithDefault( "interface_mobility", -1.);
+      }else{
+         // compute interface_mobility from beta value
+         assert( beta>0.);
+         assert( d_meltingT == d_meltingT );
+         assert( d_liquidus_slope < 0. );
+         d_interface_mobility = (d_molar_volume_liquid
+                                 /(gas_constant_R_JpKpmol*d_meltingT));
+         // convert to um^3/pJ
+         d_interface_mobility *= 1.e6;
+
+         d_interface_mobility *= (-1.*d_liquidus_slope);
+         d_interface_mobility /= (1.-d_keq);
+         d_interface_mobility /= beta;
+         tbox::plog<<"Beta : "<<beta<<std::endl;
+         tbox::plog<<"Molar volume : "<<d_molar_volume_liquid<<std::endl;
+         tbox::plog<<"Melting T : "<<d_meltingT<<std::endl;
+         tbox::plog<<"Liquidus slope : "<<d_liquidus_slope<<std::endl;
+         tbox::plog<<"k_eq : "<<d_keq<<std::endl;
+         tbox::plog<<"Interface mobility computed : "
+                   <<d_interface_mobility<<std::endl;
+         assert( d_interface_mobility == d_interface_mobility );
+      }
    }
 }
 
