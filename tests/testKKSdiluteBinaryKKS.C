@@ -162,6 +162,15 @@ int main( int argc, char *argv[] )
       return 1;
    }
 
+   // compute second derivatives for info only
+   std::vector<double> d2fdc2(1);
+   cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0, d2fdc2);
+   tbox::pout<<"-------------------------------"<<endl;
+   tbox::pout<<"Second derivatives"<<endl;
+   tbox::pout<<"At ceL: "<<d2fdc2[0]<<endl;
+   cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1, d2fdc2);
+   tbox::pout<<"At ceS: "<<d2fdc2[0]<<endl;
+
    // initial guesses
    double c_init0=0.5;
    double c_init1=0.5;
