@@ -1,0 +1,97 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "KWCcomplex"
+
+end_time            = 7.5e-6
+max_timesteps       = 5000
+
+Visit {
+   interval = 5.e-7
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter = -1
+   
+   Temperature {
+      temperature        = 1707.4834 // [K], 1K below Tsol
+   }
+
+   Interface {
+      sigma = 0.37  // pJ/um^2 = J/m^2
+      delta = 1.e-3 // um
+   }
+
+   phi_mobility_type = "kim"
+   kinetics_coefficient = 2.e-5 // beta = 20 K*s/m
+ 
+   phi_well_func_type = "double"
+
+   phi_interp_func_type ="h"
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   avg_func_type = "arithmetic"
+   
+   ConcentrationModel {
+      model    = "dilute"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      molar_volume = 6.8812e-6 // [m^3/mol]
+
+      liquidus_slope = -310.9
+      meltingT = 1728.
+      keq      = 0.7965
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  1.e-2 //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+   }
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "value", "1."
+         boundary_1 = "value", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "value", "0.05"
+         boundary_1 = "value", "0.05"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 5.e-7
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+   }
+}
+
+InitialConditions {
+   filename = "1000.nc"  // required
+   init_c   = 0.05
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 1000, 1
+   x_lo         =  0.0,  0.0   // [um]
+   x_up         =  0.5,  0.0005 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_exclusive = TRUE
+}
