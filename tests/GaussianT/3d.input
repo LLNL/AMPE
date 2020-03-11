@@ -1,0 +1,99 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 0.04
+max_delta_cycles    = 500
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.004
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter    = -1
+
+   Temperature {
+      type = "gaussian"
+      base = 1423. // temperature at tails of Gaussian
+      target = 1623. // target temperature for peak of Gaussian
+      dtemperaturedt = 500. // [K/s] 
+      standard_deviation = 0.2 // Gaussian width
+      center   = 0.0, 0.9, 0.1125 // Gaussian center, um
+      velocity = 20., 0., 0. //velocity of Gaussian center, um/s
+      initial = 1423. // initial temperature for peak of Gaussian
+   }
+   
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+
+   phi_mobility = 6.4
+ 
+   phi_well_scale = 2.5  //  [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   avg_func_type = "arithmetic"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      NewtonSolver {
+        max_its = 50
+      }
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0."
+         boundary_2 = "slope", "0."
+         boundary_3 = "slope", "0."
+         boundary_4 = "slope", "0."
+         boundary_5 = "slope", "0."
+      }
+      Conc{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0."
+         boundary_2 = "slope", "0."
+         boundary_3 = "slope", "0."
+         boundary_4 = "slope", "0."
+         boundary_5 = "slope", "0."
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.004
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {
+   }
+}
+
+InitialConditions {
+   filename = "64x64x8.nc"  // required
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 64, 64, 8
+   x_lo         =  0.,  0.,  0.    // [um]
+   x_up         =  1.8, 1.8, 0.225 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
