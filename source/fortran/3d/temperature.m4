@@ -72,8 +72,7 @@ c     local variables
       
       subroutine initgaussian(dx,xlo,xhi,
      &  ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
-     &  gcw0,gcw1,gcw2,
-     &  var,
+     &  var, ng,
      &  center, ll,
      &  standard_dev, temperature_base, temperature_peak)
 c***********************************************************************
@@ -84,14 +83,14 @@ c***********************************************************************
       parameter (half=.5d0)
 c input arrays:
       integer ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
-      integer gcw0,gcw1,gcw2
+      integer ng
       REAL standard_dev,temperature_base, temperature_peak
       REAL radius2,factor,deltaT
       REAL center(0:NDIM-1),ll(0:NDIM-1)
       REAL dx(0:NDIM-1),xlo(0:NDIM-1),xhi(0:NDIM-1)
 c
 c variables in 2d cell indexed         
-      REAL var(CELL3dVECG(ifirst,ilast,gcw))
+      REAL var(CELL3d(ifirst,ilast,ng))
 c
 c***********************************************************************     
 c
@@ -102,21 +101,21 @@ c
       
       factor = 1./(2.*standard_dev*standard_dev)
 
-      do ic2=ifirst2,ilast2
+      do ic2=ifirst2-ng,ilast2+ng
         xc(2) = xlo(2)+dx(2)*(dble(ic2-ifirst2)+half)
         x2 = abs(xc(2)-center(2))
         if( ll(2).gt.0 )then
            x2 = min (x2,abs(xc(2)-center(2)+ll(2)))
            x2 = min (x2,abs(xc(2)-center(2)-ll(2)))
         endif
-        do ic1=ifirst1,ilast1
+        do ic1=ifirst1-ng,ilast1+ng
           xc(1) = xlo(1)+dx(1)*(dble(ic1-ifirst1)+half)
           x1 = abs(xc(1)-center(1))
           if( ll(1).gt.0 )then
              x1 = min (x1,abs(xc(1)-center(1)+ll(1)))
              x1 = min (x1,abs(xc(1)-center(1)-ll(1)))
           endif
-          do ic0=ifirst0,ilast0
+          do ic0=ifirst0-ng,ilast0+ng
              xc(0) = xlo(0)+dx(0)*(dble(ic0-ifirst0)+half)
              x0 = abs(xc(0)-center(0))
              if( ll(0).gt.0 )then

@@ -353,11 +353,7 @@ extern "C" {
 #if (NDIM == 3)
       const int& ifirst2, const int& ilast2,
 #endif
-      const int&, const int&,
-#if (NDIM == 3)
-      const int&,
-#endif
-      const double*,
+      const double*, const int&,
       const double*,const double*,
       const double&, const double&, const double&);
 
