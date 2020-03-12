@@ -159,26 +159,17 @@ public:
       const double temperature,
       const std::vector<double>& c,
       std::vector<double>& d2fdc2,
-      const bool use_internal_units=true)
-   {
-      defaultComputeSecondDerivativeEnergyPhaseL(temperature,c,d2fdc2,use_internal_units);
-   }
+      const bool use_internal_units=true);
    virtual void computeSecondDerivativeEnergyPhaseA(
       const double temperature,
       const std::vector<double>& c,
       std::vector<double>& d2fdc2,
-      const bool use_internal_units=true)
-   {
-      defaultComputeSecondDerivativeEnergyPhaseA(temperature,c,d2fdc2,use_internal_units);
-   }
+      const bool use_internal_units=true);
    virtual void computeSecondDerivativeEnergyPhaseB(
       const double temperature,
       const std::vector<double>& c,
       std::vector<double>& d2fdc2,
-      const bool use_internal_units=true)
-   {
-      defaultComputeSecondDerivativeEnergyPhaseB(temperature,c,d2fdc2,use_internal_units);
-   }
+      const bool use_internal_units=true);
    
    void computeSecondDerivativeEnergyPhase(
       const char phase,

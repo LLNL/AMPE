@@ -46,7 +46,6 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 using namespace SAMRAI;
-using namespace std;
 
 #include <cassert>
 
@@ -822,10 +821,10 @@ void KKSdiluteBinary::addDrivingForceEta(
 
 //=======================================================================
 
-void KKSdiluteBinary::defaultComputeSecondDerivativeEnergyPhaseL(
+void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseL(
    const double temp,
-   const vector<double>& c_l,
-   vector<double>& d2fdc2,
+   const std::vector<double>& c_l,
+   std::vector<double>& d2fdc2,
    const bool use_internal_units)
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_l[0],phaseL,d2fdc2);
@@ -836,10 +835,10 @@ void KKSdiluteBinary::defaultComputeSecondDerivativeEnergyPhaseL(
 
 //=======================================================================
 
-void KKSdiluteBinary::defaultComputeSecondDerivativeEnergyPhaseA(
+void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseA(
    const double temp,
-   const vector<double>& c_a,
-   vector<double>& d2fdc2,
+   const std::vector<double>& c_a,
+   std::vector<double>& d2fdc2,
    const bool use_internal_units)
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_a[0],phaseA,d2fdc2);
@@ -850,10 +849,10 @@ void KKSdiluteBinary::defaultComputeSecondDerivativeEnergyPhaseA(
 
 //=======================================================================
 
-void KKSdiluteBinary::defaultComputeSecondDerivativeEnergyPhaseB(
+void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseB(
    const double temp,
-   const vector<double>& c_b,
-   vector<double>& d2fdc2,
+   const std::vector<double>& c_b,
+   std::vector<double>& d2fdc2,
    const bool use_internal_units)
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_b[0],phaseB,d2fdc2);
