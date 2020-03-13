@@ -36,6 +36,10 @@
 #ifndef included_Phases
 #define included_Phases
 
-enum PHASE_INDEX { phaseL, phaseA, phaseB };
+enum class PhaseIndex {
+   phaseL,
+   phaseA,
+   phaseB
+};
 
 #endif

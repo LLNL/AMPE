@@ -156,8 +156,8 @@ int main( int argc, char *argv[] )
    tbox::pout<<"   cL = "<<sol[0]<<", "<<sol[1]<<endl;
    tbox::pout<<"   cS = "<<sol[2]<<", "<<sol[3]<<endl;
 
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
+   const PhaseIndex pi1=PhaseIndex::phaseA;
 
    tbox::pout<<"Verification:"<<endl;
 

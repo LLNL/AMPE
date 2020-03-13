@@ -290,7 +290,7 @@ private:
       const int temperature_id,
       const int f_id,
       const int c_i_id,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp );
  
    void computeDerivFreeEnergyPrivate(
@@ -298,14 +298,14 @@ private:
       const int temperature_id,
       const int f_id,
       const int c_i_id,
-      const PHASE_INDEX pi );
+      const PhaseIndex pi );
  
    void computeFreeEnergyPrivate(
       hier::Patch& patch,
       const int temperature_id,
       const int f_id,
       const int c_i_id,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp );
  
    void computeDerivFreeEnergyPrivate(
@@ -313,14 +313,14 @@ private:
       const int temperature_id,
       const int f_id,
       const int c_i_id,
-      const PHASE_INDEX pi );
+      const PhaseIndex pi );
  
    void computeFreeEnergyPrivatePatch(
       const hier::Box& pbox,
       boost::shared_ptr< pdat::CellData<double> > cd_temp,
       boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
       boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp );
 
    void computeDerivFreeEnergyPrivatePatch(
@@ -328,7 +328,7 @@ private:
       boost::shared_ptr< pdat::CellData<double> > cd_temp,
       boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
       boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-      const PHASE_INDEX pi );
+      const PhaseIndex pi );
 
    void addDrivingForceEtaOnPatchPrivate(
       boost::shared_ptr< pdat::CellData<double> > cd_rhs,

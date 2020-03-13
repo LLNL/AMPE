@@ -63,22 +63,22 @@ public:
    virtual double computeFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp=false  );   
    virtual void computeDerivFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       double* );
    virtual void computeSecondDerivativeFreeEnergy(
       const double temp,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       std::vector<double>& d2fdc2);
 
    virtual bool computeCeqT(
       const double temperature,
-      const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+      const PhaseIndex pi0, const PhaseIndex pi1,
       double* ceq,
       const int maxits = 20,
       const bool verbose = false);

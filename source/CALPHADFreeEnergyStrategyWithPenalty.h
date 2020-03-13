@@ -64,7 +64,7 @@ public:
 
    virtual bool computeCeqT(
       const double temperature,
-      const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+      const PhaseIndex pi0, const PhaseIndex pi1,
       double* ceq );
 
    virtual double computeValFreeEnergyLiquid(
@@ -72,10 +72,10 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseL,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseL, conc);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,PhaseIndex::phaseL,gp);
+      const double f2 = d_calphad_fenergy->computePenalty(PhaseIndex::phaseL, conc);
       
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseL); 
+      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,PhaseIndex::phaseL); 
    }
 
    virtual double computeValFreeEnergySolidA(
@@ -83,10 +83,10 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseA,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseA, conc);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,PhaseIndex::phaseA,gp);
+      const double f2 = d_calphad_fenergy->computePenalty(PhaseIndex::phaseA, conc);
       
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseA); 
+      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,PhaseIndex::phaseA); 
    }
 
    virtual double computeValFreeEnergySolidB(
@@ -94,10 +94,10 @@ public:
       const double conc,
       const bool gp = false )
    {
-      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,phaseB,gp);
-      const double f2 = d_calphad_fenergy->computePenalty(phaseB, conc);
+      const double f1 = d_calphad_fenergy->computeFreeEnergy(temperature,&conc,PhaseIndex::phaseB,gp);
+      const double f2 = d_calphad_fenergy->computePenalty(PhaseIndex::phaseB, conc);
       
-      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,phaseB);  
+      return (f1+f2)*d_mv_strategy->computeInvMolarVolume(temperature,&conc,PhaseIndex::phaseB);  
    }
 
    void computeSecondDerivativeEnergyPhaseL(
@@ -109,14 +109,14 @@ public:
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       assert( calphad_fenergy );
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_l[0],phaseL,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_l[0],PhaseIndex::phaseL,d2fdc2);
       
-      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseL, c_l[0]);
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(PhaseIndex::phaseL, c_l[0]);
       
       d2fdc2[0]+= extra_energy;
   
       if( use_internal_units )
-         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_l[0],phaseL);
+         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_l[0],PhaseIndex::phaseL);
       
       if( d2fdc2[0]<0. )
          tbox::pout<<"CALPHADFreeEnergyStrategyWithPenalty --- WARNING: fcc="<<d2fdc2[0]<<" in liquid for cl="<<c_l[0]<<"!!!"<<std::endl;
@@ -131,14 +131,14 @@ public:
    {
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_a[0],phaseA,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_a[0],PhaseIndex::phaseA,d2fdc2);
       
-      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseA, c_a[0]);
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(PhaseIndex::phaseA, c_a[0]);
       
       d2fdc2[0]+= extra_energy;
       
       if( use_internal_units )
-         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_a[0],phaseA);
+         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_a[0],PhaseIndex::phaseA);
       
       if( d2fdc2[0]<0. )
          tbox::pout<<"CALPHADFreeEnergyStrategyWithPenalty --- WARNING: fcc="<<d2fdc2[0]<<" in phase A for ca="<<c_a[0]<<"!!!"<<std::endl;
@@ -153,14 +153,14 @@ public:
    {
       CALPHADFreeEnergyFunctionsBinary* calphad_fenergy=dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_calphad_fenergy);
       
-      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_b[0],phaseB,d2fdc2);
+      calphad_fenergy->computeSecondDerivativeFreeEnergy(temperature,&c_b[0],PhaseIndex::phaseB,d2fdc2);
       
-      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(phaseB, c_b[0]);
+      double extra_energy = calphad_fenergy->compute2ndDerivPenalty(PhaseIndex::phaseB, c_b[0]);
       
       d2fdc2[0]+= extra_energy;
       
       if( use_internal_units )
-         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_b[0],phaseB);
+         d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temperature,&c_b[0],PhaseIndex::phaseB);
       
       if( d2fdc2[0]<0. )
          tbox::pout<<"CALPHADFreeEnergyStrategyWithPenalty --- WARNING: fcc="<<d2fdc2[0]<<" in phase B for cb="<<c_b[0]<<"!!!"<<std::endl;

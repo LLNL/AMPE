@@ -107,8 +107,8 @@ int main( int argc, char *argv[] )
            with_third_phase);
  
    // choose pair of phases: phaseL, phaseA, phaseB
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
+   const PhaseIndex pi1=PhaseIndex::phaseA;
    
    // initial guesses
    double init_guess[2];

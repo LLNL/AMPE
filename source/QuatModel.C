@@ -2767,17 +2767,17 @@ void QuatModel::preRunDiagnostics( void )
          double ceq[4]; // 2 phases x 2 compositions max.
          bool found_ceq=false;
          if( phi_min<0.1 ){
-            found_ceq=computeCeq(temperature,phaseL, phaseA,&ceq[0]);
+            found_ceq=computeCeq(temperature,PhaseIndex::phaseL, PhaseIndex::phaseA,&ceq[0]);
 
             // compute equilibrium composition for pair L,B
             if( d_model_parameters.with_third_phase() ){
-               found_ceq=computeCeq(temperature,phaseL, phaseB,&ceq[0]);
+               found_ceq=computeCeq(temperature,PhaseIndex::phaseL, PhaseIndex::phaseB,&ceq[0]);
             }
          }
          
          if( d_model_parameters.with_third_phase() )
          {
-            found_ceq=computeCeq(temperature,phaseA, phaseB,&ceq[0]);
+            found_ceq=computeCeq(temperature, PhaseIndex::phaseA, PhaseIndex::phaseB,&ceq[0]);
          }
          
          if( d_cafe!=0 && found_ceq )
@@ -2822,7 +2822,7 @@ void QuatModel::preRunDiagnostics( void )
 //-----------------------------------------------------------------------
 
 bool QuatModel::computeCeq(const double temperature, 
-                           const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+                           const PhaseIndex pi0, const PhaseIndex pi1,
                            double* ceq)const
 {
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());

@@ -337,7 +337,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    const double temperature,
    const double* conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    const bool gp )
 {
    const double conc0=conc[0];
@@ -363,14 +363,14 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
    switch( pi ){
-      case phaseL:
+      case PhaseIndex::phaseL:
          g_species=&d_g_species_phaseL[0];
          break;
-      case phaseA:
+      case PhaseIndex::phaseA:
          g_species=&d_g_species_phaseA[0];
          break;
       default:
-         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(), undefined phase!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return 0.;
    }
@@ -401,7 +401,7 @@ double CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(
 void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
    const double temperature,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    double* deriv )
 {
    double lAB[4] = {lmix0ABPhase( pi, temperature ),
@@ -423,14 +423,14 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
    CALPHADSpeciesPhaseGibbsEnergy* g_species;
    
    switch( pi ){
-      case phaseL:
+      case PhaseIndex::phaseL:
          g_species=&d_g_species_phaseL[0];
          break;
-      case phaseA:
+      case PhaseIndex::phaseA:
          g_species=&d_g_species_phaseA[0];
          break;
       default:
-         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<"CALPHADFreeEnergyFunctionsTernary::computeFreeEnergy(), undefined phase!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return;
    }
@@ -456,7 +456,7 @@ void CALPHADFreeEnergyFunctionsTernary::computeDerivFreeEnergy(
 void CALPHADFreeEnergyFunctionsTernary::computeSecondDerivativeFreeEnergy(
    const double temp,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    std::vector<double>& d2fdc2)
 {
    assert( conc[0]>=0. );
@@ -539,15 +539,15 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesS(const double temperature)
 
 void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1)
+   const PhaseIndex pi0, const PhaseIndex pi1)
 {
-   PHASE_INDEX pis[2]={pi0,pi1};
+   PhaseIndex pis[2]={pi0,pi1};
    
    for(short i=0;i<2;i++)
    {
       switch ( pis[i] ) {
       
-         case phaseL:
+         case PhaseIndex::phaseL:
             d_fA[i] = d_g_species_phaseL[0].fenergy( temperature );
             d_fB[i] = d_g_species_phaseL[1].fenergy( temperature );
             d_fC[i] = d_g_species_phaseL[2].fenergy( temperature );
@@ -556,7 +556,7 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
 
             break;
    
-         case phaseA:         
+         case PhaseIndex::phaseA:
             d_fA[i] = d_g_species_phaseA[0].fenergy( temperature );
             d_fB[i] = d_g_species_phaseA[1].fenergy( temperature );
             d_fC[i] = d_g_species_phaseA[2].fenergy( temperature );
@@ -595,7 +595,7 @@ void CALPHADFreeEnergyFunctionsTernary::setup(
 // compute equilibrium concentrations in various phases for given temperature
 bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const PhaseIndex pi0, const PhaseIndex pi1,
    double* ceq,
    const int maxits,
    const bool verbose )
@@ -643,7 +643,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
 
 bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const PhaseIndex pi0, const PhaseIndex pi1,
    const double c0, const double c1,
    double* ceq,
    const int maxits,
@@ -732,11 +732,11 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
 
    assert( conc0>=0. );
    double concl[2]={cauxilliary[0],cauxilliary[1]};
-   fl = computeFreeEnergy(temperature,&concl[0],phaseL,false);
+   fl = computeFreeEnergy(temperature,&concl[0],PhaseIndex::phaseL,false);
 
    assert( conc1>=0. );
    double conca[2]={cauxilliary[2],cauxilliary[3]};
-   fa = computeFreeEnergy(temperature,&conca[0],phaseA,false);
+   fa = computeFreeEnergy(temperature,&conca[0],PhaseIndex::phaseA,false);
 }
 
 //-----------------------------------------------------------------------
@@ -872,8 +872,8 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(
       // compute slope of f between equilibrium concentrations
       // to add slopec*conc to energy later on
    
-      fc0 = computeFreeEnergy(temperature,&ceqL[0],phaseL);
-      fc1 = computeFreeEnergy(temperature,&ceqS[0],phaseA);
+      fc0 = computeFreeEnergy(temperature,&ceqL[0],PhaseIndex::phaseL);
+      fc1 = computeFreeEnergy(temperature,&ceqS[0],PhaseIndex::phaseA);
       slopec = -(fc1-fc0)/(ceqL[1]-ceqL[0]);
       
    }
@@ -1015,9 +1015,9 @@ double CALPHADFreeEnergyFunctionsTernary::fchem(
       double conc[2]={conc0,conc1};
       if( phi<=tol )
       {
-         fl=computeFreeEnergy(temperature,&conc[0],phaseL);
+         fl=computeFreeEnergy(temperature,&conc[0],PhaseIndex::phaseL);
       }else{
-         fa=computeFreeEnergy(temperature,&conc[0],phaseA);
+         fa=computeFreeEnergy(temperature,&conc[0],PhaseIndex::phaseA);
       }
    }
 

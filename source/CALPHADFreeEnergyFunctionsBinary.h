@@ -77,22 +77,22 @@ public:
    virtual double computeFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp=false  );   
    virtual void computeDerivFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       double* );
    virtual void computeSecondDerivativeFreeEnergy(
       const double temp,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       std::vector<double>& d2fdc2);
 
    virtual bool computeCeqT(
       const double temperature,
-      const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+      const PhaseIndex pi0, const PhaseIndex pi1,
       double* ceq,
       const int maxits = 20,
       const bool verbose = false);
@@ -159,11 +159,11 @@ public:
       std::ostream& os );
 
    // empty default implementation to avoid downcasting
-   virtual double computePenalty(const PHASE_INDEX, const double){return 0.;};
-   virtual double computeDerivPenalty(const PHASE_INDEX, const double){
+   virtual double computePenalty(const PhaseIndex, const double){return 0.;};
+   virtual double computeDerivPenalty(const PhaseIndex, const double){
       return 0.;
    };
-   virtual double compute2ndDerivPenalty(const PHASE_INDEX, const double){
+   virtual double compute2ndDerivPenalty(const PhaseIndex, const double){
       return 0.;
    };
    
@@ -185,7 +185,7 @@ protected:
    void setupValuesForTwoPhasesSolver(const double temperature,
            double* L0, double* L1, double* L2, double* L3,
            double* fA, double* fB,
-           const PHASE_INDEX pi0, const PHASE_INDEX pi1);
+           const PhaseIndex pi0, const PhaseIndex pi1);
 
    void setup(const double temperature);
 
@@ -234,27 +234,27 @@ private:
    }
 
    double lmixPhase( const unsigned index,
-                     const PHASE_INDEX pi,
+                     const PhaseIndex pi,
                      const double temperature )
    {
       TBOX_ASSERT( index<4 );
 
       switch( pi ){
-         case phaseL:
+         case PhaseIndex::phaseL:
             return d_LmixPhaseL[index][0] 
                  + d_LmixPhaseL[index][1] * temperature
 #ifdef HAVE_TLOGT
                  + d_LmixPhaseL[index][2] * temperature * log( temperature)
 #endif
                  ;
-         case phaseA:
+         case PhaseIndex::phaseA:
             return d_LmixPhaseA[index][0]
                  + d_LmixPhaseA[index][1] * temperature
 #ifdef HAVE_TLOGT
                  + d_LmixPhaseA[index][2] * temperature * log( temperature)
 #endif
                  ;
-         case phaseB:
+         case PhaseIndex::phaseB:
             return d_LmixPhaseB[index][0]
                  + d_LmixPhaseB[index][1] * temperature
 #ifdef HAVE_TLOGT
@@ -263,8 +263,8 @@ private:
                  ;
          default:
             SAMRAI::tbox::pout<<
-               "CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase="
-               <<pi<<"!!!"<<std::endl;
+               "CALPHADFreeEnergyStrategy::lmix0Phase(), undefined phase"
+               <<"!!!"<<std::endl;
             SAMRAI::tbox::SAMRAI_MPI::abort();
          return 0.;
       }

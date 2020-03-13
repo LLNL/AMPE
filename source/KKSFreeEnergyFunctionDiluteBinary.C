@@ -114,22 +114,22 @@ void KKSFreeEnergyFunctionDiluteBinary::readParameters(
 double KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(
    const double temperature,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    const bool gp )
 {
    double fe = xlogx(conc[0]) + xlogx(1.-conc[0]);
    setupFB( temperature );
 
    switch( pi ){
-      case phaseL:
+      case PhaseIndex::phaseL:
          break;
-      case phaseA:
+      case PhaseIndex::phaseA:
          fe += conc[0]*d_fA+(1.-conc[0])*d_fB;
          break;
       default:
          SAMRAI::tbox::pout<<
-            "KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase="
-            <<pi<<"!!!"<<std::endl;
+            "KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase!!!"
+            <<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return 0.;
    }
@@ -151,20 +151,20 @@ double KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(
 void KKSFreeEnergyFunctionDiluteBinary::computeDerivFreeEnergy(
    const double temperature,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    double* deriv )
 {
    double mu = xlogx_deriv( conc[0] ) - xlogx_deriv( 1.0 - conc[0] );
  
    switch( pi ){
-      case phaseL:
+      case PhaseIndex::phaseL:
          break;
-      case phaseA:
+      case PhaseIndex::phaseA:
          setupFB( temperature );
          mu += (d_fA-d_fB);
          break;
       default:
-         SAMRAI::tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase="<<pi<<"!!!"<<std::endl;
+         SAMRAI::tbox::pout<<"KKSFreeEnergyFunctionDiluteBinary::computeFreeEnergy(), undefined phase!!!"<<std::endl;
          SAMRAI::tbox::SAMRAI_MPI::abort();
       return;
    }
@@ -177,7 +177,7 @@ void KKSFreeEnergyFunctionDiluteBinary::computeDerivFreeEnergy(
 void KKSFreeEnergyFunctionDiluteBinary::computeSecondDerivativeFreeEnergy(
    const double temp,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    std::vector<double>& d2fdc2)
 {
    assert( conc[0]>=0. );
@@ -210,7 +210,7 @@ void KKSFreeEnergyFunctionDiluteBinary::setupFB(const double temperature)
 // compute equilibrium concentrations in various phases for given temperature
 bool KKSFreeEnergyFunctionDiluteBinary::computeCeqT(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const PhaseIndex pi0, const PhaseIndex pi1,
    double* ceq,
    const int maxits,
    const bool verbose )
@@ -260,10 +260,10 @@ void KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies(
    }
 
    assert( c[0]>=0. );
-   fl = computeFreeEnergy(temperature,&c[0],phaseL,false);
+   fl = computeFreeEnergy(temperature,&c[0],PhaseIndex::phaseL,false);
 
    assert( c[1]>=0. );
-   fa = computeFreeEnergy(temperature,&c[1],phaseA,false);
+   fa = computeFreeEnergy(temperature,&c[1],PhaseIndex::phaseA,false);
 }
 
 //-----------------------------------------------------------------------
@@ -330,8 +330,8 @@ void KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC(
       // compute slope of f between equilibrium concentrations
       // to add slopec*conc to energy later on
    
-      fc0 = computeFreeEnergy(temperature,&ceq[0],phaseL);
-      fc1 = computeFreeEnergy(temperature,&ceq[1],phaseA);
+      fc0 = computeFreeEnergy(temperature,&ceq[0],PhaseIndex::phaseL);
+      fc1 = computeFreeEnergy(temperature,&ceq[1],PhaseIndex::phaseA);
       slopec = -(fc1-fc0)/(ceq[1]-ceq[0]);
    }
    tbox::plog<<setprecision(8)<<"fc0: "<<fc0<<"..."<<", fc1: "<<fc1<<"..."<<endl;
@@ -464,9 +464,9 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(
    }else{
       if( phi<=tol )
       {
-         fl=computeFreeEnergy(temperature,conc,phaseL);
+         fl=computeFreeEnergy(temperature,conc,PhaseIndex::phaseL);
       }else{
-         fa=computeFreeEnergy(temperature,conc,phaseA);
+         fa=computeFreeEnergy(temperature,conc,PhaseIndex::phaseA);
       }
    }
 

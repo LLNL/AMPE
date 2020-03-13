@@ -150,8 +150,8 @@ int main( int argc, char *argv[] )
    cafe.preRunDiagnostics(303., 2899. );
 
    // choose pair of phases: phaseL, phaseA, phaseB
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=phaseL;
+   const PhaseIndex pi1=phaseA;
    
    // initial guesses
    double init_guess[2];

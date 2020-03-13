@@ -122,8 +122,8 @@ int main( int argc, char *argv[] )
 
    const double tol = 1.e-5;
 
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
+   const PhaseIndex pi1=PhaseIndex::phaseA;
 
    tbox::pout<<"-------------------------------"<<endl; 
    tbox::pout<<"Temperature = "<<temperature<<endl;

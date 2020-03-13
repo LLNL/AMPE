@@ -501,7 +501,8 @@ private :
       boost::shared_ptr< pdat::CellData<double> > cd_phi );
 
    void preRunDiagnosticsMobilityInPhases( const double temperature );
-   bool computeCeq(const double temperature, const PHASE_INDEX pi0, const PHASE_INDEX pi1, 
+   bool computeCeq(const double temperature, const PhaseIndex pi0,
+                   const PhaseIndex pi1, 
                    double* ceq)const;
 
    void applyPolynomial(

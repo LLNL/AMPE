@@ -104,7 +104,7 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::readParameters(
 double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeFreeEnergy(
    const double temperature,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    const bool gp )
 {
    double fe = CALPHADFreeEnergyFunctionsBinary::computeFreeEnergy(temperature,
@@ -127,7 +127,7 @@ double CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeFreeEnergy(
 void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeDerivFreeEnergy(
    const double temperature,
    const double* const conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    double* deriv )
 {
    double fe;
@@ -144,7 +144,7 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeDerivFreeEnergy(
 void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeSecondDerivativeFreeEnergy(
    const double temp,
    const std::vector<double>& conc,
-   const PHASE_INDEX pi,
+   const PhaseIndex pi,
    std::vector<double>& d2fdc2)
 {
    CALPHADFreeEnergyFunctionsBinary::computeSecondDerivativeFreeEnergy(temp,
@@ -160,7 +160,7 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeSecondDerivativeFreeEne
 // compute equilibrium concentrations in various phases for given temperature
 bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const PhaseIndex pi0, const PhaseIndex pi1,
    double* ceq )
 {
    assert( temperature>0. );
@@ -177,8 +177,8 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
 
    setupValuesForTwoPhasesSolver(temperature, L0, L1, L2, L3, fA, fB, pi0, pi1);
    vector<vector<double> > penalty_parameters;
-   penalty_parameters.push_back( d_penalty_parameters[pi0] );
-   penalty_parameters.push_back( d_penalty_parameters[pi1] );
+   penalty_parameters.push_back( d_penalty_parameters[static_cast<int>(pi0)] );
+   penalty_parameters.push_back( d_penalty_parameters[static_cast<int>(pi1)] );
    double RTinv = 1.0 / ( gas_constant_R_JpKpmol * temperature );
    CALPHADEqConcentrationSolverBinaryWithPenalty  eq_solver;
    int ret = eq_solver.ComputeConcentrationWithPenalty(
@@ -192,15 +192,15 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
    {
       switch( pi0 )
       {
-         case phaseL:
+         case PhaseIndex::phaseL:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseL="<<ceq[0]<<endl;
             d_ceq_l=ceq[0];
             break;
-         case phaseA:
+         case PhaseIndex::phaseA:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseA="<<ceq[0]<<endl;
             d_ceq_a=ceq[0];
             break;
-         case phaseB:
+         case PhaseIndex::phaseB:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseB="<<ceq[0]<<endl;
             d_ceq_b=ceq[0];
             break;
@@ -208,15 +208,15 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
       
       switch( pi1 )
       {
-         case phaseL:
+         case PhaseIndex::phaseL:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseL="<<ceq[1]<<endl;
             d_ceq_l=ceq[1];
             break;
-         case phaseA:
+         case PhaseIndex::phaseA:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseA="<<ceq[1]<<endl;
             d_ceq_a=ceq[1];
             break;
-         case phaseB:
+         case PhaseIndex::phaseB:
             tbox::pout<<"CALPHAD with Penalty, c_eq phaseB="<<ceq[1]<<endl;
             d_ceq_b=ceq[1];
             break;

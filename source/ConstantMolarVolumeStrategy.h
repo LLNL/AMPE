@@ -50,20 +50,20 @@ public:
       assert( vml>0. );
       assert( vma>0. );
 
-      d_inv_vm[phaseL] = 1.e-6 / vml;
-      d_inv_vm[phaseA] = 1.e-6 / vma;
-      d_inv_vm[phaseB] = 1.e-6 / vmb;
+      d_inv_vm[static_cast<int>(PhaseIndex::phaseL)] = 1.e-6 / vml;
+      d_inv_vm[static_cast<int>(PhaseIndex::phaseA)] = 1.e-6 / vma;
+      d_inv_vm[static_cast<int>(PhaseIndex::phaseB)] = 1.e-6 / vmb;
    }
    
    
    virtual double computeInvMolarVolume(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi ) 
+      const PhaseIndex pi ) 
    {
        (void)temperature;
        (void)conc;
-       return d_inv_vm[pi];
+       return d_inv_vm[static_cast<int>(pi)];
    }
 
 private:

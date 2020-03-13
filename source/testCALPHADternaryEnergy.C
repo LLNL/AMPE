@@ -133,7 +133,7 @@ int main( int argc, char *argv[] )
    model_db->getDoubleArray("concentration",&c[0],2);
 
    // choose pair of phases: phaseL, phaseA
-   PHASE_INDEX pindex;
+   PhaseIndex pindex;
    string phase = model_db->getString("phase");
    if( phase=="solid" )pindex=phaseA;
    else if(phase=="liquid" )pindex=phaseL;

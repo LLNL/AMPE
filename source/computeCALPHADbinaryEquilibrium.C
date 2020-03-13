@@ -107,8 +107,8 @@ int main( int argc, char *argv[] )
            with_third_phase);
  
    // choose pair of phases: phaseL, phaseA, phaseB
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
+   const PhaseIndex pi1=PhaseIndex::phaseA;
    
    // initial guesses
    double init_guess[2];
@@ -135,10 +135,10 @@ int main( int argc, char *argv[] )
    }
 
    std::vector<double> d2fdc2(1,0.);
-   cafe.computeSecondDerivativeFreeEnergy(temperature, lceq, phaseL, d2fdc2);
+   cafe.computeSecondDerivativeFreeEnergy(temperature, lceq, PhaseIndex::phaseL, d2fdc2);
    cout<<"2nd derivative of fL [J/mol]: "<<d2fdc2[0]<<endl;
 
-   cafe.computeSecondDerivativeFreeEnergy(temperature, lceq, phaseA, d2fdc2);
+   cafe.computeSecondDerivativeFreeEnergy(temperature, lceq, PhaseIndex::phaseA, d2fdc2);
    cout<<"2nd derivative of fS [J/mol]: "<<d2fdc2[0]<<endl;
 
    input_db.reset();

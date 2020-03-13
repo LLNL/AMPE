@@ -124,8 +124,8 @@ int main( int argc, char *argv[] )
                    init_guess[4]};
 
    // choose pair of phases: phaseL, phaseA
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
+   const PhaseIndex pi1=PhaseIndex::phaseA;
 
    bool found_ceq =
       cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],

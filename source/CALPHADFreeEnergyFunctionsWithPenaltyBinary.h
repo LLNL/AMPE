@@ -57,21 +57,21 @@ public:
    virtual double computeFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       const bool gp=false  );
    virtual void computeDerivFreeEnergy(
       const double temperature,
       const double* const conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       double* deriv );
    virtual void computeSecondDerivativeFreeEnergy(
       const double temp,
       const std::vector<double>& conc,
-      const PHASE_INDEX pi,
+      const PhaseIndex pi,
       std::vector<double>& d2fdc2);
    virtual bool computeCeqT(
       const double temperature,
-      const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+      const PhaseIndex pi0, const PhaseIndex pi1,
       double* ceq );
 
 private:
@@ -82,11 +82,12 @@ private:
       boost::shared_ptr<SAMRAI::tbox::Database> calphad_db);
    void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
    
-   double computePenalty(const PHASE_INDEX index, const double conc)
+   double computePenalty(const PhaseIndex index, const double conc)
    {
       assert( d_penalty_parameters.size()>0 );
       assert( d_penalty_parameters.size()>index );
-      const std::vector<double>& penalty_parameters(d_penalty_parameters[index]);
+      const std::vector<double>& penalty_parameters(
+         d_penalty_parameters[static_cast<int>(index)]);
       assert( penalty_parameters.size()==6 );
       
       double dd =  CALPHADcomputePenalty(penalty_parameters[0], penalty_parameters[1],  penalty_parameters[2],
@@ -96,11 +97,12 @@ private:
       return dd;
    }
 
-   double computeDerivPenalty(const PHASE_INDEX index, const double conc)
+   double computeDerivPenalty(const PhaseIndex index, const double conc)
    {
       assert( d_penalty_parameters.size()>0 );
       assert( d_penalty_parameters.size()>index );
-      const std::vector<double>& penalty_parameters(d_penalty_parameters[index]);
+      const std::vector<double>& penalty_parameters(
+         d_penalty_parameters[static_cast<int>(index)]);
       assert( penalty_parameters.size()==6 );
       
       double dd = CALPHADcomputeDerivPenalty(penalty_parameters[0], penalty_parameters[1],  penalty_parameters[2],
@@ -110,11 +112,12 @@ private:
       return dd;
    }
 
-   double compute2ndDerivPenalty(const PHASE_INDEX index, const double conc)
+   double compute2ndDerivPenalty(const PhaseIndex index, const double conc)
    {
       assert( d_penalty_parameters.size()>0 );
       assert( d_penalty_parameters.size()>index );
-      const std::vector<double>& penalty_parameters(d_penalty_parameters[index]);
+      const std::vector<double>& penalty_parameters(
+         d_penalty_parameters[static_cast<int>(index)]);
       assert( penalty_parameters.size()==6 );
       
       double dd = CALPHADcompute2ndDerivPenalty(penalty_parameters[0], penalty_parameters[1],  penalty_parameters[2],

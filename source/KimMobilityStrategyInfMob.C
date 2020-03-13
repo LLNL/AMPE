@@ -86,7 +86,7 @@ double KimMobilityStrategyInfMob::evaluateMobility(
    const double temp,
    const std::vector<double>&  phaseconc)
 {
-   const PHASE_INDEX pi0=phaseL;
+   const PhaseIndex pi0=PhaseIndex::phaseL;
 
    d_fenergy->computeSecondDerivativeFreeEnergy(
       temp,&phaseconc[0],pi0,d_d2fdc2);

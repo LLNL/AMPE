@@ -112,7 +112,7 @@ void CALPHADFreeEnergyStrategyWithPenalty::setup(
 // compute equilibrium concentrations in various phases for given temperature
 bool CALPHADFreeEnergyStrategyWithPenalty::computeCeqT(
    const double temperature,
-   const PHASE_INDEX pi0, const PHASE_INDEX pi1,
+   const PhaseIndex pi0, const PhaseIndex pi1,
    double* ceq )
 {
    assert( temperature>0. );

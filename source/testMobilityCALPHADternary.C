@@ -142,8 +142,8 @@ int main( int argc, char *argv[] )
    model_db->printClassData(tbox::plog);
 
    // choose pair of phases: phaseL, phaseA
-   const PHASE_INDEX pi0=phaseL;
-   const PHASE_INDEX pi1=phaseA;
+   const PhaseIndex pi0=phaseL;
+   const PhaseIndex pi1=phaseA;
 
    bool found_ceq =
       cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],
@@ -164,7 +164,7 @@ int main( int argc, char *argv[] )
           <<epsilon*sqrt(16.*phase_well_scale)/(3.*sqrt(2.))<<" (J/m^2)"<<endl;
       cout<<"Delta: "<<epsilon/sqrt(32.*phase_well_scale)<<" (um)"<<endl;
 
-      const PHASE_INDEX pi0=phaseL;
+      const PhaseIndex pi0=phaseL;
       std::vector<double> d2fdc2(4);
       cafe.computeSecondDerivativeFreeEnergy(
          temperature,&lceq[0],pi0,d2fdc2);
