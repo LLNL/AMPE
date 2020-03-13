@@ -102,13 +102,10 @@ void KKSdiluteBinary::computeFreeEnergyLiquid(
    assert( temperature_id >= 0 );
    assert( fl_id >= 0 );
  
-   assert( d_conc_l_id >= 0 );
-
    computeFreeEnergyPrivate(
       hierarchy,
       temperature_id,
       fl_id,
-      d_conc_l_id,
       PhaseIndex::phaseL,
       gp );
 }
@@ -122,7 +119,6 @@ void KKSdiluteBinary::computeDerivFreeEnergyLiquid(
 {
    assert( temperature_id >= 0 );
    assert( dfl_id >= 0 );
-   assert( d_conc_l_id>=0 );
 
    //tbox::pout<<"d_conc_l_id="<<d_conc_l_id<<std::endl;
 
@@ -130,7 +126,6 @@ void KKSdiluteBinary::computeDerivFreeEnergyLiquid(
       hierarchy,
       temperature_id,
       dfl_id,
-      d_conc_l_id,
       PhaseIndex::phaseL );
 }
 
@@ -144,13 +139,11 @@ void KKSdiluteBinary::computeFreeEnergySolidA(
 {
    assert( temperature_id >= 0. );
    assert( fs_id >= 0 );
-   assert( d_conc_a_id >= 0 );
 
    computeFreeEnergyPrivate(
       hierarchy,
       temperature_id,
       fs_id,
-      d_conc_a_id,
       PhaseIndex::phaseA,
       gp );
 }
@@ -172,7 +165,6 @@ void KKSdiluteBinary::computeDerivFreeEnergySolidA(
       hierarchy,
       temperature_id,
       dfs_id,
-      d_conc_a_id,
       PhaseIndex::phaseA );
 }
 
@@ -213,13 +205,11 @@ void KKSdiluteBinary::computeFreeEnergyLiquid(
 {
    assert( temperature_id >= 0 );
    assert( fl_id >= 0 );
-   assert( d_conc_l_id >= 0 );
 
    computeFreeEnergyPrivate(
       patch,
       temperature_id,
       fl_id,
-      d_conc_l_id,
       PhaseIndex::phaseL,
       gp );
 }
@@ -239,7 +229,6 @@ void KKSdiluteBinary::computeFreeEnergySolidA(
       patch,
       temperature_id,
       fs_id,
-      d_conc_a_id,
       PhaseIndex::phaseA,
       gp );
 }
@@ -264,14 +253,18 @@ void KKSdiluteBinary::computeFreeEnergyPrivate(
    hier::Patch& patch,
    const int temperature_id,
    const int f_id,
-   const int conc_i_id,
    const PhaseIndex pi,
    const bool gp )
 {
    assert( temperature_id >= 0 );
    assert( f_id >= 0 );
    assert( conc_i_id >= 0 );
-   
+
+   int conc_i_id = -1;
+   if( pi == PhaseIndex::phaseL )conc_i_id = d_conc_l_id;
+   else if (pi == PhaseIndex::phaseA ) conc_i_id = d_conc_a_id;
+   assert( conc_i_id >= 0 );
+
    const hier::Box& pbox = patch.getBox();
  
    boost::shared_ptr< pdat::CellData<double> > temperature (
@@ -302,13 +295,16 @@ void KKSdiluteBinary::computeDerivFreeEnergyPrivate(
    hier::Patch& patch,
    const int temperature_id,
    const int df_id,
-   const int conc_i_id,
    const PhaseIndex pi )
 {
    assert( temperature_id >= 0 );
    assert( df_id >= 0 );
+
+   int conc_i_id = -1;
+   if( pi == PhaseIndex::phaseL )conc_i_id = d_conc_l_id;
+   else if( pi == PhaseIndex::phaseA )conc_i_id = d_conc_a_id;
    assert( conc_i_id >= 0 );
-   
+ 
    const hier::Box& pbox = patch.getBox();
  
    boost::shared_ptr< pdat::CellData<double> > temperature (
@@ -338,14 +334,12 @@ void KKSdiluteBinary::computeFreeEnergyPrivate(
    const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int f_id,
-   const int conc_i_id,
    const PhaseIndex pi,
    const bool gp )
 {
    assert( temperature_id >= 0 );
    assert( f_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+
    for( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
@@ -353,7 +347,7 @@ void KKSdiluteBinary::computeFreeEnergyPrivate(
       for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
          boost::shared_ptr<hier::Patch > patch = *ip;
          
-         computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi,
+         computeFreeEnergyPrivate(*patch, temperature_id, f_id, pi,
                                   gp);
       }
    }
@@ -365,13 +359,11 @@ void KKSdiluteBinary::computeDerivFreeEnergyPrivate(
    const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
    const int temperature_id,
    const int df_id,
-   const int conc_i_id,
    const PhaseIndex pi )
 {
    assert( temperature_id >= 0 );
    assert( df_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+
    for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
       boost::shared_ptr< hier::PatchLevel > level =
          hierarchy->getPatchLevel( ln );
@@ -379,7 +371,7 @@ void KKSdiluteBinary::computeDerivFreeEnergyPrivate(
       for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
          boost::shared_ptr<hier::Patch > patch = *ip;
          
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id,
+         computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id,
                                        pi);
       }
    }

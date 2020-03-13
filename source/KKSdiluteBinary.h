@@ -40,6 +40,7 @@
 #include "FreeEnergyStrategy.h"
 #include "FuncFort.h"
 #include "InterpolationType.h"
+#include "Phases.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -218,8 +219,6 @@ private:
       const double t,
       const double c );
 
-private:
-
    void defaultComputeSecondDerivativeEnergyPhaseL(
       const double temperature,
       const std::vector<double>& c,
@@ -262,7 +261,6 @@ private:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int f_id,
-      const int c_i_id,
       const PhaseIndex pi,
       const bool gp );
  
@@ -270,14 +268,12 @@ private:
       const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
       const int temperature_id,
       const int f_id,
-      const int c_i_id,
       const PhaseIndex pi );
  
    void computeFreeEnergyPrivate(
       hier::Patch& patch,
       const int temperature_id,
       const int f_id,
-      const int c_i_id,
       const PhaseIndex pi,
       const bool gp );
  
@@ -285,7 +281,6 @@ private:
       hier::Patch& patch,
       const int temperature_id,
       const int f_id,
-      const int c_i_id,
       const PhaseIndex pi );
  
    void computeFreeEnergyPrivatePatch(
