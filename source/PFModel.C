@@ -202,16 +202,17 @@ void PFModel::Initialize(
    boost::shared_ptr<tbox::Database> geo_db ( input_db->getDatabase( "Geometry" ) );
 
 
-   int tmp_int_array[NDIM];
+   int periodic_array[NDIM];
    if( geo_db->keyExists("periodic_dimension") )
-      geo_db->getIntegerArray( "periodic_dimension", tmp_int_array, NDIM );
+      geo_db->getIntegerArray( "periodic_dimension", periodic_array, NDIM );
    else
       for ( int ii = 0; ii < NDIM; ii++ ) {
-         tmp_int_array[ii] = 1;
+         periodic_array[ii] = 1;
       }
 
-   cart_db->putIntegerArray( "periodic_dimension", tmp_int_array, NDIM );
+   cart_db->putIntegerArray( "periodic_dimension", periodic_array, NDIM );
 
+   int tmp_int_array[NDIM];
    geo_db->getIntegerArray( "coarsest_level_resolution", tmp_int_array, NDIM );
 
    // Possibly assert that tmp_int_array has powers of 2, as long as that is
@@ -223,6 +224,11 @@ void PFModel::Initialize(
    for ( int ii = 0; ii < NDIM; ii++ ) {
       lo_array[ii] = 0;
       up_array[ii] = tmp_int_array[ii] - 1;
+   }
+   for ( int ii = 0; ii < NDIM; ii++ ) {
+      if( up_array[ii]==lo_array[ii] && periodic_array[ii]==1 )
+         TBOX_ERROR( "Periodic BC require more than one cell along axis "
+                    << ii << endl );
    }
 
    tbox::DatabaseBox domain_box( tbox::Dimension(NDIM), lo_array, up_array );
