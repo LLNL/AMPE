@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "BiasDoubleWellFreeEnergyStrategy.h"
 #include "SAMRAI/pdat/CellData.h"
 
@@ -41,22 +41,14 @@
 using namespace SAMRAI;
 using namespace std;
 
-BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy()
-{}
+BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy() {}
 
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id, 
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
    (void)patch;
    (void)temperature_id;
@@ -67,65 +59,59 @@ void BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta(
    (void)f_a_id;
    (void)f_b_id;
    (void)rhs_id;
-   TBOX_ERROR("BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta() not implemented!!!\n");
+   TBOX_ERROR(
+       "BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta() not "
+       "implemented!!!\n");
 }
 
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computePhaseConcentrations(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int concentration_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int phase_id, const int eta_id,
+    const int concentration_id)
 {
-   (void) temperature_id;
-   (void) phase_id;
-   (void) eta_id;
-   (void) concentration_id;
+   (void)temperature_id;
+   (void)phase_id;
+   (void)eta_id;
+   (void)concentration_id;
 }
 
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-   const double temp,
-   const vector<double>& c_l,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
-   (void) c_l;
-   (void) use_internal_units;
+   (void)temp;
+   (void)c_l;
+   (void)use_internal_units;
 
-   d2fdc2.assign( d2fdc2.size(), 0. );
+   d2fdc2.assign(d2fdc2.size(), 0.);
 }
 
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-   const double temp,
-   const vector<double>& c_a,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
-   (void) c_a;
-   (void) use_internal_units;
+   (void)temp;
+   (void)c_a;
+   (void)use_internal_units;
 
-   d2fdc2.assign( d2fdc2.size(), 0. );
+   d2fdc2.assign(d2fdc2.size(), 0.);
 }
 
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-   const double temp,
-   const vector<double>& c_b,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
-   (void) c_b;
-   (void) use_internal_units;
+   (void)temp;
+   (void)c_b;
+   (void)use_internal_units;
 
-   d2fdc2.assign( d2fdc2.size(), 0. );
+   d2fdc2.assign(d2fdc2.size(), 0.);
 }

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,9 +32,9 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_KKSCompositionRHSStrategy
-#define included_KKSCompositionRHSStrategy 
+#define included_KKSCompositionRHSStrategy
 
 #include "CompositionRHSStrategy.h"
 #include "InterpolationType.h"
@@ -45,56 +45,43 @@
 
 #include <string>
 
-class KKSCompositionRHSStrategy:
-   public CompositionRHSStrategy
+class KKSCompositionRHSStrategy : public CompositionRHSStrategy
 {
-public:
+ public:
    KKSCompositionRHSStrategy(
-      const int conc_scratch_id,
-      const int phase_scratch_id,
-      const int diffusion0_id,
-      const int phase_coupling_diffusion_id,
-      const int temperature_scratch_id,
-      const int eta_scratch_id,
-      const int conc_eta_coupling_diffusion_id,
-      const int conc_l_scratch_id,
-      const int conc_a_scratch_id,
-      const int conc_b_scratch_id,
-      const double D_liquid,
-      const double D_solid_A,
-      const double D_solid_B,
-      const double Q0_liquid,
-      const double Q0_solid_A,
-      const double Q0_solid_B,
-      const EnergyInterpolationType phase_interp_func_type,
-      const std::string& avg_func_type
-   );
+       const int conc_scratch_id, const int phase_scratch_id,
+       const int diffusion0_id, const int phase_coupling_diffusion_id,
+       const int temperature_scratch_id, const int eta_scratch_id,
+       const int conc_eta_coupling_diffusion_id, const int conc_l_scratch_id,
+       const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const double D_liquid, const double D_solid_A, const double D_solid_B,
+       const double Q0_liquid, const double Q0_solid_A, const double Q0_solid_B,
+       const EnergyInterpolationType phase_interp_func_type,
+       const std::string& avg_func_type);
    ~KKSCompositionRHSStrategy(){};
-   
-   void computeFluxOnPatch(
-      hier::Patch& patch,
-      const int flux_id);
-   void setDiffusionCoeff(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const double                                               time);
 
-private:
+   void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
+   void setDiffusionCoeff(
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const double time);
+
+ private:
    int d_conc_scratch_id;
    int d_phase_scratch_id;
    int d_eta_scratch_id;
-   
+
    int d_conc_l_scratch_id;
    int d_conc_a_scratch_id;
    int d_conc_b_scratch_id;
-   
+
    int d_temperature_scratch_id;
-   
+
    int d_pfm_diffusion_id;
    int d_conc_phase_coupling_diffusion_id;
    int d_conc_eta_coupling_diffusion_id;
-   
+
    bool d_with_third_phase;
-   
+
    EnergyInterpolationType d_phase_interp_func_type;
    std::string d_avg_func_type;
 
@@ -109,39 +96,34 @@ private:
    boost::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
 
    void setPFMDiffCoeffForConcentration(
-      const boost::shared_ptr< hier::PatchHierarchy >,
-      const int temperature_id,
-      const int phase_id,
-      const int eta_id,
-      const int conc_pfm_diffusion_id);
-   void setDiffCoeffForGradPhi(
-      const boost::shared_ptr< hier::PatchHierarchy >,
-      const int temperature_id,
-      const int concentration_id,
-      const int phase_id,
-      const int eta_id,
-      const int conc_pfm_diffusion_id,
-      const int conc_phase_coupling_diffusion_id,
-      const int conc_eta_coupling_diffusion_id);
+       const boost::shared_ptr<hier::PatchHierarchy>, const int temperature_id,
+       const int phase_id, const int eta_id, const int conc_pfm_diffusion_id);
+   void setDiffCoeffForGradPhi(const boost::shared_ptr<hier::PatchHierarchy>,
+                               const int temperature_id,
+                               const int concentration_id, const int phase_id,
+                               const int eta_id,
+                               const int conc_pfm_diffusion_id,
+                               const int conc_phase_coupling_diffusion_id,
+                               const int conc_eta_coupling_diffusion_id);
 
    void setDiffCoeffForPhaseOnPatch(
-      boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff,
-      boost::shared_ptr< pdat::SideData<double> > sd_eta_diff_coeff,
-      boost::shared_ptr< pdat::SideData<double> > sd_pfmd_coeff,
-      boost::shared_ptr< pdat::CellData<double> > cd_phi,
-      boost::shared_ptr< pdat::CellData<double> > cd_eta,
-      boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-      boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-      boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-      const hier::Box& pbox );
+       boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+       boost::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
+       boost::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff,
+       boost::shared_ptr<pdat::CellData<double> > cd_phi,
+       boost::shared_ptr<pdat::CellData<double> > cd_eta,
+       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+       const hier::Box& pbox);
    void computeDiffusionOnPatch(
-      boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-      boost::shared_ptr< pdat::CellData<double> > cd_phi,
-      boost::shared_ptr< pdat::CellData<double> > cd_eta,
-      boost::shared_ptr< pdat::CellData<double> > cd_concentration,
-      boost::shared_ptr< pdat::SideData<double> > sd_diffusion0,
-      boost::shared_ptr< pdat::SideData<double> > sd_diffusion,
-      const hier::Box& pbox );
+       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+       boost::shared_ptr<pdat::CellData<double> > cd_phi,
+       boost::shared_ptr<pdat::CellData<double> > cd_eta,
+       boost::shared_ptr<pdat::CellData<double> > cd_concentration,
+       boost::shared_ptr<pdat::SideData<double> > sd_diffusion0,
+       boost::shared_ptr<pdat::SideData<double> > sd_diffusion,
+       const hier::Box& pbox);
 };
 
 #endif

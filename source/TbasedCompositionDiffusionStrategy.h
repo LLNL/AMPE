@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -40,42 +40,33 @@
 
 #include <cstring>
 
-class TbasedCompositionDiffusionStrategy :
-   public CompositionDiffusionStrategy
+class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
 {
-public:
-
+ public:
    TbasedCompositionDiffusionStrategy(
-      const int pfm_diffusion_l_id,
-      const int pfm_diffusion_a_id,
-      const int diffusion_coeff_l_id,
-      const int diffusion_coeff_a_id,
-      const double D_liquid, const double Q0_liquid,
-      const double D_solid_A, const double Q0_solid_A,
-      DiffusionInterpolationType interp_func_type,
-      const std::string& avg_func_type
-);
+       const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
+       const int diffusion_coeff_l_id, const int diffusion_coeff_a_id,
+       const double D_liquid, const double Q0_liquid, const double D_solid_A,
+       const double Q0_solid_A, DiffusionInterpolationType interp_func_type,
+       const std::string& avg_func_type);
 
 
-/*
- * compute actual diffusion in each phase by weighting diffusion coefficients 
- * in each phase with phase variable
- */
+   /*
+    * compute actual diffusion in each phase by weighting diffusion coefficients
+    * in each phase with phase variable
+    */
    virtual void setDiffusion(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int phase_id,
-      const int eta_id);
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int temperature_id, const int phase_id, const int eta_id);
 
    /*
     * Compute diffusion coefficient in each phase
     */
    virtual void setDiffCoeffInEachPhase(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int eta_scratch_id);
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int temperature_id, const int eta_scratch_id);
 
-private:
+ private:
    /*!
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction

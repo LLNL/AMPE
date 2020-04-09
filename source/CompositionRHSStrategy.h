@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,10 +32,10 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_CompositionRHSStrategy
-#define included_CompositionRHSStrategy 
- 
+#define included_CompositionRHSStrategy
+
 #include "FreeEnergyStrategy.h"
 #include "FuncFort.h"
 
@@ -45,46 +45,39 @@
 #include <string>
 
 using namespace SAMRAI;
- 
+
 class CompositionRHSStrategy
 {
-public:
+ public:
    CompositionRHSStrategy(const std::string& avg_func_type);
-   
+
    virtual ~CompositionRHSStrategy(){};
 
-   virtual void computeFluxOnPatch(
-      hier::Patch& patch,
-      const int flux_id)=0;
-   virtual void addFluxFromGradTonPatch(
-      hier::Patch& patch,
-      const int temperature_id,
-      const int flux_id);
-   virtual void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
+   virtual void computeFluxOnPatch(hier::Patch& patch, const int flux_id) = 0;
+   virtual void addFluxFromGradTonPatch(hier::Patch& patch,
+                                        const int temperature_id,
+                                        const int flux_id);
+   virtual void printDiagnostics(
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
    {
       (void)hierarchy;
    };
-   void setZeroFluxAtBoundaryOnPatch(
-      hier::Patch& patch, const int flux_id);
-   virtual void addFluxFromAntitrappingonPatch(
-      hier::Patch& patch,
-      const int phase_scratch_id,
-      const int dphidt_id,
-      const double alpha,
-      const int flux_id);
+   void setZeroFluxAtBoundaryOnPatch(hier::Patch& patch, const int flux_id);
+   virtual void addFluxFromAntitrappingonPatch(hier::Patch& patch,
+                                               const int phase_scratch_id,
+                                               const int dphidt_id,
+                                               const double alpha,
+                                               const int flux_id);
 
-protected:
-   double average(const double a, const double b)const
+ protected:
+   double average(const double a, const double b) const
    {
-      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
+      return FORT_AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
    }
-   
-   const char* average()const
-   {
-      return d_avg_func_type.c_str();
-   }
-private:
-   
+
+   const char* average() const { return d_avg_func_type.c_str(); }
+
+ private:
    /*!
     * function to use to take averages between two phase values
     * at cell centers and define quantity at cell boundary

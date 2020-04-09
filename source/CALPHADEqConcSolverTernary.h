@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -38,50 +38,36 @@
 
 #include "DampedNewtonSolver.h"
 
-class CALPHADEqConcentrationSolverTernary :
-   public DampedNewtonSolver
+class CALPHADEqConcentrationSolverTernary : public DampedNewtonSolver
 {
-public :
-
+ public:
    CALPHADEqConcentrationSolverTernary();
-      
-   virtual ~CALPHADEqConcentrationSolverTernary() {};
-      
+
+   virtual ~CALPHADEqConcentrationSolverTernary(){};
+
    int ComputeConcentration(
-      double* const conc,
-      const double RTinv,
-      const double* const L_AB_L,
-      const double* const L_AC_L,
-      const double* const L_BC_L,
-      const double* const L_AB_S,
-      const double* const L_AC_S,
-      const double* const L_BC_S,
-      const double* const L_ABC_L,
-      const double* const L_ABC_S,
-      const double* const fA,
-      const double* const fB,
-      const double* const fC );
-   
-protected :
+       double* const conc, const double RTinv, const double* const L_AB_L,
+       const double* const L_AC_L, const double* const L_BC_L,
+       const double* const L_AB_S, const double* const L_AC_S,
+       const double* const L_BC_S, const double* const L_ABC_L,
+       const double* const L_ABC_S, const double* const fA,
+       const double* const fB, const double* const fC);
 
-   virtual void RHS(
-      const double* const x,
-      double* const fvec );
+ protected:
+   virtual void RHS(const double* const x, double* const fvec);
 
-   virtual void Jacobian(
-      const double* const x,
-      double** const fjac );
+   virtual void Jacobian(const double* const x, double** const fjac);
 
    double d_RTinv;
    double d_RT;
    double d_c0;
    double d_hphi;
 
-   //energies of 3 species, in two phase each
+   // energies of 3 species, in two phase each
    double d_fA[2];
    double d_fB[2];
    double d_fC[2];
-   
+
    // L coefficients for 2 possible phases (L and S)
    double d_L_AB_L[4];
    double d_L_AC_L[4];

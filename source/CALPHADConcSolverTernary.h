@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -38,60 +38,36 @@
 
 #include "DampedNewtonSolver.h"
 
-class CALPHADConcentrationSolverTernary :
-   public DampedNewtonSolver
+class CALPHADConcentrationSolverTernary : public DampedNewtonSolver
 {
-public :
-
+ public:
    CALPHADConcentrationSolverTernary();
-      
-   virtual ~CALPHADConcentrationSolverTernary() {};
-      
-   void setup(const double c0,
-      const double c1,
-      const double hphi,
-      const double RTinv,
-      const double* const L_AB_L,
-      const double* const L_AC_L,
-      const double* const L_BC_L,
-      const double* const L_AB_S,
-      const double* const L_AC_S,
-      const double* const L_BC_S,
-      const double* const L_ABC_L,
-      const double* const L_ABC_S,
-      const double* const fA,
-      const double* const fB,
-      const double* const fC );
+
+   virtual ~CALPHADConcentrationSolverTernary(){};
+
+   void setup(const double c0, const double c1, const double hphi,
+              const double RTinv, const double* const L_AB_L,
+              const double* const L_AC_L, const double* const L_BC_L,
+              const double* const L_AB_S, const double* const L_AC_S,
+              const double* const L_BC_S, const double* const L_ABC_L,
+              const double* const L_ABC_S, const double* const fA,
+              const double* const fB, const double* const fC);
 
    int ComputeConcentration(
-      double* const conc,
-      const double c0,
-      const double c1,
-      const double hphi,
-      const double RTinv,
-      const double* const L_AB_L,
-      const double* const L_AC_L,
-      const double* const L_BC_L,
-      const double* const L_AB_S,
-      const double* const L_AC_S,
-      const double* const L_BC_S,
-      const double* const L_ABC_L,
-      const double* const L_ABC_S,
-      const double* const fA,
-      const double* const fB,
-      const double* const fC );
+       double* const conc, const double c0, const double c1, const double hphi,
+       const double RTinv, const double* const L_AB_L,
+       const double* const L_AC_L, const double* const L_BC_L,
+       const double* const L_AB_S, const double* const L_AC_S,
+       const double* const L_BC_S, const double* const L_ABC_L,
+       const double* const L_ABC_S, const double* const fA,
+       const double* const fB, const double* const fC);
 
-   void RHS(
-      const double* const c,
-      double* const fvec );
+   void RHS(const double* const c, double* const fvec);
 
-   void Jacobian(
-      const double* const c,
-      double** const fjac );
+   void Jacobian(const double* const c, double** const fjac);
 
-private:
-
-   //energies of 3 species, in two phase each
+ private:
+   // energies of 3 species, in two phase each
    double d_fA[2];
    double d_fB[2];
    double d_fC[2];
@@ -101,13 +77,13 @@ private:
    double d_L_AC_L[4];
    double d_L_BC_L[4];
    double d_L_ABC_L[3];
-   
+
    // L coefficients for phase S
    double d_L_AB_S[4];
    double d_L_AC_S[4];
    double d_L_BC_S[4];
    double d_L_ABC_S[3];
- 
+
    double d_c0[2];
    double d_hphi;
 

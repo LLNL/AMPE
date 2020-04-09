@@ -5,7 +5,7 @@
 
 using namespace SAMRAI;
 
-int main(int argc,char **argv)
+int main(int argc, char** argv)
 {
    // Initialize tbox::MPI and SAMRAI
    tbox::SAMRAI_MPI::init(&argc, &argv);
@@ -14,8 +14,8 @@ int main(int argc,char **argv)
 
    {
       const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-      int np=mpi.getSize();
-      tbox::pout<<"Run MPI with "<<np<<" tasks\n";
+      int np = mpi.getSize();
+      tbox::pout << "Run MPI with " << np << " tasks\n";
    }
 
    // Shutdown SAMRAI and tbox::MPI.
@@ -23,7 +23,6 @@ int main(int argc,char **argv)
    tbox::SAMRAIManager::finalize();
    tbox::SAMRAI_MPI::finalize();
 
-   //return 0 for SUCCESS
+   // return 0 for SUCCESS
    return 0;
 }
-

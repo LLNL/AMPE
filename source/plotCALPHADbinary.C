@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -51,7 +51,7 @@ using namespace SAMRAI;
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
    // Initialize MPI, SAMRAI
 
@@ -61,63 +61,63 @@ int main( int argc, char *argv[] )
 
    {
 
-   std::string input_filename( argv[1] );
+      std::string input_filename(argv[1]);
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(
-      new tbox::MemoryDatabase("input_db"));
-   tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+      boost::shared_ptr<tbox::MemoryDatabase> input_db(
+          new tbox::MemoryDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
-   // make from input file name
-   std::string run_name =
-      input_filename.substr( 0, input_filename.rfind( "." ) );
+      // make from input file name
+      std::string run_name =
+          input_filename.substr(0, input_filename.rfind("."));
 
-   // Logfile
-   std::string log_file_name = run_name + ".log";
-   tbox::PIO::logOnlyNodeZero( log_file_name );
+      // Logfile
+      std::string log_file_name = run_name + ".log";
+      tbox::PIO::logOnlyNodeZero(log_file_name);
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog<<" AMPE: git version "<<xstr(x)<<endl;
-    LOG(GITVERSION);
-    tbox::plog<<endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+      LOG(GITVERSION);
+      tbox::plog << endl;
 #endif
 
-   boost::shared_ptr<tbox::Database> model_db =
-      input_db->getDatabase("ModelParameters");
+      boost::shared_ptr<tbox::Database> model_db =
+          input_db->getDatabase("ModelParameters");
 
-   EnergyInterpolationType energy_interp_func_type = EnergyInterpolationType::PBG;
-   ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
-   
-   boost::shared_ptr<tbox::Database> temperature_db =
-      model_db->getDatabase( "Temperature" );
-   double temperature = temperature_db->getDouble( "temperature" );
+      EnergyInterpolationType energy_interp_func_type =
+          EnergyInterpolationType::PBG;
+      ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
 
-   boost::shared_ptr<tbox::Database> conc_db(
-      model_db->getDatabase( "ConcentrationModel" ));
-   boost::shared_ptr<tbox::Database> dcalphad_db=
-      conc_db->getDatabase( "Calphad" );
-   std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
-      new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile(
-      calphad_filename, calphad_db );
-   
-   boost::shared_ptr<tbox::Database> newton_db;
-   if ( conc_db->isDatabase( "NewtonSolver" ) )
-      newton_db = conc_db->getDatabase( "NewtonSolver" );
+      boost::shared_ptr<tbox::Database> temperature_db =
+          model_db->getDatabase("Temperature");
+      double temperature = temperature_db->getDouble("temperature");
 
-   bool with_third_phase=false;
-   
-   CALPHADFreeEnergyFunctionsBinary
-      cafe(calphad_db, newton_db,
-           energy_interp_func_type,
-           conc_interp_func_type,
-           with_third_phase);
- 
-   cafe.printEnergyVsComposition(temperature);
+      boost::shared_ptr<tbox::Database> conc_db(
+          model_db->getDatabase("ConcentrationModel"));
+      boost::shared_ptr<tbox::Database> dcalphad_db =
+          conc_db->getDatabase("Calphad");
+      std::string calphad_filename = dcalphad_db->getString("filename");
+      boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+          new tbox::MemoryDatabase("calphad_db"));
+      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                       calphad_db);
 
-   input_db.reset();
+      boost::shared_ptr<tbox::Database> newton_db;
+      if (conc_db->isDatabase("NewtonSolver"))
+         newton_db = conc_db->getDatabase("NewtonSolver");
 
+      bool with_third_phase = false;
+
+      CALPHADFreeEnergyFunctionsBinary cafe(calphad_db, newton_db,
+                                            energy_interp_func_type,
+                                            conc_interp_func_type,
+                                            with_third_phase);
+
+      cafe.printEnergyVsComposition(temperature);
+
+      input_db.reset();
    }
 
    tbox::SAMRAIManager::shutdown();

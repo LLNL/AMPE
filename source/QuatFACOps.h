@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_QuatFACOps_h
 #define included_QuatFACOps_h
 
@@ -96,20 +96,19 @@ using namespace SAMRAI;
  * The following parameters are settable in the input database.  The default
  * values are shown
  *
- * levelsolver_tolerance = 1e-8            // see setCoarsestLevelSolverTolerance()
- * levelsolver_max_iterations = 10         // see setCoarsestLevelSolverMaxIterations()
- * coarse_levelsolver_tolerance = 1e-8     // see setCoarsestLevelSolverTolerance()
- * coarse_levelsolver_max_iterations = 10  // see setCoarsestLevelSolverMaxIterations()
- * cf_discretization = "Ewing"             // see setCoarseFineDiscretization()
- * prolongation_method = "CONSTANT_REFINE" // see setProlongationMethod()
- * enable_logging = FALSE                  // see enableLogging()
+ * levelsolver_tolerance = 1e-8            // see
+ * setCoarsestLevelSolverTolerance() levelsolver_max_iterations = 10         //
+ * see setCoarsestLevelSolverMaxIterations() coarse_levelsolver_tolerance = 1e-8
+ * // see setCoarsestLevelSolverTolerance() coarse_levelsolver_max_iterations =
+ * 10  // see setCoarsestLevelSolverMaxIterations() cf_discretization = "Ewing"
+ * // see setCoarseFineDiscretization() prolongation_method = "CONSTANT_REFINE"
+ * // see setProlongationMethod() enable_logging = FALSE                  // see
+ * enableLogging()
  */
-class QuatFACOps
-  : public SAMRAI::solv::FACOperatorStrategy
+class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
 {
 
-public:
-
+ public:
    /*!
     * @brief Constructor
     *
@@ -119,11 +118,9 @@ public:
     * @param object_name:  Ojbect name
     * @param database:     Input database
     */
-   QuatFACOps(
-      const int qlen,
-      const std::string& object_name = std::string(),
-      const boost::shared_ptr<tbox::Database>& database =
-         boost::shared_ptr<tbox::Database>());
+   QuatFACOps(const int qlen, const std::string &object_name = std::string(),
+              const boost::shared_ptr<tbox::Database> &database =
+                  boost::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -185,7 +182,7 @@ public:
     *
     * method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization( const std::string &coarsefine_method );
+   void setCoarseFineDiscretization(const std::string &coarsefine_method);
 
    /*
     * Set the name of the prolongation method.
@@ -206,7 +203,7 @@ public:
     * prolongation_method: String selecting the coarse-fine
     *                      discretization method.
     */
-   void setProlongationMethod(const std::string & prolongation_method);
+   void setProlongationMethod(const std::string &prolongation_method);
 
 
    /*
@@ -224,7 +221,7 @@ public:
     * flux and you would like that to be used, set flux id to the
     * patch data index of that space.
     */
-   void setFluxId( int flux_id );
+   void setFluxId(int flux_id);
 
 
    /*
@@ -246,7 +243,7 @@ public:
     *                   set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
-      const solv::RobinBcCoefStrategy *physical_bc_coef );
+       const solv::RobinBcCoefStrategy *physical_bc_coef);
 
    /*
     * Functions for checking validity and correctness of state.
@@ -269,92 +266,88 @@ public:
    /*
     * Set the operator coefficients.
     */
-   void setOperatorCoefficients(const double time_step, const double epsilon_q,
-				const int mobility_id, const int mobility_deriv_id,
-				const int diff_coef_id, const int diff_coef_deriv_id,
-				const int grad_q_id, const int q_id,
-				const double gradient_floor, const std::string grad_floor_type);
+   void setOperatorCoefficients(
+       const double time_step, const double epsilon_q, const int mobility_id,
+       const int mobility_deriv_id, const int diff_coef_id,
+       const int diff_coef_deriv_id, const int grad_q_id, const int q_id,
+       const double gradient_floor, const std::string grad_floor_type);
 
    // FACOperatorStrategy virtuals
 
-   virtual void restrictSolution(const solv::SAMRAIVectorReal<double> & s,
-				 solv::SAMRAIVectorReal<double> & d,
-				 int dest_ln);
+   virtual void restrictSolution(const solv::SAMRAIVectorReal<double> &s,
+                                 solv::SAMRAIVectorReal<double> &d,
+                                 int dest_ln);
 
-   virtual void restrictResidual(const solv::SAMRAIVectorReal<double> & s,
-				 solv::SAMRAIVectorReal<double> & d,
-				 int dest_ln);
+   virtual void restrictResidual(const solv::SAMRAIVectorReal<double> &s,
+                                 solv::SAMRAIVectorReal<double> &d,
+                                 int dest_ln);
 
-   virtual void prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> & s,
-				       solv::SAMRAIVectorReal<double> & d,
-				       int dest_ln);
+   virtual void prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double> &s,
+                                       solv::SAMRAIVectorReal<double> &d,
+                                       int dest_ln);
 
-   virtual void smoothError(solv::SAMRAIVectorReal<double> & error,
-			    const solv::SAMRAIVectorReal<double> & residual,
-			    int ln,
-			    int num_sweeps);
+   virtual void smoothError(solv::SAMRAIVectorReal<double> &error,
+                            const solv::SAMRAIVectorReal<double> &residual,
+                            int ln, int num_sweeps);
 
-   virtual int solveCoarsestLevel(solv::SAMRAIVectorReal<double> & error,
-				   const solv::SAMRAIVectorReal<double> & residual,
-				   int ln);
+   virtual int solveCoarsestLevel(
+       solv::SAMRAIVectorReal<double> &error,
+       const solv::SAMRAIVectorReal<double> &residual, int ln);
 
-   virtual void computeCompositeResidualOnLevel(solv::SAMRAIVectorReal<double> & residual,
-						const solv::SAMRAIVectorReal<double> & solution,
-						const solv::SAMRAIVectorReal<double> & rhs,
-						int ln,
-						bool error_equation_indicator);
+   virtual void computeCompositeResidualOnLevel(
+       solv::SAMRAIVectorReal<double> &residual,
+       const solv::SAMRAIVectorReal<double> &solution,
+       const solv::SAMRAIVectorReal<double> &rhs, int ln,
+       bool error_equation_indicator);
 
-   virtual double computeResidualNorm(const solv::SAMRAIVectorReal<double> & residual,
-				      int fine_ln,
-				      int coarse_ln);
+   virtual double computeResidualNorm(
+       const solv::SAMRAIVectorReal<double> &residual, int fine_ln,
+       int coarse_ln);
 
-   virtual void initializeOperatorState(const solv::SAMRAIVectorReal<double> & solution,
-					const solv::SAMRAIVectorReal<double> & rhs);
+   virtual void initializeOperatorState(
+       const solv::SAMRAIVectorReal<double> &solution,
+       const solv::SAMRAIVectorReal<double> &rhs);
 
    virtual void deallocateOperatorState();
 
-   virtual void postprocessOneCycle(int iteration_num ,
-				    const solv::SAMRAIVectorReal<double> & current_soln,
-				    const solv::SAMRAIVectorReal<double> & residual);
+   virtual void postprocessOneCycle(
+       int iteration_num, const solv::SAMRAIVectorReal<double> &current_soln,
+       const solv::SAMRAIVectorReal<double> &residual);
 
    /*
     * return ID of the side-centered face diffusion coefficient data.
     */
-   int getFaceDiffCoeffId()
-   {
-      return d_face_coef_id;
-   }
-   int getFaceDiffCoeffScratchId()
-   {
-      return d_face_coef_scratch_id;
-   }
+   int getFaceDiffCoeffId() { return d_face_coef_id; }
+   int getFaceDiffCoeffScratchId() { return d_face_coef_scratch_id; }
 
-   void evaluateRHS(const double epsilon_q, const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
-		    const double gradient_floor, const std::string gradient_floor_type,
-		    const int mobility_id, const int rotations_id, const int q_id, int rhs_id,
-          const bool use_gradq_for_flux);
+   void evaluateRHS(const double epsilon_q, const int diff_coef_id,
+                    const int grad_q_id, const int grad_q_copy_id,
+                    const double gradient_floor,
+                    const std::string gradient_floor_type,
+                    const int mobility_id, const int rotations_id,
+                    const int q_id, int rhs_id, const bool use_gradq_for_flux);
 
-   void accumulateOperatorOnLevel(const int mobility_id, const int face_coef_id, const int q_id, 
-              const int grad_q_id,
-				  int operator_q_id, int ln, bool project,
-				  bool error_equation_indicator);
+   void accumulateOperatorOnLevel(const int mobility_id, const int face_coef_id,
+                                  const int q_id, const int grad_q_id,
+                                  int operator_q_id, int ln, bool project,
+                                  bool error_equation_indicator);
 
    void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id);
 
-   void applyProjectionOnLevel(const int q_id, const int corr_id, const int  err_id, const int ln);
+   void applyProjectionOnLevel(const int q_id, const int corr_id,
+                               const int err_id, const int ln);
 
    void setWeightIds(const int ewt_id, const int weight_id)
    {
       d_ewt_id = ewt_id;
       d_weight_id = weight_id;
    }
-   
+
    void multiplyMobilitySqrt(const int id);
 
    void divideMobilitySqrt(const int id);
 
-private:
-
+ private:
    /*
     * Function to compute flux, using general diffusion
     * coefficient data.
@@ -372,11 +365,12 @@ private:
     *
     * Note that the patch must exist on a level in an AMR hierarchy so that
     * the discretization can be computed properly at the coarse-fine interface.
-    * Poisson coefficients C and D must exist on the patch, if they are variable.
-    * Also, calling this function does not affect the internal solver state in any
-    * way.  However, the solver must be fully initialized before it is called and care
-    * should be exercised to pass arguments so that the solver solution quantity and
-    * other internal solver quantities are not adversely affected.
+    * Poisson coefficients C and D must exist on the patch, if they are
+    * variable. Also, calling this function does not affect the internal solver
+    * state in any way.  However, the solver must be fully initialized before it
+    * is called and care should be exercised to pass arguments so that the
+    * solver solution quantity and other internal solver quantities are not
+    * adversely affected.
     *
     * patch:       patch on which computation will take place
     * ratio_to_coarser_level: refinement ratio from coarser level to level
@@ -385,57 +379,54 @@ private:
     * w_data:      cell-centered data
     * Dgradw_data: side-centered flux data (i.e., D (grad w))
     */
-   void computeFluxOnPatch(const hier::Patch & patch,
-			   const hier::IntVector & ratio_to_coarser_level,
-			   const pdat::SideData<double> & face_coef_data,
-			   const pdat::CellData<double> & q_data,
-			   pdat::SideData<double> &flux_data) const;
+   void computeFluxOnPatch(const hier::Patch &patch,
+                           const hier::IntVector &ratio_to_coarser_level,
+                           const pdat::SideData<double> &face_coef_data,
+                           const pdat::CellData<double> &q_data,
+                           pdat::SideData<double> &flux_data) const;
 
    /*!
     * compute flux using gradient of q at sides
     */
-   void computeFluxOnPatch(const hier::Patch & patch,
-			   const hier::IntVector & ratio_to_coarser_level,
-			   const pdat::SideData<double> & face_coef_data,
-			   const pdat::SideData<double> & grad_q_data,
-			   pdat::SideData<double> &flux_data) const;
+   void computeFluxOnPatch(const hier::Patch &patch,
+                           const hier::IntVector &ratio_to_coarser_level,
+                           const pdat::SideData<double> &face_coef_data,
+                           const pdat::SideData<double> &grad_q_data,
+                           pdat::SideData<double> &flux_data) const;
 
-   void computeSymmetricFluxOnPatch(const hier::Patch & patch,
-				    const hier::IntVector & ratio_to_coarser_level,
-				    const pdat::SideData<double> & face_coef_data,
-				    const pdat::CellData<double> & sqrt_m_data,
-				    const pdat::CellData<double> & q_data,
-				    pdat::SideData<double> &flux_data) const;
+   void computeSymmetricFluxOnPatch(
+       const hier::Patch &patch, const hier::IntVector &ratio_to_coarser_level,
+       const pdat::SideData<double> &face_coef_data,
+       const pdat::CellData<double> &sqrt_m_data,
+       const pdat::CellData<double> &q_data,
+       pdat::SideData<double> &flux_data) const;
 
-   void computeLambdaOnPatch(const hier::Patch & patch,
-			     const pdat::SideData<double> & flux_data,
-			     const pdat::CellData<double> & q_data,
-              boost::shared_ptr<pdat::SideData<int> > rotation_index,
-			     pdat::CellData<double> & lambda_data) const;
+   void computeLambdaOnPatch(
+       const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+       const pdat::CellData<double> &q_data,
+       boost::shared_ptr<pdat::SideData<int> > rotation_index,
+       pdat::CellData<double> &lambda_data) const;
 
-   void computeFaceCoefs(const double epsilon_q,
-			 const int diff_coef_id,
-			 const int grad_q_id,
-			 const double gradient_floor,
-			 const std::string grad_floor_type,
-			 const int face_coef_id);
+   void computeFaceCoefs(const double epsilon_q, const int diff_coef_id,
+                         const int grad_q_id, const double gradient_floor,
+                         const std::string grad_floor_type,
+                         const int face_coef_id);
 
-   void computeFaceCoefsOnPatch(const hier::Patch & patch,
-				const double epsilon_q,
-				pdat::SideData<double> & diff_coef_data,
-				pdat::SideData<double> & grad_q_data,
-				pdat::SideData<double> & face_coef_data,
-				const double gradient_floor,
-				const std::string grad_floor_type) const;
+   void computeFaceCoefsOnPatch(const hier::Patch &patch,
+                                const double epsilon_q,
+                                pdat::SideData<double> &diff_coef_data,
+                                pdat::SideData<double> &grad_q_data,
+                                pdat::SideData<double> &face_coef_data,
+                                const double gradient_floor,
+                                const std::string grad_floor_type) const;
 
-   void computeDQuatDPhiFaceCoefs(const int    dprime_id,
-				  const int       phi_id,
-				  const int face_coef_id);
+   void computeDQuatDPhiFaceCoefs(const int dprime_id, const int phi_id,
+                                  const int face_coef_id);
 
-   void computeDQuatDPhiFaceCoefsOnPatch(const hier::Patch &              patch,
-					 pdat::SideData<double> &    dprime_data,
-					 pdat::CellData<double> &       phi_data,
-					 pdat::SideData<double> & face_coef_data) const;
+   void computeDQuatDPhiFaceCoefsOnPatch(
+       const hier::Patch &patch, pdat::SideData<double> &dprime_data,
+       pdat::CellData<double> &phi_data,
+       pdat::SideData<double> &face_coef_data) const;
 
    /*
     * Solves the residual equation Ae=r on a level.
@@ -447,11 +438,9 @@ private:
     * residual_tolerance: The maximum residual considered to be
     *                     converged
     */
-   void doLevelSolve(solv::SAMRAIVectorReal<double> & error,
-		     const solv::SAMRAIVectorReal<double> & residual,
-		     int ln,
-		     int num_sweeps,
-		     double residual_tolerance=-1.0);
+   void doLevelSolve(solv::SAMRAIVectorReal<double> &error,
+                     const solv::SAMRAIVectorReal<double> &residual, int ln,
+                     int num_sweeps, double residual_tolerance = -1.0);
 
    /*
     * Fix flux per Ewing's coarse-fine boundary treatment.
@@ -473,11 +462,11 @@ private:
     *                   in which patch resides
     * ratio_to_coarser: Refinement ratio to the next coarser level.
     */
-   void ewingFixFlux(const hier::Patch & patch,
-		     const pdat::CellData<double> & soln_data,
-		     const pdat::SideData<double> & face_coef_data,
-		     pdat::SideData<double> & flux_data,
-		     const hier::IntVector & ratio_to_coarser) const;
+   void ewingFixFlux(const hier::Patch &patch,
+                     const pdat::CellData<double> &soln_data,
+                     const pdat::SideData<double> &face_coef_data,
+                     pdat::SideData<double> &flux_data,
+                     const hier::IntVector &ratio_to_coarser) const;
 
    /*
     * AMR-unaware function to compute residual on a single patch,
@@ -489,28 +478,28 @@ private:
     * rhs_data:      cell-centered rhs data
     * residual_data: cell-centered residual data
     */
-   void computeResidualOnPatch(const hier::Patch & patch,
-			       const pdat::SideData<double> & flux_data,
-					 boost::shared_ptr<pdat::SideData<int> > rotations,
-			       const pdat::CellData<double> & sqrt_m_data,
-			       const pdat::CellData<double> & q_soln_data,
-			       const pdat::CellData<double> & q_rhs_data,
-			       pdat::CellData<double> & q_residual_data) const;
+   void computeResidualOnPatch(
+       const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+       boost::shared_ptr<pdat::SideData<int> > rotations,
+       const pdat::CellData<double> &sqrt_m_data,
+       const pdat::CellData<double> &q_soln_data,
+       const pdat::CellData<double> &q_rhs_data,
+       pdat::CellData<double> &q_residual_data) const;
 
-   void accumulateOperatorOnPatch(const hier::Patch & patch,
-				  const pdat::SideData<double> & flux_data,
-				  const pdat::CellData<double> & mobility_data,
-				  const pdat::CellData<double> & q_rhs_data) const;
+   void accumulateOperatorOnPatch(
+       const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+       const pdat::CellData<double> &mobility_data,
+       const pdat::CellData<double> &q_rhs_data) const;
 
-   void accumulateProjectedOperatorOnPatch(const hier::Patch & patch,
-					   const pdat::SideData<double> & flux_data,
-					   const pdat::CellData<double> & mobility_data,
-					   const pdat::CellData<double> & q_soln_data,
-					   const pdat::CellData<double> & lambda_soln_data,
-					   boost::shared_ptr<pdat::SideData<int> > rotations,
-					   const pdat::CellData<double> & q_rhs_data) const;
+   void accumulateProjectedOperatorOnPatch(
+       const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+       const pdat::CellData<double> &mobility_data,
+       const pdat::CellData<double> &q_soln_data,
+       const pdat::CellData<double> &lambda_soln_data,
+       boost::shared_ptr<pdat::SideData<int> > rotations,
+       const pdat::CellData<double> &q_rhs_data) const;
 
-   void takeSquareRootOnPatch(pdat::CellData<double> & data);
+   void takeSquareRootOnPatch(pdat::CellData<double> &data);
 
    // For executing, caching and resetting communication schedules.
 
@@ -564,10 +553,8 @@ private:
     *
     * Returns refinement schedule for prolongation
     */
-   void xeqScheduleProlongation(int dst_id,
-				int src_id,
-				int scr_id,
-				int dest_ln);
+   void xeqScheduleProlongation(int dst_id, int src_id, int scr_id,
+                                int dest_ln);
 
 
    /*
@@ -578,9 +565,7 @@ private:
     *
     * Returns coarsening schedule for restriction
     */
-   void xeqScheduleURestriction(int dst_id,
-				int src_id,
-				int dest_ln);
+   void xeqScheduleURestriction(int dst_id, int src_id, int dest_ln);
 
 
    /*
@@ -591,9 +576,7 @@ private:
     *
     * Returns coarsening schedule for restriction
     */
-   void xeqScheduleRRestriction(int dst_id,
-				int src_id,
-				int dest_ln);
+   void xeqScheduleRRestriction(int dst_id, int src_id, int dest_ln);
 
 
    /*
@@ -605,9 +588,7 @@ private:
     * Returns coarsening schedule for setting composite grid flux at
     * coarse-fine boundaries.
     */
-   void xeqScheduleFluxCoarsen(int dst_id,
-			       int src_id,
-			       int dest_ln);
+   void xeqScheduleFluxCoarsen(int dst_id, int src_id, int dest_ln);
 
 
    /*
@@ -619,8 +600,7 @@ private:
     * Returns refine schedule for filling ghost data from coarser level
     * and physical bc.
     */
-   void xeqScheduleGhostFill(int dst_id,
-			     int dest_ln);
+   void xeqScheduleGhostFill(int dst_id, int dest_ln);
 
 
    /*
@@ -637,8 +617,7 @@ private:
     * Returns refine schedule for filling ghost data from same level
     * and physical bc.
     */
-   void xeqScheduleGhostFillNoCoarse(int dst_id,
-				     int dest_ln);
+   void xeqScheduleGhostFillNoCoarse(int dst_id, int dest_ln);
 
    // Return the patch data index for cell scratch data.
    int registerCellScratch() const;
@@ -671,7 +650,7 @@ private:
     * function argument lists.  We use it to enforce working on one
     * hierarchy at a time.
     */
-   boost::shared_ptr< hier::PatchHierarchy > d_hierarchy;
+   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*
     * Coarsest level for solve.
@@ -751,7 +730,7 @@ private:
    /*
     * Quaternion system solver objects on each level.
     */
-   std::vector< QuatLevelSolver * > d_quat_level_solver;
+   std::vector<QuatLevelSolver *> d_quat_level_solver;
 
    /*
     * Level solver input database.
@@ -769,7 +748,8 @@ private:
 
    static boost::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> > s_oflux_scratch_var;
+   static boost::shared_ptr<pdat::OutersideVariable<double> >
+       s_oflux_scratch_var;
 
    static boost::shared_ptr<pdat::SideVariable<double> > s_face_coef_var;
 
@@ -846,39 +826,40 @@ private:
 
    // Error prolongation (refinement) operator.
    boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_prolongation_refine_schedules;
+   boost::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_prolongation_refine_schedules;
 
    // Solution restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_urestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_urestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_urestriction_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_urestriction_coarsen_schedules;
 
    // Residual restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_rrestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_rrestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_rrestriction_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_rrestriction_coarsen_schedules;
 
    // Coarsen operator for outerflux-to-flux
-   boost::shared_ptr<hier::CoarsenOperator > d_flux_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_flux_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_flux_coarsen_schedules;
 
    // Refine operator for cell-like data from coarser level.
-   boost::shared_ptr<hier::RefineOperator > d_ghostfill_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_ghostfill_refine_schedules;
+   boost::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_ghostfill_refine_schedules;
 
    // Refine operator for cell-like data from same level.
-   boost::shared_ptr<hier::RefineOperator > d_ghostfill_nocoarse_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_ghostfill_nocoarse_refine_schedules;
+   boost::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm>
+       d_ghostfill_nocoarse_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_ghostfill_nocoarse_refine_schedules;
 
 
    /*
@@ -919,7 +900,7 @@ private:
     * See setPreconditioner().
     */
    const FACPreconditioner *d_solver;
-   
+
    /*
     * Hierarchy cell operator
     */
@@ -942,13 +923,14 @@ private:
    int d_sqrt_m_id;
    int d_m_deriv_id;
 
-   int GetNumCellFacesInBox(const int * lower, const int * upper, const int dim) const;
+   int GetNumCellFacesInBox(const int *lower, const int *upper,
+                            const int dim) const;
 
    int d_ewt_id;
    int d_weight_id;
-   
+
    /*!
-    * rotation indexes used to rotate gradient on sides if 
+    * rotation indexes used to rotate gradient on sides if
     * (i) fluxes are computed using gradients
     * (ii) symmetry is ON
     * Otherwise id set to -1 when calling evaluateRHS() function
@@ -958,6 +940,4 @@ private:
 
 #include "QuatFACOps.I"
 
-#endif // included_QuatFACOps_h
-
-
+#endif  // included_QuatFACOps_h

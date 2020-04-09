@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_ScalarTemperatureStrategy
 #define included_ScalarTemperatureStrategy
 
@@ -42,33 +42,31 @@
 // This strategy fills the temperature field from a single scalar value
 // which may depend on time.
 
-class ScalarTemperatureStrategy:
-   public TemperatureStrategy
+class ScalarTemperatureStrategy : public TemperatureStrategy
 {
-public:
-   ScalarTemperatureStrategy(
-      const int temperature_id,
-      const int temperature_scratch_id,
-      const double temperature0,
-      boost::shared_ptr<tbox::Database> temperature_db );
+ public:
+   ScalarTemperatureStrategy(const int temperature_id,
+                             const int temperature_scratch_id,
+                             const double temperature0,
+                             boost::shared_ptr<tbox::Database> temperature_db);
 
    ~ScalarTemperatureStrategy(){};
 
-   virtual double getCurrentMaxTemperature(   
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
-   virtual double getCurrentMinTemperature(   
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+   virtual double getCurrentMaxTemperature(
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
+   virtual double getCurrentMinTemperature(
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
    virtual double getCurrentAverageTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
 
    virtual void setCurrentTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
 
-private:
+ private:
    int d_temperature_id;
    int d_temperature_scratch_id;
    int d_weight_id;
@@ -77,7 +75,7 @@ private:
    double d_dtemperaturedt;
    double d_target_temperature;
 
-   double getCurrentTemperature( const double time );
+   double getCurrentTemperature(const double time);
 };
 
 #endif

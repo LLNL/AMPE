@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 //====================================================================
 // C2 extension of x(log(x) function for x<=smallx
@@ -40,51 +40,46 @@
 #include <cmath>
 
 static const double s_smallx = 1.0e-8;
-static const double s_inv_smallx = 1./s_smallx;
-static const double s_log_smallx = log( s_smallx );
+static const double s_inv_smallx = 1. / s_smallx;
+static const double s_log_smallx = log(s_smallx);
 static const double s_smallx_log_smallx = s_smallx * s_log_smallx;
 
-double xlogx( const double x )
+double xlogx(const double x)
 {
    double r;
 
-   if ( x > s_smallx ) {
-      r = x * log( x );
-   }
-   else {
-      r = s_smallx_log_smallx +
-         ( x - s_smallx ) * s_log_smallx +
-         0.5 * ( x * x * s_inv_smallx - s_smallx );
+   if (x > s_smallx) {
+      r = x * log(x);
+   } else {
+      r = s_smallx_log_smallx + (x - s_smallx) * s_log_smallx +
+          0.5 * (x * x * s_inv_smallx - s_smallx);
    }
 
    return r;
 }
 
-double xlogx_deriv( const double x )
+double xlogx_deriv(const double x)
 {
    double r;
 
-   if ( x > s_smallx ) {
-      r = log( x ) + 1.0;
-   }
-   else {
+   if (x > s_smallx) {
+      r = log(x) + 1.0;
+   } else {
       r = s_log_smallx + x * s_inv_smallx;
    }
 
    return r;
 }
 
-double xlogx_deriv2( const double x )
+double xlogx_deriv2(const double x)
 {
    double r;
 
-   if ( x > s_smallx ) {
-      r = 1./x;
-   }
-   else {
+   if (x > s_smallx) {
+      r = 1. / x;
+   } else {
       r = s_inv_smallx;
    }
 
    return r;
 }
-

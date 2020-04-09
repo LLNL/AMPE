@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "EtaFACOps.h"
 
 #include "SAMRAI/hier/Index.h"
@@ -45,11 +45,9 @@ using namespace std;
 
 //======================================================================
 
-EtaFACOps::EtaFACOps(
-   const std::string &object_name,
-   boost::shared_ptr<tbox::Database> database )
-   :
-   EllipticFACOps( tbox::Dimension(NDIM), object_name, database )
+EtaFACOps::EtaFACOps(const std::string& object_name,
+                     boost::shared_ptr<tbox::Database> database)
+    : EllipticFACOps(tbox::Dimension(NDIM), object_name, database)
 {
    return;
 }
@@ -57,27 +55,18 @@ EtaFACOps::EtaFACOps(
 //======================================================================
 
 void EtaFACOps::setOperatorCoefficients(
-   const int phase_id,
-   const int eta_id,
-   const int eta_mobility_id,
-   const double epsilon_eta, 
-   const double gamma,
-   const EnergyInterpolationType phase_interp_func_type,
-   const double eta_well_scale,
-   const string eta_well_func_type )
+    const int phase_id, const int eta_id, const int eta_mobility_id,
+    const double epsilon_eta, const double gamma,
+    const EnergyInterpolationType phase_interp_func_type,
+    const double eta_well_scale, const string eta_well_func_type)
 {
-   setM( eta_mobility_id );
+   setM(eta_mobility_id);
 
    // C to be set after M since it uses M
-   setC(
-      phase_id,
-      eta_id,
-      gamma,
-      phase_interp_func_type,
-      eta_well_scale,
-      eta_well_func_type );
-   
-   setDConstant( -gamma * epsilon_eta * epsilon_eta );
+   setC(phase_id, eta_id, gamma, phase_interp_func_type, eta_well_scale,
+        eta_well_func_type);
+
+   setDConstant(-gamma * epsilon_eta * epsilon_eta);
 }
 
 //======================================================================
@@ -85,78 +74,69 @@ void EtaFACOps::setOperatorCoefficients(
 // C = 1 + gamma * eta_mobility *
 //       eta_well_scale * phi_interp_func * eta_well_func''
 
-void EtaFACOps::setC(
-   const int phi_id,
-   const int eta_id,
-   const double gamma,
-   const EnergyInterpolationType phi_interp_func_type,
-   const double eta_well_scale,
-   const string eta_well_func_type )
+void EtaFACOps::setC(const int phi_id, const int eta_id, const double gamma,
+                     const EnergyInterpolationType phi_interp_func_type,
+                     const double eta_well_scale,
+                     const string eta_well_func_type)
 {
-   assert( phi_id >= 0 );
-   assert( eta_id >= 0 );
-   assert( d_m_id >= 0 );
-   assert( d_c_id[0] >= 0 );
-   assert( d_M_is_set );
-   
-   for ( int ln = d_ln_min; ln <= d_ln_max; ++ln ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         d_hierarchy->getPatchLevel( ln );
+   assert(phi_id >= 0);
+   assert(eta_id >= 0);
+   assert(d_m_id >= 0);
+   assert(d_c_id[0] >= 0);
+   assert(d_M_is_set);
 
-      for (hier::PatchLevel::iterator pi(level->begin());
-           pi != level->end(); ++pi) {
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
 
-         boost::shared_ptr< hier::Patch > patch =
-            *pi;
+      for (hier::PatchLevel::iterator pi(level->begin()); pi != level->end();
+           ++pi) {
+
+         boost::shared_ptr<hier::Patch> patch = *pi;
 
          const hier::Box& patch_box = patch->getBox();
-      
-         boost::shared_ptr< pdat::CellData<double> > phi_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phi_id) ) );
-         
-         boost::shared_ptr< pdat::CellData<double> > eta_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( eta_id) ) );
-         
-         boost::shared_ptr< pdat::CellData<double> > local_m_data (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_m_id) ) );
 
-         boost::shared_ptr< pdat::CellData<double> > cdata (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_c_id[0]) ) );
+         boost::shared_ptr<pdat::CellData<double> > phi_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phi_id)));
 
-         setCOnPatchPrivate(
-            phi_data,
-            eta_data,
-            local_m_data,
-            cdata,
-            gamma,
-            phi_interp_func_type,
-            eta_well_scale,
-            eta_well_func_type.c_str(),
-            patch_box );
+         boost::shared_ptr<pdat::CellData<double> > eta_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(eta_id)));
+
+         boost::shared_ptr<pdat::CellData<double> > local_m_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_m_id)));
+
+         boost::shared_ptr<pdat::CellData<double> > cdata(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_c_id[0])));
+
+         setCOnPatchPrivate(phi_data, eta_data, local_m_data, cdata, gamma,
+                            phi_interp_func_type, eta_well_scale,
+                            eta_well_func_type.c_str(), patch_box);
       }
    }
-   
-   setCPatchDataId( d_c_id[0], 0 );
+
+   setCPatchDataId(d_c_id[0], 0);
 
    return;
 }
 
 void EtaFACOps::setCOnPatchPrivate(
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_m,
-   boost::shared_ptr< pdat::CellData<double> > cd_c,
-   const double gamma,
-   const EnergyInterpolationType phi_interp_func_type,
-   const double eta_well_scale,
-   const char* eta_well_func_type,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_m,
+    boost::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
+    const EnergyInterpolationType phi_interp_func_type,
+    const double eta_well_scale, const char* eta_well_func_type,
+    const hier::Box& pbox)
 {
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_m = cd_m->getPointer();
    double* ptr_c = cd_c->getPointer();
    double* ptr_eta = cd_eta->getPointer();
-   
+
    const hier::Box& c_gbox = cd_c->getGhostBox();
    int imin_c = c_gbox.lower(0);
    int jmin_c = c_gbox.lower(1);
@@ -203,42 +183,36 @@ void EtaFACOps::setCOnPatchPrivate(
 #endif
    const char interpf = energyInterpChar(phi_interp_func_type);
 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_c = (ii - imin_c) +
-               (jj - jmin_c) * jp_c + (kk - kmin_c) * kp_c;
+            const int idx_c =
+                (ii - imin_c) + (jj - jmin_c) * jp_c + (kk - kmin_c) * kp_c;
 
-            const int idx_m = (ii - imin_m) +
-               (jj - jmin_m) * jp_m + (kk - kmin_m) * kp_m;
+            const int idx_m =
+                (ii - imin_m) + (jj - jmin_m) * jp_m + (kk - kmin_m) * kp_m;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
             const double m = ptr_m[idx_m];
             const double phi = ptr_phi[idx_pf];
             const double eta = ptr_eta[idx_pf];
 
-            const double h_phi =
-               FORT_INTERP_FUNC(phi,&interpf);
+            const double h_phi = FORT_INTERP_FUNC(phi, &interpf);
 
             const double g_eta_dbl_prime =
-               FORT_SECOND_DERIV_WELL_FUNC(
-                  eta,
-                  eta_well_func_type );
+                FORT_SECOND_DERIV_WELL_FUNC(eta, eta_well_func_type);
 
             const double gamma_m = gamma * m;
-            
+
             // C = 1 + gamma * eta_mobility *
             //       eta_well_scale * phi_interp_func * eta_well_func''
 
             ptr_c[idx_c] =
-               1.0 + gamma_m * eta_well_scale *
-               h_phi * g_eta_dbl_prime;
-
+                1.0 + gamma_m * eta_well_scale * h_phi * g_eta_dbl_prime;
          }
       }
    }
 }
-

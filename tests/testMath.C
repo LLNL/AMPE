@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -41,37 +41,36 @@
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
-   cout<<"Test determinant computation."<<endl;
+   cout << "Test determinant computation." << endl;
 
    double* mat[4];
-   double work[16]={11,2,3,4,5,16,7,8,9,10,11,12,13,14,15,16};
-   for(short i=0;i<4;++i)mat[i]=&work[4*i];
+   double work[16] = {11, 2, 3, 4, 5, 16, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+   for (short i = 0; i < 4; ++i)
+      mat[i] = &work[4 * i];
 
-   cout<<"Test function Determinant4..."<<endl;
-   double d=Determinant4(mat); 
+   cout << "Test function Determinant4..." << endl;
+   double d = Determinant4(mat);
 
-   const double tol=1.e-8;
-   if( fabs(d+400.)>tol )
-   {
-      cerr<<"TEST: Determinant of 4x4 matrix failed!!!"<<endl;
+   const double tol = 1.e-8;
+   if (fabs(d + 400.) > tol) {
+      cerr << "TEST: Determinant of 4x4 matrix failed!!!" << endl;
       return 1;
-   }else{
-      cout<<"TEST successful!"<<endl;
-   }
-   
-   cout<<"Test function DeterminantN..."<<endl;
-   d=DeterminantN(mat,4);
-   if( fabs(d+400.)>tol )
-   {
-      cerr<<"TEST: Determinant of 4x4 matrix failed!!!"<<endl;
-      cerr<<"computed d="<<d<<endl;
-      cerr<<"exact d="<<400.<<endl;
-      return 1;
-   }else{
-      cout<<"TEST successful!"<<endl;
+   } else {
+      cout << "TEST successful!" << endl;
    }
 
-   return(0);
+   cout << "Test function DeterminantN..." << endl;
+   d = DeterminantN(mat, 4);
+   if (fabs(d + 400.) > tol) {
+      cerr << "TEST: Determinant of 4x4 matrix failed!!!" << endl;
+      cerr << "computed d=" << d << endl;
+      cerr << "exact d=" << 400. << endl;
+      return 1;
+   } else {
+      cout << "TEST successful!" << endl;
+   }
+
+   return (0);
 }

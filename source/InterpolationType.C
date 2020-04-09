@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -39,28 +39,20 @@
 
 char concInterpChar(ConcInterpolationType interp_func_type)
 {
-   switch( interp_func_type ){
-      case ConcInterpolationType::LINEAR:
-         return 'l';
-      case ConcInterpolationType::PBG:
-         return 'p';
-      case ConcInterpolationType::HARMONIC:
-         return 'h';
-      default:
-         return '0';
+   switch (interp_func_type) {
+      case ConcInterpolationType::LINEAR: return 'l';
+      case ConcInterpolationType::PBG: return 'p';
+      case ConcInterpolationType::HARMONIC: return 'h';
+      default: return '0';
    }
 }
 
 char energyInterpChar(EnergyInterpolationType interp_func_type)
 {
-   switch( interp_func_type ){
-      case EnergyInterpolationType::LINEAR:
-         return 'l';
-      case EnergyInterpolationType::PBG:
-         return 'p';
-      case EnergyInterpolationType::HARMONIC:
-         return 'h';
-      default:
-         return '0';
+   switch (interp_func_type) {
+      case EnergyInterpolationType::LINEAR: return 'l';
+      case EnergyInterpolationType::PBG: return 'p';
+      case EnergyInterpolationType::HARMONIC: return 'h';
+      default: return '0';
    }
 }

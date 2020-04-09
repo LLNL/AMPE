@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -38,22 +38,19 @@
 
 #include "PhaseFluxStrategy.h"
 
-class PhaseFluxStrategyIsotropic:
-   public PhaseFluxStrategy
+class PhaseFluxStrategyIsotropic : public PhaseFluxStrategy
 {
-public:
-   PhaseFluxStrategyIsotropic(const double epsilon_phase):
-      d_epsilon_phase(epsilon_phase)
+ public:
+   PhaseFluxStrategyIsotropic(const double epsilon_phase)
+       : d_epsilon_phase(epsilon_phase)
    {
-      tbox::plog<<"Uses PhaseFluxStrategyIsotropic class..."<<std::endl;
+      tbox::plog << "Uses PhaseFluxStrategyIsotropic class..." << std::endl;
    }
-   
-   void computeFluxes(const boost::shared_ptr<hier::PatchLevel> level,
-                      const int phase_id,
-                      const int quat_id,
-                      const int flux_id);
 
-private:
+   void computeFluxes(const boost::shared_ptr<hier::PatchLevel> level,
+                      const int phase_id, const int quat_id, const int flux_id);
+
+ private:
    const double d_epsilon_phase;
 };
 

@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -43,125 +43,116 @@
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
-   cout<<"======================================="<<endl;
-   cout<<"Test CALPHADEqPhaseConcSolverTernary..."<<endl;
+   cout << "=======================================" << endl;
+   cout << "Test CALPHADEqPhaseConcSolverTernary..." << endl;
 
-   int nfailures=0;
+   int nfailures = 0;
 
-   double epsilon=1.e-8;
-   double tol=1.e-6;
+   double epsilon = 1.e-8;
+   double tol = 1.e-6;
 
-   double cA=0.1;
-   double cB=0.2;
-   CALPHADEqPhaseConcentrationSolverTernary solver(cA,cB);
+   double cA = 0.1;
+   double cB = 0.2;
+   CALPHADEqPhaseConcentrationSolverTernary solver(cA, cB);
 
-   //energies of 3 species, in two phase each
-   double fA[2]={2.3,4.5};
-   double fB[2]={0.5,2.6};
-   double fC[2]={0.9,3.1};
+   // energies of 3 species, in two phase each
+   double fA[2] = {2.3, 4.5};
+   double fB[2] = {0.5, 2.6};
+   double fC[2] = {0.9, 3.1};
 
    // L coefficients for 2 possible phases (L and S)
-   double L_AB_L[4]={2.,3.,4.,5.};
-   double L_AC_L[4]={8.,5.,1.,3.};
-   double L_BC_L[4]={6.,4.,9.,2.};
+   double L_AB_L[4] = {2., 3., 4., 5.};
+   double L_AC_L[4] = {8., 5., 1., 3.};
+   double L_BC_L[4] = {6., 4., 9., 2.};
 
-   double L_AB_S[4]={2.,2.,3.,4.};
-   double L_AC_S[4]={6.,8.,5.,1.};
-   double L_BC_S[4]={2.,6.,4.,9.};
+   double L_AB_S[4] = {2., 2., 3., 4.};
+   double L_AC_S[4] = {6., 8., 5., 1.};
+   double L_BC_S[4] = {2., 6., 4., 9.};
 
-   double L_ABC_L[3]={3.1,4.1,5.1};
-   double L_ABC_S[3]={2.1,3.1,4.1};
+   double L_ABC_L[3] = {3.1, 4.1, 5.1};
+   double L_ABC_S[3] = {2.1, 3.1, 4.1};
 
-   double RTinv=10.;
+   double RTinv = 10.;
 
-   solver.setup(RTinv,
-                L_AB_L,L_AC_L,L_BC_L,
-                L_AB_S,L_AC_S,L_BC_S,
-                L_ABC_L,L_ABC_S,
-                fA,fB,fC);
+   solver.setup(RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S, L_BC_S, L_ABC_L,
+                L_ABC_S, fA, fB, fC);
 
    double fvec1[5];
    double fvec2[5];
    double* fjac[5];
-   for(int i=0;i<5;i++)fjac[i]=new double[5];
+   for (int i = 0; i < 5; i++)
+      fjac[i] = new double[5];
 
-   double x[5]={0.1,0.2,0.3,0.4,0.5};
+   double x[5] = {0.1, 0.2, 0.3, 0.4, 0.5};
 
-   solver.RHS(x,fvec1);
+   solver.RHS(x, fvec1);
 
-   solver.Jacobian(x,fjac);
+   solver.Jacobian(x, fjac);
 
-   cerr<<setprecision(12);
+   cerr << setprecision(12);
 
-   //loop over variables
-   for(int j=0;j<5;j++)
-   {
-      cout<<"----------------------------"<<endl;
-      cout<<"Test variations of variable "<<j<<endl;
-      x[j]+=epsilon;
-      solver.RHS(x,fvec2);
+   // loop over variables
+   for (int j = 0; j < 5; j++) {
+      cout << "----------------------------" << endl;
+      cout << "Test variations of variable " << j << endl;
+      x[j] += epsilon;
+      solver.RHS(x, fvec2);
 
       double fd[5];
-      //loop over equations
-      for(int i=0;i<5;i++)fd[i]=(fvec2[i]-fvec1[i])/epsilon;
+      // loop over equations
+      for (int i = 0; i < 5; i++)
+         fd[i] = (fvec2[i] - fvec1[i]) / epsilon;
 
-      for(int i=0;i<5;i++)
-      {
-         if( fabs(fd[i]-fjac[i][j])>tol )
-         {
+      for (int i = 0; i < 5; i++) {
+         if (fabs(fd[i] - fjac[i][j]) > tol) {
             nfailures++;
-            cerr<<"ERROR: Equation "<<i<<", FD="<<fd[i]<<", fjac="<<fjac[i][j]<<endl;
+            cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
+                 << ", fjac=" << fjac[i][j] << endl;
          }
       }
 
-      x[j]-=epsilon;
+      x[j] -= epsilon;
    }
 
-   cout<<"========================================="<<endl;
-   cout<<"Test CALPHADConcentrationSolverTernary..."<<endl;
+   cout << "=========================================" << endl;
+   cout << "Test CALPHADConcentrationSolverTernary..." << endl;
    CALPHADConcentrationSolverTernary solver2;
 
-   solver2.setup(cA,cB,0.5,
-                RTinv,
-                L_AB_L,L_AC_L,L_BC_L,
-                L_AB_S,L_AC_S,L_BC_S,
-                L_ABC_L,L_ABC_S,
-                fA,fB,fC);
+   solver2.setup(cA, cB, 0.5, RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S,
+                 L_BC_S, L_ABC_L, L_ABC_S, fA, fB, fC);
 
-   solver2.RHS(x,fvec1);
+   solver2.RHS(x, fvec1);
 
-   solver2.Jacobian(x,fjac);
+   solver2.Jacobian(x, fjac);
 
-   cerr<<setprecision(12);
+   cerr << setprecision(12);
 
-   //loop over variables
-   for(int j=0;j<4;j++)
-   {
-      cout<<"----------------------------"<<endl;
-      cout<<"Test variations of variable "<<j<<endl;
-      x[j]+=epsilon;
-      solver2.RHS(x,fvec2);
+   // loop over variables
+   for (int j = 0; j < 4; j++) {
+      cout << "----------------------------" << endl;
+      cout << "Test variations of variable " << j << endl;
+      x[j] += epsilon;
+      solver2.RHS(x, fvec2);
 
       double fd[4];
-      //loop over equations
-      for(int i=0;i<4;i++)fd[i]=(fvec2[i]-fvec1[i])/epsilon;
+      // loop over equations
+      for (int i = 0; i < 4; i++)
+         fd[i] = (fvec2[i] - fvec1[i]) / epsilon;
 
-      for(int i=0;i<4;i++)
-      {
-         if( fabs(fd[i]-fjac[i][j])>tol )
-         {
+      for (int i = 0; i < 4; i++) {
+         if (fabs(fd[i] - fjac[i][j]) > tol) {
             nfailures++;
-            cerr<<"ERROR: Equation "<<i<<", FD="<<fd[i]<<", fjac="<<fjac[i][j]<<endl;
+            cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
+                 << ", fjac=" << fjac[i][j] << endl;
          }
       }
 
-      x[j]-=epsilon;
+      x[j] -= epsilon;
    }
 
-   if( nfailures==0 )cout<<"TEST PASSED"<<endl;
+   if (nfailures == 0) cout << "TEST PASSED" << endl;
 
    return nfailures;
 }
-

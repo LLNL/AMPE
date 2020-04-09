@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "BeckermannCompositionRHSStrategy.h"
 
 #include "QuatFort.h"
@@ -52,27 +52,22 @@
 using namespace std;
 
 BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
-      QuatModel* quat_model,
-      const int conc_scratch_id,
-      const int phase_scratch_id,
-      const int partition_coeff_scratch_id,
-      const int conc_tilde_diffusion_id,
-      const int conc_phase_coupling_diffusion_id,
-      const double D_liquid,
-      const double D_solid_A,
-      const ConcInterpolationType phase_interp_func_type,
-      const string& avg_func_type
-   ):CompositionRHSStrategy(avg_func_type),
-   d_quat_model(quat_model)
+    QuatModel* quat_model, const int conc_scratch_id,
+    const int phase_scratch_id, const int partition_coeff_scratch_id,
+    const int conc_tilde_diffusion_id,
+    const int conc_phase_coupling_diffusion_id, const double D_liquid,
+    const double D_solid_A, const ConcInterpolationType phase_interp_func_type,
+    const string& avg_func_type)
+    : CompositionRHSStrategy(avg_func_type), d_quat_model(quat_model)
 {
-   assert( conc_scratch_id>=0 );
-   assert( phase_scratch_id>=0 );
-   assert( conc_tilde_diffusion_id>=0 );
-   assert( conc_phase_coupling_diffusion_id>=0 );
-   assert( partition_coeff_scratch_id>=0 );
-   
-   assert( D_liquid >= 0. );
-   assert( D_solid_A >= 0. );
+   assert(conc_scratch_id >= 0);
+   assert(phase_scratch_id >= 0);
+   assert(conc_tilde_diffusion_id >= 0);
+   assert(conc_phase_coupling_diffusion_id >= 0);
+   assert(partition_coeff_scratch_id >= 0);
+
+   assert(D_liquid >= 0.);
+   assert(D_solid_A >= 0.);
 
    d_phase_interp_func_type = phase_interp_func_type;
    d_avg_func_type = avg_func_type;
@@ -80,32 +75,30 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
    d_D_liquid = D_liquid;
    d_D_solid_A = D_solid_A;
 
-   d_conc_scratch_id  = conc_scratch_id;
+   d_conc_scratch_id = conc_scratch_id;
    d_phase_scratch_id = phase_scratch_id;
-   
-   d_diffusion0_id=conc_tilde_diffusion_id;
-   d_conc_phase_coupling_diffusion_id=conc_phase_coupling_diffusion_id;
+
+   d_diffusion0_id = conc_tilde_diffusion_id;
+   d_conc_phase_coupling_diffusion_id = conc_phase_coupling_diffusion_id;
 
    d_partition_coeff_scratch_id = partition_coeff_scratch_id;
 
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
-   t_set_diffcoeff_timer =
-      tman->getTimer(
-         "AMPE::BeckermannCompositionRHSStrategy::setDiffusionCoeff()");
+   t_set_diffcoeff_timer = tman->getTimer(
+       "AMPE::BeckermannCompositionRHSStrategy::setDiffusionCoeff()");
 }
 
 //-----------------------------------------------------------------------
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const double                                    time)
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
    (void)time;
 
-   assert( hierarchy );
-   
+   assert(hierarchy);
+
    t_set_diffcoeff_timer->start();
-   
+
    // tbox::pout<<"BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration"<<endl;
 
    // ghost values of k are needed to get k interpolated on faces
@@ -113,118 +106,112 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
    d_quat_model->fillPartitionCoeffGhosts();
 
    // set diffusion coefficients which is a function of the free energy form
-   setDiffusionCoeffForConcentration(
-      hierarchy,
-      d_conc_scratch_id,
-      d_phase_scratch_id,
-      d_diffusion0_id,
-      d_conc_phase_coupling_diffusion_id );
-   
+   setDiffusionCoeffForConcentration(hierarchy, d_conc_scratch_id,
+                                     d_phase_scratch_id, d_diffusion0_id,
+                                     d_conc_phase_coupling_diffusion_id);
+
    t_set_diffcoeff_timer->stop();
 }
 
 //=======================================================================
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   const int concentration_id,
-   const int phase_id,
-   const int conc_tilde_diffusion_id,
-   const int conc_phase_coupling_diffusion_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int concentration_id, const int phase_id,
+    const int conc_tilde_diffusion_id,
+    const int conc_phase_coupling_diffusion_id)
 {
-   //tbox::pout<<"BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration()"<<endl;
-   assert( concentration_id >= 0 );
-   assert( phase_id >= 0 );
-   assert( conc_tilde_diffusion_id >= 0 );
-   assert( conc_phase_coupling_diffusion_id >= 0 );
-   assert( d_partition_coeff_scratch_id >=0 );
-   assert( d_D_liquid>=0. );
-   assert( d_D_solid_A>=0. );
+   // tbox::pout<<"BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration()"<<endl;
+   assert(concentration_id >= 0);
+   assert(phase_id >= 0);
+   assert(conc_tilde_diffusion_id >= 0);
+   assert(conc_phase_coupling_diffusion_id >= 0);
+   assert(d_partition_coeff_scratch_id >= 0);
+   assert(d_D_liquid >= 0.);
+   assert(d_D_solid_A >= 0.);
 
    const int maxl = hierarchy->getNumberOfLevels();
 
    // first compute diffusion for div*D0*grad*c term in concentration equation
-   
-   for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
-      boost::shared_ptr<hier::PatchLevel > level =
-         hierarchy->getPatchLevel( amr_level );
 
-      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ) {
-         boost::shared_ptr<hier::Patch > patch = *p;
+   for (int amr_level = 0; amr_level < maxl; amr_level++) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          hierarchy->getPatchLevel(amr_level);
+
+      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
+         boost::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast  = pbox.upper();
+         const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr< pdat::CellData<double> > cd_phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
-         assert( cd_phi );
-         
-         boost::shared_ptr< pdat::SideData<double> > sd_diffusion0 (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_tilde_diffusion_id) ) );
-         assert( sd_diffusion0 );
-         
-         boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
-         assert( cd_partition_coeff );
+         boost::shared_ptr<pdat::CellData<double> > cd_phi(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phase_id)));
+         assert(cd_phi);
+
+         boost::shared_ptr<pdat::SideData<double> > sd_diffusion0(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(conc_tilde_diffusion_id)));
+         assert(sd_diffusion0);
+
+         boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_partition_coeff_scratch_id)));
+         assert(cd_partition_coeff);
 
          const char interp_func_type = concInterpChar(d_phase_interp_func_type);
          FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
-            ifirst(0), ilast(0),
-            ifirst(1), ilast(1),
+             ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-            ifirst(2), ilast(2),
+             ifirst(2), ilast(2),
 #endif
-            cd_phi->getPointer(), NGHOSTS,
-            sd_diffusion0->getPointer(0),
-            sd_diffusion0->getPointer(1),
+             cd_phi->getPointer(), NGHOSTS, sd_diffusion0->getPointer(0),
+             sd_diffusion0->getPointer(1),
 #if (NDIM == 3)
-            sd_diffusion0->getPointer(2),
+             sd_diffusion0->getPointer(2),
 #endif
-            0,
-            cd_partition_coeff->getPointer(),
-            cd_partition_coeff->getGhostCellWidth()[0],
-            d_D_liquid,
-            d_D_solid_A,
-            &interp_func_type,
-            d_avg_func_type.c_str() );
+             0, cd_partition_coeff->getPointer(),
+             cd_partition_coeff->getGhostCellWidth()[0], d_D_liquid,
+             d_D_solid_A, &interp_func_type, d_avg_func_type.c_str());
       }
    }
-   
-   // now set diffusion coefficients for div*D*grad*phi 
-   // term in r.h.s. of concentration equation
-   for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
-      boost::shared_ptr<hier::PatchLevel > level =
-         hierarchy->getPatchLevel(amr_level);
 
-      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ) {
-         boost::shared_ptr<hier::Patch > patch = *p;
+   // now set diffusion coefficients for div*D*grad*phi
+   // term in r.h.s. of concentration equation
+   for (int amr_level = 0; amr_level < maxl; amr_level++) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          hierarchy->getPatchLevel(amr_level);
+
+      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
+         boost::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_phase_coupling_diffusion_id) ) );
+         boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(conc_phase_coupling_diffusion_id)));
 
-         boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( conc_tilde_diffusion_id) ) );
+         boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(conc_tilde_diffusion_id)));
 
-         boost::shared_ptr< pdat::CellData<double> > cd_phi (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( phase_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > cd_phi(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phase_id)));
 
-         boost::shared_ptr< pdat::CellData<double> > cd_c (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_conc_scratch_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > cd_c(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_conc_scratch_id)));
 
-         boost::shared_ptr< pdat::CellData<double> > cd_k (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_scratch_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > cd_k(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_partition_coeff_scratch_id)));
 
-         setDiffusionCoeffForPhaseOnPatch(
-            sd_phi_diff_coeff,
-            sd_d0_coeff,
-            cd_phi,
-            cd_c,
-            cd_k,
-            pbox );
-
+         setDiffusionCoeffForPhaseOnPatch(sd_phi_diff_coeff, sd_d0_coeff,
+                                          cd_phi, cd_c, cd_k, pbox);
       }
    }
 }
@@ -232,30 +219,29 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
 //-----------------------------------------------------------------------
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
-   boost::shared_ptr< pdat::SideData<double> > sd_phi_diff_coeff,
-   boost::shared_ptr< pdat::SideData<double> > sd_d0_coeff,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_c,
-   boost::shared_ptr< pdat::CellData<double> > cd_k,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+    boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_c,
+    boost::shared_ptr<pdat::CellData<double> > cd_k, const hier::Box& pbox)
 {
-   double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer( 0 );
-   double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer( 1 );
+   double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer(0);
+   double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer(1);
    double* ptr_phi_diffz = nullptr;
 
-   double* ptr_dx0_coeff = sd_d0_coeff->getPointer( 0 );
-   double* ptr_dy0_coeff = sd_d0_coeff->getPointer( 1 );
+   double* ptr_dx0_coeff = sd_d0_coeff->getPointer(0);
+   double* ptr_dy0_coeff = sd_d0_coeff->getPointer(1);
    double* ptr_dz0_coeff = nullptr;
 
-   if ( NDIM > 2 ) {
-      ptr_phi_diffz = sd_phi_diff_coeff->getPointer( 2 );
-      ptr_dz0_coeff = sd_d0_coeff->getPointer( 2 );
+   if (NDIM > 2) {
+      ptr_phi_diffz = sd_phi_diff_coeff->getPointer(2);
+      ptr_dz0_coeff = sd_d0_coeff->getPointer(2);
    }
-   
+
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_c = cd_c->getPointer();
    double* ptr_k = cd_k->getPointer();
-   
+
    // Assuming d0_coeff and phi_diff_coeff have same box
    const hier::Box& dcoeff_gbox = sd_phi_diff_coeff->getGhostBox();
    int imin_dcoeff = dcoeff_gbox.lower(0);
@@ -287,7 +273,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
    int kp_k = 0;
 #if (NDIM == 3)
    kmin_k = k_gbox.lower(2);
-   kp_k   = jp_k * k_gbox.numberCells(1);
+   kp_k = jp_k * k_gbox.numberCells(1);
 #endif
 
    const hier::Box& c_i_gbox = cd_k->getGhostBox();
@@ -312,127 +298,117 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
    kmax = pbox.upper(2);
 #endif
    const char interp_func_type = concInterpChar(d_phase_interp_func_type);
- 
+
    // X-side
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax+1; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax + 1; ii++) {
 
-            const int idx_dcoeff = (ii - imin_dcoeff) +
-               (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
-               (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1) );
+            const int idx_dcoeff =
+                (ii - imin_dcoeff) + (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
+                (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1));
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
             const int idxm1_pf = idx_pf - 1;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
             const int idxm1_c_i = idx_c_i - 1;
 
-            const int idx_k = (ii - imin_k) +
-               (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
+            const int idx_k =
+                (ii - imin_k) + (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
             const int idxm1_k = idx_k - 1;
 
-            double phi = 
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-            double hphi=
-               FORT_INTERP_FUNC(phi, &interp_func_type);
+            double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
+            double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
 
-            double c = 
-               average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
-            
-            double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
-            assert( k==k );
-            assert( k>=0. );
-            assert( k<=1. );
+            double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
-            ptr_phi_diffx[idx_dcoeff] =
-               ptr_dx0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);
+            double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);
+            assert(k == k);
+            assert(k >= 0.);
+            assert(k <= 1.);
 
+            ptr_phi_diffx[idx_dcoeff] = ptr_dx0_coeff[idx_dcoeff] * (1. - k) *
+                                        c / (1. - hphi + k * hphi);
          }
       }
    }
 
    // Y-side
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax+1; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax + 1; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
             const int idx_dcoeff = (ii - imin_dcoeff) +
-               (jj - jmin_dcoeff) * jp_dcoeff +
-               (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
+                                   (jj - jmin_dcoeff) * jp_dcoeff +
+                                   (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
             const int idxm1_pf = idx_pf - jp_pf;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
             const int idxm1_c_i = idx_c_i - jp_c_i;
 
-            const int idx_k = (ii - imin_k) +
-               (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
+            const int idx_k =
+                (ii - imin_k) + (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
             const int idxm1_k = idx_k - 1;
 
-            //double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
-            double phi = 
-               average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
+            // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
+            double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
 
-            double hphi =
-               FORT_INTERP_FUNC(phi, &interp_func_type);
+            double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
 
-            double c = 
-               average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
-            
-            double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
-            assert( k==k );
+            double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
-            ptr_phi_diffy[idx_dcoeff] =
-               ptr_dy0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);
+            double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);
+            assert(k == k);
 
+            ptr_phi_diffy[idx_dcoeff] = ptr_dy0_coeff[idx_dcoeff] * (1. - k) *
+                                        c / (1. - hphi + k * hphi);
          }
       }
    }
 
-   if ( NDIM > 2 ) {
+   if (NDIM > 2) {
       // Z-side
-      for ( int kk = kmin; kk <= kmax+1; kk++ ) {
-         for ( int jj = jmin; jj <= jmax; jj++ ) {
-            for ( int ii = imin; ii <= imax; ii++ ) {
+      for (int kk = kmin; kk <= kmax + 1; kk++) {
+         for (int jj = jmin; jj <= jmax; jj++) {
+            for (int ii = imin; ii <= imax; ii++) {
 
                const int idx_dcoeff = (ii - imin_dcoeff) +
-                  (jj - jmin_dcoeff) * jp_dcoeff +
-                  (kk - kmin_dcoeff) * kp_dcoeff;
+                                      (jj - jmin_dcoeff) * jp_dcoeff +
+                                      (kk - kmin_dcoeff) * kp_dcoeff;
 
-               const int idx_pf = (ii - imin_pf) +
-                  (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+               const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                                  (kk - kmin_pf) * kp_pf;
                const int idxm1_pf = idx_pf - kp_pf;
 
-               const int idx_c_i = (ii - imin_c_i) +
-                  (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+               const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                   (kk - kmin_c_i) * kp_c_i;
                const int idxm1_c_i = idx_c_i - kp_c_i;
 
-               const int idx_k = (ii - imin_k) +
-                  (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
+               const int idx_k =
+                   (ii - imin_k) + (jj - jmin_k) * jp_k + (kk - kmin_k) * kp_k;
                const int idxm1_k = idx_k - 1;
 
-               //double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
-               double phi = 
-                  average( ptr_phi[idx_pf], ptr_phi[idxm1_pf] );
-               assert( phi==phi );
+               // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
+               double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
+               assert(phi == phi);
 
-               double hphi =
-                  FORT_INTERP_FUNC(phi, &interp_func_type);
+               double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
 
-               double c = 
-                  average( ptr_c[idx_c_i], ptr_c[idxm1_c_i] );
-            
-               double k = average( ptr_k[idx_k], ptr_k[idxm1_k] );
-               assert( k==k );
+               double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
-               ptr_phi_diffz[idx_dcoeff] =
-                  ptr_dz0_coeff[idx_dcoeff] * (1.-k)*c/(1.-hphi+k*hphi);
+               double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);
+               assert(k == k);
+
+               ptr_phi_diffz[idx_dcoeff] = ptr_dz0_coeff[idx_dcoeff] *
+                                           (1. - k) * c /
+                                           (1. - hphi + k * hphi);
             }
          }
       }
@@ -441,90 +417,83 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 
 //-----------------------------------------------------------------------
 
-void BeckermannCompositionRHSStrategy::computeFluxOnPatch(
-   hier::Patch& patch,
-   const int flux_id)
+void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
+                                                          const int flux_id)
 {
    const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
-   const double * dx  = patch_geom->getDx();
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const double* dx = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
    const hier::Index& ifirst = pbox.lower();
-   const hier::Index& ilast  = pbox.upper();
+   const hier::Index& ilast = pbox.upper();
 
-   boost::shared_ptr< pdat::CellData<double> > conc (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_scratch_id) ) );
-   assert( conc );
+   boost::shared_ptr<pdat::CellData<double> > conc(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_scratch_id)));
+   assert(conc);
 
-   boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_phase_scratch_id) ) );
-   assert( phase );
-   
-   boost::shared_ptr< pdat::SideData<double> > sd_conc_diffusion0 (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_diffusion0_id) ) );
-   assert( sd_conc_diffusion0 );
+   boost::shared_ptr<pdat::CellData<double> > phase(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_phase_scratch_id)));
+   assert(phase);
 
-   boost::shared_ptr< pdat::SideData<double> > sd_conc_phase_coupling_diffusion (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( d_conc_phase_coupling_diffusion_id) ) );
-   assert( sd_conc_phase_coupling_diffusion );
+   boost::shared_ptr<pdat::SideData<double> > sd_conc_diffusion0(
+       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+           patch.getPatchData(d_diffusion0_id)));
+   assert(sd_conc_diffusion0);
 
-   boost::shared_ptr< pdat::SideData<double> > flux (
-      BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch.getPatchData( flux_id) ) );
-   assert( flux );
+   boost::shared_ptr<pdat::SideData<double> > sd_conc_phase_coupling_diffusion(
+       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_phase_coupling_diffusion_id)));
+   assert(sd_conc_phase_coupling_diffusion);
+
+   boost::shared_ptr<pdat::SideData<double> > flux(
+       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+           patch.getPatchData(flux_id)));
+   assert(flux);
 
    int three_phase = 0;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
-   double l2d=ops.L2Norm(sd_conc_diffusion0,pbox);
-   assert( l2d==l2d );
+   double l2d = ops.L2Norm(sd_conc_diffusion0, pbox);
+   assert(l2d == l2d);
 
-   double l2p=ops.L2Norm(sd_conc_phase_coupling_diffusion,pbox);
-   assert( l2p==l2p );
+   double l2p = ops.L2Norm(sd_conc_phase_coupling_diffusion, pbox);
+   assert(l2p == l2p);
 #endif
-  
+
    // now compute concentration flux
-   FORT_CONCENTRATION_FLUX(
-            ifirst(0),ilast(0),
-            ifirst(1),ilast(1),
+   FORT_CONCENTRATION_FLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-            ifirst(2),ilast(2),
+                           ifirst(2), ilast(2),
 #endif
-            dx,
-            conc->getPointer(), NGHOSTS,
-            phase->getPointer(), NGHOSTS,
-            0, NGHOSTS,
-            sd_conc_diffusion0->getPointer(0),
-            sd_conc_diffusion0->getPointer(1),
+                           dx, conc->getPointer(), NGHOSTS, phase->getPointer(),
+                           NGHOSTS, 0, NGHOSTS,
+                           sd_conc_diffusion0->getPointer(0),
+                           sd_conc_diffusion0->getPointer(1),
 #if (NDIM == 3)
-            sd_conc_diffusion0->getPointer(2),
+                           sd_conc_diffusion0->getPointer(2),
 #endif
-            0,
-            sd_conc_phase_coupling_diffusion->getPointer(0),
-            sd_conc_phase_coupling_diffusion->getPointer(1),
+                           0, sd_conc_phase_coupling_diffusion->getPointer(0),
+                           sd_conc_phase_coupling_diffusion->getPointer(1),
 #if (NDIM == 3)
-            sd_conc_phase_coupling_diffusion->getPointer(2),
+                           sd_conc_phase_coupling_diffusion->getPointer(2),
 #endif
-            0,
-            nullptr,
-            nullptr,
+                           0, nullptr, nullptr,
 #if (NDIM == 3)
-            nullptr,
+                           nullptr,
 #endif
-            0,
-            flux->getPointer(0),
-            flux->getPointer(1),
+                           0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-            flux->getPointer(2),
+                           flux->getPointer(2),
 #endif
-            flux->getGhostCellWidth()[0],
-            three_phase );
+                           flux->getGhostCellWidth()[0], three_phase);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   double l2f=ops.L2Norm(flux,pbox);
-   assert( l2f==l2f );
+   double l2f = ops.L2Norm(flux, pbox);
+   assert(l2f == l2f);
 #endif
-
 }
-

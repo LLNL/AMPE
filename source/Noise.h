@@ -45,14 +45,11 @@ using namespace SAMRAI;
 
 class Noise
 {
-public:
+ public:
+   virtual double gen() = 0;
 
-   virtual double gen()=0;
-
-   void setField(boost::shared_ptr<hier::Patch > patch,
-                 const int data_id, const int phi_id);
-
+   void setField(boost::shared_ptr<hier::Patch> patch, const int data_id,
+                 const int phi_id);
 };
 
 #endif
-

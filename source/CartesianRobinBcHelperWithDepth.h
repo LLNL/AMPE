@@ -45,11 +45,10 @@ using namespace SAMRAI;
  * xfer::RefinePatchStrategy so it may be used to help create
  * communication schedules if desired.
  */
-class CartesianRobinBcHelperWithDepth:
-   public xfer::RefinePatchStrategy
+class CartesianRobinBcHelperWithDepth : public xfer::RefinePatchStrategy
 {
 
-public:
+ public:
    /*!
     * @brief Constructor using.
     *
@@ -60,49 +59,34 @@ public:
     * @param coef_strategy Coefficients strategy being helped.
     */
    explicit CartesianRobinBcHelperWithDepth(
-      const tbox::Dimension& dim,
-      std::string object_name = std::string(),
-      solv::RobinBcCoefStrategy* coef_strategy = 0);
+       const tbox::Dimension& dim, std::string object_name = std::string(),
+       solv::RobinBcCoefStrategy* coef_strategy = 0);
 
    /*!
     * @brief Destructor.
     */
-   virtual ~CartesianRobinBcHelperWithDepth(
-      void);
+   virtual ~CartesianRobinBcHelperWithDepth(void);
 
    //@{ @name xfer::RefinePatchStrategy virtuals
 
-   virtual void
-   setPhysicalBoundaryConditions(
-      hier::Patch& patch,
-      const double fill_time,
-      const hier::IntVector& ghost_width_to_fill);
-   hier::IntVector
-   getRefineOpStencilWidth(const tbox::Dimension &dim) const;
-   virtual void
-   preprocessRefineBoxes(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::BoxContainer& fine_boxes,
-      const hier::IntVector& ratio);
-   virtual void
-   preprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
-   virtual void
-   postprocessRefineBoxes(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::BoxContainer& fine_boxes,
-      const hier::IntVector& ratio);
-   virtual void
-   postprocessRefine(
-      hier::Patch& fine,
-      const hier::Patch& coarse,
-      const hier::Box& fine_box,
-      const hier::IntVector& ratio);
+   virtual void setPhysicalBoundaryConditions(
+       hier::Patch& patch, const double fill_time,
+       const hier::IntVector& ghost_width_to_fill);
+   hier::IntVector getRefineOpStencilWidth(const tbox::Dimension& dim) const;
+   virtual void preprocessRefineBoxes(hier::Patch& fine,
+                                      const hier::Patch& coarse,
+                                      const hier::BoxContainer& fine_boxes,
+                                      const hier::IntVector& ratio);
+   virtual void preprocessRefine(hier::Patch& fine, const hier::Patch& coarse,
+                                 const hier::Box& fine_box,
+                                 const hier::IntVector& ratio);
+   virtual void postprocessRefineBoxes(hier::Patch& fine,
+                                       const hier::Patch& coarse,
+                                       const hier::BoxContainer& fine_boxes,
+                                       const hier::IntVector& ratio);
+   virtual void postprocessRefine(hier::Patch& fine, const hier::Patch& coarse,
+                                  const hier::Box& fine_box,
+                                  const hier::IntVector& ratio);
 
    //@}
 
@@ -193,13 +177,10 @@ public:
     * @param homogeneous_bc Set a homogeneous boundary condition.
     *    This means g=0 for the boundary.
     */
-   void
-   setBoundaryValuesInCells(
-      hier::Patch& patch,
-      const double fill_time,
-      const hier::IntVector& ghost_width_to_fill,
-      int target_data_id,
-      bool homogeneous_bc = false) const;
+   void setBoundaryValuesInCells(hier::Patch& patch, const double fill_time,
+                                 const hier::IntVector& ghost_width_to_fill,
+                                 int target_data_id,
+                                 bool homogeneous_bc = false) const;
 
    /*!
     * @brief Set ghost cells for an entire level.
@@ -220,13 +201,11 @@ public:
     * @param homogeneous_bc Set a homogeneous boundary condition.
     *    This means g=0 for the boundary.
     */
-   void
-   setBoundaryValuesInCells(
-      hier::PatchLevel& level,
-      const double fill_time,
-      const hier::IntVector& ghost_width_to_fill,
-      int target_data_id,
-      bool homogeneous_bc = false) const;
+   void setBoundaryValuesInCells(hier::PatchLevel& level,
+                                 const double fill_time,
+                                 const hier::IntVector& ghost_width_to_fill,
+                                 int target_data_id,
+                                 bool homogeneous_bc = false) const;
 
    /*!
     * @brief Set the physical boundary condition by setting the
@@ -268,12 +247,9 @@ public:
     * @param homogeneous_bc Set a homogeneous boundary condition.
     *    This means g=0 for the boundary.
     */
-   void
-   setBoundaryValuesAtNodes(
-      hier::Patch& patch,
-      const double fill_time,
-      int target_data_id,
-      bool homogeneous_bc = false) const;
+   void setBoundaryValuesAtNodes(hier::Patch& patch, const double fill_time,
+                                 int target_data_id,
+                                 bool homogeneous_bc = false) const;
 
    //@}
 
@@ -292,13 +268,10 @@ public:
     * @param coef_strategy Pointer to a concrete inmplementation of
     *        the coefficient strategy.
     */
-   void
-   setCoefImplementation(
-      const solv::RobinBcCoefStrategy* coef_strategy)
+   void setCoefImplementation(const solv::RobinBcCoefStrategy* coef_strategy)
    {
       if (!coef_strategy) {
-         TBOX_ERROR(d_object_name << ": Invalid pointer value"
-                                  << std::endl);
+         TBOX_ERROR(d_object_name << ": Invalid pointer value" << std::endl);
       }
       d_coef_strategy = coef_strategy;
    }
@@ -312,9 +285,7 @@ public:
     * the it is not passed in through the argument list of
     * setPhysicalBounaryConditions.
     */
-   void
-   setTargetDataId(
-      int target_data_id)
+   void setTargetDataId(int target_data_id)
    {
       d_target_data_id = target_data_id;
    }
@@ -330,9 +301,7 @@ public:
     * to set a flag that will cause a null pointer to be given to
     * setBcCoefs() to indicate that fact.
     */
-   void
-   setHomogeneousBc(
-      bool homogeneous_bc)
+   void setHomogeneousBc(bool homogeneous_bc)
    {
       d_homogeneous_bc = homogeneous_bc;
    }
@@ -344,21 +313,14 @@ public:
     *
     * @return The name of this object.
     */
-   const std::string&
-   getObjectName() const
-   {
-      return d_object_name;
-   }
+   const std::string& getObjectName() const { return d_object_name; }
 
    /*!
     * @brief Return the dimension of this object.
     */
-   const tbox::Dimension& getDim() const
-   {
-      return d_dim;
-   }
+   const tbox::Dimension& getDim() const { return d_dim; }
 
-private:
+ private:
    /*!
     * @brief Trim a boundary box so that it does not stick out
     * past a given box.
@@ -376,10 +338,8 @@ private:
     *
     * @return New trimmed boundary box.
     */
-   hier::BoundaryBox
-   trimBoundaryBox(
-      const hier::BoundaryBox& boundary_box,
-      const hier::Box& limit_box) const;
+   hier::BoundaryBox trimBoundaryBox(const hier::BoundaryBox& boundary_box,
+                                     const hier::Box& limit_box) const;
 
    /*!
     * @brief Return box describing the index space of boundary nodes
@@ -396,9 +356,7 @@ private:
     * @return a box to define the node indices corresponding to
     *   boundary_box
     */
-   hier::Box
-   makeNodeBoundaryBox(
-      const hier::BoundaryBox& boundary_box) const;
+   hier::Box makeNodeBoundaryBox(const hier::BoundaryBox& boundary_box) const;
 
    /*!
     * @brief Return box describing the index space of faces
@@ -418,9 +376,7 @@ private:
     * @return a box to define the face indices corresponding to
     *    boundary_box
     */
-   hier::Box
-   makeFaceBoundaryBox(
-      const hier::BoundaryBox& boundary_box) const;
+   hier::Box makeFaceBoundaryBox(const hier::BoundaryBox& boundary_box) const;
 
    const tbox::Dimension d_dim;
 

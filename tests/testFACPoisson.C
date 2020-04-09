@@ -52,7 +52,7 @@ using namespace SAMRAI;
  *************************************************************************
  */
 
-int main(int argc,char* argv[])
+int main(int argc, char* argv[])
 {
    /*
     * Initialize MPI, SAMRAI.
@@ -85,14 +85,16 @@ int main(int argc,char* argv[])
        * Create input database and parse all data in input file.
        */
       boost::shared_ptr<tbox::InputDatabase> input_db(
-         new tbox::InputDatabase("input_db"));
-      tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+          new tbox::InputDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
       /*
        * Set up the timer manager.
        */
       if (input_db->isDatabase("TimerManager")) {
-         tbox::TimerManager::createManager(input_db->getDatabase("TimerManager"));
+         tbox::TimerManager::createManager(
+             input_db->getDatabase("TimerManager"));
       }
 
       /*
@@ -103,7 +105,8 @@ int main(int argc,char* argv[])
        */
       boost::shared_ptr<tbox::Database> main_db(input_db->getDatabase("Main"));
 
-      const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
+      const tbox::Dimension dim(
+          static_cast<unsigned short>(main_db->getInteger("dim")));
 
       string base_name = "unnamed";
       base_name = main_db->getStringWithDefault("base_name", base_name);
@@ -122,18 +125,17 @@ int main(int argc,char* argv[])
        * for this application, see comments at top of file.
        */
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
-         new geom::CartesianGridGeometry(
-            dim,
-            base_name + "CartesianGridGeometry",
-            input_db->getDatabase("CartesianGridGeometry")));
+          new geom::CartesianGridGeometry(dim,
+                                          base_name + "CartesianGridGeometry",
+                                          input_db->getDatabase("CartesianGridG"
+                                                                "eometry")));
       tbox::plog << "Cartesian Geometry:" << endl;
       grid_geometry->printClassData(tbox::plog);
 
       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy(
-         new hier::PatchHierarchy(
-            base_name + "::PatchHierarchy",
-            grid_geometry,
-            input_db->getDatabase("PatchHierarchy")));
+          new hier::PatchHierarchy(base_name + "::PatchHierarchy",
+                                   grid_geometry,
+                                   input_db->getDatabase("PatchHierarchy")));
 
       std::string fac_poisson_name = base_name + "::FACPoisson";
       std::string fac_solver_name = fac_poisson_name + "::poisson_hypre";
@@ -143,47 +145,39 @@ int main(int argc,char* argv[])
       std::string bc_coefs_name = fac_poisson_name + "::bc_coefs";
 
       boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_poisson(
-         new solv::CellPoissonHypreSolver(
-            dim,
-            hypre_poisson_name,
-            input_db->isDatabase("hypre_solver") ?
-            input_db->getDatabase("hypre_solver") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::CellPoissonHypreSolver(
+              dim, hypre_poisson_name,
+              input_db->isDatabase("hypre_solver")
+                  ? input_db->getDatabase("hypre_solver")
+                  : boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::CellPoissonFACOps> fac_ops(
-         new solv::CellPoissonFACOps(
-            hypre_poisson,
-            dim,
-            fac_ops_name,
-            input_db->isDatabase("fac_ops") ?
-            input_db->getDatabase("fac_ops") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::CellPoissonFACOps(
+              hypre_poisson, dim, fac_ops_name,
+              input_db->isDatabase("fac_ops")
+                  ? input_db->getDatabase("fac_ops")
+                  : boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::FACPreconditioner> fac_precond(
-         new solv::FACPreconditioner(
-            fac_precond_name,
-            fac_ops,
-            input_db->isDatabase("fac_precond") ?
-            input_db->getDatabase("fac_precond") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::FACPreconditioner(
+              fac_precond_name, fac_ops,
+              input_db->isDatabase("fac_precond")
+                  ? input_db->getDatabase("fac_precond")
+                  : boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::CellPoissonFACSolver> fac_solver(
-         new solv::CellPoissonFACSolver(
-            dim,
-            fac_solver_name,
-            fac_precond,
-            fac_ops,
-            input_db->isDatabase("fac_solver") ?
-            input_db->getDatabase("fac_solver") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::CellPoissonFACSolver(
+              dim, fac_solver_name, fac_precond, fac_ops,
+              input_db->isDatabase("fac_solver")
+                  ? input_db->getDatabase("fac_solver")
+                  : boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::LocationIndexRobinBcCoefs> bc_coefs(
-         new solv::LocationIndexRobinBcCoefs(
-            dim,
-            bc_coefs_name,
-            input_db->isDatabase("bc_coefs") ?
-            input_db->getDatabase("bc_coefs") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::LocationIndexRobinBcCoefs(
+              dim, bc_coefs_name,
+              input_db->isDatabase("bc_coefs")
+                  ? input_db->getDatabase("bc_coefs")
+                  : boost::shared_ptr<tbox::Database>()));
 
       /*
        * The FACPoisson object is the main user object specific to the
@@ -192,27 +186,22 @@ int main(int argc,char* argv[])
        * process that includes making the initial guess, specifying the
        * boundary conditions and call the solver.
        */
-      FACPoisson fac_poisson(fac_poisson_name,
-                             dim,
-                             fac_solver,
-                             bc_coefs);
+      FACPoisson fac_poisson(fac_poisson_name, dim, fac_solver, bc_coefs);
 
       /*
        * Create the tag-and-initializer, box-generator and load-balancer
        * object references required by the gridding_algorithm object.
        */
       boost::shared_ptr<mesh::StandardTagAndInitialize> tag_and_initializer(
-         new mesh::StandardTagAndInitialize(
-            "CellTaggingMethod",
-            &fac_poisson,
-            input_db->getDatabase("StandardTagAndInitialize")));
+          new mesh::StandardTagAndInitialize("CellTaggingMethod", &fac_poisson,
+                                             input_db->getDatabase("StandardTag"
+                                                                   "AndInitiali"
+                                                                   "ze")));
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+          new mesh::BergerRigoutsos(dim));
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
-         new mesh::TreeLoadBalancer(
-            dim,
-            "load balancer",
-            boost::shared_ptr<tbox::Database>()));
+          new mesh::TreeLoadBalancer(dim, "load balancer",
+                                     boost::shared_ptr<tbox::Database>()));
       load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       /*
@@ -220,13 +209,11 @@ int main(int argc,char* argv[])
        * and create the grid.
        */
       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
-         new mesh::GriddingAlgorithm(
-            patch_hierarchy,
-            "Gridding Algorithm",
-            input_db->getDatabase("GriddingAlgorithm"),
-            tag_and_initializer,
-            box_generator,
-            load_balancer));
+          new mesh::GriddingAlgorithm(patch_hierarchy, "Gridding Algorithm",
+                                      input_db->getDatabase("GriddingAlgorith"
+                                                            "m"),
+                                      tag_and_initializer, box_generator,
+                                      load_balancer));
       tbox::plog << "Gridding algorithm:" << endl;
       gridding_algorithm->printClassData(tbox::plog);
 
@@ -235,14 +222,10 @@ int main(int argc,char* argv[])
        */
       gridding_algorithm->makeCoarsestLevel(0.0);
       bool done = false;
-      for (int lnum = 0;
-           patch_hierarchy->levelCanBeRefined(lnum) && !done; lnum++) {
+      for (int lnum = 0; patch_hierarchy->levelCanBeRefined(lnum) && !done;
+           lnum++) {
          tbox::plog << "Adding finner levels with lnum = " << lnum << endl;
-         gridding_algorithm->makeFinerLevel(
-            0,
-            true,
-            0,
-            0.0);
+         gridding_algorithm->makeFinerLevel(0, true, 0, 0.0);
          tbox::plog << "Just added finer levels with lnum = " << lnum << endl;
          done = !(patch_hierarchy->finerLevelExists(lnum));
       }
@@ -285,18 +268,20 @@ int main(int argc,char* argv[])
       visit_writer->writePlotData(patch_hierarchy, 0);
 #endif
 
-      double error=fac_poisson.compareSolutionWithExact();
-      tbox::pout<<"Difference between computed sol. and exact so. = "<<error<<endl;
+      double error = fac_poisson.compareSolutionWithExact();
+      tbox::pout << "Difference between computed sol. and exact so. = " << error
+                 << endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
-      if ( error<1.e-2 ) {
+      if (error < 1.e-2) {
          tbox::pout << "\nPASSED" << endl;
       } else {
-         tbox::pout << "\nFAILED: FAC Poisson test did not converge to solution."<<endl;
+         tbox::pout << "\nFAILED: FAC Poisson test did not converge to "
+                       "solution."
+                    << endl;
          return 1;
       }
-
    }
 
    tbox::SAMRAIManager::shutdown();

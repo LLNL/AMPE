@@ -36,6 +36,19 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+# clang-format (optional)
+set(AMPE_WITH_CLANG_FORMAT FALSE CACHE BOOL "Indent code with clang-format")
+if(${AMPE_WITH_CLANG_FORMAT})
+  find_package(CLANG_FORMAT)
+  if(${CLANG_FORMAT_FOUND})
+    message(STATUS "Indent with clang-format")
+    file(GLOB_RECURSE FORMAT_SOURCES source/*.C source/*.h tests/*.C tests/*.h)
+    add_custom_target(format
+      COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
+      DEPENDS ${FORMAT_SOURCES})
+  endif(${CLANG_FORMAT_FOUND})
+endif()
+
 link_directories( ${SAMRAI_DIR}/lib )
 link_directories( ${HYPRE_DIR}/lib )
 link_directories( ${SUNDIALS_DIR}/lib )

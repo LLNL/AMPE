@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_CPODESSolver
 #define included_CPODESSolver
 
@@ -59,181 +59,184 @@ extern "C" {
 
 
 #ifndef LACKS_SSTREAM
-#define CPODE_SAMRAI_ERROR(ierr) do {						\
-      if (ierr != CP_SUCCESS) {                                   				\
-         std::ostringstream tboxos;							\
-         SAMRAI::tbox::Utilities::abort(tboxos.str().c_str(), __FILE__, __LINE__);	\
-      } 									\
-} while (0)
+#define CPODE_SAMRAI_ERROR(ierr)                                        \
+   do {                                                                 \
+      if (ierr != CP_SUCCESS) {                                         \
+         std::ostringstream tboxos;                                     \
+         SAMRAI::tbox::Utilities::abort(tboxos.str().c_str(), __FILE__, \
+                                        __LINE__);                      \
+      }                                                                 \
+   } while (0)
 #else
-#define CPODE_SAMRAI_ERROR(ierr) do {						\
-      if (ierr != CP_SUCCESS) {                                   				\
-         std::ostrstream tboxos;							\
-         CHKERRCONTINUE(ierr); 							\
-         SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__);	        \
-      } 									\
-} while (0)
+#define CPODE_SAMRAI_ERROR(ierr)                                           \
+   do {                                                                    \
+      if (ierr != CP_SUCCESS) {                                            \
+         std::ostrstream tboxos;                                           \
+         CHKERRCONTINUE(ierr);                                             \
+         SAMRAI::tbox::Utilities::abort(tboxos.str(), __FILE__, __LINE__); \
+      }                                                                    \
+   } while (0)
 #endif
 
 /*!
- * @brief Class CPODESSolver serves as a C++ wrapper for the CPODES 
- * ordinary differential equation solver package.  
+ * @brief Class CPODESSolver serves as a C++ wrapper for the CPODES
+ * ordinary differential equation solver package.
  *
- * It is intended to be 
+ * It is intended to be
  * sufficiently generic to be used independently of the SAMRAI framework.
  * This class declares one private static member function to link the
  * user-defined routine for right-hand side function evaluation and
- * two private statice member functions to link the user-defined 
+ * two private statice member functions to link the user-defined
  * preconditioner setup and solve routines.  The implementation of these
- * functions is defined by the user in a subclass of the abstract base 
- * class CPODESAbstractFunctions.  The vector objects used within the 
- * solver are given in a subclass of the abstract class 
- * solv::SundialsAbstractVector. The solv::SundialsAbstractVector 
+ * functions is defined by the user in a subclass of the abstract base
+ * class CPODESAbstractFunctions.  The vector objects used within the
+ * solver are given in a subclass of the abstract class
+ * solv::SundialsAbstractVector. The solv::SundialsAbstractVector
  * class defines the vector kernel operations required by the CPODES
- * package so that they may be easily supplied by a user who opts not 
+ * package so that they may be easily supplied by a user who opts not
  * to use the vector kernel supplied by the CPODES package.  (It should be
  * noted that the vector kernel used by CPODES is the same as the one
  * used by the other packages in the Sundials of solvers).
- * 
- * Note that this class provides no input or restart capabilities and 
- * relies on CPODES for output reporting.  
+ *
+ * Note that this class provides no input or restart capabilities and
+ * relies on CPODES for output reporting.
  *
  * CPODESSolver Usage:
- * 
+ *
  *    -  In order to use the CPODESSolver, the user must provide a
  *           concrete subclass of CPODESAbstractFunctions abstract
  *           base class which defines the evaluateRHSFunction(),
  *           CPSpgmrPrecondSet(), and CPSpgmrPrecondSolve() methods.
  *
- *    -  Solving a system of ODEs using this CPODES C++ interface 
+ *    -  Solving a system of ODEs using this CPODES C++ interface
  *           requires four main stages.  First, a CPODESSolver
  *           object is created with a user-specified name and
  *           CPODESAbstractFunctions object.  Second, the
  *           user must specify the integration parameters that s/he
  *           wishes to use.  Next, the user must call the CPODESSolver
- *           method initialize(solution_vector) with the 
- *           solv::SundialsAbstractVector that s/he wants to put the solution 
- *           in.  Finally, the solve() method is invoked to solve the 
- *           system of ODEs to the specified value of the independent 
+ *           method initialize(solution_vector) with the
+ *           solv::SundialsAbstractVector that s/he wants to put the solution
+ *           in.  Finally, the solve() method is invoked to solve the
+ *           system of ODEs to the specified value of the independent
  *           variable.
- *           
+ *
  *    -  The following is a list of integration parameters that
  *           must be specified by the user before calling the solve()
  *           method:
- *        
+ *
  *            - Either relative or absolute tolerance must
  *                  be set - setRelativeTolerance(relative_tolerance),
  *                  setAbsoluteTolerance(absolute_tolerance)
- * 
+ *
  *            - Initial value of independent variable -
  *                  setInitialValueOfIndependentVariable(init_time)
  *            - Final value of independent variable -
  *                  setFinalValueOfIndependentVariable(final_time
  *                      cpode_needs_initialization)
- *            - Initial condition vector - 
+ *            - Initial condition vector -
  *                  setInitialConditionVector(ic_vector)
  *
- *           
+ *
  *    -  The following is a list of default values for integration
  *           parameters:
- * 
- *           - @b Linear Multistep Method               
- *                BDF
- * 
- *           - @b Iteration Type                        
- *                FUNCTIONAL
- * 
- *           - @b Tolerance Type                        
- *                SS (scalar relative and scalar absolute tolerances)
- * 
- *           - @b Relative Tolerance                    
- *                0.0
- * 
- *           - @b Scalar Absolute Tolerance             
- *                0.0
- * 
- *           - @b Vector Absolute Tolerance             
- *                NULL
- * 
- *           - @b Stepping Method                       
- *                NORMAL
- * 
- *           - @b Maximum Order for Multistep Method    
- *                12 for ADAMS, 5 for BDF
- * 
- *           - @b Maximum Number of Internal Steps      
- *                500
- * 
- *           - @b Maximum Number of NIL Step Warnings   
- *                10
- * 
- *           - @b Initial Step Size                     
- *                determined by CPODES
- * 
- *           - @b Maximum Absolute Value of Step Size   
- *                infinity
- * 
- *           - @b Minimum Absolute Value of Step Size   
- *                0.0
- * 
- *           - @b CPSpgmr Preconditioning Type          
- *                NONE
- * 
- *           - @b CPSpgmr Gram Schmidt Algorithm        
- *                MODIFIED_GS
- * 
- *           - @b CPSpgmr Maximum Krylov Dimension      
- *                MIN(num_equations, CPSPGMR_MAXL=5)
- * 
- *           - @b CPSpgmr Tolerance Scale Factor        
- *                CPSPGMR_DELT = 0.05.
- * 
  *
- * CPODES was developed in the Center for Applied Scientific Computing (CASC) 
+ *           - @b Linear Multistep Method
+ *                BDF
+ *
+ *           - @b Iteration Type
+ *                FUNCTIONAL
+ *
+ *           - @b Tolerance Type
+ *                SS (scalar relative and scalar absolute tolerances)
+ *
+ *           - @b Relative Tolerance
+ *                0.0
+ *
+ *           - @b Scalar Absolute Tolerance
+ *                0.0
+ *
+ *           - @b Vector Absolute Tolerance
+ *                NULL
+ *
+ *           - @b Stepping Method
+ *                NORMAL
+ *
+ *           - @b Maximum Order for Multistep Method
+ *                12 for ADAMS, 5 for BDF
+ *
+ *           - @b Maximum Number of Internal Steps
+ *                500
+ *
+ *           - @b Maximum Number of NIL Step Warnings
+ *                10
+ *
+ *           - @b Initial Step Size
+ *                determined by CPODES
+ *
+ *           - @b Maximum Absolute Value of Step Size
+ *                infinity
+ *
+ *           - @b Minimum Absolute Value of Step Size
+ *                0.0
+ *
+ *           - @b CPSpgmr Preconditioning Type
+ *                NONE
+ *
+ *           - @b CPSpgmr Gram Schmidt Algorithm
+ *                MODIFIED_GS
+ *
+ *           - @b CPSpgmr Maximum Krylov Dimension
+ *                MIN(num_equations, CPSPGMR_MAXL=5)
+ *
+ *           - @b CPSpgmr Tolerance Scale Factor
+ *                CPSPGMR_DELT = 0.05.
+ *
+ *
+ * CPODES was developed in the Center for Applied Scientific Computing (CASC)
  * at Lawrence Livermore National Laboratory (LLNL).  Many of the comments
- * in this class were taken verbatim from CPODES header files.  For more 
- * information about CPODES and a complete description of the operations 
- * and data structures used by this class, see S.D. Cohen and A.C. Hindmarsh, 
- * "CPODES User Guide", UCRL-MA-118618, Lawrence Livermore National 
- * Laboratory, 1994. 
+ * in this class were taken verbatim from CPODES header files.  For more
+ * information about CPODES and a complete description of the operations
+ * and data structures used by this class, see S.D. Cohen and A.C. Hindmarsh,
+ * "CPODES User Guide", UCRL-MA-118618, Lawrence Livermore National
+ * Laboratory, 1994.
  *
  * @see solv::CPODESAbstractFunctions
- * @see solv::SundialsAbstractVector 
+ * @see solv::SundialsAbstractVector
  */
 
 class CPODESSolver
 {
-public:
+ public:
    /**
-    * Constructor for CPODESSolver sets default CPODES parameters 
+    * Constructor for CPODESSolver sets default CPODES parameters
     * and initializes the solver package with user-supplied functions
-    * CPODESSolver parameters may be changed later using member 
-    * functions described below.  
+    * CPODESSolver parameters may be changed later using member
+    * functions described below.
     *
     * Notes:
-    * 
+    *
     *    -
     *        The solution vector is not passed into the constructor.
-    *        Before the solver can be used, the initialize() function must 
+    *        Before the solver can be used, the initialize() function must
     *        be called.
     *
-    * Assertion checks: 
-    * 
+    * Assertion checks:
+    *
     *    -
     *        my_functions must not be null
-    * 
+    *
     *    -
     *        object_name must not be empty.
-    * 
-    * 
+    *
+    *
     */
    CPODESSolver(const std::string& object_name,
-                    CPODESAbstractFunctions* my_functions,
-                    const bool uses_preconditioner);
+                CPODESAbstractFunctions* my_functions,
+                const bool uses_preconditioner);
 
    /**
-    * Virtual destructor for CPODESSolver closes the 
-    * CPODES log file and frees the memory allocated for the 
+    * Virtual destructor for CPODESSolver closes the
+    * CPODES log file and frees the memory allocated for the
     * CPODES memory record.
     */
    virtual ~CPODESSolver();
@@ -242,93 +245,93 @@ public:
     * Initialize solver with solution vector.  The solution vector is
     * required to initialize the memory record used internally within
     * CPODES.  This routine must be called before the solver can be used.
-    * 
+    *
     * Assertion checks:
-    * 
+    *
     *    -
     *        the solution vector must not be null
-    * 
+    *
     *    -
     *        the solution vector must not have already been set
-    * 
+    *
     */
-   void initialize(solv::SundialsAbstractVector* solution); 
+   void initialize(solv::SundialsAbstractVector* solution);
 
    /**
-    * Integrate ODE system specified t_f.  The integer return value is  
+    * Integrate ODE system specified t_f.  The integer return value is
     * a termination code defined by CPODES.  The following is a table
     * of termination codes and a brief description of their meanings.
-    * 
-    * CPODES Termination Codes:
-    * 
     *
-    *    - @b SUCCESS (=0)            
+    * CPODES Termination Codes:
+    *
+    *
+    *    - @b SUCCESS (=0)
     *        Cpodes succeeded.
     *
-    *    - @b CPODE_NO_MEM (=-1)    
+    *    - @b CPODE_NO_MEM (=-1)
     *        The cpode_mem argument was NULL.
     *
-    *    - @b ILL_INPUT (=-2)        
-    *        One of the inputs to Cpodes is illegal. This    
-    *        includes the situation when a component of the 
+    *    - @b ILL_INPUT (=-2)
+    *        One of the inputs to Cpodes is illegal. This
+    *        includes the situation when a component of the
     *        error weight vectors becomes < 0 during
-    *        internal time-stepping. The ILL_INPUT flag 
-    *        will also be returned if the linear solver 
+    *        internal time-stepping. The ILL_INPUT flag
+    *        will also be returned if the linear solver
     *        routine CP--- (called by the user after
     *        calling CpodesMalloc) failed to set one of the
-    *        linear solver-related fields in cpode_mem or 
+    *        linear solver-related fields in cpode_mem or
     *        if the linear solver's init routine failed. In
-    *        any case, the user should see the printed   
+    *        any case, the user should see the printed
     *        error message for more details.
     *
-    *    - @b TOO_MUCH_WORK (=-3)   
-    *        The solver took maxstep internal steps but 
-    *        could not reach t_f. The default value for  
+    *    - @b TOO_MUCH_WORK (=-3)
+    *        The solver took maxstep internal steps but
+    *        could not reach t_f. The default value for
     *        mxstep is MXSTEP_DEFAULT = 500.
     *
-    *    - @b TOO_MUCH_ACC (=-4)    
-    *        The solver could not satisfy the accuracy 
-    *        demanded by the user for some internal step. 
+    *    - @b TOO_MUCH_ACC (=-4)
+    *        The solver could not satisfy the accuracy
+    *        demanded by the user for some internal step.
     *
-    *    - @b ERR_FAILURE (=-5)      
-    *        Error test failures occurred too many times 
-    *        (= MXNEF = 7) during one internal time step or 
+    *    - @b ERR_FAILURE (=-5)
+    *        Error test failures occurred too many times
+    *        (= MXNEF = 7) during one internal time step or
     *        occurred with |h| = hmin.
     *
-    *    - @b CONV_FAILURE (=-6)     
-    *        Convergence test failures occurred too many  
+    *    - @b CONV_FAILURE (=-6)
+    *        Convergence test failures occurred too many
     *        times (= MXNCF = 10) during one internal time
     *        step or occurred with |h| = hmin.
     *
-    *    - @b SETUP_FAILURE (=-7)    
+    *    - @b SETUP_FAILURE (=-7)
     *        The linear solver's setup routine failed in an
     *                 unrecoverable manner.
     *
-    *    - @b SOLVE_FAILURE (=-8)    
-    *        The linear solver's solve routine failed in an 
+    *    - @b SOLVE_FAILURE (=-8)
+    *        The linear solver's solve routine failed in an
     *                 unrecoverable manner.
-    * 
-    * 
-
-
-    * 
-    * See cpodes.h header file for more information about return values.  
     *
-    * If CPODES or CPSpgmr requires re-initialization, it is 
-    * automatically done before the solve.  This may be required if any 
-    * of the CPODES or CPSpgmr data parameters have changed since the 
-    * last call to the solver.  
+    *
+
+
+    *
+    * See cpodes.h header file for more information about return values.
+    *
+    * If CPODES or CPSpgmr requires re-initialization, it is
+    * automatically done before the solve.  This may be required if any
+    * of the CPODES or CPSpgmr data parameters have changed since the
+    * last call to the solver.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
-    *     - 
+    *     -
     *        The user specified final value for the independent variable t
     *        must be greater than the specified initial value.
     *
-    * 
+    *
 
 
     */
@@ -339,36 +342,36 @@ public:
     * printing options.  Output file name and options may be changed
     * throughout run as desired.
     *
-    * If the file name string is empty the default file name "cpodes.log" 
+    * If the file name string is empty the default file name "cpodes.log"
     * is used.
     */
    void setLogFileData(const std::string& log_fname = std::string());
 
    /**
-    * Set CPODESSolver to use my_functions as the concrete subclass 
-    * of the CPODESAbstractFunctions class that defines the 
+    * Set CPODESSolver to use my_functions as the concrete subclass
+    * of the CPODESAbstractFunctions class that defines the
     * right-hand side evaluation and preconditioner functions.  The
     * uses_preconditioner argument indicates whether or not the
     * the user has defined preconditioner routines in their concrete
     * subclass of the CPODESAbstractFunctions class.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        my_function must not be a null pointer
     *
-    * 
+    *
 
 
     */
    void setCPODESFunctions(CPODESAbstractFunctions* my_functions,
-                          const bool uses_preconditioner);
+                           const bool uses_preconditioner);
 
    /**
-    * Return pointer to object that provides user-defined functions for 
+    * Return pointer to object that provides user-defined functions for
     * CPODES and CPSpgmr.
     */
    CPODESAbstractFunctions* getCPODESFunctions() const;
@@ -377,19 +380,19 @@ public:
 
    /**
     * Set linear multistep method.  The user can specify either
-    * ADAMS or BDF (backward differentiation formula) methods 
-    * The BDF method is recommended  for stiff problems, and 
+    * ADAMS or BDF (backward differentiation formula) methods
+    * The BDF method is recommended  for stiff problems, and
     * the ADAMS method is recommended for nonstiff problems.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        linear_multistep_method must be one of ADAMS or BDF.
     *
-    * 
+    *
 
 
     *
@@ -399,39 +402,39 @@ public:
 
    /**
     * Set iteration type.  The user can specify either FUNCTIONAL
-    * iteration, which does not require linear algebra, or a 
-    * NEWTON iteration, which requires the solution of linear 
-    * systems. In the NEWTON case, the user must also specify a 
-    * CPODES linear solver. NEWTON is recommended in case of 
-    * stiff problems.  
+    * iteration, which does not require linear algebra, or a
+    * NEWTON iteration, which requires the solution of linear
+    * systems. In the NEWTON case, the user must also specify a
+    * CPODES linear solver. NEWTON is recommended in case of
+    * stiff problems.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        iteration_type must be one of FUNCTIONAL or NEWTON
     *
-    * 
+    *
 
 
     *
-    * Note: the enumeration constants FUNCTIONAL and NEWTON are defined 
+    * Note: the enumeration constants FUNCTIONAL and NEWTON are defined
     * in cpodes.h.
     */
    void setIterationType(int iteration_type);
 
    /**
-    * Set tolerance type.  This string specifies the relative 
-    * and absolute tolerance types to be used. The "scalar" tolerance type 
+    * Set tolerance type.  This string specifies the relative
+    * and absolute tolerance types to be used. The "scalar" tolerance type
     * means a scalar relative and absolute tolerance, while the "vector"
-    * tolerance type means a scalar relative tolerance and a 
-    * vector absolute tolerance (a potentially different 
-    * absolute tolerance for each vector component).    
+    * tolerance type means a scalar relative tolerance and a
+    * vector absolute tolerance (a potentially different
+    * absolute tolerance for each vector component).
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
@@ -443,23 +446,23 @@ public:
    void setToleranceType(std::string tolerance_type);
 
    /**
-    * Set the relative tolerance level.  
+    * Set the relative tolerance level.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        relative_tolerance must be greater than or equal to 0.0
     *
-    * 
+    *
 
 
     *
     * Note that pure absolute tolerance can be used by
-    * setting the relative tolerance to 0.  However, 
-    * it is an error to simultaneously set relative and 
+    * setting the relative tolerance to 0.  However,
+    * it is an error to simultaneously set relative and
     * absolute tolerances to 0.
     */
    void setRelativeTolerance(double relative_tolerance);
@@ -468,20 +471,20 @@ public:
     * Set the scalar absolute tolerance level.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        absolute_tolerance must be greater than or equal to 0.0
     *
-    * 
+    *
 
 
     *
     * Note that pure relative tolerance can be used by
-    * setting the absolute tolerance to 0.  However, 
-    * it is an error to simultaneously set relative and 
+    * setting the absolute tolerance to 0.  However,
+    * it is an error to simultaneously set relative and
     * absolute tolerances to 0.
     */
    void setAbsoluteTolerance(double absolute_tolerance);
@@ -490,7 +493,7 @@ public:
     * Set the vector absolute tolerance level.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
@@ -498,44 +501,44 @@ public:
     *        absolute_tolerance must not be a null pointer
     *
     *    -
-    *        each component of absolute_tolerance must be 
+    *        each component of absolute_tolerance must be
     *        greater than or equal to 0.0
     *
-    * 
+    *
 
 
     *
     * Note that pure relative tolerance can be used by
-    * setting the absolute tolerance to 0.  However, 
-    * it is an error to simultaneously set relative and 
+    * setting the absolute tolerance to 0.  However,
+    * it is an error to simultaneously set relative and
     * absolute tolerances to 0.
     */
    void setAbsoluteTolerance(solv::SundialsAbstractVector* absolute_tolerance);
 
    /**
-    * Set stepping method to use for integration.  There are 
+    * Set stepping method to use for integration.  There are
     * stepping methods: NORMAL and ONE_STEP.  The NORMAL
-    * method has the solver take internal steps until 
+    * method has the solver take internal steps until
     * it has reached or just passed the user specified t_f
-    * parameter. The solver then interpolates in order to 
-    * return an approximate value of y(t_f). The ONE_STEP 
-    * option tells the solver to just take one internal step 
-    * and return the solution at the point reached by that 
-    * step.                       
+    * parameter. The solver then interpolates in order to
+    * return an approximate value of y(t_f). The ONE_STEP
+    * option tells the solver to just take one internal step
+    * and return the solution at the point reached by that
+    * step.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        stepping_method must be one of NORMAL or ONE_STEP
     *
-    * 
+    *
 
 
     *
-    * Note: the enumeration constants NORMAL and ONE_STEP are 
+    * Note: the enumeration constants NORMAL and ONE_STEP are
     * defined in cpodes.h.
     */
    void setSteppingMethod(int stepping_method);
@@ -549,24 +552,24 @@ public:
     * Set final value for independent variable (i.e. the value of
     * independent variable to integrate the system to).  The boolean
     * argument specifies whether CPODES should be re-initialized (i.e.
-    * on first step) or if we are taking subsequent steps in a 
+    * on first step) or if we are taking subsequent steps in a
     * sequence, in which case it is not initialized.
     */
    void setFinalValueOfIndependentVariable(double t_f,
-      bool cpode_needs_initialization);
+                                           bool cpode_needs_initialization);
 
    /**
     * Set initial condition vector.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        ic_vector must not be null
     *
-    * 
+    *
 
 
     */
@@ -574,37 +577,37 @@ public:
 
    /**
     * Set maximum order for the linear multistep method.
-    * By default, this is set to 12 for ADAMS methods and 5 for BDF 
+    * By default, this is set to 12 for ADAMS methods and 5 for BDF
     * methods.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        max_order must be greater than or equal to 0
     *
-    * 
+    *
 
 
     */
    void setMaximumLinearMultistepMethodOrder(int max_order);
 
    /**
-    * Set maximum number of internal steps to be taken by 
+    * Set maximum number of internal steps to be taken by
     * the solver in its attempt to reach t_f.
     * By default, this is set to 500.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        max_num_internal_steps must be greater than or equal to 0
     *
-    * 
+    *
 
 
     */
@@ -612,18 +615,18 @@ public:
 
    /**
     * Set maximum number of warning messages issued by the solver
-    * that (t + h == t) on the next internal step.  By default, 
+    * that (t + h == t) on the next internal step.  By default,
     * this is set to 10.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        max_num_warnings must be greater than or equal to 0
     *
-    * 
+    *
 
 
     */
@@ -633,14 +636,14 @@ public:
     * Set initial step size.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        init_step_size must be greater than or equal to 0.0
     *
-    * 
+    *
 
 
     */
@@ -652,14 +655,14 @@ public:
     * of step size.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        max_step_size must be greater than or equal to 0.0
     *
-    * 
+    *
 
 
     */
@@ -670,14 +673,14 @@ public:
     * By default, this is set to 0.0.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *        min_step_size must be greater than or equal to 0.0
     *
-    * 
+    *
 
 
     */
@@ -694,14 +697,14 @@ public:
     * preconditioning, respectively.
     *
     * Assertion Checks:
-    * 
+    *
 
 
     *
     *	 -
     *	    precondition_type must be one of NONE, LEFT, RIGHT, or BOTH.
     *
-    * 
+    *
 
 
     */
@@ -714,14 +717,14 @@ public:
     * using modified Gram-Schmidt and classical Gram-Schmidt, respectively.
     *
     * Assertion Checks:
-    * 
+    *
 
 
     *
     *	 -
     *	    gs_type must be one of CLASSICAL_GS or MODIFIED_GS.
     *
-    * 
+    *
 
 
     */
@@ -733,14 +736,14 @@ public:
     * use the default value MIN(num_equations, CPSPGMR_MAXL=5).
     *
     * Assertion Checks:
-    * 
+    *
 
 
     *
     *	 -
     *	    max_krylov_dim must be nonnegative
     *
-    * 
+    *
 
 
     */
@@ -753,14 +756,14 @@ public:
     * use the default value CPSPGMR_DELT = 0.05.
     *
     * Assertion Checks:
-    * 
+    *
 
 
     *
     *	 -
     *	    tol_scale_factor must be nonnegative
     *
-    * 
+    *
 
 
     */
@@ -783,53 +786,53 @@ public:
 
    /**
     * Get k-th derivative vector at the specified value of the
-    * independent variable, t.  The integer return value is 
+    * independent variable, t.  The integer return value is
     * return code the CPODES CpodesDky() function.  The following is a table
     * of termination codes and a brief description of their meanings.
-    * 
+    *
     * CpodesDky Return Codes:
-    * 
+    *
 
 
     *
-    *    - @b OKAY (=0)           
+    *    - @b OKAY (=0)
     *        CpodesDky succeeded.
     *
-    *    - @b BAD_K (=-1)        
-    *        
-    *    - @b BAD_T (=-2)        
-    *        
-    *    - @b BAD_DKY (=-3)      
-    *        
-    *    - @b DKY_NO_MEM (=-4)  
-    *        
-    * 
+    *    - @b BAD_K (=-1)
+    *
+    *    - @b BAD_T (=-2)
+    *
+    *    - @b BAD_DKY (=-3)
+    *
+    *    - @b DKY_NO_MEM (=-4)
+    *
+    *
 
 
-    * 
+    *
     * Important Notes:
-    * 
+    *
 
 
     *
     *    -
-    *       t must lie in the interval [t_cur - h, t_cur] 
+    *       t must lie in the interval [t_cur - h, t_cur]
     *       where t_cur is the current internal time reached
-    *       and h is the last internal step size successfully 
+    *       and h is the last internal step size successfully
     *       used by the solver.
     *
     *    -
-    *       k may take on value 0, 1, . . . q where q is the order 
-    *       of the current linear multistep method being used. 
-    * 
-    *    -
-    *       the dky vector must be allocated by the user.       
+    *       k may take on value 0, 1, . . . q where q is the order
+    *       of the current linear multistep method being used.
     *
     *    -
-    *       it is only leagal to call this method after a 
+    *       the dky vector must be allocated by the user.
+    *
+    *    -
+    *       it is only leagal to call this method after a
     *       successful return from the solve() method.
-    * 
-    * 
+    *
+    *
 
 
     *
@@ -853,70 +856,71 @@ public:
     *
     * The abbreviations printed out refer to the following
     * quantities:
-    * 
+    *
 
 
-    * 
-    *    - @b lenrw            
-    *       size (in double words) of memory used for doubles 
-    * 
-    *    - @b leniw            
+    *
+    *    - @b lenrw
+    *       size (in double words) of memory used for doubles
+    *
+    *    - @b leniw
     *       size (in integer words) of memory used for integers
-    * 
-    *    - @b nst              
+    *
+    *    - @b nst
     *       cumulative number of internal steps taken by solver
-    * 
-    *    - @b nfe              
+    *
+    *    - @b nfe
     *       number of right-hand side function evaluations
-    * 
-    *    - @b nni              
-    *       number of NEWTON iterations performed 
-    * 
-    *    - @b nsetups          
+    *
+    *    - @b nni
+    *       number of NEWTON iterations performed
+    *
+    *    - @b nsetups
     *       number of calls made to linear solver's setup routine
-    * 
-    *    - @b netf             
+    *
+    *    - @b netf
     *       number of local error test failures
-    * 
-    *    - @b ncfn             
+    *
+    *    - @b ncfn
     *       number of nonlinear convergence failures
-    * 
-    *    - @b qu               
+    *
+    *    - @b qu
     *       order used during the last internal step
-    * 
-    *    - @b qcur             
+    *
+    *    - @b qcur
     *       order to be used on the next internal step
-    * 
-    *    - @b hu               
+    *
+    *    - @b hu
     *       step size for the last internal step
-    * 
-    *    - @b hcur             
+    *
+    *    - @b hcur
     *       step size to be attempted on the next internal step
-    * 
-    *    - @b tcur             
+    *
+    *    - @b tcur
     *       current internal value of t reached by the solver
-    * 
-    *    - @b tolsf            
+    *
+    *    - @b tolsf
     *       suggested tolerance scaling factor
     *
-    * 
+    *
 
 
     */
    void printCPODESStatistics(std::ostream& os) const;
 
-   void printDiagnostics (bool enable) {d_print_diagnostics = enable;}
-   
-   // Sets the maximum number of steps the current preconditioner can be used (default is 20)
-   void setMaxPrecondSteps(int max_steps) {d_max_precond_steps = max_steps;}
+   void printDiagnostics(bool enable) { d_print_diagnostics = enable; }
+
+   // Sets the maximum number of steps the current preconditioner can be used
+   // (default is 20)
+   void setMaxPrecondSteps(int max_steps) { d_max_precond_steps = max_steps; }
 
    // CPODES optional return values.
 
    /**
     * Return the cumulative number of internal steps taken by
-    * the solver.  
+    * the solver.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfInternalStepsTaken() const;
@@ -924,7 +928,7 @@ public:
    /**
     * Return the number of calls to the right-hand side function.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfRHSFunctionCalls() const;
@@ -933,7 +937,7 @@ public:
     * Return the number of calls made to linear solver setup
     * routines.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfLinearSolverSetupCalls() const;
@@ -941,16 +945,16 @@ public:
    /**
     * Return the number of NEWTON iterations performed.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfNewtonIterations() const;
 
    /**
-    * Return the number of nonlinear convergence failures that have 
+    * Return the number of nonlinear convergence failures that have
     * occurred.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfNonlinearConvergenceFailures() const;
@@ -958,7 +962,7 @@ public:
    /**
     * Return the number of local error test failures.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getNumberOfLocalErrorTestFailures() const;
@@ -967,7 +971,7 @@ public:
     * Return the order of the linear multistep method used during
     * the last internal step.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getOrderUsedDuringLastInternalStep() const;
@@ -976,7 +980,7 @@ public:
     * Return the order of the linear multistep method to be used during
     * the next internal step.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getOrderToBeUsedDuringNextInternalStep() const;
@@ -985,7 +989,7 @@ public:
     * Return the size (in LLNL_REAL words) of memory used
     * for LLNL_REALS.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getCPODESMemoryUsageForDoubles() const;
@@ -994,7 +998,7 @@ public:
     * Return the size (in integer words) of memory used
     * for integers.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    int getCPODESMemoryUsageForIntegers() const;
@@ -1002,7 +1006,7 @@ public:
    /**
     * Return the step size for the last internal step.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    double getStepSizeForLastInternalStep() const;
@@ -1010,7 +1014,7 @@ public:
    /**
     * Return the step size to be used in the next internal step.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    double getStepSizeForNextInternalStep() const;
@@ -1019,8 +1023,8 @@ public:
     * Return the current internal value of the independent
     * variable reached by the solver.
     *
-    * Note: if the solver was not set to collect statistics, 
-    * the minimum double value (as defined in float.h) is 
+    * Note: if the solver was not set to collect statistics,
+    * the minimum double value (as defined in float.h) is
     * returned.
     */
    double getCurrentInternalValueOfIndependentVariable() const;
@@ -1028,7 +1032,7 @@ public:
    /**
     * Return the suggested tolerance scaling factor.
     *
-    * Note: if the solver was not set to collect statistics, 
+    * Note: if the solver was not set to collect statistics,
     * a value of -1 is returned.
     */
    double getCPODESSuggestedToleranceScalingFactor() const;
@@ -1040,29 +1044,29 @@ public:
     *
     * The abbreviations printed out refer to the following
     * quantities:
-    * 
+    *
 
 
     *
-    *    - @b spgmr_lrw        
+    *    - @b spgmr_lrw
     *      size (in double words) of memory used for doubles
     *
-    *    - @b spgmr_liw        
+    *    - @b spgmr_liw
     *       size (in integer words) of memory used for integers
     *
-    *    - @b nli              
+    *    - @b nli
     *       number of linear iterations
     *
-    *    - @b ncfl             
+    *    - @b ncfl
     *       number of linear convergence failures
     *
-    *    - @b npe              
+    *    - @b npe
     *       number of preconditioner evaluations
     *
-    *    - @b nps              
+    *    - @b nps
     *       number of calls to CPSpgmrPrecondSolve()
     *
-    * 
+    *
 
 
     */
@@ -1107,12 +1111,12 @@ public:
     * Return a pointer to vector of SundialsAbstractVector pointers
     * that will need to be regridding for a "warm start"
     */
-   std::vector< solv::SundialsAbstractVector* >*
-      getVectorsRequiringRegrid( void ) const;
+   std::vector<solv::SundialsAbstractVector*>* getVectorsRequiringRegrid(
+       void) const;
 
    void reinitializeAfterRegrid();
 
-private:
+ private:
    /*
     * Static integer constant describing the size of an output buffer of a
     * CVODE statistic.
@@ -1121,67 +1125,48 @@ private:
 
 
    void addVectorToList(
-      std::vector< solv::SundialsAbstractVector* >* sundials_vec,
-      N_Vector& n ) const;
+       std::vector<solv::SundialsAbstractVector*>* sundials_vec,
+       N_Vector& n) const;
 
    /*
     * Static member function for linkage with CPODES routines.
-    */ 
-   static int CPODESRHSFuncEval( realtype t,
-				 N_Vector y,
-				 N_Vector y_dot,
-				 void* my_solver,
-				 int fd_flag);
+    */
+   static int CPODESRHSFuncEval(realtype t, N_Vector y, N_Vector y_dot,
+                                void* my_solver, int fd_flag);
 
-   static int CPODESProjEval( realtype t,
-			      N_Vector y,
-			      N_Vector corr,
-			      realtype epsProj,
-			      N_Vector err,
-			      void* my_solver);
+   static int CPODESProjEval(realtype t, N_Vector y, N_Vector corr,
+                             realtype epsProj, N_Vector err, void* my_solver);
 
    /*
     * Static member functions for linkage with CPSpgmr routines.
-    */ 
-   static int CPSpgmrPrecondSet(realtype t,
-				N_Vector y,
-				N_Vector fy,
-				int jok,
-				booleantype *jcurPtr,
-				realtype gamma,
-				void *my_solver,
-				N_Vector vtemp1,
-				N_Vector vtemp2,
-				N_Vector vtemp3);
+    */
+   static int CPSpgmrPrecondSet(realtype t, N_Vector y, N_Vector fy, int jok,
+                                booleantype* jcurPtr, realtype gamma,
+                                void* my_solver, N_Vector vtemp1,
+                                N_Vector vtemp2, N_Vector vtemp3);
 
-   static int CPSpgmrPrecondSolve(realtype t,
-                                  N_Vector y,
-                                  N_Vector fy,
-                                  N_Vector r,
-				  N_Vector z,
-                                  realtype gamma,
-                                  realtype delta,
-                                  int lr,
-                                  void *my_solver,
+   static int CPSpgmrPrecondSolve(realtype t, N_Vector y, N_Vector fy,
+                                  N_Vector r, N_Vector z, realtype gamma,
+                                  realtype delta, int lr, void* my_solver,
                                   N_Vector vtemp);
 
    /*
     * Open CPODES log file, allocate main memory for CPODES and initialize
     * CPODES memory record.  CPODES is initialized based on current state
-    * of solver parameter data members.  If any solver parameters have 
+    * of solver parameter data members.  If any solver parameters have
     * changed since last initialization, this function will be automatically
-    * invoked at next call to the solve() method.  Also, if NEWTON iteration 
-    * is specified, this method also initializes the CPSpgmr linear solver. 
+    * invoked at next call to the solve() method.  Also, if NEWTON iteration
+    * is specified, this method also initializes the CPSpgmr linear solver.
     *
     * Assertion checks:
-    * 
+    *
 
 
     *
     *    -
     *       the solution vector must have already been set.
     *
-    * 
+    *
 
 
     *
@@ -1196,7 +1181,7 @@ private:
     * any time through class member functions.  When this occurs,
     * CPODES may need to be re-initialized (e.g., if the linear solver
     * changes, CPODES must change its memory record).  In this case,
-    * the initializeCPODES() member function is invoked in the next 
+    * the initializeCPODES() member function is invoked in the next
     * call to solve().
     */
 
@@ -1220,20 +1205,20 @@ private:
    /*
     * CPODES memory record.
     */
-   void *d_cpode_mem;                    // CPODES memory structure
+   void* d_cpode_mem;  // CPODES memory structure
 
    /*
     * CPODES log file information.
     */
-   FILE*     d_cpode_log_file;               // CPODES message log file
-   std::string    d_cpode_log_file_name;     // CPODES log file name
+   FILE* d_cpode_log_file;             // CPODES message log file
+   std::string d_cpode_log_file_name;  // CPODES log file name
 
    /*
     * ODE parameters.
     */
-   double d_t_0;        // initial value for independent variable
-   double d_user_t_f;   // user-specified final value for independent variable
-   double d_actual_t_f; // actual final value of indep. variable after a step
+   double d_t_0;         // initial value for independent variable
+   double d_user_t_f;    // user-specified final value for independent variable
+   double d_actual_t_f;  // actual final value of indep. variable after a step
    solv::SundialsAbstractVector* d_ic_vector;
 
    /*
@@ -1273,14 +1258,14 @@ private:
    double d_tol_scale_factor;
 
    /*
-    * Boolean flag indicating whether CPODES needs initialization 
+    * Boolean flag indicating whether CPODES needs initialization
     * when solver is called.
     */
    bool d_CPODE_needs_initialization;
 
    /*
     * Boolean flag indicating whether user-supplied preconditioner
-    * routines are provided in the concrete subclass of 
+    * routines are provided in the concrete subclass of
     * CPODESAbstractFunctions.
     */
    bool d_uses_preconditioner;

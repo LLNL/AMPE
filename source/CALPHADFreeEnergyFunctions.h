@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -41,26 +41,20 @@
 
 #include <vector>
 
-class CALPHADFreeEnergyFunctions:
-   public FreeEnergyFunctions
+class CALPHADFreeEnergyFunctions : public FreeEnergyFunctions
 {
-public:
-
+ public:
    CALPHADFreeEnergyFunctions(){};
 
    virtual ~CALPHADFreeEnergyFunctions(){};
 
-   virtual int computePhaseConcentrations(
-      const double temperature, const double* conc, const double phi,
-      const double eta,
-      double* x)=0;
+   virtual int computePhaseConcentrations(const double temperature,
+                                          const double* conc, const double phi,
+                                          const double eta, double* x) = 0;
 
-    virtual void computeSecondDerivativeFreeEnergy(
-      const double temp,
-      const double* const conc,
-      const PhaseIndex pi,
-      std::vector<double>& d2fdc2)=0;
+   virtual void computeSecondDerivativeFreeEnergy(
+       const double temp, const double* const conc, const PhaseIndex pi,
+       std::vector<double>& d2fdc2) = 0;
 };
 
 #endif
-

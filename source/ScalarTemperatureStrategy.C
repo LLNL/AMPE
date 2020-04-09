@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,115 +32,106 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "ScalarTemperatureStrategy.h"
 
 #include "SAMRAI/pdat/CellData.h"
 
 ScalarTemperatureStrategy::ScalarTemperatureStrategy(
-   const int temperature_id,
-   const int temperature_scratch_id,
-   const double temperature0,
-   boost::shared_ptr<tbox::Database> temperature_db )
+    const int temperature_id, const int temperature_scratch_id,
+    const double temperature0, boost::shared_ptr<tbox::Database> temperature_db)
 {
-   assert( temperature_id>=0 );
-   assert( temperature_scratch_id>=0 );
-   assert( temperature0>0. );
+   assert(temperature_id >= 0);
+   assert(temperature_scratch_id >= 0);
+   assert(temperature0 > 0.);
 
-   d_temperature_id         = temperature_id;
+   d_temperature_id = temperature_id;
    d_temperature_scratch_id = temperature_scratch_id;
-   d_temperature0           = temperature0;
+   d_temperature0 = temperature0;
 
-   d_dtemperaturedt = 
-      temperature_db->getDoubleWithDefault( "dtemperaturedt", 0.0 );
+   d_dtemperaturedt =
+       temperature_db->getDoubleWithDefault("dtemperaturedt", 0.0);
    d_target_temperature =
-      temperature_db->getDoubleWithDefault( "target_temperature", 0.0 );
+       temperature_db->getDoubleWithDefault("target_temperature", 0.0);
 }
 
 double ScalarTemperatureStrategy::getCurrentMaxTemperature(
-   boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-   const double time )
+    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
-   (void) patch_hierarchy;
+   (void)patch_hierarchy;
 
    return getCurrentTemperature(time);
 }
 
 double ScalarTemperatureStrategy::getCurrentMinTemperature(
-   boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-   const double time )
+    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
-   (void) patch_hierarchy;
+   (void)patch_hierarchy;
 
    return getCurrentTemperature(time);
 }
 
 double ScalarTemperatureStrategy::getCurrentAverageTemperature(
-   boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-   const double time )
+    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
-   (void) patch_hierarchy;
+   (void)patch_hierarchy;
 
    return getCurrentTemperature(time);
 }
 
-double ScalarTemperatureStrategy::getCurrentTemperature(
-   const double time )
+double ScalarTemperatureStrategy::getCurrentTemperature(const double time)
 {
    double t = d_temperature0 + d_dtemperaturedt * time;
 
    // limit temperature to target if set.
 
-   if ( d_dtemperaturedt < 0. && t < d_target_temperature ) {
+   if (d_dtemperaturedt < 0. && t < d_target_temperature) {
 
       t = d_target_temperature;
 
-   }
-   else if ( d_target_temperature > 0.0 &&
-             d_dtemperaturedt > 0. && t > d_target_temperature ) {
+   } else if (d_target_temperature > 0.0 && d_dtemperaturedt > 0. &&
+              t > d_target_temperature) {
 
       t = d_target_temperature;
-
    }
 
    return t;
-}   
+}
 
 void ScalarTemperatureStrategy::setCurrentTemperature(
-   boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-   const double time )
+    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
-   assert( d_temperature_id>=0 );
-   assert( d_temperature_scratch_id>=0 );
-   
-   if ( d_dtemperaturedt != 0.0 || time == 0.0 ) {
+   assert(d_temperature_id >= 0);
+   assert(d_temperature_scratch_id >= 0);
 
-      double t = getCurrentTemperature( time );
+   if (d_dtemperaturedt != 0.0 || time == 0.0) {
+
+      double t = getCurrentTemperature(time);
 
       int maxln = patch_hierarchy->getFinestLevelNumber();
 
-      for ( int ln = 0; ln <= maxln; ln++ ) {
+      for (int ln = 0; ln <= maxln; ln++) {
 
-         boost::shared_ptr<hier::PatchLevel > level =
-            patch_hierarchy->getPatchLevel( ln );
+         boost::shared_ptr<hier::PatchLevel> level =
+             patch_hierarchy->getPatchLevel(ln);
 
-         for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); p++ ) {
+         for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+              p++) {
 
-            boost::shared_ptr<hier::Patch > patch = *p;
+            boost::shared_ptr<hier::Patch> patch = *p;
 
-            boost::shared_ptr< pdat::CellData<double> > t_data (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_id) ) );
+            boost::shared_ptr<pdat::CellData<double> > t_data(
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_temperature_id)));
 
-            t_data->fillAll( t );
+            t_data->fillAll(t);
 
-            boost::shared_ptr< pdat::CellData<double> > ts_data (
-               BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_temperature_scratch_id) ) );
+            boost::shared_ptr<pdat::CellData<double> > ts_data(
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_temperature_scratch_id)));
 
-            ts_data->fillAll( t );
-
+            ts_data->fillAll(t);
          }
-
       }
-
    }
 }

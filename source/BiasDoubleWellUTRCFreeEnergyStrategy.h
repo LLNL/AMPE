@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -34,7 +34,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef included_BiasDoubleWellUTRCFreeEnergyStrategy
-#define included_BiasDoubleWellUTRCFreeEnergyStrategy 
+#define included_BiasDoubleWellUTRCFreeEnergyStrategy
 
 #include "BiasDoubleWellFreeEnergyStrategy.h"
 #include "MeltingTemperatureStrategy.h"
@@ -47,31 +47,22 @@
  *
  */
 
-class BiasDoubleWellUTRCFreeEnergyStrategy:
-   public BiasDoubleWellFreeEnergyStrategy
+class BiasDoubleWellUTRCFreeEnergyStrategy
+    : public BiasDoubleWellFreeEnergyStrategy
 {
-public:
+ public:
    BiasDoubleWellUTRCFreeEnergyStrategy(
-      const double alpha,
-      const double gamma,
-      MeltingTemperatureStrategy* meltingTstrat );
+       const double alpha, const double gamma,
+       MeltingTemperatureStrategy* meltingTstrat);
 
    ~BiasDoubleWellUTRCFreeEnergyStrategy(){};
- 
-   void addDrivingForce(
-      const double time,
-      hier::Patch& patch,
-      const int temperature_id,
-      const int phase_id,
-      const int eta_id,
-      const int conc_id, 
-      const int fl_id,
-      const int fa_id,
-      const int fb_id,
-      const int rhs_id );
 
-private:
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int eta_id, const int conc_id, const int fl_id,
+                        const int fa_id, const int fb_id, const int rhs_id);
 
+ private:
    double d_alpha;
    double d_gamma;
    MeltingTemperatureStrategy* d_meltingTstrat;

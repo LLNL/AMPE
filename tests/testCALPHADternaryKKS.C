@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -53,7 +53,7 @@ using namespace SAMRAI;
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
    // Initialize MPI, SAMRAI
 
@@ -68,123 +68,123 @@ int main( int argc, char *argv[] )
     */
    {
 
-   //-----------------------------------------------------------------------
-   /*
-    * Process command line arguments and dump to log file.
-    *
-    *    executable <input file name>
-    */
+      //-----------------------------------------------------------------------
+      /*
+       * Process command line arguments and dump to log file.
+       *
+       *    executable <input file name>
+       */
 
-   std::string input_filename;
-   input_filename = argv[1];
+      std::string input_filename;
+      input_filename = argv[1];
 
-   //-----------------------------------------------------------------------
-   // Create input database and parse all data in input file.
+      //-----------------------------------------------------------------------
+      // Create input database and parse all data in input file.
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(
-      new tbox::MemoryDatabase("input_db"));
-   tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+      boost::shared_ptr<tbox::MemoryDatabase> input_db(
+          new tbox::MemoryDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
-   //-----------------------------------------------------------------------
-   // Read key input settings
-   
-   // make from input file name
-   std::string run_name = 
-      input_filename.substr( 0, input_filename.rfind( "." ) );
+      //-----------------------------------------------------------------------
+      // Read key input settings
 
-   // Logfile
-   std::string log_file_name = run_name + ".log";
+      // make from input file name
+      std::string run_name =
+          input_filename.substr(0, input_filename.rfind("."));
 
-   tbox::PIO::logOnlyNodeZero( log_file_name );
+      // Logfile
+      std::string log_file_name = run_name + ".log";
+
+      tbox::PIO::logOnlyNodeZero(log_file_name);
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::pout<<" AMPE: git version "<<xstr(x)<<endl;
-    LOG(GITVERSION);
-    tbox::pout<<endl;
+#define LOG(x) tbox::pout << " AMPE: git version " << xstr(x) << endl;
+      LOG(GITVERSION);
+      tbox::pout << endl;
 #endif
 
-   tbox::pout << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl; 	
-   tbox::pout << "input_filename = " << input_filename << endl;
+      tbox::pout << "Run with " << mpi.getSize() << " MPI tasks" << endl;
+      tbox::pout << "input_filename = " << input_filename << endl;
 
-   boost::shared_ptr<tbox::Database> model_db =
-      input_db->getDatabase("ModelParameters");
+      boost::shared_ptr<tbox::Database> model_db =
+          input_db->getDatabase("ModelParameters");
 
-   EnergyInterpolationType energy_interp_func_type = EnergyInterpolationType::PBG;
-   ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
+      EnergyInterpolationType energy_interp_func_type =
+          EnergyInterpolationType::PBG;
+      ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
 
-   boost::shared_ptr<tbox::Database> temperature_db =
-      model_db->getDatabase( "Temperature" );
-   double temperature = temperature_db->getDouble( "temperature" );
+      boost::shared_ptr<tbox::Database> temperature_db =
+          model_db->getDatabase("Temperature");
+      double temperature = temperature_db->getDouble("temperature");
 
-   boost::shared_ptr<tbox::Database> conc_db(
-      model_db->getDatabase( "ConcentrationModel" ));
-   string conc_avg_func_type =
-      conc_db->getStringWithDefault( "avg_func_type", "a" );
+      boost::shared_ptr<tbox::Database> conc_db(
+          model_db->getDatabase("ConcentrationModel"));
+      string conc_avg_func_type =
+          conc_db->getStringWithDefault("avg_func_type", "a");
 
-   boost::shared_ptr<tbox::Database> dcalphad_db =
-      conc_db->getDatabase( "Calphad" );
-   std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
-      new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile(
-      calphad_filename, calphad_db );
-   
-   boost::shared_ptr<tbox::Database> newton_db;
-   if ( conc_db->isDatabase( "NewtonSolver" ) )
-      newton_db = conc_db->getDatabase( "NewtonSolver" );
+      boost::shared_ptr<tbox::Database> dcalphad_db =
+          conc_db->getDatabase("Calphad");
+      std::string calphad_filename = dcalphad_db->getString("filename");
+      boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+          new tbox::MemoryDatabase("calphad_db"));
+      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                       calphad_db);
 
-   CALPHADFreeEnergyFunctionsTernary
-      cafe(calphad_db, newton_db,
-           energy_interp_func_type,
-           conc_interp_func_type);
-   
-   // initial guesses
-   double sol[4];
-   model_db->getDoubleArray("initial_guess",&sol[0],4);
-   
-   // compute concentrations satisfying KKS equations
-   double conc[2];
-   model_db->getDoubleArray("concentration",&conc[0],2);
-   double phi = model_db->getDouble("phi");
-   cafe.computePhaseConcentrations(temperature,&conc[0],phi,0.,&sol[0]);
+      boost::shared_ptr<tbox::Database> newton_db;
+      if (conc_db->isDatabase("NewtonSolver"))
+         newton_db = conc_db->getDatabase("NewtonSolver");
 
-   tbox::pout<<"-------------------------------"<<endl; 
-   tbox::pout<<"Temperature: "<<temperature<<endl;
-   tbox::pout<<"Result for c = "<<conc[0]<<","<<conc[1]
-                                <<" and phi = "<<phi<<endl;
-   tbox::pout<<"   cL = "<<sol[0]<<", "<<sol[1]<<endl;
-   tbox::pout<<"   cS = "<<sol[2]<<", "<<sol[3]<<endl;
+      CALPHADFreeEnergyFunctionsTernary cafe(calphad_db, newton_db,
+                                             energy_interp_func_type,
+                                             conc_interp_func_type);
 
-   const PhaseIndex pi0=PhaseIndex::phaseL;
-   const PhaseIndex pi1=PhaseIndex::phaseA;
+      // initial guesses
+      double sol[4];
+      model_db->getDoubleArray("initial_guess", &sol[0], 4);
 
-   tbox::pout<<"Verification:"<<endl;
+      // compute concentrations satisfying KKS equations
+      double conc[2];
+      model_db->getDoubleArray("concentration", &conc[0], 2);
+      double phi = model_db->getDouble("phi");
+      cafe.computePhaseConcentrations(temperature, &conc[0], phi, 0., &sol[0]);
 
-   double derivL[2];
-   cafe.computeDerivFreeEnergy(temperature,&sol[0],pi0,&derivL[0]);
+      tbox::pout << "-------------------------------" << endl;
+      tbox::pout << "Temperature: " << temperature << endl;
+      tbox::pout << "Result for c = " << conc[0] << "," << conc[1]
+                 << " and phi = " << phi << endl;
+      tbox::pout << "   cL = " << sol[0] << ", " << sol[1] << endl;
+      tbox::pout << "   cS = " << sol[2] << ", " << sol[3] << endl;
 
-   double derivS[2];
-   cafe.computeDerivFreeEnergy(temperature,&sol[2],pi1,&derivS[0]);
+      const PhaseIndex pi0 = PhaseIndex::phaseL;
+      const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-   tbox::pout<<"   dfL/dcL0 = "<<derivL[0]<<endl;
-   tbox::pout<<"   dfS/dcS0 = "<<derivS[0]<<endl;
-   tbox::pout<<"   dfL/dcL1 = "<<derivL[1]<<endl;
-   tbox::pout<<"   dfS/dcS1 = "<<derivS[1]<<endl;
+      tbox::pout << "Verification:" << endl;
 
-   const double tol=1.e-5;
-   if( fabs(derivS[0]-derivL[0])<tol &&
-       fabs(derivS[0]-derivL[0])<tol ){
-      tbox::pout<<"TEST PASSED"<<endl;
-   }else{
-      tbox::pout<<"TEST FAILED!\n";
-      tbox::pout<<"Difference between derivatives: "
-                <<derivS[0]-derivL[0]<<","
-                <<derivS[1]-derivL[1]<<endl;
-   }
+      double derivL[2];
+      cafe.computeDerivFreeEnergy(temperature, &sol[0], pi0, &derivL[0]);
 
-   input_db.reset();
+      double derivS[2];
+      cafe.computeDerivFreeEnergy(temperature, &sol[2], pi1, &derivS[0]);
 
+      tbox::pout << "   dfL/dcL0 = " << derivL[0] << endl;
+      tbox::pout << "   dfS/dcS0 = " << derivS[0] << endl;
+      tbox::pout << "   dfL/dcL1 = " << derivL[1] << endl;
+      tbox::pout << "   dfS/dcS1 = " << derivS[1] << endl;
+
+      const double tol = 1.e-5;
+      if (fabs(derivS[0] - derivL[0]) < tol &&
+          fabs(derivS[0] - derivL[0]) < tol) {
+         tbox::pout << "TEST PASSED" << endl;
+      } else {
+         tbox::pout << "TEST FAILED!\n";
+         tbox::pout << "Difference between derivatives: "
+                    << derivS[0] - derivL[0] << "," << derivS[1] - derivL[1]
+                    << endl;
+      }
+
+      input_db.reset();
    }
 
    tbox::SAMRAIManager::shutdown();

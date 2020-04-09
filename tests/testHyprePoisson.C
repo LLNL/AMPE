@@ -49,7 +49,7 @@ using namespace SAMRAI;
  *************************************************************************
  */
 
-int main(int argc,char* argv[])
+int main(int argc, char* argv[])
 {
    /*
     * Initialize MPI, SAMRAI, and enable logging.
@@ -85,8 +85,9 @@ int main(int argc,char* argv[])
        * Create input database and parse all data in input file.
        */
       boost::shared_ptr<tbox::InputDatabase> input_db(
-         new tbox::InputDatabase("input_db"));
-      tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+          new tbox::InputDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
       /*
        * Retrieve "Main" section from input database.
@@ -94,10 +95,10 @@ int main(int argc,char* argv[])
        * The base_name variable is a base name for
        * all name strings in this program.
        */
-      boost::shared_ptr<tbox::Database> main_db(
-         input_db->getDatabase("Main"));
+      boost::shared_ptr<tbox::Database> main_db(input_db->getDatabase("Main"));
 
-      const tbox::Dimension dim(static_cast<unsigned short>(main_db->getInteger("dim")));
+      const tbox::Dimension dim(
+          static_cast<unsigned short>(main_db->getInteger("dim")));
 
       string base_name = "unnamed";
       base_name = main_db->getStringWithDefault("base_name", base_name);
@@ -107,8 +108,8 @@ int main(int argc,char* argv[])
        */
       const string log_file_name = base_name + ".log";
       bool log_all_nodes = false;
-      log_all_nodes = main_db->getBoolWithDefault("log_all_nodes",
-            log_all_nodes);
+      log_all_nodes =
+          main_db->getBoolWithDefault("log_all_nodes", log_all_nodes);
       if (log_all_nodes) {
          tbox::PIO::logAllNodes(log_file_name);
       } else {
@@ -123,18 +124,16 @@ int main(int argc,char* argv[])
        * for this application, see comments at top of file.
        */
       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
-         new geom::CartesianGridGeometry(
-            dim,
-            base_name + "CartesianGeometry",
-            input_db->getDatabase("CartesianGeometry")));
+          new geom::CartesianGridGeometry(dim, base_name + "CartesianGeometry",
+                                          input_db->getDatabase("CartesianGeome"
+                                                                "try")));
       tbox::plog << "Cartesian Geometry:" << endl;
       grid_geometry->printClassData(tbox::plog);
 
       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy(
-         new hier::PatchHierarchy(
-            base_name + "::PatchHierarchy",
-            grid_geometry,
-            input_db->getDatabase("PatchHierarchy")));
+          new hier::PatchHierarchy(base_name + "::PatchHierarchy",
+                                   grid_geometry,
+                                   input_db->getDatabase("PatchHierarchy")));
 
       /*
        * The HyprePoisson object is the main user object specific to the
@@ -149,42 +148,36 @@ int main(int argc,char* argv[])
       std::string bc_coefs_name = hypre_poisson_name + "::bc_coefs";
 
       boost::shared_ptr<solv::CellPoissonHypreSolver> hypre_solver(
-         new solv::CellPoissonHypreSolver(
-            dim,
-            hypre_poisson_name,
-            input_db->isDatabase("hypre_solver") ?
-            input_db->getDatabase("hypre_solver") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::CellPoissonHypreSolver(
+              dim, hypre_poisson_name,
+              input_db->isDatabase("hypre_solver")
+                  ? input_db->getDatabase("hypre_solver")
+                  : boost::shared_ptr<tbox::Database>()));
 
       boost::shared_ptr<solv::LocationIndexRobinBcCoefs> bc_coefs(
-         new solv::LocationIndexRobinBcCoefs(
-            dim,
-            bc_coefs_name,
-            input_db->isDatabase("bc_coefs") ?
-            input_db->getDatabase("bc_coefs") :
-            boost::shared_ptr<tbox::Database>()));
+          new solv::LocationIndexRobinBcCoefs(
+              dim, bc_coefs_name,
+              input_db->isDatabase("bc_coefs")
+                  ? input_db->getDatabase("bc_coefs")
+                  : boost::shared_ptr<tbox::Database>()));
 
-      HyprePoisson hypre_poisson(
-         hypre_poisson_name,
-         dim,
-         hypre_solver,
-         bc_coefs);
+      HyprePoisson hypre_poisson(hypre_poisson_name, dim, hypre_solver,
+                                 bc_coefs);
 
       /*
        * Create the tag-and-initializer, box-generator and load-balancer
        * object references required by the gridding_algorithm object.
        */
       boost::shared_ptr<mesh::StandardTagAndInitialize> tag_and_initializer(
-         new mesh::StandardTagAndInitialize(
-            "CellTaggingMethod",
-            &hypre_poisson,
-            input_db->getDatabase("StandardTagAndInitialize")));
+          new mesh::StandardTagAndInitialize("CellTaggingMethod",
+                                             &hypre_poisson,
+                                             input_db->getDatabase("StandardTag"
+                                                                   "AndInitiali"
+                                                                   "ze")));
       boost::shared_ptr<mesh::BergerRigoutsos> box_generator(
-         new mesh::BergerRigoutsos(dim));
+          new mesh::BergerRigoutsos(dim));
       boost::shared_ptr<mesh::TreeLoadBalancer> load_balancer(
-         new mesh::TreeLoadBalancer(
-            dim,
-            "load balancer"));
+          new mesh::TreeLoadBalancer(dim, "load balancer"));
       load_balancer->setSAMRAI_MPI(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       /*
@@ -192,13 +185,12 @@ int main(int argc,char* argv[])
        * and create the grid.
        */
       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_algorithm(
-         new mesh::GriddingAlgorithm(
-            patch_hierarchy,
-            "DistributedGridding Algorithm",
-            input_db->getDatabase("GriddingAlgorithm"),
-            tag_and_initializer,
-            box_generator,
-            load_balancer));
+          new mesh::GriddingAlgorithm(patch_hierarchy,
+                                      "DistributedGridding Algorithm",
+                                      input_db->getDatabase("GriddingAlgorith"
+                                                            "m"),
+                                      tag_and_initializer, box_generator,
+                                      load_balancer));
       tbox::plog << "Gridding algorithm:" << endl;
       gridding_algorithm->printClassData(tbox::plog);
 
@@ -245,15 +237,17 @@ int main(int argc,char* argv[])
       visit_writer->writePlotData(patch_hierarchy, 0);
 #endif
 
-      double error=hypre_poisson.compareSolutionWithExact();
-      tbox::plog<<"Difference between computed sol. and exact so. = "<<error<<endl;
+      double error = hypre_poisson.compareSolutionWithExact();
+      tbox::plog << "Difference between computed sol. and exact so. = " << error
+                 << endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
-      if (converged && error<1.e-2 ) {
+      if (converged && error < 1.e-2) {
          tbox::pout << "\nPASSED:  hypre" << endl;
       } else {
-         tbox::pout << "\nFAILED: Hypre test did not converge to solution."<<endl;
+         tbox::pout << "\nFAILED: Hypre test did not converge to solution."
+                    << endl;
       }
    }
 

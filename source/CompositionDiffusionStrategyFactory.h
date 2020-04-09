@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -41,60 +41,41 @@
 
 #include <boost/make_shared.hpp>
 
-class CompositionDiffusionStrategyFactory 
+class CompositionDiffusionStrategyFactory
 {
-public:
+ public:
    static boost::shared_ptr<CompositionDiffusionStrategy> create(
-      QuatModel* model,
-      QuatModelParameters& model_parameters,
-      const short ncompositions,
-      const int conc_l_scratch_id,
-      const int conc_a_scratch_id,
-      const int conc_b_scratch_id,
-      const int conc_pfm_diffusion_l_id,
-      const int conc_pfm_diffusion_a_id,
-      const int conc_pfm_diffusion_b_id,
-      const int conc_diffusion_coeff_l_id,
-      const int conc_diffusion_coeff_a_id,
-      const int conc_diffusion_coeff_b_id,
-      CompositionStrategyMobilities* composition_strategy_mobilities,
-      FreeEnergyStrategy* free_energy_strategy)
+       QuatModel* model, QuatModelParameters& model_parameters,
+       const short ncompositions, const int conc_l_scratch_id,
+       const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const int conc_pfm_diffusion_l_id, const int conc_pfm_diffusion_a_id,
+       const int conc_pfm_diffusion_b_id, const int conc_diffusion_coeff_l_id,
+       const int conc_diffusion_coeff_a_id, const int conc_diffusion_coeff_b_id,
+       CompositionStrategyMobilities* composition_strategy_mobilities,
+       FreeEnergyStrategy* free_energy_strategy)
    {
       boost::shared_ptr<CompositionDiffusionStrategy> strategy;
 
-      if( model_parameters.conDiffusionStrategyIsCTD() ){
-         strategy.reset(
-            new DiffusionForConcInPhaseStrategy(
-               ncompositions,
-               conc_l_scratch_id,
-               conc_a_scratch_id,
-               conc_b_scratch_id,
-               conc_pfm_diffusion_l_id,
-               conc_pfm_diffusion_a_id,
-               conc_pfm_diffusion_b_id,
-               conc_diffusion_coeff_l_id,
-               conc_diffusion_coeff_a_id,
-               conc_diffusion_coeff_b_id,
-               model_parameters.avg_func_type(),
-               model_parameters.diffusion_interp_func_type(),
-               composition_strategy_mobilities,
-               free_energy_strategy) );
-      }else{
-         //for T-dependent diffusion, phase fraction weight is
-         //included in computation and d_conc_diffusion_coeff_*_id
-         //are not set
-         strategy.reset(
-            new TbasedCompositionDiffusionStrategy(
-               conc_pfm_diffusion_l_id,
-               conc_pfm_diffusion_a_id,
-               conc_diffusion_coeff_l_id,
-               conc_diffusion_coeff_a_id,
-               model_parameters.D_liquid(),
-               model_parameters.Q0_liquid(),
-               model_parameters.D_solid_A(),
-               model_parameters.Q0_solid_A(),
-               model_parameters.diffusion_interp_func_type(),
-               model_parameters.avg_func_type() ) );
+      if (model_parameters.conDiffusionStrategyIsCTD()) {
+         strategy.reset(new DiffusionForConcInPhaseStrategy(
+             ncompositions, conc_l_scratch_id, conc_a_scratch_id,
+             conc_b_scratch_id, conc_pfm_diffusion_l_id,
+             conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
+             conc_diffusion_coeff_l_id, conc_diffusion_coeff_a_id,
+             conc_diffusion_coeff_b_id, model_parameters.avg_func_type(),
+             model_parameters.diffusion_interp_func_type(),
+             composition_strategy_mobilities, free_energy_strategy));
+      } else {
+         // for T-dependent diffusion, phase fraction weight is
+         // included in computation and d_conc_diffusion_coeff_*_id
+         // are not set
+         strategy.reset(new TbasedCompositionDiffusionStrategy(
+             conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
+             conc_diffusion_coeff_l_id, conc_diffusion_coeff_a_id,
+             model_parameters.D_liquid(), model_parameters.Q0_liquid(),
+             model_parameters.D_solid_A(), model_parameters.Q0_solid_A(),
+             model_parameters.diffusion_interp_func_type(),
+             model_parameters.avg_func_type()));
       }
       return strategy;
    }

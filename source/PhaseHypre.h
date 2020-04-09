@@ -56,12 +56,11 @@ using namespace SAMRAI;
  * object.  See the documentation for solv::PhaseHypreSolver
  * for its input parameters.
  */
-class PhaseHypre:
-   public mesh::StandardTagAndInitStrategy,
-   public appu::VisDerivedDataStrategy
+class PhaseHypre : public mesh::StandardTagAndInitStrategy,
+                   public appu::VisDerivedDataStrategy
 {
 
-public:
+ public:
    /*!
     * @brief Constructor.
     *
@@ -74,15 +73,11 @@ public:
     * @param bc_coefs
     */
    PhaseHypre(
-      const std::string& object_name,
-      const tbox::Dimension& dim,
-      const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
-      boost::shared_ptr<tbox::Database> database,
-      const double epsilon,
-      const double omega,
-      const double delta,
-      const double mobility,
-      const double gamma);
+       const std::string& object_name, const tbox::Dimension& dim,
+       const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
+       boost::shared_ptr<tbox::Database> database, const double epsilon,
+       const double omega, const double delta, const double mobility,
+       const double gamma);
 
    virtual ~PhaseHypre();
 
@@ -98,37 +93,28 @@ public:
     *
     * @see mesh::StandardTagAndInitStrategy::initializeLevelData()
     */
-   virtual void
-   initializeLevelData(
-      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-      const int level_number,
-      const double init_data_time,
-      const bool can_be_refined,
-      const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel>& old_level,
-      const bool allocate_data);
+   virtual void initializeLevelData(
+       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const int level_number, const double init_data_time,
+       const bool can_be_refined, const bool initial_time,
+       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const bool allocate_data);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
     */
-   virtual void
-   resetHierarchyConfiguration(
-      const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
-      int coarsest_level,
-      int finest_level);
+   virtual void resetHierarchyConfiguration(
+       const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+       int coarsest_level, int finest_level);
 
    //@}
 
    //@{ @name appu::VisDerivedDataStrategy virtuals
 
-   virtual bool
-   packDerivedDataIntoDoubleBuffer(
-      double* buffer,
-      const hier::Patch& patch,
-      const hier::Box& region,
-      const std::string& variable_name,
-      int depth_id,
-      double simulation_time) const;
+   virtual bool packDerivedDataIntoDoubleBuffer(
+       double* buffer, const hier::Patch& patch, const hier::Box& region,
+       const std::string& variable_name, int depth_id,
+       double simulation_time) const;
 
    //@}
 
@@ -142,11 +128,8 @@ public:
     * -# Specify Poisson equation parameters
     * -# Call solver
     */
-   int
-   solve(
-      EnergyInterpolationType phase_interp_func_type,
-      double ,
-      std::string phase_well_func_type);
+   int solve(EnergyInterpolationType phase_interp_func_type, double,
+             std::string phase_well_func_type);
 
 #ifdef HAVE_HDF5
    /*!
@@ -172,23 +155,18 @@ public:
 
    void setCtoZero();
 
-   void setC(
-      const int phi_id,
-      const double gamma,
-      const EnergyInterpolationType phi_interp_func_type,
-      const double phi_well_scale,
-      const std::string phi_well_func_type);
+   void setC(const int phi_id, const double gamma,
+             const EnergyInterpolationType phi_interp_func_type,
+             const double phi_well_scale, const std::string phi_well_func_type);
 
-private:
-   void setCOnPatchPrivate(
-      boost::shared_ptr< pdat::CellData<double> > cd_phi,
-      boost::shared_ptr< pdat::CellData<double> > cd_m,
-      boost::shared_ptr< pdat::CellData<double> > cd_c,
-      const double gamma,
-      const char* phi_interp_func_type,
-      const double phi_well_scale,
-      const char* phi_well_func_type,
-      const hier::Box& pbox );
+ private:
+   void setCOnPatchPrivate(boost::shared_ptr<pdat::CellData<double> > cd_phi,
+                           boost::shared_ptr<pdat::CellData<double> > cd_m,
+                           boost::shared_ptr<pdat::CellData<double> > cd_c,
+                           const double gamma, const char* phi_interp_func_type,
+                           const double phi_well_scale,
+                           const char* phi_well_func_type,
+                           const hier::Box& pbox);
 
    std::string d_object_name;
 
@@ -245,7 +223,7 @@ private:
    bool d_D_is_set;
    bool d_M_is_set;
 
-  boost::shared_ptr<solv::RobinBcCoefStrategy> d_physical_bc_coef;
+   boost::shared_ptr<solv::RobinBcCoefStrategy> d_physical_bc_coef;
 };
 
 #endif  // included_PhaseHypre

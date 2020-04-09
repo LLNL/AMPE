@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,47 +32,43 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_AzizPartitionCoefficientStrategy
 #define included_AzizPartitionCoefficientStrategy
 
 #include "PartitionCoefficientStrategy.h"
 #include "FreeEnergyFunctions.h"
 
-class AzizPartitionCoefficientStrategy:
-   public PartitionCoefficientStrategy
+class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {
-public:
-
+ public:
    AzizPartitionCoefficientStrategy(const int velocity_id,
                                     const int temperature_id,
                                     const int partition_coeff_id,
                                     FreeEnergyFunctions* free_energy,
-                                    const double vd,
-                                    const double keq):
-      PartitionCoefficientStrategy(velocity_id,temperature_id,partition_coeff_id),
-      d_free_energy(free_energy),
-      d_inv_vd(1./vd),
-      d_keq(keq)
+                                    const double vd, const double keq)
+       : PartitionCoefficientStrategy(velocity_id, temperature_id,
+                                      partition_coeff_id),
+         d_free_energy(free_energy),
+         d_inv_vd(1. / vd),
+         d_keq(keq)
    {
-      assert( d_inv_vd==d_inv_vd );
+      assert(d_inv_vd == d_inv_vd);
    }
-   
-protected:
 
+ protected:
    void evaluate(hier::Patch& patch,
-                 boost::shared_ptr< pdat::CellData<double> > velocity,
-                 boost::shared_ptr< pdat::CellData<double> > temperature,
-                 boost::shared_ptr< pdat::CellData<double> > partition_coeff);
+                 boost::shared_ptr<pdat::CellData<double> > velocity,
+                 boost::shared_ptr<pdat::CellData<double> > temperature,
+                 boost::shared_ptr<pdat::CellData<double> > partition_coeff);
 
-private:
-
+ private:
    FreeEnergyFunctions* d_free_energy;
 
    // inverse of diffusion speed corresponding to interface
    double d_inv_vd;
-   
-   // pre-defined equilibrium partition coefficient 
+
+   // pre-defined equilibrium partition coefficient
    // (if available). Negative value if needs to be computed
    double d_keq;
 

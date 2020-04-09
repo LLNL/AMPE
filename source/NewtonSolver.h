@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,53 +32,43 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_NewtonSolver
 #define included_NewtonSolver
 
 class NewtonSolver
 {
-public :
-
+ public:
    NewtonSolver();
 
-   virtual ~NewtonSolver() {};
-   
+   virtual ~NewtonSolver(){};
+
    virtual void initialize(){};
 
-   virtual int ComputeSolution( double* const conc, const int N );
+   virtual int ComputeSolution(double* const conc, const int N);
 
-   void SetTolerance( const double t ) { d_tolerance = t; }
+   void SetTolerance(const double t) { d_tolerance = t; }
 
-   void SetMaxIterations( const int m ) { d_max_iters = m; }
-   
-   void SetVerbose(const bool verbose){ d_verbose=verbose; }
+   void SetMaxIterations(const int m) { d_max_iters = m; }
 
-   double Determinant( double** const mat );
+   void SetVerbose(const bool verbose) { d_verbose = verbose; }
 
-   void CopyMatrix(
-      double** const dst,
-      double** const src );
+   double Determinant(double** const mat);
 
-   int size()const{ return s_N; };
+   void CopyMatrix(double** const dst, double** const src);
 
-   virtual void UpdateSolution(
-      double* const x,
-      const double* const fvec,
-      double** const fjac );
+   int size() const { return s_N; };
 
-   virtual void RHS(
-      const double* const x,
-      double* const fvec ) = 0;
+   virtual void UpdateSolution(double* const x, const double* const fvec,
+                               double** const fjac);
 
-private :
+   virtual void RHS(const double* const x, double* const fvec) = 0;
 
-   virtual void Jacobian(
-      const double* const x,
-      double** const fjac ) = 0;
+ private:
+   virtual void Jacobian(const double* const x, double** const fjac) = 0;
 
-   bool CheckTolerance( const double* const fvec );
-   bool CheckToleranceFirstEq( const double* const fvec );
+   bool CheckTolerance(const double* const fvec);
+   bool CheckToleranceFirstEq(const double* const fvec);
 
    /*
     * Number of equations in system

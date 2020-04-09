@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_ConstantTemperatureStrategy
 #define included_ConstantTemperatureStrategy
 
@@ -43,64 +43,61 @@
 // be initialized from an initial conditions file and left constant
 // thereafter, or set through a heat equation time evolution
 
-class ConstantTemperatureStrategy:
-   public TemperatureStrategy
+class ConstantTemperatureStrategy : public TemperatureStrategy
 {
-public:
-   ConstantTemperatureStrategy(
-      const int temperature_id,
-      const int weight_id)
+ public:
+   ConstantTemperatureStrategy(const int temperature_id, const int weight_id)
    {
-      assert( temperature_id>=0 );
-      assert( weight_id>=0 );
+      assert(temperature_id >= 0);
+      assert(weight_id >= 0);
 
       d_temperature_id = temperature_id;
-      d_weight_id      = weight_id;
+      d_weight_id = weight_id;
    }
 
-   ~ConstantTemperatureStrategy() {};
+   ~ConstantTemperatureStrategy(){};
 
-   virtual double getCurrentMinTemperature( 
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time )
+   virtual double getCurrentMinTemperature(
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time)
    {
-      (void) time;
-      math::HierarchyCellDataOpsReal<double> cellops( patch_hierarchy );
-      
-      return cellops.min( d_temperature_id );
+      (void)time;
+      math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
+
+      return cellops.min(d_temperature_id);
    }
 
    virtual double getCurrentMaxTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time )
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time)
    {
-      (void) time;
-      math::HierarchyCellDataOpsReal<double> cellops( patch_hierarchy );
-      
-      return cellops.max( d_temperature_id );
+      (void)time;
+      math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
+
+      return cellops.max(d_temperature_id);
    }
 
    virtual double getCurrentAverageTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time )
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time)
    {
-      (void) time;
-      math::HierarchyCellDataOpsReal<double> cellops( patch_hierarchy );
+      (void)time;
+      math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
 
-      return cellops.integral(d_temperature_id,d_weight_id)
-            /cellops.sumControlVolumes(d_temperature_id,d_weight_id);
+      return cellops.integral(d_temperature_id, d_weight_id) /
+             cellops.sumControlVolumes(d_temperature_id, d_weight_id);
    }
 
 
    virtual void setCurrentTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time )
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time)
    {
-      (void) patch_hierarchy;
-      (void) time;
+      (void)patch_hierarchy;
+      (void)time;
    }
 
-private:
+ private:
    int d_temperature_id;
    int d_weight_id;
 };

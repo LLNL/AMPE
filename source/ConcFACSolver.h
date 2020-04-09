@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_ConcFACSolver
 #define included_ConcFACSolver
 
@@ -41,24 +41,20 @@
 
 using namespace SAMRAI;
 
-class ConcFACSolver
-   : public EllipticFACSolver
+class ConcFACSolver : public EllipticFACSolver
 {
 
-public:
+ public:
+   ConcFACSolver(const std::string& object_name,
+                 boost::shared_ptr<ConcFACOps> fac_ops,
+                 const boost::shared_ptr<tbox::Database>& database =
+                     boost::shared_ptr<tbox::Database>());
 
-   ConcFACSolver(
-      const std::string &object_name,
-      boost::shared_ptr<ConcFACOps> fac_ops,
-      const boost::shared_ptr<tbox::Database>& database =
-         boost::shared_ptr<tbox::Database>() );
+   void setOperatorCoefficients(const double gamma,
+                                const std::vector<int>& diffusion_id,
+                                const double mobility);
 
-   void setOperatorCoefficients(
-      const double gamma,
-      const std::vector<int>& diffusion_id,
-      const double mobility);
-
-private:
+ private:
    boost::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 

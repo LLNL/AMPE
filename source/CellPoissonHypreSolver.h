@@ -61,7 +61,7 @@ using namespace SAMRAI;
  * - Create a CellPoissonHypreSolver object.
  * - Initialize CellPoissonHypreSolver object with a patch hierarchy,
  *   using the function initializeSolverState().
- * - Use the functions setPhysicalBcCoefObject() 
+ * - Use the functions setPhysicalBcCoefObject()
  *   to provide implementations of RobinBcCoefStrategy.
  *   (For most problems you can probably find a suitable
  *   implementation to use without implementing the
@@ -76,30 +76,30 @@ using namespace SAMRAI;
  * Sample parameters for initialization from database (and their
  * default values):
  * @verbatim
- *     print_solver_info = FALSE      // Whether to print some data for debugging
- *     max_iterations = 10            // Max iterations used by Hypre
+ *     print_solver_info = FALSE      // Whether to print some data for
+ * debugging max_iterations = 10            // Max iterations used by Hypre
  *     num_pre_relax_steps = 1        // # of presmoothing steps used by Hypre
  *     num_post_relax_steps = 1       // # of postsmoothing steps used by Hypre
  *     use_smg = FALSE                // Whether to use hypre's smg solver
  *                                    // (alternative is the pfmg solver)
  * @endverbatim
- * The parameter relative_residual_tol (Residual tolerance used by Hypre, default value=1.0e-8)
- * should be set using the interface function setStoppingCriteria(const double residual_tol)
+ * The parameter relative_residual_tol (Residual tolerance used by Hypre,
+ * default value=1.0e-8) should be set using the interface function
+ * setStoppingCriteria(const double residual_tol)
  */
 
 class CellPoissonHypreSolver
 {
-public:
+ public:
    /*!
     * @brief Constructor.
     *
     * @param object_name Name of object.
     * @param database tbox::InputDatabase for input.
     */
-   CellPoissonHypreSolver(
-      const std::string& object_name,
-      boost::shared_ptr<tbox::Database> database
-         =boost::shared_ptr<tbox::Database>() );
+   CellPoissonHypreSolver(const std::string &object_name,
+                          boost::shared_ptr<tbox::Database> database =
+                              boost::shared_ptr<tbox::Database>());
 
    /*!
     * The Poisson destructor releases all internally managed data.
@@ -114,9 +114,8 @@ public:
     * @param hierarchy Hierarchy
     * @param ln Level number
     */
-   void initializeSolverState(
-      boost::shared_ptr< hier::PatchHierarchy > hierarchy ,
-      int ln = 0 );
+   void initializeSolverState(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                              int ln = 0);
 
    /*!
     * @brief Reset to an uninitialized state.
@@ -132,7 +131,7 @@ public:
     *
     * This method must be called before solveSystem().
     */
-   void setMatrixCoefficients( const PoissonSpecifications &spec );
+   void setMatrixCoefficients(const PoissonSpecifications &spec);
 
    /*!
     * @brief Set default depth of the solution data involved in the solve.
@@ -147,10 +146,7 @@ public:
     * Changing the depth after setting up the matrix is permissible,
     * as the solution data does not affect the matrix.
     */
-   void setSolnIdDepth( const int depth )
-   {
-      d_soln_depth = depth;
-   }
+   void setSolnIdDepth(const int depth) { d_soln_depth = depth; }
 
    /*!
     * @brief Set default depth of the rhs data involved in the solve.
@@ -165,10 +161,7 @@ public:
     * Changing the depth after setting up the matrix is permissible,
     * as the rhs data does not affect the matrix.
     */
-   void setRhsIdDepth( const int depth )
-   {
-      d_rhs_depth = depth;
-   }
+   void setRhsIdDepth(const int depth) { d_rhs_depth = depth; }
 
    /*!
     * @brief Set the stopping criteria (residual
@@ -188,8 +181,8 @@ public:
     * from the solver.
     * Note that the matrix coefficients and boundary condition object
     * must have been set up before this function is called.
-    * As long as the matrix coefficients do not change, 
-    * this routine may be called repeatedly to solve any number of linear 
+    * As long as the matrix coefficients do not change,
+    * this routine may be called repeatedly to solve any number of linear
     * systems (with the right-hand side varying).
     * If the boundary conditions or matrix coefficients are changed
     * then function setMatrixCoefficients() must be called again.
@@ -211,31 +204,21 @@ public:
     *
     * @return whether solver converged to specified level
     */
-   int solveSystem( const int u ,
-                    const int f ,
-                    bool homogeneous_bc=false,
-                    bool initial_zero=false );
+   int solveSystem(const int u, const int f, bool homogeneous_bc = false,
+                   bool initial_zero = false);
 
    /*!
     * @brief Return the number of iterations taken by the solver to converge.
     *
     * @return number of iterations taken by the solver to converge
     */
-   int
-   getNumberOfIterations() const
-   {
-      return d_number_iterations;
-   }
+   int getNumberOfIterations() const { return d_number_iterations; }
 
    /*!
     * @brief Return the final residual norm returned by the Hypre solve.
     * @return final residual norm returned by the Hypre solve.
     */
-   double
-   getRelativeResidualNorm() const
-   {
-      return d_relative_residual_norm;
-   }
+   double getRelativeResidualNorm() const { return d_relative_residual_norm; }
 
    /*!
     * @brief Specify boundary condition directly, without using
@@ -249,15 +232,11 @@ public:
     * See SimpleCellRobinBcCoefs::setBoundaries()
     * for an explanation of the arguments.
     */
-   void setBoundaries(const std::string& boundary_type,
-                      const int fluxes = -1,
-                      const int flags = -1,
-                      int* bdry_types = NULL)
+   void setBoundaries(const std::string &boundary_type, const int fluxes = -1,
+                      const int flags = -1, int *bdry_types = NULL)
    {
-      d_physical_bc_simple_case.setBoundaries(boundary_type,
-         fluxes,
-         flags,
-         bdry_types);
+      d_physical_bc_simple_case.setBoundaries(boundary_type, fluxes, flags,
+                                              bdry_types);
       d_physical_bc_coef_strategy = &d_physical_bc_simple_case;
       d_physical_bc_variable.reset();
    }
@@ -282,30 +261,25 @@ public:
     *        but otherwise unused by this class.
     */
    void setPhysicalBcCoefObject(
-      const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
-      const boost::shared_ptr< hier::Variable > variable
-         = boost::shared_ptr< hier::Variable >() )
+       const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
+       const boost::shared_ptr<hier::Variable> variable =
+           boost::shared_ptr<hier::Variable>())
    {
       d_physical_bc_coef_strategy = physical_bc_coef_strategy;
       d_physical_bc_variable = variable;
    }
 
 
-   void printConvergenceFactors(std::ostream& os);
+   void printConvergenceFactors(std::ostream &os);
 
    /*!
     * @brief Get the name of this object.
     *
     * @return The name of this object.
     */
-   const std::string&
-   getObjectName() const
-   {
-      return d_object_name;
-   }
+   const std::string &getObjectName() const { return d_object_name; }
 
-private:
-
+ private:
    /*!
     * @biief Set state using database
     *
@@ -315,21 +289,17 @@ private:
     * @param database Input database.  If a NULL pointer is given,
     * nothing is done.
     */
-   void getFromInput( boost::shared_ptr<tbox::Database> database );
+   void getFromInput(boost::shared_ptr<tbox::Database> database);
 
    void setupHypreSolver();
    void destroyHypreSolver();
    void allocateHypreData();
    void deallocateHypreData();
 
-   void copyToHypre(HYPRE_StructVector vect,
-                    pdat::CellData<double> &src,
-                    int depth,
-                    const hier::Box &box);
-   void copyFromHypre(pdat::CellData<double> &dst,
-                      int depth,
-                      HYPRE_StructVector vect,
-                      const hier::Box box);
+   void copyToHypre(HYPRE_StructVector vect, pdat::CellData<double> &src,
+                    int depth, const hier::Box &box);
+   void copyFromHypre(pdat::CellData<double> &dst, int depth,
+                      HYPRE_StructVector vect, const hier::Box box);
 
 
    /*!
@@ -345,10 +315,10 @@ private:
     * bc coefficient implementation should correspond to the
     * boundary being worked on.
     */
-   void add_gAk0_toRhs( const hier::Patch &patch,
-                        const std::vector< hier::BoundaryBox > &bdry_boxes,
-                        const solv::RobinBcCoefStrategy *robin_bc_coef,
-                        pdat::CellData<double> &rhs );
+   void add_gAk0_toRhs(const hier::Patch &patch,
+                       const std::vector<hier::BoundaryBox> &bdry_boxes,
+                       const solv::RobinBcCoefStrategy *robin_bc_coef,
+                       pdat::CellData<double> &rhs);
 
 
    //@{
@@ -359,43 +329,39 @@ private:
 
    //! @brief Compute diagonal entries of the matrix when C is variable.
    void computeDiagonalEntries(
-      pdat::CellData<double> &diagonal,
-      const pdat::CellData<double> &C_data,
-      const pdat::SideData<double> &variable_off_diagonal,
-      const hier::Box &patch_box );
+       pdat::CellData<double> &diagonal, const pdat::CellData<double> &C_data,
+       const pdat::SideData<double> &variable_off_diagonal,
+       const hier::Box &patch_box);
    //! @brief Compute diagonal entries of the matrix when C is constant.
    void computeDiagonalEntries(
-      pdat::CellData<double> &diagonal,
-      const double C,
-      const pdat::SideData<double> &variable_off_diagonal,
-      const hier::Box &patch_box );
+       pdat::CellData<double> &diagonal, const double C,
+       const pdat::SideData<double> &variable_off_diagonal,
+       const hier::Box &patch_box);
    //! @brief Compute diagonal entries of the matrix when C is zero.
    void computeDiagonalEntries(
-      pdat::CellData<double> &diagonal,
-      const pdat::SideData<double> &variable_off_diagonal,
-      const hier::Box &patch_box );
+       pdat::CellData<double> &diagonal,
+       const pdat::SideData<double> &variable_off_diagonal,
+       const hier::Box &patch_box);
    /*!
     * @brief Adjust boundary entries for variable off-diagonals.
     *
     * At the same time, save information that are needed to adjust
     * the rhs.
     */
-   void adjustBoundaryEntries(
-      pdat::CellData<double> &diagonal,
-      pdat::SideData<double> &variable_off_diagonal,
-      const hier::Box &patch_box,
-      const pdat::ArrayData<double> &acoef_data,
-      const pdat::ArrayData<double> &bcoef_data,
-      const hier::Box bccoef_box,
-      pdat::ArrayData<double> &Ak0_data,
-      const hier::BoundaryBox &trimmed_boundary_box,
-      const double h[SAMRAI::MAX_DIM_VAL] );
+   void adjustBoundaryEntries(pdat::CellData<double> &diagonal,
+                              pdat::SideData<double> &variable_off_diagonal,
+                              const hier::Box &patch_box,
+                              const pdat::ArrayData<double> &acoef_data,
+                              const pdat::ArrayData<double> &bcoef_data,
+                              const hier::Box bccoef_box,
+                              pdat::ArrayData<double> &Ak0_data,
+                              const hier::BoundaryBox &trimmed_boundary_box,
+                              const double h[SAMRAI::MAX_DIM_VAL]);
 
    //@}
 
    //! @brief Free static variables at shutdown time.
    static void freeVariables();
-
 
 
    /*!
@@ -410,9 +376,9 @@ private:
    std::string d_object_name;
 
    /*!
-    * @brief Associated hierarchy. 
+    * @brief Associated hierarchy.
     */
-   boost::shared_ptr< hier::PatchHierarchy > d_hierarchy;
+   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*!
     * @brief Associated level number.
@@ -445,7 +411,7 @@ private:
     * use d_physical_bc_simple_case.
     */
    const solv::RobinBcCoefStrategy *d_physical_bc_coef_strategy;
-   boost::shared_ptr< hier::Variable > d_physical_bc_variable;
+   boost::shared_ptr<hier::Variable> d_physical_bc_variable;
 
    /*!
     * @brief Implementation of Robin boundary conefficients
@@ -462,7 +428,7 @@ private:
     * in the coarse-fine boundaries before solving.
     */
    solv::GhostCellRobinBcCoefs d_cf_bc_coef;
-   boost::shared_ptr< hier::Variable > d_coarsefine_bc_variable;
+   boost::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
 
    //@}
 
@@ -489,8 +455,7 @@ private:
     */
    int d_Ak0_id;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> >
-      s_Ak0_var[3];
+   static boost::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[3];
 
    /*!
     * @brief Depth of the solution variable.
@@ -506,9 +471,9 @@ private:
    double d_relative_residual_tol;
 
 
-   int d_number_iterations; // iterations in solver
-   int d_num_pre_relax_steps;  // pre-relax steps in solver
-   int d_num_post_relax_steps; // post-relax steps in solver
+   int d_number_iterations;          // iterations in solver
+   int d_num_pre_relax_steps;        // pre-relax steps in solver
+   int d_num_post_relax_steps;       // post-relax steps in solver
    double d_relative_residual_norm;  // norm from solver
 
    /*@
@@ -527,17 +492,17 @@ private:
    //@{
    //! @name Hypre object
    //! @brief HYPRE grid
-   HYPRE_StructGrid    d_grid;
+   HYPRE_StructGrid d_grid;
    //! @brief HYPRE stencil
    HYPRE_StructStencil d_stencil;
    //! @brief HYPRE structured matrix
-   HYPRE_StructMatrix  d_matrix;
+   HYPRE_StructMatrix d_matrix;
    //! @brief Hypre RHS vector for linear solves
-   HYPRE_StructVector  d_linear_rhs;
+   HYPRE_StructVector d_linear_rhs;
    //! @brief Hypre solution vector
-   HYPRE_StructVector  d_linear_sol;
+   HYPRE_StructVector d_linear_sol;
    //! @brief Hypre SMG solver data
-   HYPRE_StructSolver  d_mg_data;
+   HYPRE_StructSolver d_mg_data;
    //@}
 
    int d_msqrt_id;
@@ -554,7 +519,7 @@ private:
     * See setPrintSolverInfo().
     */
    bool d_print_solver_info;
-   
+
    bool d_converged;
 
    //@}

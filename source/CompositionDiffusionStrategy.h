@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -42,54 +42,42 @@
 
 using namespace SAMRAI;
 
-enum class DiffusionInterpolationType
-{
-   LINEAR,
-   PBG,
-   BIASED,
-   UNDEFINED
-};
+enum class DiffusionInterpolationType { LINEAR, PBG, BIASED, UNDEFINED };
 
 class CompositionDiffusionStrategy
 {
-public:
+ public:
    CompositionDiffusionStrategy(DiffusionInterpolationType interp_func_type)
-      : d_interp_func_type(interp_func_type)
-   {};
+       : d_interp_func_type(interp_func_type){};
 
-/*
- * compute actual diffusion by weighting diffusion in each phase
- * using phase variable
- */
+   /*
+    * compute actual diffusion by weighting diffusion in each phase
+    * using phase variable
+    */
    virtual void setDiffusion(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int phase_id,
-      const int eta_id)=0;
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int temperature_id, const int phase_id, const int eta_id) = 0;
 
    /*
     * Compute diffusion coefficient in each phase
     */
    virtual void setDiffCoeffInEachPhase(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int eta_scratch_id)=0;
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int temperature_id, const int eta_scratch_id) = 0;
 
-   char interpChar()const
+   char interpChar() const
    {
-      switch( d_interp_func_type ){
-         case DiffusionInterpolationType::LINEAR:
-            return 'l';
-         case DiffusionInterpolationType::PBG:
-            return 'p';
-         case DiffusionInterpolationType::BIASED:
-            return 'b';
+      switch (d_interp_func_type) {
+         case DiffusionInterpolationType::LINEAR: return 'l';
+         case DiffusionInterpolationType::PBG: return 'p';
+         case DiffusionInterpolationType::BIASED: return 'b';
          default:
-            TBOX_ERROR("Invalid interp_func_type for CompositionDiffusionStrategy");
+            TBOX_ERROR(
+                "Invalid interp_func_type for CompositionDiffusionStrategy");
       }
    }
 
-private:
+ private:
    DiffusionInterpolationType d_interp_func_type;
 };
 

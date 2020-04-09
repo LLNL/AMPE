@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,9 +32,9 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_CALPHADSpeciesPhaseGibbsEnergy
-#define included_CALPHADSpeciesPhaseGibbsEnergy 
+#define included_CALPHADSpeciesPhaseGibbsEnergy
 
 #include "CALPHADSpeciesPhaseGibbsEnergyExpansion.h"
 
@@ -47,25 +47,23 @@ using namespace SAMRAI;
 
 class CALPHADSpeciesPhaseGibbsEnergy
 {
-private :
-
-   std::string         d_name;
-   std::vector<double> d_tc; 
+ private:
+   std::string d_name;
+   std::vector<double> d_tc;
 
    std::vector<CALPHADSpeciesPhaseGibbsEnergyExpansion> d_expansion;
-   
-public :
 
+ public:
    CALPHADSpeciesPhaseGibbsEnergy(){};
 
-   std::string name()const{return d_name;}
+   std::string name() const { return d_name; }
 
-   void initialize(
-      const std::string& name,
-      boost::shared_ptr<tbox::Database> db );
+   void initialize(const std::string& name,
+                   boost::shared_ptr<tbox::Database> db);
 
-   double fenergy( const double T ); // expect T in Kelvin
-   void plotFofT(std::ostream& os, const double T0=300., const double T1=3000.);
+   double fenergy(const double T);  // expect T in Kelvin
+   void plotFofT(std::ostream& os, const double T0 = 300.,
+                 const double T1 = 3000.);
 };
 
 #endif

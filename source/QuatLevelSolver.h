@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_QuatLevelSolver_h
 #define included_QuatLevelSolver_h
 
@@ -70,7 +70,7 @@ using namespace SAMRAI;
  * Class QuatLevelSolver uses the HYPRE sysPFMG solver
  * to solve the quaternion system described in the working notes
  * "Differential Algebraic Formulation of the Pusztai, Bortel and
- * Granasy Quaternion Phase Field Equation of Motion" by M. Dorr 
+ * Granasy Quaternion Phase Field Equation of Motion" by M. Dorr
  * on a single level in a hierarchy.  The template parameter DIM
  * is the dimensionality of the underlying spatial domain.
  *
@@ -86,7 +86,7 @@ using namespace SAMRAI;
  * - Create a QuatLevelSolver object.
  * - Initialize QuatLevelSolver object with a patch hierarchy,
  *   using the function initializeSolverState().
- * - Use the functions setPhysicalBcCoefObject() 
+ * - Use the functions setPhysicalBcCoefObject()
  *   to provide implementations of RobinBcCoefStrategy.
  *   (For most problems you can probably find a suitable
  *   implementation to use without implementing the
@@ -100,27 +100,26 @@ using namespace SAMRAI;
  *
  * Sample parameters for initialization from database (and their
  * default values):
- *     print_solver_info = FALSE      // Whether to print some data for debugging
- *     solver_type = 1                // Hypre solver type
- *     max_iterations = 10            // Maximum number of iterations allowed
- *     relative_residual_tol = 1.0e-8 // Relative residual tolerance desired
- *     num_pre_relax_steps = 1        // # of presmoothing steps used by PFMG
- *     num_post_relax_steps = 1       // # of postsmoothing steps used by PFMG
+ *     print_solver_info = FALSE      // Whether to print some data for
+ * debugging solver_type = 1                // Hypre solver type max_iterations
+ * = 10            // Maximum number of iterations allowed relative_residual_tol
+ * = 1.0e-8 // Relative residual tolerance desired num_pre_relax_steps = 1 // #
+ * of presmoothing steps used by PFMG num_post_relax_steps = 1       // # of
+ * postsmoothing steps used by PFMG
  */
 
 class QuatLevelSolver
 {
-public:
+ public:
    /*
     * Constructor
     *
     * object_name: Name of object.
     * database:    tbox::Database for input.
     */
-   QuatLevelSolver(
-      const int qlen,
-      const std::string & object_name,
-      boost::shared_ptr<tbox::Database> database=boost::shared_ptr<tbox::Database>() );
+   QuatLevelSolver(const int qlen, const std::string& object_name,
+                   boost::shared_ptr<tbox::Database> database =
+                       boost::shared_ptr<tbox::Database>());
 
    /*
     * The destructor releases all internally managed data.
@@ -134,8 +133,8 @@ public:
     * hierarchy: Hierarchy
     * ln:        Level number
     */
-   void initializeSolverState(boost::shared_ptr< hier::PatchHierarchy > hierarchy ,
-                              int ln = 0 );
+   void initializeSolverState(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                              int ln = 0);
 
    /*
     * Reset to an uninitialized state
@@ -171,8 +170,8 @@ public:
     * from the solver.
     * Note that the matrix coefficients and boundary condition object
     * must have been set up before this function is called.
-    * As long as the matrix coefficients do not change, 
-    * this routine may be called repeatedly to solve any number of linear 
+    * As long as the matrix coefficients do not change,
+    * this routine may be called repeatedly to solve any number of linear
     * systems (with the right-hand side varying).
     * If the boundary conditions or matrix coefficients are changed
     * then function setMatrixCoefficients() must be called again.
@@ -195,10 +194,9 @@ public:
     *
     * Returns whether solver converged to specified level
     */
-   int solveSystem(const int q_rhs_id,
-                   const int q_solution_id,
-                   bool homogeneous_bc=false);
-  
+   int solveSystem(const int q_rhs_id, const int q_solution_id,
+                   bool homogeneous_bc = false);
+
    /*
     * Return the number of iterations taken by the solver to converge.
     */
@@ -231,10 +229,8 @@ public:
     * See SimpleCellRobinBcCoefs::setBoundaries()
     * for an explanation of the arguments.
     */
-   void setBoundaries(const std::string& boundary_type,
-                      const int fluxes = -1,
-                      const int flags = -1,
-                      int* bdry_types = NULL);
+   void setBoundaries(const std::string& boundary_type, const int fluxes = -1,
+                      const int flags = -1, int* bdry_types = NULL);
 
    /*
     * Specify boundary condition through the use of a
@@ -255,8 +251,10 @@ public:
     *        to RobinBcCoefStrategy::setBcCoefs(),
     *        but otherwise unused by this class.
     */
-   void setPhysicalBcCoefObject(const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
-                                const boost::shared_ptr< hier::Variable > variable=boost::shared_ptr< hier::Variable >() );
+   void setPhysicalBcCoefObject(
+       const solv::RobinBcCoefStrategy* physical_bc_coef_strategy,
+       const boost::shared_ptr<hier::Variable> variable =
+           boost::shared_ptr<hier::Variable>());
 
    /*
     * Set the flag for printing solver information.
@@ -274,7 +272,7 @@ public:
     * - mat.out    - A after solve
     * - rhs.out    - b before and after solve
     *
-    * If this method is not called, or the flag is set false, no printing 
+    * If this method is not called, or the flag is set false, no printing
     * will occur.
     */
    void setPrintSolverInfo(const bool print);
@@ -287,8 +285,7 @@ public:
     */
    void setVerbose(const bool verbose);
 
-private:
-
+ private:
    /*
     * Set state using database
     *
@@ -327,19 +324,16 @@ private:
     * "var" component of the Hypre vector "dst_vector"
     */
 
-   void copyToHypre(const int component,
-                    const pdat::CellData<double> & src_data,
+   void copyToHypre(const int component, const pdat::CellData<double>& src_data,
                     HYPRE_SStructVector dst_vector);
 
-   /* 
+   /*
     * Copy data from the "var" component of the Hypre vector "src_vector" to the
     * "component" component of the "dst_data" CellData
     */
 
-   void copyFromHypre(const int var,
-                      const HYPRE_SStructVector src_vector,
-                      const int component,
-                      pdat::CellData<double> & dst_data);
+   void copyFromHypre(const int var, const HYPRE_SStructVector src_vector,
+                      const int component, pdat::CellData<double>& dst_data);
 
    /*
     * Add g*A*k0(a) from boundaries to rhs.
@@ -354,10 +348,10 @@ private:
     * bc coefficient implementation should correspond to the
     * boundary being worked on.
     */
-   void add_gAk0_toRhs(const hier::Patch & patch,
-                       const std::vector< hier::BoundaryBox > & bdry_boxes,
-                       const solv::RobinBcCoefStrategy * robin_bc_coef,
-                       pdat::CellData<double> & rhs );
+   void add_gAk0_toRhs(const hier::Patch& patch,
+                       const std::vector<hier::BoundaryBox>& bdry_boxes,
+                       const solv::RobinBcCoefStrategy* robin_bc_coef,
+                       pdat::CellData<double>& rhs);
 
    /*
     * Dimension-independent functions to organize Fortran interface.
@@ -369,17 +363,14 @@ private:
     * At the same time, save information that are needed to adjust
     * the rhs.
     */
-   void adjustBoundaryEntries(const double time_step,
-                              pdat::CellData<double> & sqrt_mobility_data,
-                              pdat::CellData<double> & diagonal,
-                              const pdat::SideData<double> & variable_off_diagonal,
-                              const hier::Box & patch_box,
-                              const pdat::ArrayData<double> & acoef_data,
-                              const pdat::ArrayData<double> & bcoef_data,
-                              const hier::Box bccoef_box,
-                              pdat::OutersideData<double>& Ak0,
-                              const hier::BoundaryBox & trimmed_boundary_box,
-                              const double h[NDIM]);
+   void adjustBoundaryEntries(
+       const double time_step, pdat::CellData<double>& sqrt_mobility_data,
+       pdat::CellData<double>& diagonal,
+       const pdat::SideData<double>& variable_off_diagonal,
+       const hier::Box& patch_box, const pdat::ArrayData<double>& acoef_data,
+       const pdat::ArrayData<double>& bcoef_data, const hier::Box bccoef_box,
+       pdat::OutersideData<double>& Ak0,
+       const hier::BoundaryBox& trimmed_boundary_box, const double h[NDIM]);
 
    // Free static variables at shutdown time.
    static void freeVariables();
@@ -397,9 +388,9 @@ private:
    std::string d_object_name;
 
    /*
-    * Associated hierarchy. 
+    * Associated hierarchy.
     */
-   boost::shared_ptr< hier::PatchHierarchy > d_hierarchy;
+   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*
     * Level number.
@@ -427,8 +418,8 @@ private:
     * If d_physical_bc_coef_strategy is set, use it, otherwise,
     * use d_physical_bc_simple_case.
     */
-   const solv::RobinBcCoefStrategy *d_physical_bc_coef_strategy;
-   boost::shared_ptr< hier::Variable > d_physical_bc_variable;
+   const solv::RobinBcCoefStrategy* d_physical_bc_coef_strategy;
+   boost::shared_ptr<hier::Variable> d_physical_bc_variable;
 
    /*
     * Implementation of Robin boundary conefficients
@@ -445,7 +436,7 @@ private:
     * in the coarse-fine boundaries before solving.
     */
    solv::GhostCellRobinBcCoefs d_cf_bc_coef;
-   boost::shared_ptr< hier::Variable > d_coarsefine_bc_variable;
+   boost::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
 
    /*
     * hier::Patch index of A*k0(a) quantity
@@ -470,8 +461,7 @@ private:
     */
    int d_Ak0_id;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> >
-      s_Ak0_var[NDIM];
+   static boost::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[NDIM];
 
    /*
     * Maximum number of iterations allowed
@@ -516,21 +506,21 @@ private:
    HYPRE_SStructGraph d_graph;
    HYPRE_SStructStencil d_stencil;
 
-   HYPRE_SStructMatrix * d_matrix;
-   HYPRE_SStructVector * d_linear_rhs;
-   HYPRE_SStructVector * d_linear_sol;
+   HYPRE_SStructMatrix* d_matrix;
+   HYPRE_SStructVector* d_linear_rhs;
+   HYPRE_SStructVector* d_linear_sol;
 
-   HYPRE_Solver * d_parcsr_solver;
-   HYPRE_Solver * d_parcsr_precond;
-   HYPRE_ParCSRMatrix * d_parcsr_A;
-   HYPRE_ParVector * d_parcsr_b;
-   HYPRE_ParVector * d_parcsr_x;
+   HYPRE_Solver* d_parcsr_solver;
+   HYPRE_Solver* d_parcsr_precond;
+   HYPRE_ParCSRMatrix* d_parcsr_A;
+   HYPRE_ParVector* d_parcsr_b;
+   HYPRE_ParVector* d_parcsr_x;
 
-   HYPRE_StructSolver * d_struct_solver;
-   HYPRE_StructSolver * d_struct_precond;
-   HYPRE_StructMatrix * d_struct_A;
-   HYPRE_StructVector * d_struct_b;
-   HYPRE_StructVector * d_struct_x;
+   HYPRE_StructSolver* d_struct_solver;
+   HYPRE_StructSolver* d_struct_precond;
+   HYPRE_StructMatrix* d_struct_A;
+   HYPRE_StructVector* d_struct_b;
+   HYPRE_StructVector* d_struct_x;
 
    int d_hypre_object_type;
 
@@ -552,7 +542,6 @@ private:
    boost::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
    boost::shared_ptr<tbox::Timer> t_create_hypre_solver;
    boost::shared_ptr<tbox::Timer> t_hypre_solve;
-
 };
 
 #include "QuatLevelSolver.I"
