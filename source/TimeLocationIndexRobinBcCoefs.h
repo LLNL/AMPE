@@ -73,21 +73,19 @@ using namespace SAMRAI;
  * </table>
  *
  */
-class TimeLocationIndexRobinBcCoefs:
-   public solv::RobinBcCoefStrategy
+class TimeLocationIndexRobinBcCoefs : public solv::RobinBcCoefStrategy
 {
 
-public:
+ public:
    /*!
     * @brief Constructor using input database.
     *
     * @pre input_db
     */
    TimeLocationIndexRobinBcCoefs(
-      const tbox::Dimension& dim,
-      const std::string& object_name,
-      const boost::shared_ptr<tbox::Database>& input_db =
-         boost::shared_ptr<tbox::Database>());
+       const tbox::Dimension& dim, const std::string& object_name,
+       const boost::shared_ptr<tbox::Database>& input_db =
+           boost::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -128,22 +126,19 @@ public:
     * @pre (bdry_box.getLocationIndex() >= 0) &&
     *      (bdry_box.getLocationIndex() < 2 * d_dim.getValue())
     */
-   void
-   setBcCoefs(
-      const boost::shared_ptr<pdat::ArrayData<double> >& acoef_data,
-      const boost::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
-      const boost::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
-      const boost::shared_ptr<hier::Variable>& variable,
-      const hier::Patch& patch,
-      const hier::BoundaryBox& bdry_box,
-      double fill_time = 0.0) const;
+   void setBcCoefs(
+       const boost::shared_ptr<pdat::ArrayData<double> >& acoef_data,
+       const boost::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
+       const boost::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
+       const boost::shared_ptr<hier::Variable>& variable,
+       const hier::Patch& patch, const hier::BoundaryBox& bdry_box,
+       double fill_time = 0.0) const;
 
    /*
     * @brief Return how many cells past the edge or corner of the
     * patch the object can fill.
     */
-   hier::IntVector
-   numberOfExtensionsFillable() const;
+   hier::IntVector numberOfExtensionsFillable() const;
 #if 0
    /*!
     * @brief Set the boundary value at a given location index.
@@ -233,16 +228,13 @@ public:
     *
     * @pre (location_index >= 0) && (location_index < 2 * d_dim.getValue())
     */
-   void
-   getCoefficients(
-      int location_index,
-      std::vector<double>& a,
-      std::vector<double>& b,
-      std::vector<double>& g) const
+   void getCoefficients(int location_index, std::vector<double>& a,
+                        std::vector<double>& b, std::vector<double>& g) const
    {
       if (location_index < 0 || location_index >= 2 * d_dim.getValue()) {
          TBOX_ERROR("Location index in " << d_dim.getValue() << "D must be\n"
-                                         << "in [0," << 2 * d_dim.getValue() - 1 << ").\n");
+                                         << "in [0," << 2 * d_dim.getValue() - 1
+                                         << ").\n");
       }
       a = d_a_map[location_index];
       b = d_b_map[location_index];
@@ -254,22 +246,17 @@ public:
     *
     * @return The name of this object.
     */
-   const std::string&
-   getObjectName() const
-   {
-      return d_object_name;
-   }
+   const std::string& getObjectName() const { return d_object_name; }
 
    /*!
     * @brief Assignment operator.
     */
-   TimeLocationIndexRobinBcCoefs&
-   operator = (
-      const TimeLocationIndexRobinBcCoefs& r);
+   TimeLocationIndexRobinBcCoefs& operator=(
+       const TimeLocationIndexRobinBcCoefs& r);
 
    void rescaleGcoefficients(const double factor);
 
-private:
+ private:
    /*
     * @brief Set state from input database.
     *
@@ -280,9 +267,7 @@ private:
     *
     * @pre input_db
     */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& input_db);
+   void getFromInput(const boost::shared_ptr<tbox::Database>& input_db);
 
    /*
     * @brief Object dimension

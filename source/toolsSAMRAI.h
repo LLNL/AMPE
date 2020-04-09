@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -39,21 +39,16 @@
 using namespace SAMRAI;
 
 
-void copyDepthSideData(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int dst_id, const int dst_depth,
-   const int src_id, const int src_depth);
+void copyDepthSideData(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                       const int dst_id, const int dst_depth, const int src_id,
+                       const int src_depth);
 
-void copyDepthCellData(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int dst_id, const int dst_depth,
-   const int src_id, const int src_depth);
+void copyDepthCellData(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                       const int dst_id, const int dst_depth, const int src_id,
+                       const int src_depth);
 
-int checkForNans(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int data_id);
+int checkForNans(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                 const int data_id);
 int checkSideDataForNans(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int data_id);
-
-
+    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const int data_id);

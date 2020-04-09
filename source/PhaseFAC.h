@@ -24,12 +24,11 @@
 
 using namespace SAMRAI;
 
-class PhaseFAC:
-   public mesh::StandardTagAndInitStrategy,
-   public appu::VisDerivedDataStrategy
+class PhaseFAC : public mesh::StandardTagAndInitStrategy,
+                 public appu::VisDerivedDataStrategy
 {
 
-public:
+ public:
    /*!
     * @brief Constructor.
     *
@@ -41,16 +40,11 @@ public:
     * @param fac_solver
     * @param bc_coefs
     */
-   PhaseFAC(
-      const std::string& object_name,
-      const tbox::Dimension& dim,
-      const boost::shared_ptr<PhaseFACSolver>& fac_solver,
-      const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
-      const double epsilon,
-      const double omega,
-      const double delta,
-      const double mobility,
-      const double gamma);
+   PhaseFAC(const std::string& object_name, const tbox::Dimension& dim,
+            const boost::shared_ptr<PhaseFACSolver>& fac_solver,
+            const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
+            const double epsilon, const double omega, const double delta,
+            const double mobility, const double gamma);
 
    virtual ~PhaseFAC();
 
@@ -66,37 +60,28 @@ public:
     *
     * @see mesh::StandardTagAndInitStrategy::initializeLevelData()
     */
-   virtual void
-   initializeLevelData(
-      const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-      const int level_number,
-      const double init_data_time,
-      const bool can_be_refined,
-      const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel>& old_level,
-      const bool allocate_data);
+   virtual void initializeLevelData(
+       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const int level_number, const double init_data_time,
+       const bool can_be_refined, const bool initial_time,
+       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const bool allocate_data);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
     */
-   virtual void
-   resetHierarchyConfiguration(
-      const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
-      int coarsest_level,
-      int finest_level);
+   virtual void resetHierarchyConfiguration(
+       const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+       int coarsest_level, int finest_level);
 
    //@}
 
    //@{ @name appu::VisDerivedDataStrategy virtuals
 
-   virtual bool
-   packDerivedDataIntoDoubleBuffer(
-      double* buffer,
-      const hier::Patch& patch,
-      const hier::Box& region,
-      const std::string& variable_name,
-      int depth_id,
-      double simulation_time) const;
+   virtual bool packDerivedDataIntoDoubleBuffer(
+       double* buffer, const hier::Patch& patch, const hier::Box& region,
+       const std::string& variable_name, int depth_id,
+       double simulation_time) const;
 
    //@}
 
@@ -110,11 +95,8 @@ public:
     * -# Specify Poisson equation parameters
     * -# Call solver
     */
-   int
-   solve(
-      std::string phase_interp_func_type,
-      double ,
-      std::string phase_well_func_type);
+   int solve(std::string phase_interp_func_type, double,
+             std::string phase_well_func_type);
 
 #ifdef HAVE_HDF5
    /*!
@@ -138,7 +120,7 @@ public:
 
    double compareSolutionWithExact();
 
-private:
+ private:
    std::string d_object_name;
 
    const tbox::Dimension d_dim;

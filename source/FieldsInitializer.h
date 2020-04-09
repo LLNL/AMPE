@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -52,52 +52,39 @@ using namespace SAMRAI;
 
 class FieldsInitializer
 {
-public:
+ public:
+   FieldsInitializer(
+       boost::shared_ptr<geom::CartesianGridGeometry>& grid_geometry,
+       const hier::IntVector& ratio_of_init_to_coarsest, const int verbosity);
 
-FieldsInitializer(
-   boost::shared_ptr<geom::CartesianGridGeometry >& grid_geometry,
-   const hier::IntVector& ratio_of_init_to_coarsest,
-   const int verbosity);
+   void registerFieldsIds(const int phase_id, const int eta_id,
+                          const int temperature_id, const int quat_id,
+                          const int qlen, const int conc_id,
+                          const int ncompositions);
 
-void registerFieldsIds(
-   const int phase_id,
-   const int eta_id,
-   const int temperature_id,
-   const int quat_id, const int qlen,
-   const int conc_id, const int ncompositions);
+   void initializeLevelFromData(boost::shared_ptr<hier::PatchLevel> level,
+                                const std::string& filename,
+                                const int slice_index);
 
-void initializeLevelFromData(
-   boost::shared_ptr< hier::PatchLevel > level,
-   const std::string& filename,
-   const int slice_index);
-
-template <typename T>
-void initializePatchFromData(
-   boost::shared_ptr<hier::Patch > patch,
-   size_t islice,
+   template <typename T>
+   void initializePatchFromData(
+       boost::shared_ptr<hier::Patch> patch, size_t islice,
 #ifdef HAVE_NETCDF3
-   NcVar* ncPhase,
-   NcVar* ncEta,
-   NcVar* ncTemp,
-   NcVar** ncQuatComponents,
-   NcVar** ncConcComponents,
+       NcVar* ncPhase, NcVar* ncEta, NcVar* ncTemp, NcVar** ncQuatComponents,
+       NcVar** ncConcComponents,
 #endif
 #ifdef HAVE_NETCDF4
-   netCDF::NcVar& ncPhase,
-   netCDF::NcVar& ncEta,
-   netCDF::NcVar& ncTemp,
-   netCDF::NcVar* ncQuatComponents,
-   netCDF::NcVar* ncConcComponents,
+       netCDF::NcVar& ncPhase, netCDF::NcVar& ncEta, netCDF::NcVar& ncTemp,
+       netCDF::NcVar* ncQuatComponents, netCDF::NcVar* ncConcComponents,
 #endif
-   T* vals);
+       T* vals);
 
    void setQvalue(const std::vector<float>& qvalue);
    void setCvalue(const std::vector<float>& cvalue);
    void setTvalue(const float tvalue);
 
-private:
-
-   boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
+ private:
+   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
 
    const hier::IntVector d_ratio_of_init_to_coarsest;
 
@@ -123,14 +110,15 @@ private:
    bool d_use_uniform_c_value;
    bool d_use_uniform_t_value;
 
-   bool readQ()const{ return (d_qlen>0 && !d_use_uniform_q_value); }
-   bool readC()const{ return (d_ncompositions>0 && !d_use_uniform_c_value); }
-   bool readT()const{ return (!d_use_uniform_t_value); }
+   bool readQ() const { return (d_qlen > 0 && !d_use_uniform_q_value); }
+   bool readC() const
+   {
+      return (d_ncompositions > 0 && !d_use_uniform_c_value);
+   }
+   bool readT() const { return (!d_use_uniform_t_value); }
 
-   void checkInputFileDimensions(
-      const size_t nx_file, const size_t ny_file, const size_t nz_file,
-      const size_t qlen_file );
+   void checkInputFileDimensions(const size_t nx_file, const size_t ny_file,
+                                 const size_t nz_file, const size_t qlen_file);
 
    void getDomainSizes(size_t&, size_t&, size_t&);
 };
-

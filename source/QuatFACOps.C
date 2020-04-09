@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 /*
  * This class provides operator specific functions supporting
  * a quaternion system FAC solver.  See the header file
@@ -56,33 +56,25 @@ using namespace std;
 
 // Static class member definitions
 
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_cell_scratch_var;
+boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_cell_scratch_var;
 
-boost::shared_ptr<pdat::SideVariable<double> >
-QuatFACOps::s_flux_scratch_var;
+boost::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_flux_scratch_var;
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
-QuatFACOps::s_oflux_scratch_var;
+    QuatFACOps::s_oflux_scratch_var;
+
+boost::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_face_coef_var;
 
 boost::shared_ptr<pdat::SideVariable<double> >
-QuatFACOps::s_face_coef_var;
+    QuatFACOps::s_face_coef_deriv_var;
 
-boost::shared_ptr<pdat::SideVariable<double> >
-QuatFACOps::s_face_coef_deriv_var;
+boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_q_local_var;
 
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_q_local_var;
+boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_residual_var;
 
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_residual_var;
+boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_sqrt_m_var;
 
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_sqrt_m_var;
-
-boost::shared_ptr<pdat::CellVariable<double> >
-QuatFACOps::s_m_deriv_var;
-
+boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
 
 
 /*
@@ -91,212 +83,217 @@ QuatFACOps::s_m_deriv_var;
 ********************************************************************
 */
 
-QuatFACOps::QuatFACOps(
-   const int ql,
-   const string& object_name,
-   const boost::shared_ptr<tbox::Database>& database )
-  : d_qlen(ql),
-    d_object_name(object_name) ,
-    d_hierarchy() ,
-    d_ln_min(-1) ,
-    d_ln_max(-1) ,
-    d_cf_boundary() ,
-    d_cf_discretization("Ewing") ,
-    d_prolongation_method("CONSTANT_REFINE") ,
-    d_levelsolver_tolerance(1.e-8),
-    d_levelsolver_max_iterations(10),
-    d_coarse_levelsolver_tolerance(1.e-8) ,
-    d_coarse_levelsolver_max_iterations(10) ,
-    d_flux_id(-1) ,
+QuatFACOps::QuatFACOps(const int ql, const string& object_name,
+                       const boost::shared_ptr<tbox::Database>& database)
+    : d_qlen(ql),
+      d_object_name(object_name),
+      d_hierarchy(),
+      d_ln_min(-1),
+      d_ln_max(-1),
+      d_cf_boundary(),
+      d_cf_discretization("Ewing"),
+      d_prolongation_method("CONSTANT_REFINE"),
+      d_levelsolver_tolerance(1.e-8),
+      d_levelsolver_max_iterations(10),
+      d_coarse_levelsolver_tolerance(1.e-8),
+      d_coarse_levelsolver_max_iterations(10),
+      d_flux_id(-1),
 #ifdef HAVE_HYPRE
-   d_levelsolver_database(database && database->isDatabase("hypre_solver") ?
-                          database->getDatabase("hypre_solver") :
-                          boost::shared_ptr<tbox::Database>()),
+      d_levelsolver_database(database && database->isDatabase("hypre_solver")
+                                 ? database->getDatabase("hypre_solver")
+                                 : boost::shared_ptr<tbox::Database>()),
 #else
-   d_levelsolver_database(database && database->isDatabase("QuatLevelSolver") ?
-                          database->getDatabase("QuatLevelSolver") :
-                          boost::shared_ptr<tbox::Database>()),
+      d_levelsolver_database(database && database->isDatabase("QuatLevelSolver")
+                                 ? database->getDatabase("QuatLevelSolver")
+                                 : boost::shared_ptr<tbox::Database>()),
 #endif
-    d_physical_bc_coef(NULL) ,
-    d_flux_scratch_id(-1),
-    d_oflux_scratch_id(-1),
-    d_bc_helper( tbox::Dimension(NDIM), d_object_name+"::bc helper" ),
-    d_enable_logging(false),
-    d_verbose(false),
-    d_solver(NULL),
-    d_hopscell(),
-    d_gamma(tbox::MathUtilities<double>::getSignalingNaN()),
-    d_ewt_id(-1),
-    d_weight_id(-1),
-    d_rotation_index_id(-1)
+      d_physical_bc_coef(NULL),
+      d_flux_scratch_id(-1),
+      d_oflux_scratch_id(-1),
+      d_bc_helper(tbox::Dimension(NDIM), d_object_name + "::bc helper"),
+      d_enable_logging(false),
+      d_verbose(false),
+      d_solver(NULL),
+      d_hopscell(),
+      d_gamma(tbox::MathUtilities<double>::getSignalingNaN()),
+      d_ewt_id(-1),
+      d_weight_id(-1),
+      d_rotation_index_id(-1)
 {
-  // Since one can't initialize arrays in the initializer list, we do it here
+   // Since one can't initialize arrays in the initializer list, we do it here
    d_cell_scratch_id = -1;
 
-   t_restrict_solution = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::restrictSolution()");
-   t_restrict_residual = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::restrictResidual()");
-   t_prolong = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::prolongErrorAndCorrect()");
-   t_smooth_error = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::smoothError()");
-   t_solve_coarsest = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::solveCoarsestLevel()");
-   t_compute_composite_residual = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::computeCompositeResidualOnLevel()");
-   t_compute_rhs = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::computeRHS()");
-   t_compute_residual_norm = tbox::TimerManager::getManager()->
-      getTimer("AMPE::QuatFACOps::computeResidualNorm()");
+   t_restrict_solution = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::restrictSolution()");
+   t_restrict_residual = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::restrictResidual()");
+   t_prolong = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::prolongErrorAndCorrect()");
+   t_smooth_error = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::smoothError()");
+   t_solve_coarsest = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::solveCoarsestLevel()");
+   t_compute_composite_residual = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::computeCompositeResidualOnLevel()");
+   t_compute_rhs = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::computeRHS()");
+   t_compute_residual_norm = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::QuatFACOps::computeResidualNorm()");
 
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D is not implemented.\n");
    }
 
-   if ( !s_cell_scratch_var ||
-        !s_flux_scratch_var || !s_oflux_scratch_var ||
-        !s_q_local_var || !s_residual_var ||
-        !s_sqrt_m_var || !s_m_deriv_var ) {
+   if (!s_cell_scratch_var || !s_flux_scratch_var || !s_oflux_scratch_var ||
+       !s_q_local_var || !s_residual_var || !s_sqrt_m_var || !s_m_deriv_var) {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      assert( !s_cell_scratch_var );
-      assert( !s_flux_scratch_var );
-      assert( !s_oflux_scratch_var );
-      assert( !s_q_local_var );
-      assert( !s_residual_var );
-      assert( !s_sqrt_m_var );
-      assert( !s_m_deriv_var );
+      assert(!s_cell_scratch_var);
+      assert(!s_flux_scratch_var);
+      assert(!s_oflux_scratch_var);
+      assert(!s_q_local_var);
+      assert(!s_residual_var);
+      assert(!s_sqrt_m_var);
+      assert(!s_m_deriv_var);
 #endif
-      if ( !s_cell_scratch_var ) {
-        s_cell_scratch_var.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_cell_scratch", d_qlen));
+      if (!s_cell_scratch_var) {
+         s_cell_scratch_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                            "QuatFACOps::private_cell_scratch",
+                                            d_qlen));
       }
 
-      if ( !s_flux_scratch_var ) {
-        s_flux_scratch_var.reset( new pdat::SideVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_flux_scratch", d_qlen));
+      if (!s_flux_scratch_var) {
+         s_flux_scratch_var.reset(
+             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                            "QuatFACOps::private_flux_scratch",
+                                            d_qlen));
       }
 
-      if ( !s_oflux_scratch_var ) {
-        s_oflux_scratch_var.reset( new pdat::OutersideVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_oflux_scratch", d_qlen));
+      if (!s_oflux_scratch_var) {
+         s_oflux_scratch_var.reset(
+             new pdat::OutersideVariable<double>(tbox::Dimension(NDIM),
+                                                 "QuatFACOps::private_oflux_"
+                                                 "scratch",
+                                                 d_qlen));
       }
 
-      if ( !s_face_coef_var ) {
-        s_face_coef_var.reset( new pdat::SideVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_face_coef", d_qlen));
+      if (!s_face_coef_var) {
+         s_face_coef_var.reset(new pdat::SideVariable<double>(
+             tbox::Dimension(NDIM), "QuatFACOps::private_face_coef", d_qlen));
       }
 
-      if ( !s_face_coef_deriv_var ) {
-        s_face_coef_deriv_var.reset( new pdat::SideVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_face_coef_deriv", 2*d_qlen));
+      if (!s_face_coef_deriv_var) {
+         s_face_coef_deriv_var.reset(
+             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                            "QuatFACOps::private_face_coef_"
+                                            "deriv",
+                                            2 * d_qlen));
       }
 
-      if ( !s_q_local_var ) {
-        s_q_local_var.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_q_local", d_qlen));
+      if (!s_q_local_var) {
+         s_q_local_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), "QuatFACOps::private_q_local", d_qlen));
       }
 
-      if ( !s_residual_var ) {
-        s_residual_var.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_residual", d_qlen));
+      if (!s_residual_var) {
+         s_residual_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), "QuatFACOps::private_residual", d_qlen));
       }
 
-      if ( !s_sqrt_m_var ) {
-        s_sqrt_m_var.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_mobility_sqrt", 1));
+      if (!s_sqrt_m_var) {
+         s_sqrt_m_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), "QuatFACOps::private_mobility_sqrt", 1));
       }
 
-      if ( !s_m_deriv_var ) {
-        s_m_deriv_var.reset( new pdat::CellVariable<double>
-          (tbox::Dimension(NDIM),"QuatFACOps::private_mobility_deriv", 1));
+      if (!s_m_deriv_var) {
+         s_m_deriv_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), "QuatFACOps::private_mobility_deriv", 1));
       }
    }
 
-   hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
-   boost::shared_ptr<hier::VariableContext> private_context = vdb->getContext(object_name+"::PRIVATE_CONTEXT");
-   boost::shared_ptr<hier::VariableContext> scratch_context = vdb->getContext("SCRATCH");
+   hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
+   boost::shared_ptr<hier::VariableContext> private_context =
+       vdb->getContext(object_name + "::PRIVATE_CONTEXT");
+   boost::shared_ptr<hier::VariableContext> scratch_context =
+       vdb->getContext("SCRATCH");
 
-   d_cell_scratch_id = vdb->
-      registerVariableAndContext( s_cell_scratch_var,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),1) );
+   d_cell_scratch_id =
+       vdb->registerVariableAndContext(s_cell_scratch_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       1));
 
-   d_flux_scratch_id = vdb->
-      registerVariableAndContext( s_flux_scratch_var,
-                                  private_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
-   d_oflux_scratch_id = vdb->
-      registerVariableAndContext( s_oflux_scratch_var,
-                                  private_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_flux_scratch_id =
+       vdb->registerVariableAndContext(s_flux_scratch_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
+   d_oflux_scratch_id =
+       vdb->registerVariableAndContext(s_oflux_scratch_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
-   d_face_coef_scratch_id = vdb->
-      registerVariableAndContext( s_face_coef_var,
-                                  private_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_face_coef_scratch_id =
+       vdb->registerVariableAndContext(s_face_coef_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
-   d_face_coef_id = vdb->
-     registerVariableAndContext( s_face_coef_var,
-                                 scratch_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_face_coef_id =
+       vdb->registerVariableAndContext(s_face_coef_var, scratch_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
-   d_face_coef_deriv_id = vdb->
-     registerVariableAndContext( s_face_coef_deriv_var,
-                                 scratch_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_face_coef_deriv_id =
+       vdb->registerVariableAndContext(s_face_coef_deriv_var, scratch_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
-   d_q_local_id = vdb->
-      registerVariableAndContext( s_q_local_var,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),1) );
+   d_q_local_id =
+       vdb->registerVariableAndContext(s_q_local_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       1));
 
-   d_residual_id = vdb->
-      registerVariableAndContext( s_residual_var,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_residual_id =
+       vdb->registerVariableAndContext(s_residual_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
-   d_sqrt_m_id = vdb->
-      registerVariableAndContext( s_sqrt_m_var,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),1) );
+   d_sqrt_m_id =
+       vdb->registerVariableAndContext(s_sqrt_m_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       1));
 
-   d_m_deriv_id = vdb->
-      registerVariableAndContext( s_m_deriv_var,
-                                  private_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
+   d_m_deriv_id =
+       vdb->registerVariableAndContext(s_m_deriv_var, private_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
 
    /*
     * Some variables initialized by default are overriden by input.
     */
-   if ( database ) {
+   if (database) {
 
       d_levelsolver_tolerance =
-         database->getDoubleWithDefault("levelsolver_tolerance",
-                                        d_levelsolver_tolerance);
+          database->getDoubleWithDefault("levelsolver_tolerance",
+                                         d_levelsolver_tolerance);
       d_levelsolver_max_iterations =
-         database->getIntegerWithDefault("levelsolver_max_iterations",
-                                         d_levelsolver_max_iterations);
+          database->getIntegerWithDefault("levelsolver_max_iterations",
+                                          d_levelsolver_max_iterations);
 
       d_coarse_levelsolver_tolerance =
-         database->getDoubleWithDefault("coarse_levelsolver_tolerance",
-                                        d_coarse_levelsolver_tolerance);
+          database->getDoubleWithDefault("coarse_levelsolver_tolerance",
+                                         d_coarse_levelsolver_tolerance);
       d_coarse_levelsolver_max_iterations =
-         database->getIntegerWithDefault("coarse_levelsolver_max_iterations",
-                                         d_coarse_levelsolver_max_iterations);
+          database->getIntegerWithDefault("coarse_levelsolver_max_iterations",
+                                          d_coarse_levelsolver_max_iterations);
 
-      d_cf_discretization =
-         database->getStringWithDefault( "cf_discretization" ,
-                                         d_cf_discretization );
+      d_cf_discretization = database->getStringWithDefault("cf_discretization",
+                                                           d_cf_discretization);
 
       d_prolongation_method =
-         database->getStringWithDefault( "prolongation_method" ,
-                                         d_prolongation_method );
+          database->getStringWithDefault("prolongation_method",
+                                         d_prolongation_method);
 
       d_enable_logging =
-         database->getBoolWithDefault( "enable_logging" ,
-                                       d_enable_logging );
-
+          database->getBoolWithDefault("enable_logging", d_enable_logging);
    }
 
    /*
@@ -306,15 +303,12 @@ QuatFACOps::QuatFACOps(
 }
 
 
-
-
 QuatFACOps::~QuatFACOps(void)
 {
-   for (int ln=0; ln<(int)d_quat_level_solver.size(); ln++) {
-      if( d_quat_level_solver[ln] != NULL ) delete d_quat_level_solver[ln];
+   for (int ln = 0; ln < (int)d_quat_level_solver.size(); ln++) {
+      if (d_quat_level_solver[ln] != NULL) delete d_quat_level_solver[ln];
    }
 }
-
 
 
 /*
@@ -326,43 +320,43 @@ QuatFACOps::~QuatFACOps(void)
 ************************************************************************
 */
 
-void
-QuatFACOps::initializeOperatorState(
-   const solv::SAMRAIVectorReal<double> & solution,
-   const solv::SAMRAIVectorReal<double> &      rhs )
+void QuatFACOps::initializeOperatorState(
+    const solv::SAMRAIVectorReal<double>& solution,
+    const solv::SAMRAIVectorReal<double>& rhs)
 {
    deallocateOperatorState();
    d_hierarchy = solution.getPatchHierarchy();
    d_ln_min = solution.getCoarsestLevelNumber();
    d_ln_max = solution.getFinestLevelNumber();
-   d_hopscell.reset(new math::HierarchyCellDataOpsReal<double>( d_hierarchy,
-                                                            d_ln_min,
-                                                            d_ln_max ));
-   hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
+   d_hopscell.reset(new math::HierarchyCellDataOpsReal<double>(d_hierarchy,
+                                                               d_ln_min,
+                                                               d_ln_max));
+   hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
 #ifdef DEBUG_CHECK_ASSERTIONS
 
-   if ( d_physical_bc_coef == NULL ) {
+   if (d_physical_bc_coef == NULL) {
       /*
        * It's an error not to have bc object set.
        * Note that the bc object cannot be passed in through
        * the argument because the interface is inherited.
        */
       TBOX_ERROR(d_object_name << ": No physical bc object in\n"
-                 << "QuatFACOps::initializeOperatorState\n"
-                 << "You must use "
-                 << "QuatFACOps::setPhysicalBcCoefObject\n"
-                 << "to set one before calling initializeOperatorState\n");
+                               << "QuatFACOps::initializeOperatorState\n"
+                               << "You must use "
+                               << "QuatFACOps::setPhysicalBcCoefObject\n"
+                               << "to set one before calling "
+                                  "initializeOperatorState\n");
    }
 
-   if (  solution.getNumberOfComponents() != 1 ) {
-      TBOX_WARNING(d_object_name
-                   << ": Solution vector has invalid number of components.\n"
-                   << "Solver is for 1 components only.\n");
+   if (solution.getNumberOfComponents() != 1) {
+      TBOX_WARNING(d_object_name << ": Solution vector has invalid number of "
+                                    "components.\n"
+                                 << "Solver is for 1 components only.\n");
    }
-   if ( rhs.getNumberOfComponents() != 1 ) {
-      TBOX_WARNING(d_object_name
-                   << ": RHS vector has invalid number of components.\n"
-                   << "Solver is for 1 components only.\n");
+   if (rhs.getNumberOfComponents() != 1) {
+      TBOX_WARNING(d_object_name << ": RHS vector has invalid number of "
+                                    "components.\n"
+                                 << "Solver is for 1 components only.\n");
    }
 
    /*
@@ -371,79 +365,81 @@ QuatFACOps::initializeOperatorState(
     *   are allocated
     *   has sufficient ghost width
     */
-   boost::shared_ptr< hier::Variable > var;
+   boost::shared_ptr<hier::Variable> var;
    {
-       vdb->mapIndexToVariable( rhs.getComponentDescriptorIndex(0),
-                                var );
-       if ( !var ) {
+      vdb->mapIndexToVariable(rhs.getComponentDescriptorIndex(0), var);
+      if (!var) {
          TBOX_ERROR(d_object_name << ": RHS component does not\n"
-                    << "correspond to a variable.\n");
-       }
-       boost::shared_ptr<pdat::CellVariable<double> > cell_var (
-          BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) ); 
-       if ( !cell_var ) {
-         TBOX_ERROR(d_object_name
-                    << ": RHS component variable is not cell-centered double\n");
-       }
+                                  << "correspond to a variable.\n");
+      }
+      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      if (!cell_var) {
+         TBOX_ERROR(d_object_name << ": RHS component variable is not "
+                                     "cell-centered double\n");
+      }
    }
    {
-       vdb->mapIndexToVariable( solution.getComponentDescriptorIndex(0),
-                                var );
-       if ( !var ) {
+      vdb->mapIndexToVariable(solution.getComponentDescriptorIndex(0), var);
+      if (!var) {
          TBOX_ERROR(d_object_name << ": Solution component does not\n"
-                    << "correspond to a variable.\n");
-       }
-       boost::shared_ptr<pdat::CellVariable<double> > cell_var ( 
-          BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
-       if ( !cell_var ) {
-         TBOX_ERROR(d_object_name
-                    << ": Solution component variable is not cell-centered double\n");
-       }
+                                  << "correspond to a variable.\n");
+      }
+      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      if (!cell_var) {
+         TBOX_ERROR(d_object_name << ": Solution component variable is not "
+                                     "cell-centered double\n");
+      }
    }
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      boost::shared_ptr<hier::PatchLevel > level =
-         d_hierarchy->getPatchLevel(ln);
-      for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-         hier::Patch &patch = **pi;
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         hier::Patch& patch = **pi;
          {
-           boost::shared_ptr< hier::PatchData > fd =
-             patch.getPatchData( rhs.getComponentDescriptorIndex(0) );
-           if ( fd ) {
-             /*
+            boost::shared_ptr<hier::PatchData> fd =
+                patch.getPatchData(rhs.getComponentDescriptorIndex(0));
+            if (fd) {
+               /*
                Some data checks can only be done if the data already exists.
              */
-             boost::shared_ptr<pdat::CellData<double> > cd (
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd) ); 
-             if ( !cd ) {
-               TBOX_ERROR(d_object_name
-                          << ": RHS data component is not cell-centered double\n");
-             }
-             if ( cd->getDepth() > d_qlen ) {
-               TBOX_WARNING(d_object_name
-                            << ": Depth of RHS data component is greater than " << d_qlen << "\n");
-             }
-           }
-           boost::shared_ptr< hier::PatchData > ud =
-             patch.getPatchData( solution.getComponentDescriptorIndex(0) );
-           if ( ud ) {
-             /*
+               boost::shared_ptr<pdat::CellData<double> > cd(
+                   BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd));
+               if (!cd) {
+                  TBOX_ERROR(d_object_name << ": RHS data component is not "
+                                              "cell-centered double\n");
+               }
+               if (cd->getDepth() > d_qlen) {
+                  TBOX_WARNING(d_object_name << ": Depth of RHS data component "
+                                                "is greater than "
+                                             << d_qlen << "\n");
+               }
+            }
+            boost::shared_ptr<hier::PatchData> ud =
+                patch.getPatchData(solution.getComponentDescriptorIndex(0));
+            if (ud) {
+               /*
                Some data checks can only be done if the data already exists.
              */
-             boost::shared_ptr<pdat::CellData<double> > cd (
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud) );
-             if ( !cd ) {
-               TBOX_ERROR(d_object_name
-                          << ": Solution data component is not cell-centered double\n");
-             }
-             if ( cd->getDepth() > d_qlen ) {
-               TBOX_WARNING(d_object_name
-                            << ": Depth of solution data component is greater than " << d_qlen << "\n");
-             }
-             if ( cd->getGhostCellWidth() < hier::IntVector(tbox::Dimension(NDIM),1) ) {
-               TBOX_ERROR(d_object_name
-                          << ": Solution component 0 data has insufficient ghost width\n");
-             }
-           }
+               boost::shared_ptr<pdat::CellData<double> > cd(
+                   BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud));
+               if (!cd) {
+                  TBOX_ERROR(d_object_name << ": Solution data component is "
+                                              "not cell-centered double\n");
+               }
+               if (cd->getDepth() > d_qlen) {
+                  TBOX_WARNING(d_object_name << ": Depth of solution data "
+                                                "component is greater than "
+                                             << d_qlen << "\n");
+               }
+               if (cd->getGhostCellWidth() <
+                   hier::IntVector(tbox::Dimension(NDIM), 1)) {
+                  TBOX_ERROR(d_object_name << ": Solution component 0 data has "
+                                              "insufficient ghost width\n");
+               }
+            }
          }
       }
    }
@@ -451,11 +447,11 @@ QuatFACOps::initializeOperatorState(
    /*
     * Solution and rhs must have some similar properties.
     */
-   if( rhs.getPatchHierarchy() != d_hierarchy
-       || rhs.getCoarsestLevelNumber() != d_ln_min
-       || rhs.getFinestLevelNumber() != d_ln_max ) {
+   if (rhs.getPatchHierarchy() != d_hierarchy ||
+       rhs.getCoarsestLevelNumber() != d_ln_min ||
+       rhs.getFinestLevelNumber() != d_ln_max) {
       TBOX_ERROR(d_object_name << ": solution and rhs do not have\n"
-                 << "the same set of patch levels.\n" );
+                               << "the same set of patch levels.\n");
    }
 
 #endif
@@ -466,35 +462,35 @@ QuatFACOps::initializeOperatorState(
     */
    d_cf_boundary.resize(d_hierarchy->getNumberOfLevels());
 
-   hier::IntVector max_gcw(tbox::Dimension(NDIM),1);
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      d_cf_boundary[ln].reset( new hier::CoarseFineBoundary(*d_hierarchy,
-            ln,
-            max_gcw));
+   hier::IntVector max_gcw(tbox::Dimension(NDIM), 1);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      d_cf_boundary[ln].reset(
+          new hier::CoarseFineBoundary(*d_hierarchy, ln, max_gcw));
    }
 
    d_quat_level_solver.resize(d_hierarchy->getNumberOfLevels());
 
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln) {
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
 
       // Create new solver on this level
-      d_quat_level_solver[ln-d_ln_min] =
-         new QuatLevelSolver(
-            d_qlen,
-            d_object_name+"::quaternion_level_solver-"
-            + tbox::Utilities::intToString(ln, 2),
-            d_levelsolver_database);
+      d_quat_level_solver[ln - d_ln_min] =
+          new QuatLevelSolver(d_qlen,
+                              d_object_name + "::quaternion_level_solver-" +
+                                  tbox::Utilities::intToString(ln, 2),
+                              d_levelsolver_database);
 
-      d_quat_level_solver[ln-d_ln_min]->setVerbose(d_verbose);
+      d_quat_level_solver[ln - d_ln_min]->setVerbose(d_verbose);
 
-      d_quat_level_solver[ln-d_ln_min]->initializeSolverState( d_hierarchy, ln );
+      d_quat_level_solver[ln - d_ln_min]->initializeSolverState(d_hierarchy,
+                                                                ln);
 
       /*
        * Share the boundary condition object with the hypre solver
        * to make sure that boundary condition settings are consistent
        * between the two objects.
        */
-      d_quat_level_solver[ln-d_ln_min]->setPhysicalBcCoefObject( d_physical_bc_coef );
+      d_quat_level_solver[ln - d_ln_min]->setPhysicalBcCoefObject(
+          d_physical_bc_coef);
    }
 
    /*
@@ -508,66 +504,59 @@ QuatFACOps::initializeOperatorState(
     *   acceptable strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-      BOOST_CAST<geom::CartesianGridGeometry,hier::BaseGridGeometry>( d_hierarchy->getGridGeometry() ) );
+       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+           d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(geometry);
 
-   boost::shared_ptr< hier::Variable > variable;
+   boost::shared_ptr<hier::Variable> variable;
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_prolongation_refine_operator =
-      geometry->lookupRefineOperator( variable,
-                                       d_prolongation_method );
-   d_urestriction_coarsen_operator =
-   d_rrestriction_coarsen_operator =
-      geometry->lookupCoarsenOperator(variable,
-                                       "CONSERVATIVE_COARSEN");
+       geometry->lookupRefineOperator(variable, d_prolongation_method);
+   d_urestriction_coarsen_operator = d_rrestriction_coarsen_operator =
+       geometry->lookupCoarsenOperator(variable, "CONSERVATIVE_COARSEN");
 
-   vdb->mapIndexToVariable( d_oflux_scratch_id, variable );
+   vdb->mapIndexToVariable(d_oflux_scratch_id, variable);
    d_flux_coarsen_operator =
-      geometry->lookupCoarsenOperator(variable,
-                                      "CONSERVATIVE_COARSEN");
+       geometry->lookupCoarsenOperator(variable, "CONSERVATIVE_COARSEN");
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_ghostfill_refine_operator =
-      geometry->lookupRefineOperator(variable,
-                                     d_cf_discretization == "Ewing" ?
-                                     "CONSTANT_REFINE" : d_cf_discretization);
+       geometry->lookupRefineOperator(variable, d_cf_discretization == "Ewing"
+                                                    ? "CONSTANT_REFINE"
+                                                    : d_cf_discretization);
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_ghostfill_nocoarse_refine_operator =
-      geometry->lookupRefineOperator(variable,
-                                     "CONSTANT_REFINE");
+       geometry->lookupRefineOperator(variable, "CONSTANT_REFINE");
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( !d_prolongation_refine_operator ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot find prolongation refine operator");
+   if (!d_prolongation_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find prolongation refine operator");
    }
-   if ( !d_urestriction_coarsen_operator ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot find restriction coarsening operator");
+   if (!d_urestriction_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find restriction coarsening "
+                                  "operator");
    }
-   if ( !d_rrestriction_coarsen_operator ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot find restriction coarsening operator");
+   if (!d_rrestriction_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find restriction coarsening "
+                                  "operator");
    }
-   if ( !d_flux_coarsen_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find flux coarsening operator");
+   if (!d_flux_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find flux coarsening operator");
    }
-   if ( !d_ghostfill_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find ghost filling refinement operator");
+   if (!d_ghostfill_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find ghost filling refinement "
+                                  "operator");
    }
-   if ( !d_ghostfill_nocoarse_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find ghost filling refinement operator");
+   if (!d_ghostfill_nocoarse_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find ghost filling refinement "
+                                  "operator");
    }
 #endif
 
-   for ( int ln=d_ln_min+1; ln<=d_ln_max; ++ln ) {
-      d_hierarchy->getPatchLevel(ln)->
-         allocatePatchData(d_oflux_scratch_id);
+   for (int ln = d_ln_min + 1; ln <= d_ln_max; ++ln) {
+      d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_oflux_scratch_id);
    }
 
    /*
@@ -575,201 +564,198 @@ QuatFACOps::initializeOperatorState(
      There is no need to delete the old schedules first
      because we have deallocated the solver state above.
    */
-   d_prolongation_refine_schedules.resize(d_ln_max+1);
-   d_urestriction_coarsen_schedules.resize(d_ln_max+1);
-   d_rrestriction_coarsen_schedules.resize(d_ln_max+1);
-   d_ghostfill_refine_schedules.resize(d_ln_max+1);
-   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max+1);
-   d_flux_coarsen_schedules.resize(d_ln_max+1);
+   d_prolongation_refine_schedules.resize(d_ln_max + 1);
+   d_urestriction_coarsen_schedules.resize(d_ln_max + 1);
+   d_rrestriction_coarsen_schedules.resize(d_ln_max + 1);
+   d_ghostfill_refine_schedules.resize(d_ln_max + 1);
+   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max + 1);
+   d_flux_coarsen_schedules.resize(d_ln_max + 1);
 
-   d_prolongation_refine_algorithm.reset( new xfer::RefineAlgorithm() );
-   d_urestriction_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-   d_rrestriction_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-   d_flux_coarsen_algorithm.reset( new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
-   d_ghostfill_refine_algorithm.reset( new xfer::RefineAlgorithm() );
-   d_ghostfill_nocoarse_refine_algorithm.reset( new xfer::RefineAlgorithm() );
+   d_prolongation_refine_algorithm.reset(new xfer::RefineAlgorithm());
+   d_urestriction_coarsen_algorithm.reset(
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+   d_rrestriction_coarsen_algorithm.reset(
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+   d_flux_coarsen_algorithm.reset(
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+   d_ghostfill_refine_algorithm.reset(new xfer::RefineAlgorithm());
+   d_ghostfill_nocoarse_refine_algorithm.reset(new xfer::RefineAlgorithm());
 
 
    /*
      Register the transfer operations
    */
-   assert( d_cell_scratch_id>=0 );
-   d_prolongation_refine_algorithm->
-      registerRefine( d_cell_scratch_id ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_cell_scratch_id,
-                      d_prolongation_refine_operator );
-   d_urestriction_coarsen_algorithm->
-      registerCoarsen( solution.getComponentDescriptorIndex(0) ,
-                       solution.getComponentDescriptorIndex(0) ,
-                       d_urestriction_coarsen_operator );
-   d_rrestriction_coarsen_algorithm->
-      registerCoarsen( rhs.getComponentDescriptorIndex(0) ,
-                       rhs.getComponentDescriptorIndex(0) ,
-                       d_rrestriction_coarsen_operator );
+   assert(d_cell_scratch_id >= 0);
+   d_prolongation_refine_algorithm->registerRefine(
+       d_cell_scratch_id, solution.getComponentDescriptorIndex(0),
+       d_cell_scratch_id, d_prolongation_refine_operator);
+   d_urestriction_coarsen_algorithm->registerCoarsen(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       d_urestriction_coarsen_operator);
+   d_rrestriction_coarsen_algorithm->registerCoarsen(
+       rhs.getComponentDescriptorIndex(0), rhs.getComponentDescriptorIndex(0),
+       d_rrestriction_coarsen_operator);
 
-   d_ghostfill_refine_algorithm->
-      registerRefine( solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_ghostfill_refine_operator );
-   d_flux_coarsen_algorithm->
-      registerCoarsen( ( ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id ) ,
-                       d_oflux_scratch_id ,
-                       d_flux_coarsen_operator );
+   d_ghostfill_refine_algorithm->registerRefine(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0), d_ghostfill_refine_operator);
+   d_flux_coarsen_algorithm->registerCoarsen(
+       ((d_flux_id != -1) ? d_flux_id : d_flux_scratch_id), d_oflux_scratch_id,
+       d_flux_coarsen_operator);
 
-   assert( d_ghostfill_nocoarse_refine_operator );
-   d_ghostfill_nocoarse_refine_algorithm->
-      registerRefine( solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_ghostfill_nocoarse_refine_operator );
+   assert(d_ghostfill_nocoarse_refine_operator);
+   d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       d_ghostfill_nocoarse_refine_operator);
 
    /*
      Create the refine schedules
    */
-   for ( int dest_ln=d_ln_min+1; dest_ln<=d_ln_max; ++dest_ln ) {
-      xfer::RefinePatchStrategy * strategy = &d_bc_helper;
+   for (int dest_ln = d_ln_min + 1; dest_ln <= d_ln_max; ++dest_ln) {
+      xfer::RefinePatchStrategy* strategy = &d_bc_helper;
       d_prolongation_refine_schedules[dest_ln] =
-         d_prolongation_refine_algorithm->
-         createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
-                         boost::shared_ptr<hier::PatchLevel >() ,
-                         dest_ln-1 ,
-                         d_hierarchy ,
-                         strategy );
-       if ( ! d_prolongation_refine_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a refine schedule for prolongation!\n");
-       }
-     d_ghostfill_refine_schedules[dest_ln] =
-       d_ghostfill_refine_algorithm->
-       createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
-                       dest_ln-1 ,
-                       d_hierarchy ,
-                       &d_bc_helper );
-     if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot create a refine schedule for ghost filling!\n");
-     }
-     d_ghostfill_nocoarse_refine_schedules[dest_ln] =
-       d_ghostfill_nocoarse_refine_algorithm->
-       createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
-                       &d_bc_helper );
-     if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot create a refine schedule for ghost filling on bottom level!\n");
-     }
+          d_prolongation_refine_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              boost::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
+              strategy);
+      if (!d_prolongation_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "prolongation!\n");
+      }
+      d_ghostfill_refine_schedules[dest_ln] =
+          d_ghostfill_refine_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln), dest_ln - 1, d_hierarchy,
+              &d_bc_helper);
+      if (!d_ghostfill_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "ghost filling!\n");
+      }
+      d_ghostfill_nocoarse_refine_schedules[dest_ln] =
+          d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln), &d_bc_helper);
+      if (!d_ghostfill_nocoarse_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "ghost filling on bottom level!\n");
+      }
    }
 
    /*
      Create the coarsen schedules
    */
 
-   for ( int dest_ln=d_ln_min; dest_ln<d_ln_max; ++dest_ln ) {
+   for (int dest_ln = d_ln_min; dest_ln < d_ln_max; ++dest_ln) {
       d_urestriction_coarsen_schedules[dest_ln] =
-         d_urestriction_coarsen_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                        d_hierarchy->getPatchLevel(dest_ln+1));
-      if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a coarsen schedule for U restriction!\n");
+          d_urestriction_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_urestriction_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for U "
+                                     "restriction!\n");
       }
       d_rrestriction_coarsen_schedules[dest_ln] =
-         d_rrestriction_coarsen_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                        d_hierarchy->getPatchLevel(dest_ln+1));
-      if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a coarsen schedule for R restriction!\n");
-       }
-     d_flux_coarsen_schedules[dest_ln] =
-       d_flux_coarsen_algorithm->
-       createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                      d_hierarchy->getPatchLevel(dest_ln+1));
-     if ( ! d_flux_coarsen_schedules[dest_ln] ) {
-       TBOX_ERROR(d_object_name
-                  << ": Cannot create a coarsen schedule for flux transfer!\n");
-     }
+          d_rrestriction_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_rrestriction_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for R "
+                                     "restriction!\n");
+      }
+      d_flux_coarsen_schedules[dest_ln] =
+          d_flux_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_flux_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for "
+                                     "flux transfer!\n");
+      }
    }
    d_ghostfill_nocoarse_refine_schedules[d_ln_min] =
-     d_ghostfill_nocoarse_refine_algorithm->
-     createSchedule( d_hierarchy->getPatchLevel(d_ln_min) ,
-                     &d_bc_helper );
-   if ( ! d_ghostfill_nocoarse_refine_schedules[d_ln_min] ) {
-     TBOX_ERROR(d_object_name
-                << ": Cannot create a refine schedule for ghost filling on bottom level!\n");
+       d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+           d_hierarchy->getPatchLevel(d_ln_min), &d_bc_helper);
+   if (!d_ghostfill_nocoarse_refine_schedules[d_ln_min]) {
+      TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for ghost "
+                                  "filling on bottom level!\n");
    }
 
-   assert( d_face_coef_id);
-   assert( d_face_coef_deriv_id);
-   assert( d_face_coef_scratch_id);
-   assert( d_q_local_id);
-   assert( d_residual_id);
-   assert( d_sqrt_m_id);
-   assert( d_m_deriv_id);
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-     boost::shared_ptr< hier::PatchLevel > level_ptr = d_hierarchy->getPatchLevel(ln);
+   assert(d_face_coef_id);
+   assert(d_face_coef_deriv_id);
+   assert(d_face_coef_scratch_id);
+   assert(d_q_local_id);
+   assert(d_residual_id);
+   assert(d_sqrt_m_id);
+   assert(d_m_deriv_id);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level_ptr =
+          d_hierarchy->getPatchLevel(ln);
 
       // Allocate the local patch data
-      if ( !level_ptr->checkAllocated( d_face_coef_id ) )
+      if (!level_ptr->checkAllocated(d_face_coef_id))
          level_ptr->allocatePatchData(d_face_coef_id);
-      if ( !level_ptr->checkAllocated( d_face_coef_deriv_id ) )
+      if (!level_ptr->checkAllocated(d_face_coef_deriv_id))
          level_ptr->allocatePatchData(d_face_coef_deriv_id);
-      if ( !level_ptr->checkAllocated( d_face_coef_scratch_id ) )
+      if (!level_ptr->checkAllocated(d_face_coef_scratch_id))
          level_ptr->allocatePatchData(d_face_coef_scratch_id);
-      if ( !level_ptr->checkAllocated( d_q_local_id ) )
+      if (!level_ptr->checkAllocated(d_q_local_id))
          level_ptr->allocatePatchData(d_q_local_id);
-      if ( !level_ptr->checkAllocated( d_residual_id ) )
+      if (!level_ptr->checkAllocated(d_residual_id))
          level_ptr->allocatePatchData(d_residual_id);
-      if ( !level_ptr->checkAllocated( d_sqrt_m_id ) )
+      if (!level_ptr->checkAllocated(d_sqrt_m_id))
          level_ptr->allocatePatchData(d_sqrt_m_id);
-      if ( !level_ptr->checkAllocated( d_m_deriv_id ) )
+      if (!level_ptr->checkAllocated(d_m_deriv_id))
          level_ptr->allocatePatchData(d_m_deriv_id);
    }
-   
 }
 
 
-
-void
-QuatFACOps::computeFaceCoefs(
-   const double      epsilon_q,
-   const int diffusion_coef_id,
-   const int         grad_q_id,
-   const double gradient_floor,
-   const string grad_floor_type,
-   const int      face_coef_id ) // output
+void QuatFACOps::computeFaceCoefs(const double epsilon_q,
+                                  const int diffusion_coef_id,
+                                  const int grad_q_id,
+                                  const double gradient_floor,
+                                  const string grad_floor_type,
+                                  const int face_coef_id)  // output
 {
 
-  // Check for negative diffusion coefficients.  We don't like them.
-  // Zero is ok since epsilon^2 is added later
+   // Check for negative diffusion coefficients.  We don't like them.
+   // Zero is ok since epsilon^2 is added later
 
-  math::HierarchySideDataOpsReal<double> sideops(d_hierarchy, d_ln_min, d_ln_max-1);
+   math::HierarchySideDataOpsReal<double> sideops(d_hierarchy, d_ln_min,
+                                                  d_ln_max - 1);
 
-  double diffusion_coef_min = sideops.min(diffusion_coef_id);
+   double diffusion_coef_min = sideops.min(diffusion_coef_id);
 
-  if ( (diffusion_coef_min + epsilon_q*epsilon_q)<0. ) {
-     TBOX_ERROR(d_object_name << ": Negative diffusion coefficient passed to computeFaceCoefs().");
-  }
+   if ((diffusion_coef_min + epsilon_q * epsilon_q) < 0.) {
+      TBOX_ERROR(d_object_name << ": Negative diffusion coefficient passed to "
+                                  "computeFaceCoefs().");
+   }
 
-  for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-    boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
 
-    for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      
-      boost::shared_ptr< pdat::SideData<double> > diffusion_coef_data (
-        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(diffusion_coef_id) ) );
-      boost::shared_ptr< pdat::SideData<double> > grad_q_data (
-        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(grad_q_id) ) );
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data (
-        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_id) ) );
-       
-      assert( diffusion_coef_data->getDepth() == 1 );
-      computeFaceCoefsOnPatch(*patch, epsilon_q, *diffusion_coef_data, *grad_q_data,
-                              *face_coef_data, gradient_floor, grad_floor_type);
-    }
-  }
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         boost::shared_ptr<hier::Patch> patch = *pi;
+
+         boost::shared_ptr<pdat::SideData<double> > diffusion_coef_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(diffusion_coef_id)));
+         boost::shared_ptr<pdat::SideData<double> > grad_q_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(grad_q_id)));
+         boost::shared_ptr<pdat::SideData<double> > face_coef_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(face_coef_id)));
+
+         assert(diffusion_coef_data->getDepth() == 1);
+         computeFaceCoefsOnPatch(*patch, epsilon_q, *diffusion_coef_data,
+                                 *grad_q_data, *face_coef_data, gradient_floor,
+                                 grad_floor_type);
+      }
+   }
 #if 0
    double norm = sideops.L1Norm( face_coef_id );
    tbox::plog<<"L1 Norm face_coef_id="<<norm<<endl;
@@ -777,135 +763,147 @@ QuatFACOps::computeFaceCoefs(
 }
 
 
-
-void
-QuatFACOps::computeDQuatDPhiFaceCoefs(
-   const int    dprime_id,
-   const int       phi_id,
-   const int face_coef_id)
+void QuatFACOps::computeDQuatDPhiFaceCoefs(const int dprime_id,
+                                           const int phi_id,
+                                           const int face_coef_id)
 {
-   // Note: This function assumes that the ghost cells of phi have already been filled
+   // Note: This function assumes that the ghost cells of phi have already been
+   // filled
 
-  for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-    boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
 
-    for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      
-      boost::shared_ptr< pdat::SideData<double> > dprime_data(
-        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(dprime_id) ) );
-      boost::shared_ptr< pdat::CellData<double> > phi_data(
-        BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(phi_id) ) );
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data(
-        BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_id) ) );
-       
-      computeDQuatDPhiFaceCoefsOnPatch(*patch, *dprime_data, *phi_data, *face_coef_data);
-    }
-  }
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         boost::shared_ptr<hier::Patch> patch = *pi;
+
+         boost::shared_ptr<pdat::SideData<double> > dprime_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(dprime_id)));
+         boost::shared_ptr<pdat::CellData<double> > phi_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phi_id)));
+         boost::shared_ptr<pdat::SideData<double> > face_coef_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(face_coef_id)));
+
+         computeDQuatDPhiFaceCoefsOnPatch(*patch, *dprime_data, *phi_data,
+                                          *face_coef_data);
+      }
+   }
 }
 
 
-void
-QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double> & data)
+void QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double>& data)
 {
-   const hier::Box & gbox = data.getGhostBox();
+   const hier::Box& gbox = data.getGhostBox();
    const hier::Index& glower = gbox.lower();
    const hier::Index& gupper = gbox.upper();
 
-#if NDIM==2
+#if NDIM == 2
    take_square_root2d_(glower[0], gupper[0], glower[1], gupper[1],
-                       data.getPointer(), glower[0], gupper[0], glower[1], gupper[1]);
+                       data.getPointer(), glower[0], gupper[0], glower[1],
+                       gupper[1]);
 #endif
-#if NDIM==3
-   take_square_root3d_(glower[0], gupper[0], glower[1], gupper[1], glower[2], gupper[2],
-                       data.getPointer(), glower[0], gupper[0], glower[1], gupper[1], glower[2], gupper[2]);
+#if NDIM == 3
+   take_square_root3d_(glower[0], gupper[0], glower[1], gupper[1], glower[2],
+                       gupper[2], data.getPointer(), glower[0], gupper[0],
+                       glower[1], gupper[1], glower[2], gupper[2]);
 #endif
 }
 
 
-void
-QuatFACOps::setOperatorCoefficients(
-   const double                gamma,
-   const double            epsilon_q,
-   const int             mobility_id,
-   const int       mobility_deriv_id,
-   const int       diffusion_coef_id,
-   const int      face_coef_deriv_id,
-   const int               grad_q_id,
-   const int                    q_id,
-   const double       gradient_floor,
-   const string      grad_floor_type)
+void QuatFACOps::setOperatorCoefficients(
+    const double gamma, const double epsilon_q, const int mobility_id,
+    const int mobility_deriv_id, const int diffusion_coef_id,
+    const int face_coef_deriv_id, const int grad_q_id, const int q_id,
+    const double gradient_floor, const string grad_floor_type)
 {
-   assert( epsilon_q>0. );
-  
-  d_gamma = gamma;
+   assert(epsilon_q > 0.);
 
-  // Check for non-positive mobility
-  double mobility_min = d_hopscell->min(mobility_id);
+   d_gamma = gamma;
 
-  if (mobility_min <= 0.) {
-     TBOX_ERROR(d_object_name << ": Non-positive mobility passed to setOperatorCoefficients().");
-  }
+   // Check for non-positive mobility
+   double mobility_min = d_hopscell->min(mobility_id);
 
-  // Compute the face coefficients
+   if (mobility_min <= 0.) {
+      TBOX_ERROR(d_object_name << ": Non-positive mobility passed to "
+                                  "setOperatorCoefficients().");
+   }
 
-  computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_id, gradient_floor, grad_floor_type, d_face_coef_id);
+   // Compute the face coefficients
 
-  for (int ln=d_ln_min; ln<=d_ln_max; ++ln) {
-    boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_id, gradient_floor,
+                    grad_floor_type, d_face_coef_id);
 
-    for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      
-      // Copy q solution to "local" array member
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
 
-      boost::shared_ptr<pdat::CellData<double> > q_data(
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(q_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > q_local_data(
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_q_local_id) ) );
-      
-      q_local_data->copy(*q_data);
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         boost::shared_ptr<hier::Patch> patch = *pi;
 
-      // Copy mobility into sqrt_m_data (including ghost values assumed to be filled)
-      boost::shared_ptr<pdat::CellData<double> > mobility_data(
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(mobility_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-        BOOST_CAST<pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_sqrt_m_id) ) );
-      
-      sqrt_m_data->copy(*mobility_data);
-      takeSquareRootOnPatch(*sqrt_m_data);
+         // Copy q solution to "local" array member
 
-      if (mobility_deriv_id >= 0) {
+         boost::shared_ptr<pdat::CellData<double> > q_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(q_id)));
+         boost::shared_ptr<pdat::CellData<double> > q_local_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_q_local_id)));
 
-         // Copy mobility derivatives to local array
+         q_local_data->copy(*q_data);
 
-         boost::shared_ptr< pdat::CellData<double> > mobility_deriv_data(
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(mobility_deriv_id) ) );
-         boost::shared_ptr< pdat::CellData<double> > m_deriv_data(
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>( patch->getPatchData(d_m_deriv_id) ) );
-      
-         m_deriv_data->copy(*mobility_deriv_data);
+         // Copy mobility into sqrt_m_data (including ghost values assumed to be
+         // filled)
+         boost::shared_ptr<pdat::CellData<double> > mobility_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(mobility_id)));
+         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_sqrt_m_id)));
+
+         sqrt_m_data->copy(*mobility_data);
+         takeSquareRootOnPatch(*sqrt_m_data);
+
+         if (mobility_deriv_id >= 0) {
+
+            // Copy mobility derivatives to local array
+
+            boost::shared_ptr<pdat::CellData<double> > mobility_deriv_data(
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(mobility_deriv_id)));
+            boost::shared_ptr<pdat::CellData<double> > m_deriv_data(
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_m_deriv_id)));
+
+            m_deriv_data->copy(*mobility_deriv_data);
+         }
+
+         if (face_coef_deriv_id >= 0) {
+
+            // Copy face coef derivatives to local array
+
+            boost::shared_ptr<pdat::SideData<double> > face_coef_deriv_data(
+                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                    patch->getPatchData(face_coef_deriv_id)));
+            boost::shared_ptr<pdat::SideData<double> >
+            local_face_coef_deriv_data(
+                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                    patch->getPatchData(d_face_coef_deriv_id)));
+
+            local_face_coef_deriv_data->copy(*face_coef_deriv_data);
+         }
       }
 
-      if (face_coef_deriv_id >= 0) {
-
-         // Copy face coef derivatives to local array
-
-         boost::shared_ptr< pdat::SideData<double> > face_coef_deriv_data(
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(face_coef_deriv_id) ) );
-         boost::shared_ptr< pdat::SideData<double> > local_face_coef_deriv_data(
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>( patch->getPatchData(d_face_coef_deriv_id) ) );
-      
-         local_face_coef_deriv_data->copy(*face_coef_deriv_data);
-
-      }
-    }
-
-    // Set the matrix coefficients
-    d_quat_level_solver[ln-d_ln_min]->setMatrixCoefficients(d_gamma, d_sqrt_m_id, d_face_coef_id);
-  }
+      // Set the matrix coefficients
+      d_quat_level_solver[ln - d_ln_min]->setMatrixCoefficients(d_gamma,
+                                                                d_sqrt_m_id,
+                                                                d_face_coef_id);
+   }
 }
-
 
 
 /*
@@ -917,28 +915,29 @@ QuatFACOps::setOperatorCoefficients(
 */
 void QuatFACOps::deallocateOperatorState()
 {
-   if ( d_hierarchy ) {
+   if (d_hierarchy) {
       int ln;
-      for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-        boost::shared_ptr<hier::PatchLevel > level_ptr = d_hierarchy->getPatchLevel(ln);
-        if (ln>d_ln_min) {
-          level_ptr->deallocatePatchData(d_oflux_scratch_id);
-        }
-        level_ptr->deallocatePatchData(d_m_deriv_id);
-        level_ptr->deallocatePatchData(d_sqrt_m_id);
-        level_ptr->deallocatePatchData(d_residual_id);
-        level_ptr->deallocatePatchData(d_q_local_id);
-        level_ptr->deallocatePatchData(d_face_coef_scratch_id);
-        level_ptr->deallocatePatchData(d_face_coef_deriv_id);
-        level_ptr->deallocatePatchData(d_face_coef_id);
+      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
+         boost::shared_ptr<hier::PatchLevel> level_ptr =
+             d_hierarchy->getPatchLevel(ln);
+         if (ln > d_ln_min) {
+            level_ptr->deallocatePatchData(d_oflux_scratch_id);
+         }
+         level_ptr->deallocatePatchData(d_m_deriv_id);
+         level_ptr->deallocatePatchData(d_sqrt_m_id);
+         level_ptr->deallocatePatchData(d_residual_id);
+         level_ptr->deallocatePatchData(d_q_local_id);
+         level_ptr->deallocatePatchData(d_face_coef_scratch_id);
+         level_ptr->deallocatePatchData(d_face_coef_deriv_id);
+         level_ptr->deallocatePatchData(d_face_coef_id);
       }
       d_cf_boundary.resize(0);
 #ifdef DEBUG_CHECK_ASSERTIONS
-      assert( d_quat_level_solver.size()>0 );
+      assert(d_quat_level_solver.size() > 0);
 #endif
-      for (int i=0; i<(int)d_quat_level_solver.size(); i++) {
-        d_quat_level_solver[i]->deallocateSolverState();
-        delete d_quat_level_solver[i];
+      for (int i = 0; i < (int)d_quat_level_solver.size(); i++) {
+         d_quat_level_solver[i]->deallocateSolverState();
+         delete d_quat_level_solver[i];
       }
       d_quat_level_solver.clear();
       d_hierarchy.reset();
@@ -948,7 +947,7 @@ void QuatFACOps::deallocateOperatorState()
       d_prolongation_refine_algorithm.reset();
       d_urestriction_coarsen_algorithm.reset();
       d_rrestriction_coarsen_algorithm.reset();
-      
+
       d_flux_coarsen_algorithm.reset();
       d_ghostfill_refine_algorithm.reset();
       d_ghostfill_nocoarse_refine_algorithm.reset();
@@ -962,30 +961,28 @@ void QuatFACOps::deallocateOperatorState()
 ********************************************************************
 */
 void QuatFACOps::postprocessOneCycle(
-   int fac_cycle_num,
-   const solv::SAMRAIVectorReal<double> & current_soln,
-   const solv::SAMRAIVectorReal<double> &     residual )
+    int fac_cycle_num, const solv::SAMRAIVectorReal<double>& current_soln,
+    const solv::SAMRAIVectorReal<double>& residual)
 {
    (void)current_soln;
    (void)residual;
 
-  if ( d_enable_logging ) {
-    if ( d_solver ) {
-      /*
-       * Output convergence progress.  This is probably only appropriate
-       * if the solver is NOT being used as a preconditioner.
-       */
-      double avg_factor, final_factor;
-      d_solver->getConvergenceFactors( avg_factor, final_factor );
-      tbox::plog
-        << "iter=" << setw(4) << fac_cycle_num
-        << " resid=" << d_solver->getResidualNorm()
-        << " net conv=" << d_solver->getNetConvergenceFactor()
-        << " final conv=" << d_solver->getNetConvergenceFactor()
-        << " avg conv=" << d_solver->getAvgConvergenceFactor()
-        << endl;
-    }
-  }
+   if (d_enable_logging) {
+      if (d_solver) {
+         /*
+          * Output convergence progress.  This is probably only appropriate
+          * if the solver is NOT being used as a preconditioner.
+          */
+         double avg_factor, final_factor;
+         d_solver->getConvergenceFactors(avg_factor, final_factor);
+         tbox::plog << "iter=" << setw(4) << fac_cycle_num
+                    << " resid=" << d_solver->getResidualNorm()
+                    << " net conv=" << d_solver->getNetConvergenceFactor()
+                    << " final conv=" << d_solver->getNetConvergenceFactor()
+                    << " avg conv=" << d_solver->getAvgConvergenceFactor()
+                    << endl;
+      }
+   }
 }
 
 /*
@@ -995,29 +992,25 @@ void QuatFACOps::postprocessOneCycle(
 * level.                                                           *
 ********************************************************************
 */
-void
-QuatFACOps::restrictSolution(
-   const solv::SAMRAIVectorReal<double> & s,
-   solv::SAMRAIVectorReal<double> &       d,
-   int                                  dest_ln)
+void QuatFACOps::restrictSolution(const solv::SAMRAIVectorReal<double>& s,
+                                  solv::SAMRAIVectorReal<double>& d,
+                                  int dest_ln)
 {
    t_restrict_solution->start();
 
    xeqScheduleURestriction(d.getComponentDescriptorIndex(0),
-                           s.getComponentDescriptorIndex(0),
-                           dest_ln);
+                           s.getComponentDescriptorIndex(0), dest_ln);
 
-     // Fill ghost cells.  Only component 0 has them.
+   // Fill ghost cells.  Only component 0 has them.
    int id = d.getComponentDescriptorIndex(0);
 
    d_bc_helper.setHomogeneousBc(false);
    d_bc_helper.setTargetDataId(id);
 
-   if ( dest_ln == d_ln_min ) {
-     xeqScheduleGhostFillNoCoarse(id, dest_ln);
-   }
-   else {
-     xeqScheduleGhostFill(id, dest_ln);
+   if (dest_ln == d_ln_min) {
+      xeqScheduleGhostFillNoCoarse(id, dest_ln);
+   } else {
+      xeqScheduleGhostFill(id, dest_ln);
    }
 
    t_restrict_solution->stop();
@@ -1028,17 +1021,14 @@ QuatFACOps::restrictSolution(
 * FACOperatorStrategy virtual restrictresidual function.      *
 ********************************************************************
 */
-void
-QuatFACOps::restrictResidual(
-   const solv::SAMRAIVectorReal<double> & s,
-   solv::SAMRAIVectorReal<double> &       d,
-   int                                  dest_ln)
+void QuatFACOps::restrictResidual(const solv::SAMRAIVectorReal<double>& s,
+                                  solv::SAMRAIVectorReal<double>& d,
+                                  int dest_ln)
 {
    t_restrict_residual->start();
 
    xeqScheduleRRestriction(d.getComponentDescriptorIndex(0),
-                           s.getComponentDescriptorIndex(0),
-                           dest_ln);
+                           s.getComponentDescriptorIndex(0), dest_ln);
 
    t_restrict_residual->stop();
 }
@@ -1052,54 +1042,50 @@ QuatFACOps::restrictResidual(
 * which are preset to zero, need not be set.                          *
 ***********************************************************************
 */
-void
-QuatFACOps::prolongErrorAndCorrect(
-   const solv::SAMRAIVectorReal<double> & s,
-   solv::SAMRAIVectorReal<double>& d,
-   int dest_ln )
+void QuatFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double>& s,
+                                        solv::SAMRAIVectorReal<double>& d,
+                                        int dest_ln)
 {
    t_prolong->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if( s.getPatchHierarchy() != d_hierarchy
-       || d.getPatchHierarchy() != d_hierarchy ) {
+   if (s.getPatchHierarchy() != d_hierarchy ||
+       d.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
-                 "internal state hierarchy.");
+                                  "internal state hierarchy.");
    }
 #endif
 
-   boost::shared_ptr< hier::PatchLevel > fine_level(
-      d_hierarchy->getPatchLevel(dest_ln) );
+   boost::shared_ptr<hier::PatchLevel> fine_level(
+       d_hierarchy->getPatchLevel(dest_ln));
 
    /*
     * Data is prolonged into the scratch space corresponding
     * to index d_cell_scratch_id and allocated here.
     */
-   math::HierarchyCellDataOpsReal<double>
-     hierarchy_math_ops( d_hierarchy, dest_ln, dest_ln );
+   math::HierarchyCellDataOpsReal<double> hierarchy_math_ops(d_hierarchy,
+                                                             dest_ln, dest_ln);
 
    fine_level->allocatePatchData(d_cell_scratch_id);
 
-     /*
-      * Refine solution into scratch space to fill the fine level
-      * interior in the scratch space, then use that refined data
-      * to correct the fine level error.
-      */
+   /*
+    * Refine solution into scratch space to fill the fine level
+    * interior in the scratch space, then use that refined data
+    * to correct the fine level error.
+    */
    d_bc_helper.setTargetDataId(d_cell_scratch_id);
    d_bc_helper.setHomogeneousBc(true);
-   
+
    const int src_index = s.getComponentDescriptorIndex(0);
-   xeqScheduleProlongation(d_cell_scratch_id,
-                           src_index,
-                           d_cell_scratch_id,
+   xeqScheduleProlongation(d_cell_scratch_id, src_index, d_cell_scratch_id,
                            dest_ln);
 
-     /*
-      * Add the refined error in the scratch space
-      * to the error currently residing in the destination level.
-      */
+   /*
+    * Add the refined error in the scratch space
+    * to the error currently residing in the destination level.
+    */
    const int dst_index = d.getComponentDescriptorIndex(0);
-   hierarchy_math_ops.add( dst_index, dst_index, d_cell_scratch_id );
+   hierarchy_math_ops.add(dst_index, dst_index, d_cell_scratch_id);
 
    fine_level->deallocatePatchData(d_cell_scratch_id);
 
@@ -1107,12 +1093,9 @@ QuatFACOps::prolongErrorAndCorrect(
 }
 
 
-void
-QuatFACOps::smoothError(
-   solv::SAMRAIVectorReal<double> &          error,
-   const solv::SAMRAIVectorReal<double> & residual,
-   int ln,
-   int num_sweeps )
+void QuatFACOps::smoothError(solv::SAMRAIVectorReal<double>& error,
+                             const solv::SAMRAIVectorReal<double>& residual,
+                             int ln, int num_sweeps)
 {
    t_smooth_error->start();
 
@@ -1133,24 +1116,21 @@ QuatFACOps::smoothError(
     * determine whether or not to perform the level solve.
     */
    if (num_sweeps > 0) {
-     doLevelSolve(error, residual, ln, d_levelsolver_max_iterations, 
-                  d_levelsolver_tolerance);
+      doLevelSolve(error, residual, ln, d_levelsolver_max_iterations,
+                   d_levelsolver_tolerance);
    }
 
    t_smooth_error->stop();
 }
 
 
-void
-QuatFACOps::doLevelSolve(
-   solv::SAMRAIVectorReal<double>& solution,
-   const solv::SAMRAIVectorReal<double>& residual,
-   int ln,
-   int max_iterations,
-   double residual_tolerance )
+void QuatFACOps::doLevelSolve(solv::SAMRAIVectorReal<double>& solution,
+                              const solv::SAMRAIVectorReal<double>& residual,
+                              int ln, int max_iterations,
+                              double residual_tolerance)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert(d_quat_level_solver[ln]!=NULL);
+   assert(d_quat_level_solver[ln] != NULL);
 #endif
 
    int q_solution_id = solution.getComponentDescriptorIndex(0);
@@ -1162,20 +1142,21 @@ QuatFACOps::doLevelSolve(
    // Fill q ghost cells
    xeqScheduleGhostFillNoCoarse(q_solution_id, ln);
 
-   if ( ln > d_ln_min ) {
-     /*
-      * Perform a one-time transfer of data from coarser level,
-      * to fill ghost boundaries that will not change through
-      * the smoothing loop.
-      */
-     xeqScheduleGhostFill(q_solution_id, ln);
+   if (ln > d_ln_min) {
+      /*
+       * Perform a one-time transfer of data from coarser level,
+       * to fill ghost boundaries that will not change through
+       * the smoothing loop.
+       */
+      xeqScheduleGhostFill(q_solution_id, ln);
    }
 
-   d_quat_level_solver[ln]->setStoppingCriteria(max_iterations, residual_tolerance);
+   d_quat_level_solver[ln]->setStoppingCriteria(max_iterations,
+                                                residual_tolerance);
 
    // Solve
    const int solver_ret =
-     d_quat_level_solver[ln]->solveSystem(q_residual_id, q_solution_id);
+       d_quat_level_solver[ln]->solveSystem(q_residual_id, q_solution_id);
 
    // Update q ghost cells
    xeqScheduleGhostFillNoCoarse(q_solution_id, ln);
@@ -1184,13 +1165,13 @@ QuatFACOps::doLevelSolve(
     * Present data on the solve.
     * The QuatLevelSolver returns 0 if converged.
     */
-   if( d_enable_logging )
-      tbox::plog
-      << d_object_name << " Quaterion solve at level " << ln
-      << "\titerations: " << d_quat_level_solver[ln]->getNumberOfIterations() << "\n"
-      << "\tresidual: " << d_quat_level_solver[ln]->getRelativeResidualNorm() << "\n";
+   if (d_enable_logging)
+      tbox::plog << d_object_name << " Quaterion solve at level " << ln
+                 << "\titerations: "
+                 << d_quat_level_solver[ln]->getNumberOfIterations() << "\n"
+                 << "\tresidual: "
+                 << d_quat_level_solver[ln]->getRelativeResidualNorm() << "\n";
 }
-
 
 
 /*
@@ -1199,19 +1180,17 @@ QuatFACOps::doLevelSolve(
 * constant-refine interpolation of coarse level data.              *
 ********************************************************************
 */
-void
-QuatFACOps::ewingFixFlux(
-   const hier::Patch &                    patch,
-   const pdat::CellData<double> &      soln_data,
-   const pdat::SideData<double> & face_coef_data,
-   pdat::SideData<double> &            flux_data,
-   const hier::IntVector &     ratio_to_coarser ) const
+void QuatFACOps::ewingFixFlux(const hier::Patch& patch,
+                              const pdat::CellData<double>& soln_data,
+                              const pdat::SideData<double>& face_coef_data,
+                              pdat::SideData<double>& flux_data,
+                              const hier::IntVector& ratio_to_coarser) const
 {
-   (void) patch;
-   (void) soln_data;
-   (void) face_coef_data;
-   (void) flux_data;
-   (void) ratio_to_coarser;
+   (void)patch;
+   (void)soln_data;
+   (void)face_coef_data;
+   (void)flux_data;
+   (void)ratio_to_coarser;
 
    TBOX_ERROR("QuatFACOps::ewingFixFlux) not implemented!!!\n");
 #if 0
@@ -1237,7 +1216,7 @@ QuatFACOps::ewingFixFlux(
      const hier::Index &bupper = bdry_box.upper();
      const int location_index = boundary_box.getLocationIndex();
      const int depth = d_qlen;
-#if NDIM==2
+#if NDIM == 2
      fixflux2d_(flux_data.getPointer(0), flux_data.getPointer(1),
                 flux_data.getGhostCellWidth()[0],
                 flux_data.getGhostCellWidth()[1],
@@ -1256,7 +1235,7 @@ QuatFACOps::ewingFixFlux(
                 blower, bupper,
                 dx);
 #endif
-#if NDIM==3
+#if NDIM == 3
      fixflux3d_(flux_data.getPointer(0), flux_data.getPointer(1), flux_data.getPointer(2),
                 flux_data.getGhostCellWidth()[0],
                 flux_data.getGhostCellWidth()[1],
@@ -1289,16 +1268,16 @@ QuatFACOps::ewingFixFlux(
 * function                                                         *
 ********************************************************************
 */
-int
-QuatFACOps::solveCoarsestLevel(
-   solv::SAMRAIVectorReal<double> &           data,
-   const solv::SAMRAIVectorReal<double> & residual,
-   int                                     coarsest_ln )
+int QuatFACOps::solveCoarsestLevel(
+    solv::SAMRAIVectorReal<double>& data,
+    const solv::SAMRAIVectorReal<double>& residual, int coarsest_ln)
 
 {
    t_solve_coarsest->start();
 
-   doLevelSolve(data, residual, coarsest_ln, d_coarse_levelsolver_max_iterations, d_coarse_levelsolver_tolerance);
+   doLevelSolve(data, residual, coarsest_ln,
+                d_coarse_levelsolver_max_iterations,
+                d_coarse_levelsolver_tolerance);
 
    t_solve_coarsest->stop();
 
@@ -1312,17 +1291,14 @@ QuatFACOps::solveCoarsestLevel(
 * function                                                         *
 ********************************************************************
 */
-double
-QuatFACOps::computeResidualNorm(
-   const solv::SAMRAIVectorReal<double> & residual,
-   int                                         fine_ln,
-   int                                       coarse_ln )
+double QuatFACOps::computeResidualNorm(
+    const solv::SAMRAIVectorReal<double>& residual, int fine_ln, int coarse_ln)
 {
-   if ( coarse_ln != residual.getCoarsestLevelNumber() ||
-        fine_ln != residual.getFinestLevelNumber() ) {
+   if (coarse_ln != residual.getCoarsestLevelNumber() ||
+       fine_ln != residual.getFinestLevelNumber()) {
       TBOX_ERROR("QuatFACOps::computeResidualNorm() is not\n"
-                 <<"set up to compute residual except on the range of\n"
-                 <<"levels defining the vector.\n");
+                 << "set up to compute residual except on the range of\n"
+                 << "levels defining the vector.\n");
    }
    t_compute_residual_norm->start();
    /*
@@ -1335,8 +1311,8 @@ QuatFACOps::computeResidualNorm(
 
    if (d_ewt_id > -1 && d_weight_id > -1) {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      assert( d_weight_id>=0 );
-      assert( d_residual_id>=0 );
+      assert(d_weight_id >= 0);
+      assert(d_residual_id >= 0);
 #endif
 
       int r_quat_id = residual.getComponentDescriptorIndex(0);
@@ -1347,18 +1323,21 @@ QuatFACOps::computeResidualNorm(
       norm = d_hopscell->weightedRMSNorm(d_residual_id, d_ewt_id, d_weight_id);
 
       if (d_verbose) {
-         tbox::pout << "QuatFACOps:: Weighted RMS norm on composite grid spanning levels " << coarse_ln <<
-                       " thru " << fine_ln << " = " << norm << endl;
+         tbox::pout << "QuatFACOps:: Weighted RMS norm on composite grid "
+                       "spanning levels "
+                    << coarse_ln << " thru " << fine_ln << " = " << norm
+                    << endl;
       }
 
-   }
-   else {
-     norm = residual.RMSNorm();
+   } else {
+      norm = residual.RMSNorm();
 
-     if (d_verbose) {
-        tbox::pout << "QuatFACOps:: Unweighted RMS norm on composite grid spanning levels " << coarse_ln <<
-           " thru " << fine_ln << " = " << norm << endl;
-     }
+      if (d_verbose) {
+         tbox::pout << "QuatFACOps:: Unweighted RMS norm on composite grid "
+                       "spanning levels "
+                    << coarse_ln << " thru " << fine_ln << " = " << norm
+                    << endl;
+      }
    }
 
    t_compute_residual_norm->stop();
@@ -1367,71 +1346,76 @@ QuatFACOps::computeResidualNorm(
 }
 
 
-void
-QuatFACOps::computeLambdaOnPatch(
-   const hier::Patch &                 patch,
-   const pdat::SideData<double> &   flux_data,
-   const pdat::CellData<double> &      q_data,
-   boost::shared_ptr<pdat::SideData<int> > rotation_index,
-   pdat::CellData<double> &       lambda_data ) const
+void QuatFACOps::computeLambdaOnPatch(
+    const hier::Patch& patch, const pdat::SideData<double>& flux_data,
+    const pdat::CellData<double>& q_data,
+    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    pdat::CellData<double>& lambda_data) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( patch.inHierarchy() );
-   assert( q_data.getDepth() == d_qlen );
+   assert(patch.inHierarchy());
+   assert(q_data.getDepth() == d_qlen);
 #endif
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
-   const double * dx = patch_geom->getDx();
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const double* dx = patch_geom->getDx();
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & q_gbox = q_data.getGhostBox();
+   const hier::Box& q_gbox = q_data.getGhostBox();
    const hier::Index& qlower = q_gbox.lower();
    const hier::Index& qupper = q_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-   const hier::Box & l_gbox = lambda_data.getGhostBox();
+   const hier::Box& l_gbox = lambda_data.getGhostBox();
    const hier::Index& llower = l_gbox.lower();
    const hier::Index& lupper = l_gbox.upper();
 
-#if NDIM==2
-   if( rotation_index )
-   compute_lambda_flux2d_symm_(lower[0], upper[0], lower[1], upper[1],
-                          d_qlen,
-                          flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-                          flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-                          q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-                          dx,
-                          lambda_data.getPointer(0), llower[0], lupper[0], llower[1], lupper[1],
-                          rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0] );
+#if NDIM == 2
+   if (rotation_index)
+      compute_lambda_flux2d_symm_(lower[0], upper[0], lower[1], upper[1],
+                                  d_qlen, flux_data.getPointer(0), flower[0],
+                                  fupper[0] + 1, flower[1], fupper[1],
+                                  flux_data.getPointer(1), flower[0], fupper[0],
+                                  flower[1], fupper[1] + 1, q_data.getPointer(),
+                                  qlower[0], qupper[0], qlower[1], qupper[1],
+                                  dx, lambda_data.getPointer(0), llower[0],
+                                  lupper[0], llower[1], lupper[1],
+                                  rotation_index->getPointer(0),
+                                  rotation_index->getPointer(1),
+                                  rotation_index->getGhostCellWidth()[0]);
    else
-   compute_lambda_flux2d_(lower[0], upper[0], lower[1], upper[1],
-                          d_qlen,
-                          flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-                          flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-                          q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-                          dx,
-                          lambda_data.getPointer(0), llower[0], lupper[0], llower[1], lupper[1]);
+      compute_lambda_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                             flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                             flower[1], fupper[1], flux_data.getPointer(1),
+                             flower[0], fupper[0], flower[1], fupper[1] + 1,
+                             q_data.getPointer(), qlower[0], qupper[0],
+                             qlower[1], qupper[1], dx,
+                             lambda_data.getPointer(0), llower[0], lupper[0],
+                             llower[1], lupper[1]);
 #endif
-#if NDIM==3
-   assert( !rotation_index );
-   compute_lambda_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                          d_qlen,
-                          flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-                          flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-                          flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
-                          q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-                          dx,
-                          lambda_data.getPointer(0), llower[0], lupper[0], llower[1], lupper[1], llower[2], lupper[2]);
+#if NDIM == 3
+   assert(!rotation_index);
+   compute_lambda_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2],
+                          upper[2], d_qlen, flux_data.getPointer(0), flower[0],
+                          fupper[0] + 1, flower[1], fupper[1], flower[2],
+                          fupper[2], flux_data.getPointer(1), flower[0],
+                          fupper[0], flower[1], fupper[1] + 1, flower[2],
+                          fupper[2], flux_data.getPointer(2), flower[0],
+                          fupper[0], flower[1], fupper[1], flower[2],
+                          fupper[2] + 1, q_data.getPointer(), qlower[0],
+                          qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
+                          dx, lambda_data.getPointer(0), llower[0], lupper[0],
+                          llower[1], lupper[1], llower[2], lupper[2]);
 #endif
 }
-
 
 
 /*
@@ -1439,17 +1423,16 @@ QuatFACOps::computeLambdaOnPatch(
 * Check the validity of the flux variable id.                      *
 ********************************************************************
 */
-void
-QuatFACOps::checkFluxPatchDataIndex() const
+void QuatFACOps::checkFluxPatchDataIndex() const
 {
-   if( d_flux_id != -1 ) {
-      hier::VariableDatabase &vdb(*hier::VariableDatabase::getDatabase());
-      boost::shared_ptr<hier::Variable > var;
+   if (d_flux_id != -1) {
+      hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
+      boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_flux_id, var);
-      boost::shared_ptr<pdat::SideVariable<double> > flux_var ( 
-         BOOST_CAST< pdat::SideVariable<double>, hier::Variable >(var));
+      boost::shared_ptr<pdat::SideVariable<double> > flux_var(
+          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
 #ifdef DEBUG_CHECK_ASSERTIONS
-      assert( flux_var );
+      assert(flux_var);
 #endif
    }
 }
@@ -1462,330 +1445,336 @@ QuatFACOps::checkFluxPatchDataIndex() const
 *                                                                 *
 *******************************************************************
 */
-void
-QuatFACOps::computeFaceCoefsOnPatch(
-   const hier::Patch &                   patch,
-   const double                           epsilon_q,
-   pdat::SideData<double> & diffusion_coef_data,
-   pdat::SideData<double> &         grad_q_data,
-   pdat::SideData<double> &      face_coef_data, // output
-   const double                      gradient_floor,
-   const string                     grad_floor_type) const
+void QuatFACOps::computeFaceCoefsOnPatch(
+    const hier::Patch& patch, const double epsilon_q,
+    pdat::SideData<double>& diffusion_coef_data,
+    pdat::SideData<double>& grad_q_data,
+    pdat::SideData<double>& face_coef_data,  // output
+    const double gradient_floor, const string grad_floor_type) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( patch.inHierarchy() );
-   assert( diffusion_coef_data.getDepth() == 1 );
-   assert( grad_q_data.getDepth()    == NDIM*d_qlen );
-   assert( face_coef_data.getDepth() == d_qlen );
+   assert(patch.inHierarchy());
+   assert(diffusion_coef_data.getDepth() == 1);
+   assert(grad_q_data.getDepth() == NDIM * d_qlen);
+   assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & dc_gbox = diffusion_coef_data.getGhostBox();
+   const hier::Box& dc_gbox = diffusion_coef_data.getGhostBox();
    const hier::Index& dcglower = dc_gbox.lower();
    const hier::Index& dcgupper = dc_gbox.upper();
 
-   const hier::Box & gq_gbox = grad_q_data.getGhostBox();
+   const hier::Box& gq_gbox = grad_q_data.getGhostBox();
    const hier::Index& gqlower = gq_gbox.lower();
    const hier::Index& gqupper = gq_gbox.upper();
 
-   const hier::Box & d_gbox = face_coef_data.getGhostBox();
+   const hier::Box& d_gbox = face_coef_data.getGhostBox();
    const hier::Index& dlower = d_gbox.lower();
    const hier::Index& dupper = d_gbox.upper();
 
-#if NDIM==2
-   compute_face_coef2d_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      epsilon_q,
-      diffusion_coef_data.getPointer(0), dcglower[0], dcgupper[0]+1, dcglower[1], dcgupper[1]  ,
-      diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0]  , dcglower[1], dcgupper[1]+1,
-      grad_q_data.getPointer(0), gqlower[0], gqupper[0]+1, gqlower[1], gqupper[1]  ,
-      grad_q_data.getPointer(1), gqlower[0], gqupper[0]  , gqlower[1], gqupper[1]+1,
-      face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , // output
-      face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, // output
-      gradient_floor, grad_floor_type.c_str() );
+#if NDIM == 2
+   compute_face_coef2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                        epsilon_q, diffusion_coef_data.getPointer(0),
+                        dcglower[0], dcgupper[0] + 1, dcglower[1], dcgupper[1],
+                        diffusion_coef_data.getPointer(1), dcglower[0],
+                        dcgupper[0], dcglower[1], dcgupper[1] + 1,
+                        grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
+                        gqlower[1], gqupper[1], grad_q_data.getPointer(1),
+                        gqlower[0], gqupper[0], gqlower[1], gqupper[1] + 1,
+                        face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                        dlower[1], dupper[1],  // output
+                        face_coef_data.getPointer(1), dlower[0], dupper[0],
+                        dlower[1], dupper[1] + 1,  // output
+                        gradient_floor, grad_floor_type.c_str());
 #endif
-#if NDIM==3
+#if NDIM == 3
    compute_face_coef3d_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      epsilon_q,
-      diffusion_coef_data.getPointer(0), dcglower[0], dcgupper[0]+1, dcglower[1], dcgupper[1]  , dcglower[2], dcgupper[2]  ,
-      diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0]  , dcglower[1], dcgupper[1]+1, dcglower[2], dcgupper[2]  ,
-      diffusion_coef_data.getPointer(2), dcglower[0], dcgupper[0]  , dcglower[1], dcgupper[1]  , dcglower[2], dcgupper[2]+1,
-      grad_q_data.getPointer(0), gqlower[0], gqupper[0]+1, gqlower[1], gqupper[1]  , gqlower[2], gqupper[2]  ,
-      grad_q_data.getPointer(1), gqlower[0], gqupper[0]  , gqlower[1], gqupper[1]+1, gqlower[2], gqupper[2]  ,
-      grad_q_data.getPointer(2), gqlower[0], gqupper[0]  , gqlower[1], gqupper[1]  , gqlower[2], gqupper[2]+1,
-      face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , dlower[2], dupper[2]  ,
-      face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, dlower[2], dupper[2]  ,
-      face_coef_data.getPointer(2), dlower[0], dupper[0]  , dlower[1], dupper[1]  , dlower[2], dupper[2]+1,
-      gradient_floor, grad_floor_type.c_str() );
+       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+       epsilon_q, diffusion_coef_data.getPointer(0), dcglower[0],
+       dcgupper[0] + 1, dcglower[1], dcgupper[1], dcglower[2], dcgupper[2],
+       diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0], dcglower[1],
+       dcgupper[1] + 1, dcglower[2], dcgupper[2],
+       diffusion_coef_data.getPointer(2), dcglower[0], dcgupper[0], dcglower[1],
+       dcgupper[1], dcglower[2], dcgupper[2] + 1, grad_q_data.getPointer(0),
+       gqlower[0], gqupper[0] + 1, gqlower[1], gqupper[1], gqlower[2],
+       gqupper[2], grad_q_data.getPointer(1), gqlower[0], gqupper[0],
+       gqlower[1], gqupper[1] + 1, gqlower[2], gqupper[2],
+       grad_q_data.getPointer(2), gqlower[0], gqupper[0], gqlower[1],
+       gqupper[1], gqlower[2], gqupper[2] + 1, face_coef_data.getPointer(0),
+       dlower[0], dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
+       face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
+       dupper[1] + 1, dlower[2], dupper[2], face_coef_data.getPointer(2),
+       dlower[0], dupper[0], dlower[1], dupper[1], dlower[2], dupper[2] + 1,
+       gradient_floor, grad_floor_type.c_str());
 #endif
 }
 
-void
-QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
-   const hier::Patch &                    patch,
-   pdat::SideData<double> &          dprime_data,
-   pdat::CellData<double> &             phi_data,
-   pdat::SideData<double> &       face_coef_data) const
+void QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
+    const hier::Patch& patch, pdat::SideData<double>& dprime_data,
+    pdat::CellData<double>& phi_data,
+    pdat::SideData<double>& face_coef_data) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( patch.inHierarchy() );
-   assert( dprime_data.getDepth() == 2*d_qlen );
-   assert( face_coef_data.getDepth() == d_qlen );
+   assert(patch.inHierarchy());
+   assert(dprime_data.getDepth() == 2 * d_qlen);
+   assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & dp_gbox = dprime_data.getGhostBox();
+   const hier::Box& dp_gbox = dprime_data.getGhostBox();
    const hier::Index& dplower = dp_gbox.lower();
    const hier::Index& dpupper = dp_gbox.upper();
 
-   const hier::Box & p_gbox = phi_data.getGhostBox();
+   const hier::Box& p_gbox = phi_data.getGhostBox();
    const hier::Index& plower = p_gbox.lower();
    const hier::Index& pupper = p_gbox.upper();
 
-   const hier::Box & fc_gbox = face_coef_data.getGhostBox();
+   const hier::Box& fc_gbox = face_coef_data.getGhostBox();
    const hier::Index& fclower = fc_gbox.lower();
    const hier::Index& fcupper = fc_gbox.upper();
 
-#if NDIM==2
+#if NDIM == 2
    compute_dquatdphi_face_coef2d_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      dprime_data.getPointer(0), dplower[0], dpupper[0]+1, dplower[1], dpupper[1]  ,
-      dprime_data.getPointer(1), dplower[0], dpupper[0]  , dplower[1], dpupper[1]+1,
-      phi_data.getPointer(0), plower[0], pupper[0], plower[1], pupper[1],
-      face_coef_data.getPointer(0), fclower[0], fcupper[0]+1, fclower[1], fcupper[1]  ,
-      face_coef_data.getPointer(1), fclower[0], fcupper[0]  , fclower[1], fcupper[1]+1);
+       lower[0], upper[0], lower[1], upper[1], d_qlen,
+       dprime_data.getPointer(0), dplower[0], dpupper[0] + 1, dplower[1],
+       dpupper[1], dprime_data.getPointer(1), dplower[0], dpupper[0],
+       dplower[1], dpupper[1] + 1, phi_data.getPointer(0), plower[0], pupper[0],
+       plower[1], pupper[1], face_coef_data.getPointer(0), fclower[0],
+       fcupper[0] + 1, fclower[1], fcupper[1], face_coef_data.getPointer(1),
+       fclower[0], fcupper[0], fclower[1], fcupper[1] + 1);
 #endif
-#if NDIM==3
+#if NDIM == 3
    compute_dquatdphi_face_coef3d_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      dprime_data.getPointer(0), dplower[0], dpupper[0]+1, dplower[1], dpupper[1]  , dplower[2], dpupper[2]  ,
-      dprime_data.getPointer(1), dplower[0], dpupper[0]  , dplower[1], dpupper[1]+1, dplower[2], dpupper[2]  ,
-      dprime_data.getPointer(2), dplower[0], dpupper[0]  , dplower[1], dpupper[1]  , dplower[2], dpupper[2]+1,
-      phi_data.getPointer(0), plower[0], pupper[0], plower[1], pupper[1], plower[2], pupper[2],
-      face_coef_data.getPointer(0), fclower[0], fcupper[0]+1, fclower[1], fcupper[1]  , fclower[2], fcupper[2]  ,
-      face_coef_data.getPointer(1), fclower[0], fcupper[0]  , fclower[1], fcupper[1]+1, fclower[2], fcupper[2]  ,
-      face_coef_data.getPointer(2), fclower[0], fcupper[0]  , fclower[1], fcupper[1]  , fclower[2], fcupper[2]+1);
+       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+       dprime_data.getPointer(0), dplower[0], dpupper[0] + 1, dplower[1],
+       dpupper[1], dplower[2], dpupper[2], dprime_data.getPointer(1),
+       dplower[0], dpupper[0], dplower[1], dpupper[1] + 1, dplower[2],
+       dpupper[2], dprime_data.getPointer(2), dplower[0], dpupper[0],
+       dplower[1], dpupper[1], dplower[2], dpupper[2] + 1,
+       phi_data.getPointer(0), plower[0], pupper[0], plower[1], pupper[1],
+       plower[2], pupper[2], face_coef_data.getPointer(0), fclower[0],
+       fcupper[0] + 1, fclower[1], fcupper[1], fclower[2], fcupper[2],
+       face_coef_data.getPointer(1), fclower[0], fcupper[0], fclower[1],
+       fcupper[1] + 1, fclower[2], fcupper[2], face_coef_data.getPointer(2),
+       fclower[0], fcupper[0], fclower[1], fcupper[1], fclower[2],
+       fcupper[2] + 1);
 #endif
 }
 
 
-void
-QuatFACOps::computeFluxOnPatch(
-   const hier::Patch &                      patch,
-   const hier::IntVector & ratio_to_coarser_level,
-   const pdat::SideData<double> &   face_coef_data,
-   const pdat::CellData<double> &           q_data,
-   pdat::SideData<double> &              flux_data ) const
+void QuatFACOps::computeFluxOnPatch(
+    const hier::Patch& patch, const hier::IntVector& ratio_to_coarser_level,
+    const pdat::SideData<double>& face_coef_data,
+    const pdat::CellData<double>& q_data,
+    pdat::SideData<double>& flux_data) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( patch.inHierarchy() );
-   assert( q_data.getDepth() == d_qlen );
-   assert( flux_data.getDepth() == d_qlen );
-   assert( face_coef_data.getDepth() == d_qlen );
+   assert(patch.inHierarchy());
+   assert(q_data.getDepth() == d_qlen);
+   assert(flux_data.getDepth() == d_qlen);
+   assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   //tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q data..."<<endl;
+   // tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q
+   // data..."<<endl;
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
-   const double * dx = patch_geom->getDx();
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const double* dx = patch_geom->getDx();
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & q_gbox = q_data.getGhostBox();
+   const hier::Box& q_gbox = q_data.getGhostBox();
    const hier::Index& qlower = q_gbox.lower();
    const hier::Index& qupper = q_gbox.upper();
 
-   const hier::Box & d_gbox = face_coef_data.getGhostBox();
+   const hier::Box& d_gbox = face_coef_data.getGhostBox();
    const hier::Index& dlower = d_gbox.lower();
    const hier::Index& dupper = d_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-#if NDIM==2
-   compute_flux2d_(lower[0], upper[0], lower[1], upper[1],
-                   d_qlen,
-                   face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  ,
-                   face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1,
-                   q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-                   dx,
-                   flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-                   flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1);
+#if NDIM == 2
+   compute_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                   face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                   dlower[1], dupper[1], face_coef_data.getPointer(1),
+                   dlower[0], dupper[0], dlower[1], dupper[1] + 1,
+                   q_data.getPointer(), qlower[0], qupper[0], qlower[1],
+                   qupper[1], dx, flux_data.getPointer(0), flower[0],
+                   fupper[0] + 1, flower[1], fupper[1], flux_data.getPointer(1),
+                   flower[0], fupper[0], flower[1], fupper[1] + 1);
 #endif
-#if NDIM==3
+#if NDIM == 3
    compute_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                   d_qlen,
-                   face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , dlower[2], dupper[2]  ,
-                   face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, dlower[2], dupper[2]  ,
-                   face_coef_data.getPointer(2), dlower[0], dupper[0]  , dlower[1], dupper[1]  , dlower[2], dupper[2]+1,
-                   q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-                   dx,
-                   flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-                   flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-                   flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1);
+                   d_qlen, face_coef_data.getPointer(0), dlower[0],
+                   dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
+                   face_coef_data.getPointer(1), dlower[0], dupper[0],
+                   dlower[1], dupper[1] + 1, dlower[2], dupper[2],
+                   face_coef_data.getPointer(2), dlower[0], dupper[0],
+                   dlower[1], dupper[1], dlower[2], dupper[2] + 1,
+                   q_data.getPointer(), qlower[0], qupper[0], qlower[1],
+                   qupper[1], qlower[2], qupper[2], dx, flux_data.getPointer(0),
+                   flower[0], fupper[0] + 1, flower[1], fupper[1], flower[2],
+                   fupper[2], flux_data.getPointer(1), flower[0], fupper[0],
+                   flower[1], fupper[1] + 1, flower[2], fupper[2],
+                   flux_data.getPointer(2), flower[0], fupper[0], flower[1],
+                   fupper[1], flower[2], fupper[2] + 1);
 #endif
 
    const int patch_ln = patch.getPatchLevelNumber();
 
-   if ( d_cf_discretization == "Ewing" && patch_ln > d_ln_min ) {
-      ewingFixFlux( patch ,
-                    q_data ,
-                    face_coef_data,
-                    flux_data ,
-                    ratio_to_coarser_level );
+   if (d_cf_discretization == "Ewing" && patch_ln > d_ln_min) {
+      ewingFixFlux(patch, q_data, face_coef_data, flux_data,
+                   ratio_to_coarser_level);
    }
 }
 
-void
-QuatFACOps::computeFluxOnPatch(
-   const hier::Patch &                      patch,
-   const hier::IntVector & ratio_to_coarser_level,
-   const pdat::SideData<double> &   face_coef_data,
-   const pdat::SideData<double> &       gradq_data,
-   pdat::SideData<double> &              flux_data ) const
+void QuatFACOps::computeFluxOnPatch(
+    const hier::Patch& patch, const hier::IntVector& ratio_to_coarser_level,
+    const pdat::SideData<double>& face_coef_data,
+    const pdat::SideData<double>& gradq_data,
+    pdat::SideData<double>& flux_data) const
 {
    (void)ratio_to_coarser_level;
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   //tbox::pout<<"check array sizes in QuatFACOps::computeFluxOnPatch()..."<<endl;
-   assert( patch.inHierarchy() );
-   assert( gradq_data.getDepth() == d_qlen*NDIM );
-   assert( flux_data.getDepth() == d_qlen );
-   assert( face_coef_data.getDepth() == d_qlen );
+   // tbox::pout<<"check array sizes in
+   // QuatFACOps::computeFluxOnPatch()..."<<endl;
+   assert(patch.inHierarchy());
+   assert(gradq_data.getDepth() == d_qlen * NDIM);
+   assert(flux_data.getDepth() == d_qlen);
+   assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   //tbox::pout<<"QuatFACOps::computeFluxOnPatch() using grad_q data..."<<endl;
+   // tbox::pout<<"QuatFACOps::computeFluxOnPatch() using grad_q data..."<<endl;
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & d_gbox = face_coef_data.getGhostBox();
+   const hier::Box& d_gbox = face_coef_data.getGhostBox();
    const hier::Index& dlower = d_gbox.lower();
    const hier::Index& dupper = d_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-#if NDIM==2
-   compute_flux2d_from_gradq_(lower[0], upper[0], lower[1], upper[1],
-                   d_qlen,
-                   face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  ,
-                   face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1,
-                   gradq_data.getPointer(0,0 * d_qlen), //side 0, depth 0 (x component)
-                   gradq_data.getPointer(1,1 * d_qlen), //side 1, depth 1 (y component)
-                   flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-                   flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1);
+#if NDIM == 2
+   compute_flux2d_from_gradq_(
+       lower[0], upper[0], lower[1], upper[1], d_qlen,
+       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
+       dupper[1], face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
+       dupper[1] + 1,
+       gradq_data.getPointer(0, 0 * d_qlen),  // side 0, depth 0 (x component)
+       gradq_data.getPointer(1, 1 * d_qlen),  // side 1, depth 1 (y component)
+       flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1], fupper[1],
+       flux_data.getPointer(1), flower[0], fupper[0], flower[1], fupper[1] + 1);
 #endif
-#if NDIM==3
-   compute_flux3d_from_gradq_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                   d_qlen,
-                   face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , dlower[2], dupper[2]  ,
-                   face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, dlower[2], dupper[2]  ,
-                   face_coef_data.getPointer(2), dlower[0], dupper[0]  , dlower[1], dupper[1]  , dlower[2], dupper[2]+1,
-                   gradq_data.getPointer(0,0 * d_qlen), //side 0, depth 0 (x component)
-                   gradq_data.getPointer(1,1 * d_qlen), //side 1, depth 1 (y component)
-                   gradq_data.getPointer(2,2 * d_qlen), //side 2, depth 2 (z component)
-                   flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-                   flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-                   flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1);
+#if NDIM == 3
+   compute_flux3d_from_gradq_(
+       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
+       dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1), dlower[0],
+       dupper[0], dlower[1], dupper[1] + 1, dlower[2], dupper[2],
+       face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1], dupper[1],
+       dlower[2], dupper[2] + 1,
+       gradq_data.getPointer(0, 0 * d_qlen),  // side 0, depth 0 (x component)
+       gradq_data.getPointer(1, 1 * d_qlen),  // side 1, depth 1 (y component)
+       gradq_data.getPointer(2, 2 * d_qlen),  // side 2, depth 2 (z component)
+       flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1], fupper[1],
+       flower[2], fupper[2], flux_data.getPointer(1), flower[0], fupper[0],
+       flower[1], fupper[1] + 1, flower[2], fupper[2], flux_data.getPointer(2),
+       flower[0], fupper[0], flower[1], fupper[1], flower[2], fupper[2] + 1);
 #endif
 }
 
 
-
-void
-QuatFACOps::computeSymmetricFluxOnPatch(
-   const hier::Patch &                      patch,
-   const hier::IntVector & ratio_to_coarser_level,
-   const pdat::SideData<double> &   face_coef_data,
-   const pdat::CellData<double> &      sqrt_m_data,
-   const pdat::CellData<double> &           q_data,
-   pdat::SideData<double> &              flux_data ) const
+void QuatFACOps::computeSymmetricFluxOnPatch(
+    const hier::Patch& patch, const hier::IntVector& ratio_to_coarser_level,
+    const pdat::SideData<double>& face_coef_data,
+    const pdat::CellData<double>& sqrt_m_data,
+    const pdat::CellData<double>& q_data,
+    pdat::SideData<double>& flux_data) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( patch.inHierarchy() );
-   assert( q_data.getDepth() == d_qlen );
-   assert( flux_data.getDepth() == d_qlen );
-   assert( face_coef_data.getDepth() == d_qlen );
+   assert(patch.inHierarchy());
+   assert(q_data.getDepth() == d_qlen);
+   assert(flux_data.getDepth() == d_qlen);
+   assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
-   const double * dx = patch_geom->getDx();
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const double* dx = patch_geom->getDx();
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & q_gbox = q_data.getGhostBox();
+   const hier::Box& q_gbox = q_data.getGhostBox();
    const hier::Index& qlower = q_gbox.lower();
    const hier::Index& qupper = q_gbox.upper();
 
-   const hier::Box & m_gbox = sqrt_m_data.getGhostBox();
+   const hier::Box& m_gbox = sqrt_m_data.getGhostBox();
    const hier::Index& mlower = m_gbox.lower();
    const hier::Index& mupper = m_gbox.upper();
 
-   const hier::Box & d_gbox = face_coef_data.getGhostBox();
+   const hier::Box& d_gbox = face_coef_data.getGhostBox();
    const hier::Index& dlower = d_gbox.lower();
    const hier::Index& dupper = d_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-#if NDIM==2
-   compute_sym_flux2d_(lower[0], upper[0], lower[1], upper[1],
-                       d_qlen,
-                       face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  ,
-                       face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1,
-                       sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-                       q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-                       dx,
-                       flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-                       flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1);
+#if NDIM == 2
+   compute_sym_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                       dlower[1], dupper[1], face_coef_data.getPointer(1),
+                       dlower[0], dupper[0], dlower[1], dupper[1] + 1,
+                       sqrt_m_data.getPointer(), mlower[0], mupper[0],
+                       mlower[1], mupper[1], q_data.getPointer(), qlower[0],
+                       qupper[0], qlower[1], qupper[1], dx,
+                       flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                       flower[1], fupper[1], flux_data.getPointer(1), flower[0],
+                       fupper[0], flower[1], fupper[1] + 1);
 #endif
-#if NDIM==3
-   compute_sym_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                       d_qlen,
-                       face_coef_data.getPointer(0), dlower[0], dupper[0]+1, dlower[1], dupper[1]  , dlower[2], dupper[2]  ,
-                       face_coef_data.getPointer(1), dlower[0], dupper[0]  , dlower[1], dupper[1]+1, dlower[2], dupper[2]  ,
-                       face_coef_data.getPointer(2), dlower[0], dupper[0]  , dlower[1], dupper[1]  , dlower[2], dupper[2]+1,
-                       sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-                       q_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-                       dx,
-                       flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-                       flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-                       flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1);
+#if NDIM == 3
+   compute_sym_flux3d_(
+       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
+       dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1), dlower[0],
+       dupper[0], dlower[1], dupper[1] + 1, dlower[2], dupper[2],
+       face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1], dupper[1],
+       dlower[2], dupper[2] + 1, sqrt_m_data.getPointer(), mlower[0], mupper[0],
+       mlower[1], mupper[1], mlower[2], mupper[2], q_data.getPointer(),
+       qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2], dx,
+       flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1], fupper[1],
+       flower[2], fupper[2], flux_data.getPointer(1), flower[0], fupper[0],
+       flower[1], fupper[1] + 1, flower[2], fupper[2], flux_data.getPointer(2),
+       flower[0], fupper[0], flower[1], fupper[1], flower[2], fupper[2] + 1);
 #endif
 
    const int patch_ln = patch.getPatchLevelNumber();
 
-   if ( d_cf_discretization == "Ewing" && patch_ln > d_ln_min ) {
-      ewingFixFlux( patch ,
-                    q_data ,
-                    face_coef_data,
-                    flux_data ,
-                    ratio_to_coarser_level );
+   if (d_cf_discretization == "Ewing" && patch_ln > d_ln_min) {
+      ewingFixFlux(patch, q_data, face_coef_data, flux_data,
+                   ratio_to_coarser_level);
    }
 }
-
 
 
 /*
@@ -1795,36 +1784,34 @@ QuatFACOps::computeSymmetricFluxOnPatch(
 ********************************************************************
 */
 
-void
-QuatFACOps::computeCompositeResidualOnLevel(
-   solv::SAMRAIVectorReal<double>& residual,
-   const solv::SAMRAIVectorReal<double>& solution,
-   const solv::SAMRAIVectorReal<double>& rhs,
-   int ln,
-   bool error_equation_indicator )
+void QuatFACOps::computeCompositeResidualOnLevel(
+    solv::SAMRAIVectorReal<double>& residual,
+    const solv::SAMRAIVectorReal<double>& solution,
+    const solv::SAMRAIVectorReal<double>& rhs, int ln,
+    bool error_equation_indicator)
 {
    t_compute_composite_residual->start();
 
    checkFluxPatchDataIndex();
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if( residual.getPatchHierarchy() != d_hierarchy
-       || solution.getPatchHierarchy() != d_hierarchy
-       || rhs.getPatchHierarchy() != d_hierarchy ) {
+   if (residual.getPatchHierarchy() != d_hierarchy ||
+       solution.getPatchHierarchy() != d_hierarchy ||
+       rhs.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
-                 "internal hierarchy.");
+                                  "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr< hier::PatchLevel > level (d_hierarchy->getPatchLevel(ln));
+   boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
 
    /*
     * Set up the bc helper so that when we use a refine schedule
     * to fill ghosts, the correct data is operated on.
     */
-   const int q_id  = solution.getComponentDescriptorIndex(0);
+   const int q_id = solution.getComponentDescriptorIndex(0);
    d_bc_helper.setTargetDataId(q_id);
    d_bc_helper.setHomogeneousBc(error_equation_indicator);
 
-   const int flux_id = ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id;
+   const int flux_id = (d_flux_id != -1) ? d_flux_id : d_flux_scratch_id;
 
    /*
     * Assumptions:
@@ -1849,14 +1836,13 @@ QuatFACOps::computeCompositeResidualOnLevel(
 
    /* S1. Fill ghost data for quaternions (component 0). */
    {
-     if ( ln > d_ln_min ) {
-       /* Fill from current, next coarser level and physical boundary */
-       xeqScheduleGhostFill(q_id, ln);
-     }
-     else {
-       /* Fill from current and physical boundary */
-       xeqScheduleGhostFillNoCoarse(q_id, ln);
-     }
+      if (ln > d_ln_min) {
+         /* Fill from current, next coarser level and physical boundary */
+         xeqScheduleGhostFill(q_id, ln);
+      } else {
+         /* Fill from current and physical boundary */
+         xeqScheduleGhostFillNoCoarse(q_id, ln);
+      }
    }
 
    /*
@@ -1867,9 +1853,9 @@ QuatFACOps::computeCompositeResidualOnLevel(
     * undergoes transfer operations which require the
     * whole level data.
     */
-   bool deallocate_flux_data_when_done=false;
-   if ( flux_id == d_flux_scratch_id ) {
-      if ( !level->checkAllocated(flux_id) ) {
+   bool deallocate_flux_data_when_done = false;
+   if (flux_id == d_flux_scratch_id) {
+      if (!level->checkAllocated(flux_id)) {
          level->allocatePatchData(flux_id);
          deallocate_flux_data_when_done = true;
       }
@@ -1878,60 +1864,69 @@ QuatFACOps::computeCompositeResidualOnLevel(
    /*
     * S2. Compute flux on patches in level.
     */
-   for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
 
       boost::shared_ptr<pdat::CellData<double> > q_data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(solution.getComponentPatchData ( 0 , *patch )));
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              solution.getComponentPatchData(0, *patch)));
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data(
-         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( d_face_coef_id) ) );
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
+      boost::shared_ptr<pdat::SideData<double> > face_coef_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(d_face_coef_id)));
       boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_sqrt_m_id) ) );
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_sqrt_m_id)));
 
-      computeSymmetricFluxOnPatch(
-                         *patch ,
-                         level->getRatioToCoarserLevel() ,
-                         *face_coef_data,
-                         *sqrt_m_data,
-                         *q_data,
-                         *flux_data );
+      computeSymmetricFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
+                                  *face_coef_data, *sqrt_m_data, *q_data,
+                                  *flux_data);
    }
 
    /*
     * S3. Coarsen oflux data from next finer level so that
     * the computed flux becomes the composite grid flux.
     */
-   if ( ln < d_ln_max ) {
+   if (ln < d_ln_max) {
       xeqScheduleFluxCoarsen(flux_id, d_oflux_scratch_id, ln);
    }
 
    /*
     * S4. Compute residual on patches in level.
     */
-   for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      boost::shared_ptr<pdat::CellData<double> > q_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(solution.getComponentPatchData ( 0 , *patch )));
-      boost::shared_ptr<pdat::CellData<double> > q_rhs_data ( 
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(rhs.getComponentPatchData ( 0 , *patch )));
-      boost::shared_ptr<pdat::CellData<double> > q_residual_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(residual.getComponentPatchData( 0 , *patch )));
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
+      boost::shared_ptr<pdat::CellData<double> > q_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              solution.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::CellData<double> > q_rhs_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              rhs.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::CellData<double> > q_residual_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              residual.getComponentPatchData(0, *patch)));
       boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_sqrt_m_id) ) );
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_sqrt_m_id)));
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
       boost::shared_ptr<pdat::SideData<int> > rotation_index;
-      if( d_rotation_index_id>=0 ){
-         rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,hier::PatchData>
-                      ( patch->getPatchData(d_rotation_index_id) );
-         assert( rotation_index );
+      if (d_rotation_index_id >= 0) {
+         rotation_index =
+             boost::dynamic_pointer_cast<pdat::SideData<int>, hier::PatchData>(
+                 patch->getPatchData(d_rotation_index_id));
+         assert(rotation_index);
       }
 
-      computeResidualOnPatch(*patch, *flux_data, rotation_index, *sqrt_m_data, *q_data, *q_rhs_data, *q_residual_data);
+      computeResidualOnPatch(*patch, *flux_data, rotation_index, *sqrt_m_data,
+                             *q_data, *q_rhs_data, *q_residual_data);
 
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /*
           * Save outerflux data so that next coarser level
           *  can compute its coarse-fine composite flux.
@@ -1939,16 +1934,17 @@ QuatFACOps::computeCompositeResidualOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+                 patch->getPatchData(d_oflux_scratch_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
-         assert( oflux_data );
+         assert(oflux_data);
 #endif
          oflux_data->copy(*flux_data);
       }
    }
 
-   if ( deallocate_flux_data_when_done ) {
+   if (deallocate_flux_data_when_done) {
       level->deallocatePatchData(flux_id);
    }
 
@@ -1956,221 +1952,219 @@ QuatFACOps::computeCompositeResidualOnLevel(
 }
 
 
-
-void
-QuatFACOps::computeResidualOnPatch(
-   const hier::Patch &                      patch,
-   const pdat::SideData<double> &        flux_data,
-   boost::shared_ptr<pdat::SideData<int> > rotation_index,
-   const pdat::CellData<double> &      sqrt_m_data,
-   const pdat::CellData<double> &      q_soln_data,
-   const pdat::CellData<double> &       q_rhs_data,
-   pdat::CellData<double> &        q_residual_data) const
+void QuatFACOps::computeResidualOnPatch(
+    const hier::Patch& patch, const pdat::SideData<double>& flux_data,
+    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    const pdat::CellData<double>& sqrt_m_data,
+    const pdat::CellData<double>& q_soln_data,
+    const pdat::CellData<double>& q_rhs_data,
+    pdat::CellData<double>& q_residual_data) const
 {
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
 
-   const double *dx = patch_geom->getDx();
+   const double* dx = patch_geom->getDx();
 
-   const hier::Box & box = patch.getBox();
-   const hier::Index&lower = box.lower();
-   const hier::Index&upper = box.upper();
+   const hier::Box& box = patch.getBox();
+   const hier::Index& lower = box.lower();
+   const hier::Index& upper = box.upper();
 
-   const hier::Box & m_gbox = sqrt_m_data.getGhostBox();
+   const hier::Box& m_gbox = sqrt_m_data.getGhostBox();
    const hier::Index& mlower = m_gbox.lower();
    const hier::Index& mupper = m_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-   const hier::Box & q_gbox = q_soln_data.getGhostBox();
+   const hier::Box& q_gbox = q_soln_data.getGhostBox();
    const hier::Index& qlower = q_gbox.lower();
    const hier::Index& qupper = q_gbox.upper();
 
-   const hier::Box & qrh_gbox = q_rhs_data.getGhostBox();
+   const hier::Box& qrh_gbox = q_rhs_data.getGhostBox();
    const hier::Index& qrhlower = qrh_gbox.lower();
    const hier::Index& qrhupper = qrh_gbox.upper();
 
-   const hier::Box & qr_gbox = q_residual_data.getGhostBox();
+   const hier::Box& qr_gbox = q_residual_data.getGhostBox();
    const hier::Index& qrlower = qr_gbox.lower();
    const hier::Index& qrupper = qr_gbox.upper();
 
-   if(rotation_index){
-#if NDIM==2
-   compute_q_residual2d_symm_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-      dx, d_gamma,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
-      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1],
-      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0]
-      );
+   if (rotation_index) {
+#if NDIM == 2
+      compute_q_residual2d_symm_(
+          lower[0], upper[0], lower[1], upper[1], d_qlen,
+          sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
+          flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
+          fupper[1], flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+          fupper[1] + 1, q_soln_data.getPointer(), qlower[0], qupper[0],
+          qlower[1], qupper[1], dx, d_gamma, q_rhs_data.getPointer(),
+          qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
+          q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1],
+          qrupper[1], rotation_index->getPointer(0),
+          rotation_index->getPointer(1),
+          rotation_index->getGhostCellWidth()[0]);
 #endif
-#if NDIM==3
-   compute_q_residual3d_symm_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-      flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-      dx, d_gamma,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2],
-      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1], qrlower[2], qrupper[2],
-      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getPointer(2), 
-      rotation_index->getGhostCellWidth()[0]);
+#if NDIM == 3
+      compute_q_residual3d_symm_(
+          lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+          sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
+          mlower[2], mupper[2], flux_data.getPointer(0), flower[0],
+          fupper[0] + 1, flower[1], fupper[1], flower[2], fupper[2],
+          flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+          fupper[1] + 1, flower[2], fupper[2], flux_data.getPointer(2),
+          flower[0], fupper[0], flower[1], fupper[1], flower[2], fupper[2] + 1,
+          q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
+          qlower[2], qupper[2], dx, d_gamma, q_rhs_data.getPointer(),
+          qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2],
+          qrhupper[2], q_residual_data.getPointer(), qrlower[0], qrupper[0],
+          qrlower[1], qrupper[1], qrlower[2], qrupper[2],
+          rotation_index->getPointer(0), rotation_index->getPointer(1),
+          rotation_index->getPointer(2),
+          rotation_index->getGhostCellWidth()[0]);
 #endif
-   }else{
-#if NDIM==2
-   compute_q_residual2d_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-      dx, d_gamma,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
-      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1]);
+   } else {
+#if NDIM == 2
+      compute_q_residual2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                            sqrt_m_data.getPointer(), mlower[0], mupper[0],
+                            mlower[1], mupper[1], flux_data.getPointer(0),
+                            flower[0], fupper[0] + 1, flower[1], fupper[1],
+                            flux_data.getPointer(1), flower[0], fupper[0],
+                            flower[1], fupper[1] + 1, q_soln_data.getPointer(),
+                            qlower[0], qupper[0], qlower[1], qupper[1], dx,
+                            d_gamma, q_rhs_data.getPointer(), qrhlower[0],
+                            qrhupper[0], qrhlower[1], qrhupper[1],
+                            q_residual_data.getPointer(), qrlower[0],
+                            qrupper[0], qrlower[1], qrupper[1]);
 #endif
-#if NDIM==3
-   compute_q_residual3d_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-      flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-      dx, d_gamma,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2],
-      q_residual_data.getPointer(), qrlower[0], qrupper[0], qrlower[1], qrupper[1], qrlower[2], qrupper[2]);
+#if NDIM == 3
+      compute_q_residual3d_(
+          lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
+          sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
+          mlower[2], mupper[2], flux_data.getPointer(0), flower[0],
+          fupper[0] + 1, flower[1], fupper[1], flower[2], fupper[2],
+          flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+          fupper[1] + 1, flower[2], fupper[2], flux_data.getPointer(2),
+          flower[0], fupper[0], flower[1], fupper[1], flower[2], fupper[2] + 1,
+          q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
+          qlower[2], qupper[2], dx, d_gamma, q_rhs_data.getPointer(),
+          qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2],
+          qrhupper[2], q_residual_data.getPointer(), qrlower[0], qrupper[0],
+          qrlower[1], qrupper[1], qrlower[2], qrupper[2]);
 #endif
    }
 }
 
 
-
-void
-QuatFACOps::evaluateRHS(
-   const double        epsilon_q,
-   const int   diffusion_coef_id,
-   const int           grad_q_id,
-   const int           grad_q_copy_id, // for computation of diffusion coefficient
-   const double   gradient_floor,
-   const string   gradient_floor_type,
-   const int         mobility_id,
-   const int        rotation_index_id,
-   const int                q_id,
-   int                    rhs_id,
-   const bool use_gradq_for_flux)
+void QuatFACOps::evaluateRHS(
+    const double epsilon_q, const int diffusion_coef_id, const int grad_q_id,
+    const int grad_q_copy_id,  // for computation of diffusion coefficient
+    const double gradient_floor, const string gradient_floor_type,
+    const int mobility_id, const int rotation_index_id, const int q_id,
+    int rhs_id, const bool use_gradq_for_flux)
 {
    t_compute_rhs->start();
-   
-   assert( grad_q_id>=0 );
-   assert( grad_q_copy_id>=0 );
-   
+
+   assert(grad_q_id >= 0);
+   assert(grad_q_copy_id >= 0);
+
    d_rotation_index_id = rotation_index_id;
-   
+
    const int gq_id = use_gradq_for_flux ? grad_q_id : -1;
 
    // Initialize the output array
    d_hopscell->setToScalar(rhs_id, 0., false);
 
-   computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_copy_id, gradient_floor, gradient_floor_type,
+   computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_copy_id,
+                    gradient_floor, gradient_floor_type,
                     d_face_coef_scratch_id);
 
-   for (int ln=d_ln_max; ln>=d_ln_min; ln--) {
-      accumulateOperatorOnLevel(mobility_id, d_face_coef_scratch_id, q_id, gq_id, rhs_id, ln, true, false);
+   for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
+      accumulateOperatorOnLevel(mobility_id, d_face_coef_scratch_id, q_id,
+                                gq_id, rhs_id, ln, true, false);
    }
 
    t_compute_rhs->stop();
 }
 
 
-
-void
-QuatFACOps::multiplyDQuatDPhiBlock(
-   const int   phase_id,
-   const int   out_id)
+void QuatFACOps::multiplyDQuatDPhiBlock(const int phase_id, const int out_id)
 {
    // Initialize the output array
    d_hopscell->setToScalar(out_id, 0., false);
 
-   // Compute the product of the dquatdphi preconditioner block containing the mobility
-   // derivative times the input phi
-   for (int ln=d_ln_max; ln>=d_ln_min; ln--) {
+   // Compute the product of the dquatdphi preconditioner block containing the
+   // mobility derivative times the input phi
+   for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
 
-      accumulateOperatorOnLevel(d_m_deriv_id, d_face_coef_id, d_q_local_id, -1, out_id, ln, false, false);
+      accumulateOperatorOnLevel(d_m_deriv_id, d_face_coef_id, d_q_local_id, -1,
+                                out_id, ln, false, false);
 
-      boost::shared_ptr<hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
       hier::PatchLevel::Iterator pi(level->begin());
-      for ( ; pi!=level->end(); pi++ ) {
-         hier::Patch & patch = **pi;
+      for (; pi != level->end(); pi++) {
+         hier::Patch& patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > out_data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(out_id) ) );
-         boost::shared_ptr<pdat::CellData<double> > phi_data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > out_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(out_id)));
+         boost::shared_ptr<pdat::CellData<double> > phi_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(phase_id)));
 
-         const hier::Box & box = patch.getBox();
+         const hier::Box& box = patch.getBox();
          const hier::Index& lower = box.lower();
          const hier::Index& upper = box.upper();
 
-         const hier::Box & o_gbox = out_data->getGhostBox();
+         const hier::Box& o_gbox = out_data->getGhostBox();
          const hier::Index& olower = o_gbox.lower();
          const hier::Index& oupper = o_gbox.upper();
 
-         const hier::Box & p_gbox = phi_data->getGhostBox();
+         const hier::Box& p_gbox = phi_data->getGhostBox();
          const hier::Index& plower = p_gbox.lower();
          const hier::Index& pupper = p_gbox.upper();
 
-#if NDIM==2
+#if NDIM == 2
          multicomponent_multiply2d_(lower[0], upper[0], lower[1], upper[1],
-                                    phi_data->getPointer(), plower[0], pupper[0], plower[1], pupper[1],
-                                    out_data->getPointer(), olower[0], oupper[0], olower[1], oupper[1], d_qlen);
+                                    phi_data->getPointer(), plower[0],
+                                    pupper[0], plower[1], pupper[1],
+                                    out_data->getPointer(), olower[0],
+                                    oupper[0], olower[1], oupper[1], d_qlen);
 #endif
-#if NDIM==3
-         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                                    phi_data->getPointer(), plower[0], pupper[0], plower[1], pupper[1], plower[2], pupper[2],
-                                    out_data->getPointer(), olower[0], oupper[0], olower[1], oupper[1], olower[2], oupper[2], d_qlen);
+#if NDIM == 3
+         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1],
+                                    lower[2], upper[2], phi_data->getPointer(),
+                                    plower[0], pupper[0], plower[1], pupper[1],
+                                    plower[2], pupper[2],
+                                    out_data->getPointer(), olower[0],
+                                    oupper[0], olower[1], oupper[1], olower[2],
+                                    oupper[2], d_qlen);
 #endif
-
       }
-
    }
 
-   // Add the product of the dquatdphi preconditioner block with the diffusion coefficient derivative
-   // times the input phi
+   // Add the product of the dquatdphi preconditioner block with the diffusion
+   // coefficient derivative times the input phi
 
-   computeDQuatDPhiFaceCoefs(d_face_coef_deriv_id, phase_id, d_face_coef_scratch_id);
+   computeDQuatDPhiFaceCoefs(d_face_coef_deriv_id, phase_id,
+                             d_face_coef_scratch_id);
 
-   for (int ln=d_ln_max; ln>=d_ln_min; ln--) {
-      accumulateOperatorOnLevel(d_sqrt_m_id, d_face_coef_scratch_id, d_q_local_id, -1, out_id, ln, false, false);
+   for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
+      accumulateOperatorOnLevel(d_sqrt_m_id, d_face_coef_scratch_id,
+                                d_q_local_id, -1, out_id, ln, false, false);
    }
 }
 
 
-
-void
-QuatFACOps::accumulateOperatorOnLevel(
-   const int           mobility_id,
-   const int          face_coef_id,
-   const int                  q_id,
-   const int             grad_q_id,
-   int                    rhs_q_id,
-   int                          ln,
-   bool                    project,
-   bool   error_equation_indicator)
+void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
+                                           const int face_coef_id,
+                                           const int q_id, const int grad_q_id,
+                                           int rhs_q_id, int ln, bool project,
+                                           bool error_equation_indicator)
 {
    checkFluxPatchDataIndex();
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -2180,7 +2174,7 @@ QuatFACOps::accumulateOperatorOnLevel(
    d_bc_helper.setTargetDataId(q_id);
    d_bc_helper.setHomogeneousBc(error_equation_indicator);
 
-   const int flux_id = ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id;
+   const int flux_id = (d_flux_id != -1) ? d_flux_id : d_flux_scratch_id;
 
    /*
     * Assumptions:
@@ -2205,14 +2199,13 @@ QuatFACOps::accumulateOperatorOnLevel(
 
    /* S1. Fill ghost data for quaternions (component 0). */
    {
-     if ( ln > d_ln_min ) {
-       /* Fill from current, next coarser level and physical boundary */
-       xeqScheduleGhostFill(q_id, ln);
-     }
-     else {
-       /* Fill from current and physical boundary */
-       xeqScheduleGhostFillNoCoarse(q_id, ln);
-     }
+      if (ln > d_ln_min) {
+         /* Fill from current, next coarser level and physical boundary */
+         xeqScheduleGhostFill(q_id, ln);
+      } else {
+         /* Fill from current and physical boundary */
+         xeqScheduleGhostFillNoCoarse(q_id, ln);
+      }
    }
 
    /*
@@ -2223,9 +2216,9 @@ QuatFACOps::accumulateOperatorOnLevel(
     * undergoes transfer operations which require the
     * whole level data.
     */
-   bool deallocate_flux_data_when_done=false;
-   if ( flux_id == d_flux_scratch_id ) {
-      if ( !level->checkAllocated(flux_id) ) {
+   bool deallocate_flux_data_when_done = false;
+   if (flux_id == d_flux_scratch_id) {
+      if (!level->checkAllocated(flux_id)) {
          level->allocatePatchData(flux_id);
          deallocate_flux_data_when_done = true;
       }
@@ -2235,32 +2228,30 @@ QuatFACOps::accumulateOperatorOnLevel(
     * S2. Compute flux on patches in level.
     */
    hier::PatchLevel::Iterator pi(level->begin());
-   for ( ; pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
+   for (; pi != level->end(); pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::SideData<double> > flux_data (
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
-      boost::shared_ptr< pdat::SideData<double> > face_coef_data(
-         BOOST_CAST< pdat::SideData<double>, hier::PatchData>(patch->getPatchData( face_coef_id) ) );
-      
-      if( grad_q_id==-1 ){
-         boost::shared_ptr<pdat::CellData<double> > q_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(q_id) ) );
+      boost::shared_ptr<pdat::SideData<double> > flux_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
+      boost::shared_ptr<pdat::SideData<double> > face_coef_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(face_coef_id)));
 
-         computeFluxOnPatch(*patch ,
-                            level->getRatioToCoarserLevel() ,
-                            *face_coef_data ,
-                            *q_data,
-                            *flux_data );
-      }else{
-         //tbox::pout<<"call computeFluxOnPatch()..."<<endl;
-         boost::shared_ptr<pdat::SideData<double> > grad_q_data (
-            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData(grad_q_id) ) );
-         computeFluxOnPatch(*patch ,
-                            level->getRatioToCoarserLevel() ,
-                            *face_coef_data ,
-                            *grad_q_data,
-                            *flux_data );
+      if (grad_q_id == -1) {
+         boost::shared_ptr<pdat::CellData<double> > q_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(q_id)));
+
+         computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
+                            *face_coef_data, *q_data, *flux_data);
+      } else {
+         // tbox::pout<<"call computeFluxOnPatch()..."<<endl;
+         boost::shared_ptr<pdat::SideData<double> > grad_q_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(grad_q_id)));
+         computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
+                            *face_coef_data, *grad_q_data, *flux_data);
       }
    }
 
@@ -2268,49 +2259,60 @@ QuatFACOps::accumulateOperatorOnLevel(
     * S3. Coarsen oflux data from next finer level so that
     * the computed flux becomes the composite grid flux.
     */
-   if ( ln < d_ln_max ) {
+   if (ln < d_ln_max) {
       xeqScheduleFluxCoarsen(flux_id, d_oflux_scratch_id, ln);
    }
 
    /*
     * S4. Accumulate operator on patches in level.
     */
-   for ( hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
+
       boost::shared_ptr<pdat::SideData<double> > flux_data(
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(patch->getPatchData( flux_id) ) );
-      boost::shared_ptr< pdat::CellData<double> > mobility_data(
-         BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( mobility_id) ) );
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
+      boost::shared_ptr<pdat::CellData<double> > mobility_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(mobility_id)));
       boost::shared_ptr<pdat::CellData<double> > q_rhs_data(
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(rhs_q_id) ) );
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(rhs_q_id)));
 
       if (project && d_qlen != 1) {
 
-         boost::shared_ptr<pdat::CellData<double> > q_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch->getPatchData(q_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > q_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(q_id)));
 
          // Temporary to store lambda
-         boost::shared_ptr<pdat::CellData<double> > 
-            lambda_data (new pdat::CellData<double>(pi->getBox(), 1, hier::IntVector(tbox::Dimension(NDIM),0)));
-         assert( lambda_data );
-         
+         boost::shared_ptr<pdat::CellData<double> > lambda_data(
+             new pdat::CellData<double>(pi->getBox(), 1,
+                                        hier::IntVector(tbox::Dimension(NDIM),
+                                                        0)));
+         assert(lambda_data);
+
          boost::shared_ptr<pdat::SideData<int> > rotation_index;
-         if( d_rotation_index_id>=0 ){
-            rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,hier::PatchData>
-                         ( patch->getPatchData( d_rotation_index_id) );
-            assert( rotation_index );
+         if (d_rotation_index_id >= 0) {
+            rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,
+                                                         hier::PatchData>(
+                patch->getPatchData(d_rotation_index_id));
+            assert(rotation_index);
          }
 
-         computeLambdaOnPatch(*patch, *flux_data, *q_data, rotation_index, *lambda_data );
+         computeLambdaOnPatch(*patch, *flux_data, *q_data, rotation_index,
+                              *lambda_data);
 
-         accumulateProjectedOperatorOnPatch(*patch, *flux_data, *mobility_data, *q_data, *lambda_data, rotation_index, *q_rhs_data);
-      }
-      else {
-         accumulateOperatorOnPatch(*patch, *flux_data, *mobility_data, *q_rhs_data);
+         accumulateProjectedOperatorOnPatch(*patch, *flux_data, *mobility_data,
+                                            *q_data, *lambda_data,
+                                            rotation_index, *q_rhs_data);
+      } else {
+         accumulateOperatorOnPatch(*patch, *flux_data, *mobility_data,
+                                   *q_rhs_data);
       }
 
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /*
           * Save outerflux data so that next coarser level
           *  can compute its coarse-fine composite flux.
@@ -2318,308 +2320,318 @@ QuatFACOps::accumulateOperatorOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(patch->getPatchData( d_oflux_scratch_id) ) );
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+                 patch->getPatchData(d_oflux_scratch_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
-         assert( oflux_data );
+         assert(oflux_data);
 #endif
          oflux_data->copy(*flux_data);
       }
    }
 
-   if ( deallocate_flux_data_when_done ) {
+   if (deallocate_flux_data_when_done) {
       level->deallocatePatchData(flux_id);
    }
 }
 
 
-
-void
-QuatFACOps::accumulateOperatorOnPatch(
-   const hier::Patch &                      patch,
-   const pdat::SideData<double> &        flux_data,
-   const pdat::CellData<double> &    mobility_data,
-   const pdat::CellData<double> &       q_rhs_data ) const
+void QuatFACOps::accumulateOperatorOnPatch(
+    const hier::Patch& patch, const pdat::SideData<double>& flux_data,
+    const pdat::CellData<double>& mobility_data,
+    const pdat::CellData<double>& q_rhs_data) const
 {
-   assert( d_rotation_index_id==-1 );
-   
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+   assert(d_rotation_index_id == -1);
 
-   const double *dx = patch_geom->getDx();
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
 
-   const hier::Box & box = patch.getBox();
+   const double* dx = patch_geom->getDx();
+
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & m_gbox = mobility_data.getGhostBox();
+   const hier::Box& m_gbox = mobility_data.getGhostBox();
    const hier::Index& mlower = m_gbox.lower();
    const hier::Index& mupper = m_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-   const hier::Box & qrh_gbox = q_rhs_data.getGhostBox();
+   const hier::Box& qrh_gbox = q_rhs_data.getGhostBox();
    const hier::Index& qrhlower = qrh_gbox.lower();
    const hier::Index& qrhupper = qrh_gbox.upper();
 
-#if NDIM==2
-   add_quat_op2d_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-      dx,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
+#if NDIM == 2
+   add_quat_op2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                  mobility_data.getPointer(), mlower[0], mupper[0], mlower[1],
+                  mupper[1], flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                  flower[1], fupper[1], flux_data.getPointer(1), flower[0],
+                  fupper[0], flower[1], fupper[1] + 1, dx,
+                  q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
+                  qrhlower[1], qrhupper[1]);
 #endif
-#if NDIM==3
-   add_quat_op3d_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-      flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
-      dx,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
+#if NDIM == 3
+   add_quat_op3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                  d_qlen, mobility_data.getPointer(), mlower[0], mupper[0],
+                  mlower[1], mupper[1], mlower[2], mupper[2],
+                  flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
+                  fupper[1], flower[2], fupper[2], flux_data.getPointer(1),
+                  flower[0], fupper[0], flower[1], fupper[1] + 1, flower[2],
+                  fupper[2], flux_data.getPointer(2), flower[0], fupper[0],
+                  flower[1], fupper[1], flower[2], fupper[2] + 1, dx,
+                  q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
+                  qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
 #endif
 }
 
 
-
-void
-QuatFACOps::accumulateProjectedOperatorOnPatch(
-   const hier::Patch &                      patch,
-   const pdat::SideData<double> &        flux_data,
-   const pdat::CellData<double> &    mobility_data,
-   const pdat::CellData<double> &      q_soln_data,
-   const pdat::CellData<double> & lambda_soln_data,
-   boost::shared_ptr<pdat::SideData<int> > rotation_index,
-   const pdat::CellData<double> &       q_rhs_data ) const
+void QuatFACOps::accumulateProjectedOperatorOnPatch(
+    const hier::Patch& patch, const pdat::SideData<double>& flux_data,
+    const pdat::CellData<double>& mobility_data,
+    const pdat::CellData<double>& q_soln_data,
+    const pdat::CellData<double>& lambda_soln_data,
+    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    const pdat::CellData<double>& q_rhs_data) const
 {
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
 
-   const double *dx = patch_geom->getDx();
+   const double* dx = patch_geom->getDx();
 
-   const hier::Box & box = patch.getBox();
+   const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box & m_gbox = mobility_data.getGhostBox();
+   const hier::Box& m_gbox = mobility_data.getGhostBox();
    const hier::Index& mlower = m_gbox.lower();
    const hier::Index& mupper = m_gbox.upper();
 
-   const hier::Box & f_gbox = flux_data.getGhostBox();
+   const hier::Box& f_gbox = flux_data.getGhostBox();
    const hier::Index& flower = f_gbox.lower();
    const hier::Index& fupper = f_gbox.upper();
 
-   const hier::Box & q_gbox = q_soln_data.getGhostBox();
+   const hier::Box& q_gbox = q_soln_data.getGhostBox();
    const hier::Index& qlower = q_gbox.lower();
    const hier::Index& qupper = q_gbox.upper();
 
-   const hier::Box & l_gbox = lambda_soln_data.getGhostBox();
+   const hier::Box& l_gbox = lambda_soln_data.getGhostBox();
    const hier::Index& llower = l_gbox.lower();
    const hier::Index& lupper = l_gbox.upper();
 
-   const hier::Box & qrh_gbox = q_rhs_data.getGhostBox();
+   const hier::Box& qrh_gbox = q_rhs_data.getGhostBox();
    const hier::Index& qrhlower = qrh_gbox.lower();
    const hier::Index& qrhupper = qrh_gbox.upper();
 
-#if NDIM==2
-   if(rotation_index)
-   add_quat_proj_op2d_symm_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-      lambda_soln_data.getPointer(), llower[0], lupper[0], llower[1], lupper[1],
-      dx,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1],
-      rotation_index->getPointer(0), rotation_index->getPointer(1), rotation_index->getGhostCellWidth()[0]
-      );
+#if NDIM == 2
+   if (rotation_index)
+      add_quat_proj_op2d_symm_(
+          lower[0], upper[0], lower[1], upper[1], d_qlen,
+          mobility_data.getPointer(), mlower[0], mupper[0], mlower[1],
+          mupper[1], flux_data.getPointer(0), flower[0], fupper[0] + 1,
+          flower[1], fupper[1], flux_data.getPointer(1), flower[0], fupper[0],
+          flower[1], fupper[1] + 1, q_soln_data.getPointer(), qlower[0],
+          qupper[0], qlower[1], qupper[1], lambda_soln_data.getPointer(),
+          llower[0], lupper[0], llower[1], lupper[1], dx,
+          q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1],
+          qrhupper[1], rotation_index->getPointer(0),
+          rotation_index->getPointer(1),
+          rotation_index->getGhostCellWidth()[0]);
    else
-   add_quat_proj_op2d_(
-      lower[0], upper[0], lower[1], upper[1],
-      d_qlen,
-      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-      lambda_soln_data.getPointer(), llower[0], lupper[0], llower[1], lupper[1],
-      dx,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
+      add_quat_proj_op2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                          mobility_data.getPointer(), mlower[0], mupper[0],
+                          mlower[1], mupper[1], flux_data.getPointer(0),
+                          flower[0], fupper[0] + 1, flower[1], fupper[1],
+                          flux_data.getPointer(1), flower[0], fupper[0],
+                          flower[1], fupper[1] + 1, q_soln_data.getPointer(),
+                          qlower[0], qupper[0], qlower[1], qupper[1],
+                          lambda_soln_data.getPointer(), llower[0], lupper[0],
+                          llower[1], lupper[1], dx, q_rhs_data.getPointer(),
+                          qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
 #endif
-#if NDIM==3
-   assert( !rotation_index );
-   add_quat_proj_op3d_(
-      lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-      d_qlen,
-      mobility_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-      flux_data.getPointer(0), flower[0], fupper[0]+1, flower[1], fupper[1]  , flower[2], fupper[2]  ,
-      flux_data.getPointer(1), flower[0], fupper[0]  , flower[1], fupper[1]+1, flower[2], fupper[2]  ,
-      flux_data.getPointer(2), flower[0], fupper[0]  , flower[1], fupper[1]  , flower[2], fupper[2]+1,
-      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-      lambda_soln_data.getPointer(), llower[0], lupper[0], llower[1], lupper[1], llower[2], lupper[2],
-      dx,
-      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
+#if NDIM == 3
+   assert(!rotation_index);
+   add_quat_proj_op3d_(lower[0], upper[0], lower[1], upper[1], lower[2],
+                       upper[2], d_qlen, mobility_data.getPointer(), mlower[0],
+                       mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
+                       flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                       flower[1], fupper[1], flower[2], fupper[2],
+                       flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+                       fupper[1] + 1, flower[2], fupper[2],
+                       flux_data.getPointer(2), flower[0], fupper[0], flower[1],
+                       fupper[1], flower[2], fupper[2] + 1,
+                       q_soln_data.getPointer(), qlower[0], qupper[0],
+                       qlower[1], qupper[1], qlower[2], qupper[2],
+                       lambda_soln_data.getPointer(), llower[0], lupper[0],
+                       llower[1], lupper[1], llower[2], lupper[2], dx,
+                       q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
+                       qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
 #endif
 }
 
 
-
-void
-QuatFACOps::multiplyMobilitySqrt(const int id)
+void QuatFACOps::multiplyMobilitySqrt(const int id)
 {
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      boost::shared_ptr<hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
       hier::PatchLevel::Iterator pi(level->begin());
-      for ( ; pi!=level->end(); pi++ ) {
-         hier::Patch & patch = **pi;
+      for (; pi != level->end(); pi++) {
+         hier::Patch& patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(id) ) );
-         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_sqrt_m_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(id)));
+         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(d_sqrt_m_id)));
          int ncomp = data->getDepth();
 
-         const hier::Box & gbox = data->getGhostBox();
+         const hier::Box& gbox = data->getGhostBox();
          const hier::Index& lower = gbox.lower();
          const hier::Index& upper = gbox.upper();
 
-         const hier::Box & m_gbox = sqrt_m_data->getGhostBox();
+         const hier::Box& m_gbox = sqrt_m_data->getGhostBox();
          const hier::Index& mlower = m_gbox.lower();
          const hier::Index& mupper = m_gbox.upper();
 
-#if NDIM==2
+#if NDIM == 2
          multicomponent_multiply2d_(lower[0], upper[0], lower[1], upper[1],
-                                    sqrt_m_data->getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-                                    data->getPointer(), lower[0], upper[0], lower[1], upper[1], ncomp);
+                                    sqrt_m_data->getPointer(), mlower[0],
+                                    mupper[0], mlower[1], mupper[1],
+                                    data->getPointer(), lower[0], upper[0],
+                                    lower[1], upper[1], ncomp);
 #endif
-#if NDIM==3
-         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                                    sqrt_m_data->getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-                                    data->getPointer(), lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], ncomp);
+#if NDIM == 3
+         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1],
+                                    lower[2], upper[2],
+                                    sqrt_m_data->getPointer(), mlower[0],
+                                    mupper[0], mlower[1], mupper[1], mlower[2],
+                                    mupper[2], data->getPointer(), lower[0],
+                                    upper[0], lower[1], upper[1], lower[2],
+                                    upper[2], ncomp);
 #endif
       }
    }
 }
 
 
-
-void
-QuatFACOps::divideMobilitySqrt(const int id)
+void QuatFACOps::divideMobilitySqrt(const int id)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::ArrayDataNormOpsReal<double> ops;
 #endif
-   
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      boost::shared_ptr<hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
-      hier::PatchLevel::Iterator pi(level->begin());
-      for ( ; pi!=level->end(); pi++ ) {
-         hier::Patch & patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(id) ) );
-         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data ( 
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(d_sqrt_m_id) ) );
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          d_hierarchy->getPatchLevel(ln);
+      hier::PatchLevel::Iterator pi(level->begin());
+      for (; pi != level->end(); pi++) {
+         hier::Patch& patch = **pi;
+
+         boost::shared_ptr<pdat::CellData<double> > data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(id)));
+         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(d_sqrt_m_id)));
          int ncomp = data->getDepth();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-         double nb=ops.maxNorm(data->getArrayData(),patch.getBox());
-         assert( nb==nb );
+         double nb = ops.maxNorm(data->getArrayData(), patch.getBox());
+         assert(nb == nb);
 #endif
 
-         const hier::Box & box = patch.getBox();
+         const hier::Box& box = patch.getBox();
          const hier::Index& lower = box.lower();
          const hier::Index& upper = box.upper();
 
-         const hier::Box & d_gbox = data->getGhostBox();
+         const hier::Box& d_gbox = data->getGhostBox();
          const hier::Index& dlower = d_gbox.lower();
          const hier::Index& dupper = d_gbox.upper();
 
-         const hier::Box & m_gbox = sqrt_m_data->getGhostBox();
+         const hier::Box& m_gbox = sqrt_m_data->getGhostBox();
          const hier::Index& mlower = m_gbox.lower();
          const hier::Index& mupper = m_gbox.upper();
 
-#if NDIM==2
+#if NDIM == 2
          multicomponent_divide2d_(lower[0], upper[0], lower[1], upper[1],
-                                  sqrt_m_data->getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
-                                  data->getPointer(), dlower[0], dupper[0], dlower[1], dupper[1], ncomp);
+                                  sqrt_m_data->getPointer(), mlower[0],
+                                  mupper[0], mlower[1], mupper[1],
+                                  data->getPointer(), dlower[0], dupper[0],
+                                  dlower[1], dupper[1], ncomp);
 #endif
-#if NDIM==3
-         multicomponent_divide3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                                  sqrt_m_data->getPointer(), mlower[0], mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-                                  data->getPointer(), dlower[0], dupper[0], dlower[1], dupper[1], dlower[2], dupper[2], ncomp);
+#if NDIM == 3
+         multicomponent_divide3d_(lower[0], upper[0], lower[1], upper[1],
+                                  lower[2], upper[2], sqrt_m_data->getPointer(),
+                                  mlower[0], mupper[0], mlower[1], mupper[1],
+                                  mlower[2], mupper[2], data->getPointer(),
+                                  dlower[0], dupper[0], dlower[1], dupper[1],
+                                  dlower[2], dupper[2], ncomp);
 #endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-         nb=ops.maxNorm(data->getArrayData(),patch.getBox());
-         assert( nb==nb );
+         nb = ops.maxNorm(data->getArrayData(), patch.getBox());
+         assert(nb == nb);
 #endif
       }
    }
 }
 
 
-
-void
-QuatFACOps::applyProjectionOnLevel(
-   const int    q_id,
-   const int corr_id,
-   const int  err_id,
-   const int      ln )
+void QuatFACOps::applyProjectionOnLevel(const int q_id, const int corr_id,
+                                        const int err_id, const int ln)
 {
-   boost::shared_ptr<hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
    hier::PatchLevel::Iterator pi(level->begin());
-   for ( ; pi!=level->end(); pi++ ) {
-      hier::Patch & patch = **pi;
+   for (; pi != level->end(); pi++) {
+      hier::Patch& patch = **pi;
 
-      boost::shared_ptr<pdat::CellData<double> > q_data ( 
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(q_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > corr_data ( 
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(corr_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > err_data ( 
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(patch.getPatchData(err_id) ) );
+      boost::shared_ptr<pdat::CellData<double> > q_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(q_id)));
+      boost::shared_ptr<pdat::CellData<double> > corr_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(corr_id)));
+      boost::shared_ptr<pdat::CellData<double> > err_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(err_id)));
 
-      const hier::Box & box = patch.getBox();
+      const hier::Box& box = patch.getBox();
       const hier::Index& lower = box.lower();
       const hier::Index& upper = box.upper();
 
-      const hier::Box & q_gbox = q_data->getGhostBox();
+      const hier::Box& q_gbox = q_data->getGhostBox();
       const hier::Index& qlower = q_gbox.lower();
       const hier::Index& qupper = q_gbox.upper();
-    
-      const hier::Box & c_gbox = corr_data->getGhostBox();
+
+      const hier::Box& c_gbox = corr_data->getGhostBox();
       const hier::Index& clower = c_gbox.lower();
       const hier::Index& cupper = c_gbox.upper();
-    
-      const hier::Box & e_gbox = err_data->getGhostBox();
+
+      const hier::Box& e_gbox = err_data->getGhostBox();
       const hier::Index& elower = e_gbox.lower();
       const hier::Index& eupper = e_gbox.upper();
 
-#if NDIM==2
-      project2d_(
-         lower[0], upper[0], lower[1], upper[1],
-         d_qlen,
-         q_data->getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-         corr_data->getPointer(), clower[0], cupper[0], clower[1], cupper[1],
-         err_data->getPointer(), elower[0], eupper[0], elower[1], eupper[1]);
+#if NDIM == 2
+      project2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                 q_data->getPointer(), qlower[0], qupper[0], qlower[1],
+                 qupper[1], corr_data->getPointer(), clower[0], cupper[0],
+                 clower[1], cupper[1], err_data->getPointer(), elower[0],
+                 eupper[0], elower[1], eupper[1]);
 #endif
-#if NDIM==3
-      project3d_(
-         lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-         d_qlen,
-         q_data->getPointer(), qlower[0], qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-         corr_data->getPointer(), clower[0], cupper[0], clower[1], cupper[1], clower[2], cupper[2],
-         err_data->getPointer(), elower[0], eupper[0], elower[1], eupper[1], elower[2], eupper[2]);
+#if NDIM == 3
+      project3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                 d_qlen, q_data->getPointer(), qlower[0], qupper[0], qlower[1],
+                 qupper[1], qlower[2], qupper[2], corr_data->getPointer(),
+                 clower[0], cupper[0], clower[1], cupper[1], clower[2],
+                 cupper[2], err_data->getPointer(), elower[0], eupper[0],
+                 elower[1], eupper[1], elower[2], eupper[2]);
 #endif
-
    }
 }
 
@@ -2631,153 +2643,103 @@ QuatFACOps::applyProjectionOnLevel(
 *******************************************************************
 */
 
-void
-QuatFACOps::xeqScheduleProlongation(
-   int dst_id,
-   int src_id,
-   int scr_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleProlongation(int dst_id, int src_id, int scr_id,
+                                         int dest_ln)
 {
-   //tbox::plog<<"xeqScheduleProlongation for component "<<component<<", dest_ln="<<dest_ln<<endl;
+   // tbox::plog<<"xeqScheduleProlongation for component "<<component<<",
+   // dest_ln="<<dest_ln<<endl;
 
-   if ( ! d_prolongation_refine_schedules[dest_ln] ) {
+   if (!d_prolongation_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
 
-   refiner.
-      registerRefine( dst_id ,
-                      src_id ,
-                      scr_id ,
-                      d_prolongation_refine_operator );
+   refiner.registerRefine(dst_id, src_id, scr_id,
+                          d_prolongation_refine_operator);
    refiner.resetSchedule(d_prolongation_refine_schedules[dest_ln]);
    d_prolongation_refine_schedules[dest_ln]->fillData(0.0);
-   d_prolongation_refine_algorithm->
-      resetSchedule(d_prolongation_refine_schedules[dest_ln]);
+   d_prolongation_refine_algorithm->resetSchedule(
+       d_prolongation_refine_schedules[dest_ln]);
 }
 
 
-
-void
-QuatFACOps::xeqScheduleURestriction(
-   int dst_id,
-   int src_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleURestriction(int dst_id, int src_id, int dest_ln)
 {
-   if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
+   if (!d_urestriction_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_urestriction_coarsen_operator );
-   coarsener.
-      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_urestriction_coarsen_operator);
+   coarsener.resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
    d_urestriction_coarsen_schedules[dest_ln]->coarsenData();
-   d_urestriction_coarsen_algorithm->
-      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
+   d_urestriction_coarsen_algorithm->resetSchedule(
+       d_urestriction_coarsen_schedules[dest_ln]);
 }
 
 
-
-void
-QuatFACOps::xeqScheduleRRestriction(
-   int dst_id,
-   int src_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleRRestriction(int dst_id, int src_id, int dest_ln)
 {
-   if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
+   if (!d_rrestriction_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_rrestriction_coarsen_operator );
-   coarsener.
-      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_rrestriction_coarsen_operator);
+   coarsener.resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
    d_rrestriction_coarsen_schedules[dest_ln]->coarsenData();
-   d_rrestriction_coarsen_algorithm->
-      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
+   d_rrestriction_coarsen_algorithm->resetSchedule(
+       d_rrestriction_coarsen_schedules[dest_ln]);
 }
 
 
-
-void
-QuatFACOps::xeqScheduleFluxCoarsen(
-   int dst_id,
-   int src_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleFluxCoarsen(int dst_id, int src_id, int dest_ln)
 {
-   if ( ! d_flux_coarsen_schedules[dest_ln] ) {
+   if (!d_flux_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_flux_coarsen_operator );
-   coarsener.
-      resetSchedule(d_flux_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_flux_coarsen_operator);
+   coarsener.resetSchedule(d_flux_coarsen_schedules[dest_ln]);
    d_flux_coarsen_schedules[dest_ln]->coarsenData();
-   d_flux_coarsen_algorithm->
-      resetSchedule(d_flux_coarsen_schedules[dest_ln]);
+   d_flux_coarsen_algorithm->resetSchedule(d_flux_coarsen_schedules[dest_ln]);
 }
 
 
-
-void
-QuatFACOps::xeqScheduleGhostFill(
-   int dst_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleGhostFill(int dst_id, int dest_ln)
 {
-   //tbox::plog<<"QuatFACOps::xeqScheduleGhostFill() for dest_ln="<<dest_ln<<endl;
-   if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
+   // tbox::plog<<"QuatFACOps::xeqScheduleGhostFill() for
+   // dest_ln="<<dest_ln<<endl;
+   if (!d_ghostfill_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
 
-   refiner.
-      registerRefine( dst_id ,
-                      dst_id ,
-                      dst_id ,
-                      d_ghostfill_refine_operator );
-   refiner.
-      resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
+   refiner.registerRefine(dst_id, dst_id, dst_id, d_ghostfill_refine_operator);
+   refiner.resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
    d_ghostfill_refine_schedules[dest_ln]->fillData(0.0);
-   d_ghostfill_refine_algorithm->
-      resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
+   d_ghostfill_refine_algorithm->resetSchedule(
+       d_ghostfill_refine_schedules[dest_ln]);
 }
 
 
 /*
  * Function called even with single level
  */
-void
-QuatFACOps::xeqScheduleGhostFillNoCoarse(
-   int dst_id,
-   int dest_ln )
+void QuatFACOps::xeqScheduleGhostFillNoCoarse(int dst_id, int dest_ln)
 {
-   //tbox::plog<<"QuatFACOps::xeqScheduleGhostFillNoCoarse()..."<<endl;
-   if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
+   // tbox::plog<<"QuatFACOps::xeqScheduleGhostFillNoCoarse()..."<<endl;
+   if (!d_ghostfill_nocoarse_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
-   assert( d_ghostfill_nocoarse_refine_operator );
+   assert(d_ghostfill_nocoarse_refine_operator);
 
    xfer::RefineAlgorithm refiner;
-   refiner.
-      registerRefine( dst_id ,
-                      dst_id ,
-                      dst_id ,
-                      d_ghostfill_nocoarse_refine_operator );
-   refiner.
-      resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
+   refiner.registerRefine(dst_id, dst_id, dst_id,
+                          d_ghostfill_nocoarse_refine_operator);
+   refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
    d_ghostfill_nocoarse_refine_schedules[dest_ln]->fillData(0.0);
-   d_ghostfill_nocoarse_refine_algorithm->
-      resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
+   d_ghostfill_nocoarse_refine_algorithm->resetSchedule(
+       d_ghostfill_nocoarse_refine_schedules[dest_ln]);
 }
-
 
 
 /*
@@ -2788,8 +2750,7 @@ QuatFACOps::xeqScheduleGhostFillNoCoarse(
 *******************************************************************
 */
 
-void
-QuatFACOps::freeVariables()
+void QuatFACOps::freeVariables()
 {
    s_cell_scratch_var.reset();
    s_flux_scratch_var.reset();
@@ -2800,20 +2761,16 @@ QuatFACOps::freeVariables()
 }
 
 
-
- int
-QuatFACOps::GetNumCellFacesInBox(
-   const int * lower,
-   const int * upper,
-   const int     dim ) const
+int QuatFACOps::GetNumCellFacesInBox(const int* lower, const int* upper,
+                                     const int dim) const
 {
-  // Return the number of cell faces in the box (lower, upper)
+   // Return the number of cell faces in the box (lower, upper)
 
-  int num_cell_faces = 1;
-  for (int i=0; i<NDIM; i++) {
-    int extra = (i==dim)? 1: 0;
-    num_cell_faces *= (upper[i] - lower[i] + 1 + extra);
-  }
+   int num_cell_faces = 1;
+   for (int i = 0; i < NDIM; i++) {
+      int extra = (i == dim) ? 1 : 0;
+      num_cell_faces *= (upper[i] - lower[i] + 1 + extra);
+   }
 
-  return num_cell_faces;
+   return num_cell_faces;
 }

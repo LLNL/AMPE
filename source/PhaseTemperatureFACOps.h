@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -42,44 +42,32 @@
 
 using namespace SAMRAI;
 
-class PhaseTemperatureFACOps
-   : public EllipticFACOps
+class PhaseTemperatureFACOps : public EllipticFACOps
 {
 
-public:
+ public:
+   PhaseTemperatureFACOps(const std::string& object_name,
+                          const boost::shared_ptr<tbox::Database> database =
+                              boost::shared_ptr<tbox::Database>());
 
-   PhaseTemperatureFACOps(
-      const std::string &object_name ,
-      const boost::shared_ptr<tbox::Database> database=
-         boost::shared_ptr<tbox::Database>() );
+   void setOperatorCoefficients(const int phase_id, const int mobility_id,
+                                const double epsilon_phase,
+                                const double latent_heat,
+                                const double phase_well_scale,
+                                const std::string phase_well_func_type);
 
-   void setOperatorCoefficients(
-      const int phase_id,
-      const int mobility_id,
-      const double epsilon_phase, 
-      const double latent_heat,
-      const double phase_well_scale,
-      const std::string phase_well_func_type);
+   void multiplyDTDPhiBlock(const int, const int);
 
-   void multiplyDTDPhiBlock(const int,const int);
-
-private:
-
-   void setC(
-      const int phi_id,
-      const double latent_heat,
-      const double phi_well_scale,
-      const std::string phi_well_func_type);
+ private:
+   void setC(const int phi_id, const double latent_heat,
+             const double phi_well_scale, const std::string phi_well_func_type);
 
    void setCOnPatchForPreconditionODE(
-      boost::shared_ptr< pdat::CellData<double> > cd_phi,
-      boost::shared_ptr< pdat::CellData<double> > cd_m,
-      boost::shared_ptr< pdat::CellData<double> > cd_c,
-      const double latent_heat,
-      const double phi_well_scale,
-      const char* phi_well_func_type,
-      const hier::Box& pbox );
-
+       boost::shared_ptr<pdat::CellData<double> > cd_phi,
+       boost::shared_ptr<pdat::CellData<double> > cd_m,
+       boost::shared_ptr<pdat::CellData<double> > cd_c,
+       const double latent_heat, const double phi_well_scale,
+       const char* phi_well_func_type, const hier::Box& pbox);
 };
 
-#endif // included_PhaseTemperatureFACOps
+#endif  // included_PhaseTemperatureFACOps

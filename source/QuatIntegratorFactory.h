@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef QUATINTEGRATORFACTORY_H
 #define QUATINTEGRATORFACTORY_H
 
@@ -41,89 +41,63 @@
 
 class QuatIntegratorFactory
 {
-public:
-   static QuatIntegrator* create(const std::string integrator_name,
-               QuatModelParameters& model_parameters,
-               QuatModel* quat_model,
-               boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
-               const int qlen,
-               const int ncompositions,
-               boost::shared_ptr<tbox::Database> input_db,
-               const bool use_warm_start,
-               const bool symmetry_aware,
-               const bool all_periodic)
+ public:
+   static QuatIntegrator* create(
+       const std::string integrator_name, QuatModelParameters& model_parameters,
+       QuatModel* quat_model,
+       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+       const int qlen, const int ncompositions,
+       boost::shared_ptr<tbox::Database> input_db, const bool use_warm_start,
+       const bool symmetry_aware, const bool all_periodic)
    {
       hier::VariableDatabase* variable_db =
-         hier::VariableDatabase::getDatabase();
+          hier::VariableDatabase::getDatabase();
 
       boost::shared_ptr<hier::VariableContext> current =
-         variable_db->getContext( "CURRENT" );
+          variable_db->getContext("CURRENT");
       boost::shared_ptr<hier::VariableContext> scratch =
-         variable_db->getContext( "SCRATCH" );
-      
-      QuatIntegrator* integrator=nullptr;
-      
-      boost::shared_ptr<tbox::Database> integrator_db = 
-         input_db->getDatabase( "Integrator" );
+          variable_db->getContext("SCRATCH");
+
+      QuatIntegrator* integrator = nullptr;
+
+      boost::shared_ptr<tbox::Database> integrator_db =
+          input_db->getDatabase("Integrator");
 
       boost::shared_ptr<tbox::Database> model_db =
-         input_db->getDatabase("ModelParameters");
+          input_db->getDatabase("ModelParameters");
       boost::shared_ptr<tbox::Database> bc_db;
-      if ( !all_periodic ) {
-         bc_db = model_db->getDatabase( "BoundaryConditions" );
+      if (!all_periodic) {
+         bc_db = model_db->getDatabase("BoundaryConditions");
       }
 
-      if( integrator_name=="quatonly" )
-      {
-         integrator=new QuatIntegrator(
-            "QuatOnlyIntegrator",
-            model_parameters,
-            quat_model,
-            current, scratch,
-            qlen,
-            0, // 0 composition fields
-            input_db,
-            grid_geometry,
-            bc_db,
-            false, // without phase
-            false, // without concentration
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            symmetry_aware,
-            false );
+      if (integrator_name == "quatonly") {
+         integrator = new QuatIntegrator("QuatOnlyIntegrator", model_parameters,
+                                         quat_model, current, scratch, qlen,
+                                         0,  // 0 composition fields
+                                         input_db, grid_geometry, bc_db,
+                                         false,  // without phase
+                                         false,  // without concentration
+                                         false, false, false, false, false,
+                                         false, false, symmetry_aware, false);
+      } else {
+         integrator = new QuatIntegrator(
+             "Integrator", model_parameters, quat_model, current, scratch, qlen,
+             ncompositions, input_db, grid_geometry, bc_db,
+             model_parameters.with_phase(),
+             model_parameters.with_concentration(),
+             model_parameters.with_third_phase(),
+             model_parameters.with_heat_equation(),
+             model_parameters.with_steady_temperature(),
+             model_parameters.with_gradT(),
+             model_parameters.with_antitrapping(),
+             model_parameters.with_partition_coeff(), use_warm_start,
+             symmetry_aware,
+             model_parameters
+                 .use_diffs_to_compute_flux());  // use_gradq_for_flux
       }
-      else
-      {
-            integrator=new QuatIntegrator(
-               "Integrator",
-               model_parameters,
-               quat_model,
-               current, scratch,
-               qlen,
-               ncompositions,
-               input_db,
-               grid_geometry,
-               bc_db,
-               model_parameters.with_phase(),
-               model_parameters.with_concentration(),
-               model_parameters.with_third_phase(),
-               model_parameters.with_heat_equation(),
-               model_parameters.with_steady_temperature(),
-               model_parameters.with_gradT(),
-               model_parameters.with_antitrapping(),
-               model_parameters.with_partition_coeff(),
-               use_warm_start,
-               symmetry_aware,
-                   model_parameters.use_diffs_to_compute_flux() ); // use_gradq_for_flux
-      }
-      
+
       return integrator;
-    }
+   }
 };
 
 #endif

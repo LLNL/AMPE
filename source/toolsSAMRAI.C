@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -45,90 +45,82 @@
 using namespace SAMRAI;
 
 
-void copyDepthSideData(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int dst_id, const int dst_depth,
-   const int src_id, const int src_depth)
+void copyDepthSideData(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                       const int dst_id, const int dst_depth, const int src_id,
+                       const int src_depth)
 {
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level(
-         hierarchy->getPatchLevel(ln));
-      for (hier::PatchLevel::iterator ip(level->begin());
-           ip != level->end(); ++ip) {
+      boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
+      for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
+           ++ip) {
          const boost::shared_ptr<hier::Patch>& p = *ip;
 
-         boost::shared_ptr< pdat::SideData<double> > dst (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               p->getPatchData( dst_id ) ) );
-         TBOX_ASSERT( dst );
+         boost::shared_ptr<pdat::SideData<double> > dst(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 p->getPatchData(dst_id)));
+         TBOX_ASSERT(dst);
 
-         boost::shared_ptr< pdat::SideData<double> > src (
-            BOOST_CAST< pdat::SideData<double>, hier::PatchData>(
-               p->getPatchData( src_id) ) );
-         TBOX_ASSERT( src );
+         boost::shared_ptr<pdat::SideData<double> > src(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 p->getPatchData(src_id)));
+         TBOX_ASSERT(src);
 
-         dst->copyDepth(dst_depth,*src,src_depth);
+         dst->copyDepth(dst_depth, *src, src_depth);
       }
    }
 }
 
-void copyDepthCellData(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int dst_id, const int dst_depth,
-   const int src_id, const int src_depth)
+void copyDepthCellData(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                       const int dst_id, const int dst_depth, const int src_id,
+                       const int src_depth)
 {
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level(
-         hierarchy->getPatchLevel(ln));
-      for (hier::PatchLevel::iterator ip(level->begin());
-           ip != level->end(); ++ip) {
+      boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
+      for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
+           ++ip) {
          const boost::shared_ptr<hier::Patch>& p = *ip;
 
-         boost::shared_ptr< pdat::CellData<double> > dst (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-               p->getPatchData( dst_id ) ) );
-         TBOX_ASSERT( dst );
+         boost::shared_ptr<pdat::CellData<double> > dst(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 p->getPatchData(dst_id)));
+         TBOX_ASSERT(dst);
 
-         boost::shared_ptr< pdat::CellData<double> > src (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-               p->getPatchData( src_id) ) );
-         TBOX_ASSERT( src );
+         boost::shared_ptr<pdat::CellData<double> > src(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 p->getPatchData(src_id)));
+         TBOX_ASSERT(src);
 
-         dst->copyDepth(dst_depth,*src,src_depth);
-
+         dst->copyDepth(dst_depth, *src, src_depth);
       }
    }
 }
 
-int checkForNans(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int data_id)
+int checkForNans(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                 const int data_id)
 {
 #ifndef NDEBUG
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-   const double norm_data = mathops.L1Norm( data_id );
+   const double norm_data = mathops.L1Norm(data_id);
 
-   if( norm_data!=norm_data )return 1;
+   if (norm_data != norm_data) return 1;
 #else
-   (void) hierarchy;
-   (void) data_id;
+   (void)hierarchy;
+   (void)data_id;
 #endif
    return 0;
 }
 
 int checkSideDataForNans(
-   const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-   const int data_id)
+    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy, const int data_id)
 {
 #ifndef NDEBUG
    math::HierarchySideDataOpsReal<double> mathops(hierarchy);
-   const double norm_data = mathops.L1Norm( data_id );
+   const double norm_data = mathops.L1Norm(data_id);
 
-   if( norm_data!=norm_data )return 1;
+   if (norm_data != norm_data) return 1;
 #else
-   (void) hierarchy;
-   (void) data_id;
+   (void)hierarchy;
+   (void)data_id;
 #endif
    return 0;
 }
-

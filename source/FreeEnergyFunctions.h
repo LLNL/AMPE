@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,9 +32,9 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_FreeEnergyFunctions
-#define included_FreeEnergyFunctions 
+#define included_FreeEnergyFunctions
 
 #include "Phases.h"
 
@@ -43,35 +43,29 @@
 
 class FreeEnergyFunctions
 {
-public:
+ public:
    FreeEnergyFunctions(){};
 
    virtual ~FreeEnergyFunctions(){};
-   
-   virtual void energyVsPhiAndC(const double temperature, 
-                                const double* const ceq,
-                                const bool found_ceq,
+
+   virtual void energyVsPhiAndC(const double temperature,
+                                const double* const ceq, const bool found_ceq,
                                 const double phi_well_scale,
                                 const std::string& phi_well_type,
-                                const int npts_phi=51,
-                                const int npts_c=50)=0;
-   virtual void printEnergyVsComposition(const double temperature, 
-                                         const int npts=100 )=0;
+                                const int npts_phi = 51,
+                                const int npts_c = 50) = 0;
+   virtual void printEnergyVsComposition(const double temperature,
+                                         const int npts = 100) = 0;
 
    virtual void computeSecondDerivativeFreeEnergy(
-      const double temp,
-      const double* const conc,
-      const PhaseIndex pi,
-      std::vector<double>& d2fdc2)=0;
+       const double temp, const double* const conc, const PhaseIndex pi,
+       std::vector<double>& d2fdc2) = 0;
 
 
-   virtual bool computeCeqT(
-      const double temperature,
-      const PhaseIndex pi0, const PhaseIndex pi1,
-      double* ceq,
-      const int maxits,
-      const bool verbose=false )
-   { 
+   virtual bool computeCeqT(const double temperature, const PhaseIndex pi0,
+                            const PhaseIndex pi1, double* ceq, const int maxits,
+                            const bool verbose = false)
+   {
       (void)temperature;
       (void)pi0;
       (void)pi1;
@@ -79,9 +73,8 @@ public:
       (void)maxits;
       (void)verbose;
 
-      return false; 
+      return false;
    };
 };
 
 #endif
-

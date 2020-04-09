@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "SAMRAI/tbox/InputManager.h"
 
 #include "SAMRAI/pdat/CellData.h"
@@ -55,35 +55,25 @@ using namespace std;
 //=======================================================================
 
 HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
-   boost::shared_ptr<tbox::Database> input_db,
-   const EnergyInterpolationType energy_interp_func_type,
-   const double vml,
-   const double vma,
-   const double vmb,
-   const double D_liquid,
-   const double D_solid_A,
-   const double D_solid_B,
-   const double Q0_liquid,
-   const double Q0_solid_A,
-   const double Q0_solid_B,
-   const int conc_l_id,
-   const int conc_a_id,
-   const int conc_b_id,
-   const bool with_third_phase
-   )
+    boost::shared_ptr<tbox::Database> input_db,
+    const EnergyInterpolationType energy_interp_func_type, const double vml,
+    const double vma, const double vmb, const double D_liquid,
+    const double D_solid_A, const double D_solid_B, const double Q0_liquid,
+    const double Q0_solid_A, const double Q0_solid_B, const int conc_l_id,
+    const int conc_a_id, const int conc_b_id, const bool with_third_phase)
 {
-   assert( D_liquid >= 0. );
-   assert( Q0_liquid >= 0. );
-   assert( Q0_solid_A >= 0. );
-   assert( D_solid_A >= 0. );
+   assert(D_liquid >= 0.);
+   assert(Q0_liquid >= 0.);
+   assert(Q0_solid_A >= 0.);
+   assert(D_solid_A >= 0.);
 
-   assert( conc_l_id>= 0 );
-   assert( conc_a_id>= 0 );
+   assert(conc_l_id >= 0);
+   assert(conc_a_id >= 0);
 
    d_with_third_phase = with_third_phase;
-   if ( d_with_third_phase ) {
-      assert( Q0_solid_B >= 0. );
-      assert( D_solid_B >= 0. );
+   if (d_with_third_phase) {
+      assert(Q0_solid_B >= 0.);
+      assert(D_solid_B >= 0.);
    }
 
    d_energy_interp_func_type = energy_interp_func_type;
@@ -91,50 +81,47 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    d_vm_L = vml;
    d_vm_A = vma;
    d_vm_B = vmb;
-   
+
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
    // j/mol -> pj/mumcube = 1.e-6 / d_vm;
 
    d_energy_conv_factor_L = 1.e-6 / d_vm_L;
    d_energy_conv_factor_A = 1.e-6 / d_vm_A;
-   if ( d_with_third_phase ) 
-      d_energy_conv_factor_B = 1.e-6 / d_vm_B;
+   if (d_with_third_phase) d_energy_conv_factor_B = 1.e-6 / d_vm_B;
 
    tbox::plog << "HBSMFreeEnergyStrategy:" << endl;
    tbox::plog << "Molar volume L =" << d_vm_L << endl;
    tbox::plog << "Molar volume A =" << d_vm_A << endl;
-   if ( d_with_third_phase )
-      tbox::plog << "Molar volume B =" << d_vm_B << endl;
-   //tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
-   
+   if (d_with_third_phase) tbox::plog << "Molar volume B =" << d_vm_B << endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+
    d_D_liquid = D_liquid;
    d_D_solid_A = D_solid_A;
    d_D_solid_B = D_solid_B;
 
-   d_Q0_liquid  = Q0_liquid ;
+   d_Q0_liquid = Q0_liquid;
    d_Q0_solid_A = Q0_solid_A;
    d_Q0_solid_B = Q0_solid_B;
 
-   d_A_liquid = input_db->getDouble( "A_liquid" );
-   d_Ceq_liquid = input_db->getDouble( "Ceq_liquid" );
+   d_A_liquid = input_db->getDouble("A_liquid");
+   d_Ceq_liquid = input_db->getDouble("Ceq_liquid");
 
-   if ( ! d_with_third_phase ) {
-      d_A_solid_A = input_db->getDouble( "A_solid" );
-      d_Ceq_solid_A = input_db->getDouble( "Ceq_solid" );
+   if (!d_with_third_phase) {
+      d_A_solid_A = input_db->getDouble("A_solid");
+      d_Ceq_solid_A = input_db->getDouble("Ceq_solid");
       d_A_solid_B = 1.0;
       d_Ceq_solid_B = 1.0;
-   }
-   else {
-      d_A_solid_A = input_db->getDouble( "A_solid_A" );
-      d_A_solid_B = input_db->getDouble( "A_solid_B" );
-      d_Ceq_solid_A = input_db->getDouble( "Ceq_solid_A" );
-      d_Ceq_solid_B = input_db->getDouble( "Ceq_solid_B" );
+   } else {
+      d_A_solid_A = input_db->getDouble("A_solid_A");
+      d_A_solid_B = input_db->getDouble("A_solid_B");
+      d_Ceq_solid_A = input_db->getDouble("Ceq_solid_A");
+      d_Ceq_solid_B = input_db->getDouble("Ceq_solid_B");
    }
 
    // print database just read
    tbox::plog << "HBSM database..." << endl;
-   input_db->printClassData( tbox::plog );
+   input_db->printClassData(tbox::plog);
 
    d_conc_l_id = conc_l_id;
    d_conc_a_id = conc_a_id;
@@ -144,78 +131,73 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy, 
-   const int temperature_id,
-   const int fl_id,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fl_id, const bool gp)
 {
-   assert( fl_id >= 0 );
-   assert( temperature_id >= 0 );
-   assert( d_conc_l_id >= 0 );
+   assert(fl_id >= 0);
+   assert(temperature_id >= 0);
+   assert(d_conc_l_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeFreeEnergyPrivate(*patch, temperature_id,
-            d_A_liquid, d_Ceq_liquid,fl_id, d_conc_l_id,
-            d_energy_conv_factor_L);
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeFreeEnergyPrivate(*patch, temperature_id, d_A_liquid,
+                                  d_Ceq_liquid, fl_id, d_conc_l_id,
+                                  d_energy_conv_factor_L);
       }
    }
-
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeDerivFreeEnergyLiquid(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy, 
-   const int temperature_id,
-   const int fl_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fl_id)
 {
-   assert( fl_id >= 0 );
-   assert( temperature_id >= 0 );
- 
-   assert( d_conc_l_id >= 0 );
+   assert(fl_id >= 0);
+   assert(temperature_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeDerivFreeEnergyPrivate(*patch, temperature_id,
-            d_A_liquid, d_Ceq_liquid,fl_id, d_conc_l_id, d_energy_conv_factor_L);
+   assert(d_conc_l_id >= 0);
+
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_liquid,
+                                       d_Ceq_liquid, fl_id, d_conc_l_id,
+                                       d_energy_conv_factor_L);
       }
    }
-
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fs_id, const bool gp)
 {
-   assert( fs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(fs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_a_id >= 0 );
+   assert(d_conc_a_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeFreeEnergyPrivate(*patch, temperature_id,
-            d_A_solid_A, d_Ceq_solid_A,fs_id, d_conc_a_id, d_energy_conv_factor_A);
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeFreeEnergyPrivate(*patch, temperature_id, d_A_solid_A,
+                                  d_Ceq_solid_A, fs_id, d_conc_a_id,
+                                  d_energy_conv_factor_A);
       }
    }
 }
@@ -223,24 +205,24 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeDerivFreeEnergySolidA(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int dfs_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int dfs_id)
 {
-   assert( dfs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(dfs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_a_id >= 0 );
+   assert(d_conc_a_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeDerivFreeEnergyPrivate(*patch, temperature_id,
-            d_A_solid_A, d_Ceq_solid_A,dfs_id, d_conc_a_id, d_energy_conv_factor_A);
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_solid_A,
+                                       d_Ceq_solid_A, dfs_id, d_conc_a_id,
+                                       d_energy_conv_factor_A);
       }
    }
 }
@@ -248,25 +230,24 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergySolidA(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fs_id, const bool gp)
 {
-   assert( fs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(fs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_a_id >= 0 );
+   assert(d_conc_a_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeFreeEnergyPrivate(*patch, temperature_id,
-            d_A_solid_B, d_Ceq_solid_B, fs_id, d_conc_a_id, d_energy_conv_factor_B);
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeFreeEnergyPrivate(*patch, temperature_id, d_A_solid_B,
+                                  d_Ceq_solid_B, fs_id, d_conc_a_id,
+                                  d_energy_conv_factor_B);
       }
    }
 }
@@ -274,100 +255,79 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeDerivFreeEnergySolidB(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int dfs_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int dfs_id)
 {
-   assert( dfs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(dfs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_a_id >= 0 );
+   assert(d_conc_a_id >= 0);
 
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-      
-         computeDerivFreeEnergyPrivate(*patch, temperature_id,
-            d_A_solid_B, d_Ceq_solid_B,dfs_id, d_conc_a_id, d_energy_conv_factor_B);
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
+         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_solid_B,
+                                       d_Ceq_solid_B, dfs_id, d_conc_a_id,
+                                       d_energy_conv_factor_B);
       }
    }
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int fl_id,
-   const bool gp )
+void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fl_id,
+                                                     const bool gp)
 {
-   assert( fl_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(fl_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_l_id >= 0 );
+   assert(d_conc_l_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      d_A_liquid,
-      d_Ceq_liquid,
-      fl_id,
-      d_conc_l_id,
-      d_energy_conv_factor_L );
+   computeFreeEnergyPrivate(patch, temperature_id, d_A_liquid, d_Ceq_liquid,
+                            fl_id, d_conc_l_id, d_energy_conv_factor_L);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fs_id,
+                                                     const bool gp)
 {
-   assert( fs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(fs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_a_id >= 0 );
+   assert(d_conc_a_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      d_A_solid_A,
-      d_Ceq_solid_A,
-      fs_id,
-      d_conc_a_id,
-      d_energy_conv_factor_A );
+   computeFreeEnergyPrivate(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A,
+                            fs_id, d_conc_a_id, d_energy_conv_factor_A);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fs_id,
+                                                     const bool gp)
 {
-   assert( fs_id >= 0 );
-   assert( temperature_id >= 0. );
+   assert(fs_id >= 0);
+   assert(temperature_id >= 0.);
 
-   assert( d_conc_b_id >= 0 );
+   assert(d_conc_b_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      d_A_solid_B,
-      d_Ceq_solid_B,
-      fs_id,
-      d_conc_b_id,
-      d_energy_conv_factor_B );
+   computeFreeEnergyPrivate(patch, temperature_id, d_A_solid_B, d_Ceq_solid_B,
+                            fs_id, d_conc_b_id, d_energy_conv_factor_B);
 }
 
 //=======================================================================
 
-//double HBSMFreeEnergyStrategy::computeValFreeEnergyLiquid(
+// double HBSMFreeEnergyStrategy::computeValFreeEnergyLiquid(
 //   const double temperature,
 //   const double conc,
 //   const bool gp )
@@ -378,7 +338,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
 //      d_energy_conv_factor_L, gp );
 //}
 //
-//double HBSMFreeEnergyStrategy::computeValFreeEnergySolidA(
+// double HBSMFreeEnergyStrategy::computeValFreeEnergySolidA(
 //   const double temperature,
 //   const double conc,
 //   const bool gp )
@@ -389,7 +349,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
 //      d_energy_conv_factor_A, gp );
 //}
 //
-//double HBSMFreeEnergyStrategy::computeValFreeEnergySolidB(
+// double HBSMFreeEnergyStrategy::computeValFreeEnergySolidB(
 //   const double temperature,
 //   const double conc,
 //   const bool gp )
@@ -405,12 +365,8 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
 // \/\/ No temperature dependence yet
 
 double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
-   const double temperature,
-   const double conc,
-   const double A,
-   const double Ceq,
-   const double energy_factor,
-   const bool gp )const
+    const double temperature, const double conc, const double A,
+    const double Ceq, const double energy_factor, const bool gp) const
 {
    (void)temperature;
 
@@ -420,7 +376,10 @@ double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
    fe *= energy_factor;
 
    // subtract -mu*c to get grand potential
-   if( gp )fe -= computeDerivFreeEnergyPrivate(temperature,conc,A,Ceq,energy_factor)*conc;
+   if (gp)
+      fe -= computeDerivFreeEnergyPrivate(temperature, conc, A, Ceq,
+                                          energy_factor) *
+            conc;
 
    return fe;
 }
@@ -428,15 +387,12 @@ double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
 //=======================================================================
 
 double HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
-   const double temperature,
-   const double conc,
-   const double A,
-   const double Ceq,
-   const double energy_factor )const
+    const double temperature, const double conc, const double A,
+    const double Ceq, const double energy_factor) const
 {
    (void)temperature;
 
-   double mu = 2.*A*( conc-Ceq );
+   double mu = 2. * A * (conc - Ceq);
 
    return mu * energy_factor;
 }
@@ -444,44 +400,37 @@ double HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const double A,
-   const double Ceq,
-   const int f_id,
-   const int conc_i_id,
-   const double energy_factor )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const double A, const double Ceq, const int f_id,
+    const int conc_i_id, const double energy_factor)
 {
-   assert( temperature_id >= 0 );
-   assert( f_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for ( hier::PatchLevel::Iterator ip(level->begin()); ip!=level->end(); ip++ ) {
-         boost::shared_ptr<hier::Patch > patch = *ip;
-         
+   assert(temperature_id >= 0);
+   assert(f_id >= 0);
+   assert(conc_i_id >= 0);
+
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
          const hier::Box& pbox = patch->getBox();
- 
-         boost::shared_ptr< pdat::CellData<double> > temperature (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( temperature_id) ) );
- 
-         boost::shared_ptr< pdat::CellData<double> > f (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( f_id) ) );
-         
-         boost::shared_ptr< pdat::CellData<double> > c_i (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( conc_i_id) ) );
-         
-         computeFreeEnergyPrivatePatch(
-            pbox,
-            temperature,
-            A,
-            Ceq,
-            f,
-            c_i, energy_factor );
-         
+
+         boost::shared_ptr<pdat::CellData<double> > temperature(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(temperature_id)));
+
+         boost::shared_ptr<pdat::CellData<double> > f(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(f_id)));
+
+         boost::shared_ptr<pdat::CellData<double> > c_i(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(conc_i_id)));
+
+         computeFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, f, c_i,
+                                       energy_factor);
       }
    }
 }
@@ -489,88 +438,74 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
-   hier::Patch& patch,
-   const int temperature_id,
-   const double A,
-   const double Ceq,
-   const int f_id,
-   const int conc_i_id,
-   const double energy_factor )
+    hier::Patch& patch, const int temperature_id, const double A,
+    const double Ceq, const int f_id, const int conc_i_id,
+    const double energy_factor)
 {
-   assert( temperature_id >= 0 );
-   assert( f_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+   assert(temperature_id >= 0);
+   assert(f_id >= 0);
+   assert(conc_i_id >= 0);
+
    const hier::Box& pbox = patch.getBox();
- 
-   boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
- 
-   boost::shared_ptr< pdat::CellData<double> > f (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_id) ) );
-   
-   boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( conc_i_id) ) );
-   
-   computeFreeEnergyPrivatePatch(
-      pbox,
-      temperature,
-      A,
-      Ceq,
-      f,
-      c_i, energy_factor );
+
+   boost::shared_ptr<pdat::CellData<double> > temperature(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > f(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > c_i(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(conc_i_id)));
+
+   computeFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, f, c_i,
+                                 energy_factor);
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
-   hier::Patch& patch,
-   const int temperature_id,
-   const double A,
-   const double Ceq,
-   const int df_id,
-   const int conc_i_id,
-   const double energy_factor )
+    hier::Patch& patch, const int temperature_id, const double A,
+    const double Ceq, const int df_id, const int conc_i_id,
+    const double energy_factor)
 {
-   assert( temperature_id >= 0 );
-   assert( df_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+   assert(temperature_id >= 0);
+   assert(df_id >= 0);
+   assert(conc_i_id >= 0);
+
    const hier::Box& pbox = patch.getBox();
- 
-   boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
- 
-   boost::shared_ptr< pdat::CellData<double> > df (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( df_id) ) );
-   
-   boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( conc_i_id) ) );
-   
-   computeDerivFreeEnergyPrivatePatch(
-      pbox,
-      temperature,
-      A,
-      Ceq,
-      df,
-      c_i, energy_factor );
+
+   boost::shared_ptr<pdat::CellData<double> > temperature(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > df(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(df_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > c_i(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(conc_i_id)));
+
+   computeDerivFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, df, c_i,
+                                      energy_factor);
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
-   const hier::Box& pbox,
-   boost::shared_ptr< pdat::CellData<double> > cd_temp,
-   const double A,
-   const double Ceq,
-   boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
-   boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-   const double energy_factor )
+    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+    const double A, const double Ceq,
+    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    boost::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const double energy_factor)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
    double* ptr_c_i = cd_conc_i->getPointer();
-   
+
    const hier::Box& temp_gbox = cd_temp->getGhostBox();
    int imin_temp = temp_gbox.lower(0);
    int jmin_temp = temp_gbox.lower(1);
@@ -614,25 +549,26 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_f = (ii - imin_f) +
-               (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f =
+                (ii - imin_f) + (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
 
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = computeFreeEnergyPrivate( t, c_i, A, Ceq, energy_factor );
+            ptr_f[idx_f] =
+                computeFreeEnergyPrivate(t, c_i, A, Ceq, energy_factor);
          }
       }
    }
@@ -641,18 +577,16 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
-   const hier::Box& pbox,
-   boost::shared_ptr< pdat::CellData<double> > cd_temp,
-   const double A,
-   const double Ceq,
-   boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
-   boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-   const double energy_factor )
+    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+    const double A, const double Ceq,
+    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    boost::shared_ptr<pdat::CellData<double> > cd_conc_i,
+    const double energy_factor)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
    double* ptr_c_i = cd_conc_i->getPointer();
-   
+
    const hier::Box& temp_gbox = cd_temp->getGhostBox();
    int imin_temp = temp_gbox.lower(0);
    int jmin_temp = temp_gbox.lower(1);
@@ -696,25 +630,26 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_f = (ii - imin_f) +
-               (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f =
+                (ii - imin_f) + (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
 
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = computeDerivFreeEnergyPrivate( t, c_i, A, Ceq, energy_factor );
+            ptr_f[idx_f] =
+                computeDerivFreeEnergyPrivate(t, c_i, A, Ceq, energy_factor);
          }
       }
    }
@@ -723,106 +658,98 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addDrivingForce(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id, 
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
-   (void) time;
+   (void)time;
 
-   assert( conc_id >= 0 );
-   assert( phase_id >= 0 );
-   assert( f_l_id >= 0 );
-   assert( f_a_id >= 0 );
-   assert( rhs_id >= 0 );
-   assert( temperature_id >= 0 );
-   if ( d_with_third_phase ) {
-      assert( eta_id >= 0 );
-      assert( f_b_id >= 0 );
+   assert(conc_id >= 0);
+   assert(phase_id >= 0);
+   assert(f_l_id >= 0);
+   assert(f_a_id >= 0);
+   assert(rhs_id >= 0);
+   assert(temperature_id >= 0);
+   if (d_with_third_phase) {
+      assert(eta_id >= 0);
+      assert(f_b_id >= 0);
    }
 
-   boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
-   assert( phase );
- 
-   boost::shared_ptr< pdat::CellData<double> > t (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
-   assert( t ); 
- 
-   boost::shared_ptr< pdat::CellData<double> > fl (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
-   assert( fl );
- 
-   boost::shared_ptr< pdat::CellData<double> > fa (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
-   assert( fa );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_id) ) );
-   assert( c_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_id) ) );
-   assert( c_a );
+   boost::shared_ptr<pdat::CellData<double> > phase(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(phase_id)));
+   assert(phase);
 
-   boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
+   boost::shared_ptr<pdat::CellData<double> > t(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+   assert(t);
 
-   assert( rhs ); 
-   assert( rhs->getGhostCellWidth() == hier::IntVector(tbox::Dimension(NDIM),0) );
+   boost::shared_ptr<pdat::CellData<double> > fl(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_l_id)));
+   assert(fl);
 
-   boost::shared_ptr< pdat::CellData<double> > eta;
-   boost::shared_ptr< pdat::CellData<double> > fb;
-   boost::shared_ptr< pdat::CellData<double> > c_b;
-   if ( d_with_third_phase ) {
-      eta = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>(patch.getPatchData( eta_id ));
-      assert( eta );
-      fb = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData> ( patch.getPatchData( f_b_id ));
-      assert( fb );
+   boost::shared_ptr<pdat::CellData<double> > fa(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_a_id)));
+   assert(fa);
 
-      c_b = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                              hier::PatchData>( patch.getPatchData( d_conc_b_id ));
-      assert( c_b );
+   boost::shared_ptr<pdat::CellData<double> > c_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_l_id)));
+   assert(c_l);
+
+   boost::shared_ptr<pdat::CellData<double> > c_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_a_id)));
+   assert(c_a);
+
+   boost::shared_ptr<pdat::CellData<double> > rhs(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(rhs_id)));
+
+   assert(rhs);
+   assert(rhs->getGhostCellWidth() ==
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   boost::shared_ptr<pdat::CellData<double> > eta;
+   boost::shared_ptr<pdat::CellData<double> > fb;
+   boost::shared_ptr<pdat::CellData<double> > c_b;
+   if (d_with_third_phase) {
+      eta =
+          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(eta_id));
+      assert(eta);
+      fb = boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+          patch.getPatchData(f_b_id));
+      assert(fb);
+
+      c_b =
+          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(d_conc_b_id));
+      assert(c_b);
    }
- 
+
    const hier::Box& pbox = patch.getBox();
 
-   addDrivingForceOnPatchPrivate(
-      rhs,
-      t,
-      phase,
-      eta,
-      fl,
-      fa,
-      fb,
-      c_l,
-      c_a,
-      c_b,
-      pbox );
+   addDrivingForceOnPatchPrivate(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b,
+                                 pbox);
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
-   boost::shared_ptr< pdat::CellData<double> > cd_rhs,
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_b,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
+    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
    double* ptr_temp = cd_temperature->getPointer();
@@ -834,8 +761,8 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
    double* ptr_c_b = NULL;
-   
-   if ( d_with_third_phase ) {
+
+   if (d_with_third_phase) {
       ptr_eta = cd_eta->getPointer();
       ptr_f_b = cd_f_b->getPointer();
       ptr_c_b = cd_c_b->getPointer();
@@ -912,24 +839,24 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
 
    const char interp = energyInterpChar(d_energy_interp_func_type);
 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_rhs = (ii - imin_rhs) +
-               (jj - jmin_rhs) * jp_rhs + (kk - kmin_rhs) * kp_rhs;
+            const int idx_rhs = (ii - imin_rhs) + (jj - jmin_rhs) * jp_rhs +
+                                (kk - kmin_rhs) * kp_rhs;
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
-            const int idx_f_i = (ii - imin_f_i) +
-               (jj - jmin_f_i) * jp_f_i + (kk - kmin_f_i) * kp_f_i;
+            const int idx_f_i = (ii - imin_f_i) + (jj - jmin_f_i) * jp_f_i +
+                                (kk - kmin_f_i) * kp_f_i;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_pf];
@@ -941,28 +868,23 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
             double c_a = ptr_c_a[idx_c_i];
             double c_b = 0.0;
 
-            double mu = computeMu( t, c_l );
+            double mu = computeMu(t, c_l);
 
-            double hphi_prime =
-               FORT_DERIV_INTERP_FUNC(phi, &interp);
+            double hphi_prime = FORT_DERIV_INTERP_FUNC(phi, &interp);
 
             double heta = 0.0;
 
-            if ( d_with_third_phase ) {
+            if (d_with_third_phase) {
                eta = ptr_eta[idx_pf];
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
 
-               heta =
-                  FORT_INTERP_FUNC(eta, &interp);
+               heta = FORT_INTERP_FUNC(eta, &interp);
             }
 
             ptr_rhs[idx_rhs] +=
-               hphi_prime * (
-                  ( f_l - ( 1.0 - heta ) * f_a - heta * f_b ) -
-                  mu * ( c_l - ( 1.0 - heta ) * c_a - heta * c_b )
-                  );
-
+                hphi_prime * ((f_l - (1.0 - heta) * f_a - heta * f_b) -
+                              mu * (c_l - (1.0 - heta) * c_a - heta * c_b));
          }
       }
    }
@@ -970,15 +892,13 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeMu(
-   const double t,
-   const double c_l )
+double HBSMFreeEnergyStrategy::computeMu(const double t, const double c_l)
 {
    const double A = d_A_liquid;
    const double Ceq = d_Ceq_liquid;
 
-   double mu = computeDerivFreeEnergyPrivate( t, c_l, A, Ceq,
-                                              d_energy_conv_factor_L );
+   double mu =
+       computeDerivFreeEnergyPrivate(t, c_l, A, Ceq, d_energy_conv_factor_L);
 
    return mu;
 }
@@ -986,102 +906,95 @@ double HBSMFreeEnergyStrategy::computeMu(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addDrivingForceEta(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id, 
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
-   (void) time;
+   (void)time;
 
-   assert( conc_id >= 0 );
-   assert( phase_id >= 0 );
-   assert( f_l_id >= 0 );
-   assert( f_a_id >= 0 );
-   assert( rhs_id >= 0 );
-   assert( temperature_id >= 0 );
-   assert( eta_id >= 0 );
-   assert( f_b_id >= 0 );
+   assert(conc_id >= 0);
+   assert(phase_id >= 0);
+   assert(f_l_id >= 0);
+   assert(f_a_id >= 0);
+   assert(rhs_id >= 0);
+   assert(temperature_id >= 0);
+   assert(eta_id >= 0);
+   assert(f_b_id >= 0);
 
-   boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
-   assert( phase );
- 
-   boost::shared_ptr< pdat::CellData<double> > eta (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( eta_id) ) );
-   assert( eta );
+   boost::shared_ptr<pdat::CellData<double> > phase(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(phase_id)));
+   assert(phase);
 
-   boost::shared_ptr< pdat::CellData<double> > conc (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(conc_id) ) );
-   assert( conc ); 
- 
-   boost::shared_ptr< pdat::CellData<double> > t (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
-   assert( t ); 
- 
-   boost::shared_ptr< pdat::CellData<double> > f_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
-   assert( f_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > f_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
-   assert( f_a );
- 
-   boost::shared_ptr< pdat::CellData<double> > f_b (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_b_id) ) );
-   assert( f_b );
+   boost::shared_ptr<pdat::CellData<double> > eta(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(eta_id)));
+   assert(eta);
 
-   boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_id) ) );
-   assert( c_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_id) ) );
-   assert( c_a );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_b (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_b_id) ) );
-   assert( c_b );
+   boost::shared_ptr<pdat::CellData<double> > conc(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(conc_id)));
+   assert(conc);
 
-   boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
-   assert( rhs );
- 
+   boost::shared_ptr<pdat::CellData<double> > t(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+   assert(t);
+
+   boost::shared_ptr<pdat::CellData<double> > f_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_l_id)));
+   assert(f_l);
+
+   boost::shared_ptr<pdat::CellData<double> > f_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_a_id)));
+   assert(f_a);
+
+   boost::shared_ptr<pdat::CellData<double> > f_b(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_b_id)));
+   assert(f_b);
+
+   boost::shared_ptr<pdat::CellData<double> > c_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_l_id)));
+   assert(c_l);
+
+   boost::shared_ptr<pdat::CellData<double> > c_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_a_id)));
+   assert(c_a);
+
+   boost::shared_ptr<pdat::CellData<double> > c_b(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_b_id)));
+   assert(c_b);
+
+   boost::shared_ptr<pdat::CellData<double> > rhs(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(rhs_id)));
+   assert(rhs);
+
    const hier::Box& pbox = patch.getBox();
-       
-   addDrivingForceEtaOnPatchPrivate(
-      rhs,
-      t,
-      phase,
-      eta,
-      f_l,
-      f_a,
-      f_b,
-      c_l,
-      c_a,
-      c_b,
-      pbox );
+
+   addDrivingForceEtaOnPatchPrivate(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a,
+                                    c_b, pbox);
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
-   boost::shared_ptr< pdat::CellData<double> > cd_rhs,
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_b,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
+    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
    double* ptr_temp = cd_temperature->getPointer();
@@ -1092,7 +1005,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
    double* ptr_c_b = cd_c_b->getPointer();
-   
+
    const hier::Box& rhs_gbox = cd_rhs->getGhostBox();
    int imin_rhs = rhs_gbox.lower(0);
    int jmin_rhs = rhs_gbox.lower(1);
@@ -1163,25 +1076,25 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
 #endif
 
    const char interpf = energyInterpChar(d_energy_interp_func_type);
- 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_rhs = (ii - imin_rhs) +
-               (jj - jmin_rhs) * jp_rhs + (kk - kmin_rhs) * kp_rhs;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idx_rhs = (ii - imin_rhs) + (jj - jmin_rhs) * jp_rhs +
+                                (kk - kmin_rhs) * kp_rhs;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_f_i = (ii - imin_f_i) +
-               (jj - jmin_f_i) * jp_f_i + (kk - kmin_f_i) * kp_f_i;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f_i = (ii - imin_f_i) + (jj - jmin_f_i) * jp_f_i +
+                                (kk - kmin_f_i) * kp_f_i;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_pf];
@@ -1192,18 +1105,14 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
             double c_a = ptr_c_a[idx_c_i];
             double c_b = ptr_c_b[idx_c_i];
 
-            double mu = computeMu( t, c_l );
+            double mu = computeMu(t, c_l);
 
-            double hphi =
-               FORT_INTERP_FUNC(phi, &interpf);
+            double hphi = FORT_INTERP_FUNC(phi, &interpf);
 
-            double heta_prime =
-               FORT_DERIV_INTERP_FUNC(eta, &interpf);
+            double heta_prime = FORT_DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
-               hphi * heta_prime * (
-                  ( f_a - f_b ) - mu * ( c_a - c_b )
-                  );
+                hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }
       }
    }
@@ -1242,162 +1151,123 @@ double HBSMFreeEnergyStrategy::computeLocalInvD2fDc2(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeLiquidConcentration(
-   const double hphi,
-   const double heta,
-   const double c )const
+double HBSMFreeEnergyStrategy::computeLiquidConcentration(const double hphi,
+                                                          const double heta,
+                                                          const double c) const
 {
-   return
-      ( c -
-        hphi * ( 1.0 - heta ) * ( d_Ceq_solid_A - (d_A_liquid/d_A_solid_A) * d_Ceq_liquid ) -
-        hphi * heta * ( d_Ceq_solid_B - (d_A_liquid/d_A_solid_B) * d_Ceq_liquid ) )
-      /
-      ( ( 1.0 - hphi ) + hphi * ( 1.0 - heta ) * (d_A_liquid/d_A_solid_A) +
-        hphi * heta * (d_A_liquid/d_A_solid_B) );
+   return (c -
+           hphi * (1.0 - heta) *
+               (d_Ceq_solid_A - (d_A_liquid / d_A_solid_A) * d_Ceq_liquid) -
+           hphi * heta *
+               (d_Ceq_solid_B - (d_A_liquid / d_A_solid_B) * d_Ceq_liquid)) /
+          ((1.0 - hphi) + hphi * (1.0 - heta) * (d_A_liquid / d_A_solid_A) +
+           hphi * heta * (d_A_liquid / d_A_solid_B));
 }
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidAConcentration(
-   const double hphi,
-   const double heta,
-   const double c )const
+double HBSMFreeEnergyStrategy::computeSolidAConcentration(const double hphi,
+                                                          const double heta,
+                                                          const double c) const
 {
-   return
-      ( c -
-        ( 1.0 - hphi ) * ( d_Ceq_liquid - (d_A_solid_A/d_A_liquid) * d_Ceq_solid_A ) -
-        hphi * heta * ( d_Ceq_solid_B - (d_A_solid_A/d_A_solid_B) * d_Ceq_solid_A ) )
-      /
-      ( ( 1.0 - hphi ) * (d_A_solid_A/d_A_liquid) + hphi * ( 1.0 - heta ) +
-        hphi * heta * (d_A_solid_A/d_A_solid_B) );
+   return (c -
+           (1.0 - hphi) *
+               (d_Ceq_liquid - (d_A_solid_A / d_A_liquid) * d_Ceq_solid_A) -
+           hphi * heta *
+               (d_Ceq_solid_B - (d_A_solid_A / d_A_solid_B) * d_Ceq_solid_A)) /
+          ((1.0 - hphi) * (d_A_solid_A / d_A_liquid) + hphi * (1.0 - heta) +
+           hphi * heta * (d_A_solid_A / d_A_solid_B));
 }
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidBConcentration(
-   const double hphi,
-   const double heta,
-   const double c )const
+double HBSMFreeEnergyStrategy::computeSolidBConcentration(const double hphi,
+                                                          const double heta,
+                                                          const double c) const
 {
-   return
-      ( c -
-        ( 1.0 - hphi ) * ( d_Ceq_liquid - (d_A_solid_B/d_A_liquid) * d_Ceq_solid_B ) -
-        hphi * ( 1.0 - heta ) * ( d_Ceq_solid_A - (d_A_solid_B/d_A_solid_A) * d_Ceq_solid_B ) )
-      /
-      ( ( 1.0 - hphi ) * (d_A_solid_B/d_A_liquid) + hphi * ( 1.0 - heta ) * (d_A_solid_B/d_A_solid_A) +
-        hphi * heta );
+   return (c -
+           (1.0 - hphi) *
+               (d_Ceq_liquid - (d_A_solid_B / d_A_liquid) * d_Ceq_solid_B) -
+           hphi * (1.0 - heta) *
+               (d_Ceq_solid_A - (d_A_solid_B / d_A_solid_A) * d_Ceq_solid_B)) /
+          ((1.0 - hphi) * (d_A_solid_B / d_A_liquid) +
+           hphi * (1.0 - heta) * (d_A_solid_B / d_A_solid_A) + hphi * heta);
 }
 
 //=======================================================================
 
 double HBSMFreeEnergyStrategy::computeLiquidConcentration(
-   const double hphi,
-   const double heta,
-   const double c,
-   const double Al, 
-   const double Aa, 
-   const double Ab,
-   const double Ceql,
-   const double CeqA,
-   const double CeqB )const
+    const double hphi, const double heta, const double c, const double Al,
+    const double Aa, const double Ab, const double Ceql, const double CeqA,
+    const double CeqB) const
 {
-   return
-      ( c -
-        hphi * ( 1.0 - heta ) * ( CeqA - (Al/Aa) * Ceql ) -
-        hphi * heta * ( CeqB - (Al/Ab) * Ceql ) )
-      /
-      ( ( 1.0 - hphi ) + hphi * ( 1.0 - heta ) * (Al/Aa) +
-        hphi * heta * (Al/Ab) );
+   return (c - hphi * (1.0 - heta) * (CeqA - (Al / Aa) * Ceql) -
+           hphi * heta * (CeqB - (Al / Ab) * Ceql)) /
+          ((1.0 - hphi) + hphi * (1.0 - heta) * (Al / Aa) +
+           hphi * heta * (Al / Ab));
 }
 
 //=======================================================================
 
 double HBSMFreeEnergyStrategy::computeSolidAConcentration(
-   const double hphi,
-   const double heta,
-   const double c,
-   const double Al, 
-   const double Aa, 
-   const double Ab,
-   const double Ceql,
-   const double CeqA,
-   const double CeqB )const
+    const double hphi, const double heta, const double c, const double Al,
+    const double Aa, const double Ab, const double Ceql, const double CeqA,
+    const double CeqB) const
 {
-   return
-      ( c -
-        ( 1.0 - hphi ) * ( Ceql - (Aa/Al) * CeqA ) -
-        hphi * heta * ( CeqB - (Aa/Ab) * CeqA ) )
-      /
-      ( ( 1.0 - hphi ) * (Aa/Al) + hphi * ( 1.0 - heta ) +
-        hphi * heta * (Aa/Ab) );
+   return (c - (1.0 - hphi) * (Ceql - (Aa / Al) * CeqA) -
+           hphi * heta * (CeqB - (Aa / Ab) * CeqA)) /
+          ((1.0 - hphi) * (Aa / Al) + hphi * (1.0 - heta) +
+           hphi * heta * (Aa / Ab));
 }
 
 //=======================================================================
 
 double HBSMFreeEnergyStrategy::computeSolidBConcentration(
-   const double hphi,
-   const double heta,
-   const double c,
-   const double Al, 
-   const double Aa, 
-   const double Ab,
-   const double Ceql,
-   const double CeqA,
-   const double CeqB )const
+    const double hphi, const double heta, const double c, const double Al,
+    const double Aa, const double Ab, const double Ceql, const double CeqA,
+    const double CeqB) const
 {
-   return
-      ( c -
-        ( 1.0 - hphi ) * ( Ceql - (Ab/Al) * CeqB ) -
-        hphi * ( 1.0 - heta ) * ( CeqA - (Ab/Aa) * CeqB ) )
-      /
-      ( ( 1.0 - hphi ) * (Ab/Al) + hphi * ( 1.0 - heta ) * (Ab/Aa) +
-        hphi * heta );
+   return (c - (1.0 - hphi) * (Ceql - (Ab / Al) * CeqB) -
+           hphi * (1.0 - heta) * (CeqA - (Ab / Aa) * CeqB)) /
+          ((1.0 - hphi) * (Ab / Al) + hphi * (1.0 - heta) * (Ab / Aa) +
+           hphi * heta);
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-   const double temp,
-   const vector<double>& c_l,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
+   (void)temp;
 
-   assert( c_l.size()==1 );
-   d2fdc2[0] = 2.*d_A_liquid;
-   if( use_internal_units )
-      d2fdc2[0] *= d_energy_conv_factor_L;
+   assert(c_l.size() == 1);
+   d2fdc2[0] = 2. * d_A_liquid;
+   if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_L;
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-   const double temp,
-   const vector<double>& c_a,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
+   (void)temp;
 
-   assert( c_a.size()==1 );
-   d2fdc2[0] = 2.*d_A_solid_A;
-   if( use_internal_units )
-      d2fdc2[0] *= d_energy_conv_factor_A;
+   assert(c_a.size() == 1);
+   d2fdc2[0] = 2. * d_A_solid_A;
+   if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_A;
 }
 
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-   const double temp,
-   const vector<double>& c_b,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
+    const bool use_internal_units)
 {
-   (void) temp;
+   (void)temp;
 
-   assert( c_b.size()==1 );
-   d2fdc2[0] = 2.*d_A_solid_B;
-   if( use_internal_units )
-      d2fdc2[0] *= d_energy_conv_factor_B;
+   assert(c_b.size() == 1);
+   d2fdc2[0] = 2. * d_A_solid_B;
+   if (use_internal_units) d2fdc2[0] *= d_energy_conv_factor_B;
 }

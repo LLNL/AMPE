@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,155 +32,102 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "SimpleGradStrategy.h"
 
 #include <cassert>
 
-SimpleGradStrategy::SimpleGradStrategy(
-   QuatModel* model
-   )
-{
-   d_pfmodel = model;
-}
+SimpleGradStrategy::SimpleGradStrategy(QuatModel* model) { d_pfmodel = model; }
 
 //-----------------------------------------------------------------------
 
-SimpleGradStrategy::~SimpleGradStrategy()
+SimpleGradStrategy::~SimpleGradStrategy() { d_pfmodel = nullptr; }
+
+//-----------------------------------------------------------------------
+
+void SimpleGradStrategy::computeDiffs(
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
+    int& diffs_id, const double time, const CACHE_TYPE cache)
 {
-   d_pfmodel = nullptr;
+   assert(d_pfmodel != nullptr);
+
+   enum QuatModel::CACHE_TYPE qm_cache;
+   if (cache == FORCE) {
+      qm_cache = QuatModel::FORCE;
+   } else {
+      qm_cache = QuatModel::CACHE;
+   }
+
+   d_pfmodel->computeVarDiffs(hierarchy, var_id, diffs_id, time, qm_cache);
 }
 
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeDiffs(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& var_id,
-   int& diffs_id,
-   const double time,
-   const CACHE_TYPE cache )
+    const boost::shared_ptr<hier::PatchLevel> patch_level, int& var_id,
+    int& diffs_id, const double time)
 {
-   assert( d_pfmodel != nullptr );
+   assert(d_pfmodel != nullptr);
 
-   enum QuatModel::CACHE_TYPE qm_cache;
-   if ( cache == FORCE ) {
-      qm_cache = QuatModel::FORCE;
-   }
-   else {
-      qm_cache = QuatModel::CACHE;
-   }
-
-   d_pfmodel->computeVarDiffs(
-      hierarchy,
-      var_id,
-      diffs_id,
-      time,
-      qm_cache );
-}
-
-//-----------------------------------------------------------------------
-
-void SimpleGradStrategy::computeDiffs(
-   const boost::shared_ptr< hier::PatchLevel > patch_level,
-   int& var_id,
-   int& diffs_id,
-   const double time )
-{
-   assert( d_pfmodel != nullptr );
-
-   d_pfmodel->computeVarDiffs(
-      patch_level,
-      var_id,
-      diffs_id,
-      time );
+   d_pfmodel->computeVarDiffs(patch_level, var_id, diffs_id, time);
 }
 
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradCell(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& diffs_id,
-   int& grad_id,
-   const double time,
-   const CACHE_TYPE cache )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    int& grad_id, const double time, const CACHE_TYPE cache)
 {
-   assert( d_pfmodel != nullptr );
+   assert(d_pfmodel != nullptr);
 
    enum QuatModel::CACHE_TYPE qm_cache;
-   if ( cache == FORCE ) {
+   if (cache == FORCE) {
       qm_cache = QuatModel::FORCE;
-   }
-   else {
+   } else {
       qm_cache = QuatModel::CACHE;
    }
 
-   d_pfmodel->computeVarGradCell(
-      hierarchy,
-      diffs_id,
-      grad_id,
-      time,
-      qm_cache );
+   d_pfmodel->computeVarGradCell(hierarchy, diffs_id, grad_id, time, qm_cache);
 }
 
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradCell(
-   const boost::shared_ptr< hier::PatchLevel > patch_level,
-   int& diffs_id,
-   int& grad_id,
-   const double time )
+    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    int& grad_id, const double time)
 {
-   assert( d_pfmodel != nullptr );
+   assert(d_pfmodel != nullptr);
 
-   d_pfmodel->computeVarGradCell(
-      patch_level,
-      diffs_id,
-      grad_id,
-      time );
+   d_pfmodel->computeVarGradCell(patch_level, diffs_id, grad_id, time);
 }
 
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradSide(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-   int& diffs_id,
-   int& grad_id,
-   const double time,
-   const CACHE_TYPE cache )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    int& grad_id, const double time, const CACHE_TYPE cache)
 {
-   assert( d_pfmodel != nullptr );
+   assert(d_pfmodel != nullptr);
 
    enum QuatModel::CACHE_TYPE qm_cache;
-   if ( cache == FORCE ) {
+   if (cache == FORCE) {
       qm_cache = QuatModel::FORCE;
-   }
-   else {
+   } else {
       qm_cache = QuatModel::CACHE;
    }
 
-   d_pfmodel->computeVarGradSide(
-      hierarchy,
-      diffs_id,
-      grad_id,
-      time,
-      qm_cache );
+   d_pfmodel->computeVarGradSide(hierarchy, diffs_id, grad_id, time, qm_cache);
 }
 
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradSide(
-   const boost::shared_ptr< hier::PatchLevel > patch_level,
-   int& diffs_id,
-   int& grad_id,
-   const double time )
+    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    int& grad_id, const double time)
 {
-   assert( d_pfmodel != nullptr );
+   assert(d_pfmodel != nullptr);
 
-   d_pfmodel->computeVarGradSide(
-      patch_level,
-      diffs_id,
-      grad_id,
-      time );
+   d_pfmodel->computeVarGradSide(patch_level, diffs_id, grad_id, time);
 }
 
 //-----------------------------------------------------------------------

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_QuatWeightedAverage
 #define included_QuatWeightedAverage
 
@@ -58,16 +58,14 @@ using namespace SAMRAI;
  * @see hier::CoarsenOperator
  */
 
-class QuatWeightedAverage
-: public hier::CoarsenOperator
+class QuatWeightedAverage : public hier::CoarsenOperator
 {
-public:
+ public:
    /**
     * Uninteresting default constructor.
     */
-   QuatWeightedAverage(
-      const bool symmetry_aware,
-      const int quat_symm_rotation_id=0 );
+   QuatWeightedAverage(const bool symmetry_aware,
+                       const int quat_symm_rotation_id = 0);
 
    /**
     * Uninteresting virtual destructor.
@@ -78,8 +76,8 @@ public:
     * Return true if the variable and name string match cell-centered
     * double weighted averaging; otherwise, return false.
     */
-   bool findCoarsenOperator(const boost::shared_ptr< hier::Variable >& var,
-                            const std::string &op_name) const;
+   bool findCoarsenOperator(const boost::shared_ptr<hier::Variable>& var,
+                            const std::string& op_name) const;
 
    /**
     * Return name string identifier of this coarsening operation.
@@ -96,7 +94,7 @@ public:
     * The stencil width of the weighted averaging operator is the vector of
     * zeros.  That is, its stencil does not extend outside the fine box.
     */
-   hier::IntVector getStencilWidth(const tbox::Dimension &dim) const;
+   hier::IntVector getStencilWidth(const tbox::Dimension& dim) const;
 
    /**
     * Coarsen the source component on the fine patch to the destination
@@ -106,16 +104,14 @@ public:
     * fine patch contains sufficient data for the stencil width of the
     * coarsening operator.
     */
-   void coarsen(hier::Patch& coarse,
-                const hier::Patch& fine,
-                const int dst_component,
-                const int src_component,
+   void coarsen(hier::Patch& coarse, const hier::Patch& fine,
+                const int dst_component, const int src_component,
                 const hier::Box& coarse_box,
                 const hier::IntVector& ratio) const;
 
-private:
+ private:
    std::string d_name_id;
-   
+
    bool d_symmetry_aware;
    int d_quat_symm_rotation_id;
 };

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_SteadyStateTemperatureGaussianSource
 #define included_SteadyStateTemperatureGaussianSource
 
@@ -52,59 +52,55 @@
 // diffusion equation
 class TemperatureFACSolver;
 
-class SteadyStateTemperatureGaussianSource:
-   public SteadyStateTemperatureStrategy
+class SteadyStateTemperatureGaussianSource
+    : public SteadyStateTemperatureStrategy
 {
-public:
+ public:
    SteadyStateTemperatureGaussianSource(
-      const int temperature_scratch_id,
-      const int rhs_id, // used internally only, but allocated outside class
-      const int weight_id,
-      const double thermal_diffusivity,
-      const int  cp_id,
-      boost::shared_ptr<tbox::Database> heat_source_db,
-      boost::shared_ptr<tbox::Database > temperature_sys_solver_database,
-      boost::shared_ptr<geom::CartesianGridGeometry > grid_geometry,
-      HeatCapacityStrategy* heat_capacity_strategy,
-      solv::LocationIndexRobinBcCoefs* bc_coefs );
+       const int temperature_scratch_id,
+       const int rhs_id,  // used internally only, but allocated outside class
+       const int weight_id, const double thermal_diffusivity, const int cp_id,
+       boost::shared_ptr<tbox::Database> heat_source_db,
+       boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
+       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+       HeatCapacityStrategy* heat_capacity_strategy,
+       solv::LocationIndexRobinBcCoefs* bc_coefs);
 
    ~SteadyStateTemperatureGaussianSource(){};
 
    void setCurrentTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
-   
-private:
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
+
+ private:
    const double d_thermal_diffusivity;
 
    int d_cp_id;
-   
+
    HeatCapacityStrategy* d_heat_capacity_strategy;
-   
+
    // Gaussian parameters
    double d_center[3];
-   
+
    // Gaussian center at t=0
    double d_center0[3];
    double d_periodic_length[3];
-   
+
    // velocity of Gaussian center
    double d_velocity[3];
-   
+
    // Gaussian in time for pulse
    double d_pulse_time;
    double d_pulse_width;
-   
-   boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
+
+   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
    int d_periodic_flag[3];
 
    double d_source_peak;
    double d_standard_dev;
-   
+
    bool d_verbose;
 };
-
-
 
 
 #endif

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_CALPHADEqConcSolverBinaryWithPenalty
 #define included_CALPHADEqConcSolverBinaryWithPenalty
 
@@ -40,36 +40,24 @@
 #include "Phases.h"
 #include <vector>
 
-class CALPHADEqConcentrationSolverBinaryWithPenalty :
-   public CALPHADEqConcentrationSolverBinary
+class CALPHADEqConcentrationSolverBinaryWithPenalty
+    : public CALPHADEqConcentrationSolverBinary
 {
-public :
+ public:
+   CALPHADEqConcentrationSolverBinaryWithPenalty(){};
 
-   CALPHADEqConcentrationSolverBinaryWithPenalty()
-   {};
-      
-   virtual ~CALPHADEqConcentrationSolverBinaryWithPenalty() {};
+   virtual ~CALPHADEqConcentrationSolverBinaryWithPenalty(){};
 
    int ComputeConcentrationWithPenalty(
-      double* const conc,
-      const double RTinv,
-      const double* const L0,
-      const double* const L1,
-      const double* const L2,
-      const double* const L3,
-      const double* const fA,
-      const double* const fB,
-      std::vector<std::vector<double> >& penalty_parameters);
-      
-private :
+       double* const conc, const double RTinv, const double* const L0,
+       const double* const L1, const double* const L2, const double* const L3,
+       const double* const fA, const double* const fB,
+       std::vector<std::vector<double> >& penalty_parameters);
 
-   virtual void RHS(
-      const double* const x,
-      double* const fvec );
+ private:
+   virtual void RHS(const double* const x, double* const fvec);
 
-   virtual void Jacobian(
-      const double* const x,
-      double** const fjac );
+   virtual void Jacobian(const double* const x, double** const fjac);
 
    std::vector<double> d_penalty_parametersL;
    std::vector<double> d_penalty_parametersS;

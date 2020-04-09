@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -36,27 +36,21 @@
 #include "KimMobilityStrategyFiniteMob.h"
 
 KimMobilityStrategyFiniteMob::KimMobilityStrategyFiniteMob(
-   QuatModel* quat_model,
-   const int conc_l_id,
-   const int conc_s_id,
-   const int temp_id,
-   const double interface_mobility,
-   const double epsilon,
-   const double phase_well_scale,
-   const EnergyInterpolationType energy_interp_func_type,
-   const ConcInterpolationType conc_interp_func_type,
-   boost::shared_ptr<tbox::Database> conc_db,
-   const unsigned ncompositions)
-   :  KimMobilityStrategy(quat_model,conc_l_id,conc_s_id,temp_id,
-         energy_interp_func_type,conc_interp_func_type,
-         conc_db,
-         ncompositions)
+    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
+    const int temp_id, const double interface_mobility, const double epsilon,
+    const double phase_well_scale,
+    const EnergyInterpolationType energy_interp_func_type,
+    const ConcInterpolationType conc_interp_func_type,
+    boost::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+    : KimMobilityStrategy(quat_model, conc_l_id, conc_s_id, temp_id,
+                          energy_interp_func_type, conc_interp_func_type,
+                          conc_db, ncompositions)
 {
-   assert( epsilon>0. );
-   assert( phase_well_scale>=0. );
-   assert( interface_mobility>0. );
+   assert(epsilon > 0.);
+   assert(phase_well_scale >= 0.);
+   assert(interface_mobility > 0.);
 
-   const double xi = epsilon/sqrt(16.*phase_well_scale);
+   const double xi = epsilon / sqrt(16. * phase_well_scale);
 
-   d_alpha = 3.*sqrt(2.)*xi/interface_mobility;
+   d_alpha = 3. * sqrt(2.) * xi / interface_mobility;
 }

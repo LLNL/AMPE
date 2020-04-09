@@ -14,6 +14,8 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
         -DSUNDIALS_DIR=$PWD/or-condo-login-mpiCC-mpif77-opt/base/sundials \
         -DNetCDF_CXX_ROOT=$NETCDF_DIR \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DAMPE_WITH_CLANG_FORMAT=ON \
+        -DCMAKE_PREFIX_PATH=${HOME}/bin \
         -DNDIM="2" \
         ..
 

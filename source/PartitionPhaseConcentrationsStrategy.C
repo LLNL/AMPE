@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,35 +32,36 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "FuncFort.h"
 
 void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_concentration,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-   boost::shared_ptr<hier::Patch > patch )
+    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_concentration,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+    boost::shared_ptr<hier::Patch> patch)
 {
    (void)cd_temperature;
    (void)cd_eta;
    (void)cd_c_b;
 
-   assert( cd_phi );
-   assert( cd_concentration );
-   assert( cd_c_l );
-   assert( cd_c_a );
-   assert( d_partition_coeff_id>=0 );
+   assert(cd_phi);
+   assert(cd_concentration);
+   assert(cd_c_l);
+   assert(cd_c_a);
+   assert(d_partition_coeff_id >= 0);
 
    const hier::Box& pbox = patch->getBox();
 
-   boost::shared_ptr< pdat::CellData<double> > cd_partition_coeff (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_id) ) );
-   assert( cd_partition_coeff );
+   boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch->getPatchData(d_partition_coeff_id)));
+   assert(cd_partition_coeff);
 
    const double* const ptr_partition = cd_partition_coeff->getPointer();
    const double* const ptr_phi = cd_phi->getPointer();
@@ -77,7 +78,8 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
 #endif
 
    // Assuming phi and concentration all have same box
-   assert( cd_phi->getGhostCellWidth()[0]==cd_concentration->getGhostCellWidth()[0] );
+   assert(cd_phi->getGhostCellWidth()[0] ==
+          cd_concentration->getGhostCellWidth()[0]);
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -90,7 +92,7 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
 #endif
 
    // Assuming c_l, c_a, and c_b all have same box
-   assert( cd_c_l->getGhostCellWidth()[0]==cd_c_a->getGhostCellWidth()[0] );
+   assert(cd_c_l->getGhostCellWidth()[0] == cd_c_a->getGhostCellWidth()[0]);
    const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
    int imin_c_i = c_i_gbox.lower(0);
    int jmin_c_i = c_i_gbox.lower(1);
@@ -115,60 +117,57 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
 
    const char interp = concInterpChar(d_phase_interp_func_type);
 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
             const int idx_partition = (ii - imin_partition) +
-               (jj - jmin_partition) * jp_partition + (kk - kmin_partition) * kp_partition;
+                                      (jj - jmin_partition) * jp_partition +
+                                      (kk - kmin_partition) * kp_partition;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             const double k = ptr_partition[idx_partition];
-            assert( k==k );
-            assert( k>=0. );
-            assert( k<=1. );
-            
+            assert(k == k);
+            assert(k >= 0.);
+            assert(k <= 1.);
+
             const double phi = ptr_phi[idx_pf];
-            assert( phi==phi );
-            
-            const double hphi =
-               FORT_INTERP_FUNC( phi, &interp );
-            assert( hphi>=0. );
-            //if( hphi>1. )std::cerr<<"phi="<<phi<<std::endl;
-            //if( hphi>1. )std::cerr<<"hphi="<<hphi<<std::endl;
-            assert( hphi<=1.00000001 );
-            
+            assert(phi == phi);
+
+            const double hphi = FORT_INTERP_FUNC(phi, &interp);
+            assert(hphi >= 0.);
+            // if( hphi>1. )std::cerr<<"phi="<<phi<<std::endl;
+            // if( hphi>1. )std::cerr<<"hphi="<<hphi<<std::endl;
+            assert(hphi <= 1.00000001);
+
             // loop over atomic species
-            for(int ic=0;ic<cd_concentration->getDepth();ic++)
-            {
+            for (int ic = 0; ic < cd_concentration->getDepth(); ic++) {
                const double* const ptr_conc = cd_concentration->getPointer(ic);
                const double c = ptr_conc[idx_pf];
 
-//               assert( c>=0. );
-//               assert( c<=1. );
-               assert( k>=0. );
+               //               assert( c>=0. );
+               //               assert( c<=1. );
+               assert(k >= 0.);
 
                double* ptr_c_l = cd_c_l->getPointer(ic);
                double* ptr_c_a = cd_c_a->getPointer(ic);
-               
-               double factor=1./(1.-hphi+k*hphi);
 
-               ptr_c_l[idx_c_i] = c*factor;
-               ptr_c_a[idx_c_i] = k*c*factor;
-               
-//               assert( ptr_c_l[idx_c_i]>=0. );
-//               assert( ptr_c_l[idx_c_i]<=1. );
-//               assert( ptr_c_a[idx_c_i]>=0. );
-//               assert( ptr_c_a[idx_c_i]<=1. );
-            } // ic
+               double factor = 1. / (1. - hphi + k * hphi);
+
+               ptr_c_l[idx_c_i] = c * factor;
+               ptr_c_a[idx_c_i] = k * c * factor;
+
+               //               assert( ptr_c_l[idx_c_i]>=0. );
+               //               assert( ptr_c_l[idx_c_i]<=1. );
+               //               assert( ptr_c_a[idx_c_i]>=0. );
+               //               assert( ptr_c_a[idx_c_i]<=1. );
+            }  // ic
          }
       }
    }
-
 }
-

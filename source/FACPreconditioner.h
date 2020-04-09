@@ -124,7 +124,7 @@ using namespace SAMRAI;
 
 class FACPreconditioner
 {
-public:
+ public:
    /*!
     * Constructor.
     *
@@ -132,11 +132,10 @@ public:
     * @param user_ops Reference to user-specified FAC operator
     * @param input_db Input database with initialization parameters
     */
-   FACPreconditioner(
-      const std::string& name,
-      boost::shared_ptr<solv::FACOperatorStrategy> user_ops,
-      const boost::shared_ptr<tbox::Database>& input_db =
-         boost::shared_ptr<tbox::Database>());
+   FACPreconditioner(const std::string& name,
+                     boost::shared_ptr<solv::FACOperatorStrategy> user_ops,
+                     const boost::shared_ptr<tbox::Database>& input_db =
+                         boost::shared_ptr<tbox::Database>());
 
    /*!
     * Virtual destructor.
@@ -184,10 +183,8 @@ public:
     *
     * @pre !d_patch_hierarchy || checkVectorStateCompatibility(solution, rhs)
     */
-   bool
-   solveSystem(
-      solv::SAMRAIVectorReal<double>& solution,
-      solv::SAMRAIVectorReal<double>& rhs);
+   bool solveSystem(solv::SAMRAIVectorReal<double>& solution,
+                    solv::SAMRAIVectorReal<double>& rhs);
 
    /*!
     * @brief Compute hierarchy-dependent data required for solving
@@ -242,10 +239,8 @@ public:
     * @post d_coarsest_ln >= 0
     * @post d_coarsest_ln <= d_finest_ln
     */
-   void
-   initializeSolverState(
-      const solv::SAMRAIVectorReal<double>& solution,
-      const solv::SAMRAIVectorReal<double>& rhs);
+   void initializeSolverState(const solv::SAMRAIVectorReal<double>& solution,
+                              const solv::SAMRAIVectorReal<double>& rhs);
 
    /*!
     * @brief Remove all hierarchy-dependent data computed by
@@ -263,8 +258,7 @@ public:
     *
     * @see initializeSolverState
     */
-   void
-   deallocateSolverState();
+   void deallocateSolverState();
 
    /*!
     * @brief Check compatibility of vectors with existing solver state.
@@ -285,10 +279,9 @@ public:
     *
     * @pre d_patch_hierarchy
     */
-   bool
-   checkVectorStateCompatibility(
-      const solv::SAMRAIVectorReal<double>& solution,
-      const solv::SAMRAIVectorReal<double>& rhs) const;
+   bool checkVectorStateCompatibility(
+       const solv::SAMRAIVectorReal<double>& solution,
+       const solv::SAMRAIVectorReal<double>& rhs) const;
 
    //@{
    //! @name Functions to set solving parameters.
@@ -310,9 +303,7 @@ public:
     * - "pernice": algorithm coded by BTNG, interpretting the
     *        code originally written by Michael Pernice.
     */
-   void
-   setAlgorithmChoice(
-      const std::string& choice);
+   void setAlgorithmChoice(const std::string& choice);
 
    //@}
 
@@ -323,11 +314,7 @@ public:
     * @brief Return FAC iteration count from last (or current
     * if there is one) FAC iteration process.
     */
-   int
-   getNumberOfIterations() const
-   {
-      return d_number_iterations;
-   }
+   int getNumberOfIterations() const { return d_number_iterations; }
 
    /*!
     * @brief Get convergance rates of
@@ -343,10 +330,7 @@ public:
     *
     * @pre d_number_iterations > 0
     */
-   void
-   getConvergenceFactors(
-      double& avg_factor,
-      double& final_factor) const
+   void getConvergenceFactors(double& avg_factor, double& final_factor) const
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (d_number_iterations <= 0) {
@@ -369,8 +353,7 @@ public:
     *
     * @pre d_number_iterations > 0
     */
-   double
-   getNetConvergenceFactor() const
+   double getNetConvergenceFactor() const
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (d_number_iterations <= 0) {
@@ -391,8 +374,7 @@ public:
     *
     * @pre d_number_iterations > 0
     */
-   double
-   getAvgConvergenceFactor() const
+   double getAvgConvergenceFactor() const
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (d_number_iterations <= 0) {
@@ -412,8 +394,7 @@ public:
     *
     * @pre d_number_iterations > 0
     */
-   double
-   getFinalConvergenceFactor() const
+   double getFinalConvergenceFactor() const
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (d_number_iterations <= 0) {
@@ -433,52 +414,37 @@ public:
     *
     * The latest computed norm is the one returned.
     */
-   double
-   getResidualNorm() const
-   {
-      return d_residual_norm;
-   }
+   double getResidualNorm() const { return d_residual_norm; }
 
    //@}
 
    /*!
     * @brief Print data members for debugging.
     */
-   virtual void
-   printClassData(
-      std::ostream& os) const;
+   virtual void printClassData(std::ostream& os) const;
 
    /*!
     * @brief Get the name of this object.
     *
     * @return The name of this object.
     */
-   const std::string&
-   getObjectName() const
-   {
-      return d_object_name;
-   }
+   const std::string& getObjectName() const { return d_object_name; }
 
    /*!
-    * This is the only function we are missing in SAMRAI solv::FACPreconditioner class
-    * and requires the implementation of this class
+    * This is the only function we are missing in SAMRAI solv::FACPreconditioner
+    * class and requires the implementation of this class
     */
-   void
-   setResidualTolerance(
-      double residual_tol)
+   void setResidualTolerance(double residual_tol)
    {
       d_residual_tolerance = residual_tol;
    }
 
 
-private:
+ private:
    //@{
    //! @name Functions not implemented:
-   FACPreconditioner(
-      const FACPreconditioner&);
-   FACPreconditioner&
-   operator = (
-      const FACPreconditioner&);
+   FACPreconditioner(const FACPreconditioner&);
+   FACPreconditioner& operator=(const FACPreconditioner&);
    //@}
 
    /*!
@@ -490,9 +456,7 @@ private:
     * @param input_db Input database.  If a NULL pointer is given,
     * nothing is done.
     */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& input_db);
+   void getFromInput(const boost::shared_ptr<tbox::Database>& input_db);
 
    /*!
     * @brief Compute composite residual on all levels and
@@ -509,11 +473,9 @@ private:
     * @param solution solution vector u
     * @param rhs right hand side vector f
     */
-   double
-   computeFullCompositeResidual(
-      solv::SAMRAIVectorReal<double>& residual,
-      solv::SAMRAIVectorReal<double>& solution,
-      solv::SAMRAIVectorReal<double>& rhs);
+   double computeFullCompositeResidual(solv::SAMRAIVectorReal<double>& residual,
+                                       solv::SAMRAIVectorReal<double>& solution,
+                                       solv::SAMRAIVectorReal<double>& rhs);
 
    /*!
     * @brief Perform recursive FAC cycle iteration.
@@ -536,14 +498,10 @@ private:
     * @param lmin coarsest level number
     * @param ln current level number
     */
-   void
-   facCycle_Recursive(
-      solv::SAMRAIVectorReal<double>& error,
-      solv::SAMRAIVectorReal<double>& residual,
-      solv::SAMRAIVectorReal<double>& solution,
-      int lmax,
-      int lmin,
-      int ln);
+   void facCycle_Recursive(solv::SAMRAIVectorReal<double>& error,
+                           solv::SAMRAIVectorReal<double>& residual,
+                           solv::SAMRAIVectorReal<double>& solution, int lmax,
+                           int lmin, int ln);
 
    /*!
     * @brief Perform recursive FAC cycle iteration from McCormick.
@@ -566,14 +524,10 @@ private:
     * @param lmin coarsest level number
     * @param ln current level number
     */
-   void
-   facCycle_McCormick(
-      solv::SAMRAIVectorReal<double>& error,
-      solv::SAMRAIVectorReal<double>& residual,
-      solv::SAMRAIVectorReal<double>& solution,
-      int lmax,
-      int lmin,
-      int ln);
+   void facCycle_McCormick(solv::SAMRAIVectorReal<double>& error,
+                           solv::SAMRAIVectorReal<double>& residual,
+                           solv::SAMRAIVectorReal<double>& solution, int lmax,
+                           int lmin, int ln);
 
    /*!
     * @brief Perform FAC cycle iteration.
@@ -600,13 +554,9 @@ private:
     * @param lmax finest level number
     * @param lmin coarsest level number
     */
-   void
-   facCycle(
-      solv::SAMRAIVectorReal<double>& error,
-      solv::SAMRAIVectorReal<double>& residual,
-      solv::SAMRAIVectorReal<double>& solution,
-      int lmax,
-      int lmin);
+   void facCycle(solv::SAMRAIVectorReal<double>& error,
+                 solv::SAMRAIVectorReal<double>& residual,
+                 solv::SAMRAIVectorReal<double>& solution, int lmax, int lmin);
 
    /*!
     * @brief Name of this FAC solver object.
@@ -698,7 +648,7 @@ private:
     * of levels.
     */
    std::vector<boost::shared_ptr<math::HierarchyDataOpsReal<double> > >
-   d_controlled_level_ops;
+       d_controlled_level_ops;
 
    /*!
     * Timers for performance measurement.

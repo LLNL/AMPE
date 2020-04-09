@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_EllipticFACSolver
 #define included_EllipticFACSolver
 
@@ -47,8 +47,8 @@
 using namespace SAMRAI;
 
 /*!
- * Note: This class is a generalization of the SAMRAI solv::CellPoissonFACSolver.
- * It solves an elliptic equation of the form
+ * Note: This class is a generalization of the SAMRAI
+ * solv::CellPoissonFACSolver. It solves an elliptic equation of the form
  *
  *     A div (D grad u) + C u = f
  *
@@ -145,8 +145,7 @@ using namespace SAMRAI;
 class EllipticFACSolver
 {
 
-public:
-
+ public:
    /*!
     * @brief Construct a solver.
     *
@@ -158,12 +157,10 @@ public:
     * @param object_name Name of object used in outputs
     * @param database tbox::Database for initialization (may be NULL)
     */
-   EllipticFACSolver(
-      const std::string &object_name,
-      const boost::shared_ptr<EllipticFACOps> fac_ops,
-      const boost::shared_ptr<tbox::Database>& database =
-         boost::shared_ptr<tbox::Database>()
-      );
+   EllipticFACSolver(const std::string& object_name,
+                     const boost::shared_ptr<EllipticFACOps> fac_ops,
+                     const boost::shared_ptr<tbox::Database>& database =
+                         boost::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -209,13 +206,9 @@ public:
     *
     * @see initializeSolverState
     */
-   bool solveSystem(
-      const int u_id,
-      const int f_id,
-      const int ew_id,
-      const boost::shared_ptr< hier::PatchHierarchy >& hierarchy,
-      int coarse_ln=-1,
-      int fine_ln=-1);
+   bool solveSystem(const int u_id, const int f_id, const int ew_id,
+                    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+                    int coarse_ln = -1, int fine_ln = -1);
 
    /*!
     * @brief Solve Poisson's equation using the current solver state
@@ -230,16 +223,15 @@ public:
     * right-hand-side quantities should be set properly by the user
     * on all patch interiors on the range of levels covered by the
     * FAC iteration.  All data for these patch data index should be allocated.
-    * Thus, the user is responsible for managing the 
-    * storage for the solution and right-hand-side. 
+    * Thus, the user is responsible for managing the
+    * storage for the solution and right-hand-side.
     *
     * @return whether solver converged to specified level
     *
-    * @see solveSystem( const int, const int, boost::shared_ptr< hier::PatchHierarchy >, int, int);
+    * @see solveSystem( const int, const int, boost::shared_ptr<
+    * hier::PatchHierarchy >, int, int);
     */
-   bool solveSystem(const int u_id,
-                    const int f_id,
-                    const int ew_id);
+   bool solveSystem(const int u_id, const int f_id, const int ew_id);
 
    /*!
     * @brief Specify the boundary conditions that are to be used at the
@@ -284,10 +276,8 @@ public:
     * it can sometimes make the PoissonHYPRESolver class more efficient.
     */
 
-   void setBoundaries(const std::string& boundary_type,
-                      const int fluxes = -1,
-                      const int flags = -1,
-                      int* bdry_types = NULL);
+   void setBoundaries(const std::string& boundary_type, const int fluxes = -1,
+                      const int flags = -1, int* bdry_types = NULL);
 
    /*!
     * @brief Override internal implementation to set boundary condition
@@ -306,7 +296,7 @@ public:
     * Once the boundary condition object is overwritten by this
     * method, you must no longer call the setBoundaries() method.
     */
-   void setBcObject( const solv::RobinBcCoefStrategy* bc_object )
+   void setBcObject(const solv::RobinBcCoefStrategy* bc_object)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (!bc_object) {
@@ -326,7 +316,7 @@ public:
     * If the coarse level solver requires a max iteration limit
     * (currently, they all do), the specified value is used.
     */
-   void setCoarsestLevelSolverMaxIterations( int max_iterations );
+   void setCoarsestLevelSolverMaxIterations(int max_iterations);
 
 #ifdef HAVE_HYPRE
    /*!
@@ -344,7 +334,7 @@ public:
     * Changing the algorithm must be done before setting up the matrix
     * coefficients.
     */
-   void setUseSMG( bool use_smg );
+   void setUseSMG(bool use_smg);
 #endif
 
    /*!
@@ -365,9 +355,10 @@ public:
     * Grids, I. Error Analysis", Mathematics of Computation, Vol. 56, No. 194,
     * April 1991, pp. 437-461.
     *
-    * @param coarsefine_method String selecting the coarse-fine discretization method.
+    * @param coarsefine_method String selecting the coarse-fine discretization
+    * method.
     */
-   void setCoarseFineDiscretization( const std::string &coarsefine_method );
+   void setCoarseFineDiscretization(const std::string& coarsefine_method);
 
    void setVerbose(const bool verbose);
 
@@ -380,7 +371,7 @@ public:
     *
     * @param num_pre_sweeps Number of presmoothing sweeps
     */
-   void setPresmoothingSweeps( int num_pre_sweeps );
+   void setPresmoothingSweeps(int num_pre_sweeps);
 
    /*!
     * @brief Set the number of post-smoothing sweeps during
@@ -391,20 +382,21 @@ public:
     *
     * @param num_post_sweeps Number of postsmoothing sweeps
     */
-   void setPostsmoothingSweeps( int num_post_sweeps );
+   void setPostsmoothingSweeps(int num_post_sweeps);
 
    /*!
     * @brief Set the residual tolerance for stopping.
     *
     * If you want the prescribed maximum number of cycles to always be taken,
     * set the residual tolerance to a negative number.
-    * 
+    *
     * Relative tolerance is used only if it is smaller than absolute tolerance
     */
-   void setResidualTolerance( double residual_tol )
+   void setResidualTolerance(double residual_tol)
    {
-      //tbox::pout << "  EllipticFACSolver::setResidualTolerance for precond to "<<residual_tol<<endl;
-      d_fac_precond.setResidualTolerance( residual_tol );
+      // tbox::pout << "  EllipticFACSolver::setResidualTolerance for precond to
+      // "<<residual_tol<<endl;
+      d_fac_precond.setResidualTolerance(residual_tol);
    }
 
    //@}
@@ -438,11 +430,10 @@ public:
     * @param coarse_level The coarsest level in the solve
     * @param fine_level The finest level in the solve
     */
-   void initializeSolverState( const int solution,
-                               const int rhs,
-                               const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-                               const int coarse_level=-1,
-                               const int fine_level=-1);
+   void initializeSolverState(
+       const int solution, const int rhs,
+       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const int coarse_level = -1, const int fine_level = -1);
 
    /*!
     * @brief Remove the solver's internal state data
@@ -454,13 +445,14 @@ public:
     * @see initializeSolverState()
     */
    void deallocateSolverState();
-   
+
    /*
     * -gamma*M*div(D*grad)+(I-gamma*M*C)
     */
 
-   void resetSolverState(const int soln_id, const int  rhs_id,
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
+   void resetSolverState(
+       const int soln_id, const int rhs_id,
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    //@{
    //! @name Functions to get data on last solve.
@@ -469,7 +461,8 @@ public:
     * @brief Return FAC iteration count from last (or current
     * if there is one) FAC iteration process.
     */
-   int getNumberOfIterations() const{
+   int getNumberOfIterations() const
+   {
       return d_fac_precond.getNumberOfIterations();
    }
 
@@ -481,9 +474,9 @@ public:
     * @param avg_factor average convergence factor over current FAC cycles
     * @param final_factor convergence factor of the last FAC cycle
     */
-   void getConvergenceFactors(double &avg_factor,
-                              double &final_factor) const{
-      d_fac_precond.getConvergenceFactors(avg_factor,final_factor);
+   void getConvergenceFactors(double& avg_factor, double& final_factor) const
+   {
+      d_fac_precond.getConvergenceFactors(avg_factor, final_factor);
       return;
    }
 
@@ -492,22 +485,19 @@ public:
     * @brief Return residual norm from the just-completed FAC iteration.
     *
     * The norm return value is computed as the maximum norm over all
-    * patch levels involved in the solve.  The value corresponds to the 
+    * patch levels involved in the solve.  The value corresponds to the
     * norm applied in the user-defined residual computation.
     *
     * The latest computed norm is the one returned.
     */
-   double getResidualNorm() const{
-      return d_fac_precond.getResidualNorm();
-   }
+   double getResidualNorm() const { return d_fac_precond.getResidualNorm(); }
 
 
    void printFACConvergenceFactors(const int solver_ret);
 
    //@}
 
-protected:
-
+ protected:
    /*!
     * @brief Set state using database
     *
@@ -517,9 +507,7 @@ protected:
     * @param database Input database.  If a NULL pointer is given,
     * nothing is done.
     */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& database);
+   void getFromInput(const boost::shared_ptr<tbox::Database>& database);
 
    /*
     * @brief Set @c d_uv and @c d_fv to vectors wrapping the data
@@ -584,10 +572,10 @@ protected:
    bool d_solver_is_initialized;
    bool d_enable_logging;
 
-   int  d_vol_id;
+   int d_vol_id;
    bool d_verbose;
-   
-   //boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
+
+   // boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 };
 
 #endif  // included_EllipticFACSolver

@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -53,31 +53,24 @@ using namespace SAMRAI;
 /*
  * Based on S.G. Kim, Acta Mat. 55 (2007), p. 4391-4399
  */
-class KimMobilityStrategy:
-   public SimpleQuatMobilityStrategy
+class KimMobilityStrategy : public SimpleQuatMobilityStrategy
 {
-public:
-   KimMobilityStrategy(
-      QuatModel* quat_model,
-      const int conc_l_id,
-      const int conc_s_id,
-      const int temp_id,
-      const EnergyInterpolationType energy_interp_func_type,
-      const ConcInterpolationType conc_interp_func_type,
-      boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions);
+ public:
+   KimMobilityStrategy(QuatModel* quat_model, const int conc_l_id,
+                       const int conc_s_id, const int temp_id,
+                       const EnergyInterpolationType energy_interp_func_type,
+                       const ConcInterpolationType conc_interp_func_type,
+                       boost::shared_ptr<tbox::Database> conc_db,
+                       const unsigned ncompositions);
 
    void computePhaseMobility(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& phase_id,
-      int& mobility_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual double evaluateMobility(const double temp,
-      const std::vector<double>&  phaseconc)=0;
+                                   const std::vector<double>& phaseconc) = 0;
 
-protected:
+ protected:
    const int d_conc_l_id;
    const int d_conc_s_id;
    const int d_temp_id;
@@ -86,14 +79,12 @@ protected:
 
    FreeEnergyFunctions* d_fenergy;
 
-private:
-
-   void update(
-      boost::shared_ptr< pdat::CellData<double> > cd_te,
-      boost::shared_ptr< pdat::CellData<double> > cd_cl,
-      boost::shared_ptr< pdat::CellData<double> > cd_cs,
-      boost::shared_ptr< pdat::CellData<double> > cd_mobility,
-      boost::shared_ptr<hier::Patch > patch );
+ private:
+   void update(boost::shared_ptr<pdat::CellData<double> > cd_te,
+               boost::shared_ptr<pdat::CellData<double> > cd_cl,
+               boost::shared_ptr<pdat::CellData<double> > cd_cs,
+               boost::shared_ptr<pdat::CellData<double> > cd_mobility,
+               boost::shared_ptr<hier::Patch> patch);
 
    /*
     * Timers for performance measurement.
@@ -102,4 +93,3 @@ private:
 };
 
 #endif
-

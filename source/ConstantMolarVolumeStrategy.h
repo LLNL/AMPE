@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,41 +32,39 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_ConstantMolarVolumeStrategy
 #define included_ConstantMolarVolumeStrategy
 
 #include "MolarVolumeStrategy.h"
 #include "Phases.h"
 
-class ConstantMolarVolumeStrategy:public MolarVolumeStrategy
+class ConstantMolarVolumeStrategy : public MolarVolumeStrategy
 {
-public:
-   ConstantMolarVolumeStrategy(const double vml,
-                               const double vma,
+ public:
+   ConstantMolarVolumeStrategy(const double vml, const double vma,
                                const double vmb)
    {
-      assert( vml==vml );
-      assert( vml>0. );
-      assert( vma>0. );
+      assert(vml == vml);
+      assert(vml > 0.);
+      assert(vma > 0.);
 
       d_inv_vm[static_cast<int>(PhaseIndex::phaseL)] = 1.e-6 / vml;
       d_inv_vm[static_cast<int>(PhaseIndex::phaseA)] = 1.e-6 / vma;
       d_inv_vm[static_cast<int>(PhaseIndex::phaseB)] = 1.e-6 / vmb;
    }
-   
-   
-   virtual double computeInvMolarVolume(
-      const double temperature,
-      const double* const conc,
-      const PhaseIndex pi ) 
+
+
+   virtual double computeInvMolarVolume(const double temperature,
+                                        const double* const conc,
+                                        const PhaseIndex pi)
    {
-       (void)temperature;
-       (void)conc;
-       return d_inv_vm[static_cast<int>(pi)];
+      (void)temperature;
+      (void)conc;
+      return d_inv_vm[static_cast<int>(pi)];
    }
 
-private:
+ private:
    double d_inv_vm[3];
 };
 

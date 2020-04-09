@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "EllipticFACSolver.h"
 #include "EllipticFACOps.h"
 
@@ -58,42 +58,37 @@ using namespace std;
 *                                                                       *
 *************************************************************************
 */
-EllipticFACSolver::EllipticFACSolver (
-   const std::string &object_name,
-   boost::shared_ptr<EllipticFACOps> fac_ops,
-   const boost::shared_ptr<tbox::Database>& database )
-   :
-   d_object_name(object_name),
-   d_fac_ops(fac_ops),
-   d_fac_precond(object_name+"::fac_precond",d_fac_ops, database),
-   d_bc_object(NULL),
-   d_simple_bc(tbox::Dimension(NDIM),object_name+"::bc"),
-   d_ln_min(-1),
-   d_ln_max(-1),
-   d_context(hier::VariableDatabase::getDatabase()
-             ->getContext(object_name+"::CONTEXT")) ,
-   d_solver_is_initialized(false),
-   d_enable_logging(false),
-   d_verbose(false)
+EllipticFACSolver::EllipticFACSolver(
+    const std::string& object_name, boost::shared_ptr<EllipticFACOps> fac_ops,
+    const boost::shared_ptr<tbox::Database>& database)
+    : d_object_name(object_name),
+      d_fac_ops(fac_ops),
+      d_fac_precond(object_name + "::fac_precond", d_fac_ops, database),
+      d_bc_object(NULL),
+      d_simple_bc(tbox::Dimension(NDIM), object_name + "::bc"),
+      d_ln_min(-1),
+      d_ln_max(-1),
+      d_context(hier::VariableDatabase::getDatabase()->getContext(object_name +
+                                                                  "::CONTEXT")),
+      d_solver_is_initialized(false),
+      d_enable_logging(false),
+      d_verbose(false)
 {
    boost::shared_ptr<pdat::CellVariable<double> > vol_var(
-      new pdat::CellVariable<double>(
-         tbox::Dimension(NDIM),object_name+"::weight"));
-   d_vol_id= hier::VariableDatabase::getDatabase()->
-      registerVariableAndContext(
-         vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM),0) );
+       new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                      object_name + "::weight"));
+   d_vol_id = hier::VariableDatabase::getDatabase()->registerVariableAndContext(
+       vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM), 0));
 
    /*
     * The FAC operator optionally uses the preconditioner
     * to get data for logging.
     */
-   d_fac_ops->setPreconditioner( 
-      (const FACPreconditioner*)(&d_fac_precond) );
+   d_fac_ops->setPreconditioner((const FACPreconditioner*)(&d_fac_precond));
 
-   if ( database ) {
+   if (database) {
       getFromInput(database);
    }
-
 }
 
 /*
@@ -104,10 +99,7 @@ EllipticFACSolver::EllipticFACSolver (
 *                                                                       *
 *************************************************************************
 */
-EllipticFACSolver::~EllipticFACSolver()
-{
-   deallocateSolverState();
-}
+EllipticFACSolver::~EllipticFACSolver() { deallocateSolverState(); }
 
 
 /*
@@ -124,9 +116,9 @@ EllipticFACSolver::~EllipticFACSolver()
 ********************************************************************
 */
 void EllipticFACSolver::getFromInput(
-   const boost::shared_ptr<tbox::Database>& database )
+    const boost::shared_ptr<tbox::Database>& database)
 {
-   if ( database->isBool("enable_logging") ) {
+   if (database->isBool("enable_logging")) {
       d_enable_logging = database->getBool("enable_logging");
    }
 }
@@ -143,96 +135,85 @@ void EllipticFACSolver::getFromInput(
 *                                                                       *
 *************************************************************************
 */
-void
-EllipticFACSolver::initializeSolverState(
-   const int solution ,
-   const int rhs ,
-   const boost::shared_ptr< hier::PatchHierarchy >& hierarchy,
-   const int coarse_level,
-   const int fine_level )
+void EllipticFACSolver::initializeSolverState(
+    const int solution, const int rhs,
+    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const int coarse_level, const int fine_level)
 {
    TBOX_ASSERT(hierarchy);
-   
-   if ( d_bc_object == NULL ) {
+
+   if (d_bc_object == NULL) {
       TBOX_ERROR(d_object_name << ": No BC coefficient strategy object!\n"
-                 << "Use either setBoundaries or setPhysicalBcCoefObject\n"
-                 << "to specify the boundary conidition.\n");
+                               << "Use either setBoundaries or "
+                                  "setPhysicalBcCoefObject\n"
+                               << "to specify the boundary conidition.\n");
    }
 
-   if ( ! d_solver_is_initialized ) {
+   if (!d_solver_is_initialized) {
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if ( solution < 0 || rhs < 0 ) {
+      if (solution < 0 || rhs < 0) {
          TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
       }
 #endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if ( !hierarchy ) {
+      if (!hierarchy) {
          TBOX_ERROR(d_object_name << ": NULL hierarchy pointer not allowed\n"
-                    << "in inititialization.");
+                                  << "in inititialization.");
       }
 #endif
       d_hierarchy = hierarchy;
 
       d_ln_min = coarse_level;
       d_ln_max = fine_level;
-      if ( d_ln_min == -1 ) {
+      if (d_ln_min == -1) {
          d_ln_min = 0;
       }
-      if ( d_ln_max == -1 ) {
+      if (d_ln_max == -1) {
          d_ln_max = d_hierarchy->getFinestLevelNumber();
       }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if ( d_ln_min < 0 || d_ln_max < 0 || d_ln_min > d_ln_max ) {
+      if (d_ln_min < 0 || d_ln_max < 0 || d_ln_min > d_ln_max) {
          TBOX_ERROR(d_object_name << ": Bad range of levels in\n"
-                    << "inititialization.\n");
+                                  << "inititialization.\n");
       }
 #endif
 
-      for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+      for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
          d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_vol_id);
       }
 
-      d_fac_ops->computeVectorWeights(
-         d_hierarchy,
-         d_vol_id,
-         d_ln_min,
-         d_ln_max );
+      d_fac_ops->computeVectorWeights(d_hierarchy, d_vol_id, d_ln_min,
+                                      d_ln_max);
 
-      createVectorWrappers(solution,rhs);
+      createVectorWrappers(solution, rhs);
 
       d_fac_precond.initializeSolverState(*d_uv, *d_fv);
 
       d_solver_is_initialized = true;
    }
-
 }
 
 
-void
-EllipticFACSolver::finalizeCoefficients()
+void EllipticFACSolver::finalizeCoefficients()
 {
 
-  if ( d_bc_object == &d_simple_bc ) {
-    d_simple_bc.setHierarchy(d_hierarchy,
-                             d_ln_min,
-                             d_ln_max);
-    if ( d_fac_ops->dIsConstant() ) {
-      d_simple_bc.setDiffusionCoefConstant( d_fac_ops->getDConstant() );
-    }
-    else {
-      d_simple_bc.setDiffusionCoefId( d_fac_ops->getDPatchDataId() );
-    }
-  }
+   if (d_bc_object == &d_simple_bc) {
+      d_simple_bc.setHierarchy(d_hierarchy, d_ln_min, d_ln_max);
+      if (d_fac_ops->dIsConstant()) {
+         d_simple_bc.setDiffusionCoefConstant(d_fac_ops->getDConstant());
+      } else {
+         d_simple_bc.setDiffusionCoefId(d_fac_ops->getDPatchDataId());
+      }
+   }
 
    d_fac_ops->finalizeCoefficients();
 }
 
-void
-EllipticFACSolver::deallocateSolverState()
+void EllipticFACSolver::deallocateSolverState()
 {
-   if ( d_hierarchy ) {
+   if (d_hierarchy) {
 
       d_fac_precond.deallocateSolverState();
 
@@ -240,7 +221,7 @@ EllipticFACSolver::deallocateSolverState()
        * Delete internally managed data.
        */
       int ln;
-      for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
          d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_vol_id);
       }
 
@@ -255,38 +236,32 @@ EllipticFACSolver::deallocateSolverState()
 }
 
 
-void
-EllipticFACSolver::resetSolverState(
-   const int soln_id,
-   const int  rhs_id,
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy)
+void EllipticFACSolver::resetSolverState(
+    const int soln_id, const int rhs_id,
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   if( d_solver_is_initialized ){
-      assert( hierarchy );
-      assert( soln_id>=0 );
-      assert( rhs_id>=0 );
+   if (d_solver_is_initialized) {
+      assert(hierarchy);
+      assert(soln_id >= 0);
+      assert(rhs_id >= 0);
       deallocateSolverState();
       initializeSolverState(soln_id, rhs_id, hierarchy);
    }
 }
 
 
-void
-EllipticFACSolver::setBoundaries(const std::string& boundary_type,
-                                 const int                 fluxes,
-                                 const int                  flags,
-                                 int *                 bdry_types)
+void EllipticFACSolver::setBoundaries(const std::string& boundary_type,
+                                      const int fluxes, const int flags,
+                                      int* bdry_types)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( d_bc_object != NULL && d_bc_object != &d_simple_bc ) {
+   if (d_bc_object != NULL && d_bc_object != &d_simple_bc) {
       TBOX_ERROR(d_object_name << ": Bad attempt to set boundary condition\n"
-                 << "by using default bc object after it has been overriden.\n");
+                               << "by using default bc object after it has "
+                                  "been overriden.\n");
    }
 #endif
-   d_simple_bc.setBoundaries(boundary_type,
-                             fluxes,
-                             flags,
-                             bdry_types);
+   d_simple_bc.setBoundaries(boundary_type, fluxes, flags, bdry_types);
    d_bc_object = &d_simple_bc;
    d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
 }
@@ -304,27 +279,29 @@ EllipticFACSolver::setBoundaries(const std::string& boundary_type,
 *                                                                       *
 *************************************************************************
 */
-bool
-EllipticFACSolver::solveSystem(const int u_id,
-                               const int f_id,
-                               const int ew_id)
+bool EllipticFACSolver::solveSystem(const int u_id, const int f_id,
+                                    const int ew_id)
 {
-   //tbox::pout<<"EllipticFACSolver::solveSystem() for object "<<d_object_name<<endl;
+   // tbox::pout<<"EllipticFACSolver::solveSystem() for object
+   // "<<d_object_name<<endl;
 #ifdef DEBUG_CHECK_ASSERTIONS
-   assert( u_id!=-1 );
-   assert( f_id!=-1 );
-   if ( !d_solver_is_initialized ) {
+   assert(u_id != -1);
+   assert(f_id != -1);
+   if (!d_solver_is_initialized) {
       TBOX_ERROR(d_object_name << ".solveSystem(int,int): uninitialized\n"
-                 << "solver state.  You must call initializeSolverState()\n"
-                 << "before using this function.  Or you can use\n"
-                 << "solveSystem(int,int,...) to initialize the solver,\n"
-                 << "solve and deallocate the solver.\n");
+                               << "solver state.  You must call "
+                                  "initializeSolverState()\n"
+                               << "before using this function.  Or you can "
+                                  "use\n"
+                               << "solveSystem(int,int,...) to initialize the "
+                                  "solver,\n"
+                               << "solve and deallocate the solver.\n");
    }
-   if ( u_id < 0 || f_id < 0 ) {
+   if (u_id < 0 || f_id < 0) {
       TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
    }
 #endif
-   if ( d_bc_object == &d_simple_bc ) {
+   if (d_bc_object == &d_simple_bc) {
       /*
        * Knowing that we are using the SimpelCellRobinBcCoefsX
        * implementation of RobinBcCoefStrategy, we must save
@@ -335,7 +312,7 @@ EllipticFACSolver::solveSystem(const int u_id,
       d_simple_bc.cacheDirichletData(u_id);
    }
 
-   createVectorWrappers(u_id,f_id);
+   createVectorWrappers(u_id, f_id);
 
    d_fac_ops->setWeightIds(ew_id, d_vol_id);
 
@@ -349,9 +326,9 @@ EllipticFACSolver::solveSystem(const int u_id,
    tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), u: Weighted RMS norm on composite grid = " << normu << endl;
 #endif
 
-   bool solver_rval = d_fac_precond.solveSystem( *d_uv, *d_fv );
+   bool solver_rval = d_fac_precond.solveSystem(*d_uv, *d_fv);
 
-   if ( d_bc_object == &d_simple_bc ) {
+   if (d_bc_object == &d_simple_bc) {
       /*
        * Restore the Dirichlet cell data that were overwritten by the
        * solve process.  We do this to be backward compatible with the
@@ -362,8 +339,8 @@ EllipticFACSolver::solveSystem(const int u_id,
 
    if (d_verbose) printFACConvergenceFactors(solver_rval);
 
-   d_fac_ops->setWeightIds(-1,-1);
-   
+   d_fac_ops->setWeightIds(-1, -1);
+
    return solver_rval;
 }
 
@@ -380,35 +357,35 @@ EllipticFACSolver::solveSystem(const int u_id,
 *                                                                       *
 *************************************************************************
 */
-bool
-EllipticFACSolver::solveSystem(const int u_id,
-                               const int f_id,
-                               const int w_id,
-                               const boost::shared_ptr< hier::PatchHierarchy >& hierarchy,
-                               int coarse_ln,
-                               int fine_ln)
+bool EllipticFACSolver::solveSystem(
+    const int u_id, const int f_id, const int w_id,
+    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy, int coarse_ln,
+    int fine_ln)
 {
    TBOX_ASSERT(hierarchy);
 
-   if ( d_enable_logging ) {
+   if (d_enable_logging) {
       tbox::plog << "EllipticFACSolver::solveSystem (" << d_object_name
-           << ")\n";
+                 << ")\n";
    }
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( d_solver_is_initialized ) {
+   if (d_solver_is_initialized) {
       TBOX_ERROR(d_object_name << ".solveSystem(int,int,...): initialized\n"
-                 << "solver state.  This function can only used when the\n"
-                 << "solver state is uninitialized.  You should deallocate\n"
-                 << "the solver state or use solveSystem(int,int).\n");
+                               << "solver state.  This function can only used "
+                                  "when the\n"
+                               << "solver state is uninitialized.  You should "
+                                  "deallocate\n"
+                               << "the solver state or use "
+                                  "solveSystem(int,int).\n");
    }
-   if ( !hierarchy ) {
+   if (!hierarchy) {
       TBOX_ERROR(d_object_name << ".solveSystem(): Null hierarchy\n"
-                 << "specified.\n");
+                               << "specified.\n");
    }
 #endif
-   initializeSolverState( u_id, f_id, hierarchy, coarse_ln, fine_ln );
+   initializeSolverState(u_id, f_id, hierarchy, coarse_ln, fine_ln);
 
-   bool solver_rval= solveSystem( u_id, f_id, w_id);
+   bool solver_rval = solveSystem(u_id, f_id, w_id);
 
    deallocateSolverState();
 
@@ -416,70 +393,65 @@ EllipticFACSolver::solveSystem(const int u_id,
 }
 
 
-void
-EllipticFACSolver::createVectorWrappers(int u,
-                                        int f)
+void EllipticFACSolver::createVectorWrappers(int u, int f)
 {
 
-   hier::VariableDatabase &vdb(*hier::VariableDatabase::getDatabase());
-   boost::shared_ptr< hier::Variable > variable;
+   hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
+   boost::shared_ptr<hier::Variable> variable;
 
-   if ( !d_uv || d_uv->getComponentDescriptorIndex(0) != u ) {
-      d_uv.reset( new solv::SAMRAIVectorReal<double>(d_object_name+"::uv",
-                                                d_hierarchy,
-                                                d_ln_min,
-                                                d_ln_max) );
+   if (!d_uv || d_uv->getComponentDescriptorIndex(0) != u) {
+      d_uv.reset(new solv::SAMRAIVectorReal<double>(d_object_name + "::uv",
+                                                    d_hierarchy, d_ln_min,
+                                                    d_ln_max));
       vdb.mapIndexToVariable(u, variable);
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if ( !variable ) {
-         TBOX_ERROR(d_object_name << ": No variable for patch data index "
-                    << u << "\n");
+      if (!variable) {
+         TBOX_ERROR(d_object_name << ": No variable for patch data index " << u
+                                  << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(variable) );
-      if ( !cell_variable ) {
+      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << u
-                    << " is not a cell-double variable.\n");
+                                  << " is not a cell-double variable.\n");
       }
 #endif
-      d_uv->addComponent( variable, u, d_vol_id );
+      d_uv->addComponent(variable, u, d_vol_id);
    }
 
-   if ( !d_fv || d_fv->getComponentDescriptorIndex(0) != f ) {
-      d_fv.reset( new solv::SAMRAIVectorReal<double>(d_object_name+"::fv",
-                                                d_hierarchy,
-                                                d_ln_min,
-                                                d_ln_max));
+   if (!d_fv || d_fv->getComponentDescriptorIndex(0) != f) {
+      d_fv.reset(new solv::SAMRAIVectorReal<double>(d_object_name + "::fv",
+                                                    d_hierarchy, d_ln_min,
+                                                    d_ln_max));
       vdb.mapIndexToVariable(f, variable);
 #ifdef DEBUG_CHECK_ASSERTIONS
-      if ( !variable ) {
-         TBOX_ERROR(d_object_name << ": No variable for patch data index "
-                    << f << "\n");
+      if (!variable) {
+         TBOX_ERROR(d_object_name << ": No variable for patch data index " << f
+                                  << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable ( 
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(variable) );
-      if ( !cell_variable ) {
+      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << f
-                    << " is not a cell-double variable.\n");
+                                  << " is not a cell-double variable.\n");
       }
 #endif
-      d_fv->addComponent( variable, f, d_vol_id );
+      d_fv->addComponent(variable, f, d_vol_id);
    }
-
 }
 
 
-void
-EllipticFACSolver::printFACConvergenceFactors(const int solver_ret)
+void EllipticFACSolver::printFACConvergenceFactors(const int solver_ret)
 {
-  d_fac_precond.printClassData(tbox::pout);
-  double avg_factor, final_factor;
-  getConvergenceFactors(avg_factor, final_factor);
-  tbox::pout << "  EllipticFACSolver "<<d_object_name<<", iteration ";
-  tbox::pout << (solver_ret?"":"NOT ") << "converged " << "\n"
-             << "     iterations: " << getNumberOfIterations() << "\n"
-             << "     residual: " << getResidualNorm() << "\n"
-             << "     average convergence: " << avg_factor << "\n"
-             << "     final convergence: " << final_factor << "\n"
-             << std::flush;
+   d_fac_precond.printClassData(tbox::pout);
+   double avg_factor, final_factor;
+   getConvergenceFactors(avg_factor, final_factor);
+   tbox::pout << "  EllipticFACSolver " << d_object_name << ", iteration ";
+   tbox::pout << (solver_ret ? "" : "NOT ") << "converged "
+              << "\n"
+              << "     iterations: " << getNumberOfIterations() << "\n"
+              << "     residual: " << getResidualNorm() << "\n"
+              << "     average convergence: " << avg_factor << "\n"
+              << "     final convergence: " << final_factor << "\n"
+              << std::flush;
 }

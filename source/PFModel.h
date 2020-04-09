@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_PFModel
 #define included_PFModel
 
@@ -52,106 +52,98 @@
 #include <boost/make_shared.hpp>
 using namespace SAMRAI;
 
-class PFModel :
-   public tbox::Serializable,
-   public mesh::StandardTagAndInitStrategy
+class PFModel : public tbox::Serializable,
+                public mesh::StandardTagAndInitStrategy
 {
-public :
-   PFModel( void );
+ public:
+   PFModel(void);
    virtual ~PFModel();
 
-   virtual void Initialize(
-      boost::shared_ptr<tbox::MemoryDatabase>& input_db,
-      const std::string& run_name,
-      const bool is_from_restart,
-      const std::string& restart_read_dirname,
-      const int restore_num );
+   virtual void Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
+                           const std::string& run_name,
+                           const bool is_from_restart,
+                           const std::string& restart_read_dirname,
+                           const int restore_num);
 
    virtual void readInitialDatabase(
-      boost::shared_ptr<tbox::Database> main_input_db );
+       boost::shared_ptr<tbox::Database> main_input_db);
 
-   void setVerbosity( Verbosity* v ) { d_verbosity = v; }
-   
-   virtual void getFromInput(
-      boost::shared_ptr<tbox::Database> input_db );
+   void setVerbosity(Verbosity* v) { d_verbosity = v; }
 
-   virtual void getFromRestart(
-      boost::shared_ptr<tbox::Database> input_db );
+   virtual void getFromInput(boost::shared_ptr<tbox::Database> input_db);
 
-   virtual void setupInitialDataLevel( void );
+   virtual void getFromRestart(boost::shared_ptr<tbox::Database> input_db);
 
-   virtual void setupHierarchy( void );
+   virtual void setupInitialDataLevel(void);
 
-   virtual void Run( void );
+   virtual void setupHierarchy(void);
+
+   virtual void Run(void);
 
    // pure virtual functions to be implemented by model
-   virtual void CreateIntegrator( boost::shared_ptr<tbox::Database> input_db ) = 0;
+   virtual void CreateIntegrator(
+       boost::shared_ptr<tbox::Database> input_db) = 0;
 
-   virtual void RegisterVariables( void ) = 0;
+   virtual void RegisterVariables(void) = 0;
 
-   virtual void InitializeIntegrator( void ) = 0;
+   virtual void InitializeIntegrator(void) = 0;
 
-   virtual void initializeCoarseRefineOperators( void ) = 0;
+   virtual void initializeCoarseRefineOperators(void) = 0;
 
-   virtual void RegisterWithVisit( void ) = 0;
+   virtual void RegisterWithVisit(void) = 0;
 
-   virtual double Advance( void ) = 0;
+   virtual double Advance(void) = 0;
 
-   virtual void postAdvanceDiagnostics( void );
+   virtual void postAdvanceDiagnostics(void);
 
-   virtual void preRunDiagnostics( void );
+   virtual void preRunDiagnostics(void);
 
-   virtual void postRunDiagnostics( void );
+   virtual void postRunDiagnostics(void);
 
-   virtual void writeRestartFile( void );
+   virtual void writeRestartFile(void);
 
-   virtual void Regrid(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy );
+   virtual void Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   virtual void computeGrainDiagnostics( void );
+   virtual void computeGrainDiagnostics(void);
 
-   virtual void WriteInitialConditionsFile( void ) {;}
+   virtual void WriteInitialConditionsFile(void) { ; }
 
    // deallocate some temporary data to free some memory,
    // for example before some high memory footprint postprocessing
    virtual void DeallocateIntermediateLocalPatchData(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy )
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
    {
       (void)hierarchy;
    };
-   
+
    //-----------------------------------------------------------------------
    //
    // Methods inherited from Serializable
    //
-   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db )const;
+   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db) const;
 
    //-----------------------------------------------------------------------
    //
    // Methods inherited from StandardTagAndInitStrategy
    //
    virtual void initializeLevelData(
-      const boost::shared_ptr<hier::PatchHierarchy >& hierarchy,
-      const int level_number,
-      const double time,
-      const bool can_be_refined,
-      const bool initial_time,
-      const boost::shared_ptr<hier::PatchLevel >& old_level,
-      const bool allocate_data ) = 0;
+       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const int level_number, const double time, const bool can_be_refined,
+       const bool initial_time,
+       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const bool allocate_data) = 0;
 
    virtual void resetHierarchyConfiguration(
-      const boost::shared_ptr<hier::PatchHierarchy >& hierarchy,
-      const int coarsest_level,
-      const int finest_level) = 0;
+       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const int coarsest_level, const int finest_level) = 0;
 
    //-----------------------------------------------------------------------
 
-protected:
-
-   boost::shared_ptr<hier::PatchHierarchy > d_patch_hierarchy;
-   boost::shared_ptr<geom::CartesianGridGeometry > d_grid_geometry;
-   boost::shared_ptr<mesh::GriddingAlgorithm > d_gridding_algorithm;
-   boost::shared_ptr<appu::VisItDataWriter > d_visit_data_writer;
+ protected:
+   boost::shared_ptr<hier::PatchHierarchy> d_patch_hierarchy;
+   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   boost::shared_ptr<mesh::GriddingAlgorithm> d_gridding_algorithm;
+   boost::shared_ptr<appu::VisItDataWriter> d_visit_data_writer;
 
    bool d_amr_enabled;
 
@@ -162,23 +154,23 @@ protected:
    double d_time;
    double d_previous_timestep;
 
-   boost::shared_ptr< EventInterval > d_time_info_interval;
+   boost::shared_ptr<EventInterval> d_time_info_interval;
 
-   boost::shared_ptr< EventInterval > d_restart_interval;
+   boost::shared_ptr<EventInterval> d_restart_interval;
    std::string d_restart_write_dirname;
 
    bool d_write_initial_conditions_file;
    std::string d_initial_conditions_file_name;
    int d_initial_conditions_level;
 
-   boost::shared_ptr< EventInterval > d_grain_diag_interval;
+   boost::shared_ptr<EventInterval> d_grain_diag_interval;
 
    // Initialization variables
    std::string d_init_data_filename;
    int d_level_of_init_data;
    int d_slice_index;
    hier::IntVector d_ratio_of_init_to_coarsest;
-   boost::shared_ptr<hier::PatchLevel > d_initial_level;
+   boost::shared_ptr<hier::PatchLevel> d_initial_level;
    std::vector<float> d_init_q;
    std::vector<float> d_init_c;
    float d_init_t;
@@ -189,17 +181,16 @@ protected:
    int d_tag_buffer;
    int d_cycle;
 
-   boost::shared_ptr< EventInterval > d_regrid_interval;
+   boost::shared_ptr<EventInterval> d_regrid_interval;
 
    std::string d_object_name;
 
    boost::shared_ptr<tbox::Timer> t_run_time;
 
-private :
-   boost::shared_ptr< EventInterval > d_visit_dump_interval;
+ private:
+   boost::shared_ptr<EventInterval> d_visit_dump_interval;
 
    Verbosity* d_verbosity;
-
 };
 
 #endif

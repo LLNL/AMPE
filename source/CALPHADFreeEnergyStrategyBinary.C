@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "ConcFort.h"
 #include "QuatParams.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
@@ -55,17 +55,13 @@ using namespace std;
 //=======================================================================
 
 CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
-   boost::shared_ptr<tbox::Database> calphad_db,
-   boost::shared_ptr<tbox::Database> newton_db,
-   const EnergyInterpolationType energy_interp_func_type,
-   const ConcInterpolationType conc_interp_func_type,
-   MolarVolumeStrategy* mvstrategy,
-   const int conc_l_id,
-   const int conc_a_id,
-   const int conc_b_id,
-   const bool with_third_phase
-   ):
-      d_mv_strategy(mvstrategy),
+    boost::shared_ptr<tbox::Database> calphad_db,
+    boost::shared_ptr<tbox::Database> newton_db,
+    const EnergyInterpolationType energy_interp_func_type,
+    const ConcInterpolationType conc_interp_func_type,
+    MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id,
+    const int conc_b_id, const bool with_third_phase)
+    : d_mv_strategy(mvstrategy),
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
       d_conc_l_id(conc_l_id),
@@ -75,304 +71,224 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 {
    // conversion factor from [J/mol] to [pJ/(mu m)^3]
    // vm^-1 [mol/m^3] * 10e-18 [m^3/(mu m^3)] * 10e12 [pJ/J]
-   //d_jpmol2pjpmumcube = 1.e-6 / d_vm;
+   // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
-   // R = 8.314472 J � K-1 � mol-1 
-   //tbox::plog << "CALPHADFreeEnergyStrategyBinary:" << endl;
-   //tbox::plog << "Molar volume L =" << vml << endl;
-   //tbox::plog << "Molar volume A =" << vma << endl;
-   //tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
-   
-   setup(calphad_db,newton_db);
+   // R = 8.314472 J � K-1 � mol-1
+   // tbox::plog << "CALPHADFreeEnergyStrategyBinary:" << endl;
+   // tbox::plog << "Molar volume L =" << vml << endl;
+   // tbox::plog << "Molar volume A =" << vma << endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+
+   setup(calphad_db, newton_db);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::setup(
-   boost::shared_ptr<tbox::Database> calphad_db,
-   boost::shared_ptr<tbox::Database> newton_db)
+    boost::shared_ptr<tbox::Database> calphad_db,
+    boost::shared_ptr<tbox::Database> newton_db)
 {
-   d_calphad_fenergy = new
-      CALPHADFreeEnergyFunctionsBinary(calphad_db,newton_db,
-                                 d_energy_interp_func_type,
-                                 d_conc_interp_func_type,
-                                 d_with_third_phase);
+   d_calphad_fenergy =
+       new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
+                                            d_energy_interp_func_type,
+                                            d_conc_interp_func_type,
+                                            d_with_third_phase);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy, 
-   const int temperature_id,
-   const int fl_id,
-   const bool gp ) 
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fl_id, const bool gp)
 {
-   assert( temperature_id >= 0 );
-   assert( fl_id >= 0 );
- 
-   assert( d_conc_l_id >= 0 );
+   assert(temperature_id >= 0);
+   assert(fl_id >= 0);
 
-   computeFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      fl_id,
-      d_conc_l_id,
-      PhaseIndex::phaseL,
-      gp );
+   assert(d_conc_l_id >= 0);
+
+   computeFreeEnergyPrivate(hierarchy, temperature_id, fl_id, d_conc_l_id,
+                            PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy, 
-   const int temperature_id,
-   const int dfl_id ) 
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int dfl_id)
 {
-   assert( temperature_id >= 0 );
-   assert( dfl_id >= 0 );
+   assert(temperature_id >= 0);
+   assert(dfl_id >= 0);
 
-   computeDerivFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      dfl_id,
-      d_conc_l_id,
-      PhaseIndex::phaseL );
+   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfl_id, d_conc_l_id,
+                                 PhaseIndex::phaseL);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fs_id, const bool gp)
 {
-   assert( temperature_id >= 0. );
-   assert( fs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      fs_id,
-      d_conc_a_id,
-      PhaseIndex::phaseA,
-      gp );
+   computeFreeEnergyPrivate(hierarchy, temperature_id, fs_id, d_conc_a_id,
+                            PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int dfs_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int dfs_id)
 {
-   assert( temperature_id >= 0. );
-   assert( dfs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(dfs_id >= 0);
 
-   computeDerivFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      dfs_id,
-      d_conc_a_id,
-      PhaseIndex::phaseA );
+   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfs_id, d_conc_a_id,
+                                 PhaseIndex::phaseA);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int fs_id, const bool gp)
 {
-   assert( temperature_id >= 0. );
-   assert( fs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      fs_id,
-      d_conc_b_id,
-      PhaseIndex::phaseB,
-      gp );
+   computeFreeEnergyPrivate(hierarchy, temperature_id, fs_id, d_conc_b_id,
+                            PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int dfs_id )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int dfs_id)
 {
-   assert( temperature_id >= 0. );
-   assert( dfs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(dfs_id >= 0);
 
-   computeDerivFreeEnergyPrivate(
-      hierarchy,
-      temperature_id,
-      dfs_id,
-      d_conc_b_id,
-      PhaseIndex::phaseB );
+   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfs_id, d_conc_b_id,
+                                 PhaseIndex::phaseB);
 }
 
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
-   hier::Patch& patch, 
-   const int temperature_id,
-   const int fl_id,
-   const bool gp ) 
+    hier::Patch& patch, const int temperature_id, const int fl_id,
+    const bool gp)
 {
-   assert( temperature_id >= 0 );
-   assert( fl_id >= 0 );
- 
-   assert( d_conc_l_id >= 0 );
+   assert(temperature_id >= 0);
+   assert(fl_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      fl_id,
-      d_conc_l_id,
-      PhaseIndex::phaseL,
-      gp );
+   assert(d_conc_l_id >= 0);
+
+   computeFreeEnergyPrivate(patch, temperature_id, fl_id, d_conc_l_id,
+                            PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    hier::Patch& patch, const int temperature_id, const int fs_id,
+    const bool gp)
 {
-   assert( temperature_id >= 0. );
-   assert( fs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      fs_id,
-      d_conc_a_id,
-      PhaseIndex::phaseA,
-      gp );
+   computeFreeEnergyPrivate(patch, temperature_id, fs_id, d_conc_a_id,
+                            PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int fs_id,
-   const bool gp )
+    hier::Patch& patch, const int temperature_id, const int fs_id,
+    const bool gp)
 {
-   assert( temperature_id >= 0. );
-   assert( fs_id >= 0 );
+   assert(temperature_id >= 0.);
+   assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(
-      patch,
-      temperature_id,
-      fs_id,
-      d_conc_b_id,
-      PhaseIndex::phaseB,
-      gp );
+   computeFreeEnergyPrivate(patch, temperature_id, fs_id, d_conc_b_id,
+                            PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int f_id,
-   const int conc_i_id,
-   const PhaseIndex pi,
-   const bool gp )
+    hier::Patch& patch, const int temperature_id, const int f_id,
+    const int conc_i_id, const PhaseIndex pi, const bool gp)
 {
-   assert( temperature_id >= 0 );
-   assert( f_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+   assert(temperature_id >= 0);
+   assert(f_id >= 0);
+   assert(conc_i_id >= 0);
+
    const hier::Box& pbox = patch.getBox();
- 
-   boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( temperature_id) ) );
- 
-   boost::shared_ptr< pdat::CellData<double> > f (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( f_id) ) );
-   
-   boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( conc_i_id) ) );
-   
-   computeFreeEnergyPrivatePatch(
-      pbox,
-      temperature,
-      f,
-      c_i,
-      pi,
-      gp );
-         
+
+   boost::shared_ptr<pdat::CellData<double> > temperature(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > f(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > c_i(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(conc_i_id)));
+
+   computeFreeEnergyPrivatePatch(pbox, temperature, f, c_i, pi, gp);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
-   hier::Patch& patch,
-   const int temperature_id,
-   const int df_id,
-   const int conc_i_id,
-   const PhaseIndex pi )
+    hier::Patch& patch, const int temperature_id, const int df_id,
+    const int conc_i_id, const PhaseIndex pi)
 {
-   assert( temperature_id >= 0 );
-   assert( df_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
+   assert(temperature_id >= 0);
+   assert(df_id >= 0);
+   assert(conc_i_id >= 0);
+
    const hier::Box& pbox = patch.getBox();
- 
-   boost::shared_ptr< pdat::CellData<double> > temperature (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( temperature_id) ) );
- 
-   boost::shared_ptr< pdat::CellData<double> > df (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( df_id) ) );
-   
-   boost::shared_ptr< pdat::CellData<double> > c_i (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( conc_i_id) ) );
-   
-   computeDerivFreeEnergyPrivatePatch(
-      pbox,
-      temperature,
-      df,
-      c_i,
-      pi );
-         
+
+   boost::shared_ptr<pdat::CellData<double> > temperature(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > df(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(df_id)));
+
+   boost::shared_ptr<pdat::CellData<double> > c_i(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(conc_i_id)));
+
+   computeDerivFreeEnergyPrivatePatch(pbox, temperature, df, c_i, pi);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int f_id,
-   const int conc_i_id,
-   const PhaseIndex pi,
-   const bool gp )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int f_id, const int conc_i_id,
+    const PhaseIndex pi, const bool gp)
 {
-   assert( temperature_id >= 0 );
-   assert( f_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
-   for( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
-         boost::shared_ptr<hier::Patch > patch = *ip;
-         
+   assert(temperature_id >= 0);
+   assert(f_id >= 0);
+   assert(conc_i_id >= 0);
+
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
          computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi,
                                   gp);
       }
@@ -382,23 +298,21 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
-   const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-   const int temperature_id,
-   const int df_id,
-   const int conc_i_id,
-   const PhaseIndex pi )
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const int temperature_id, const int df_id, const int conc_i_id,
+    const PhaseIndex pi)
 {
-   assert( temperature_id >= 0 );
-   assert( df_id >= 0 );
-   assert( conc_i_id >= 0 );
-   
-   for ( int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++ ) {
-      boost::shared_ptr< hier::PatchLevel > level =
-         hierarchy->getPatchLevel( ln );
- 
-      for(hier::PatchLevel::Iterator ip(level->begin());ip!=level->end();ip++){
-         boost::shared_ptr<hier::Patch > patch = *ip;
-         
+   assert(temperature_id >= 0);
+   assert(df_id >= 0);
+   assert(conc_i_id >= 0);
+
+   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
+      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+
+      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+           ip++) {
+         boost::shared_ptr<hier::Patch> patch = *ip;
+
          computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id,
                                        pi);
       }
@@ -408,17 +322,15 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
-   const hier::Box& pbox,
-   boost::shared_ptr< pdat::CellData<double> > cd_temp,
-   boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
-   boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-   const PhaseIndex pi,
-   const bool gp )
+    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    boost::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
+    const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
    double* ptr_c_i = cd_conc_i->getPointer();
-   
+
    const hier::Box& temp_gbox = cd_temp->getGhostBox();
    int imin_temp = temp_gbox.lower(0);
    int jmin_temp = temp_gbox.lower(1);
@@ -462,25 +374,26 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_f = (ii - imin_f) +
-               (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f =
+                (ii - imin_f) + (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = d_calphad_fenergy->computeFreeEnergy(t,&c_i,pi,gp);
-            ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
+            ptr_f[idx_f] =
+                d_calphad_fenergy->computeFreeEnergy(t, &c_i, pi, gp);
+            ptr_f[idx_f] *= d_mv_strategy->computeInvMolarVolume(t, &c_i, pi);
          }
       }
    }
@@ -489,16 +402,14 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
-   const hier::Box& pbox,
-   boost::shared_ptr< pdat::CellData<double> > cd_temp,
-   boost::shared_ptr< pdat::CellData<double> > cd_free_energy,
-   boost::shared_ptr< pdat::CellData<double> > cd_conc_i,
-   const PhaseIndex pi )
+    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    boost::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
    double* ptr_c_i = cd_conc_i->getPointer();
-   
+
    const hier::Box& temp_gbox = cd_temp->getGhostBox();
    int imin_temp = temp_gbox.lower(0);
    int jmin_temp = temp_gbox.lower(1);
@@ -542,25 +453,26 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_f = (ii - imin_f) +
-               (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f =
+                (ii - imin_f) + (jj - jmin_f) * jp_f + (kk - kmin_f) * kp_f;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
             double c_i = ptr_c_i[idx_c_i];
 
-            d_calphad_fenergy->computeDerivFreeEnergy(t,&c_i,pi, &ptr_f[idx_f]);
-            ptr_f[idx_f] *=d_mv_strategy->computeInvMolarVolume(t,&c_i,pi);
+            d_calphad_fenergy->computeDerivFreeEnergy(t, &c_i, pi,
+                                                      &ptr_f[idx_f]);
+            ptr_f[idx_f] *= d_mv_strategy->computeInvMolarVolume(t, &c_i, pi);
          }
       }
    }
@@ -569,140 +481,117 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDrivingForce(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id,
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
-   EnergyInterpolationType d_energy_interp_func_type_saved(d_energy_interp_func_type);
-   //use linear interpolation function to get driving force
-   //without polynomial of phi factor
-   d_energy_interp_func_type=EnergyInterpolationType::LINEAR,
-   
-   FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
-      phase_id, eta_id, conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
+   EnergyInterpolationType d_energy_interp_func_type_saved(
+       d_energy_interp_func_type);
+   // use linear interpolation function to get driving force
+   // without polynomial of phi factor
+   d_energy_interp_func_type = EnergyInterpolationType::LINEAR,
 
-   d_energy_interp_func_type=d_energy_interp_func_type_saved;
+   FreeEnergyStrategy::computeDrivingForce(time, patch, temperature_id,
+                                           phase_id, eta_id, conc_id, f_l_id,
+                                           f_a_id, f_b_id, rhs_id);
+
+   d_energy_interp_func_type = d_energy_interp_func_type_saved;
 };
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id, 
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
    (void)time;
 
-   assert( conc_id >= 0 );
-   assert( phase_id >= 0 );
-   assert( f_l_id >= 0 );
-   assert( f_a_id >= 0 );
-   assert( rhs_id >= 0 );
-   assert( temperature_id >= 0 );
-   if ( d_with_third_phase ) {
-      assert( eta_id >= 0 );
-      assert( f_b_id >= 0 );
+   assert(conc_id >= 0);
+   assert(phase_id >= 0);
+   assert(f_l_id >= 0);
+   assert(f_a_id >= 0);
+   assert(rhs_id >= 0);
+   assert(temperature_id >= 0);
+   if (d_with_third_phase) {
+      assert(eta_id >= 0);
+      assert(f_b_id >= 0);
    }
-   assert( d_conc_l_id >=0 );
-   assert( d_conc_a_id >=0 );
+   assert(d_conc_l_id >= 0);
+   assert(d_conc_a_id >= 0);
 
-   boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData(phase_id) ) );
-   assert( phase );
- 
-   boost::shared_ptr< pdat::CellData<double> > t (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( temperature_id) ) );
-   assert( t ); 
- 
-   boost::shared_ptr< pdat::CellData<double> > fl (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( f_l_id) ) );
-   assert( fl );
- 
-   boost::shared_ptr< pdat::CellData<double> > fa (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( f_a_id) ) );
-   assert( fa );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData(d_conc_l_id) ) );
-   assert( c_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData(d_conc_a_id) ) );
-   assert( c_a );
+   boost::shared_ptr<pdat::CellData<double> > phase(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(phase_id)));
+   assert(phase);
 
-   boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData( rhs_id) ) );
+   boost::shared_ptr<pdat::CellData<double> > t(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+   assert(t);
 
-   assert( rhs ); 
-   assert( rhs->getGhostCellWidth()==hier::IntVector(tbox::Dimension(NDIM),0) );
+   boost::shared_ptr<pdat::CellData<double> > fl(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_l_id)));
+   assert(fl);
 
-   boost::shared_ptr< pdat::CellData<double> > eta;
-   boost::shared_ptr< pdat::CellData<double> > fb;
-   boost::shared_ptr< pdat::CellData<double> > c_b;
-   if ( d_with_third_phase ) {
-      eta = BOOST_CAST< pdat::CellData<double>,hier::PatchData>(
-               patch.getPatchData( eta_id )); 
-      assert( eta );
-      fb = BOOST_CAST< pdat::CellData<double>, hier::PatchData> (
-              patch.getPatchData( f_b_id ));
-      assert( fb );
+   boost::shared_ptr<pdat::CellData<double> > fa(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_a_id)));
+   assert(fa);
 
-      c_b = BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-               patch.getPatchData( d_conc_b_id ));
-      assert( c_b );
+   boost::shared_ptr<pdat::CellData<double> > c_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_l_id)));
+   assert(c_l);
+
+   boost::shared_ptr<pdat::CellData<double> > c_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_a_id)));
+   assert(c_a);
+
+   boost::shared_ptr<pdat::CellData<double> > rhs(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(rhs_id)));
+
+   assert(rhs);
+   assert(rhs->getGhostCellWidth() ==
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   boost::shared_ptr<pdat::CellData<double> > eta;
+   boost::shared_ptr<pdat::CellData<double> > fb;
+   boost::shared_ptr<pdat::CellData<double> > c_b;
+   if (d_with_third_phase) {
+      eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+          patch.getPatchData(eta_id));
+      assert(eta);
+      fb = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+          patch.getPatchData(f_b_id));
+      assert(fb);
+
+      c_b = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+          patch.getPatchData(d_conc_b_id));
+      assert(c_b);
    }
- 
-   const hier::Box& pbox( patch.getBox() );
 
-   addDrivingForceOnPatch(
-      rhs,
-      t,
-      phase,
-      eta,
-      fl,
-      fa,
-      fb,
-      c_l,
-      c_a,
-      c_b,
-      pbox );
+   const hier::Box& pbox(patch.getBox());
+
+   addDrivingForceOnPatch(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b, pbox);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
-   boost::shared_ptr< pdat::CellData<double> > cd_rhs,
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_b,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
+    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
    double* ptr_temp = cd_temperature->getPointer();
@@ -714,8 +603,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
    double* ptr_c_b = NULL;
-   
-   if ( d_with_third_phase ) {
+
+   if (d_with_third_phase) {
       ptr_eta = cd_eta->getPointer();
       ptr_f_b = cd_f_b->getPointer();
       ptr_c_b = cd_c_b->getPointer();
@@ -789,25 +678,25 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-         
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
 
-            const int idx_rhs = (ii - imin_rhs) +
-               (jj - jmin_rhs) * jp_rhs + (kk - kmin_rhs) * kp_rhs;
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idx_rhs = (ii - imin_rhs) + (jj - jmin_rhs) * jp_rhs +
+                                (kk - kmin_rhs) * kp_rhs;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_f_i = (ii - imin_f_i) +
-               (jj - jmin_f_i) * jp_f_i + (kk - kmin_f_i) * kp_f_i;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_f_i = (ii - imin_f_i) + (jj - jmin_f_i) * jp_f_i +
+                                (kk - kmin_f_i) * kp_f_i;
+
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_pf];
@@ -818,13 +707,13 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
             double c_a = ptr_c_a[idx_c_i];
             double c_b = 0.0;
 
-            double mu = computeMuA( t, c_a );
+            double mu = computeMuA(t, c_a);
 
             double hphi_prime = hprime(phi);
 
             double heta = 0.0;
 
-            if ( d_with_third_phase ) {
+            if (d_with_third_phase) {
                double eta = ptr_eta[idx_pf];
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
@@ -833,11 +722,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
             }
 
             ptr_rhs[idx_rhs] +=
-               hphi_prime * (
-                  ( f_l - ( 1.0 - heta ) * f_a - heta * f_b ) -
-                  mu * ( c_l - ( 1.0 - heta ) * c_a - heta * c_b )
-                  );
-
+                hphi_prime * ((f_l - (1.0 - heta) * f_a - heta * f_b) -
+                              mu * (c_l - (1.0 - heta) * c_a - heta * c_b));
          }
       }
    }
@@ -845,26 +731,24 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
 
 //=======================================================================
 
-double CALPHADFreeEnergyStrategyBinary::computeMuA(
-   const double t,
-   const double c )
+double CALPHADFreeEnergyStrategyBinary::computeMuA(const double t,
+                                                   const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t,&c, PhaseIndex::phaseA,&mu);
-   mu*=d_mv_strategy->computeInvMolarVolume(t,&c, PhaseIndex::phaseA);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseA, &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseA);
 
    return mu;
 }
 
 //=======================================================================
 
-double CALPHADFreeEnergyStrategyBinary::computeMuL(
-   const double t,
-   const double c )
+double CALPHADFreeEnergyStrategyBinary::computeMuL(const double t,
+                                                   const double c)
 {
    double mu;
-   d_calphad_fenergy->computeDerivFreeEnergy(t,&c, PhaseIndex::phaseL,&mu);
-   mu*=d_mv_strategy->computeInvMolarVolume(t,&c, PhaseIndex::phaseL);
+   d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseL, &mu);
+   mu *= d_mv_strategy->computeInvMolarVolume(t, &c, PhaseIndex::phaseL);
 
    return mu;
 }
@@ -872,98 +756,90 @@ double CALPHADFreeEnergyStrategyBinary::computeMuL(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
-   const double time,
-   hier::Patch& patch,
-   const int temperature_id,
-   const int phase_id,
-   const int eta_id,
-   const int conc_id, 
-   const int f_l_id,
-   const int f_a_id,
-   const int f_b_id,
-   const int rhs_id )
+    const double time, hier::Patch& patch, const int temperature_id,
+    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
+    const int f_a_id, const int f_b_id, const int rhs_id)
 {
    (void)time;
 
-   assert( conc_id >= 0 );
-   assert( phase_id >= 0 );
-   assert( f_l_id >= 0 );
-   assert( f_a_id >= 0 );
-   assert( rhs_id >= 0 );
-   assert( temperature_id >= 0 );
-   assert( eta_id >= 0 );
-   assert( f_b_id >= 0 );
+   assert(conc_id >= 0);
+   assert(phase_id >= 0);
+   assert(f_l_id >= 0);
+   assert(f_a_id >= 0);
+   assert(rhs_id >= 0);
+   assert(temperature_id >= 0);
+   assert(eta_id >= 0);
+   assert(f_b_id >= 0);
 
-   boost::shared_ptr< pdat::CellData<double> > phase (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData(phase_id) ) );
-   assert( phase );
- 
-   boost::shared_ptr< pdat::CellData<double> > eta (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( eta_id) ) );
-   assert( eta );
+   boost::shared_ptr<pdat::CellData<double> > phase(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(phase_id)));
+   assert(phase);
 
-   boost::shared_ptr< pdat::CellData<double> > t (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( temperature_id) ) );
-   assert( t ); 
- 
-   boost::shared_ptr< pdat::CellData<double> > f_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_l_id) ) );
-   assert( f_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > f_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_a_id) ) );
-   assert( f_a );
- 
-   boost::shared_ptr< pdat::CellData<double> > f_b (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( f_b_id) ) );
-   assert( f_b );
+   boost::shared_ptr<pdat::CellData<double> > eta(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(eta_id)));
+   assert(eta);
 
-   boost::shared_ptr< pdat::CellData<double> > c_l (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_l_id) ) );
-   assert( c_l );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_a (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_a_id) ) );
-   assert( c_a );
- 
-   boost::shared_ptr< pdat::CellData<double> > c_b (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( d_conc_b_id) ) );
-   assert( c_b );
+   boost::shared_ptr<pdat::CellData<double> > t(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(temperature_id)));
+   assert(t);
 
-   boost::shared_ptr< pdat::CellData<double> > rhs (
-      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch.getPatchData( rhs_id) ) );
-   assert( rhs );
- 
+   boost::shared_ptr<pdat::CellData<double> > f_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_l_id)));
+   assert(f_l);
+
+   boost::shared_ptr<pdat::CellData<double> > f_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_a_id)));
+   assert(f_a);
+
+   boost::shared_ptr<pdat::CellData<double> > f_b(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(f_b_id)));
+   assert(f_b);
+
+   boost::shared_ptr<pdat::CellData<double> > c_l(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_l_id)));
+   assert(c_l);
+
+   boost::shared_ptr<pdat::CellData<double> > c_a(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_a_id)));
+   assert(c_a);
+
+   boost::shared_ptr<pdat::CellData<double> > c_b(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_conc_b_id)));
+   assert(c_b);
+
+   boost::shared_ptr<pdat::CellData<double> > rhs(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(rhs_id)));
+   assert(rhs);
+
    const hier::Box& pbox = patch.getBox();
-       
-   addDrivingForceEtaOnPatchPrivate(
-      rhs,
-      t,
-      phase,
-      eta,
-      f_l,
-      f_a,
-      f_b,
-      c_l,
-      c_a,
-      c_b,
-      pbox );
+
+   addDrivingForceEtaOnPatchPrivate(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a,
+                                    c_b, pbox);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
-   boost::shared_ptr< pdat::CellData<double> > cd_rhs,
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_f_b,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-   boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-   const hier::Box& pbox )
+    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
+    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
+    boost::shared_ptr<pdat::CellData<double> > cd_phi,
+    boost::shared_ptr<pdat::CellData<double> > cd_eta,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
 
@@ -974,7 +850,7 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
    const double* const ptr_f_b = cd_f_b->getPointer();
    const double* const ptr_c_a = cd_c_a->getPointer();
    const double* const ptr_c_b = cd_c_b->getPointer();
-   
+
    const hier::Box& rhs_gbox = cd_rhs->getGhostBox();
    int imin_rhs = rhs_gbox.lower(0);
    int jmin_rhs = rhs_gbox.lower(1);
@@ -1045,24 +921,24 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
 #endif
    const char interpf = energyInterpChar(d_energy_interp_func_type);
 
-   for ( int kk = kmin; kk <= kmax; kk++ ) {
-      for ( int jj = jmin; jj <= jmax; jj++ ) {
-         for ( int ii = imin; ii <= imax; ii++ ) {
+   for (int kk = kmin; kk <= kmax; kk++) {
+      for (int jj = jmin; jj <= jmax; jj++) {
+         for (int ii = imin; ii <= imax; ii++) {
 
-            const int idx_rhs = (ii - imin_rhs) +
-               (jj - jmin_rhs) * jp_rhs + (kk - kmin_rhs) * kp_rhs;
+            const int idx_rhs = (ii - imin_rhs) + (jj - jmin_rhs) * jp_rhs +
+                                (kk - kmin_rhs) * kp_rhs;
 
-            const int idx_temp = (ii - imin_temp) +
-               (jj - jmin_temp) * jp_temp + (kk - kmin_temp) * kp_temp;
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
 
-            const int idx_pf = (ii - imin_pf) +
-               (jj - jmin_pf) * jp_pf + (kk - kmin_pf) * kp_pf;
+            const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
+                               (kk - kmin_pf) * kp_pf;
 
-            const int idx_f_i = (ii - imin_f_i) +
-               (jj - jmin_f_i) * jp_f_i + (kk - kmin_f_i) * kp_f_i;
+            const int idx_f_i = (ii - imin_f_i) + (jj - jmin_f_i) * jp_f_i +
+                                (kk - kmin_f_i) * kp_f_i;
 
-            const int idx_c_i = (ii - imin_c_i) +
-               (jj - jmin_c_i) * jp_c_i + (kk - kmin_c_i) * kp_c_i;
+            const int idx_c_i = (ii - imin_c_i) + (jj - jmin_c_i) * jp_c_i +
+                                (kk - kmin_c_i) * kp_c_i;
 
             const double t = ptr_temp[idx_temp];
             const double phi = ptr_phi[idx_pf];
@@ -1072,18 +948,14 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
             const double c_a = ptr_c_a[idx_c_i];
             const double c_b = ptr_c_b[idx_c_i];
 
-            const double mu = computeMuA( t, c_a );
-            //const double mu = 0.;
+            const double mu = computeMuA(t, c_a);
+            // const double mu = 0.;
 
             const double hphi = FORT_INTERP_FUNC(phi, &interpf);
-            const double heta_prime =
-               FORT_DERIV_INTERP_FUNC(eta, &interpf);
+            const double heta_prime = FORT_DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
-               hphi * heta_prime * (
-                  ( f_a - f_b ) - mu * ( c_a - c_b )
-                  );
-
+                hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }
       }
    }
@@ -1092,42 +964,51 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::defaultComputeSecondDerivativeEnergyPhaseL(
-   const double temp,
-   const vector<double>& c_l,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+void CALPHADFreeEnergyStrategyBinary::
+    defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
+                                               const vector<double>& c_l,
+                                               vector<double>& d2fdc2,
+                                               const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_l[0], PhaseIndex::phaseL,d2fdc2);
-   
-   if( use_internal_units )
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_l[0], PhaseIndex::phaseL);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
+                                                        PhaseIndex::phaseL,
+                                                        d2fdc2);
+
+   if (use_internal_units)
+      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
+                                                        PhaseIndex::phaseL);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::defaultComputeSecondDerivativeEnergyPhaseA(
-   const double temp,
-   const vector<double>& c_a,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+void CALPHADFreeEnergyStrategyBinary::
+    defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
+                                               const vector<double>& c_a,
+                                               vector<double>& d2fdc2,
+                                               const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_a[0], PhaseIndex::phaseA,d2fdc2);
-   
-   if( use_internal_units )
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_a[0], PhaseIndex::phaseA);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
+                                                        PhaseIndex::phaseA,
+                                                        d2fdc2);
+
+   if (use_internal_units)
+      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
+                                                        PhaseIndex::phaseA);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::defaultComputeSecondDerivativeEnergyPhaseB(
-   const double temp,
-   const vector<double>& c_b,
-   vector<double>& d2fdc2,
-   const bool use_internal_units)
+void CALPHADFreeEnergyStrategyBinary::
+    defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
+                                               const vector<double>& c_b,
+                                               vector<double>& d2fdc2,
+                                               const bool use_internal_units)
 {
-   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp,&c_b[0], PhaseIndex::phaseB,d2fdc2);
+   d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
+                                                        PhaseIndex::phaseB,
+                                                        d2fdc2);
 
-   if( use_internal_units )
-      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp,&c_b[0], PhaseIndex::phaseB);
+   if (use_internal_units)
+      d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
+                                                        PhaseIndex::phaseB);
 }

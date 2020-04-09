@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_EllipticFACOps
 #define included_EllipticFACOps
 
@@ -52,7 +52,7 @@
 using namespace SAMRAI;
 
 /*!
- * This class is a generalization of the SAMRAI solv::CellPoissonFACOps, 
+ * This class is a generalization of the SAMRAI solv::CellPoissonFACOps,
  * class.  In suport of EllipticFACSolver objects, it encapsulates the
  * data and methods needed to apply FAC iteration to an elliptic equation
  * of the form
@@ -117,19 +117,18 @@ using namespace SAMRAI;
  * @verbatim
  * coarse_solver_choice = "hypre"    // see setCoarsestLevelSolverChoice()
  * coarse_solver_tolerance = 1e-14   // see setCoarsestLevelSolverTolerance()
- * coarse_solver_max_iterations = 10 // see setCoarsestLevelSolverMaxIterations()
- * smoothing_choice = "redblack"     // see setSmoothingChoice()
- * cf_discretization = "Ewing"       // see setCoarseFineDiscretization()
- * prolongation_method = "LINEAR_REFINE" // see setProlongationMethod()
- * hypre_solver = { ... }            // tbox::Database for initializing Hypre solver
+ * coarse_solver_max_iterations = 10 // see
+ * setCoarsestLevelSolverMaxIterations() smoothing_choice = "redblack"     //
+ * see setSmoothingChoice() cf_discretization = "Ewing"       // see
+ * setCoarseFineDiscretization() prolongation_method = "LINEAR_REFINE" // see
+ * setProlongationMethod() hypre_solver = { ... }            // tbox::Database
+ * for initializing Hypre solver
  * @endverbatim
  */
-class EllipticFACOps
-   : public solv::FACOperatorStrategy
+class EllipticFACOps : public solv::FACOperatorStrategy
 {
 
-public:
-
+ public:
    /*!
     * @brief Constructor.
     *
@@ -138,12 +137,11 @@ public:
     * @param object_name Ojbect name
     * @param database Input database
     */
-   EllipticFACOps(
-      const tbox::Dimension& dim,
-      const std::string &object_name=std::string() ,
-      const boost::shared_ptr<tbox::Database>& input_db =
-         boost::shared_ptr<tbox::Database>(),
-      const int depth=1 );
+   EllipticFACOps(const tbox::Dimension &dim,
+                  const std::string &object_name = std::string(),
+                  const boost::shared_ptr<tbox::Database> &input_db =
+                      boost::shared_ptr<tbox::Database>(),
+                  const int depth = 1);
 
    /*!
     * @brief Destructor.
@@ -155,11 +153,10 @@ public:
    /*!
     * @brief Set the scalar Poisson equation specifications.
     */
-   void setPoissonSpecifications(
-      const PoissonSpecifications& spec, 
-      const int depth)
+   void setPoissonSpecifications(const PoissonSpecifications &spec,
+                                 const int depth)
    {
-      assert( depth<static_cast<int>(d_poisson_spec.size()) );
+      assert(depth < static_cast<int>(d_poisson_spec.size()));
 
       d_poisson_spec[depth] = spec;
    }
@@ -172,7 +169,8 @@ public:
     * In addition, disregard any previous D
     * specified by setDConstant().
     */
-   void setDPatchDataId( int id, const int depth=0 ){
+   void setDPatchDataId(int id, const int depth = 0)
+   {
       d_poisson_spec[depth].setDPatchDataId(id);
       d_D_is_set[depth] = true;
    }
@@ -184,10 +182,10 @@ public:
     * In addition, disregard any previous D
     * specified by setDPatchDataId().
     */
-   void setDConstant( const double scalar, const int depth=0 ){
+   void setDConstant(const double scalar, const int depth = 0)
+   {
       d_poisson_spec[depth].setDConstant(scalar);
       d_D_is_set[depth] = true;
-
    }
 
    /*!
@@ -195,7 +193,8 @@ public:
     *
     * @return True if D is constant, as specified by setCConstant().
     */
-   bool dIsConstant(const int depth=0) const{
+   bool dIsConstant(const int depth = 0) const
+   {
       return d_poisson_spec[depth].dIsConstant();
    }
 
@@ -207,7 +206,8 @@ public:
     *
     * @return D's id
     */
-   int getDPatchDataId(const int depth=0) const{
+   int getDPatchDataId(const int depth = 0) const
+   {
       return d_poisson_spec[depth].getDPatchDataId();
    }
 
@@ -219,7 +219,8 @@ public:
     *
     * @return D's constant value
     */
-   double getDConstant(const int depth=0) const{
+   double getDConstant(const int depth = 0) const
+   {
       return d_poisson_spec[depth].getDConstant();
    }
 
@@ -230,7 +231,8 @@ public:
     * In addition, disregard any previous C
     * specified by setCConstant().
     */
-   void setCPatchDataId( int id, const int depth=0 ){
+   void setCPatchDataId(int id, const int depth = 0)
+   {
       d_poisson_spec[depth].setCPatchDataId(id);
       d_C_is_set[depth] = true;
    }
@@ -241,12 +243,11 @@ public:
     * In addition, disregard any previous C
     * specified by setCConstant().
     */
-   void setCConstant( const double scalar, const int depth=0 )
+   void setCConstant(const double scalar, const int depth = 0)
    {
-      if ( scalar == 0.0 ) {
+      if (scalar == 0.0) {
          d_poisson_spec[depth].setCZero();
-      }
-      else {
+      } else {
          d_poisson_spec[depth].setCConstant(scalar);
       }
       d_C_is_set[depth] = true;
@@ -258,15 +259,16 @@ public:
    void setM(const int m_id);
 
    // could use fact that mobility is uniform and not store it
-   void setMConstant(const double mobility){
+   void setMConstant(const double mobility)
+   {
 
-      assert( mobility>0. );
-      assert( d_m_id>=0 );
+      assert(mobility > 0.);
+      assert(d_m_id >= 0);
 
       // initialize mobility data with constant scalar
       d_hopscell->setToScalar(d_m_id, mobility);
 
-      for(int i=0;i<d_depth;i++){
+      for (int i = 0; i < d_depth; i++) {
          d_poisson_spec[i].setMConstant(mobility);
       }
       d_M_is_set = true;
@@ -285,7 +287,7 @@ public:
     * Current smoothing choices are:
     * - "redblack": Red-black Gauss-Seidel smoothing.
     */
-   void setSmoothingChoice( const std::string &smoothing_choice );
+   void setSmoothingChoice(const std::string &smoothing_choice);
 
    /*!
     * @brief Set coarse level solver.
@@ -294,7 +296,7 @@ public:
     * - @c "redblack" (red-black smoothing until convergence--very slow!)
     * - @c "hypre" (only if the HYPRE library is available).
     */
-   void setCoarsestLevelSolverChoice( const std::string &choice );
+   void setCoarsestLevelSolverChoice(const std::string &choice);
 
    /*!
     * @brief Set tolerance for coarse level solve.
@@ -302,7 +304,7 @@ public:
     * If the coarse level solver requires a tolerance (currently, they all do),
     * the specified value is used.
     */
-   void setCoarsestLevelSolverTolerance( double tol );
+   void setCoarsestLevelSolverTolerance(double tol);
 
    /*!
     * @brief Set max iterations for coarse level solve.
@@ -310,7 +312,7 @@ public:
     * If the coarse level solver requires a max iteration limit
     * (currently, they all do), the specified value is used.
     */
-   void setCoarsestLevelSolverMaxIterations( int max_iterations );
+   void setCoarsestLevelSolverMaxIterations(int max_iterations);
 
    /*!
     * @brief Set the coarse-fine boundary discretization method.
@@ -331,9 +333,10 @@ public:
     * Grids, I. Error Analysis", Mathematics of Computation, Vol. 56, No. 194,
     * April 1991, pp. 437-461.
     *
-    * @param coarsefine_method String selecting the coarse-fine discretization method.
+    * @param coarsefine_method String selecting the coarse-fine discretization
+    * method.
     */
-   void setCoarseFineDiscretization( const std::string &coarsefine_method );
+   void setCoarseFineDiscretization(const std::string &coarsefine_method);
 
    /*!
     * @brief Set the name of the prolongation method.
@@ -342,7 +345,7 @@ public:
     * xfer::Geometry::lookupRefineOperator() to get the operator
     * for prolonging the coarse-grid correction.
     *
-    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to 
+    * By default, "CONSTANT_REFINE" is used.  "LINEAR_REFINE" seems to
     * to lead to faster convergence, but it does NOT satisfy the Galerkin
     * condition.
     *
@@ -354,7 +357,7 @@ public:
     * @param prolongation_method String selecting the coarse-fine
     *        discretization method.
     */
-   void setProlongationMethod( const std::string &prolongation_method );
+   void setProlongationMethod(const std::string &prolongation_method);
 
    //@}
 
@@ -375,7 +378,7 @@ public:
     * flux and you would like that to be used, set flux id to the
     * patch data index of that space.
     */
-   void setFluxId( int flux_id );
+   void setFluxId(int flux_id);
 
    //@}
 
@@ -400,13 +403,14 @@ public:
     *        set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
-      const solv::RobinBcCoefStrategy *physical_bc_coef )
+       const solv::RobinBcCoefStrategy *physical_bc_coef)
    {
       d_physical_bc_coef = physical_bc_coef;
       d_bc_helper.setCoefImplementation(physical_bc_coef);
 #ifdef HAVE_HYPRE
-      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
-      for( ; it!=d_hypre_solver.end(); ++it)
+      std::vector<CellPoissonHypreSolver *>::iterator it(
+          d_hypre_solver.begin());
+      for (; it != d_hypre_solver.end(); ++it)
          (*it)->setPhysicalBcCoefObject(d_physical_bc_coef);
 #endif
    }
@@ -417,7 +421,7 @@ public:
    /*!
     * @name Functions for checking validity and correctness of state.
     */
-  
+
    /*!
     * @brief Check validity and correctness of input patch data indices.
     *
@@ -426,7 +430,7 @@ public:
     * -# Flux (see setFluxId())
     * -# Source (see setScalarFieldId())
     */
-   void checkInputPatchDataIndices(const int depth=0) const;
+   void checkInputPatchDataIndices(const int depth = 0) const;
 
    //@}
 
@@ -457,12 +461,9 @@ public:
     *        in hierarchy.  Must not be less than @c coarsest_ln.
     *        Default to finest level in @c hierarchy.
     */
-   void computeVectorWeights(
-      boost::shared_ptr< hier::PatchHierarchy > hierarchy ,
-      int weight_id ,
-      int coarsest_ln=-1 ,
-      int finest_ln=-1
-   ) const;
+   void computeVectorWeights(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                             int weight_id, int coarsest_ln = -1,
+                             int finest_ln = -1) const;
 
    /*!
     * @brief Set the FAC preconditioner that will be using this object.
@@ -470,7 +471,7 @@ public:
     * The FAC preconditioner is accessed to get convergence data during
     * the cycle postprocessing step.  It is optional.
     */
-   void setPreconditioner( const FACPreconditioner *preconditioner )
+   void setPreconditioner(const FACPreconditioner *preconditioner)
    {
       d_preconditioner = preconditioner;
    }
@@ -479,110 +480,96 @@ public:
     * @brief function to compute flux, using general diffusion
     * coefficient data.
     *
-    * Recall that this solver class discretizes the PDE 
+    * Recall that this solver class discretizes the PDE
     * @f[ M \nabla \cdot D \nabla u + C u = f @f] on an AMR grid.  This member
-    * function allows users of this solver class to compute gradient 
+    * function allows users of this solver class to compute gradient
     * terms, @f[ D \nabla w @f], in their code in a manner consistent with the
-    * solver discretization.   In particular, when solving PDE systems, it may 
-    * be necessary to discretize the gradient operator appearing in equations 
-    * not treated by the solver class in the same way as those treated by this 
+    * solver discretization.   In particular, when solving PDE systems, it may
+    * be necessary to discretize the gradient operator appearing in equations
+    * not treated by the solver class in the same way as those treated by this
     * class.  These funtions allow users to do this easily.  The divergence
     * operator used in this solver is the standard sum of centered differences
     * involving flux terms on the cell sides computed by these routines.
     *
     * Note that the patch must exist on a level in an AMR hierarchy so that
-    * the discretization can be computed properly at the coarse-fine interface. 
+    * the discretization can be computed properly at the coarse-fine interface.
     * Coefficients C, D and M must exist on the patch, if they are variable.
-    * Also, calling this function does not affect the internal solver state in any 
-    * way.  However, the solver must be fully initialized before it is called and care 
-    * should be exercised to pass arguments so that the solver solution quantity and
-    * other internal solver quantities are not adversely affected.
+    * Also, calling this function does not affect the internal solver state in
+    * any way.  However, the solver must be fully initialized before it is
+    * called and care should be exercised to pass arguments so that the solver
+    * solution quantity and other internal solver quantities are not adversely
+    * affected.
     *
     * @param patch patch on which computation will take place
     * @param ratio_to_coarser_level refinement ratio from coarser level to level
     *                               on which patch lives; if current patch level
     *                               is level zero, this is ignored
-    * @param w_data cell-centered data 
+    * @param w_data cell-centered data
     * @param Dgradw_data side-centered flux data (i.e., D (grad w))
     */
-   void computeFluxOnPatch (
-      const hier::Patch &patch ,
-      const hier::IntVector &ratio_to_coarser_level,
-      const pdat::CellData<double> &w_data ,
-      pdat::SideData<double> &Dgradw_data,
-      const int depth ) const;
+   void computeFluxOnPatch(const hier::Patch &patch,
+                           const hier::IntVector &ratio_to_coarser_level,
+                           const pdat::CellData<double> &w_data,
+                           pdat::SideData<double> &Dgradw_data,
+                           const int depth) const;
 
 
    void setWeightIds(const int ew_id, const int vol_id)
    {
-      d_ew_id  = ew_id;
+      d_ew_id = ew_id;
       d_vol_id = vol_id;
    }
 
    //@{ @name FACOperatorStrategy virtuals
 
-   virtual void restrictSolution(
-      const solv::SAMRAIVectorReal<double> &source ,
-      solv::SAMRAIVectorReal<double> &dest ,
-      int dest_ln );
-   virtual void restrictResidual(
-      const solv::SAMRAIVectorReal<double> &source ,
-      solv::SAMRAIVectorReal<double> &dest ,
-      int dest_ln );
+   virtual void restrictSolution(const solv::SAMRAIVectorReal<double> &source,
+                                 solv::SAMRAIVectorReal<double> &dest,
+                                 int dest_ln);
+   virtual void restrictResidual(const solv::SAMRAIVectorReal<double> &source,
+                                 solv::SAMRAIVectorReal<double> &dest,
+                                 int dest_ln);
 
    virtual void prolongErrorAndCorrect(
-      const solv::SAMRAIVectorReal<double> &source ,
-      solv::SAMRAIVectorReal<double> &dest ,
-      int dest_ln );
+       const solv::SAMRAIVectorReal<double> &source,
+       solv::SAMRAIVectorReal<double> &dest, int dest_ln);
 
-   virtual void smoothError(
-      solv::SAMRAIVectorReal<double> &error ,
-      const solv::SAMRAIVectorReal<double> &residual ,
-      int ln ,
-      int num_sweeps );
+   virtual void smoothError(solv::SAMRAIVectorReal<double> &error,
+                            const solv::SAMRAIVectorReal<double> &residual,
+                            int ln, int num_sweeps);
 
    virtual int solveCoarsestLevel(
-      solv::SAMRAIVectorReal<double> &error ,
-      const solv::SAMRAIVectorReal<double> &residual ,
-      int coarsest_ln );
+       solv::SAMRAIVectorReal<double> &error,
+       const solv::SAMRAIVectorReal<double> &residual, int coarsest_ln);
 
-   virtual void evaluateRHS(
-      const int soln_id,
-      const int rhs_id);
+   virtual void evaluateRHS(const int soln_id, const int rhs_id);
 
-   virtual void accumulateOperatorOnLevel(
-      const int soln_id,
-      const int accum_id,
-      int ln ,
-      bool error_equation_indicator);
+   virtual void accumulateOperatorOnLevel(const int soln_id, const int accum_id,
+                                          int ln,
+                                          bool error_equation_indicator);
 
    virtual void computeCompositeResidualOnLevel(
-      solv::SAMRAIVectorReal<double> &residual ,
-      const solv::SAMRAIVectorReal<double> &solution ,
-      const solv::SAMRAIVectorReal<double> &rhs ,
-      int ln ,
-      bool error_equation_indicator);
+       solv::SAMRAIVectorReal<double> &residual,
+       const solv::SAMRAIVectorReal<double> &solution,
+       const solv::SAMRAIVectorReal<double> &rhs, int ln,
+       bool error_equation_indicator);
 
    virtual double computeResidualNorm(
-      const solv::SAMRAIVectorReal<double> &residual ,
-      int fine_ln ,
-      int coarse_ln );
+       const solv::SAMRAIVectorReal<double> &residual, int fine_ln,
+       int coarse_ln);
 
    virtual void initializeOperatorState(
-      const solv::SAMRAIVectorReal<double> &solution ,
-      const solv::SAMRAIVectorReal<double> &rhs );
+       const solv::SAMRAIVectorReal<double> &solution,
+       const solv::SAMRAIVectorReal<double> &rhs);
 
    virtual void deallocateOperatorState();
 
    virtual void postprocessOneCycle(
-      int fac_cycle_num ,
-      const solv::SAMRAIVectorReal<double> &current_soln ,
-      const solv::SAMRAIVectorReal<double> &residual );
+       int fac_cycle_num, const solv::SAMRAIVectorReal<double> &current_soln,
+       const solv::SAMRAIVectorReal<double> &residual);
 
    //@}
 
-protected:
-
+ protected:
    //@{
    /*!
     * @name Private workhorse functions.
@@ -600,20 +587,17 @@ protected:
     * @param residual_tolerance the maximum residual considered to be
     *        converged
     */
-   void smoothErrorByRedBlack(
-      solv::SAMRAIVectorReal<double> &error ,
-      const solv::SAMRAIVectorReal<double> &residual ,
-      int ln ,
-      int num_sweeps ,
-      double residual_tolerance=-1.0 );
+   void smoothErrorByRedBlack(solv::SAMRAIVectorReal<double> &error,
+                              const solv::SAMRAIVectorReal<double> &residual,
+                              int ln, int num_sweeps,
+                              double residual_tolerance = -1.0);
 
    /*!
     * @brief Solve the coarsest level using HYPRE
     */
-   int solveCoarsestLevel_HYPRE(
-      solv::SAMRAIVectorReal<double> &error ,
-      const solv::SAMRAIVectorReal<double> &residual ,
-      int ln );
+   int solveCoarsestLevel_HYPRE(solv::SAMRAIVectorReal<double> &error,
+                                const solv::SAMRAIVectorReal<double> &residual,
+                                int ln);
 
    /*!
     * @brief Fix flux per Ewing's coarse-fine boundary treatment.
@@ -635,12 +619,11 @@ protected:
     *        in which patch resides
     * @param ratio_to_coarser Refinement ratio to the next coarser level.
     */
-   void ewingFixFlux(
-      const hier::Patch &patch ,
-      const pdat::CellData<double> &soln_data ,
-      pdat::SideData<double> &flux_data ,
-      const hier::IntVector &ratio_to_coarser,
-      const int depth ) const;
+   void ewingFixFlux(const hier::Patch &patch,
+                     const pdat::CellData<double> &soln_data,
+                     pdat::SideData<double> &flux_data,
+                     const hier::IntVector &ratio_to_coarser,
+                     const int depth) const;
 
 
    /*!
@@ -653,23 +636,21 @@ protected:
     * @param rhs_data cell-centered rhs data
     * @param residual_data cell-centered residual data
     */
-   void computeResidualOnPatch(
-      const hier::Patch &patch ,
-      const pdat::SideData<double> &flux_data ,
-      const pdat::CellData<double> &m_data ,
-      const pdat::CellData<double> &soln_data ,
-      const pdat::CellData<double> &rhs_data ,
-      pdat::CellData<double> &residual_data,
-      const int depth ) const;
+   void computeResidualOnPatch(const hier::Patch &patch,
+                               const pdat::SideData<double> &flux_data,
+                               const pdat::CellData<double> &m_data,
+                               const pdat::CellData<double> &soln_data,
+                               const pdat::CellData<double> &rhs_data,
+                               pdat::CellData<double> &residual_data,
+                               const int depth) const;
 
 
-   void accumulateOperatorOnPatch(
-      const hier::Patch &patch ,
-      const pdat::SideData<double> &flux_data ,
-      const pdat::CellData<double> &m_data ,
-      const pdat::CellData<double> &soln_data ,
-      pdat::CellData<double> &accum_data,
-      const int depth ) const;
+   void accumulateOperatorOnPatch(const hier::Patch &patch,
+                                  const pdat::SideData<double> &flux_data,
+                                  const pdat::CellData<double> &m_data,
+                                  const pdat::CellData<double> &soln_data,
+                                  pdat::CellData<double> &accum_data,
+                                  const int depth) const;
 
 
    /*!
@@ -685,14 +666,12 @@ protected:
     * @param red_or_black red-black switch.  Set to 'r' or 'b'.
     * @param p_maxres max residual output.  Set to NULL to avoid computing.
     */
-   void redOrBlackSmoothingOnPatch(
-      const hier::Patch &patch ,
-      const pdat::SideData<double> &flux_data ,
-      const pdat::CellData<double> &rhs_data ,
-      pdat::CellData<double> &soln_data ,
-      char red_or_black ,
-      const int depth,
-      double *p_maxres=NULL) const;
+   void redOrBlackSmoothingOnPatch(const hier::Patch &patch,
+                                   const pdat::SideData<double> &flux_data,
+                                   const pdat::CellData<double> &rhs_data,
+                                   pdat::CellData<double> &soln_data,
+                                   char red_or_black, const int depth,
+                                   double *p_maxres = NULL) const;
 
    //@}
 
@@ -748,11 +727,8 @@ protected:
     *
     * @return refinement schedule for prolongation
     */
-   void xeqScheduleProlongation(
-      int dst_id,
-      int src_id,
-      int scr_id,
-      int dest_ln);
+   void xeqScheduleProlongation(int dst_id, int src_id, int scr_id,
+                                int dest_ln);
 
 
    /*!
@@ -763,10 +739,7 @@ protected:
     *
     * @return coarsening schedule for restriction
     */
-   void xeqScheduleURestriction(
-      int dst_id,
-      int src_id,
-      int dest_ln);
+   void xeqScheduleURestriction(int dst_id, int src_id, int dest_ln);
 
 
    /*!
@@ -777,10 +750,7 @@ protected:
     *
     * @return coarsening schedule for restriction
     */
-   void xeqScheduleRRestriction(
-      int dst_id,
-      int src_id,
-      int dest_ln);
+   void xeqScheduleRRestriction(int dst_id, int src_id, int dest_ln);
 
 
    /*!
@@ -792,10 +762,7 @@ protected:
     * @return coarsening schedule for setting composite grid flux at
     * coarse-fine boundaries.
     */
-   void xeqScheduleFluxCoarsen(
-      int dst_id,
-      int src_id,
-      int dest_ln);
+   void xeqScheduleFluxCoarsen(int dst_id, int src_id, int dest_ln);
 
 
    /*!
@@ -807,9 +774,7 @@ protected:
     * @return refine schedule for filling ghost data from coarser level
     * and physical bc.
     */
-   void xeqScheduleGhostFill(
-      int dst_id,
-      int dest_ln);
+   void xeqScheduleGhostFill(int dst_id, int dest_ln);
 
 
    /*!
@@ -826,9 +791,7 @@ protected:
     * @return refine schedule for filling ghost data from same level
     * and physical bc.
     */
-   void xeqScheduleGhostFillNoCoarse(
-      int dst_id,
-      int dest_ln);
+   void xeqScheduleGhostFillNoCoarse(int dst_id, int dest_ln);
 
    //@}
 
@@ -860,7 +823,7 @@ protected:
     * function argument lists.  We use it to enforce working on one
     * hierarchy at a time.
     */
-   boost::shared_ptr< hier::PatchHierarchy > d_hierarchy;
+   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*!
     * @brief Coarsest level for solve.
@@ -975,12 +938,11 @@ protected:
    /*!
     * @brief HYPRE coarse-level solver object.
     */
-   std::vector<CellPoissonHypreSolver*> d_hypre_solver;
+   std::vector<CellPoissonHypreSolver *> d_hypre_solver;
 #endif
 
 
    //@}
-
 
 
    //@{ @name Internal context and scratch data
@@ -1027,7 +989,7 @@ protected:
    int d_m_id;
 
    std::vector<int> d_c_id;
-   
+
    std::vector<int> d_d_id;
 
    /*!
@@ -1044,40 +1006,41 @@ protected:
     */
 
    //! @brief Error prolongation (refinement) operator.
-   boost::shared_ptr<hier::RefineOperator > d_prolongation_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_prolongation_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_prolongation_refine_schedules;
+   boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_prolongation_refine_schedules;
 
    //! @brief Solution restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_urestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_urestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_urestriction_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_urestriction_coarsen_schedules;
 
    //! @brief Residual restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator > d_rrestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_rrestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_rrestriction_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_rrestriction_coarsen_schedules;
 
    //! @brief Coarsen operator for outerflux-to-flux
-   boost::shared_ptr<hier::CoarsenOperator > d_flux_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm > d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule > >
-      d_flux_coarsen_schedules;
+   boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
+   boost::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
+   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+       d_flux_coarsen_schedules;
 
    //! @brief Refine operator for cell-like data from coarser level.
-   boost::shared_ptr<hier::RefineOperator > d_ghostfill_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_ghostfill_refine_schedules;
+   boost::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_ghostfill_refine_schedules;
 
    //! @brief Refine operator for cell-like data from same level.
-   boost::shared_ptr<hier::RefineOperator > d_ghostfill_nocoarse_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm > d_ghostfill_nocoarse_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule > >
-      d_ghostfill_nocoarse_refine_schedules;
+   boost::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
+   boost::shared_ptr<xfer::RefineAlgorithm>
+       d_ghostfill_nocoarse_refine_algorithm;
+   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+       d_ghostfill_nocoarse_refine_schedules;
 
    //@}
 
@@ -1122,10 +1085,10 @@ protected:
     */
    boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 
-    /*!
-     * @brief Hierarchy side operator used in debugging.
-     */
-    boost::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
+   /*!
+    * @brief Hierarchy side operator used in debugging.
+    */
+   boost::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
 
    /*!
     * @brief Timers for performance measurement.
@@ -1145,31 +1108,25 @@ protected:
    std::vector<bool> d_D_is_set;
    bool d_M_is_set;
 
-   int d_ew_id;  // weight for L2-norm
-   int d_vol_id; // control volume
+   int d_ew_id;   // weight for L2-norm
+   int d_vol_id;  // control volume
 
    /*!
     * @brief Get the name of this object.
     *
     * @return The name of this object.
     */
-   const std::string&
-   getObjectName() const
-   {
-      return d_object_name;
-   }
+   const std::string &getObjectName() const { return d_object_name; }
 
-protected:
+ protected:
    /*!
     * @brief Read parameters from input database.
     *
     * @param input_db Input Database.
     */
-   void
-   getFromInput(
-      const boost::shared_ptr<tbox::Database>& input_db);
+   void getFromInput(const boost::shared_ptr<tbox::Database> &input_db);
 
-private:
+ private:
    /*!
     * @brief Externally provided physical boundary condition object.
     *
@@ -1183,4 +1140,4 @@ private:
 
 #include "EllipticFACOps.I"
 
-#endif // included_EllipticFACOps
+#endif  // included_EllipticFACOps

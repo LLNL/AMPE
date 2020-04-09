@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -53,163 +53,162 @@ using namespace SAMRAI;
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
    tbox::SAMRAI_MPI::init(&argc, &argv);
    tbox::SAMRAIManager::initialize();
    tbox::SAMRAIManager::startup();
 
    {
-   std::string input_filename( argv[1] );
+      std::string input_filename(argv[1]);
 
-   // Create input database and parse all data in input file.
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(
-      new tbox::MemoryDatabase("input_db"));
-   tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+      // Create input database and parse all data in input file.
+      boost::shared_ptr<tbox::MemoryDatabase> input_db(
+          new tbox::MemoryDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
-   // make from input file name
-   std::string run_name =
-      input_filename.substr( 0, input_filename.rfind( "." ) );
+      // make from input file name
+      std::string run_name =
+          input_filename.substr(0, input_filename.rfind("."));
 
-   // Logfile
-   std::string log_file_name = run_name + ".log";
-   tbox::PIO::logOnlyNodeZero( log_file_name );
+      // Logfile
+      std::string log_file_name = run_name + ".log";
+      tbox::PIO::logOnlyNodeZero(log_file_name);
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog<<" AMPE: git version "<<xstr(x)<<endl;
-    LOG(GITVERSION);
-    tbox::plog<<endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+      LOG(GITVERSION);
+      tbox::plog << endl;
 #endif
 
-   tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << endl;
 
-   boost::shared_ptr<tbox::Database> model_db =
-      input_db->getDatabase("ModelParameters");
+      boost::shared_ptr<tbox::Database> model_db =
+          input_db->getDatabase("ModelParameters");
 
-   EnergyInterpolationType energy_interp_func_type = EnergyInterpolationType::PBG;
-   ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
- 
-   boost::shared_ptr<tbox::Database> temperature_db =
-      model_db->getDatabase( "Temperature" );
-   double temperature_low  = temperature_db->getDouble( "low" );
-   double temperature_high = temperature_db->getDouble( "high" );
+      EnergyInterpolationType energy_interp_func_type =
+          EnergyInterpolationType::PBG;
+      ConcInterpolationType conc_interp_func_type = ConcInterpolationType::PBG;
 
-   boost::shared_ptr<tbox::Database> conc_db(
-      model_db->getDatabase( "ConcentrationModel" ));
+      boost::shared_ptr<tbox::Database> temperature_db =
+          model_db->getDatabase("Temperature");
+      double temperature_low = temperature_db->getDouble("low");
+      double temperature_high = temperature_db->getDouble("high");
 
-   boost::shared_ptr<tbox::Database> dcalphad_db=
-      conc_db->getDatabase( "Calphad" );
-   std::string calphad_filename = dcalphad_db->getString( "filename" );
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db (
-      new tbox::MemoryDatabase( "calphad_db" ) );
-   tbox::InputManager::getManager()->parseInputFile(
-      calphad_filename, calphad_db );
-   
-   boost::shared_ptr<tbox::Database> newton_db;
-   if ( conc_db->isDatabase( "NewtonSolver" ) )
-      newton_db = conc_db->getDatabase( "NewtonSolver" );
+      boost::shared_ptr<tbox::Database> conc_db(
+          model_db->getDatabase("ConcentrationModel"));
 
-   bool with_third_phase=false;
-   
-   CALPHADFreeEnergyFunctionsTernary
-      cafe(calphad_db, newton_db,
-           energy_interp_func_type,
-           conc_interp_func_type);
+      boost::shared_ptr<tbox::Database> dcalphad_db =
+          conc_db->getDatabase("Calphad");
+      std::string calphad_filename = dcalphad_db->getString("filename");
+      boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+          new tbox::MemoryDatabase("calphad_db"));
+      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                       calphad_db);
 
-   // choose pair of phases: phaseL, phaseA, phaseB
-   const PhaseIndex pi0=PhaseIndex::phaseL;
-   const PhaseIndex pi1=PhaseIndex::phaseA;
-   
-   // initial guesses
-   double init_guess[5];
-   model_db->getDoubleArray("initial_guess", &init_guess[0], 5);
+      boost::shared_ptr<tbox::Database> newton_db;
+      if (conc_db->isDatabase("NewtonSolver"))
+         newton_db = conc_db->getDatabase("NewtonSolver");
 
-   double nominalc[2];
-   model_db->getDoubleArray("concentration",&nominalc[0],2);
-   double lceq[5]={init_guess[0], init_guess[1], // liquid
-                   init_guess[2], init_guess[3], // solid
-                   init_guess[4]};
+      bool with_third_phase = false;
 
-   map<double,double> cseq0;
-   map<double,double> cseq1;
-   map<double,double> cleq0;
-   map<double,double> cleq1;
+      CALPHADFreeEnergyFunctionsTernary cafe(calphad_db, newton_db,
+                                             energy_interp_func_type,
+                                             conc_interp_func_type);
 
-   double dT= (temperature_high-temperature_low)/50;
+      // choose pair of phases: phaseL, phaseA, phaseB
+      const PhaseIndex pi0 = PhaseIndex::phaseL;
+      const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-   //loop over temperature range
-   for(int iT=0; iT<50; iT++){
+      // initial guesses
+      double init_guess[5];
+      model_db->getDoubleArray("initial_guess", &init_guess[0], 5);
 
-      double temperature = temperature_low + iT*dT;
+      double nominalc[2];
+      model_db->getDoubleArray("concentration", &nominalc[0], 2);
+      double lceq[5] = {init_guess[0], init_guess[1],  // liquid
+                        init_guess[2], init_guess[3],  // solid
+                        init_guess[4]};
 
-      // compute equilibrium concentrations
-      bool found_ceq =
-         cafe.computeCeqT(temperature,pi0,pi1,nominalc[0],
-                       nominalc[1],&lceq[0]);
-      if( lceq[0]>1. )found_ceq = false;
-      if( lceq[0]<0. )found_ceq = false;
-      if( lceq[1]>1. )found_ceq = false;
-      if( lceq[1]<0. )found_ceq = false;
-   
-      if( found_ceq ){
-         //tbox::pout<<"Found equilibrium concentrations: "
-         //          <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
-         cleq0.insert( pair<double,double>(temperature,lceq[0]) );
-         cleq1.insert( pair<double,double>(temperature,lceq[1]) );
-         cseq0.insert( pair<double,double>(temperature,lceq[2]) );
-         cseq1.insert( pair<double,double>(temperature,lceq[3]) );
+      map<double, double> cseq0;
+      map<double, double> cseq1;
+      map<double, double> cleq0;
+      map<double, double> cleq1;
 
-      }else{
-         tbox::pout<<"Temperature = "<<temperature<<endl;
-         tbox::pout<<"ERROR: Equilibrium concentrations not found... "<<endl;
-         return 1;
+      double dT = (temperature_high - temperature_low) / 50;
+
+      // loop over temperature range
+      for (int iT = 0; iT < 50; iT++) {
+
+         double temperature = temperature_low + iT * dT;
+
+         // compute equilibrium concentrations
+         bool found_ceq = cafe.computeCeqT(temperature, pi0, pi1, nominalc[0],
+                                           nominalc[1], &lceq[0]);
+         if (lceq[0] > 1.) found_ceq = false;
+         if (lceq[0] < 0.) found_ceq = false;
+         if (lceq[1] > 1.) found_ceq = false;
+         if (lceq[1] < 0.) found_ceq = false;
+
+         if (found_ceq) {
+            // tbox::pout<<"Found equilibrium concentrations: "
+            //          <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
+            cleq0.insert(pair<double, double>(temperature, lceq[0]));
+            cleq1.insert(pair<double, double>(temperature, lceq[1]));
+            cseq0.insert(pair<double, double>(temperature, lceq[2]));
+            cseq1.insert(pair<double, double>(temperature, lceq[3]));
+
+         } else {
+            tbox::pout << "Temperature = " << temperature << endl;
+            tbox::pout << "ERROR: Equilibrium concentrations not found... "
+                       << endl;
+            return 1;
+         }
       }
 
-   }
-
-   ofstream os("CvsT.dat");
-   os<<"#liquid0\n";
-   {
-      map<double,double>::iterator it = cleq0.begin();
-      while( it!=cleq0.end() ){
-         os<<it->first<<"  "<<it->second<<endl;
-         ++it;
+      ofstream os("CvsT.dat");
+      os << "#liquid0\n";
+      {
+         map<double, double>::iterator it = cleq0.begin();
+         while (it != cleq0.end()) {
+            os << it->first << "  " << it->second << endl;
+            ++it;
+         }
       }
-   }
-   os<<endl<<endl;
+      os << endl << endl;
 
-   os<<"#liquid1\n";
-   {
-      map<double,double>::iterator it = cleq1.begin();
-      while( it!=cleq1.end() ){
-         os<<it->first<<"  "<<it->second<<endl;
-         ++it;
+      os << "#liquid1\n";
+      {
+         map<double, double>::iterator it = cleq1.begin();
+         while (it != cleq1.end()) {
+            os << it->first << "  " << it->second << endl;
+            ++it;
+         }
       }
-   }
-   os<<endl<<endl;
+      os << endl << endl;
 
-   os<<"#solid0\n";
-   {
-      map<double,double>::iterator it = cseq0.begin();
-      while( it!=cseq0.end() ){
-         os<<it->first<<"  "<<it->second<<endl;
-         ++it;
+      os << "#solid0\n";
+      {
+         map<double, double>::iterator it = cseq0.begin();
+         while (it != cseq0.end()) {
+            os << it->first << "  " << it->second << endl;
+            ++it;
+         }
       }
-   }
-   os<<endl<<endl;
+      os << endl << endl;
 
-   os<<"#solid1\n";
-   {
-      map<double,double>::iterator it = cseq1.begin();
-      while( it!=cseq1.end() ){
-         os<<it->first<<"  "<<it->second<<endl;
-         ++it;
+      os << "#solid1\n";
+      {
+         map<double, double>::iterator it = cseq1.begin();
+         while (it != cseq1.end()) {
+            os << it->first << "  " << it->second << endl;
+            ++it;
+         }
       }
-   }
 
-   input_db.reset();
-
+      input_db.reset();
    }
 
    tbox::SAMRAIManager::shutdown();

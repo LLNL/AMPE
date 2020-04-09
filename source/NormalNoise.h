@@ -40,33 +40,31 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
 
-class NormalNoise:
-   public Noise
+class NormalNoise : public Noise
 {
-public:
-
+ public:
    static void setup(const int data_id);
 
-   static NormalNoise* instance(unsigned seed=0){
-      if( s_pinstance==0 ){
-         s_pinstance=new NormalNoise(seed);
+   static NormalNoise* instance(unsigned seed = 0)
+   {
+      if (s_pinstance == 0) {
+         s_pinstance = new NormalNoise(seed);
       }
       return s_pinstance;
    }
 
-   double gen(){ return (*s_gen)(); }
+   double gen() { return (*s_gen)(); }
 
-private:
+ private:
    NormalNoise(unsigned seed);
 
    static NormalNoise* s_pinstance;
 
-   typedef boost::mt19937                     rng_type;
+   typedef boost::mt19937 rng_type;
    typedef boost::normal_distribution<double> distribution_type;
-   typedef boost::variate_generator<rng_type,distribution_type> gen_type;
+   typedef boost::variate_generator<rng_type, distribution_type> gen_type;
 
-   static std::unique_ptr< 
-      boost::variate_generator<rng_type,distribution_type> >
-         s_gen;
+   static std::unique_ptr<
+       boost::variate_generator<rng_type, distribution_type> >
+       s_gen;
 };
-

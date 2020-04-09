@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -45,78 +45,61 @@ class QuatModel;
 
 class MobilityFactory
 {
-public:
+ public:
    static boost::shared_ptr<QuatMobilityStrategy> create(
-             QuatModel* model,
-             QuatModelParameters& model_parameters,
-             const int conc_l_scratch_id,
-             const int conc_a_scratch_id,
-             const int temperature_scratch_id,
-             const unsigned ncompositions,
-             boost::shared_ptr<tbox::Database> conc_db)
+       QuatModel* model, QuatModelParameters& model_parameters,
+       const int conc_l_scratch_id, const int conc_a_scratch_id,
+       const int temperature_scratch_id, const unsigned ncompositions,
+       boost::shared_ptr<tbox::Database> conc_db)
    {
       boost::shared_ptr<QuatMobilityStrategy> mobility_strategy;
 
-      if( model_parameters.isPhaseMobilityScalar() )
-         mobility_strategy.reset( new SimpleQuatMobilityStrategy( model ) );
-      else{
-         //no support for composition dependent diffusion for now
-         if( model_parameters.conDiffusionStrategyIsCTD() ){
-            TBOX_ERROR("No support for Kim's mobility for composition dependent diffusion!!\n");
+      if (model_parameters.isPhaseMobilityScalar())
+         mobility_strategy.reset(new SimpleQuatMobilityStrategy(model));
+      else {
+         // no support for composition dependent diffusion for now
+         if (model_parameters.conDiffusionStrategyIsCTD()) {
+            TBOX_ERROR(
+                "No support for Kim's mobility for composition dependent "
+                "diffusion!!\n");
          }
 
-         if( model_parameters.interfaceMobility()>0. ){
-            if( model_parameters.with_antitrapping() ){
-               mobility_strategy.reset(
-                  new KimMobilityStrategyFiniteMobAntiTrap(
-                         model,
-                         conc_l_scratch_id, conc_a_scratch_id,
-                         temperature_scratch_id,
-                         model_parameters.interfaceMobility(),
-                         model_parameters.epsilon_phase(),
-                         model_parameters.phase_well_scale(),
-                         model_parameters.energy_interp_func_type(),
-                         model_parameters.conc_interp_func_type(),
-                         conc_db,
-                         ncompositions,
-                         model_parameters.D_liquid(),
-                         model_parameters.Q0_liquid(),
-                         model_parameters.molar_volume_liquid()) );
-            }else{
-               mobility_strategy.reset(
-                  new KimMobilityStrategyFiniteMob(
-                         model,
-                         conc_l_scratch_id, conc_a_scratch_id,
-                         temperature_scratch_id,
-                         model_parameters.interfaceMobility(),
-                         model_parameters.epsilon_phase(),
-                         model_parameters.phase_well_scale(),
-                         model_parameters.energy_interp_func_type(),
-                         model_parameters.conc_interp_func_type(),
-                         conc_db,
-                         ncompositions) );
+         if (model_parameters.interfaceMobility() > 0.) {
+            if (model_parameters.with_antitrapping()) {
+               mobility_strategy.reset(new KimMobilityStrategyFiniteMobAntiTrap(
+                   model, conc_l_scratch_id, conc_a_scratch_id,
+                   temperature_scratch_id, model_parameters.interfaceMobility(),
+                   model_parameters.epsilon_phase(),
+                   model_parameters.phase_well_scale(),
+                   model_parameters.energy_interp_func_type(),
+                   model_parameters.conc_interp_func_type(), conc_db,
+                   ncompositions, model_parameters.D_liquid(),
+                   model_parameters.Q0_liquid(),
+                   model_parameters.molar_volume_liquid()));
+            } else {
+               mobility_strategy.reset(new KimMobilityStrategyFiniteMob(
+                   model, conc_l_scratch_id, conc_a_scratch_id,
+                   temperature_scratch_id, model_parameters.interfaceMobility(),
+                   model_parameters.epsilon_phase(),
+                   model_parameters.phase_well_scale(),
+                   model_parameters.energy_interp_func_type(),
+                   model_parameters.conc_interp_func_type(), conc_db,
+                   ncompositions));
             }
-         }else{
-            mobility_strategy.reset(
-               new KimMobilityStrategyInfMob(
-                      model,
-                      conc_l_scratch_id, conc_a_scratch_id,
-                      temperature_scratch_id,
-                      model_parameters.epsilon_phase(),
-                      model_parameters.phase_well_scale(),
-                      model_parameters.energy_interp_func_type(),
-                      model_parameters.conc_interp_func_type(),
-                      conc_db,
-                      ncompositions,
-                      model_parameters.D_liquid(),
-                      model_parameters.Q0_liquid(),
-                      model_parameters.molar_volume_liquid()) );
+         } else {
+            mobility_strategy.reset(new KimMobilityStrategyInfMob(
+                model, conc_l_scratch_id, conc_a_scratch_id,
+                temperature_scratch_id, model_parameters.epsilon_phase(),
+                model_parameters.phase_well_scale(),
+                model_parameters.energy_interp_func_type(),
+                model_parameters.conc_interp_func_type(), conc_db,
+                ncompositions, model_parameters.D_liquid(),
+                model_parameters.Q0_liquid(),
+                model_parameters.molar_volume_liquid()));
          }
       }
       return mobility_strategy;
    }
-
 };
 
 #endif
-

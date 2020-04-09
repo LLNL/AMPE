@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "EllipticFACOps.h"
 #include "CellPoissonHypreSolver.h"
 
@@ -71,622 +71,221 @@ using namespace std;
 
 extern "C" {
 
-  void efo_compfluxvardc2d_(
-      double *xflux ,
-      double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
-void SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D) (
-   double* xflux,
-   double* yflux,
-   const int* fluxgi,
-   const int* fluxgj,
-   const double& diff_coef,
-   const double* soln,
-   const int* solngi,
-   const int* solngj,
-   const int* ifirst,
-   const int* ilast,
-   const int* jfirst,
-   const int* jlast,
-   const double* dx);
-void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
-   double* xflux,
-   double* yflux,
-   double* zflux,
-   const int* fluxgi,
-   const int* fluxgj,
-   const int* fluxgk,
-   const double& diff_coef,
-   const double* soln,
-   const int* solngi,
-   const int* solngj,
-   const int* solngk,
-   const int* ifirst,
-   const int* ilast,
-   const int* jfirst,
-   const int* jlast,
-   const int* kfirst,
-   const int* klast,
-   const double* dx);
-  void efo_rbgswithfluxmaxvardcvarsf2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-  void efo_rbgswithfluxmaxcondcvarsf2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double &dc ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_rbgswithfluxmaxvardcconsf2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_rbgswithfluxmaxcondcconsf2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double &dc ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-  void efo_compresvarsca2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      double *residual ,
-      const int *residualgi ,
-      const int *residualgj ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const double *m ,
-      const int *mgi ,
-      const int *mgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
-   void efo_compresconsca2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      double *residual ,
-      const int *residualgi ,
-      const int *residualgj ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *mgi ,
-      const int *mgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
-  void accumopvarsca2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *accum ,
-      const int *accumgi ,
-      const int *accumgj ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const double *m ,
-      const int *mgi ,
-      const int *mgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
-   void accumopconsca2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *accum ,
-      const int *accumgi ,
-      const int *accumgj ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *mgi ,
-      const int *mgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const double *dx );
-   void efo_ewingfixfluxvardc2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *location_index,
-      const int *ratio_to_coarser,
-      const int *blower,
-      const int *bupper,
-      const double *dx );
-   void efo_ewingfixfluxcondc2d_(
-      const double *xflux ,
-      const double *yflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const double &diff_coef ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *location_index,
-      const int *ratio_to_coarser,
-      const int *blower,
-      const int *bupper,
-      const double *dx );
+void efo_compfluxvardc2d_(double *xflux, double *yflux, const int *fluxgi,
+                          const int *fluxgj, const double *xdiff_coef,
+                          const double *ydiff_coef, const int *dcgi,
+                          const int *dcgj, const double *soln,
+                          const int *solngi, const int *solngj,
+                          const int *ifirst, const int *ilast,
+                          const int *jfirst, const int *jlast,
+                          const double *dx);
+void SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D)(
+    double *xflux, double *yflux, const int *fluxgi, const int *fluxgj,
+    const double &diff_coef, const double *soln, const int *solngi,
+    const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
+    const int *jlast, const double *dx);
+void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D)(
+    double *xflux, double *yflux, double *zflux, const int *fluxgi,
+    const int *fluxgj, const int *fluxgk, const double &diff_coef,
+    const double *soln, const int *solngi, const int *solngj, const int *solngk,
+    const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
+    const int *kfirst, const int *klast, const double *dx);
+void efo_rbgswithfluxmaxvardcvarsf2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
+    const int *dcgi, const int *dcgj, const double *rhs, const int *rhsgi,
+    const int *rhsgj, const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const double *m, const int *m_gi,
+    const int *m_gj, double *soln, const int *solngi, const int *solngj,
+    const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
+    const double *dx, const int *offset, const double *maxres);
+void efo_rbgswithfluxmaxcondcvarsf2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double &dc, const double *rhs, const int *rhsgi,
+    const int *rhsgj, const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const double *m, const int *m_gi,
+    const int *m_gj, double *soln, const int *solngi, const int *solngj,
+    const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
+    const double *dx, const int *offset, const double *maxres);
+void efo_rbgswithfluxmaxvardcconsf2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
+    const int *dcgi, const int *dcgj, const double *rhs, const int *rhsgi,
+    const int *rhsgj, const double &scalar_field, const double *m,
+    const int *m_gi, const int *m_gj, double *soln, const int *solngi,
+    const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
+    const int *jlast, const double *dx, const int *offset,
+    const double *maxres);
+void efo_rbgswithfluxmaxcondcconsf2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double &dc, const double *rhs, const int *rhsgi,
+    const int *rhsgj, const double &scalar_field, const double *m,
+    const int *m_gi, const int *m_gj, double *soln, const int *solngi,
+    const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
+    const int *jlast, const double *dx, const int *offset,
+    const double *maxres);
+void efo_compresvarsca2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double *rhs, const int *rhsgi, const int *rhsgj,
+    double *residual, const int *residualgi, const int *residualgj,
+    const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const double *m, const int *mgi, const int *mgj,
+    const double *soln, const int *solngi, const int *solngj, const int *ifirst,
+    const int *ilast, const int *jfirst, const int *jlast, const double *dx);
+void efo_compresconsca2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double *rhs, const int *rhsgi, const int *rhsgj,
+    double *residual, const int *residualgi, const int *residualgj,
+    const double &scalar_field, const double *m, const int *mgi, const int *mgj,
+    const double *soln, const int *solngi, const int *solngj, const int *ifirst,
+    const int *ilast, const int *jfirst, const int *jlast, const double *dx);
+void accumopvarsca2d_(const double *xflux, const double *yflux,
+                      const int *fluxgi, const int *fluxgj, const double *accum,
+                      const int *accumgi, const int *accumgj,
+                      const double *scalar_field, const int *scalar_field_gi,
+                      const int *scalar_field_gj, const double *m,
+                      const int *mgi, const int *mgj, const double *soln,
+                      const int *solngi, const int *solngj, const int *ifirst,
+                      const int *ilast, const int *jfirst, const int *jlast,
+                      const double *dx);
+void accumopconsca2d_(const double *xflux, const double *yflux,
+                      const int *fluxgi, const int *fluxgj, const double *accum,
+                      const int *accumgi, const int *accumgj,
+                      const double &scalar_field, const double *m,
+                      const int *mgi, const int *mgj, const double *soln,
+                      const int *solngi, const int *solngj, const int *ifirst,
+                      const int *ilast, const int *jfirst, const int *jlast,
+                      const double *dx);
+void efo_ewingfixfluxvardc2d_(
+    const double *xflux, const double *yflux, const int *fluxgi,
+    const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
+    const int *dcgi, const int *dcgj, const double *soln, const int *solngi,
+    const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
+    const int *jlast, const int *location_index, const int *ratio_to_coarser,
+    const int *blower, const int *bupper, const double *dx);
+void efo_ewingfixfluxcondc2d_(const double *xflux, const double *yflux,
+                              const int *fluxgi, const int *fluxgj,
+                              const double &diff_coef, const double *soln,
+                              const int *solngi, const int *solngj,
+                              const int *ifirst, const int *ilast,
+                              const int *jfirst, const int *jlast,
+                              const int *location_index,
+                              const int *ratio_to_coarser, const int *blower,
+                              const int *bupper, const double *dx);
 
-   void efo_compfluxvardc3d_(
-      double *xflux ,
-      double *yflux ,
-      double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const double *zdiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const int *dcgk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void efo_rbgswithfluxmaxvardcvarsf3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const double *zdiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const int *dcgk ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const int *scalar_field_gk ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_rbgswithfluxmaxcondcvarsf3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double &dc ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const int *scalar_field_gk ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_rbgswithfluxmaxvardcconsf3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const double *zdiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const int *dcgk ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_rbgswithfluxmaxcondcconsf3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double &dc ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx ,
-      const int *offset ,
-      const double *maxres );
-   void efo_compresvarsca3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      double *residual ,
-      const int *residualgi ,
-      const int *residualgj ,
-      const int *residualgk ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const int *scalar_field_gk ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void efo_compresconsca3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *rhs ,
-      const int *rhsgi ,
-      const int *rhsgj ,
-      const int *rhsgk ,
-      double *residual ,
-      const int *residualgi ,
-      const int *residualgj ,
-      const int *residualgk ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void accumopvarsca3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *accum ,
-      const int *accumgi ,
-      const int *accumgj ,
-      const int *accumgk ,
-      const double *scalar_field ,
-      const int *scalar_field_gi ,
-      const int *scalar_field_gj ,
-      const int *scalar_field_gk ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void accumopconsca3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *accum ,
-      const int *accumgi ,
-      const int *accumgj ,
-      const int *accumgk ,
-      const double &scalar_field ,
-      const double *m ,
-      const int *m_gi ,
-      const int *m_gj ,
-      const int *m_gk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const double *dx );
-   void efo_ewingfixfluxvardc3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double *xdiff_coef ,
-      const double *ydiff_coef ,
-      const double *zdiff_coef ,
-      const int *dcgi ,
-      const int *dcgj ,
-      const int *dcgk ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const int *location_index,
-      const int *ratio_to_coarser,
-      const int *blower,
-      const int *bupper,
-      const double *dx );
-   void efo_ewingfixfluxcondc3d_(
-      const double *xflux ,
-      const double *yflux ,
-      const double *zflux ,
-      const int *fluxgi ,
-      const int *fluxgj ,
-      const int *fluxgk ,
-      const double &diff_coef ,
-      const double *soln ,
-      const int *solngi ,
-      const int *solngj ,
-      const int *solngk ,
-      const int *ifirst ,
-      const int *ilast ,
-      const int *jfirst ,
-      const int *jlast ,
-      const int *kfirst ,
-      const int *klast ,
-      const int *location_index,
-      const int *ratio_to_coarser,
-      const int *blower,
-      const int *bupper,
-      const double *dx );
-
+void efo_compfluxvardc3d_(
+    double *xflux, double *yflux, double *zflux, const int *fluxgi,
+    const int *fluxgj, const int *fluxgk, const double *xdiff_coef,
+    const double *ydiff_coef, const double *zdiff_coef, const int *dcgi,
+    const int *dcgj, const int *dcgk, const double *soln, const int *solngi,
+    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
+    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
+    const double *dx);
+void efo_rbgswithfluxmaxvardcvarsf3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk,
+    const double *xdiff_coef, const double *ydiff_coef,
+    const double *zdiff_coef, const int *dcgi, const int *dcgj, const int *dcgk,
+    const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
+    const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const int *scalar_field_gk, const double *m,
+    const int *m_gi, const int *m_gj, const int *m_gk, double *soln,
+    const int *solngi, const int *solngj, const int *solngk, const int *ifirst,
+    const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
+    const int *klast, const double *dx, const int *offset,
+    const double *maxres);
+void efo_rbgswithfluxmaxcondcvarsf3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk, const double &dc,
+    const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
+    const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const int *scalar_field_gk, const double *m,
+    const int *m_gi, const int *m_gj, const int *m_gk, double *soln,
+    const int *solngi, const int *solngj, const int *solngk, const int *ifirst,
+    const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
+    const int *klast, const double *dx, const int *offset,
+    const double *maxres);
+void efo_rbgswithfluxmaxvardcconsf3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk,
+    const double *xdiff_coef, const double *ydiff_coef,
+    const double *zdiff_coef, const int *dcgi, const int *dcgj, const int *dcgk,
+    const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
+    const double &scalar_field, const double *m, const int *m_gi,
+    const int *m_gj, const int *m_gk, double *soln, const int *solngi,
+    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
+    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
+    const double *dx, const int *offset, const double *maxres);
+void efo_rbgswithfluxmaxcondcconsf3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk, const double &dc,
+    const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
+    const double &scalar_field, const double *m, const int *m_gi,
+    const int *m_gj, const int *m_gk, double *soln, const int *solngi,
+    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
+    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
+    const double *dx, const int *offset, const double *maxres);
+void efo_compresvarsca3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk, const double *rhs,
+    const int *rhsgi, const int *rhsgj, const int *rhsgk, double *residual,
+    const int *residualgi, const int *residualgj, const int *residualgk,
+    const double *scalar_field, const int *scalar_field_gi,
+    const int *scalar_field_gj, const int *scalar_field_gk, const double *m,
+    const int *m_gi, const int *m_gj, const int *m_gk, const double *soln,
+    const int *solngi, const int *solngj, const int *solngk, const int *ifirst,
+    const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
+    const int *klast, const double *dx);
+void efo_compresconsca3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk, const double *rhs,
+    const int *rhsgi, const int *rhsgj, const int *rhsgk, double *residual,
+    const int *residualgi, const int *residualgj, const int *residualgk,
+    const double &scalar_field, const double *m, const int *m_gi,
+    const int *m_gj, const int *m_gk, const double *soln, const int *solngi,
+    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
+    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
+    const double *dx);
+void accumopvarsca3d_(const double *xflux, const double *yflux,
+                      const double *zflux, const int *fluxgi, const int *fluxgj,
+                      const int *fluxgk, const double *accum,
+                      const int *accumgi, const int *accumgj,
+                      const int *accumgk, const double *scalar_field,
+                      const int *scalar_field_gi, const int *scalar_field_gj,
+                      const int *scalar_field_gk, const double *m,
+                      const int *m_gi, const int *m_gj, const int *m_gk,
+                      const double *soln, const int *solngi, const int *solngj,
+                      const int *solngk, const int *ifirst, const int *ilast,
+                      const int *jfirst, const int *jlast, const int *kfirst,
+                      const int *klast, const double *dx);
+void accumopconsca3d_(const double *xflux, const double *yflux,
+                      const double *zflux, const int *fluxgi, const int *fluxgj,
+                      const int *fluxgk, const double *accum,
+                      const int *accumgi, const int *accumgj,
+                      const int *accumgk, const double &scalar_field,
+                      const double *m, const int *m_gi, const int *m_gj,
+                      const int *m_gk, const double *soln, const int *solngi,
+                      const int *solngj, const int *solngk, const int *ifirst,
+                      const int *ilast, const int *jfirst, const int *jlast,
+                      const int *kfirst, const int *klast, const double *dx);
+void efo_ewingfixfluxvardc3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk,
+    const double *xdiff_coef, const double *ydiff_coef,
+    const double *zdiff_coef, const int *dcgi, const int *dcgj, const int *dcgk,
+    const double *soln, const int *solngi, const int *solngj, const int *solngk,
+    const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
+    const int *kfirst, const int *klast, const int *location_index,
+    const int *ratio_to_coarser, const int *blower, const int *bupper,
+    const double *dx);
+void efo_ewingfixfluxcondc3d_(
+    const double *xflux, const double *yflux, const double *zflux,
+    const int *fluxgi, const int *fluxgj, const int *fluxgk,
+    const double &diff_coef, const double *soln, const int *solngi,
+    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
+    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
+    const int *location_index, const int *ratio_to_coarser, const int *blower,
+    const int *bupper, const double *dx);
 }
 
 /*
@@ -695,119 +294,118 @@ void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
 ********************************************************************
 */
 EllipticFACOps::EllipticFACOps(
-   const tbox::Dimension& dim,
-   const std::string &object_name ,
-   const boost::shared_ptr<tbox::Database>& database,
-   const int depth):
-   d_dim(dim),
-   d_object_name(object_name) ,
-   d_ln_min(-1) ,
-   d_ln_max(-1) ,
-   d_cf_boundary() ,
-   d_smoothing_choice("redblack") ,
-   d_coarse_solver_choice(
+    const tbox::Dimension &dim, const std::string &object_name,
+    const boost::shared_ptr<tbox::Database> &database, const int depth)
+    : d_dim(dim),
+      d_object_name(object_name),
+      d_ln_min(-1),
+      d_ln_max(-1),
+      d_cf_boundary(),
+      d_smoothing_choice("redblack"),
+      d_coarse_solver_choice(
 #ifdef HAVE_HYPRE
-                          "hypre"
+          "hypre"
 #else
-                          "redblack"
+          "redblack"
 #endif
-                          ) ,
-   d_cf_discretization("Ewing") ,
-   d_prolongation_method("CONSTANT_REFINE") ,
-   d_coarse_solver_tolerance(1.e-2) ,
-   d_coarse_solver_max_iterations(20) ,
-   d_residual_tolerance_during_smoothing(-1.0) ,
-   d_flux_id(-1) ,
-   d_context(hier::VariableDatabase::getDatabase()
-             ->getContext(object_name+"::PRIVATE_CONTEXT")) ,
-   d_cell_scratch_id(-1),
-   d_flux_scratch_id(-1),
-   d_oflux_scratch_id(-1),
-   d_bc_helper( tbox::Dimension(NDIM), d_object_name+"::bc helper" ),
-   d_enable_logging(false) ,
-   d_preconditioner(NULL) ,
-   d_hopscell(),
-   d_hopsside(),
-   d_physical_bc_coef(NULL),
-   d_depth(depth)
+          ),
+      d_cf_discretization("Ewing"),
+      d_prolongation_method("CONSTANT_REFINE"),
+      d_coarse_solver_tolerance(1.e-2),
+      d_coarse_solver_max_iterations(20),
+      d_residual_tolerance_during_smoothing(-1.0),
+      d_flux_id(-1),
+      d_context(hier::VariableDatabase::getDatabase()->getContext(
+          object_name + "::PRIVATE_CONTEXT")),
+      d_cell_scratch_id(-1),
+      d_flux_scratch_id(-1),
+      d_oflux_scratch_id(-1),
+      d_bc_helper(tbox::Dimension(NDIM), d_object_name + "::bc helper"),
+      d_enable_logging(false),
+      d_preconditioner(NULL),
+      d_hopscell(),
+      d_hopsside(),
+      d_physical_bc_coef(NULL),
+      d_depth(depth)
 {
    if (NDIM == 1) {
       TBOX_ERROR(d_object_name << ": 1D not implemented yet.\n");
    }
 
-   for(int i=0;i<depth;i++){
+   for (int i = 0; i < depth; i++) {
 #ifdef HAVE_HYPRE
-      CellPoissonHypreSolver* hypre_solver =
-         new CellPoissonHypreSolver(
-            object_name+"::hypre_solver"+boost::lexical_cast<std::string>(i),
-                  database && database->isDatabase("hypre_solver") ?
-                  database->getDatabase("hypre_solver") :
-                  boost::shared_ptr<tbox::Database>());
+      CellPoissonHypreSolver *hypre_solver =
+          new CellPoissonHypreSolver(object_name + "::hypre_solver" +
+                                         boost::lexical_cast<std::string>(i),
+                                     database && database->isDatabase("hypre_"
+                                                                      "solver")
+                                         ? database->getDatabase("hypre_solver")
+                                         : boost::shared_ptr<tbox::Database>());
       d_hypre_solver.push_back(hypre_solver);
 #endif
 
-      PoissonSpecifications* poisson_spec =
-         new PoissonSpecifications(object_name+"::Poisson specs");
+      PoissonSpecifications *poisson_spec =
+          new PoissonSpecifications(object_name + "::Poisson specs");
       d_poisson_spec.push_back(*poisson_spec);
 
       d_C_is_set.push_back(false);
       d_D_is_set.push_back(false);
    }
-   d_M_is_set=false;
+   d_M_is_set = false;
 
-   t_restrict_solution = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::restrictSolution()");
-   t_restrict_residual = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::restrictResidual()");
-   t_prolong = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::prolongErrorAndCorrect()");
-   t_smooth_error = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::smoothError()");
-   t_solve_coarsest = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::solveCoarsestLevel()");
-   t_compute_composite_residual = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::computeCompositeResidualOnLevel()");
-   t_accumulate_operator = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::accumulateOperatorOnLevel()");
-   t_compute_residual_norm = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::computeResidualNorm()");
-   t_compute_rhs = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::evaluateRHS()");
-   t_finalizecoeffs = tbox::TimerManager::getManager()->
-      getTimer("AMPE::EllipticFACOps::finalizeCoefficients()");
+   t_restrict_solution = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::restrictSolution()");
+   t_restrict_residual = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::restrictResidual()");
+   t_prolong = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::prolongErrorAndCorrect()");
+   t_smooth_error = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::smoothError()");
+   t_solve_coarsest = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::solveCoarsestLevel()");
+   t_compute_composite_residual = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::computeCompositeResidualOnLevel()");
+   t_accumulate_operator = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::accumulateOperatorOnLevel()");
+   t_compute_residual_norm = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::computeResidualNorm()");
+   t_compute_rhs = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::evaluateRHS()");
+   t_finalizecoeffs = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::EllipticFACOps::finalizeCoefficients()");
 
-   TBOX_ASSERT( !d_cell_scratch_var );
+   TBOX_ASSERT(!d_cell_scratch_var);
 
-   d_cell_scratch_var.reset ( new pdat::CellVariable<double>
-      (tbox::Dimension(NDIM),object_name+"::private_cell_scratch",
-      d_depth) );
-   d_flux_scratch_var.reset ( new pdat::SideVariable<double>
-      (tbox::Dimension(NDIM),object_name+"::private_flux_scratch",
-      d_depth) );
-   d_oflux_scratch_var.reset ( new pdat::OutersideVariable<double>
-      (tbox::Dimension(NDIM),object_name+"::private_oflux_scratch",
-      d_depth) );
+   d_cell_scratch_var.reset(new pdat::CellVariable<double>(
+       tbox::Dimension(NDIM), object_name + "::private_cell_scratch", d_depth));
+   d_flux_scratch_var.reset(new pdat::SideVariable<double>(
+       tbox::Dimension(NDIM), object_name + "::private_flux_scratch", d_depth));
+   d_oflux_scratch_var.reset(
+       new pdat::OutersideVariable<double>(tbox::Dimension(NDIM),
+                                           object_name + "::private_oflux_"
+                                                         "scratch",
+                                           d_depth));
 
-   d_m_var.reset ( new pdat::CellVariable<double>
-      (tbox::Dimension(NDIM),object_name+"EllipticFACOps::private_m", 1) );
-   for(int i=0;i<depth;i++){
+   d_m_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                object_name + "EllipticFACOps::"
+                                                              "private_m",
+                                                1));
+   for (int i = 0; i < depth; i++) {
       boost::shared_ptr<pdat::SideVariable<double> > d_var;
-      d_var.reset(
-         new pdat::SideVariable<double>(
-            tbox::Dimension(NDIM),
-            object_name+"EllipticFACOps::privateD"
-                       +boost::lexical_cast<std::string>(i), 
-            1) );
-      d_d_var.push_back ( d_var );
+      d_var.reset(new pdat::SideVariable<double>(
+          tbox::Dimension(NDIM),
+          object_name + "EllipticFACOps::privateD" +
+              boost::lexical_cast<std::string>(i),
+          1));
+      d_d_var.push_back(d_var);
 
       boost::shared_ptr<pdat::CellVariable<double> > c_var;
-      c_var.reset(
-         new pdat::CellVariable<double>(
-            tbox::Dimension(NDIM),
-            object_name+"EllipticFACOps::privateC"
-                       +boost::lexical_cast<std::string>(i), 
-            1) );
-      d_c_var.push_back ( c_var );
+      c_var.reset(new pdat::CellVariable<double>(
+          tbox::Dimension(NDIM),
+          object_name + "EllipticFACOps::privateC" +
+              boost::lexical_cast<std::string>(i),
+          1));
+      d_c_var.push_back(c_var);
    }
 
    /*
@@ -816,34 +414,28 @@ EllipticFACOps::EllipticFACOps(
    getFromInput(database);
 
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
-   d_cell_scratch_id = vdb->
-      registerVariableAndContext( d_cell_scratch_var,
-                                  d_context ,
-                                  hier::IntVector(tbox::Dimension(NDIM),1) );
-   d_flux_scratch_id = vdb->
-      registerVariableAndContext( d_flux_scratch_var,
-                                  d_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
-   d_oflux_scratch_id = vdb->
-      registerVariableAndContext( d_oflux_scratch_var,
-                                  d_context,
-                                  hier::IntVector(tbox::Dimension(NDIM),0) );
-   d_m_id = vdb->
-         registerVariableAndContext( d_m_var,
-                                     d_context ,
-                                     hier::IntVector(tbox::Dimension(NDIM),1) );
+   d_cell_scratch_id =
+       vdb->registerVariableAndContext(d_cell_scratch_var, d_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       1));
+   d_flux_scratch_id =
+       vdb->registerVariableAndContext(d_flux_scratch_var, d_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
+   d_oflux_scratch_id =
+       vdb->registerVariableAndContext(d_oflux_scratch_var, d_context,
+                                       hier::IntVector(tbox::Dimension(NDIM),
+                                                       0));
+   d_m_id = vdb->registerVariableAndContext(
+       d_m_var, d_context, hier::IntVector(tbox::Dimension(NDIM), 1));
 
-   for(int i=0;i<depth;i++){
-      assert( i<static_cast<int>(d_d_var.size()) );
-      d_d_id.push_back( vdb->
-         registerVariableAndContext( d_d_var[i],
-            d_context ,
-            hier::IntVector(tbox::Dimension(NDIM),0) ) );
+   for (int i = 0; i < depth; i++) {
+      assert(i < static_cast<int>(d_d_var.size()));
+      d_d_id.push_back(vdb->registerVariableAndContext(
+          d_d_var[i], d_context, hier::IntVector(tbox::Dimension(NDIM), 0)));
 
-      d_c_id.push_back( vdb->
-         registerVariableAndContext( d_c_var[i],
-            d_context ,
-            hier::IntVector(tbox::Dimension(NDIM),0) ) );
+      d_c_id.push_back(vdb->registerVariableAndContext(
+          d_c_var[i], d_context, hier::IntVector(tbox::Dimension(NDIM), 0)));
    }
 
    /*
@@ -853,12 +445,12 @@ EllipticFACOps::EllipticFACOps(
 }
 
 void EllipticFACOps::getFromInput(
-   const boost::shared_ptr<tbox::Database>& input_db)
+    const boost::shared_ptr<tbox::Database> &input_db)
 {
    if (input_db) {
       d_coarse_solver_choice =
-         input_db->getStringWithDefault("coarse_solver_choice",
-            d_coarse_solver_choice);
+          input_db->getStringWithDefault("coarse_solver_choice",
+                                         d_coarse_solver_choice);
       if (!(d_coarse_solver_choice == "hypre" ||
             d_coarse_solver_choice == "redblack" ||
             d_coarse_solver_choice == "jacobi")) {
@@ -866,21 +458,21 @@ void EllipticFACOps::getFromInput(
       }
 
       d_coarse_solver_tolerance =
-         input_db->getDoubleWithDefault("coarse_solver_tolerance",
-            d_coarse_solver_tolerance);
+          input_db->getDoubleWithDefault("coarse_solver_tolerance",
+                                         d_coarse_solver_tolerance);
       if (!(d_coarse_solver_tolerance > 0)) {
          INPUT_RANGE_ERROR("coarse_solver_tolerance");
       }
 
       d_coarse_solver_max_iterations =
-         input_db->getIntegerWithDefault("coarse_solver_max_iterations",
-            d_coarse_solver_max_iterations);
+          input_db->getIntegerWithDefault("coarse_solver_max_iterations",
+                                          d_coarse_solver_max_iterations);
       if (!(d_coarse_solver_max_iterations >= 1)) {
          INPUT_RANGE_ERROR("coarse_solver_max_iterations");
       }
 
       d_cf_discretization =
-         input_db->getStringWithDefault("cf_discretization", "Ewing");
+          input_db->getStringWithDefault("cf_discretization", "Ewing");
       if (!(d_cf_discretization == "Ewing" ||
             d_cf_discretization == "CONSTANT_REFINE" ||
             d_cf_discretization == "LINEAR_REFINE" ||
@@ -889,8 +481,8 @@ void EllipticFACOps::getFromInput(
       }
 
       d_prolongation_method =
-         input_db->getStringWithDefault("prolongation_method",
-            "CONSTANT_REFINE");
+          input_db->getStringWithDefault("prolongation_method",
+                                         "CONSTANT_REFINE");
       if (!(d_prolongation_method == "CONSTANT_REFINE" ||
             d_prolongation_method == "LINEAR_REFINE" ||
             d_prolongation_method == "CONSERVATIVE_LINEAR_REFINE")) {
@@ -910,9 +502,9 @@ void EllipticFACOps::getFromInput(
 * Look up transfer operators.                                          *
 ************************************************************************
 */
-void
-EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &solution ,
-                                         const solv::SAMRAIVectorReal<double> &rhs )
+void EllipticFACOps::initializeOperatorState(
+    const solv::SAMRAIVectorReal<double> &solution,
+    const solv::SAMRAIVectorReal<double> &rhs)
 {
    deallocateOperatorState();
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
@@ -928,17 +520,18 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
                                                                d_ln_max));
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( d_physical_bc_coef == NULL ) {
+   if (d_physical_bc_coef == NULL) {
       /*
        * It's an error not to have bc object set.
        * Note that the bc object cannot be passed in through
        * the argument because the interface is inherited.
        */
       TBOX_ERROR(d_object_name << ": No physical bc object in\n"
-                 << "EllipticFACOps::initializeOperatorState\n"
-                 << "You must use "
-                 << "EllipticFACOps::setPhysicalBcCoefObject\n"
-                 << "to set one before calling initializeOperatorState\n");
+                               << "EllipticFACOps::initializeOperatorState\n"
+                               << "You must use "
+                               << "EllipticFACOps::setPhysicalBcCoefObject\n"
+                               << "to set one before calling "
+                                  "initializeOperatorState\n");
    }
 
    /*
@@ -947,52 +540,51 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
     *   are allocated
     *   has sufficient ghost width
     */
-   boost::shared_ptr< hier::Variable > var;
+   boost::shared_ptr<hier::Variable> var;
    {
-      vdb->mapIndexToVariable( rhs.getComponentDescriptorIndex(0),
-                               var );
-      TBOX_ASSERT( var );
+      vdb->mapIndexToVariable(rhs.getComponentDescriptorIndex(0), var);
+      TBOX_ASSERT(var);
       boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
-      TBOX_ASSERT( cell_var );
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      TBOX_ASSERT(cell_var);
    }
    {
-      vdb->mapIndexToVariable( solution.getComponentDescriptorIndex(0),
-                               var );
-      TBOX_ASSERT( var );
+      vdb->mapIndexToVariable(solution.getComponentDescriptorIndex(0), var);
+      TBOX_ASSERT(var);
       boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var) );
-      TBOX_ASSERT( cell_var );
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      TBOX_ASSERT(cell_var);
    }
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
       boost::shared_ptr<hier::PatchLevel> level_ptr(
-         d_hierarchy->getPatchLevel(ln));
-      hier::PatchLevel& level = *level_ptr;
-      for (hier::PatchLevel::iterator pi(level.begin());
-           pi != level.end(); ++pi) {
-         hier::Patch& patch = **pi;
+          d_hierarchy->getPatchLevel(ln));
+      hier::PatchLevel &level = *level_ptr;
+      for (hier::PatchLevel::iterator pi(level.begin()); pi != level.end();
+           ++pi) {
+         hier::Patch &patch = **pi;
          boost::shared_ptr<hier::PatchData> fd(
-            patch.getPatchData(rhs.getComponentDescriptorIndex(0)));
+             patch.getPatchData(rhs.getComponentDescriptorIndex(0)));
          if (fd) {
             /*
              * Some data checks can only be done if the data already exists.
              */
             boost::shared_ptr<pdat::CellData<double> > cd(
-               BOOST_CAST<pdat::CellData<double>,hier::PatchData>(fd) );
-            TBOX_ASSERT( cd );
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd));
+            TBOX_ASSERT(cd);
          }
          boost::shared_ptr<hier::PatchData> ud(
-            patch.getPatchData(solution.getComponentDescriptorIndex(0) ) );
+             patch.getPatchData(solution.getComponentDescriptorIndex(0)));
          if (ud) {
             /*
              * Some data checks can only be done if the data already exists.
              */
             boost::shared_ptr<pdat::CellData<double> > cd(
-               BOOST_CAST<pdat::CellData<double>,hier::PatchData>(ud) );
-            TBOX_ASSERT( cd );
-            if (cd->getGhostCellWidth() < hier::IntVector::getOne(tbox::Dimension(NDIM))) {
-               TBOX_ERROR(d_object_name
-                  << ": Solution data has insufficient ghost width\n");
+                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud));
+            TBOX_ASSERT(cd);
+            if (cd->getGhostCellWidth() <
+                hier::IntVector::getOne(tbox::Dimension(NDIM))) {
+               TBOX_ERROR(d_object_name << ": Solution data has insufficient "
+                                           "ghost width\n");
             }
          }
       }
@@ -1001,11 +593,11 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
    /*
     * Solution and rhs must have some similar properties.
     */
-   if( rhs.getPatchHierarchy() != d_hierarchy
-       || rhs.getCoarsestLevelNumber() != d_ln_min
-       || rhs.getFinestLevelNumber() != d_ln_max ) {
+   if (rhs.getPatchHierarchy() != d_hierarchy ||
+       rhs.getCoarsestLevelNumber() != d_ln_min ||
+       rhs.getFinestLevelNumber() != d_ln_max) {
       TBOX_ERROR(d_object_name << ": solution and rhs do not have\n"
-                 << "the same set of patch levels.\n" );
+                               << "the same set of patch levels.\n");
    }
 
 #endif
@@ -1014,14 +606,12 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
     * Initialize the coarse-fine boundary description for the
     * hierarchy.
     */
-   d_cf_boundary.resize( d_hierarchy->getNumberOfLevels() );
+   d_cf_boundary.resize(d_hierarchy->getNumberOfLevels());
 
-   hier::IntVector max_gcw(tbox::Dimension(NDIM),1);
-   for ( int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+   hier::IntVector max_gcw(tbox::Dimension(NDIM), 1);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
       d_cf_boundary[ln].reset(
-         new hier::CoarseFineBoundary(*d_hierarchy,
-            ln,
-            max_gcw));
+          new hier::CoarseFineBoundary(*d_hierarchy, ln, max_gcw));
    }
 
    /*
@@ -1035,86 +625,75 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
     *   acceptable strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
-         d_hierarchy->getGridGeometry() ) );
+       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+           d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(geometry);
 
-   boost::shared_ptr< hier::Variable > variable;
+   boost::shared_ptr<hier::Variable> variable;
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_prolongation_refine_operator =
-      geometry->lookupRefineOperator( variable,
-                                      d_prolongation_method );
+       geometry->lookupRefineOperator(variable, d_prolongation_method);
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
-   d_urestriction_coarsen_operator =
-   d_rrestriction_coarsen_operator =
-      geometry->lookupCoarsenOperator(variable,
-                                      "CONSERVATIVE_COARSEN");
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
+   d_urestriction_coarsen_operator = d_rrestriction_coarsen_operator =
+       geometry->lookupCoarsenOperator(variable, "CONSERVATIVE_COARSEN");
 
-   vdb->mapIndexToVariable( d_oflux_scratch_id, variable );
+   vdb->mapIndexToVariable(d_oflux_scratch_id, variable);
    d_flux_coarsen_operator =
-      geometry->lookupCoarsenOperator(variable,
-                                      "CONSERVATIVE_COARSEN");
+       geometry->lookupCoarsenOperator(variable, "CONSERVATIVE_COARSEN");
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_ghostfill_refine_operator =
-      geometry->lookupRefineOperator(variable,
-                                     d_cf_discretization == "Ewing" ?
-                                     "CONSTANT_REFINE" : d_cf_discretization);
+       geometry->lookupRefineOperator(variable, d_cf_discretization == "Ewing"
+                                                    ? "CONSTANT_REFINE"
+                                                    : d_cf_discretization);
 
-   vdb->mapIndexToVariable( d_cell_scratch_id, variable );
+   vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_ghostfill_nocoarse_refine_operator =
-      geometry->lookupRefineOperator(variable,
-                                     "CONSTANT_REFINE");
+       geometry->lookupRefineOperator(variable, "CONSTANT_REFINE");
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if ( !d_prolongation_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find prolongation refine operator");
+   if (!d_prolongation_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find prolongation refine operator");
    }
-   if ( !d_urestriction_coarsen_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find restriction coarsening operator");
+   if (!d_urestriction_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find restriction coarsening "
+                                  "operator");
    }
-   if ( !d_rrestriction_coarsen_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find restriction coarsening operator");
+   if (!d_rrestriction_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find restriction coarsening "
+                                  "operator");
    }
-   if ( !d_flux_coarsen_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find flux coarsening operator");
+   if (!d_flux_coarsen_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find flux coarsening operator");
    }
-   if ( !d_ghostfill_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find ghost filling refinement operator");
+   if (!d_ghostfill_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find ghost filling refinement "
+                                  "operator");
    }
-   if ( !d_ghostfill_nocoarse_refine_operator ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot find ghost filling refinement operator");
+   if (!d_ghostfill_nocoarse_refine_operator) {
+      TBOX_ERROR(d_object_name << ": Cannot find ghost filling refinement "
+                                  "operator");
    }
 #endif
 
-   for (int ln=d_ln_min+1; ln<=d_ln_max; ++ln ) {
-      d_hierarchy->getPatchLevel(ln)->
-         allocatePatchData(d_oflux_scratch_id);
+   for (int ln = d_ln_min + 1; ln <= d_ln_max; ++ln) {
+      d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_oflux_scratch_id);
    }
 
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      d_hierarchy->getPatchLevel(ln)->
-         allocatePatchData(d_m_id);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_m_id);
    }
 
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      for(int i=0;i<d_depth;i++)
-         d_hierarchy->getPatchLevel(ln)->
-            allocatePatchData(d_c_id[i]);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      for (int i = 0; i < d_depth; i++)
+         d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_c_id[i]);
    }
 
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      for(int i=0;i<d_depth;i++)
-         d_hierarchy->getPatchLevel(ln)->
-            allocatePatchData(d_d_id[i]);
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
+      for (int i = 0; i < d_depth; i++)
+         d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_d_id[i]);
    }
 
    /*
@@ -1122,124 +701,108 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
      There is no need to delete the old schedules first
      because we have deallocated the solver state above.
    */
-   d_prolongation_refine_schedules.resize(d_ln_max+1);
-   d_ghostfill_refine_schedules.resize(d_ln_max+1);
-   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max+1);
-   d_urestriction_coarsen_schedules.resize(d_ln_max+1);
-   d_rrestriction_coarsen_schedules.resize(d_ln_max+1);
-   d_flux_coarsen_schedules.resize(d_ln_max+1);
+   d_prolongation_refine_schedules.resize(d_ln_max + 1);
+   d_ghostfill_refine_schedules.resize(d_ln_max + 1);
+   d_ghostfill_nocoarse_refine_schedules.resize(d_ln_max + 1);
+   d_urestriction_coarsen_schedules.resize(d_ln_max + 1);
+   d_rrestriction_coarsen_schedules.resize(d_ln_max + 1);
+   d_flux_coarsen_schedules.resize(d_ln_max + 1);
 
-   d_prolongation_refine_algorithm.reset(
-      new xfer::RefineAlgorithm() );
+   d_prolongation_refine_algorithm.reset(new xfer::RefineAlgorithm());
    d_urestriction_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
    d_rrestriction_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
    d_flux_coarsen_algorithm.reset(
-      new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)) );
-   d_ghostfill_refine_algorithm.reset(
-      new xfer::RefineAlgorithm() );
-   d_ghostfill_nocoarse_refine_algorithm.reset(
-      new xfer::RefineAlgorithm() );
+       new xfer::CoarsenAlgorithm(tbox::Dimension(NDIM)));
+   d_ghostfill_refine_algorithm.reset(new xfer::RefineAlgorithm());
+   d_ghostfill_nocoarse_refine_algorithm.reset(new xfer::RefineAlgorithm());
 
-   d_prolongation_refine_algorithm->
-      registerRefine( d_cell_scratch_id ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_cell_scratch_id ,
-                      d_prolongation_refine_operator );
-   d_urestriction_coarsen_algorithm->
-      registerCoarsen( solution.getComponentDescriptorIndex(0) ,
-                       solution.getComponentDescriptorIndex(0) ,
-                       d_urestriction_coarsen_operator );
-   d_rrestriction_coarsen_algorithm->
-      registerCoarsen( rhs.getComponentDescriptorIndex(0) ,
-                       rhs.getComponentDescriptorIndex(0) ,
-                       d_rrestriction_coarsen_operator );
-   d_ghostfill_refine_algorithm->
-      registerRefine( solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_ghostfill_refine_operator );
-   d_flux_coarsen_algorithm->
-      registerCoarsen( ( ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id ) ,
-                       d_oflux_scratch_id ,
-                       d_flux_coarsen_operator );
-   d_ghostfill_nocoarse_refine_algorithm->
-      registerRefine( solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      solution.getComponentDescriptorIndex(0) ,
-                      d_ghostfill_nocoarse_refine_operator );
+   d_prolongation_refine_algorithm->registerRefine(
+       d_cell_scratch_id, solution.getComponentDescriptorIndex(0),
+       d_cell_scratch_id, d_prolongation_refine_operator);
+   d_urestriction_coarsen_algorithm->registerCoarsen(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       d_urestriction_coarsen_operator);
+   d_rrestriction_coarsen_algorithm->registerCoarsen(
+       rhs.getComponentDescriptorIndex(0), rhs.getComponentDescriptorIndex(0),
+       d_rrestriction_coarsen_operator);
+   d_ghostfill_refine_algorithm->registerRefine(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0), d_ghostfill_refine_operator);
+   d_flux_coarsen_algorithm->registerCoarsen(
+       ((d_flux_id != -1) ? d_flux_id : d_flux_scratch_id), d_oflux_scratch_id,
+       d_flux_coarsen_operator);
+   d_ghostfill_nocoarse_refine_algorithm->registerRefine(
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       solution.getComponentDescriptorIndex(0),
+       d_ghostfill_nocoarse_refine_operator);
 
-   for ( int dest_ln=d_ln_min+1; dest_ln<=d_ln_max; ++dest_ln ) {
+   for (int dest_ln = d_ln_min + 1; dest_ln <= d_ln_max; ++dest_ln) {
 
       boost::shared_ptr<xfer::PatchLevelFullFillPattern> fill_pattern(
-         boost::make_shared<xfer::PatchLevelFullFillPattern>());
+          boost::make_shared<xfer::PatchLevelFullFillPattern>());
       d_prolongation_refine_schedules[dest_ln] =
-         d_prolongation_refine_algorithm->
-         createSchedule( fill_pattern,
-                         d_hierarchy->getPatchLevel(dest_ln) ,
-                         boost::shared_ptr<hier::PatchLevel >() ,
-                         dest_ln-1 ,
-                         d_hierarchy ,
-                         &d_bc_helper );
-      if ( ! d_prolongation_refine_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a refine schedule for prolongation!\n");
+          d_prolongation_refine_algorithm->createSchedule(
+              fill_pattern, d_hierarchy->getPatchLevel(dest_ln),
+              boost::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
+              &d_bc_helper);
+      if (!d_prolongation_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "prolongation!\n");
       }
       d_ghostfill_refine_schedules[dest_ln] =
-         d_ghostfill_refine_algorithm->
-         createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
-                         dest_ln-1 ,
-                         d_hierarchy ,
-                         &d_bc_helper );
-      if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a refine schedule for ghost filling!\n");
+          d_ghostfill_refine_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln), dest_ln - 1, d_hierarchy,
+              &d_bc_helper);
+      if (!d_ghostfill_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "ghost filling!\n");
       }
       d_ghostfill_nocoarse_refine_schedules[dest_ln] =
-         d_ghostfill_nocoarse_refine_algorithm->
-         createSchedule( d_hierarchy->getPatchLevel(dest_ln) ,
-                         &d_bc_helper );
-      if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a refine schedule for ghost filling on bottom level!\n");
+          d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln), &d_bc_helper);
+      if (!d_ghostfill_nocoarse_refine_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
+                                     "ghost filling on bottom level!\n");
       }
    }
-   for ( int dest_ln=d_ln_min; dest_ln<d_ln_max; ++dest_ln ) {
+   for (int dest_ln = d_ln_min; dest_ln < d_ln_max; ++dest_ln) {
       d_urestriction_coarsen_schedules[dest_ln] =
-         d_urestriction_coarsen_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                        d_hierarchy->getPatchLevel(dest_ln+1));
-      if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a coarsen schedule for U restriction!\n");
+          d_urestriction_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_urestriction_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for U "
+                                     "restriction!\n");
       }
       d_rrestriction_coarsen_schedules[dest_ln] =
-         d_rrestriction_coarsen_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                        d_hierarchy->getPatchLevel(dest_ln+1));
-      if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a coarsen schedule for R restriction!\n");
+          d_rrestriction_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_rrestriction_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for R "
+                                     "restriction!\n");
       }
       d_flux_coarsen_schedules[dest_ln] =
-         d_flux_coarsen_algorithm->
-         createSchedule(d_hierarchy->getPatchLevel(dest_ln),
-                        d_hierarchy->getPatchLevel(dest_ln+1));
-      if ( ! d_flux_coarsen_schedules[dest_ln] ) {
-         TBOX_ERROR(d_object_name
-                    << ": Cannot create a coarsen schedule for flux transfer!\n");
+          d_flux_coarsen_algorithm->createSchedule(
+              d_hierarchy->getPatchLevel(dest_ln),
+              d_hierarchy->getPatchLevel(dest_ln + 1));
+      if (!d_flux_coarsen_schedules[dest_ln]) {
+         TBOX_ERROR(d_object_name << ": Cannot create a coarsen schedule for "
+                                     "flux transfer!\n");
       }
    }
    d_ghostfill_nocoarse_refine_schedules[d_ln_min] =
-      d_ghostfill_nocoarse_refine_algorithm->
-      createSchedule( d_hierarchy->getPatchLevel(d_ln_min) ,
-                      &d_bc_helper );
-   if ( ! d_ghostfill_nocoarse_refine_schedules[d_ln_min] ) {
-      TBOX_ERROR(d_object_name
-                 << ": Cannot create a refine schedule for ghost filling on bottom level!\n");
+       d_ghostfill_nocoarse_refine_algorithm->createSchedule(
+           d_hierarchy->getPatchLevel(d_ln_min), &d_bc_helper);
+   if (!d_ghostfill_nocoarse_refine_schedules[d_ln_min]) {
+      TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for ghost "
+                                  "filling on bottom level!\n");
    }
-
 }
 
 /*
@@ -1249,34 +812,31 @@ EllipticFACOps::initializeOperatorState (const solv::SAMRAIVectorReal<double> &s
 * State is allocated iff hierarchy is set.                         *
 ********************************************************************
 */
-void
-EllipticFACOps::deallocateOperatorState()
+void EllipticFACOps::deallocateOperatorState()
 {
-   if ( d_hierarchy ) {
+   if (d_hierarchy) {
 
       int ln;
-      for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-         d_hierarchy->getPatchLevel(ln)->
-            deallocatePatchData(d_m_id);
+      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
+         d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_m_id);
       }
-      for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-         for(int i=0;i<d_depth;i++)
-            d_hierarchy->getPatchLevel(ln)->
-               deallocatePatchData(d_c_id[i]);
+      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
+         for (int i = 0; i < d_depth; i++)
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_c_id[i]);
       }
-      for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-         for(int i=0;i<d_depth;i++)
-            d_hierarchy->getPatchLevel(ln)->
-               deallocatePatchData(d_d_id[i]);
+      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
+         for (int i = 0; i < d_depth; i++)
+            d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_d_id[i]);
       }
-      for ( ln=d_ln_min+1; ln<=d_ln_max; ++ln ) {
-         d_hierarchy->getPatchLevel(ln)->
-            deallocatePatchData(d_oflux_scratch_id);
+      for (ln = d_ln_min + 1; ln <= d_ln_max; ++ln) {
+         d_hierarchy->getPatchLevel(ln)->deallocatePatchData(
+             d_oflux_scratch_id);
       }
       d_cf_boundary.resize(0);
 #if HAVE_HYPRE
-      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
-      for( ; it!=d_hypre_solver.end(); ++it)
+      std::vector<CellPoissonHypreSolver *>::iterator it(
+          d_hypre_solver.begin());
+      for (; it != d_hypre_solver.end(); ++it)
          (*it)->deallocateSolverState();
 #endif
       d_hierarchy.reset();
@@ -1292,7 +852,6 @@ EllipticFACOps::deallocateOperatorState()
    }
    d_C_is_set.clear();
    d_D_is_set.clear();
-
 }
 
 
@@ -1301,42 +860,41 @@ EllipticFACOps::deallocateOperatorState()
 * Set the object specifying the parameters of the equation *
 ********************************************************************
 */
-void
-EllipticFACOps::setM(const int m_id)
+void EllipticFACOps::setM(const int m_id)
 {
-   assert( d_m_id>=0 );
-   assert( m_id>=0 );
-   assert( d_ln_min>=0 );
+   assert(d_m_id >= 0);
+   assert(m_id >= 0);
+   assert(d_ln_min >= 0);
 
-   //tbox::pout<<"EllipticFACOps::setM()"<<endl;
-   //copy one patch at a time to include ghost values
+   // tbox::pout<<"EllipticFACOps::setM()"<<endl;
+   // copy one patch at a time to include ghost values
    SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
-   for (int ln=d_ln_min; ln<=d_ln_max; ++ln ) {
+   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
       boost::shared_ptr<hier::PatchLevel> level_ptr(
-         d_hierarchy->getPatchLevel(ln));
-      hier::PatchLevel& level = *level_ptr;
-      for (hier::PatchLevel::iterator pi(level.begin());
-           pi != level.end(); ++pi) {
-         hier::Patch& patch = **pi;
+          d_hierarchy->getPatchLevel(ln));
+      hier::PatchLevel &level = *level_ptr;
+      for (hier::PatchLevel::iterator pi(level.begin()); pi != level.end();
+           ++pi) {
+         hier::Patch &patch = **pi;
          boost::shared_ptr<pdat::CellData<double> > src(
-            BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
-              patch.getPatchData(m_id) ) );
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(m_id)));
          boost::shared_ptr<pdat::CellData<double> > dst(
-            BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
-               patch.getPatchData(d_m_id) ) );
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch.getPatchData(d_m_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
-         double l2=ops.L2Norm(src,src->getBox());
-         assert( l2==l2 );
-         double l2g=ops.L2Norm(src,src->getGhostBox());
-         assert( l2g==l2g );
+         double l2 = ops.L2Norm(src, src->getBox());
+         assert(l2 == l2);
+         double l2g = ops.L2Norm(src, src->getGhostBox());
+         assert(l2g == l2g);
 #endif
          dst->copy(*src);
       }
    }
 
-   for(std::vector<PoissonSpecifications>::iterator it=d_poisson_spec.begin();
-       it!=d_poisson_spec.end();
-     ++it){
+   for (std::vector<PoissonSpecifications>::iterator it =
+            d_poisson_spec.begin();
+        it != d_poisson_spec.end(); ++it) {
       it->setMPatchDataId(d_m_id);
    }
    d_M_is_set = true;
@@ -1344,36 +902,36 @@ EllipticFACOps::setM(const int m_id)
    return;
 }
 
-void
-EllipticFACOps::finalizeCoefficients()
+void EllipticFACOps::finalizeCoefficients()
 {
    tbox::SAMRAI_MPI::getSAMRAIWorld().Barrier();
 
    t_finalizecoeffs->start();
 
-   size_t n=d_C_is_set.size();
-   for(size_t i=0;i<n;i++)
-   if ( !d_C_is_set[i] || !d_D_is_set[i] || !d_M_is_set ) {
-      TBOX_ERROR(d_object_name 
-         << ": Operator coefficients have not be set;\n cannot finalize\n");
-   }
+   size_t n = d_C_is_set.size();
+   for (size_t i = 0; i < n; i++)
+      if (!d_C_is_set[i] || !d_D_is_set[i] || !d_M_is_set) {
+         TBOX_ERROR(d_object_name << ": Operator coefficients have not be "
+                                     "set;\n cannot finalize\n");
+      }
 
 #if HAVE_HYPRE
-   if ( d_coarse_solver_choice == "hypre" ) {
+   if (d_coarse_solver_choice == "hypre") {
 
-      int counter=0;
-      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
-      for( ; it!=d_hypre_solver.end(); ++it){
+      int counter = 0;
+      std::vector<CellPoissonHypreSolver *>::iterator it(
+          d_hypre_solver.begin());
+      for (; it != d_hypre_solver.end(); ++it) {
          (*it)->deallocateSolverState();
-         (*it)->initializeSolverState( d_hierarchy, d_ln_min );
+         (*it)->initializeSolverState(d_hierarchy, d_ln_min);
 
-      /*
-       * Share the boundary condition object with the hypre solver
-       * to make sure that boundary condition settings are consistent
-       * between the two objects.
-       */
-         (*it)->setPhysicalBcCoefObject( d_physical_bc_coef );
-         (*it)->setMatrixCoefficients( d_poisson_spec[counter] );
+         /*
+          * Share the boundary condition object with the hypre solver
+          * to make sure that boundary condition settings are consistent
+          * between the two objects.
+          */
+         (*it)->setPhysicalBcCoefObject(d_physical_bc_coef);
+         (*it)->setMatrixCoefficients(d_poisson_spec[counter]);
 
          counter++;
       }
@@ -1389,30 +947,29 @@ EllipticFACOps::finalizeCoefficients()
 l
 ********************************************************************
 */
-void
-EllipticFACOps::postprocessOneCycle(
-   int fac_cycle_num ,
-   const solv::SAMRAIVectorReal<double> &current_soln ,
-   const solv::SAMRAIVectorReal<double> &residual )
+void EllipticFACOps::postprocessOneCycle(
+    int fac_cycle_num, const solv::SAMRAIVectorReal<double> &current_soln,
+    const solv::SAMRAIVectorReal<double> &residual)
 {
    NULL_USE(current_soln);
    NULL_USE(residual);
 
-   if ( d_enable_logging ) {
-      if ( d_preconditioner ) {
+   if (d_enable_logging) {
+      if (d_preconditioner) {
          /*
           * Output convergence progress.  This is probably only appropriate
           * if the solver is NOT being used as a preconditioner.
           */
          double avg_factor, final_factor;
-         d_preconditioner->getConvergenceFactors( avg_factor, final_factor );
-         tbox::plog
-            << "iter=" << std::setw(4) << fac_cycle_num
-            << " resid=" << d_preconditioner->getResidualNorm()
-            << " net conv=" << d_preconditioner->getNetConvergenceFactor()
-            << " final conv=" << d_preconditioner->getNetConvergenceFactor()
-            << " avg conv=" << d_preconditioner->getAvgConvergenceFactor()
-            << std::endl;
+         d_preconditioner->getConvergenceFactors(avg_factor, final_factor);
+         tbox::plog << "iter=" << std::setw(4) << fac_cycle_num
+                    << " resid=" << d_preconditioner->getResidualNorm()
+                    << " net conv="
+                    << d_preconditioner->getNetConvergenceFactor()
+                    << " final conv="
+                    << d_preconditioner->getNetConvergenceFactor()
+                    << " avg conv="
+                    << d_preconditioner->getAvgConvergenceFactor() << std::endl;
       }
    }
    return;
@@ -1425,28 +982,22 @@ EllipticFACOps::postprocessOneCycle(
 * level.                                                           *
 ********************************************************************
 */
-void
-EllipticFACOps::restrictSolution(
-   const solv::SAMRAIVectorReal<double> &s ,
-   solv::SAMRAIVectorReal<double> &d ,
-   int dest_ln )
+void EllipticFACOps::restrictSolution(const solv::SAMRAIVectorReal<double> &s,
+                                      solv::SAMRAIVectorReal<double> &d,
+                                      int dest_ln)
 {
    t_restrict_solution->start();
 
    xeqScheduleURestriction(d.getComponentDescriptorIndex(0),
-                           s.getComponentDescriptorIndex(0),
-                           dest_ln);
+                           s.getComponentDescriptorIndex(0), dest_ln);
 
    d_bc_helper.setHomogeneousBc(false);
    d_bc_helper.setTargetDataId(d.getComponentDescriptorIndex(0));
 
-   if ( dest_ln == d_ln_min ) {
-      xeqScheduleGhostFillNoCoarse(d.getComponentDescriptorIndex(0),
-                                   dest_ln);
-   }
-   else {
-      xeqScheduleGhostFill(d.getComponentDescriptorIndex(0),
-                           dest_ln);
+   if (dest_ln == d_ln_min) {
+      xeqScheduleGhostFillNoCoarse(d.getComponentDescriptorIndex(0), dest_ln);
+   } else {
+      xeqScheduleGhostFill(d.getComponentDescriptorIndex(0), dest_ln);
    }
 
    t_restrict_solution->stop();
@@ -1457,17 +1008,14 @@ EllipticFACOps::restrictSolution(
 * FACOperatorStrategy virtual restrictresidual function.     *
 ********************************************************************
 */
-void
-EllipticFACOps::restrictResidual(
-   const solv::SAMRAIVectorReal<double> &s ,
-   solv::SAMRAIVectorReal<double> &d ,
-   int dest_ln )
+void EllipticFACOps::restrictResidual(const solv::SAMRAIVectorReal<double> &s,
+                                      solv::SAMRAIVectorReal<double> &d,
+                                      int dest_ln)
 {
    t_restrict_residual->start();
 
    xeqScheduleRRestriction(d.getComponentDescriptorIndex(0),
-                           s.getComponentDescriptorIndex(0),
-                           dest_ln);
+                           s.getComponentDescriptorIndex(0), dest_ln);
 
    t_restrict_residual->stop();
 }
@@ -1480,24 +1028,22 @@ EllipticFACOps::restrictResidual(
 * which are preset to zero, need not be set.                          *
 ***********************************************************************
 */
-void
-EllipticFACOps::prolongErrorAndCorrect(
-   const solv::SAMRAIVectorReal<double> &s ,
-   solv::SAMRAIVectorReal<double> &d ,
-   int dest_ln )
+void EllipticFACOps::prolongErrorAndCorrect(
+    const solv::SAMRAIVectorReal<double> &s, solv::SAMRAIVectorReal<double> &d,
+    int dest_ln)
 {
    t_prolong->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if( s.getPatchHierarchy() != d_hierarchy
-       || d.getPatchHierarchy() != d_hierarchy ) {
+   if (s.getPatchHierarchy() != d_hierarchy ||
+       d.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
-                 "internal state hierarchy.");
+                                  "internal state hierarchy.");
    }
 #endif
 
-   boost::shared_ptr< hier::PatchLevel > fine_level
-      = d_hierarchy->getPatchLevel(dest_ln);
+   boost::shared_ptr<hier::PatchLevel> fine_level =
+       d_hierarchy->getPatchLevel(dest_ln);
 
    /*
     * Data is prolonged into the scratch space corresponding
@@ -1513,19 +1059,17 @@ EllipticFACOps::prolongErrorAndCorrect(
    d_bc_helper.setTargetDataId(d_cell_scratch_id);
    d_bc_helper.setHomogeneousBc(true);
    const int src_index = s.getComponentDescriptorIndex(0);
-   xeqScheduleProlongation(d_cell_scratch_id,
-                           src_index,
-                           d_cell_scratch_id,
+   xeqScheduleProlongation(d_cell_scratch_id, src_index, d_cell_scratch_id,
                            dest_ln);
 
    /*
     * Add the refined error in the scratch space
     * to the error currently residing in the destination level.
     */
-   math::HierarchyCellDataOpsReal<double>
-      hierarchy_math_ops( d_hierarchy, dest_ln, dest_ln );
+   math::HierarchyCellDataOpsReal<double> hierarchy_math_ops(d_hierarchy,
+                                                             dest_ln, dest_ln);
    const int dst_index = d.getComponentDescriptorIndex(0);
-   hierarchy_math_ops.add( dst_index, dst_index, d_cell_scratch_id );
+   hierarchy_math_ops.add(dst_index, dst_index, d_cell_scratch_id);
 
    fine_level->deallocatePatchData(d_cell_scratch_id);
 
@@ -1537,21 +1081,15 @@ EllipticFACOps::prolongErrorAndCorrect(
  ********************************************************************
  ********************************************************************
  */
-void
-EllipticFACOps::smoothError(
-   solv::SAMRAIVectorReal<double> &data ,
-   const solv::SAMRAIVectorReal<double> &residual ,
-   int ln ,
-   int num_sweeps )
+void EllipticFACOps::smoothError(solv::SAMRAIVectorReal<double> &data,
+                                 const solv::SAMRAIVectorReal<double> &residual,
+                                 int ln, int num_sweeps)
 {
    t_smooth_error->start();
 
    checkInputPatchDataIndices();
-   smoothErrorByRedBlack ( data ,
-      residual ,
-      ln ,
-      num_sweeps ,
-      d_residual_tolerance_during_smoothing );
+   smoothErrorByRedBlack(data, residual, ln, num_sweeps,
+                         d_residual_tolerance_during_smoothing);
 
    t_smooth_error->stop();
 }
@@ -1563,35 +1101,32 @@ EllipticFACOps::smoothError(
 * Gauss-Seidel iterations.                                         *
 ********************************************************************
 */
-void
-EllipticFACOps::smoothErrorByRedBlack(
-   solv::SAMRAIVectorReal<double> &data ,
-   const solv::SAMRAIVectorReal<double> &residual ,
-   int ln ,
-   int num_sweeps ,
-   double residual_tolerance )
+void EllipticFACOps::smoothErrorByRedBlack(
+    solv::SAMRAIVectorReal<double> &data,
+    const solv::SAMRAIVectorReal<double> &residual, int ln, int num_sweeps,
+    double residual_tolerance)
 {
 
    checkInputPatchDataIndices();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if( data.getPatchHierarchy() != d_hierarchy
-       || residual.getPatchHierarchy() != d_hierarchy ) {
+   if (data.getPatchHierarchy() != d_hierarchy ||
+       residual.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
-                 "internal hierarchy.");
+                                  "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    const int data_id = data.getComponentDescriptorIndex(0);
 
-   const int flux_id = ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id;
+   const int flux_id = (d_flux_id != -1) ? d_flux_id : d_flux_scratch_id;
 
    d_bc_helper.setTargetDataId(data_id);
    d_bc_helper.setHomogeneousBc(true);
    xeqScheduleGhostFillNoCoarse(data_id, ln);
 
-   if ( ln > d_ln_min ) {
+   if (ln > d_ln_min) {
       /*
        * Perform a one-time transfer of data from coarser level,
        * to fill ghost boundaries that will not change through
@@ -1605,8 +1140,8 @@ EllipticFACOps::smoothErrorByRedBlack(
     * the convergence is satisfactory.
     */
    int isweep;
-   double red_maxres, blk_maxres, maxres=0;
-   red_maxres = blk_maxres = residual_tolerance+1;
+   double red_maxres, blk_maxres, maxres = 0;
+   red_maxres = blk_maxres = residual_tolerance + 1;
    /*
     * Instead of checking residual convergence globally,
     * we check the not_converged flag.  This avoids possible
@@ -1614,136 +1149,121 @@ EllipticFACOps::smoothErrorByRedBlack(
     * leading to disagreement on whether to continue smoothing.
     */
    int not_converged = 1;
-   for ( isweep=0; isweep<num_sweeps && not_converged; ++isweep ) {
+   for (isweep = 0; isweep < num_sweeps && not_converged; ++isweep) {
       red_maxres = blk_maxres = 0;
 
       // Red sweep.
       xeqScheduleGhostFillNoCoarse(data_id, ln);
-      for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-         boost::shared_ptr< hier::Patch > patch = *pi;
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         boost::shared_ptr<hier::Patch> patch = *pi;
 
-         bool deallocate_flux_data_when_done=false;
-         if ( flux_id == d_flux_scratch_id ) {
+         bool deallocate_flux_data_when_done = false;
+         if (flux_id == d_flux_scratch_id) {
             /*
              * Using internal temporary storage for flux.
              * For each patch, make sure the internal
              * side-centered data is allocated and note
              * whether that data should be deallocated when done.
              */
-            if ( !patch->checkAllocated(flux_id) ) {
+            if (!patch->checkAllocated(flux_id)) {
                patch->allocatePatchData(flux_id);
                deallocate_flux_data_when_done = true;
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> > err_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-               data.getComponentPatchData ( 0 , *patch ) ) );
-         boost::shared_ptr<pdat::CellData<double> > residual_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-               residual.getComponentPatchData ( 0 , *patch ) ) );
-         boost::shared_ptr<pdat::SideData<double> > flux_data (
-            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( flux_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > err_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 data.getComponentPatchData(0, *patch)));
+         boost::shared_ptr<pdat::CellData<double> > residual_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 residual.getComponentPatchData(0, *patch)));
+         boost::shared_ptr<pdat::SideData<double> > flux_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(flux_id)));
 
          TBOX_ASSERT(err_data);
          TBOX_ASSERT(residual_data);
          TBOX_ASSERT(flux_data);
-         TBOX_ASSERT(err_data->getDepth()==flux_data->getDepth());
+         TBOX_ASSERT(err_data->getDepth() == flux_data->getDepth());
 
-         for(int depth=0;depth<residual_data->getDepth();depth++){
-            computeFluxOnPatch(
-                            *patch ,
-                            level->getRatioToCoarserLevel() ,
-                            *err_data ,
-                            *flux_data,
-                            depth );
+         for (int depth = 0; depth < residual_data->getDepth(); depth++) {
+            computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
+                               *err_data, *flux_data, depth);
 
-            redOrBlackSmoothingOnPatch( *patch ,
-                                     *flux_data ,
-                                     *residual_data ,
-                                     *err_data ,
-                                     'r' , depth,
-                                     &red_maxres );
+            redOrBlackSmoothingOnPatch(*patch, *flux_data, *residual_data,
+                                       *err_data, 'r', depth, &red_maxres);
          }
-         if ( deallocate_flux_data_when_done ) {
+         if (deallocate_flux_data_when_done) {
             patch->deallocatePatchData(flux_id);
          }
-      }        // End patch number pn
+      }  // End patch number pn
       xeqScheduleGhostFillNoCoarse(data_id, ln);
 
       // Black sweep.
-      for (hier::PatchLevel::Iterator pi(level->begin()); 
-           pi!=level->end(); pi++ ) {
-         boost::shared_ptr< hier::Patch > patch = *pi;
+      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+           pi++) {
+         boost::shared_ptr<hier::Patch> patch = *pi;
 
-         bool deallocate_flux_data_when_done=false;
-         if ( flux_id == d_flux_scratch_id ) {
+         bool deallocate_flux_data_when_done = false;
+         if (flux_id == d_flux_scratch_id) {
             /*
              * Using internal temporary storage for flux.
              * For each patch, make sure the internal
              * side-centered data is allocated and note
              * whether that data should be deallocated when done.
              */
-            if ( !patch->checkAllocated(flux_id) ) {
+            if (!patch->checkAllocated(flux_id)) {
                patch->allocatePatchData(flux_id);
                deallocate_flux_data_when_done = true;
             }
          }
 
-         boost::shared_ptr<pdat::CellData<double> > err_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-               data.getComponentPatchData ( 0 , *patch ) ) );
-         boost::shared_ptr<pdat::CellData<double> > residual_data (
-            BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-               residual.getComponentPatchData ( 0 , *patch ) ) );
-         boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-            BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-               patch->getPatchData( flux_id) ) );
+         boost::shared_ptr<pdat::CellData<double> > err_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 data.getComponentPatchData(0, *patch)));
+         boost::shared_ptr<pdat::CellData<double> > residual_data(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 residual.getComponentPatchData(0, *patch)));
+         boost::shared_ptr<pdat::SideData<double> > flux_data(
+             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                 patch->getPatchData(flux_id)));
 
          TBOX_ASSERT(err_data);
          TBOX_ASSERT(residual_data);
          TBOX_ASSERT(flux_data);
-         TBOX_ASSERT(residual_data->getDepth()==d_depth);
+         TBOX_ASSERT(residual_data->getDepth() == d_depth);
 
-         for(int depth=0;depth<residual_data->getDepth();depth++){
-            computeFluxOnPatch(
-                            *patch ,
-                            level->getRatioToCoarserLevel() ,
-                            *err_data ,
-                            *flux_data,
-                            depth );
+         for (int depth = 0; depth < residual_data->getDepth(); depth++) {
+            computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
+                               *err_data, *flux_data, depth);
 
-            redOrBlackSmoothingOnPatch( *patch ,
-                                     *flux_data ,
-                                     *residual_data ,
-                                     *err_data ,
-                                     'b' , depth,
-                                     &blk_maxres );
+            redOrBlackSmoothingOnPatch(*patch, *flux_data, *residual_data,
+                                       *err_data, 'b', depth, &blk_maxres);
          }
-         if ( deallocate_flux_data_when_done ) {
+         if (deallocate_flux_data_when_done) {
             patch->deallocatePatchData(flux_id);
          }
-      }        // End patch number pn
+      }  // End patch number pn
       xeqScheduleGhostFillNoCoarse(data_id, ln);
-      if ( residual_tolerance >= 0.0 ) {
+      if (residual_tolerance >= 0.0) {
          /*
            Check for early end of sweeps due to convergence
            only if it is numerically possible (user gave a
            non negative value for residual tolerance).
           */
          maxres = tbox::MathUtilities<double>::Max(red_maxres, blk_maxres);
-         not_converged = maxres>residual_tolerance;
-         const tbox::SAMRAI_MPI& mpi(d_hierarchy->getMPI());
+         not_converged = maxres > residual_tolerance;
+         const tbox::SAMRAI_MPI &mpi(d_hierarchy->getMPI());
          if (mpi.getSize() > 1) {
             mpi.AllReduce(&not_converged, 1, MPI_MAX);
          }
       }
-   }        // End sweep number isweep
-   if ( d_enable_logging ) tbox::plog
-      << d_object_name << " RBGS smoothing maxres = " << maxres << "\n"
-      << "  after " << isweep << " sweeps.\n";
-
+   }  // End sweep number isweep
+   if (d_enable_logging)
+      tbox::plog << d_object_name << " RBGS smoothing maxres = " << maxres
+                 << "\n"
+                 << "  after " << isweep << " sweeps.\n";
 }
 
 
@@ -1753,141 +1273,113 @@ EllipticFACOps::smoothErrorByRedBlack(
 * constant-refine interpolation of coarse level data.              *
 ********************************************************************
 */
-void
-EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
-                              const pdat::CellData<double> &soln_data ,
-                              pdat::SideData<double> &flux_data ,
-                              const hier::IntVector &ratio_to_coarser,
-                              const int depth ) const
+void EllipticFACOps::ewingFixFlux(const hier::Patch &patch,
+                                  const pdat::CellData<double> &soln_data,
+                                  pdat::SideData<double> &flux_data,
+                                  const hier::IntVector &ratio_to_coarser,
+                                  const int depth) const
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY4(tbox::Dimension(NDIM), patch, soln_data,
-      flux_data, ratio_to_coarser);
+                                    flux_data, ratio_to_coarser);
 
    const int patch_ln = patch.getPatchLevelNumber();
    const hier::GlobalId id = patch.getGlobalId();
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianGridGeometry,hier::BaseGridGeometry>(
-         d_hierarchy->getGridGeometry() ) );
+       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+           d_hierarchy->getGridGeometry()));
    const double *dx = patch_geom->getDx();
-   const hier::Box &patch_box( patch.getBox() );
-   const hier::Index& plower = patch_box.lower();
-   const hier::Index& pupper = patch_box.upper();
+   const hier::Box &patch_box(patch.getBox());
+   const hier::Index &plower = patch_box.lower();
+   const hier::Index &pupper = patch_box.upper();
 
-   const std::vector<hier::BoundaryBox>& bboxes =
-      d_cf_boundary[patch_ln]->getBoundaries(id, 1);
+   const std::vector<hier::BoundaryBox> &bboxes =
+       d_cf_boundary[patch_ln]->getBoundaries(id, 1);
    int bn;
    int nboxes = static_cast<int>(bboxes.size());
 
-   const double* sol=soln_data.getPointer(depth);
-   const double* flux0=flux_data.getPointer(0,depth);
-   const double* flux1=flux_data.getPointer(1,depth);
-#if NDIM==3
-   const double* flux2=flux_data.getPointer(2,depth);
+   const double *sol = soln_data.getPointer(depth);
+   const double *flux0 = flux_data.getPointer(0, depth);
+   const double *flux1 = flux_data.getPointer(1, depth);
+#if NDIM == 3
+   const double *flux2 = flux_data.getPointer(2, depth);
 #endif
 
-   if ( d_poisson_spec[0].dIsVariable() ) {
+   if (d_poisson_spec[0].dIsVariable()) {
 
       boost::shared_ptr<pdat::SideData<double> > diffcoef_data(
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch.getPatchData(d_poisson_spec[0].getDPatchDataId() ) ) );
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[0].getDPatchDataId())));
 
-      for ( bn=0; bn<nboxes; ++bn ) {
-         const hier::BoundaryBox &boundary_box=bboxes[bn];
-         TBOX_ASSERT( boundary_box.getBoundaryType() == 1 );
+      for (bn = 0; bn < nboxes; ++bn) {
+         const hier::BoundaryBox &boundary_box = bboxes[bn];
+         TBOX_ASSERT(boundary_box.getBoundaryType() == 1);
          const hier::Box &bdry_box = boundary_box.getBox();
          const hier::Index &blower = bdry_box.lower();
          const hier::Index &bupper = bdry_box.upper();
          const int location_index = boundary_box.getLocationIndex();
-#if NDIM==2
-         efo_ewingfixfluxvardc2d_(
-            flux0,flux1,
-            &flux_data.getGhostCellWidth()[0],
-            &flux_data.getGhostCellWidth()[1] ,
-            diffcoef_data->getPointer(0) , diffcoef_data->getPointer(1) ,
-            &diffcoef_data->getGhostCellWidth()[0],
-            &diffcoef_data->getGhostCellWidth()[1] ,
-            sol,
-            &soln_data.getGhostCellWidth()[0],
-            &soln_data.getGhostCellWidth()[1] ,
-            &plower[0], &pupper[0], &plower[1], &pupper[1] ,
-            &location_index,
-            &ratio_to_coarser[0],
-            &blower[0], &bupper[0],
-            dx );
+#if NDIM == 2
+         efo_ewingfixfluxvardc2d_(flux0, flux1,
+                                  &flux_data.getGhostCellWidth()[0],
+                                  &flux_data.getGhostCellWidth()[1],
+                                  diffcoef_data->getPointer(0),
+                                  diffcoef_data->getPointer(1),
+                                  &diffcoef_data->getGhostCellWidth()[0],
+                                  &diffcoef_data->getGhostCellWidth()[1], sol,
+                                  &soln_data.getGhostCellWidth()[0],
+                                  &soln_data.getGhostCellWidth()[1], &plower[0],
+                                  &pupper[0], &plower[1], &pupper[1],
+                                  &location_index, &ratio_to_coarser[0],
+                                  &blower[0], &bupper[0], dx);
 #else
          efo_ewingfixfluxvardc3d_(
-            flux0,flux1,flux2,
-            &flux_data.getGhostCellWidth()[0],
-            &flux_data.getGhostCellWidth()[1] ,
-            &flux_data.getGhostCellWidth()[2] ,
-            diffcoef_data->getPointer(0) ,
-            diffcoef_data->getPointer(1) ,
-            diffcoef_data->getPointer(2) ,
-            &diffcoef_data->getGhostCellWidth()[0],
-            &diffcoef_data->getGhostCellWidth()[1] ,
-            &diffcoef_data->getGhostCellWidth()[2] ,
-            sol,
-            &soln_data.getGhostCellWidth()[0],
-            &soln_data.getGhostCellWidth()[1] ,
-            &soln_data.getGhostCellWidth()[2] ,
-            &plower[0], &pupper[0],
-            &plower[1], &pupper[1] ,
-            &plower[2], &pupper[2] ,
-            &location_index,
-            &ratio_to_coarser[0],
-            &blower[0], &bupper[0],
-            dx );
+             flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+             &flux_data.getGhostCellWidth()[1],
+             &flux_data.getGhostCellWidth()[2], diffcoef_data->getPointer(0),
+             diffcoef_data->getPointer(1), diffcoef_data->getPointer(2),
+             &diffcoef_data->getGhostCellWidth()[0],
+             &diffcoef_data->getGhostCellWidth()[1],
+             &diffcoef_data->getGhostCellWidth()[2], sol,
+             &soln_data.getGhostCellWidth()[0],
+             &soln_data.getGhostCellWidth()[1],
+             &soln_data.getGhostCellWidth()[2], &plower[0], &pupper[0],
+             &plower[1], &pupper[1], &plower[2], &pupper[2], &location_index,
+             &ratio_to_coarser[0], &blower[0], &bupper[0], dx);
 #endif
       }
-   }
-   else {
+   } else {
 
       const double diffcoef_constant = d_poisson_spec[0].getDConstant();
 
-      for ( bn=0; bn<nboxes; ++bn ) {
-         const hier::BoundaryBox &boundary_box=bboxes[bn];
-         TBOX_ASSERT( boundary_box.getBoundaryType() == 1 );
+      for (bn = 0; bn < nboxes; ++bn) {
+         const hier::BoundaryBox &boundary_box = bboxes[bn];
+         TBOX_ASSERT(boundary_box.getBoundaryType() == 1);
          const hier::Box &bdry_box = boundary_box.getBox();
          const hier::Index &blower = bdry_box.lower();
          const hier::Index &bupper = bdry_box.upper();
          const int location_index = boundary_box.getLocationIndex();
-#if NDIM==2
-         efo_ewingfixfluxcondc2d_(
-            flux0,flux1,
-            &flux_data.getGhostCellWidth()[0],
-            &flux_data.getGhostCellWidth()[1] ,
-            diffcoef_constant ,
-            sol,
-            &soln_data.getGhostCellWidth()[0],
-            &soln_data.getGhostCellWidth()[1] ,
-            &plower[0], &pupper[0],
-            &plower[1], &pupper[1] ,
-            &location_index,
-            &ratio_to_coarser[0],
-            &blower[0], &bupper[0],
-            dx );
+#if NDIM == 2
+         efo_ewingfixfluxcondc2d_(flux0, flux1,
+                                  &flux_data.getGhostCellWidth()[0],
+                                  &flux_data.getGhostCellWidth()[1],
+                                  diffcoef_constant, sol,
+                                  &soln_data.getGhostCellWidth()[0],
+                                  &soln_data.getGhostCellWidth()[1], &plower[0],
+                                  &pupper[0], &plower[1], &pupper[1],
+                                  &location_index, &ratio_to_coarser[0],
+                                  &blower[0], &bupper[0], dx);
 #else
          efo_ewingfixfluxcondc3d_(
-            flux0,flux1,flux2,
-            &flux_data.getGhostCellWidth()[0],
-            &flux_data.getGhostCellWidth()[1] ,
-            &flux_data.getGhostCellWidth()[2] ,
-            diffcoef_constant ,
-            sol,
-            &soln_data.getGhostCellWidth()[0],
-            &soln_data.getGhostCellWidth()[1] ,
-            &soln_data.getGhostCellWidth()[2] ,
-            &plower[0], &pupper[0],
-            &plower[1], &pupper[1] ,
-            &plower[2], &pupper[2] ,
-            &location_index,
-            &ratio_to_coarser[0],
-            &blower[0], &bupper[0],
-            dx );
+             flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+             &flux_data.getGhostCellWidth()[1],
+             &flux_data.getGhostCellWidth()[2], diffcoef_constant, sol,
+             &soln_data.getGhostCellWidth()[0],
+             &soln_data.getGhostCellWidth()[1],
+             &soln_data.getGhostCellWidth()[2], &plower[0], &pupper[0],
+             &plower[1], &pupper[1], &plower[2], &pupper[2], &location_index,
+             &ratio_to_coarser[0], &blower[0], &bupper[0], dx);
 #endif
       }
    }
-
 }
 
 
@@ -1897,10 +1389,9 @@ EllipticFACOps::ewingFixFlux (const hier::Patch &patch ,
 * function                                                         *
 ********************************************************************
 */
-int
-EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
-   const solv::SAMRAIVectorReal<double> &residual ,
-   int coarsest_ln )
+int EllipticFACOps::solveCoarsestLevel(
+    solv::SAMRAIVectorReal<double> &data,
+    const solv::SAMRAIVectorReal<double> &residual, int coarsest_ln)
 {
    t_solve_coarsest->start();
 
@@ -1908,36 +1399,27 @@ EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
 
    int return_value = 0;
 
-   if ( d_coarse_solver_choice == "jacobi" ) {
+   if (d_coarse_solver_choice == "jacobi") {
       d_residual_tolerance_during_smoothing = d_coarse_solver_tolerance;
-      smoothError( data ,
-                   residual ,
-                   coarsest_ln ,
-                   d_coarse_solver_max_iterations );
+      smoothError(data, residual, coarsest_ln, d_coarse_solver_max_iterations);
       d_residual_tolerance_during_smoothing = -1.0;
-   }
-   else if ( d_coarse_solver_choice == "redblack" ) {
+   } else if (d_coarse_solver_choice == "redblack") {
       d_residual_tolerance_during_smoothing = d_coarse_solver_tolerance;
-      smoothError( data ,
-                   residual ,
-                   coarsest_ln ,
-                   d_coarse_solver_max_iterations );
+      smoothError(data, residual, coarsest_ln, d_coarse_solver_max_iterations);
       d_residual_tolerance_during_smoothing = -1.0;
-   }
-   else if ( d_coarse_solver_choice == "hypre" ) {
+   } else if (d_coarse_solver_choice == "hypre") {
 #ifndef HAVE_HYPRE
       TBOX_ERROR(d_object_name << ": Coarse level solver choice '"
-                 << d_coarse_solver_choice
-                 << "' unavailable in "
-                 << "scapCellPoissonOps::solveCoarsestLevel.");
+                               << d_coarse_solver_choice << "' unavailable in "
+                               << "scapCellPoissonOps::solveCoarsestLevel.");
 #else
-      return_value = solveCoarsestLevel_HYPRE( data, residual, coarsest_ln );
+      return_value = solveCoarsestLevel_HYPRE(data, residual, coarsest_ln);
 #endif
-   }
-   else {
+   } else {
       TBOX_ERROR(d_object_name << ": Bad coarse level solver choice '"
-                 << d_coarse_solver_choice
-                 << "' in scapCellPoissonOps::solveCoarsestLevel.");
+                               << d_coarse_solver_choice
+                               << "' in "
+                                  "scapCellPoissonOps::solveCoarsestLevel.");
    }
 
    xeqScheduleGhostFillNoCoarse(data.getComponentDescriptorIndex(0),
@@ -1950,24 +1432,21 @@ EllipticFACOps::solveCoarsestLevel(solv::SAMRAIVectorReal<double> &data ,
 
 
 /*******************************************************************
-* Solve coarsest level using Hypre                                 *
-* We only solve for the error, so we always use homogeneous bc.    *
-********************************************************************/
-int
-EllipticFACOps::solveCoarsestLevel_HYPRE(
-   solv::SAMRAIVectorReal<double> &data ,
-   const solv::SAMRAIVectorReal<double> &residual ,
-   int coarsest_ln )
+ * Solve coarsest level using Hypre                                 *
+ * We only solve for the error, so we always use homogeneous bc.    *
+ ********************************************************************/
+int EllipticFACOps::solveCoarsestLevel_HYPRE(
+    solv::SAMRAIVectorReal<double> &data,
+    const solv::SAMRAIVectorReal<double> &residual, int coarsest_ln)
 {
    NULL_USE(coarsest_ln);
 
 #ifndef HAVE_HYPRE
-      TBOX_ERROR(d_object_name << ": Coarse level solver choice '"
-                 << d_coarse_solver_choice
-                 << "' unavailable in "
-                 << "EllipticFACOps::solveCoarsestLevel.");
+   TBOX_ERROR(d_object_name << ": Coarse level solver choice '"
+                            << d_coarse_solver_choice << "' unavailable in "
+                            << "EllipticFACOps::solveCoarsestLevel.");
 
-      return 0;
+   return 0;
 #else
 
    checkInputPatchDataIndices();
@@ -1978,15 +1457,13 @@ EllipticFACOps::solveCoarsestLevel_HYPRE(
     * We need to the the solver about which depth to use
     * out of "data" and "residual"
     */
-   for(int i=0;i<d_depth;i++){
+   for (int i = 0; i < d_depth; i++) {
       d_hypre_solver[i]->setSolnIdDepth(i);
       d_hypre_solver[i]->setRhsIdDepth(i);
-      d_hypre_solver[i]->setStoppingCriteria( d_coarse_solver_tolerance );
-      int iret =
-         d_hypre_solver[i]->solveSystem(
-            data.getComponentDescriptorIndex(0),
-            residual.getComponentDescriptorIndex(0) ,
-            true,true);
+      d_hypre_solver[i]->setStoppingCriteria(d_coarse_solver_tolerance);
+      int iret = d_hypre_solver[i]->solveSystem(
+          data.getComponentDescriptorIndex(0),
+          residual.getComponentDescriptorIndex(0), true, true);
       solver_ret = iret > 0 ? solver_ret : 0;
    }
 
@@ -1994,30 +1471,29 @@ EllipticFACOps::solveCoarsestLevel_HYPRE(
     * Present data on the solve.
     * The Hypre solver returns 0 if converged.
     */
-   if (d_enable_logging){
-      std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
-      for( ; it!=d_hypre_solver.end(); ++it)
-         tbox::plog
-         << d_object_name << " Hypre solve " << (solver_ret ? "" : "NOT ")
-         << "converged\n"
-         << "\titerations: " << (*it)->getNumberOfIterations() << "\n"
-         << "\tresidual: " << (*it)->getRelativeResidualNorm() << "\n";
+   if (d_enable_logging) {
+      std::vector<CellPoissonHypreSolver *>::iterator it(
+          d_hypre_solver.begin());
+      for (; it != d_hypre_solver.end(); ++it)
+         tbox::plog << d_object_name << " Hypre solve "
+                    << (solver_ret ? "" : "NOT ") << "converged\n"
+                    << "\titerations: " << (*it)->getNumberOfIterations()
+                    << "\n"
+                    << "\tresidual: " << (*it)->getRelativeResidualNorm()
+                    << "\n";
    }
    return !solver_ret;
 #endif
 }
 
 
-void
-EllipticFACOps::accumulateOperatorOnLevel(
-   const int soln_id,
-   const int accum_id,
-   int ln,
-   bool error_equation_indicator)
+void EllipticFACOps::accumulateOperatorOnLevel(const int soln_id,
+                                               const int accum_id, int ln,
+                                               bool error_equation_indicator)
 {
    t_accumulate_operator->start();
 
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -2027,7 +1503,7 @@ EllipticFACOps::accumulateOperatorOnLevel(
    d_bc_helper.setTargetDataId(soln_id);
    d_bc_helper.setHomogeneousBc(error_equation_indicator);
 
-   const int flux_id = ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id;
+   const int flux_id = (d_flux_id != -1) ? d_flux_id : d_flux_scratch_id;
 
    /*
     * Assumptions:
@@ -2052,11 +1528,10 @@ EllipticFACOps::accumulateOperatorOnLevel(
 
    /* S1. Fill solution ghost data. */
    {
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /* Fill from current, next coarser level and physical boundary */
          xeqScheduleGhostFill(soln_id, ln);
-      }
-      else {
+      } else {
          /* Fill from current and physical boundary */
          xeqScheduleGhostFillNoCoarse(soln_id, ln);
       }
@@ -2070,9 +1545,9 @@ EllipticFACOps::accumulateOperatorOnLevel(
     * undergoes transfer operations which require the
     * whole level data.
     */
-   bool deallocate_flux_data_when_done=false;
-   if ( flux_id == d_flux_scratch_id ) {
-      if ( !level->checkAllocated(flux_id) ) {
+   bool deallocate_flux_data_when_done = false;
+   if (flux_id == d_flux_scratch_id) {
+      if (!level->checkAllocated(flux_id)) {
          level->allocatePatchData(flux_id);
          deallocate_flux_data_when_done = true;
       }
@@ -2081,68 +1556,65 @@ EllipticFACOps::accumulateOperatorOnLevel(
    /*
     * S2. Compute flux on patches in level.
     */
-   for (hier::PatchLevel::Iterator pi(level->begin()); 
-        pi!=level->end(); pi++ ) {
-      const boost::shared_ptr< hier::Patch > patch = *pi;
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      const boost::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> > soln_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(soln_id) ) );
-      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch->getPatchData( flux_id) ) );
+      boost::shared_ptr<pdat::CellData<double> > soln_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(soln_id)));
+      boost::shared_ptr<pdat::SideData<double> > flux_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
 
       TBOX_ASSERT(soln_data);
       TBOX_ASSERT(flux_data);
 
-      for(int depth=0;depth<soln_data->getDepth();depth++)
-         computeFluxOnPatch(*patch ,
-                         level->getRatioToCoarserLevel() ,
-                         *soln_data ,
-                         *flux_data, depth );
-
+      for (int depth = 0; depth < soln_data->getDepth(); depth++)
+         computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(), *soln_data,
+                            *flux_data, depth);
    }
 
    /*
     * S3. Coarsen oflux data from next finer level so that
     * the computed flux becomes the composite grid flux.
     */
-   if ( ln < d_ln_max ) {
+   if (ln < d_ln_max) {
       xeqScheduleFluxCoarsen(flux_id, d_oflux_scratch_id, ln);
    }
 
    /*
     * S4. Accumulate operator image on level.
     */
-   for (hier::PatchLevel::Iterator pi(level->begin()); 
-        pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      boost::shared_ptr<pdat::SideData<double> > flux_data (
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch->getPatchData( flux_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > m_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(d_m_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > soln_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(soln_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > accum_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(accum_id) ) );
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
+      boost::shared_ptr<pdat::SideData<double> > flux_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
+      boost::shared_ptr<pdat::CellData<double> > m_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_m_id)));
+      boost::shared_ptr<pdat::CellData<double> > soln_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(soln_id)));
+      boost::shared_ptr<pdat::CellData<double> > accum_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(accum_id)));
 
       TBOX_ASSERT(soln_data);
       TBOX_ASSERT(m_data);
       TBOX_ASSERT(accum_data);
       TBOX_ASSERT(flux_data);
 
-      TBOX_ASSERT(flux_data->getDepth()==accum_data->getDepth());
-      TBOX_ASSERT(flux_data->getDepth()==soln_data->getDepth());
+      TBOX_ASSERT(flux_data->getDepth() == accum_data->getDepth());
+      TBOX_ASSERT(flux_data->getDepth() == soln_data->getDepth());
 
-      for(int depth=0;depth<soln_data->getDepth();depth++)
-         accumulateOperatorOnPatch( *patch, 
-            *flux_data, *m_data, *soln_data, *accum_data, depth );
+      for (int depth = 0; depth < soln_data->getDepth(); depth++)
+         accumulateOperatorOnPatch(*patch, *flux_data, *m_data, *soln_data,
+                                   *accum_data, depth);
 
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /*
           * Save outerflux data so that next coarser level
           *  can compute its coarse-fine composite flux.
@@ -2150,16 +1622,16 @@ EllipticFACOps::accumulateOperatorOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
-               patch->getPatchData( d_oflux_scratch_id) ) );
-         TBOX_ASSERT( oflux_data );
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+                 patch->getPatchData(d_oflux_scratch_id)));
+         TBOX_ASSERT(oflux_data);
          oflux_data->copy(*flux_data);
       }
    }
 
 
-   if ( deallocate_flux_data_when_done ) {
+   if (deallocate_flux_data_when_done) {
       level->deallocatePatchData(flux_id);
    }
 
@@ -2172,36 +1644,34 @@ EllipticFACOps::accumulateOperatorOnLevel(
 * computeCompositeResidualOnLevel function                         *
 ********************************************************************
 */
-void
-EllipticFACOps::computeCompositeResidualOnLevel(
-   solv::SAMRAIVectorReal<double> &residual ,
-   const solv::SAMRAIVectorReal<double> &solution ,
-   const solv::SAMRAIVectorReal<double> &rhs ,
-   int ln ,
-   bool error_equation_indicator)
+void EllipticFACOps::computeCompositeResidualOnLevel(
+    solv::SAMRAIVectorReal<double> &residual,
+    const solv::SAMRAIVectorReal<double> &solution,
+    const solv::SAMRAIVectorReal<double> &rhs, int ln,
+    bool error_equation_indicator)
 {
    t_compute_composite_residual->start();
 
    checkInputPatchDataIndices();
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if( residual.getPatchHierarchy() != d_hierarchy
-       || solution.getPatchHierarchy() != d_hierarchy
-       || rhs.getPatchHierarchy() != d_hierarchy ) {
+   if (residual.getPatchHierarchy() != d_hierarchy ||
+       solution.getPatchHierarchy() != d_hierarchy ||
+       rhs.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
-                 "internal hierarchy.");
+                                  "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr< hier::PatchLevel > level = d_hierarchy->getPatchLevel(ln);
+   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
     * to fill ghosts, the correct data is operated on.
     */
-   const int soln_id  = solution.getComponentDescriptorIndex(0);
+   const int soln_id = solution.getComponentDescriptorIndex(0);
    d_bc_helper.setTargetDataId(soln_id);
    d_bc_helper.setHomogeneousBc(error_equation_indicator);
 
-   const int flux_id = ( d_flux_id != -1 ) ? d_flux_id : d_flux_scratch_id;
+   const int flux_id = (d_flux_id != -1) ? d_flux_id : d_flux_scratch_id;
 
    /*
     * Assumptions:
@@ -2226,11 +1696,10 @@ EllipticFACOps::computeCompositeResidualOnLevel(
 
    /* S1. Fill solution ghost data. */
    {
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /* Fill from current, next coarser level and physical boundary */
          xeqScheduleGhostFill(soln_id, ln);
-      }
-      else {
+      } else {
          /* Fill from current and physical boundary */
          xeqScheduleGhostFillNoCoarse(soln_id, ln);
       }
@@ -2244,9 +1713,9 @@ EllipticFACOps::computeCompositeResidualOnLevel(
     * undergoes transfer operations which require the
     * whole level data.
     */
-   bool deallocate_flux_data_when_done=false;
-   if ( flux_id == d_flux_scratch_id ) {
-      if ( !level->checkAllocated(flux_id) ) {
+   bool deallocate_flux_data_when_done = false;
+   if (flux_id == d_flux_scratch_id) {
+      if (!level->checkAllocated(flux_id)) {
          level->allocatePatchData(flux_id);
          deallocate_flux_data_when_done = true;
       }
@@ -2255,51 +1724,50 @@ EllipticFACOps::computeCompositeResidualOnLevel(
    /*
     * S2. Compute flux on patches in level.
     */
-   for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> > soln_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            solution.getComponentPatchData ( 0 , *patch )));
-      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch->getPatchData( flux_id) ) );
-      for(int depth=0;depth<soln_data->getDepth();depth++)
-         computeFluxOnPatch(*patch ,
-                         level->getRatioToCoarserLevel() ,
-                         *soln_data ,
-                         *flux_data, depth );
-
+      boost::shared_ptr<pdat::CellData<double> > soln_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              solution.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::SideData<double> > flux_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
+      for (int depth = 0; depth < soln_data->getDepth(); depth++)
+         computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(), *soln_data,
+                            *flux_data, depth);
    }
 
    /*
     * S3. Coarsen oflux data from next finer level so that
     * the computed flux becomes the composite grid flux.
     */
-   if ( ln < d_ln_max ) {
+   if (ln < d_ln_max) {
       xeqScheduleFluxCoarsen(flux_id, d_oflux_scratch_id, ln);
    }
 
    /*
     * S4. Compute residual on patches in level.
     */
-   for (hier::PatchLevel::Iterator pi(level->begin()); pi!=level->end(); pi++ ) {
-      boost::shared_ptr< hier::Patch > patch = *pi;
-      boost::shared_ptr<pdat::CellData<double> > soln_data (
-         BOOST_CAST<pdat::CellData<double>,hier::PatchData>(
-            solution.getComponentPatchData ( 0 , *patch ) ) );
-      boost::shared_ptr<pdat::CellData<double> > m_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            patch->getPatchData(d_m_id) ) );
-      boost::shared_ptr<pdat::CellData<double> > rhs_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            rhs.getComponentPatchData ( 0 , *patch ) ) );
-      boost::shared_ptr<pdat::CellData<double> > residual_data (
-         BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-            residual.getComponentPatchData( 0 , *patch ) ) );
-      boost::shared_ptr<pdat::SideData<double> > flux_data ( 
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch->getPatchData( flux_id) ) );
+   for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
+        pi++) {
+      boost::shared_ptr<hier::Patch> patch = *pi;
+      boost::shared_ptr<pdat::CellData<double> > soln_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              solution.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::CellData<double> > m_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_m_id)));
+      boost::shared_ptr<pdat::CellData<double> > rhs_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              rhs.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::CellData<double> > residual_data(
+          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+              residual.getComponentPatchData(0, *patch)));
+      boost::shared_ptr<pdat::SideData<double> > flux_data(
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch->getPatchData(flux_id)));
 
       TBOX_ASSERT(soln_data);
       TBOX_ASSERT(m_data);
@@ -2307,15 +1775,11 @@ EllipticFACOps::computeCompositeResidualOnLevel(
       TBOX_ASSERT(residual_data);
       TBOX_ASSERT(flux_data);
 
-      for(int depth=0;depth<soln_data->getDepth();depth++)
-         computeResidualOnPatch( *patch ,
-                              *flux_data ,
-                              *m_data ,
-                              *soln_data ,
-                              *rhs_data ,
-                              *residual_data, depth );
+      for (int depth = 0; depth < soln_data->getDepth(); depth++)
+         computeResidualOnPatch(*patch, *flux_data, *m_data, *soln_data,
+                                *rhs_data, *residual_data, depth);
 
-      if ( ln > d_ln_min ) {
+      if (ln > d_ln_min) {
          /*
           * Save outerflux data so that next coarser level
           *  can compute its coarse-fine composite flux.
@@ -2323,16 +1787,16 @@ EllipticFACOps::computeCompositeResidualOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data (
-            BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
-               patch->getPatchData( d_oflux_scratch_id) ) );
-         TBOX_ASSERT( oflux_data );
+         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+                 patch->getPatchData(d_oflux_scratch_id)));
+         TBOX_ASSERT(oflux_data);
          oflux_data->copy(*flux_data);
       }
    }
 
 
-   if ( deallocate_flux_data_when_done ) {
+   if (deallocate_flux_data_when_done) {
       level->deallocatePatchData(flux_id);
    }
 
@@ -2346,18 +1810,15 @@ EllipticFACOps::computeCompositeResidualOnLevel(
 * function                                                         *
 ********************************************************************
 */
-double
-EllipticFACOps::computeResidualNorm(
-   const solv::SAMRAIVectorReal<double> &residual ,
-   int fine_ln ,
-   int coarse_ln )
+double EllipticFACOps::computeResidualNorm(
+    const solv::SAMRAIVectorReal<double> &residual, int fine_ln, int coarse_ln)
 {
 
-   if ( coarse_ln != residual.getCoarsestLevelNumber() ||
-        fine_ln != residual.getFinestLevelNumber() ) {
+   if (coarse_ln != residual.getCoarsestLevelNumber() ||
+       fine_ln != residual.getFinestLevelNumber()) {
       TBOX_ERROR("EllipticFACOps::computeResidualNorm() is not\n"
-                 <<"set up to compute residual except on the range of\n"
-                 <<"levels defining the vector.\n");
+                 << "set up to compute residual except on the range of\n"
+                 << "levels defining the vector.\n");
    }
    t_compute_residual_norm->start();
    /*
@@ -2396,17 +1857,20 @@ EllipticFACOps::computeResidualNorm(
 #endif
       norm = d_hopscell->weightedRMSNorm(r_id, d_ew_id, d_vol_id);
 
-     if (d_enable_logging) {
-        tbox::pout << "EllipticFACOps:: Weighted RMS norm on composite grid spanning levels " << coarse_ln <<
-           " thru " << fine_ln << " = " << norm << endl;
-     }
-   }
-   else {
+      if (d_enable_logging) {
+         tbox::pout << "EllipticFACOps:: Weighted RMS norm on composite grid "
+                       "spanning levels "
+                    << coarse_ln << " thru " << fine_ln << " = " << norm
+                    << endl;
+      }
+   } else {
       norm = residual.RMSNorm();
 
       if (d_enable_logging) {
-         tbox::pout << "EllipticFACOps:: Unweighted RMS norm on composite grid spanning levels " << coarse_ln <<
-            " thru " << fine_ln << " = " << norm << endl;
+         tbox::pout << "EllipticFACOps:: Unweighted RMS norm on composite grid "
+                       "spanning levels "
+                    << coarse_ln << " thru " << fine_ln << " = " << norm
+                    << endl;
       }
    }
 
@@ -2422,37 +1886,34 @@ EllipticFACOps::computeResidualNorm(
 * index.                                                           *
 ********************************************************************
 */
-void
-EllipticFACOps::computeVectorWeights(
-   boost::shared_ptr< hier::PatchHierarchy > hierarchy ,
-   int weight_id ,
-   int coarsest_ln ,
-   int finest_ln ) const
+void EllipticFACOps::computeVectorWeights(
+    boost::shared_ptr<hier::PatchHierarchy> hierarchy, int weight_id,
+    int coarsest_ln, int finest_ln) const
 {
    TBOX_ASSERT(hierarchy);
 
-   if ( coarsest_ln == -1 ) coarsest_ln = 0;
-   if ( finest_ln == -1 ) finest_ln = hierarchy->getFinestLevelNumber();
-   if ( finest_ln < coarsest_ln ) {
-      TBOX_ERROR(d_object_name
-                 << ": Illegal level number range.  finest_ln < coarsest_ln.");
+   if (coarsest_ln == -1) coarsest_ln = 0;
+   if (finest_ln == -1) finest_ln = hierarchy->getFinestLevelNumber();
+   if (finest_ln < coarsest_ln) {
+      TBOX_ERROR(d_object_name << ": Illegal level number range.  finest_ln < "
+                                  "coarsest_ln.");
    }
 
    int ln;
-   for ( ln=finest_ln; ln >= coarsest_ln; --ln ) {
+   for (ln = finest_ln; ln >= coarsest_ln; --ln) {
 
       /*
        * On every level, first assign cell volume to vector weight.
        */
 
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
-      for (hier::PatchLevel::iterator p(level->begin());
-           p != level->end(); ++p) {
-         const boost::shared_ptr<hier::Patch>& patch = *p;
+      for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
+           ++p) {
+         const boost::shared_ptr<hier::Patch> &patch = *p;
          boost::shared_ptr<geom::CartesianPatchGeometry> patch_geometry(
-            BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-               patch->getPatchGeometry()) );
-         const double* dx = patch_geometry->getDx();
+             BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+                 patch->getPatchGeometry()));
+         const double *dx = patch_geometry->getDx();
          double cell_vol = dx[0];
          if (NDIM > 1) {
             cell_vol *= dx[1];
@@ -2462,14 +1923,14 @@ EllipticFACOps::computeVectorWeights(
             cell_vol *= dx[2];
          }
 
-         boost::shared_ptr< pdat::CellData<double> > w (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
-               patch->getPatchData(weight_id) ) );
-         if ( !w ) {
-            TBOX_ERROR(d_object_name
-                       << ": weight id must refer to a pdat::CellVariable");
+         boost::shared_ptr<pdat::CellData<double> > w(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(weight_id)));
+         if (!w) {
+            TBOX_ERROR(d_object_name << ": weight id must refer to a "
+                                        "pdat::CellVariable");
          }
-         w->fillAll(cell_vol); 
+         w->fillAll(cell_vol);
       }
 
       /*
@@ -2486,7 +1947,7 @@ EllipticFACOps::computeVectorWeights(
           */
 
          boost::shared_ptr<hier::PatchLevel> next_finer_level(
-            hierarchy->getPatchLevel(ln + 1));
+             hierarchy->getPatchLevel(ln + 1));
          hier::BoxContainer coarsened_boxes = next_finer_level->getBoxes();
          hier::IntVector coarsen_ratio(next_finer_level->getRatioToLevelZero());
          coarsen_ratio /= level->getRatioToLevelZero();
@@ -2498,25 +1959,25 @@ EllipticFACOps::computeVectorWeights(
           * Note that all assignments are local.
           */
 
-         for (hier::PatchLevel::iterator p(level->begin());
-              p != level->end(); ++p) {
+         for (hier::PatchLevel::iterator p(level->begin()); p != level->end();
+              ++p) {
 
-            const boost::shared_ptr<hier::Patch>& patch = *p;
-            for (hier::BoxContainer::iterator i=coarsened_boxes.begin();
+            const boost::shared_ptr<hier::Patch> &patch = *p;
+            for (hier::BoxContainer::iterator i = coarsened_boxes.begin();
                  i != coarsened_boxes.end(); ++i) {
 
                hier::Box intersection = *i * (patch->getBox());
                if (!intersection.empty()) {
                   boost::shared_ptr<pdat::CellData<double> > w(
-                     BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-                        patch->getPatchData(weight_id) ) );
+                      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                          patch->getPatchData(weight_id)));
                   w->fillAll(0.0, intersection);
 
                }  // assignment only in non-empty intersection
-            }  // loop over coarsened boxes from finer level
-         }  // loop over patches in level
-      }  // all levels except finest
-   }  // loop over levels
+            }     // loop over coarsened boxes from finer level
+         }        // loop over patches in level
+      }           // all levels except finest
+   }              // loop over levels
 }
 
 
@@ -2525,31 +1986,30 @@ EllipticFACOps::computeVectorWeights(
 * Check the validity and correctness of input data for this class. *
 ********************************************************************
 */
-void
-EllipticFACOps::checkInputPatchDataIndices(const int depth) const
+void EllipticFACOps::checkInputPatchDataIndices(const int depth) const
 {
    /*
     * Check input validity and correctness.
     */
    hier::VariableDatabase &vdb(*hier::VariableDatabase::getDatabase());
 
-   if( !d_poisson_spec[depth].dIsConstant()
-       && d_poisson_spec[depth].getDPatchDataId() != -1 ) {
-      boost::shared_ptr<hier::Variable > var;
+   if (!d_poisson_spec[depth].dIsConstant() &&
+       d_poisson_spec[depth].getDPatchDataId() != -1) {
+      boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_poisson_spec[depth].getDPatchDataId(), var);
       boost::shared_ptr<pdat::SideVariable<double> > diffcoef_var(
-         BOOST_CAST<pdat::SideVariable<double>,hier::Variable>( var ) );
-      if ( !diffcoef_var ) {
-         TBOX_ERROR(d_object_name
-                    << ": Bad diffusion coefficient patch data index.");
+          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
+      if (!diffcoef_var) {
+         TBOX_ERROR(d_object_name << ": Bad diffusion coefficient patch data "
+                                     "index.");
       }
    }
 
-   if( d_poisson_spec[depth].cIsVariable() ) {
+   if (d_poisson_spec[depth].cIsVariable()) {
       boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_poisson_spec[depth].getCPatchDataId(), var);
       boost::shared_ptr<pdat::CellVariable<double> > scalar_field_var(
-         BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var) );
+          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
       if (!scalar_field_var) {
          TBOX_ERROR(d_object_name << ": Bad linear term patch data index.");
       }
@@ -2559,7 +2019,7 @@ EllipticFACOps::checkInputPatchDataIndices(const int depth) const
       boost::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_flux_id, var);
       boost::shared_ptr<pdat::SideVariable<double> > flux_var(
-         BOOST_CAST<pdat::SideVariable<double>,hier::Variable>( var ) );
+          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
 
       TBOX_ASSERT(flux_var);
    }
@@ -2572,495 +2032,346 @@ EllipticFACOps::checkInputPatchDataIndices(const int depth) const
 *                                                                 *
 *******************************************************************
 */
-void
-EllipticFACOps::computeFluxOnPatch(
-   const hier::Patch& patch ,
-   const hier::IntVector& ratio_to_coarser_level,
-   const pdat::CellData<double>& w_data ,
-   pdat::SideData<double>& Dgradw_data,
-   const int depth ) const 
+void EllipticFACOps::computeFluxOnPatch(
+    const hier::Patch &patch, const hier::IntVector &ratio_to_coarser_level,
+    const pdat::CellData<double> &w_data, pdat::SideData<double> &Dgradw_data,
+    const int depth) const
 {
-   TBOX_ASSERT( patch.inHierarchy() );
+   TBOX_ASSERT(patch.inHierarchy());
    TBOX_ASSERT(w_data.getGhostCellWidth() >=
-      hier::IntVector::getOne(ratio_to_coarser_level.getDim()));
-   TBOX_ASSERT( w_data.getDepth()>depth );
-   TBOX_ASSERT( Dgradw_data.getDepth()>depth );
+               hier::IntVector::getOne(ratio_to_coarser_level.getDim()));
+   TBOX_ASSERT(w_data.getDepth() > depth);
+   TBOX_ASSERT(Dgradw_data.getDepth() > depth);
 
    boost::shared_ptr<geom::CartesianGridGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
-         d_hierarchy->getGridGeometry() ) );
+       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+           d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(patch_geom);
-   const hier::Box& box=patch.getBox();
-   const int* lower = &box.lower()[0];
-   const int* upper = &box.upper()[0];
+   const hier::Box &box = patch.getBox();
+   const int *lower = &box.lower()[0];
+   const int *upper = &box.upper()[0];
    const double *dx = patch_geom->getDx();
 
-   double* flux0=Dgradw_data.getPointer(0,depth);
-   double* flux1=Dgradw_data.getPointer(1,depth);
-#if NDIM==3
-   double* flux2=Dgradw_data.getPointer(2,depth);
+   double *flux0 = Dgradw_data.getPointer(0, depth);
+   double *flux1 = Dgradw_data.getPointer(1, depth);
+#if NDIM == 3
+   double *flux2 = Dgradw_data.getPointer(2, depth);
 #endif
 
-   if ( d_poisson_spec[depth].dIsConstant() ) {
+   if (d_poisson_spec[depth].dIsConstant()) {
       double D_value = d_poisson_spec[depth].getDConstant();
-#if NDIM==2      
-      SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D) (
-         flux0,flux1,
-         &Dgradw_data.getGhostCellWidth()[0],
-         &Dgradw_data.getGhostCellWidth()[1] ,
-         D_value ,
-         w_data.getPointer(depth) ,
-         &w_data.getGhostCellWidth()[0],
-         &w_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D)
+      (flux0, flux1, &Dgradw_data.getGhostCellWidth()[0],
+       &Dgradw_data.getGhostCellWidth()[1], D_value, w_data.getPointer(depth),
+       &w_data.getGhostCellWidth()[0], &w_data.getGhostCellWidth()[1],
+       &lower[0], &upper[0], &lower[1], &upper[1], dx);
 #else
-      SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D) (
-         flux0,flux1,flux2,
-         &Dgradw_data.getGhostCellWidth()[0] ,
-         &Dgradw_data.getGhostCellWidth()[1] ,
-         &Dgradw_data.getGhostCellWidth()[2] ,
-         D_value ,
-         w_data.getPointer(depth),
-         &w_data.getGhostCellWidth()[0] ,
-         &w_data.getGhostCellWidth()[1] ,
-         &w_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx );
+      SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D)
+      (flux0, flux1, flux2, &Dgradw_data.getGhostCellWidth()[0],
+       &Dgradw_data.getGhostCellWidth()[1], &Dgradw_data.getGhostCellWidth()[2],
+       D_value, w_data.getPointer(depth), &w_data.getGhostCellWidth()[0],
+       &w_data.getGhostCellWidth()[1], &w_data.getGhostCellWidth()[2],
+       &lower[0], &upper[0], &lower[1], &upper[1], &lower[2], &upper[2], dx);
 #endif
    } else {
       boost::shared_ptr<pdat::SideData<double> > D_data(
-         BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
-            patch.getPatchData(d_poisson_spec[depth].getDPatchDataId())));
+          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[depth].getDPatchDataId())));
       TBOX_ASSERT(D_data);
-      TBOX_ASSERT(D_data->getDepth()==1);
-#if NDIM==2
-      efo_compfluxvardc2d_(
-         flux0,flux1,
-         &Dgradw_data.getGhostCellWidth()[0],
-         &Dgradw_data.getGhostCellWidth()[1] ,
-         D_data->getPointer(0) ,
-         D_data->getPointer(1) ,
-         &D_data->getGhostCellWidth()[0],
-         &D_data->getGhostCellWidth()[1] ,
-         w_data.getPointer(depth),
-         &w_data.getGhostCellWidth()[0],
-         &w_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx );
+      TBOX_ASSERT(D_data->getDepth() == 1);
+#if NDIM == 2
+      efo_compfluxvardc2d_(flux0, flux1, &Dgradw_data.getGhostCellWidth()[0],
+                           &Dgradw_data.getGhostCellWidth()[1],
+                           D_data->getPointer(0), D_data->getPointer(1),
+                           &D_data->getGhostCellWidth()[0],
+                           &D_data->getGhostCellWidth()[1],
+                           w_data.getPointer(depth),
+                           &w_data.getGhostCellWidth()[0],
+                           &w_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                           &lower[1], &upper[1], dx);
 #else
       efo_compfluxvardc3d_(
-         flux0,flux1,flux2,
-         &Dgradw_data.getGhostCellWidth()[0] ,
-         &Dgradw_data.getGhostCellWidth()[1] ,
-         &Dgradw_data.getGhostCellWidth()[2] ,
-         D_data->getPointer(0),
-         D_data->getPointer(1),
-         D_data->getPointer(2),
-         &D_data->getGhostCellWidth()[0],
-         &D_data->getGhostCellWidth()[1] ,
-         &D_data->getGhostCellWidth()[2] ,
-         w_data.getPointer(depth),
-         &w_data.getGhostCellWidth()[0] ,
-         &w_data.getGhostCellWidth()[1] ,
-         &w_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &Dgradw_data.getGhostCellWidth()[0],
+          &Dgradw_data.getGhostCellWidth()[1],
+          &Dgradw_data.getGhostCellWidth()[2], D_data->getPointer(0),
+          D_data->getPointer(1), D_data->getPointer(2),
+          &D_data->getGhostCellWidth()[0], &D_data->getGhostCellWidth()[1],
+          &D_data->getGhostCellWidth()[2], w_data.getPointer(depth),
+          &w_data.getGhostCellWidth()[0], &w_data.getGhostCellWidth()[1],
+          &w_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
    }
 
    const int patch_ln = patch.getPatchLevelNumber();
 
-   if ( d_cf_discretization == "Ewing" && patch_ln > d_ln_min ) {
-      ewingFixFlux( patch ,
-                    w_data ,
-                    Dgradw_data ,
-                    ratio_to_coarser_level, depth );
+   if (d_cf_discretization == "Ewing" && patch_ln > d_ln_min) {
+      ewingFixFlux(patch, w_data, Dgradw_data, ratio_to_coarser_level, depth);
    }
-
 }
 
 /*
  * accum_data -= m*div(flux)-D*soln_data
  */
 void EllipticFACOps::accumulateOperatorOnPatch(
-   const hier::Patch &patch ,
-   const pdat::SideData<double> &flux_data ,
-   const pdat::CellData<double> &m_data ,
-   const pdat::CellData<double> &soln_data ,
-   pdat::CellData<double> &accum_data,
-   const int depth ) const
+    const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+    const pdat::CellData<double> &m_data,
+    const pdat::CellData<double> &soln_data, pdat::CellData<double> &accum_data,
+    const int depth) const
 {
-   assert( flux_data.getDepth()>depth );
-   assert( soln_data.getDepth()>depth );
-   assert( accum_data.getDepth()>depth );
+   assert(flux_data.getDepth() > depth);
+   assert(soln_data.getDepth() > depth);
+   assert(accum_data.getDepth() > depth);
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-         patch.getPatchGeometry()) );
-   const hier::Box &box=patch.getBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const hier::Box &box = patch.getBox();
+   const hier::Index &lower = box.lower();
+   const hier::Index &upper = box.upper();
    const double *dx = patch_geom->getDx();
 
-   const double* sol=soln_data.getPointer(depth);
+   const double *sol = soln_data.getPointer(depth);
 
-   const double* flux0=flux_data.getPointer(0,depth);
-   const double* flux1=flux_data.getPointer(1,depth);
-#if NDIM==3
-   const double* flux2=flux_data.getPointer(2,depth);
+   const double *flux0 = flux_data.getPointer(0, depth);
+   const double *flux1 = flux_data.getPointer(1, depth);
+#if NDIM == 3
+   const double *flux2 = flux_data.getPointer(2, depth);
 #endif
 
    boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
    double scalar_field_constant;
-   if ( d_poisson_spec[0].cIsVariable() ) {
+   if (d_poisson_spec[0].cIsVariable()) {
       scalar_field_data =
-         boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                     hier::PatchData>(
-            patch.getPatchData( d_poisson_spec[0].getCPatchDataId() ));
-#if NDIM==2
+          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
+#if NDIM == 2
       accumopvarsca2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         accum_data.getPointer(depth) ,
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], accum_data.getPointer(depth),
+          &accum_data.getGhostCellWidth()[0],
+          &accum_data.getGhostCellWidth()[1], scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1], m_data.getPointer(),
+          &m_data.getGhostCellWidth()[0], &m_data.getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx);
 #else
       accumopvarsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         accum_data.getPointer(depth),
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         &accum_data.getGhostCellWidth()[2] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         &scalar_field_data->getGhostCellWidth()[2] ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
+          &accum_data.getGhostCellWidth()[1],
+          &accum_data.getGhostCellWidth()[2], scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1],
+          &scalar_field_data->getGhostCellWidth()[2], m_data.getPointer(),
+          &m_data.getGhostCellWidth()[0], &m_data.getGhostCellWidth()[1],
+          &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
-   }
-   else if ( d_poisson_spec[0].cIsConstant() ) {
+   } else if (d_poisson_spec[0].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[0].getCConstant();
-#if NDIM==2
-      accumopconsca2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         accum_data.getPointer(depth),
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         scalar_field_constant ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      accumopconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                       &flux_data.getGhostCellWidth()[1],
+                       accum_data.getPointer(depth),
+                       &accum_data.getGhostCellWidth()[0],
+                       &accum_data.getGhostCellWidth()[1],
+                       scalar_field_constant, m_data.getPointer(),
+                       &m_data.getGhostCellWidth()[0],
+                       &m_data.getGhostCellWidth()[1], sol,
+                       &soln_data.getGhostCellWidth()[0],
+                       &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                       &lower[1], &upper[1], dx);
 #else
       accumopconsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         accum_data.getPointer(depth),
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         &accum_data.getGhostCellWidth()[2] ,
-         scalar_field_constant ,
-         m_data.getPointer(),
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
+          &accum_data.getGhostCellWidth()[1],
+          &accum_data.getGhostCellWidth()[2], scalar_field_constant,
+          m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+          &m_data.getGhostCellWidth()[1], &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
-   }
-   else {
+   } else {
       scalar_field_constant = 0.0;
-#if NDIM==2
-      accumopconsca2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         accum_data.getPointer(depth),
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         0.0 ,
-         m_data.getPointer(),
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      accumopconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                       &flux_data.getGhostCellWidth()[1],
+                       accum_data.getPointer(depth),
+                       &accum_data.getGhostCellWidth()[0],
+                       &accum_data.getGhostCellWidth()[1], 0.0,
+                       m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                       &m_data.getGhostCellWidth()[1], sol,
+                       &soln_data.getGhostCellWidth()[0],
+                       &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                       &lower[1], &upper[1], dx);
 #else
       accumopconsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         accum_data.getPointer(depth),
-         &accum_data.getGhostCellWidth()[0],
-         &accum_data.getGhostCellWidth()[1] ,
-         &accum_data.getGhostCellWidth()[2] ,
-         0.0 ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
+          &accum_data.getGhostCellWidth()[1],
+          &accum_data.getGhostCellWidth()[2], 0.0, m_data.getPointer(),
+          &m_data.getGhostCellWidth()[0], &m_data.getGhostCellWidth()[1],
+          &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
    }
 }
 
 
-void
-EllipticFACOps::computeResidualOnPatch(
-   const hier::Patch &patch ,
-   const pdat::SideData<double> &flux_data ,
-   const pdat::CellData<double> &m_data ,
-   const pdat::CellData<double> &soln_data ,
-   const pdat::CellData<double> &rhs_data ,
-   pdat::CellData<double> &residual_data,
-   const int depth ) const
+void EllipticFACOps::computeResidualOnPatch(
+    const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+    const pdat::CellData<double> &m_data,
+    const pdat::CellData<double> &soln_data,
+    const pdat::CellData<double> &rhs_data,
+    pdat::CellData<double> &residual_data, const int depth) const
 {
-   TBOX_ASSERT(flux_data.getDepth()>depth);
-   TBOX_ASSERT(soln_data.getDepth()>depth);
-   TBOX_ASSERT(rhs_data.getDepth()>depth);
+   TBOX_ASSERT(flux_data.getDepth() > depth);
+   TBOX_ASSERT(soln_data.getDepth() > depth);
+   TBOX_ASSERT(rhs_data.getDepth() > depth);
 
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-         patch.getPatchGeometry()) );
-   const hier::Box &box=patch.getBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const hier::Box &box = patch.getBox();
+   const hier::Index &lower = box.lower();
+   const hier::Index &upper = box.upper();
    const double *dx = patch_geom->getDx();
 
-   const double* flux0=flux_data.getPointer(0,depth);
-   const double* flux1=flux_data.getPointer(1,depth);
-#if NDIM==3
-   const double* flux2=flux_data.getPointer(2,depth);
+   const double *flux0 = flux_data.getPointer(0, depth);
+   const double *flux1 = flux_data.getPointer(1, depth);
+#if NDIM == 3
+   const double *flux2 = flux_data.getPointer(2, depth);
 #endif
 
-   double* res=residual_data.getPointer(depth);
-   const double* rhs=rhs_data.getPointer(depth);
-   const double* sol=soln_data.getPointer(depth);
+   double *res = residual_data.getPointer(depth);
+   const double *rhs = rhs_data.getPointer(depth);
+   const double *sol = soln_data.getPointer(depth);
 
    boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
    double scalar_field_constant;
-   if ( d_poisson_spec[0].cIsVariable() ) {
+   if (d_poisson_spec[0].cIsVariable()) {
       scalar_field_data =
-         boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
-            patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
-      TBOX_ASSERT( scalar_field_data );
+          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
+      TBOX_ASSERT(scalar_field_data);
 
-#if NDIM==2
-      efo_compresvarsca2d_(
-         flux0, flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      efo_compresvarsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                           &flux_data.getGhostCellWidth()[1], rhs,
+                           &rhs_data.getGhostCellWidth()[0],
+                           &rhs_data.getGhostCellWidth()[1], res,
+                           &residual_data.getGhostCellWidth()[0],
+                           &residual_data.getGhostCellWidth()[1],
+                           scalar_field_data->getPointer(),
+                           &scalar_field_data->getGhostCellWidth()[0],
+                           &scalar_field_data->getGhostCellWidth()[1],
+                           m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                           &m_data.getGhostCellWidth()[1], sol,
+                           &soln_data.getGhostCellWidth()[0],
+                           &soln_data.getGhostCellWidth()[1], &lower[0],
+                           &upper[0], &lower[1], &upper[1], dx);
 #else
       efo_compresvarsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         &residual_data.getGhostCellWidth()[2] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         &scalar_field_data->getGhostCellWidth()[2] ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          res, &residual_data.getGhostCellWidth()[0],
+          &residual_data.getGhostCellWidth()[1],
+          &residual_data.getGhostCellWidth()[2],
+          scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1],
+          &scalar_field_data->getGhostCellWidth()[2], m_data.getPointer(),
+          &m_data.getGhostCellWidth()[0], &m_data.getGhostCellWidth()[1],
+          &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
-   }
-   else if ( d_poisson_spec[0].cIsConstant() ) {
+   } else if (d_poisson_spec[0].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[0].getCConstant();
-#if NDIM==2
-      efo_compresconsca2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         scalar_field_constant ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      efo_compresconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                           &flux_data.getGhostCellWidth()[1], rhs,
+                           &rhs_data.getGhostCellWidth()[0],
+                           &rhs_data.getGhostCellWidth()[1], res,
+                           &residual_data.getGhostCellWidth()[0],
+                           &residual_data.getGhostCellWidth()[1],
+                           scalar_field_constant, m_data.getPointer(),
+                           &m_data.getGhostCellWidth()[0],
+                           &m_data.getGhostCellWidth()[1], sol,
+                           &soln_data.getGhostCellWidth()[0],
+                           &soln_data.getGhostCellWidth()[1], &lower[0],
+                           &upper[0], &lower[1], &upper[1], dx);
 #else
       efo_compresconsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         &residual_data.getGhostCellWidth()[2] ,
-         scalar_field_constant ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          res, &residual_data.getGhostCellWidth()[0],
+          &residual_data.getGhostCellWidth()[1],
+          &residual_data.getGhostCellWidth()[2], scalar_field_constant,
+          m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+          &m_data.getGhostCellWidth()[1], &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
-   }
-   else {
+   } else {
       scalar_field_constant = 0.0;
-#if NDIM==2
-      efo_compresconsca2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         0.0 ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] ,
-         dx );
+#if NDIM == 2
+      efo_compresconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                           &flux_data.getGhostCellWidth()[1], rhs,
+                           &rhs_data.getGhostCellWidth()[0],
+                           &rhs_data.getGhostCellWidth()[1], res,
+                           &residual_data.getGhostCellWidth()[0],
+                           &residual_data.getGhostCellWidth()[1], 0.0,
+                           m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                           &m_data.getGhostCellWidth()[1], sol,
+                           &soln_data.getGhostCellWidth()[0],
+                           &soln_data.getGhostCellWidth()[1], &lower[0],
+                           &upper[0], &lower[1], &upper[1], dx);
 #else
       efo_compresconsca3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         res,
-         &residual_data.getGhostCellWidth()[0],
-         &residual_data.getGhostCellWidth()[1] ,
-         &residual_data.getGhostCellWidth()[2] ,
-         0.0 ,
-         m_data.getPointer() ,
-         &m_data.getGhostCellWidth()[0],
-         &m_data.getGhostCellWidth()[1] ,
-         &m_data.getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0], &lower[1], &upper[1] , &lower[2], &upper[2] ,
-         dx );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          res, &residual_data.getGhostCellWidth()[0],
+          &residual_data.getGhostCellWidth()[1],
+          &residual_data.getGhostCellWidth()[2], 0.0, m_data.getPointer(),
+          &m_data.getGhostCellWidth()[0], &m_data.getGhostCellWidth()[1],
+          &m_data.getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx);
 #endif
    }
-
 }
 
 
-void
-EllipticFACOps::evaluateRHS(
-   const int             soln_id,
-   const int             rhs_id)
+void EllipticFACOps::evaluateRHS(const int soln_id, const int rhs_id)
 {
    t_compute_rhs->start();
 
    // Initialize the output array
    d_hopscell->setToScalar(rhs_id, 0., false);
 
-   for (int ln=d_ln_max; ln>=d_ln_min; ln--) {
+   for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
       accumulateOperatorOnLevel(soln_id, rhs_id, ln, false);
    }
 
@@ -3068,25 +2379,21 @@ EllipticFACOps::evaluateRHS(
 }
 
 
-void
-EllipticFACOps::redOrBlackSmoothingOnPatch(
-   const hier::Patch &patch ,
-   const pdat::SideData<double> &flux_data ,
-   const pdat::CellData<double> &rhs_data ,
-   pdat::CellData<double> &soln_data ,
-   char red_or_black ,
-   const int depth,
-   double *p_maxres ) const
+void EllipticFACOps::redOrBlackSmoothingOnPatch(
+    const hier::Patch &patch, const pdat::SideData<double> &flux_data,
+    const pdat::CellData<double> &rhs_data, pdat::CellData<double> &soln_data,
+    char red_or_black, const int depth, double *p_maxres) const
 {
    TBOX_ASSERT(red_or_black == 'r' || red_or_black == 'b');
-   assert( d_m_id>=0 );
+   assert(d_m_id >= 0);
 
    const int offset = red_or_black == 'r' ? 0 : 1;
    boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-      BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(patch.getPatchGeometry()) );
-   const hier::Box &box=patch.getBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
+       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+           patch.getPatchGeometry()));
+   const hier::Box &box = patch.getBox();
+   const hier::Index &lower = box.lower();
+   const hier::Index &upper = box.upper();
    const double *dx = patch_geom->getDx();
 
    boost::shared_ptr<pdat::CellData<double> > scalar_field_data;
@@ -3094,362 +2401,200 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
    boost::shared_ptr<pdat::SideData<double> > diffcoef_data;
    double diffcoef_constant;
 
-   if ( d_poisson_spec[depth].cIsVariable() ) {
+   if (d_poisson_spec[depth].cIsVariable()) {
       scalar_field_data =
-         boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                     hier::PatchData>(patch.getPatchData(
-            d_poisson_spec[depth].getCPatchDataId()));
-   }
-   else if ( d_poisson_spec[depth].cIsConstant() ) {
+          boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[depth].getCPatchDataId()));
+   } else if (d_poisson_spec[depth].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[depth].getCConstant();
-   }
-   else {
+   } else {
       scalar_field_constant = 0.0;
    }
-   if ( d_poisson_spec[depth].dIsVariable() ) {
-      diffcoef_data = boost::dynamic_pointer_cast<pdat::SideData<double>,
-                                                  hier::PatchData>(
-         patch.getPatchData(d_poisson_spec[depth].getDPatchDataId()));
-   }
-   else {
+   if (d_poisson_spec[depth].dIsVariable()) {
+      diffcoef_data =
+          boost::dynamic_pointer_cast<pdat::SideData<double>, hier::PatchData>(
+              patch.getPatchData(d_poisson_spec[depth].getDPatchDataId()));
+   } else {
       diffcoef_constant = d_poisson_spec[depth].getDConstant();
    }
-   boost::shared_ptr<pdat::CellData<double> > m_data ( 
-      BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-         patch.getPatchData(d_m_id) ) );
+   boost::shared_ptr<pdat::CellData<double> > m_data(
+       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+           patch.getPatchData(d_m_id)));
 
-   double maxres=0.0;
-   const double* rhs=rhs_data.getPointer(depth);
-   const double* pm=m_data->getPointer();
-   double* sol=soln_data.getPointer(depth);
+   double maxres = 0.0;
+   const double *rhs = rhs_data.getPointer(depth);
+   const double *pm = m_data->getPointer();
+   double *sol = soln_data.getPointer(depth);
 
-   const double* flux0=flux_data.getPointer(0,depth);
-   const double* flux1=flux_data.getPointer(1,depth);
-#if NDIM==3
-   const double* flux2=flux_data.getPointer(2,depth);
+   const double *flux0 = flux_data.getPointer(0, depth);
+   const double *flux1 = flux_data.getPointer(1, depth);
+#if NDIM == 3
+   const double *flux2 = flux_data.getPointer(2, depth);
 #endif
 
-   if ( d_poisson_spec[0].dIsVariable() && 
-        d_poisson_spec[depth].cIsVariable() ) {
-#if NDIM==2
+   if (d_poisson_spec[0].dIsVariable() && d_poisson_spec[depth].cIsVariable()) {
+#if NDIM == 2
       efo_rbgswithfluxmaxvardcvarsf2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         diffcoef_data->getPointer(0) ,
-         diffcoef_data->getPointer(1) ,
-         &diffcoef_data->getGhostCellWidth()[0],
-         &diffcoef_data->getGhostCellWidth()[1] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
+          diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1], pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxvardcvarsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_data->getPointer(0),
-         diffcoef_data->getPointer(1),
-         diffcoef_data->getPointer(2),
-         &diffcoef_data->getGhostCellWidth()[0],
-         &diffcoef_data->getGhostCellWidth()[1] ,
-         &diffcoef_data->getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1],
-         &rhs_data.getGhostCellWidth()[2],
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         &scalar_field_data->getGhostCellWidth()[2] ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
+          diffcoef_data->getPointer(2), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1],
+          &diffcoef_data->getGhostCellWidth()[2], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          &rhs_data.getGhostCellWidth()[2], scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1],
+          &scalar_field_data->getGhostCellWidth()[2], pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1],
+          &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
-   }
-   else if ( d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsConstant() ) {
-#if NDIM==2
+   } else if (d_poisson_spec[0].dIsVariable() &&
+              d_poisson_spec[0].cIsConstant()) {
+#if NDIM == 2
       efo_rbgswithfluxmaxvardcconsf2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         diffcoef_data->getPointer(0) ,
-         diffcoef_data->getPointer(1) ,
-         &diffcoef_data->getGhostCellWidth()[0],
-         &diffcoef_data->getGhostCellWidth()[1] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         scalar_field_constant ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
+          diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          scalar_field_constant, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxvardcconsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_data->getPointer(0) ,
-         diffcoef_data->getPointer(1),
-         diffcoef_data->getPointer(2),
-         &diffcoef_data->getGhostCellWidth()[0],
-         &diffcoef_data->getGhostCellWidth()[1] ,
-         &diffcoef_data->getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         scalar_field_constant ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
+          diffcoef_data->getPointer(2), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1],
+          &diffcoef_data->getGhostCellWidth()[2], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          &rhs_data.getGhostCellWidth()[2], scalar_field_constant, pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1],
+          &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
-   }
-   else if ( d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero() ) {
-#if NDIM==2
-   efo_rbgswithfluxmaxvardcconsf2d_(
-      flux0,flux1,
-      &flux_data.getGhostCellWidth()[0],
-      &flux_data.getGhostCellWidth()[1] ,
-      diffcoef_data->getPointer(0) ,
-      diffcoef_data->getPointer(1) ,
-      &diffcoef_data->getGhostCellWidth()[0],
-      &diffcoef_data->getGhostCellWidth()[1] ,
-      rhs,
-      &rhs_data.getGhostCellWidth()[0],
-      &rhs_data.getGhostCellWidth()[1] ,
-      0.0 ,
-      pm,
-      &m_data->getGhostCellWidth()[0],
-      &m_data->getGhostCellWidth()[1] ,
-      sol,
-      &soln_data.getGhostCellWidth()[0],
-      &soln_data.getGhostCellWidth()[1] ,
-      &lower[0], &upper[0],
-      &lower[1], &upper[1] ,
-      dx ,
-      &offset, &maxres );
+   } else if (d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero()) {
+#if NDIM == 2
+      efo_rbgswithfluxmaxvardcconsf2d_(
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
+          diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          0.0, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxvardcconsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_data->getPointer(0) ,
-         diffcoef_data->getPointer(1) ,
-         diffcoef_data->getPointer(2) ,
-         &diffcoef_data->getGhostCellWidth()[0],
-         &diffcoef_data->getGhostCellWidth()[1] ,
-         &diffcoef_data->getGhostCellWidth()[2] ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         0.0 ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
+          diffcoef_data->getPointer(2), &diffcoef_data->getGhostCellWidth()[0],
+          &diffcoef_data->getGhostCellWidth()[1],
+          &diffcoef_data->getGhostCellWidth()[2], rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          &rhs_data.getGhostCellWidth()[2], 0.0, pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1],
+          &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
-   }
-   else if ( !d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsVariable() ) {
-#if NDIM==2
+   } else if (!d_poisson_spec[0].dIsVariable() &&
+              d_poisson_spec[0].cIsVariable()) {
+#if NDIM == 2
       efo_rbgswithfluxmaxcondcvarsf2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1], pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxcondcvarsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         scalar_field_data->getPointer() ,
-         &scalar_field_data->getGhostCellWidth()[0],
-         &scalar_field_data->getGhostCellWidth()[1] ,
-         &scalar_field_data->getGhostCellWidth()[2] ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          scalar_field_data->getPointer(),
+          &scalar_field_data->getGhostCellWidth()[0],
+          &scalar_field_data->getGhostCellWidth()[1],
+          &scalar_field_data->getGhostCellWidth()[2], pm,
+          &m_data->getGhostCellWidth()[0], &m_data->getGhostCellWidth()[1],
+          &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
-   }
-   else if ( !d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsConstant() ) {
-#if NDIM==2
+   } else if (!d_poisson_spec[0].dIsVariable() &&
+              d_poisson_spec[0].cIsConstant()) {
+#if NDIM == 2
       efo_rbgswithfluxmaxcondcconsf2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         scalar_field_constant ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          scalar_field_constant, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxcondcconsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         scalar_field_constant ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          scalar_field_constant, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
-   }
-   else if ( !d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero() ) {
-#if NDIM==2
+   } else if (!d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero()) {
+#if NDIM == 2
       efo_rbgswithfluxmaxcondcconsf2d_(
-         flux0,flux1,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         0.0 ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
+          &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
+          0.0, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
       efo_rbgswithfluxmaxcondcconsf3d_(
-         flux0,flux1,flux2,
-         &flux_data.getGhostCellWidth()[0],
-         &flux_data.getGhostCellWidth()[1] ,
-         &flux_data.getGhostCellWidth()[2] ,
-         diffcoef_constant ,
-         rhs,
-         &rhs_data.getGhostCellWidth()[0],
-         &rhs_data.getGhostCellWidth()[1] ,
-         &rhs_data.getGhostCellWidth()[2] ,
-         0.0 ,
-         pm,
-         &m_data->getGhostCellWidth()[0],
-         &m_data->getGhostCellWidth()[1] ,
-         &m_data->getGhostCellWidth()[2] ,
-         sol,
-         &soln_data.getGhostCellWidth()[0],
-         &soln_data.getGhostCellWidth()[1] ,
-         &soln_data.getGhostCellWidth()[2] ,
-         &lower[0], &upper[0],
-         &lower[1], &upper[1] ,
-         &lower[2], &upper[2] ,
-         dx ,
-         &offset, &maxres );
+          flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
+          &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
+          diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],
+          &rhs_data.getGhostCellWidth()[1], &rhs_data.getGhostCellWidth()[2],
+          0.0, pm, &m_data->getGhostCellWidth()[0],
+          &m_data->getGhostCellWidth()[1], &m_data->getGhostCellWidth()[2], sol,
+          &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
+          &soln_data.getGhostCellWidth()[2], &lower[0], &upper[0], &lower[1],
+          &upper[1], &lower[2], &upper[2], dx, &offset, &maxres);
 #endif
    }
 
@@ -3457,144 +2602,91 @@ EllipticFACOps::redOrBlackSmoothingOnPatch(
 }
 
 
-void
-EllipticFACOps::xeqScheduleProlongation(
-   int dst_id,
-   int src_id,
-   int scr_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleProlongation(int dst_id, int src_id, int scr_id,
+                                             int dest_ln)
 {
-   if ( ! d_prolongation_refine_schedules[dest_ln] ) {
+   if (!d_prolongation_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
 
-   refiner.
-      registerRefine( dst_id ,
-                      src_id ,
-                      scr_id ,
-                      d_prolongation_refine_operator );
-   refiner.
-      resetSchedule(d_prolongation_refine_schedules[dest_ln]);
+   refiner.registerRefine(dst_id, src_id, scr_id,
+                          d_prolongation_refine_operator);
+   refiner.resetSchedule(d_prolongation_refine_schedules[dest_ln]);
    d_prolongation_refine_schedules[dest_ln]->fillData(0.0);
-   d_prolongation_refine_algorithm->
-      resetSchedule(d_prolongation_refine_schedules[dest_ln]);
+   d_prolongation_refine_algorithm->resetSchedule(
+       d_prolongation_refine_schedules[dest_ln]);
    return;
 }
 
 
-void
-EllipticFACOps::xeqScheduleURestriction(
-   int dst_id,
-   int src_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleURestriction(int dst_id, int src_id,
+                                             int dest_ln)
 {
-   if ( ! d_urestriction_coarsen_schedules[dest_ln] ) {
+   if (!d_urestriction_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_urestriction_coarsen_operator );
-   coarsener.
-      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_urestriction_coarsen_operator);
+   coarsener.resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
    d_urestriction_coarsen_schedules[dest_ln]->coarsenData();
-   d_urestriction_coarsen_algorithm->
-      resetSchedule(d_urestriction_coarsen_schedules[dest_ln]);
+   d_urestriction_coarsen_algorithm->resetSchedule(
+       d_urestriction_coarsen_schedules[dest_ln]);
 }
 
 
-void
-EllipticFACOps::xeqScheduleRRestriction(
-   int dst_id,
-   int src_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleRRestriction(int dst_id, int src_id,
+                                             int dest_ln)
 {
-   if ( ! d_rrestriction_coarsen_schedules[dest_ln] ) {
+   if (!d_rrestriction_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_rrestriction_coarsen_operator );
-   coarsener.
-      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_rrestriction_coarsen_operator);
+   coarsener.resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
    d_rrestriction_coarsen_schedules[dest_ln]->coarsenData();
-   d_rrestriction_coarsen_algorithm->
-      resetSchedule(d_rrestriction_coarsen_schedules[dest_ln]);
+   d_rrestriction_coarsen_algorithm->resetSchedule(
+       d_rrestriction_coarsen_schedules[dest_ln]);
 }
 
 
-void
-EllipticFACOps::xeqScheduleFluxCoarsen(
-   int dst_id,
-   int src_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleFluxCoarsen(int dst_id, int src_id, int dest_ln)
 {
-   if ( ! d_flux_coarsen_schedules[dest_ln] ) {
+   if (!d_flux_coarsen_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::CoarsenAlgorithm coarsener(tbox::Dimension(NDIM));
-   coarsener.
-      registerCoarsen( dst_id ,
-                       src_id ,
-                       d_flux_coarsen_operator );
-   coarsener.
-      resetSchedule(d_flux_coarsen_schedules[dest_ln]);
+   coarsener.registerCoarsen(dst_id, src_id, d_flux_coarsen_operator);
+   coarsener.resetSchedule(d_flux_coarsen_schedules[dest_ln]);
    d_flux_coarsen_schedules[dest_ln]->coarsenData();
-   d_flux_coarsen_algorithm->
-      resetSchedule(d_flux_coarsen_schedules[dest_ln]);
+   d_flux_coarsen_algorithm->resetSchedule(d_flux_coarsen_schedules[dest_ln]);
 }
 
 
-void
-EllipticFACOps::xeqScheduleGhostFill(
-   int dst_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleGhostFill(int dst_id, int dest_ln)
 {
-   if ( ! d_ghostfill_refine_schedules[dest_ln] ) {
+   if (!d_ghostfill_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
 
-   refiner.
-      registerRefine( dst_id ,
-                      dst_id ,
-                      dst_id ,
-                      d_ghostfill_refine_operator );
-   refiner.
-      resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
+   refiner.registerRefine(dst_id, dst_id, dst_id, d_ghostfill_refine_operator);
+   refiner.resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
    d_ghostfill_refine_schedules[dest_ln]->fillData(0.0);
-   d_ghostfill_refine_algorithm->
-      resetSchedule(d_ghostfill_refine_schedules[dest_ln]);
+   d_ghostfill_refine_algorithm->resetSchedule(
+       d_ghostfill_refine_schedules[dest_ln]);
 }
 
-void
-EllipticFACOps::xeqScheduleGhostFillNoCoarse(
-   int dst_id,
-   int dest_ln
-   )
+void EllipticFACOps::xeqScheduleGhostFillNoCoarse(int dst_id, int dest_ln)
 {
-   if ( ! d_ghostfill_nocoarse_refine_schedules[dest_ln] ) {
+   if (!d_ghostfill_nocoarse_refine_schedules[dest_ln]) {
       TBOX_ERROR("Expected schedule not found.");
    }
    xfer::RefineAlgorithm refiner;
-   refiner.
-      registerRefine( dst_id ,
-                      dst_id ,
-                      dst_id ,
-                      d_ghostfill_nocoarse_refine_operator );
-   refiner.
-      resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
+   refiner.registerRefine(dst_id, dst_id, dst_id,
+                          d_ghostfill_nocoarse_refine_operator);
+   refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
    d_ghostfill_nocoarse_refine_schedules[dest_ln]->fillData(0.0);
-   d_ghostfill_nocoarse_refine_algorithm->
-      resetSchedule(d_ghostfill_nocoarse_refine_schedules[dest_ln]);
+   d_ghostfill_nocoarse_refine_algorithm->resetSchedule(
+       d_ghostfill_nocoarse_refine_schedules[dest_ln]);
 }
-

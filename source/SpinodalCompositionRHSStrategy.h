@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,49 +32,39 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_SpinodalCompositionRHSStrategy
-#define included_SpinodalCompositionRHSStrategy 
+#define included_SpinodalCompositionRHSStrategy
 
 #include "CompositionRHSStrategyWithMobilities.h"
 
 #include <vector>
 #include <string>
 
-class SpinodalCompositionRHSStrategy:
-   public CompositionRHSStrategyWithMobilities
+class SpinodalCompositionRHSStrategy
+    : public CompositionRHSStrategyWithMobilities
 {
-public:
-
+ public:
    SpinodalCompositionRHSStrategy(
-      boost::shared_ptr<tbox::Database> input_db,
-      const int conc_scratch_id,
-      const int phase_scratch_id,
-      const int eta_scratch_id,
-      const unsigned int ncompositions,
-      const int conc_a_scratch_id,
-      const int conc_b_scratch_id,
-      const int temperature_scratch_id,
-      const int diffusion_id,
-      const double kappa,
-      const int Mq_id,
-      const std::vector<double>& Q_heat_transport,
-      const std::string& phase_interp_func_type,
-      const std::string& avg_func_type,
-      FreeEnergyStrategy* free_energy_strategy
-   );
-   
+       boost::shared_ptr<tbox::Database> input_db, const int conc_scratch_id,
+       const int phase_scratch_id, const int eta_scratch_id,
+       const unsigned int ncompositions, const int conc_a_scratch_id,
+       const int conc_b_scratch_id, const int temperature_scratch_id,
+       const int diffusion_id, const double kappa, const int Mq_id,
+       const std::vector<double>& Q_heat_transport,
+       const std::string& phase_interp_func_type,
+       const std::string& avg_func_type,
+       FreeEnergyStrategy* free_energy_strategy);
+
    ~SpinodalCompositionRHSStrategy(){};
 
-   void computeFluxOnPatch(hier::Patch& patch,
-                           const int flux_id);
+   void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
 
    void setDiffusionCoeff(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const double                                               time);
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const double time);
 
-private:
-
+ private:
    int d_conc_scratch_id;
    int d_eta_scratch_id;
    int d_diffusion_id;
@@ -82,19 +72,19 @@ private:
    int d_phase_scratch_id;
    int d_conc_a_scratch_id;
    int d_conc_b_scratch_id;
-   
+
    unsigned int d_ncompositions;
-   
+
    double d_kappa;
 
    void setDiffusionForConc(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy);
-      
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+
    void setDiffusionCoeffForConcOnPatch(
-      boost::shared_ptr< pdat::CellData<double> > cd_c,
-      boost::shared_ptr< pdat::CellData<double> > cd_temp,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff,
-      const hier::Box& pbox );
+       boost::shared_ptr<pdat::CellData<double> > cd_c,
+       boost::shared_ptr<pdat::CellData<double> > cd_temp,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
+       const hier::Box& pbox);
 };
 
 #endif

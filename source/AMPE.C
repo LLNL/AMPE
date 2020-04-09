@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -58,51 +58,48 @@ AMPE::~AMPE()
 }
 
 void AMPE::initialize(const string input_filename,
-                      const string restart_read_dirname,
-                      const int restore_num)
+                      const string restart_read_dirname, const int restore_num)
 {
    boost::shared_ptr<tbox::MemoryDatabase> input_db(
-      new tbox::MemoryDatabase("input_db"));
+       new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
    string run_name;
-   if ( input_db->keyExists( "run_name" ) ) {
-      run_name = input_db->getString( "run_name" );
-   }
-   else {
+   if (input_db->keyExists("run_name")) {
+      run_name = input_db->getString("run_name");
+   } else {
       // make from input file name
-      run_name = input_filename.substr( 0, input_filename.rfind( "." ) );
+      run_name = input_filename.substr(0, input_filename.rfind("."));
    }
 
    bool log_all_nodes = false;
    string log_file_name = run_name + ".log";
 
-   if ( input_db->isDatabase( "Logging" ) ) {
-      boost::shared_ptr<tbox::Database> log_db = 
-         input_db->getDatabase( "Logging" );
-      if ( log_db->keyExists( "filename" ) ) {
-         log_file_name = log_db->getString( "filename" );
+   if (input_db->isDatabase("Logging")) {
+      boost::shared_ptr<tbox::Database> log_db =
+          input_db->getDatabase("Logging");
+      if (log_db->keyExists("filename")) {
+         log_file_name = log_db->getString("filename");
       }
 
-      if ( log_db->keyExists( "log_all_nodes" ) ) {
-         log_all_nodes = log_db->getBool( "log_all_nodes" );
+      if (log_db->keyExists("log_all_nodes")) {
+         log_all_nodes = log_db->getBool("log_all_nodes");
       }
    }
 
-   if ( log_all_nodes ) {
-      tbox::PIO::logAllNodes( log_file_name );
-   }
-   else {
-      tbox::PIO::logOnlyNodeZero( log_file_name );
+   if (log_all_nodes) {
+      tbox::PIO::logAllNodes(log_file_name);
+   } else {
+      tbox::PIO::logOnlyNodeZero(log_file_name);
    }
 
-   tbox::plog<<"AMPE: git_version "<<gitCommitID()<<endl;
+   tbox::plog << "AMPE: git_version " << gitCommitID() << endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   tbox::plog << "Run with "<<mpi.getSize()<<" MPI tasks"<<endl;
+   tbox::plog << "Run with " << mpi.getSize() << " MPI tasks" << endl;
 
-   bool is_from_restart = (restore_num>=0);
-   if ( is_from_restart ) {
+   bool is_from_restart = (restore_num >= 0);
+   if (is_from_restart) {
       tbox::plog << "restart_read_dirname = " << restart_read_dirname << endl;
       tbox::plog << "restore_num = " << restore_num << endl;
    }
@@ -114,26 +111,23 @@ void AMPE::initialize(const string input_filename,
    d_time_man->resetAllTimers();
 
    // Create a PFModel object
-   string model_type = input_db->getStringWithDefault( "model_type", "Quat" );
-   if ( model_type == "Quat" ) {
-      d_pfm = new QuatModel( 4 );
+   string model_type = input_db->getStringWithDefault("model_type", "Quat");
+   if (model_type == "Quat") {
+      d_pfm = new QuatModel(4);
    }
-#if NDIM==2
-   else if ( model_type == "KWC" ) {
-      d_pfm = new QuatModel( 1 );
-   }
-   else if ( model_type == "KWCcomplex" ) {
-      d_pfm = new QuatModel( 2 );
+#if NDIM == 2
+   else if (model_type == "KWC") {
+      d_pfm = new QuatModel(1);
+   } else if (model_type == "KWCcomplex") {
+      d_pfm = new QuatModel(2);
    }
 #endif
    else {
-      TBOX_ERROR( "Invalid model_type" << endl );
+      TBOX_ERROR("Invalid model_type" << endl);
    }
 
-   d_pfm->Initialize(
-      input_db, run_name,
-      is_from_restart, restart_read_dirname, restore_num
-      );
+   d_pfm->Initialize(input_db, run_name, is_from_restart, restart_read_dirname,
+                     restore_num);
    /*
     * After creating all objects and initializing their state, we
     * print the input database and variable database contents to
@@ -154,4 +148,3 @@ void AMPE::run()
 
    d_time_man->print(tbox::plog);
 }
-

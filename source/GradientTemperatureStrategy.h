@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -47,33 +47,31 @@
 // This strategy fills the temperature field from a single scalar value
 // which may depend on time.
 
-class GradientTemperatureStrategy:
-   public TemperatureStrategy
+class GradientTemperatureStrategy : public TemperatureStrategy
 {
-public:
+ public:
    GradientTemperatureStrategy(
-      const int temperature_id,
-      const int temperature_scratch_id,
-      const double temperature0,
-      boost::shared_ptr<tbox::Database> temperature_db );
+       const int temperature_id, const int temperature_scratch_id,
+       const double temperature0,
+       boost::shared_ptr<tbox::Database> temperature_db);
 
    ~GradientTemperatureStrategy(){};
 
-   virtual double getCurrentMaxTemperature(   
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
-   virtual double getCurrentMinTemperature(   
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+   virtual double getCurrentMaxTemperature(
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
+   virtual double getCurrentMinTemperature(
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
    virtual double getCurrentAverageTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
 
    virtual void setCurrentTemperature(
-      boost::shared_ptr<hier::PatchHierarchy > patch_hierarchy,
-      const double time );
+       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       const double time);
 
-private:
+ private:
    int d_temperature_id;
    int d_temperature_scratch_id;
    int d_weight_id;
@@ -85,13 +83,11 @@ private:
    double d_gradient[NDIM];
    double d_center[3];
 
-   double getCurrentTemperature( const double time );
+   double getCurrentTemperature(const double time);
 
    void setCurrentTemperaturePrivatePatch(
-      const double temperature,
-      hier::Patch& patch,
-      boost::shared_ptr< pdat::CellData<double> > cd_temp);
-
+       const double temperature, hier::Patch& patch,
+       boost::shared_ptr<pdat::CellData<double> > cd_temp);
 };
 
 #endif

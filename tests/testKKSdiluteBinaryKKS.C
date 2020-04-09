@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -53,7 +53,7 @@ using namespace SAMRAI;
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
    // Initialize MPI, SAMRAI
 
@@ -67,145 +67,147 @@ int main( int argc, char *argv[] )
     * shutdown.
     */
    {
-   std::string input_filename;
-   input_filename = argv[1];
+      std::string input_filename;
+      input_filename = argv[1];
 
-   //-----------------------------------------------------------------------
-   // Create input database and parse all data in input file.
+      //-----------------------------------------------------------------------
+      // Create input database and parse all data in input file.
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(
-      new tbox::MemoryDatabase("input_db"));
-   tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
+      boost::shared_ptr<tbox::MemoryDatabase> input_db(
+          new tbox::MemoryDatabase("input_db"));
+      tbox::InputManager::getManager()->parseInputFile(input_filename,
+                                                       input_db);
 
-   //-----------------------------------------------------------------------
-   // Read key input settings
-   
-   // make from input file name
-   std::string run_name = 
-      input_filename.substr( 0, input_filename.rfind( "." ) );
+      //-----------------------------------------------------------------------
+      // Read key input settings
 
-   // Logfile
-   std::string log_file_name = run_name + ".log";
+      // make from input file name
+      std::string run_name =
+          input_filename.substr(0, input_filename.rfind("."));
 
-   tbox::PIO::logOnlyNodeZero( log_file_name );
+      // Logfile
+      std::string log_file_name = run_name + ".log";
+
+      tbox::PIO::logOnlyNodeZero(log_file_name);
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog<<" AMPE: git version "<<xstr(x)<<endl;
-    LOG(GITVERSION);
-    tbox::plog<<endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+      LOG(GITVERSION);
+      tbox::plog << endl;
 #endif
 
-   tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << endl;
 
-   boost::shared_ptr<tbox::Database> model_db =
-      input_db->getDatabase("ModelParameters");
+      boost::shared_ptr<tbox::Database> model_db =
+          input_db->getDatabase("ModelParameters");
 
-   EnergyInterpolationType energy_interp_func_type = EnergyInterpolationType::PBG;
-   ConcInterpolationType conc_interp_func_type = ConcInterpolationType::LINEAR;
- 
-   boost::shared_ptr<tbox::Database> temperature_db =
-      model_db->getDatabase( "Temperature" );
-   double temperature = temperature_db->getDouble( "temperature" );
+      EnergyInterpolationType energy_interp_func_type =
+          EnergyInterpolationType::PBG;
+      ConcInterpolationType conc_interp_func_type =
+          ConcInterpolationType::LINEAR;
 
-   boost::shared_ptr<tbox::Database> conc_db(
-      model_db->getDatabase( "ConcentrationModel" ));
+      boost::shared_ptr<tbox::Database> temperature_db =
+          model_db->getDatabase("Temperature");
+      double temperature = temperature_db->getDouble("temperature");
 
-   boost::shared_ptr<tbox::Database> newton_db;
-   if ( conc_db->isDatabase( "NewtonSolver" ) )
-      newton_db = conc_db->getDatabase( "NewtonSolver" );
+      boost::shared_ptr<tbox::Database> conc_db(
+          model_db->getDatabase("ConcentrationModel"));
 
-   KKSFreeEnergyFunctionDiluteBinary
-      cafe(conc_db,
-           energy_interp_func_type,
-           conc_interp_func_type);
+      boost::shared_ptr<tbox::Database> newton_db;
+      if (conc_db->isDatabase("NewtonSolver"))
+         newton_db = conc_db->getDatabase("NewtonSolver");
 
-   const double tol = 1.e-5;
+      KKSFreeEnergyFunctionDiluteBinary cafe(conc_db, energy_interp_func_type,
+                                             conc_interp_func_type);
 
-   const PhaseIndex pi0=PhaseIndex::phaseL;
-   const PhaseIndex pi1=PhaseIndex::phaseA;
+      const double tol = 1.e-5;
 
-   tbox::pout<<"-------------------------------"<<endl; 
-   tbox::pout<<"Temperature = "<<temperature<<endl;
+      const PhaseIndex pi0 = PhaseIndex::phaseL;
+      const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-   double ceq[2];
-   cafe.computeCeqT(temperature, pi0, pi1, &ceq[0]);
-   tbox::pout<<"   ceL = "<<ceq[0]<<endl;
-   tbox::pout<<"   ceS = "<<ceq[1]<<endl;
+      tbox::pout << "-------------------------------" << endl;
+      tbox::pout << "Temperature = " << temperature << endl;
 
-   // test if chemical potentials are equal for equilibrium compositions
-   double derivL;
-   double derivS;
-   cafe.computeDerivFreeEnergy(temperature,&ceq[0],pi0,&derivL);
-   cafe.computeDerivFreeEnergy(temperature,&ceq[1],pi1,&derivS);
-   tbox::pout<<"   dfL/dcL = "<<derivL<<endl;
-   tbox::pout<<"   dfS/dcS = "<<derivS<<endl;
-   if( fabs(derivS-derivL)<tol ){
-      tbox::pout<<"TEST PASSED"<<endl;
-   }else{
-      tbox::pout<<"TEST FAILED\n!";
-      tbox::pout<<"Difference between derivatives: "<<derivS-derivL<<endl;
-      return 1;
-   }
+      double ceq[2];
+      cafe.computeCeqT(temperature, pi0, pi1, &ceq[0]);
+      tbox::pout << "   ceL = " << ceq[0] << endl;
+      tbox::pout << "   ceS = " << ceq[1] << endl;
 
-   // test if driving force is 0 for equilibrium compositions
-   double fl = cafe.computeFreeEnergy(temperature, &ceq[0], pi0, false);
-   double fa = cafe.computeFreeEnergy(temperature, &ceq[1], pi1, false);
-   tbox::pout<<"   fL = "<<fl<<endl;
-   tbox::pout<<"   fS = "<<fa<<endl;
-   double diff = fa-fl-derivS*(ceq[1]-ceq[0]);
-   if( fabs(diff)<tol ){
-      tbox::pout<<"TEST PASSED"<<endl;
-   }else{
-      tbox::pout<<"TEST FAILED\n!";
-      tbox::pout<<"Driving force not zero: "<<diff<<endl;
-      return 1;
-   }
+      // test if chemical potentials are equal for equilibrium compositions
+      double derivL;
+      double derivS;
+      cafe.computeDerivFreeEnergy(temperature, &ceq[0], pi0, &derivL);
+      cafe.computeDerivFreeEnergy(temperature, &ceq[1], pi1, &derivS);
+      tbox::pout << "   dfL/dcL = " << derivL << endl;
+      tbox::pout << "   dfS/dcS = " << derivS << endl;
+      if (fabs(derivS - derivL) < tol) {
+         tbox::pout << "TEST PASSED" << endl;
+      } else {
+         tbox::pout << "TEST FAILED\n!";
+         tbox::pout << "Difference between derivatives: " << derivS - derivL
+                    << endl;
+         return 1;
+      }
 
-   // compute second derivatives for info only
-   std::vector<double> d2fdc2(1);
-   cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0, d2fdc2);
-   tbox::pout<<"-------------------------------"<<endl;
-   tbox::pout<<"Second derivatives"<<endl;
-   tbox::pout<<"At ceL: "<<d2fdc2[0]<<endl;
-   cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1, d2fdc2);
-   tbox::pout<<"At ceS: "<<d2fdc2[0]<<endl;
+      // test if driving force is 0 for equilibrium compositions
+      double fl = cafe.computeFreeEnergy(temperature, &ceq[0], pi0, false);
+      double fa = cafe.computeFreeEnergy(temperature, &ceq[1], pi1, false);
+      tbox::pout << "   fL = " << fl << endl;
+      tbox::pout << "   fS = " << fa << endl;
+      double diff = fa - fl - derivS * (ceq[1] - ceq[0]);
+      if (fabs(diff) < tol) {
+         tbox::pout << "TEST PASSED" << endl;
+      } else {
+         tbox::pout << "TEST FAILED\n!";
+         tbox::pout << "Driving force not zero: " << diff << endl;
+         return 1;
+      }
 
-   // initial guesses
-   double c_init0=0.5;
-   double c_init1=0.5;
+      // compute second derivatives for info only
+      std::vector<double> d2fdc2(1);
+      cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0, d2fdc2);
+      tbox::pout << "-------------------------------" << endl;
+      tbox::pout << "Second derivatives" << endl;
+      tbox::pout << "At ceL: " << d2fdc2[0] << endl;
+      cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1, d2fdc2);
+      tbox::pout << "At ceS: " << d2fdc2[0] << endl;
 
-   double sol[2]={c_init0,c_init1};
-   
-   // verify computed concentrations satisfy KKS equations
-   double conc = model_db->getDouble("concentration");
-   double phi = model_db->getDouble("phi");
-   cafe.computePhaseConcentrations(temperature,&conc,phi,0.,&sol[0]);
+      // initial guesses
+      double c_init0 = 0.5;
+      double c_init1 = 0.5;
 
-   tbox::pout<<"-------------------------------"<<endl; 
-   tbox::pout<<"Temperature = "<<temperature<<endl;
-   tbox::pout<<"Result for c = "<<conc<<" and phi = "<<phi<<endl;
-   tbox::pout<<"   cL = "<<sol[0]<<endl;
-   tbox::pout<<"   cS = "<<sol[1]<<endl;
+      double sol[2] = {c_init0, c_init1};
 
-   tbox::pout<<"Verification:"<<endl;
+      // verify computed concentrations satisfy KKS equations
+      double conc = model_db->getDouble("concentration");
+      double phi = model_db->getDouble("phi");
+      cafe.computePhaseConcentrations(temperature, &conc, phi, 0., &sol[0]);
 
-   cafe.computeDerivFreeEnergy(temperature,&sol[0],pi0,&derivL);
-   tbox::pout<<"   dfL/dcL = "<<derivL<<endl;
+      tbox::pout << "-------------------------------" << endl;
+      tbox::pout << "Temperature = " << temperature << endl;
+      tbox::pout << "Result for c = " << conc << " and phi = " << phi << endl;
+      tbox::pout << "   cL = " << sol[0] << endl;
+      tbox::pout << "   cS = " << sol[1] << endl;
 
-   cafe.computeDerivFreeEnergy(temperature,&sol[1],pi1,&derivS);
-   tbox::pout<<"   dfS/dcS = "<<derivS<<endl;
+      tbox::pout << "Verification:" << endl;
 
-   if( fabs(derivS-derivL)<tol ){
-      tbox::pout<<"TEST PASSED"<<endl;
-   }else{
-      tbox::pout<<"TEST FAILED\n!";
-      tbox::pout<<"Difference between derivatives: "<<derivS-derivL<<endl;
-      return 1;
-   }
+      cafe.computeDerivFreeEnergy(temperature, &sol[0], pi0, &derivL);
+      tbox::pout << "   dfL/dcL = " << derivL << endl;
 
-   input_db.reset();
+      cafe.computeDerivFreeEnergy(temperature, &sol[1], pi1, &derivS);
+      tbox::pout << "   dfS/dcS = " << derivS << endl;
 
+      if (fabs(derivS - derivL) < tol) {
+         tbox::pout << "TEST PASSED" << endl;
+      } else {
+         tbox::pout << "TEST FAILED\n!";
+         tbox::pout << "Difference between derivatives: " << derivS - derivL
+                    << endl;
+         return 1;
+      }
+
+      input_db.reset();
    }
 
    tbox::SAMRAIManager::shutdown();

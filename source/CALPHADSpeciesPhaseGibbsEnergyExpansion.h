@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -40,21 +40,16 @@
 
 class CALPHADSpeciesPhaseGibbsEnergyExpansion
 {
-public:
-   CALPHADSpeciesPhaseGibbsEnergyExpansion(
-      const double a,
-      const double b,
-      const double c,
-      const double d2,
-      const double d3,
-      const double d4,
-      const double d7,
-      const double dm1,
-      const double dm9);
+ public:
+   CALPHADSpeciesPhaseGibbsEnergyExpansion(const double a, const double b,
+                                           const double c, const double d2,
+                                           const double d3, const double d4,
+                                           const double d7, const double dm1,
+                                           const double dm9);
 
-   double value(const double temperature)const;
-      
-private:
+   double value(const double temperature) const;
+
+ private:
    /*
     * Expansion coefficient for energy of species as a function of temperature
     */
@@ -70,4 +65,3 @@ private:
 };
 
 #endif
-

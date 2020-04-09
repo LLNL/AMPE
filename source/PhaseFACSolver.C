@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,54 +32,42 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "PhaseFACSolver.h"
 #include "PhaseFACOps.h"
 
 using namespace std;
 
-PhaseFACSolver::PhaseFACSolver (
-   const std::string& object_name,
-   boost::shared_ptr<PhaseFACOps>& fac_ops,
-   boost::shared_ptr<tbox::Database> database )
-   :
-   EllipticFACSolver( object_name, fac_ops, database )
+PhaseFACSolver::PhaseFACSolver(const std::string& object_name,
+                               boost::shared_ptr<PhaseFACOps>& fac_ops,
+                               boost::shared_ptr<tbox::Database> database)
+    : EllipticFACSolver(object_name, fac_ops, database)
 {
    t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
-      "AMPE::PhaseFACSolver::setOperatorCoefficients");
+       "AMPE::PhaseFACSolver::setOperatorCoefficients");
 }
 
 void PhaseFACSolver::setOperatorCoefficients(
-   const int phase_id,
-   const int eta_id,
-   const int phase_mobility_id,
-   const double epsilon_phase,
-   const double gamma,
-   const EnergyInterpolationType phase_interp_func_type,
-   const double phase_well_scale,
-   const string phase_well_func_type,
-   const double eta_well_scale,
-   const string eta_well_func_type )
+    const int phase_id, const int eta_id, const int phase_mobility_id,
+    const double epsilon_phase, const double gamma,
+    const EnergyInterpolationType phase_interp_func_type,
+    const double phase_well_scale, const string phase_well_func_type,
+    const double eta_well_scale, const string eta_well_func_type)
 {
-   assert( phase_id>=0 );
-   assert( phase_mobility_id>=0 );
+   assert(phase_id >= 0);
+   assert(phase_mobility_id >= 0);
 
    t_set_op_coef->start();
 
-   boost::shared_ptr<PhaseFACOps> phase_fac_ops (
-      boost::dynamic_pointer_cast< PhaseFACOps, EllipticFACOps >( d_fac_ops ) );
+   boost::shared_ptr<PhaseFACOps> phase_fac_ops(
+       boost::dynamic_pointer_cast<PhaseFACOps, EllipticFACOps>(d_fac_ops));
 
-   phase_fac_ops->setOperatorCoefficients(
-      phase_id,
-      eta_id,
-      phase_mobility_id,
-      epsilon_phase, 
-      gamma,
-      phase_interp_func_type,
-      phase_well_scale,
-      phase_well_func_type,
-      eta_well_scale,
-      eta_well_func_type );
+   phase_fac_ops->setOperatorCoefficients(phase_id, eta_id, phase_mobility_id,
+                                          epsilon_phase, gamma,
+                                          phase_interp_func_type,
+                                          phase_well_scale,
+                                          phase_well_func_type, eta_well_scale,
+                                          eta_well_func_type);
 
    finalizeCoefficients();
 

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_DIFFUSIONFORCONCINPHASESTRATEGY
 #define included_DIFFUSIONFORCONCINPHASESTRATEGY
 
@@ -50,50 +50,41 @@ using namespace SAMRAI;
 class CompositionStrategyMobilities;
 class FreeEnergyStrategy;
 
-class DiffusionForConcInPhaseStrategy 
-   : public CompositionDiffusionStrategy
+class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
 {
-public:
+ public:
    DiffusionForConcInPhaseStrategy(
-      const unsigned short ncompositions,
-      const int conc_l_scratch_id,
-      const int conc_a_scratch_id,
-      const int conc_b_scratch_id,
-      const int pfm_diffusion_l_id,
-      const int pfm_diffusion_a_id,
-      const int pfm_diffusion_b_id,
-      const int diffusion_coeff_l_id,
-      const int diffusion_coeff_a_id,
-      const int diffusion_coeff_b_id,
-      const std::string& avg_func_type,
-      DiffusionInterpolationType diff_interp_type,
-      CompositionStrategyMobilities* mobilities_strategy,
-      FreeEnergyStrategy* free_energy_strategy);
+       const unsigned short ncompositions, const int conc_l_scratch_id,
+       const int conc_a_scratch_id, const int conc_b_scratch_id,
+       const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
+       const int pfm_diffusion_b_id, const int diffusion_coeff_l_id,
+       const int diffusion_coeff_a_id, const int diffusion_coeff_b_id,
+       const std::string& avg_func_type,
+       DiffusionInterpolationType diff_interp_type,
+       CompositionStrategyMobilities* mobilities_strategy,
+       FreeEnergyStrategy* free_energy_strategy);
 
    ~DiffusionForConcInPhaseStrategy(){};
-   
+
    /*
     * compute actual diffusion in each phase by weighting diffusion coefficients
     * in each phase with phase variable
     */
-   void setDiffusion(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int phase_id,
-      const int eta_id);
+   void setDiffusion(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                     const int temperature_id, const int phase_id,
+                     const int eta_id);
 
    /*
     * Compute diffusion coefficient in each phase
     */
    void setDiffCoeffInEachPhase(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      const int temperature_id,
-      const int eta_scratch_id);
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int temperature_id, const int eta_scratch_id);
 
-private:
-   double average(const double a, const double b)const
+ private:
+   double average(const double a, const double b) const
    {
-      return FORT_AVERAGE_FUNC( a, b, d_avg_func_type.c_str() );
+      return FORT_AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
    }
 
    /*
@@ -101,45 +92,42 @@ private:
     * in each phase
     */
    void setPFMDiffOnPatch(
-      boost::shared_ptr< pdat::CellData<double> > cd_phi,
-      boost::shared_ptr< pdat::CellData<double> > cd_eta,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_a,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_b,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_l,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_a,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_b,
-      const hier::Box& pbox );
+       boost::shared_ptr<pdat::CellData<double> > cd_phi,
+       boost::shared_ptr<pdat::CellData<double> > cd_eta,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_l,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_a,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_b,
+       const hier::Box& pbox);
 
-    void setDiffCoeffInEachPhaseOnPatch(
-      boost::shared_ptr< pdat::CellData<double> > cd_c_l,
-      boost::shared_ptr< pdat::CellData<double> > cd_c_a,
-      boost::shared_ptr< pdat::CellData<double> > cd_c_b,
-      boost::shared_ptr< pdat::CellData<double> > cd_temp,
-      boost::shared_ptr< pdat::CellData<double> > cd_eta,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_l,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_a,
-      boost::shared_ptr< pdat::SideData<double> > sd_d_coeff_b,
-      const hier::Box& pbox );
+   void setDiffCoeffInEachPhaseOnPatch(
+       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
+       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
+       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+       boost::shared_ptr<pdat::CellData<double> > cd_temp,
+       boost::shared_ptr<pdat::CellData<double> > cd_eta,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+       const hier::Box& pbox);
 
-   void computeLocalDiffusionMatrixL(
-      const double temperature,
-      const std::vector<double>& c);
-   void computeLocalDiffusionMatrixA(
-      const double temperature,
-      const std::vector<double>& c);
-   void computeLocalDiffusionMatrixB(
-      const double temperature,
-      const std::vector<double>& c);
+   void computeLocalDiffusionMatrixL(const double temperature,
+                                     const std::vector<double>& c);
+   void computeLocalDiffusionMatrixA(const double temperature,
+                                     const std::vector<double>& c);
+   void computeLocalDiffusionMatrixB(const double temperature,
+                                     const std::vector<double>& c);
 
    bool d_same_composition_for_third_phase;
-   
+
    unsigned short d_ncompositions;
 
    int d_conc_l_scratch_id;
    int d_conc_a_scratch_id;
    int d_conc_b_scratch_id;
-   
+
    /*!
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction
@@ -147,7 +135,7 @@ private:
    int d_pfm_diffusion_l_id;
    int d_pfm_diffusion_a_id;
    int d_pfm_diffusion_b_id;
-   
+
    /*!
     * holds data for diffusion coefficients in each phase
     */
@@ -156,9 +144,9 @@ private:
    int d_diffusion_coeff_b_id;
 
    bool d_with_third_phase;
-   
+
    CompositionStrategyMobilities* d_mobilities_strategy;
-   
+
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
 

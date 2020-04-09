@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,46 +32,36 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_KKSdiluteBinaryConcentrationSolver
 #define included_KKSdiluteBinaryConcentrationSolver
 
 #include "DampedNewtonSolver.h"
 
-class KKSdiluteBinaryConcentrationSolver :
-   public DampedNewtonSolver
+class KKSdiluteBinaryConcentrationSolver : public DampedNewtonSolver
 {
-public :
-
+ public:
    KKSdiluteBinaryConcentrationSolver();
-      
-   ~KKSdiluteBinaryConcentrationSolver() {};
-      
-   int ComputeConcentration(
-      double* const conc,
-      const double c0,
-      const double hphi,
-      const double RTinv,
-      const double fA,
-      const double fB );
-   
-private:
+
+   ~KKSdiluteBinaryConcentrationSolver(){};
+
+   int ComputeConcentration(double* const conc, const double c0,
+                            const double hphi, const double RTinv,
+                            const double fA, const double fB);
+
+ private:
    /*
     * number of coexisting phases
     */
    int d_N;
-   
+
    double d_fA;
    double d_fB;
 
-   void RHS(
-      const double* const x,
-      double* const fvec );
+   void RHS(const double* const x, double* const fvec);
 
-   void Jacobian(
-      const double* const x,
-      double** const fjac );
-   
+   void Jacobian(const double* const x, double** const fjac);
+
    double d_c0;
    double d_hphi;
    double d_heta;

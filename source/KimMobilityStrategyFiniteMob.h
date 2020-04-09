@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -38,38 +38,28 @@
 
 #include "KimMobilityStrategy.h"
 
-class KimMobilityStrategyFiniteMob:
-   public KimMobilityStrategy
+class KimMobilityStrategyFiniteMob : public KimMobilityStrategy
 {
-public:
-
+ public:
    KimMobilityStrategyFiniteMob(
-      QuatModel* quat_model,
-      const int conc_l_id,
-      const int conc_s_id,
-      const int temp_id,
-      const double interface_mobility,
-      const double epsilon,
-      const double phase_well_scale,
-      const EnergyInterpolationType energy_interp_func_type,
-      const ConcInterpolationType conc_interp_func_type,
-      boost::shared_ptr<tbox::Database> conc_db,
-      const unsigned ncompositions);
+       QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
+       const int temp_id, const double interface_mobility, const double epsilon,
+       const double phase_well_scale,
+       const EnergyInterpolationType energy_interp_func_type,
+       const ConcInterpolationType conc_interp_func_type,
+       boost::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions);
 
-private:
-
+ private:
    double evaluateMobility(const double temp,
-      const std::vector<double>&  phaseconc)
+                           const std::vector<double>& phaseconc)
    {
-      (void) temp;
-      (void) phaseconc;
+      (void)temp;
+      (void)phaseconc;
 
-      return 1./d_alpha;
+      return 1. / d_alpha;
    }
 
    double d_alpha;
 };
 
 #endif
-
-

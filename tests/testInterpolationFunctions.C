@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -41,24 +41,24 @@
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-   cout<<"Test interpolation functions..."<<endl;
+   cout << "Test interpolation functions..." << endl;
 
    const double tol = 1.e-8;
 
    {
       std::string interp_func_type = "pbg";
 
-      double val = FORT_INTERP_FUNC( 0.5,  interp_func_type.c_str() );
-      if( fabs( val-0.5 )>tol ){
-         cerr<<"Test failed!"<<endl;
+      double val = FORT_INTERP_FUNC(0.5, interp_func_type.c_str());
+      if (fabs(val - 0.5) > tol) {
+         cerr << "Test failed!" << endl;
          return 1;
       }
 
-      val = FORT_INTERP_FUNC( -0.5,  interp_func_type.c_str() );
-      if( fabs( val-0. )>tol ){
-         cerr<<"Test failed!"<<endl;
+      val = FORT_INTERP_FUNC(-0.5, interp_func_type.c_str());
+      if (fabs(val - 0.) > tol) {
+         cerr << "Test failed!" << endl;
          return 1;
       }
    }
@@ -69,35 +69,32 @@ int main( int argc, char *argv[] )
    {
       std::string interp_func_type1 = "pbg";
       std::string interp_func_type2 = "lin";
-      double phi=0.05;
-      double val1 = FORT_INTERP_RATIO_FUNC( phi, interp_func_type1.c_str(),
-                                                 interp_func_type2.c_str() );
-      double val2 = phi*phi*(10.-15.*phi+6*phi*phi);
-      if( fabs( val1-val2 )>tol ){
-         cerr<<"Test failed!"<<endl;
+      double phi = 0.05;
+      double val1 = FORT_INTERP_RATIO_FUNC(phi, interp_func_type1.c_str(),
+                                           interp_func_type2.c_str());
+      double val2 = phi * phi * (10. - 15. * phi + 6 * phi * phi);
+      if (fabs(val1 - val2) > tol) {
+         cerr << "Test failed!" << endl;
          return 1;
       }
-
    }
 
    {
       std::string interp_func_type1 = "pbg";
       std::string interp_func_type2 = "lin";
-      double phi=0.05;
-      double val1 = FORT_COMPL_INTERP_RATIO_FUNC( phi,
-                                                  interp_func_type1.c_str(),
-                                                  interp_func_type2.c_str() );
-      double a = 1.-FORT_INTERP_FUNC( phi, interp_func_type1.c_str() );
-      double b = 1.-FORT_INTERP_FUNC( phi, interp_func_type2.c_str() );
+      double phi = 0.05;
+      double val1 = FORT_COMPL_INTERP_RATIO_FUNC(phi, interp_func_type1.c_str(),
+                                                 interp_func_type2.c_str());
+      double a = 1. - FORT_INTERP_FUNC(phi, interp_func_type1.c_str());
+      double b = 1. - FORT_INTERP_FUNC(phi, interp_func_type2.c_str());
 
-      if( fabs( val1-(a/b) )>tol ){
-         cerr<<"Test failed!"<<endl;
+      if (fabs(val1 - (a / b)) > tol) {
+         cerr << "Test failed!" << endl;
          return 1;
       }
-
    }
 
-   cout<<"TEST successful!"<<endl;
+   cout << "TEST successful!" << endl;
 
-   return(0);
+   return (0);
 }

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,87 +32,62 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_SimpleQuatGradStrategy
 #define included_SimpleQuatGradStrategy
 
 #include "QuatGradStrategy.h"
 #include "QuatModel.h"
 
-class SimpleQuatGradStrategy:
-   public QuatGradStrategy
+class SimpleQuatGradStrategy : public QuatGradStrategy
 {
-public:
-   SimpleQuatGradStrategy( QuatModel* quat_model );
+ public:
+   SimpleQuatGradStrategy(QuatModel* quat_model);
 
    ~SimpleQuatGradStrategy();
 
-   virtual bool isSymmetryAware( void );
+   virtual bool isSymmetryAware(void);
 
    virtual void computeDiffs(
-      const boost::shared_ptr< hier::PatchLevel > patch_level,
-      int& quat_id,
-      int& diffs_id,
-      const double time );
+       const boost::shared_ptr<hier::PatchLevel> patch_level, int& quat_id,
+       int& diffs_id, const double time);
 
    virtual void computeDiffs(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& quat_id,
-      int& diffs_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
+       int& diffs_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradCell(
-      const boost::shared_ptr< hier::PatchLevel > patch_level,
-      int& diffs_id,
-      int& grad_id,
-      const double time );
+       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       int& grad_id, const double time);
 
    virtual void computeGradCell(
-      const boost::shared_ptr< hier::PatchHierarchy > hierarchy,
-      int& diffs_id,
-      int& grad_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       int& grad_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradSide(
-      const boost::shared_ptr<hier::PatchLevel > patch_level,
-      int& diffs_id,
-      int& grad_id,
-      const double time );
+       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       int& grad_id, const double time);
 
    virtual void computeGradSide(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& diffs_id,
-      int& grad_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       int& grad_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradModulus(
-      const boost::shared_ptr<hier::PatchLevel > patch_level,
-      int& grad_id,
-      int& mod_id,
-      const double time );
+       const boost::shared_ptr<hier::PatchLevel> patch_level, int& grad_id,
+       int& mod_id, const double time);
 
    virtual void computeGradModulus(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& grad_id,
-      int& mod_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
+       int& mod_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradModulusFromSides(
-      const boost::shared_ptr<hier::PatchHierarchy > hierarchy,
-      int& grad_id,
-      int& mod_id,
-      const double time,
-      const CACHE_TYPE cache = CACHE );
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
+       int& mod_id, const double time, const CACHE_TYPE cache = CACHE);
 
-private:
+ private:
    QuatModel* d_quat_model;
 
-   enum QuatModel::CACHE_TYPE translateCacheType(
-      const CACHE_TYPE cache );
+   enum QuatModel::CACHE_TYPE translateCacheType(const CACHE_TYPE cache);
 };
 
 #endif

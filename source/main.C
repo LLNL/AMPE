@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 
 #include "AMPE.h"
 
@@ -40,13 +40,13 @@
 
 using namespace std;
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
    // Initialize MPI
    MPI_Init(&argc, &argv);
 
    {
-      //create main object
+      // create main object
       AMPE ampe(MPI_COMM_WORLD);
 
       /*
@@ -60,20 +60,20 @@ int main( int argc, char *argv[] )
        *    executable <input file name> <restart directory> \
        *               <restart number>
        */
-      if ( (argc != 2) && (argc != 4) ) {
-         cerr << "USAGE:  " << argv[0] << " <input filename> " <<
-            "<restart dir> <restore number> [options]\n" <<
-            "  options:\n" <<
-            "  none at this time" << endl;
+      if ((argc != 2) && (argc != 4)) {
+         cerr << "USAGE:  " << argv[0] << " <input filename> "
+              << "<restart dir> <restore number> [options]\n"
+              << "  options:\n"
+              << "  none at this time" << endl;
          return (-1);
       }
 
       std::string input_filename = argv[1];
-      int restore_num=-1;
-      std::string restart_read_dirname="";
+      int restore_num = -1;
+      std::string restart_read_dirname = "";
       if (argc == 4) {
          restart_read_dirname = argv[2];
-         restore_num = atoi( argv[3] );
+         restore_num = atoi(argv[3]);
       }
 
       ampe.initialize(input_filename, restart_read_dirname, restore_num);
@@ -83,5 +83,5 @@ int main( int argc, char *argv[] )
 
    MPI_Finalize();
 
-   return(0);
+   return (0);
 }

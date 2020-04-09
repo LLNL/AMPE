@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,43 +32,46 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #include "PartitionCoefficientStrategy.h"
 
 void PartitionCoefficientStrategy::evaluate(
-   const boost::shared_ptr< hier::PatchHierarchy > hierarchy)
+    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   assert( d_partition_coeff_id>=0 );
-   
+   assert(d_partition_coeff_id >= 0);
+
    const int maxl = hierarchy->getNumberOfLevels();
 
-   for ( int amr_level = 0; amr_level < maxl; amr_level++ ) {
-      boost::shared_ptr<hier::PatchLevel > level =
-         hierarchy->getPatchLevel( amr_level );
+   for (int amr_level = 0; amr_level < maxl; amr_level++) {
+      boost::shared_ptr<hier::PatchLevel> level =
+          hierarchy->getPatchLevel(amr_level);
 
-      for ( hier::PatchLevel::Iterator p(level->begin()); p!=level->end(); ++p ) {
-         
-         boost::shared_ptr<hier::Patch > patch = *p;
+      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+           ++p) {
 
-         boost::shared_ptr< pdat::CellData<double> > partition_coeff (
-            BOOST_CAST< pdat::CellData<double>, hier::PatchData>(patch->getPatchData( d_partition_coeff_id) ) );
+         boost::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr< pdat::CellData<double> > velocity;
-         if( d_velocity_id>=0 ){
+         boost::shared_ptr<pdat::CellData<double> > partition_coeff(
+             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(d_partition_coeff_id)));
+
+         boost::shared_ptr<pdat::CellData<double> > velocity;
+         if (d_velocity_id >= 0) {
             velocity = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                                   hier::PatchData>(patch->getPatchData( d_velocity_id ));
-            assert( velocity );
+                                                   hier::PatchData>(
+                patch->getPatchData(d_velocity_id));
+            assert(velocity);
          }
 
-         boost::shared_ptr< pdat::CellData<double> > temperature;
-         if( d_temperature_id>=0 ){
+         boost::shared_ptr<pdat::CellData<double> > temperature;
+         if (d_temperature_id >= 0) {
             temperature = boost::dynamic_pointer_cast<pdat::CellData<double>,
-                                                      hier::PatchData>(patch->getPatchData( d_temperature_id ));
-            assert( temperature );
+                                                      hier::PatchData>(
+                patch->getPatchData(d_temperature_id));
+            assert(temperature);
          }
 
          evaluate(*patch, velocity, temperature, partition_coeff);
-
       }
    }
 }

@@ -5,10 +5,10 @@
 // Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
-// This file is part of AMPE. 
+// This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
+// Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 // - Redistributions of source code must retain the above copyright notice,
 //   this list of conditions and the disclaimer below.
@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -32,7 +32,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 #ifndef included_QuatSysSolver_h
 #define included_QuatSysSolver_h
 
@@ -130,8 +130,8 @@ using namespace SAMRAI;
  * as well as through the input database (if supplied).  The following
  * parameters can be set.  Each is shown with its default value
  *
- * max_cycles = 10                         // Maximum number of FAC cycles allowed
- * residual_tol = 1.e-6                    // Desired residual tolerance
+ * max_cycles = 10                         // Maximum number of FAC cycles
+ * allowed residual_tol = 1.e-6                    // Desired residual tolerance
  * coarse_fine_discretization = "Ewing"    // Name of coarse-fine discretization
  * prolongation_method = "CONSTANT_REFINE" // Name of prolongation method
  * levelsolver_tolerance = 1e-8            // Level solver tolerance
@@ -143,8 +143,7 @@ using namespace SAMRAI;
 class QuatSysSolver
 {
 
-public:
-
+ public:
    /*
     * Constructor
     *
@@ -156,11 +155,9 @@ public:
     * object_name:   Name of object used in outputs
     * database:      tbox::Database for initialization (may be NULL)
     */
-   QuatSysSolver(
-      const int qlen,
-      const std::string &object_name,
-      boost::shared_ptr<tbox::Database> database = 
-         boost::shared_ptr<tbox::Database>() );
+   QuatSysSolver(const int qlen, const std::string& object_name,
+                 boost::shared_ptr<tbox::Database> database =
+                     boost::shared_ptr<tbox::Database>());
 
    /*
     * Destructor
@@ -197,15 +194,13 @@ public:
     * l_rhs_id  = right hand side array for the constraint equation
     * hierarchy = patch hierarchy to solve on
     */
-   void initializeSolverState(const int q_soln_id,
-                              const int  q_rhs_id,
-                              const int  weight_id,
-                              boost::shared_ptr< hier::PatchHierarchy > hierarchy);
+   void initializeSolverState(
+       const int q_soln_id, const int q_rhs_id, const int weight_id,
+       boost::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void resetSolverState(const int q_soln_id,
-                         const int  q_rhs_id,
-                         const int  weight_id,
-                         const boost::shared_ptr<hier::PatchHierarchy > hierarchy);
+   void resetSolverState(
+       const int q_soln_id, const int q_rhs_id, const int weight_id,
+       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    /*
     * Remove the solver's internal state data
@@ -261,10 +256,8 @@ public:
     * it can sometimes make the PoissonHYPRESolver class more efficient.
     */
 
-   void setBoundaries(const std::string& boundary_type,
-                      const int fluxes = -1,
-                      const int flags = -1,
-                      int* bdry_types = NULL);
+   void setBoundaries(const std::string& boundary_type, const int fluxes = -1,
+                      const int flags = -1, int* bdry_types = NULL);
 
    /*
     * Override internal implementation to set boundary condition
@@ -285,9 +278,7 @@ public:
     *
     * bc_object: Pointer to boundary condition object
     */
-   void
-   setBcObject(
-      const solv::RobinBcCoefStrategy* bc_object)
+   void setBcObject(const solv::RobinBcCoefStrategy* bc_object)
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (!bc_object) {
@@ -299,26 +290,23 @@ public:
       d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }
 
-   void setOperatorCoefficients(
-      const double time_step, 
-      const double epsilon_q,
-      const double quat_grad_floor,
-      const std::string quat_smooth_floor_type,
-      const int mobility_id,
-      const int mobility_deriv_id,
-      const int diff_coef_id,
-      const int diff_coef_deriv_id,
-      const int grad_q_id, 
-      const int q_id );
+   void setOperatorCoefficients(const double time_step, const double epsilon_q,
+                                const double quat_grad_floor,
+                                const std::string quat_smooth_floor_type,
+                                const int mobility_id,
+                                const int mobility_deriv_id,
+                                const int diff_coef_id,
+                                const int diff_coef_deriv_id,
+                                const int grad_q_id, const int q_id);
 
-   bool solveSystem(const int q_soln_id, const int  q_rhs_id, const int ewt_id);
+   bool solveSystem(const int q_soln_id, const int q_rhs_id, const int ewt_id);
 
-   void evaluateRHS(
-      const double epsilon_q, const double quat_grad_floor, const std::string quat_smooth_floor_type,
-      const int diff_coef_id, const int grad_q_id, const int grad_q_copy_id,
-      const int        rotations_id,
-      const int mobility_id, const int solution_id, int rhs_id,
-      const bool use_gradq_for_flux=false);
+   void evaluateRHS(const double epsilon_q, const double quat_grad_floor,
+                    const std::string quat_smooth_floor_type,
+                    const int diff_coef_id, const int grad_q_id,
+                    const int grad_q_copy_id, const int rotations_id,
+                    const int mobility_id, const int solution_id, int rhs_id,
+                    const bool use_gradq_for_flux = false);
 
    void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id);
 
@@ -407,7 +395,7 @@ public:
     *
     * coarsefine_method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization( const std::string &coarsefine_method )
+   void setCoarseFineDiscretization(const std::string& coarsefine_method)
    {
       d_fac_ops->setCoarseFineDiscretization(coarsefine_method);
    }
@@ -428,9 +416,10 @@ public:
     * coefficients for non-hierarchy data, because linear refinement
     * requires boundary conditions to be set on temporary levels.
     *
-    * prolongation_method: String selecting the coarse-fine discretization method.
+    * prolongation_method: String selecting the coarse-fine discretization
+    * method.
     */
-   void setProlongationMethod(const std::string & prolongation_method)
+   void setProlongationMethod(const std::string& prolongation_method)
    {
       d_fac_ops->setProlongationMethod(prolongation_method);
    }
@@ -471,7 +460,7 @@ public:
     * avg_factor:   Average convergence factor over current FAC cycles
     * final_factor: Convergence factor of the last FAC cycle
     */
-   void getFACConvergenceFactors(double& avg_factor, double& final_factor)const
+   void getFACConvergenceFactors(double& avg_factor, double& final_factor) const
    {
       d_fac_solver.getConvergenceFactors(avg_factor, final_factor);
    }
@@ -485,10 +474,7 @@ public:
     *
     * The latest computed norm is the one returned.
     */
-   double getResidualNorm() const
-   {
-      return d_fac_solver.getResidualNorm();
-   }
+   double getResidualNorm() const { return d_fac_solver.getResidualNorm(); }
 
    /*
     * Print solver data
@@ -497,17 +483,13 @@ public:
     */
    void printFACConvergenceFactors(const int solver_ret);
 
-   int getFaceDiffCoeffId()
-   {
-      return d_fac_ops->getFaceDiffCoeffId();
-   }
+   int getFaceDiffCoeffId() { return d_fac_ops->getFaceDiffCoeffId(); }
    int getFaceDiffCoeffScratchId()
    {
       return d_fac_ops->getFaceDiffCoeffScratchId();
    }
-  
-private:
 
+ private:
    /*
     * Read parameters from the database
     *
@@ -524,17 +506,16 @@ private:
     * specified by patch data indices.
     */
    void createVectorWrappers(
-      int q_u, int q_f,
-      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
+       int q_u, int q_f, boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
 
    /*
     * Destroy the vector wrappers referenced to by d_uv and d_fv.
     */
    void destroyVectorWrappers(
-      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & uv,
-      boost::shared_ptr<solv::SAMRAIVectorReal<double> > & fv);
-  
+       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
+
    /*
     * Object name.
     */
@@ -558,7 +539,7 @@ private:
    /*
     * Robin bc object in use.
     */
-   const solv::RobinBcCoefStrategy * d_bc_object;
+   const solv::RobinBcCoefStrategy* d_bc_object;
 
    /*
     * Default implementation of RobinBcCoefStrategy
@@ -568,7 +549,7 @@ private:
    /*
     * Hierarchy and min and max levels
     */
-   boost::shared_ptr< hier::PatchHierarchy > d_hierarchy;
+   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
    int d_ln_min;
    int d_ln_max;
 
@@ -622,7 +603,6 @@ private:
     * Maximum number of iterations for the FAC preconditioner iteration
     */
    int d_precond_maxiters;
-
 };
 
 #endif  // included_QuatSysSolver_h

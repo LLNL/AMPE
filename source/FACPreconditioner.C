@@ -27,29 +27,29 @@ using namespace std;
  */
 
 FACPreconditioner::FACPreconditioner(
-   const std::string& name,
-   boost::shared_ptr<solv::FACOperatorStrategy> user_ops,
-   const boost::shared_ptr<tbox::Database>& input_db):
-   d_object_name(name),
-   d_fac_operator(user_ops),
-   d_coarsest_ln(0),
-   d_finest_ln(0),
-   d_max_iterations(10),
-   d_residual_tolerance(1.0e-6),
-   d_relative_residual_tolerance(-1.0),
-   d_presmoothing_sweeps(1),
-   d_postsmoothing_sweeps(1),
-   d_algorithm_choice("default"),
-   d_number_iterations(0),
-   d_residual_norm(tbox::MathUtilities<double>::getMax()),
-   d_convergence_factor(),
-   d_avg_convergence_factor(tbox::MathUtilities<double>::getMax()),
-   d_net_convergence_factor(tbox::MathUtilities<double>::getMax()),
-   d_controlled_level_ops()
+    const std::string& name,
+    boost::shared_ptr<solv::FACOperatorStrategy> user_ops,
+    const boost::shared_ptr<tbox::Database>& input_db)
+    : d_object_name(name),
+      d_fac_operator(user_ops),
+      d_coarsest_ln(0),
+      d_finest_ln(0),
+      d_max_iterations(10),
+      d_residual_tolerance(1.0e-6),
+      d_relative_residual_tolerance(-1.0),
+      d_presmoothing_sweeps(1),
+      d_postsmoothing_sweeps(1),
+      d_algorithm_choice("default"),
+      d_number_iterations(0),
+      d_residual_norm(tbox::MathUtilities<double>::getMax()),
+      d_convergence_factor(),
+      d_avg_convergence_factor(tbox::MathUtilities<double>::getMax()),
+      d_net_convergence_factor(tbox::MathUtilities<double>::getMax()),
+      d_controlled_level_ops()
 {
 
-   t_solve_system = tbox::TimerManager::getManager()->
-      getTimer("AMPE::FACPreconditioner::solveSystem()_fac_cycling");
+   t_solve_system = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::FACPreconditioner::solveSystem()_fac_cycling");
 
    /*
     * Initialize object with data read from input database.
@@ -65,10 +65,7 @@ FACPreconditioner::FACPreconditioner(
  *************************************************************************
  */
 
-FACPreconditioner::~FACPreconditioner()
-{
-   deallocateSolverState();
-}
+FACPreconditioner::~FACPreconditioner() { deallocateSolverState(); }
 
 /*
  ********************************************************************
@@ -76,9 +73,8 @@ FACPreconditioner::~FACPreconditioner()
  ********************************************************************
  */
 
-void
-FACPreconditioner::getFromInput(
-   const boost::shared_ptr<tbox::Database>& input_db)
+void FACPreconditioner::getFromInput(
+    const boost::shared_ptr<tbox::Database>& input_db)
 {
    if (input_db) {
       d_max_iterations = input_db->getIntegerWithDefault("max_cycles", 10);
@@ -87,26 +83,26 @@ FACPreconditioner::getFromInput(
       }
 
       d_residual_tolerance =
-         input_db->getDoubleWithDefault("residual_tol", 1.0e-6);
+          input_db->getDoubleWithDefault("residual_tol", 1.0e-6);
       if (!(d_residual_tolerance > 0.0)) {
          INPUT_RANGE_ERROR("residual_tol");
       }
 
       d_relative_residual_tolerance =
-         input_db->getDoubleWithDefault("relative_residual_tol", -1.0);
+          input_db->getDoubleWithDefault("relative_residual_tol", -1.0);
       if (!(d_relative_residual_tolerance > 0.0 ||
             d_relative_residual_tolerance == -1)) {
          INPUT_RANGE_ERROR("relative_residual_tol");
       }
 
       d_presmoothing_sweeps =
-         input_db->getIntegerWithDefault("num_pre_sweeps", 1);
+          input_db->getIntegerWithDefault("num_pre_sweeps", 1);
       if (!(d_presmoothing_sweeps >= 0)) {
          INPUT_RANGE_ERROR("num_pre_sweeps");
       }
 
       d_postsmoothing_sweeps =
-         input_db->getIntegerWithDefault("num_post_sweeps", 1);
+          input_db->getIntegerWithDefault("num_post_sweeps", 1);
       if (!(d_postsmoothing_sweeps >= 0)) {
          INPUT_RANGE_ERROR("num_post_sweeps");
       }
@@ -120,8 +116,7 @@ FACPreconditioner::getFromInput(
  *
  *************************************************************************
  */
-void
-FACPreconditioner::deallocateSolverState()
+void FACPreconditioner::deallocateSolverState()
 {
    /*
     * Delete hierarchy-dependent state data.
@@ -154,10 +149,9 @@ FACPreconditioner::deallocateSolverState()
    }
 }
 
-void
-FACPreconditioner::initializeSolverState(
-   const solv::SAMRAIVectorReal<double>& solution,
-   const solv::SAMRAIVectorReal<double>& rhs)
+void FACPreconditioner::initializeSolverState(
+    const solv::SAMRAIVectorReal<double>& solution,
+    const solv::SAMRAIVectorReal<double>& rhs)
 {
    /*
     * First get rid of current data.
@@ -187,15 +181,13 @@ FACPreconditioner::initializeSolverState(
     * of components in the solution vector.
     */
    math::HierarchyDataOpsManager* ops_manager =
-      math::HierarchyDataOpsManager::getManager();
+       math::HierarchyDataOpsManager::getManager();
    int num_components = solution.getNumberOfComponents();
    d_controlled_level_ops.resize(num_components);
    for (int i = 0; i < num_components; ++i) {
       d_controlled_level_ops[i] =
-         ops_manager->getOperationsDouble(
-            solution.getComponentVariable(i),
-            d_patch_hierarchy,
-            true);
+          ops_manager->getOperationsDouble(solution.getComponentVariable(i),
+                                           d_patch_hierarchy, true);
       /*
        * Note: the variable used above is only for the purpose of determining
        * the variable alignment on the grid.  It is not specific to any
@@ -220,45 +212,44 @@ FACPreconditioner::initializeSolverState(
    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln) {
       if (!d_patch_hierarchy->getPatchLevel(ln)) {
          TBOX_ERROR("FACPreconditioner::initializeSolverState error ..."
-            << "\n   object name = " << d_object_name
-            << "\n   hierarchy level " << ln
-            << " does not exist" << std::endl);
+                    << "\n   object name = " << d_object_name
+                    << "\n   hierarchy level " << ln << " does not exist"
+                    << std::endl);
       }
    }
    d_fac_operator->initializeOperatorState(solution, rhs);
 }
 
-bool
-FACPreconditioner::checkVectorStateCompatibility(
-   const solv::SAMRAIVectorReal<double>& solution,
-   const solv::SAMRAIVectorReal<double>& rhs) const
+bool FACPreconditioner::checkVectorStateCompatibility(
+    const solv::SAMRAIVectorReal<double>& solution,
+    const solv::SAMRAIVectorReal<double>& rhs) const
 {
    /*
     * It is an error when the state is not initialized.
     */
    if (!d_patch_hierarchy) {
-      TBOX_ERROR(
-         d_object_name << ": cannot check vector-state\n"
-                       << "compatibility when the state is uninitialized.\n");
+      TBOX_ERROR(d_object_name << ": cannot check vector-state\n"
+                               << "compatibility when the state is "
+                                  "uninitialized.\n");
    }
    bool rvalue = true;
    const solv::SAMRAIVectorReal<double>& error = *d_error_vector;
-   if (solution.getPatchHierarchy() != d_patch_hierarchy
-       || rhs.getPatchHierarchy() != d_patch_hierarchy) {
+   if (solution.getPatchHierarchy() != d_patch_hierarchy ||
+       rhs.getPatchHierarchy() != d_patch_hierarchy) {
       rvalue = false;
    }
    if (rvalue == true) {
-      if (solution.getCoarsestLevelNumber() != d_coarsest_ln
-          || rhs.getCoarsestLevelNumber() != d_coarsest_ln
-          || solution.getFinestLevelNumber() != d_finest_ln
-          || rhs.getFinestLevelNumber() != d_finest_ln) {
+      if (solution.getCoarsestLevelNumber() != d_coarsest_ln ||
+          rhs.getCoarsestLevelNumber() != d_coarsest_ln ||
+          solution.getFinestLevelNumber() != d_finest_ln ||
+          rhs.getFinestLevelNumber() != d_finest_ln) {
          rvalue = false;
       }
    }
    if (rvalue == true) {
       const int ncomp = error.getNumberOfComponents();
-      if (solution.getNumberOfComponents() != ncomp
-          || rhs.getNumberOfComponents() != ncomp) {
+      if (solution.getNumberOfComponents() != ncomp ||
+          rhs.getNumberOfComponents() != ncomp) {
          rvalue = false;
       }
    }
@@ -273,10 +264,8 @@ FACPreconditioner::checkVectorStateCompatibility(
  *************************************************************************
  */
 
-bool
-FACPreconditioner::solveSystem(
-   solv::SAMRAIVectorReal<double>& u,
-   solv::SAMRAIVectorReal<double>& f)
+bool FACPreconditioner::solveSystem(solv::SAMRAIVectorReal<double>& u,
+                                    solv::SAMRAIVectorReal<double>& f)
 {
 
    d_residual_norm = tbox::MathUtilities<double>::getSignalingNaN();
@@ -307,9 +296,7 @@ FACPreconditioner::solveSystem(
    d_residual_vector->setToScalar(0.0);
 
    const double initial_residual_norm = d_residual_norm =
-         computeFullCompositeResidual(*d_residual_vector,
-            u,
-            f);
+       computeFullCompositeResidual(*d_residual_vector, u, f);
    /*
     * Above step has the side effect of filling the residual
     * vector d_residual_vector.
@@ -317,12 +304,11 @@ FACPreconditioner::solveSystem(
 
    double effective_residual_tolerance = d_residual_tolerance;
    if (d_relative_residual_tolerance >= 0) {
-      double tmp = d_fac_operator->computeResidualNorm(f,
-            d_finest_ln,
-            d_coarsest_ln);
+      double tmp =
+          d_fac_operator->computeResidualNorm(f, d_finest_ln, d_coarsest_ln);
       tmp *= d_relative_residual_tolerance;
-      if (effective_residual_tolerance < tmp) effective_residual_tolerance =
-            tmp;
+      if (effective_residual_tolerance < tmp)
+         effective_residual_tolerance = tmp;
    }
 
    if (static_cast<int>(d_convergence_factor.size()) < d_max_iterations)
@@ -350,25 +336,14 @@ FACPreconditioner::solveSystem(
        * exists.  BTNG.
        */
       if (d_algorithm_choice == "default") {
-         facCycle_Recursive(*d_error_vector,
-            *d_residual_vector,
-            u,
-            d_finest_ln,
-            d_coarsest_ln,
-            d_finest_ln);
+         facCycle_Recursive(*d_error_vector, *d_residual_vector, u, d_finest_ln,
+                            d_coarsest_ln, d_finest_ln);
       } else if (d_algorithm_choice == "mccormick-s4.3") {
-         facCycle_McCormick(*d_error_vector,
-            *d_residual_vector,
-            u,
-            d_finest_ln,
-            d_coarsest_ln,
-            d_finest_ln);
+         facCycle_McCormick(*d_error_vector, *d_residual_vector, u, d_finest_ln,
+                            d_coarsest_ln, d_finest_ln);
       } else if (d_algorithm_choice == "pernice") {
-         facCycle(*d_error_vector,
-            *d_residual_vector,
-            u,
-            d_finest_ln,
-            d_coarsest_ln);
+         facCycle(*d_error_vector, *d_residual_vector, u, d_finest_ln,
+                  d_coarsest_ln);
       }
 
       int i, num_components = d_error_vector->getNumberOfComponents();
@@ -379,9 +354,7 @@ FACPreconditioner::solveSystem(
          int soln_id = u.getComponentDescriptorIndex(i);
          int err_id = d_error_vector->getComponentDescriptorIndex(i);
          d_controlled_level_ops[i]->resetLevels(d_coarsest_ln, d_finest_ln);
-         d_controlled_level_ops[i]->add(soln_id,
-            soln_id,
-            err_id);
+         d_controlled_level_ops[i]->add(soln_id, soln_id, err_id);
       }
 
       /*
@@ -389,9 +362,7 @@ FACPreconditioner::solveSystem(
        * more accurate fine-level solutions.
        */
       for (int ln = d_finest_ln - 1; ln >= d_coarsest_ln; --ln) {
-         d_fac_operator->restrictSolution(u,
-            u,
-            ln);
+         d_fac_operator->restrictSolution(u, u, ln);
       }
 
       /*
@@ -403,17 +374,15 @@ FACPreconditioner::solveSystem(
        *    residual norms.
        */
       d_convergence_factor[d_number_iterations] = d_residual_norm;
-      d_residual_norm = computeFullCompositeResidual(*d_residual_vector,
-            u,
-            f);
+      d_residual_norm = computeFullCompositeResidual(*d_residual_vector, u, f);
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
-#pragma warning (disable:1572)
+#pragma warning(disable : 1572)
 #endif
       if (d_convergence_factor[d_number_iterations] != 0) {
          d_convergence_factor[d_number_iterations] =
-            d_residual_norm / d_convergence_factor[d_number_iterations];
+             d_residual_norm / d_convergence_factor[d_number_iterations];
       } else {
          d_convergence_factor[d_number_iterations] = 0;
       }
@@ -429,28 +398,27 @@ FACPreconditioner::solveSystem(
        * Compute the convergence factors because they may be accessed
        * from the operator's postprocessOneCycle function.
        */
-      d_net_convergence_factor = d_residual_norm
-         / (initial_residual_norm + 1e-20);
-      d_avg_convergence_factor = pow(d_net_convergence_factor,
-            1.0 / d_number_iterations);
+      d_net_convergence_factor =
+          d_residual_norm / (initial_residual_norm + 1e-20);
+      d_avg_convergence_factor =
+          pow(d_net_convergence_factor, 1.0 / d_number_iterations);
 
-      d_fac_operator->postprocessOneCycle(d_number_iterations - 1,
-         u,
-         *d_residual_vector);
+      d_fac_operator->postprocessOneCycle(d_number_iterations - 1, u,
+                                          *d_residual_vector);
 
-   } while ((d_residual_norm > effective_residual_tolerance)
-            && (d_number_iterations < d_max_iterations));
+   } while ((d_residual_norm > effective_residual_tolerance) &&
+            (d_number_iterations < d_max_iterations));
 
    t_solve_system->stop();
 
    if (clear_hierarchy_configuration_when_done) {
       deallocateSolverState();
    }
-   //tbox::plog<<"FACPreconditioner::solveSystem, d_residual_norm="<<d_residual_norm
+   // tbox::plog<<"FACPreconditioner::solveSystem,
+   // d_residual_norm="<<d_residual_norm
    //          <<", effective_residual_tolerance="<<effective_residual_tolerance
    //          <<endl;
    return d_residual_norm < effective_residual_tolerance;
-
 }
 
 /*
@@ -460,14 +428,10 @@ FACPreconditioner::solveSystem(
  *
  *************************************************************************
  */
-void
-FACPreconditioner::facCycle_Recursive(
-   solv::SAMRAIVectorReal<double>& e,
-   solv::SAMRAIVectorReal<double>& r,
-   solv::SAMRAIVectorReal<double>& u,
-   int lmax,
-   int lmin,
-   int ln)
+void FACPreconditioner::facCycle_Recursive(solv::SAMRAIVectorReal<double>& e,
+                                           solv::SAMRAIVectorReal<double>& r,
+                                           solv::SAMRAIVectorReal<double>& u,
+                                           int lmax, int lmin, int ln)
 {
 
    /*
@@ -483,39 +447,19 @@ FACPreconditioner::facCycle_Recursive(
 
    /* Step 1. */
    if (ln == lmin) {
-      d_fac_operator->solveCoarsestLevel(e,
-         r,
-         ln);
+      d_fac_operator->solveCoarsestLevel(e, r, ln);
    } else {
 
       /* Step 2. */
-      d_fac_operator->smoothError(e,
-         r,
-         ln,
-         d_presmoothing_sweeps);
+      d_fac_operator->smoothError(e, r, ln, d_presmoothing_sweeps);
       /* Step 3. */
-      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual,
-         e,
-         r,
-         ln,
-         true);
-      d_fac_operator->restrictResidual(*d_tmp_residual,
-         r,
-         ln - 1);
-      facCycle_Recursive(e,
-         r,
-         u,
-         lmax,
-         lmin,
-         ln - 1);
-      d_fac_operator->prolongErrorAndCorrect(e,
-         e,
-         ln);
+      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual, e, r, ln,
+                                                      true);
+      d_fac_operator->restrictResidual(*d_tmp_residual, r, ln - 1);
+      facCycle_Recursive(e, r, u, lmax, lmin, ln - 1);
+      d_fac_operator->prolongErrorAndCorrect(e, e, ln);
       /* Step 4. */
-      d_fac_operator->smoothError(e,
-         r,
-         ln,
-         d_postsmoothing_sweeps);
+      d_fac_operator->smoothError(e, r, ln, d_postsmoothing_sweeps);
    }
 }
 
@@ -529,14 +473,10 @@ FACPreconditioner::facCycle_Recursive(
  *************************************************************************
  */
 
-void
-FACPreconditioner::facCycle_McCormick(
-   solv::SAMRAIVectorReal<double>& e,
-   solv::SAMRAIVectorReal<double>& r,
-   solv::SAMRAIVectorReal<double>& u,
-   int lmax,
-   int lmin,
-   int ln)
+void FACPreconditioner::facCycle_McCormick(solv::SAMRAIVectorReal<double>& e,
+                                           solv::SAMRAIVectorReal<double>& r,
+                                           solv::SAMRAIVectorReal<double>& u,
+                                           int lmax, int lmin, int ln)
 {
 
    /*
@@ -556,9 +496,7 @@ FACPreconditioner::facCycle_McCormick(
       /*
        * Solve coarsest level.
        */
-      d_fac_operator->solveCoarsestLevel(e,
-         r,
-         ln);
+      d_fac_operator->solveCoarsestLevel(e, r, ln);
    } else {
 
       int i, num_components = e.getNumberOfComponents();
@@ -566,108 +504,74 @@ FACPreconditioner::facCycle_McCormick(
       /*
        * Step 2a.
        */
-      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual,
-         e,
-         r,
-         ln,
-         true);
+      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual, e, r, ln,
+                                                      true);
       for (i = 0; i < num_components; ++i) {
          int tmp_id = d_tmp_error->getComponentDescriptorIndex(i);
-         d_controlled_level_ops[i]->resetLevels(ln,
-            ln);
-         d_controlled_level_ops[i]->setToScalar(tmp_id,
-            0.0);
+         d_controlled_level_ops[i]->resetLevels(ln, ln);
+         d_controlled_level_ops[i]->setToScalar(tmp_id, 0.0);
       }
       /*
        * Step 2b.
        */
-      d_fac_operator->smoothError(*d_tmp_error,
-         *d_tmp_residual,
-         ln,
-         d_presmoothing_sweeps);
+      d_fac_operator->smoothError(*d_tmp_error, *d_tmp_residual, ln,
+                                  d_presmoothing_sweeps);
       /*
        * Step 2c.
        */
       for (i = 0; i < num_components; ++i) {
          int tmp_id = d_tmp_error->getComponentDescriptorIndex(i);
          int id = e.getComponentDescriptorIndex(i);
-         d_controlled_level_ops[i]->resetLevels(ln,
-            ln);
-         d_controlled_level_ops[i]->add(id,
-            id,
-            tmp_id);
+         d_controlled_level_ops[i]->resetLevels(ln, ln);
+         d_controlled_level_ops[i]->add(id, id, tmp_id);
       }
       /*
        * Step 3a.
        */
-      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual,
-         e,
-         r,
-         ln,
-         true);
-      d_fac_operator->restrictResidual(*d_tmp_residual,
-         *d_tmp_residual,
-         ln - 1);
+      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual, e, r, ln,
+                                                      true);
+      d_fac_operator->restrictResidual(*d_tmp_residual, *d_tmp_residual,
+                                       ln - 1);
       /*
        * Step 3b.
        */
       for (i = 0; i < num_components; ++i) {
          int tmp_id = e.getComponentDescriptorIndex(i);
-         d_controlled_level_ops[i]->resetLevels(ln - 1,
-            ln - 1);
-         d_controlled_level_ops[i]->setToScalar(tmp_id,
-            0.0);
+         d_controlled_level_ops[i]->resetLevels(ln - 1, ln - 1);
+         d_controlled_level_ops[i]->setToScalar(tmp_id, 0.0);
       }
       /*
        * Step 3c.
        */
-      facCycle_McCormick(e,
-         r,
-         u,
-         lmax,
-         lmin,
-         ln - 1);
+      facCycle_McCormick(e, r, u, lmax, lmin, ln - 1);
       /*
        * Step 3d.
        */
-      d_fac_operator->prolongErrorAndCorrect(e,
-         e,
-         ln);
+      d_fac_operator->prolongErrorAndCorrect(e, e, ln);
       /*
        * Step 4a.
        */
-      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual,
-         e,
-         r,
-         ln,
-         true);
+      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual, e, r, ln,
+                                                      true);
       for (i = 0; i < num_components; ++i) {
          int tmp_id = d_tmp_error->getComponentDescriptorIndex(i);
-         d_controlled_level_ops[i]->resetLevels(ln,
-            ln);
-         d_controlled_level_ops[i]->setToScalar(tmp_id,
-            0.0);
+         d_controlled_level_ops[i]->resetLevels(ln, ln);
+         d_controlled_level_ops[i]->setToScalar(tmp_id, 0.0);
       }
       /*
        * Step 4b.
        */
-      d_fac_operator->smoothError(*d_tmp_error,
-         *d_tmp_residual,
-         ln,
-         d_postsmoothing_sweeps);
+      d_fac_operator->smoothError(*d_tmp_error, *d_tmp_residual, ln,
+                                  d_postsmoothing_sweeps);
       /*
        * Step 4c.
        */
       for (i = 0; i < num_components; ++i) {
          int tmp_id = d_tmp_error->getComponentDescriptorIndex(i);
          int id = e.getComponentDescriptorIndex(i);
-         d_controlled_level_ops[i]->resetLevels(ln,
-            ln);
-         d_controlled_level_ops[i]->add(id,
-            id,
-            tmp_id);
+         d_controlled_level_ops[i]->resetLevels(ln, ln);
+         d_controlled_level_ops[i]->add(id, id, tmp_id);
       }
-
    }
 }
 
@@ -680,13 +584,10 @@ FACPreconditioner::facCycle_McCormick(
  *
  *************************************************************************
  */
-void
-FACPreconditioner::facCycle(
-   solv::SAMRAIVectorReal<double>& e,
-   solv::SAMRAIVectorReal<double>& r,
-   solv::SAMRAIVectorReal<double>& u,
-   int lmax,
-   int lmin)
+void FACPreconditioner::facCycle(solv::SAMRAIVectorReal<double>& e,
+                                 solv::SAMRAIVectorReal<double>& r,
+                                 solv::SAMRAIVectorReal<double>& u, int lmax,
+                                 int lmin)
 {
 
    NULL_USE(u);
@@ -700,29 +601,21 @@ FACPreconditioner::facCycle(
       /*
        * Presmoothing.
        */
-      d_fac_operator->smoothError(e,
-         r,
-         ln,
-         d_presmoothing_sweeps);
+      d_fac_operator->smoothError(e, r, ln, d_presmoothing_sweeps);
       /*
        * Compute residual to see how much correction is still needed:
        * d_tmp_residual <- r - A e
        */
-      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual,
-         e,
-         r,
-         ln,
-         true);
+      d_fac_operator->computeCompositeResidualOnLevel(*d_tmp_residual, e, r, ln,
+                                                      true);
       /*
        * Change the residual on the part of the next coarser level
        * below this level, so that the solve on the next coarser
        * level really solves for the correction for this level
        * where they overlap.
        */
-      d_fac_operator->restrictResidual(*d_tmp_residual,
-         r,
-         ln - 1);
-   }    // End V-cycle descent.
+      d_fac_operator->restrictResidual(*d_tmp_residual, r, ln - 1);
+   }  // End V-cycle descent.
 
    /*
     * V-cycle ascent.
@@ -736,16 +629,12 @@ FACPreconditioner::facCycle(
          /*
           * Solve coarsest level.
           */
-         d_fac_operator->solveCoarsestLevel(e,
-            r,
-            ln);
+         d_fac_operator->solveCoarsestLevel(e, r, ln);
       } else {
          /*
           * Apply the coarse level correction to this level.
           */
-         d_fac_operator->prolongErrorAndCorrect(e,
-            e,
-            ln);
+         d_fac_operator->prolongErrorAndCorrect(e, e, ln);
 
          /*
           * Postsmoothing on the error,
@@ -754,14 +643,10 @@ FACPreconditioner::facCycle(
          /*
           * Postsmoothing.
           */
-         d_fac_operator->smoothError(e,
-            r,
-            ln,
-            d_postsmoothing_sweeps);
-
+         d_fac_operator->smoothError(e, r, ln, d_postsmoothing_sweeps);
       }
 
-   }    // End V-cycle ascent.
+   }  // End V-cycle ascent.
 }
 
 /*
@@ -773,46 +658,28 @@ FACPreconditioner::facCycle(
  *************************************************************************
  */
 
-double
-FACPreconditioner::computeFullCompositeResidual(
-   solv::SAMRAIVectorReal<double>& r,
-   solv::SAMRAIVectorReal<double>& u,
-   solv::SAMRAIVectorReal<double>& f)
+double FACPreconditioner::computeFullCompositeResidual(
+    solv::SAMRAIVectorReal<double>& r, solv::SAMRAIVectorReal<double>& u,
+    solv::SAMRAIVectorReal<double>& f)
 {
 
-   d_fac_operator->computeCompositeResidualOnLevel
-      (r,
-      u,
-      f,
-      d_finest_ln,
-      false);
+   d_fac_operator->computeCompositeResidualOnLevel(r, u, f, d_finest_ln, false);
 
    for (int ln = d_finest_ln - 1; ln >= d_coarsest_ln; --ln) {
 
       // Bring down more accurate solution from finer level.
       d_fac_operator->restrictSolution(u, u, ln);
 
-      d_fac_operator->computeCompositeResidualOnLevel
-         (r,
-         u,
-         f,
-         ln,
-         false);
+      d_fac_operator->computeCompositeResidualOnLevel(r, u, f, ln, false);
 
       // Bring down more accurate residual from finer level.
-      d_fac_operator->restrictResidual(r,
-         r,
-         ln);
-
+      d_fac_operator->restrictResidual(r, r, ln);
    }
 
    double residual_norm =
-      d_fac_operator->computeResidualNorm(r,
-         d_finest_ln,
-         d_coarsest_ln);
+       d_fac_operator->computeResidualNorm(r, d_finest_ln, d_coarsest_ln);
 
    return residual_norm;
-
 }
 
 /*
@@ -822,11 +689,10 @@ FACPreconditioner::computeFullCompositeResidual(
  *
  *************************************************************************
  */
-void
-FACPreconditioner::printClassData(
-   std::ostream& os) const {
+void FACPreconditioner::printClassData(std::ostream& os) const
+{
    os << "printing FACPreconditioner data...\n"
-      << "FACPreconditioner: this = " << (FACPreconditioner *)this << "\n"
+      << "FACPreconditioner: this = " << (FACPreconditioner*)this << "\n"
       << "d_object_name = " << d_object_name << "\n"
       << "d_coarsest_ln = " << d_coarsest_ln << "\n"
       << "d_finest_ln = " << d_finest_ln << "\n"
@@ -839,31 +705,23 @@ FACPreconditioner::printClassData(
       << "d_number_iterations = " << d_number_iterations << "\n"
       << "d_residual_norm = " << d_residual_norm << "\n"
       << std::endl;
-
 }
 
-void
-FACPreconditioner::setAlgorithmChoice(
-   const std::string& choice)
+void FACPreconditioner::setAlgorithmChoice(const std::string& choice)
 {
    /* This ptr_function helps resolve to the correct tolower method */
-   int (* ptr_function)(
-      int) = std::tolower;
+   int (*ptr_function)(int) = std::tolower;
    std::string lower = choice;
-   std::transform(lower.begin(),
-      lower.end(),
-      lower.begin(),
-      ptr_function);
+   std::transform(lower.begin(), lower.end(), lower.begin(), ptr_function);
 #ifdef DEBUG_CHECK_ASSERTIONS
-   if (lower != "default"               /* Recursive from BTNG */
-       && lower != "mccormick-s4.3"     /* McCormick's section 4.3 */
-       && lower != "pernice"            /* Translation of Pernice's */
-       ) {
-      TBOX_ERROR(
-         d_object_name << ": algorithm should be set to one of\n"
-                       << "'default' (recommended), 'mccormick-s4.3' or 'pernice'\n");
+   if (lower != "default"           /* Recursive from BTNG */
+       && lower != "mccormick-s4.3" /* McCormick's section 4.3 */
+       && lower != "pernice"        /* Translation of Pernice's */
+   ) {
+      TBOX_ERROR(d_object_name << ": algorithm should be set to one of\n"
+                               << "'default' (recommended), 'mccormick-s4.3' "
+                                  "or 'pernice'\n");
    }
 #endif
    d_algorithm_choice = lower;
 }
-

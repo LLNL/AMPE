@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -44,32 +44,29 @@ class PFModel;
 
 class AMPE
 {
-public:
+ public:
    AMPE(MPI_Comm comm);
 
    ~AMPE();
 
-   std::string gitCommitID()const
+   std::string gitCommitID() const
    {
-      #define xstr2(x) #x
-      #define xstr(x) xstr2(x)
+#define xstr2(x) #x
+#define xstr(x) xstr2(x)
 
       return xstr(GITVERSION);
    }
 
    void initialize(const std::string input_filename,
-                   const std::string restart_read_dirname="",
-                   const int restore_num=-1);
+                   const std::string restart_read_dirname = "",
+                   const int restore_num = -1);
 
    void run();
 
-private:
-
+ private:
    PFModel* d_pfm;
 
    SAMRAI::tbox::TimerManager* d_time_man;
 };
 
 #endif
-
-

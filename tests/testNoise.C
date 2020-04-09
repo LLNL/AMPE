@@ -23,7 +23,7 @@
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 // ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
+// LLC, UT BATTELLE, LLC,
 // THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
 // DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 // DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
@@ -41,73 +41,74 @@
 using namespace std;
 
 
-int main( int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
-   cout<<"Test noise generation."<<endl;
+   cout << "Test noise generation." << endl;
 
-   //1st test
+   // 1st test
    {
-   cout<<"Normal distributed noise..."<<endl;
-   NormalNoise& noise(*(NormalNoise::instance()));
+      cout << "Normal distributed noise..." << endl;
+      NormalNoise& noise(*(NormalNoise::instance()));
 
-   int ntotal=1000;
-   int count=0;
-   double avg=0.;
-   for(int i=0;i<ntotal;i++){
-      double val=noise.gen();
-      //cout<<val<<endl;
-      if( fabs(val)<=1. )count++;
-      avg+=val;
+      int ntotal = 1000;
+      int count = 0;
+      double avg = 0.;
+      for (int i = 0; i < ntotal; i++) {
+         double val = noise.gen();
+         // cout<<val<<endl;
+         if (fabs(val) <= 1.) count++;
+         avg += val;
+      }
+      avg /= (double)ntotal;
+
+      cout << count << " out of " << ntotal << " values are between -1 and 1."
+           << endl;
+      cout << "Average value is " << avg << endl;
+
+      // 68% of values should be between -1 and 1
+      if ((double)count > 0.71 * (double)ntotal ||
+          (double)count < 0.65 * (double)ntotal) {
+         cerr << "TEST NormalNoise failed!!!" << endl;
+         return 1;
+      }
+
+      if (fabs(avg) > 0.04) {
+         cerr << "TEST average NormalNoise failed!!!" << endl;
+         return 1;
+      }
    }
-   avg/=(double)ntotal;
 
-   cout<<count<<" out of "<<ntotal<<" values are between -1 and 1."<<endl;
-   cout<<"Average value is "<<avg<<endl;
-
-   // 68% of values should be between -1 and 1
-   if( (double)count>0.71*(double)ntotal
-    || (double)count<0.65*(double)ntotal ){
-      cerr<<"TEST NormalNoise failed!!!"<<endl;
-      return 1;
-   }
-
-   if( fabs(avg)>0.04 ){
-      cerr<<"TEST average NormalNoise failed!!!"<<endl;
-      return 1;
-   }
-   }
-
-   //2nd test
+   // 2nd test
    {
-   cout<<"Uniform distributed noise..."<<endl;
-   UniformNoise& noise(*(UniformNoise::instance(42u)));
+      cout << "Uniform distributed noise..." << endl;
+      UniformNoise& noise(*(UniformNoise::instance(42u)));
 
-   int ntotal=1000;
-   int count=0;
-   double avg=0.;
-   for(int i=0;i<ntotal;i++){
-      double val=noise.gen();
-      if( fabs(val)<=0.5 )count++;
-      avg+=val;
+      int ntotal = 1000;
+      int count = 0;
+      double avg = 0.;
+      for (int i = 0; i < ntotal; i++) {
+         double val = noise.gen();
+         if (fabs(val) <= 0.5) count++;
+         avg += val;
+      }
+      avg /= ntotal;
+
+      cout << count << " out of " << ntotal
+           << " values are between -0.5 and 0.5" << endl;
+      cout << "Average value is " << avg << endl;
+
+      if (count < ntotal) {
+         cerr << "TEST UniformNoise failed!!!" << endl;
+         return 1;
+      }
+
+      if (fabs(avg) > 0.02) {
+         cerr << "TEST average UniformNoise failed!!!" << endl;
+         return 1;
+      }
    }
-   avg/=ntotal;
 
-   cout<<count<<" out of "<<ntotal<<" values are between -0.5 and 0.5"<<endl;
-   cout<<"Average value is "<<avg<<endl;
+   cout << "TEST successful!" << endl;
 
-   if( count<ntotal ){
-      cerr<<"TEST UniformNoise failed!!!"<<endl;
-      return 1;
-   }
-
-   if( fabs(avg)>0.02 ){
-      cerr<<"TEST average UniformNoise failed!!!"<<endl;
-      return 1;
-   }
-
-   }
-
-   cout<<"TEST successful!"<<endl;
-   
    return 0;
 }
