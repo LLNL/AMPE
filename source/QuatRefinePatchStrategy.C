@@ -70,8 +70,9 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
 
    if (d_eta_id >= 0) {
       d_eta_refine_strategy =
-          new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM), "EtaBcHelpe"
-                                                                  "r");
+          new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM),
+                                           "EtaBcHelpe"
+                                           "r");
       d_eta_refine_strategy->setTargetDataId(d_eta_id);
       boost::shared_ptr<tbox::Database> eta_bc_db =
           input_bc_db->getDatabase("Eta");

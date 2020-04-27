@@ -1543,8 +1543,9 @@ void QuatModel::registerEtaVariables(void)
    boost::shared_ptr<hier::VariableContext> scratch =
        variable_db->getContext("SCRATCH");
 
-   d_eta_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM), "et"
-                                                                         "a"));
+   d_eta_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                  "et"
+                                                  "a"));
    assert(d_eta_var);
    d_eta_id = variable_db->registerVariableAndContext(
        d_eta_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -1898,15 +1899,17 @@ void QuatModel::RegisterVariables(void)
    //
    // free energy variables
    //
-   d_f_l_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM), "f_"
-                                                                         "l"));
+   d_f_l_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                  "f_"
+                                                  "l"));
    assert(d_f_l_var);
    d_f_l_id = variable_db->registerVariableAndContext(
        d_f_l_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_f_l_id >= 0);
 
-   d_f_a_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM), "f_"
-                                                                         "a"));
+   d_f_a_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                                  "f_"
+                                                  "a"));
    assert(d_f_a_var);
    d_f_a_id = variable_db->registerVariableAndContext(
        d_f_a_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -3052,10 +3055,11 @@ void QuatModel::initializeLevelData(
          }
 
          if (d_model_parameters.with_concentration()) {
-            coarsen_alg.registerCoarsen(d_conc_id, d_conc_id,
-                                        d_grid_geometry->lookupCoarsenOperator(
-                                            d_conc_var, "CONSERVATIVE_"
-                                                        "COARSEN"));
+            coarsen_alg.registerCoarsen(
+                d_conc_id, d_conc_id,
+                d_grid_geometry->lookupCoarsenOperator(d_conc_var,
+                                                       "CONSERVATIVE_"
+                                                       "COARSEN"));
          }
 
          if (d_model_parameters.with_orientation()) {

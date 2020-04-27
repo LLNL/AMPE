@@ -1365,8 +1365,9 @@ void QuatIntegrator::initializeCoarseRefineOperators(
    }
 
    d_temperature_refine_op =
-       d_grid_geometry->lookupRefineOperator(d_temperature_var, "LINEAR_"
-                                                                "REFINE");
+       d_grid_geometry->lookupRefineOperator(d_temperature_var,
+                                             "LINEAR_"
+                                             "REFINE");
 
    d_temperature_coarsen_op =
        d_grid_geometry->lookupCoarsenOperator(d_temperature_var,
@@ -4063,8 +4064,7 @@ int QuatIntegrator::EtaPrecondSolve(
    d_eta_sys_solver->setResidualTolerance(delta);
 
    // Solve the eta block system
-   bool converged =
-       d_eta_sys_solver->solveSystem(d_eta_sol_id, d_eta_rhs_id);
+   bool converged = d_eta_sys_solver->solveSystem(d_eta_sol_id, d_eta_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4077,8 +4077,7 @@ int QuatIntegrator::EtaPrecondSolve(
 //-----------------------------------------------------------------------
 int QuatIntegrator::TemperaturePrecondSolve(
     boost::shared_ptr<hier::PatchHierarchy> hierarchy, int r_temperature_id,
-    int z_temperature_id, const double delta,
-    const double gamma)
+    int z_temperature_id, const double delta, const double gamma)
 {
    if (d_show_temperature_sys_stats) {
       tbox::plog << "Preconditioner for temperature block with tol " << delta
@@ -4173,7 +4172,8 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    cellops.setToScalar(d_conc_sol_id, 0., false);
 
    // Solve the concentration block system
-   bool converged = d_conc_sys_solver->solveSystem(d_conc_sol_id, d_conc_rhs_id);
+   bool converged =
+       d_conc_sys_solver->solveSystem(d_conc_sol_id, d_conc_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4229,7 +4229,8 @@ int QuatIntegrator::QuatPrecondSolve(
    cellops.setToScalar(d_quat_sol_id, 0., false);
 
    // Solve the quaternion block system
-   bool converged = d_quat_sys_solver->solveSystem(d_quat_sol_id, d_quat_rhs_id);
+   bool converged =
+       d_quat_sys_solver->solveSystem(d_quat_sol_id, d_quat_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4292,16 +4293,15 @@ int QuatIntegrator::
       math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
 
       if (d_with_unsteady_temperature && d_precond_has_dPhidT) {
-         int converged = applyTemperaturePreconditioner(hierarchy, t, r_samvect,
-                                                        z_samvect,
-                                                        delta, gamma);
+         int converged =
+             applyTemperaturePreconditioner(hierarchy, t, r_samvect, z_samvect,
+                                            delta, gamma);
          retcode = (converged == 0 && retcode == 0) ? 0 : 1;
       }
       if (d_with_phase) {
          // Apply the preconditioner phase block
-         int converged =
-             applyPhasePreconditioner(hierarchy, t, r_samvect,
-                                      z_samvect, delta, gamma);
+         int converged = applyPhasePreconditioner(hierarchy, t, r_samvect,
+                                                  z_samvect, delta, gamma);
          retcode = (converged == 0 && retcode == 0) ? 0 : 1;
       }
 
@@ -4318,8 +4318,8 @@ int QuatIntegrator::
          if (!d_eta_sys_solver) {
             cellops.copyData(z_eta_id, r_eta_id, false);
          } else {
-            int converged = EtaPrecondSolve(hierarchy, r_eta_id,
-                                            z_eta_id, delta);
+            int converged =
+                EtaPrecondSolve(hierarchy, r_eta_id, z_eta_id, delta);
             retcode = (converged == 0 && retcode == 0) ? 0 : 1;
          }
       }
@@ -4336,8 +4336,8 @@ int QuatIntegrator::
          assert(r_quat_id >= 0);
 
          if (d_precondition_quat) {
-            int converged = QuatPrecondSolve(hierarchy, r_quat_id,
-                                             z_quat_id, delta, gamma);
+            int converged =
+                QuatPrecondSolve(hierarchy, r_quat_id, z_quat_id, delta, gamma);
             retcode = (converged == 0 && retcode == 0) ? 0 : 1;
          } else {  // !d_precondition_quat
             cellops.copyData(z_quat_id, r_quat_id, false);
@@ -4347,18 +4347,17 @@ int QuatIntegrator::
       // Apply the preconditioner temperature block
       if (d_with_unsteady_temperature && !d_precond_has_dPhidT) {
 
-         int converged = applyTemperaturePreconditioner(hierarchy, t, r_samvect,
-                                                        z_samvect,
-                                                        delta, gamma);
+         int converged =
+             applyTemperaturePreconditioner(hierarchy, t, r_samvect, z_samvect,
+                                            delta, gamma);
          retcode = (converged == 0 && retcode == 0) ? 0 : 1;
       }
 
       // Apply the preconditioner concentration block
       if (d_with_concentration) {
 
-         int converged =
-             applyConcentrationPreconditioner(hierarchy, r_samvect,
-                                              z_samvect, delta);
+         int converged = applyConcentrationPreconditioner(hierarchy, r_samvect,
+                                                          z_samvect, delta);
          retcode = (converged == 0 && retcode == 0) ? 0 : 1;
       }
    } else {  // Identity (no) preconditioner
@@ -4415,8 +4414,8 @@ int QuatIntegrator::applyPhasePreconditioner(
       }
    } else {
 
-      int converged = PhasePrecondSolve(hierarchy, r_phase_id,
-                                        z_phase_id, delta, gamma);
+      int converged =
+          PhasePrecondSolve(hierarchy, r_phase_id, z_phase_id, delta, gamma);
       retcode = (converged == 0 && retcode == 0) ? 0 : 1;
    }
 
@@ -4499,8 +4498,8 @@ int QuatIntegrator::applyConcentrationPreconditioner(
       math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
       cellops.copyData(z_conc_id, r_conc_id, false);
    } else {
-      retcode = ConcentrationPrecondSolve(hierarchy, r_samvect,
-                                          z_samvect, delta);
+      retcode =
+          ConcentrationPrecondSolve(hierarchy, r_samvect, z_samvect, delta);
    }
 
    return retcode;

@@ -1326,8 +1326,9 @@ void QuatLevelSolver::createHypreSolver(int depth)
          HYPRE_BoomerAMGSetStrongThreshold(d_parcsr_precond[depth], 0.25);
          HYPRE_BoomerAMGSetTol(d_parcsr_precond[depth], 0.0);
          HYPRE_BoomerAMGSetPrintLevel(d_parcsr_precond[depth], 1);
-         HYPRE_BoomerAMGSetPrintFileName(d_parcsr_precond[depth], "ex9.out."
-                                                                  "log");
+         HYPRE_BoomerAMGSetPrintFileName(d_parcsr_precond[depth],
+                                         "ex9.out."
+                                         "log");
          HYPRE_BoomerAMGSetMaxIter(d_parcsr_precond[depth], 1);
 
          // Set the preconditioner

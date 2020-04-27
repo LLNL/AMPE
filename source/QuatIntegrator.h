@@ -524,11 +524,10 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta, const double gamma);
    int PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-                         int r_phase_id, int z_phase_id,
-                         const double delta, const double gamma);
+                         int r_phase_id, int z_phase_id, const double delta,
+                         const double gamma);
    int EtaPrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-                       int r_eta_id, int z_eta_id,
-                       const double delta);
+                       int r_eta_id, int z_eta_id, const double delta);
    virtual int applyTemperaturePreconditioner(
        boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
        boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
@@ -536,8 +535,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        const double delta, const double gamma);
    int TemperaturePrecondSolve(
        boost::shared_ptr<hier::PatchHierarchy> hierarchy, int r_temperature_id,
-       int z_temperature_id, const double delta,
-       const double gamma);
+       int z_temperature_id, const double delta, const double gamma);
    int ConcentrationPrecondSolve(
        boost::shared_ptr<hier::PatchHierarchy> hierarchy,
        boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
@@ -549,8 +547,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta);
    int QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-                        int r_quat_id, int z_quat_id,
-                        const double delta, const double gamma);
+                        int r_quat_id, int z_quat_id, const double delta,
+                        const double gamma);
 
    void updateDependentVariables(
        const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,

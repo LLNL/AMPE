@@ -123,5 +123,6 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
    // math::HierarchyCellDataOpsReal<double> mathops( patch_hierarchy );
    // tbox::pout<<"max. T after solve heat
    // equation="<<mathops.max(d_temperature_scratch_id)<<endl; tbox::pout<<"min.
-   // T after solve heat equation="<<mathops.min(d_temperature_scratch_id)<<endl;
+   // T after solve heat
+   // equation="<<mathops.min(d_temperature_scratch_id)<<endl;
 }

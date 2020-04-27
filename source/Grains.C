@@ -160,8 +160,9 @@ void Grains::initializeRefineCoarsenAlgorithms(
       assert(grid_geom);
 
       d_grain_number_refine_op =
-          grid_geom->lookupRefineOperator(d_grain_number_var, "CONSTANT_"
-                                                              "REFINE");
+          grid_geom->lookupRefineOperator(d_grain_number_var,
+                                          "CONSTANT_"
+                                          "REFINE");
 
       d_grain_number_refine_alg.reset(new xfer::RefineAlgorithm());
 
@@ -190,8 +191,9 @@ void Grains::initializeRefineCoarsenAlgorithms(
           grid_geom->lookupRefineOperator(d_grain_quat_var, "CONSTANT_REFINE");
 
       d_grain_extend_refine_op =
-          grid_geom->lookupRefineOperator(d_grain_extend_var, "CONSTANT_"
-                                                              "REFINE");
+          grid_geom->lookupRefineOperator(d_grain_extend_var,
+                                          "CONSTANT_"
+                                          "REFINE");
 
       d_grain_quat_refine_alg.reset(new xfer::RefineAlgorithm());
 
