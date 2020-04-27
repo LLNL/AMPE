@@ -611,8 +611,9 @@ void QuatModelParameters::initializeOrientation(
       printDeprecated("diff_interp_func_type", "orient_interp_func_type");
    } else {
       d_orient_interp_func_type =
-          model_db->getStringWithDefault("orient_interp_func_type", "quadrati"
-                                                                    "c");
+          model_db->getStringWithDefault("orient_interp_func_type",
+                                         "quadrati"
+                                         "c");
    }
    if (d_orient_interp_func_type[0] != 'q' &&
        d_orient_interp_func_type[0] != 'w' &&
@@ -658,8 +659,9 @@ void QuatModelParameters::initializeOrientation(
       } else if (model_db->keyExists("exp_scale_quat_mobility")) {
          d_exp_scale_quat_mobility =
              model_db->getDouble("exp_scale_quat_mobility");
-         printDeprecated("exp_scale_quat_mobility", "exp_scale_orient_"
-                                                    "mobility");
+         printDeprecated("exp_scale_quat_mobility",
+                         "exp_scale_orient_"
+                         "mobility");
       }
    }
 }
@@ -860,8 +862,9 @@ void QuatModelParameters::readModelParameters(
    // Currently "arithmetic" or "harmonic"
    // arithmetic: (x1+x2)/2
    // harmonic:   2/(1/x1+1/x2)
-   d_avg_func_type = model_db->getStringWithDefault("avg_func_type", "harmoni"
-                                                                     "c");
+   d_avg_func_type = model_db->getStringWithDefault("avg_func_type",
+                                                    "harmoni"
+                                                    "c");
    if (d_avg_func_type[0] != 'a' && d_avg_func_type[0] != 'h') {
       TBOX_ERROR("Error: invalid value for avg_func_type");
    }

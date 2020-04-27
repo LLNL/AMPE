@@ -206,7 +206,7 @@ class EllipticFACSolver
     *
     * @see initializeSolverState
     */
-   bool solveSystem(const int u_id, const int f_id, const int ew_id,
+   bool solveSystem(const int u_id, const int f_id,
                     const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
                     int coarse_ln = -1, int fine_ln = -1);
 
@@ -231,7 +231,7 @@ class EllipticFACSolver
     * @see solveSystem( const int, const int, boost::shared_ptr<
     * hier::PatchHierarchy >, int, int);
     */
-   bool solveSystem(const int u_id, const int f_id, const int ew_id);
+   bool solveSystem(const int u_id, const int f_id);
 
    /*!
     * @brief Specify the boundary conditions that are to be used at the

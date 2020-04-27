@@ -279,8 +279,7 @@ void EllipticFACSolver::setBoundaries(const std::string& boundary_type,
 *                                                                       *
 *************************************************************************
 */
-bool EllipticFACSolver::solveSystem(const int u_id, const int f_id,
-                                    const int ew_id)
+bool EllipticFACSolver::solveSystem(const int u_id, const int f_id)
 {
    // tbox::pout<<"EllipticFACSolver::solveSystem() for object
    // "<<d_object_name<<endl;
@@ -314,18 +313,6 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id,
 
    createVectorWrappers(u_id, f_id);
 
-   d_fac_ops->setWeightIds(ew_id, d_vol_id);
-
-#if 0
-   d_fac_precond.printClassData(tbox::pout);
-
-   math::HierarchyCellDataOpsReal<double> hopscell(d_hierarchy);
-   double normf = hopscell.weightedRMSNorm(f_id, ew_id, d_vol_id);
-   tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), f: Weighted RMS norm on composite grid = " << normf << endl;
-   double normu = hopscell.weightedRMSNorm(u_id, ew_id, d_vol_id);
-   tbox::pout << "EllipticFACSolver ("<<d_object_name<<"), u: Weighted RMS norm on composite grid = " << normu << endl;
-#endif
-
    bool solver_rval = d_fac_precond.solveSystem(*d_uv, *d_fv);
 
    if (d_bc_object == &d_simple_bc) {
@@ -338,8 +325,6 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id,
    }
 
    if (d_verbose) printFACConvergenceFactors(solver_rval);
-
-   d_fac_ops->setWeightIds(-1, -1);
 
    return solver_rval;
 }
@@ -358,7 +343,7 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id,
 *************************************************************************
 */
 bool EllipticFACSolver::solveSystem(
-    const int u_id, const int f_id, const int w_id,
+    const int u_id, const int f_id,
     const boost::shared_ptr<hier::PatchHierarchy>& hierarchy, int coarse_ln,
     int fine_ln)
 {
@@ -385,7 +370,7 @@ bool EllipticFACSolver::solveSystem(
 #endif
    initializeSolverState(u_id, f_id, hierarchy, coarse_ln, fine_ln);
 
-   bool solver_rval = solveSystem(u_id, f_id, w_id);
+   bool solver_rval = solveSystem(u_id, f_id);
 
    deallocateSolverState();
 

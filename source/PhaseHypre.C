@@ -454,7 +454,7 @@ int PhaseHypre::solve(EnergyInterpolationType phase_interp_func_type,
 
    tbox::plog << "solving..." << std::endl;
    d_poisson_solver.setStoppingCriteria(1.e-8);
-   int solver_ret = d_poisson_solver.solveSystem(d_comp_soln_id, d_rhs_id, -1);
+   int solver_ret = d_poisson_solver.solveSystem(d_comp_soln_id, d_rhs_id);
    /*
     * Present data on the solve.
     */

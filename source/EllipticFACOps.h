@@ -513,13 +513,6 @@ class EllipticFACOps : public solv::FACOperatorStrategy
                            pdat::SideData<double> &Dgradw_data,
                            const int depth) const;
 
-
-   void setWeightIds(const int ew_id, const int vol_id)
-   {
-      d_ew_id = ew_id;
-      d_vol_id = vol_id;
-   }
-
    //@{ @name FACOperatorStrategy virtuals
 
    virtual void restrictSolution(const solv::SAMRAIVectorReal<double> &source,
@@ -1107,9 +1100,6 @@ class EllipticFACOps : public solv::FACOperatorStrategy
    std::vector<bool> d_C_is_set;
    std::vector<bool> d_D_is_set;
    bool d_M_is_set;
-
-   int d_ew_id;   // weight for L2-norm
-   int d_vol_id;  // control volume
 
    /*!
     * @brief Get the name of this object.
