@@ -1625,7 +1625,7 @@ void QuatIntegrator::setSundialsOptions()
 #endif
    d_sundials_solver->setLinearMultistepMethod(BDF);
    d_sundials_solver->setSteppingMethod(ONE_STEP);
-   d_sundials_solver->setIterationType(NEWTON);
+   //d_sundials_solver->setIterationType(NEWTON);
    d_sundials_solver->setInitialStepSize(d_previous_timestep);
    d_sundials_solver->setRelativeTolerance(d_rtol);
    d_sundials_solver->setAbsoluteTolerance(d_atol);
@@ -3905,6 +3905,7 @@ int QuatIntegrator::
 {
    (void)fy;
    (void)jok;
+   (void)jcurPtr;
    (void)vtemp1;
    (void)vtemp2;
    (void)vtemp3;
@@ -3967,7 +3968,7 @@ int QuatIntegrator::
    }
 
    // Tell the integrator that the Jacobian data was recomputed
-   *jcurPtr = TRUE;
+   //*jcurPtr = TRUE;
 
    t_psolve_setup_timer->stop();
 
