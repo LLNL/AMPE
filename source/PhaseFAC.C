@@ -292,7 +292,7 @@ int PhaseFAC::solve(string phase_interp_func_type, double phase_well_scale,
 
    tbox::plog << "solving..." << std::endl;
    int solver_ret;
-   solver_ret = d_poisson_fac_solver->solveSystem(d_comp_soln_id, d_rhs_id, -1);
+   solver_ret = d_poisson_fac_solver->solveSystem(d_comp_soln_id, d_rhs_id);
    /*
     * Present data on the solve.
     */

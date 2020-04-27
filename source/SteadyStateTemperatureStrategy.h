@@ -105,8 +105,7 @@ class SteadyStateTemperatureStrategy : public TemperatureStrategy
 
    void solveSystem()
    {
-      d_temperature_sys_solver->solveSystem(d_temperature_scratch_id, d_rhs_id,
-                                            d_weight_id);
+      d_temperature_sys_solver->solveSystem(d_temperature_scratch_id, d_rhs_id);
    }
 
  protected:

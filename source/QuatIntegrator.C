@@ -4030,8 +4030,7 @@ int QuatIntegrator::PhasePrecondSolve(
 
    // Solve the phase block system
    bool converged =
-       d_phase_sys_solver->solveSystem(d_phase_sol_id, d_phase_rhs_id,
-                                       ewt_phase_id);
+       d_phase_sys_solver->solveSystem(d_phase_sol_id, d_phase_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4065,7 +4064,7 @@ int QuatIntegrator::EtaPrecondSolve(
 
    // Solve the eta block system
    bool converged =
-       d_eta_sys_solver->solveSystem(d_eta_sol_id, d_eta_rhs_id, ewt_eta_id);
+       d_eta_sys_solver->solveSystem(d_eta_sol_id, d_eta_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4114,8 +4113,7 @@ int QuatIntegrator::TemperaturePrecondSolve(
 
    // Solve the temperature block system
    bool converged = d_temperature_sys_solver->solveSystem(d_temperature_sol_id,
-                                                          d_temperature_rhs_id,
-                                                          ewt_temperature_id);
+                                                          d_temperature_rhs_id);
 #if 0
    int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++ ) {
@@ -4162,12 +4160,9 @@ int QuatIntegrator::ConcentrationPrecondSolve(
        z_samvect->getComponentDescriptorIndex(d_conc_component_index);
    const int r_conc_id =
        r_samvect->getComponentDescriptorIndex(d_conc_component_index);
-   int ewt_conc_id =
-       ewt_samvect->getComponentDescriptorIndex(d_conc_component_index);
 
    assert(z_conc_id >= 0);
    assert(r_conc_id >= 0);
-   assert(ewt_conc_id >= 0);
 
    // Copy the right-hand side to the temporary right-hand side array
    cellops.copyData(d_conc_rhs_id, r_conc_id, false);
@@ -4179,8 +4174,7 @@ int QuatIntegrator::ConcentrationPrecondSolve(
    cellops.setToScalar(d_conc_sol_id, 0., false);
 
    // Solve the concentration block system
-   bool converged = d_conc_sys_solver->solveSystem(d_conc_sol_id, d_conc_rhs_id,
-                                                   ewt_conc_id);
+   bool converged = d_conc_sys_solver->solveSystem(d_conc_sol_id, d_conc_rhs_id);
 
    int retcode = converged ? 0 : 1;
 
@@ -4236,8 +4230,7 @@ int QuatIntegrator::QuatPrecondSolve(
    cellops.setToScalar(d_quat_sol_id, 0., false);
 
    // Solve the quaternion block system
-   bool converged = d_quat_sys_solver->solveSystem(d_quat_sol_id, d_quat_rhs_id,
-                                                   ewt_quat_id);
+   bool converged = d_quat_sys_solver->solveSystem(d_quat_sol_id, d_quat_rhs_id);
 
    int retcode = converged ? 0 : 1;
 

@@ -299,7 +299,7 @@ class QuatSysSolver
                                 const int diff_coef_deriv_id,
                                 const int grad_q_id, const int q_id);
 
-   bool solveSystem(const int q_soln_id, const int q_rhs_id, const int ewt_id);
+   bool solveSystem(const int q_soln_id, const int q_rhs_id);
 
    void evaluateRHS(const double epsilon_q, const double quat_grad_floor,
                     const std::string quat_smooth_floor_type,

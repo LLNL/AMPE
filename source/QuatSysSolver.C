@@ -341,13 +341,11 @@ void QuatSysSolver::setOperatorCoefficients(
 }
 
 
-bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id,
-                                const int q_ewt_id)
+bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 {
    t_solve_system->start();
 
    assert(d_weight_id != -1);
-   assert(q_ewt_id != -1);
 
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > solution;
    solution.reset();
@@ -355,8 +353,6 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id,
    rhs.reset();
 
    createVectorWrappers(q_soln_id, q_rhs_id, solution, rhs);
-
-   d_fac_ops->setWeightIds(q_ewt_id, d_weight_id);
 
    // Divide by the square root of the mobility
    d_fac_ops->divideMobilitySqrt(q_rhs_id);
@@ -393,8 +389,6 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id,
    if (d_verbose) {
       printFACConvergenceFactors(solver_rval);
    }
-
-   d_fac_ops->setWeightIds(-1, -1);
 
    destroyVectorWrappers(solution, rhs);
 

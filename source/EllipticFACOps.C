@@ -1834,48 +1834,8 @@ double EllipticFACOps::computeResidualNorm(
     *   but may be too insensitive to spikes.
     * RMSNorm: maybe good.
     */
-   double norm;
-
-   if (d_ew_id > -1 && d_vol_id > -1) {
-
-      const int r_id = residual.getComponentDescriptorIndex(0);
-#if 0
-      hier::VariableDatabase &vdb(*hier::VariableDatabase::getDatabase());
-      boost::shared_ptr<hier::Variable > var1;
-      vdb.mapIndexToVariable(r_id,var1);
-      boost::shared_ptr<pdat::CellVariable<double> > cvar1(
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var1) );
-      
-      boost::shared_ptr<hier::Variable > var2;
-      vdb.mapIndexToVariable(d_ew_id,var2);
-      boost::shared_ptr<pdat::CellVariable<double> > cvar2(
-         BOOST_CAST<pdat::CellVariable<double>,hier::Variable>(var2) );
-
-      tbox::pout<<"Depth of residual = "<<cvar1->getDepth()<<endl;
-      tbox::pout<<"Depth of weight   = "<<cvar2->getDepth()<<endl;
-      TBOX_ASSERT( cvar1->getDepth()==cvar2->getDepth() );
-#endif
-      norm = d_hopscell->weightedRMSNorm(r_id, d_ew_id, d_vol_id);
-
-      if (d_enable_logging) {
-         tbox::pout << "EllipticFACOps:: Weighted RMS norm on composite grid "
-                       "spanning levels "
-                    << coarse_ln << " thru " << fine_ln << " = " << norm
-                    << endl;
-      }
-   } else {
-      norm = residual.RMSNorm();
-
-      if (d_enable_logging) {
-         tbox::pout << "EllipticFACOps:: Unweighted RMS norm on composite grid "
-                       "spanning levels "
-                    << coarse_ln << " thru " << fine_ln << " = " << norm
-                    << endl;
-      }
-   }
-
+   double norm = residual.RMSNorm();
    t_compute_residual_norm->stop();
-
    return norm;
 }
 
