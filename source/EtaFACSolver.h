@@ -48,9 +48,9 @@ class EtaFACSolver : public EllipticFACSolver
 
  public:
    EtaFACSolver(const std::string &object_name,
-                boost::shared_ptr<EtaFACOps> fac_ops,
-                const boost::shared_ptr<tbox::Database> database =
-                    boost::shared_ptr<tbox::Database>());
+                std::shared_ptr<EtaFACOps> fac_ops,
+                const std::shared_ptr<tbox::Database> database =
+                    std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(
        const int phase_id, const int eta_id, const int eta_mobility_id,

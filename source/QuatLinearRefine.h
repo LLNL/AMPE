@@ -40,7 +40,6 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/BoxOverlap.h"
@@ -77,7 +76,7 @@ class QuatLinearRefine : public hier::RefineOperator
     * Return true if the variable and name string match node-centered
     * double linear interpolation; otherwise, return false.
     */
-   bool findRefineOperator(const boost::shared_ptr<hier::Variable>& var,
+   bool findRefineOperator(const std::shared_ptr<hier::Variable>& var,
                            const std::string& op_name) const;
 
    /**

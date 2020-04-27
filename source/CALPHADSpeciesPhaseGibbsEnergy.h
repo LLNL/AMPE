@@ -38,7 +38,6 @@
 
 #include "CALPHADSpeciesPhaseGibbsEnergyExpansion.h"
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/Database.h"
 using namespace SAMRAI;
 
@@ -59,7 +58,7 @@ class CALPHADSpeciesPhaseGibbsEnergy
    std::string name() const { return d_name; }
 
    void initialize(const std::string& name,
-                   boost::shared_ptr<tbox::Database> db);
+                   std::shared_ptr<tbox::Database> db);
 
    double fenergy(const double T);  // expect T in Kelvin
    void plotFofT(std::ostream& os, const double T0 = 300.,

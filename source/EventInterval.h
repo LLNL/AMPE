@@ -36,7 +36,6 @@
 #ifndef included_EventInterval
 #define included_EventInterval
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/Database.h"
 
 #include <string>
@@ -48,7 +47,7 @@ class EventInterval
  public:
    enum INTERVAL_TYPE { CYCLE = 0, TIME = 1 };
 
-   EventInterval(boost::shared_ptr<tbox::Database> input_db,
+   EventInterval(std::shared_ptr<tbox::Database> input_db,
                  const std::string name, const double default_value = 0.0,
                  const std::string default_type = "step",
                  const bool include_first = false,

@@ -56,8 +56,8 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
 {
  public:
    CALPHADFreeEnergyFunctionsBinary(
-       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+       std::shared_ptr<SAMRAI::tbox::Database> input_db,
+       std::shared_ptr<SAMRAI::tbox::Database> newton_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        const bool with_third_phase);
@@ -155,7 +155,7 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
 
    bool d_with_third_phase;
 
-   void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
+   void readNewtonparameters(std::shared_ptr<tbox::Database> newton_db);
 
    void setupValuesForTwoPhasesSolver(const double temperature, double* L0,
                                       double* L1, double* L2, double* L3,
@@ -190,9 +190,9 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
    double* d_L2;
    double* d_L3;
 
-   void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> calphad_db);
+   void readParameters(std::shared_ptr<SAMRAI::tbox::Database> calphad_db);
 
-   void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
+   void setupSolver(std::shared_ptr<tbox::Database> newton_db);
 
    // energy of species "is" in phase L,A,B
    double getFenergyPhaseL(const short is, const double temperature)

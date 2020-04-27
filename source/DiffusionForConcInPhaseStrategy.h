@@ -43,7 +43,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 
-#include <boost/make_shared.hpp>
 #include <string>
 using namespace SAMRAI;
 
@@ -70,7 +69,7 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
     * compute actual diffusion in each phase by weighting diffusion coefficients
     * in each phase with phase variable
     */
-   void setDiffusion(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void setDiffusion(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                      const int temperature_id, const int phase_id,
                      const int eta_id);
 
@@ -78,7 +77,7 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
     * Compute diffusion coefficient in each phase
     */
    void setDiffCoeffInEachPhase(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int eta_scratch_id);
 
  private:
@@ -92,25 +91,25 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
     * in each phase
     */
    void setPFMDiffOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_l,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_a,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_b,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+       std::shared_ptr<pdat::SideData<double> > sd_d_l,
+       std::shared_ptr<pdat::SideData<double> > sd_d_a,
+       std::shared_ptr<pdat::SideData<double> > sd_d_b,
        const hier::Box& pbox);
 
    void setDiffCoeffInEachPhaseOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
        const hier::Box& pbox);
 
    void computeLocalDiffusionMatrixL(const double temperature,

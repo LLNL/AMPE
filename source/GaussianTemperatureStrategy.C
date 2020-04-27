@@ -44,8 +44,8 @@
 
 GaussianTemperatureStrategy::GaussianTemperatureStrategy(
     const int temperature_id, const int temperature_scratch_id,
-    const int weight_id, boost::shared_ptr<tbox::Database> temperature_db,
-    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry)
+    const int weight_id, std::shared_ptr<tbox::Database> temperature_db,
+    std::shared_ptr<geom::CartesianGridGeometry> grid_geometry)
     : d_grid_geometry(grid_geometry)
 {
    assert(temperature_id >= 0);
@@ -90,7 +90,7 @@ GaussianTemperatureStrategy::GaussianTemperatureStrategy(
 }
 
 double GaussianTemperatureStrategy::getCurrentMaxTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)time;
 
@@ -99,7 +99,7 @@ double GaussianTemperatureStrategy::getCurrentMaxTemperature(
 }
 
 double GaussianTemperatureStrategy::getCurrentMinTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)time;
 
@@ -107,7 +107,7 @@ double GaussianTemperatureStrategy::getCurrentMinTemperature(
    return mathops.min(d_temperature_scratch_id);
 }
 double GaussianTemperatureStrategy::getCurrentAverageTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)time;
    math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
@@ -134,7 +134,7 @@ double GaussianTemperatureStrategy::getCurrentTemperature(const double time)
 }
 
 void GaussianTemperatureStrategy::setCurrentTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    const double* low = d_grid_geometry->getXLower();
    const double* up = d_grid_geometry->getXUpper();
@@ -161,21 +161,21 @@ void GaussianTemperatureStrategy::setCurrentTemperature(
 
       for (int ln = 0; ln <= maxln; ln++) {
 
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              patch_hierarchy->getPatchLevel(ln);
 
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch = *p;
+            std::shared_ptr<hier::Patch> patch = *p;
 
-            boost::shared_ptr<pdat::CellData<double> > t_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > t_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_id)));
             setCurrentTemperaturePrivatePatch(*patch, t_data, tgaussian);
 
-            boost::shared_ptr<pdat::CellData<double> > ts_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > ts_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_scratch_id)));
             setCurrentTemperaturePrivatePatch(*patch, ts_data, tgaussian);
          }
@@ -192,11 +192,11 @@ void GaussianTemperatureStrategy::setCurrentTemperature(
 //=======================================================================
 
 void GaussianTemperatureStrategy::setCurrentTemperaturePrivatePatch(
-    hier::Patch& patch, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+    hier::Patch& patch, std::shared_ptr<pdat::CellData<double> > cd_temp,
     const double tgaussian)
 {
-   const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
 
    const double* dx = patch_geom->getDx();

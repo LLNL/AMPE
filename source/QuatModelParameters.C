@@ -39,7 +39,7 @@
 
 static double def_val = tbox::IEEE::getSignalingNaN();
 
-static void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
+static void readSpeciesCP(std::shared_ptr<tbox::Database> cp_db,
                           std::map<short, double>& cp)
 {
    double tmp = cp_db->getDouble("a");
@@ -138,7 +138,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 
 //=======================================================================
 
-void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
+void QuatModelParameters::readMolarVolumes(std::shared_ptr<tbox::Database> db)
 {
    bool data_read = false;
 
@@ -167,7 +167,7 @@ void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
 //=======================================================================
 
 void QuatModelParameters::readNumberSpecies(
-    boost::shared_ptr<tbox::Database> conc_db)
+    std::shared_ptr<tbox::Database> conc_db)
 {
    int nspecies = conc_db->getIntegerWithDefault("nspecies", 2);
    d_ncompositions = nspecies - 1;
@@ -175,7 +175,7 @@ void QuatModelParameters::readNumberSpecies(
 
 //=======================================================================
 
-void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
+void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
 {
    d_with_concentration = true;
 
@@ -360,7 +360,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 }
 
 void QuatModelParameters::readDiluteAlloy(
-    boost::shared_ptr<tbox::Database> conc_db)
+    std::shared_ptr<tbox::Database> conc_db)
 {
    d_liquidus_slope = conc_db->getDouble("liquidus_slope");
    d_keq = conc_db->getDouble("keq");
@@ -370,7 +370,7 @@ void QuatModelParameters::readDiluteAlloy(
 //=======================================================================
 
 void QuatModelParameters::readVisitOptions(
-    boost::shared_ptr<tbox::Database> visit_db)
+    std::shared_ptr<tbox::Database> visit_db)
 {
    d_extra_visit_output = visit_db->getBoolWithDefault("extra_output", false);
    d_visit_energy_output = visit_db->getBoolWithDefault("energy_output", false);
@@ -383,9 +383,9 @@ void QuatModelParameters::readVisitOptions(
 //=======================================================================
 
 void QuatModelParameters::readTemperatureModel(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
-   boost::shared_ptr<tbox::Database> temperature_db;
+   std::shared_ptr<tbox::Database> temperature_db;
    std::string temperature_type = "";
    if (model_db->keyExists("Temperature")) {
       temperature_db = model_db->getDatabase("Temperature");
@@ -441,7 +441,7 @@ void QuatModelParameters::readTemperatureModel(
           temperature_db->getStringWithDefault("equation_type", "steady");
 
       // heat capacity value
-      boost::shared_ptr<tbox::Database> cp_db =
+      std::shared_ptr<tbox::Database> cp_db =
           temperature_db->getDatabase("cp");
       std::map<short, double> empty_map;
 
@@ -542,7 +542,7 @@ void QuatModelParameters::readTemperatureModel(
 //=======================================================================
 
 void QuatModelParameters::initializeOrientation(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
 
    if (model_db->keyExists("orient_mobility")) {
@@ -671,7 +671,7 @@ void QuatModelParameters::initializeOrientation(
 //=======================================================================
 
 void QuatModelParameters::initializeEta(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
    d_epsilon_eta = model_db->getDouble("epsilon_eta");
 
@@ -710,14 +710,14 @@ void QuatModelParameters::initializeEta(
 //=======================================================================
 
 void QuatModelParameters::readModelParameters(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 
    // Interface energy
    if (model_db->keyExists("Interface")) {
-      boost::shared_ptr<tbox::Database> interface_db =
+      std::shared_ptr<tbox::Database> interface_db =
           model_db->getDatabase("Interface");
       if (interface_db->keyExists("sigma")) {
          double sigma = interface_db->getDouble("sigma");
@@ -905,7 +905,7 @@ void QuatModelParameters::readModelParameters(
    readTemperatureModel(model_db);
 
    if (model_db->keyExists("ConcentrationModel")) {
-      boost::shared_ptr<tbox::Database> conc_db(
+      std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
       readConcDB(conc_db);
    }
@@ -917,7 +917,7 @@ void QuatModelParameters::readModelParameters(
 }
 
 void QuatModelParameters::readPhaseMobility(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
    d_phi_mobility_type =
        model_db->getStringWithDefault("phi_mobility_type", "scalar");
@@ -966,9 +966,9 @@ void QuatModelParameters::readPhaseMobility(
 }
 
 void QuatModelParameters::readFreeEnergies(
-    boost::shared_ptr<tbox::Database> model_db)
+    std::shared_ptr<tbox::Database> model_db)
 {
-   boost::shared_ptr<tbox::Database> db(model_db->keyExists("FreeEnergyModel")
+   std::shared_ptr<tbox::Database> db(model_db->keyExists("FreeEnergyModel")
                                             ? model_db->getDatabase("FreeEnergy"
                                                                     "Model")
                                             : model_db);

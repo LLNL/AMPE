@@ -41,7 +41,7 @@
 #include "SAMRAI/pdat/SideData.h"
 
 void PhaseFluxStrategyIsotropic::computeFluxes(
-    const boost::shared_ptr<hier::PatchLevel> level, const int phase_id,
+    const std::shared_ptr<hier::PatchLevel> level, const int phase_id,
     const int quat_id, const int flux_id)
 {
    // this strategy is independent of grain orientation
@@ -50,21 +50,21 @@ void PhaseFluxStrategyIsotropic::computeFluxes(
    //  Compute phase "flux" on patches in level.
    for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
         ++ip) {
-      boost::shared_ptr<hier::Patch> patch = *ip;
+      std::shared_ptr<hier::Patch> patch = *ip;
 
-      const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-          BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+      const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
               patch->getPatchGeometry()));
       const double* dx = patch_geom->getDx();
 
-      boost::shared_ptr<pdat::CellData<double> > phase(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > phase(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(phase_id)));
 
       assert(phase->getGhostCellWidth()[0] > 0);
 
-      boost::shared_ptr<pdat::SideData<double> > phase_flux(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > phase_flux(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
 
       const hier::Box& pbox = patch->getBox();

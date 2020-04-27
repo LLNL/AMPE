@@ -62,7 +62,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
        const std::string& avg_func_type,
        FreeEnergyStrategy* free_energy_strategy,
        CompositionStrategyMobilities* mobilities_strategy,
-       boost::shared_ptr<CompositionDiffusionStrategy>
+       std::shared_ptr<CompositionDiffusionStrategy>
            diffusion_for_conc_in_phase);
 
    ~EBSCompositionRHSStrategy(){};
@@ -75,10 +75,10 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
 
    void setDiffusionCoeff(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
-   // void printDiagnostics(const boost::shared_ptr<hier::PatchHierarchy >
+   // void printDiagnostics(const std::shared_ptr<hier::PatchHierarchy >
    // hierarchy);
 
    /*
@@ -88,7 +88,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
     * Assumes coefficients in each pahse includes a phase fraction weight
     */
    void setDiffusionCoeffForPreconditioner(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
  private:
    unsigned short d_ncompositions;
@@ -124,7 +124,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    // free energy needed to compute diffusion in each phase
    FreeEnergyStrategy* d_free_energy_strategy;
 
-   boost::shared_ptr<CompositionDiffusionStrategy>
+   std::shared_ptr<CompositionDiffusionStrategy>
        d_diffusion_for_conc_in_phase;
 
    CompositionStrategyMobilities* d_mobilities_strategy;
@@ -133,27 +133,27 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
                                 const int flux_id);
 
    void setDiffusionCoeffForPreconditionerOnPatch(
-       boost::shared_ptr<pdat::SideData<double> > sd_d_l,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_a,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_b,
+       std::shared_ptr<pdat::SideData<double> > sd_d_l,
+       std::shared_ptr<pdat::SideData<double> > sd_d_a,
+       std::shared_ptr<pdat::SideData<double> > sd_d_b,
        const int depth_in_Dmatrix,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff,
        const hier::Box& pbox, const int depth);
    void setDiffusionCoeffForTOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_c,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
+       std::shared_ptr<pdat::CellData<double> > cd_c,
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff,
        const hier::Box& pbox);
    void setDiffusionCoeffForTOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::SideData<double> > mq, const hier::Box& pbox);
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::SideData<double> > mq, const hier::Box& pbox);
    void setDiffusionCoeffForT(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int concentration_l_id, const int concentration_a_id,
        const int concentration_b_id, const int temperature_id);
 };

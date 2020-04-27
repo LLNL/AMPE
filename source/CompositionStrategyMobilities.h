@@ -46,14 +46,14 @@
 class CompositionStrategyMobilities
 {
  public:
-   CompositionStrategyMobilities(boost::shared_ptr<tbox::Database> input_db,
+   CompositionStrategyMobilities(std::shared_ptr<tbox::Database> input_db,
                                  const bool, const unsigned short ncompositions,
                                  FreeEnergyStrategy* free_energy_strategy);
 
    virtual ~CompositionStrategyMobilities(){};
 
    void printDiagnostics(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_scratch_id);
    void printDiagnostics(const double Tmin, const double Tmax);
 

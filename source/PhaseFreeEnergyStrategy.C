@@ -74,21 +74,21 @@ PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fl_id, const bool gp)
 {
    assert(fl_id >= 0);
    (void)temperature_id;  // unused
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
-         boost::shared_ptr<pdat::CellData<double> > fl(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > fl(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(fl_id)));
          assert(fl);
 
@@ -106,8 +106,8 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
    assert(fl_id >= 0);
    (void)temperature_id;  // unused
 
-   boost::shared_ptr<pdat::CellData<double> > fl(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fl(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(fl_id)));
    assert(fl);
 
@@ -117,21 +117,21 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fs_id, const bool gp)
 {
    assert(fs_id >= 0);
    (void)temperature_id;  // unused
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
-         boost::shared_ptr<pdat::CellData<double> > fs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > fs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(fs_id)));
          assert(fs);
 
@@ -149,8 +149,8 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
    assert(fs_id >= 0);
    (void)temperature_id;  // unused
 
-   boost::shared_ptr<pdat::CellData<double> > fs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(fs_id)));
    assert(fs);
 
@@ -170,21 +170,21 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fs_id, const bool gp)
 {
    assert(fs_id >= 0);
    (void)temperature_id;  // unused
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
-         boost::shared_ptr<pdat::CellData<double> > fs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > fs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(fs_id)));
          assert(fs);
 
@@ -202,8 +202,8 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
    assert(fs_id >= 0);
    (void)temperature_id;  // unused
 
-   boost::shared_ptr<pdat::CellData<double> > fs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(fs_id)));
    assert(fs);
 
@@ -227,23 +227,23 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    (void)conc_id;         // unused
    (void)temperature_id;  // unused
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > fl(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fl(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_l_id)));
    assert(fl);
 
-   boost::shared_ptr<pdat::CellData<double> > fa(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fa(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_a_id)));
    assert(fa);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
    assert(rhs);
 
@@ -255,13 +255,13 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    double* ptr_eta = nullptr;
    if (d_with_third_phase) {
       three_phase = 1;
-      boost::shared_ptr<pdat::CellData<double> > eta(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > eta(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(eta_id)));
       ptr_eta = eta->getPointer();
 
-      boost::shared_ptr<pdat::CellData<double> > fb(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > fb(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(f_b_id)));
       ptr_fb = fb->getPointer();
    }
@@ -299,33 +299,33 @@ void PhaseFreeEnergyStrategy::addDrivingForceEta(
    (void)conc_id;         // unused
    (void)temperature_id;  // unused
 
-   boost::shared_ptr<pdat::CellData<double> > eta(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > eta(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(eta_id)));
    assert(eta);
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > fl(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fl(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_l_id)));
    assert(fl);
 
-   boost::shared_ptr<pdat::CellData<double> > fa(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fa(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_a_id)));
    assert(fa);
 
-   boost::shared_ptr<pdat::CellData<double> > fb(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fb(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_b_id)));
    assert(fb);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
    assert(rhs);
 

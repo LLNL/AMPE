@@ -145,7 +145,7 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
 }
 
 void DiffusionForConcInPhaseStrategy::setDiffusion(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int eta_id)
 {
    // tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffusion"<<endl;
@@ -169,41 +169,41 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
 
    // now compute coefficients for PFM diffusion equations
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::SideData<double> > pfm_diffusion_l(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > pfm_diffusion_l(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_pfm_diffusion_l_id)));
-         boost::shared_ptr<pdat::SideData<double> > pfm_diffusion_a(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > pfm_diffusion_a(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_pfm_diffusion_a_id)));
-         boost::shared_ptr<pdat::SideData<double> > pfm_diffusion_b;
+         std::shared_ptr<pdat::SideData<double> > pfm_diffusion_b;
 
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_l(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_l(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_l_id)));
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_a(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_a(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_a_id)));
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_b;
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_b;
 
-         boost::shared_ptr<pdat::CellData<double> > eta;
+         std::shared_ptr<pdat::CellData<double> > eta;
          if (d_with_third_phase) {
-            eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(eta_id));
             pfm_diffusion_b =
-                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(d_pfm_diffusion_b_id));
-            diff_coeff_b = BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            diff_coeff_b = SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                 patch->getPatchData(d_diffusion_coeff_b_id));
          }
 
@@ -217,7 +217,7 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
 //-----------------------------------------------------------------------
 
 void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int eta_scratch_id)
 {
    // tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase"<<endl;
@@ -231,46 +231,46 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > temp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(temperature_id)));
          TBOX_ASSERT(temp);
 
-         boost::shared_ptr<pdat::CellData<double> > cl(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cl(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_scratch_id)));
          assert(cl);
 
-         boost::shared_ptr<pdat::CellData<double> > ca(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > ca(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_a_scratch_id)));
          assert(ca);
 
-         boost::shared_ptr<pdat::CellData<double> > cb;
+         std::shared_ptr<pdat::CellData<double> > cb;
 
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_l(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_l(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_l_id)));
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_a(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_a(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_a_id)));
-         boost::shared_ptr<pdat::SideData<double> > diff_coeff_b;
+         std::shared_ptr<pdat::SideData<double> > diff_coeff_b;
 
-         boost::shared_ptr<pdat::CellData<double> > eta;
+         std::shared_ptr<pdat::CellData<double> > eta;
          if (d_with_third_phase) {
-            cb = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            cb = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(d_conc_b_scratch_id));
             assert(cb);
-            diff_coeff_b = BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            diff_coeff_b = SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                 patch->getPatchData(d_diffusion_coeff_b_id));
-            eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(eta_scratch_id));
          }
 
@@ -284,14 +284,14 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
 //-----------------------------------------------------------------------
 
 void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-    boost::shared_ptr<pdat::CellData<double> > cd_temp,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b,
+    std::shared_ptr<pdat::CellData<double> > cd_temp,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
     const hier::Box& pbox)
 {
    assert(cd_c_l);
@@ -628,14 +628,14 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 //-----------------------------------------------------------------------
 
 void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
-    boost::shared_ptr<pdat::SideData<double> > sd_pfmd_l,  // output
-    boost::shared_ptr<pdat::SideData<double> > sd_pfmd_a,  // output
-    boost::shared_ptr<pdat::SideData<double> > sd_pfmd_b,  // output
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
+    std::shared_ptr<pdat::SideData<double> > sd_pfmd_l,  // output
+    std::shared_ptr<pdat::SideData<double> > sd_pfmd_a,  // output
+    std::shared_ptr<pdat::SideData<double> > sd_pfmd_b,  // output
     const hier::Box& pbox)
 {
    // tbox::pout<<"DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch"<<endl;

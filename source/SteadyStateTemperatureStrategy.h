@@ -57,16 +57,16 @@ class SteadyStateTemperatureStrategy : public TemperatureStrategy
        const int temperature_scratch_id,
        const int rhs_id,  // used internally only, but allocated outside class
        const int weight_id,
-       boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
+       std::shared_ptr<tbox::Database> temperature_sys_solver_database,
        solv::LocationIndexRobinBcCoefs* bc_coefs);
 
    virtual ~SteadyStateTemperatureStrategy();
 
    void initialize(
-       const boost::shared_ptr<hier::PatchHierarchy>& patch_hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy>& patch_hierarchy);
 
    virtual double getCurrentMinTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time)
    {
       (void)time;
@@ -76,7 +76,7 @@ class SteadyStateTemperatureStrategy : public TemperatureStrategy
    }
 
    virtual double getCurrentMaxTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time)
    {
       (void)time;
@@ -86,7 +86,7 @@ class SteadyStateTemperatureStrategy : public TemperatureStrategy
    }
 
    virtual double getCurrentAverageTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time)
    {
       (void)time;
@@ -97,11 +97,11 @@ class SteadyStateTemperatureStrategy : public TemperatureStrategy
    }
 
    virtual void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time) = 0;
 
    void resetSolversState(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void solveSystem()
    {

@@ -38,14 +38,14 @@
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/hier/VariableDatabase.h"
-#include <boost/make_shared.hpp>
 
 #include <cassert>
 
 
 PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
     const std::string& object_name,
-    boost::shared_ptr<tbox::Database> input_bc_db, const int partition_coeff_id)
+    std::shared_ptr<tbox::Database> input_bc_db,
+    const int partition_coeff_id)
     : xfer::RefinePatchStrategy(),
       d_object_name(object_name),
       d_partition_coeff_id(partition_coeff_id)
@@ -57,7 +57,7 @@ PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
        new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM),
                                         "partition_coeffBcHelper");
    d_partition_coeff_refine_strategy->setTargetDataId(d_partition_coeff_id);
-   boost::shared_ptr<tbox::Database> partition_coeff_bc_db =
+   std::shared_ptr<tbox::Database> partition_coeff_bc_db =
        input_bc_db->getDatabase("PartitionCoeff");
    d_partition_coeff_bc_coefs =
        new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),

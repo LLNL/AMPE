@@ -60,16 +60,16 @@ class SteadyStateTemperatureGaussianSource
        const int temperature_scratch_id,
        const int rhs_id,  // used internally only, but allocated outside class
        const int weight_id, const double thermal_diffusivity, const int cp_id,
-       boost::shared_ptr<tbox::Database> heat_source_db,
-       boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
-       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+       std::shared_ptr<tbox::Database> heat_source_db,
+       std::shared_ptr<tbox::Database> temperature_sys_solver_database,
+       std::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
        HeatCapacityStrategy* heat_capacity_strategy,
        solv::LocationIndexRobinBcCoefs* bc_coefs);
 
    ~SteadyStateTemperatureGaussianSource(){};
 
    void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
  private:
@@ -93,7 +93,7 @@ class SteadyStateTemperatureGaussianSource
    double d_pulse_time;
    double d_pulse_width;
 
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   std::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
    int d_periodic_flag[3];
 
    double d_source_peak;

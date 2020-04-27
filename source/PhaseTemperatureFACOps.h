@@ -47,8 +47,8 @@ class PhaseTemperatureFACOps : public EllipticFACOps
 
  public:
    PhaseTemperatureFACOps(const std::string& object_name,
-                          const boost::shared_ptr<tbox::Database> database =
-                              boost::shared_ptr<tbox::Database>());
+                          const std::shared_ptr<tbox::Database> database =
+                              std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(const int phase_id, const int mobility_id,
                                 const double epsilon_phase,
@@ -63,9 +63,9 @@ class PhaseTemperatureFACOps : public EllipticFACOps
              const double phi_well_scale, const std::string phi_well_func_type);
 
    void setCOnPatchForPreconditionODE(
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_m,
-       boost::shared_ptr<pdat::CellData<double> > cd_c,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_m,
+       std::shared_ptr<pdat::CellData<double> > cd_c,
        const double latent_heat, const double phi_well_scale,
        const char* phi_well_func_type, const hier::Box& pbox);
 };

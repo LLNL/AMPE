@@ -13,8 +13,6 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include "boost/shared_ptr.hpp"
-
 using namespace SAMRAI;
 
 /*!
@@ -84,8 +82,8 @@ class TimeLocationIndexRobinBcCoefs : public solv::RobinBcCoefStrategy
     */
    TimeLocationIndexRobinBcCoefs(
        const tbox::Dimension& dim, const std::string& object_name,
-       const boost::shared_ptr<tbox::Database>& input_db =
-           boost::shared_ptr<tbox::Database>());
+       const std::shared_ptr<tbox::Database>& input_db =
+           std::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -127,10 +125,10 @@ class TimeLocationIndexRobinBcCoefs : public solv::RobinBcCoefStrategy
     *      (bdry_box.getLocationIndex() < 2 * d_dim.getValue())
     */
    void setBcCoefs(
-       const boost::shared_ptr<pdat::ArrayData<double> >& acoef_data,
-       const boost::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
-       const boost::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
-       const boost::shared_ptr<hier::Variable>& variable,
+       const std::shared_ptr<pdat::ArrayData<double> >& acoef_data,
+       const std::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
+       const std::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
+       const std::shared_ptr<hier::Variable>& variable,
        const hier::Patch& patch, const hier::BoundaryBox& bdry_box,
        double fill_time = 0.0) const;
 
@@ -267,7 +265,7 @@ class TimeLocationIndexRobinBcCoefs : public solv::RobinBcCoefStrategy
     *
     * @pre input_db
     */
-   void getFromInput(const boost::shared_ptr<tbox::Database>& input_db);
+   void getFromInput(const std::shared_ptr<tbox::Database>& input_db);
 
    /*
     * @brief Object dimension

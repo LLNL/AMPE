@@ -45,8 +45,8 @@ class CALPHADFreeEnergyFunctionsWithPenaltyBinary
 {
  public:
    CALPHADFreeEnergyFunctionsWithPenaltyBinary(
-       boost::shared_ptr<SAMRAI::tbox::Database> input_db,
-       boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+       std::shared_ptr<SAMRAI::tbox::Database> input_db,
+       std::shared_ptr<SAMRAI::tbox::Database> newton_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        const bool with_third_phase);
@@ -68,8 +68,8 @@ class CALPHADFreeEnergyFunctionsWithPenaltyBinary
  private:
    std::vector<std::vector<double> > d_penalty_parameters;
 
-   void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> calphad_db);
-   void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
+   void readParameters(std::shared_ptr<SAMRAI::tbox::Database> calphad_db);
+   void setupSolver(std::shared_ptr<tbox::Database> newton_db);
 
    double computePenalty(const PhaseIndex index, const double conc)
    {

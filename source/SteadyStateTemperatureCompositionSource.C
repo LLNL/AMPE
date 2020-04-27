@@ -47,7 +47,7 @@ SteadyStateTemperatureCompositionSource::
         const int temperature_scratch_id, const int composition_id,
         const int rhs_id, const int weight_id, const double thermal_diffusivity,
         const int cp_id, const std::vector<double>& T_source,
-        boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
+        std::shared_ptr<tbox::Database> temperature_sys_solver_database,
         HeatCapacityStrategy* heat_capacity_strategy,
         solv::LocationIndexRobinBcCoefs* bc_coefs)
     : SteadyStateTemperatureStrategy(temperature_scratch_id, rhs_id, weight_id,
@@ -66,7 +66,7 @@ SteadyStateTemperatureCompositionSource::
 }
 
 void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)time;
 
@@ -85,24 +85,24 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
 
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           patch_hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > rhs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > rhs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_rhs_id)));
-         boost::shared_ptr<pdat::CellData<double> > conc(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > conc(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_composition_id)));
-         boost::shared_ptr<pdat::CellData<double> > cp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
 
          FORT_SOURCE_TEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),

@@ -38,7 +38,6 @@
 #include "QuatFort.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
-#include <boost/make_shared.hpp>
 #include <cassert>
 #include "QuatParams.h"
 #include "ConcFort.h"
@@ -109,7 +108,7 @@ KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
 //-----------------------------------------------------------------------
 
 void KKSCompositionRHSStrategy::setDiffusionCoeff(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
    (void)time;
 
@@ -135,7 +134,7 @@ void KKSCompositionRHSStrategy::setDiffusionCoeff(
 //=======================================================================
 // compute diffusion for div*D0*grad*c term in concentration equation
 void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int eta_id,
     const int conc_pfm_diffusion_id)
 {
@@ -152,36 +151,36 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
    const char interpf = energyInterpChar(d_phase_interp_func_type);
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > temperature(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temperature(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(temperature_id)));
 
-         boost::shared_ptr<pdat::SideData<double> > pfm_diffusion(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > pfm_diffusion(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_pfm_diffusion_id)));
          assert(pfm_diffusion->getDepth() == 1);
 
          int three_phase = 0;
          double* ptr_eta = nullptr;
-         boost::shared_ptr<pdat::CellData<double> > eta;
+         std::shared_ptr<pdat::CellData<double> > eta;
          if (d_with_third_phase) {
             three_phase = 1;
-            eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(eta_id));
             ptr_eta = eta->getPointer();
          }
@@ -207,7 +206,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
 //=======================================================================
 
 void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int concentration_id, const int phase_id,
     const int eta_id, const int conc_pfm_diffusion_id,
     const int conc_phase_coupling_diffusion_id,
@@ -226,48 +225,48 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_phase_coupling_diffusion_id)));
 
-         boost::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff;
+         std::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff;
 
-         boost::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_pfm_diffusion_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_eta;
+         std::shared_ptr<pdat::CellData<double> > cd_eta;
 
-         boost::shared_ptr<pdat::CellData<double> > cd_c_l(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_c_l(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_scratch_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_c_a(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_c_a(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_a_scratch_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_c_b;
+         std::shared_ptr<pdat::CellData<double> > cd_c_b;
 
          if (d_with_third_phase) {
-            cd_eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            cd_eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(eta_id));
-            cd_c_b = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            cd_c_b = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(d_conc_b_scratch_id));
             sd_eta_diff_coeff =
-                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(conc_eta_coupling_diffusion_id));
          }
 
@@ -281,14 +280,14 @@ void KKSCompositionRHSStrategy::setDiffCoeffForGradPhi(
 //-----------------------------------------------------------------------
 
 void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
-    boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
-    boost::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
-    boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+    std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+    std::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
+    std::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer(0);
    double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer(1);
@@ -530,12 +529,12 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
 
 #if 0
 void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
-   boost::shared_ptr< pdat::CellData<double> > cd_temperature,
-   boost::shared_ptr< pdat::CellData<double> > cd_phi,
-   boost::shared_ptr< pdat::CellData<double> > cd_eta,
-   boost::shared_ptr< pdat::CellData<double> > cd_concentration,
-   boost::shared_ptr< pdat::SideData<double> > sd_diffusion0,
-   boost::shared_ptr< pdat::SideData<double> > sd_diffusion,
+   std::shared_ptr< pdat::CellData<double> > cd_temperature,
+   std::shared_ptr< pdat::CellData<double> > cd_phi,
+   std::shared_ptr< pdat::CellData<double> > cd_eta,
+   std::shared_ptr< pdat::CellData<double> > cd_concentration,
+   std::shared_ptr< pdat::SideData<double> > sd_diffusion0,
+   std::shared_ptr< pdat::SideData<double> > sd_diffusion,
    const hier::Box& pbox )
 {
    assert( cd_temperature );
@@ -748,8 +747,8 @@ void KKSCompositionRHSStrategy::computeDiffusionOnPatch(
 void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
                                                    const int flux_id)
 {
-   const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
@@ -757,30 +756,30 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
 
-   boost::shared_ptr<pdat::CellData<double> > conc(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > conc(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_scratch_id)));
    assert(conc);
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_phase_scratch_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::SideData<double> > conc_pfm_diffusion(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > conc_pfm_diffusion(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_pfm_diffusion_id)));
    assert(conc_pfm_diffusion);
    assert(conc_pfm_diffusion->getDepth() == 1);
 
-   boost::shared_ptr<pdat::SideData<double> > conc_phase_coupling_diffusion(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > conc_phase_coupling_diffusion(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_phase_coupling_diffusion_id)));
    assert(conc_phase_coupling_diffusion);
    assert(conc_phase_coupling_diffusion->getDepth() == 1);
 
-   boost::shared_ptr<pdat::SideData<double> > flux(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > flux(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(flux_id)));
    assert(flux);
    assert(flux->getDepth() == conc->getDepth());
@@ -794,8 +793,8 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
    if (d_with_third_phase) {
       three_phase = 1;
-      boost::shared_ptr<pdat::CellData<double> > eta(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > eta(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_eta_scratch_id)));
       assert(eta);
       ptr_eta = eta->getPointer();

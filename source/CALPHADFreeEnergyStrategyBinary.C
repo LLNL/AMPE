@@ -55,8 +55,8 @@ using namespace SAMRAI;
 //=======================================================================
 
 CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
-    boost::shared_ptr<tbox::Database> calphad_db,
-    boost::shared_ptr<tbox::Database> newton_db,
+    std::shared_ptr<tbox::Database> calphad_db,
+    std::shared_ptr<tbox::Database> newton_db,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id,
@@ -85,8 +85,8 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::setup(
-    boost::shared_ptr<tbox::Database> calphad_db,
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> calphad_db,
+    std::shared_ptr<tbox::Database> newton_db)
 {
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
@@ -98,7 +98,7 @@ void CALPHADFreeEnergyStrategyBinary::setup(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fl_id, const bool gp)
 {
    assert(temperature_id >= 0);
@@ -113,7 +113,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int dfl_id)
 {
    assert(temperature_id >= 0);
@@ -126,7 +126,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fs_id, const bool gp)
 {
    assert(temperature_id >= 0.);
@@ -139,7 +139,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int dfs_id)
 {
    assert(temperature_id >= 0.);
@@ -152,7 +152,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fs_id, const bool gp)
 {
    assert(temperature_id >= 0.);
@@ -165,7 +165,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int dfs_id)
 {
    assert(temperature_id >= 0.);
@@ -229,16 +229,16 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
 
    const hier::Box& pbox = patch.getBox();
 
-   boost::shared_ptr<pdat::CellData<double> > temperature(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temperature(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
 
-   boost::shared_ptr<pdat::CellData<double> > f(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > f(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_id)));
 
-   boost::shared_ptr<pdat::CellData<double> > c_i(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_i(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
    computeFreeEnergyPrivatePatch(pbox, temperature, f, c_i, pi, gp);
@@ -256,16 +256,16 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
 
    const hier::Box& pbox = patch.getBox();
 
-   boost::shared_ptr<pdat::CellData<double> > temperature(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temperature(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
 
-   boost::shared_ptr<pdat::CellData<double> > df(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > df(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(df_id)));
 
-   boost::shared_ptr<pdat::CellData<double> > c_i(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_i(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
    computeDerivFreeEnergyPrivatePatch(pbox, temperature, df, c_i, pi);
@@ -274,7 +274,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int f_id, const int conc_i_id,
     const PhaseIndex pi, const bool gp)
 {
@@ -283,11 +283,11 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
    assert(conc_i_id >= 0);
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
          computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi,
                                   gp);
@@ -298,7 +298,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int df_id, const int conc_i_id,
     const PhaseIndex pi)
 {
@@ -307,11 +307,11 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
    assert(conc_i_id >= 0);
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
          computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id,
                                        pi);
@@ -322,9 +322,9 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
-    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
-    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    boost::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
+    const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
+    std::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
     const bool gp)
 {
    double* ptr_temp = cd_temp->getPointer();
@@ -402,9 +402,9 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
-    const hier::Box& pbox, boost::shared_ptr<pdat::CellData<double> > cd_temp,
-    boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    boost::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+    const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
+    std::shared_ptr<pdat::CellData<double> > cd_free_energy,
+    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -520,56 +520,56 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > t(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > t(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
    assert(t);
 
-   boost::shared_ptr<pdat::CellData<double> > fl(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fl(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_l_id)));
    assert(fl);
 
-   boost::shared_ptr<pdat::CellData<double> > fa(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fa(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_a_id)));
    assert(fa);
 
-   boost::shared_ptr<pdat::CellData<double> > c_l(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_l(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_l_id)));
    assert(c_l);
 
-   boost::shared_ptr<pdat::CellData<double> > c_a(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_a(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_a_id)));
    assert(c_a);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
 
    assert(rhs);
    assert(rhs->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
-   boost::shared_ptr<pdat::CellData<double> > eta;
-   boost::shared_ptr<pdat::CellData<double> > fb;
-   boost::shared_ptr<pdat::CellData<double> > c_b;
+   std::shared_ptr<pdat::CellData<double> > eta;
+   std::shared_ptr<pdat::CellData<double> > fb;
+   std::shared_ptr<pdat::CellData<double> > c_b;
    if (d_with_third_phase) {
-      eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
           patch.getPatchData(eta_id));
       assert(eta);
-      fb = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      fb = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
           patch.getPatchData(f_b_id));
       assert(fb);
 
-      c_b = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      c_b = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
           patch.getPatchData(d_conc_b_id));
       assert(c_b);
    }
@@ -582,16 +582,16 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
-    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+    std::shared_ptr<pdat::CellData<double> > cd_rhs,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
    double* ptr_temp = cd_temperature->getPointer();
@@ -771,53 +771,53 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
    assert(eta_id >= 0);
    assert(f_b_id >= 0);
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > eta(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > eta(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(eta_id)));
    assert(eta);
 
-   boost::shared_ptr<pdat::CellData<double> > t(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > t(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
    assert(t);
 
-   boost::shared_ptr<pdat::CellData<double> > f_l(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > f_l(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_l_id)));
    assert(f_l);
 
-   boost::shared_ptr<pdat::CellData<double> > f_a(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > f_a(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_a_id)));
    assert(f_a);
 
-   boost::shared_ptr<pdat::CellData<double> > f_b(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > f_b(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(f_b_id)));
    assert(f_b);
 
-   boost::shared_ptr<pdat::CellData<double> > c_l(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_l(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_l_id)));
    assert(c_l);
 
-   boost::shared_ptr<pdat::CellData<double> > c_a(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_a(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_a_id)));
    assert(c_a);
 
-   boost::shared_ptr<pdat::CellData<double> > c_b(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > c_b(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_b_id)));
    assert(c_b);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
    assert(rhs);
 
@@ -830,16 +830,16 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
-    boost::shared_ptr<pdat::CellData<double> > cd_rhs,
-    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_f_b,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+    std::shared_ptr<pdat::CellData<double> > cd_rhs,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_f_l,
+    std::shared_ptr<pdat::CellData<double> > cd_f_a,
+    std::shared_ptr<pdat::CellData<double> > cd_f_b,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
 

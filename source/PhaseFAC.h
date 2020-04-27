@@ -18,8 +18,6 @@
 #include "SAMRAI/appu/VisDerivedDataStrategy.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 
-#include "boost/shared_ptr.hpp"
-
 #include "PhaseFACSolver.h"
 
 using namespace SAMRAI;
@@ -41,8 +39,8 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
     * @param bc_coefs
     */
    PhaseFAC(const std::string& object_name, const tbox::Dimension& dim,
-            const boost::shared_ptr<PhaseFACSolver>& fac_solver,
-            const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
+            const std::shared_ptr<PhaseFACSolver>& fac_solver,
+            const std::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
             const double epsilon, const double omega, const double delta,
             const double mobility, const double gamma);
 
@@ -61,17 +59,17 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
     * @see mesh::StandardTagAndInitStrategy::initializeLevelData()
     */
    virtual void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double init_data_time,
        const bool can_be_refined, const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const std::shared_ptr<hier::PatchLevel>& old_level,
        const bool allocate_data);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
     */
    virtual void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
        int coarsest_level, int finest_level);
 
    //@}
@@ -125,7 +123,7 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
 
    const tbox::Dimension d_dim;
 
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    //@{
    /*!
@@ -135,12 +133,12 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
    /*!
     * @brief FAC poisson solver.
     */
-   boost::shared_ptr<PhaseFACSolver> d_poisson_fac_solver;
+   std::shared_ptr<PhaseFACSolver> d_poisson_fac_solver;
 
    /*!
     * @brief Boundary condition coefficient implementation.
     */
-   boost::shared_ptr<solv::LocationIndexRobinBcCoefs> d_bc_coefs;
+   std::shared_ptr<solv::LocationIndexRobinBcCoefs> d_bc_coefs;
 
    //@}
 
@@ -153,7 +151,7 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
    /*!
     * @brief Context owned by this object.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*!
     * @brief Descriptor indices of internal data.

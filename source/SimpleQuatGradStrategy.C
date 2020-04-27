@@ -70,7 +70,7 @@ enum QuatModel::CACHE_TYPE SimpleQuatGradStrategy::translateCacheType(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeDiffs(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
     int& diffs_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -83,7 +83,7 @@ void SimpleQuatGradStrategy::computeDiffs(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeDiffs(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& quat_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& quat_id,
     int& diffs_id, const double time)
 {
    assert(d_quat_model != nullptr);
@@ -94,7 +94,7 @@ void SimpleQuatGradStrategy::computeDiffs(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradCell(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
     int& grad_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -108,7 +108,7 @@ void SimpleQuatGradStrategy::computeGradCell(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradCell(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
     int& grad_id, const double time)
 {
    assert(d_quat_model != nullptr);
@@ -119,7 +119,7 @@ void SimpleQuatGradStrategy::computeGradCell(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradSide(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
     int& grad_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -133,7 +133,7 @@ void SimpleQuatGradStrategy::computeGradSide(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradSide(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
     int& grad_id, const double time)
 {
    assert(d_quat_model != nullptr);
@@ -144,7 +144,7 @@ void SimpleQuatGradStrategy::computeGradSide(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradModulus(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
     int& mod_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -158,7 +158,7 @@ void SimpleQuatGradStrategy::computeGradModulus(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradModulus(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& grad_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& grad_id,
     int& mod_id, const double time)
 {
    assert(d_quat_model != nullptr);
@@ -169,7 +169,7 @@ void SimpleQuatGradStrategy::computeGradModulus(
 //-----------------------------------------------------------------------
 
 void SimpleQuatGradStrategy::computeGradModulusFromSides(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_side_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_side_id,
     int& mod_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);

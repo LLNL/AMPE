@@ -88,11 +88,11 @@ QuatLinearRefine::QuatLinearRefine(const int quat_symm_rotation_id)
 QuatLinearRefine::~QuatLinearRefine() {}
 
 bool QuatLinearRefine::findRefineOperator(
-    const boost::shared_ptr<hier::Variable>& var,
+    const std::shared_ptr<hier::Variable>& var,
     const std::string& op_name) const
 {
-   const boost::shared_ptr<pdat::CellVariable<double> > cast_var(
-       BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+   const std::shared_ptr<pdat::CellVariable<double> > cast_var(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(var));
    if (cast_var && (op_name == d_name_id)) {
       return (true);
    } else {
@@ -139,11 +139,11 @@ void QuatLinearRefine::refine(hier::Patch& fine, const hier::Patch& coarse,
 {
    // const tbox::Dimension& dim(fine.getDim());
 
-   boost::shared_ptr<pdat::CellData<double> > cdata(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            coarse.getPatchData(src_component)));
-   boost::shared_ptr<pdat::CellData<double> > fdata(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            fine.getPatchData(dst_component)));
 
    TBOX_ASSERT(cdata);
@@ -159,19 +159,19 @@ void QuatLinearRefine::refine(hier::Patch& fine, const hier::Patch& coarse,
    const hier::Index& filo = fdata->getGhostBox().lower();
    const hier::Index& fihi = fdata->getGhostBox().upper();
 
-   const boost::shared_ptr<geom::CartesianPatchGeometry> cgeom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> cgeom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            coarse.getPatchGeometry()));
-   const boost::shared_ptr<geom::CartesianPatchGeometry> fgeom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> fgeom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            fine.getPatchGeometry()));
 
    const hier::Box coarse_box = hier::Box::coarsen(fine_box, ratio);
    const hier::Index& ifirstf = fine_box.lower();
    const hier::Index& ilastf = fine_box.upper();
 
-   boost::shared_ptr<pdat::SideData<int> > rotation_index(
-       BOOST_CAST<pdat::SideData<int>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<int> > rotation_index(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
            coarse.getPatchData(d_quat_symm_rotation_id)));
    assert(rotation_index);
    const hier::Box& rot_gbox = rotation_index->getGhostBox();

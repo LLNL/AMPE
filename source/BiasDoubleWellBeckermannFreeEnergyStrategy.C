@@ -68,18 +68,18 @@ void BiasDoubleWellBeckermannFreeEnergyStrategy::addDrivingForce(
    (void)f_l_id;   // unused
    (void)f_a_id;   // unused
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > temp(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temp(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
    assert(temp);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
    assert(rhs);
 
@@ -90,8 +90,8 @@ void BiasDoubleWellBeckermannFreeEnergyStrategy::addDrivingForce(
    //(which may depend on composition in linear model for instance)
    d_meltingTstrat->evaluate(patch);
 
-   boost::shared_ptr<pdat::CellData<double> > eq_temp(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > eq_temp(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_meltingTstrat->equilibrium_temperature_id())));
    assert(eq_temp);
 #ifdef DEBUG_CHECK_ASSERTIONS

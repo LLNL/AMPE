@@ -45,27 +45,27 @@ class QuatIntegratorFactory
    static QuatIntegrator* create(
        const std::string integrator_name, QuatModelParameters& model_parameters,
        QuatModel* quat_model,
-       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+       std::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
        const int qlen, const int ncompositions,
-       boost::shared_ptr<tbox::Database> input_db, const bool use_warm_start,
+       std::shared_ptr<tbox::Database> input_db, const bool use_warm_start,
        const bool symmetry_aware, const bool all_periodic)
    {
       hier::VariableDatabase* variable_db =
           hier::VariableDatabase::getDatabase();
 
-      boost::shared_ptr<hier::VariableContext> current =
+      std::shared_ptr<hier::VariableContext> current =
           variable_db->getContext("CURRENT");
-      boost::shared_ptr<hier::VariableContext> scratch =
+      std::shared_ptr<hier::VariableContext> scratch =
           variable_db->getContext("SCRATCH");
 
       QuatIntegrator* integrator = nullptr;
 
-      boost::shared_ptr<tbox::Database> integrator_db =
+      std::shared_ptr<tbox::Database> integrator_db =
           input_db->getDatabase("Integrator");
 
-      boost::shared_ptr<tbox::Database> model_db =
+      std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
-      boost::shared_ptr<tbox::Database> bc_db;
+      std::shared_ptr<tbox::Database> bc_db;
       if (!all_periodic) {
          bc_db = model_db->getDatabase("BoundaryConditions");
       }

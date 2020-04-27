@@ -75,7 +75,6 @@
 #endif
 
 
-#include <boost/make_shared.hpp>
 #include <set>
 #include <vector>
 
@@ -108,12 +107,12 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
  public:
    QuatIntegrator(const std::string& name,
                   const QuatModelParameters& model_parameters, QuatModel* model,
-                  const boost::shared_ptr<hier::VariableContext> current,
-                  const boost::shared_ptr<hier::VariableContext> scratch,
+                  const std::shared_ptr<hier::VariableContext> current,
+                  const std::shared_ptr<hier::VariableContext> scratch,
                   const int qlen, const int ncompositions,
-                  boost::shared_ptr<tbox::Database> input_db,
-                  boost::shared_ptr<geom::CartesianGridGeometry> grid_geom,
-                  boost::shared_ptr<tbox::Database> bc_db,
+                  std::shared_ptr<tbox::Database> input_db,
+                  std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
+                  std::shared_ptr<tbox::Database> bc_db,
                   const bool with_phase, const bool with_concentration,
                   const bool with_third_phase, const bool with_heat_equation,
                   const bool with_steady_temperature, const bool with_gradT,
@@ -123,12 +122,12 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    virtual ~QuatIntegrator();
 
-   void initialize(const boost::shared_ptr<hier::PatchHierarchy>& hierarchy);
+   void initialize(const std::shared_ptr<hier::PatchHierarchy>& hierarchy);
 
    void initializeCoarseRefineOperators(
-       boost::shared_ptr<mesh::GriddingAlgorithm> gridding_alg,
-       boost::shared_ptr<hier::RefineOperator> quat_refine_op,
-       boost::shared_ptr<hier::CoarsenOperator> quat_coarsen_op);
+       std::shared_ptr<mesh::GriddingAlgorithm> gridding_alg,
+       std::shared_ptr<hier::RefineOperator> quat_refine_op,
+       std::shared_ptr<hier::CoarsenOperator> quat_coarsen_op);
 
    void setVerbosity(const int v);
    void setupPreconditioners();
@@ -152,44 +151,44 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setConcentrationModelParameters(const double mobility);
 
    void RegisterVariables(
-       const boost::shared_ptr<pdat::CellVariable<double> > phase_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > eta_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > quat_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
-       const boost::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
-       const boost::shared_ptr<pdat::CellVariable<double> >
+       const std::shared_ptr<pdat::CellVariable<double> > phase_var,
+       const std::shared_ptr<pdat::CellVariable<double> > eta_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
+       const std::shared_ptr<pdat::CellVariable<double> >
            quat_grad_modulus_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > phase_mobility_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > eta_mobility_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-       const boost::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
-       const boost::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
-       const boost::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > weight_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > temperature_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > cp_var);
+       const std::shared_ptr<pdat::CellVariable<double> > phase_mobility_var,
+       const std::shared_ptr<pdat::CellVariable<double> > eta_mobility_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
+       const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var,
+       const std::shared_ptr<pdat::CellVariable<double> > weight_var,
+       const std::shared_ptr<pdat::CellVariable<double> > temperature_var,
+       const std::shared_ptr<pdat::CellVariable<double> > cp_var);
 
    void RegisterConcentrationVariables(
-       const boost::shared_ptr<pdat::CellVariable<double> > conc_var,
-       const std::vector<boost::shared_ptr<pdat::SideVariable<double> > >
+       const std::shared_ptr<pdat::CellVariable<double> > conc_var,
+       const std::vector<std::shared_ptr<pdat::SideVariable<double> > >
            conc_pfm_diffusion_var,
-       const boost::shared_ptr<pdat::SideVariable<double> >
+       const std::shared_ptr<pdat::SideVariable<double> >
            conc_phase_coupling_diffusion_var,
-       const boost::shared_ptr<pdat::SideVariable<double> >
+       const std::shared_ptr<pdat::SideVariable<double> >
            conc_eta_coupling_diffusion_var,
-       const boost::shared_ptr<pdat::SideVariable<double> > conc_diffusion_var);
+       const std::shared_ptr<pdat::SideVariable<double> > conc_diffusion_var);
 
    void RegisterFreeEnergyVariables(
-       const boost::shared_ptr<pdat::CellVariable<double> > f_l_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > f_a_var,
-       const boost::shared_ptr<pdat::CellVariable<double> > f_b_var);
+       const std::shared_ptr<pdat::CellVariable<double> > f_l_var,
+       const std::shared_ptr<pdat::CellVariable<double> > f_a_var,
+       const std::shared_ptr<pdat::CellVariable<double> > f_b_var);
 
    void RegisterWithVisit(
-       boost::shared_ptr<appu::VisItDataWriter> visit_data_writer);
+       std::shared_ptr<appu::VisItDataWriter> visit_data_writer);
 
-   double Advance(const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+   double Advance(const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void updateSolution(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void updateSolution(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const int coarsest_level, const int finest_level);
 
    void printSolverTotals(void);
@@ -202,14 +201,14 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    //
 
    void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double time, const bool can_be_refined,
        const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const std::shared_ptr<hier::PatchLevel>& old_level,
        const bool allocate_data);
 
    void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int coarsest_level, const int finest_level);
 
    /////////////////////////////////////////////////////////////
@@ -219,7 +218,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
     * (which may not be the same as quat_var in class QuatModel)
     */
    void computeQuatGradients(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, double time,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, double time,
        const bool recompute_quat_sidegrad);
 
    /**
@@ -285,7 +284,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 #endif
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
-   void setMobilityStrategy(boost::shared_ptr<QuatMobilityStrategy>&);
+   void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
    void setFreeEnergyStrategy(FreeEnergyStrategy* free_energy_strategy);
    void setPhaseConcentrationsStrategy(
        PhaseConcentrationsStrategy* phase_conc_strategy)
@@ -296,7 +295,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setCompositionRHSStrategy(
        CompositionRHSStrategy* composition_rhs_strategy);
    void setCompositionDiffusionStrategy(
-       boost::shared_ptr<CompositionDiffusionStrategy>);
+       std::shared_ptr<CompositionDiffusionStrategy>);
 
    void setPhaseFluxStrategy(PhaseFluxStrategy*);
    void setTemperatureStrategy(TemperatureStrategy*);
@@ -320,8 +319,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
  protected:
    void evaluatePhaseRHS(
-       const double time, boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
        int fd_flag)
    {
       const int ydot_phase_id =
@@ -333,8 +332,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    }
 
    void evaluateQuatRHS(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
        int fd_flag)
    {
       const int ydot_quat_id =
@@ -344,8 +343,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    }
 
    void evaluateTemperatureRHS(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
        int fd_flag)
    {
       const int ydot_phase_id =
@@ -359,7 +358,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                              ydot_temperature_id, fd_flag == 0);
    }
 
-   void setTemperatureField(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void setTemperatureField(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                             double time)
    {
       if (!d_model_parameters.with_unsteady_heat_equation()) {
@@ -369,26 +368,26 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    }
 
    void evaluateConcentrationRHS(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
        const int conc_id, const int conc_rhs_id, const int temperature_id,
        const bool visit_flag);
 
    void resetSolutionVector(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    void fillScratch(double time,
-                    boost::shared_ptr<solv::SAMRAIVectorReal<double> > y);
+                    std::shared_ptr<solv::SAMRAIVectorReal<double> > y);
 
    void computeMobilities(double time,
-                          boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+                          std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void setDiffusionCoeffForQuat(const boost::shared_ptr<hier::PatchHierarchy>,
+   void setDiffusionCoeffForQuat(const std::shared_ptr<hier::PatchHierarchy>,
                                  const double time);
    void setUniformDiffusionCoeffForQuat(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    void setDerivDiffusionCoeffForQuat(
-       const boost::shared_ptr<hier::PatchHierarchy>, const double time);
+       const std::shared_ptr<hier::PatchHierarchy>, const double time);
 
-   boost::shared_ptr<solv::SAMRAIVectorReal<double> > d_solution_vec;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > d_solution_vec;
 
    // SAMRAIVector component index
    int d_phase_component_index;
@@ -401,29 +400,29 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    // Variables owned by QuatModel
    //
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_var;
    int d_phase_id;
    int d_phase_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_var;
    int d_temperature_id;
    int d_temperature_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_var;
    int d_quat_id;
    int d_quat_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_var;
    int d_conc_id;
    int d_conc_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_weight_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_weight_var;
    int d_weight_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_mobility_var;
    int d_phase_mobility_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> >
+   std::shared_ptr<pdat::CellVariable<double> >
        d_phase_temperature_mobility_var;
    int d_phase_temperature_mobility_id;
    const int d_ncompositions;
@@ -438,15 +437,15 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    bool d_precond_has_dTdphi;
    bool d_precond_has_dPhidT;
 
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   std::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
 
-   boost::shared_ptr<hier::CoarsenOperator> d_quat_coarsen_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_phase_coarsen_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_eta_coarsen_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_temperature_coarsen_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_conc_coarsen_op;
+   std::shared_ptr<hier::CoarsenOperator> d_quat_coarsen_op;
+   std::shared_ptr<hier::CoarsenOperator> d_phase_coarsen_op;
+   std::shared_ptr<hier::CoarsenOperator> d_eta_coarsen_op;
+   std::shared_ptr<hier::CoarsenOperator> d_temperature_coarsen_op;
+   std::shared_ptr<hier::CoarsenOperator> d_conc_coarsen_op;
 
-   boost::shared_ptr<hier::RefineOperator> d_conc_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_conc_refine_op;
 
    /*!
        Flag controlling the lagging of the quaternion
@@ -480,33 +479,33 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    /*!
     * diffusion coefficient in preconditioner for composition equation
     */
-   std::vector<boost::shared_ptr<pdat::SideVariable<double> > >
+   std::vector<std::shared_ptr<pdat::SideVariable<double> > >
        d_conc_pfm_diffusion_var;
    std::vector<int> d_conc_pfm_diffusion_id;
 
    // Timers
-   boost::shared_ptr<tbox::Timer> t_rhs_timer;
-   boost::shared_ptr<tbox::Timer> t_set_coeff_timer;
+   std::shared_ptr<tbox::Timer> t_rhs_timer;
+   std::shared_ptr<tbox::Timer> t_set_coeff_timer;
 
  private:
    //
    // Local methods
    //
    virtual void setCoefficients(
-       double time, boost::shared_ptr<solv::SAMRAIVectorReal<double> > y,
+       double time, std::shared_ptr<solv::SAMRAIVectorReal<double> > y,
        const bool recompute_quat_sidegrad);
 
    void createSundialsSolver();
    void computePhaseConcentrations(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    virtual void setupPreconditionersConcentration(
-       boost::shared_ptr<tbox::Database> integrator_db);
+       std::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersPhase(
-       boost::shared_ptr<tbox::Database> integrator_db);
+       std::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersEta(
-       boost::shared_ptr<tbox::Database> integrator_db);
+       std::shared_ptr<tbox::Database> integrator_db);
    void setupPreconditionersTemperature(
-       boost::shared_ptr<tbox::Database> integrator_db);
+       std::shared_ptr<tbox::Database> integrator_db);
 
    void setSolversBoundaries();
    virtual void setConcentrationSolverBoundaries();
@@ -519,127 +518,127 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void RegisterLocalVisitVariables();
 
    virtual int applyPhasePreconditioner(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta, const double gamma);
-   int PhasePrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   int PhasePrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                          int r_phase_id, int z_phase_id, const double delta,
                          const double gamma);
-   int EtaPrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   int EtaPrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        int r_eta_id, int z_eta_id, const double delta);
    virtual int applyTemperaturePreconditioner(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta, const double gamma);
    int TemperaturePrecondSolve(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy, int r_temperature_id,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy, int r_temperature_id,
        int z_temperature_id, const double delta, const double gamma);
    int ConcentrationPrecondSolve(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta);
    virtual int applyConcentrationPreconditioner(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
        const double delta);
-   int QuatPrecondSolve(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   int QuatPrecondSolve(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int r_quat_id, int z_quat_id, const double delta,
                         const double gamma);
 
    void updateDependentVariables(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
-       const boost::shared_ptr<hier::VariableContext> src_context,
-       const boost::shared_ptr<hier::VariableContext> dst_context);
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::VariableContext> src_context,
+       const std::shared_ptr<hier::VariableContext> dst_context);
 
    void updateDependentVariables(
-       const boost::shared_ptr<hier::PatchLevel> level,
-       const boost::shared_ptr<hier::VariableContext> src_context,
-       const boost::shared_ptr<hier::VariableContext> dst_context);
+       const std::shared_ptr<hier::PatchLevel> level,
+       const std::shared_ptr<hier::VariableContext> src_context,
+       const std::shared_ptr<hier::VariableContext> dst_context);
 
 
    void coarsenData(const int phase_id, const int eta_id, const int quat_id,
                     const int conc_id, const int temperature_id,
-                    const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+                    const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void updateSolutionTime(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
    void updateTimeForPatchID(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int id);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int id);
 
    void setDiffusionCoeffForQuatPatch(hier::Patch& patch);
    void setDerivDiffusionCoeffForQuatPatch(hier::Patch& patch);
    void setDiffusionCoeffForConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
    void evaluatePhaseRHS(const double time,
-                         boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                         std::shared_ptr<hier::PatchHierarchy> hierarchy,
                          const int phase_id, const int eta_id,
                          const int conc_id, const int quat_id,
                          const int phase_rhs_id, const int temperature_id,
                          const bool visit_flag);
    void evaluateEtaRHS(const double time,
-                       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+                       std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const int phase_id, const int eta_id, const int conc_id,
                        const int quat_id, const int eta_rhs_id,
                        const int temperature_id);
    void evaluateTemperatureRHS(
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int phase_rhs_id,
        const int temperature_rhs_id, const bool visit_flag);
-   void evaluateQuatRHS(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void evaluateQuatRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         const int quat_id, const int quat_rhs_id,
                         const bool visit_flag);
 
    void correctRhsForSymmetry(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int,
        const int);
 
-   void resetIntegrator(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void resetIntegrator(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         const int coarsest_level, const int finest_level);
 
    void resetAfterRegrid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int coarsest_level, const int finest_level);
 
    void resetSolversState(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int coarsest_level, const int finest_level);
 
    void setSundialsOptions();
 
-   std::vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+   std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
    getCPODESVectorsRequiringRegrid(void);
 
-   void computeVelocity(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void computeVelocity(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int phi_dot_id);
 
    void initializeNonPeriodicBC();
    void initializeSolvers(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy);
 
    virtual void createSolutionvector(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    virtual void fillScratchComposition(
-       double time, boost::shared_ptr<solv::SAMRAIVectorReal<double> > y,
+       double time, std::shared_ptr<solv::SAMRAIVectorReal<double> > y,
        xfer::RefineAlgorithm& copy_to_scratch);
    virtual void resetSolversStateConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    virtual void initializeConcentrationNonPeriodicBC();
    virtual void initializeConcentrationSolver(
-       const boost::shared_ptr<hier::PatchHierarchy>&);
+       const std::shared_ptr<hier::PatchHierarchy>&);
    virtual void setCompositionOperatorCoefficients(const double gamma);
 
-   void fillDphiDt(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void fillDphiDt(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                    const double time, const int phase_rhs_id);
 
-   double computeFrameVelocity(const boost::shared_ptr<hier::PatchHierarchy>&,
+   double computeFrameVelocity(const std::shared_ptr<hier::PatchHierarchy>&,
                                const double time, int phase_id,
                                const bool newtime);
 
@@ -649,7 +648,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    int d_qlen;
 
-   boost::shared_ptr<mesh::GriddingAlgorithm> d_gridding_algorithm;
+   std::shared_ptr<mesh::GriddingAlgorithm> d_gridding_algorithm;
 
    int d_verbosity;
 
@@ -657,11 +656,11 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    bool d_compute_velocity;
 
-   boost::shared_ptr<hier::VariableContext> d_current;
-   boost::shared_ptr<hier::VariableContext> d_scratch;
+   std::shared_ptr<hier::VariableContext> d_current;
+   std::shared_ptr<hier::VariableContext> d_scratch;
 
    QuatGradStrategy* d_quat_grad_strategy;
-   boost::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
+   std::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
    PhaseConcentrationsStrategy* d_phase_conc_strategy;
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
 
@@ -674,7 +673,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    CompositionRHSStrategy* d_composition_rhs_strategy;
 
-   boost::shared_ptr<CompositionDiffusionStrategy>
+   std::shared_ptr<CompositionDiffusionStrategy>
        d_composition_diffusion_strategy;
 
    PhaseFluxStrategy* d_phase_flux_strategy;
@@ -686,162 +685,162 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    // Variables owned by QuatModel
    //
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_var;
    int d_eta_id;
    int d_eta_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_cp_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_cp_var;
    int d_cp_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_grad_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_cell_var;
    int d_quat_grad_cell_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_var;
    int d_quat_grad_side_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_grad_modulus_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_modulus_var;
    int d_quat_grad_modulus_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_mobility_var;
    int d_eta_mobility_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
    int d_quat_mobility_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
    int d_quat_diffusion_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_deriv_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_deriv_var;
    int d_quat_diffusion_deriv_id;
 
-   boost::shared_ptr<pdat::SideVariable<int> > d_quat_symm_rotation_var;
+   std::shared_ptr<pdat::SideVariable<int> > d_quat_symm_rotation_var;
    int d_quat_symm_rotation_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
-   boost::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double> >
        d_conc_phase_coupling_diffusion_var;
    int d_conc_phase_coupling_diffusion_id;
-   boost::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double> >
        d_conc_eta_coupling_diffusion_var;
    int d_conc_eta_coupling_diffusion_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
    int d_quat_diffs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
    int d_f_l_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_a_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_a_var;
    int d_f_a_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_b_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_b_var;
    int d_f_b_id;
 
    //
    // Variables owned locally
    //
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_visit_var;
    int d_phase_rhs_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_driving_force_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_driving_force_visit_var;
    int d_driving_force_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_q_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_q_rhs_visit_var;
    int d_q_rhs_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_modulus_q_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_modulus_q_rhs_visit_var;
    int d_modulus_q_rhs_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_visit_var;
    int d_temperature_rhs_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_visit_var;
    int d_conc_rhs_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_q_rhs1_visit_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_q_rhs1_visit_var;
    int d_q_rhs1_visit_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_sol_var;
    int d_phase_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_rhs_var;
    int d_phase_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_sol_var;
    int d_eta_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_rhs_var;
    int d_eta_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_sol_var;
    int d_temperature_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_var;
    int d_temperature_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_sol_var;
    int d_quat_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_rhs_var;
    int d_quat_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_u_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_u_sol_var;
    int d_u_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_u_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_u_rhs_var;
    int d_u_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_sol_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_sol_var;
    int d_conc_sol_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_rhs_var;
    int d_conc_rhs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_dphidt_scratch_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_dphidt_scratch_var;
    int d_dphidt_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_deriv_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_deriv_var;
    int d_quat_mobility_deriv_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_flux_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_flux_var;
    int d_flux_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_flux_conc_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_flux_conc_var;
    int d_flux_conc_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_velocity_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_velocity_var;
    int d_velocity_id;
 
    /*!
     * Possibly lagged copy of d_quat_grad_side_var
     */
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_copy_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_copy_var;
    int d_quat_grad_side_copy_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_noise_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_noise_var;
    int d_noise_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_tmp1_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_tmp1_var;
    int d_tmp1_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_tmp2_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_tmp2_var;
    int d_tmp2_id;
 
    xfer::CoarsenAlgorithm d_quat_diffusion_coarsen;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_quat_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_quat_diffusion_deriv_coarsen;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_quat_diffusion_deriv_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_conc_diffusion_coarsen;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_conc_diffusion_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_flux_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_flux_conc_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_flux_conc_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_coarsen_alg;
@@ -873,31 +872,31 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    solv::CVODESolver* d_sundials_solver;
 #endif
 
-   boost::shared_ptr<QuatSysSolver> d_quat_sys_solver;
+   std::shared_ptr<QuatSysSolver> d_quat_sys_solver;
 
-   boost::shared_ptr<PhaseFACOps> d_phase_fac_ops;
-   boost::shared_ptr<PhaseFACSolver> d_phase_sys_solver;
+   std::shared_ptr<PhaseFACOps> d_phase_fac_ops;
+   std::shared_ptr<PhaseFACSolver> d_phase_sys_solver;
 
-   boost::shared_ptr<EtaFACSolver> d_eta_sys_solver;
-   boost::shared_ptr<ConcFACSolver> d_conc_sys_solver;
+   std::shared_ptr<EtaFACSolver> d_eta_sys_solver;
+   std::shared_ptr<ConcFACSolver> d_conc_sys_solver;
 
-   boost::shared_ptr<TemperatureFACOps> d_temperature_fac_ops;
-   boost::shared_ptr<TemperatureFACSolver> d_temperature_sys_solver;
+   std::shared_ptr<TemperatureFACOps> d_temperature_fac_ops;
+   std::shared_ptr<TemperatureFACSolver> d_temperature_sys_solver;
 
-   boost::shared_ptr<PhaseTemperatureFACOps> d_phase_temperature_fac_ops;
-   boost::shared_ptr<EllipticFACSolver> d_phase_temperature_sys_solver;
+   std::shared_ptr<PhaseTemperatureFACOps> d_phase_temperature_fac_ops;
+   std::shared_ptr<EllipticFACSolver> d_phase_temperature_sys_solver;
 
    double d_end_time;
 
-   boost::shared_ptr<tbox::Database> d_boundary_cond_db;
+   std::shared_ptr<tbox::Database> d_boundary_cond_db;
 
    QuatRefinePatchStrategy* d_all_refine_patch_strategy;
 
-   boost::shared_ptr<hier::RefineOperator> d_quat_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_phase_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_eta_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_temperature_refine_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_op;
+   std::shared_ptr<hier::RefineOperator> d_quat_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_phase_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_eta_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_temperature_refine_op;
+   std::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_op;
 
    bool d_with_third_phase;
    bool d_with_heat_equation;
@@ -979,21 +978,21 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    solv::LocationIndexRobinBcCoefs* d_temperature_bc_coefs;
    solv::LocationIndexRobinBcCoefs* d_quat_bc_coefs;
 
-   boost::shared_ptr<tbox::Database> d_integrator_db;
+   std::shared_ptr<tbox::Database> d_integrator_db;
 
    // Timers
-   boost::shared_ptr<tbox::Timer> t_advance_timer;
-   boost::shared_ptr<tbox::Timer> t_phase_rhs_timer;
-   boost::shared_ptr<tbox::Timer> t_eta_rhs_timer;
-   boost::shared_ptr<tbox::Timer> t_conc_rhs_timer;
-   boost::shared_ptr<tbox::Timer> t_symm_rhs_timer;
-   boost::shared_ptr<tbox::Timer> t_set_diffcoeff_conc_timer;
-   boost::shared_ptr<tbox::Timer> t_psolve_setup_timer;
-   boost::shared_ptr<tbox::Timer> t_psolve_solve_timer;
-   boost::shared_ptr<tbox::Timer> t_phase_conc_timer;
-   boost::shared_ptr<tbox::Timer> t_phase_precond_timer;
-   boost::shared_ptr<tbox::Timer> t_conc_precond_timer;
-   boost::shared_ptr<tbox::Timer> t_quat_grad_timer;
+   std::shared_ptr<tbox::Timer> t_advance_timer;
+   std::shared_ptr<tbox::Timer> t_phase_rhs_timer;
+   std::shared_ptr<tbox::Timer> t_eta_rhs_timer;
+   std::shared_ptr<tbox::Timer> t_conc_rhs_timer;
+   std::shared_ptr<tbox::Timer> t_symm_rhs_timer;
+   std::shared_ptr<tbox::Timer> t_set_diffcoeff_conc_timer;
+   std::shared_ptr<tbox::Timer> t_psolve_setup_timer;
+   std::shared_ptr<tbox::Timer> t_psolve_solve_timer;
+   std::shared_ptr<tbox::Timer> t_phase_conc_timer;
+   std::shared_ptr<tbox::Timer> t_phase_precond_timer;
+   std::shared_ptr<tbox::Timer> t_conc_precond_timer;
+   std::shared_ptr<tbox::Timer> t_quat_grad_timer;
 };
 
 #endif

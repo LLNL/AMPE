@@ -36,14 +36,12 @@
 #include "QuatRefinePatchStrategy.h"
 #include "TimeLocationIndexRobinBcCoefs.h"
 
-#include <boost/make_shared.hpp>
-
 #include <cassert>
 
 
 QuatRefinePatchStrategy::QuatRefinePatchStrategy(
     const std::string& object_name,
-    boost::shared_ptr<tbox::Database> input_bc_db, const int phase_id,
+    std::shared_ptr<tbox::Database> input_bc_db, const int phase_id,
     const int eta_id, const int quat_id, const int conc_id,
     const int temperature_id, const double rescaled_temperature_coeff)
     : xfer::RefinePatchStrategy(),
@@ -61,7 +59,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
           new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM),
                                            "PhaseBcHelper");
       d_phase_refine_strategy->setTargetDataId(d_phase_id);
-      boost::shared_ptr<tbox::Database> phase_bc_db =
+      std::shared_ptr<tbox::Database> phase_bc_db =
           input_bc_db->getDatabase("Phase");
       d_phase_bc_coefs =
           new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -75,7 +73,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
                                            "EtaBcHelpe"
                                            "r");
       d_eta_refine_strategy->setTargetDataId(d_eta_id);
-      boost::shared_ptr<tbox::Database> eta_bc_db =
+      std::shared_ptr<tbox::Database> eta_bc_db =
           input_bc_db->getDatabase("Eta");
       d_eta_bc_coefs =
           new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -88,7 +86,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
           new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
                                               "QuatBcHelper");
       d_quat_refine_strategy->setTargetDataId(d_quat_id);
-      boost::shared_ptr<tbox::Database> quat_bc_db =
+      std::shared_ptr<tbox::Database> quat_bc_db =
           input_bc_db->getDatabase("Quat");
       d_quat_bc_coefs =
           new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -101,7 +99,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
           new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
                                               "ConcBcHelper");
       d_conc_refine_strategy->setTargetDataId(d_conc_id);
-      boost::shared_ptr<tbox::Database> conc_bc_db =
+      std::shared_ptr<tbox::Database> conc_bc_db =
           input_bc_db->getDatabase("Conc");
       d_conc_bc_coefs =
           new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -114,7 +112,7 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
           new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM),
                                            "TemperatureBcHelper");
       d_temp_refine_strategy->setTargetDataId(d_temperature_id);
-      boost::shared_ptr<tbox::Database> temp_bc_db =
+      std::shared_ptr<tbox::Database> temp_bc_db =
           input_bc_db->getDatabase("Temperature");
       bool flag = false;
       std::string name("boundary_0");

@@ -39,7 +39,7 @@
 
 ScalarTemperatureStrategy::ScalarTemperatureStrategy(
     const int temperature_id, const int temperature_scratch_id,
-    const double temperature0, boost::shared_ptr<tbox::Database> temperature_db)
+    const double temperature0, std::shared_ptr<tbox::Database> temperature_db)
 {
    assert(temperature_id >= 0);
    assert(temperature_scratch_id >= 0);
@@ -56,7 +56,7 @@ ScalarTemperatureStrategy::ScalarTemperatureStrategy(
 }
 
 double ScalarTemperatureStrategy::getCurrentMaxTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)patch_hierarchy;
 
@@ -64,7 +64,7 @@ double ScalarTemperatureStrategy::getCurrentMaxTemperature(
 }
 
 double ScalarTemperatureStrategy::getCurrentMinTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)patch_hierarchy;
 
@@ -72,7 +72,7 @@ double ScalarTemperatureStrategy::getCurrentMinTemperature(
 }
 
 double ScalarTemperatureStrategy::getCurrentAverageTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    (void)patch_hierarchy;
 
@@ -99,7 +99,7 @@ double ScalarTemperatureStrategy::getCurrentTemperature(const double time)
 }
 
 void ScalarTemperatureStrategy::setCurrentTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    assert(d_temperature_id >= 0);
    assert(d_temperature_scratch_id >= 0);
@@ -112,22 +112,22 @@ void ScalarTemperatureStrategy::setCurrentTemperature(
 
       for (int ln = 0; ln <= maxln; ln++) {
 
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              patch_hierarchy->getPatchLevel(ln);
 
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch = *p;
+            std::shared_ptr<hier::Patch> patch = *p;
 
-            boost::shared_ptr<pdat::CellData<double> > t_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > t_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_id)));
 
             t_data->fillAll(t);
 
-            boost::shared_ptr<pdat::CellData<double> > ts_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > ts_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_scratch_id)));
 
             ts_data->fillAll(t);

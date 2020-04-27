@@ -22,7 +22,7 @@
 
 TimeLocationIndexRobinBcCoefs::TimeLocationIndexRobinBcCoefs(
     const tbox::Dimension& dim, const std::string& object_name,
-    const boost::shared_ptr<tbox::Database>& input_db)
+    const std::shared_ptr<tbox::Database>& input_db)
     : d_dim(dim), d_object_name(object_name)
 {
    TBOX_ASSERT(input_db);
@@ -45,7 +45,7 @@ TimeLocationIndexRobinBcCoefs::~TimeLocationIndexRobinBcCoefs() {}
  */
 
 void TimeLocationIndexRobinBcCoefs::getFromInput(
-    const boost::shared_ptr<tbox::Database>& input_db)
+    const std::shared_ptr<tbox::Database>& input_db)
 {
    if (!input_db) {
       return;
@@ -59,7 +59,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
       if (input_db->isString(name)) {
          std::vector<std::string> specs = input_db->getStringVector(name);
          if (specs[0] == "file") {
-            boost::shared_ptr<tbox::MemoryDatabase> bc_db(
+            std::shared_ptr<tbox::MemoryDatabase> bc_db(
                 new tbox::MemoryDatabase("bc_db"));
             tbox::plog << "Parse BC input file " << specs[1] << std::endl;
             tbox::InputManager::getManager()->parseInputFile(specs[1], bc_db);
@@ -130,10 +130,10 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
  */
 
 void TimeLocationIndexRobinBcCoefs::setBcCoefs(
-    const boost::shared_ptr<pdat::ArrayData<double> >& acoef_data,
-    const boost::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
-    const boost::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
-    const boost::shared_ptr<hier::Variable>& variable, const hier::Patch& patch,
+    const std::shared_ptr<pdat::ArrayData<double> >& acoef_data,
+    const std::shared_ptr<pdat::ArrayData<double> >& bcoef_data,
+    const std::shared_ptr<pdat::ArrayData<double> >& gcoef_data,
+    const std::shared_ptr<hier::Variable>& variable, const hier::Patch& patch,
     const hier::BoundaryBox& bdry_box, double fill_time) const
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, patch, bdry_box);

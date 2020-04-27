@@ -64,7 +64,7 @@
 
 
 QuatSysSolver::QuatSysSolver(const int ql, const std::string& object_name,
-                             boost::shared_ptr<tbox::Database> database)
+                             std::shared_ptr<tbox::Database> database)
     : d_object_name(object_name),
       d_fac_ops(new QuatFACOps(ql, object_name + "::fac_ops", database)),
       d_fac_solver(object_name + "::fac_precond", d_fac_ops),
@@ -138,7 +138,7 @@ QuatSysSolver::~QuatSysSolver() { deallocateSolverState(); }
 ********************************************************************
 */
 void QuatSysSolver::getFromInput(
-    const boost::shared_ptr<tbox::Database>& input_db)
+    const std::shared_ptr<tbox::Database>& input_db)
 {
    if (input_db->isBool("verbose")) {
       bool verbose = input_db->getBool("verbose");
@@ -194,7 +194,7 @@ void QuatSysSolver::getFromInput(
  *************************************************************************/
 void QuatSysSolver::initializeSolverState(
     const int q_soln_id, const int q_rhs_id, const int weight_id,
-    boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    TBOX_ASSERT(hierarchy);
    assert(q_soln_id >= 0);
@@ -258,7 +258,7 @@ void QuatSysSolver::initializeSolverState(
 
 void QuatSysSolver::resetSolverState(
     const int q_soln_id, const int q_rhs_id, const int weight_id,
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(q_soln_id != -1);
    assert(weight_id != -1);
@@ -348,9 +348,9 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 
    assert(d_weight_id != -1);
 
-   boost::shared_ptr<solv::SAMRAIVectorReal<double> > solution;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > solution;
    solution.reset();
-   boost::shared_ptr<solv::SAMRAIVectorReal<double> > rhs;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > rhs;
    rhs.reset();
 
    createVectorWrappers(q_soln_id, q_rhs_id, solution, rhs);
@@ -459,15 +459,15 @@ void QuatSysSolver::printFACConvergenceFactors(const int solver_ret)
 
 
 void QuatSysSolver::createVectorWrappers(
-    int q_u, int q_f, boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
-    boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
+    int q_u, int q_f, std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+    std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(d_weight_id != -1);
 #endif
 
    hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
-   boost::shared_ptr<hier::Variable> variable;
+   std::shared_ptr<hier::Variable> variable;
 
    /*
     *  If the std::vector uv has not yet been allocated, or if either of
@@ -483,8 +483,8 @@ void QuatSysSolver::createVectorWrappers(
          TBOX_ERROR(d_object_name << ": No variable for patch data index "
                                   << q_u << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      std::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << q_u
                                   << " is not a cell-double variable.\n");
@@ -508,8 +508,8 @@ void QuatSysSolver::createVectorWrappers(
          TBOX_ERROR(d_object_name << ": No variable for patch data index "
                                   << q_f << "\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_variable(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
+      std::shared_ptr<pdat::CellVariable<double> > cell_variable(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(variable));
       if (!cell_variable) {
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << q_f
                                   << " is not a cell-double variable.\n");
@@ -527,8 +527,8 @@ void QuatSysSolver::createVectorWrappers(
 ***********************************************************************
 */
 void QuatSysSolver::destroyVectorWrappers(
-    boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
-    boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
+    std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+    std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
 {
    uv.reset();
    fv.reset();

@@ -44,7 +44,7 @@
 class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
-   HBSMFreeEnergyStrategy(boost::shared_ptr<tbox::Database> input_db,
+   HBSMFreeEnergyStrategy(std::shared_ptr<tbox::Database> input_db,
                           const EnergyInterpolationType energy_interp_func_type,
                           const double vml, const double vma, const double vmb,
                           const double D_liquid, const double D_solid_A,
@@ -68,27 +68,27 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
    //      const bool gp = false );
 
    void computeFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fl_id, const bool gp = false);
 
    void computeDerivFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fl_id);
 
    void computeFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp = false);
 
    void computeDerivFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id);
 
    void computeFreeEnergySolidB(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp = false);
 
    void computeDerivFreeEnergySolidB(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id);
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -137,7 +137,7 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
                                    const bool gp = false) const;
 
    void computeFreeEnergyPrivate(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const double A, const double Ceq,
        const int f_id, const int c_i_id, const double energy_factor);
 
@@ -172,44 +172,44 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
 
    void computeFreeEnergyPrivatePatch(
        const hier::Box& pbox,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp, const double A,
+       std::shared_ptr<pdat::CellData<double> > cd_temp, const double A,
        const double Ceq,
-       boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       boost::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 
    void computeDerivFreeEnergyPrivatePatch(
        const hier::Box& pbox,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp, const double A,
+       std::shared_ptr<pdat::CellData<double> > cd_temp, const double A,
        const double Ceq,
-       boost::shared_ptr<pdat::CellData<double> > cd_free_energy,
-       boost::shared_ptr<pdat::CellData<double> > cd_conc_i,
+       std::shared_ptr<pdat::CellData<double> > cd_free_energy,
+       std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 
    void addDrivingForceOnPatchPrivate(
-       boost::shared_ptr<pdat::CellData<double> > cd_rhs,
-       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_b,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<pdat::CellData<double> > cd_rhs,
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_f_l,
+       std::shared_ptr<pdat::CellData<double> > cd_f_a,
+       std::shared_ptr<pdat::CellData<double> > cd_f_b,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
        const hier::Box& pbox);
 
    void addDrivingForceEtaOnPatchPrivate(
-       boost::shared_ptr<pdat::CellData<double> > cd_rhs,
-       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_f_b,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<pdat::CellData<double> > cd_rhs,
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_f_l,
+       std::shared_ptr<pdat::CellData<double> > cd_f_a,
+       std::shared_ptr<pdat::CellData<double> > cd_f_b,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
        const hier::Box& pbox);
 
    double computeMu(const double t, const double c);

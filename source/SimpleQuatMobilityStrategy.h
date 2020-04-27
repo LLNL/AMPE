@@ -47,19 +47,19 @@ class SimpleQuatMobilityStrategy : public QuatMobilityStrategy
    ~SimpleQuatMobilityStrategy();
 
    virtual void computePhaseMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeEtaMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeQuatMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeQuatMobilityDeriv(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_deriv_id, const double time,
        const CACHE_TYPE cache = CACHE);
 

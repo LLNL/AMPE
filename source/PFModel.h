@@ -49,7 +49,6 @@
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
 using namespace SAMRAI;
 
 class PFModel : public tbox::Serializable,
@@ -59,20 +58,20 @@ class PFModel : public tbox::Serializable,
    PFModel(void);
    virtual ~PFModel();
 
-   virtual void Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
+   virtual void Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                            const std::string& run_name,
                            const bool is_from_restart,
                            const std::string& restart_read_dirname,
                            const int restore_num);
 
    virtual void readInitialDatabase(
-       boost::shared_ptr<tbox::Database> main_input_db);
+       std::shared_ptr<tbox::Database> main_input_db);
 
    void setVerbosity(Verbosity* v) { d_verbosity = v; }
 
-   virtual void getFromInput(boost::shared_ptr<tbox::Database> input_db);
+   virtual void getFromInput(std::shared_ptr<tbox::Database> input_db);
 
-   virtual void getFromRestart(boost::shared_ptr<tbox::Database> input_db);
+   virtual void getFromRestart(std::shared_ptr<tbox::Database> input_db);
 
    virtual void setupInitialDataLevel(void);
 
@@ -82,7 +81,7 @@ class PFModel : public tbox::Serializable,
 
    // pure virtual functions to be implemented by model
    virtual void CreateIntegrator(
-       boost::shared_ptr<tbox::Database> input_db) = 0;
+       std::shared_ptr<tbox::Database> input_db) = 0;
 
    virtual void RegisterVariables(void) = 0;
 
@@ -102,7 +101,7 @@ class PFModel : public tbox::Serializable,
 
    virtual void writeRestartFile(void);
 
-   virtual void Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+   virtual void Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    virtual void computeGrainDiagnostics(void);
 
@@ -111,7 +110,7 @@ class PFModel : public tbox::Serializable,
    // deallocate some temporary data to free some memory,
    // for example before some high memory footprint postprocessing
    virtual void DeallocateIntermediateLocalPatchData(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy)
    {
       (void)hierarchy;
    };
@@ -120,30 +119,30 @@ class PFModel : public tbox::Serializable,
    //
    // Methods inherited from Serializable
    //
-   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db) const;
+   virtual void putToRestart(const std::shared_ptr<tbox::Database>& db) const;
 
    //-----------------------------------------------------------------------
    //
    // Methods inherited from StandardTagAndInitStrategy
    //
    virtual void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double time, const bool can_be_refined,
        const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const std::shared_ptr<hier::PatchLevel>& old_level,
        const bool allocate_data) = 0;
 
    virtual void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int coarsest_level, const int finest_level) = 0;
 
    //-----------------------------------------------------------------------
 
  protected:
-   boost::shared_ptr<hier::PatchHierarchy> d_patch_hierarchy;
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
-   boost::shared_ptr<mesh::GriddingAlgorithm> d_gridding_algorithm;
-   boost::shared_ptr<appu::VisItDataWriter> d_visit_data_writer;
+   std::shared_ptr<hier::PatchHierarchy> d_patch_hierarchy;
+   std::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   std::shared_ptr<mesh::GriddingAlgorithm> d_gridding_algorithm;
+   std::shared_ptr<appu::VisItDataWriter> d_visit_data_writer;
 
    bool d_amr_enabled;
 
@@ -154,23 +153,23 @@ class PFModel : public tbox::Serializable,
    double d_time;
    double d_previous_timestep;
 
-   boost::shared_ptr<EventInterval> d_time_info_interval;
+   std::shared_ptr<EventInterval> d_time_info_interval;
 
-   boost::shared_ptr<EventInterval> d_restart_interval;
+   std::shared_ptr<EventInterval> d_restart_interval;
    std::string d_restart_write_dirname;
 
    bool d_write_initial_conditions_file;
    std::string d_initial_conditions_file_name;
    int d_initial_conditions_level;
 
-   boost::shared_ptr<EventInterval> d_grain_diag_interval;
+   std::shared_ptr<EventInterval> d_grain_diag_interval;
 
    // Initialization variables
    std::string d_init_data_filename;
    int d_level_of_init_data;
    int d_slice_index;
    hier::IntVector d_ratio_of_init_to_coarsest;
-   boost::shared_ptr<hier::PatchLevel> d_initial_level;
+   std::shared_ptr<hier::PatchLevel> d_initial_level;
    std::vector<float> d_init_q;
    std::vector<float> d_init_c;
    float d_init_t;
@@ -181,14 +180,14 @@ class PFModel : public tbox::Serializable,
    int d_tag_buffer;
    int d_cycle;
 
-   boost::shared_ptr<EventInterval> d_regrid_interval;
+   std::shared_ptr<EventInterval> d_regrid_interval;
 
    std::string d_object_name;
 
-   boost::shared_ptr<tbox::Timer> t_run_time;
+   std::shared_ptr<tbox::Timer> t_run_time;
 
  private:
-   boost::shared_ptr<EventInterval> d_visit_dump_interval;
+   std::shared_ptr<EventInterval> d_visit_dump_interval;
 
    Verbosity* d_verbosity;
 };

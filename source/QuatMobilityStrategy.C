@@ -38,7 +38,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 void QuatMobilityStrategy::computePhaseTemperatureMobility(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     int& phase_mobility_id, int& cp_id, int& mobility_id)
 {
    assert(phase_mobility_id >= 0);

@@ -46,7 +46,7 @@
 
 
 void NKRHeatCapacityStrategy::setCurrentValue(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy)
 {
    assert(d_cp_id >= 0);
    assert(d_temperature_id >= 0);
@@ -110,24 +110,24 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
 
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           patch_hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > conc(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > conc(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_composition_id)));
-         boost::shared_ptr<pdat::CellData<double> > temp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_temperature_id)));
-         boost::shared_ptr<pdat::CellData<double> > cp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
          assert(conc);
          assert(temp);

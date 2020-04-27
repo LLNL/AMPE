@@ -45,7 +45,7 @@
 
 
 Grains::Grains(const int qlen, const bool visit_output,
-               boost::shared_ptr<tbox::Database> input_db)
+               std::shared_ptr<tbox::Database> input_db)
     : d_qlen(qlen), d_visit_output(visit_output)
 {
    d_grain_number_id = -1;
@@ -63,7 +63,7 @@ Grains::Grains(const int qlen, const bool visit_output,
        tman->getTimer("AMPE::Grains::extendGrainOrientation()");
 
    if (input_db->isDatabase("GrainDiagnostics")) {
-      boost::shared_ptr<tbox::Database> g_diag_db =
+      std::shared_ptr<tbox::Database> g_diag_db =
           input_db->getDatabase("GrainDiagnostics");
       d_grain_diag_isActive = true;
 
@@ -82,7 +82,7 @@ Grains::Grains(const int qlen, const bool visit_output,
 
 //=======================================================================
 
-void Grains::initialize(boost::shared_ptr<tbox::Database> input_db,
+void Grains::initialize(std::shared_ptr<tbox::Database> input_db,
                         const bool all_periodic)
 {
    (void)input_db;
@@ -95,9 +95,9 @@ void Grains::registerVariables(void)
 {
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
-   boost::shared_ptr<hier::VariableContext> current =
+   std::shared_ptr<hier::VariableContext> current =
        variable_db->getContext("CURRENT");
-   boost::shared_ptr<hier::VariableContext> scratch =
+   std::shared_ptr<hier::VariableContext> scratch =
        variable_db->getContext("SCRATCH");
 
    if (d_grain_diag_isActive) {
@@ -150,8 +150,8 @@ void Grains::registerVariables(void)
 //=======================================================================
 
 void Grains::initializeRefineCoarsenAlgorithms(
-    boost::shared_ptr<geom::CartesianGridGeometry> grid_geom,
-    boost::shared_ptr<hier::CoarsenOperator> quat_coarsen_op)
+    std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
+    std::shared_ptr<hier::CoarsenOperator> quat_coarsen_op)
 {
    tbox::plog << "Grains::initializeRefineCoarsenAlgorithms()" << std::endl;
 
@@ -230,10 +230,10 @@ void Grains::initializeRefineCoarsenAlgorithms(
 //=======================================================================
 
 void Grains::initializeLevelData(
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int level_number, const double time, const bool can_be_refined,
     const bool initial_time,
-    const boost::shared_ptr<hier::PatchLevel>& old_level,
+    const std::shared_ptr<hier::PatchLevel>& old_level,
     const bool allocate_data)
 {
    (void)time;
@@ -241,7 +241,7 @@ void Grains::initializeLevelData(
    (void)initial_time;
 
    tbox::pout << "Grains::initializeLevelData()" << std::endl;
-   boost::shared_ptr<hier::PatchLevel> level =
+   std::shared_ptr<hier::PatchLevel> level =
        hierarchy->getPatchLevel(level_number);
 
    if (level_number > 0) {
@@ -256,11 +256,11 @@ void Grains::initializeLevelData(
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          assert(d_grain_number_scr_id >= 0);
-         boost::shared_ptr<pdat::CellData<int> > gs(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > gs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_scr_id)));
          assert(gs);
 
@@ -272,7 +272,7 @@ void Grains::initializeLevelData(
 //=======================================================================
 
 void Grains::registerWithVisit(
-    boost::shared_ptr<appu::VisItDataWriter> visit_data_writer)
+    std::shared_ptr<appu::VisItDataWriter> visit_data_writer)
 {
    visit_data_writer->registerPlotQuantity("grain_number", "SCALAR",
                                            d_grain_number_id, 0);
@@ -287,7 +287,7 @@ void Grains::registerWithVisit(
 // cell volumes.
 
 void Grains::findAndNumberGrains(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
     const int weight_id, const double time)
 {
    assert(d_grain_diag_isActive);
@@ -317,7 +317,7 @@ void Grains::findAndNumberGrains(
    level_offset[0] = 0;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       const hier::BoxContainer& bl(
           level->getPhysicalDomain(hier::BlockId::zero()));
@@ -351,20 +351,20 @@ void Grains::findAndNumberGrains(
 
    int count_cells = 0;
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<double> > phase(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phase(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::CellData<int> > g(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > g(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
          assert(g);
 
@@ -410,7 +410,7 @@ void Grains::findAndNumberGrains(
       int changed = 0;
 
       for (int ln = 0; ln <= maxln; ln++) {
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
 
          // Fill patch boundaries
@@ -423,15 +423,15 @@ void Grains::findAndNumberGrains(
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch(*p);
+            std::shared_ptr<hier::Patch> patch(*p);
             const hier::Box& pbox(patch->getBox());
 
-            boost::shared_ptr<pdat::CellData<int> > g(
-                BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<int> > g(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                     patch->getPatchData(d_grain_number_id)));
 
-            boost::shared_ptr<pdat::CellData<double> > w(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > w(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(weight_id)));
 
 #if 0  // optimized loop...       
@@ -563,20 +563,20 @@ void Grains::findAndNumberGrains(
    std::set<int> local_grain_list;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<int> > g(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > g(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > w(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > w(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(weight_id)));
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -633,16 +633,16 @@ void Grains::findAndNumberGrains(
    d_number_of_grains = ii;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<int> > g(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > g(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -672,7 +672,7 @@ void Grains::findAndNumberGrains(
 // cell volumes.
 
 void Grains::computeGrainVolumes(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int weight_id)
 {
    assert(weight_id >= 0);
@@ -685,20 +685,20 @@ void Grains::computeGrainVolumes(
    std::map<int, double> map_lcl_grain_v;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<int> > grain(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > grain(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > wgt(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > wgt(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(weight_id)));
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -728,21 +728,21 @@ void Grains::computeGrainVolumes(
 
    if (d_visit_output) {
       for (int ln = 0; ln <= maxln; ln++) {
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
 
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch = *p;
+            std::shared_ptr<hier::Patch> patch = *p;
             const hier::Box& pbox = patch->getBox();
 
-            boost::shared_ptr<pdat::CellData<int> > g(
-                BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<int> > g(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                     patch->getPatchData(d_grain_number_id)));
 
-            boost::shared_ptr<pdat::CellData<double> > v(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > v(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_grain_volume_id)));
 
             pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -769,7 +769,7 @@ void Grains::computeGrainVolumes(
 // cell volumes.
 
 void Grains::computeGrainConcentrations(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
     const int conc_id, const int weight_id)
 {
    assert(conc_id >= 0);
@@ -784,24 +784,24 @@ void Grains::computeGrainConcentrations(
    std::map<int, double> map_lcl_grain_w;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<int> > grain(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > grain(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > wgt(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > wgt(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(weight_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > conc(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > conc(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(conc_id)));
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -851,24 +851,24 @@ void Grains::computeGrainConcentrations(
    std::map<int, double> map_lcl_grain_cdev;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<int> > grain(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > grain(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_number_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > wgt(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > wgt(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(weight_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > conc(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > conc(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(conc_id)));
 
          pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
@@ -908,7 +908,7 @@ void Grains::computeGrainConcentrations(
 // modifies quat_id
 //
 void Grains::extendGrainOrientation(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
     const int quat_scratch_id, const int phase_id, const int quat_id)
 {
    tbox::pout << "Extending grain orientation" << std::endl;
@@ -929,7 +929,7 @@ void Grains::extendGrainOrientation(
 
    // allocate vars for this algorithm
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       level->allocatePatchData(d_grain_extend_id, time);
       level->allocatePatchData(d_grain_extend_scr_id, time);
@@ -948,7 +948,7 @@ void Grains::extendGrainOrientation(
    int max_iteration_count = 0;
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       hier::BoxContainer bl(level->getPhysicalDomain(hier::BlockId::zero()));
       hier::Box bbox = bl.getBoundingBox();
@@ -964,20 +964,20 @@ void Grains::extendGrainOrientation(
    // Tag grain cells with 1, non-grain with 0
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<double> > phase(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phase(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::CellData<int> > flag(
-             BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<int> > flag(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                  patch->getPatchData(d_grain_extend_id)));
 
          flag->fillAll(0);
@@ -1005,7 +1005,7 @@ void Grains::extendGrainOrientation(
       int one_still_unset = 1;
 
       for (int ln = 0; ln <= maxln; ln++) {
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
 
          // Fill grain_extend_src with grain_extend
@@ -1017,23 +1017,23 @@ void Grains::extendGrainOrientation(
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch = *p;
+            std::shared_ptr<hier::Patch> patch = *p;
             const hier::Box& pbox = patch->getBox();
 
-            boost::shared_ptr<pdat::CellData<int> > flag(
-                BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<int> > flag(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                     patch->getPatchData(d_grain_extend_id)));
 
-            boost::shared_ptr<pdat::CellData<int> > flag_scr(
-                BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<int> > flag_scr(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
                     patch->getPatchData(d_grain_extend_scr_id)));
 
-            boost::shared_ptr<pdat::CellData<double> > quat(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > quat(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_grain_quat_id)));
 
-            boost::shared_ptr<pdat::CellData<double> > quat_scr(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > quat_scr(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_grain_quat_scr_id)));
 
             one_still_unset = 0;
@@ -1105,7 +1105,7 @@ void Grains::extendGrainOrientation(
    cellops.copyData(quat_id, d_grain_quat_id);
 
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       level->deallocatePatchData(d_grain_quat_id);
       level->deallocatePatchData(d_grain_quat_scr_id);
@@ -1119,7 +1119,7 @@ void Grains::extendGrainOrientation(
 //=======================================================================
 
 void Grains::resetHierarchyConfiguration(
-    const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int coarsest_level, const int finest_level)
 {
    tbox::pout << "Grains::resetHierarchyConfiguration()" << std::endl;
@@ -1132,7 +1132,7 @@ void Grains::resetHierarchyConfiguration(
       for (int ln = coarsest_level; ln <= finest_level; ln++) {
          assert(ln < nlev);
 
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
 
          // the last argument should be NULL
@@ -1148,8 +1148,8 @@ void Grains::resetHierarchyConfiguration(
    const int ln_end = finest_level;
 
    for (int ln = ln_beg; ln < ln_end; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-      boost::shared_ptr<hier::PatchLevel> finer_level =
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> finer_level =
           hierarchy->getPatchLevel(ln + 1);
 
       d_grain_number_coarsen_sched[ln] =
@@ -1160,7 +1160,7 @@ void Grains::resetHierarchyConfiguration(
       d_grain_quat_refine_sched.resize(nlev);
 
       for (int ln = coarsest_level; ln <= finest_level; ln++) {
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
 
          d_grain_extend_refine_sched[ln] =
@@ -1175,9 +1175,9 @@ void Grains::resetHierarchyConfiguration(
       d_grain_quat_coarsen_sched.resize(hierarchy->getNumberOfLevels());
 
       for (int ln = ln_beg; ln < ln_end; ln++) {
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              hierarchy->getPatchLevel(ln);
-         boost::shared_ptr<hier::PatchLevel> finer_level =
+         std::shared_ptr<hier::PatchLevel> finer_level =
              hierarchy->getPatchLevel(ln + 1);
 
          d_grain_extend_coarsen_sched[ln] =

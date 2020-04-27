@@ -47,7 +47,7 @@ class KimMobilityStrategyFiniteMob : public KimMobilityStrategy
        const double phase_well_scale,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
-       boost::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions);
+       std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions);
 
  private:
    double evaluateMobility(const double temp,

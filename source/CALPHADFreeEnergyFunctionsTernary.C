@@ -44,8 +44,8 @@
 
 
 CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
-    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
-    boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+    std::shared_ptr<SAMRAI::tbox::Database> calphad_db,
+    std::shared_ptr<SAMRAI::tbox::Database> newton_db,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type)
     : d_energy_interp_func_type(energy_interp_func_type),
@@ -92,7 +92,7 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsTernary::setupSolver(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    tbox::plog << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..."
               << std::endl;
@@ -104,7 +104,7 @@ void CALPHADFreeEnergyFunctionsTernary::setupSolver(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsTernary::readNewtonparameters(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    if (newton_db != NULL) {
       double tol = newton_db->getDoubleWithDefault("tol", 1.e-8);
@@ -122,9 +122,9 @@ void CALPHADFreeEnergyFunctionsTernary::readNewtonparameters(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsTernary::readParameters(
-    boost::shared_ptr<tbox::Database> calphad_db)
+    std::shared_ptr<tbox::Database> calphad_db)
 {
-   boost::shared_ptr<tbox::Database> species0_db =
+   std::shared_ptr<tbox::Database> species0_db =
        calphad_db->getDatabase("SpeciesA");
    std::string name = species0_db->getStringWithDefault("name", "unknown");
    std::string dbnameL("PhaseL");
@@ -132,13 +132,13 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    std::string dbnameA("PhaseA");
    d_g_species_phaseA[0].initialize(name, species0_db->getDatabase(dbnameA));
 
-   boost::shared_ptr<tbox::Database> speciesB_db =
+   std::shared_ptr<tbox::Database> speciesB_db =
        calphad_db->getDatabase("SpeciesB");
    name = speciesB_db->getStringWithDefault("name", "unknown");
    d_g_species_phaseL[1].initialize(name, speciesB_db->getDatabase(dbnameL));
    d_g_species_phaseA[1].initialize(name, speciesB_db->getDatabase(dbnameA));
 
-   boost::shared_ptr<tbox::Database> speciesC_db =
+   std::shared_ptr<tbox::Database> speciesC_db =
        calphad_db->getDatabase("SpeciesC");
    name = speciesC_db->getStringWithDefault("name", "unknown");
    d_g_species_phaseL[2].initialize(name, speciesC_db->getDatabase(dbnameL));
@@ -150,7 +150,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    {
       std::string dbnamemixL("LmixABPhaseL");
       std::string dbnamemixA("LmixABPhaseA");
-      boost::shared_ptr<tbox::Database> Lmix0_db =
+      std::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixABPhaseL[0][0], 2);
       Lmix0_db->getDoubleArray("L1", &d_LmixABPhaseL[1][0], 2);
@@ -167,7 +167,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
          d_LmixABPhaseL[3][1] = 0.0;
       }
 
-      boost::shared_ptr<tbox::Database> Lmix1_db =
+      std::shared_ptr<tbox::Database> Lmix1_db =
           calphad_db->getDatabase(dbnamemixA);
       Lmix1_db->getDoubleArray("L0", &d_LmixABPhaseA[0][0], 2);
       Lmix1_db->getDoubleArray("L1", &d_LmixABPhaseA[1][0], 2);
@@ -189,7 +189,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    {
       std::string dbnamemixL("LmixACPhaseL");
       std::string dbnamemixA("LmixACPhaseA");
-      boost::shared_ptr<tbox::Database> Lmix0_db =
+      std::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixACPhaseL[0][0], 2);
       Lmix0_db->getDoubleArray("L1", &d_LmixACPhaseL[1][0], 2);
@@ -206,7 +206,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
          d_LmixACPhaseL[3][1] = 0.0;
       }
 
-      boost::shared_ptr<tbox::Database> Lmix1_db =
+      std::shared_ptr<tbox::Database> Lmix1_db =
           calphad_db->getDatabase(dbnamemixA);
       Lmix1_db->getDoubleArray("L0", &d_LmixACPhaseA[0][0], 2);
       Lmix1_db->getDoubleArray("L1", &d_LmixACPhaseA[1][0], 2);
@@ -228,7 +228,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    {
       std::string dbnamemixL("LmixBCPhaseL");
       std::string dbnamemixA("LmixBCPhaseA");
-      boost::shared_ptr<tbox::Database> Lmix0_db =
+      std::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixBCPhaseL[0][0], 2);
       Lmix0_db->getDoubleArray("L1", &d_LmixBCPhaseL[1][0], 2);
@@ -245,7 +245,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
          d_LmixBCPhaseL[3][1] = 0.0;
       }
 
-      boost::shared_ptr<tbox::Database> Lmix1_db =
+      std::shared_ptr<tbox::Database> Lmix1_db =
           calphad_db->getDatabase(dbnamemixA);
       Lmix1_db->getDoubleArray("L0", &d_LmixBCPhaseA[0][0], 2);
       Lmix1_db->getDoubleArray("L1", &d_LmixBCPhaseA[1][0], 2);
@@ -275,7 +275,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
       d_LmixABCPhaseL[2][1] = 0.0;
 
       if (calphad_db->keyExists(dbnamemixL)) {
-         boost::shared_ptr<tbox::Database> Lmix0_db =
+         std::shared_ptr<tbox::Database> Lmix0_db =
              calphad_db->getDatabase(dbnamemixL);
          if (Lmix0_db->keyExists("L0")) {
             Lmix0_db->getDoubleArray("L0", &d_LmixABCPhaseL[0][0], 2);
@@ -305,7 +305,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
       d_LmixABCPhaseA[2][1] = 0.0;
       if (calphad_db->keyExists(dbnamemixA)) {
 
-         boost::shared_ptr<tbox::Database> Lmix1_db =
+         std::shared_ptr<tbox::Database> Lmix1_db =
              calphad_db->getDatabase(dbnamemixA);
          if (Lmix1_db->keyExists("L0")) {
             Lmix1_db->getDoubleArray("L0", &d_LmixABCPhaseA[0][0], 2);
@@ -797,7 +797,6 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
                    "failed for conc0="
                 << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
                 << ", heta=" << heta << std::endl;
-      sleep(5);
       tbox::SAMRAI_MPI::abort();
    }
 

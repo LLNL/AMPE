@@ -54,7 +54,7 @@ class NKRHeatCapacityStrategy : public HeatCapacityStrategy
    {
    }
    void setCurrentValue(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy);
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy);
 
  private:
    // cp coefficients for T polynomial expansion for each species

@@ -131,18 +131,18 @@ void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
    // tbox::pout<<"DeltaTemperatureFreeEnergyStrategy::addDrivingForce()..."
    //           <<endl;
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(phase_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::CellData<double> > temp(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temp(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
    assert(temp);
 
-   boost::shared_ptr<pdat::CellData<double> > rhs(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > rhs(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(rhs_id)));
    assert(rhs);
 
@@ -169,7 +169,7 @@ void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
 //=======================================================================
 
 void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int rhs_id,
     const double phase_mobility)
 {
@@ -177,24 +177,24 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(
 
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& box = patch->getBox();
          const hier::Index& ifirst = box.lower();
          const hier::Index& ilast = box.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > temp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(temperature_id)));
-         boost::shared_ptr<pdat::CellData<double> > phase(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phase(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
-         boost::shared_ptr<pdat::CellData<double> > rhs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > rhs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(rhs_id)));
 
          FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
@@ -221,11 +221,11 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
    const hier::Index& ifirst = box.lower();
    const hier::Index& ilast = box.upper();
 
-   boost::shared_ptr<pdat::CellData<double> > temp(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temp(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
-   boost::shared_ptr<pdat::CellData<double> > fl(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fl(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(fl_id)));
 
    double factor = 0.5 * d_L;
@@ -250,12 +250,12 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
    const hier::Index& ifirst = box.lower();
    const hier::Index& ilast = box.upper();
 
-   boost::shared_ptr<pdat::CellData<double> > temp(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > temp(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(temperature_id)));
 
-   boost::shared_ptr<pdat::CellData<double> > fa(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fa(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(fa_id)));
 
    double factor = -0.5 * d_L;

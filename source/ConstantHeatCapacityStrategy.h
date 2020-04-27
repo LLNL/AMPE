@@ -45,7 +45,7 @@ class ConstantHeatCapacityStrategy : public HeatCapacityStrategy
  public:
    ConstantHeatCapacityStrategy(const double cp, const int cp_id);
    void setCurrentValue(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy);
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy);
 
  private:
    double d_cp;

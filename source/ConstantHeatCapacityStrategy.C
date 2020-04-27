@@ -46,7 +46,7 @@ ConstantHeatCapacityStrategy::ConstantHeatCapacityStrategy(const double cp,
 }
 
 void ConstantHeatCapacityStrategy::setCurrentValue(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy)
 {
    assert(d_cp_id >= 0);
 
@@ -57,7 +57,7 @@ void ConstantHeatCapacityStrategy::setCurrentValue(
 
       for (int ln = 0; ln <= maxln; ln++) {
 
-         boost::shared_ptr<hier::PatchLevel> level =
+         std::shared_ptr<hier::PatchLevel> level =
              patch_hierarchy->getPatchLevel(ln);
 
          assert(level->checkAllocated(d_cp_id));
@@ -65,10 +65,10 @@ void ConstantHeatCapacityStrategy::setCurrentValue(
          for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
               p++) {
 
-            boost::shared_ptr<hier::Patch> patch = *p;
+            std::shared_ptr<hier::Patch> patch = *p;
 
-            boost::shared_ptr<pdat::CellData<double> > cp_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > cp_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_cp_id)));
             assert(cp_data);
 

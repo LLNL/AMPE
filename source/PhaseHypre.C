@@ -42,8 +42,8 @@ void SAMRAI_F77_FUNC(phasesetexactandrhs3d, PHASESETEXACTANDRHS3D)(
  */
 PhaseHypre::PhaseHypre(
     const std::string& object_name, const tbox::Dimension& dim,
-    const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
-    boost::shared_ptr<tbox::Database> database, const double epsilon,
+    const std::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
+    std::shared_ptr<tbox::Database> database, const double epsilon,
     const double omega, const double delta, const double mobility_val,
     const double gamma)
     : d_object_name(object_name),
@@ -51,7 +51,7 @@ PhaseHypre::PhaseHypre(
       d_poisson_solver(object_name + "::hypre_solver",
                        database && database->isDatabase("hypre_solver")
                            ? database->getDatabase("hypre_solver")
-                           : boost::shared_ptr<tbox::Database>()),
+                           : std::shared_ptr<tbox::Database>()),
       d_epsilon(epsilon),
       d_omega(omega),
       d_delta(delta),
@@ -75,33 +75,33 @@ PhaseHypre::PhaseHypre(
     * Register variables with hier::VariableDatabase
     * and get the descriptor indices for those variables.
     */
-   boost::shared_ptr<pdat::CellVariable<double> > comp_soln(
+   std::shared_ptr<pdat::CellVariable<double> > comp_soln(
        new pdat::CellVariable<double>(dim, object_name + ":computed solution",
                                       1));
    d_comp_soln_id = vdb->registerVariableAndContext(
        comp_soln, d_context,
        hier::IntVector(dim, 1) /* ghost cell width is 1 for stencil widths */);
 
-   boost::shared_ptr<pdat::CellVariable<double> > exact_solution(
+   std::shared_ptr<pdat::CellVariable<double> > exact_solution(
        new pdat::CellVariable<double>(dim, object_name + ":exact solution"));
    d_exact_id = vdb->registerVariableAndContext(
        exact_solution, d_context,
        hier::IntVector(dim, 1) /* ghost cell width is 1 in case needed */);
 
-   boost::shared_ptr<pdat::CellVariable<double> > rhs_variable(
+   std::shared_ptr<pdat::CellVariable<double> > rhs_variable(
        new pdat::CellVariable<double>(dim, object_name + ":linear system right "
                                                          "hand side"));
    d_rhs_id = vdb->registerVariableAndContext(
        rhs_variable, d_context,
        hier::IntVector(dim, 0) /* ghost cell width is 0 */);
 
-   boost::shared_ptr<pdat::CellVariable<double> > mobility(
+   std::shared_ptr<pdat::CellVariable<double> > mobility(
        new pdat::CellVariable<double>(dim, object_name + ":mobility"));
    d_m_id = vdb->registerVariableAndContext(
        mobility, d_context,
        hier::IntVector(dim, 1) /* ghost cell width is 1 */);
 
-   boost::shared_ptr<pdat::CellVariable<double> > cdata(
+   std::shared_ptr<pdat::CellVariable<double> > cdata(
        new pdat::CellVariable<double>(dim, object_name + ":cdata"));
 
    d_c_id = vdb->registerVariableAndContext(
@@ -124,10 +124,10 @@ PhaseHypre::~PhaseHypre() { d_poisson_solver.deallocateSolverState(); }
  *************************************************************************
  */
 void PhaseHypre::initializeLevelData(
-    const boost::shared_ptr<hier::PatchHierarchy>& patch_hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& patch_hierarchy,
     const int level_number, const double init_data_time,
     const bool can_be_refined, const bool initial_time,
-    const boost::shared_ptr<hier::PatchLevel>& old_level,
+    const std::shared_ptr<hier::PatchLevel>& old_level,
     const bool allocate_data)
 {
    NULL_USE(init_data_time);
@@ -138,9 +138,9 @@ void PhaseHypre::initializeLevelData(
    assert(d_m_id >= 0);
    assert(d_mobility > 0.);
 
-   boost::shared_ptr<hier::PatchHierarchy> hierarchy = patch_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> hierarchy = patch_hierarchy;
 
-   boost::shared_ptr<hier::PatchLevel> level(
+   std::shared_ptr<hier::PatchLevel> level(
        hierarchy->getPatchLevel(level_number));
 
    if (allocate_data) {
@@ -157,19 +157,19 @@ void PhaseHypre::initializeLevelData(
    for (hier::PatchLevel::iterator pi(level->begin()); pi != level->end();
         ++pi) {
 
-      const boost::shared_ptr<hier::Patch>& patch = *pi;
+      const std::shared_ptr<hier::Patch>& patch = *pi;
       if (!patch) {
          TBOX_ERROR(d_object_name << ": Cannot find patch.  Null patch "
                                      "pointer.");
       }
       hier::Box pbox = patch->getBox();
-      boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-          BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+      std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
               patch->getPatchGeometry()));
       TBOX_ASSERT(patch_geom);
 
-      boost::shared_ptr<pdat::CellData<double> > mobility(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > mobility(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_m_id)));
       TBOX_ASSERT(mobility);
       mobility->fillAll(d_mobility);
@@ -180,11 +180,11 @@ void PhaseHypre::initializeLevelData(
       assert(norm_Mg > 0.);
 #endif
 
-      boost::shared_ptr<pdat::CellData<double> > exact_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > exact_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_exact_id)));
-      boost::shared_ptr<pdat::CellData<double> > rhs_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > rhs_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_rhs_id)));
       TBOX_ASSERT(exact_data);
       TBOX_ASSERT(rhs_data);
@@ -221,7 +221,7 @@ void PhaseHypre::initializeLevelData(
  *************************************************************************
  */
 void PhaseHypre::resetHierarchyConfiguration(
-    const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
     int coarsest_level, int finest_level)
 {
    NULL_USE(coarsest_level);
@@ -258,25 +258,25 @@ void PhaseHypre::setC(const int phi_id, const double gamma,
 
    int ln = 0;
    {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::iterator pi(level->begin()); pi != level->end();
            ++pi) {
 
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
          const hier::Box& patch_box = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<double> > phi_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phi_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > mdata(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > mdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_m_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cdata(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_c_id)));
 
          setCOnPatchPrivate(phi_data, mdata, cdata, gamma, &interpf,
@@ -289,9 +289,9 @@ void PhaseHypre::setC(const int phi_id, const double gamma,
    d_C_is_set = true;
 }
 void PhaseHypre::setCOnPatchPrivate(
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_m,
-    boost::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_m,
+    std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
     const char* phi_interp_func_type, const double phi_well_scale,
     const char* phi_well_func_type, const hier::Box& pbox)
 {
@@ -397,12 +397,12 @@ int PhaseHypre::solve(EnergyInterpolationType phase_interp_func_type,
     * Fill in the initial guess.
     */
    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
+      std::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
       for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
            ++ip) {
-         const boost::shared_ptr<hier::Patch>& patch = *ip;
-         boost::shared_ptr<pdat::CellData<double> > data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         const std::shared_ptr<hier::Patch>& patch = *ip;
+         std::shared_ptr<pdat::CellData<double> > data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_comp_soln_id)));
          TBOX_ASSERT(data);
          data->fill(0.0);
@@ -430,12 +430,12 @@ int PhaseHypre::solve(EnergyInterpolationType phase_interp_func_type,
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::PatchCellDataNormOpsReal<double> ops;
    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
+      std::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
       for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
            ++ip) {
-         const boost::shared_ptr<hier::Patch>& patch = *ip;
-         boost::shared_ptr<pdat::CellData<double> > data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         const std::shared_ptr<hier::Patch>& patch = *ip;
+         std::shared_ptr<pdat::CellData<double> > data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_m_id)));
          TBOX_ASSERT(data);
          const double norm_Mg = ops.maxNorm(data, data->getGhostBox());
@@ -510,11 +510,11 @@ bool PhaseHypre::packDerivedDataIntoDoubleBuffer(
    pdat::CellData<double>::iterator icellend(pdat::CellGeometry::end(region));
 
    if (variable_name == "Error") {
-      boost::shared_ptr<pdat::CellData<double> > current_solution_(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > current_solution_(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_comp_soln_id)));
-      boost::shared_ptr<pdat::CellData<double> > exact_solution_(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > exact_solution_(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_exact_id)));
       TBOX_ASSERT(current_solution_);
       TBOX_ASSERT(exact_solution_);

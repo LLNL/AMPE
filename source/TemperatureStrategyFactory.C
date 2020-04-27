@@ -51,7 +51,7 @@ TemperatureStrategyFactory::TemperatureStrategyFactory(
     const int temperature_id, const int temperature_scratch_id,
     const int conc_id, const int weight_id, const int temperature_rhs_id,
     const int cp_id, const double molar_volume, const bool with_concentration,
-    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+    std::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
     HeatCapacityStrategy* heat_capacity_strategy)
     : d_temperature_id(temperature_id),
       d_temperature_scratch_id(temperature_scratch_id),
@@ -68,7 +68,7 @@ TemperatureStrategyFactory::TemperatureStrategyFactory(
 }
 
 double TemperatureStrategyFactory::readTemperature0(
-    boost::shared_ptr<tbox::Database> temperature_db,
+    std::shared_ptr<tbox::Database> temperature_db,
     QuatModelParameters::TemperatureType temperature_type)
 {
    assert(temperature_db);
@@ -96,13 +96,13 @@ double TemperatureStrategyFactory::readTemperature0(
 }
 
 TemperatureStrategy* TemperatureStrategyFactory::create(
-    boost::shared_ptr<tbox::Database> model_db,
-    boost::shared_ptr<tbox::Database> integrator_db,
+    std::shared_ptr<tbox::Database> model_db,
+    std::shared_ptr<tbox::Database> integrator_db,
     const QuatModelParameters& model_parameters)
 {
    static TemperatureStrategy* strategy = 0;
 
-   boost::shared_ptr<tbox::Database> temperature_db;
+   std::shared_ptr<tbox::Database> temperature_db;
    if (model_db->keyExists("Temperature")) {
       temperature_db = model_db->getDatabase("Temperature");
    } else {
@@ -111,10 +111,10 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
 
    if (model_db->keyExists("BoundaryConditions") &&
        model_parameters.with_steady_temperature()) {
-      boost::shared_ptr<tbox::Database> bc_db =
+      std::shared_ptr<tbox::Database> bc_db =
           model_db->getDatabase("BoundaryConditions");
       if (bc_db->keyExists("Temperature")) {
-         boost::shared_ptr<tbox::Database> temperature_bc_db =
+         std::shared_ptr<tbox::Database> temperature_bc_db =
              bc_db->getDatabase("Temperature");
          d_temperature_bc_coefs =
              new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -155,7 +155,7 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
          assert(d_temperature_bc_coefs != 0);
          assert(d_heat_capacity_strategy);
 
-         boost::shared_ptr<tbox::Database> temperature_sys_solver_database;
+         std::shared_ptr<tbox::Database> temperature_sys_solver_database;
          if (integrator_db->isDatabase("TemperatureSysSolver")) {
             temperature_sys_solver_database =
                 integrator_db->getDatabase("TemperatureSysSolver");
@@ -167,7 +167,7 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
                 model_parameters.T_source(), temperature_sys_solver_database,
                 d_heat_capacity_strategy, d_temperature_bc_coefs);
          else {
-            boost::shared_ptr<tbox::Database> heat_source_db =
+            std::shared_ptr<tbox::Database> heat_source_db =
                 temperature_db->getDatabase("HeatSource");
             strategy = new SteadyStateTemperatureGaussianSource(
                 d_temperature_scratch_id, d_temperature_rhs_id, d_weight_id,

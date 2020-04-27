@@ -49,8 +49,6 @@
 
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 
-#include <boost/shared_ptr.hpp>
-
 using namespace SAMRAI;
 
 /*
@@ -156,8 +154,8 @@ class QuatSysSolver
     * database:      tbox::Database for initialization (may be NULL)
     */
    QuatSysSolver(const int qlen, const std::string& object_name,
-                 boost::shared_ptr<tbox::Database> database =
-                     boost::shared_ptr<tbox::Database>());
+                 std::shared_ptr<tbox::Database> database =
+                     std::shared_ptr<tbox::Database>());
 
    /*
     * Destructor
@@ -196,11 +194,11 @@ class QuatSysSolver
     */
    void initializeSolverState(
        const int q_soln_id, const int q_rhs_id, const int weight_id,
-       boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void resetSolverState(
        const int q_soln_id, const int q_rhs_id, const int weight_id,
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    /*
     * Remove the solver's internal state data
@@ -499,22 +497,22 @@ class QuatSysSolver
     * database: Input database.  If a NULL pointer is given,
     * nothing is done.
     */
-   void getFromInput(const boost::shared_ptr<tbox::Database>& database);
+   void getFromInput(const std::shared_ptr<tbox::Database>& database);
 
    /*
     * Set d_uv and d_fv to vectors wrapping the data
     * specified by patch data indices.
     */
    void createVectorWrappers(
-       int q_u, int q_f, boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
+       int q_u, int q_f, std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
 
    /*
     * Destroy the vector wrappers referenced to by d_uv and d_fv.
     */
    void destroyVectorWrappers(
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
-       boost::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
+       std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
+       std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv);
 
    /*
     * Object name.
@@ -524,12 +522,12 @@ class QuatSysSolver
    /*
     * Context for all internally maintained data.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*
     * FAC operator implementation
     */
-   boost::shared_ptr<QuatFACOps> d_fac_ops;
+   std::shared_ptr<QuatFACOps> d_fac_ops;
 
    /*
     * The FAC solver used for the preconditioner
@@ -549,7 +547,7 @@ class QuatSysSolver
    /*
     * Hierarchy and min and max levels
     */
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
    int d_ln_min;
    int d_ln_max;
 
@@ -564,13 +562,13 @@ class QuatSysSolver
     * Vector wrapper temporary for the solution.
     * See createVectorWrappers(), destroyVectorWrappers()
     */
-   boost::shared_ptr<solv::SAMRAIVectorReal<double> > d_uv;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > d_uv;
 
    /*
     * Vector wrapper temporary for the right-hand side.
     * See createVectorWrappers(), destroyVectorWrappers()
     */
-   boost::shared_ptr<solv::SAMRAIVectorReal<double> > d_fv;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > d_fv;
 
    /*
     * Solver initialization state
@@ -586,8 +584,8 @@ class QuatSysSolver
    /*
     * Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_set_op_coef;
-   boost::shared_ptr<tbox::Timer> t_solve_system;
+   std::shared_ptr<tbox::Timer> t_set_op_coef;
+   std::shared_ptr<tbox::Timer> t_solve_system;
 
    /*
     * Relative residual tolerance for the outer GMRES iteration

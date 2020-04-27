@@ -39,12 +39,10 @@
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 
-#include <boost/make_shared.hpp>
-
 class CompositionDiffusionStrategyFactory
 {
  public:
-   static boost::shared_ptr<CompositionDiffusionStrategy> create(
+   static std::shared_ptr<CompositionDiffusionStrategy> create(
        QuatModel* model, QuatModelParameters& model_parameters,
        const short ncompositions, const int conc_l_scratch_id,
        const int conc_a_scratch_id, const int conc_b_scratch_id,
@@ -54,7 +52,7 @@ class CompositionDiffusionStrategyFactory
        CompositionStrategyMobilities* composition_strategy_mobilities,
        FreeEnergyStrategy* free_energy_strategy)
    {
-      boost::shared_ptr<CompositionDiffusionStrategy> strategy;
+      std::shared_ptr<CompositionDiffusionStrategy> strategy;
 
       if (model_parameters.conDiffusionStrategyIsCTD()) {
          strategy.reset(new DiffusionForConcInPhaseStrategy(
