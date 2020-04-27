@@ -337,12 +337,6 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    void applyProjectionOnLevel(const int q_id, const int corr_id,
                                const int err_id, const int ln);
 
-   void setWeightIds(const int ewt_id, const int weight_id)
-   {
-      d_ewt_id = ewt_id;
-      d_weight_id = weight_id;
-   }
-
    void multiplyMobilitySqrt(const int id);
 
    void divideMobilitySqrt(const int id);
@@ -925,9 +919,6 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
 
    int GetNumCellFacesInBox(const int *lower, const int *upper,
                             const int dim) const;
-
-   int d_ewt_id;
-   int d_weight_id;
 
    /*!
     * rotation indexes used to rotate gradient on sides if

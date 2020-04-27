@@ -116,8 +116,6 @@ QuatFACOps::QuatFACOps(const int ql, const string& object_name,
       d_solver(NULL),
       d_hopscell(),
       d_gamma(tbox::MathUtilities<double>::getSignalingNaN()),
-      d_ewt_id(-1),
-      d_weight_id(-1),
       d_rotation_index_id(-1)
 {
    // Since one can't initialize arrays in the initializer list, we do it here
@@ -1307,38 +1305,7 @@ double QuatFACOps::computeResidualNorm(
     * have to explicitly weight the residuals.
     */
 
-   double norm;
-
-   if (d_ewt_id > -1 && d_weight_id > -1) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      assert(d_weight_id >= 0);
-      assert(d_residual_id >= 0);
-#endif
-
-      int r_quat_id = residual.getComponentDescriptorIndex(0);
-
-      // Copy quaternion component of residual into scratch array
-      d_hopscell->copyData(d_residual_id, r_quat_id);
-
-      norm = d_hopscell->weightedRMSNorm(d_residual_id, d_ewt_id, d_weight_id);
-
-      if (d_verbose) {
-         tbox::pout << "QuatFACOps:: Weighted RMS norm on composite grid "
-                       "spanning levels "
-                    << coarse_ln << " thru " << fine_ln << " = " << norm
-                    << endl;
-      }
-
-   } else {
-      norm = residual.RMSNorm();
-
-      if (d_verbose) {
-         tbox::pout << "QuatFACOps:: Unweighted RMS norm on composite grid "
-                       "spanning levels "
-                    << coarse_ln << " thru " << fine_ln << " = " << norm
-                    << endl;
-      }
-   }
+   double norm = residual.RMSNorm();
 
    t_compute_residual_norm->stop();
 
