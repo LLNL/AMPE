@@ -36,7 +36,6 @@
 #ifndef included_TemperatureStrategy
 #define included_TemperatureStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 using namespace SAMRAI;
 
@@ -48,28 +47,28 @@ class TemperatureStrategy
    virtual ~TemperatureStrategy(){};
 
    virtual void initialize(
-       const boost::shared_ptr<hier::PatchHierarchy>& patch_hierarchy)
+       const std::shared_ptr<hier::PatchHierarchy>& patch_hierarchy)
    {
       (void)patch_hierarchy;
    };
 
    virtual double getCurrentMaxTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time) = 0;
    virtual double getCurrentMinTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time) = 0;
    virtual double getCurrentAverageTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time) = 0;
 
    // set temperature field according to specific strategy
    virtual void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time) = 0;
 
    virtual void resetSolversState(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int coarsest_level, const int finest_level)
    {
       (void)hierarchy;

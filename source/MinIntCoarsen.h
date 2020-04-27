@@ -40,7 +40,6 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
-#include <boost/make_shared.hpp>
 #include <string>
 #include "SAMRAI/hier/CoarsenOperator.h"
 
@@ -75,7 +74,7 @@ class MinIntCoarsen : public hier::CoarsenOperator
     * Return true if the variable and name string match cell-centered
     * double weighted averaging; otherwise, return false.
     */
-   bool findCoarsenOperator(const boost::shared_ptr<hier::Variable>& var,
+   bool findCoarsenOperator(const std::shared_ptr<hier::Variable>& var,
                             const std::string& op_name) const;
 
    /**

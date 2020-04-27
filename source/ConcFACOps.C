@@ -43,7 +43,7 @@
 
 
 ConcFACOps::ConcFACOps(const std::string& object_name, const int depth,
-                       const boost::shared_ptr<tbox::Database>& database)
+                       const std::shared_ptr<tbox::Database>& database)
     : EllipticFACOps(tbox::Dimension(NDIM), object_name, database, depth)
 {
    t_set_op_coef = tbox::TimerManager::getManager()->getTimer(

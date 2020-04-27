@@ -36,9 +36,9 @@
 #include "AzizPartitionCoefficientStrategy.h"
 
 void AzizPartitionCoefficientStrategy::evaluate(
-    hier::Patch& patch, boost::shared_ptr<pdat::CellData<double> > cd_velocity,
-    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-    boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff)
+    hier::Patch& patch, std::shared_ptr<pdat::CellData<double> > cd_velocity,
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_partition_coeff)
 {
    const hier::Box& patch_box = patch.getBox();
 

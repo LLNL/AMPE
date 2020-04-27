@@ -46,9 +46,9 @@
 SteadyStateTemperatureGaussianSource::SteadyStateTemperatureGaussianSource(
     const int temperature_scratch_id, const int rhs_id, const int weight_id,
     const double thermal_diffusivity, const int cp_id,
-    boost::shared_ptr<tbox::Database> heat_source_db,
-    boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
-    boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+    std::shared_ptr<tbox::Database> heat_source_db,
+    std::shared_ptr<tbox::Database> temperature_sys_solver_database,
+    std::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
     HeatCapacityStrategy* heat_capacity_strategy,
     solv::LocationIndexRobinBcCoefs* bc_coefs)
     : SteadyStateTemperatureStrategy(temperature_scratch_id, rhs_id, weight_id,
@@ -95,7 +95,7 @@ SteadyStateTemperatureGaussianSource::SteadyStateTemperatureGaussianSource(
 }
 
 void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
-    boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
+    std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    // tbox::pout<<"SteadyStateTemperatureGaussianSource: solve for steady state
    // T"<<endl;
@@ -141,14 +141,14 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
    int maxln = patch_hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
 
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           patch_hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
                  patch->getPatchGeometry()));
          const double* dx = patch_geom->getDx();
          const double* xlo = patch_geom->getXLower();
@@ -158,11 +158,11 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > rhs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > rhs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_rhs_id)));
-         boost::shared_ptr<pdat::CellData<double> > cp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
 
          INITGAUSSIANSOURCE(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1),

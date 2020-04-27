@@ -36,7 +36,6 @@
 #ifndef included_GradStrategy
 #define included_GradStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 using namespace SAMRAI;
 
@@ -49,27 +48,27 @@ class GradStrategy
    virtual ~GradStrategy(){};
 
    virtual void computeDiffs(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& var_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& var_id,
        int& diffs_id, const double time) = 0;
 
    virtual void computeDiffs(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
        int& diffs_id, const double time, const CACHE_TYPE cache = CACHE) = 0;
 
    virtual void computeGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_id, const double time) = 0;
 
    virtual void computeGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_id, const double time, const CACHE_TYPE cache = CACHE) = 0;
 
    virtual void computeGradSide(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_id, const double time) = 0;
 
    virtual void computeGradSide(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_id, const double time, const CACHE_TYPE cache = CACHE) = 0;
 };
 

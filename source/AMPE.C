@@ -60,7 +60,7 @@ void AMPE::initialize(const std::string input_filename,
                       const std::string restart_read_dirname,
                       const int restore_num)
 {
-   boost::shared_ptr<tbox::MemoryDatabase> input_db(
+   std::shared_ptr<tbox::MemoryDatabase> input_db(
        new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
@@ -76,7 +76,7 @@ void AMPE::initialize(const std::string input_filename,
    std::string log_file_name = run_name + ".log";
 
    if (input_db->isDatabase("Logging")) {
-      boost::shared_ptr<tbox::Database> log_db =
+      std::shared_ptr<tbox::Database> log_db =
           input_db->getDatabase("Logging");
       if (log_db->keyExists("filename")) {
          log_file_name = log_db->getString("filename");

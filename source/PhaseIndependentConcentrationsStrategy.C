@@ -37,14 +37,14 @@
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 
 void PhaseIndependentConcentrationsStrategy::computePhaseConcentrationsOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-    boost::shared_ptr<hier::Patch> patch)
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_concentration,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b,
+    std::shared_ptr<hier::Patch> patch)
 {
    (void)cd_temperature;
    (void)cd_phi;

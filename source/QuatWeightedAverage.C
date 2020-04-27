@@ -88,11 +88,11 @@ QuatWeightedAverage::QuatWeightedAverage(const bool symmetry_aware,
 QuatWeightedAverage::~QuatWeightedAverage() {}
 
 bool QuatWeightedAverage::findCoarsenOperator(
-    const boost::shared_ptr<hier::Variable>& var,
+    const std::shared_ptr<hier::Variable>& var,
     const std::string& op_name) const
 {
-   const boost::shared_ptr<pdat::CellVariable<double> > cast_var(
-       BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+   const std::shared_ptr<pdat::CellVariable<double> > cast_var(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(var));
    if (cast_var && (op_name == d_name_id)) {
       return (true);
    } else {
@@ -119,11 +119,11 @@ void QuatWeightedAverage::coarsen(hier::Patch& coarse, const hier::Patch& fine,
                                   const hier::Box& coarse_box,
                                   const hier::IntVector& ratio) const
 {
-   boost::shared_ptr<pdat::CellData<double> > fdata(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > fdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            fine.getPatchData(src_component)));
-   boost::shared_ptr<pdat::CellData<double> > cdata(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            coarse.getPatchData(dst_component)));
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(fdata);
@@ -136,11 +136,11 @@ void QuatWeightedAverage::coarsen(hier::Patch& coarse, const hier::Patch& fine,
    const hier::Index cilo = cdata->getGhostBox().lower();
    const hier::Index cihi = cdata->getGhostBox().upper();
 
-   const boost::shared_ptr<geom::CartesianPatchGeometry> fgeom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> fgeom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            fine.getPatchGeometry()));
-   const boost::shared_ptr<geom::CartesianPatchGeometry> cgeom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> cgeom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            coarse.getPatchGeometry()));
 
    const hier::Index ifirstc = coarse_box.lower();
@@ -149,8 +149,8 @@ void QuatWeightedAverage::coarsen(hier::Patch& coarse, const hier::Patch& fine,
    const int sym_flag = (int)d_symmetry_aware;
 
    if (d_symmetry_aware) {
-      boost::shared_ptr<pdat::SideData<int> > rotation_index(
-          BOOST_CAST<pdat::SideData<int>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<int> > rotation_index(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
               coarse.getPatchData(d_quat_symm_rotation_id)));
       assert(rotation_index);
       const hier::Box& rot_gbox = rotation_index->getGhostBox();

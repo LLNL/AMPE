@@ -41,8 +41,8 @@
 
 CALPHADFreeEnergyFunctionsWithPenaltyBinary::
     CALPHADFreeEnergyFunctionsWithPenaltyBinary(
-        boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
-        boost::shared_ptr<SAMRAI::tbox::Database> newton_db,
+        std::shared_ptr<SAMRAI::tbox::Database> calphad_db,
+        std::shared_ptr<SAMRAI::tbox::Database> newton_db,
         const EnergyInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         const bool with_third_phase)
@@ -63,7 +63,7 @@ CALPHADFreeEnergyFunctionsWithPenaltyBinary::
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver(
-    boost::shared_ptr<tbox::Database> newton_db)
+    std::shared_ptr<tbox::Database> newton_db)
 {
    tbox::pout << "CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver()..."
               << std::endl;
@@ -79,23 +79,23 @@ void CALPHADFreeEnergyFunctionsWithPenaltyBinary::setupSolver(
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsWithPenaltyBinary::readParameters(
-    boost::shared_ptr<SAMRAI::tbox::Database> calphad_db)
+    std::shared_ptr<SAMRAI::tbox::Database> calphad_db)
 {
    std::string namemixL("PenaltyPhaseL");
-   boost::shared_ptr<tbox::Database> mixL_db =
+   std::shared_ptr<tbox::Database> mixL_db =
        calphad_db->getDatabase(namemixL);
    mixL_db->getDoubleArray("Left", &d_penalty_parameters[0][0], 3);
    mixL_db->getDoubleArray("Right", &d_penalty_parameters[0][3], 3);
 
    std::string namemixA("PenaltyPhaseA");
-   boost::shared_ptr<tbox::Database> mixA_db =
+   std::shared_ptr<tbox::Database> mixA_db =
        calphad_db->getDatabase(namemixA);
    mixA_db->getDoubleArray("Left", &d_penalty_parameters[1][0], 3);
    mixA_db->getDoubleArray("Right", &d_penalty_parameters[1][3], 3);
 
    if (d_with_third_phase) {
       std::string namemixB("PenaltyPhaseB");
-      boost::shared_ptr<tbox::Database> mixB_db =
+      std::shared_ptr<tbox::Database> mixB_db =
           calphad_db->getDatabase(namemixB);
       mixB_db->getDoubleArray("Left", &d_penalty_parameters[2][0], 3);
       mixB_db->getDoubleArray("Right", &d_penalty_parameters[2][3], 3);

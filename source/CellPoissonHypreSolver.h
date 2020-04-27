@@ -27,7 +27,6 @@ extern "C" {
 #include "SAMRAI/solv/SimpleCellRobinBcCoefs.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/make_shared.hpp>
 #include <string>
 #include <iostream>
 
@@ -93,8 +92,8 @@ class CellPoissonHypreSolver
     * @param database tbox::InputDatabase for input.
     */
    CellPoissonHypreSolver(const std::string &object_name,
-                          boost::shared_ptr<tbox::Database> database =
-                              boost::shared_ptr<tbox::Database>());
+                          std::shared_ptr<tbox::Database> database =
+                              std::shared_ptr<tbox::Database>());
 
    /*!
     * The Poisson destructor releases all internally managed data.
@@ -109,7 +108,7 @@ class CellPoissonHypreSolver
     * @param hierarchy Hierarchy
     * @param ln Level number
     */
-   void initializeSolverState(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void initializeSolverState(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                               int ln = 0);
 
    /*!
@@ -249,7 +248,7 @@ class CellPoissonHypreSolver
     * cell centers, use the GhostCellRobinBcCoefs
     * implementation of the RobinBcCoefStrategy strategy.
     *
-    * @param physical_bc_coef_strategy boost::shared_ptr a concrete
+    * @param physical_bc_coef_strategy std::shared_ptr a concrete
     *        implementation of the Robin bc strategy.
     * @param variable hier::Variable pointer to be passed
     *        to RobinBcCoefStrategy::setBcCoefs(),
@@ -257,8 +256,8 @@ class CellPoissonHypreSolver
     */
    void setPhysicalBcCoefObject(
        const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
-       const boost::shared_ptr<hier::Variable> variable =
-           boost::shared_ptr<hier::Variable>())
+       const std::shared_ptr<hier::Variable> variable =
+           std::shared_ptr<hier::Variable>())
    {
       d_physical_bc_coef_strategy = physical_bc_coef_strategy;
       d_physical_bc_variable = variable;
@@ -284,7 +283,7 @@ class CellPoissonHypreSolver
     * @param database Input database.  If a NULL pointer is given,
     * nothing is done.
     */
-   void getFromInput(boost::shared_ptr<tbox::Database> database);
+   void getFromInput(std::shared_ptr<tbox::Database> database);
 
    void setupHypreSolver();
    void destroyHypreSolver();
@@ -373,7 +372,7 @@ class CellPoissonHypreSolver
    /*!
     * @brief Associated hierarchy.
     */
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*!
     * @brief Associated level number.
@@ -385,7 +384,7 @@ class CellPoissonHypreSolver
    /*!
     * @brief Scratch context for this object.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    //@{ @name Boundary condition handling
 
@@ -396,7 +395,7 @@ class CellPoissonHypreSolver
     * state is initialized.  It is used to allow solves on
     * levels that are not the coarsest in the hierarchy.
     */
-   boost::shared_ptr<hier::CoarseFineBoundary> d_cf_boundary;
+   std::shared_ptr<hier::CoarseFineBoundary> d_cf_boundary;
 
    /*!
     * @brief Robin boundary coefficient object for physical
@@ -406,7 +405,7 @@ class CellPoissonHypreSolver
     * use d_physical_bc_simple_case.
     */
    const solv::RobinBcCoefStrategy *d_physical_bc_coef_strategy;
-   boost::shared_ptr<hier::Variable> d_physical_bc_variable;
+   std::shared_ptr<hier::Variable> d_physical_bc_variable;
 
    /*!
     * @brief Implementation of Robin boundary conefficients
@@ -423,7 +422,7 @@ class CellPoissonHypreSolver
     * in the coarse-fine boundaries before solving.
     */
    solv::GhostCellRobinBcCoefs d_cf_bc_coef;
-   boost::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
+   std::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
 
    //@}
 
@@ -450,7 +449,7 @@ class CellPoissonHypreSolver
     */
    int d_Ak0_id;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[3];
+   static std::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[3];
 
    /*!
     * @brief Depth of the solution variable.
@@ -501,7 +500,7 @@ class CellPoissonHypreSolver
    //@}
 
    int d_msqrt_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_msqrt_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_msqrt_var;
    bool d_msqrt_transform;
 
    //@{
@@ -522,11 +521,11 @@ class CellPoissonHypreSolver
    /*!
     * @brief Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_solve_system;
-   boost::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
-   boost::shared_ptr<tbox::Timer> t_copy_vectors;
-   boost::shared_ptr<tbox::Timer> t_initsolver;
-   boost::shared_ptr<tbox::Timer> t_setupsolver;
+   std::shared_ptr<tbox::Timer> t_solve_system;
+   std::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
+   std::shared_ptr<tbox::Timer> t_copy_vectors;
+   std::shared_ptr<tbox::Timer> t_initsolver;
+   std::shared_ptr<tbox::Timer> t_setupsolver;
 };
 
 #include "CellPoissonHypreSolver.I"

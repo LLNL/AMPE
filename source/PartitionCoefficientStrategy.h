@@ -58,11 +58,11 @@ class PartitionCoefficientStrategy
 
    virtual void evaluate(
        hier::Patch& patch,
-       boost::shared_ptr<pdat::CellData<double> > cd_velocity,
-       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-       boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff) = 0;
+       std::shared_ptr<pdat::CellData<double> > cd_velocity,
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_partition_coeff) = 0;
 
-   void evaluate(const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+   void evaluate(const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
  private:
    int d_velocity_id;

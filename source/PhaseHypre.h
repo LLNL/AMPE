@@ -22,7 +22,6 @@
 #include "SAMRAI/appu/VisDerivedDataStrategy.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 
-#include "boost/shared_ptr.hpp"
 
 using namespace SAMRAI;
 
@@ -74,8 +73,8 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
     */
    PhaseHypre(
        const std::string& object_name, const tbox::Dimension& dim,
-       const boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
-       boost::shared_ptr<tbox::Database> database, const double epsilon,
+       const std::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs,
+       std::shared_ptr<tbox::Database> database, const double epsilon,
        const double omega, const double delta, const double mobility,
        const double gamma);
 
@@ -94,17 +93,17 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
     * @see mesh::StandardTagAndInitStrategy::initializeLevelData()
     */
    virtual void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double init_data_time,
        const bool can_be_refined, const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const std::shared_ptr<hier::PatchLevel>& old_level,
        const bool allocate_data);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
     */
    virtual void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
        int coarsest_level, int finest_level);
 
    //@}
@@ -160,9 +159,9 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
              const double phi_well_scale, const std::string phi_well_func_type);
 
  private:
-   void setCOnPatchPrivate(boost::shared_ptr<pdat::CellData<double> > cd_phi,
-                           boost::shared_ptr<pdat::CellData<double> > cd_m,
-                           boost::shared_ptr<pdat::CellData<double> > cd_c,
+   void setCOnPatchPrivate(std::shared_ptr<pdat::CellData<double> > cd_phi,
+                           std::shared_ptr<pdat::CellData<double> > cd_m,
+                           std::shared_ptr<pdat::CellData<double> > cd_c,
                            const double gamma, const char* phi_interp_func_type,
                            const double phi_well_scale,
                            const char* phi_well_func_type,
@@ -172,7 +171,7 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
 
    const tbox::Dimension d_dim;
 
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    //@{
    /*!
@@ -195,7 +194,7 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
    /*!
     * @brief Context owned by this object.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*!
     * @brief Descriptor indices of internal data.
@@ -223,7 +222,7 @@ class PhaseHypre : public mesh::StandardTagAndInitStrategy,
    bool d_D_is_set;
    bool d_M_is_set;
 
-   boost::shared_ptr<solv::RobinBcCoefStrategy> d_physical_bc_coef;
+   std::shared_ptr<solv::RobinBcCoefStrategy> d_physical_bc_coef;
 };
 
 #endif  // included_PhaseHypre

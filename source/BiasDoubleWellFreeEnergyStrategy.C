@@ -67,7 +67,7 @@ void BiasDoubleWellFreeEnergyStrategy::addDrivingForceEta(
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computePhaseConcentrations(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int eta_id,
     const int concentration_id)
 {

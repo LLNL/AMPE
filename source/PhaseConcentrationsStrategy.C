@@ -49,7 +49,7 @@ PhaseConcentrationsStrategy::PhaseConcentrationsStrategy(
 }
 
 void PhaseConcentrationsStrategy::computePhaseConcentrations(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int phase_id, const int eta_id,
     const int concentration_id)
 {
@@ -80,20 +80,20 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > temperature(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temperature(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(temperature_id)));
          assert(temperature);
 
-         boost::shared_ptr<pdat::CellData<double> > phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
          assert(phi);
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -106,30 +106,30 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          assert(l2phi < 1000.);
 #endif
 
-         boost::shared_ptr<pdat::CellData<double> > eta;
+         std::shared_ptr<pdat::CellData<double> > eta;
          if (d_with_third_phase) {
-            eta = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            eta = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(eta_id));
          }
 
-         boost::shared_ptr<pdat::CellData<double> > concentration(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > concentration(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(concentration_id)));
          assert(concentration);
 
-         boost::shared_ptr<pdat::CellData<double> > c_l(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > c_l(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_id)));
          assert(c_l);
 
-         boost::shared_ptr<pdat::CellData<double> > c_a(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > c_a(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_a_id)));
          assert(c_a);
 
-         boost::shared_ptr<pdat::CellData<double> > c_b;
+         std::shared_ptr<pdat::CellData<double> > c_b;
          if (d_with_third_phase) {
-            c_b = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            c_b = SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                 patch->getPatchData(d_conc_b_id));
             assert(c_b);
          }

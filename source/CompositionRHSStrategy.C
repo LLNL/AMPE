@@ -82,15 +82,15 @@ void CompositionRHSStrategy::addFluxFromAntitrappingonPatch(
 void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(hier::Patch& patch,
                                                           const int flux_id)
 {
-   boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   std::shared_ptr<geom::CartesianPatchGeometry> pg(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
 
    // Get face boundary boxes.
    const std::vector<hier::BoundaryBox> bdry = pg->getCodimensionBoundaries(1);
 
-   boost::shared_ptr<pdat::SideData<double> > flux(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > flux(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(flux_id)));
    assert(flux);
 

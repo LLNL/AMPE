@@ -39,8 +39,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 class PhaseConcentrationsStrategy
@@ -53,19 +51,19 @@ class PhaseConcentrationsStrategy
    virtual ~PhaseConcentrationsStrategy() {}
 
    void computePhaseConcentrations(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int phase_id, const int eta_id,
        const int concentration_id);
 
    virtual void computePhaseConcentrationsOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-       boost::shared_ptr<hier::Patch> patch) = 0;
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_concentration,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<hier::Patch> patch) = 0;
 
  protected:
    int d_conc_l_id;

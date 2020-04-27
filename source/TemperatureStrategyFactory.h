@@ -55,11 +55,11 @@ class TemperatureStrategyFactory
        const int conc_id, const int weight_id, const int temperature_rhs_id,
        const int cp_id, const double molar_volume,
        const bool with_concentration,
-       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
+       std::shared_ptr<geom::CartesianGridGeometry> grid_geometry,
        HeatCapacityStrategy* heat_capacity_strategy);
 
-   TemperatureStrategy* create(boost::shared_ptr<tbox::Database> model_db,
-                               boost::shared_ptr<tbox::Database> integrator_db,
+   TemperatureStrategy* create(std::shared_ptr<tbox::Database> model_db,
+                               std::shared_ptr<tbox::Database> integrator_db,
                                const QuatModelParameters&);
 
  private:
@@ -73,13 +73,13 @@ class TemperatureStrategyFactory
    double d_molar_volume;
    bool d_with_concentration;
    solv::LocationIndexRobinBcCoefs* d_temperature_bc_coefs;
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   std::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
 
    TemperatureStrategy* d_strategy;
    HeatCapacityStrategy* d_heat_capacity_strategy;
 
    double readTemperature0(
-       boost::shared_ptr<tbox::Database> temperature_db,
+       std::shared_ptr<tbox::Database> temperature_db,
        QuatModelParameters::TemperatureType temperature_type);
 };
 

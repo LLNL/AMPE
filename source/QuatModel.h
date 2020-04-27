@@ -62,7 +62,6 @@
 
 #include "EventInterval.h"
 
-#include <boost/make_shared.hpp>
 #include <map>
 
 using namespace SAMRAI;
@@ -88,7 +87,7 @@ class QuatModel : public PFModel
    QuatModel(int qlen);
    virtual ~QuatModel();
 
-   virtual void Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
+   virtual void Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                            const std::string& run_name,
                            const bool is_from_restart,
                            const std::string& restart_read_dirname,
@@ -96,7 +95,7 @@ class QuatModel : public PFModel
 
    virtual void Run(void);
 
-   virtual void CreateIntegrator(boost::shared_ptr<tbox::Database> input_db);
+   virtual void CreateIntegrator(std::shared_ptr<tbox::Database> input_db);
 
    virtual void RegisterVariables(void);
 
@@ -116,19 +115,19 @@ class QuatModel : public PFModel
 
    virtual void writeRestartFile(void);
 
-   virtual void Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+   virtual void Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void printScalarDiagnostics(void);
 
    void listLocalToGlobal(std::map<int, double>& local_map,
                           std::map<int, double>& global_map);
 
-   void readInitialDatabase(boost::shared_ptr<tbox::Database> main_input_db);
+   void readInitialDatabase(std::shared_ptr<tbox::Database> main_input_db);
 
    void WriteInitialConditionsFile(void);
 
-   boost::shared_ptr<hier::PatchLevel> FlattenHierarchy(
-       const boost::shared_ptr<hier::PatchHierarchy> src_hierarchy,
+   std::shared_ptr<hier::PatchLevel> FlattenHierarchy(
+       const std::shared_ptr<hier::PatchHierarchy> src_hierarchy,
        const int level_number, const double time);
 
    void setupInitialDataLevel(void);
@@ -136,160 +135,160 @@ class QuatModel : public PFModel
    void setupHierarchy(void);
 
    void computeMinMaxQModulus(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void tagGradientDetectorCells(hier::Patch& patch, const double regrid_time,
                                  const bool initial_error, const int tag_index,
                                  const bool uses_richardson_extrapolation_too);
 
    void computePhaseDiffs(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& phase_diffs_id, const double time, const CACHE_TYPE cache = CACHE);
-   void computePhaseDiffs(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void computePhaseDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
                           int& phase_id, int& phase_diffs_id,
                           const double time);
 
-   void computeEtaDiffs(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void computeEtaDiffs(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int& eta_id, int& eta_diffs_id, const double time,
                         const CACHE_TYPE cache = CACHE);
-   void computeEtaDiffs(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void computeEtaDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
                         int& eta_id, int& eta_diffs_id, const double time);
 
-   void computeVarDiffs(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void computeVarDiffs(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int& var_id, int& diffs_id, const double time,
                         const CACHE_TYPE cache = CACHE);
-   void computeVarDiffs(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void computeVarDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
                         int& var_id, int& diffs_id, const double time);
 
    void computePhaseGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        int& phase_diffs_id, int& phase_grad_cell_id, const double time,
        const CACHE_TYPE cache = CACHE);
    void computePhaseGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level,
+       const std::shared_ptr<hier::PatchLevel> patch_level,
        int& phase_diffs_id, int& phase_grad_cell_id, const double time);
 
    void computeEtaGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        int& eta_diffs_id, int& eta_grad_cell_id, const double time,
        const CACHE_TYPE cache = CACHE);
    void computeEtaGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& eta_diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& eta_diffs_id,
        int& eta_grad_cell_id, const double time);
 
    void computeVarGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_cell_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeVarGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_cell_id, const double time);
 
    void computeVarGradSide(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_side_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeVarGradSide(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_side_id, const double time);
 
    void computeSymmetryRotations(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
    void makeQuatFundamental(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
    void computeQuatDiffs(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
        int& diffs_id, const double time, const CACHE_TYPE cache = CACHE);
-   void computeQuatDiffs(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void computeQuatDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
                          int& quat_id, int& diffs_id, const double time);
 
    void computeQuatGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_cell_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeQuatGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_cell_id, const double time);
 
    void computeQuatGradSide(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_side_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeQuatGradSide(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_side_id, const double time);
 
    void computeQuatGradModulus(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        int& grad_cell_id, int& grad_modulus_id, const double time,
        const CACHE_TYPE cache = CACHE);
    void computeQuatGradModulus(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& grad_cell_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& grad_cell_id,
        int& grad_modulus_id, const double time);
 
    void computeQuatGradModulusFromSides(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        int& grad_side_id, int& grad_modulus_id, const double time,
        const CACHE_TYPE cache = CACHE);
    void computeQuatGradModulusFromSides(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& grad_cell_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& grad_cell_id,
        int& grad_modulus_id, const double time);
 
-   void normalizeQuat(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void normalizeQuat(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                       const int quat_id);
-   void normalizeQuat(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void normalizeQuat(const std::shared_ptr<hier::PatchLevel> patch_level,
                       const int quat_id);
 
    void computeUniformPhaseMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeUniformPhaseMobility(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
        int& mobility_id, const double time);
 
    void computeEtaMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeEtaMobility(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
        int& mobility_id, const double time);
 
    void computeQuatMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
    void computeQuatMobility(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
        int& mobility_id, const double time);
 
    void computeQuatMobilityDeriv(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_deriv_id, const double time,
        const CACHE_TYPE cache = CACHE);
    void computeQuatMobilityDeriv(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
        int& mobility_deriv_id, const double time);
 
-   void computeVectorWeights(boost::shared_ptr<hier::PatchHierarchy>, int, int);
+   void computeVectorWeights(std::shared_ptr<hier::PatchHierarchy>, int, int);
 
-   void evaluateEnergy(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void evaluateEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const double time, double& total_energy,
                        double& total_phase_e, double& total_eta_e,
                        double& total_orient_e, double& total_qint_e,
                        double& total_well_e, double& total_free_e,
                        const bool gp = false);
    double evaluateIntegralConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int component);
    double evaluateVolumeSolid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    double evaluateVolumeEta(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
    double evaluateIntegralPhaseConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int component);
 
-   void computeVelocity(boost::shared_ptr<hier::Patch> patch, int phi_dot_id);
-   void computeVelocity(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void computeVelocity(std::shared_ptr<hier::Patch> patch, int phi_dot_id);
+   void computeVelocity(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int phi_dot_id);
    int getConcDiffusionLid() const { return d_conc_pfm_diffusion_l_id; }
    int getConcDiffusionAid() const { return d_conc_pfm_diffusion_a_id; }
@@ -298,25 +297,25 @@ class QuatModel : public PFModel
    //
    // Methods inherited from Serializable (through PFModel)
    //
-   virtual void putToRestart(const boost::shared_ptr<tbox::Database>& db) const;
+   virtual void putToRestart(const std::shared_ptr<tbox::Database>& db) const;
 
    //-----------------------------------------------------------------------
    //
    // Methods inherited from StandardTagAndInitStrategy (through PFModel)
    //
    virtual void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double time, const bool can_be_refined,
        const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level,
+       const std::shared_ptr<hier::PatchLevel>& old_level,
        const bool allocate_data);
 
    virtual void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int coarsest_level, const int finest_level);
 
    virtual void applyGradientDetector(
-       boost::shared_ptr<hier::PatchHierarchy>& hierarchy, int level_number,
+       std::shared_ptr<hier::PatchHierarchy>& hierarchy, int level_number,
        double time, int tag_index, const bool initial_time,
        const bool uses_richardson_extrapolation_too);
 
@@ -332,63 +331,63 @@ class QuatModel : public PFModel
    // deallocate some temporary data to free some memory,
    // for example before some high memory footprint postprocessing
    void DeallocateIntermediateLocalPatchData(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void registerPhaseConcentrationVariables(
-       boost::shared_ptr<pdat::CellVariable<double> > conc_l_var,
-       boost::shared_ptr<pdat::CellVariable<double> > conc_a_var,
-       boost::shared_ptr<pdat::CellVariable<double> > conc_b_var);
+       std::shared_ptr<pdat::CellVariable<double> > conc_l_var,
+       std::shared_ptr<pdat::CellVariable<double> > conc_a_var,
+       std::shared_ptr<pdat::CellVariable<double> > conc_b_var);
 
    double computeThermalEnergy(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
  private:
    void copyCurrentToScratch(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time, QuatRefinePatchStrategy* patch_strategy);
 
    void copyCurrentToScratch(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int ln,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int ln,
        const double time, QuatRefinePatchStrategy* patch_strategy);
 
-   void AllocateLocalPatchData(const boost::shared_ptr<hier::PatchLevel> level,
+   void AllocateLocalPatchData(const std::shared_ptr<hier::PatchLevel> level,
                                const double time, const bool initial_time);
 
    void DeallocateIntermediateLocalPatchData(
-       const boost::shared_ptr<hier::PatchLevel> level);
+       const std::shared_ptr<hier::PatchLevel> level);
 
    void AllocateQuatLocalPatchData(
-       const boost::shared_ptr<hier::PatchLevel> level, const double time,
+       const std::shared_ptr<hier::PatchLevel> level, const double time,
        const bool initial_time);
 
    template <typename T>
    void AllocateAndZeroData(const int data_id,
-                            const boost::shared_ptr<hier::PatchLevel> level,
+                            const std::shared_ptr<hier::PatchLevel> level,
                             const double time, const bool initial_time);
 
-   void checkQuatNorm(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void checkQuatNorm(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                       const double tol);
 
    void computePhaseMobilityPatch(
        const hier::Box& pbox,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::CellData<double> > cd_mobility);
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::CellData<double> > cd_mobility);
 
    void computeEtaMobilityPatch(
        const hier::Box& pbox,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::CellData<double> > cd_mobility,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi);
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::CellData<double> > cd_mobility,
+       std::shared_ptr<pdat::CellData<double> > cd_phi);
 
    void preRunDiagnosticsMobilityInPhases(const double temperature);
    bool computeCeq(const double temperature, const PhaseIndex pi0,
                    const PhaseIndex pi1, double* ceq) const;
 
-   void applyPolynomial(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void applyPolynomial(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         const int src_cell_data_id, const int dst_cell_data_id);
-   void applyPolynomial(const boost::shared_ptr<hier::PatchLevel> patch_level,
+   void applyPolynomial(const std::shared_ptr<hier::PatchLevel> patch_level,
                         const int src_cell_data_id, const int dst_cell_data_id);
-   void readAMRdatabase(boost::shared_ptr<tbox::Database> amr_db);
+   void readAMRdatabase(std::shared_ptr<tbox::Database> amr_db);
    void registerPatchDataForRestart(hier::VariableDatabase*);
    void registerConcentrationVariables(void);
    void registerPhaseConcentrationVariables();
@@ -398,9 +397,9 @@ class QuatModel : public PFModel
    void registerGrainVariables(void);
    void registerPatchDataForRestart(void);
    void initializeRefineCoarsenAlgorithms();
-   void initializeTemperature(boost::shared_ptr<tbox::Database>,
-                              boost::shared_ptr<tbox::Database>);
-   void initializeAmr(boost::shared_ptr<tbox::Database> amr_db);
+   void initializeTemperature(std::shared_ptr<tbox::Database>,
+                              std::shared_ptr<tbox::Database>);
+   void initializeAmr(std::shared_ptr<tbox::Database> amr_db);
 
    void resetRefPhaseConcentrations();
    void setPhaseConcentrationsToEquilibrium(const double* const ceq);
@@ -410,11 +409,11 @@ class QuatModel : public PFModel
    void computeGrainDiagnostics(void);
    void extendGrainOrientation(void);
 
-   void smoothQuat(const boost::shared_ptr<hier::PatchLevel> patch_level);
-   void smoothQuat(const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void smoothQuat(const std::shared_ptr<hier::PatchLevel> patch_level);
+   void smoothQuat(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                    const double time);
    void initializeRHSandEnergyStrategies(
-       boost::shared_ptr<tbox::MemoryDatabase>& quat_db);
+       std::shared_ptr<tbox::MemoryDatabase>& quat_db);
    void initializeCompositionRHSStrategy();
 
    QuatModelParameters d_model_parameters;
@@ -427,97 +426,97 @@ class QuatModel : public PFModel
    bool d_symmetry_aware;
    bool d_extra_energy_detail;
 
-   boost::shared_ptr<EventInterval> d_test_interval;
-   boost::shared_ptr<EventInterval> d_fundamental_interval;
-   boost::shared_ptr<EventInterval> d_scalar_diag_interval;
-   boost::shared_ptr<EventInterval> d_grain_extend_interval;
+   std::shared_ptr<EventInterval> d_test_interval;
+   std::shared_ptr<EventInterval> d_fundamental_interval;
+   std::shared_ptr<EventInterval> d_scalar_diag_interval;
+   std::shared_ptr<EventInterval> d_grain_extend_interval;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_var;
    int d_phase_id;
    int d_phase_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_var;
    int d_eta_id;
    int d_eta_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_var;
    int d_quat_id;
    int d_quat_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_relax_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_relax_var;
    int d_quat_relax_id;
    int d_quat_relax_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_var;
    int d_conc_id;
    int d_conc_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_l_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_l_var;
    int d_conc_l_id;
    int d_conc_l_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_a_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_a_var;
    int d_conc_a_id;
    int d_conc_a_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_b_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_b_var;
    int d_conc_b_id;
    int d_conc_b_scratch_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_l_ref_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_l_ref_var;
    int d_conc_l_ref_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_a_ref_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_a_ref_var;
    int d_conc_a_ref_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_conc_b_ref_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_conc_b_ref_var;
    int d_conc_b_ref_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_phase_diffs_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_phase_diffs_var;
    int d_phase_diffs_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_eta_diffs_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_eta_diffs_var;
    int d_eta_diffs_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
    int d_quat_diffs_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_diffs_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_diffs_cell_var;
    int d_phase_diffs_cell_id;
 
-   boost::shared_ptr<pdat::SideVariable<int> > d_quat_symm_rotation_var;
+   std::shared_ptr<pdat::SideVariable<int> > d_quat_symm_rotation_var;
    int d_quat_symm_rotation_id;
 
-   boost::shared_ptr<pdat::CellVariable<int> > d_quat_symm_rotation_cell_var;
+   std::shared_ptr<pdat::CellVariable<int> > d_quat_symm_rotation_cell_var;
    int d_quat_symm_rotation_cell_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_diffs_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_diffs_cell_var;
    int d_quat_diffs_cell_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_nonsymm_diffs_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_nonsymm_diffs_cell_var;
    int d_quat_nonsymm_diffs_cell_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_norm_error_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_norm_error_var;
    int d_quat_norm_error_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_grad_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_grad_cell_var;
    int d_phase_grad_cell_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_phase_grad_side_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_phase_grad_side_var;
    int d_phase_grad_side_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_grad_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_grad_cell_var;
    int d_eta_grad_cell_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_eta_grad_side_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_eta_grad_side_var;
    int d_eta_grad_side_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_grad_cell_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_cell_var;
    int d_quat_grad_cell_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_grad_side_var;
    int d_quat_grad_side_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_grad_modulus_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_grad_modulus_var;
    int d_quat_grad_modulus_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_phase_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_phase_mobility_var;
    int d_phase_mobility_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_eta_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_eta_mobility_var;
    int d_eta_mobility_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
    int d_quat_mobility_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
    int d_quat_diffusion_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
 
-   std::vector<boost::shared_ptr<pdat::SideVariable<double> > >
+   std::vector<std::shared_ptr<pdat::SideVariable<double> > >
        d_conc_pfm_diffusion_var;
    std::vector<int> d_conc_pfm_diffusion_id;
 
@@ -525,55 +524,55 @@ class QuatModel : public PFModel
     * holds data for diffusion coefficients in composition equation
     * according to EBS scheme, including weight due to phase fraction
     */
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_l_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_l_var;
    int d_conc_pfm_diffusion_l_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_a_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_a_var;
    int d_conc_pfm_diffusion_a_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_b_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_pfm_diffusion_b_var;
    int d_conc_pfm_diffusion_b_id;
 
 
    /*!
     * holds data for diffusion coefficients in each individual phase
     */
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_l_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_l_var;
    int d_conc_diffusion_coeff_l_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_a_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_a_var;
    int d_conc_diffusion_coeff_a_id;
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_b_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_coeff_b_var;
    int d_conc_diffusion_coeff_b_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_conc_Mq_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_conc_Mq_var;
    int d_conc_Mq_id;
 
-   boost::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double> >
        d_conc_phase_coupling_diffusion_var;
    int d_conc_phase_coupling_diffusion_id;
-   boost::shared_ptr<pdat::SideVariable<double> >
+   std::shared_ptr<pdat::SideVariable<double> >
        d_conc_eta_coupling_diffusion_var;
    int d_conc_eta_coupling_diffusion_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
    int d_f_l_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_a_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_a_var;
    int d_f_a_id;
-   boost::shared_ptr<pdat::CellVariable<double> > d_f_b_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_f_b_var;
    int d_f_b_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_cp_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_cp_var;
    int d_cp_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_velocity_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_velocity_var;
    int d_velocity_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_partition_coeff_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_partition_coeff_var;
    int d_partition_coeff_id;
    int d_partition_coeff_scratch_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_equilibrium_temperature_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_equilibrium_temperature_var;
    int d_equilibrium_temperature_id;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_energy_diag_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_energy_diag_var;
    int d_energy_diag_id;
 
 
@@ -581,13 +580,13 @@ class QuatModel : public PFModel
     * Variable containing volume weights used in composite grid norm
     * calculations.
     */
-   boost::shared_ptr<pdat::CellVariable<double> > d_weight_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_weight_var;
    int d_weight_id;
 
    /*
     * Variable containing temporary work data of depth 1
     */
-   boost::shared_ptr<pdat::CellVariable<double> > d_work_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_work_var;
    int d_work_id;
 
    /*!
@@ -595,39 +594,39 @@ class QuatModel : public PFModel
     * Typically needs ghosts values, even if not solution of PDE.
     * Ghosts values are also use to get side values through averaging
     */
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_var;
    int d_temperature_id;
    int d_temperature_scratch_id;
 
    /*!
     * RHS needed for temperature when result of steady state equation
     */
-   boost::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_steady_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_temperature_rhs_steady_var;
    int d_temperature_rhs_steady_id;
 
    bool d_is_from_restart;
 
-   boost::shared_ptr<QuatIntegrator> d_integrator;
-   boost::shared_ptr<QuatIntegrator> d_integrator_quat_only;
+   std::shared_ptr<QuatIntegrator> d_integrator;
+   std::shared_ptr<QuatIntegrator> d_integrator_quat_only;
 
    QuatRefinePatchStrategy* d_all_refine_patch_strategy;
    PartitionCoeffRefinePatchStrategy* d_partition_coeff_refine_patch_strategy;
 
-   boost::shared_ptr<hier::RefineOperator> d_phase_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_eta_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_quat_refine_op;
-   boost::shared_ptr<hier::RefineOperator> d_conc_refine_op;
-   boost::shared_ptr<hier::CoarsenOperator> d_quat_coarsen_op;
+   std::shared_ptr<hier::RefineOperator> d_phase_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_eta_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_quat_refine_op;
+   std::shared_ptr<hier::RefineOperator> d_conc_refine_op;
+   std::shared_ptr<hier::CoarsenOperator> d_quat_coarsen_op;
 
-   boost::shared_ptr<xfer::RefineAlgorithm> d_regrid_refine_alg;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_curr_to_curr_refine_alg;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_curr_to_scr_refine_alg;
+   std::shared_ptr<xfer::RefineAlgorithm> d_regrid_refine_alg;
+   std::shared_ptr<xfer::RefineAlgorithm> d_curr_to_curr_refine_alg;
+   std::shared_ptr<xfer::RefineAlgorithm> d_curr_to_scr_refine_alg;
 
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_curr_to_scr_refine_sched;
 
    QuatGradStrategy* d_quat_grad_strategy;
-   boost::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
+   std::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
    FreeEnergyStrategy* d_free_energy_strategy;
    FreeEnergyStrategy* d_free_energy_strategy_for_diffusion;
    PhaseConcentrationsStrategy* d_phase_conc_strategy;
@@ -642,7 +641,7 @@ class QuatModel : public PFModel
    PhaseFluxStrategy* d_phase_flux_strategy;
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
-   boost::shared_ptr<CompositionDiffusionStrategy>
+   std::shared_ptr<CompositionDiffusionStrategy>
        d_diffusion_for_conc_in_phase;
 
    bool d_tag_phase;
@@ -659,17 +658,17 @@ class QuatModel : public PFModel
 
    bool d_use_warm_start;
 
-   boost::shared_ptr<tbox::Database> d_conc_db;
-   boost::shared_ptr<tbox::Database> d_calphad_db;
-   boost::shared_ptr<tbox::Database> d_newton_db;
+   std::shared_ptr<tbox::Database> d_conc_db;
+   std::shared_ptr<tbox::Database> d_calphad_db;
+   std::shared_ptr<tbox::Database> d_newton_db;
 
-   boost::shared_ptr<Grains> d_grains;
+   std::shared_ptr<Grains> d_grains;
    int d_number_of_grains;
    double d_phase_threshold;
 
    // Timers
-   boost::shared_ptr<tbox::Timer> t_resetGrains_timer;
-   boost::shared_ptr<tbox::Timer> t_phase_diffs_timer;
+   std::shared_ptr<tbox::Timer> t_resetGrains_timer;
+   std::shared_ptr<tbox::Timer> t_phase_diffs_timer;
 };
 
 #endif

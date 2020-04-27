@@ -49,8 +49,8 @@ class EtaFACOps : public EllipticFACOps
 
  public:
    EtaFACOps(const std::string& object_name = std::string(),
-             const boost::shared_ptr<tbox::Database> database =
-                 boost::shared_ptr<tbox::Database>());
+             const std::shared_ptr<tbox::Database> database =
+                 std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(
        const int phase_id, const int eta_id, const int eta_mobility_id,
@@ -63,10 +63,10 @@ class EtaFACOps : public EllipticFACOps
              const double eta_well_scale, const std::string eta_well_func_type);
 
  private:
-   void setCOnPatchPrivate(boost::shared_ptr<pdat::CellData<double> > cd_phi,
-                           boost::shared_ptr<pdat::CellData<double> > cd_eta,
-                           boost::shared_ptr<pdat::CellData<double> > cd_m,
-                           boost::shared_ptr<pdat::CellData<double> > cd_c,
+   void setCOnPatchPrivate(std::shared_ptr<pdat::CellData<double> > cd_phi,
+                           std::shared_ptr<pdat::CellData<double> > cd_eta,
+                           std::shared_ptr<pdat::CellData<double> > cd_m,
+                           std::shared_ptr<pdat::CellData<double> > cd_c,
                            const double gamma,
                            const EnergyInterpolationType phi_interp_func_type,
                            const double eta_well_scale,

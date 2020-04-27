@@ -45,7 +45,7 @@ KimMobilityStrategy::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
-    boost::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
       d_conc_s_id(conc_s_id),
@@ -64,15 +64,15 @@ KimMobilityStrategy::KimMobilityStrategy(
 
    if (conc_model[0] == 'c') {
 
-      boost::shared_ptr<tbox::Database> conc_calphad_db =
+      std::shared_ptr<tbox::Database> conc_calphad_db =
           conc_db->getDatabase("Calphad");
       std::string calphad_filename = conc_calphad_db->getString("filename");
-      boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
           new tbox::MemoryDatabase("calphad_db"));
       tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                        calphad_db);
 
-      boost::shared_ptr<tbox::Database> newton_db;
+      std::shared_ptr<tbox::Database> newton_db;
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
 
@@ -99,7 +99,7 @@ KimMobilityStrategy::KimMobilityStrategy(
 }
 
 void KimMobilityStrategy::computePhaseMobility(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
    (void)phase_id;
@@ -111,30 +111,30 @@ void KimMobilityStrategy::computePhaseMobility(
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > temperature(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temperature(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_temp_id)));
          assert(temperature);
 
-         boost::shared_ptr<pdat::CellData<double> > concl(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > concl(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_id)));
          assert(concl);
 
-         boost::shared_ptr<pdat::CellData<double> > concs(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > concs(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_s_id)));
          assert(concs);
 
-         boost::shared_ptr<pdat::CellData<double> > mobility(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > mobility(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(mobility_id)));
          assert(mobility);
 
@@ -146,11 +146,11 @@ void KimMobilityStrategy::computePhaseMobility(
 }
 
 void KimMobilityStrategy::update(
-    boost::shared_ptr<pdat::CellData<double> > cd_te,
-    boost::shared_ptr<pdat::CellData<double> > cd_cl,
-    boost::shared_ptr<pdat::CellData<double> > cd_cs,
-    boost::shared_ptr<pdat::CellData<double> > cd_mob,
-    boost::shared_ptr<hier::Patch> patch)
+    std::shared_ptr<pdat::CellData<double> > cd_te,
+    std::shared_ptr<pdat::CellData<double> > cd_cl,
+    std::shared_ptr<pdat::CellData<double> > cd_cs,
+    std::shared_ptr<pdat::CellData<double> > cd_mob,
+    std::shared_ptr<hier::Patch> patch)
 {
    assert(cd_te);
    assert(cd_cl);

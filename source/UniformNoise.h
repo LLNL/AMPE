@@ -36,7 +36,6 @@
 #include "Noise.h"
 
 #include <boost/random/uniform_real.hpp>
-#include "boost/shared_ptr.hpp"
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/linear_congruential.hpp>
 

@@ -46,7 +46,7 @@ class SpinodalCompositionRHSStrategy
 {
  public:
    SpinodalCompositionRHSStrategy(
-       boost::shared_ptr<tbox::Database> input_db, const int conc_scratch_id,
+       std::shared_ptr<tbox::Database> input_db, const int conc_scratch_id,
        const int phase_scratch_id, const int eta_scratch_id,
        const unsigned int ncompositions, const int conc_a_scratch_id,
        const int conc_b_scratch_id, const int temperature_scratch_id,
@@ -61,7 +61,7 @@ class SpinodalCompositionRHSStrategy
    void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
 
    void setDiffusionCoeff(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
  private:
@@ -78,12 +78,12 @@ class SpinodalCompositionRHSStrategy
    double d_kappa;
 
    void setDiffusionForConc(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
    void setDiffusionCoeffForConcOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_c,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp,
-       boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
+       std::shared_ptr<pdat::CellData<double> > cd_c,
+       std::shared_ptr<pdat::CellData<double> > cd_temp,
+       std::shared_ptr<pdat::SideData<double> > sd_d_coeff,
        const hier::Box& pbox);
 };
 

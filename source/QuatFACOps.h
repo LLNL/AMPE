@@ -119,8 +119,8 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * @param database:     Input database
     */
    QuatFACOps(const int qlen, const std::string &object_name = std::string(),
-              const boost::shared_ptr<tbox::Database> &database =
-                  boost::shared_ptr<tbox::Database>());
+              const std::shared_ptr<tbox::Database> &database =
+                  std::shared_ptr<tbox::Database>());
 
    /*!
     * @brief Destructor.
@@ -239,7 +239,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * call this function to provide the implementation for
     * determining the boundary condition coefficients.
     *
-    * physical_bc_coef: boost::shared_ptr to an object that can
+    * physical_bc_coef: std::shared_ptr to an object that can
     *                   set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
@@ -398,7 +398,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    void computeLambdaOnPatch(
        const hier::Patch &patch, const pdat::SideData<double> &flux_data,
        const pdat::CellData<double> &q_data,
-       boost::shared_ptr<pdat::SideData<int> > rotation_index,
+       std::shared_ptr<pdat::SideData<int> > rotation_index,
        pdat::CellData<double> &lambda_data) const;
 
    void computeFaceCoefs(const double epsilon_q, const int diff_coef_id,
@@ -474,7 +474,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     */
    void computeResidualOnPatch(
        const hier::Patch &patch, const pdat::SideData<double> &flux_data,
-       boost::shared_ptr<pdat::SideData<int> > rotations,
+       std::shared_ptr<pdat::SideData<int> > rotations,
        const pdat::CellData<double> &sqrt_m_data,
        const pdat::CellData<double> &q_soln_data,
        const pdat::CellData<double> &q_rhs_data,
@@ -490,7 +490,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
        const pdat::CellData<double> &mobility_data,
        const pdat::CellData<double> &q_soln_data,
        const pdat::CellData<double> &lambda_soln_data,
-       boost::shared_ptr<pdat::SideData<int> > rotations,
+       std::shared_ptr<pdat::SideData<int> > rotations,
        const pdat::CellData<double> &q_rhs_data) const;
 
    void takeSquareRootOnPatch(pdat::CellData<double> &data);
@@ -644,7 +644,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * function argument lists.  We use it to enforce working on one
     * hierarchy at a time.
     */
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*
     * Coarsest level for solve.
@@ -673,7 +673,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * hier::CoarseFineBoundary is a light object before
     * it is set for a level.
     */
-   std::vector<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
+   std::vector<std::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
 
 
    /*
@@ -729,7 +729,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    /*
     * Level solver input database.
     */
-   boost::shared_ptr<tbox::Database> d_levelsolver_database;
+   std::shared_ptr<tbox::Database> d_levelsolver_database;
 
    /*
     * Externally provided physical boundary condition object.
@@ -738,24 +738,24 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     */
    const solv::RobinBcCoefStrategy *d_physical_bc_coef;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var;
+   static std::shared_ptr<pdat::CellVariable<double> > s_cell_scratch_var;
 
-   static boost::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
+   static std::shared_ptr<pdat::SideVariable<double> > s_flux_scratch_var;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> >
+   static std::shared_ptr<pdat::OutersideVariable<double> >
        s_oflux_scratch_var;
 
-   static boost::shared_ptr<pdat::SideVariable<double> > s_face_coef_var;
+   static std::shared_ptr<pdat::SideVariable<double> > s_face_coef_var;
 
-   static boost::shared_ptr<pdat::SideVariable<double> > s_face_coef_deriv_var;
+   static std::shared_ptr<pdat::SideVariable<double> > s_face_coef_deriv_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_q_local_var;
+   static std::shared_ptr<pdat::CellVariable<double> > s_q_local_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_residual_var;
+   static std::shared_ptr<pdat::CellVariable<double> > s_residual_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_sqrt_m_var;
+   static std::shared_ptr<pdat::CellVariable<double> > s_sqrt_m_var;
 
-   static boost::shared_ptr<pdat::CellVariable<double> > s_m_deriv_var;
+   static std::shared_ptr<pdat::CellVariable<double> > s_m_deriv_var;
 
    /*
     * ID of the solution-like scratch data.
@@ -819,40 +819,40 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     */
 
    // Error prolongation (refinement) operator.
-   boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_prolongation_refine_schedules;
 
    // Solution restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_urestriction_coarsen_schedules;
 
    // Residual restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_rrestriction_coarsen_schedules;
 
    // Coarsen operator for outerflux-to-flux
-   boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_flux_coarsen_schedules;
 
    // Refine operator for cell-like data from coarser level.
-   boost::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_ghostfill_refine_schedules;
 
    // Refine operator for cell-like data from same level.
-   boost::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm>
+   std::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm>
        d_ghostfill_nocoarse_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_ghostfill_nocoarse_refine_schedules;
 
 
@@ -898,19 +898,19 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    /*
     * Hierarchy cell operator
     */
-   boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
+   std::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 
    /*
     * Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_restrict_solution;
-   boost::shared_ptr<tbox::Timer> t_restrict_residual;
-   boost::shared_ptr<tbox::Timer> t_prolong;
-   boost::shared_ptr<tbox::Timer> t_smooth_error;
-   boost::shared_ptr<tbox::Timer> t_solve_coarsest;
-   boost::shared_ptr<tbox::Timer> t_compute_composite_residual;
-   boost::shared_ptr<tbox::Timer> t_compute_rhs;
-   boost::shared_ptr<tbox::Timer> t_compute_residual_norm;
+   std::shared_ptr<tbox::Timer> t_restrict_solution;
+   std::shared_ptr<tbox::Timer> t_restrict_residual;
+   std::shared_ptr<tbox::Timer> t_prolong;
+   std::shared_ptr<tbox::Timer> t_smooth_error;
+   std::shared_ptr<tbox::Timer> t_solve_coarsest;
+   std::shared_ptr<tbox::Timer> t_compute_composite_residual;
+   std::shared_ptr<tbox::Timer> t_compute_rhs;
+   std::shared_ptr<tbox::Timer> t_compute_residual_norm;
 
    double d_gamma;
 

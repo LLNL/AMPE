@@ -55,15 +55,15 @@ class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    ~TemperatureFreeEnergyStrategy(){};
 
    void computeFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fl_id, const bool gp = false);
 
    void computeFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp = false);
 
    void computeFreeEnergySolidB(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp = false);
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,

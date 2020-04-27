@@ -38,8 +38,8 @@
 
 
 PhaseFACSolver::PhaseFACSolver(const std::string& object_name,
-                               boost::shared_ptr<PhaseFACOps>& fac_ops,
-                               boost::shared_ptr<tbox::Database> database)
+                               std::shared_ptr<PhaseFACOps>& fac_ops,
+                               std::shared_ptr<tbox::Database> database)
     : EllipticFACSolver(object_name, fac_ops, database)
 {
    t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
@@ -58,8 +58,8 @@ void PhaseFACSolver::setOperatorCoefficients(
 
    t_set_op_coef->start();
 
-   boost::shared_ptr<PhaseFACOps> phase_fac_ops(
-       boost::dynamic_pointer_cast<PhaseFACOps, EllipticFACOps>(d_fac_ops));
+   std::shared_ptr<PhaseFACOps> phase_fac_ops(
+       std::dynamic_pointer_cast<PhaseFACOps, EllipticFACOps>(d_fac_ops));
 
    phase_fac_ops->setOperatorCoefficients(phase_id, eta_id, phase_mobility_id,
                                           epsilon_phase, gamma,

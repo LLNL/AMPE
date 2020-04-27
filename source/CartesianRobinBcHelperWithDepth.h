@@ -20,7 +20,6 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
 using namespace SAMRAI;
 
 /*!
@@ -401,8 +400,8 @@ class CartesianRobinBcHelperWithDepth : public xfer::RefinePatchStrategy
    /*!
     * @brief Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_set_boundary_values_in_cells;
-   boost::shared_ptr<tbox::Timer> t_use_set_bc_coefs;
+   std::shared_ptr<tbox::Timer> t_set_boundary_values_in_cells;
+   std::shared_ptr<tbox::Timer> t_use_set_bc_coefs;
 };
 
 #endif  // included_solv_CartesianRobinBcHelperWithDepth

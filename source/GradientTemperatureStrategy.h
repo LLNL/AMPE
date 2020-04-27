@@ -53,22 +53,22 @@ class GradientTemperatureStrategy : public TemperatureStrategy
    GradientTemperatureStrategy(
        const int temperature_id, const int temperature_scratch_id,
        const double temperature0,
-       boost::shared_ptr<tbox::Database> temperature_db);
+       std::shared_ptr<tbox::Database> temperature_db);
 
    ~GradientTemperatureStrategy(){};
 
    virtual double getCurrentMaxTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
    virtual double getCurrentMinTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
    virtual double getCurrentAverageTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
    virtual void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
  private:
@@ -87,7 +87,7 @@ class GradientTemperatureStrategy : public TemperatureStrategy
 
    void setCurrentTemperaturePrivatePatch(
        const double temperature, hier::Patch& patch,
-       boost::shared_ptr<pdat::CellData<double> > cd_temp);
+       std::shared_ptr<pdat::CellData<double> > cd_temp);
 };
 
 #endif

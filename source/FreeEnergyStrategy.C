@@ -39,19 +39,19 @@
 
 // default implementation: derivative is 0 (energy independent of c)
 void FreeEnergyStrategy::computeDerivFreeEnergy(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const int df_id)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int df_id)
 {
    assert(df_id >= 0);
 
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
            ip++) {
-         boost::shared_ptr<hier::Patch> patch = *ip;
+         std::shared_ptr<hier::Patch> patch = *ip;
 
-         boost::shared_ptr<pdat::CellData<double> > df(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > df(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(df_id)));
          assert(df);
 
@@ -61,16 +61,16 @@ void FreeEnergyStrategy::computeDerivFreeEnergy(
 }
 
 void FreeEnergyStrategy::computeFreeEnergyLiquid(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fl_id, const bool gp)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          computeFreeEnergyLiquid(*patch, temperature_id, fl_id, gp);
       }
@@ -78,16 +78,16 @@ void FreeEnergyStrategy::computeFreeEnergyLiquid(
 }
 
 void FreeEnergyStrategy::computeFreeEnergySolidA(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fa_id, const bool gp)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          computeFreeEnergySolidA(*patch, temperature_id, fa_id, gp);
       }
@@ -95,16 +95,16 @@ void FreeEnergyStrategy::computeFreeEnergySolidA(
 }
 
 void FreeEnergyStrategy::computeFreeEnergySolidB(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fb_id, const bool gp)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
-      boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          computeFreeEnergySolidB(*patch, temperature_id, fb_id, gp);
       }

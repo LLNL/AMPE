@@ -63,32 +63,32 @@ int main(int argc, char *argv[])
    input_filename = argv[1];
    std::cout << "Input file = " << input_filename << std::endl;
 
-   boost::shared_ptr<tbox::MemoryDatabase> input_db =
+   std::shared_ptr<tbox::MemoryDatabase> input_db =
        tbox::InputManager::getManager()->parseInputFile(input_filename);
    input_db->printClassData(cout);
 
    if (input_db->keyExists("ModelParameters")) {
-      boost::shared_ptr<tbox::Database> model_db =
+      std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
       std::cout << "Read T" << std::endl;
-      boost::shared_ptr<tbox::Database> temperature_db =
+      std::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
 
       double temperature = temperature_db->getDouble("temperature");
       std::cout << "T=" << temperature << std::endl;
 
-      boost::shared_ptr<tbox::Database> conc_db(
+      std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      boost::shared_ptr<tbox::Database> dcalphad_db =
+      std::shared_ptr<tbox::Database> dcalphad_db =
           conc_db->getDatabase("Calphad");
       std::string calphad_filename = dcalphad_db->getString("filename");
-      boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
           new tbox::MemoryDatabase("calphad_db"));
       tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                        calphad_db);
 
-      boost::shared_ptr<tbox::Database> speciesC_db =
+      std::shared_ptr<tbox::Database> speciesC_db =
           calphad_db->getDatabase("SpeciesC");
       speciesC_db->printClassData(cout);
 

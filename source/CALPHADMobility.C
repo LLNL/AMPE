@@ -42,7 +42,7 @@
 
 const double m2toum2 = 1.e12;
 
-void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
+void CALPHADMobility::initialize(std::shared_ptr<tbox::Database> db)
 {
    std::map<char, short> index_map;
    index_map.insert(std::pair<char, short>('A', 0));

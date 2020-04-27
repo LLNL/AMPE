@@ -38,8 +38,6 @@
 
 #include "SAMRAI/hier/PatchLevel.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 class PhaseFluxStrategy
@@ -49,7 +47,7 @@ class PhaseFluxStrategy
 
    virtual ~PhaseFluxStrategy(){};
 
-   virtual void computeFluxes(const boost::shared_ptr<hier::PatchLevel> level,
+   virtual void computeFluxes(const std::shared_ptr<hier::PatchLevel> level,
                               const int phase_id, const int quat_id,
                               const int flux_id) = 0;
 };

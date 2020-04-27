@@ -45,7 +45,6 @@
 
 class QuatModel;
 
-#include <boost/make_shared.hpp>
 #include <string>
 
 using namespace SAMRAI;
@@ -60,11 +59,11 @@ class KimMobilityStrategy : public SimpleQuatMobilityStrategy
                        const int conc_s_id, const int temp_id,
                        const EnergyInterpolationType energy_interp_func_type,
                        const ConcInterpolationType conc_interp_func_type,
-                       boost::shared_ptr<tbox::Database> conc_db,
+                       std::shared_ptr<tbox::Database> conc_db,
                        const unsigned ncompositions);
 
    void computePhaseMobility(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual double evaluateMobility(const double temp,
@@ -80,16 +79,16 @@ class KimMobilityStrategy : public SimpleQuatMobilityStrategy
    FreeEnergyFunctions* d_fenergy;
 
  private:
-   void update(boost::shared_ptr<pdat::CellData<double> > cd_te,
-               boost::shared_ptr<pdat::CellData<double> > cd_cl,
-               boost::shared_ptr<pdat::CellData<double> > cd_cs,
-               boost::shared_ptr<pdat::CellData<double> > cd_mobility,
-               boost::shared_ptr<hier::Patch> patch);
+   void update(std::shared_ptr<pdat::CellData<double> > cd_te,
+               std::shared_ptr<pdat::CellData<double> > cd_cl,
+               std::shared_ptr<pdat::CellData<double> > cd_cs,
+               std::shared_ptr<pdat::CellData<double> > cd_mobility,
+               std::shared_ptr<hier::Patch> patch);
 
    /*
     * Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_compute;
+   std::shared_ptr<tbox::Timer> t_compute;
 };
 
 #endif

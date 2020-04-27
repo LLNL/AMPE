@@ -38,18 +38,18 @@
 #include "SAMRAI/pdat/CellData.h"
 
 
-void Noise::setField(boost::shared_ptr<hier::Patch> patch, const int data_id,
+void Noise::setField(std::shared_ptr<hier::Patch> patch, const int data_id,
                      const int phi_id)
 {
    assert(data_id >= 0);
 
-   boost::shared_ptr<pdat::CellData<double> > cd(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cd(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(data_id)));
    assert(cd);
 
-   boost::shared_ptr<pdat::CellData<double> > phi(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phi(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(phi_id)));
    assert(phi);
    assert(phi->getGhostCellWidth()[0] >= cd->getGhostCellWidth()[0]);

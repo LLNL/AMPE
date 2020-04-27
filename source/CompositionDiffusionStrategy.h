@@ -38,8 +38,6 @@
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 enum class DiffusionInterpolationType { LINEAR, PBG, BIASED, UNDEFINED };
@@ -55,14 +53,14 @@ class CompositionDiffusionStrategy
     * using phase variable
     */
    virtual void setDiffusion(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int phase_id, const int eta_id) = 0;
 
    /*
     * Compute diffusion coefficient in each phase
     */
    virtual void setDiffCoeffInEachPhase(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int eta_scratch_id) = 0;
 
    char interpChar() const

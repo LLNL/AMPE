@@ -62,7 +62,7 @@ class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy
    void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
 
    void setDiffusionCoeff(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
  private:
@@ -83,25 +83,25 @@ class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy
    double d_D_solid_A;
 
    // Timers
-   boost::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
+   std::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
 
    void setDiffusionCoeffForConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy>,
+       const std::shared_ptr<hier::PatchHierarchy>,
        const int concentration_id, const int phase_id,
        const int conc_tilde_diffusion_id,
        const int conc_phase_coupling_diffusion_id);
 
    void setDiffusionCoeffForPhaseOnPatch(
-       boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
-       boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_c,
-       boost::shared_ptr<pdat::CellData<double> > cd_k, const hier::Box& pbox);
+       std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+       std::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_c,
+       std::shared_ptr<pdat::CellData<double> > cd_k, const hier::Box& pbox);
    void computeDiffusionOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-       boost::shared_ptr<pdat::SideData<double> > sd_diffusion0,
-       boost::shared_ptr<pdat::SideData<double> > sd_diffusion,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_concentration,
+       std::shared_ptr<pdat::SideData<double> > sd_diffusion0,
+       std::shared_ptr<pdat::SideData<double> > sd_diffusion,
        const hier::Box& pbox);
 };
 

@@ -47,8 +47,8 @@ class TemperatureFACOps : public EllipticFACOps
 
  public:
    TemperatureFACOps(const std::string &object_name = std::string(),
-                     const boost::shared_ptr<tbox::Database> database =
-                         boost::shared_ptr<tbox::Database>());
+                     const std::shared_ptr<tbox::Database> database =
+                         std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(const double, const double, const double);
 

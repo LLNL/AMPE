@@ -50,7 +50,7 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
 {
  public:
    KKSFreeEnergyFunctionDiluteBinary(
-       boost::shared_ptr<SAMRAI::tbox::Database> conc_db,
+       std::shared_ptr<SAMRAI::tbox::Database> conc_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type);
 
@@ -107,7 +107,7 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
    EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;
 
-   void readNewtonparameters(boost::shared_ptr<tbox::Database> newton_db);
+   void readNewtonparameters(std::shared_ptr<tbox::Database> newton_db);
 
    void setupFB(const double temperature);
 
@@ -120,9 +120,9 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
    double d_me;
    double d_ke;
 
-   void readParameters(boost::shared_ptr<SAMRAI::tbox::Database> conc_db);
+   void readParameters(std::shared_ptr<SAMRAI::tbox::Database> conc_db);
 
-   void setupSolver(boost::shared_ptr<tbox::Database> newton_db);
+   void setupSolver(std::shared_ptr<tbox::Database> newton_db);
 
    void computePhasesFreeEnergies(const double temperature, const double hphi,
                                   const double conc, double& fl, double& fa);

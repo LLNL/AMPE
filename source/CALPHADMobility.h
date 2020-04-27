@@ -43,7 +43,6 @@
 #include "SAMRAI/tbox/Database.h"
 using namespace SAMRAI;
 
-#include <boost/make_shared.hpp>
 #include <cmath>
 #include <cassert>
 
@@ -127,7 +126,7 @@ class CALPHADMobility
  public:
    CALPHADMobility(const std::string& name) { d_name = name; }
 
-   void initialize(boost::shared_ptr<tbox::Database> db);
+   void initialize(std::shared_ptr<tbox::Database> db);
 
    // returns mobility in [um^2*mol/s*J]
    double getAtomicMobility(const double c0, const double c1,

@@ -46,8 +46,8 @@ class CALPHADFreeEnergyStrategyWithPenalty
 {
  public:
    CALPHADFreeEnergyStrategyWithPenalty(
-       boost::shared_ptr<tbox::Database> input_db,
-       boost::shared_ptr<tbox::Database> newton_db,
+       std::shared_ptr<tbox::Database> input_db,
+       std::shared_ptr<tbox::Database> newton_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
@@ -56,8 +56,8 @@ class CALPHADFreeEnergyStrategyWithPenalty
 
    ~CALPHADFreeEnergyStrategyWithPenalty(){};
 
-   virtual void setup(boost::shared_ptr<tbox::Database> input_db,
-                      boost::shared_ptr<tbox::Database> newton_db);
+   virtual void setup(std::shared_ptr<tbox::Database> input_db,
+                      std::shared_ptr<tbox::Database> newton_db);
 
    virtual bool computeCeqT(const double temperature, const PhaseIndex pi0,
                             const PhaseIndex pi1, double* ceq);

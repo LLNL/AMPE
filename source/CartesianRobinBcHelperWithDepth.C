@@ -19,7 +19,6 @@
 
 #include "CartesianRobinBcHelperWithDepth.h"
 
-#include <boost/make_shared.hpp>
 
 extern "C" {
 
@@ -131,25 +130,25 @@ void CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
     * Get info on the data.
     */
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
-   boost::shared_ptr<hier::Variable> variable_ptr;
+   std::shared_ptr<hier::Variable> variable_ptr;
    vdb->mapIndexToVariable(target_data_id, variable_ptr);
    if (!variable_ptr) {
       TBOX_ERROR(d_object_name << ": No variable for index " << target_data_id);
    }
-   boost::shared_ptr<pdat::CellVariable<double> > cell_variable_ptr(
-       BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(variable_ptr));
+   std::shared_ptr<pdat::CellVariable<double> > cell_variable_ptr(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(variable_ptr));
    TBOX_ASSERT(cell_variable_ptr);
 
    /*
     * Get the data.
     */
-   boost::shared_ptr<hier::PatchData> data_ptr(
+   std::shared_ptr<hier::PatchData> data_ptr(
        patch.getPatchData(target_data_id));
    if (!data_ptr) {
       TBOX_ERROR(d_object_name << ": No data for index " << target_data_id);
    }
-   boost::shared_ptr<pdat::CellData<double> > cell_data_ptr(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(data_ptr));
+   std::shared_ptr<pdat::CellData<double> > cell_data_ptr(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(data_ptr));
    TBOX_ASSERT(cell_data_ptr);
    pdat::CellData<double>& data = *cell_data_ptr;
 
@@ -174,8 +173,8 @@ void CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
        * These definitions can go in the next block.
        * They are kept her for debugging.
        */
-      boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-          BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+      std::shared_ptr<geom::CartesianPatchGeometry> pg(
+          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
               patch.getPatchGeometry()));
       TBOX_ASSERT(pg);
 
@@ -206,11 +205,11 @@ void CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
          const hier::Index& lower = boundary_box.getBox().lower();
          const hier::Index& upper = boundary_box.getBox().upper();
          const hier::Box coefbox = makeFaceBoundaryBox(boundary_box);
-         boost::shared_ptr<pdat::ArrayData<double> > acoef_data(
-             boost::make_shared<pdat::ArrayData<double> >(coefbox, 1));
-         boost::shared_ptr<pdat::ArrayData<double> > bcoef_data(
-             boost::make_shared<pdat::ArrayData<double> >(coefbox, 1));
-         boost::shared_ptr<pdat::ArrayData<double> > gcoef_data(
+         std::shared_ptr<pdat::ArrayData<double> > acoef_data(
+             std::make_shared<pdat::ArrayData<double> >(coefbox, 1));
+         std::shared_ptr<pdat::ArrayData<double> > bcoef_data(
+             std::make_shared<pdat::ArrayData<double> >(coefbox, 1));
+         std::shared_ptr<pdat::ArrayData<double> > gcoef_data(
              homogeneous_bc ? 0 : new pdat::ArrayData<double>(coefbox, 1));
          t_use_set_bc_coefs->start();
          d_coef_strategy->setBcCoefs(acoef_data, bcoef_data, gcoef_data,
@@ -564,7 +563,7 @@ void CartesianRobinBcHelperWithDepth::setBoundaryValuesInCells(
    TBOX_ASSERT_OBJDIM_EQUALITY2(level, ghost_width_to_fill);
 
    for (hier::PatchLevel::iterator p(level.begin()); p != level.end(); ++p) {
-      const boost::shared_ptr<hier::Patch>& patch = *p;
+      const std::shared_ptr<hier::Patch>& patch = *p;
       setBoundaryValuesInCells(*patch, fill_time, ghost_width_to_fill,
                                target_data_id, homogeneous_bc);
    }

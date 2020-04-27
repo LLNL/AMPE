@@ -46,7 +46,6 @@
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
-#include <boost/make_shared.hpp>
 #include <cassert>
 
 
@@ -90,7 +89,7 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
 //-----------------------------------------------------------------------
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
    (void)time;
 
@@ -115,7 +114,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeff(
 //=======================================================================
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int concentration_id, const int phase_id,
     const int conc_tilde_diffusion_id,
     const int conc_phase_coupling_diffusion_id)
@@ -134,29 +133,29 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    // first compute diffusion for div*D0*grad*c term in concentration equation
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         boost::shared_ptr<pdat::CellData<double> > cd_phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
          assert(cd_phi);
 
-         boost::shared_ptr<pdat::SideData<double> > sd_diffusion0(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > sd_diffusion0(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_tilde_diffusion_id)));
          assert(sd_diffusion0);
 
-         boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_partition_coeff_scratch_id)));
          assert(cd_partition_coeff);
 
@@ -180,33 +179,33 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
    // now set diffusion coefficients for div*D*grad*phi
    // term in r.h.s. of concentration equation
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
          const hier::Box& pbox = patch->getBox();
 
-         boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_phase_coupling_diffusion_id)));
 
-         boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > sd_d0_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(conc_tilde_diffusion_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_phi(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phase_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_c(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_c(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_scratch_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cd_k(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cd_k(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_partition_coeff_scratch_id)));
 
          setDiffusionCoeffForPhaseOnPatch(sd_phi_diff_coeff, sd_d0_coeff,
@@ -218,11 +217,11 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
 //-----------------------------------------------------------------------
 
 void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
-    boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
-    boost::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_c,
-    boost::shared_ptr<pdat::CellData<double> > cd_k, const hier::Box& pbox)
+    std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+    std::shared_ptr<pdat::SideData<double> > sd_d0_coeff,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_c,
+    std::shared_ptr<pdat::CellData<double> > cd_k, const hier::Box& pbox)
 {
    double* ptr_phi_diffx = sd_phi_diff_coeff->getPointer(0);
    double* ptr_phi_diffy = sd_phi_diff_coeff->getPointer(1);
@@ -419,8 +418,8 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
                                                           const int flux_id)
 {
-   const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+   const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
            patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
@@ -428,28 +427,28 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
 
-   boost::shared_ptr<pdat::CellData<double> > conc(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > conc(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_scratch_id)));
    assert(conc);
 
-   boost::shared_ptr<pdat::CellData<double> > phase(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > phase(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_phase_scratch_id)));
    assert(phase);
 
-   boost::shared_ptr<pdat::SideData<double> > sd_conc_diffusion0(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > sd_conc_diffusion0(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion0_id)));
    assert(sd_conc_diffusion0);
 
-   boost::shared_ptr<pdat::SideData<double> > sd_conc_phase_coupling_diffusion(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > sd_conc_phase_coupling_diffusion(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_phase_coupling_diffusion_id)));
    assert(sd_conc_phase_coupling_diffusion);
 
-   boost::shared_ptr<pdat::SideData<double> > flux(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > flux(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(flux_id)));
    assert(flux);
 

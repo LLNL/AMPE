@@ -44,7 +44,6 @@
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/IEEE.h"
 
-#include <boost/make_shared.hpp>
 #include <vector>
 #include <string>
 #include <map>
@@ -81,15 +80,15 @@ class QuatModelParameters
       UNDEFINED
    };
 
-   void readModelParameters(boost::shared_ptr<tbox::Database> quat_db);
-   void readPhaseMobility(boost::shared_ptr<tbox::Database> model_db);
-   void readDiluteAlloy(boost::shared_ptr<tbox::Database> conc_db);
-   void readTemperatureModel(boost::shared_ptr<tbox::Database> model_db);
-   void readConcDB(boost::shared_ptr<tbox::Database> conc_db);
-   void readFreeEnergies(boost::shared_ptr<tbox::Database> model_db);
-   void readVisitOptions(boost::shared_ptr<tbox::Database> visit_db);
-   void initializeOrientation(boost::shared_ptr<tbox::Database> quat_db);
-   void initializeEta(boost::shared_ptr<tbox::Database> quat_db);
+   void readModelParameters(std::shared_ptr<tbox::Database> quat_db);
+   void readPhaseMobility(std::shared_ptr<tbox::Database> model_db);
+   void readDiluteAlloy(std::shared_ptr<tbox::Database> conc_db);
+   void readTemperatureModel(std::shared_ptr<tbox::Database> model_db);
+   void readConcDB(std::shared_ptr<tbox::Database> conc_db);
+   void readFreeEnergies(std::shared_ptr<tbox::Database> model_db);
+   void readVisitOptions(std::shared_ptr<tbox::Database> visit_db);
+   void initializeOrientation(std::shared_ptr<tbox::Database> quat_db);
+   void initializeEta(std::shared_ptr<tbox::Database> quat_db);
 
    // accessors for parameters
    double H_parameter() const { return d_H_parameter; }
@@ -419,7 +418,7 @@ class QuatModelParameters
    }
 
  private:
-   void readNumberSpecies(boost::shared_ptr<tbox::Database> conc_db);
+   void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
    // Model parameters
    double d_H_parameter;
@@ -576,7 +575,7 @@ class QuatModelParameters
    double d_moving_frame_velocity;
    bool d_adapt_moving_frame;
 
-   void readMolarVolumes(boost::shared_ptr<tbox::Database> db);
+   void readMolarVolumes(std::shared_ptr<tbox::Database> db);
 };
 
 #endif

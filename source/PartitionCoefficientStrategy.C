@@ -36,36 +36,36 @@
 #include "PartitionCoefficientStrategy.h"
 
 void PartitionCoefficientStrategy::evaluate(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_partition_coeff_id >= 0);
 
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            ++p) {
 
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > partition_coeff(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > partition_coeff(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_partition_coeff_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > velocity;
+         std::shared_ptr<pdat::CellData<double> > velocity;
          if (d_velocity_id >= 0) {
-            velocity = boost::dynamic_pointer_cast<pdat::CellData<double>,
+            velocity = std::dynamic_pointer_cast<pdat::CellData<double>,
                                                    hier::PatchData>(
                 patch->getPatchData(d_velocity_id));
             assert(velocity);
          }
 
-         boost::shared_ptr<pdat::CellData<double> > temperature;
+         std::shared_ptr<pdat::CellData<double> > temperature;
          if (d_temperature_id >= 0) {
-            temperature = boost::dynamic_pointer_cast<pdat::CellData<double>,
+            temperature = std::dynamic_pointer_cast<pdat::CellData<double>,
                                                       hier::PatchData>(
                 patch->getPatchData(d_temperature_id));
             assert(temperature);

@@ -62,7 +62,7 @@ class KKSCompositionRHSStrategy : public CompositionRHSStrategy
 
    void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
    void setDiffusionCoeff(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const double time);
 
  private:
@@ -93,12 +93,12 @@ class KKSCompositionRHSStrategy : public CompositionRHSStrategy
    double d_Q0_solid_B;
 
    // Timers
-   boost::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
+   std::shared_ptr<tbox::Timer> t_set_diffcoeff_timer;
 
    void setPFMDiffCoeffForConcentration(
-       const boost::shared_ptr<hier::PatchHierarchy>, const int temperature_id,
+       const std::shared_ptr<hier::PatchHierarchy>, const int temperature_id,
        const int phase_id, const int eta_id, const int conc_pfm_diffusion_id);
-   void setDiffCoeffForGradPhi(const boost::shared_ptr<hier::PatchHierarchy>,
+   void setDiffCoeffForGradPhi(const std::shared_ptr<hier::PatchHierarchy>,
                                const int temperature_id,
                                const int concentration_id, const int phase_id,
                                const int eta_id,
@@ -107,22 +107,22 @@ class KKSCompositionRHSStrategy : public CompositionRHSStrategy
                                const int conc_eta_coupling_diffusion_id);
 
    void setDiffCoeffForPhaseOnPatch(
-       boost::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
-       boost::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
-       boost::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-       boost::shared_ptr<pdat::CellData<double> > cd_c_b,
+       std::shared_ptr<pdat::SideData<double> > sd_phi_diff_coeff,
+       std::shared_ptr<pdat::SideData<double> > sd_eta_diff_coeff,
+       std::shared_ptr<pdat::SideData<double> > sd_pfmd_coeff,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+       std::shared_ptr<pdat::CellData<double> > cd_c_b,
        const hier::Box& pbox);
    void computeDiffusionOnPatch(
-       boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-       boost::shared_ptr<pdat::CellData<double> > cd_phi,
-       boost::shared_ptr<pdat::CellData<double> > cd_eta,
-       boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-       boost::shared_ptr<pdat::SideData<double> > sd_diffusion0,
-       boost::shared_ptr<pdat::SideData<double> > sd_diffusion,
+       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+       std::shared_ptr<pdat::CellData<double> > cd_phi,
+       std::shared_ptr<pdat::CellData<double> > cd_eta,
+       std::shared_ptr<pdat::CellData<double> > cd_concentration,
+       std::shared_ptr<pdat::SideData<double> > sd_diffusion0,
+       std::shared_ptr<pdat::SideData<double> > sd_diffusion,
        const hier::Box& pbox);
 };
 
