@@ -10,7 +10,7 @@ MACRO(m4tof filename dir)
     ADD_CUSTOM_COMMAND(
       OUTPUT ${dir}/${filename}.f
       COMMAND m4 
-      ARGS -DSAMRAI_FORTDIR=${SAMRAI_DIR}/include/SAMRAI/pdat/fortran 
+      ARGS -DSAMRAI_FORTDIR=${CMAKE_SOURCE_DIR}/source/fortran 
           ${dir}/${filename}.m4 
              > ${dir}/${filename}.f
       VERBATIM
@@ -98,8 +98,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/MinIntCoarsen.C
             ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/CPODESSolver.C
-            ${CMAKE_SOURCE_DIR}/source/CPODESAbstractFunctions.C
             ${CMAKE_SOURCE_DIR}/source/PoissonSpecifications.C
             ${CMAKE_SOURCE_DIR}/source/CellPoissonHypreSolver.C
             ${CMAKE_SOURCE_DIR}/source/EventInterval.C

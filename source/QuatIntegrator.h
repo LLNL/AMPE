@@ -36,7 +36,7 @@
 #ifndef included_QuatIntegrator
 #define included_QuatIntegrator
 
-#define USE_CPODE
+//#define USE_CPODE
 
 #include "QuatSysSolver.h"
 #include "HeatCapacityStrategy.h"
@@ -267,6 +267,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    //
    // Methods inherited from CVODEAbstractFunctions
    //
+   int applyProjection(double time, solv::SundialsAbstractVector* y,
+                       solv::SundialsAbstractVector* corr, double epsProj,
+                       solv::SundialsAbstractVector* err);
 
    int CVSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
                          solv::SundialsAbstractVector* fy, int jok,
