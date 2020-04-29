@@ -70,10 +70,7 @@
 #include "SAMRAI/solv/CVODEAbstractFunctions.h"
 #endif
 
-#ifndef included_solv_SundialsAbstractVector
 #include "SAMRAI/solv/SundialsAbstractVector.h"
-#endif
-
 
 #include <set>
 #include <vector>
@@ -237,7 +234,16 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
     * IMPORTANT: This function must not modify the vector y.
     */
    int evaluateRHSFunction(double time, solv::SundialsAbstractVector* y,
-                           solv::SundialsAbstractVector* y_dot, int fd_flag);
+                           solv::SundialsAbstractVector* y_dot)
+   {
+      evaluateRHSFunction(time, y, y_dot, 0);
+   }
+
+   int evaluateJTimesRHSFunction(double time, solv::SundialsAbstractVector* y,
+                           solv::SundialsAbstractVector* y_dot)
+   {
+      evaluateRHSFunction(time, y, y_dot, 1);
+   }
 
 #ifdef USE_CPODE
 
@@ -251,17 +257,13 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    int CPSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
                          solv::SundialsAbstractVector* fy, int jok,
-                         int* jcurPtr, double gamma,
-                         solv::SundialsAbstractVector* vtemp1,
-                         solv::SundialsAbstractVector* vtemp2,
-                         solv::SundialsAbstractVector* vtemp3);
+                         int* jcurPtr, double gamma);
 
    int CPSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
                            solv::SundialsAbstractVector* fy,
                            solv::SundialsAbstractVector* r,
                            solv::SundialsAbstractVector* z, double gamma,
-                           double delta, int lr,
-                           solv::SundialsAbstractVector* vtemp);
+                           double delta, int lr);
 #else
 
    //
@@ -273,17 +275,13 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    int CVSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
                          solv::SundialsAbstractVector* fy, int jok,
-                         int* jcurPtr, double gamma,
-                         solv::SundialsAbstractVector* vtemp1,
-                         solv::SundialsAbstractVector* vtemp2,
-                         solv::SundialsAbstractVector* vtemp3);
+                         int* jcurPtr, double gamma);
 
    int CVSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
                            solv::SundialsAbstractVector* fy,
                            solv::SundialsAbstractVector* r,
                            solv::SundialsAbstractVector* z, double gamma,
-                           double delta, int lr,
-                           solv::SundialsAbstractVector* vtemp);
+                           double delta, int lr);
 #endif
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
@@ -321,6 +319,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setupBC();
 
  protected:
+   int evaluateRHSFunction(double time, solv::SundialsAbstractVector* y,
+                           solv::SundialsAbstractVector* y_dot, int fd_flag);
+
    void evaluatePhaseRHS(
        const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
        std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
@@ -616,8 +617,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    void setSundialsOptions();
 
-   std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
-   getCPODESVectorsRequiringRegrid(void);
+   //std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+   //getCPODESVectorsRequiringRegrid(void);
 
    void computeVelocity(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int phi_dot_id);

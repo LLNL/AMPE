@@ -42,7 +42,6 @@
 
 using namespace SAMRAI;
 
-
 TemperatureFreeEnergyStrategy::TemperatureFreeEnergyStrategy(
     const EnergyInterpolationType phase_interp_func_type,
     const EnergyInterpolationType eta_interp_func_type, const double fa,

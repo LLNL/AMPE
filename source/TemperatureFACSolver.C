@@ -56,11 +56,12 @@ void TemperatureFACSolver::setOperatorCoefficients(const double m,
 
    t_set_op_coef->start();
 
-   std::shared_ptr<TemperatureFACOps> Temperature_fac_ops(
+   std::shared_ptr<TemperatureFACOps> temperature_fac_ops(
        std::dynamic_pointer_cast<TemperatureFACOps, EllipticFACOps>(
            d_fac_ops));
 
-   Temperature_fac_ops->setOperatorCoefficients(m, c, d);
+   assert(temperature_fac_ops);
+   temperature_fac_ops->setOperatorCoefficients(m, c, d);
 
    finalizeCoefficients();
 
