@@ -72,18 +72,15 @@
 #define BDF CP_BDF
 #define ONE_STEP CP_ONE_STEP
 #define NEWTON CP_NEWTON
-#define SUNDIALS_PREFIX CP
 #include "cpodes/cpodes_spils.h"
 #else
 #define BDF CV_BDF
 #define ONE_STEP CV_ONE_STEP
 #define NEWTON CV_NEWTON
-#define SUNDIALS_PREFIX CV
-#include "cvode/cvode_spils.h"
+//#include "cvode/cvode_spils.h"
 #endif
 
 #define NUM_FACES 2 * NDIM
-
 
 //-----------------------------------------------------------------------
 
@@ -625,11 +622,12 @@ void QuatIntegrator::resetHierarchyConfiguration(
           d_flux_conc_coarsen_algorithm.createSchedule(level, finer_level);
    }
 
+   assert (!d_use_warm_start);
    if (!d_use_warm_start) {
       resetIntegrator(hierarchy, coarsest_level, finest_level);
    } else {
       if (d_current_time > 0.0) {
-         d_sundials_solver->reinitializeAfterRegrid();
+//         d_sundials_solver->reinitializeAfterRegrid();
          resetAfterRegrid(hierarchy, coarsest_level, finest_level);
       }
    }
@@ -1614,12 +1612,10 @@ void QuatIntegrator::setHeatCapacityStrategy(
 // Set solver options
 void QuatIntegrator::setSundialsOptions()
 {
+   d_sundials_solver->setMaxKrylovDimension(d_max_krylov_dimension);
 #ifdef USE_CPODE
    // if ( d_show_solver_stats ) d_sundials_solver->printDiagnostics( true );
-   d_sundials_solver->setMaxKrylovDimension(d_max_krylov_dimension);
    d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
-   // d_sundials_solver->setCPSpgmrToleranceScaleFactor(0.005);
-   //   d_sundials_solver->setCPNonlinConvCoef(0.1);
 #else
    //   d_sundials_solver->setCVSpgmrToleranceScaleFactor(0.005);
 #endif
@@ -1876,6 +1872,7 @@ void QuatIntegrator::initializeLevelData(
 
    level->allocatePatchData(d_local_data);
 
+   assert(!d_use_warm_start);
    if (!initial_time && d_use_warm_start) {
 
       // allocate CPODES internal std::vectors for warm start
@@ -1887,8 +1884,8 @@ void QuatIntegrator::initializeLevelData(
       std::set<int> conc_id_set;
       std::set<int> temp_id_set;
 
-      getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set, eta_id_set,
-                                  orient_id_set, conc_id_set, temp_id_set);
+//      getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set, eta_id_set,
+//                                  orient_id_set, conc_id_set, temp_id_set);
 
       std::set<int>::iterator it;
 
@@ -3899,19 +3896,24 @@ int QuatIntegrator::
     CVSpgmrPrecondSet
 #endif
     (double t, solv::SundialsAbstractVector* y,
-     solv::SundialsAbstractVector* fy, int jok, int* jcurPtr, double gamma,
+     solv::SundialsAbstractVector* fy, int jok, int* jcurPtr, double gamma
+#ifdef USE_CPODE
+     ,
      solv::SundialsAbstractVector* vtemp1, solv::SundialsAbstractVector* vtemp2,
-     solv::SundialsAbstractVector* vtemp3)
+     solv::SundialsAbstractVector* vtemp3
+#endif
+)
 {
    (void)fy;
    (void)jok;
    (void)jcurPtr;
+#ifdef USE_CPODE
    (void)vtemp1;
    (void)vtemp2;
    (void)vtemp3;
+#endif
 
-   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok <<
-   // std::endl;
+   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok << std::endl;
    t_psolve_setup_timer->start();
 
    // Ignore jok flag
@@ -4269,12 +4271,18 @@ int QuatIntegrator::
 #endif
     (double t, solv::SundialsAbstractVector* y,
      solv::SundialsAbstractVector* fy, solv::SundialsAbstractVector* r,
-     solv::SundialsAbstractVector* z, double gamma, double delta, int lr,
-     solv::SundialsAbstractVector* vtemp)
+     solv::SundialsAbstractVector* z, double gamma, double delta, int lr
+#ifdef USE_CPODE
+,
+     solv::SundialsAbstractVector* vtemp
+#endif
+)
 {
    (void)y;
    (void)fy;
+#ifdef USE_CPODE
    (void)vtemp;
+#endif
 
    assert(d_use_preconditioner);
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << std::endl;
@@ -4433,6 +4441,8 @@ int QuatIntegrator::applyTemperaturePreconditioner(
     std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect,
     const double delta, const double gamma)
 {
+   assert(d_with_unsteady_temperature);
+
    int retcode = 0;
 
    const int z_temperature_id =
@@ -4508,8 +4518,6 @@ int QuatIntegrator::applyConcentrationPreconditioner(
    return retcode;
 }
 
-#ifdef USE_CPODE
-
 //-----------------------------------------------------------------------
 // Virtual function from CPODESAbstractFunction
 
@@ -4546,8 +4554,6 @@ int QuatIntegrator::applyProjection(double time,
 
    return 0;  // Always successful
 }
-
-#endif
 
 //=======================================================================
 
@@ -4663,102 +4669,98 @@ void QuatIntegrator::correctRhsForSymmetry(
 
 //=======================================================================
 
-std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
-QuatIntegrator::getCPODESVectorsRequiringRegrid(void)
-{
-   assert(d_sundials_solver != nullptr);
-
-   vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
-       new std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >;
-
-   std::vector<SAMRAI::solv::SundialsAbstractVector*>* sundials_vec =
-       d_sundials_solver->getVectorsRequiringRegrid();
-
-   std::vector<SAMRAI::solv::SundialsAbstractVector*>::iterator it;
-
-   for (it = sundials_vec->begin(); it < sundials_vec->end(); it++) {
-      std::shared_ptr<solv::SAMRAIVectorReal<double> > samvec =
-          solv::Sundials_SAMRAIVector::getSAMRAIVector(*it);
-
-      cpodes_vec->push_back(samvec);
-   }
-
-   delete sundials_vec;
-
-   return cpodes_vec;
-}
+//vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
+//    getCPODESVectorsRequiringRegrid(void)
+//{
+//   assert(d_sundials_solver != nullptr);
+//
+//   vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
+//       new vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >;
+//
+//   vector<SAMRAI::solv::SundialsAbstractVector*>* sundials_vec =
+//       d_sundials_solver->getVectorsRequiringRegrid();
+//
+//   vector<SAMRAI::solv::SundialsAbstractVector*>::iterator it;
+//
+//   for (it = sundials_vec->begin(); it < sundials_vec->end(); it++) {
+//      std::shared_ptr<solv::SAMRAIVectorReal<double> > samvec =
+//          solv::Sundials_SAMRAIVector::getSAMRAIVector(*it);
+//
+//      cpodes_vec->push_back(samvec);
+//   }
+//
+//   delete sundials_vec;
+//
+//   return cpodes_vec;
+//}
 
 //-----------------------------------------------------------------------
 
-void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
-                                                 std::set<int>& phase_id_set,
-                                                 std::set<int>& eta_id_set,
-                                                 std::set<int>& orient_id_set,
-                                                 std::set<int>& conc_id_set,
-                                                 std::set<int>& temp_id_set)
-{
-   std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
-       cpodes_vec = getCPODESVectorsRequiringRegrid();
-
-   for (std::vector<
-            std::shared_ptr<solv::SAMRAIVectorReal<double> > >::iterator it =
-            cpodes_vec->begin();
-        it < cpodes_vec->end(); it++) {
-
-      if (d_with_phase) {
-         assert(d_phase_component_index != -1);
-         int id = (*it)->getComponentDescriptorIndex(d_phase_component_index);
-
-         if (id != d_phase_id && phase_id_set.find(id) == phase_id_set.end()) {
-            phase_id_set.insert(id);
-            cpode_id_set.insert(id);
-         }
-      }
-
-      if (d_with_third_phase) {
-         assert(d_eta_component_index != -1);
-         int id = (*it)->getComponentDescriptorIndex(d_eta_component_index);
-
-         if (id != d_eta_id && eta_id_set.find(id) == eta_id_set.end()) {
-            eta_id_set.insert(id);
-            cpode_id_set.insert(id);
-         }
-      }
-
-      if (d_evolve_quat) {
-         int id = (*it)->getComponentDescriptorIndex(d_quat_component_index);
-
-         if (id != d_quat_id && orient_id_set.find(id) == orient_id_set.end()) {
-            orient_id_set.insert(id);
-            cpode_id_set.insert(id);
-         }
-      }
-
-      if (d_with_concentration) {
-         assert(d_conc_component_index != -1);
-         int id = (*it)->getComponentDescriptorIndex(d_conc_component_index);
-
-         if (id != d_conc_id && conc_id_set.find(id) == conc_id_set.end()) {
-            conc_id_set.insert(id);
-            cpode_id_set.insert(id);
-         }
-      }
-
-      if (d_with_unsteady_temperature) {
-         assert(d_temperature_component_index != -1);
-         int id =
-             (*it)->getComponentDescriptorIndex(d_temperature_component_index);
-
-         if (id != d_temperature_id &&
-             temp_id_set.find(id) == temp_id_set.end()) {
-            temp_id_set.insert(id);
-            cpode_id_set.insert(id);
-         }
-      }
-   }
-
-   delete cpodes_vec;
-}
+//void QuatIntegrator::getCPODESIdsRequiringRegrid(
+//    std::set<int>& cpode_id_set, set<int>& phase_id_set, set<int>& eta_id_set,
+//    std::set<int>& orient_id_set, set<int>& conc_id_set, set<int>& temp_id_set)
+//{
+//   vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
+//       getCPODESVectorsRequiringRegrid();
+//
+//   for (vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >::iterator
+//            it = cpodes_vec->begin();
+//        it < cpodes_vec->end(); it++) {
+//
+//      if (d_with_phase) {
+//         assert(d_phase_component_index != -1);
+//         int id = (*it)->getComponentDescriptorIndex(d_phase_component_index);
+//
+//         if (id != d_phase_id && phase_id_set.find(id) == phase_id_set.end()) {
+//            phase_id_set.insert(id);
+//            cpode_id_set.insert(id);
+//         }
+//      }
+//
+//      if (d_with_third_phase) {
+//         assert(d_eta_component_index != -1);
+//         int id = (*it)->getComponentDescriptorIndex(d_eta_component_index);
+//
+//         if (id != d_eta_id && eta_id_set.find(id) == eta_id_set.end()) {
+//            eta_id_set.insert(id);
+//            cpode_id_set.insert(id);
+//         }
+//      }
+//
+//      if (d_evolve_quat) {
+//         int id = (*it)->getComponentDescriptorIndex(d_quat_component_index);
+//
+//         if (id != d_quat_id && orient_id_set.find(id) == orient_id_set.end()) {
+//            orient_id_set.insert(id);
+//            cpode_id_set.insert(id);
+//         }
+//      }
+//
+//      if (d_with_concentration) {
+//         assert(d_conc_component_index != -1);
+//         int id = (*it)->getComponentDescriptorIndex(d_conc_component_index);
+//
+//         if (id != d_conc_id && conc_id_set.find(id) == conc_id_set.end()) {
+//            conc_id_set.insert(id);
+//            cpode_id_set.insert(id);
+//         }
+//      }
+//
+//      if (d_with_unsteady_temperature) {
+//         assert(d_temperature_component_index != -1);
+//         int id =
+//             (*it)->getComponentDescriptorIndex(d_temperature_component_index);
+//
+//         if (id != d_temperature_id &&
+//             temp_id_set.find(id) == temp_id_set.end()) {
+//            temp_id_set.insert(id);
+//            cpode_id_set.insert(id);
+//         }
+//      }
+//   }
+//
+//   delete cpodes_vec;
+//}
 
 double QuatIntegrator::computeFrameVelocity(
     const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const double time,

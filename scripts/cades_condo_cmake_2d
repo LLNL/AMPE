@@ -7,7 +7,7 @@ rm cmake_install.cmake
 rm Makefile
 rm -f ../source/fortran/2d/*.f
 
-cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
+cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
         -DCMAKE_Fortran_COMPILER=mpif77 \
         -DSAMRAI_DIR=$HOME/SAMRAI/cvode-projection \
         -DHYPRE_DIR=$HOME/hypre/hypre-2.11.1/src/hypre \

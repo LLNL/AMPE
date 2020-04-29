@@ -51,7 +51,7 @@ endif()
 
 link_directories( ${SAMRAI_DIR}/lib )
 link_directories( ${HYPRE_DIR}/lib )
-link_directories( ${SUNDIALS_DIR}/lib )
+link_directories( ${SUNDIALS_DIR}/lib64 )
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
 find_package(NetCDF REQUIRED COMPONENTS CXX)
@@ -78,7 +78,6 @@ set( PROJECT_LINK_LIBS_SAMRAI ${PROJECT_LINK_LIBS9}
 set( PROJECT_LINK_LIBS_HYPRE libHYPRE.so )
 
 set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
-set( PROJECT_LINK_LIBS_CPODES libsundials_cpodes.a )
 
 set( PROJECT_LINK_LIBS_NETCDF NetCDF::NetCDF_CXX )
 
