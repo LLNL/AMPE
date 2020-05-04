@@ -31,7 +31,6 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 #include <boost/make_shared.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <cstdlib>
 #include <cassert>
@@ -1512,10 +1511,9 @@ int CellPoissonHypreSolver::solveSystem(const int u, const int f,
 
    if (d_print_solver_info) {
       HYPRE_StructVectorPrint("sol0.out", d_linear_sol, 1);
-      string filename =
-          "mat" + boost::lexical_cast<std::string>(d_rhs_depth) + ".out";
+      string filename = "mat" + std::to_string(d_rhs_depth) + ".out";
       HYPRE_StructMatrixPrint(filename.c_str(), d_matrix, 1);
-      filename = "rhs" + boost::lexical_cast<std::string>(d_rhs_depth) + ".out";
+      filename = "rhs" + std::to_string(d_rhs_depth) + ".out";
       HYPRE_StructVectorPrint(filename.c_str(), d_linear_rhs, 1);
    }
 

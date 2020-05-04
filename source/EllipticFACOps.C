@@ -63,7 +63,6 @@
 #include "SAMRAI/tbox/Database.h"
 
 #include "boost/make_shared.hpp"
-#include <boost/lexical_cast.hpp>
 
 #include <cassert>
 using namespace std;
@@ -336,7 +335,7 @@ EllipticFACOps::EllipticFACOps(
 #ifdef HAVE_HYPRE
       CellPoissonHypreSolver *hypre_solver =
           new CellPoissonHypreSolver(object_name + "::hypre_solver" +
-                                         boost::lexical_cast<std::string>(i),
+                                         std::to_string(i),
                                      database && database->isDatabase("hypre_"
                                                                       "solver")
                                          ? database->getDatabase("hypre_solver")
@@ -394,17 +393,13 @@ EllipticFACOps::EllipticFACOps(
       boost::shared_ptr<pdat::SideVariable<double> > d_var;
       d_var.reset(new pdat::SideVariable<double>(
           tbox::Dimension(NDIM),
-          object_name + "EllipticFACOps::privateD" +
-              boost::lexical_cast<std::string>(i),
-          1));
+          object_name + "EllipticFACOps::privateD" + std::to_string(i), 1));
       d_d_var.push_back(d_var);
 
       boost::shared_ptr<pdat::CellVariable<double> > c_var;
       c_var.reset(new pdat::CellVariable<double>(
           tbox::Dimension(NDIM),
-          object_name + "EllipticFACOps::privateC" +
-              boost::lexical_cast<std::string>(i),
-          1));
+          object_name + "EllipticFACOps::privateC" + std::to_string(i), 1));
       d_c_var.push_back(c_var);
    }
 

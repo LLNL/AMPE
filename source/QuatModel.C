@@ -96,8 +96,6 @@
 #include <set>
 #include <map>
 
-#include <boost/lexical_cast.hpp>
-
 using namespace std;
 
 #ifdef HAVE_NETCDF4
@@ -1358,8 +1356,7 @@ void QuatModel::registerConcentrationVariables(void)
    for (int ic = 0; ic < d_ncompositions; ic++) {
       boost::shared_ptr<pdat::SideVariable<double> > conc_pfm_diffusion_var;
       conc_pfm_diffusion_var.reset(new pdat::SideVariable<double>(
-          tbox::Dimension(NDIM),
-          "conc_pfm_diffusion" + boost::lexical_cast<std::string>(ic)));
+          tbox::Dimension(NDIM), "conc_pfm_diffusion" + std::to_string(ic)));
       assert(conc_pfm_diffusion_var);
       d_conc_pfm_diffusion_var.push_back(conc_pfm_diffusion_var);
       d_conc_pfm_diffusion_id.push_back(variable_db->registerVariableAndContext(
