@@ -57,6 +57,17 @@ add_executable(testCALPHADJacobianTernary
                ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
                ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
+add_executable(testKKSdiluteBinaryEquilibrium
+               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
+               ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
+               ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
+               ${CMAKE_SOURCE_DIR}/source/xlogx.C
+               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
+               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               )
 add_executable(testKKSdiluteBinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
                ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
@@ -167,6 +178,10 @@ add_test(NAME testCALPHADFunctions
 add_test(NAME testCALPHADJacobianTernary
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADJacobianTernary)
+add_test(NAME testKKSdiluteBinaryEquilibrium
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testKKSdiluteBinaryEquilibrium test.input
+         WORKING_DIRECTORY ${TEST_DIR}/KKSdiluteBinaryEquilibrium)
 add_test(NAME testKKSdiluteBinaryKKS
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testKKSdiluteBinaryKKS test.input
@@ -274,6 +289,9 @@ target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
                                      )
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
+                                     ${PROJECT_LINK_LIBS_HDF5}
+                                     )
+target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      )
 target_link_libraries(testKKSdiluteBinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
