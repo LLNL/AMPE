@@ -121,35 +121,22 @@ int main(int argc, char* argv[])
       const PhaseIndex pi0 = PhaseIndex::phaseL;
       const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-      // initial guesses
-      double c_init0 = 0.5;
-      double c_init1 = 0.5;
-
-      double sol[2] = {c_init0, c_init1};
-
-      // solve KKS equations
-      double conc = model_db->getDouble("concentration");
-      double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc, phi, 0., &sol[0]);
-
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Temperature = " << temperature << std::endl;
-      tbox::pout << "Result for c = " << conc << " and phi = " << phi
-                 << std::endl;
-      tbox::pout << "   cL = " << sol[0] << std::endl;
-      tbox::pout << "   cS = " << sol[1] << std::endl;
 
-      // verify concentrations satisfy equal chemical potentials
-      tbox::pout << "Verification:" << std::endl;
+      // compute equilibrium compositions
+      double ceq[2];
+      cafe.computeCeqT(temperature, pi0, pi1, &ceq[0]);
+      tbox::pout << "   ceL = " << ceq[0] << std::endl;
+      tbox::pout << "   ceS = " << ceq[1] << std::endl;
 
+      // test if chemical potentials are equal for equilibrium compositions
       double derivL;
       double derivS;
-      cafe.computeDerivFreeEnergy(temperature, &sol[0], pi0, &derivL);
+      cafe.computeDerivFreeEnergy(temperature, &ceq[0], pi0, &derivL);
+      cafe.computeDerivFreeEnergy(temperature, &ceq[1], pi1, &derivS);
       tbox::pout << "   dfL/dcL = " << derivL << std::endl;
-
-      cafe.computeDerivFreeEnergy(temperature, &sol[1], pi1, &derivS);
       tbox::pout << "   dfS/dcS = " << derivS << std::endl;
-
       if (fabs(derivS - derivL) < tol) {
          tbox::pout << "TEST PASSED" << std::endl;
       } else {
@@ -158,6 +145,29 @@ int main(int argc, char* argv[])
                     << std::endl;
          return 1;
       }
+
+      // test if driving force is 0 for equilibrium compositions
+      double fl = cafe.computeFreeEnergy(temperature, &ceq[0], pi0, false);
+      double fa = cafe.computeFreeEnergy(temperature, &ceq[1], pi1, false);
+      tbox::pout << "   fL = " << fl << std::endl;
+      tbox::pout << "   fS = " << fa << std::endl;
+      double diff = fa - fl - derivS * (ceq[1] - ceq[0]);
+      if (fabs(diff) < tol) {
+         tbox::pout << "TEST PASSED" << std::endl;
+      } else {
+         tbox::pout << "TEST FAILED\n!";
+         tbox::pout << "Driving force not zero: " << diff << std::endl;
+         return 1;
+      }
+
+      // compute second derivatives for info only
+      std::vector<double> d2fdc2(1);
+      cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[0], pi0, d2fdc2);
+      tbox::pout << "-------------------------------" << std::endl;
+      tbox::pout << "Second derivatives" << std::endl;
+      tbox::pout << "At ceL: " << d2fdc2[0] << std::endl;
+      cafe.computeSecondDerivativeFreeEnergy(temperature, &ceq[1], pi1, d2fdc2);
+      tbox::pout << "At ceS: " << d2fdc2[0] << std::endl;
 
       input_db.reset();
    }

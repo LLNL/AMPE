@@ -4,9 +4,6 @@
 //
 
 ModelParameters {
-   concentration = 0.05
-   phi = 0.5
-
    Temperature {
       temperature        = 1710. // [K]
    }
@@ -15,13 +12,11 @@ ModelParameters {
       liquidus_slope = -310.9 // K
       meltingT = 1728. // K
       keq      = 0.7965
-      //molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
       NewtonSolver {
         max_its = 50
       }
    }
 }
-
 
 TimerManager {    // optional block, see SAMRAI docs
     timer_list = "solv::*::*","PFModel::*"
