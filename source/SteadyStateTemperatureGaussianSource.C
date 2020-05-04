@@ -43,8 +43,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
-using namespace std;
-
 SteadyStateTemperatureGaussianSource::SteadyStateTemperatureGaussianSource(
     const int temperature_scratch_id, const int rhs_id, const int weight_id,
     const double thermal_diffusivity, const int cp_id,
@@ -187,8 +185,8 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
       // tbox::pout<<"max. rhs after solve heat
       // equation="<<mathops.max(d_rhs_id)<<endl;
       tbox::plog << "max. T after solve heat equation="
-                 << mathops.max(d_temperature_scratch_id) << endl;
+                 << mathops.max(d_temperature_scratch_id) << std::endl;
       tbox::plog << "min. T after solve heat equation="
-                 << mathops.min(d_temperature_scratch_id) << endl;
+                 << mathops.min(d_temperature_scratch_id) << std::endl;
    }
 }

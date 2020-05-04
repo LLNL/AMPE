@@ -43,7 +43,7 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 
 #include <cassert>
-using namespace std;
+
 
 #include "PFModel.h"
 
@@ -76,12 +76,13 @@ PFModel::~PFModel()
 //=======================================================================
 
 void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
-                         const string& run_name, const bool is_from_restart,
-                         const string& restart_read_dirname,
+                         const std::string& run_name,
+                         const bool is_from_restart,
+                         const std::string& restart_read_dirname,
                          const int restore_num)
 {
    //-----------------------------------------------------------------------
-   tbox::plog << "PFModel::Initialize()" << endl;
+   tbox::plog << "PFModel::Initialize()" << std::endl;
 
    tbox::Dimension dim(NDIM);
 
@@ -101,7 +102,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    }
 
    if (d_verbosity->notSilent()) {
-      tbox::pout << "Run name = " << run_name << endl;
+      tbox::pout << "Run name = " << run_name << std::endl;
    }
 
    //-----------------------------------------------------------------------
@@ -220,7 +221,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
    for (int ii = 0; ii < NDIM; ii++) {
       if (up_array[ii] == lo_array[ii] && periodic_array[ii] == 1)
          TBOX_ERROR("Periodic BC require more than one cell along axis "
-                    << ii << endl);
+                    << ii << std::endl);
    }
 
    tbox::DatabaseBox domain_box(tbox::Dimension(NDIM), lo_array, up_array);
@@ -342,7 +343,7 @@ void PFModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
       boost::shared_ptr<tbox::Database> visit_db(
           input_db->getDatabase("Visit"));
 
-      string visit_dump_dirname = "v." + run_name;
+      std::string visit_dump_dirname = "v." + run_name;
       if (visit_db->keyExists("dirname")) {
          visit_dump_dirname = visit_db->getString("dirname");
       }
@@ -375,7 +376,7 @@ void PFModel::readInitialDatabase(boost::shared_ptr<tbox::Database> input_db)
    boost::shared_ptr<tbox::Database> data_db(
        input_db->getDatabase("InitialConditions"));
    if (!data_db) {
-      TBOX_ERROR("Input error: no InitialConditions database" << endl);
+      TBOX_ERROR("Input error: no InitialConditions database" << std::endl);
    }
 
    if (data_db->keyExists("filename")) {
@@ -427,7 +428,7 @@ void PFModel::setupInitialDataLevel(void)
 
 void PFModel::setupHierarchy(void)
 {
-   tbox::plog << "\nPFModel::setupHierarchy..." << endl;
+   tbox::plog << "\nPFModel::setupHierarchy..." << std::endl;
    double init_time = 0.;
    d_gridding_algorithm->makeCoarsestLevel(init_time);
 
@@ -456,7 +457,7 @@ void PFModel::Run(void)
 
    if (d_verbosity->notSilent() &&
        d_time_info_interval->includeInitial(d_time)) {
-      tbox::pout << "cycle # " << d_cycle << " : t = " << d_time << endl;
+      tbox::pout << "cycle # " << d_cycle << " : t = " << d_time << std::endl;
    }
 
    if (d_regrid_interval->includeInitial(d_time)) {
@@ -480,7 +481,7 @@ void PFModel::Run(void)
           d_time_info_interval->hasIntervalPassed(d_cycle, d_time)) {
 
          tbox::pout << "cycle # " << d_cycle << " : t = " << d_time
-                    << " : dt = " << dt << endl;
+                    << " : dt = " << dt << std::endl;
       }
 
       if (d_restart_interval->hasIntervalPassed(d_cycle, d_time)) {
@@ -532,12 +533,12 @@ void PFModel::Run(void)
       WriteInitialConditionsFile();
       if (d_verbosity->notSilent()) {
          tbox::pout << "Wrote initial conditions file "
-                    << d_initial_conditions_file_name << endl;
+                    << d_initial_conditions_file_name << std::endl;
       }
    }
 
    if (d_verbosity->notSilent()) {
-      tbox::pout << "Run complete" << endl;
+      tbox::pout << "Run complete" << std::endl;
    }
 
    t_run_time->stop();
@@ -564,7 +565,7 @@ void PFModel::writeRestartFile(void)
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    mpi.Barrier();
    if (d_verbosity->notSilent()) {
-      tbox::pout << "Wrote restart file" << endl;
+      tbox::pout << "Wrote restart file" << std::endl;
    }
 }
 
@@ -587,9 +588,10 @@ void PFModel::Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
                     << "\n"
                     << "   Finest level after regrid: " << fine_lev_after
                     << "\n"
-                    << "############################################" << endl;
+                    << "############################################"
+                    << std::endl;
       } else {
-         tbox::pout << "AMR hierarchy regridded" << endl;
+         tbox::pout << "AMR hierarchy regridded" << std::endl;
       }
    }
 }
@@ -602,7 +604,7 @@ void PFModel::computeGrainDiagnostics(void)
    // classes should not call this base class function.
 
    if (d_verbosity->notSilent()) {
-      tbox::pout << "Grain diagnostics unimplemented" << endl;
+      tbox::pout << "Grain diagnostics unimplemented" << std::endl;
    }
 }
 

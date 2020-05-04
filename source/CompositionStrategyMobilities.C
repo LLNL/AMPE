@@ -42,7 +42,7 @@
 
 #include <cassert>
 
-using namespace std;
+
 const double m2toum2 = 1.e12;
 
 CompositionStrategyMobilities::CompositionStrategyMobilities(
@@ -57,7 +57,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 
    d_with_third_phase = with_third_phase;
 
-   string calphad_filename = input_db->getString("filename");
+   std::string calphad_filename = input_db->getString("filename");
 
    boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
        new tbox::MemoryDatabase("calphad_db"));
@@ -122,7 +122,7 @@ void CompositionStrategyMobilities::printDiagnostics(
     const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_scratch_id)
 {
-   tbox::plog << "CompositionRHSStrategy::printDiagnostics()" << endl;
+   tbox::plog << "CompositionRHSStrategy::printDiagnostics()" << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cell_ops(hierarchy, 0, 0);
    const double Tmax = cell_ops.max(temperature_scratch_id);
@@ -136,7 +136,7 @@ void CompositionStrategyMobilities::printDiagnostics(
 void CompositionStrategyMobilities::printDiagnostics(const double Tmin,
                                                      const double Tmax)
 {
-   tbox::plog << "CompositionRHSStrategy::printDiagnostics()" << endl;
+   tbox::plog << "CompositionRHSStrategy::printDiagnostics()" << std::endl;
 
    assert(Tmin > 0.);
    assert(Tmax > 0.);
@@ -153,16 +153,16 @@ void CompositionStrategyMobilities::printDiagnostics(const double Tmin,
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    if (mpi.getRank() == 0)
       for (int iT = 0; iT <= nT; iT++) {
-         string filename("DvsC_T");
+         std::string filename("DvsC_T");
          double temperature = Tmin + iT * dT;
-         stringstream ss(stringstream::in | stringstream::out);
+         std::stringstream ss(std::stringstream::in | std::stringstream::out);
          ss << temperature;
-         string temps = ss.str();
+         std::string temps = ss.str();
          filename += temps;
          filename += "K.dat";
 
-         ofstream tfile(&filename[0], ios::out);
-         tfile << "#Diffusion vs. composition" << endl;
+         std::ofstream tfile(&filename[0], std::ios::out);
+         tfile << "#Diffusion vs. composition" << std::endl;
          printDiffusionVsComposition(temperature, tfile);
          // printDiffusionVsComposition( temperature, tbox::plog );
       }
@@ -197,7 +197,7 @@ double CompositionStrategyMobilities::computeDiffusionMobilityBinaryPhaseB(
 
 void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseL(
     const double c0, const double c1, const double temp,
-    vector<double>& mobility)
+    std::vector<double>& mobility)
 {
    assert(d_ncompositions == 2);
 
@@ -207,7 +207,7 @@ void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseL(
 
 void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseA(
     const double c0, const double c1, const double temp,
-    vector<double>& mobility)
+    std::vector<double>& mobility)
 {
    computeDiffusionMobilityTernaryPhase(c0, c1, temp,
                                         d_calphad_mobilities_phaseA, mobility);
@@ -215,7 +215,7 @@ void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseA(
 
 void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseB(
     const double c0, const double c1, const double temp,
-    vector<double>& mobility)
+    std::vector<double>& mobility)
 {
    computeDiffusionMobilityTernaryPhase(c0, c1, temp,
                                         d_calphad_mobilities_phaseB, mobility);
@@ -224,7 +224,8 @@ void CompositionStrategyMobilities::computeDiffusionMobilityTernaryPhaseB(
 //=======================================================================
 
 void CompositionStrategyMobilities::computeDiffusionMobilityPhaseL(
-    const vector<double>& c, const double temp, vector<double>& mobility)
+    const std::vector<double>& c, const double temp,
+    std::vector<double>& mobility)
 {
    switch (c.size()) {
       case 1:
@@ -236,16 +237,17 @@ void CompositionStrategyMobilities::computeDiffusionMobilityPhaseL(
          break;
 
       default:
-         tbox::pout << "size of c vector=" << c.size() << endl;
+         tbox::pout << "size of c std::vector=" << c.size() << std::endl;
          tbox::pout << "Error: diffusion mobility implemented for up to 3 "
                        "species only!!!"
-                    << endl;
+                    << std::endl;
          tbox::SAMRAI_MPI::abort();
    }
 }
 
 void CompositionStrategyMobilities::computeDiffusionMobilityPhaseA(
-    const vector<double>& c, const double temp, vector<double>& mobility)
+    const std::vector<double>& c, const double temp,
+    std::vector<double>& mobility)
 {
    switch (c.size()) {
       case 1:
@@ -259,7 +261,7 @@ void CompositionStrategyMobilities::computeDiffusionMobilityPhaseA(
       default:
          tbox::pout << "Error: diffusion mobility implemented for up to 3 "
                        "species only!!!"
-                    << endl;
+                    << std::endl;
          tbox::SAMRAI_MPI::abort();
    }
 
@@ -267,7 +269,8 @@ void CompositionStrategyMobilities::computeDiffusionMobilityPhaseA(
 }
 
 void CompositionStrategyMobilities::computeDiffusionMobilityPhaseB(
-    const vector<double>& c, const double temp, vector<double>& mobility)
+    const std::vector<double>& c, const double temp,
+    std::vector<double>& mobility)
 {
    switch (c.size()) {
       case 1:
@@ -281,7 +284,7 @@ void CompositionStrategyMobilities::computeDiffusionMobilityPhaseB(
       default:
          tbox::pout << "Error: diffusion mobility implemented for up to 3 "
                        "species only!!!"
-                    << endl;
+                    << std::endl;
          tbox::SAMRAI_MPI::abort();
    }
 }
@@ -299,14 +302,14 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition(
    int nc = 20;
    double eps = 1.e-7;
    double dc = (1. - 2 * eps) / nc;
-   vector<double> amob(1);
-   vector<double> conc(d_ncompositions);
+   std::vector<double> amob(1);
+   std::vector<double> conc(d_ncompositions);
    const double rt = gas_constant_R_JpKpmol * temperature;
 
-   os << fixed;
+   os << std::fixed;
    os << "#Species 0: log10(atomic mobility*RT[m2/s]) vs. composition in phase "
          "L at T="
-      << temperature << endl;
+      << temperature << std::endl;
    for (int i = 0; i <= nc; i++) {
       conc[0] = eps + i * dc;
       const double m0 =
@@ -314,12 +317,12 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition(
                                                                  temperature);
       assert(m0 > 0.);
 
-      os << conc[0] << "  " << log10(m0 * rt) << endl;
+      os << conc[0] << "  " << log10(m0 * rt) << std::endl;
    }
 
    os << "#Species 0: log10(atomic mobility*RT[m2/s]) vs. composition in phase "
          "A at T="
-      << temperature << endl;
+      << temperature << std::endl;
    for (int i = 0; i <= nc; i++) {
       conc[0] = eps + i * dc;
 
@@ -328,13 +331,13 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition(
                                                                  temperature);
       assert(m0 > 0.);
 
-      os << conc[0] << "  " << log10(m0 * rt) << endl;
+      os << conc[0] << "  " << log10(m0 * rt) << std::endl;
    }
 
    if (d_with_third_phase) {
       os << "#Species 0: log10(atomic mobility*RT[m2/s]) vs. composition in "
             "phase B at T="
-         << temperature << endl;
+         << temperature << std::endl;
       for (int i = 0; i <= nc; i++) {
          conc[0] = eps + i * dc;
 
@@ -342,7 +345,7 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition(
                                .getAtomicMobilityBinary(conc[0], temperature);
          assert(m0 > 0.);
 
-         os << conc[0] << "  " << log10(m0 * rt) << endl;
+         os << conc[0] << "  " << log10(m0 * rt) << std::endl;
       }
    }
 }
@@ -359,12 +362,12 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
    int nc = 50;
    double eps = 1.e-7;
    double dc = (1. - 2 * eps) / nc;
-   vector<double> amob(1);
-   vector<double> conc(d_ncompositions);
-   vector<double> d2f(d_ncompositions * d_ncompositions);
+   std::vector<double> amob(1);
+   std::vector<double> conc(d_ncompositions);
+   std::vector<double> d2f(d_ncompositions * d_ncompositions);
 
    os << "#Interdiffusion[m2/s] vs. composition in phase L at T=" << temperature
-      << endl;
+      << std::endl;
    for (int i = 0; i <= nc; i++) {
       conc[0] = eps + i * dc;
       d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(temperature,
@@ -374,13 +377,13 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
       computeDiffusionMobilityPhaseL(conc, temperature, amob);
 
       assert(amob[0] > 0.);
-      os << fixed << conc[0] << "  " << scientific << amob[0] * d2f[0] / m2toum2
-         << endl;
+      os << std::fixed << conc[0] << "  " << std::scientific
+         << amob[0] * d2f[0] / m2toum2 << std::endl;
    }
 
-   os << endl;
+   os << std::endl;
    os << "#Interdiffusion[m2/s]  vs. composition in phase A at T="
-      << temperature << endl;
+      << temperature << std::endl;
    for (int i = 0; i <= nc; i++) {
       conc[0] = eps + i * dc;
       d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(temperature,
@@ -390,14 +393,14 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
       computeDiffusionMobilityPhaseA(conc, temperature, amob);
 
       assert(amob[0] >= 0.);
-      os << fixed << conc[0] << "  " << scientific << amob[0] * d2f[0] / m2toum2
-         << endl;
+      os << std::fixed << conc[0] << "  " << std::scientific
+         << amob[0] * d2f[0] / m2toum2 << std::endl;
    }
 
    if (d_with_third_phase) {
-      os << endl;
+      os << std::endl;
       os << "#Interdiffusion[m2/s]  vs. composition in phase B at T="
-         << temperature << endl;
+         << temperature << std::endl;
       for (int i = 0; i <= nc; i++) {
          conc[0] = eps + i * dc;
          d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(
@@ -406,8 +409,8 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
          computeDiffusionMobilityPhaseB(conc, temperature, amob);
 
          assert(amob[0] > 0.);
-         os << fixed << conc[0] << "  " << scientific
-            << amob[0] * d2f[0] / m2toum2 << endl;
+         os << std::fixed << conc[0] << "  " << std::scientific
+            << amob[0] * d2f[0] / m2toum2 << std::endl;
       }
    }
 }

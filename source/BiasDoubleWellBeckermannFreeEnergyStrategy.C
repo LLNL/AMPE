@@ -41,15 +41,15 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 BiasDoubleWellBeckermannFreeEnergyStrategy::
     BiasDoubleWellBeckermannFreeEnergyStrategy(
         const double alpha, MeltingTemperatureStrategy* meltingTstrat)
     : d_alpha(alpha), d_meltingTstrat(meltingTstrat)
 {
-   tbox::plog << "BiasDoubleWellBeckermannFreeFreeEnergyStrategy:" << endl;
-   tbox::plog << "alpha =" << d_alpha << endl;
+   tbox::plog << "BiasDoubleWellBeckermannFreeFreeEnergyStrategy:" << std::endl;
+   tbox::plog << "alpha =" << d_alpha << std::endl;
 }
 
 //=======================================================================

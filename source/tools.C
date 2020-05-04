@@ -38,18 +38,18 @@
 #include "SAMRAI/tbox/InputManager.h"
 
 using namespace SAMRAI;
-using namespace std;
 
 //-----------------------------------------------------------------------
 
-void listLocalToGlobal(map<int, double>& lcl_map, map<int, double>& gbl_map)
+void listLocalToGlobal(std::map<int, double>& lcl_map,
+                       std::map<int, double>& gbl_map)
 {
    int size_in = static_cast<int>(lcl_map.size());
    int* lcl_n = new int[size_in];
    double* lcl_v = new double[size_in];
 
    int ii = 0;
-   for (map<int, double>::const_iterator it = lcl_map.begin();
+   for (std::map<int, double>::const_iterator it = lcl_map.begin();
         it != lcl_map.end(); it++) {
       lcl_n[ii] = it->first;
       lcl_v[ii] = it->second;
@@ -121,7 +121,7 @@ void allGatherSetup(int size_in, const int size_out, int*& rcounts, int*& disps)
    if (c != size_out) {
       TBOX_ERROR("allGatherSetup error..."
                  << "\n   size_out =" << size_out << "appears to be incorrect; "
-                 << "should be: " << c << endl);
+                 << "should be: " << c << std::endl);
    }
 }
 
@@ -161,8 +161,8 @@ void allGatherv(const double* x_in, int size_in, double* x_out, int size_out)
    }
 }
 
-void printDeprecated(const string& s_old, const string& s_new)
+void printDeprecated(const std::string& s_old, const std::string& s_new)
 {
    tbox::pout << "Input " << s_old << " is deprecated.  Use " << s_new << "."
-              << endl;
+              << std::endl;
 }

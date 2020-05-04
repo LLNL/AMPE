@@ -38,7 +38,7 @@
 #include "FreeEnergyStrategy.h"
 
 #include <vector>
-using namespace std;
+
 
 void small_mat_mult(const short n, const double* const a, const double* const b,
                     double* c)
@@ -93,7 +93,7 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
-    const double temperature, const vector<double>& c)
+    const double temperature, const std::vector<double>& c)
 {
    d_free_energy_strategy->computeSecondDerivativeEnergyPhaseL(temperature, c,
                                                                d_d2f, false);
@@ -107,34 +107,34 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
-    const double temperature, const vector<double>& c)
+    const double temperature, const std::vector<double>& c)
 {
    d_free_energy_strategy->computeSecondDerivativeEnergyPhaseA(temperature, c,
                                                                d_d2f, false);
-   // cout<<"d_d2f: ";
+   // std::cout<<"d_d2f: ";
    // for(short i=0;i<d_ncompositions*d_ncompositions;i++)
-   //   cout<<d_d2f[i]<<"  ";
-   // cout<<endl;
+   //   std::cout<<d_d2f[i]<<"  ";
+   // std::cout<<endl;
 
    d_mobilities_strategy->computeDiffusionMobilityPhaseA(c, temperature,
                                                          d_mobmat);
-   // cout<<"d_mobmat: ";
+   // std::cout<<"d_mobmat: ";
    // for(short i=0;i<d_ncompositions*d_ncompositions;i++)
-   //   cout<<d_mobmat[i]<<"  ";
-   // cout<<endl;
+   //   std::cout<<d_mobmat[i]<<"  ";
+   // std::cout<<endl;
 
    small_mat_mult(d_ncompositions, &d_mobmat[0], &d_d2f[0], &d_local_dmat[0]);
-   // cout<<"c="<<c[0]<<","<<c[1]<<endl;
-   // cout<<"d_local_dmat: ";
+   // std::cout<<"c="<<c[0]<<","<<c[1]<<endl;
+   // std::cout<<"d_local_dmat: ";
    // for(short i=0;i<d_ncompositions*d_ncompositions;i++)
-   //   cout<<d_local_dmat[i]<<"  ";
-   // cout<<endl;
+   //   std::cout<<d_local_dmat[i]<<"  ";
+   // std::cout<<endl;
    for (short i = 0; i < d_ncompositions * d_ncompositions; i++)
       assert(d_local_dmat[i] == d_local_dmat[i]);
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
-    const double temperature, const vector<double>& c)
+    const double temperature, const std::vector<double>& c)
 {
    d_free_energy_strategy->computeSecondDerivativeEnergyPhaseB(temperature, c,
                                                                d_d2f, false);
@@ -297,9 +297,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    assert(cd_c_l);
    assert(cd_c_a);
 
-   vector<double*> ptr_c_l(d_ncompositions);
-   vector<double*> ptr_c_a(d_ncompositions);
-   vector<double*> ptr_c_b(d_ncompositions);
+   std::vector<double*> ptr_c_l(d_ncompositions);
+   std::vector<double*> ptr_c_a(d_ncompositions);
+   std::vector<double*> ptr_c_b(d_ncompositions);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
       ptr_c_l[ic] = cd_c_l->getPointer(ic);
       ptr_c_a[ic] = cd_c_a->getPointer(ic);
@@ -315,9 +315,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    double* ptr_temp = cd_temp->getPointer();
 
    const int nc2 = d_ncompositions * d_ncompositions;
-   vector<double*> ptr_dx_coeff_l(nc2);
-   vector<double*> ptr_dy_coeff_l(nc2);
-   vector<double*> ptr_dz_coeff_l(nc2, nullptr);
+   std::vector<double*> ptr_dx_coeff_l(nc2);
+   std::vector<double*> ptr_dy_coeff_l(nc2);
+   std::vector<double*> ptr_dz_coeff_l(nc2, nullptr);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++)
       for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
          const unsigned ijc = ic + jc * d_ncompositions;
@@ -328,9 +328,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
          }
       }
 
-   vector<double*> ptr_dx_coeff_a(nc2);
-   vector<double*> ptr_dy_coeff_a(nc2);
-   vector<double*> ptr_dz_coeff_a(nc2, nullptr);
+   std::vector<double*> ptr_dx_coeff_a(nc2);
+   std::vector<double*> ptr_dy_coeff_a(nc2);
+   std::vector<double*> ptr_dz_coeff_a(nc2, nullptr);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++)
       for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
          const unsigned ijc = ic + jc * d_ncompositions;
@@ -341,9 +341,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
          }
       }
 
-   vector<double*> ptr_dx_coeff_b;
-   vector<double*> ptr_dy_coeff_b;
-   vector<double*> ptr_dz_coeff_b;
+   std::vector<double*> ptr_dx_coeff_b;
+   std::vector<double*> ptr_dy_coeff_b;
+   std::vector<double*> ptr_dz_coeff_b;
    if (d_with_third_phase) {
       ptr_dx_coeff_b.resize(nc2, nullptr);
       ptr_dy_coeff_b.resize(nc2, nullptr);
@@ -406,10 +406,10 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
    kmax = pbox.upper(2);
 #endif
 
-   vector<double> c_l(d_ncompositions);
-   vector<double> c_a(d_ncompositions);
-   vector<double> c_b(d_ncompositions);
-   vector<double> c_s(d_ncompositions);
+   std::vector<double> c_l(d_ncompositions);
+   std::vector<double> c_a(d_ncompositions);
+   std::vector<double> c_b(d_ncompositions);
+   std::vector<double> c_s(d_ncompositions);
 
    // X-side
    for (int kk = kmin; kk <= kmax; kk++) {
@@ -731,7 +731,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
 
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_eta = nullptr;
-   vector<double*> ptr_c_b;
+   std::vector<double*> ptr_c_b;
    ptr_c_b.resize(d_ncompositions);
    if (d_with_third_phase) {
       ptr_eta = cd_eta->getPointer();

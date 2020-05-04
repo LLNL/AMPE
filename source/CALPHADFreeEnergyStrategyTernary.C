@@ -47,7 +47,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 using namespace SAMRAI;
-using namespace std;
+
 
 #include <cassert>
 
@@ -72,10 +72,10 @@ CALPHADFreeEnergyStrategyTernary::CALPHADFreeEnergyStrategyTernary(
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "CALPHADFreeEnergyStrategyTernary:" << endl;
-   // tbox::plog << "Molar volume L =" << vml << endl;
-   // tbox::plog << "Molar volume A =" << vma << endl;
-   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+   // tbox::plog << "CALPHADFreeEnergyStrategyTernary:" << std::endl;
+   // tbox::plog << "Molar volume L =" << vml << std::endl;
+   // tbox::plog << "Molar volume A =" << vma << std::endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 
    d_conc_l_id = conc_l_id;
    d_conc_a_id = conc_a_id;
@@ -741,8 +741,8 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceEta(
 
 void CALPHADFreeEnergyStrategyTernary::
     defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
-                                               const vector<double>& c_l,
-                                               vector<double>& d2fdc2,
+                                               const std::vector<double>& c_l,
+                                               std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
@@ -761,8 +761,8 @@ void CALPHADFreeEnergyStrategyTernary::
 
 void CALPHADFreeEnergyStrategyTernary::
     defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
-                                               const vector<double>& c_a,
-                                               vector<double>& d2fdc2,
+                                               const std::vector<double>& c_a,
+                                               std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],

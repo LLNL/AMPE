@@ -41,16 +41,16 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 BiasDoubleWellUTRCFreeEnergyStrategy::BiasDoubleWellUTRCFreeEnergyStrategy(
     const double alpha, const double gamma,
     MeltingTemperatureStrategy* meltingTstrat)
     : d_alpha(alpha), d_gamma(gamma), d_meltingTstrat(meltingTstrat)
 {
-   tbox::plog << "BiasDoubleWellFreeFreeEnergyStrategy:" << endl;
-   tbox::plog << "alpha =" << d_alpha << endl;
-   tbox::plog << "gamma =" << d_gamma << endl;
+   tbox::plog << "BiasDoubleWellFreeFreeEnergyStrategy:" << std::endl;
+   tbox::plog << "alpha =" << d_alpha << std::endl;
+   tbox::plog << "gamma =" << d_gamma << std::endl;
 }
 
 //=======================================================================

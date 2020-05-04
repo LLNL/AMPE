@@ -50,7 +50,6 @@
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -78,12 +77,12 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
-      tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -132,10 +131,10 @@ int main(int argc, char *argv[])
                         init_guess[2], init_guess[3],  // solid
                         init_guess[4]};
 
-      map<double, double> cseq0;
-      map<double, double> cseq1;
-      map<double, double> cleq0;
-      map<double, double> cleq1;
+      std::map<double, double> cseq0;
+      std::map<double, double> cseq1;
+      std::map<double, double> cleq0;
+      std::map<double, double> cleq1;
 
       double dT = (temperature_high - temperature_low) / 50;
 
@@ -155,55 +154,55 @@ int main(int argc, char *argv[])
          if (found_ceq) {
             // tbox::pout<<"Found equilibrium concentrations: "
             //          <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
-            cleq0.insert(pair<double, double>(temperature, lceq[0]));
-            cleq1.insert(pair<double, double>(temperature, lceq[1]));
-            cseq0.insert(pair<double, double>(temperature, lceq[2]));
-            cseq1.insert(pair<double, double>(temperature, lceq[3]));
+            cleq0.insert(std::pair<double, double>(temperature, lceq[0]));
+            cleq1.insert(std::pair<double, double>(temperature, lceq[1]));
+            cseq0.insert(std::pair<double, double>(temperature, lceq[2]));
+            cseq1.insert(std::pair<double, double>(temperature, lceq[3]));
 
          } else {
-            tbox::pout << "Temperature = " << temperature << endl;
+            tbox::pout << "Temperature = " << temperature << std::endl;
             tbox::pout << "ERROR: Equilibrium concentrations not found... "
-                       << endl;
+                       << std::endl;
             return 1;
          }
       }
 
-      ofstream os("CvsT.dat");
+      std::ofstream os("CvsT.dat");
       os << "#liquid0\n";
       {
-         map<double, double>::iterator it = cleq0.begin();
+         std::map<double, double>::iterator it = cleq0.begin();
          while (it != cleq0.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }
-      os << endl << endl;
+      os << std::endl << std::endl;
 
       os << "#liquid1\n";
       {
-         map<double, double>::iterator it = cleq1.begin();
+         std::map<double, double>::iterator it = cleq1.begin();
          while (it != cleq1.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }
-      os << endl << endl;
+      os << std::endl << std::endl;
 
       os << "#solid0\n";
       {
-         map<double, double>::iterator it = cseq0.begin();
+         std::map<double, double>::iterator it = cseq0.begin();
          while (it != cseq0.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }
-      os << endl << endl;
+      os << std::endl << std::endl;
 
       os << "#solid1\n";
       {
-         map<double, double>::iterator it = cseq1.begin();
+         std::map<double, double>::iterator it = cseq1.begin();
          while (it != cseq1.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }

@@ -36,7 +36,6 @@
 #include "CellPoissonHypreSolver.h"
 #include "toolsSAMRAI.h"
 
-using namespace std;
 
 extern "C" {
 
@@ -457,7 +456,7 @@ void CellPoissonHypreSolver::deallocateSolverState()
 *************************************************************************
 *                                                                       *
 * Allocate the HYPRE data structures that depend only on the level      *
-* and will not change (grid, stencil, matrix, and vectors).             *
+* and will not change (grid, stencil, matrix, and std::vectors).             *
 *                                                                       *
 *************************************************************************
 */
@@ -484,14 +483,15 @@ void CellPoissonHypreSolver::allocateHypreData()
       is_periodic = is_periodic || periodic_flag[d];
    }
    int hypre_ierr = HYPRE_StructGridCreate(communicator, d_actual_dim, &d_grid);
-   if (hypre_ierr > 0) cerr << "HYPRE_StructGridCreate: HYPRE ERROR: " << endl;
+   if (hypre_ierr > 0)
+      std::cerr << "HYPRE_StructGridCreate: HYPRE ERROR: " << std::endl;
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); p++) {
       const hier::Box &box = (*p)->getBox();
       hier::Index lower = box.lower();
       hier::Index upper = box.upper();
       hypre_ierr = HYPRE_StructGridSetExtents(d_grid, &lower[0], &upper[0]);
       if (hypre_ierr > 0)
-         cerr << "HYPRE_StructGridSetExtents: HYPRE ERROR: " << endl;
+         std::cerr << "HYPRE_StructGridSetExtents: HYPRE ERROR: " << std::endl;
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -536,7 +536,8 @@ void CellPoissonHypreSolver::allocateHypreData()
    HYPRE_StructGridSetPeriodic(d_grid, &periodic_shift[0]);
    hypre_ierr = HYPRE_StructGridAssemble(d_grid);
    if (hypre_ierr > 0)
-      cerr << "HYPRE_StructGridAssemble, HYPRE ERROR: " << hypre_ierr << endl;
+      std::cerr << "HYPRE_StructGridAssemble, HYPRE ERROR: " << hypre_ierr
+                << std::endl;
 
    {
       /*
@@ -676,12 +677,12 @@ void CellPoissonHypreSolver::deallocateHypreData()
 /*
  *************************************************************************
  *
- * Copy data into the HYPRE vector structures.
+ * Copy data into the HYPRE std::vector structures.
  *
  *************************************************************************
  */
 
-void CellPoissonHypreSolver::copyToHypre(HYPRE_StructVector vector,
+void CellPoissonHypreSolver::copyToHypre(HYPRE_StructVector hvector,
                                          pdat::CellData<double> &src, int depth,
                                          const hier::Box &box)
 {
@@ -694,12 +695,12 @@ void CellPoissonHypreSolver::copyToHypre(HYPRE_StructVector vector,
    hier::Index upper(box.upper());
 
    if (src.getGhostBox().isSpatiallyEqual(box)) {
-      HYPRE_StructVectorSetBoxValues(vector, &lower[0], &upper[0],
+      HYPRE_StructVectorSetBoxValues(hvector, &lower[0], &upper[0],
                                      src.getPointer(depth));
    } else {
       pdat::CellData<double> tmp(box, 1, hier::IntVector::getZero(d_dim));
       tmp.copyDepth(0, src, depth);
-      HYPRE_StructVectorSetBoxValues(vector, &lower[0], &upper[0],
+      HYPRE_StructVectorSetBoxValues(hvector, &lower[0], &upper[0],
                                      tmp.getPointer());
    }
 
@@ -709,13 +710,14 @@ void CellPoissonHypreSolver::copyToHypre(HYPRE_StructVector vector,
 /*
  *************************************************************************
  *
- * Copy data out of the HYPRE vector structures.
+ * Copy data out of the HYPRE std::vector structures.
  *
  *************************************************************************
  */
 
 void CellPoissonHypreSolver::copyFromHypre(pdat::CellData<double> &dst,
-                                           int depth, HYPRE_StructVector vector,
+                                           int depth,
+                                           HYPRE_StructVector hvector,
                                            const hier::Box box)
 {
    TBOX_ASSERT_DIM_OBJDIM_EQUALITY2(d_dim, dst, box);
@@ -725,11 +727,11 @@ void CellPoissonHypreSolver::copyFromHypre(pdat::CellData<double> &dst,
    hier::Index lower(box.lower());
    hier::Index upper(box.upper());
    if (dst.getGhostBox().isSpatiallyEqual(box)) {
-      HYPRE_StructVectorGetBoxValues(vector, &lower[0], &upper[0],
+      HYPRE_StructVectorGetBoxValues(hvector, &lower[0], &upper[0],
                                      dst.getPointer(depth));
    } else {
       pdat::CellData<double> tmp(box, 1, hier::IntVector::getZero(d_dim));
-      HYPRE_StructVectorGetBoxValues(vector, &lower[0], &upper[0],
+      HYPRE_StructVectorGetBoxValues(hvector, &lower[0], &upper[0],
                                      tmp.getPointer());
       dst.copyDepth(depth, tmp, 0);
    }
@@ -1195,7 +1197,7 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
    int hypre_ierr = HYPRE_StructMatrixAssemble(d_matrix);
    if (hypre_ierr > 0)
-      cerr << "HYPRE_StructMatrixAssemble: HYPRE ERROR" << endl;
+      std::cerr << "HYPRE_StructMatrixAssemble: HYPRE ERROR" << std::endl;
 
    if (d_print_solver_info) {
       HYPRE_StructMatrixPrint("mat_aA.out", d_matrix, 1);
@@ -1496,7 +1498,7 @@ int CellPoissonHypreSolver::solveSystem(const int u, const int f,
    d_cf_bc_coef.setGhostDataId(-1, hier::IntVector::getZero(d_dim));
 
    /*
-    * Finish assembly of the vectors
+    * Finish assembly of the std::vectors
     */
    HYPRE_StructVectorAssemble(d_linear_sol);
 
@@ -1509,7 +1511,7 @@ int CellPoissonHypreSolver::solveSystem(const int u, const int f,
 
    if (d_print_solver_info) {
       HYPRE_StructVectorPrint("sol0.out", d_linear_sol, 1);
-      string filename = "mat" + std::to_string(d_rhs_depth) + ".out";
+      std::string filename = "mat" + std::to_string(d_rhs_depth) + ".out";
       HYPRE_StructMatrixPrint(filename.c_str(), d_matrix, 1);
       filename = "rhs" + std::to_string(d_rhs_depth) + ".out";
       HYPRE_StructVectorPrint(filename.c_str(), d_linear_rhs, 1);
@@ -1545,7 +1547,7 @@ int CellPoissonHypreSolver::solveSystem(const int u, const int f,
    assert(d_relative_residual_norm == d_relative_residual_norm);
 
    /*
-    * Pull the solution vector out of the HYPRE structures
+    * Pull the solution std::vector out of the HYPRE structures
     */
    for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
         ++ip) {
@@ -1728,12 +1730,13 @@ void CellPoissonHypreSolver::adjustBoundaryEntries(
 }
 
 
-void CellPoissonHypreSolver::printConvergenceFactors(ostream &os)
+void CellPoissonHypreSolver::printConvergenceFactors(std::ostream &os)
 {
    os << "  CellPoissonHypreSolver iteration ";
-   os << (d_converged ? "" : "NOT ") << "converged " << endl
-      << "     iterations: " << d_number_iterations << endl
-      << "     relative_residual_norm: " << d_relative_residual_norm << endl;
+   os << (d_converged ? "" : "NOT ") << "converged " << std::endl
+      << "     iterations: " << d_number_iterations << std::endl
+      << "     relative_residual_norm: " << d_relative_residual_norm
+      << std::endl;
 }
 
 

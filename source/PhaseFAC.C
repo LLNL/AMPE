@@ -16,7 +16,7 @@
 #include "SAMRAI/hier/VariableDatabase.h"
 
 #include <string>
-using namespace std;
+
 
 extern "C" {
 void SAMRAI_F77_FUNC(phasesetexactandrhs2d, PHASESETEXACTANDRHS2D)(
@@ -227,7 +227,7 @@ void PhaseFAC::resetHierarchyConfiguration(
  *************************************************************************
  */
 int PhaseFAC::solve(string phase_interp_func_type, double phase_well_scale,
-                    string phase_well_func_type)
+                    std::string phase_well_func_type)
 {
    assert(d_mobility_id >= 0);
    assert(d_comp_soln_id >= 0);

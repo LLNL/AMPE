@@ -40,7 +40,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <cassert>
-using namespace std;
+
 
 ConcFACOps::ConcFACOps(const std::string& object_name, const int depth,
                        const boost::shared_ptr<tbox::Database>& database)
@@ -51,7 +51,7 @@ ConcFACOps::ConcFACOps(const std::string& object_name, const int depth,
 }
 
 void ConcFACOps::setOperatorCoefficients(const double gamma,
-                                         const vector<int>& diffusion_id,
+                                         const std::vector<int>& diffusion_id,
                                          const double mobility)
 {
    assert(gamma >= 0.);
@@ -73,7 +73,7 @@ void ConcFACOps::setOperatorCoefficients(const double gamma,
       double vmin = d_hopsside->min(diffusion_id[ic]);
       if (vmax <= 0.)
          tbox::pout << "Component " << ic << ", Max. for D = " << vmax
-                    << ", Min. for D = " << vmin << endl;
+                    << ", Min. for D = " << vmin << std::endl;
       assert(vmax > 0.);
 #endif
       setDPatchDataId(d_d_id[ic], ic);

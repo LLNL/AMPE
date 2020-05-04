@@ -96,7 +96,6 @@
 #include <set>
 #include <map>
 
-using namespace std;
 
 #ifdef HAVE_NETCDF4
 using namespace netCDF;
@@ -254,7 +253,7 @@ void QuatModel::initializeTemperature(
    if (d_model_parameters.with_heat_equation()) {
       if (d_model_parameters.with_concentration()) {
          tbox::pout << "QuatModel::initializeTemperature() "
-                    << "Using NKR model for heat capacity..." << endl;
+                    << "Using NKR model for heat capacity..." << std::endl;
          d_heat_capacity_strategy =
              new NKRHeatCapacityStrategy(d_model_parameters.cp(), d_cp_id,
                                          d_conc_id, d_temperature_id);
@@ -375,7 +374,7 @@ void QuatModel::initializeCompositionRHSStrategy()
 void QuatModel::initializeRHSandEnergyStrategies(
     boost::shared_ptr<tbox::MemoryDatabase>& input_db)
 {
-   tbox::plog << "QuatModel::initializeRHSandEnergyStrategies()" << endl;
+   tbox::plog << "QuatModel::initializeRHSandEnergyStrategies()" << std::endl;
 
    assert(d_ncompositions >= 0);
 
@@ -419,7 +418,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
       // to setup d_composition_rhs_strategy
       if (d_model_parameters.isConcentrationModelCALPHAD()) {
          tbox::pout << "QuatModel: "
-                    << "Using CALPHAD model for concentration" << endl;
+                    << "Using CALPHAD model for concentration" << std::endl;
          d_calphad_db = d_conc_db->getDatabase("Calphad");
          std::string calphad_filename = d_calphad_db->getString("filename");
          calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
@@ -458,7 +457,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
 
             tbox::plog << "QuatModel: "
                        << "CALPHAD with " << d_ncompositions + 1 << " species"
-                       << endl;
+                       << std::endl;
             if (d_ncompositions == 1) {
                d_cafe = new CALPHADFreeEnergyFunctionsBinary(
                    calphad_db, newton_db,
@@ -473,7 +472,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
             }
          } else {
             tbox::plog << "QuatModel: "
-                       << "Adding penalty to CALPHAD energy" << endl;
+                       << "Adding penalty to CALPHAD energy" << std::endl;
 
             assert(d_ncompositions == 1);
 
@@ -493,7 +492,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
       }  // d_model_parameters.isConcentrationModelCALPHAD()
       else if (d_model_parameters.isConcentrationModelKKSdilute()) {
          tbox::pout << "QuatModel: "
-                    << "Using KKS dilute model for concentration" << endl;
+                    << "Using KKS dilute model for concentration" << std::endl;
          d_free_energy_strategy =
              new KKSdiluteBinary(d_conc_db,
                                  d_model_parameters.energy_interp_func_type(),
@@ -503,7 +502,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
          d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
       } else if (d_model_parameters.isConcentrationModelHBSM()) {
          tbox::pout << "QuatModel: "
-                    << "Using HBSM model for concentration" << endl;
+                    << "Using HBSM model for concentration" << std::endl;
          d_free_energy_strategy = new HBSMFreeEnergyStrategy(
              d_conc_db->getDatabase("HBSM"),
              d_model_parameters.energy_interp_func_type(),
@@ -539,7 +538,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
       }
 
       if (d_model_parameters.kks_phase_concentration()) {
-         tbox::plog << "Phase concentration determined by KKS" << endl;
+         tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (d_model_parameters.isConcentrationModelCALPHAD()) {
             d_phase_conc_strategy =
                 new CALPHADequilibriumPhaseConcentrationsStrategy(
@@ -679,11 +678,12 @@ void QuatModel::initializeRHSandEnergyStrategies(
 //=======================================================================
 
 void QuatModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
-                           const string& run_name, const bool is_from_restart,
-                           const string& restart_read_dirname,
+                           const std::string& run_name,
+                           const bool is_from_restart,
+                           const std::string& restart_read_dirname,
                            const int restore_num)
 {
-   tbox::plog << "QuatModel::Initialize()" << endl;
+   tbox::plog << "QuatModel::Initialize()" << std::endl;
    d_is_from_restart = is_from_restart;
 
    if (input_db->isDatabase("FreeEnergyDiagnostics")) {
@@ -898,7 +898,7 @@ void QuatModel::Initialize(boost::shared_ptr<tbox::MemoryDatabase>& input_db,
 
 void QuatModel::InitializeIntegrator(void)
 {
-   tbox::pout << "QuatModel::InitializeIntegrator()" << endl;
+   tbox::pout << "QuatModel::InitializeIntegrator()" << std::endl;
 
    assert(d_phase_flux_strategy != nullptr);
    if (d_model_parameters.with_heat_equation()) {
@@ -985,7 +985,7 @@ void QuatModel::InitializeIntegrator(void)
       const double rtol = atol * 1.e-2;
       tbox::pout << "QuatModel --- "
                  << "set tolerance for Quaternion only integrator:" << atol
-                 << " and " << rtol << endl;
+                 << " and " << rtol << std::endl;
       d_integrator_quat_only->setAbsTol(atol);
       d_integrator_quat_only->setRelTol(rtol);
       d_integrator_quat_only->initialize(d_patch_hierarchy);
@@ -1012,7 +1012,7 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
          if (d_verbosity->notSilent()) {
             tbox::pout << "QuatModel: "
                        << "Using symmetry aware refine/coarsen operators"
-                       << endl;
+                       << std::endl;
          }
          d_quat_refine_op.reset(new QuatLinearRefine(d_quat_symm_rotation_id));
          d_quat_coarsen_op.reset(
@@ -1116,7 +1116,7 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
 
 void QuatModel::initializeCoarseRefineOperators()
 {
-   tbox::pout << "QuatModel::InitializeOperators()" << endl;
+   tbox::pout << "QuatModel::InitializeOperators()" << std::endl;
 
    assert(d_temperature_id >= 0);
    assert(d_temperature_scratch_id >= 0);
@@ -1175,7 +1175,7 @@ void QuatModel::setupInitialDataLevel(void)
 {
    assert(d_temperature_id >= 0);
 
-   tbox::plog << "\nsetupInitialDataLevel()..." << endl;
+   tbox::plog << "\nsetupInitialDataLevel()..." << std::endl;
 
    PFModel::setupInitialDataLevel();
 
@@ -1224,12 +1224,12 @@ void QuatModel::setupHierarchy(void) { PFModel::setupHierarchy(); }
 
 void QuatModel::CreateIntegrator(boost::shared_ptr<tbox::Database> input_db)
 {
-   tbox::plog << "QuatModel::CreateIntegrator()" << endl;
+   tbox::plog << "QuatModel::CreateIntegrator()" << std::endl;
 
    boost::shared_ptr<tbox::Database> model_db =
        input_db->getDatabase("ModelParameters");
 
-   string time_integration = "unsplit";
+   std::string time_integration = "unsplit";
 
    time_integration =
        model_db->getStringWithDefault("time_integration", "unsplit");
@@ -1246,8 +1246,8 @@ void QuatModel::CreateIntegrator(boost::shared_ptr<tbox::Database> input_db)
              input_db, false, d_symmetry_aware, d_all_periodic));
 
    } else {
-      tbox::pout << time_integration << endl;
-      TBOX_ERROR("Invalid time_integration" << endl);
+      tbox::pout << time_integration << std::endl;
+      TBOX_ERROR("Invalid time_integration" << std::endl);
    }
 
    d_integrator->setVerbosity(d_verbosity->basicLevel());
@@ -1330,7 +1330,7 @@ void QuatModel::registerPhaseConcentrationVariables(
 
 void QuatModel::registerConcentrationVariables(void)
 {
-   tbox::plog << "QuatModel::registerConcentrationVariables()" << endl;
+   tbox::plog << "QuatModel::registerConcentrationVariables()" << std::endl;
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    boost::shared_ptr<hier::VariableContext> current =
@@ -1799,7 +1799,7 @@ void QuatModel::registerPatchDataForRestart(void)
 
 void QuatModel::RegisterVariables(void)
 {
-   tbox::pout << "QuatModel::RegisterVariables()" << endl;
+   tbox::pout << "QuatModel::RegisterVariables()" << std::endl;
 
    assert(d_grains);
 
@@ -1977,7 +1977,7 @@ void QuatModel::RegisterWithVisit(void)
        d_model_parameters.evolveQuat()) {
       assert(d_quat_id >= 0);
       for (int n = 0; n < d_qlen; n++) {
-         string visit_name("q" + tbox::Utilities::intToString(n, 1));
+         std::string visit_name("q" + tbox::Utilities::intToString(n, 1));
 
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_quat_id, n);
@@ -1987,8 +1987,8 @@ void QuatModel::RegisterWithVisit(void)
    if (d_model_parameters.with_concentration()) {
       assert(d_conc_id >= 0);
       for (int n = 0; n < d_ncompositions; n++) {
-         string visit_name("concentration" +
-                           tbox::Utilities::intToString(n, 1));
+         std::string visit_name("concentration" +
+                                tbox::Utilities::intToString(n, 1));
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_conc_id, n);
 
@@ -1996,16 +1996,18 @@ void QuatModel::RegisterWithVisit(void)
              d_model_parameters.with_extra_visit_output()) {
             assert(d_conc_l_scratch_id >= 0);
             assert(d_conc_a_scratch_id >= 0);
-            string visit_namel("conc_l" + tbox::Utilities::intToString(n, 1));
+            std::string visit_namel("conc_l" +
+                                    tbox::Utilities::intToString(n, 1));
             d_visit_data_writer->registerPlotQuantity(visit_namel, "SCALAR",
                                                       d_conc_l_scratch_id, n);
-            string visit_namea("conc_a" + tbox::Utilities::intToString(n, 1));
+            std::string visit_namea("conc_a" +
+                                    tbox::Utilities::intToString(n, 1));
             d_visit_data_writer->registerPlotQuantity(visit_namea, "SCALAR",
                                                       d_conc_a_scratch_id, n);
             if (d_model_parameters.with_third_phase()) {
                assert(d_conc_b_id >= 0);
-               string visit_nameb("conc_b" +
-                                  tbox::Utilities::intToString(n, 1));
+               std::string visit_nameb("conc_b" +
+                                       tbox::Utilities::intToString(n, 1));
                d_visit_data_writer->registerPlotQuantity(visit_nameb, "SCALAR",
                                                          d_conc_b_scratch_id,
                                                          n);
@@ -2023,8 +2025,8 @@ void QuatModel::RegisterWithVisit(void)
    if (d_model_parameters.with_extra_visit_output()) {
       if (d_phase_diffs_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
-            string visit_name("phase_diffs_cell" +
-                              tbox::Utilities::intToString(d, 1));
+            std::string visit_name("phase_diffs_cell" +
+                                   tbox::Utilities::intToString(d, 1));
             d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                       d_phase_diffs_cell_id, d);
          }
@@ -2032,8 +2034,8 @@ void QuatModel::RegisterWithVisit(void)
 
       if (d_phase_grad_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
-            string visit_name("phase_grad_cell" +
-                              tbox::Utilities::intToString(d, 1));
+            std::string visit_name("phase_grad_cell" +
+                                   tbox::Utilities::intToString(d, 1));
             d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                       d_phase_grad_cell_id, d);
          }
@@ -2042,9 +2044,9 @@ void QuatModel::RegisterWithVisit(void)
       if (d_quat_grad_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
             for (int n = 0; n < d_qlen; n++) {
-               string visit_name("quat_grad_cell_d" +
-                                 tbox::Utilities::intToString(d, 1) + "_q" +
-                                 tbox::Utilities::intToString(n, 1));
+               std::string visit_name(
+                   "quat_grad_cell_d" + tbox::Utilities::intToString(d, 1) +
+                   "_q" + tbox::Utilities::intToString(n, 1));
 
                d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                          d_quat_grad_cell_id,
@@ -2056,7 +2058,7 @@ void QuatModel::RegisterWithVisit(void)
       if (d_quat_diffs_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
             for (int n = 0; n < d_qlen; n++) {
-               string visit_symm_name(
+               std::string visit_symm_name(
                    "quat_diffs_cell_d" + tbox::Utilities::intToString(d, 1) +
                    "_q" + tbox::Utilities::intToString(n, 1));
 
@@ -2065,10 +2067,10 @@ void QuatModel::RegisterWithVisit(void)
                                                          d_quat_diffs_cell_id,
                                                          d * d_qlen + n);
 
-               string visit_nonsymm_name("quat_nonsymm_diffs_cell_d" +
-                                         tbox::Utilities::intToString(d, 1) +
-                                         "_q" +
-                                         tbox::Utilities::intToString(n, 1));
+               std::string visit_nonsymm_name(
+                   "quat_nonsymm_diffs_cell_d" +
+                   tbox::Utilities::intToString(d, 1) + "_q" +
+                   tbox::Utilities::intToString(n, 1));
 
                d_visit_data_writer->registerPlotQuantity(
                    visit_nonsymm_name, "SCALAR", d_quat_nonsymm_diffs_cell_id,
@@ -2106,8 +2108,8 @@ void QuatModel::RegisterWithVisit(void)
       if (d_model_parameters.with_orientation() && d_symmetry_aware) {
 
          for (int d = 0; d < NDIM; d++) {
-            string visit_name("quat_symm_rotation_cell" +
-                              tbox::Utilities::intToString(d, 1));
+            std::string visit_name("quat_symm_rotation_cell" +
+                                   tbox::Utilities::intToString(d, 1));
 
             d_visit_data_writer->registerPlotQuantity(
                 visit_name, "SCALAR", d_quat_symm_rotation_cell_id, d);
@@ -2183,8 +2185,8 @@ bool QuatModel::resetGrains(void)
 
    t_resetGrains_timer->start();
 
-   tbox::pout << "Old number of grains: " << old_number_of_grains << endl;
-   tbox::pout << "New number of grains: " << d_number_of_grains << endl;
+   tbox::pout << "Old number of grains: " << old_number_of_grains << std::endl;
+   tbox::pout << "New number of grains: " << d_number_of_grains << std::endl;
 
    double total_energy, phase_energy;
    double well_energy, free_energy, eta_energy;
@@ -2196,15 +2198,17 @@ bool QuatModel::resetGrains(void)
                   well_energy, free_energy);
 
    if (d_extra_energy_detail) {
-      tbox::pout << setprecision(8);
-      tbox::pout << "  Total energy     = " << total_energy << endl;
-      tbox::pout << "    phi energy     = " << phase_energy << endl;
-      tbox::pout << "    orient energy  = " << original_orient_energy << endl;
-      tbox::pout << "    qint energy    = " << original_qint_energy << endl;
-      tbox::pout << "    well energy    = " << well_energy << endl;
-      tbox::pout << "    free energy    = " << free_energy << endl;
+      tbox::pout << std::setprecision(8);
+      tbox::pout << "  Total energy     = " << total_energy << std::endl;
+      tbox::pout << "    phi energy     = " << phase_energy << std::endl;
+      tbox::pout << "    orient energy  = " << original_orient_energy
+                 << std::endl;
+      tbox::pout << "    qint energy    = " << original_qint_energy
+                 << std::endl;
+      tbox::pout << "    well energy    = " << well_energy << std::endl;
+      tbox::pout << "    free energy    = " << free_energy << std::endl;
       if (d_model_parameters.with_third_phase()) {
-         tbox::pout << "    eta energy     = " << eta_energy << endl;
+         tbox::pout << "    eta energy     = " << eta_energy << std::endl;
       }
    }
 
@@ -2226,11 +2230,11 @@ bool QuatModel::resetGrains(void)
                      eta_energy, orient_energy, qint_energy, well_energy,
                      free_energy);
 
-      tbox::pout << setprecision(12);
+      tbox::pout << std::setprecision(12);
       tbox::pout << "Smooth out quaternions, orient energy  = " << orient_energy
                  << ", qint energy    = " << qint_energy
                  << ", total quat energy    = " << orient_energy + qint_energy
-                 << endl;
+                 << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
@@ -2241,7 +2245,7 @@ bool QuatModel::resetGrains(void)
    // double time=d_time;
    double time = 0.;
 
-   tbox::pout << "Relax quaternions..." << endl;
+   tbox::pout << "Relax quaternions..." << std::endl;
    for (int it = 1; it < 200; it++) {
 
       const double dt = d_integrator_quat_only->Advance(d_patch_hierarchy);
@@ -2261,18 +2265,18 @@ bool QuatModel::resetGrains(void)
       doe -= orient_energy;
       doe = fabs(doe);
 
-      tbox::pout << setprecision(12);
+      tbox::pout << std::setprecision(12);
       tbox::pout << "Smooth out quaternions with dt=" << dt
                  << ", orient energy  = " << orient_energy
                  << ", qint energy    = " << qint_energy
                  << ", total quat energy    = " << orient_energy + qint_energy
-                 << endl;
+                 << std::endl;
 
       const double tol = 0.1;
       if (dqe < tol * phase_energy * dt &&
           qint_energy < original_qint_energy + tol) {
          tbox::pout << "Quaternions converged after " << it << " iterations..."
-                    << endl;
+                    << std::endl;
          break;
       }
    }
@@ -2280,15 +2284,15 @@ bool QuatModel::resetGrains(void)
    cellops.copyData(d_quat_id, d_quat_relax_id, false);
 
    if (d_extra_energy_detail) {
-      tbox::pout << setprecision(8);
-      tbox::pout << "  Total energy     = " << total_energy << endl;
-      tbox::pout << "    phi energy     = " << phase_energy << endl;
-      tbox::pout << "    orient energy  = " << orient_energy << endl;
-      tbox::pout << "    qint energy    = " << qint_energy << endl;
-      tbox::pout << "    well energy    = " << well_energy << endl;
-      tbox::pout << "    free energy    = " << free_energy << endl;
+      tbox::pout << std::setprecision(8);
+      tbox::pout << "  Total energy     = " << total_energy << std::endl;
+      tbox::pout << "    phi energy     = " << phase_energy << std::endl;
+      tbox::pout << "    orient energy  = " << orient_energy << std::endl;
+      tbox::pout << "    qint energy    = " << qint_energy << std::endl;
+      tbox::pout << "    well energy    = " << well_energy << std::endl;
+      tbox::pout << "    free energy    = " << free_energy << std::endl;
       if (d_model_parameters.with_third_phase()) {
-         tbox::pout << "    eta energy     = " << eta_energy << endl;
+         tbox::pout << "    eta energy     = " << eta_energy << std::endl;
       }
    }
 
@@ -2362,9 +2366,9 @@ void QuatModel::preRunDiagnostics(void)
    math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
 
    double surface_e = d_model_parameters.surfaceEnergy();
-   tbox::pout << "Surface energy (J/m^2): " << surface_e << endl;
+   tbox::pout << "Surface energy (J/m^2): " << surface_e << std::endl;
    double width = d_model_parameters.interfacialWidth();
-   tbox::pout << "Interfacial width (um): " << width << endl;
+   tbox::pout << "Interfacial width (um): " << width << std::endl;
 
    if (d_model_parameters.with_concentration())
       d_composition_rhs_strategy->printDiagnostics(d_patch_hierarchy);
@@ -2380,7 +2384,7 @@ void QuatModel::preRunDiagnostics(void)
           d_model_parameters.isConcentrationModelCALPHAD()) {
          assert(temperature > 0.);
          if (mpi.getRank() == 0) {
-            ofstream ffile("FvsT.dat", ios::out);
+            std::ofstream ffile("FvsT.dat", std::ios::out);
             assert(d_free_energy_strategy_for_diffusion);
             d_free_energy_strategy_for_diffusion->preRunDiagnostics(ffile);
          }
@@ -2457,16 +2461,16 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
    double cmin = mathops.min(d_conc_id);
    double cmax = mathops.max(d_conc_id);
    double dc = cmax - cmin;
-   cmin = max(0.25 * cmin, cmin - 0.2 * dc);
-   cmax = min(1. - 0.25 * (1. - cmax), cmax + 0.2 * dc);
+   cmin = std::max(0.25 * cmin, cmin - 0.2 * dc);
+   cmax = std::min(1. - 0.25 * (1. - cmax), cmax + 0.2 * dc);
    if (cmax - cmin <= 1.e-8) {
-      cmax = min(1., cmin + 0.1);
-      cmin = max(0., cmin - 0.1);
+      cmax = std::min(1., cmin + 0.1);
+      cmin = std::max(0., cmin - 0.1);
    }
-   tbox::pout << "QuatModel::computeCeq(): " << endl
+   tbox::pout << "QuatModel::computeCeq(): " << std::endl
               << "Try to estimate equilibrium concentrations between cmin="
-              << cmin << " and cmax=" << cmax << "..." << endl;
-   tbox::pout << "T=" << temperature << endl;
+              << cmin << " and cmax=" << cmax << "..." << std::endl;
+   tbox::pout << "T=" << temperature << std::endl;
 
    double ceq_init0 = cmin;
    double ceq_init1 = cmax;
@@ -2493,7 +2497,8 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
       if (lceq[1] < 0.) found_ceq = false;
 
       if (!found_ceq) {
-         tbox::pout << "Try again with different initial conditions..." << endl;
+         tbox::pout << "Try again with different initial conditions..."
+                    << std::endl;
          lceq[0] = ceq_init1;
          lceq[1] = ceq_init0;
          found_ceq =
@@ -2506,29 +2511,29 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
 
       if (found_ceq) {
          tbox::plog << "Found equilibrium concentrations: " << lceq[0] << ", "
-                    << lceq[1] << "..." << endl;
+                    << lceq[1] << "..." << std::endl;
          if (d_ncompositions > 1)
             tbox::plog << "                                  " << lceq[2]
-                       << ", " << lceq[3] << "..." << endl;
+                       << ", " << lceq[3] << "..." << std::endl;
 
          if (d_model_parameters.isConcentrationModelCALPHAD()) {
-            vector<double> d2fdc2(1);
+            std::vector<double> d2fdc2(1);
             CALPHADFreeEnergyFunctionsBinary* cafe =
                 dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_cafe);
             cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi0,
                                                     d2fdc2);
-            for (vector<double>::const_iterator it = d2fdc2.begin();
+            for (std::vector<double>::const_iterator it = d2fdc2.begin();
                  it != d2fdc2.end(); ++it)
-               tbox::plog << "d2fdc2=" << *it << endl;
+               tbox::plog << "d2fdc2=" << *it << std::endl;
             cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi1,
                                                     d2fdc2);
-            for (vector<double>::const_iterator it = d2fdc2.begin();
+            for (std::vector<double>::const_iterator it = d2fdc2.begin();
                  it != d2fdc2.end(); ++it)
-               tbox::plog << "d2fdc2=" << *it << endl;
+               tbox::plog << "d2fdc2=" << *it << std::endl;
          }
       } else {
          tbox::plog << "ERROR: Equilibrium concentrations not found... "
-                    << endl;
+                    << std::endl;
       }
 
       if (!found_ceq) mpi.abort();
@@ -2557,7 +2562,7 @@ void QuatModel::preRunDiagnosticsMobilityInPhases(const double temperature)
       const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
       assert(d_calphad_db);
-      string calphad_filename = d_calphad_db->getString("filename");
+      std::string calphad_filename = d_calphad_db->getString("filename");
 
       boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
           new tbox::MemoryDatabase("calphad_db"));
@@ -2592,32 +2597,32 @@ void QuatModel::preRunDiagnosticsMobilityInPhases(const double temperature)
          const double tempmax = temperature * 2.;
 
          if (mpi.getRank() == 0) {
-            ofstream tfile("D.dat", ios::out);
+            std::ofstream tfile("D.dat", std::ios::out);
             tfile << "#Diffusion in liquid phase for species 0 [m^2/s] vs. "
                      "10000./T"
-                  << endl;
+                  << std::endl;
             calphad_mobility0_phaseL.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
                                                                  tfile);
 
-            tfile << endl
+            tfile << std::endl
                   << "#Diffusion in liquid phase for species 1 [m^2/s] vs. "
                      "10000./T"
-                  << endl;
+                  << std::endl;
             calphad_mobility0_phaseL.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
                                                                  tfile);
 
-            tfile << endl
+            tfile << std::endl
                   << "#Diffusion in phase A for species 0 [m^2/s] vs. 10000./T"
-                  << endl;
+                  << std::endl;
             calphad_mobility0_phaseA.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
                                                                  tfile);
 
-            tfile << endl
+            tfile << std::endl
                   << "#Diffusion in phase A for species 1 [m^2/s] vs. 10000./T"
-                  << endl;
+                  << std::endl;
             calphad_mobility1_phaseA.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
                                                                  tfile);
@@ -2647,42 +2652,42 @@ void QuatModel::printScalarDiagnostics(void)
 
    if (d_model_parameters.with_heat_equation()) {
       double thermal_energy = computeThermalEnergy(d_patch_hierarchy);
-      tbox::pout << "Thermal energy [pJ]= " << thermal_energy << endl;
+      tbox::pout << "Thermal energy [pJ]= " << thermal_energy << std::endl;
    }
 
    if (!d_time_info_interval->eventOccurredAtTime(d_time)) {
-      tbox::pout << "cycle # " << d_cycle << " : t = " << d_time << endl;
+      tbox::pout << "cycle # " << d_cycle << " : t = " << d_time << std::endl;
    }
 
    if (d_extra_energy_detail) {
-      tbox::pout << setprecision(8);
-      tbox::pout << "  Total energy [pJ]    = " << total_energy << endl;
-      tbox::pout << "    phi energy [pJ]    = " << phase_energy << endl;
-      tbox::pout << "    orient energy [pJ] = " << orient_energy << endl;
-      tbox::pout << "    qint energy [pJ]   = " << qint_energy << endl;
-      tbox::pout << "    well energy [pJ]   = " << well_energy << endl;
-      tbox::pout << "    free energy [pJ]   = " << free_energy << endl;
+      tbox::pout << std::setprecision(8);
+      tbox::pout << "  Total energy [pJ]    = " << total_energy << std::endl;
+      tbox::pout << "    phi energy [pJ]    = " << phase_energy << std::endl;
+      tbox::pout << "    orient energy [pJ] = " << orient_energy << std::endl;
+      tbox::pout << "    qint energy [pJ]   = " << qint_energy << std::endl;
+      tbox::pout << "    well energy [pJ]   = " << well_energy << std::endl;
+      tbox::pout << "    free energy [pJ]   = " << free_energy << std::endl;
       if (d_model_parameters.grand_potential()) {
-         tbox::pout << "  GP [pJ] = " << total_energy << endl;
+         tbox::pout << "  GP [pJ] = " << total_energy << std::endl;
       }
       if (d_model_parameters.with_third_phase()) {
-         tbox::pout << "    eta energy [pJ]    = " << eta_energy << endl;
+         tbox::pout << "    eta energy [pJ]    = " << eta_energy << std::endl;
       }
    } else {
-      tbox::pout << "  Total energy [pJ] = " << total_energy << endl;
+      tbox::pout << "  Total energy [pJ] = " << total_energy << std::endl;
    }
 
    if (d_temperature_strategy != nullptr) {
       double t =
           d_temperature_strategy->getCurrentMinTemperature(d_patch_hierarchy,
                                                            d_time);
-      tbox::pout << "  Min. Temperature = " << t << endl;
+      tbox::pout << "  Min. Temperature = " << t << std::endl;
       t = d_temperature_strategy->getCurrentMaxTemperature(d_patch_hierarchy,
                                                            d_time);
-      tbox::pout << "  Max. Temperature = " << t << endl;
+      tbox::pout << "  Max. Temperature = " << t << std::endl;
       t = d_temperature_strategy->getCurrentAverageTemperature(
           d_patch_hierarchy, d_time);
-      tbox::pout << "  Average Temperature = " << t << endl;
+      tbox::pout << "  Average Temperature = " << t << std::endl;
    }
 
    // computes volume of physical domain
@@ -2695,13 +2700,14 @@ void QuatModel::printScalarDiagnostics(void)
    double vphi = vol;
    if (d_model_parameters.with_phase()) {
       vphi = evaluateVolumeSolid(d_patch_hierarchy);
-      tbox::pout << "  Volume fraction of solid phase = " << vphi / vol << endl;
+      tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
+                 << std::endl;
    }
 
    if (d_model_parameters.with_third_phase()) {
       const double vphi_eta = evaluateVolumeEta(d_patch_hierarchy);
       tbox::pout << "  Volume fraction of eta phase = " << vphi_eta / vol
-                 << endl;
+                 << std::endl;
    }
 
    if (d_model_parameters.with_concentration()) {
@@ -2713,12 +2719,13 @@ void QuatModel::printScalarDiagnostics(void)
          const double c0V0 =
              evaluateIntegralConcentration(d_patch_hierarchy, ic);
          tbox::pout << "  Integral concentration " << ic << "= " << c0V0
-                    << endl;
+                    << std::endl;
 
          copyDepthCellData(d_patch_hierarchy, d_work_id, 0, d_conc_id, ic);
 
          double cmax = mathops.max(d_work_id);
-         tbox::pout << "  Max. concentration " << ic << "= " << cmax << endl;
+         tbox::pout << "  Max. concentration " << ic << "= " << cmax
+                    << std::endl;
 
          // average concentration
          const double c0 = c0V0 / vol;
@@ -2729,7 +2736,7 @@ void QuatModel::printScalarDiagnostics(void)
 
          const double cex = (cphi - c0 * vphi) / c0V0;
          tbox::pout << "  Cex (HBSM) for component " << ic << " = " << cex
-                    << endl;
+                    << std::endl;
       }
    }
 }
@@ -2738,7 +2745,7 @@ void QuatModel::printScalarDiagnostics(void)
 
 void QuatModel::findAndNumberGrains(void)
 {
-   tbox::pout << "findAndNumberGrains" << endl;
+   tbox::pout << "findAndNumberGrains" << std::endl;
    assert(d_grains);
 
    d_grains->findAndNumberGrains(d_patch_hierarchy, d_phase_id, d_weight_id,
@@ -2749,7 +2756,7 @@ void QuatModel::findAndNumberGrains(void)
 
 void QuatModel::computeGrainDiagnostics(void)
 {
-   tbox::pout << "Computing grain diagnostics" << endl;
+   tbox::pout << "Computing grain diagnostics" << std::endl;
 
    findAndNumberGrains();
    d_grains->computeGrainVolumes(d_patch_hierarchy, d_weight_id);
@@ -2814,9 +2821,9 @@ void QuatModel::computeMinMaxQModulus(
    mpi.AllReduce(&mx, 1, MPI_MAX);
    mpi.AllReduce(&mn, 1, MPI_MIN);
 
-   tbox::pout << endl;
-   tbox::pout << "Q magnitude maximum - 1: " << mx - 1. << endl;
-   tbox::pout << "Q magnitude minimum - 1: " << mn - 1. << endl;
+   tbox::pout << std::endl;
+   tbox::pout << "Q magnitude maximum - 1: " << mx - 1. << std::endl;
+   tbox::pout << "Q magnitude minimum - 1: " << mn - 1. << std::endl;
 }
 
 //=======================================================================
@@ -2873,20 +2880,20 @@ void QuatModel::Regrid(const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
 
    if (d_use_warm_start) {
 
-      set<int> cpodes_id_set;
-      set<int> phase_id_set;
-      set<int> eta_id_set;
-      set<int> orient_id_set;
-      set<int> conc_id_set;
-      set<int> temp_id_set;
+      std::set<int> cpodes_id_set;
+      std::set<int> phase_id_set;
+      std::set<int> eta_id_set;
+      std::set<int> orient_id_set;
+      std::set<int> conc_id_set;
+      std::set<int> temp_id_set;
 
       d_integrator->getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set,
                                                 eta_id_set, orient_id_set,
                                                 conc_id_set, temp_id_set);
 
-      set<int>::iterator it;
+      std::set<int>::iterator it;
 
-      static map<int, int> id_map;
+      static std::map<int, int> id_map;
 
       static bool first_time = true;
 
@@ -2981,7 +2988,7 @@ void QuatModel::initializeLevelData(
    TBOX_ASSERT((hierarchy->getPatchLevel(level_number)));
 #endif
 
-   tbox::pout << "QuatModel::initializeLevelData()" << endl;
+   tbox::pout << "QuatModel::initializeLevelData()" << std::endl;
 
    assert(d_curr_to_curr_refine_alg);
 
@@ -3446,7 +3453,7 @@ void QuatModel::resetHierarchyConfiguration(
       TBOX_ASSERT((hierarchy->getPatchLevel(ln0)));
    }
 #endif
-   tbox::pout << "QuatModel::resetHierarchyConfiguration()" << endl;
+   tbox::pout << "QuatModel::resetHierarchyConfiguration()" << std::endl;
 
    int nlev = hierarchy->getNumberOfLevels();
 
@@ -3467,9 +3474,9 @@ void QuatModel::resetHierarchyConfiguration(
       if (bl.boxesIntersect()) {
          for (hier::BoxContainer::iterator bli = bl.begin(); bli != bl.end();
               ++bli) {
-            tbox::pout << *bli << endl;
+            tbox::pout << *bli << std::endl;
          }
-         stringstream message;
+         std::stringstream message;
          message << "Boxes intersect on level " << ln;
          tbox::Utilities::abort(message.str(), __FILE__, __LINE__);
       }
@@ -3683,7 +3690,7 @@ void QuatModel::readInitialDatabase(boost::shared_ptr<tbox::Database> input_db)
 
 void QuatModel::WriteInitialConditionsFile(void)
 {
-   tbox::plog << "Write initial conditions file..." << endl;
+   tbox::plog << "Write initial conditions file..." << std::endl;
 
    // get new PatchLevel with uniform mesh at level "d_initial_conditions_level"
    boost::shared_ptr<hier::PatchLevel> flattened_level =
@@ -3734,17 +3741,17 @@ void QuatModel::WriteInitialConditionsFile(void)
                            NcFile::Replace);
             if (!f->is_valid()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name
-                                              << endl);
+                                              << std::endl);
             }
 #endif
 #ifdef HAVE_NETCDF4
             f = new NcFile(d_initial_conditions_file_name, NcFile::replace);
             if (f->isNull()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name
-                                              << endl);
+                                              << std::endl);
             } else {
-               clog << "Open/replace file " << d_initial_conditions_file_name
-                    << endl;
+               std::clog << "Open/replace file "
+                         << d_initial_conditions_file_name << std::endl;
             }
 #endif
 
@@ -3783,19 +3790,19 @@ void QuatModel::WriteInitialConditionsFile(void)
 
 #endif
 #ifdef HAVE_NETCDF4
-            // cout<<"add variables from PE 0..."<<endl;
+            // std::cout<<"add variables from PE 0..."<<endl;
             NcDim nc_nx = f->addDim("x", nx_prob);
             NcDim nc_ny = f->addDim("y", ny_prob);
             NcDim nc_nz = f->addDim("z", nz_prob);
             // f->addDim( "qlen", d_qlen );
 
-            vector<NcDim> dims;
+            std::vector<NcDim> dims;
             dims.push_back(nc_nz);
             dims.push_back(nc_ny);
             dims.push_back(nc_nx);
             nc_phase = f->addVar("phase", ncFloat, dims);
             if (nc_phase.isNull()) {
-               TBOX_ERROR("Could add variable 'phase'" << endl);
+               TBOX_ERROR("Could add variable 'phase'" << std::endl);
             }
             if (d_model_parameters.with_third_phase()) {
                nc_eta = f->addVar("eta", ncFloat, dims);
@@ -3819,7 +3826,7 @@ void QuatModel::WriteInitialConditionsFile(void)
             }
 
             nc_temp = f->addVar("temperature", ncFloat, dims);
-            // cout<<"variables added on PE 0..."<<endl;
+            // std::cout<<"variables added on PE 0..."<<endl;
 #endif
          } else {  // pp!=0
 #ifdef HAVE_NETCDF3
@@ -3827,14 +3834,14 @@ void QuatModel::WriteInitialConditionsFile(void)
                            NcFile::Write);
             if (!f->is_valid()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name
-                                              << endl);
+                                              << std::endl);
             }
 #endif
 #ifdef HAVE_NETCDF4
             f = new NcFile(d_initial_conditions_file_name, NcFile::write);
             if (f->isNull()) {
                TBOX_ERROR("Cannot open file " << d_initial_conditions_file_name
-                                              << endl);
+                                              << std::endl);
                //}else{
                //   clog<<"Open/write file
                //   "<<d_initial_conditions_file_name<<endl;
@@ -3898,11 +3905,11 @@ void QuatModel::WriteInitialConditionsFile(void)
 
 #ifdef HAVE_NETCDF3
          if (nc_phase == nullptr) {
-            TBOX_ERROR("Could not create variable 'phase'" << endl);
+            TBOX_ERROR("Could not create variable 'phase'" << std::endl);
          }
 
          if (d_model_parameters.with_third_phase() && nc_eta == nullptr) {
-            TBOX_ERROR("Could not create variable 'eta'" << endl);
+            TBOX_ERROR("Could not create variable 'eta'" << std::endl);
          }
 
          if (d_model_parameters.with_orientation()) {
@@ -3910,7 +3917,8 @@ void QuatModel::WriteInitialConditionsFile(void)
                std::ostringstream o;
                o << "quat" << ii + 1;
                if (nc_qcomp[ii] == nullptr) {
-                  TBOX_ERROR("Could not create variable " << o.str() << endl);
+                  TBOX_ERROR("Could not create variable " << o.str()
+                                                          << std::endl);
                }
             }
          }
@@ -3921,23 +3929,24 @@ void QuatModel::WriteInitialConditionsFile(void)
                o << "concentration";
                if (d_ncompositions > 1) o << ii;
                if (nc_conc[ii] == nullptr) {
-                  TBOX_ERROR("Could not create variable " << o.str() << endl);
+                  TBOX_ERROR("Could not create variable " << o.str()
+                                                          << std::endl);
                }
             }
          }
 
          if (nc_temp == nullptr) {
-            TBOX_ERROR("Could not create variable 'temperature'" << endl);
+            TBOX_ERROR("Could not create variable 'temperature'" << std::endl);
          }
 #endif
 
 #ifdef HAVE_NETCDF4
          if (nc_phase.isNull()) {
-            TBOX_ERROR("Could not create variable 'phase'" << endl);
+            TBOX_ERROR("Could not create variable 'phase'" << std::endl);
          }
 
          if (d_model_parameters.with_third_phase() && nc_eta.isNull()) {
-            TBOX_ERROR("Could not create variable 'eta'" << endl);
+            TBOX_ERROR("Could not create variable 'eta'" << std::endl);
          }
 
          if (d_model_parameters.with_orientation()) {
@@ -3945,7 +3954,8 @@ void QuatModel::WriteInitialConditionsFile(void)
                std::ostringstream o;
                o << "quat" << ii + 1;
                if (nc_qcomp[ii].isNull()) {
-                  TBOX_ERROR("Could not create variable " << o.str() << endl);
+                  TBOX_ERROR("Could not create variable " << o.str()
+                                                          << std::endl);
                }
             }
          }
@@ -3956,17 +3966,18 @@ void QuatModel::WriteInitialConditionsFile(void)
                o << "concentration";
                if (d_ncompositions > 1) o << ii;
                if (nc_conc[ii].isNull()) {
-                  TBOX_ERROR("Could not create variable " << o.str() << endl);
+                  TBOX_ERROR("Could not create variable " << o.str()
+                                                          << std::endl);
                }
             }
          }
 
          if (nc_temp.isNull()) {
-            TBOX_ERROR("Could not create variable 'temperature'" << endl);
+            TBOX_ERROR("Could not create variable 'temperature'" << std::endl);
          }
 #endif
 
-         // cout<<"Write data into variable objects..."<<endl;
+         // std::cout<<"Write data into variable objects..."<<endl;
          for (hier::PatchLevel::Iterator p(flattened_level->begin());
               p != flattened_level->end(); ++p) {
             boost::shared_ptr<hier::Patch> patch = *p;
@@ -4002,11 +4013,11 @@ void QuatModel::WriteInitialConditionsFile(void)
             countp[1] = ny;
             countp[2] = nx;
 
-            // cout<<"Write data into variable 'phase'"<<endl;
-            // cout<<"nx="<<countp[0]<<", ny="<<countp[1]<<",
+            // std::cout<<"Write data into variable 'phase'"<<endl;
+            // std::cout<<"nx="<<countp[0]<<", ny="<<countp[1]<<",
             // nz="<<countp[2]<<endl;
             nc_phase.putVar(startp, countp, phase_data->getPointer());
-            // cout<<"Data written into variable 'phase'"<<endl;
+            // std::cout<<"Data written into variable 'phase'"<<endl;
 #endif
             if (d_model_parameters.with_third_phase()) {
                boost::shared_ptr<pdat::CellData<double> > eta_data(
@@ -4033,7 +4044,7 @@ void QuatModel::WriteInitialConditionsFile(void)
             nc_temp->put(temp_data->getPointer(), nz, ny, nx);
 #endif
 #ifdef HAVE_NETCDF4
-            // cout<<"Write data into variable 'temperature'"<<endl;
+            // std::cout<<"Write data into variable 'temperature'"<<endl;
             nc_temp.putVar(startp, countp, temp_data->getPointer());
 #endif
 
@@ -4072,7 +4083,7 @@ void QuatModel::WriteInitialConditionsFile(void)
                }
             }
          }
-         // cout<<"Close file..."<<endl;
+         // std::cout<<"Close file..."<<endl;
 #ifdef HAVE_NETCDF3
          f->close();
 #endif
@@ -4106,7 +4117,7 @@ boost::shared_ptr<hier::PatchLevel> QuatModel::FlattenHierarchy(
 
    // Compute physical domain box array describing the index space of the
    // physical domain managed by this geometry object. If any entry of ratio
-   // vector is negative, the index space is coarsened with respect to the
+   // std::vector is negative, the index space is coarsened with respect to the
    // physical domain description. Otherwise, the index space is refined.
 
    // get boxes corresponding to level 0 of hierarchy, then refine them to
@@ -5920,8 +5931,8 @@ void QuatModel::checkQuatNorm(
             }
             double qnorm = sqrt(qnorm2);
             if (fabs(qnorm - 1.) > tol) {
-               cerr << setprecision(10) << scientific;
-               cerr << "WARNING: q norm=" << qnorm << endl;
+               std::cerr << std::setprecision(10) << std::scientific;
+               std::cerr << "WARNING: q norm=" << qnorm << std::endl;
             }
          }
       }
@@ -5929,11 +5940,11 @@ void QuatModel::checkQuatNorm(
 }
 
 /*
- * Set weight appropriate for computing vector norms.
+ * Set weight appropriate for computing std::vector norms.
  *
  * If you this function to set the weights used when you
  * SAMRAIVectorReal::addComponent, you can use the
- * vector norm functions of SAMRAIVectorReal, and
+ * std::vector norm functions of SAMRAIVectorReal, and
  * the weights will be used to blank out coarse grid
  * regions under fine grids.
  *
@@ -5969,7 +5980,7 @@ void QuatModel::computeVectorWeights(
    for (int ln = finest_ln; ln >= coarsest_ln; --ln) {
 
       /*
-       * On every level, first assign cell volume to vector weight.
+       * On every level, first assign cell volume to std::vector weight.
        */
 
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -6001,7 +6012,7 @@ void QuatModel::computeVectorWeights(
       }
 
       /*
-       * On all but the finest level, assign 0 to vector
+       * On all but the finest level, assign 0 to std::vector
        * weight to cells covered by finer cells.
        */
 
@@ -6022,7 +6033,7 @@ void QuatModel::computeVectorWeights(
          coarsened_boxes.coarsen(coarsen_ratio);
 
          /*
-          * Then set vector weight to 0 wherever there is
+          * Then set std::vector weight to 0 wherever there is
           * a nonempty intersection with the next finer level.
           * Note that all assignments are local.
           */
@@ -6286,8 +6297,8 @@ void QuatModel::evaluateEnergy(
    if (d_model_parameters.with_visit_energy_output()) {
       double emin = mathops.min(d_energy_diag_id);
       double emax = mathops.max(d_energy_diag_id);
-      tbox::plog << "Min. energy density = " << emin << endl;
-      tbox::plog << "Max. energy density = " << emax << endl;
+      tbox::plog << "Min. energy density = " << emin << std::endl;
+      tbox::plog << "Max. energy density = " << emax << std::endl;
    }
 }
 
@@ -6301,7 +6312,7 @@ void QuatModel::computeSymmetryRotations(
    assert(d_quat_scratch_id >= 0);
    assert(d_quat_symm_rotation_id >= 0);
 
-   tbox::pout << "compute symmetry rotations..." << endl;
+   tbox::pout << "compute symmetry rotations..." << std::endl;
 
    // Fill ghosts of original quat data
    copyCurrentToScratch(d_patch_hierarchy, d_time, d_all_refine_patch_strategy);
@@ -6384,7 +6395,7 @@ void QuatModel::makeQuatFundamental(
    assert(d_quat_id >= 0);
 
    if (d_verbosity->notSilent()) {
-      tbox::pout << "Setting fundamental orientation" << endl;
+      tbox::pout << "Setting fundamental orientation" << std::endl;
    }
 
    int maxln = hierarchy->getFinestLevelNumber();
@@ -6562,7 +6573,8 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
    assert(d_conc_l_id >= 0);
    assert(d_conc_a_id >= 0);
 
-   tbox::pout << "QuatModel::setPhaseConcentrationsToEquilibrium(ceq)" << endl;
+   tbox::pout << "QuatModel::setPhaseConcentrationsToEquilibrium(ceq)"
+              << std::endl;
 #if 0
    math::HierarchyCellDataOpsReal<double> cellops( d_patch_hierarchy );
    cellops.setToScalar( d_conc_l_id, ceq[0], false );
@@ -6616,7 +6628,7 @@ void QuatModel::setRefPhaseConcentrationsToEquilibrium(const double* const ceq)
    assert(d_conc_a_ref_id >= 0);
 
    tbox::pout << "QuatModel::setRefPhaseConcentrationsToEquilibrium(ceq)"
-              << endl;
+              << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
    cellops.setToScalar(d_conc_l_ref_id, ceq[0], false);

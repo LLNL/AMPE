@@ -36,7 +36,6 @@
 #include "TemperatureFACSolver.h"
 #include "TemperatureFACOps.h"
 
-using namespace std;
 
 TemperatureFACSolver::TemperatureFACSolver(
     const std::string &object_name,

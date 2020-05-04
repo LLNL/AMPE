@@ -39,7 +39,7 @@
 
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
-using namespace std;
+
 using namespace SAMRAI;
 
 SpinodalCompositionRHSStrategy::SpinodalCompositionRHSStrategy(
@@ -48,8 +48,8 @@ SpinodalCompositionRHSStrategy::SpinodalCompositionRHSStrategy(
     const unsigned int ncompositions, const int conc_a_scratch_id,
     const int conc_b_scratch_id, const int temperature_scratch_id,
     const int diffusion_id, const double kappa, const int Mq_id,
-    const vector<double>& Q_heat_transport,
-    const string& phase_interp_func_type, const string& avg_func_type,
+    const std::vector<double>& Q_heat_transport,
+    const std::string& phase_interp_func_type, const std::string& avg_func_type,
     FreeEnergyStrategy* free_energy_strategy)
     : CompositionRHSStrategyWithMobilities(input_db, phase_scratch_id,
                                            eta_scratch_id, ncompositions,
@@ -216,16 +216,16 @@ void SpinodalCompositionRHSStrategy::setDiffusionCoeffForConcOnPatch(
     boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
     const hier::Box& pbox)
 {
-   vector<double*> ptr_c(d_ncompositions);
+   std::vector<double*> ptr_c(d_ncompositions);
    for (unsigned int ic = 0; ic < d_ncompositions; ic++) {
       ptr_c[ic] = cd_c->getPointer(ic);
    }
 
    double* ptr_temp = cd_temp->getPointer();
 
-   vector<double*> ptr_dx_coeff(d_ncompositions * d_ncompositions);
-   vector<double*> ptr_dy_coeff(d_ncompositions * d_ncompositions);
-   vector<double*> ptr_dz_coeff(d_ncompositions * d_ncompositions, NULL);
+   std::vector<double*> ptr_dx_coeff(d_ncompositions * d_ncompositions);
+   std::vector<double*> ptr_dy_coeff(d_ncompositions * d_ncompositions);
+   std::vector<double*> ptr_dz_coeff(d_ncompositions * d_ncompositions, NULL);
    for (unsigned int ic = 0; ic < d_ncompositions; ic++)
       for (unsigned int jc = 0; jc < d_ncompositions; jc++) {
          const unsigned int ijc = ic + jc * d_ncompositions;
@@ -282,10 +282,10 @@ void SpinodalCompositionRHSStrategy::setDiffusionCoeffForConcOnPatch(
    kmax = pbox.upper(2);
 #endif
 
-   vector<double> c(d_ncompositions);
+   std::vector<double> c(d_ncompositions);
 
-   vector<double> d2f(d_ncompositions * d_ncompositions);
-   vector<double> mobmat(d_ncompositions * d_ncompositions);
+   std::vector<double> d2f(d_ncompositions * d_ncompositions);
+   std::vector<double> mobmat(d_ncompositions * d_ncompositions);
 
    // X-side
    for (int kk = kmin; kk <= kmax; kk++) {

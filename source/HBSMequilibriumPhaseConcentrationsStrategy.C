@@ -37,7 +37,6 @@
 #include "HBSMFreeEnergyStrategy.h"
 #include "FuncFort.h"
 
-using namespace std;
 
 HBSMequilibriumPhaseConcentrationsStrategy::
     HBSMequilibriumPhaseConcentrationsStrategy(

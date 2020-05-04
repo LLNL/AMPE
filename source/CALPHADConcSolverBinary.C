@@ -41,7 +41,6 @@
 #include <cmath>
 #include <cassert>
 
-using namespace std;
 
 static const double s_smallc = 1.0e-8;
 static const double s_inv_smallc = 1. / s_smallc;
@@ -76,7 +75,7 @@ void CALPHADConcentrationSolverBinary::computeXi(const double* const c,
 
       xi[ii] = d_RTinv * (eps + omega);
 
-      // cout << "d_L2["<<ii<<"] = " << d_L2[ii] << endl;
+      // std::cout << "d_L2["<<ii<<"] = " << d_L2[ii] << std::endl;
    }
 }
 //=======================================================================
@@ -124,11 +123,11 @@ void CALPHADConcentrationSolverBinary::RHS(const double* const c,
               ? 1. - c[2]
               : s_smallc * exp((1. - c[2]) * s_inv_smallc - 1.);
       fvec[2] = (onemc2 * c0) * exp(xi[0] - xi[2]) - (c2 * onemc0);
-      // cout << "xi[0] = " << xi[0] << endl;
-      // cout << "xi[1] = " << xi[1] << endl;
-      // cout << "xi[2] = " << xi[2] << endl;
-      // cout << "c2 = " << c2 << endl;
-      // cout << "fvec[2] = " << fvec[2] << endl;
+      // std::cout << "xi[0] = " << xi[0] << std::endl;
+      // std::cout << "xi[1] = " << xi[1] << std::endl;
+      // std::cout << "xi[2] = " << xi[2] << std::endl;
+      // std::cout << "c2 = " << c2 << std::endl;
+      // std::cout << "fvec[2] = " << fvec[2] << std::endl;
    }
 #endif
 }

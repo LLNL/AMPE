@@ -41,7 +41,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 TemperatureFreeEnergyStrategy::TemperatureFreeEnergyStrategy(
     const EnergyInterpolationType phase_interp_func_type,
@@ -70,11 +70,11 @@ TemperatureFreeEnergyStrategy::TemperatureFreeEnergyStrategy(
 
    d_with_third_phase = with_third_phase;
 
-   tbox::plog << "TemperatureFreeEnergyStrategy:" << endl;
-   tbox::plog << "Molar volume A = " << vma << endl;
-   tbox::plog << "Latent heat    = " << d_latent_heat << endl;
-   tbox::plog << "meltingT       = " << d_meltingT << endl;
-   tbox::plog << "f solid A      = " << d_f_a << endl;
+   tbox::plog << "TemperatureFreeEnergyStrategy:" << std::endl;
+   tbox::plog << "Molar volume A = " << vma << std::endl;
+   tbox::plog << "Latent heat    = " << d_latent_heat << std::endl;
+   tbox::plog << "meltingT       = " << d_meltingT << std::endl;
+   tbox::plog << "f solid A      = " << d_f_a << std::endl;
 }
 
 double TemperatureFreeEnergyStrategy::computeValFreeEnergyLiquid(
@@ -384,8 +384,8 @@ void TemperatureFreeEnergyStrategy::addDrivingForceEta(
 //=======================================================================
 
 void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_l,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_l;
@@ -398,8 +398,8 @@ void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 //=======================================================================
 
 void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_a,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_a;
@@ -412,8 +412,8 @@ void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 //=======================================================================
 
 void TemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_b,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_b;

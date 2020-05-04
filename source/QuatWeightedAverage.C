@@ -43,7 +43,7 @@
 #include "SAMRAI/tbox/Utilities.h"
 
 #include <cassert>
-using namespace std;
+
 
 /*
 *************************************************************************
@@ -86,7 +86,8 @@ QuatWeightedAverage::QuatWeightedAverage(const bool symmetry_aware,
 QuatWeightedAverage::~QuatWeightedAverage() {}
 
 bool QuatWeightedAverage::findCoarsenOperator(
-    const boost::shared_ptr<hier::Variable>& var, const string& op_name) const
+    const boost::shared_ptr<hier::Variable>& var,
+    const std::string& op_name) const
 {
    const boost::shared_ptr<pdat::CellVariable<double> > cast_var(
        BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
@@ -97,7 +98,7 @@ bool QuatWeightedAverage::findCoarsenOperator(
    }
 }
 
-const string& QuatWeightedAverage::getOperatorName() const
+const std::string& QuatWeightedAverage::getOperatorName() const
 {
    return (d_name_id);
 }

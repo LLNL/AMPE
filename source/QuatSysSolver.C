@@ -46,7 +46,7 @@
 #include <cassert>
 
 #include "SAMRAI/tbox/TimerManager.h"
-using namespace std;
+
 
 /*
 *************************************************************************
@@ -63,7 +63,7 @@ using namespace std;
 */
 
 
-QuatSysSolver::QuatSysSolver(const int ql, const string& object_name,
+QuatSysSolver::QuatSysSolver(const int ql, const std::string& object_name,
                              boost::shared_ptr<tbox::Database> database)
     : d_object_name(object_name),
       d_fac_ops(new QuatFACOps(ql, object_name + "::fac_ops", database)),
@@ -149,7 +149,7 @@ void QuatSysSolver::getFromInput(
       setVerbose(verbose);
    }
    if (input_db->isString("coarse_fine_discretization")) {
-      string s = input_db->getString("coarse_fine_discretization");
+      std::string s = input_db->getString("coarse_fine_discretization");
       // Sets the coarse-fine discretization to be used by the FAC operator
       setCoarseFineDiscretization(s);
    }
@@ -175,7 +175,7 @@ void QuatSysSolver::getFromInput(
       setCoarsestLevelSolverMaxIterations(itr);
    }
    if (input_db->isString("prolongation_method")) {
-      string s = input_db->getString("prolongation_method");
+      std::string s = input_db->getString("prolongation_method");
       // Sets the prolongation method to be used by the FAC operator
       setProlongationMethod(s);
    }
@@ -185,7 +185,7 @@ void QuatSysSolver::getFromInput(
 /*************************************************************************
  *                                                                       *
  * Prepare internal data for solve.                                      *
- * Allocate scratch data.  Create vectors for u and f                    *
+ * Allocate scratch data.  Create std::vectors for u and f                    *
  * required by the FACPreconditioner interface.                     *
  * Set up internal boundary condition object.                            *
  * Share data to coordinate with FAC preconditioner and                  *
@@ -245,7 +245,7 @@ void QuatSysSolver::initializeSolverState(
 
       d_weight_id = weight_id;
 
-      // Wrap the temporary vectors
+      // Wrap the temporary std::vectors
       createVectorWrappers(q_soln_id, q_rhs_id, d_uv, d_fv);
 
       // Initialize the FAC solver used for the preconditioner
@@ -295,8 +295,9 @@ void QuatSysSolver::deallocateSolverState()
 }
 
 
-void QuatSysSolver::setBoundaries(const string& boundary_type, const int fluxes,
-                                  const int flags, int* bdry_types)
+void QuatSysSolver::setBoundaries(const std::string& boundary_type,
+                                  const int fluxes, const int flags,
+                                  int* bdry_types)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    if (d_bc_object != NULL && d_bc_object != &d_simple_bc) {
@@ -313,7 +314,7 @@ void QuatSysSolver::setBoundaries(const string& boundary_type, const int fluxes,
 
 void QuatSysSolver::setOperatorCoefficients(
     const double time_step, const double epsilon_q,
-    const double quat_grad_floor, const string quat_smooth_floor_type,
+    const double quat_grad_floor, const std::string quat_smooth_floor_type,
     const int mobility_id, const int mobility_deriv_id, const int diff_coef_id,
     const int diff_coef_deriv_id, const int grad_q_id, const int q_id)
 {
@@ -400,7 +401,7 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 
 void QuatSysSolver::evaluateRHS(
     const double epsilon_q, const double quat_grad_floor,
-    const string quat_floor_type,
+    const std::string quat_floor_type,
     const int diffusion_coef_id,  // D_q(phi)
     const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
@@ -453,8 +454,7 @@ void QuatSysSolver::printFACConvergenceFactors(const int solver_ret)
               << "     iterations: " << getNumberOfIterations() << "\n"
               << "     residual: " << getResidualNorm() << "\n"
               << "     average convergence: " << avg_factor << "\n"
-              << "     final convergence: " << final_factor << "\n"
-              << flush;
+              << "     final convergence: " << final_factor << std::endl;
 }
 
 
@@ -470,8 +470,8 @@ void QuatSysSolver::createVectorWrappers(
    boost::shared_ptr<hier::Variable> variable;
 
    /*
-    *  If the vector uv has not yet been allocated, or if either of
-    *  the component ids have changed, then reconstruct the vector
+    *  If the std::vector uv has not yet been allocated, or if either of
+    *  the component ids have changed, then reconstruct the std::vector
     */
    if (!uv || uv->getComponentDescriptorIndex(0) != q_u) {
       uv.reset(new solv::SAMRAIVectorReal<double>(d_object_name + "::uv",
@@ -495,8 +495,8 @@ void QuatSysSolver::createVectorWrappers(
 
 
    /*
-    *  If the vector d_fv has not yet been allocated, or if either of
-    *  the component ids have changed, then reconstruct the vector
+    *  If the std::vector d_fv has not yet been allocated, or if either of
+    *  the component ids have changed, then reconstruct the std::vector
     */
    if (!fv || fv->getComponentDescriptorIndex(0) != q_f) {
       fv.reset(new solv::SAMRAIVectorReal<double>(d_object_name + "::fv",
@@ -522,7 +522,7 @@ void QuatSysSolver::createVectorWrappers(
 
 /*
 ***********************************************************************
-* Delete the vector wrappers.  Do not freeVectorComponents because    *
+* Delete the std::vector wrappers.  Do not freeVectorComponents because    *
 * we do not control their data allocation.  The user does that.       *
 ***********************************************************************
 */

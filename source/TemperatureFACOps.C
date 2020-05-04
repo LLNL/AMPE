@@ -41,7 +41,6 @@
 #include "FuncFort.h"
 
 #include <cassert>
-using namespace std;
 
 //======================================================================
 

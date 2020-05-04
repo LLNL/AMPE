@@ -41,7 +41,6 @@
 
 #include <iomanip>
 
-using namespace std;
 
 //=======================================================================
 
@@ -69,9 +68,9 @@ void DampedNewtonSolver::UpdateSolution(double* const c,
 
    const double D_inv = 1.0 / D;
 
-   // cout<<setprecision(12);
-   // cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " << D <<
-   // endl;
+   // std::cout<<setprecision(12);
+   // std::cout << "DampedNewtonSolver::UpdateSolution(), N = "<<nn<<", D = " <<
+   // D << std::endl;
 
    static double del[5];
 
@@ -86,13 +85,13 @@ void DampedNewtonSolver::UpdateSolution(double* const c,
       }
 
       const double Dmwork = Determinant(mwork);
-      // cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
+      // std::cout << "nn="<<nn<<", Dmwork="<<Dmwork <<endl;
       del[jj] = D_inv * Dmwork;
 
       const double maxdel = 0.25;
       if (fabs(del[jj]) > maxdel) del[jj] = del[jj] > 0 ? maxdel : -maxdel;
 
-      // cout << "del[" << jj << "] = " << del[jj] << endl;
+      // std::cout << "del[" << jj << "] = " << del[jj] << std::endl;
    }
 
    double w = d_alpha;

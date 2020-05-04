@@ -50,7 +50,6 @@
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char* argv[])
@@ -96,19 +95,19 @@ int main(int argc, char* argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
-      tbox::plog << "Run with " << mpi.getSize() << " MPI tasks" << endl;
-      tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "Run with " << mpi.getSize() << " MPI tasks" << std::endl;
+      tbox::plog << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
-      string energy_interp_func_type = "pbg";
-      string conc_interp_func_type = "pbg";
+      std::string energy_interp_func_type = "pbg";
+      std::string conc_interp_func_type = "pbg";
 
       boost::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
@@ -116,7 +115,7 @@ int main(int argc, char* argv[])
 
       boost::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      string conc_avg_func_type = "a";
+      std::string conc_avg_func_type = "a";
 
       boost::shared_ptr<tbox::Database> dcalphad_db =
           conc_db->getDatabase("Calphad");
@@ -136,20 +135,21 @@ int main(int argc, char* argv[])
 
       // choose pair of phases: phaseL, phaseA
       PhaseIndex pindex;
-      string phase = model_db->getString("phase");
+      std::string phase = model_db->getString("phase");
       if (phase == "solid")
          pindex = phaseA;
       else if (phase == "liquid")
          pindex = phaseL;
       else {
-         cerr << "ERROR: Phase needs to be 'solid' or liquid'" << endl;
+         std::cerr << "ERROR: Phase needs to be 'solid' or liquid'"
+                   << std::endl;
          tbox::SAMRAI_MPI::abort();
       }
 
       double energy = cafe.computeFreeEnergy(temperature, &c[0], pindex);
 
-      cout << setprecision(12);
-      cout << "Energy: " << energy << endl;
+      std::cout << std::setprecision(12);
+      std::cout << "Energy: " << energy << std::endl;
 
       input_db.reset();
    }

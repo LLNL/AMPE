@@ -65,7 +65,6 @@
 #include "boost/make_shared.hpp"
 
 #include <cassert>
-using namespace std;
 
 
 extern "C" {
@@ -609,7 +608,7 @@ void EllipticFACOps::initializeOperatorState(
     * Cell refinement from coarser level is chosen by the
     *   choice of coarse-fine discretization, d_cf_discretization,
     *   which should be set to either "Ewing" or one of the
-    *   acceptable strings for looking up the refine operator.
+    *   acceptable std::strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
        BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
@@ -1786,11 +1785,11 @@ double EllipticFACOps::computeResidualNorm(
        fine_ln != residual.getFinestLevelNumber()) {
       TBOX_ERROR("EllipticFACOps::computeResidualNorm() is not\n"
                  << "set up to compute residual except on the range of\n"
-                 << "levels defining the vector.\n");
+                 << "levels defining the std::vector.\n");
    }
    t_compute_residual_norm->start();
    /*
-    * The residual vector was cloned from vectors that has
+    * The residual std::vector was cloned from std::vectors that has
     * the proper weights associated with them, so we do not
     * have to explicitly weight the residuals.
     *
@@ -1810,7 +1809,7 @@ double EllipticFACOps::computeResidualNorm(
 
 /*
 ********************************************************************
-* Compute the vector weight and put it at a specified patch data   *
+* Compute the std::vector weight and put it at a specified patch data   *
 * index.                                                           *
 ********************************************************************
 */
@@ -1831,7 +1830,7 @@ void EllipticFACOps::computeVectorWeights(
    for (ln = finest_ln; ln >= coarsest_ln; --ln) {
 
       /*
-       * On every level, first assign cell volume to vector weight.
+       * On every level, first assign cell volume to std::vector weight.
        */
 
       boost::shared_ptr<hier::PatchLevel> level(hierarchy->getPatchLevel(ln));
@@ -1862,7 +1861,7 @@ void EllipticFACOps::computeVectorWeights(
       }
 
       /*
-       * On all but the finest level, assign 0 to vector
+       * On all but the finest level, assign 0 to std::vector
        * weight to cells covered by finer cells.
        */
 
@@ -1882,7 +1881,7 @@ void EllipticFACOps::computeVectorWeights(
          coarsened_boxes.coarsen(coarsen_ratio);
 
          /*
-          * Then set vector weight to 0 wherever there is
+          * Then set std::vector weight to 0 wherever there is
           * a nonempty intersection with the next finer level.
           * Note that all assignments are local.
           */

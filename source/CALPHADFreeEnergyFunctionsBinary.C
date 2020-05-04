@@ -41,7 +41,7 @@
 
 
 #include <string>
-using namespace std;
+
 
 #ifdef HAVE_TLOT
 void readLcoefficients(boost::shared_ptr<tbox::Database> db,
@@ -131,7 +131,8 @@ CALPHADFreeEnergyFunctionsBinary::CALPHADFreeEnergyFunctionsBinary(
 void CALPHADFreeEnergyFunctionsBinary::setupSolver(
     boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::plog << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..." << endl;
+   tbox::plog << "CALPHADFreeEnergyFunctionsBinary::setupSolver()..."
+              << std::endl;
    d_solver = new CALPHADConcentrationSolverBinary(d_with_third_phase);
 
    readNewtonparameters(newton_db);
@@ -162,22 +163,22 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(
 {
    boost::shared_ptr<tbox::Database> species0_db =
        calphad_db->getDatabase("SpeciesA");
-   string name = species0_db->getStringWithDefault("name", "unknown");
-   string dbnameL("PhaseL");
+   std::string name = species0_db->getStringWithDefault("name", "unknown");
+   std::string dbnameL("PhaseL");
    if (species0_db->keyExists("Phase0")) {
-      tbox::pout << "Input Phase0 is deprecated.  Use PhaseL." << endl;
+      tbox::pout << "Input Phase0 is deprecated.  Use PhaseL." << std::endl;
       dbnameL = "Phase0";
    }
    d_g_species_phaseL[0].initialize(name, species0_db->getDatabase(dbnameL));
-   string dbnameA("PhaseA");
+   std::string dbnameA("PhaseA");
    if (species0_db->keyExists("Phase1")) {
-      tbox::pout << "Input Phase1 is deprecated.  Use PhaseA." << endl;
+      tbox::pout << "Input Phase1 is deprecated.  Use PhaseA." << std::endl;
       dbnameA = "Phase1";
    }
    d_g_species_phaseA[0].initialize(name, species0_db->getDatabase(dbnameA));
-   string dbnameB("PhaseB");
+   std::string dbnameB("PhaseB");
    if (species0_db->keyExists("Phase2")) {
-      tbox::pout << "Input Phase2 is deprecated.  Use PhaseB." << endl;
+      tbox::pout << "Input Phase2 is deprecated.  Use PhaseB." << std::endl;
       dbnameB = "PhaseB";
    }
    if (d_with_third_phase) {
@@ -194,19 +195,22 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(
    }
 
    // read Lmix coefficients
-   string dbnamemixL("LmixPhaseL");
+   std::string dbnamemixL("LmixPhaseL");
    if (calphad_db->keyExists("LmixPhase0")) {
-      tbox::pout << "Input LmixPhase0 is deprecated.  Use LmixPhaseL." << endl;
+      tbox::pout << "Input LmixPhase0 is deprecated.  Use LmixPhaseL."
+                 << std::endl;
       dbnamemixL = "LmixPhase0";
    }
-   string dbnamemixA("LmixPhaseA");
+   std::string dbnamemixA("LmixPhaseA");
    if (calphad_db->keyExists("LmixPhase1")) {
-      tbox::pout << "Input LmixPhase1 is deprecated.  Use LmixPhaseA." << endl;
+      tbox::pout << "Input LmixPhase1 is deprecated.  Use LmixPhaseA."
+                 << std::endl;
       dbnamemixA = "LmixPhase1";
    }
-   string dbnamemixB("LmixPhaseB");
+   std::string dbnamemixB("LmixPhaseB");
    if (calphad_db->keyExists("LmixPhase2")) {
-      tbox::pout << "Input LmixPhase2 is deprecated.  Use LmixPhaseB." << endl;
+      tbox::pout << "Input LmixPhase2 is deprecated.  Use LmixPhaseB."
+                 << std::endl;
       dbnamemixB = "LmixPhase2";
    }
    boost::shared_ptr<tbox::Database> Lmix0_db =
@@ -224,7 +228,7 @@ void CALPHADFreeEnergyFunctionsBinary::readParameters(
    }
 
    // print database just read
-   tbox::plog << "CALPHAD database..." << endl;
+   tbox::plog << "CALPHAD database..." << std::endl;
    calphad_db->printClassData(tbox::plog);
 }
 
@@ -357,9 +361,9 @@ void CALPHADFreeEnergyFunctionsBinary::setupValuesForTwoPhasesSolver(
             break;
 
          default:
-            cerr << "CALPHADFreeEnergyFunctionsBinary::"
-                    "setupValuesForTwoPhasesSolver: Undefined phase"
-                 << endl;
+            std::cerr << "CALPHADFreeEnergyFunctionsBinary::"
+                         "setupValuesForTwoPhasesSolver: Undefined phase"
+                      << std::endl;
       }
    }
 }
@@ -403,7 +407,8 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
     double* ceq, const int maxits, const bool verbose)
 {
    if (verbose)
-      tbox::pout << "CALPHADFreeEnergyFunctionsBinary::computeCeqT()" << endl;
+      tbox::pout << "CALPHADFreeEnergyFunctionsBinary::computeCeqT()"
+                 << std::endl;
    assert(temperature > 0.);
 
    setupValuesForTwoPhasesSolver(temperature, d_L0, d_L1, d_L2, d_L3, d_fA,
@@ -417,8 +422,8 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
 
    if (ret >= 0) {
       if (verbose) {
-         tbox::pout << "CALPHAD, c_eq phase0=" << ceq[0] << endl;
-         tbox::pout << "CALPHAD, c_eq phase1=" << ceq[1] << endl;
+         tbox::pout << "CALPHAD, c_eq phase0=" << ceq[0] << std::endl;
+         tbox::pout << "CALPHAD, c_eq phase1=" << ceq[1] << std::endl;
       }
 
       if (pi1 == PhaseIndex::phaseB) {
@@ -431,7 +436,7 @@ bool CALPHADFreeEnergyFunctionsBinary::computeCeqT(
    } else {
       tbox::pout << "CALPHADFreeEnergyFunctionsBinary, WARNING: ceq "
                     "computation did not converge"
-                 << endl;
+                 << std::endl;
    }
 
    return (ret >= 0);
@@ -466,19 +471,21 @@ void CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies(
 
    if (ret < 0) {
       if (d_with_third_phase) {
-         cerr << "d_ceq_l=" << d_ceq_l << endl;
-         cerr << "d_ceq_a=" << d_ceq_a << endl;
-         cerr << "d_ceq_b=" << d_ceq_b << endl;
-         cerr << "ERROR in "
-                 "CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies()"
-                 " ---"
-              << "conc=" << conc << ", hphi=" << hphi << ", heta=" << heta
-              << endl;
+         std::cerr << "d_ceq_l=" << d_ceq_l << std::endl;
+         std::cerr << "d_ceq_a=" << d_ceq_a << std::endl;
+         std::cerr << "d_ceq_b=" << d_ceq_b << std::endl;
+         std::cerr << "ERROR in "
+                      "CALPHADFreeEnergyFunctionsBinary::"
+                      "computePhasesFreeEnergies()"
+                      " ---"
+                   << "conc=" << conc << ", hphi=" << hphi << ", heta=" << heta
+                   << std::endl;
       } else {
-         cerr << "ERROR in "
-                 "CALPHADFreeEnergyFunctionsBinary::computePhasesFreeEnergies()"
-                 " ---"
-              << "conc=" << conc << ", hphi=" << hphi << endl;
+         std::cerr << "ERROR in "
+                      "CALPHADFreeEnergyFunctionsBinary::"
+                      "computePhasesFreeEnergies()"
+                      " ---"
+                   << "conc=" << conc << ", hphi=" << hphi << std::endl;
       }
       tbox::SAMRAI_MPI::abort();
    }
@@ -560,10 +567,11 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    int ret = d_solver->ComputeConcentration(x, c0, hphi, heta, RTinv, d_L0,
                                             d_L1, d_L2, d_L3, d_fA, d_fB);
    if (ret == -1) {
-      cerr << "ERROR, "
-              "CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations() "
-              "failed for conc="
-           << conc0 << ", hphi=" << hphi << ", heta=" << heta << endl;
+      std::cerr << "ERROR, "
+                   "CALPHADFreeEnergyFunctionsBinary::"
+                   "computePhaseConcentrations() "
+                   "failed for conc="
+                << conc0 << ", hphi=" << hphi << ", heta=" << heta << std::endl;
       sleep(5);
       tbox::SAMRAI_MPI::abort();
    }
@@ -579,7 +587,7 @@ void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(
     const int npts_phi, const int npts_c)
 {
    tbox::plog << "CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC()..."
-              << endl;
+              << std::endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
@@ -595,24 +603,24 @@ void CALPHADFreeEnergyFunctionsBinary::energyVsPhiAndC(
          fc1 = computeFreeEnergy(temperature, &ceq[1], PhaseIndex::phaseA);
          slopec = -(fc1 - fc0) / (ceq[1] - ceq[0]);
       }
-   tbox::plog << setprecision(8) << "fc0: " << fc0 << "..."
-              << ", fc1: " << fc1 << "..." << endl;
+   tbox::plog << std::setprecision(8) << "fc0: " << fc0 << "..."
+              << ", fc1: " << fc1 << "..." << std::endl;
    tbox::plog << "CALPHADFreeEnergyFunctionsBinary: Use slope: " << slopec
-              << "..." << endl;
+              << "..." << std::endl;
    mpi.Barrier();
 
    if (mpi.getRank() == 0) {
 
       // reset cmin, cmax, deltac
-      double cmin = min(ceq[0], ceq[1]);
-      double cmax = max(ceq[0], ceq[1]);
+      double cmin = std::min(ceq[0], ceq[1]);
+      double cmax = std::max(ceq[0], ceq[1]);
       double dc = cmax - cmin;
-      cmin = max(0.25 * cmin, cmin - 0.25 * dc);
-      cmax = min(1. - 0.25 * (1. - cmax), cmax + 0.25 * dc);
-      cmax = max(cmax, cmin + dc);
+      cmin = std::max(0.25 * cmin, cmin - 0.25 * dc);
+      cmax = std::min(1. - 0.25 * (1. - cmax), cmax + 0.25 * dc);
+      cmax = std::max(cmax, cmin + dc);
       double deltac = (cmax - cmin) / (npts_c - 1);
 
-      ofstream tfile(d_fenergy_diag_filename.data(), ios::out);
+      std::ofstream tfile(d_fenergy_diag_filename.data(), std::ios::out);
 
       printEnergyVsPhiHeader(temperature, npts_phi, npts_c, cmin, cmax, slopec,
                              tfile);
@@ -632,37 +640,37 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhiHeader(
     const double temperature, const int nphi, const int nc, const double cmin,
     const double cmax, const double slopec, std::ostream& os) const
 {
-   os << "# vtk DataFile Version 2.0" << endl;
+   os << "# vtk DataFile Version 2.0" << std::endl;
    os << "Free energy + " << slopec << "*c [J/mol] at T=" << temperature
-      << endl;
-   os << "ASCII" << endl;
-   os << "DATASET STRUCTURED_POINTS" << endl;
+      << std::endl;
+   os << "ASCII" << std::endl;
+   os << "DATASET STRUCTURED_POINTS" << std::endl;
 
-   os << "DIMENSIONS   " << nphi << " " << nc << " 1" << endl;
+   os << "DIMENSIONS   " << nphi << " " << nc << " 1" << std::endl;
    double asp_ratio_c = (nc > 1) ? (cmax - cmin) / (nc - 1) : 1.;
    os << "ASPECT_RATIO " << 1. / (nphi - 1) << " " << asp_ratio_c << " 1."
-      << endl;
-   os << "ORIGIN        0. " << cmin << " 0." << endl;
-   os << "POINT_DATA   " << nphi * nc << endl;
-   os << "SCALARS energy float 1" << endl;
-   os << "LOOKUP_TABLE default" << endl;
+      << std::endl;
+   os << "ORIGIN        0. " << cmin << " 0." << std::endl;
+   os << "POINT_DATA   " << nphi * nc << std::endl;
+   os << "SCALARS energy float 1" << std::endl;
+   os << "LOOKUP_TABLE default" << std::endl;
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
     const double* const conc, const double temperature,
-    const double phi_well_scale, const string& phi_well_type, const int npts,
-    const double slopec, std::ostream& os)
+    const double phi_well_scale, const std::string& phi_well_type,
+    const int npts, const double slopec, std::ostream& os)
 {
    // tbox::pout << "CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi()..." <<
-   // endl;
+   // std::endl;
    const double dphi = 1.0 / (double)(npts - 1);
    const double eta = 0.0;
 
    // os << "# phi     f(phi)     for c=" << conc
    //           << " eta=" << eta
-   //           << " and T=" << temperature << endl;
+   //           << " and T=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       const double phi = i * dphi;
 
@@ -670,20 +678,20 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
       const double w =
           phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
 
-      os << e + w + slopec * conc[0] << endl;
+      os << e + w + slopec * conc[0] << std::endl;
    }
-   // os << endl;
+   // os << std::endl;
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
     const double* const conc, const double temperature,
-    const double eta_well_scale, const string& eta_well_type, const int npts,
-    const double slopec, std::ostream& os)
+    const double eta_well_scale, const std::string& eta_well_type,
+    const int npts, const double slopec, std::ostream& os)
 {
    // tbox::pout << "CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta()..." <<
-   // endl;
+   // std::endl;
    const double deta = 1.0 / (double)(npts - 1);
    const double phi = 1.0;
 
@@ -694,9 +702,9 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
 
       double w = eta_well_scale * FORT_WELL_FUNC(eta, eta_well_type.c_str());
 
-      os << e + w + slopec * conc[0] << endl;
+      os << e + w + slopec * conc[0] << std::endl;
    }
-   // os << endl;
+   // os << std::endl;
 }
 
 //=======================================================================
@@ -741,36 +749,36 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(const double phi,
 void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
     const double temperature, const int npts)
 {
-   ofstream os("FvsC.dat", ios::out);
+   std::ofstream os("FvsC.dat", std::ios::out);
 
    const double dc = 1.0 / (double)(npts - 1);
 
-   os << "#phi=0" << endl;
+   os << "#phi=0" << std::endl;
    for (int i = 0; i < npts; i++) {
       const double conc = i * dc;
 
       double e = fchem(0., 0., &conc, temperature);
-      os << conc << "\t" << e << endl;
+      os << conc << "\t" << e << std::endl;
    }
-   os << endl << endl;
+   os << std::endl << std::endl;
 
-   os << "#phi=1" << endl;
+   os << "#phi=1" << std::endl;
    for (int i = 0; i < npts; i++) {
       const double conc = i * dc;
 
       double e = fchem(1., 0., &conc, temperature);
-      os << conc << "\t" << e << endl;
+      os << conc << "\t" << e << std::endl;
    }
 
    if (d_with_third_phase) {
-      os << endl;
+      os << std::endl;
 
-      os << "#eta=1" << endl;
+      os << "#eta=1" << std::endl;
       for (int i = 0; i < npts; i++) {
          const double conc = i * dc;
 
          double e = fchem(1., 1., &conc, temperature);
-         os << conc << "\t" << e << endl;
+         os << conc << "\t" << e << std::endl;
       }
    }
 }

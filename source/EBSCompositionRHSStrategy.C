@@ -51,7 +51,6 @@
 
 #include <cassert>
 
-using namespace std;
 
 EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const int phase_scratch_id, const int eta_scratch_id,
@@ -59,9 +58,9 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const int conc_a_scratch_id, const int conc_b_scratch_id,
     const int temperature_scratch_id, const int diffusion_l_id,
     const int diffusion_a_id, const int diffusion_b_id, const int Mq_id,
-    const vector<double>& Q_heat_transport,
-    const std::vector<int> diffusion_precond_id, const string& avg_func_type,
-    FreeEnergyStrategy* free_energy_strategy,
+    const std::vector<double>& Q_heat_transport,
+    const std::vector<int> diffusion_precond_id,
+    const std::string& avg_func_type, FreeEnergyStrategy* free_energy_strategy,
     CompositionStrategyMobilities* mobilities_strategy,
     boost::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase)
     : CompositionRHSStrategy(avg_func_type),
@@ -75,10 +74,11 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 
    if (Mq_id >= 0) {
       assert(Q_heat_transport.size() > 0);
-      tbox::plog << "EBSCompositionRHSStrategy with thermal diffusion" << endl;
+      tbox::plog << "EBSCompositionRHSStrategy with thermal diffusion"
+                 << std::endl;
    } else {
       tbox::plog << "EBSCompositionRHSStrategy without thermal diffusion"
-                 << endl;
+                 << std::endl;
    }
 
    d_ncompositions = ncompositions;
@@ -375,7 +375,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
       if (NDIM > 2) ptr_dz_b = sd_d_b->getPointer(2, depth_in_Dmatrix);
    }
 
-   vector<double*> ptr_c_b;
+   std::vector<double*> ptr_c_b;
    ptr_c_b.resize(d_ncompositions);
 
    // Assuming all sd_d_coeff_* have same box
@@ -601,9 +601,9 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
 {
    assert(d_ncompositions == 1);
 
-   vector<double*> ptr_c_l(d_ncompositions);
-   vector<double*> ptr_c_a(d_ncompositions);
-   vector<double*> ptr_c_b(d_ncompositions);
+   std::vector<double*> ptr_c_l(d_ncompositions);
+   std::vector<double*> ptr_c_a(d_ncompositions);
+   std::vector<double*> ptr_c_b(d_ncompositions);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
       ptr_c_l[ic] = cd_c_l->getPointer(ic);
       ptr_c_a[ic] = cd_c_a->getPointer(ic);
@@ -621,11 +621,11 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
       ptr_eta = cd_eta->getPointer();
    }
 
-   vector<double*> ptr_dx_mq;
+   std::vector<double*> ptr_dx_mq;
    ptr_dx_mq.resize(d_ncompositions * d_ncompositions);
-   vector<double*> ptr_dy_mq;
+   std::vector<double*> ptr_dy_mq;
    ptr_dy_mq.resize(d_ncompositions * d_ncompositions);
-   vector<double*> ptr_dz_mq;
+   std::vector<double*> ptr_dz_mq;
    ptr_dz_mq.resize(d_ncompositions * d_ncompositions, nullptr);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++)
       for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
@@ -695,12 +695,12 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
    kp_pf = jp_pf * pf_gbox.numberCells(1);
 #endif
 
-   vector<double> c_l(d_ncompositions);
-   vector<double> c_a(d_ncompositions);
-   vector<double> c_b(d_ncompositions);
+   std::vector<double> c_l(d_ncompositions);
+   std::vector<double> c_a(d_ncompositions);
+   std::vector<double> c_b(d_ncompositions);
 
-   vector<double> mobmat0(d_ncompositions * d_ncompositions);
-   vector<double> mobmat1(d_ncompositions * d_ncompositions);
+   std::vector<double> mobmat0(d_ncompositions * d_ncompositions);
+   std::vector<double> mobmat1(d_ncompositions * d_ncompositions);
 
    char interp_type = 'l';
 

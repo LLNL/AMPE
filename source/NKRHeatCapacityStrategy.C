@@ -43,7 +43,7 @@
 #endif
 
 #include <set>
-using namespace std;
+
 
 void NKRHeatCapacityStrategy::setCurrentValue(
     boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy)
@@ -54,11 +54,11 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    assert(!d_cp.empty());
 
    // build a set with all powers used in T expansion, for all species
-   set<short> powers;
-   for (vector<map<short, double> >::iterator it = d_cp.begin();
+   std::set<short> powers;
+   for (std::vector<std::map<short, double> >::iterator it = d_cp.begin();
         it != d_cp.end(); ++it) {
-      for (map<short, double>::iterator itm = it->begin(); itm != it->end();
-           ++itm) {
+      for (std::map<short, double>::iterator itm = it->begin();
+           itm != it->end(); ++itm) {
          powers.insert(itm->first);
       }
    }
@@ -66,7 +66,8 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    // store powers in an array we can give as an argument to fortran function
    int* cp_powers = new int[powers.size()];
    short itp = 0;
-   for (set<short>::iterator its = powers.begin(); its != powers.end(); its++) {
+   for (std::set<short>::iterator its = powers.begin(); its != powers.end();
+        its++) {
       cp_powers[itp] = *its;
       itp++;
    }
@@ -80,14 +81,14 @@ void NKRHeatCapacityStrategy::setCurrentValue(
    // loop over species
    // tbox::pout<<"Setup Heat capacity using "<<d_cp.size()<<"species"<<endl;
    short isp = 0;
-   for (vector<map<short, double> >::iterator it = d_cp.begin();
+   for (std::vector<std::map<short, double> >::iterator it = d_cp.begin();
         it != d_cp.end(); ++it) {
       // loop over expansion powers
       short ip = 0;
-      for (set<short>::iterator its = powers.begin(); its != powers.end();
+      for (std::set<short>::iterator its = powers.begin(); its != powers.end();
            its++) {
-         for (map<short, double>::iterator itm = it->begin(); itm != it->end();
-              ++itm) {
+         for (std::map<short, double>::iterator itm = it->begin();
+              itm != it->end(); ++itm) {
             if (*its == itm->first) {
                cp_coeffs[isp * npowers + ip] = itm->second;
             }

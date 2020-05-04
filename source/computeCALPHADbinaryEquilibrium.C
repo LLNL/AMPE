@@ -46,7 +46,6 @@
 #include <string>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -68,12 +67,12 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) cout << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) std::cout << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      cout << endl;
+      std::cout << std::endl;
 #endif
 
-      cout << "input_filename = " << input_filename << endl;
+      std::cout << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -124,24 +123,24 @@ int main(int argc, char *argv[])
       if (lceq[1] > 1.) found_ceq = false;
       if (lceq[1] < 0.) found_ceq = false;
 
-      cout << "Temperature = " << temperature << endl;
+      std::cout << "Temperature = " << temperature << std::endl;
       if (found_ceq) {
-         cout << "Found equilibrium concentrations: " << lceq[0] << " and "
-              << lceq[1] << "..." << endl;
+         std::cout << "Found equilibrium concentrations: " << lceq[0] << " and "
+                   << lceq[1] << "..." << std::endl;
          ret = 0;
       } else {
-         cout << "Equilibrium concentrations not found!" << endl;
+         std::cout << "Equilibrium concentrations not found!" << std::endl;
          ret = 1;
       }
 
       std::vector<double> d2fdc2(1, 0.);
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
                                              PhaseIndex::phaseL, d2fdc2);
-      cout << "2nd derivative of fL [J/mol]: " << d2fdc2[0] << endl;
+      std::cout << "2nd derivative of fL [J/mol]: " << d2fdc2[0] << std::endl;
 
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
                                              PhaseIndex::phaseA, d2fdc2);
-      cout << "2nd derivative of fS [J/mol]: " << d2fdc2[0] << endl;
+      std::cout << "2nd derivative of fS [J/mol]: " << d2fdc2[0] << std::endl;
 
       input_db.reset();
    }

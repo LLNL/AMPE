@@ -41,7 +41,7 @@
 #include "FuncFort.h"
 
 #include <cassert>
-using namespace std;
+
 
 //======================================================================
 
@@ -61,8 +61,8 @@ void PhaseFACOps::setOperatorCoefficients(
     const int phase_id, const int eta_id, const int phase_mobility_id,
     const double epsilon_phase, const double gamma,
     const EnergyInterpolationType phase_interp_func_type,
-    const double phase_well_scale, const string phase_well_func_type,
-    const double eta_well_scale, const string eta_well_func_type)
+    const double phase_well_scale, const std::string phase_well_func_type,
+    const double eta_well_scale, const std::string eta_well_func_type)
 {
    assert(phase_mobility_id >= 0);
 
@@ -88,9 +88,9 @@ void PhaseFACOps::setOperatorCoefficients(
 void PhaseFACOps::setC(const int phi_id, const int eta_id, const double gamma,
                        const EnergyInterpolationType phi_interp_func_type,
                        const double phi_well_scale,
-                       const string phi_well_func_type,
+                       const std::string phi_well_func_type,
                        const double eta_well_scale,
-                       const string eta_well_func_type)
+                       const std::string eta_well_func_type)
 {
    assert(phi_id >= 0);
    if (d_with_third_phase) {

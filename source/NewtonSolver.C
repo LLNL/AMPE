@@ -47,7 +47,6 @@
 
 #include <iomanip>
 
-using namespace std;
 
 int NewtonSolver::s_N = 0;
 
@@ -61,7 +60,7 @@ NewtonSolver::NewtonSolver()
 bool NewtonSolver::CheckTolerance(const double* const fvec)
 {
    for (int ii = 0; ii < s_N; ii++) {
-      if (abs(fvec[ii]) >= d_tolerance) return false;
+      if (std::abs(fvec[ii]) >= d_tolerance) return false;
    }
    return true;
 }
@@ -121,7 +120,7 @@ void NewtonSolver::UpdateSolution(double* const c, const double* const fvec,
    const double D = Determinant(fjac);
    const double D_inv = 1.0 / D;
 
-   // cout << "D = " << D << endl;
+   // std::cout << "D = " << D << std::endl;
 
    static double del_c[4];
 
@@ -135,7 +134,7 @@ void NewtonSolver::UpdateSolution(double* const c, const double* const fvec,
 
       del_c[jj] = D_inv * Determinant(mwork);
 
-      // cout << "del_c[" << jj << "] = " << del_c[jj] << endl;
+      // std::cout << "del_c[" << jj << "] = " << del_c[jj] << std::endl;
    }
 
    double w = 1.0;
@@ -153,11 +152,11 @@ int NewtonSolver::ComputeSolution(double* const conc, const int N)
       assert(conc[ii] == conc[ii]);
 
 #ifdef DEBUG_CONVERGENCE
-   vector<double> ctmp;
+   std::vector<double> ctmp;
    ctmp.reserve(40);
-   // cout<<"NewtonSolver::ComputeSolution(), Initial conc=";
+   // std::cout<<"NewtonSolver::ComputeSolution(), Initial conc=";
    // for(short i=0;i<N;i++)cout<<conc[i]<<",";
-   // cout<<endl;
+   // std::cout<<endl;
 #endif
 
    static double* fvec = nullptr;
@@ -186,7 +185,7 @@ int NewtonSolver::ComputeSolution(double* const conc, const int N)
 
 #ifdef DEBUG_CONVERGENCE
       // for ( int ii = 0; ii < N ; ii++ )cout<<conc[ii]<<endl;
-      // cout<<endl;
+      // std::cout<<endl;
 
       for (int ii = 0; ii < N; ii++)
          assert(conc[ii] == conc[ii]);
@@ -215,24 +214,24 @@ int NewtonSolver::ComputeSolution(double* const conc, const int N)
 
    if (!converged) {
 #ifdef DEBUG_CONVERGENCE
-      cout << setprecision(12);
-      cout << "Concentration history..." << endl;
+      std::cout << std::setprecision(12);
+      std::cout << "Concentration history..." << std::endl;
       for (unsigned j = 0; j < ctmp.size(); j = j + s_N) {
-         cout << "  conc= ";
+         std::cout << "  conc= ";
          for (int ii = 0; ii < s_N; ii++) {
-            cout << ctmp[j + ii] << "   ";
+            std::cout << ctmp[j + ii] << "   ";
          }
-         cout << endl;
+         std::cout << std::endl;
       }
       for (int ii = 0; ii < s_N; ii++) {
-         cout << "  conc[" << ii << "] = " << conc[ii] << endl;
+         std::cout << "  conc[" << ii << "] = " << conc[ii] << std::endl;
       }
       for (int ii = 0; ii < s_N; ii++) {
-         cout << "  rhs[" << ii << "] = " << fvec[ii] << endl;
+         std::cout << "  rhs[" << ii << "] = " << fvec[ii] << std::endl;
       }
 #endif
-      cerr << iterations << " iterations..." << endl;
-      cerr << "Error: too many iterations in NewtonSolver" << endl;
+      std::cerr << iterations << " iterations..." << std::endl;
+      std::cerr << "Error: too many iterations in NewtonSolver" << std::endl;
       return -1;
    }
 

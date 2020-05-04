@@ -50,7 +50,7 @@
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 // compute mobility parameter according to
 // S.G. Kim, Acta mat. 2007
@@ -81,12 +81,12 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
-      tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -94,8 +94,8 @@ int main(int argc, char *argv[])
       double phase_well_scale = model_db->getDouble("phi_well_scale");
       double epsilon = model_db->getDouble("epsilon_phi");
 
-      string energy_interp_func_type = "pbg";
-      string conc_interp_func_type = "lin";
+      std::string energy_interp_func_type = "pbg";
+      std::string conc_interp_func_type = "lin";
 
       boost::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 
       boost::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      string conc_avg_func_type =
+      std::string conc_avg_func_type =
           conc_db->getStringWithDefault("avg_func_type", "a");
 
       double mv = conc_db->getDouble("molar_volume");
@@ -153,17 +153,18 @@ int main(int argc, char *argv[])
       if (lceq[1] < 0.) found_ceq = false;
 
       if (found_ceq) {
-         cout << "For nominal composition " << nominalc[0] << "," << nominalc[1]
-              << ", found equilibrium concentrations: " << endl;
-         cout << "Liquid: " << lceq[0] << "," << lceq[1] << endl;
-         cout << "Solid:  " << lceq[2] << "," << lceq[3] << endl;
-         cout << "Solid fraction: " << lceq[4] << endl;
+         std::cout << "For nominal composition " << nominalc[0] << ","
+                   << nominalc[1]
+                   << ", found equilibrium concentrations: " << std::endl;
+         std::cout << "Liquid: " << lceq[0] << "," << lceq[1] << std::endl;
+         std::cout << "Solid:  " << lceq[2] << "," << lceq[3] << std::endl;
+         std::cout << "Solid fraction: " << lceq[4] << std::endl;
 
-         cout << "Interfacial energy: "
-              << epsilon * sqrt(16. * phase_well_scale) / (3. * sqrt(2.))
-              << " (J/m^2)" << endl;
-         cout << "Delta: " << epsilon / sqrt(32. * phase_well_scale) << " (um)"
-              << endl;
+         std::cout << "Interfacial energy: "
+                   << epsilon * sqrt(16. * phase_well_scale) / (3. * sqrt(2.))
+                   << " (J/m^2)" << std::endl;
+         std::cout << "Delta: " << epsilon / sqrt(32. * phase_well_scale)
+                   << " (um)" << std::endl;
 
          const PhaseIndex pi0 = phaseL;
          std::vector<double> d2fdc2(4);
@@ -178,17 +179,18 @@ int main(int argc, char *argv[])
          zeta /= DL;
          zeta *= (1.e-6 / mv);  // convert from J/mol to pJ/um^3
 
-         cout << "zeta = " << zeta << endl;
+         std::cout << "zeta = " << zeta << std::endl;
 
          double xi = epsilon / sqrt(32. * phase_well_scale);
          double a2 = 47. / 60.;
          double mobility = 1. / (3. * (2. * xi * xi) * a2 * zeta);
 
-         cout << "mobility = " << mobility << endl;
+         std::cout << "mobility = " << mobility << std::endl;
 
       } else {
-         cout << "ERROR: Equilibrium concentrations not found... " << endl;
-         cout << "Cannot compute mobility" << endl;
+         std::cout << "ERROR: Equilibrium concentrations not found... "
+                   << std::endl;
+         std::cout << "Cannot compute mobility" << std::endl;
       }
 
       input_db.reset();

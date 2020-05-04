@@ -42,7 +42,6 @@
 #include <cmath>
 #include <cassert>
 
-using namespace std;
 
 //=======================================================================
 
@@ -108,18 +107,18 @@ void CALPHADEqConcentrationSolverTernary::RHS(const double* const c,
                      CALPHADcomputeFIdealMixTernary(d_RT, cS[0], cS[1]) +
                      CALPHADcomputeFMixTernary(d_L_AB_S, d_L_AC_S, d_L_BC_S,
                                                d_L_ABC_S, cS[0], cS[1]);
-   // cout<<"fL="<<fL<<", fS="<<fS<<endl;
+   // std::cout<<"fL="<<fL<<", fS="<<fS<<endl;
    fvec[0] =
        fL - fS - (cL[0] - cS[0]) * dfLdciL[0] - (cL[1] - cS[1]) * dfLdciL[1];
 
-   // equation: slope 0 in tangent plane for vector orthogonal to cL-CS
+   // equation: slope 0 in tangent plane for std::vector orthogonal to cL-CS
    fvec[1] = dfLdciL[0] * cL[1] - dfLdciL[0] * cS[1] - dfLdciL[1] * cL[0] +
              dfLdciL[1] * cS[0];
 
    fvec[2] = dfLdciL[0] - dfSdciS[0];
    fvec[3] = dfLdciL[1] - dfSdciS[1];
 
-   // cout<<"fvec="<<fvec[0]<<","<<fvec[1]<<","<<fvec[2]<<","<<fvec[3]<<endl;
+   // std::cout<<"fvec="<<fvec[0]<<","<<fvec[1]<<","<<fvec[2]<<","<<fvec[3]<<endl;
 }
 
 //=======================================================================
@@ -213,11 +212,11 @@ void CALPHADEqConcentrationSolverTernary::Jacobian(const double* const c,
    fjac[3][2] = -d2fSdciS2[1];
    fjac[3][3] = -d2fSdciS2[2];
 
-   // cout<<"Jacobian:"<<endl;
-   // cout<<"("<<fjac[0][0]<<","<<fjac[0][1]<<","<<fjac[0][2]<<","<<fjac[0][3]<<")"<<endl;
-   // cout<<"("<<fjac[1][0]<<","<<fjac[1][1]<<","<<fjac[1][2]<<","<<fjac[1][3]<<")"<<endl;
-   // cout<<"("<<fjac[2][0]<<","<<fjac[2][1]<<","<<fjac[2][2]<<","<<fjac[2][3]<<")"<<endl;
-   // cout<<"("<<fjac[3][0]<<","<<fjac[3][1]<<","<<fjac[3][2]<<","<<fjac[3][3]<<")"<<endl;
+   // std::cout<<"Jacobian:"<<endl;
+   // std::cout<<"("<<fjac[0][0]<<","<<fjac[0][1]<<","<<fjac[0][2]<<","<<fjac[0][3]<<")"<<endl;
+   // std::cout<<"("<<fjac[1][0]<<","<<fjac[1][1]<<","<<fjac[1][2]<<","<<fjac[1][3]<<")"<<endl;
+   // std::cout<<"("<<fjac[2][0]<<","<<fjac[2][1]<<","<<fjac[2][2]<<","<<fjac[2][3]<<")"<<endl;
+   // std::cout<<"("<<fjac[3][0]<<","<<fjac[3][1]<<","<<fjac[3][2]<<","<<fjac[3][3]<<")"<<endl;
 }
 
 //=======================================================================

@@ -41,7 +41,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
     const EnergyInterpolationType phase_interp_func_type,
@@ -64,11 +64,11 @@ PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
 
    d_with_third_phase = with_third_phase;
 
-   tbox::plog << "FreeEnergyStrategy:" << endl;
-   tbox::plog << "Molar volume L =" << vml << endl;
-   tbox::plog << "Molar volume A =" << vma << endl;
-   tbox::plog << "f liquid  =" << d_f_l << endl;
-   tbox::plog << "f solid A =" << d_f_a << endl;
+   tbox::plog << "FreeEnergyStrategy:" << std::endl;
+   tbox::plog << "Molar volume L =" << vml << std::endl;
+   tbox::plog << "Molar volume A =" << vma << std::endl;
+   tbox::plog << "f liquid  =" << d_f_l << std::endl;
+   tbox::plog << "f solid A =" << d_f_a << std::endl;
 }
 
 //=======================================================================
@@ -352,8 +352,8 @@ void PhaseFreeEnergyStrategy::addDrivingForceEta(
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_l,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    d2fdc2.assign(d2fdc2.size(), 0.);
 }
@@ -361,8 +361,8 @@ void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_a,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    d2fdc2.assign(d2fdc2.size(), 0.);
 }
@@ -370,8 +370,8 @@ void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 //=======================================================================
 
 void PhaseFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_b,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    d2fdc2.assign(d2fdc2.size(), 0.);
 }

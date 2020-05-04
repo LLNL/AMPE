@@ -35,7 +35,6 @@
 //
 #include "ConcFACSolver.h"
 
-using namespace std;
 
 ConcFACSolver::ConcFACSolver(const std::string& object_name,
                              boost::shared_ptr<ConcFACOps> fac_ops,
@@ -46,9 +45,9 @@ ConcFACSolver::ConcFACSolver(const std::string& object_name,
        "AMPE::ConcFACSolver::setOperatorCoefficients");
 }
 
-void ConcFACSolver::setOperatorCoefficients(const double gamma,
-                                            const vector<int>& diffusion_id,
-                                            const double mobility)
+void ConcFACSolver::setOperatorCoefficients(
+    const double gamma, const std::vector<int>& diffusion_id,
+    const double mobility)
 {
    t_set_op_coef->start();
 

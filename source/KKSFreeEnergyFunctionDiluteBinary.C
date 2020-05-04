@@ -40,7 +40,6 @@
 
 
 #include <string>
-using namespace std;
 
 
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
@@ -71,7 +70,8 @@ KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
 void KKSFreeEnergyFunctionDiluteBinary::setupSolver(
     boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::plog << "KKSFreeEnergyFunctionDiluteBinary::setupSolver()..." << endl;
+   tbox::plog << "KKSFreeEnergyFunctionDiluteBinary::setupSolver()..."
+              << std::endl;
    d_solver = new KKSdiluteBinaryConcentrationSolver();
 
    readNewtonparameters(newton_db);
@@ -207,7 +207,8 @@ bool KKSFreeEnergyFunctionDiluteBinary::computeCeqT(
     double* ceq, const int maxits, const bool verbose)
 {
    if (verbose)
-      tbox::pout << "KKSFreeEnergyFunctionDiluteBinary::computeCeqT()" << endl;
+      tbox::pout << "KKSFreeEnergyFunctionDiluteBinary::computeCeqT()"
+                 << std::endl;
    assert(temperature > 0.);
 
    d_ceq_l = (temperature - d_Tm) / d_me;
@@ -237,10 +238,11 @@ void KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies(
    int ret = d_solver->ComputeConcentration(c, conc, hphi, RTinv, d_fA, d_fB);
 
    if (ret < 0) {
-      cerr << "ERROR in "
-              "KKSFreeEnergyFunctionDiluteBinary::computePhasesFreeEnergies() "
-              "---"
-           << "conc=" << conc << ", hphi=" << hphi << endl;
+      std::cerr << "ERROR in "
+                   "KKSFreeEnergyFunctionDiluteBinary::"
+                   "computePhasesFreeEnergies() "
+                   "---"
+                << "conc=" << conc << ", hphi=" << hphi << std::endl;
       tbox::SAMRAI_MPI::abort();
    }
 
@@ -277,11 +279,11 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
                                             -1.,  // unused parameter
                                             d_fA, d_fB);
    if (ret == -1) {
-      cerr << "ERROR, "
-              "KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations() "
-              "failed for conc="
-           << conc0 << ", hphi=" << hphi;
-      sleep(5);
+      std::cerr << "ERROR, "
+                   "KKSFreeEnergyFunctionDiluteBinary::"
+                   "computePhaseConcentrations() "
+                   "failed for conc="
+                << conc0 << ", hphi=" << hphi << std::endl;
       tbox::SAMRAI_MPI::abort();
    }
 
@@ -296,7 +298,7 @@ void KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC(
     const int npts_phi, const int npts_c)
 {
    tbox::plog << "KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC()..."
-              << endl;
+              << std::endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
@@ -312,24 +314,24 @@ void KKSFreeEnergyFunctionDiluteBinary::energyVsPhiAndC(
          fc1 = computeFreeEnergy(temperature, &ceq[1], PhaseIndex::phaseA);
          slopec = -(fc1 - fc0) / (ceq[1] - ceq[0]);
       }
-   tbox::plog << setprecision(8) << "fc0: " << fc0 << "..."
-              << ", fc1: " << fc1 << "..." << endl;
+   tbox::plog << std::setprecision(8) << "fc0: " << fc0 << "..."
+              << ", fc1: " << fc1 << "..." << std::endl;
    tbox::plog << "KKSFreeEnergyFunctionDiluteBinary: Use slope: " << slopec
-              << "..." << endl;
+              << "..." << std::endl;
    mpi.Barrier();
 
    if (mpi.getRank() == 0) {
 
       // reset cmin, cmax, deltac
-      double cmin = min(ceq[0], ceq[1]);
-      double cmax = max(ceq[0], ceq[1]);
+      double cmin = std::min(ceq[0], ceq[1]);
+      double cmax = std::max(ceq[0], ceq[1]);
       double dc = cmax - cmin;
-      cmin = max(0.25 * cmin, cmin - 0.25 * dc);
-      cmax = min(1. - 0.25 * (1. - cmax), cmax + 0.25 * dc);
-      cmax = max(cmax, cmin + dc);
+      cmin = std::max(0.25 * cmin, cmin - 0.25 * dc);
+      cmax = std::min(1. - 0.25 * (1. - cmax), cmax + 0.25 * dc);
+      cmax = std::max(cmax, cmin + dc);
       double deltac = (cmax - cmin) / (npts_c - 1);
 
-      ofstream tfile(d_fenergy_diag_filename.data(), ios::out);
+      std::ofstream tfile(d_fenergy_diag_filename.data(), std::ios::out);
 
       printEnergyVsPhiHeader(temperature, npts_phi, npts_c, cmin, cmax, slopec,
                              tfile);
@@ -349,31 +351,31 @@ void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhiHeader(
     const double temperature, const int nphi, const int nc, const double cmin,
     const double cmax, const double slopec, std::ostream& os) const
 {
-   os << "# vtk DataFile Version 2.0" << endl;
+   os << "# vtk DataFile Version 2.0" << std::endl;
    os << "Free energy + " << slopec << "*c [J/mol] at T=" << temperature
-      << endl;
-   os << "ASCII" << endl;
-   os << "DATASET STRUCTURED_POINTS" << endl;
+      << std::endl;
+   os << "ASCII" << std::endl;
+   os << "DATASET STRUCTURED_POINTS" << std::endl;
 
-   os << "DIMENSIONS   " << nphi << " " << nc << " 1" << endl;
+   os << "DIMENSIONS   " << nphi << " " << nc << " 1" << std::endl;
    double asp_ratio_c = (nc > 1) ? (cmax - cmin) / (nc - 1) : 1.;
    os << "ASPECT_RATIO " << 1. / (nphi - 1) << " " << asp_ratio_c << " 1."
-      << endl;
-   os << "ORIGIN        0. " << cmin << " 0." << endl;
-   os << "POINT_DATA   " << nphi * nc << endl;
-   os << "SCALARS energy float 1" << endl;
-   os << "LOOKUP_TABLE default" << endl;
+      << std::endl;
+   os << "ORIGIN        0. " << cmin << " 0." << std::endl;
+   os << "POINT_DATA   " << nphi * nc << std::endl;
+   os << "SCALARS energy float 1" << std::endl;
+   os << "LOOKUP_TABLE default" << std::endl;
 }
 
 //=======================================================================
 
 void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi(
     const double* const conc, const double temperature,
-    const double phi_well_scale, const string& phi_well_type, const int npts,
-    const double slopec, std::ostream& os)
+    const double phi_well_scale, const std::string& phi_well_type,
+    const int npts, const double slopec, std::ostream& os)
 {
    // tbox::pout << "KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi()..."
-   // << endl;
+   // << std::endl;
    const double dphi = 1.0 / (double)(npts - 1);
    const double eta = 0.0;
 
@@ -384,7 +386,7 @@ void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi(
       const double w =
           phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
 
-      os << e + w + slopec * conc[0] << endl;
+      os << e + w + slopec * conc[0] << std::endl;
    }
 }
 
@@ -392,8 +394,8 @@ void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi(
 
 void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsEta(
     const double* const conc, const double temperature,
-    const double eta_well_scale, const string& eta_well_type, const int npts,
-    const double slopec, std::ostream& os)
+    const double eta_well_scale, const std::string& eta_well_type,
+    const int npts, const double slopec, std::ostream& os)
 {
    (void)conc;
    (void)temperature;
@@ -441,24 +443,24 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(const double phi,
 void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsComposition(
     const double temperature, const int npts)
 {
-   ofstream os("FvsC.dat", ios::out);
+   std::ofstream os("FvsC.dat", std::ios::out);
 
    const double dc = 1.0 / (double)(npts - 1);
 
-   os << "#phi=0" << endl;
+   os << "#phi=0" << std::endl;
    for (int i = 0; i < npts; i++) {
       const double conc = i * dc;
 
       double e = fchem(0., 0., &conc, temperature);
-      os << conc << "\t" << e << endl;
+      os << conc << "\t" << e << std::endl;
    }
-   os << endl << endl;
+   os << std::endl << std::endl;
 
-   os << "#phi=1" << endl;
+   os << "#phi=1" << std::endl;
    for (int i = 0; i < npts; i++) {
       const double conc = i * dc;
 
       double e = fchem(1., 0., &conc, temperature);
-      os << conc << "\t" << e << endl;
+      os << conc << "\t" << e << std::endl;
    }
 }

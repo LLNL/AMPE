@@ -44,9 +44,8 @@
 
 #include <cassert>
 
-using namespace std;
 
-CompositionRHSStrategy::CompositionRHSStrategy(const string& avg_func_type)
+CompositionRHSStrategy::CompositionRHSStrategy(const std::string& avg_func_type)
     : d_avg_func_type(avg_func_type){};
 
 void CompositionRHSStrategy::addFluxFromGradTonPatch(hier::Patch& patch,
@@ -59,7 +58,7 @@ void CompositionRHSStrategy::addFluxFromGradTonPatch(hier::Patch& patch,
 
    TBOX_ERROR(
        "CompositionRHSStrategy::addFluxFromGradTonPatch() not implemented..."
-       << endl);
+       << std::endl);
 }
 
 void CompositionRHSStrategy::addFluxFromAntitrappingonPatch(
@@ -75,7 +74,7 @@ void CompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    TBOX_ERROR(
        "CompositionRHSStrategy::addFluxFromAntitrappingonPatch() not "
        "implemented..."
-       << endl);
+       << std::endl);
 }
 
 //-----------------------------------------------------------------------
@@ -112,7 +111,7 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(hier::Patch& patch,
       const int dir = locind >> 1;
       const int side = locind & 1;
       if (pg->getTouchesRegularBoundary(dir, side)) {
-         // cout<<"CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch"
+         // std::cout<<"CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch"
          //          <<" for side "<<side<<" in direction "<<dir<<endl;
 
          hier::Index gup(gbox.upper());

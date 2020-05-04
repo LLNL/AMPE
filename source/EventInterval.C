@@ -36,15 +36,15 @@
 #include "EventInterval.h"
 
 #include "SAMRAI/tbox/Utilities.h"
-using namespace std;
+
 
 EventInterval::EventInterval(boost::shared_ptr<tbox::Database> input_db,
-                             const string name, const double default_value,
-                             const string default_type,
+                             const std::string name, const double default_value,
+                             const std::string default_type,
                              const bool include_first, const bool include_last)
     : d_name(name)
 {
-   string interval_type = default_type;
+   std::string interval_type = default_type;
    d_dbl_interval_value = default_value;
    d_int_interval_value = int(default_value + 0.5);
    d_include_first_step = include_first;

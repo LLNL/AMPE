@@ -405,7 +405,7 @@ class QuatModelParameters
 
    bool inMovingFrame() const
    {
-      return (abs(d_moving_frame_velocity) > 1.e-16);
+      return (std::abs(d_moving_frame_velocity) > 1.e-16);
    }
 
    double movingVelocity() const { return d_moving_frame_velocity; }

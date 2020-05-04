@@ -50,7 +50,7 @@ using namespace SAMRAI;
 #include <cassert>
 
 #include <vector>
-using namespace std;
+
 
 //=======================================================================
 
@@ -90,11 +90,12 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    d_energy_conv_factor_A = 1.e-6 / d_vm_A;
    if (d_with_third_phase) d_energy_conv_factor_B = 1.e-6 / d_vm_B;
 
-   tbox::plog << "HBSMFreeEnergyStrategy:" << endl;
-   tbox::plog << "Molar volume L =" << d_vm_L << endl;
-   tbox::plog << "Molar volume A =" << d_vm_A << endl;
-   if (d_with_third_phase) tbox::plog << "Molar volume B =" << d_vm_B << endl;
-   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+   tbox::plog << "HBSMFreeEnergyStrategy:" << std::endl;
+   tbox::plog << "Molar volume L =" << d_vm_L << std::endl;
+   tbox::plog << "Molar volume A =" << d_vm_A << std::endl;
+   if (d_with_third_phase)
+      tbox::plog << "Molar volume B =" << d_vm_B << std::endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 
    d_D_liquid = D_liquid;
    d_D_solid_A = D_solid_A;
@@ -120,7 +121,7 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    }
 
    // print database just read
-   tbox::plog << "HBSM database..." << endl;
+   tbox::plog << "HBSM database..." << std::endl;
    input_db->printClassData(tbox::plog);
 
    d_conc_l_id = conc_l_id;
@@ -1236,8 +1237,8 @@ double HBSMFreeEnergyStrategy::computeSolidBConcentration(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_l,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
 
@@ -1249,8 +1250,8 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_a,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
 
@@ -1262,8 +1263,8 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 //=======================================================================
 
 void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_b,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
 

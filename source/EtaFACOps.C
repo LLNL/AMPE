@@ -41,7 +41,6 @@
 #include "FuncFort.h"
 
 #include <cassert>
-using namespace std;
 
 //======================================================================
 
@@ -58,7 +57,7 @@ void EtaFACOps::setOperatorCoefficients(
     const int phase_id, const int eta_id, const int eta_mobility_id,
     const double epsilon_eta, const double gamma,
     const EnergyInterpolationType phase_interp_func_type,
-    const double eta_well_scale, const string eta_well_func_type)
+    const double eta_well_scale, const std::string eta_well_func_type)
 {
    setM(eta_mobility_id);
 
@@ -77,7 +76,7 @@ void EtaFACOps::setOperatorCoefficients(
 void EtaFACOps::setC(const int phi_id, const int eta_id, const double gamma,
                      const EnergyInterpolationType phi_interp_func_type,
                      const double eta_well_scale,
-                     const string eta_well_func_type)
+                     const std::string eta_well_func_type)
 {
    assert(phi_id >= 0);
    assert(eta_id >= 0);

@@ -38,7 +38,6 @@
 
 #include <string>
 
-using namespace std;
 
 int main(int argc, char *argv[])
 {
@@ -61,10 +60,10 @@ int main(int argc, char *argv[])
        *               <restart number>
        */
       if ((argc != 2) && (argc != 4)) {
-         cerr << "USAGE:  " << argv[0] << " <input filename> "
-              << "<restart dir> <restore number> [options]\n"
-              << "  options:\n"
-              << "  none at this time" << endl;
+         std::cerr << "USAGE:  " << argv[0] << " <input filename> "
+                   << "<restart dir> <restore number> [options]\n"
+                   << "  options:\n"
+                   << "  none at this time" << std::endl;
          return (-1);
       }
 

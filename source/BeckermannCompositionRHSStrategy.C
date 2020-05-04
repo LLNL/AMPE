@@ -49,7 +49,6 @@
 #include <boost/make_shared.hpp>
 #include <cassert>
 
-using namespace std;
 
 BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
     QuatModel* quat_model, const int conc_scratch_id,
@@ -57,7 +56,7 @@ BeckermannCompositionRHSStrategy::BeckermannCompositionRHSStrategy(
     const int conc_tilde_diffusion_id,
     const int conc_phase_coupling_diffusion_id, const double D_liquid,
     const double D_solid_A, const ConcInterpolationType phase_interp_func_type,
-    const string& avg_func_type)
+    const std::string& avg_func_type)
     : CompositionRHSStrategy(avg_func_type), d_quat_model(quat_model)
 {
    assert(conc_scratch_id >= 0);

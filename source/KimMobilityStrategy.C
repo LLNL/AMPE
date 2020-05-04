@@ -40,7 +40,6 @@
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "QuatModel.h"
 
-using namespace std;
 
 KimMobilityStrategy::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
@@ -61,13 +60,13 @@ KimMobilityStrategy::KimMobilityStrategy(
    t_compute = tbox::TimerManager::getManager()->getTimer(
        "AMPE::KimMobilityStrategy::compute");
 
-   string conc_model = conc_db->getStringWithDefault("model", "undefined");
+   std::string conc_model = conc_db->getStringWithDefault("model", "undefined");
 
    if (conc_model[0] == 'c') {
 
       boost::shared_ptr<tbox::Database> conc_calphad_db =
           conc_db->getDatabase("Calphad");
-      string calphad_filename = conc_calphad_db->getString("filename");
+      std::string calphad_filename = conc_calphad_db->getString("filename");
       boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
           new tbox::MemoryDatabase("calphad_db"));
       tbox::InputManager::getManager()->parseInputFile(calphad_filename,

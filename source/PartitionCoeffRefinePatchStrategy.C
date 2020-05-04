@@ -41,11 +41,11 @@
 #include <boost/make_shared.hpp>
 
 #include <cassert>
-using namespace std;
+
 
 PartitionCoeffRefinePatchStrategy::PartitionCoeffRefinePatchStrategy(
-    const string& object_name, boost::shared_ptr<tbox::Database> input_bc_db,
-    const int partition_coeff_id)
+    const std::string& object_name,
+    boost::shared_ptr<tbox::Database> input_bc_db, const int partition_coeff_id)
     : xfer::RefinePatchStrategy(),
       d_object_name(object_name),
       d_partition_coeff_id(partition_coeff_id)
@@ -83,11 +83,11 @@ void PartitionCoeffRefinePatchStrategy::setPhysicalBoundaryConditions(
 //
 // Print all class data members to given output stream.
 
-void PartitionCoeffRefinePatchStrategy::printClassData(ostream& os) const
+void PartitionCoeffRefinePatchStrategy::printClassData(std::ostream& os) const
 {
-   os << "\nPartitionCoeffRefinePatchStrategy::printClassData..." << endl;
+   os << "\nPartitionCoeffRefinePatchStrategy::printClassData..." << std::endl;
    os << "PartitionCoeffRefinePatchStrategy: this = "
-      << (PartitionCoeffRefinePatchStrategy*)this << endl;
-   os << "d_object_name = " << d_object_name << endl;
-   os << "d_partition_coeff_id =   " << d_partition_coeff_id << endl;
+      << (PartitionCoeffRefinePatchStrategy*)this << std::endl;
+   os << "d_object_name = " << d_object_name << std::endl;
+   os << "d_partition_coeff_id =   " << d_partition_coeff_id << std::endl;
 }

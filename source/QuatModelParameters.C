@@ -36,12 +36,11 @@
 #include "QuatModelParameters.h"
 #include "PhysicalConstants.h"
 
-using namespace std;
 
 static double def_val = tbox::IEEE::getSignalingNaN();
 
 static void readSpeciesCP(boost::shared_ptr<tbox::Database> cp_db,
-                          map<short, double>& cp)
+                          std::map<short, double>& cp)
 {
    double tmp = cp_db->getDouble("a");
    cp.insert(std::pair<short, double>(0, tmp));
@@ -162,7 +161,7 @@ void QuatModelParameters::readMolarVolumes(boost::shared_ptr<tbox::Database> db)
 
    if (data_read)
       tbox::plog << "Molar volume liquid [m^3/mol]: " << d_molar_volume_liquid
-                 << endl;
+                 << std::endl;
 }
 
 //=======================================================================
@@ -183,7 +182,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    // if concentration is ON, it means we have at least two species
    assert(d_ncompositions > 0);
 
-   string conc_model = conc_db->getStringWithDefault("model", "undefined");
+   std::string conc_model = conc_db->getStringWithDefault("model", "undefined");
    if (conc_model[0] == 'c') {
       d_conc_model = ConcModel::CALPHAD;
    } else if (conc_model[0] == 'h') {
@@ -200,7 +199,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
 
    {
-      string conc_rhs_strategy =
+      std::string conc_rhs_strategy =
           conc_db->getStringWithDefault("rhs_form", "kks");
       if (conc_rhs_strategy[0] == 'k') {
          d_conc_rhs_strategy = ConcRHSstrategy::KKS;
@@ -210,7 +209,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||
                  conc_rhs_strategy[0] == 'b') {
-         tbox::plog << "Using Beckermann's model" << endl;
+         tbox::plog << "Using Beckermann's model" << std::endl;
          d_conc_rhs_strategy = ConcRHSstrategy::Beckermann;
       } else {
          TBOX_ERROR("Error: unknown concentration r.h.s. strategy");
@@ -218,10 +217,10 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
 
    // default setup so that older inputs files need not to be changed
-   string default_concdiff_type = d_conc_rhs_strategy == ConcRHSstrategy::EBS
-                                      ? "composition_dependent"
-                                      : "time_dependent";
-   string conc_diffusion_strategy =
+   std::string default_concdiff_type =
+       d_conc_rhs_strategy == ConcRHSstrategy::EBS ? "composition_dependent"
+                                                   : "time_dependent";
+   std::string conc_diffusion_strategy =
        conc_db->getStringWithDefault("diffusion_type", default_concdiff_type);
    if (conc_diffusion_strategy[0] == 'c') {
       d_conc_diffusion_type = ConcDiffusionType::CTD;
@@ -230,12 +229,13 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    }
 
    if (d_conc_rhs_strategy == ConcRHSstrategy::Beckermann) {
-      tbox::plog << "Read diffusion constants for Beckermann's model" << endl;
+      tbox::plog << "Read diffusion constants for Beckermann's model"
+                 << std::endl;
       d_D_liquid = conc_db->getDouble("D_liquid");
       d_D_solid_A = conc_db->getDouble("D_solid_A");
    }
    if (d_conc_diffusion_type == ConcDiffusionType::TD) {
-      tbox::plog << "Read T-dependent diffusions" << endl;
+      tbox::plog << "Read T-dependent diffusions" << std::endl;
       d_D_liquid = conc_db->getDouble("D_liquid");
       d_Q0_liquid = conc_db->getDoubleWithDefault("Q0_liquid", 0.);
 
@@ -284,7 +284,8 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
    d_grand_potential = conc_db->getBoolWithDefault("gc", false);
 
    d_partition_coeff = conc_db->getStringWithDefault("partition_coeff", "none");
-   tbox::plog << "Partition coefficient type: " << d_partition_coeff << endl;
+   tbox::plog << "Partition coefficient type: " << d_partition_coeff
+              << std::endl;
 
    if (d_partition_coeff.compare("Aziz") == 0) {
       d_vd = conc_db->getDouble("vd");
@@ -293,18 +294,19 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
 
       // a value of -1 for k_eq means it needs to be computed on the fly
       d_keq = conc_db->getDoubleWithDefault("keq", -1.);
-      tbox::plog << "Aziz partition coefficient with Keq: " << d_keq << endl;
+      tbox::plog << "Aziz partition coefficient with Keq: " << d_keq
+                 << std::endl;
    }
    if (d_partition_coeff.compare("uniform") == 0) {
       d_keq = conc_db->getDouble("keq");
-      tbox::plog << "Uniform Keq: " << d_keq << endl;
+      tbox::plog << "Uniform Keq: " << d_keq << std::endl;
    }
 
    assert(d_partition_coeff.compare("Aziz") == 0 ||
           d_partition_coeff.compare("uniform") == 0 ||
           d_partition_coeff.compare("none") == 0);
 
-   string default_model = "none";
+   std::string default_model = "none";
    if (d_conc_model == ConcModel::CALPHAD || d_conc_model == ConcModel::HBSM ||
        d_conc_model == ConcModel::KKSdilute)
       default_model = "kks";
@@ -315,7 +317,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
           d_phase_concentration_model.compare("kks") == 0 ||
           d_phase_concentration_model.compare("partition") == 0);
    tbox::plog << "phase_concentration_model: " << d_phase_concentration_model
-              << endl;
+              << std::endl;
 
    if (d_phase_concentration_model.compare("partition") == 0)
       assert(d_partition_coeff.compare("none") != 0);
@@ -337,7 +339,7 @@ void QuatModelParameters::readConcDB(boost::shared_ptr<tbox::Database> conc_db)
          d_bias_well_beckermann = false;
       }
       if (d_with_rescaled_temperature) {
-         tbox::plog << "Rescale liquidus_slope and gamma..." << endl;
+         tbox::plog << "Rescale liquidus_slope and gamma..." << std::endl;
          d_liquidus_slope /= d_rescale_factorT;
          d_well_bias_gamma *= d_rescale_factorT;
       }
@@ -384,7 +386,7 @@ void QuatModelParameters::readTemperatureModel(
     boost::shared_ptr<tbox::Database> model_db)
 {
    boost::shared_ptr<tbox::Database> temperature_db;
-   string temperature_type = "";
+   std::string temperature_type = "";
    if (model_db->keyExists("Temperature")) {
       temperature_db = model_db->getDatabase("Temperature");
       temperature_type = temperature_db->getStringWithDefault("type", "scalar");
@@ -433,21 +435,21 @@ void QuatModelParameters::readTemperatureModel(
       d_temperature_type = TemperatureType::CONSTANT;
       d_with_heat_equation = true;
 
-      tbox::plog << "Read heat equation parameters..." << endl;
+      tbox::plog << "Read heat equation parameters..." << std::endl;
 
-      string method =
+      std::string method =
           temperature_db->getStringWithDefault("equation_type", "steady");
 
       // heat capacity value
       boost::shared_ptr<tbox::Database> cp_db =
           temperature_db->getDatabase("cp");
-      map<short, double> empty_map;
+      std::map<short, double> empty_map;
 
       d_with_rescaled_temperature = ((method != "steady") && (d_meltingT > 0.));
       if (d_with_rescaled_temperature) {
          d_rescale_factorT = d_meltingT;
          tbox::plog << "Solve temperature equation with rescaled Ti, factor "
-                    << d_rescale_factorT << endl;
+                    << d_rescale_factorT << std::endl;
       } else {
          d_rescale_factorT = -1;
       }
@@ -464,34 +466,34 @@ void QuatModelParameters::readTemperatureModel(
          readSpeciesCP(cp_db->getDatabase("SpeciesC"), d_cp[2]);
       }
 
-      tbox::plog << "Cp for each species: " << endl;
-      for (vector<map<short, double> >::iterator it = d_cp.begin();
+      tbox::plog << "Cp for each species: " << std::endl;
+      for (std::vector<std::map<short, double> >::iterator it = d_cp.begin();
            it != d_cp.end(); ++it) {
-         for (map<short, double>::iterator itm = it->begin(); itm != it->end();
-              ++itm) {
+         for (std::map<short, double>::iterator itm = it->begin();
+              itm != it->end(); ++itm) {
             itm->second *=
                 (1.e-6 / d_molar_volume_liquid);  // conversion from [J/mol*K]
                                                   // to [pJ/(mu m)^3*K]
-            tbox::plog << "Cp [pJ/(mu m)^3*K]: " << itm->second << endl;
+            tbox::plog << "Cp [pJ/(mu m)^3*K]: " << itm->second << std::endl;
          }
       }
       if (d_with_rescaled_temperature) {
-         for (vector<map<short, double> >::iterator it = d_cp.begin();
+         for (std::vector<std::map<short, double> >::iterator it = d_cp.begin();
               it != d_cp.end(); ++it) {
-            for (map<short, double>::iterator itm = it->begin();
+            for (std::map<short, double>::iterator itm = it->begin();
                  itm != it->end(); ++itm) {
                itm->second *= d_rescale_factorT;
-               tbox::plog << "rescaled Cp: " << itm->second << endl;
+               tbox::plog << "rescaled Cp: " << itm->second << std::endl;
             }
          }
       }
 
       d_thermal_diffusivity = temperature_db->getDouble("thermal_diffusivity");
       tbox::plog << "Thermal diffusivity [cm^2/s]:        "
-                 << d_thermal_diffusivity << endl;
+                 << d_thermal_diffusivity << std::endl;
       d_thermal_diffusivity *= 1.e8;  // cm^2/s -> um^2/s
       tbox::plog << "Thermal diffusivity [um^2/s]:        "
-                 << d_thermal_diffusivity << endl;
+                 << d_thermal_diffusivity << std::endl;
 
       if (method == "steady") {
          d_with_steady_temperature = true;
@@ -529,7 +531,7 @@ void QuatModelParameters::readTemperatureModel(
       // conversion from [J/mol] to [pJ/(mu m)^3]
       d_latent_heat *= (1.e-6 / d_molar_volume_liquid);
       tbox::plog << "Latent heat [pJ/(mu m)^3]:           " << d_latent_heat
-                 << endl;
+                 << std::endl;
       assert(d_latent_heat > 0.);
       assert(d_latent_heat < 1.e32);
    } else {
@@ -687,7 +689,7 @@ void QuatModelParameters::initializeEta(
       TBOX_ERROR("Error: invalid value for eta_well_func_type");
    }
 
-   string eta_interp_func_type =
+   std::string eta_interp_func_type =
        model_db->getStringWithDefault("eta_interp_func_type", "pbg");
    switch (eta_interp_func_type[0]) {
       case 'l':
@@ -699,7 +701,8 @@ void QuatModelParameters::initializeEta(
          d_eta_interp_func_type = EnergyInterpolationType::HARMONIC;
          break;
       default:
-         tbox::plog << "eta_interp_func_type=" << eta_interp_func_type << endl;
+         tbox::plog << "eta_interp_func_type=" << eta_interp_func_type
+                    << std::endl;
          TBOX_ERROR("Error: invalid eta_interp_func_type!!!");
    }
 }
@@ -722,10 +725,11 @@ void QuatModelParameters::readModelParameters(
             TBOX_ERROR("Interface: sigma and delta  needed together!");
          double delta = interface_db->getDouble("delta");
          d_epsilon_phase = sqrt(6. * sigma * delta);
-         tbox::plog << "Epsilon_phi = " << d_epsilon_phase << endl;
+         tbox::plog << "Epsilon_phi = " << d_epsilon_phase << std::endl;
          // factor 16 is AMPE convention
          d_phase_well_scale = (3. * sigma / delta) / 16.;
-         tbox::plog << "Double Well scale = " << d_phase_well_scale << endl;
+         tbox::plog << "Double Well scale = " << d_phase_well_scale
+                    << std::endl;
       } else {
          d_epsilon_phase = interface_db->getDouble("epsilon_phi");
          d_phase_well_scale = interface_db->getDouble("phi_well_scale");
@@ -743,7 +747,8 @@ void QuatModelParameters::readModelParameters(
          printDeprecated("epsilon_parameter", "epsilon_phi");
       } else {
          d_with_phase = false;
-         tbox::pout << "No epsilon specified -> run without phase..." << endl;
+         tbox::pout << "No epsilon specified -> run without phase..."
+                    << std::endl;
       }
 
       if (d_with_phase) {
@@ -789,7 +794,7 @@ void QuatModelParameters::readModelParameters(
    readMolarVolumes(model_db);
 
    // Interpolation
-   string energy_interp_func_type =
+   std::string energy_interp_func_type =
        model_db->getStringWithDefault("phi_interp_func_type", "pbg");
    {
       if (model_db->keyExists("energy_interp_func_type")) {
@@ -812,13 +817,13 @@ void QuatModelParameters::readModelParameters(
             break;
          default:
             tbox::plog << "energy_interp_func_type=" << energy_interp_func_type
-                       << endl;
+                       << std::endl;
             TBOX_ERROR("Error: invalid energy_interp_func_type!!!");
       }
    }
 
    {
-      string conc_interp_func_type =
+      std::string conc_interp_func_type =
           model_db->getStringWithDefault("conc_interp_func_type",
                                          energy_interp_func_type);
       switch (conc_interp_func_type[0]) {
@@ -834,12 +839,12 @@ void QuatModelParameters::readModelParameters(
             break;
          default:
             tbox::plog << "conc_interp_func_type=" << conc_interp_func_type
-                       << endl;
+                       << std::endl;
             TBOX_ERROR("Error: invalid conc_interp_func_type!!!");
       }
    }
 
-   string diffusion_interp_type =
+   std::string diffusion_interp_type =
        model_db->getStringWithDefault("diffusion_interp_func_type", "linear");
    switch (diffusion_interp_type[0]) {
       case 'l':
@@ -855,7 +860,7 @@ void QuatModelParameters::readModelParameters(
          break;
       default:
          tbox::plog << "diffusion_interp_type=" << diffusion_interp_type
-                    << endl;
+                    << std::endl;
          TBOX_ERROR("Error: invalid diffusion_interp_type!!!");
    }
 
@@ -928,7 +933,7 @@ void QuatModelParameters::readPhaseMobility(
    } else {
       if (d_phi_mobility_type.compare("Kim") == 0) d_phi_mobility_type = "kim";
       if (d_phi_mobility_type.compare("kim") != 0) {
-         tbox::pout << "phi_mobility_type=" << d_phi_mobility_type << endl;
+         tbox::pout << "phi_mobility_type=" << d_phi_mobility_type << std::endl;
          TBOX_ERROR("Error: unknown phi_mobility_type");
       }
       double beta = model_db->getDoubleWithDefault("kinetics_coefficient", -1.);

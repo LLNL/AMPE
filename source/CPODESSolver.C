@@ -273,7 +273,7 @@ void CPODESSolver::initializeCPODES()
 
    if (d_CPODE_needs_initialization) {
 
-      // Allocate solution derivative vector
+      // Allocate solution derivative std::vector
 
       if (d_solution_deriv_vector != NULL) {
          d_solution_deriv_vector->freeVector();
@@ -449,7 +449,7 @@ void CPODESSolver::reinitializeAfterRegrid()
 #pragma warning(disable : 1572)
 #endif
 
-   // Allocate solution derivative vector
+   // Allocate solution derivative std::vector
 
    if (d_solution_deriv_vector != NULL) {
       d_solution_deriv_vector->freeVector();

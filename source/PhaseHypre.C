@@ -18,7 +18,7 @@
 #include "FuncFort.h"
 
 #include <string>
-using namespace std;
+
 
 extern "C" {
 void SAMRAI_F77_FUNC(phasesetexactandrhs2d, PHASESETEXACTANDRHS2D)(
@@ -246,7 +246,7 @@ void PhaseHypre::setCtoZero()
 void PhaseHypre::setC(const int phi_id, const double gamma,
                       const EnergyInterpolationType phi_interp_func_type,
                       const double phi_well_scale,
-                      const string phi_well_func_type)
+                      const std::string phi_well_func_type)
 {
    assert(phi_id >= 0);
    assert(d_m_id >= 0);
@@ -383,7 +383,7 @@ void PhaseHypre::setCOnPatchPrivate(
  *************************************************************************
  */
 int PhaseHypre::solve(EnergyInterpolationType phase_interp_func_type,
-                      double phase_well_scale, string phase_well_func_type)
+                      double phase_well_scale, std::string phase_well_func_type)
 {
    assert(d_m_id >= 0);
    assert(d_comp_soln_id >= 0);

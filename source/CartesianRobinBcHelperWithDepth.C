@@ -61,7 +61,7 @@ void SAMRAI_F77_FUNC(settype3cells3d,
                                       const int* upper, const int& location);
 }
 
-// using namespace std;
+//
 
 /*
  ************************************************************************

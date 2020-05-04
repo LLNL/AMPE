@@ -45,7 +45,7 @@
 
 
 #include <cassert>
-using namespace std;
+
 
 /*
 *************************************************************************
@@ -88,7 +88,8 @@ QuatLinearRefine::QuatLinearRefine(const int quat_symm_rotation_id)
 QuatLinearRefine::~QuatLinearRefine() {}
 
 bool QuatLinearRefine::findRefineOperator(
-    const boost::shared_ptr<hier::Variable>& var, const string& op_name) const
+    const boost::shared_ptr<hier::Variable>& var,
+    const std::string& op_name) const
 {
    const boost::shared_ptr<pdat::CellVariable<double> > cast_var(
        BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
@@ -99,7 +100,10 @@ bool QuatLinearRefine::findRefineOperator(
    }
 }
 
-const string& QuatLinearRefine::getOperatorName() const { return (d_name_id); }
+const std::string& QuatLinearRefine::getOperatorName() const
+{
+   return (d_name_id);
+}
 
 int QuatLinearRefine::getOperatorPriority() const { return (0); }
 

@@ -28,7 +28,6 @@
 
 #include "boost/shared_ptr.hpp"
 
-using namespace std;
 using namespace SAMRAI;
 
 /*!
@@ -71,7 +70,7 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
     * @param dim
     * @param database
     */
-   HyprePoisson(const string& object_name, const tbox::Dimension& dim,
+   HyprePoisson(const std::string& object_name, const tbox::Dimension& dim,
                 boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
                 boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
 

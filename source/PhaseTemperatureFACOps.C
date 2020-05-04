@@ -41,7 +41,6 @@
 #include "FuncFort.h"
 
 #include <cassert>
-using namespace std;
 
 //======================================================================
 
@@ -56,7 +55,7 @@ PhaseTemperatureFACOps::PhaseTemperatureFACOps(
 void PhaseTemperatureFACOps::setOperatorCoefficients(
     const int phase_id, const int mobility_id, const double epsilon_phase,
     const double latent_heat, const double phase_well_scale,
-    const string phase_well_func_type)
+    const std::string phase_well_func_type)
 {
    assert(mobility_id >= 0);
    assert(latent_heat > 0.);
@@ -76,7 +75,7 @@ void PhaseTemperatureFACOps::setOperatorCoefficients(
 
 void PhaseTemperatureFACOps::setC(const int phi_id, const double factor,
                                   const double phi_well_scale,
-                                  const string phi_well_func_type)
+                                  const std::string phi_well_func_type)
 {
    assert(phi_id >= 0);
    assert(d_m_id >= 0);

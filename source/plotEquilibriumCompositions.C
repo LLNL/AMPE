@@ -49,7 +49,6 @@
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -77,12 +76,12 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
-      tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -98,7 +97,7 @@ int main(int argc, char *argv[])
 
       boost::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      string conc_avg_func_type =
+      std::string conc_avg_func_type =
           conc_db->getStringWithDefault("avg_func_type", "a");
 
       boost::shared_ptr<tbox::Database> dcalphad_db =
@@ -131,8 +130,8 @@ int main(int argc, char *argv[])
 
       double lceq[2] = {init_guess[0], init_guess[1]};
 
-      map<double, double> cseq;
-      map<double, double> cleq;
+      std::map<double, double> cseq;
+      std::map<double, double> cleq;
 
       double dT = (temperature_high - temperature_low) / 50;
 
@@ -151,34 +150,34 @@ int main(int argc, char *argv[])
          if (found_ceq) {
             // tbox::pout<<"Found equilibrium concentrations: "
             //          <<lceq[0]<<" and "<<lceq[1]<<"..."<<endl;
-            cleq.insert(pair<double, double>(lceq[0], temperature));
-            cseq.insert(pair<double, double>(lceq[1], temperature));
+            cleq.insert(std::pair<double, double>(lceq[0], temperature));
+            cseq.insert(std::pair<double, double>(lceq[1], temperature));
 
          } else {
-            tbox::pout << "Temperature = " << temperature << endl;
+            tbox::pout << "Temperature = " << temperature << std::endl;
             tbox::pout << "ERROR: Equilibrium concentrations not found... "
-                       << endl;
+                       << std::endl;
             return 1;
          }
       }
 
-      ofstream os("TvsC.dat");
+      std::ofstream os("TvsC.dat");
       os << "#liquid\n";
       {
-         map<double, double>::iterator it = cleq.begin();
+         std::map<double, double>::iterator it = cleq.begin();
          while (it != cleq.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }
 
-      os << endl << endl;
+      os << std::endl << std::endl;
 
       os << "#solid\n";
       {
-         map<double, double>::iterator it = cseq.begin();
+         std::map<double, double>::iterator it = cseq.begin();
          while (it != cseq.end()) {
-            os << it->first << "  " << it->second << endl;
+            os << it->first << "  " << it->second << std::endl;
             ++it;
          }
       }

@@ -48,7 +48,6 @@
 #include <string>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -78,9 +77,9 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
       boost::shared_ptr<tbox::Database> model_db =

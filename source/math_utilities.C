@@ -36,7 +36,6 @@
 #include "math_utilities.h"
 #include <math.h>
 
-using namespace std;
 
 //-----------------------------------------------------------------------
 

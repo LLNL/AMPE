@@ -41,7 +41,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 #define FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE \
    computedphidtemperaturedeltatemperature_
@@ -65,9 +65,9 @@ DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
       d_L(latent_heat),
       d_phase_interp_func_type(phase_interp_func_type)
 {
-   tbox::plog << "DeltaTemperatureFreeEnergyStrategy..." << endl;
-   tbox::plog << "Tm=" << d_Tm << endl;
-   tbox::plog << "L=" << d_L << endl;
+   tbox::plog << "DeltaTemperatureFreeEnergyStrategy..." << std::endl;
+   tbox::plog << "Tm=" << d_Tm << std::endl;
+   tbox::plog << "L=" << d_L << std::endl;
 
    assert(d_L == d_L);
    assert(d_Tm == d_Tm);
@@ -76,8 +76,8 @@ DeltaTemperatureFreeEnergyStrategy::DeltaTemperatureFreeEnergyStrategy(
 //=======================================================================
 
 void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_l,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_l;
@@ -89,8 +89,8 @@ void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 //=======================================================================
 
 void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_a,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_a;
@@ -100,8 +100,8 @@ void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 }
 
 void DeltaTemperatureFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_b,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_b;

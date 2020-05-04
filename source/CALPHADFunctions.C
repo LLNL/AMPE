@@ -39,7 +39,6 @@
 #include <cmath>
 #include <cassert>
 #include <stddef.h>
-using namespace std;
 
 
 double CALPHADcomputeFMixBinary(const double l0, const double l1,
@@ -133,8 +132,9 @@ void CALPHADcomputeFIdealMix_deriv2Ternary(const double rt, const double cA,
    deriv[3] = rt * (xlogx_deriv2(cB) + xlogx_deriv2(1.0 - cA - cB));
 }
 
-void CALPHADcomputeFIdealMix_deriv2(const double rt, const vector<double>& conc,
-                                    vector<double>& d2fdc2)
+void CALPHADcomputeFIdealMix_deriv2(const double rt,
+                                    const std::vector<double>& conc,
+                                    std::vector<double>& d2fdc2)
 {
    const size_t nc = conc.size();
    double cN = 1.;
@@ -167,8 +167,8 @@ double CALPHADcomputeGMix_mixDeriv2(const double l0, const double l1,
 
 // multicomponents
 double CALPHADcomputeGMix_deriv2(const double l1, const double l2,
-                                 const double l3, const vector<double>& conc,
-                                 const int ic)
+                                 const double l3,
+                                 const std::vector<double>& conc, const int ic)
 {
    assert(l3 <= 1.e-15);
 
@@ -189,8 +189,8 @@ double CALPHADcomputeGMix_deriv2(const double l1, const double l2,
 
 double CALPHADcomputeGMix_mixDeriv2(const double l0, const double l1,
                                     const double l2, const double l3,
-                                    const vector<double>& conc, const int ic0,
-                                    const int ic1)
+                                    const std::vector<double>& conc,
+                                    const int ic0, const int ic1)
 {
    if (ic0 == ic1)
       return CALPHADcomputeGMix_deriv2(l1, l2, l3, conc, ic0);
@@ -200,12 +200,12 @@ double CALPHADcomputeGMix_mixDeriv2(const double l0, const double l1,
 
 double CALPHADcomputeFMix_mixDeriv2(const double l0, const double l1,
                                     const double l2, const double l3,
-                                    const vector<double>& concf, const int ic0,
-                                    const int ic1)
+                                    const std::vector<double>& concf,
+                                    const int ic0, const int ic1)
 {
    const int icN = (int)concf.size();
 
-   vector<double> concg(concf);
+   std::vector<double> concg(concf);
    double cN = 1.;
    for (short i = 0; i < icN; i++)
       cN -= concf[i];

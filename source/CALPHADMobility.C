@@ -38,18 +38,18 @@
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
 #include <map>
-using namespace std;
+
 
 const double m2toum2 = 1.e12;
 
 void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
 {
-   map<char, short> index_map;
-   index_map.insert(pair<char, short>('A', 0));
-   index_map.insert(pair<char, short>('B', 1));
-   index_map.insert(pair<char, short>('C', 2));
+   std::map<char, short> index_map;
+   index_map.insert(std::pair<char, short>('A', 0));
+   index_map.insert(std::pair<char, short>('B', 1));
+   index_map.insert(std::pair<char, short>('C', 2));
 
-   vector<string> smq;
+   std::vector<std::string> smq;
    smq.push_back("qA");
    smq.push_back("qB");
    smq.push_back("qC");
@@ -57,16 +57,16 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
 
    // count first order terms to get number of species
    d_nspecies = 0;
-   for (vector<string>::const_iterator it = smq.begin(); it != smq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smq.begin();
+        it != smq.end(); it++) {
       if (db->keyExists(*it)) {
          d_nspecies++;
       }
    }
 
    d_q.resize(d_nspecies);
-   for (vector<string>::const_iterator it = smq.begin(); it != smq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smq.begin();
+        it != smq.end(); it++) {
       if (db->keyExists(*it)) {
          size_t n = db->getArraySize(*it);
          assert(n >= 2);
@@ -85,7 +85,7 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
       }
    }
 
-   vector<string> smqq;
+   std::vector<std::string> smqq;
    smqq.push_back("q0AB");
    if (d_nspecies > 2) {
       smqq.push_back("q0AC");
@@ -97,8 +97,8 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
    for (short i = 0; i < d_nspecies; i++)
       d_qq0[i].resize(d_nspecies);
 
-   for (vector<string>::const_iterator it = smqq.begin(); it != smqq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smqq.begin();
+        it != smqq.end(); it++) {
       double tmp[2] = {0., 1.};
       if (db->keyExists(*it)) {
          db->getDoubleArray(*it, &tmp[0], 2);
@@ -120,8 +120,8 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
    for (short i = 0; i < d_nspecies; i++)
       d_qq1[i].resize(d_nspecies);
 
-   for (vector<string>::const_iterator it = smqq.begin(); it != smqq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smqq.begin();
+        it != smqq.end(); it++) {
       double tmp[2] = {0., 1.};
       if (db->keyExists(*it)) {
          db->getDoubleArray(*it, &tmp[0], 2);
@@ -143,8 +143,8 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
    for (short i = 0; i < d_nspecies; i++)
       d_qq2[i].resize(d_nspecies);
 
-   for (vector<string>::const_iterator it = smqq.begin(); it != smqq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smqq.begin();
+        it != smqq.end(); it++) {
       double tmp[2] = {0., 1.};
       if (db->keyExists(*it)) {
          db->getDoubleArray(*it, &tmp[0], 2);
@@ -166,8 +166,8 @@ void CALPHADMobility::initialize(boost::shared_ptr<tbox::Database> db)
    for (short i = 0; i < d_nspecies; i++)
       d_qq3[i].resize(d_nspecies);
 
-   for (vector<string>::const_iterator it = smqq.begin(); it != smqq.end();
-        it++) {
+   for (std::vector<std::string>::const_iterator it = smqq.begin();
+        it != smqq.end(); it++) {
       double tmp[2] = {0., 1.};
       if (db->keyExists(*it)) {
          db->getDoubleArray(*it, &tmp[0], 2);
@@ -214,7 +214,7 @@ void CALPHADMobility::printDiffusionVsTemperature(const double tempmin,
       const double temperature = tempmin + i * dtemp;
       const double m = getAtomicMobility(1., 0., temperature);
       os << 10000. / temperature << "\t"
-         << m * temperature * gas_constant_R_JpKpmol << endl;
+         << m * temperature * gas_constant_R_JpKpmol << std::endl;
    }
 }
 
@@ -224,7 +224,7 @@ void CALPHADMobility::printDiffusionVsTemperature(const double tempmin,
 
 double computeDiffusionMobilityBinaryPhase(
     const double c0, const double temp,
-    vector<CALPHADMobility>& calphad_mobilities_phase)
+    std::vector<CALPHADMobility>& calphad_mobilities_phase)
 {
    assert(calphad_mobilities_phase.size() == 2);
    assert(c0 >= 0.);
@@ -245,7 +245,8 @@ double computeDiffusionMobilityBinaryPhase(
 
 void computeDiffusionMobilityTernaryPhase(
     const double c0, const double c1, const double temp,
-    vector<CALPHADMobility>& calphad_mobilities_phase, vector<double>& mobility)
+    std::vector<CALPHADMobility>& calphad_mobilities_phase,
+    std::vector<double>& mobility)
 {
    assert(calphad_mobilities_phase.size() == 3);
 

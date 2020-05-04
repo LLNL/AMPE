@@ -40,7 +40,7 @@
 #include "SAMRAI/tbox/InputManager.h"
 
 #include <string>
-using namespace std;
+
 
 using namespace SAMRAI;
 
@@ -57,7 +57,7 @@ CALPHADFreeEnergyStrategyWithPenalty::CALPHADFreeEnergyStrategyWithPenalty(
                                       conc_l_id, conc_a_id, conc_b_id,
                                       with_third_phase)
 {
-   tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty()..." << endl;
+   tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty()..." << std::endl;
    const short n = with_third_phase ? 3 : 2;
    d_penalty_parameters.resize(n);
    for (short i = 0; i < n; i++)
@@ -93,7 +93,7 @@ void CALPHADFreeEnergyStrategyWithPenalty::setup(
     boost::shared_ptr<tbox::Database> newton_db)
 {
    tbox::pout << "CALPHADFreeEnergyStrategyWithPenalty::setupSolver()..."
-              << endl;
+              << std::endl;
    if (d_calphad_fenergy != 0) delete d_calphad_fenergy;
 
    d_calphad_fenergy = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(

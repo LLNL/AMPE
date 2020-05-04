@@ -13,7 +13,6 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 #include IOMANIP_HEADER_FILE
 
-using namespace std;
 
 /*
  ************************************************************************
@@ -52,7 +51,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
       return;
    }
 
-   tbox::plog << "TimeLocationIndexRobinBcCoefs::getFromInput()" << endl;
+   tbox::plog << "TimeLocationIndexRobinBcCoefs::getFromInput()" << std::endl;
 
    // loop over faces
    for (int i = 0; i < 2 * d_dim.getValue(); ++i) {
@@ -62,9 +61,9 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
          if (specs[0] == "file") {
             boost::shared_ptr<tbox::MemoryDatabase> bc_db(
                 new tbox::MemoryDatabase("bc_db"));
-            tbox::plog << "Parse BC input file " << specs[1] << endl;
+            tbox::plog << "Parse BC input file " << specs[1] << std::endl;
             tbox::InputManager::getManager()->parseInputFile(specs[1], bc_db);
-            string type = bc_db->getString("type");
+            std::string type = bc_db->getString("type");
             // Dirichlet case
             if (type == "value") {
                int j = 0;
@@ -104,7 +103,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
                      flag = false;
                   }
                } while (flag);
-               tbox::plog << "Read " << j << " slope values" << endl;
+               tbox::plog << "Read " << j << " slope values" << std::endl;
                TBOX_ASSERT(j > 0);
             } else {
                TBOX_ERROR(d_object_name << ": Bad boundary specifier\n"
@@ -124,7 +123,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
 
 /*
  ************************************************************************
- * Set the bc coefficients to their mapped values
+ * Set the bc coefficients to their std::mapped values
  * using a linear interpolation between the times right before and
  * right after fill_time
  ************************************************************************
@@ -155,7 +154,7 @@ void TimeLocationIndexRobinBcCoefs::setBcCoefs(
    int search_range = 10;
 
    prev_time_slot[location] -= search_range;
-   prev_time_slot[location] = max(prev_time_slot[location], 1);
+   prev_time_slot[location] = std::max(prev_time_slot[location], 1);
    // loop over time slot until we reach a time larger than fill_time
    while (d_t_map[location][prev_time_slot[location]] <= fill_time) {
       prev_time_slot[location]++;
@@ -173,13 +172,14 @@ void TimeLocationIndexRobinBcCoefs::setBcCoefs(
    // tbox::pout<<"next_time_slot="<<next_time_slot[location]<<endl;
    if (d_t_map[location][prev_time_slot[location]] > fill_time ||
        d_t_map[location][next_time_slot[location]] < fill_time) {
-      tbox::plog << "fill_time = " << fill_time << endl;
+      tbox::plog << "fill_time = " << fill_time << std::endl;
       tbox::plog << "previous_time = "
-                 << d_t_map[location][prev_time_slot[location]] << endl;
+                 << d_t_map[location][prev_time_slot[location]] << std::endl;
       tbox::plog << "next_time = "
-                 << d_t_map[location][next_time_slot[location]] << endl;
-      TBOX_ERROR(d_object_name
-                 << ": May need larger search range for time index" << endl);
+                 << d_t_map[location][next_time_slot[location]] << std::endl;
+      TBOX_ERROR(d_object_name << ": May need larger search range for time "
+                                  "index"
+                               << std::endl);
    }
 
    const int ntime_slot = next_time_slot[location];
@@ -224,8 +224,8 @@ void TimeLocationIndexRobinBcCoefs::rescaleGcoefficients(const double factor)
 {
    // loop over faces
    for (int i = 0; i < 2 * d_dim.getValue(); ++i) {
-      vector<double>::const_iterator it = d_g_map[i].begin();
-      for (vector<double>::iterator it = d_g_map[i].begin();
+      std::vector<double>::const_iterator it = d_g_map[i].begin();
+      for (std::vector<double>::iterator it = d_g_map[i].begin();
            it != d_g_map[i].end(); ++it) {
          (*it) *= factor;
       }

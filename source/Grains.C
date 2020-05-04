@@ -42,7 +42,7 @@
 
 #include <cassert>
 #include <set>
-using namespace std;
+
 
 Grains::Grains(const int qlen, const bool visit_output,
                boost::shared_ptr<tbox::Database> input_db)
@@ -153,7 +153,7 @@ void Grains::initializeRefineCoarsenAlgorithms(
     boost::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     boost::shared_ptr<hier::CoarsenOperator> quat_coarsen_op)
 {
-   tbox::plog << "Grains::initializeRefineCoarsenAlgorithms()" << endl;
+   tbox::plog << "Grains::initializeRefineCoarsenAlgorithms()" << std::endl;
 
    if (d_grain_diag_isActive) {
       assert(d_grain_number_id >= 0);
@@ -240,7 +240,7 @@ void Grains::initializeLevelData(
    (void)can_be_refined;
    (void)initial_time;
 
-   tbox::pout << "Grains::initializeLevelData()" << endl;
+   tbox::pout << "Grains::initializeLevelData()" << std::endl;
    boost::shared_ptr<hier::PatchLevel> level =
        hierarchy->getPatchLevel(level_number);
 
@@ -294,7 +294,7 @@ void Grains::findAndNumberGrains(
    assert(d_grain_phase_threshold > 0.);
 
    tbox::plog << "Grains::findAndNumberGrains() with threshold "
-              << d_grain_phase_threshold << endl;
+              << d_grain_phase_threshold << std::endl;
 
    t_findAndNumberGrains_timer->start();
 
@@ -396,7 +396,7 @@ void Grains::findAndNumberGrains(
    mpi.Allreduce(&count_cells, &count_cells_sum, 1, MPI_INT, MPI_SUM);
    if (count_cells_sum == 0)
       tbox::pout << "WARNING: not cell above threshold of "
-                 << d_grain_phase_threshold << endl;
+                 << d_grain_phase_threshold << std::endl;
 
    for (int ln = maxln - 1; ln >= 0; ln--) {
       d_grain_number_coarsen_sched[ln]->coarsenData();
@@ -511,7 +511,7 @@ void Grains::findAndNumberGrains(
                   for (tbox::Dimension::dir_t dd = 0; dd < NDIM; dd++) {
                      pdat::CellIndex cm(icell);
                      cm[dd]--;
-                     // cout<<"CellIndex:"<<*ic<<", val="<<(*g)(icell)<<",
+                     // std::cout<<"CellIndex:"<<*ic<<", val="<<(*g)(icell)<<",
                      // (*g)(cm)="<<(*g)(cm)<<endl;
                      int nm = (*g)(cm);
                      if (nm >= 0 && nm < n) {
@@ -547,19 +547,20 @@ void Grains::findAndNumberGrains(
    }  // while ( counter < max_iteration_count )
 
    if (counter >= max_iteration_count) {
-      tbox::pout << "WARNING: grain numbering did not converge" << endl;
+      tbox::pout << "WARNING: grain numbering did not converge" << std::endl;
       tbox::pout << "counter = " << counter
-                 << ", max_iteration_count = " << max_iteration_count << endl;
+                 << ", max_iteration_count = " << max_iteration_count
+                 << std::endl;
    } else {
       tbox::pout << "Grain numbering converged in " << counter << " iterations"
-                 << endl;
+                 << std::endl;
    }
    // return;
 
    //------------------------------------------------------------
    // Make local sorted list of grain numbers
 
-   set<int> local_grain_list;
+   std::set<int> local_grain_list;
 
    for (int ln = 0; ln <= maxln; ln++) {
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -599,18 +600,18 @@ void Grains::findAndNumberGrains(
    int* local_grain_numbers = new int[size_in];
 
    int ii = 0;
-   for (set<int>::const_iterator it = local_grain_list.begin();
+   for (std::set<int>::const_iterator it = local_grain_list.begin();
         it != local_grain_list.end(); it++) {
       local_grain_numbers[ii] = *it;
       ii++;
    }
 
    int size_out = sumReduction(size_in);
-   vector<int> grain_numbers(size_out, -1);
+   std::vector<int> grain_numbers(size_out, -1);
 
    allGatherv(local_grain_numbers, size_in, &grain_numbers[0], size_out);
 
-   set<int> grain_list;
+   std::set<int> grain_list;
    for (ii = 0; ii < size_out; ii++) {
       grain_list.insert(grain_numbers[ii]);
    }
@@ -621,10 +622,10 @@ void Grains::findAndNumberGrains(
    //------------------------------------------------------------
    // Renumber
 
-   map<int, int> grain_number_map;
+   std::map<int, int> grain_number_map;
 
    ii = 0;
-   for (set<int>::const_iterator it = grain_list.begin();
+   for (std::set<int>::const_iterator it = grain_list.begin();
         it != grain_list.end(); it++) {
       grain_number_map[*it] = ii;
       ii++;
@@ -681,7 +682,7 @@ void Grains::computeGrainVolumes(
 
    // Compute volume of each grain
 
-   map<int, double> map_lcl_grain_v;
+   std::map<int, double> map_lcl_grain_v;
 
    for (int ln = 0; ln <= maxln; ln++) {
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -714,13 +715,13 @@ void Grains::computeGrainVolumes(
       }
    }
 
-   map<int, double> map_gbl_grain_v;
+   std::map<int, double> map_gbl_grain_v;
    listLocalToGlobal(map_lcl_grain_v, map_gbl_grain_v);
 
-   for (map<int, double>::const_iterator it = map_gbl_grain_v.begin();
+   for (std::map<int, double>::const_iterator it = map_gbl_grain_v.begin();
         it != map_gbl_grain_v.end(); it++) {
       tbox::pout << "Volume of grain " << it->first << " = " << it->second
-                 << endl;
+                 << std::endl;
    }
 
    // If a cell is part of a grain, assign it the grain volume for vis
@@ -779,8 +780,8 @@ void Grains::computeGrainConcentrations(
 
    // Compute volume average concentration of each grain
 
-   map<int, double> map_lcl_grain_c;
-   map<int, double> map_lcl_grain_w;
+   std::map<int, double> map_lcl_grain_c;
+   std::map<int, double> map_lcl_grain_w;
 
    for (int ln = 0; ln <= maxln; ln++) {
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -819,16 +820,16 @@ void Grains::computeGrainConcentrations(
       }
    }
 
-   map<int, double> map_gbl_grain_c;
-   map<int, double> map_gbl_grain_w;
+   std::map<int, double> map_gbl_grain_c;
+   std::map<int, double> map_gbl_grain_w;
    listLocalToGlobal(map_lcl_grain_c, map_gbl_grain_c);
    listLocalToGlobal(map_lcl_grain_w, map_gbl_grain_w);
 
    double c_all = 0.0;
    double w_all = 0.0;
 
-   map<int, double> map_gbl_grain_cavg;
-   for (map<int, double>::const_iterator it = map_gbl_grain_c.begin();
+   std::map<int, double> map_gbl_grain_cavg;
+   for (std::map<int, double>::const_iterator it = map_gbl_grain_c.begin();
         it != map_gbl_grain_c.end(); it++) {
       int n = it->first;
       double cavg = map_gbl_grain_c[n] / map_gbl_grain_w[n];
@@ -838,16 +839,16 @@ void Grains::computeGrainConcentrations(
       w_all += map_gbl_grain_w[n];
 
       tbox::pout << "Concentration average of grain " << n << " = " << cavg
-                 << endl;
+                 << std::endl;
    }
 
    if (map_gbl_grain_c.size() > 0)
       tbox::pout << "Concentration average for all grains at " << time << " = "
-                 << c_all / w_all << endl;
+                 << c_all / w_all << std::endl;
 
    // Compute concentration deviation of each grain
 
-   map<int, double> map_lcl_grain_cdev;
+   std::map<int, double> map_lcl_grain_cdev;
 
    for (int ln = 0; ln <= maxln; ln++) {
       boost::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -888,17 +889,17 @@ void Grains::computeGrainConcentrations(
       }
    }
 
-   map<int, double> map_gbl_grain_cdev;
+   std::map<int, double> map_gbl_grain_cdev;
    listLocalToGlobal(map_lcl_grain_cdev, map_gbl_grain_cdev);
 
-   for (map<int, double>::const_iterator it = map_gbl_grain_cdev.begin();
+   for (std::map<int, double>::const_iterator it = map_gbl_grain_cdev.begin();
         it != map_gbl_grain_cdev.end(); it++) {
       int n = it->first;
       double cdev = map_gbl_grain_cdev[n] / map_gbl_grain_w[n];
       //      map_gbl_grain_cdev[n] = cdev;
 
       tbox::pout << "Concentration deviation of grain " << n << " = " << cdev
-                 << endl;
+                 << std::endl;
    }
 }
 
@@ -910,7 +911,7 @@ void Grains::extendGrainOrientation(
     const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
     const int quat_scratch_id, const int phase_id, const int quat_id)
 {
-   tbox::pout << "Extending grain orientation" << endl;
+   tbox::pout << "Extending grain orientation" << std::endl;
    assert(quat_scratch_id >= 0);
    assert(phase_id >= 0);
    assert(quat_id >= 0);
@@ -1091,10 +1092,10 @@ void Grains::extendGrainOrientation(
    }
 
    if (nn >= max_iteration_count) {
-      tbox::pout << "WARNING: grain extension did not converge" << endl;
+      tbox::pout << "WARNING: grain extension did not converge" << std::endl;
    } else {
       tbox::pout << "Grain extension converged in " << nn << " iterations"
-                 << endl;
+                 << std::endl;
    }
 
    for (int ln = maxln - 1; ln >= 0; ln--) {
@@ -1121,7 +1122,7 @@ void Grains::resetHierarchyConfiguration(
     const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int coarsest_level, const int finest_level)
 {
-   tbox::pout << "Grains::resetHierarchyConfiguration()" << endl;
+   tbox::pout << "Grains::resetHierarchyConfiguration()" << std::endl;
 
    const int nlev = hierarchy->getNumberOfLevels();
 

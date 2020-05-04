@@ -44,14 +44,13 @@
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/PIO.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/Database.h"
 
+#include <boost/make_shared.hpp>
 #include <string>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -98,23 +97,24 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::plog << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::plog << endl;
+      tbox::plog << std::endl;
 #endif
 
-      tbox::plog << "input_filename = " << input_filename << endl;
+      tbox::plog << "input_filename = " << input_filename << std::endl;
 
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
       double phase_well_scale = model_db->getDouble("phi_well_scale");
 
-      string phase_well_func_type = model_db->getString("phi_well_func_type");
+      std::string phase_well_func_type =
+          model_db->getString("phi_well_func_type");
 
-      string energy_interp_func_type = "pbg";
-      string conc_interp_func_type = "pbg";
-      string eta_interp_func_type = "pbg";
+      std::string energy_interp_func_type = "pbg";
+      std::string conc_interp_func_type = "pbg";
+      std::string eta_interp_func_type = "pbg";
 
       boost::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
 
       boost::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      string conc_avg_func_type =
+      std::string conc_avg_func_type =
           conc_db->getStringWithDefault("avg_func_type", "a");
 
       boost::shared_ptr<tbox::Database> dcalphad_db =
@@ -167,24 +167,24 @@ int main(int argc, char *argv[])
 
       if (found_ceq) {
          tbox::pout << "Found equilibrium concentrations: " << lceq[0]
-                    << " and " << lceq[1] << "..." << endl;
+                    << " and " << lceq[1] << "..." << std::endl;
       } else {
          tbox::pout << "WARNING: Equilibrium concentrations not found... "
-                    << endl;
+                    << std::endl;
       }
 
       double molar_volume = conc_db->getDouble("molar_volume");
 
-      tbox::plog << "ConstantMolarVolumeStrategy... " << endl;
+      tbox::plog << "ConstantMolarVolumeStrategy... " << std::endl;
       ConstantMolarVolumeStrategy mvstrategy(molar_volume, molar_volume,
                                              molar_volume);
-      tbox::plog << "CALPHADFreeEnergyStrategy... " << endl;
+      tbox::plog << "CALPHADFreeEnergyStrategy... " << std::endl;
       CALPHADFreeEnergyStrategyBinary free_energy_strategy(
           calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
           &mvstrategy, -1, -1, -1, false);
 
       if (calphad_db->keyExists("MobilityParameters")) {
-         tbox::plog << "CompositionStrategyMobilities... " << endl;
+         tbox::plog << "CompositionStrategyMobilities... " << std::endl;
          int ncompositions = 1;
          bool with_third_phase = false;
          CompositionStrategyMobilities composition_strategy_mobilities(

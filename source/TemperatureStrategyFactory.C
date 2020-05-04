@@ -44,7 +44,7 @@
 #include "tools.h"
 
 #include <vector>
-using namespace std;
+
 using namespace SAMRAI;
 
 TemperatureStrategyFactory::TemperatureStrategyFactory(

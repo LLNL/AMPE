@@ -16,8 +16,6 @@
 #include IOMANIP_HEADER_FILE
 
 
-using namespace std;
-
 /*
  *************************************************************************
  *
@@ -178,7 +176,7 @@ void FACPreconditioner::initializeSolverState(
    d_tmp_residual->allocateVectorData();
    /*
     * Set the controlled level operators, which depend on the number
-    * of components in the solution vector.
+    * of components in the solution std::vector.
     */
    math::HierarchyDataOpsManager* ops_manager =
        math::HierarchyDataOpsManager::getManager();
@@ -199,7 +197,8 @@ void FACPreconditioner::initializeSolverState(
     */
 #ifdef DEBUG_CHECK_ASSERTIONS
    if (d_patch_hierarchy != rhs.getPatchHierarchy()) {
-      TBOX_ERROR(d_object_name << ": vectors must have the same hierarchy.\n");
+      TBOX_ERROR(d_object_name << ": std::vectors must have the same "
+                                  "hierarchy.\n");
    }
    if (d_coarsest_ln < 0) {
       TBOX_ERROR(d_object_name << ": coarsest level must not be negative.\n");
@@ -228,7 +227,7 @@ bool FACPreconditioner::checkVectorStateCompatibility(
     * It is an error when the state is not initialized.
     */
    if (!d_patch_hierarchy) {
-      TBOX_ERROR(d_object_name << ": cannot check vector-state\n"
+      TBOX_ERROR(d_object_name << ": cannot check std::vector-state\n"
                                << "compatibility when the state is "
                                   "uninitialized.\n");
    }
@@ -281,7 +280,7 @@ bool FACPreconditioner::solveSystem(solv::SAMRAIVectorReal<double>& u,
    } else {
 #ifdef DEBUG_CHECK_ASSERTIONS
       if (!checkVectorStateCompatibility(u, f)) {
-         TBOX_ERROR(d_object_name << ": Incompatible vectors for\n"
+         TBOX_ERROR(d_object_name << ": Incompatible std::vectors for\n"
                                   << "current state in solveSystem.\n");
       }
 #endif
@@ -299,7 +298,7 @@ bool FACPreconditioner::solveSystem(solv::SAMRAIVectorReal<double>& u,
        computeFullCompositeResidual(*d_residual_vector, u, f);
    /*
     * Above step has the side effect of filling the residual
-    * vector d_residual_vector.
+    * std::vector d_residual_vector.
     */
 
    double effective_residual_tolerance = d_residual_tolerance;
@@ -323,7 +322,7 @@ bool FACPreconditioner::solveSystem(solv::SAMRAIVectorReal<double>& u,
    do {
 
       /*
-       * In zeroing the error vector, also zero out the ghost values.
+       * In zeroing the error std::vector, also zero out the ghost values.
        * This gives the FAC operator an oportunity to bypass the
        * ghost filling if it decides that the ghost values do not
        * change.

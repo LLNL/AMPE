@@ -36,7 +36,6 @@
 #include "PhaseFACSolver.h"
 #include "PhaseFACOps.h"
 
-using namespace std;
 
 PhaseFACSolver::PhaseFACSolver(const std::string& object_name,
                                boost::shared_ptr<PhaseFACOps>& fac_ops,
@@ -51,8 +50,8 @@ void PhaseFACSolver::setOperatorCoefficients(
     const int phase_id, const int eta_id, const int phase_mobility_id,
     const double epsilon_phase, const double gamma,
     const EnergyInterpolationType phase_interp_func_type,
-    const double phase_well_scale, const string phase_well_func_type,
-    const double eta_well_scale, const string eta_well_func_type)
+    const double phase_well_scale, const std::string phase_well_func_type,
+    const double eta_well_scale, const std::string eta_well_func_type)
 {
    assert(phase_id >= 0);
    assert(phase_mobility_id >= 0);

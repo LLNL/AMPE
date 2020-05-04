@@ -38,7 +38,6 @@
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/IEEE.h"
 
-using namespace std;
 
 KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     KKSdiluteEquilibriumPhaseConcentrationsStrategy(

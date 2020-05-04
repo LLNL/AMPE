@@ -63,7 +63,7 @@
 
 
 #include <cassert>
-using namespace std;
+
 
 #define NPARTS 1
 #define PART 0
@@ -199,7 +199,7 @@ boost::shared_ptr<pdat::OutersideVariable<double> >
 */
 
 
-QuatLevelSolver::QuatLevelSolver(const int ql, const string &object_name,
+QuatLevelSolver::QuatLevelSolver(const int ql, const std::string &object_name,
                                  boost::shared_ptr<tbox::Database> database)
     : d_dim(tbox::Dimension(NDIM)),
       d_qlen(ql),
@@ -275,7 +275,7 @@ void QuatLevelSolver::getFromInput(boost::shared_ptr<tbox::Database> database)
    }
 
    // print database just read
-   tbox::plog << "QuatLevelSolver database..." << endl;
+   tbox::plog << "QuatLevelSolver database..." << std::endl;
    database->printClassData(tbox::plog);
 }
 
@@ -342,7 +342,7 @@ void QuatLevelSolver::deallocateSolverState()
 *************************************************************************
 *                                                                       *
 * Allocate the HYPRE data structures that depend only on the level      *
-* and will not change (grid, stencil, matrix, and vectors).             *
+* and will not change (grid, stencil, matrix, and std::vectors).             *
 *                                                                       *
 *************************************************************************
 */
@@ -574,20 +574,20 @@ void QuatLevelSolver::allocateHypreData()
       // Indicate that the matrix coefficients are ready to be set
       HYPRE_SStructMatrixInitialize(d_matrix[depth]);
 
-      // Create the rhs and solution vectors
+      // Create the rhs and solution std::vectors
 
-      // Create empty vector objects
+      // Create empty std::vector objects
       HYPRE_SStructVectorCreate(communicator, d_grid, &d_linear_rhs[depth]);
       HYPRE_SStructVectorCreate(communicator, d_grid, &d_linear_sol[depth]);
 
-      /* Set the object type for the vectors
+      /* Set the object type for the std::vectors
          to be the same as was already set for the matrix */
       HYPRE_SStructVectorSetObjectType(d_linear_rhs[depth],
                                        d_hypre_object_type);
       HYPRE_SStructVectorSetObjectType(d_linear_sol[depth],
                                        d_hypre_object_type);
 
-      // Indicate that the vector coefficients are ready to be set
+      // Indicate that the std::vector coefficients are ready to be set
       HYPRE_SStructVectorInitialize(d_linear_rhs[depth]);
       HYPRE_SStructVectorInitialize(d_linear_sol[depth]);
    }
@@ -675,7 +675,7 @@ void QuatLevelSolver::deallocateHypreData()
 /*
 *************************************************************************
 *                                                                       *
-* Copy data into the HYPRE vector structures.                           *
+* Copy data into the HYPRE std::vector structures.                           *
 *                                                                       *
 *************************************************************************
 */
@@ -720,7 +720,7 @@ void QuatLevelSolver::copyToHypre(const int component,
 /*
 *************************************************************************
 *                                                                       *
-* Copy data out of the HYPRE vector structures.                         *
+* Copy data out of the HYPRE std::vector structures.                         *
 *                                                                       *
 *************************************************************************
 */
@@ -1076,7 +1076,8 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
 
    if (d_print_solver_info)  // dump before assembly
       for (int depth = 0; depth < d_qlen; depth++) {
-         string name("mat_bA.out_q" + tbox::Utilities::intToString(depth, 1));
+         std::string name("mat_bA.out_q" +
+                          tbox::Utilities::intToString(depth, 1));
          HYPRE_SStructMatrixPrint(name.c_str(), d_matrix[depth], 1);
       }
 
@@ -1086,7 +1087,8 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
       HYPRE_SStructMatrixAssemble(d_matrix[depth]);
 
       if (d_print_solver_info) {  // dump after assembly
-         string name("mat_aA.out_q" + tbox::Utilities::intToString(depth, 1));
+         std::string name("mat_aA.out_q" +
+                          tbox::Utilities::intToString(depth, 1));
          HYPRE_SStructMatrixPrint(name.c_str(), d_matrix[depth], 1);
       }
 
@@ -1166,13 +1168,13 @@ void QuatLevelSolver::add_gAk0_toRhs(
           Ak0->getArrayData(location_index / 2, location_index % 2);
       double nak0 = ops.maxNorm(Ak0_data, Ak0box);
       if (nak0 != nak0) {
-         Ak0->print(Ak0box, cerr);
-         cerr << "Ak0: Norm =" << nak0 << endl;
+         Ak0->print(Ak0box, std::cerr);
+         std::cerr << "Ak0: Norm =" << nak0 << std::endl;
          TBOX_ERROR("Nan in Ak0 before adjusting rhs\n");
       }
       if (nak0 > 1.e25) {
-         Ak0->print(Ak0box, cerr);
-         cerr << "Ak0: Norm =" << nak0 << endl;
+         Ak0->print(Ak0box, std::cerr);
+         std::cerr << "Ak0: Norm =" << nak0 << std::endl;
          TBOX_ERROR("Inf in Ak0 before adjusting rhs\n");
       }
 #endif
@@ -1211,15 +1213,15 @@ void QuatLevelSolver::add_gAk0_toRhs(
 #ifdef DEBUG_CHECK_ASSERTIONS
          nak0 = ops.maxNorm(Ak0_data, Ak0box);
          if (nak0 != nak0) {
-            Ak0->print(Ak0box, cerr);
-            cerr << "Ak0: Norm =" << nak0 << endl;
+            Ak0->print(Ak0box, std::cerr);
+            std::cerr << "Ak0: Norm =" << nak0 << std::endl;
             TBOX_ERROR("Nan in Ak0 after adjusting rhs\n");
          }
          double na = ops.maxNorm(rhs.getArrayData(), rhsbox);
          if (na != na) {
-            Ak0->print(Ak0box, cerr);
-            cerr << "Norm before=" << nb << endl;
-            cerr << "Norm after=" << na << endl;
+            Ak0->print(Ak0box, std::cerr);
+            std::cerr << "Norm before=" << nb << std::endl;
+            std::cerr << "Norm after=" << na << std::endl;
             TBOX_ERROR("Nan in rhs\n");
          }
 #endif
@@ -1476,7 +1478,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
                                         hier::IntVector(tbox::Dimension(NDIM),
                                                         0));
 
-      // Copy solution from the hierarchy into the HYPRE vector
+      // Copy solution from the hierarchy into the HYPRE std::vector
       for (int depth = 0; depth < d_qlen; depth++) {
          copyToHypre(depth, q_solution_data, d_linear_sol[depth]);
          // newcopyToHypre(d_linear_sol[depth], q_solution_data, depth, box );
@@ -1497,7 +1499,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
                         &d_cf_bc_coef, q_rhs_data);
       }
 
-      // Copy rhs from the hierarchy into the HYPRE vector
+      // Copy rhs from the hierarchy into the HYPRE std::vector
       for (int depth = 0; depth < d_qlen; depth++) {
          copyToHypre(depth, q_rhs_data, d_linear_rhs[depth]);
          // newcopyToHypre(d_linear_rhs[depth], q_rhs_data, depth, box );
@@ -1508,7 +1510,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
    // Reset invalid ghost data id to help detect erroneous further use.
    d_cf_bc_coef.setGhostDataId(-1, hier::IntVector(tbox::Dimension(NDIM), 0));
 
-   // Finish assembly of the Hypre solution and rhs vectors
+   // Finish assembly of the Hypre solution and rhs std::vectors
    for (int depth = 0; depth < d_qlen; depth++) {
       HYPRE_SStructVectorAssemble(d_linear_sol[depth]);
       HYPRE_SStructVectorAssemble(d_linear_rhs[depth]);
@@ -1553,7 +1555,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
                tbox::pout << "PFMG preconditioned PCG on level " << d_ln
                           << ": Residual norm = " << relative_residual_norm
                           << "  "
-                          << " Iterations = " << number_iterations << endl;
+                          << " Iterations = " << number_iterations << std::endl;
             }
 
             if (relative_residual_norm > d_relative_residual_norm)
@@ -1585,7 +1587,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
                tbox::pout << "PFMG on level " << d_ln
                           << ": Residual norm = " << relative_residual_norm
                           << "  "
-                          << " Iterations = " << number_iterations << endl;
+                          << " Iterations = " << number_iterations << std::endl;
             }
 
             if (relative_residual_norm > d_relative_residual_norm)
@@ -1616,7 +1618,7 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
 
    t_hypre_solve->stop();
 
-   // Gather the solution vector if the  object  type is parcsr
+   // Gather the solution std::vector if the  object  type is parcsr
 
    if (d_hypre_object_type == HYPRE_PARCSR) {
       for (int depth = 0; depth < d_qlen; depth++) {
@@ -1626,21 +1628,21 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
 
    // Print the solution and other info
    if (d_print_solver_info) {
-      // Dump solution vector after the solve
+      // Dump solution std::vector after the solve
       for (int depth = 0; depth < d_qlen; depth++) {
          char fname[20];
          snprintf(fname, 20, "sstruct_%d.out", depth);
          HYPRE_SStructVectorPrint(fname, d_linear_sol[depth], 0);
       }
 
-      tbox::pout << endl
-                 << "Iterations = " << d_number_iterations << endl
+      tbox::pout << std::endl
+                 << "Iterations = " << d_number_iterations << std::endl
                  << "Final Relative Residual Norm = "
-                 << d_relative_residual_norm << endl;
+                 << d_relative_residual_norm << std::endl;
    }
 
    /*
-    * Pull the solution vector out of the HYPRE structures
+    * Pull the solution std::vector out of the HYPRE structures
     */
    for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
         ++ip) {
@@ -1720,13 +1722,14 @@ void QuatLevelSolver::adjustBoundaryEntries(
       math::ArrayDataNormOpsReal<double> ops;
       double na = ops.maxNorm(Ak0_data, Ak0_box);
       if (na != na) {
-         Ak0.print(Ak0_box, cerr);
-         cerr << "depth=" << depth << ", Ak0: Norm after=" << na << endl;
+         Ak0.print(Ak0_box, std::cerr);
+         std::cerr << "depth=" << depth << ", Ak0: Norm after=" << na
+                   << std::endl;
          TBOX_ERROR("Nan in Ak0!!!\n");
       }
       if (na > 1.e25) {
-         Ak0.print(Ak0_box, cerr);
-         cerr << "depth=" << depth << ", Ak0: Norm =" << na << endl;
+         Ak0.print(Ak0_box, std::cerr);
+         std::cerr << "depth=" << depth << ", Ak0: Norm =" << na << std::endl;
          TBOX_ERROR("Inf in Ak0!!!\n");
       }
 #endif

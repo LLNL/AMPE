@@ -41,7 +41,7 @@
 #include <cassert>
 #include "SAMRAI/tbox/PIO.h"
 
-using namespace std;
+
 using namespace SAMRAI;
 
 //=======================================================================
@@ -138,7 +138,7 @@ int CALPHADEqConcentrationSolverBinaryWithPenalty::
         double* const conc, const double RTinv, const double* const L0,
         const double* const L1, const double* const L2, const double* const L3,
         const double* const fA, const double* const fB,
-        vector<vector<double> >& penalty_parameters)
+        std::vector<std::vector<double> >& penalty_parameters)
 {
    d_penalty_parametersL = penalty_parameters[0];
    d_penalty_parametersS = penalty_parameters[1];

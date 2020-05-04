@@ -39,11 +39,12 @@
 #include <boost/make_shared.hpp>
 
 #include <cassert>
-using namespace std;
+
 
 QuatRefinePatchStrategy::QuatRefinePatchStrategy(
-    const string& object_name, boost::shared_ptr<tbox::Database> input_bc_db,
-    const int phase_id, const int eta_id, const int quat_id, const int conc_id,
+    const std::string& object_name,
+    boost::shared_ptr<tbox::Database> input_bc_db, const int phase_id,
+    const int eta_id, const int quat_id, const int conc_id,
     const int temperature_id, const double rescaled_temperature_coeff)
     : xfer::RefinePatchStrategy(),
       d_object_name(object_name),
@@ -116,45 +117,45 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
       boost::shared_ptr<tbox::Database> temp_bc_db =
           input_bc_db->getDatabase("Temperature");
       bool flag = false;
-      string name("boundary_0");
+      std::string name("boundary_0");
       if (temp_bc_db->isString(name)) {
          std::vector<std::string> specs = temp_bc_db->getStringVector(name);
          if (specs[0] == "file") flag = true;
       }
       if (flag) {
          tbox::plog << "Use TimeLocationIndexRobinBcCoefs for temperature"
-                    << endl;
+                    << std::endl;
          d_temp_bc_coefs =
              new TimeLocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
                                                "QRPSTemperatureBcCoefs",
                                                temp_bc_db);
          if (rescaled_temperature_coeff > 0.) {
             tbox::plog << "Rescale Temperature boundary conditions by factor "
-                       << rescaled_temperature_coeff << endl;
+                       << rescaled_temperature_coeff << std::endl;
             TimeLocationIndexRobinBcCoefs* bc_coefs =
                 dynamic_cast<TimeLocationIndexRobinBcCoefs*>(d_temp_bc_coefs);
             bc_coefs->rescaleGcoefficients(rescaled_temperature_coeff);
          }
       } else {
          tbox::plog << "Use solv::LocationIndexRobinBcCoefs for temperature"
-                    << endl;
+                    << std::endl;
          d_temp_bc_coefs =
              new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
                                                  "QRPSTemperatureBcCoefs",
                                                  temp_bc_db);
          if (rescaled_temperature_coeff > 0.) {
             tbox::plog << "Rescale Temperature boundary conditions by factor "
-                       << rescaled_temperature_coeff << endl;
+                       << rescaled_temperature_coeff << std::endl;
             double a, b, g;
             solv::LocationIndexRobinBcCoefs* bc_coefs =
                 dynamic_cast<solv::LocationIndexRobinBcCoefs*>(d_temp_bc_coefs);
             for (int n = 0; n < 2 * NDIM; n++) {
                bc_coefs->getCoefficients(n, a, b, g);
                tbox::plog << "old values: " << a << "," << b << "," << g
-                          << endl;
+                          << std::endl;
                g *= rescaled_temperature_coeff;
                tbox::plog << "new values: " << a << "," << b << "," << g
-                          << endl;
+                          << std::endl;
                bc_coefs->setRawCoefficients(n, a, b, g);
             }
          }
@@ -205,15 +206,15 @@ void QuatRefinePatchStrategy::setPhysicalBoundaryConditions(
 //
 // Print all class data members to given output stream.
 
-void QuatRefinePatchStrategy::printClassData(ostream& os) const
+void QuatRefinePatchStrategy::printClassData(std::ostream& os) const
 {
-   os << "\nQuatRefinePatchStrategy::printClassData..." << endl;
+   os << "\nQuatRefinePatchStrategy::printClassData..." << std::endl;
    os << "QuatRefinePatchStrategy: this = " << (QuatRefinePatchStrategy*)this
-      << endl;
-   os << "d_object_name = " << d_object_name << endl;
-   os << "d_phase_id =   " << d_phase_id << endl;
-   os << "d_eta_id =   " << d_eta_id << endl;
-   os << "d_quat_id =   " << d_quat_id << endl;
-   os << "d_conc_id =   " << d_conc_id << endl;
-   os << "d_temperature_id = " << d_temperature_id << endl;
+      << std::endl;
+   os << "d_object_name = " << d_object_name << std::endl;
+   os << "d_phase_id =   " << d_phase_id << std::endl;
+   os << "d_eta_id =   " << d_eta_id << std::endl;
+   os << "d_quat_id =   " << d_quat_id << std::endl;
+   os << "d_conc_id =   " << d_conc_id << std::endl;
+   os << "d_temperature_id = " << d_temperature_id << std::endl;
 }

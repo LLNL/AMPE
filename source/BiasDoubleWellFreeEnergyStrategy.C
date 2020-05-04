@@ -39,7 +39,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 BiasDoubleWellFreeEnergyStrategy::BiasDoubleWellFreeEnergyStrategy() {}
 
@@ -80,8 +80,8 @@ void BiasDoubleWellFreeEnergyStrategy::computePhaseConcentrations(
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
-    const double temp, const vector<double>& c_l, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_l,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_l;
@@ -93,8 +93,8 @@ void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
-    const double temp, const vector<double>& c_a, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_a,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_a;
@@ -106,8 +106,8 @@ void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 //=======================================================================
 
 void BiasDoubleWellFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
-    const double temp, const vector<double>& c_b, vector<double>& d2fdc2,
-    const bool use_internal_units)
+    const double temp, const std::vector<double>& c_b,
+    std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    (void)temp;
    (void)c_b;

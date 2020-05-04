@@ -38,7 +38,6 @@
 #include "CALPHADEqConcSolverBinaryWithPenalty.h"
 #include "PhysicalConstants.h"
 
-using namespace std;
 
 CALPHADFreeEnergyFunctionsWithPenaltyBinary::
     CALPHADFreeEnergyFunctionsWithPenaltyBinary(
@@ -178,7 +177,7 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
    double* L3 = new double[N];
 
    setupValuesForTwoPhasesSolver(temperature, L0, L1, L2, L3, fA, fB, pi0, pi1);
-   vector<vector<double> > penalty_parameters;
+   std::vector<std::vector<double> > penalty_parameters;
    penalty_parameters.push_back(d_penalty_parameters[static_cast<int>(pi0)]);
    penalty_parameters.push_back(d_penalty_parameters[static_cast<int>(pi1)]);
    double RTinv = 1.0 / (gas_constant_R_JpKpmol * temperature);
@@ -191,17 +190,17 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
       switch (pi0) {
          case PhaseIndex::phaseL:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseL=" << ceq[0]
-                       << endl;
+                       << std::endl;
             d_ceq_l = ceq[0];
             break;
          case PhaseIndex::phaseA:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseA=" << ceq[0]
-                       << endl;
+                       << std::endl;
             d_ceq_a = ceq[0];
             break;
          case PhaseIndex::phaseB:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseB=" << ceq[0]
-                       << endl;
+                       << std::endl;
             d_ceq_b = ceq[0];
             break;
       }
@@ -209,17 +208,17 @@ bool CALPHADFreeEnergyFunctionsWithPenaltyBinary::computeCeqT(
       switch (pi1) {
          case PhaseIndex::phaseL:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseL=" << ceq[1]
-                       << endl;
+                       << std::endl;
             d_ceq_l = ceq[1];
             break;
          case PhaseIndex::phaseA:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseA=" << ceq[1]
-                       << endl;
+                       << std::endl;
             d_ceq_a = ceq[1];
             break;
          case PhaseIndex::phaseB:
             tbox::pout << "CALPHAD with Penalty, c_eq phaseB=" << ceq[1]
-                       << endl;
+                       << std::endl;
             d_ceq_b = ceq[1];
             break;
       }

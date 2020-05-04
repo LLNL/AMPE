@@ -39,7 +39,7 @@ void SAMRAI_F77_FUNC(setexactandrhs3d,
  *************************************************************************
  */
 HyprePoisson::HyprePoisson(
-    const string& object_name, const tbox::Dimension& dim,
+    const std::string& object_name, const tbox::Dimension& dim,
     boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
     boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs)
     : d_object_name(object_name),

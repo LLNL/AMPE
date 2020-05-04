@@ -84,14 +84,13 @@
 
 #define NUM_FACES 2 * NDIM
 
-using namespace std;
 
 //-----------------------------------------------------------------------
 
 void setBChomogeneous(solv::LocationIndexRobinBcCoefs* bc_coefs)
 {
    tbox::plog << "BC for " << bc_coefs->getObjectName() << " set to homogeneous"
-              << endl;
+              << std::endl;
    for (int n = 0; n < 2 * NDIM; n++) {
       double a, b, g;
       bc_coefs->getCoefficients(n, a, b, g);
@@ -106,7 +105,7 @@ void setBChomogeneous(solv::LocationIndexRobinBcCoefs* bc_coefs)
 //-----------------------------------------------------------------------
 
 QuatIntegrator::QuatIntegrator(
-    const string& name, const QuatModelParameters& model_parameters,
+    const std::string& name, const QuatModelParameters& model_parameters,
     QuatModel* model, const boost::shared_ptr<hier::VariableContext> current,
     const boost::shared_ptr<hier::VariableContext> scratch, const int qlen,
     const int ncompositions, boost::shared_ptr<tbox::Database> db,
@@ -464,7 +463,7 @@ void QuatIntegrator::setupPreconditionersTemperature(
 
 void QuatIntegrator::setupPreconditioners()
 {
-   tbox::pout << "QuatIntegrator::setupPreconditioners()" << endl;
+   tbox::pout << "QuatIntegrator::setupPreconditioners()" << std::endl;
 
    d_use_preconditioner = true;
    bool precondition_phase = true;
@@ -776,7 +775,7 @@ void QuatIntegrator::RegisterVariables(
     const boost::shared_ptr<pdat::CellVariable<double> > temperature_var,
     const boost::shared_ptr<pdat::CellVariable<double> > cp_var)
 {
-   tbox::pout << "QuatIntegrator::RegisterVariables()" << endl;
+   tbox::pout << "QuatIntegrator::RegisterVariables()" << std::endl;
 
    if (d_with_phase) {
       assert(phase_var);
@@ -1445,12 +1444,12 @@ void QuatIntegrator::setModelParameters(
     const double current_time, const double end_time, const double h_parameter,
     const double epsilon_phase, const double epsilon_eta,
     const double epsilon_q, const double quat_grad_floor,
-    const string quat_smooth_floor_type, const double phase_well_scale,
-    const double eta_well_scale, const string orient_interp_func_type,
-    const string avg_func_type, const string phase_well_func_type,
+    const std::string quat_smooth_floor_type, const double phase_well_scale,
+    const double eta_well_scale, const std::string orient_interp_func_type,
+    const std::string avg_func_type, const std::string phase_well_func_type,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
-    const string eta_well_func_type)
+    const std::string eta_well_func_type)
 {
    d_current_time = current_time;
    d_end_time = end_time;
@@ -1495,11 +1494,11 @@ void QuatIntegrator::RegisterWithVisit(
    if (d_compute_velocity) {
 #if 0
       assert( d_tmp1_id>=0 );
-      string visit_name1("tmp1");
+      std::string visit_name1("tmp1");
       visit_data_writer->registerPlotQuantity(
          visit_name1, "SCALAR", d_tmp1_id, 0 );
       assert( d_tmp2_id>=0 );
-      string visit_name2("tmp2");
+      std::string visit_name2("tmp2");
       visit_data_writer->registerPlotQuantity(
          visit_name2, "SCALAR", d_tmp2_id, 0 );
 #endif
@@ -1527,19 +1526,20 @@ void QuatIntegrator::RegisterWithVisit(
       }
       if (d_evolve_quat) {
          assert(d_modulus_q_rhs_visit_id > 0);
-         string visit_nameq("modulus_q_rhs");
+         std::string visit_nameq("modulus_q_rhs");
          visit_data_writer->registerPlotQuantity(visit_nameq, "SCALAR",
                                                  d_modulus_q_rhs_visit_id, 0);
 
          assert(d_q_rhs_visit_id > 0);
          for (int q = 0; q < d_qlen; q++) {
-            string visit_namem("q_rhs" + tbox::Utilities::intToString(q, 1));
+            std::string visit_namem("q_rhs" +
+                                    tbox::Utilities::intToString(q, 1));
             visit_data_writer->registerPlotQuantity(visit_namem, "SCALAR",
                                                     d_q_rhs_visit_id, q);
          }
 
          assert(d_q_rhs1_visit_id > 0);
-         string visit_name1("modulus_q_rhs1");
+         std::string visit_name1("modulus_q_rhs1");
          visit_data_writer->registerPlotQuantity(visit_name1, "SCALAR",
                                                  d_q_rhs1_visit_id, 0);
       }
@@ -1675,7 +1675,7 @@ void QuatIntegrator::resetSolutionVector(
 }
 
 //-----------------------------------------------------------------------
-// Make a new solution vector
+// Make a new solution std::vector
 void QuatIntegrator::createSolutionvector(
     const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
@@ -1739,7 +1739,7 @@ void QuatIntegrator::resetIntegrator(
        hierarchy->getPatchLevel(finest_level));
    assert(level);
 
-   // tbox::pout << "QuatIntegrator::resetIntegrator()" << endl;
+   // tbox::pout << "QuatIntegrator::resetIntegrator()" << std::endl;
 
    // Reset the linear solvers since the hierarchy has been changed
    resetSolversState(hierarchy, coarsest_level, finest_level);
@@ -1750,7 +1750,7 @@ void QuatIntegrator::resetIntegrator(
 
    setSundialsOptions();
 
-   // Convert the SAMRAI solution vector to a Sundials vector
+   // Convert the SAMRAI solution std::vector to a Sundials std::vector
    solv::Sundials_SAMRAIVector* y = (solv::Sundials_SAMRAIVector*)
        solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec);
 
@@ -1760,13 +1760,13 @@ void QuatIntegrator::resetIntegrator(
      Complete the initialization of the integrator having now set the desired
      options.
 
-     NB: The argument y is the vector in which we want
+     NB: The argument y is the std::vector in which we want
      the integrator to store its current solution, which may or may not
-     be the same vector passed to the preceding initial condition
+     be the same std::vector passed to the preceding initial condition
      setting function.  y must have the same structure as the
-     initial condition vector, however, since the integrator uses the
-     initial condition vector as a template to clone its
-     internal vectors.
+     initial condition std::vector, however, since the integrator uses the
+     initial condition std::vector as a template to clone its
+     internal std::vectors.
    */
 
    d_sundials_solver->initialize(y);
@@ -1792,7 +1792,7 @@ void QuatIntegrator::resetAfterRegrid(
 
    assert(d_weight_id != -1);
 
-   // tbox::pout << "QuatIntegrator::resetAfterRegrid()" << endl;
+   // tbox::pout << "QuatIntegrator::resetAfterRegrid()" << std::endl;
    /*
     * This function resets the parts of the integrator needed after regrid
     */
@@ -1878,19 +1878,19 @@ void QuatIntegrator::initializeLevelData(
 
    if (!initial_time && d_use_warm_start) {
 
-      // allocate CPODES internal vectors for warm start
+      // allocate CPODES internal std::vectors for warm start
 
-      set<int> cpodes_id_set;
-      set<int> phase_id_set;
-      set<int> eta_id_set;
-      set<int> orient_id_set;
-      set<int> conc_id_set;
-      set<int> temp_id_set;
+      std::set<int> cpodes_id_set;
+      std::set<int> phase_id_set;
+      std::set<int> eta_id_set;
+      std::set<int> orient_id_set;
+      std::set<int> conc_id_set;
+      std::set<int> temp_id_set;
 
       getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set, eta_id_set,
                                   orient_id_set, conc_id_set, temp_id_set);
 
-      set<int>::iterator it;
+      std::set<int>::iterator it;
 
       for (it = cpodes_id_set.begin(); it != cpodes_id_set.end(); it++) {
          level->allocatePatchData(*it, time);
@@ -2030,7 +2030,7 @@ void QuatIntegrator::updateDependentVariables(
     const boost::shared_ptr<hier::VariableContext> src_context,
     const boost::shared_ptr<hier::VariableContext> dst_context)
 {
-   // tbox::pout<<"QuatIntegrator::updateDependentVariables()..."<< endl;
+   // tbox::pout<<"QuatIntegrator::updateDependentVariables()..."<< std::endl;
    int finest_hiera_level = hierarchy->getFinestLevelNumber();
 
    for (int ln = 0; ln <= finest_hiera_level; ln++) {
@@ -2087,42 +2087,42 @@ double QuatIntegrator::Advance(
 
       switch (return_code) {
          case -1:
-            tbox::pout << "The cvode_mem argument was nullptr" << endl;
+            tbox::pout << "The cvode_mem argument was nullptr" << std::endl;
             break;
          case -2:
             tbox::pout << "One of the inputs to the integrator is illegal"
-                       << endl;
+                       << std::endl;
             break;
          case -3:
             tbox::pout << "The solver took maxstep internal steps but "
-                       << "could not reach t_f" << endl;
+                       << "could not reach t_f" << std::endl;
             break;
          case -4:
             tbox::pout << "The solver could not satisfy the accuracy demanded "
-                       << "by the user for some internal step" << endl;
+                       << "by the user for some internal step" << std::endl;
             break;
          case -5:
             tbox::pout << "Error test failures occurred too many times "
                        << "during one internal time step or occurred"
-                       << "with |h| = hmin" << endl;
+                       << "with |h| = hmin" << std::endl;
             break;
          case -6:
             tbox::pout << "Convergence test failures occurred too many times "
                        << "during one internal time step or occurred "
-                       << "with |h| = hmin" << endl;
+                       << "with |h| = hmin" << std::endl;
             break;
          case -7:
             tbox::pout << "The linear solver's setup routine failed in an "
-                       << "unrecoverable manner" << endl;
+                       << "unrecoverable manner" << std::endl;
             break;
          case -8:
             tbox::pout << "The linear solver's solve routine failed in an "
-                       << "unrecoverable manner" << endl;
+                       << "unrecoverable manner" << std::endl;
             break;
          case -22:
-            tbox::pout << "One of the function inputs is illegal." << endl;
+            tbox::pout << "One of the function inputs is illegal." << std::endl;
             break;
-         default: tbox::pout << "Unknown return code" << endl;
+         default: tbox::pout << "Unknown return code" << std::endl;
       }
 
       TBOX_ERROR("Integrator failure\n");
@@ -2157,7 +2157,7 @@ double QuatIntegrator::Advance(
                  << "\n   Function evaluations " << f_eval - d_cum_f_eval
                  << "\n   Precond setups       " << p_setup - d_cum_p_setup
                  << "\n   Precond applications " << p_apply - d_cum_p_apply;
-      tbox::pout << endl;
+      tbox::pout << std::endl;
    }
 
    // Update the timestamp of the current solution
@@ -2235,7 +2235,7 @@ void QuatIntegrator::printSolverTotals(void)
                  << "\n   Function evaluations " << d_cum_f_eval
                  << "\n   Precond setups       " << d_cum_p_setup
                  << "\n   Precond applications " << d_cum_p_apply;
-      tbox::pout << endl;
+      tbox::pout << std::endl;
    }
 }
 
@@ -2632,7 +2632,7 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
    const double maxmobility = mathops.max(d_quat_mobility_id);
    const double dval = 0.2 * vel / (maxmobility);
-   tbox::pout << "dval=" << dval << endl;
+   tbox::pout << "dval=" << dval << std::endl;
 
    // set diffusion coefficients
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
@@ -3465,7 +3465,7 @@ void QuatIntegrator::fillScratch(
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
 #endif
-   // Copy the input phase/quat/conc vectors to the phase/quat/conc
+   // Copy the input phase/quat/conc std::vectors to the phase/quat/conc
    // scratch arrays and fill the ghost cells
 
    xfer::RefineAlgorithm copy_to_scratch;
@@ -3580,7 +3580,7 @@ void QuatIntegrator::setCoefficients(
     double time, boost::shared_ptr<solv::SAMRAIVectorReal<double> > y,
     const bool recompute_quat_sidegrad)
 {
-   // tbox::pout << "Entering QuatIntegrator::setCoefficients()" << endl;
+   // tbox::pout << "Entering QuatIntegrator::setCoefficients()" << std::endl;
    t_set_coeff_timer->start();
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -3719,13 +3719,13 @@ int QuatIntegrator::evaluateRHSFunction(double time,
 {
    if (d_with_unsteady_temperature) assert(d_temperature_sys_solver);
 
-   // tbox::pout << "Entering QuatIntegrator::evaluateRHSFunction" << endl;
+   // tbox::pout << "Entering QuatIntegrator::evaluateRHSFunction" << std::endl;
    // tbox::pout << "QuatIntegrator::evaluateRHSFunction with fd_flag="<<fd_flag
-   // << endl;
+   // << std::endl;
 
    t_rhs_timer->start();
 
-   // Convert the Sundials vectors to SAMRAI vectors
+   // Convert the Sundials std::vectors to SAMRAI std::vectors
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
        solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect =
@@ -3823,7 +3823,7 @@ int QuatIntegrator::evaluateRHSFunction(double time,
             if (norm_diff < 1.e-8)
                need_iterate = false;
             else
-               tbox::pout << "Norm diff = " << norm_diff << endl;
+               tbox::pout << "Norm diff = " << norm_diff << std::endl;
 
             assert(d_partition_coeff_strategy != nullptr);
 
@@ -3909,14 +3909,15 @@ int QuatIntegrator::
    (void)vtemp2;
    (void)vtemp3;
 
-   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok << endl;
+   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok <<
+   // std::endl;
    t_psolve_setup_timer->start();
 
    // Ignore jok flag
    // If (jok == TRUE), Jacobian-related data saved
    // from previous call could be reused with new gamma
 
-   // Convert passed-in vector into SAMRAI vector
+   // Convert passed-in std::vector into SAMRAI std::vector
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
        solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
 
@@ -3994,7 +3995,8 @@ int QuatIntegrator::PhasePrecondSolve(
    t_phase_precond_timer->start();
 
    if (d_show_phase_sys_stats) {
-      tbox::plog << "Preconditioner for Phase block with tol " << delta << endl;
+      tbox::plog << "Preconditioner for Phase block with tol " << delta
+                 << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
@@ -4049,7 +4051,7 @@ int QuatIntegrator::EtaPrecondSolve(
     int z_eta_id, const double delta)
 {
    if (d_show_eta_sys_stats) {
-      tbox::pout << "Preconditioner for Eta block" << endl;
+      tbox::pout << "Preconditioner for Eta block" << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
@@ -4081,7 +4083,7 @@ int QuatIntegrator::TemperaturePrecondSolve(
 {
    if (d_show_temperature_sys_stats) {
       tbox::plog << "Preconditioner for temperature block with tol " << delta
-                 << endl;
+                 << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
@@ -4092,7 +4094,7 @@ int QuatIntegrator::TemperaturePrecondSolve(
       // just computed phi correction
       // double norm_phase=cellops.L2Norm(d_phase_sol_id);
       // tbox::pout << "Off-diagonal Preconditioner for temperature block, norm
-      // phase="<<norm_phase << endl;
+      // phase="<<norm_phase << std::endl;
       d_phase_temperature_fac_ops->multiplyDTDPhiBlock(d_phase_sol_id,
                                                        d_temperature_rhs_id);
 
@@ -4149,7 +4151,7 @@ int QuatIntegrator::ConcentrationPrecondSolve(
 
    if (d_show_conc_sys_stats) {
       tbox::plog << "Preconditioner for Concentration block with tol " << delta
-                 << endl;
+                 << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
@@ -4192,7 +4194,7 @@ int QuatIntegrator::QuatPrecondSolve(
 {
    if (d_show_quat_sys_stats) {
       tbox::plog << "Preconditioner for Quaternion block with tol " << delta
-                 << endl;
+                 << std::endl;
    }
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
@@ -4274,11 +4276,11 @@ int QuatIntegrator::
    (void)vtemp;
 
    assert(d_use_preconditioner);
-   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << endl;
+   // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << std::endl;
 
    t_psolve_solve_timer->start();
 
-   // Convert passed-in vectors into SAMRAI vectors
+   // Convert passed-in std::vectors into SAMRAI std::vectors
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect =
        solv::Sundials_SAMRAIVector::getSAMRAIVector(r);
    boost::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect =
@@ -4523,7 +4525,7 @@ int QuatIntegrator::applyProjection(double time,
 
    if (d_qlen > 1 && d_evolve_quat) {
       // tbox::pout<<"QuatIntegrator::applyProjection()"<<endl;
-      // Convert the Sundials vectors to SAMRAI vectors
+      // Convert the Sundials std::vectors to SAMRAI std::vectors
       boost::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
           solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
       boost::shared_ptr<solv::SAMRAIVectorReal<double> > corr_samvect =
@@ -4660,18 +4662,19 @@ void QuatIntegrator::correctRhsForSymmetry(
 
 //=======================================================================
 
-vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
-    getCPODESVectorsRequiringRegrid(void)
+std::vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+QuatIntegrator::getCPODESVectorsRequiringRegrid(void)
 {
    assert(d_sundials_solver != nullptr);
 
-   vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
-       new vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >;
+   std::vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+       cpodes_vec =
+           new std::vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >;
 
-   vector<SAMRAI::solv::SundialsAbstractVector*>* sundials_vec =
+   std::vector<SAMRAI::solv::SundialsAbstractVector*>* sundials_vec =
        d_sundials_solver->getVectorsRequiringRegrid();
 
-   vector<SAMRAI::solv::SundialsAbstractVector*>::iterator it;
+   std::vector<SAMRAI::solv::SundialsAbstractVector*>::iterator it;
 
    for (it = sundials_vec->begin(); it < sundials_vec->end(); it++) {
       boost::shared_ptr<solv::SAMRAIVectorReal<double> > samvec =
@@ -4687,15 +4690,19 @@ vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
 
 //-----------------------------------------------------------------------
 
-void QuatIntegrator::getCPODESIdsRequiringRegrid(
-    set<int>& cpode_id_set, set<int>& phase_id_set, set<int>& eta_id_set,
-    set<int>& orient_id_set, set<int>& conc_id_set, set<int>& temp_id_set)
+void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
+                                                 std::set<int>& phase_id_set,
+                                                 std::set<int>& eta_id_set,
+                                                 std::set<int>& orient_id_set,
+                                                 std::set<int>& conc_id_set,
+                                                 std::set<int>& temp_id_set)
 {
-   vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
-       getCPODESVectorsRequiringRegrid();
+   std::vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >*
+       cpodes_vec = getCPODESVectorsRequiringRegrid();
 
-   for (vector<boost::shared_ptr<solv::SAMRAIVectorReal<double> > >::iterator
-            it = cpodes_vec->begin();
+   for (std::vector<
+            boost::shared_ptr<solv::SAMRAIVectorReal<double> > >::iterator it =
+            cpodes_vec->begin();
         it < cpodes_vec->end(); it++) {
 
       if (d_with_phase) {
@@ -4774,7 +4781,7 @@ double QuatIntegrator::computeFrameVelocity(
       time_previous_frame_velocity = last_time;
       previous_fs = fs;
       tbox::plog << "Update reference frame velocity to "
-                 << previous_frame_velocity << endl;
+                 << previous_frame_velocity << std::endl;
       first_time = false;
    }
 

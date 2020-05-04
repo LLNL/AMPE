@@ -67,10 +67,10 @@ KKSdiluteBinary::KKSdiluteBinary(
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "KKSdiluteBinary:" << endl;
-   // tbox::plog << "Molar volume L =" << vml << endl;
-   // tbox::plog << "Molar volume A =" << vma << endl;
-   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+   // tbox::plog << "KKSdiluteBinary:" << std::endl;
+   // tbox::plog << "Molar volume L =" << vml << std::endl;
+   // tbox::plog << "Molar volume A =" << vma << std::endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 
    setup(conc_db);
 

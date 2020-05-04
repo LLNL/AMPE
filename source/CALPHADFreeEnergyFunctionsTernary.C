@@ -41,7 +41,7 @@
 #include "SAMRAI/tbox/IEEE.h"
 
 #include <string>
-using namespace std;
+
 
 CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
     boost::shared_ptr<SAMRAI::tbox::Database> calphad_db,
@@ -94,7 +94,8 @@ CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
 void CALPHADFreeEnergyFunctionsTernary::setupSolver(
     boost::shared_ptr<tbox::Database> newton_db)
 {
-   tbox::plog << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..." << endl;
+   tbox::plog << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..."
+              << std::endl;
    d_solver = new CALPHADConcentrationSolverTernary();
 
    readNewtonparameters(newton_db);
@@ -125,10 +126,10 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 {
    boost::shared_ptr<tbox::Database> species0_db =
        calphad_db->getDatabase("SpeciesA");
-   string name = species0_db->getStringWithDefault("name", "unknown");
-   string dbnameL("PhaseL");
+   std::string name = species0_db->getStringWithDefault("name", "unknown");
+   std::string dbnameL("PhaseL");
    d_g_species_phaseL[0].initialize(name, species0_db->getDatabase(dbnameL));
-   string dbnameA("PhaseA");
+   std::string dbnameA("PhaseA");
    d_g_species_phaseA[0].initialize(name, species0_db->getDatabase(dbnameA));
 
    boost::shared_ptr<tbox::Database> speciesB_db =
@@ -147,8 +148,8 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 
    // AB
    {
-      string dbnamemixL("LmixABPhaseL");
-      string dbnamemixA("LmixABPhaseA");
+      std::string dbnamemixL("LmixABPhaseL");
+      std::string dbnamemixA("LmixABPhaseA");
       boost::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixABPhaseL[0][0], 2);
@@ -186,8 +187,8 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 
    // AC
    {
-      string dbnamemixL("LmixACPhaseL");
-      string dbnamemixA("LmixACPhaseA");
+      std::string dbnamemixL("LmixACPhaseL");
+      std::string dbnamemixA("LmixACPhaseA");
       boost::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixACPhaseL[0][0], 2);
@@ -225,8 +226,8 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 
    // BC
    {
-      string dbnamemixL("LmixBCPhaseL");
-      string dbnamemixA("LmixBCPhaseA");
+      std::string dbnamemixL("LmixBCPhaseL");
+      std::string dbnamemixA("LmixBCPhaseA");
       boost::shared_ptr<tbox::Database> Lmix0_db =
           calphad_db->getDatabase(dbnamemixL);
       Lmix0_db->getDoubleArray("L0", &d_LmixBCPhaseL[0][0], 2);
@@ -264,7 +265,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
 
    // ABC
    {
-      string dbnamemixL("LmixABCPhaseL");
+      std::string dbnamemixL("LmixABCPhaseL");
       // default values
       d_LmixABCPhaseL[0][0] = 0.0;
       d_LmixABCPhaseL[0][1] = 0.0;
@@ -294,7 +295,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
       assert(d_LmixABCPhaseL[2][1] == d_LmixABCPhaseL[2][1]);
 
 
-      string dbnamemixA("LmixABCPhaseA");
+      std::string dbnamemixA("LmixABCPhaseA");
       // default values
       d_LmixABCPhaseA[0][0] = 0.0;
       d_LmixABCPhaseA[0][1] = 0.0;
@@ -325,7 +326,7 @@ void CALPHADFreeEnergyFunctionsTernary::readParameters(
    }
 
    // print database just read
-   tbox::plog << "CALPHAD database..." << endl;
+   tbox::plog << "CALPHAD database..." << std::endl;
    calphad_db->printClassData(tbox::plog);
 }
 
@@ -544,9 +545,9 @@ void CALPHADFreeEnergyFunctionsTernary::setupValuesForTwoPhasesSolver(
             break;
 
          default:
-            cerr << "CALPHADFreeEnergyFunctionsTernary::"
-                    "setupValuesForTwoPhasesSolver: Undefined phase"
-                 << endl;
+            std::cerr << "CALPHADFreeEnergyFunctionsTernary::"
+                         "setupValuesForTwoPhasesSolver: Undefined phase"
+                      << std::endl;
       }
    }
 }
@@ -576,7 +577,8 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
     double* ceq, const int maxits, const bool verbose)
 {
    if (verbose)
-      tbox::pout << "CALPHADFreeEnergyFunctionsTernary::computeCeqT()" << endl;
+      tbox::pout << "CALPHADFreeEnergyFunctionsTernary::computeCeqT()"
+                 << std::endl;
    assert(temperature > 0.);
 
    setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
@@ -594,10 +596,10 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
 
    if (ret >= 0) {
       if (verbose) {
-         tbox::pout << "CALPHAD, c0 phase0=" << ceq[0] << endl;
-         tbox::pout << "CALPHAD, c1 phase0=" << ceq[1] << endl;
-         tbox::pout << "CALPHAD, c0 phase1=" << ceq[2] << endl;
-         tbox::pout << "CALPHAD, c1 phase1=" << ceq[3] << endl;
+         tbox::pout << "CALPHAD, c0 phase0=" << ceq[0] << std::endl;
+         tbox::pout << "CALPHAD, c1 phase0=" << ceq[1] << std::endl;
+         tbox::pout << "CALPHAD, c0 phase1=" << ceq[2] << std::endl;
+         tbox::pout << "CALPHAD, c1 phase1=" << ceq[3] << std::endl;
       }
 
       d_ceq_l[0] = ceq[0];
@@ -607,7 +609,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    } else {
       tbox::pout << "CALPHADFreeEnergyFunctionsTernary, WARNING: ceq "
                     "computation did not converge"
-                 << endl;
+                 << std::endl;
    }
 
    return (ret >= 0);
@@ -635,10 +637,10 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
 
    if (ret >= 0) {
       if (verbose) {
-         tbox::pout << "CALPHAD, c0 phase0=" << ceq[0] << endl;
-         tbox::pout << "CALPHAD, c1 phase0=" << ceq[1] << endl;
-         tbox::pout << "CALPHAD, c0 phase1=" << ceq[2] << endl;
-         tbox::pout << "CALPHAD, c1 phase1=" << ceq[3] << endl;
+         tbox::pout << "CALPHAD, c0 phase0=" << ceq[0] << std::endl;
+         tbox::pout << "CALPHAD, c1 phase0=" << ceq[1] << std::endl;
+         tbox::pout << "CALPHAD, c0 phase1=" << ceq[2] << std::endl;
+         tbox::pout << "CALPHAD, c1 phase1=" << ceq[3] << std::endl;
       }
 
       d_ceq_l[0] = ceq[0];
@@ -648,7 +650,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    } else {
       tbox::pout << "CALPHADFreeEnergyFunctionsTernary, WARNING: ceq "
                     "computation did not converge"
-                 << endl;
+                 << std::endl;
    }
 
    return (ret >= 0);
@@ -683,11 +685,12 @@ void CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies(
                                       d_fA, d_fB, d_fC);
 
    if (ret < 0) {
-      cerr << "ERROR in "
-              "CALPHADFreeEnergyFunctionsTernary::computePhasesFreeEnergies() "
-              "---"
-           << "conc0=" << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
-           << endl;
+      std::cerr << "ERROR in "
+                   "CALPHADFreeEnergyFunctionsTernary::"
+                   "computePhasesFreeEnergies() "
+                   "---"
+                << "conc0=" << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
+                << std::endl;
       tbox::SAMRAI_MPI::abort();
    }
 
@@ -788,11 +791,12 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
                                             d_L_AC_S, d_L_BC_S, d_L_ABC_L,
                                             d_L_ABC_S, d_fA, d_fB, d_fC);
    if (ret == -1) {
-      cerr << "ERROR, "
-              "CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations() "
-              "failed for conc0="
-           << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
-           << ", heta=" << heta << endl;
+      std::cerr << "ERROR, "
+                   "CALPHADFreeEnergyFunctionsTernary::"
+                   "computePhaseConcentrations() "
+                   "failed for conc0="
+                << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
+                << ", heta=" << heta << std::endl;
       sleep(5);
       tbox::SAMRAI_MPI::abort();
    }
@@ -808,12 +812,12 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(
     const int npts_phi, const int npts_c)
 {
    tbox::plog << "CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC()..."
-              << endl;
+              << std::endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
    const double* const ceqL = &ceq[0];
    const double* const ceqS = &ceq[2];
-   // clog<<"Input: "<<ceq[0]<<","<<ceq[1]<<","<<ceq[2]<<","<<ceq[3]<<endl;
+   // std::clog<<"Input: "<<ceq[0]<<","<<ceq[1]<<","<<ceq[2]<<","<<ceq[3]<<endl;
 
    double slopec = 0.;
    double fc0 = 0.;
@@ -827,37 +831,37 @@ void CALPHADFreeEnergyFunctionsTernary::energyVsPhiAndC(
          fc1 = computeFreeEnergy(temperature, &ceqS[0], PhaseIndex::phaseA);
          slopec = -(fc1 - fc0) / (ceqL[1] - ceqL[0]);
       }
-   tbox::plog << setprecision(8) << "fc0: " << fc0 << "..."
-              << ", fc1: " << fc1 << "..." << endl;
+   tbox::plog << std::setprecision(8) << "fc0: " << fc0 << "..."
+              << ", fc1: " << fc1 << "..." << std::endl;
    tbox::plog << "CALPHADFreeEnergyFunctionsTernary: Use slope: " << slopec
-              << "..." << endl;
+              << "..." << std::endl;
    mpi.Barrier();
 
    if (mpi.getRank() == 0) {
 
       // reset cmin, cmax, deltac
-      double c0min = min(ceqL[0], ceqS[0]);
-      double c0max = max(ceqL[0], ceqS[0]);
+      double c0min = std::min(ceqL[0], ceqS[0]);
+      double c0max = std::max(ceqL[0], ceqS[0]);
 
       double dc0 = c0max - c0min;
-      c0min = max(0.25 * c0min, c0min - 0.25 * dc0);
-      c0max = min(1. - 0.25 * (1. - c0max), c0max + 0.25 * dc0);
-      c0max = max(c0max, c0min + dc0);
+      c0min = std::max(0.25 * c0min, c0min - 0.25 * dc0);
+      c0max = std::min(1. - 0.25 * (1. - c0max), c0max + 0.25 * dc0);
+      c0max = std::max(c0max, c0min + dc0);
       double deltac0 = (c0max - c0min) / (npts_c - 1);
 
-      double c1min = min(ceqL[1], ceqS[1]);
-      double c1max = max(ceqL[1], ceqS[1]);
+      double c1min = std::min(ceqL[1], ceqS[1]);
+      double c1max = std::max(ceqL[1], ceqS[1]);
 
       double dc1 = c1max - c1min;
-      c1min = max(0.25 * c1min, c1min - 0.25 * dc1);
-      c1max = min(1. - 0.25 * (1. - c1max), c1max + 0.25 * dc1);
-      c1max = max(c1max, c1min + dc1);
+      c1min = std::max(0.25 * c1min, c1min - 0.25 * dc1);
+      c1max = std::min(1. - 0.25 * (1. - c1max), c1max + 0.25 * dc1);
+      c1max = std::max(c1max, c1min + dc1);
       double deltac1 = (c1max - c1min) / (npts_c - 1);
 
-      clog << "Range for c0: " << c0min << " to " << c0max << endl;
-      clog << "Range for c1: " << c1min << " to " << c1max << endl;
+      std::clog << "Range for c0: " << c0min << " to " << c0max << std::endl;
+      std::clog << "Range for c1: " << c1min << " to " << c1max << std::endl;
 
-      ofstream tfile(d_fenergy_diag_filename.data(), ios::out);
+      std::ofstream tfile(d_fenergy_diag_filename.data(), std::ios::out);
 
       printEnergyVsPhiHeader(temperature, npts_phi, npts_c, npts_c, c0min,
                              c0max, c1min, c1max, tfile);
@@ -882,36 +886,36 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhiHeader(
     const double c0min, const double c0max, const double c1min,
     const double c1max, std::ostream& os) const
 {
-   os << "# vtk DataFile Version 2.0" << endl;
-   os << "Free energy [J/mol] at T=" << temperature << endl;
-   os << "ASCII" << endl;
-   os << "DATASET STRUCTURED_POINTS" << endl;
+   os << "# vtk DataFile Version 2.0" << std::endl;
+   os << "Free energy [J/mol] at T=" << temperature << std::endl;
+   os << "ASCII" << std::endl;
+   os << "DATASET STRUCTURED_POINTS" << std::endl;
 
-   os << "DIMENSIONS   " << nphi << " " << nc0 << " " << nc1 << endl;
+   os << "DIMENSIONS   " << nphi << " " << nc0 << " " << nc1 << std::endl;
    double asp_ratio_c0 = (nc0 > 1) ? (c0max - c0min) / (nc0 - 1) : 1.;
    double asp_ratio_c1 = (nc1 > 1) ? (c1max - c1min) / (nc1 - 1) : 1.;
    os << "ASPECT_RATIO " << 1. / (nphi - 1) << " " << asp_ratio_c0 << " "
-      << asp_ratio_c1 << endl;
-   os << "ORIGIN        0. " << c0min << " " << c1min << endl;
-   os << "POINT_DATA   " << nphi * nc0 * nc1 << endl;
-   os << "SCALARS energy float 1" << endl;
-   os << "LOOKUP_TABLE default" << endl;
+      << asp_ratio_c1 << std::endl;
+   os << "ORIGIN        0. " << c0min << " " << c1min << std::endl;
+   os << "POINT_DATA   " << nphi * nc0 * nc1 << std::endl;
+   os << "SCALARS energy float 1" << std::endl;
+   os << "LOOKUP_TABLE default" << std::endl;
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
     const double* conc, const double temperature, const double phi_well_scale,
-    const string& phi_well_type, const int npts, std::ostream& os)
+    const std::string& phi_well_type, const int npts, std::ostream& os)
 {
    // tbox::pout << "CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi()..."
-   // << endl;
+   // << std::endl;
    const double dphi = 1.0 / (double)(npts - 1);
    const double eta = 0.0;
 
    // os << "# phi     f(phi)     for c=" << conc
    //           << " eta=" << eta
-   //           << " and T=" << temperature << endl;
+   //           << " and T=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       const double phi = i * dphi;
 
@@ -919,9 +923,9 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
       const double w =
           phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
 
-      os << e + w << endl;
+      os << e + w << std::endl;
    }
-   // os << endl;
+   // os << std::endl;
 }
 
 //=======================================================================
@@ -968,99 +972,99 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
 {
    const double dc = 1.0 / (double)(npts - 1);
 
-   string filename1("Fl");
+   std::string filename1("Fl");
    filename1 += d_g_species_phaseL[0].name();
    filename1 += d_g_species_phaseL[2].name();
    filename1 += ".dat";
-   ofstream os1(filename1.c_str(), ios::out);
-   os1 << "#phi=0, c1=0, temperature=" << temperature << endl;
+   std::ofstream os1(filename1.c_str(), std::ios::out);
+   os1 << "#phi=0, c1=0, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = i * dc;
       conc[1] = 0.;
 
       double e = fchem(0., 0., conc, temperature);
-      os1 << conc[0] << "\t" << e << endl;
+      os1 << conc[0] << "\t" << e << std::endl;
    }
-   os1 << endl;
+   os1 << std::endl;
 
-   string filename2("Fs");
+   std::string filename2("Fs");
    filename2 += d_g_species_phaseA[0].name();
    filename2 += d_g_species_phaseA[2].name();
    filename2 += ".dat";
-   ofstream os2(filename2.c_str(), ios::out);
-   os2 << "#phi=1, c1=0, temperature=" << temperature << endl;
+   std::ofstream os2(filename2.c_str(), std::ios::out);
+   os2 << "#phi=1, c1=0, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = i * dc;
       conc[1] = 0.;
 
       double e = fchem(1., 0., conc, temperature);
-      os2 << conc[0] << "\t" << e << endl;
+      os2 << conc[0] << "\t" << e << std::endl;
    }
-   os2 << endl;
+   os2 << std::endl;
 
-   string filename3("Fl");
+   std::string filename3("Fl");
    filename3 += d_g_species_phaseL[1].name();
    filename3 += d_g_species_phaseL[2].name();
    filename3 += ".dat";
-   ofstream os3(filename3.c_str(), ios::out);
-   os3 << "#phi=0, c0=0, temperature=" << temperature << endl;
+   std::ofstream os3(filename3.c_str(), std::ios::out);
+   os3 << "#phi=0, c0=0, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = 0.;
       conc[1] = i * dc;
 
       double e = fchem(0., 0., conc, temperature);
-      os3 << conc[1] << "\t" << e << endl;
+      os3 << conc[1] << "\t" << e << std::endl;
    }
-   os3 << endl;
+   os3 << std::endl;
 
-   string filename4("Fs");
+   std::string filename4("Fs");
    filename4 += d_g_species_phaseA[1].name();
    filename4 += d_g_species_phaseA[2].name();
    filename4 += ".dat";
-   ofstream os4(filename4.c_str(), ios::out);
-   os4 << "#phi=1, c0=0, temperature=" << temperature << endl;
+   std::ofstream os4(filename4.c_str(), std::ios::out);
+   os4 << "#phi=1, c0=0, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = 0.;
       conc[1] = i * dc;
 
       double e = fchem(1., 0., conc, temperature);
-      os4 << conc[1] << "\t" << e << endl;
+      os4 << conc[1] << "\t" << e << std::endl;
    }
-   os4 << endl;
+   os4 << std::endl;
 
-   string filename5("Fl");
+   std::string filename5("Fl");
    filename5 += d_g_species_phaseL[0].name();
    filename5 += d_g_species_phaseL[1].name();
    filename5 += ".dat";
-   ofstream os5(filename5.c_str(), ios::out);
-   os5 << "#phi=0, temperature=" << temperature << endl;
+   std::ofstream os5(filename5.c_str(), std::ios::out);
+   os5 << "#phi=0, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = i * dc;
       conc[1] = 1. - i * dc;
 
       double e = fchem(0., 0., conc, temperature);
-      os5 << conc[0] << "\t" << e << endl;
+      os5 << conc[0] << "\t" << e << std::endl;
    }
-   os5 << endl;
+   os5 << std::endl;
 
-   string filename6("Fs");
+   std::string filename6("Fs");
    filename6 += d_g_species_phaseA[0].name();
    filename6 += d_g_species_phaseA[1].name();
    filename6 += ".dat";
-   ofstream os6(filename6.c_str(), ios::out);
-   os6 << "#phi=1, temperature=" << temperature << endl;
+   std::ofstream os6(filename6.c_str(), std::ios::out);
+   os6 << "#phi=1, temperature=" << temperature << std::endl;
    for (int i = 0; i < npts; i++) {
       double conc[2];
       conc[0] = i * dc;
       conc[1] = 1. - i * dc;
 
       double e = fchem(1., 0., conc, temperature);
-      os6 << conc[0] << "\t" << e << endl;
+      os6 << conc[0] << "\t" << e << std::endl;
    }
-   os6 << endl;
+   os6 << std::endl;
 }

@@ -48,7 +48,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
 using namespace SAMRAI;
-using namespace std;
+
 
 #include <cassert>
 
@@ -74,10 +74,10 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
    // d_jpmol2pjpmumcube = 1.e-6 / d_vm;
 
    // R = 8.314472 J · K-1 · mol-1
-   // tbox::plog << "CALPHADFreeEnergyStrategyBinary:" << endl;
-   // tbox::plog << "Molar volume L =" << vml << endl;
-   // tbox::plog << "Molar volume A =" << vma << endl;
-   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << endl;
+   // tbox::plog << "CALPHADFreeEnergyStrategyBinary:" << std::endl;
+   // tbox::plog << "Molar volume L =" << vml << std::endl;
+   // tbox::plog << "Molar volume A =" << vma << std::endl;
+   // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
 
    setup(calphad_db, newton_db);
 }
@@ -966,8 +966,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
 
 void CALPHADFreeEnergyStrategyBinary::
     defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
-                                               const vector<double>& c_l,
-                                               vector<double>& d2fdc2,
+                                               const std::vector<double>& c_l,
+                                               std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
@@ -983,8 +983,8 @@ void CALPHADFreeEnergyStrategyBinary::
 
 void CALPHADFreeEnergyStrategyBinary::
     defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
-                                               const vector<double>& c_a,
-                                               vector<double>& d2fdc2,
+                                               const std::vector<double>& c_a,
+                                               std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
@@ -1000,8 +1000,8 @@ void CALPHADFreeEnergyStrategyBinary::
 
 void CALPHADFreeEnergyStrategyBinary::
     defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
-                                               const vector<double>& c_b,
-                                               vector<double>& d2fdc2,
+                                               const std::vector<double>& c_b,
+                                               std::vector<double>& d2fdc2,
                                                const bool use_internal_units)
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],

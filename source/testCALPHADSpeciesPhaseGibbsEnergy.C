@@ -44,12 +44,12 @@
 #include <iomanip>
 #include <cmath>
 
-using namespace std;
+
 using namespace SAMRAI;
 
 int main(int argc, char *argv[])
 {
-   cout << "Test CALPHAD Species Gibbs Energy functions." << endl;
+   std::cout << "Test CALPHAD Species Gibbs Energy functions." << std::endl;
 
    /*
     * Initialize MPI, SAMRAI, and enable logging.
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
    std::string input_filename;
    input_filename = argv[1];
-   cout << "Input file = " << input_filename << endl;
+   std::cout << "Input file = " << input_filename << std::endl;
 
    boost::shared_ptr<tbox::MemoryDatabase> input_db =
        tbox::InputManager::getManager()->parseInputFile(input_filename);
@@ -71,12 +71,12 @@ int main(int argc, char *argv[])
       boost::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
-      cout << "Read T" << endl;
+      std::cout << "Read T" << std::endl;
       boost::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
 
       double temperature = temperature_db->getDouble("temperature");
-      cout << "T=" << temperature << endl;
+      std::cout << "T=" << temperature << std::endl;
 
       boost::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
@@ -92,15 +92,15 @@ int main(int argc, char *argv[])
           calphad_db->getDatabase("SpeciesC");
       speciesC_db->printClassData(cout);
 
-      string name = speciesC_db->getStringWithDefault("name", "unknown");
+      std::string name = speciesC_db->getStringWithDefault("name", "unknown");
 
       CALPHADSpeciesPhaseGibbsEnergy gspecies;
       gspecies.initialize(name, speciesC_db->getDatabase("PhaseL"));
 
       double energy = gspecies.fenergy(temperature);
-      cout << "Energy = " << energy << endl;
+      std::cout << "Energy = " << energy << std::endl;
    } else {
-      cout << "No ModelParameters found in input file" << endl;
+      std::cout << "No ModelParameters found in input file" << std::endl;
       return 1;
    }
 

@@ -39,7 +39,6 @@
 #include "SAMRAI/tbox/SAMRAIManager.h"
 #include "SAMRAI/tbox/InputManager.h"
 
-using namespace std;
 
 AMPE::AMPE(MPI_Comm comm)
 {
@@ -57,14 +56,15 @@ AMPE::~AMPE()
    tbox::SAMRAI_MPI::finalize();
 }
 
-void AMPE::initialize(const string input_filename,
-                      const string restart_read_dirname, const int restore_num)
+void AMPE::initialize(const std::string input_filename,
+                      const std::string restart_read_dirname,
+                      const int restore_num)
 {
    boost::shared_ptr<tbox::MemoryDatabase> input_db(
        new tbox::MemoryDatabase("input_db"));
    tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
-   string run_name;
+   std::string run_name;
    if (input_db->keyExists("run_name")) {
       run_name = input_db->getString("run_name");
    } else {
@@ -73,7 +73,7 @@ void AMPE::initialize(const string input_filename,
    }
 
    bool log_all_nodes = false;
-   string log_file_name = run_name + ".log";
+   std::string log_file_name = run_name + ".log";
 
    if (input_db->isDatabase("Logging")) {
       boost::shared_ptr<tbox::Database> log_db =
@@ -93,15 +93,16 @@ void AMPE::initialize(const string input_filename,
       tbox::PIO::logOnlyNodeZero(log_file_name);
    }
 
-   tbox::plog << "AMPE: git_version " << gitCommitID() << endl;
+   tbox::plog << "AMPE: git_version " << gitCommitID() << std::endl;
 
    const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   tbox::plog << "Run with " << mpi.getSize() << " MPI tasks" << endl;
+   tbox::plog << "Run with " << mpi.getSize() << " MPI tasks" << std::endl;
 
    bool is_from_restart = (restore_num >= 0);
    if (is_from_restart) {
-      tbox::plog << "restart_read_dirname = " << restart_read_dirname << endl;
-      tbox::plog << "restore_num = " << restore_num << endl;
+      tbox::plog << "restart_read_dirname = " << restart_read_dirname
+                 << std::endl;
+      tbox::plog << "restore_num = " << restore_num << std::endl;
    }
 
    // Create timers
@@ -111,7 +112,9 @@ void AMPE::initialize(const string input_filename,
    d_time_man->resetAllTimers();
 
    // Create a PFModel object
-   string model_type = input_db->getStringWithDefault("model_type", "Quat");
+   std::string model_type = input_db->getStringWithDefault("model_type",
+                                                           "Qua"
+                                                           "t");
    if (model_type == "Quat") {
       d_pfm = new QuatModel(4);
    }
@@ -123,7 +126,7 @@ void AMPE::initialize(const string input_filename,
    }
 #endif
    else {
-      TBOX_ERROR("Invalid model_type" << endl);
+      TBOX_ERROR("Invalid model_type" << std::endl);
    }
 
    d_pfm->Initialize(input_db, run_name, is_from_restart, restart_read_dirname,
@@ -133,10 +136,11 @@ void AMPE::initialize(const string input_filename,
     * print the input database and variable database contents to
     * the log file.
     */
-   tbox::plog << "\nCheck input data and variables before simulation:" << endl;
-   tbox::plog << "Input database..." << endl;
+   tbox::plog << "\nCheck input data and variables before simulation:"
+              << std::endl;
+   tbox::plog << "Input database..." << std::endl;
    input_db->printClassData(tbox::plog);
-   tbox::plog << "\nVariable database..." << endl;
+   tbox::plog << "\nVariable database..." << std::endl;
    hier::VariableDatabase::getDatabase()->printClassData(tbox::plog);
 
    input_db.reset();

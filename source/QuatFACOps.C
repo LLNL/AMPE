@@ -52,7 +52,6 @@
 #include "SAMRAI/tbox/MathUtilities.h"
 
 #include <cassert>
-using namespace std;
 
 // Static class member definitions
 
@@ -83,7 +82,7 @@ boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
 ********************************************************************
 */
 
-QuatFACOps::QuatFACOps(const int ql, const string& object_name,
+QuatFACOps::QuatFACOps(const int ql, const std::string& object_name,
                        const boost::shared_ptr<tbox::Database>& database)
     : d_qlen(ql),
       d_object_name(object_name),
@@ -341,12 +340,13 @@ void QuatFACOps::initializeOperatorState(
    }
 
    if (solution.getNumberOfComponents() != 1) {
-      TBOX_WARNING(d_object_name << ": Solution vector has invalid number of "
+      TBOX_WARNING(d_object_name << ": Solution std::vector has invalid number "
+                                    "of "
                                     "components.\n"
                                  << "Solver is for 1 components only.\n");
    }
    if (rhs.getNumberOfComponents() != 1) {
-      TBOX_WARNING(d_object_name << ": RHS vector has invalid number of "
+      TBOX_WARNING(d_object_name << ": RHS std::vector has invalid number of "
                                     "components.\n"
                                  << "Solver is for 1 components only.\n");
    }
@@ -493,7 +493,7 @@ void QuatFACOps::initializeOperatorState(
     * Cell refinement from coarser level is chosen by the
     *   choice of coarse-fine discretization, d_cf_discretization,
     *   which should be set to either "Ewing" or one of the
-    *   acceptable strings for looking up the refine operator.
+    *   acceptable std::strings for looking up the refine operator.
     */
    boost::shared_ptr<geom::CartesianGridGeometry> geometry(
        BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
@@ -707,7 +707,7 @@ void QuatFACOps::computeFaceCoefs(const double epsilon_q,
                                   const int diffusion_coef_id,
                                   const int grad_q_id,
                                   const double gradient_floor,
-                                  const string grad_floor_type,
+                                  const std::string grad_floor_type,
                                   const int face_coef_id)  // output
 {
 
@@ -810,7 +810,7 @@ void QuatFACOps::setOperatorCoefficients(
     const double gamma, const double epsilon_q, const int mobility_id,
     const int mobility_deriv_id, const int diffusion_coef_id,
     const int face_coef_deriv_id, const int grad_q_id, const int q_id,
-    const double gradient_floor, const string grad_floor_type)
+    const double gradient_floor, const std::string grad_floor_type)
 {
    assert(epsilon_q > 0.);
 
@@ -967,12 +967,12 @@ void QuatFACOps::postprocessOneCycle(
           */
          double avg_factor, final_factor;
          d_solver->getConvergenceFactors(avg_factor, final_factor);
-         tbox::plog << "iter=" << setw(4) << fac_cycle_num
+         tbox::plog << "iter=" << std::setw(4) << fac_cycle_num
                     << " resid=" << d_solver->getResidualNorm()
                     << " net conv=" << d_solver->getNetConvergenceFactor()
                     << " final conv=" << d_solver->getNetConvergenceFactor()
                     << " avg conv=" << d_solver->getAvgConvergenceFactor()
-                    << endl;
+                    << std::endl;
       }
    }
 }
@@ -1290,11 +1290,11 @@ double QuatFACOps::computeResidualNorm(
        fine_ln != residual.getFinestLevelNumber()) {
       TBOX_ERROR("QuatFACOps::computeResidualNorm() is not\n"
                  << "set up to compute residual except on the range of\n"
-                 << "levels defining the vector.\n");
+                 << "levels defining the std::vector.\n");
    }
    t_compute_residual_norm->start();
    /*
-    * The residual vector was cloned from vectors that has
+    * The residual std::vector was cloned from std::vectors that has
     * the proper weights associated with them, so we do not
     * have to explicitly weight the residuals.
     */
@@ -1411,7 +1411,7 @@ void QuatFACOps::computeFaceCoefsOnPatch(
     pdat::SideData<double>& diffusion_coef_data,
     pdat::SideData<double>& grad_q_data,
     pdat::SideData<double>& face_coef_data,  // output
-    const double gradient_floor, const string grad_floor_type) const
+    const double gradient_floor, const std::string grad_floor_type) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
@@ -2020,7 +2020,7 @@ void QuatFACOps::computeResidualOnPatch(
 void QuatFACOps::evaluateRHS(
     const double epsilon_q, const int diffusion_coef_id, const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
-    const double gradient_floor, const string gradient_floor_type,
+    const double gradient_floor, const std::string gradient_floor_type,
     const int mobility_id, const int rotation_index_id, const int q_id,
     int rhs_id, const bool use_gradq_for_flux)
 {

@@ -42,7 +42,6 @@
 
 #include <cassert>
 
-using namespace std;
 
 /*
 *************************************************************************
@@ -127,7 +126,7 @@ void EllipticFACSolver::getFromInput(
 *************************************************************************
 *                                                                       *
 * Prepare internal data for solve.                                      *
-* Allocate scratch data.  Create vectors for u and f                    *
+* Allocate scratch data.  Create std::vectors for u and f                    *
 * required by the FACPreconditioner interface.                    *
 * Set up internal boundary condition object.                            *
 * Share data to coordinate with FAC preconditioner and                  *

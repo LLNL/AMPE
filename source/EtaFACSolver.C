@@ -36,7 +36,6 @@
 #include "EtaFACSolver.h"
 #include "EtaFACOps.h"
 
-using namespace std;
 
 EtaFACSolver::EtaFACSolver(const std::string &object_name,
                            boost::shared_ptr<EtaFACOps> fac_ops,
@@ -50,7 +49,7 @@ void EtaFACSolver::setOperatorCoefficients(
     const int phase_id, const int eta_id, const int eta_mobility_id,
     const double epsilon_eta, const double gamma,
     const EnergyInterpolationType phase_interp_func_type,
-    const double eta_well_scale, const string eta_well_func_type)
+    const double eta_well_scale, const std::string eta_well_func_type)
 {
    boost::shared_ptr<EtaFACOps> eta_fac_ops(
        boost::dynamic_pointer_cast<EtaFACOps, EllipticFACOps>(d_fac_ops));

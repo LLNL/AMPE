@@ -38,10 +38,9 @@
 
 #include <cassert>
 
-using namespace std;
 
 void CALPHADSpeciesPhaseGibbsEnergy::initialize(
-    const string& name, boost::shared_ptr<tbox::Database> db)
+    const std::string& name, boost::shared_ptr<tbox::Database> db)
 {
    d_name = name;
    size_t ntc = db->getArraySize("Tc");
@@ -51,22 +50,22 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
 
    const size_t nintervals = db->getArraySize("a");
    assert(nintervals == ntc - 1);
-   vector<double> a(nintervals);
+   std::vector<double> a(nintervals);
    db->getDoubleArray("a", &a[0], nintervals);
 
    assert(nintervals == db->getArraySize("b"));
-   vector<double> b(nintervals);
+   std::vector<double> b(nintervals);
    db->getDoubleArray("b", &b[0], nintervals);
 
    assert(nintervals == db->getArraySize("c"));
-   vector<double> c(nintervals);
+   std::vector<double> c(nintervals);
    db->getDoubleArray("c", &c[0], nintervals);
 
    assert(nintervals == db->getArraySize("d2"));
-   vector<double> d2(nintervals);
+   std::vector<double> d2(nintervals);
    db->getDoubleArray("d2", &d2[0], nintervals);
 
-   vector<double> d3(nintervals);
+   std::vector<double> d3(nintervals);
    if (db->keyExists("d3")) {
       db->getDoubleArray("d3", &d3[0], nintervals);
    } else {
@@ -74,7 +73,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
          d3[i] = 0.;
    }
 
-   vector<double> d4(nintervals);
+   std::vector<double> d4(nintervals);
    if (db->keyExists("d4")) {
       db->getDoubleArray("d4", &d4[0], nintervals);
    } else {
@@ -82,7 +81,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
          d4[i] = 0.;
    }
 
-   vector<double> d7(nintervals);
+   std::vector<double> d7(nintervals);
    if (db->keyExists("d7")) {
       db->getDoubleArray("d7", &d7[0], nintervals);
    } else {
@@ -90,7 +89,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
          d7[i] = 0.;
    }
 
-   vector<double> dm1(nintervals);
+   std::vector<double> dm1(nintervals);
    if (db->keyExists("dm1")) {
       db->getDoubleArray("dm1", &dm1[0], nintervals);
    } else {
@@ -98,7 +97,7 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
          dm1[i] = 0.;
    }
 
-   vector<double> dm9(nintervals);
+   std::vector<double> dm9(nintervals);
    if (db->keyExists("dm9")) {
       db->getDoubleArray("dm9", &dm9[0], nintervals);
    } else {
@@ -108,15 +107,15 @@ void CALPHADSpeciesPhaseGibbsEnergy::initialize(
 
    if (db->keyExists("d5")) {
       TBOX_ERROR("CALPHADSpeciesPhaseGibbsEnergy: T**5 not implemented!!!"
-                 << endl);
+                 << std::endl);
    }
    if (db->keyExists("d6")) {
       TBOX_ERROR("CALPHADSpeciesPhaseGibbsEnergy: T**6 not implemented!!!"
-                 << endl);
+                 << std::endl);
    }
    if (db->keyExists("dm2")) {
       TBOX_ERROR("CALPHADSpeciesPhaseGibbsEnergy: T**-2 not implemented!!!"
-                 << endl);
+                 << std::endl);
    }
 
    for (unsigned i = 0; i < nintervals; i++) {
@@ -143,9 +142,9 @@ double CALPHADSpeciesPhaseGibbsEnergy::fenergy(
          return d_expansion[i].value(T);
       }
 
-   cerr << "T=" << T << ", Tmin=" << d_tc[0] << ", Tmax=" << d_tc[n - 1]
-        << endl;
-   TBOX_ERROR("T out of range for fenergy" << endl);
+   std::cerr << "T=" << T << ", Tmin=" << d_tc[0] << ", Tmax=" << d_tc[n - 1]
+             << std::endl;
+   TBOX_ERROR("T out of range for fenergy" << std::endl);
 
    return 0.;
 }
@@ -155,11 +154,11 @@ void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os, const double T0,
 {
    const double dT = 10.;
    const int npts = (int)trunc((T1 - T0) / dT);
-   os << "# fenergy(J/mol) vs. T(K) for species " << d_name << endl;
+   os << "# fenergy(J/mol) vs. T(K) for species " << d_name << std::endl;
    for (int i = 0; i < npts; i++) {
       double testT = T0 + dT * i;
       os << testT << '\t';
-      os << fenergy(testT) << endl;
+      os << fenergy(testT) << std::endl;
    }
-   os << endl;
+   os << std::endl;
 }

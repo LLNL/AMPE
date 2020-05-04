@@ -42,7 +42,6 @@
 #include <cmath>
 #include <cassert>
 
-using namespace std;
 
 //=======================================================================
 
@@ -125,15 +124,15 @@ void CALPHADEqPhaseConcentrationSolverTernary::RHS(const double* const x,
    fvec[4] = phi * cS[1] + (1. - phi) * cL[1] - d_c[1];
 
 #if 0
-   cout<<"nominal c="<<d_c[0]<<","<<d_c[1]<<endl;
-   cout<<"cL="<<cL[0]<<","<<cL[1]<<", cS="<<cS[0]<<","<<cS[1]<<endl;
-   cout<<"phi="<<phi<<endl;
-   cout<<"fvec="<<fvec[0]<<","<<fvec[1]<<","<<fvec[2]<<","<<fvec[3]<<","<<fvec[4]<<endl;
-   cout<<"dfLdciL[0]="<<dfLdciL[0]<<endl;
-   cout<<"dfLdciL[1]="<<dfLdciL[1]<<endl;
-   cout<<"dfSdciS[0]="<<dfSdciS[0]<<endl;
-   cout<<"dfSdciS[1]="<<dfSdciS[1]<<endl;
-   cout<<"fL="<<fL<<", fS="<<fS<<endl;
+   std::cout<<"nominal c="<<d_c[0]<<","<<d_c[1]<<endl;
+   std::cout<<"cL="<<cL[0]<<","<<cL[1]<<", cS="<<cS[0]<<","<<cS[1]<<endl;
+   std::cout<<"phi="<<phi<<endl;
+   std::cout<<"fvec="<<fvec[0]<<","<<fvec[1]<<","<<fvec[2]<<","<<fvec[3]<<","<<fvec[4]<<endl;
+   std::cout<<"dfLdciL[0]="<<dfLdciL[0]<<endl;
+   std::cout<<"dfLdciL[1]="<<dfLdciL[1]<<endl;
+   std::cout<<"dfSdciS[0]="<<dfSdciS[0]<<endl;
+   std::cout<<"dfSdciS[1]="<<dfSdciS[1]<<endl;
+   std::cout<<"fL="<<fL<<", fS="<<fS<<endl;
 #endif
 }
 
@@ -147,10 +146,10 @@ void CALPHADEqPhaseConcentrationSolverTernary::Jacobian(const double* const x,
    const double* const cS = &x[2];
    const double phi = x[4];
    // tbox::pout<<"Compute RHS for CALPHAD..."<<endl;
-   // cout<<"cL[0]="<<cL[0]<<endl;
-   // cout<<"cL[1]="<<cL[1]<<endl;
-   // cout<<"cS[0]="<<cS[0]<<endl;
-   // cout<<"cS[1]="<<cS[1]<<endl;
+   // std::cout<<"cL[0]="<<cL[0]<<endl;
+   // std::cout<<"cL[1]="<<cL[1]<<endl;
+   // std::cout<<"cS[0]="<<cS[0]<<endl;
+   // std::cout<<"cS[1]="<<cS[1]<<endl;
 
    double derivIdealMixL[2];
    CALPHADcomputeFIdealMix_derivTernary(d_RT, cL[0], cL[1], derivIdealMixL);

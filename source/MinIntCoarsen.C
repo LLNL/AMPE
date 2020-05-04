@@ -45,7 +45,7 @@
 #include <cassert>
 
 using namespace SAMRAI;
-using namespace std;
+
 
 MinIntCoarsen::MinIntCoarsen() : hier::CoarsenOperator("BASE_MIN_COARSEN")
 {
@@ -55,7 +55,8 @@ MinIntCoarsen::MinIntCoarsen() : hier::CoarsenOperator("BASE_MIN_COARSEN")
 MinIntCoarsen::~MinIntCoarsen() {}
 
 bool MinIntCoarsen::findCoarsenOperator(
-    const boost::shared_ptr<hier::Variable>& var, const string& op_name) const
+    const boost::shared_ptr<hier::Variable>& var,
+    const std::string& op_name) const
 {
    const boost::shared_ptr<pdat::CellVariable<int> > cast_var(
        BOOST_CAST<pdat::CellVariable<int>, hier::Variable>(var));
@@ -66,7 +67,10 @@ bool MinIntCoarsen::findCoarsenOperator(
    }
 }
 
-const string& MinIntCoarsen::getOperatorName() const { return (d_name_id); }
+const std::string& MinIntCoarsen::getOperatorName() const
+{
+   return (d_name_id);
+}
 
 int MinIntCoarsen::getOperatorPriority() const { return (0); }
 
