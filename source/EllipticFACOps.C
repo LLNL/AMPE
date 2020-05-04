@@ -301,13 +301,7 @@ EllipticFACOps::EllipticFACOps(
       d_ln_max(-1),
       d_cf_boundary(),
       d_smoothing_choice("redblack"),
-      d_coarse_solver_choice(
-#ifdef HAVE_HYPRE
-          "hypre"
-#else
-          "redblack"
-#endif
-          ),
+      d_coarse_solver_choice("hypre"),
       d_cf_discretization("Ewing"),
       d_prolongation_method("CONSTANT_REFINE"),
       d_coarse_solver_tolerance(1.e-2),
@@ -332,7 +326,6 @@ EllipticFACOps::EllipticFACOps(
    }
 
    for (int i = 0; i < depth; i++) {
-#ifdef HAVE_HYPRE
       CellPoissonHypreSolver *hypre_solver =
           new CellPoissonHypreSolver(object_name + "::hypre_solver" +
                                          std::to_string(i),
@@ -341,7 +334,6 @@ EllipticFACOps::EllipticFACOps(
                                          ? database->getDatabase("hypre_solver")
                                          : boost::shared_ptr<tbox::Database>());
       d_hypre_solver.push_back(hypre_solver);
-#endif
 
       PoissonSpecifications *poisson_spec =
           new PoissonSpecifications(object_name + "::Poisson specs");
@@ -828,12 +820,10 @@ void EllipticFACOps::deallocateOperatorState()
              d_oflux_scratch_id);
       }
       d_cf_boundary.resize(0);
-#if HAVE_HYPRE
       std::vector<CellPoissonHypreSolver *>::iterator it(
           d_hypre_solver.begin());
       for (; it != d_hypre_solver.end(); ++it)
          (*it)->deallocateSolverState();
-#endif
       d_hierarchy.reset();
       d_ln_min = -1;
       d_ln_max = -1;
@@ -910,7 +900,6 @@ void EllipticFACOps::finalizeCoefficients()
                                      "set;\n cannot finalize\n");
       }
 
-#if HAVE_HYPRE
    if (d_coarse_solver_choice == "hypre") {
 
       int counter = 0;
@@ -931,7 +920,6 @@ void EllipticFACOps::finalizeCoefficients()
          counter++;
       }
    }
-#endif
    t_finalizecoeffs->stop();
 }
 
@@ -1403,13 +1391,7 @@ int EllipticFACOps::solveCoarsestLevel(
       smoothError(data, residual, coarsest_ln, d_coarse_solver_max_iterations);
       d_residual_tolerance_during_smoothing = -1.0;
    } else if (d_coarse_solver_choice == "hypre") {
-#ifndef HAVE_HYPRE
-      TBOX_ERROR(d_object_name << ": Coarse level solver choice '"
-                               << d_coarse_solver_choice << "' unavailable in "
-                               << "scapCellPoissonOps::solveCoarsestLevel.");
-#else
       return_value = solveCoarsestLevel_HYPRE(data, residual, coarsest_ln);
-#endif
    } else {
       TBOX_ERROR(d_object_name << ": Bad coarse level solver choice '"
                                << d_coarse_solver_choice
@@ -1435,14 +1417,6 @@ int EllipticFACOps::solveCoarsestLevel_HYPRE(
     const solv::SAMRAIVectorReal<double> &residual, int coarsest_ln)
 {
    NULL_USE(coarsest_ln);
-
-#ifndef HAVE_HYPRE
-   TBOX_ERROR(d_object_name << ": Coarse level solver choice '"
-                            << d_coarse_solver_choice << "' unavailable in "
-                            << "EllipticFACOps::solveCoarsestLevel.");
-
-   return 0;
-#else
 
    checkInputPatchDataIndices();
 
@@ -1478,7 +1452,6 @@ int EllipticFACOps::solveCoarsestLevel_HYPRE(
                     << "\n";
    }
    return !solver_ret;
-#endif
 }
 
 

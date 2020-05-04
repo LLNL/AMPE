@@ -318,7 +318,6 @@ class EllipticFACSolver
     */
    void setCoarsestLevelSolverMaxIterations(int max_iterations);
 
-#ifdef HAVE_HYPRE
    /*!
     * @brief Set whether to use HYPRe's PFMG algorithm instead of the
     * SMG algorithm.
@@ -335,7 +334,6 @@ class EllipticFACSolver
     * coefficients.
     */
    void setUseSMG(bool use_smg);
-#endif
 
    /*!
     * @brief Set the coarse-fine boundary discretization method.

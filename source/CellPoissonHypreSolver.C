@@ -4,8 +4,6 @@
  */
 #include "SAMRAI/SAMRAI_config.h"
 
-#ifdef HAVE_HYPRE
-
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/math/ArrayDataBasicOps.h"
@@ -1745,5 +1743,3 @@ void CellPoissonHypreSolver::freeVariables()
       s_Ak0_var[d].reset();
    }
 }
-
-#endif

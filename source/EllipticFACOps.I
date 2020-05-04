@@ -74,13 +74,6 @@ void EllipticFACOps::setSmoothingChoice(
 
 SAMRAI_INLINE_KEYWORD
 void EllipticFACOps::setCoarsestLevelSolverChoice( const std::string &choice ) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-#ifndef HAVE_HYPRE
-   if ( choice == "hypre" ) {
-      TBOX_ERROR(d_object_name << ": HYPRe library is not available.\n");
-   }
-#endif
-#endif
    if (  choice == "redblack"
       || choice == "hypre" ) {
       d_coarse_solver_choice = choice;
@@ -103,13 +96,11 @@ void EllipticFACOps::setCoarsestLevelSolverChoice( const std::string &choice ) {
 SAMRAI_INLINE_KEYWORD
 void EllipticFACOps::setCoarsestLevelSolverTolerance( double tol ) {
    d_coarse_solver_tolerance = tol;
-#ifdef HAVE_HYPRE
    if( d_coarse_solver_choice == "hypre" ){
       std::vector<CellPoissonHypreSolver*>::iterator it(d_hypre_solver.begin());
       for( ; it!=d_hypre_solver.end(); ++it)
          (*it)->setStoppingCriteria( tol );
    }
-#endif
    return;
 }
 

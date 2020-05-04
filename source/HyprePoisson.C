@@ -6,8 +6,6 @@
  ************************************************************************/
 #include "HyprePoisson.h"
 
-#if defined(HAVE_HYPRE)
-
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -355,5 +353,3 @@ double HyprePoisson::compareSolutionWithExact()
    mathops.subtract(d_exact_id, d_exact_id, d_comp_soln_id);
    return mathops.maxNorm(d_exact_id);
 }
-
-#endif

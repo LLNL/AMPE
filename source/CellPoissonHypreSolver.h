@@ -8,14 +8,9 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#ifdef HAVE_HYPRE
-
-#ifndef included_HYPRE_struct_ls
-#define included_HYPRE_struct_ls
 extern "C" {
 #include "HYPRE_struct_ls.h"
 }
-#endif
 
 #include "PoissonSpecifications.h"
 
@@ -535,7 +530,5 @@ class CellPoissonHypreSolver
 };
 
 #include "CellPoissonHypreSolver.I"
-
-#endif
 
 #endif

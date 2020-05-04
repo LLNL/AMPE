@@ -98,15 +98,9 @@ QuatFACOps::QuatFACOps(const int ql, const string& object_name,
       d_coarse_levelsolver_tolerance(1.e-8),
       d_coarse_levelsolver_max_iterations(10),
       d_flux_id(-1),
-#ifdef HAVE_HYPRE
       d_levelsolver_database(database && database->isDatabase("hypre_solver")
                                  ? database->getDatabase("hypre_solver")
                                  : boost::shared_ptr<tbox::Database>()),
-#else
-      d_levelsolver_database(database && database->isDatabase("QuatLevelSolver")
-                                 ? database->getDatabase("QuatLevelSolver")
-                                 : boost::shared_ptr<tbox::Database>()),
-#endif
       d_physical_bc_coef(NULL),
       d_flux_scratch_id(-1),
       d_oflux_scratch_id(-1),

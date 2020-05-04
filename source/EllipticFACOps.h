@@ -407,12 +407,10 @@ class EllipticFACOps : public solv::FACOperatorStrategy
    {
       d_physical_bc_coef = physical_bc_coef;
       d_bc_helper.setCoefImplementation(physical_bc_coef);
-#ifdef HAVE_HYPRE
       std::vector<CellPoissonHypreSolver *>::iterator it(
           d_hypre_solver.begin());
       for (; it != d_hypre_solver.end(); ++it)
          (*it)->setPhysicalBcCoefObject(d_physical_bc_coef);
-#endif
    }
 
 
@@ -927,13 +925,10 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     */
    int d_flux_id;
 
-#ifdef HAVE_HYPRE
    /*!
     * @brief HYPRE coarse-level solver object.
     */
    std::vector<CellPoissonHypreSolver *> d_hypre_solver;
-#endif
-
 
    //@}
 

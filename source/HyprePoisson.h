@@ -11,21 +11,6 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#if !defined(HAVE_HYPRE)
-
-/*
- *************************************************************************
- * If the library is not compiled with hypre, print an error.
- * If we're running autotests, skip the error and compile an empty
- * class.
- *************************************************************************
- */
-#if (TESTING != 1)
-#error "This example requires SAMRAI be compiled with hypre."
-#endif
-
-#else
-
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/hier/Box.h"
@@ -209,6 +194,4 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
    //@}
 };
 
-
-#endif
 #endif  // included_HyprePoisson
