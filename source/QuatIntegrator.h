@@ -236,13 +236,13 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    int evaluateRHSFunction(double time, solv::SundialsAbstractVector* y,
                            solv::SundialsAbstractVector* y_dot)
    {
-      evaluateRHSFunction(time, y, y_dot, 0);
+      return evaluateRHSFunction(time, y, y_dot, 0);
    }
 
    int evaluateJTimesRHSFunction(double time, solv::SundialsAbstractVector* y,
                            solv::SundialsAbstractVector* y_dot)
    {
-      evaluateRHSFunction(time, y, y_dot, 1);
+      return evaluateRHSFunction(time, y, y_dot, 1);
    }
 
 #ifdef USE_CPODE
