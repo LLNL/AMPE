@@ -43,9 +43,9 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/pdat/CellOverlap.h"
 
-
 #include <cassert>
 
+#include "fc_mangle.h"
 
 /*
 *************************************************************************
@@ -56,23 +56,22 @@
 */
 extern "C" {
 #if (NDIM == 2)
-void quatlinrefine2d_(const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int*, const double*, const double*, const double*,
-                      double*, const int&, const int*, const int*, const int&,
-                      const int&, const int&, const int&);
+void QUATLINREFINE2D(const int&, const int&, const int&, const int&, const int&,
+                     const int&, const int&, const int&, const int&, const int&,
+                     const int&, const int&, const int*, const double*,
+                     const double*, const double*, double*, const int&,
+                     const int*, const int*, const int&, const int&, const int&,
+                     const int&);
 #endif
 #if (NDIM == 3)
-void quatlinrefine3d_(const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int&, const int&, const int*, const double*,
-                      const double*, const double*, double*, const int&,
-                      const int*, const int*, const int*, const int&,
-                      const int&, const int&, const int&, const int&,
-                      const int&);
+void QUATLINREFINE3D(const int&, const int&, const int&, const int&, const int&,
+                     const int&, const int&, const int&, const int&, const int&,
+                     const int&, const int&, const int&, const int&, const int&,
+                     const int&, const int&, const int&, const int*,
+                     const double*, const double*, const double*, double*,
+                     const int&, const int*, const int*, const int*, const int&,
+                     const int&, const int&, const int&, const int&,
+                     const int&);
 #endif
 }
 
@@ -179,23 +178,21 @@ void QuatLinearRefine::refine(hier::Patch& fine, const hier::Patch& coarse,
    const hier::Index& r_upper = rot_gbox.upper();
 
 #if (NDIM == 3)
-   quatlinrefine3d_(ifirstf(0), ifirstf(1), ifirstf(2), ilastf(0), ilastf(1),
-                    ilastf(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1),
-                    cihi(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
-                    fihi(2), &ratio[0], cgeom->getDx(), fgeom->getDx(),
-                    cdata->getPointer(), fdata->getPointer(), fdata->getDepth(),
-                    rotation_index->getPointer(0),
-                    rotation_index->getPointer(1),
-                    rotation_index->getPointer(2), r_lower[0], r_upper[0],
-                    r_lower[1], r_upper[1], r_lower[2], r_upper[2]);
+   QUATLINREFINE3D(ifirstf(0), ifirstf(1), ifirstf(2), ilastf(0), ilastf(1),
+                   ilastf(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1),
+                   cihi(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
+                   fihi(2), &ratio[0], cgeom->getDx(), fgeom->getDx(),
+                   cdata->getPointer(), fdata->getPointer(), fdata->getDepth(),
+                   rotation_index->getPointer(0), rotation_index->getPointer(1),
+                   rotation_index->getPointer(2), r_lower[0], r_upper[0],
+                   r_lower[1], r_upper[1], r_lower[2], r_upper[2]);
 #endif
 #if (NDIM == 2)
-   quatlinrefine2d_(ifirstf(0), ifirstf(1), ilastf(0), ilastf(1), cilo(0),
-                    cilo(1), cihi(0), cihi(1), filo(0), filo(1), fihi(0),
-                    fihi(1), &ratio[0], cgeom->getDx(), fgeom->getDx(),
-                    cdata->getPointer(), fdata->getPointer(), fdata->getDepth(),
-                    rotation_index->getPointer(0),
-                    rotation_index->getPointer(1), r_lower[0], r_upper[0],
-                    r_lower[1], r_upper[1]);
+   QUATLINREFINE2D(ifirstf(0), ifirstf(1), ilastf(0), ilastf(1), cilo(0),
+                   cilo(1), cihi(0), cihi(1), filo(0), filo(1), fihi(0),
+                   fihi(1), &ratio[0], cgeom->getDx(), fgeom->getDx(),
+                   cdata->getPointer(), fdata->getPointer(), fdata->getDepth(),
+                   rotation_index->getPointer(0), rotation_index->getPointer(1),
+                   r_lower[0], r_upper[0], r_lower[1], r_upper[1]);
 #endif
 }

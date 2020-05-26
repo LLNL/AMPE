@@ -43,12 +43,12 @@
 using namespace SAMRAI;
 
 
-#define FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE \
+#define COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE \
    computedphidtemperaturedeltatemperature_
 
 extern "C" {
 
-void FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+void COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -155,16 +155,15 @@ void DeltaTemperatureFreeEnergyStrategy::addDrivingForce(
 
    const char interpf = energyInterpChar(d_phase_interp_func_type);
 
-   FORT_COMP_RHS_DELTA_TEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   COMPUTERHSDELTATEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                   ifirst(2), ilast(2),
+                              ifirst(2), ilast(2),
 #endif
-                                   phase->getPointer(),
-                                   phase->getGhostCellWidth()[0],
-                                   temp->getPointer(),
-                                   temp->getGhostCellWidth()[0], d_Tm, d_L,
-                                   rhs->getPointer(),
-                                   rhs->getGhostCellWidth()[0], &interpf);
+                              phase->getPointer(),
+                              phase->getGhostCellWidth()[0], temp->getPointer(),
+                              temp->getGhostCellWidth()[0], d_Tm, d_L,
+                              rhs->getPointer(), rhs->getGhostCellWidth()[0],
+                              &interpf);
 }
 //=======================================================================
 
@@ -197,7 +196,7 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(
              BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(rhs_id)));
 
-         FORT_COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+         COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
@@ -230,12 +229,12 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
 
    double factor = 0.5 * d_L;
 
-   FORT_TEMPERATURE_ENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   TEMPERATURE_ENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                           ifirst(2), ilast(2),
+                      ifirst(2), ilast(2),
 #endif
-                           temp->getPointer(), temp->getGhostCellWidth()[0],
-                           fl->getPointer(), d_Tm, factor);
+                      temp->getPointer(), temp->getGhostCellWidth()[0],
+                      fl->getPointer(), d_Tm, factor);
 }
 
 //=======================================================================
@@ -260,12 +259,12 @@ void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
 
    double factor = -0.5 * d_L;
 
-   FORT_TEMPERATURE_ENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   TEMPERATURE_ENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                           ifirst(2), ilast(2),
+                      ifirst(2), ilast(2),
 #endif
-                           temp->getPointer(), temp->getGhostCellWidth()[0],
-                           fa->getPointer(), d_Tm, factor);
+                      temp->getPointer(), temp->getGhostCellWidth()[0],
+                      fa->getPointer(), d_Tm, factor);
 }
 
 void DeltaTemperatureFreeEnergyStrategy::computeFreeEnergySolidB(

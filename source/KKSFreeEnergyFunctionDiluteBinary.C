@@ -268,7 +268,7 @@ int KKSFreeEnergyFunctionDiluteBinary::computePhaseConcentrations(
    const double conc0 = conc[0];
 
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hphi = INTERP_FUNC(phi, &interp_func_type);
 
    setupFB(temperature);
 
@@ -383,8 +383,7 @@ void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsPhi(
       const double phi = i * dphi;
 
       double e = fchem(phi, eta, conc, temperature);
-      const double w =
-          phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
+      const double w = phi_well_scale * WELL_FUNC(phi, phi_well_type.c_str());
 
       os << e + w + slopec * conc[0] << std::endl;
    }
@@ -416,7 +415,7 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(const double phi,
    (void)eta;
 
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hcphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hcphi = INTERP_FUNC(phi, &interp_func_type);
 
    const double tol = 1.e-8;
    double fl = 0.;
@@ -432,7 +431,7 @@ double KKSFreeEnergyFunctionDiluteBinary::fchem(const double phi,
    }
 
    const char interpf = energyInterpChar(d_energy_interp_func_type);
-   const double hfphi = FORT_INTERP_FUNC(phi, &interpf);
+   const double hfphi = INTERP_FUNC(phi, &interpf);
    double e = (1.0 - hfphi) * fl + hfphi * fa;
 
    return e;

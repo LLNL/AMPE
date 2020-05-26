@@ -72,7 +72,7 @@ class CompositionRHSStrategy
  protected:
    double average(const double a, const double b) const
    {
-      return FORT_AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
+      return AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
    }
 
    const char* average() const { return d_avg_func_type.c_str(); }

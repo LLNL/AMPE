@@ -133,17 +133,16 @@ void NKRHeatCapacityStrategy::setCurrentValue(
          assert(temp);
          assert(cp);
 
-         FORT_HEAT_CAPACITY_NKR(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         HEAT_CAPACITY_NKR(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                ifirst(2), ilast(2),
+                           ifirst(2), ilast(2),
 #endif
-                                conc->getPointer(),
-                                conc->getGhostCellWidth()[0], conc->getDepth(),
-                                temp->getPointer(),
-                                temp->getGhostCellWidth()[0], cp->getPointer(),
-                                cp->getGhostCellWidth()[0], cp_powers,
-                                static_cast<int>(npowers), cp_coeffs,
-                                static_cast<int>(ncoeffs));
+                           conc->getPointer(), conc->getGhostCellWidth()[0],
+                           conc->getDepth(), temp->getPointer(),
+                           temp->getGhostCellWidth()[0], cp->getPointer(),
+                           cp->getGhostCellWidth()[0], cp_powers,
+                           static_cast<int>(npowers), cp_coeffs,
+                           static_cast<int>(ncoeffs));
 
 #ifdef DEBUG_CHECK_ASSERTIONS
          math::PatchCellDataBasicOps<double> mathops;

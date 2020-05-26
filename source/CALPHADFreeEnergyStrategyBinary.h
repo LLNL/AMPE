@@ -212,7 +212,7 @@ class CALPHADFreeEnergyStrategyBinary : public FreeEnergyStrategy
    double hprime(const double phi)
    {
       const char interp = energyInterpChar(d_energy_interp_func_type);
-      return FORT_DERIV_INTERP_FUNC(phi, &interp);
+      return DERIV_INTERP_FUNC(phi, &interp);
    }
 
    void addDrivingForceOnPatch(

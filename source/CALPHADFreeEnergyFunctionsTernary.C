@@ -773,7 +773,7 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
    d_L_ABC_S[2] = lmix2ABCPhaseA(temperature);
 
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hphi = INTERP_FUNC(phi, &interp_func_type);
 
    double heta = 0.0;
    // tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -920,8 +920,7 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsPhi(
       const double phi = i * dphi;
 
       double e = fchem(phi, eta, conc, temperature);
-      const double w =
-          phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
+      const double w = phi_well_scale * WELL_FUNC(phi, phi_well_type.c_str());
 
       os << e + w << std::endl;
    }
@@ -941,7 +940,7 @@ double CALPHADFreeEnergyFunctionsTernary::fchem(const double phi,
    (void)eta;
 
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hcphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hcphi = INTERP_FUNC(phi, &interp_func_type);
 
    const double tol = 1.e-8;
    double fl = 0.;
@@ -960,7 +959,7 @@ double CALPHADFreeEnergyFunctionsTernary::fchem(const double phi,
    }
 
    const char interpf = energyInterpChar(d_energy_interp_func_type);
-   const double hfphi = FORT_INTERP_FUNC(phi, &interpf);
+   const double hfphi = INTERP_FUNC(phi, &interpf);
 
    return (1.0 - hfphi) * fl + hfphi * fa;
 }

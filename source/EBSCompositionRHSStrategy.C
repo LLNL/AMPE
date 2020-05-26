@@ -204,39 +204,37 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 
    // now add components of concentration flux,
    // one phase at a time
-   FORT_ADD_CONCENTRATION_FLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                   ifirst(2), ilast(2),
+                             ifirst(2), ilast(2),
 #endif
-                                   dx, conc_l->getPointer(), NGHOSTS,
-                                   d_ncompositions,
-                                   conc_diffusionl->getPointer(0),
-                                   conc_diffusionl->getPointer(1),
+                             dx, conc_l->getPointer(), NGHOSTS, d_ncompositions,
+                             conc_diffusionl->getPointer(0),
+                             conc_diffusionl->getPointer(1),
 #if (NDIM == 3)
-                                   conc_diffusionl->getPointer(2),
+                             conc_diffusionl->getPointer(2),
 #endif
-                                   0, flux->getPointer(0), flux->getPointer(1),
+                             0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-                                   flux->getPointer(2),
+                             flux->getPointer(2),
 #endif
-                                   flux->getGhostCellWidth()[0]);
+                             flux->getGhostCellWidth()[0]);
 
-   FORT_ADD_CONCENTRATION_FLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                   ifirst(2), ilast(2),
+                             ifirst(2), ilast(2),
 #endif
-                                   dx, conc_a->getPointer(), NGHOSTS,
-                                   d_ncompositions,
-                                   conc_diffusiona->getPointer(0),
-                                   conc_diffusiona->getPointer(1),
+                             dx, conc_a->getPointer(), NGHOSTS, d_ncompositions,
+                             conc_diffusiona->getPointer(0),
+                             conc_diffusiona->getPointer(1),
 #if (NDIM == 3)
-                                   conc_diffusiona->getPointer(2),
+                             conc_diffusiona->getPointer(2),
 #endif
-                                   0, flux->getPointer(0), flux->getPointer(1),
+                             0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-                                   flux->getPointer(2),
+                             flux->getPointer(2),
 #endif
-                                   flux->getGhostCellWidth()[0]);
+                             flux->getGhostCellWidth()[0]);
 
    if (d_with_third_phase) {
       assert(d_conc_b_scratch_id >= 0);
@@ -256,23 +254,21 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
       assert(conc_diffusionb->getPointer(2) != nullptr);
 #endif
 
-      FORT_ADD_CONCENTRATION_FLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                      ifirst(2), ilast(2),
+                                ifirst(2), ilast(2),
 #endif
-                                      dx, conc_b->getPointer(), NGHOSTS,
-                                      d_ncompositions,
-                                      conc_diffusionb->getPointer(0),
-                                      conc_diffusionb->getPointer(1),
+                                dx, conc_b->getPointer(), NGHOSTS,
+                                d_ncompositions, conc_diffusionb->getPointer(0),
+                                conc_diffusionb->getPointer(1),
 #if (NDIM == 3)
-                                      conc_diffusionb->getPointer(2),
+                                conc_diffusionb->getPointer(2),
 #endif
-                                      0, flux->getPointer(0),
-                                      flux->getPointer(1),
+                                0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-                                      flux->getPointer(2),
+                                flux->getPointer(2),
 #endif
-                                      flux->getGhostCellWidth()[0]);
+                                flux->getGhostCellWidth()[0]);
    }
 }
 
@@ -511,20 +507,19 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    assert(dphidt->getGhostCellWidth()[0] > 0);
 
    // now compute concentration flux
-   FORT_ADD_CONCENTRATION_FLUX_FROM_AT(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   ADDCONCENTRATIONFLUXFROMANTITRAPPING(
+       ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                       ifirst(2), ilast(2),
+       ifirst(2), ilast(2),
 #endif
-                                       dx, phase->getPointer(), NGHOSTS,
-                                       cl->getPointer(), ca->getPointer(),
-                                       cl->getGhostCellWidth()[0],
-                                       d_ncompositions, dphidt->getPointer(),
-                                       dphidt->getGhostCellWidth()[0], alpha,
-                                       flux->getPointer(0), flux->getPointer(1),
+       dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
+       cl->getGhostCellWidth()[0], d_ncompositions, dphidt->getPointer(),
+       dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
+       flux->getPointer(1),
 #if (NDIM == 3)
-                                       flux->getPointer(2),
+       flux->getPointer(2),
 #endif
-                                       flux->getGhostCellWidth()[0]);
+       flux->getGhostCellWidth()[0]);
 }
 
 //-----------------------------------------------------------------------
@@ -728,11 +723,11 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
             double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double hphi = FORT_INTERP_FUNC(phi, &interp_type);
+            double hphi = INTERP_FUNC(phi, &interp_type);
             double heta = 0.;
             if (d_with_third_phase) {
                double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = FORT_INTERP_FUNC(eta, &interp_type);
+               heta = INTERP_FUNC(eta, &interp_type);
             }
 
             for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
@@ -809,12 +804,12 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
             double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double hphi = FORT_INTERP_FUNC(phi, &interp_type);
+            double hphi = INTERP_FUNC(phi, &interp_type);
 
             double heta = 0.0;
             if (d_with_third_phase) {
                double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = FORT_INTERP_FUNC(eta, &interp_type);
+               heta = INTERP_FUNC(eta, &interp_type);
             }
 
             double mobmat0 =
@@ -888,12 +883,12 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForTOnPatch(
                double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-               double hphi = FORT_INTERP_FUNC(phi, &interp_type);
+               double hphi = INTERP_FUNC(phi, &interp_type);
 
                double heta = 0.0;
                if (d_with_third_phase) {
                   double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-                  heta = FORT_INTERP_FUNC(eta, &interp_type);
+                  heta = INTERP_FUNC(eta, &interp_type);
                }
 
                double mobmat0 =
@@ -974,19 +969,19 @@ void EBSCompositionRHSStrategy::addFluxFromGradTonPatch(
    assert(mq);
 
    // now compute concentration flux
-   FORT_ADD_CONCENTRATION_FLUX_FROM_GRADT(
-       ifirst(0), ilast(0), ifirst(1), ilast(1),
+   ADDCONCENTRATIONFLUXFROMGRADT(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-       ifirst(2), ilast(2),
+                                 ifirst(2), ilast(2),
 #endif
-       dx, temperature->getPointer(), NGHOSTS, mq->getPointer(0),
-       mq->getPointer(1),
+                                 dx, temperature->getPointer(), NGHOSTS,
+                                 mq->getPointer(0), mq->getPointer(1),
 #if (NDIM == 3)
-       mq->getPointer(2),
+                                 mq->getPointer(2),
 #endif
-       mq->getGhostCellWidth()[0], flux->getPointer(0), flux->getPointer(1),
+                                 mq->getGhostCellWidth()[0],
+                                 flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-       flux->getPointer(2),
+                                 flux->getPointer(2),
 #endif
-       flux->getGhostCellWidth()[0], average());
+                                 flux->getGhostCellWidth()[0], average());
 }

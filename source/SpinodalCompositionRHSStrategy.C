@@ -131,24 +131,24 @@ void SpinodalCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    assert(flux->getDepth() == 1);
 
    // now compute concentration flux
-   FORT_CONCENTRATION_FLUX_SPINODAL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   CONCENTRATION_FLUX_SPINODAL(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                    ifirst(2), ilast(2),
+                               ifirst(2), ilast(2),
 #endif
-                                    dx, conc->getPointer(), NGHOSTS, 1,
-                                    conca->getPointer(), NGHOSTS,
-                                    concb->getPointer(), NGHOSTS,
-                                    conc_diffusion->getPointer(0),
-                                    conc_diffusion->getPointer(1),
+                               dx, conc->getPointer(), NGHOSTS, 1,
+                               conca->getPointer(), NGHOSTS,
+                               concb->getPointer(), NGHOSTS,
+                               conc_diffusion->getPointer(0),
+                               conc_diffusion->getPointer(1),
 #if (NDIM == 3)
-                                    conc_diffusion->getPointer(2),
+                               conc_diffusion->getPointer(2),
 #endif
-                                    0, eta->getPointer(), NGHOSTS, d_kappa,
-                                    flux->getPointer(0), flux->getPointer(1),
+                               0, eta->getPointer(), NGHOSTS, d_kappa,
+                               flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-                                    flux->getPointer(2),
+                               flux->getPointer(2),
 #endif
-                                    flux->getGhostCellWidth()[0]);
+                               flux->getGhostCellWidth()[0]);
 }
 
 //-----------------------------------------------------------------------

@@ -794,14 +794,14 @@ void QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double>& data)
    const hier::Index& gupper = gbox.upper();
 
 #if NDIM == 2
-   take_square_root2d_(glower[0], gupper[0], glower[1], gupper[1],
-                       data.getPointer(), glower[0], gupper[0], glower[1],
-                       gupper[1]);
+   TAKE_SQUARE_ROOT2D(glower[0], gupper[0], glower[1], gupper[1],
+                      data.getPointer(), glower[0], gupper[0], glower[1],
+                      gupper[1]);
 #endif
 #if NDIM == 3
-   take_square_root3d_(glower[0], gupper[0], glower[1], gupper[1], glower[2],
-                       gupper[2], data.getPointer(), glower[0], gupper[0],
-                       glower[1], gupper[1], glower[2], gupper[2]);
+   TAKE_SQUARE_ROOT3D(glower[0], gupper[0], glower[1], gupper[1], glower[2],
+                      gupper[2], data.getPointer(), glower[0], gupper[0],
+                      glower[1], gupper[1], glower[2], gupper[2]);
 #endif
 }
 
@@ -1209,7 +1209,7 @@ void QuatFACOps::ewingFixFlux(const hier::Patch& patch,
      const int location_index = boundary_box.getLocationIndex();
      const int depth = d_qlen;
 #if NDIM == 2
-     fixflux2d_(flux_data.getPointer(0), flux_data.getPointer(1),
+     fixflux2D(flux_data.getPointer(0), flux_data.getPointer(1),
                 flux_data.getGhostCellWidth()[0],
                 flux_data.getGhostCellWidth()[1],
                 depth,
@@ -1228,7 +1228,7 @@ void QuatFACOps::ewingFixFlux(const hier::Patch& patch,
                 dx);
 #endif
 #if NDIM == 3
-     fixflux3d_(flux_data.getPointer(0), flux_data.getPointer(1), flux_data.getPointer(2),
+     fixflux3D(flux_data.getPointer(0), flux_data.getPointer(1), flux_data.getPointer(2),
                 flux_data.getGhostCellWidth()[0],
                 flux_data.getGhostCellWidth()[1],
                 flux_data.getGhostCellWidth()[2],
@@ -1341,40 +1341,39 @@ void QuatFACOps::computeLambdaOnPatch(
 
 #if NDIM == 2
    if (rotation_index)
-      compute_lambda_flux2d_symm_(lower[0], upper[0], lower[1], upper[1],
-                                  d_qlen, flux_data.getPointer(0), flower[0],
-                                  fupper[0] + 1, flower[1], fupper[1],
-                                  flux_data.getPointer(1), flower[0], fupper[0],
-                                  flower[1], fupper[1] + 1, q_data.getPointer(),
-                                  qlower[0], qupper[0], qlower[1], qupper[1],
-                                  dx, lambda_data.getPointer(0), llower[0],
-                                  lupper[0], llower[1], lupper[1],
-                                  rotation_index->getPointer(0),
-                                  rotation_index->getPointer(1),
-                                  rotation_index->getGhostCellWidth()[0]);
+      COMPUTE_LAMBDA_FLUX2D_SYMM(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                                 flux_data.getPointer(0), flower[0],
+                                 fupper[0] + 1, flower[1], fupper[1],
+                                 flux_data.getPointer(1), flower[0], fupper[0],
+                                 flower[1], fupper[1] + 1, q_data.getPointer(),
+                                 qlower[0], qupper[0], qlower[1], qupper[1], dx,
+                                 lambda_data.getPointer(0), llower[0],
+                                 lupper[0], llower[1], lupper[1],
+                                 rotation_index->getPointer(0),
+                                 rotation_index->getPointer(1),
+                                 rotation_index->getGhostCellWidth()[0]);
    else
-      compute_lambda_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                             flux_data.getPointer(0), flower[0], fupper[0] + 1,
-                             flower[1], fupper[1], flux_data.getPointer(1),
-                             flower[0], fupper[0], flower[1], fupper[1] + 1,
-                             q_data.getPointer(), qlower[0], qupper[0],
-                             qlower[1], qupper[1], dx,
-                             lambda_data.getPointer(0), llower[0], lupper[0],
-                             llower[1], lupper[1]);
+      COMPUTE_LAMBDA_FLUX2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                            flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                            flower[1], fupper[1], flux_data.getPointer(1),
+                            flower[0], fupper[0], flower[1], fupper[1] + 1,
+                            q_data.getPointer(), qlower[0], qupper[0],
+                            qlower[1], qupper[1], dx, lambda_data.getPointer(0),
+                            llower[0], lupper[0], llower[1], lupper[1]);
 #endif
 #if NDIM == 3
    assert(!rotation_index);
-   compute_lambda_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2],
-                          upper[2], d_qlen, flux_data.getPointer(0), flower[0],
-                          fupper[0] + 1, flower[1], fupper[1], flower[2],
-                          fupper[2], flux_data.getPointer(1), flower[0],
-                          fupper[0], flower[1], fupper[1] + 1, flower[2],
-                          fupper[2], flux_data.getPointer(2), flower[0],
-                          fupper[0], flower[1], fupper[1], flower[2],
-                          fupper[2] + 1, q_data.getPointer(), qlower[0],
-                          qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
-                          dx, lambda_data.getPointer(0), llower[0], lupper[0],
-                          llower[1], lupper[1], llower[2], lupper[2]);
+   COMPUTE_LAMBDA_FLUX3D(lower[0], upper[0], lower[1], upper[1], lower[2],
+                         upper[2], d_qlen, flux_data.getPointer(0), flower[0],
+                         fupper[0] + 1, flower[1], fupper[1], flower[2],
+                         fupper[2], flux_data.getPointer(1), flower[0],
+                         fupper[0], flower[1], fupper[1] + 1, flower[2],
+                         fupper[2], flux_data.getPointer(2), flower[0],
+                         fupper[0], flower[1], fupper[1], flower[2],
+                         fupper[2] + 1, q_data.getPointer(), qlower[0],
+                         qupper[0], qlower[1], qupper[1], qlower[2], qupper[2],
+                         dx, lambda_data.getPointer(0), llower[0], lupper[0],
+                         llower[1], lupper[1], llower[2], lupper[2]);
 #endif
 }
 
@@ -1437,22 +1436,22 @@ void QuatFACOps::computeFaceCoefsOnPatch(
    const hier::Index& dupper = d_gbox.upper();
 
 #if NDIM == 2
-   compute_face_coef2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                        epsilon_q, diffusion_coef_data.getPointer(0),
-                        dcglower[0], dcgupper[0] + 1, dcglower[1], dcgupper[1],
-                        diffusion_coef_data.getPointer(1), dcglower[0],
-                        dcgupper[0], dcglower[1], dcgupper[1] + 1,
-                        grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
-                        gqlower[1], gqupper[1], grad_q_data.getPointer(1),
-                        gqlower[0], gqupper[0], gqlower[1], gqupper[1] + 1,
-                        face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-                        dlower[1], dupper[1],  // output
-                        face_coef_data.getPointer(1), dlower[0], dupper[0],
-                        dlower[1], dupper[1] + 1,  // output
-                        gradient_floor, grad_floor_type.c_str());
+   COMPUTE_FACE_COEF2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                       epsilon_q, diffusion_coef_data.getPointer(0),
+                       dcglower[0], dcgupper[0] + 1, dcglower[1], dcgupper[1],
+                       diffusion_coef_data.getPointer(1), dcglower[0],
+                       dcgupper[0], dcglower[1], dcgupper[1] + 1,
+                       grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
+                       gqlower[1], gqupper[1], grad_q_data.getPointer(1),
+                       gqlower[0], gqupper[0], gqlower[1], gqupper[1] + 1,
+                       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                       dlower[1], dupper[1],  // output
+                       face_coef_data.getPointer(1), dlower[0], dupper[0],
+                       dlower[1], dupper[1] + 1,  // output
+                       gradient_floor, grad_floor_type.c_str());
 #endif
 #if NDIM == 3
-   compute_face_coef3d_(
+   COMPUTE_FACE_COEF3D(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
        epsilon_q, diffusion_coef_data.getPointer(0), dcglower[0],
        dcgupper[0] + 1, dcglower[1], dcgupper[1], dcglower[2], dcgupper[2],
@@ -1501,7 +1500,7 @@ void QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
    const hier::Index& fcupper = fc_gbox.upper();
 
 #if NDIM == 2
-   compute_dquatdphi_face_coef2d_(
+   COMPUTE_DQUATDPHI_FACE_COEF2D(
        lower[0], upper[0], lower[1], upper[1], d_qlen,
        dprime_data.getPointer(0), dplower[0], dpupper[0] + 1, dplower[1],
        dpupper[1], dprime_data.getPointer(1), dplower[0], dpupper[0],
@@ -1511,7 +1510,7 @@ void QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
        fclower[0], fcupper[0], fclower[1], fcupper[1] + 1);
 #endif
 #if NDIM == 3
-   compute_dquatdphi_face_coef3d_(
+   COMPUTE_DQUATDPHI_FACE_COEF3D(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
        dprime_data.getPointer(0), dplower[0], dpupper[0] + 1, dplower[1],
        dpupper[1], dplower[2], dpupper[2], dprime_data.getPointer(1),
@@ -1567,30 +1566,30 @@ void QuatFACOps::computeFluxOnPatch(
    const hier::Index& fupper = f_gbox.upper();
 
 #if NDIM == 2
-   compute_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                   face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-                   dlower[1], dupper[1], face_coef_data.getPointer(1),
-                   dlower[0], dupper[0], dlower[1], dupper[1] + 1,
-                   q_data.getPointer(), qlower[0], qupper[0], qlower[1],
-                   qupper[1], dx, flux_data.getPointer(0), flower[0],
-                   fupper[0] + 1, flower[1], fupper[1], flux_data.getPointer(1),
-                   flower[0], fupper[0], flower[1], fupper[1] + 1);
+   COMPUTE_FLUX2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                  face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                  dlower[1], dupper[1], face_coef_data.getPointer(1), dlower[0],
+                  dupper[0], dlower[1], dupper[1] + 1, q_data.getPointer(),
+                  qlower[0], qupper[0], qlower[1], qupper[1], dx,
+                  flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
+                  fupper[1], flux_data.getPointer(1), flower[0], fupper[0],
+                  flower[1], fupper[1] + 1);
 #endif
 #if NDIM == 3
-   compute_flux3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                   d_qlen, face_coef_data.getPointer(0), dlower[0],
-                   dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
-                   face_coef_data.getPointer(1), dlower[0], dupper[0],
-                   dlower[1], dupper[1] + 1, dlower[2], dupper[2],
-                   face_coef_data.getPointer(2), dlower[0], dupper[0],
-                   dlower[1], dupper[1], dlower[2], dupper[2] + 1,
-                   q_data.getPointer(), qlower[0], qupper[0], qlower[1],
-                   qupper[1], qlower[2], qupper[2], dx, flux_data.getPointer(0),
-                   flower[0], fupper[0] + 1, flower[1], fupper[1], flower[2],
-                   fupper[2], flux_data.getPointer(1), flower[0], fupper[0],
-                   flower[1], fupper[1] + 1, flower[2], fupper[2],
-                   flux_data.getPointer(2), flower[0], fupper[0], flower[1],
-                   fupper[1], flower[2], fupper[2] + 1);
+   COMPUTE_FLUX3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                  d_qlen, face_coef_data.getPointer(0), dlower[0],
+                  dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
+                  face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
+                  dupper[1] + 1, dlower[2], dupper[2],
+                  face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1],
+                  dupper[1], dlower[2], dupper[2] + 1, q_data.getPointer(),
+                  qlower[0], qupper[0], qlower[1], qupper[1], qlower[2],
+                  qupper[2], dx, flux_data.getPointer(0), flower[0],
+                  fupper[0] + 1, flower[1], fupper[1], flower[2], fupper[2],
+                  flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+                  fupper[1] + 1, flower[2], fupper[2], flux_data.getPointer(2),
+                  flower[0], fupper[0], flower[1], fupper[1], flower[2],
+                  fupper[2] + 1);
 #endif
 
    const int patch_ln = patch.getPatchLevelNumber();
@@ -1633,7 +1632,7 @@ void QuatFACOps::computeFluxOnPatch(
    const hier::Index& fupper = f_gbox.upper();
 
 #if NDIM == 2
-   compute_flux2d_from_gradq_(
+   COMPUTE_FLUX2D_FROM_GRADQ(
        lower[0], upper[0], lower[1], upper[1], d_qlen,
        face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
        dupper[1], face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
@@ -1644,7 +1643,7 @@ void QuatFACOps::computeFluxOnPatch(
        flux_data.getPointer(1), flower[0], fupper[0], flower[1], fupper[1] + 1);
 #endif
 #if NDIM == 3
-   compute_flux3d_from_gradq_(
+   COMPUTE_FLUX3D_FROM_GRADQ(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
        face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
        dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1), dlower[0],
@@ -1702,19 +1701,19 @@ void QuatFACOps::computeSymmetricFluxOnPatch(
    const hier::Index& fupper = f_gbox.upper();
 
 #if NDIM == 2
-   compute_sym_flux2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-                       dlower[1], dupper[1], face_coef_data.getPointer(1),
-                       dlower[0], dupper[0], dlower[1], dupper[1] + 1,
-                       sqrt_m_data.getPointer(), mlower[0], mupper[0],
-                       mlower[1], mupper[1], q_data.getPointer(), qlower[0],
-                       qupper[0], qlower[1], qupper[1], dx,
-                       flux_data.getPointer(0), flower[0], fupper[0] + 1,
-                       flower[1], fupper[1], flux_data.getPointer(1), flower[0],
-                       fupper[0], flower[1], fupper[1] + 1);
+   COMPUTE_SYM_FLUX2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                      face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+                      dlower[1], dupper[1], face_coef_data.getPointer(1),
+                      dlower[0], dupper[0], dlower[1], dupper[1] + 1,
+                      sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1],
+                      mupper[1], q_data.getPointer(), qlower[0], qupper[0],
+                      qlower[1], qupper[1], dx, flux_data.getPointer(0),
+                      flower[0], fupper[0] + 1, flower[1], fupper[1],
+                      flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+                      fupper[1] + 1);
 #endif
 #if NDIM == 3
-   compute_sym_flux3d_(
+   COMPUTE_SYM_FLUX3D(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
        face_coef_data.getPointer(0), dlower[0], dupper[0] + 1, dlower[1],
        dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1), dlower[0],
@@ -1953,7 +1952,7 @@ void QuatFACOps::computeResidualOnPatch(
 
    if (rotation_index) {
 #if NDIM == 2
-      compute_q_residual2d_symm_(
+      COMPUTE_Q_RESIDUAL2D_SYMM(
           lower[0], upper[0], lower[1], upper[1], d_qlen,
           sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
           flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
@@ -1967,7 +1966,7 @@ void QuatFACOps::computeResidualOnPatch(
           rotation_index->getGhostCellWidth()[0]);
 #endif
 #if NDIM == 3
-      compute_q_residual3d_symm_(
+      COMPUTE_Q_RESIDUAL3D_SYMM(
           lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
           sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
           mlower[2], mupper[2], flux_data.getPointer(0), flower[0],
@@ -1986,20 +1985,20 @@ void QuatFACOps::computeResidualOnPatch(
 #endif
    } else {
 #if NDIM == 2
-      compute_q_residual2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                            sqrt_m_data.getPointer(), mlower[0], mupper[0],
-                            mlower[1], mupper[1], flux_data.getPointer(0),
-                            flower[0], fupper[0] + 1, flower[1], fupper[1],
-                            flux_data.getPointer(1), flower[0], fupper[0],
-                            flower[1], fupper[1] + 1, q_soln_data.getPointer(),
-                            qlower[0], qupper[0], qlower[1], qupper[1], dx,
-                            d_gamma, q_rhs_data.getPointer(), qrhlower[0],
-                            qrhupper[0], qrhlower[1], qrhupper[1],
-                            q_residual_data.getPointer(), qrlower[0],
-                            qrupper[0], qrlower[1], qrupper[1]);
+      COMPUTE_Q_RESIDUAL2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                           sqrt_m_data.getPointer(), mlower[0], mupper[0],
+                           mlower[1], mupper[1], flux_data.getPointer(0),
+                           flower[0], fupper[0] + 1, flower[1], fupper[1],
+                           flux_data.getPointer(1), flower[0], fupper[0],
+                           flower[1], fupper[1] + 1, q_soln_data.getPointer(),
+                           qlower[0], qupper[0], qlower[1], qupper[1], dx,
+                           d_gamma, q_rhs_data.getPointer(), qrhlower[0],
+                           qrhupper[0], qrhlower[1], qrhupper[1],
+                           q_residual_data.getPointer(), qrlower[0], qrupper[0],
+                           qrlower[1], qrupper[1]);
 #endif
 #if NDIM == 3
-      compute_q_residual3d_(
+      COMPUTE_Q_RESIDUAL3D(
           lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
           sqrt_m_data.getPointer(), mlower[0], mupper[0], mlower[1], mupper[1],
           mlower[2], mupper[2], flux_data.getPointer(0), flower[0],
@@ -2087,20 +2086,19 @@ void QuatFACOps::multiplyDQuatDPhiBlock(const int phase_id, const int out_id)
          const hier::Index& pupper = p_gbox.upper();
 
 #if NDIM == 2
-         multicomponent_multiply2d_(lower[0], upper[0], lower[1], upper[1],
-                                    phi_data->getPointer(), plower[0],
-                                    pupper[0], plower[1], pupper[1],
-                                    out_data->getPointer(), olower[0],
-                                    oupper[0], olower[1], oupper[1], d_qlen);
+         MULTICOMPONENT_MULTIPLY2D(lower[0], upper[0], lower[1], upper[1],
+                                   phi_data->getPointer(), plower[0], pupper[0],
+                                   plower[1], pupper[1], out_data->getPointer(),
+                                   olower[0], oupper[0], olower[1], oupper[1],
+                                   d_qlen);
 #endif
 #if NDIM == 3
-         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1],
-                                    lower[2], upper[2], phi_data->getPointer(),
-                                    plower[0], pupper[0], plower[1], pupper[1],
-                                    plower[2], pupper[2],
-                                    out_data->getPointer(), olower[0],
-                                    oupper[0], olower[1], oupper[1], olower[2],
-                                    oupper[2], d_qlen);
+         MULTICOMPONENT_MULTIPLY3D(lower[0], upper[0], lower[1], upper[1],
+                                   lower[2], upper[2], phi_data->getPointer(),
+                                   plower[0], pupper[0], plower[1], pupper[1],
+                                   plower[2], pupper[2], out_data->getPointer(),
+                                   olower[0], oupper[0], olower[1], oupper[1],
+                                   olower[2], oupper[2], d_qlen);
 #endif
       }
    }
@@ -2327,25 +2325,25 @@ void QuatFACOps::accumulateOperatorOnPatch(
    const hier::Index& qrhupper = qrh_gbox.upper();
 
 #if NDIM == 2
-   add_quat_op2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                  mobility_data.getPointer(), mlower[0], mupper[0], mlower[1],
-                  mupper[1], flux_data.getPointer(0), flower[0], fupper[0] + 1,
-                  flower[1], fupper[1], flux_data.getPointer(1), flower[0],
-                  fupper[0], flower[1], fupper[1] + 1, dx,
-                  q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
-                  qrhlower[1], qrhupper[1]);
+   ADD_QUAT_OP2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                 mobility_data.getPointer(), mlower[0], mupper[0], mlower[1],
+                 mupper[1], flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                 flower[1], fupper[1], flux_data.getPointer(1), flower[0],
+                 fupper[0], flower[1], fupper[1] + 1, dx,
+                 q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1],
+                 qrhupper[1]);
 #endif
 #if NDIM == 3
-   add_quat_op3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                  d_qlen, mobility_data.getPointer(), mlower[0], mupper[0],
-                  mlower[1], mupper[1], mlower[2], mupper[2],
-                  flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
-                  fupper[1], flower[2], fupper[2], flux_data.getPointer(1),
-                  flower[0], fupper[0], flower[1], fupper[1] + 1, flower[2],
-                  fupper[2], flux_data.getPointer(2), flower[0], fupper[0],
-                  flower[1], fupper[1], flower[2], fupper[2] + 1, dx,
-                  q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
-                  qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
+   ADD_QUAT_OP3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                 d_qlen, mobility_data.getPointer(), mlower[0], mupper[0],
+                 mlower[1], mupper[1], mlower[2], mupper[2],
+                 flux_data.getPointer(0), flower[0], fupper[0] + 1, flower[1],
+                 fupper[1], flower[2], fupper[2], flux_data.getPointer(1),
+                 flower[0], fupper[0], flower[1], fupper[1] + 1, flower[2],
+                 fupper[2], flux_data.getPointer(2), flower[0], fupper[0],
+                 flower[1], fupper[1], flower[2], fupper[2] + 1, dx,
+                 q_rhs_data.getPointer(), qrhlower[0], qrhupper[0], qrhlower[1],
+                 qrhupper[1], qrhlower[2], qrhupper[2]);
 #endif
 }
 
@@ -2390,7 +2388,7 @@ void QuatFACOps::accumulateProjectedOperatorOnPatch(
 
 #if NDIM == 2
    if (rotation_index)
-      add_quat_proj_op2d_symm_(
+      ADD_QUAT_PROJ_OP2D_SYMM(
           lower[0], upper[0], lower[1], upper[1], d_qlen,
           mobility_data.getPointer(), mlower[0], mupper[0], mlower[1],
           mupper[1], flux_data.getPointer(0), flower[0], fupper[0] + 1,
@@ -2403,34 +2401,34 @@ void QuatFACOps::accumulateProjectedOperatorOnPatch(
           rotation_index->getPointer(1),
           rotation_index->getGhostCellWidth()[0]);
    else
-      add_quat_proj_op2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                          mobility_data.getPointer(), mlower[0], mupper[0],
-                          mlower[1], mupper[1], flux_data.getPointer(0),
-                          flower[0], fupper[0] + 1, flower[1], fupper[1],
-                          flux_data.getPointer(1), flower[0], fupper[0],
-                          flower[1], fupper[1] + 1, q_soln_data.getPointer(),
-                          qlower[0], qupper[0], qlower[1], qupper[1],
-                          lambda_soln_data.getPointer(), llower[0], lupper[0],
-                          llower[1], lupper[1], dx, q_rhs_data.getPointer(),
-                          qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
+      ADD_QUAT_PROJ_OP2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                         mobility_data.getPointer(), mlower[0], mupper[0],
+                         mlower[1], mupper[1], flux_data.getPointer(0),
+                         flower[0], fupper[0] + 1, flower[1], fupper[1],
+                         flux_data.getPointer(1), flower[0], fupper[0],
+                         flower[1], fupper[1] + 1, q_soln_data.getPointer(),
+                         qlower[0], qupper[0], qlower[1], qupper[1],
+                         lambda_soln_data.getPointer(), llower[0], lupper[0],
+                         llower[1], lupper[1], dx, q_rhs_data.getPointer(),
+                         qrhlower[0], qrhupper[0], qrhlower[1], qrhupper[1]);
 #endif
 #if NDIM == 3
    assert(!rotation_index);
-   add_quat_proj_op3d_(lower[0], upper[0], lower[1], upper[1], lower[2],
-                       upper[2], d_qlen, mobility_data.getPointer(), mlower[0],
-                       mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
-                       flux_data.getPointer(0), flower[0], fupper[0] + 1,
-                       flower[1], fupper[1], flower[2], fupper[2],
-                       flux_data.getPointer(1), flower[0], fupper[0], flower[1],
-                       fupper[1] + 1, flower[2], fupper[2],
-                       flux_data.getPointer(2), flower[0], fupper[0], flower[1],
-                       fupper[1], flower[2], fupper[2] + 1,
-                       q_soln_data.getPointer(), qlower[0], qupper[0],
-                       qlower[1], qupper[1], qlower[2], qupper[2],
-                       lambda_soln_data.getPointer(), llower[0], lupper[0],
-                       llower[1], lupper[1], llower[2], lupper[2], dx,
-                       q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
-                       qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
+   ADD_QUAT_PROJ_OP3D(lower[0], upper[0], lower[1], upper[1], lower[2],
+                      upper[2], d_qlen, mobility_data.getPointer(), mlower[0],
+                      mupper[0], mlower[1], mupper[1], mlower[2], mupper[2],
+                      flux_data.getPointer(0), flower[0], fupper[0] + 1,
+                      flower[1], fupper[1], flower[2], fupper[2],
+                      flux_data.getPointer(1), flower[0], fupper[0], flower[1],
+                      fupper[1] + 1, flower[2], fupper[2],
+                      flux_data.getPointer(2), flower[0], fupper[0], flower[1],
+                      fupper[1], flower[2], fupper[2] + 1,
+                      q_soln_data.getPointer(), qlower[0], qupper[0], qlower[1],
+                      qupper[1], qlower[2], qupper[2],
+                      lambda_soln_data.getPointer(), llower[0], lupper[0],
+                      llower[1], lupper[1], llower[2], lupper[2], dx,
+                      q_rhs_data.getPointer(), qrhlower[0], qrhupper[0],
+                      qrhlower[1], qrhupper[1], qrhlower[2], qrhupper[2]);
 #endif
 }
 
@@ -2461,20 +2459,20 @@ void QuatFACOps::multiplyMobilitySqrt(const int id)
          const hier::Index& mupper = m_gbox.upper();
 
 #if NDIM == 2
-         multicomponent_multiply2d_(lower[0], upper[0], lower[1], upper[1],
-                                    sqrt_m_data->getPointer(), mlower[0],
-                                    mupper[0], mlower[1], mupper[1],
-                                    data->getPointer(), lower[0], upper[0],
-                                    lower[1], upper[1], ncomp);
+         MULTICOMPONENT_MULTIPLY2D(lower[0], upper[0], lower[1], upper[1],
+                                   sqrt_m_data->getPointer(), mlower[0],
+                                   mupper[0], mlower[1], mupper[1],
+                                   data->getPointer(), lower[0], upper[0],
+                                   lower[1], upper[1], ncomp);
 #endif
 #if NDIM == 3
-         multicomponent_multiply3d_(lower[0], upper[0], lower[1], upper[1],
-                                    lower[2], upper[2],
-                                    sqrt_m_data->getPointer(), mlower[0],
-                                    mupper[0], mlower[1], mupper[1], mlower[2],
-                                    mupper[2], data->getPointer(), lower[0],
-                                    upper[0], lower[1], upper[1], lower[2],
-                                    upper[2], ncomp);
+         MULTICOMPONENT_MULTIPLY3D(lower[0], upper[0], lower[1], upper[1],
+                                   lower[2], upper[2],
+                                   sqrt_m_data->getPointer(), mlower[0],
+                                   mupper[0], mlower[1], mupper[1], mlower[2],
+                                   mupper[2], data->getPointer(), lower[0],
+                                   upper[0], lower[1], upper[1], lower[2],
+                                   upper[2], ncomp);
 #endif
       }
    }
@@ -2520,19 +2518,19 @@ void QuatFACOps::divideMobilitySqrt(const int id)
          const hier::Index& mupper = m_gbox.upper();
 
 #if NDIM == 2
-         multicomponent_divide2d_(lower[0], upper[0], lower[1], upper[1],
-                                  sqrt_m_data->getPointer(), mlower[0],
-                                  mupper[0], mlower[1], mupper[1],
-                                  data->getPointer(), dlower[0], dupper[0],
-                                  dlower[1], dupper[1], ncomp);
+         MULTICOMPONENT_DIVIDE2D(lower[0], upper[0], lower[1], upper[1],
+                                 sqrt_m_data->getPointer(), mlower[0],
+                                 mupper[0], mlower[1], mupper[1],
+                                 data->getPointer(), dlower[0], dupper[0],
+                                 dlower[1], dupper[1], ncomp);
 #endif
 #if NDIM == 3
-         multicomponent_divide3d_(lower[0], upper[0], lower[1], upper[1],
-                                  lower[2], upper[2], sqrt_m_data->getPointer(),
-                                  mlower[0], mupper[0], mlower[1], mupper[1],
-                                  mlower[2], mupper[2], data->getPointer(),
-                                  dlower[0], dupper[0], dlower[1], dupper[1],
-                                  dlower[2], dupper[2], ncomp);
+         MULTICOMPONENT_DIVIDE3D(lower[0], upper[0], lower[1], upper[1],
+                                 lower[2], upper[2], sqrt_m_data->getPointer(),
+                                 mlower[0], mupper[0], mlower[1], mupper[1],
+                                 mlower[2], mupper[2], data->getPointer(),
+                                 dlower[0], dupper[0], dlower[1], dupper[1],
+                                 dlower[2], dupper[2], ncomp);
 #endif
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -2579,19 +2577,19 @@ void QuatFACOps::applyProjectionOnLevel(const int q_id, const int corr_id,
       const hier::Index& eupper = e_gbox.upper();
 
 #if NDIM == 2
-      project2d_(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                 q_data->getPointer(), qlower[0], qupper[0], qlower[1],
-                 qupper[1], corr_data->getPointer(), clower[0], cupper[0],
-                 clower[1], cupper[1], err_data->getPointer(), elower[0],
-                 eupper[0], elower[1], eupper[1]);
+      PROJECT2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
+                q_data->getPointer(), qlower[0], qupper[0], qlower[1],
+                qupper[1], corr_data->getPointer(), clower[0], cupper[0],
+                clower[1], cupper[1], err_data->getPointer(), elower[0],
+                eupper[0], elower[1], eupper[1]);
 #endif
 #if NDIM == 3
-      project3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                 d_qlen, q_data->getPointer(), qlower[0], qupper[0], qlower[1],
-                 qupper[1], qlower[2], qupper[2], corr_data->getPointer(),
-                 clower[0], cupper[0], clower[1], cupper[1], clower[2],
-                 cupper[2], err_data->getPointer(), elower[0], eupper[0],
-                 elower[1], eupper[1], elower[2], eupper[2]);
+      PROJECT3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                d_qlen, q_data->getPointer(), qlower[0], qupper[0], qlower[1],
+                qupper[1], qlower[2], qupper[2], corr_data->getPointer(),
+                clower[0], cupper[0], clower[1], cupper[1], clower[2],
+                cupper[2], err_data->getPointer(), elower[0], eupper[0],
+                elower[1], eupper[1], elower[2], eupper[2]);
 #endif
    }
 }

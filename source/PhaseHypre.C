@@ -361,7 +361,7 @@ void PhaseHypre::setCOnPatchPrivate(
             const double phi = ptr_phi[idx_pf];
 
             const double g_phi_dbl_prime =
-                FORT_SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
+                SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
 
             const double gamma_m = gamma * m;
 

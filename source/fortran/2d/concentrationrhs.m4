@@ -339,7 +339,7 @@ c***********************************************************************
 c
 c compute the concentration flux
 c
-      subroutine addconcentrationfluxfromgradT(
+      subroutine addconcentrationfluxfromgradt(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   dx,
      &   temperature, ngt,
@@ -409,7 +409,7 @@ c compute the concentration flux
 c 0.25 coeff is 0.5 for average over 2 gradients times 0.5
 c for 1./2dx
 c
-      subroutine addconcentrationfluxfromAntitrapping(
+      subroutine addconcentrationfluxfromantitrapping(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   dx,
      &   phase, ngp,

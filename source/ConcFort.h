@@ -33,41 +33,12 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Link between C/C++ and Fortran files
-//       name in             name in
-//      C/C++ code            Fortran code
-//      ----------            ------------
-#define FORT_CONCENTRATION_FLUX concentrationflux_
-#define FORT_CONCENTRATION_FLUX_EBS concentrationflux_ebs_
-#define FORT_ADD_CONCENTRATION_FLUX_EBS add_concentrationflux_ebs_
-#define FORT_CONCENTRATION_FLUX_SPINODAL concentrationflux_spinodal_
-#define FORT_CONCENTRATION_PFMDIFFUSION concentration_pfmdiffusion_
-#define FORT_CONCENTRATION_PFMDIFFUSION_OF_T \
-   concentration_pfmdiffusion_of_temperature_
-#define FORT_CONCENTRATION_DIFFCOEFF_OF_T \
-   concentration_diffcoeff_of_temperature_
-#define FORT_CONCENTRATIONDIFFUSIONBECKERMANN concentrationdiffusion_beckermann_
-#define FORT_COMPUTERHSCONCENTRATION computerhsconcentration_
-#define FORT_PHASERHS_FENERGY phaserhs_fenergy_
-#define FORT_ETARHS_FENERGY etarhs_fenergy_
-#define FORT_CALPHAD_CONC_SOLV_THREE calphad_c_three_
-#define FORT_CALPHAD_CONC_SOLV_TWO calphad_c_two_
-#define FORT_CALPHAD_CONC_CEQ_TWO calphad_ceq_two_
-#define FORT_ADD_CONCENTRATION_FLUX_FROM_GRADT addconcentrationfluxfromgradt_
-#define FORT_ADD_CONCENTRATION_FLUX_FROM_AT \
-   addconcentrationfluxfromantitrapping_
-#define FORT_INITGAUSSIAN initgaussian_
-#define FORT_INITGRADIENT initgradient_
-#define FORT_INITGAUSSIAN_SOURCE initgaussiansource_
-#define FORT_LINEARMELTINGLINE linearmeltingline_
-#define FORT_COMPUTE_CONCENTRATION_FROM_PHASE_CONCENTRATIONS \
-   compute_concentration_from_phase_concentrations_
-
+#include "fc_mangle.h"
 
 // Function argument list interfaces
 extern "C" {
 
-void FORT_CONCENTRATION_FLUX(
+void CONCENTRATIONFLUX(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -93,60 +64,59 @@ void FORT_CONCENTRATION_FLUX(
 #endif
     const int& ngflux, const int& three_phase);
 
-void FORT_ADD_CONCENTRATION_FLUX_FROM_GRADT(
+void ADDCONCENTRATIONFLUXFROMGRADT(const int& ifirst0, const int& ilast0,
+                                   const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                                   const int& ifirst2, const int& ilast2,
+#endif
+                                   const double* dx, const double* temperature,
+                                   const int& ngtemperature, const double* mq0,
+                                   const double* mq1,
+#if (NDIM == 3)
+                                   const double* mq2,
+#endif
+                                   const int& ngmq, const double* flux0,
+                                   const double* flux1,
+#if (NDIM == 3)
+                                   const double* flux2,
+#endif
+                                   const int& ngflux,
+                                   const char* const avg_type);
+
+void ADDCONCENTRATIONFLUXFROMANTITRAPPING(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
     const int& ifirst2, const int& ilast2,
 #endif
-    const double* dx, const double* temperature, const int& ngtemperature,
-    const double* mq0, const double* mq1,
-#if (NDIM == 3)
-    const double* mq2,
-#endif
-    const int& ngmq, const double* flux0, const double* flux1,
+    const double* dx, const double* phase, const int& ngphase, const double* cl,
+    const double* ca, const int& ngc, const int& ncomp, const double* dphi,
+    const int& ngdphi, const double& alpha, const double* flux0,
+    const double* flux1,
 #if (NDIM == 3)
     const double* flux2,
 #endif
-    const int& ngflux, const char* const avg_type);
+    const int& ngflux);
 
-void FORT_ADD_CONCENTRATION_FLUX_FROM_AT(const int& ifirst0, const int& ilast0,
-                                         const int& ifirst1, const int& ilast1,
+void ADD_CONCENTRATIONFLUX_EBS(const int& ifirst0, const int& ilast0,
+                               const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                                         const int& ifirst2, const int& ilast2,
+                               const int& ifirst2, const int& ilast2,
 #endif
-                                         const double* dx, const double* phase,
-                                         const int& ngphase, const double* cl,
-                                         const double* ca, const int& ngc,
-                                         const int& ncomp, const double* dphi,
-                                         const int& ngdphi, const double& alpha,
-                                         const double* flux0,
-                                         const double* flux1,
+                               const double* dx, const double* conc,
+                               const int& ngconc, const int& ncomp,
+                               const double* diffconc0, const double* diffconc1,
 #if (NDIM == 3)
-                                         const double* flux2,
+                               const double* diffconc2,
 #endif
-                                         const int& ngflux);
+                               const int& ngdiffconc, const double* flux0,
+                               const double* flux1,
+#if (NDIM == 3)
+                               const double* flux2,
+#endif
+                               const int& ngflux);
 
-void FORT_ADD_CONCENTRATION_FLUX_EBS(const int& ifirst0, const int& ilast0,
-                                     const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                                     const int& ifirst2, const int& ilast2,
-#endif
-                                     const double* dx, const double* conc,
-                                     const int& ngconc, const int& ncomp,
-                                     const double* diffconc0,
-                                     const double* diffconc1,
-#if (NDIM == 3)
-                                     const double* diffconc2,
-#endif
-                                     const int& ngdiffconc, const double* flux0,
-                                     const double* flux1,
-#if (NDIM == 3)
-                                     const double* flux2,
-#endif
-                                     const int& ngflux);
-
-void FORT_CONCENTRATION_FLUX_SPINODAL(
+void CONCENTRATION_FLUX_SPINODAL(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -165,7 +135,7 @@ void FORT_CONCENTRATION_FLUX_SPINODAL(
 #endif
     const int& ngflux);
 
-void FORT_CONCENTRATION_PFMDIFFUSION(
+void CONCENTRATION_PFMDIFFUSION(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -182,7 +152,7 @@ void FORT_CONCENTRATION_PFMDIFFUSION(
     const double& gas_constant_R, const char* phi_interp_type,
     const char* avg_func_type, const int& three_phase);
 
-void FORT_CONCENTRATION_PFMDIFFUSION_OF_T(
+void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -202,7 +172,7 @@ void FORT_CONCENTRATION_PFMDIFFUSION_OF_T(
     const double& gas_constant_R, const char* phi_interp_type,
     const char* avg_func_type);
 
-void FORT_CONCENTRATION_DIFFCOEFF_OF_T(
+void CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -220,120 +190,113 @@ void FORT_CONCENTRATION_DIFFCOEFF_OF_T(
     const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
     const double& gas_constant_R);
 
-void FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
-    const int& ifirst0, const int& ilast0, const int& ifirst1,
-    const int& ilast1,
+void CONCENTRATIONDIFFUSION_BECKERMANN(const int& ifirst0, const int& ilast0,
+                                       const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-    const int& ifirst2, const int& ilast2,
+                                       const int& ifirst2, const int& ilast2,
 #endif
-    const double* phi, const int& ngphi, const double* diff0,
-    const double* diff1,
+                                       const double* phi, const int& ngphi,
+                                       const double* diff0, const double* diff1,
 #if (NDIM == 3)
-    const double* diff2,
+                                       const double* diff2,
 #endif
-    const int& ngdiff, const double* partition_coeff, const int& ngk,
-    const double& d_phase0, const double& d_phase1, const char* phi_interp_type,
-    const char* avg_func_type);
+                                       const int& ngdiff,
+                                       const double* partition_coeff,
+                                       const int& ngk, const double& d_phase0,
+                                       const double& d_phase1,
+                                       const char* phi_interp_type,
+                                       const char* avg_func_type);
 
-void FORT_COMPUTERHSCONCENTRATION(const int& ifirst0, const int& ilast0,
-                                  const int& ifirst1, const int& ilast1,
+void COMPUTERHSCONCENTRATION(const int& ifirst0, const int& ilast0,
+                             const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                                  const int& ifirst2, const int& ilast2,
+                             const int& ifirst2, const int& ilast2,
 #endif
-                                  const double* dx, const double* flux0,
-                                  const double* flux1,
+                             const double* dx, const double* flux0,
+                             const double* flux1,
 #if (NDIM == 3)
-                                  const double* flux2,
+                             const double* flux2,
 #endif
-                                  const int& ngflux,
-                                  const double& conc_mobility,
-                                  const double* rhs, const int& ngrhs);
+                             const int& ngflux, const double& conc_mobility,
+                             const double* rhs, const int& ngrhs);
 
-void FORT_PHASERHS_FENERGY(const int& ifirst0, const int& ilast0,
-                           const int& ifirst1, const int& ilast1,
+void PHASERHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                      const int& ilast1,
 #if (NDIM == 3)
-                           const int& ifirst2, const int& ilast2,
+                      const int& ifirst2, const int& ilast2,
 #endif
-                           const double* fl, const double* fa, const double* fb,
-                           const double* phi, const int& ngphi,
-                           const double* eta, const int& ngeta,
-                           const double* rhs, const int& ngrhs,
-                           const char* phi_interp_type,
-                           const char* eta_interp_type, const int& three_phase);
+                      const double* fl, const double* fa, const double* fb,
+                      const double* phi, const int& ngphi, const double* eta,
+                      const int& ngeta, const double* rhs, const int& ngrhs,
+                      const char* phi_interp_type, const char* eta_interp_type,
+                      const int& three_phase);
 
-void FORT_ETARHS_FENERGY(const int& ifirst0, const int& ilast0,
-                         const int& ifirst1, const int& ilast1,
+void ETARHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                    const int& ilast1,
 #if (NDIM == 3)
-                         const int& ifirst2, const int& ilast2,
+                    const int& ifirst2, const int& ilast2,
 #endif
-                         const double* fl, const double* fa, const double* fb,
-                         const double* phi, const int& ngphi, const double* eta,
-                         const int& ngeta, const double* rhs, const int& ngrhs,
-                         const char* phi_interp_type,
-                         const char* eta_interp_type);
+                    const double* fl, const double* fa, const double* fb,
+                    const double* phi, const int& ngphi, const double* eta,
+                    const int& ngeta, const double* rhs, const int& ngrhs,
+                    const char* phi_interp_type, const char* eta_interp_type);
 
-void FORT_CALPHAD_CONC_SOLV_TWO(const double* x, const double& c,
-                                const double& hphi,
-                                const double& d_gas_constant_R,
-                                const double* L0, const double* L1,
-                                const double* L2, const double* fA,
-                                const double* fB);
+void CALPHAD_CONC_SOLV_TWO(const double* x, const double& c, const double& hphi,
+                           const double& d_gas_constant_R, const double* L0,
+                           const double* L1, const double* L2, const double* fA,
+                           const double* fB);
 
-int FORT_CALPHAD_CONC_CEQ_TWO(const double* x, const double& cl,
-                              const double& cs, const double& d_gas_constant_R,
-                              const double* L0, const double* L1,
-                              const double* L2, const double* fA,
-                              const double* fB);
+int CALPHAD_CONC_CEQ_TWO(const double* x, const double& cl, const double& cs,
+                         const double& d_gas_constant_R, const double* L0,
+                         const double* L1, const double* L2, const double* fA,
+                         const double* fB);
 
-void FORT_CALPHAD_CONC_SOLV_THREE(const double* x, const double& c,
-                                  const double& hphi, const double& heta,
-                                  const double& d_gas_constant_R,
-                                  const double* L0, const double* L1,
-                                  const double* L2, const double* fA,
-                                  const double* fB);
+void CALPHAD_CONC_SOLV_THREE(const double* x, const double& c,
+                             const double& hphi, const double& heta,
+                             const double& d_gas_constant_R, const double* L0,
+                             const double* L1, const double* L2,
+                             const double* fA, const double* fB);
 
-void FORT_INITGAUSSIAN(const double*, const double*, const double*,
-                       const int& ifirst0, const int& ilast0,
+void INITGAUSSIAN(const double*, const double*, const double*,
+                  const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1,
+#if (NDIM == 3)
+                  const int& ifirst2, const int& ilast2,
+#endif
+                  const double*, const int&, const double*, const double*,
+                  const double&, const double&, const double&);
+
+void INITGRADIENT(const double*, const double*, const double*,
+                  const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1,
+#if (NDIM == 3)
+                  const int& ifirst2, const int& ilast2,
+#endif
+                  const int&, const int&,
+#if (NDIM == 3)
+                  const int&,
+#endif
+                  const double*, const double*, const double&, const double*);
+
+void INITGAUSSIANSOURCE(const double*, const double*, const double*,
+                        const int& ifirst0, const int& ilast0,
+                        const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                        const int&, const int&,
+#endif
+                        const double*, const int&, const double*, const int&,
+                        const double*, const double*, const double&,
+                        const double&);
+
+void LINEARMELTINGLINE(const int& ifirst0, const int& ilast0,
                        const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                       const int& ifirst2, const int& ilast2,
+                       const int&, const int&,
 #endif
-                       const double*, const int&, const double*, const double*,
+                       const double*, const int&, const double*, const int&,
                        const double&, const double&, const double&);
 
-void FORT_INITGRADIENT(const double*, const double*, const double*,
-                       const int& ifirst0, const int& ilast0,
-                       const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                       const int& ifirst2, const int& ilast2,
-#endif
-                       const int&, const int&,
-#if (NDIM == 3)
-                       const int&,
-#endif
-                       const double*, const double*, const double&,
-                       const double*);
-
-void FORT_INITGAUSSIAN_SOURCE(const double*, const double*, const double*,
-                              const int& ifirst0, const int& ilast0,
-                              const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                              const int&, const int&,
-#endif
-                              const double*, const int&, const double*,
-                              const int&, const double*, const double*,
-                              const double&, const double&);
-
-void FORT_LINEARMELTINGLINE(const int& ifirst0, const int& ilast0,
-                            const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                            const int&, const int&,
-#endif
-                            const double*, const int&, const double*,
-                            const int&, const double&, const double&,
-                            const double&);
-
-void FORT_COMPUTE_CONCENTRATION_FROM_PHASE_CONCENTRATIONS(
+void COMPUTE_CONCENTRATION_FROM_PHASE_CONCENTRATIONS(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)

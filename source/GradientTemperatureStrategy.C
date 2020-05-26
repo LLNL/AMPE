@@ -173,14 +173,14 @@ void GradientTemperatureStrategy::setCurrentTemperaturePrivatePatch(
    const hier::Index ifirst = patch.getBox().lower();
    const hier::Index ilast = patch.getBox().upper();
 
-   FORT_INITGRADIENT(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1), ilast(1),
+   INITGRADIENT(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                     ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-                     ghost_cells(0), ghost_cells(1),
+                ghost_cells(0), ghost_cells(1),
 #if (NDIM == 3)
-                     ghost_cells(2),
+                ghost_cells(2),
 #endif
-                     cd_temp->getPointer(), &d_center[0], temperature0,
-                     &d_gradient[0]);
+                cd_temp->getPointer(), &d_center[0], temperature0,
+                &d_gradient[0]);
 }

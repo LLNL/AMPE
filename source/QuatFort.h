@@ -33,337 +33,301 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-// Link between C/C++ and Fortran files
-//       name in             name in
-//      C/C++ code            Fortran code
-//      ----------            ------------
-#define FORT_GRADIENT_FLUX gradient_flux_
-#define FORT_COMPUTE_FLUX_ISOTROPIC compute_flux_isotropic_
-#define FORT_ANISOTROPIC_GRADIENT_FLUX anisotropic_gradient_flux_
-#define FORT_COMP_RHS_PBG computerhspbg_
-#define FORT_ADD_VDPHIDX addvdphidx_
-#define FORT_COMP_RHS_TEMP computerhstemp_
-#define FORT_COMP_RHS_BIASWELL computerhsbiaswell_
-#define FORT_COMP_RHS_BIASWELL_BECKERMANN computerhsbiaswellbeckermann_
-#define FORT_COMP_RHS_DELTA_TEMPERATURE computerhsdeltatemperature_
-#define FORT_COMP_RHS_ETA computerhseta_
-#define FORT_DIFFS diffs_
-#define FORT_GRAD_CELL grad_cell_
-#define FORT_GRAD_SIDE grad_side_
-#define FORT_GRAD_SIDE_ISOTROPIC grad_side_isotropic_
-#define FORT_QUATSYMMROTATION quat_symm_rotation_
-#define FORT_QUATFUNDAMENTAL quat_fundamental_
-#define FORT_QUATDIFFS quatdiffs_
-#define FORT_QUATDIFFS_SYMM quatdiffs_symm_
-#define FORT_QUATGRAD_CELL quatgrad_cell_
-#define FORT_QUATGRAD_CELL_SYMM quatgrad_cell_symm_
-#define FORT_QUATGRAD_SIDE quatgrad_side_
-#define FORT_QUATGRAD_SIDE_SYMM quatgrad_side_symm_
-#define FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC quatgrad_side_symm_isotropic_
-#define FORT_QUATGRAD_SIDE_ISOTROPIC quatgrad_side_isotropic_
-#define FORT_QUATGRAD_MODULUS quatgrad_modulus_
-#define FORT_QUATGRAD_MODULUS_FROM_SIDES quatgrad_modulus_from_sides_
-#define FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT \
-   quatgrad_modulus_from_sides_compact_
-#define FORT_QUATDIFFUSION quatdiffusion_
-#define FORT_QUATDIFFUSIONDERIV quatdiffusionderiv_
-#define FORT_CORRECTRHSQUAT correctrhsquatforsymmetry_
-#define FORT_TAG_GRAD tagfromgrads_
-#define FORT_TAG_QUAT_GRAD tagfromquatgrads_
-#define FORT_QUATMOBILITY quatmobility_
-#define FORT_QUATMOBILITYDERIV quatmobilityderiv_
-#define FORT_QUATENERGY quatenergy_
-#define FORT_TEMPERATURE_ENERGY temperature_energy_
-#define FORT_QUATAVG quatavg_
-#define FORT_SMOOTHQUAT smoothquat_
-#define FORT_SETTOZERO settozero_
-#define FORT_SOURCE_TEMPERATURE source_temperature_
-#define FORT_HEAT_CAPACITY_NKR heat_capacity_nkr_
-#define FORT_VELOCITY velocity_
+#include "fc_mangle.h"
+
 
 // Function argument list interfaces
 extern "C" {
-void FORT_SETTOZERO(const int&, const int&, const int&, const int&, const int&,
-                    const int&, const int&, const int&,
+void SETTOZERO(const int&, const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&,
 #if (NDIM == 3)
-                    const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&, const int&,
 #endif
-                    const double*);
-void FORT_SOURCE_TEMPERATURE(const int&, const int&, const int&, const int&,
+               const double*);
+void SOURCE_TEMPERATURE(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                             const int&, const int&,
+                        const int&, const int&,
 #endif
-                             double* conc, const int&, double* rhs, const int&,
-                             const double* const cp, const int&,
-                             const double* const s, const int&);
+                        double* conc, const int&, double* rhs, const int&,
+                        const double* const cp, const int&,
+                        const double* const s, const int&);
 
-void FORT_HEAT_CAPACITY_NKR(const int&, const int&, const int&, const int&,
+void HEAT_CAPACITY_NKR(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                            const int&, const int&,
+                       const int&, const int&,
 #endif
-                            const double* const conc, const int&, const int&,
-                            const double* const temp, const int&, double* cp,
-                            const int&, const int* const cp_powers, const int&,
-                            const double* const cpcoeffs, const int&);
+                       const double* const conc, const int&, const int&,
+                       const double* const temp, const int&, double* cp,
+                       const int&, const int* const cp_powers, const int&,
+                       const double* const cpcoeffs, const int&);
 
-void FORT_GRADIENT_FLUX(const int& ifirst0, const int& ilast0,
-                        const int& ifirst1, const int& ilast1,
+void GRADIENT_FLUX(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                   const int& ilast1,
 #if (NDIM == 3)
-                        const int& ifirst2, const int& ilast2,
+                   const int& ifirst2, const int& ilast2,
 #endif
-                        const double* dx, const double& epsilon, double* phase,
-                        const int& phaseng, double* flux0, double* flux1,
+                   const double* dx, const double& epsilon, double* phase,
+                   const int& phaseng, double* flux0, double* flux1,
 #if (NDIM == 3)
-                        double* flux2,
+                   double* flux2,
 #endif
-                        const int& fluxng);
+                   const int& fluxng);
 
-void FORT_COMPUTE_FLUX_ISOTROPIC(const int& ifirst0, const int& ilast0,
-                                 const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                                 const int& ifirst2, const int& ilast2,
-#endif
-                                 const double* dx, const double& epsilon,
-                                 double* phase, const int& phaseng,
-                                 double* flux0, double* flux1,
-#if (NDIM == 3)
-                                 double* flux2,
-#endif
-                                 const int& fluxng);
-
-void FORT_ANISOTROPIC_GRADIENT_FLUX(const int& ifirst0, const int& ilast0,
-                                    const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                                    const int& ifirst2, const int& ilast2,
-#endif
-                                    const double* dx, const double& epsilon,
-                                    const double& nu, const int& knumber,
-                                    double* phase, const int& phaseng,
-                                    double* quat, const int& qng,
-                                    const int& qlen, double* flux0,
-                                    double* flux1,
-#if (NDIM == 3)
-                                    double* flux2,
-#endif
-                                    const int& fluxng);
-
-void FORT_COMP_RHS_PBG(const int& ifirst0, const int& ilast0,
-                       const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                       const int& ifirst2, const int& ilast2,
-#endif
-                       const double* dx, const double& misorientation_factor,
-                       const double* phase_flux0, const double* phase_flux1,
-#if (NDIM == 3)
-                       const double* phase_flux2,
-#endif
-                       const int& ngphaseflux, const double* temperature,
-                       const int& ngtemp, const double& phi_well_scale,
-                       const double& eta_well_scale, const double* phi,
-                       const int& ngphi, const double* eta, const int& ngeta,
-                       const double* orient_grad_mod, const int& ngogm,
-                       double* rhs, const int& ngrhs, const char* phi_well_type,
-                       const char* eta_well_type, const char* phi_interp_type,
-                       const char* orient_interp_type, const int& with_orient,
-                       const int& three_phase);
-
-void FORT_ADD_VDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
-                      const int& ilast1,
-#if (NDIM == 3)
-                      const int& ifirst2, const int& ilast2,
-#endif
-                      const double* dx, const double* phase_flux0,
-                      const int& ngphaseflux, const double& vel,
-                      const double* rhs, const int& ngrhs);
-
-void FORT_COMP_RHS_TEMP(const int& ifirst0, const int& ilast0,
-                        const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                        const int& ifirst2, const int& ilast2,
-#endif
-                        const double* dx, const double& thermal_diffusivity,
-                        const double& latent_heat, const double* temperature,
-                        const int& ngtemp, const double* cpl, const int& ngcpl,
-                        const int& with_phase, const double* phirhs,
-                        const int& ngphirhs, double* rhs, const int& ngrhs);
-
-void FORT_COMP_RHS_BIASWELL(const int& ifirst0, const int& ilast0,
+void COMPUTE_FLUX_ISOTROPIC(const int& ifirst0, const int& ilast0,
                             const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
                             const int& ifirst2, const int& ilast2,
 #endif
-                            const double*, const int&, const double*,
-                            const int&, const double&, const double&,
-                            double* teq, const int&, double* rhs, const int&);
+                            const double* dx, const double& epsilon,
+                            double* phase, const int& phaseng, double* flux0,
+                            double* flux1,
+#if (NDIM == 3)
+                            double* flux2,
+#endif
+                            const int& fluxng);
 
-void FORT_COMP_RHS_BIASWELL_BECKERMANN(const int& ifirst0, const int& ilast0,
-                                       const int& ifirst1, const int& ilast1,
+void ANISOTROPIC_GRADIENT_FLUX(const int& ifirst0, const int& ilast0,
+                               const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                                       const int& ifirst2, const int& ilast2,
+                               const int& ifirst2, const int& ilast2,
 #endif
-                                       const double*, const int&, const double*,
-                                       const int&, const double&, double* teq,
-                                       const int&, double* rhs, const int&);
+                               const double* dx, const double& epsilon,
+                               const double& nu, const int& knumber,
+                               double* phase, const int& phaseng, double* quat,
+                               const int& qng, const int& qlen, double* flux0,
+                               double* flux1,
+#if (NDIM == 3)
+                               double* flux2,
+#endif
+                               const int& fluxng);
 
-void FORT_COMP_RHS_DELTA_TEMPERATURE(const int& ifirst0, const int& ilast0,
-                                     const int& ifirst1, const int& ilast1,
+void COMPUTERHSPBG(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                   const int& ilast1,
 #if (NDIM == 3)
-                                     const int& ifirst2, const int& ilast2,
+                   const int& ifirst2, const int& ilast2,
 #endif
-                                     const double*, const int&, const double*,
-                                     const int&, const double&, const double&,
-                                     double* rhs, const int&,
-                                     const char* const);
+                   const double* dx, const double& misorientation_factor,
+                   const double* phase_flux0, const double* phase_flux1,
+#if (NDIM == 3)
+                   const double* phase_flux2,
+#endif
+                   const int& ngphaseflux, const double* temperature,
+                   const int& ngtemp, const double& phi_well_scale,
+                   const double& eta_well_scale, const double* phi,
+                   const int& ngphi, const double* eta, const int& ngeta,
+                   const double* orient_grad_mod, const int& ngogm, double* rhs,
+                   const int& ngrhs, const char* phi_well_type,
+                   const char* eta_well_type, const char* phi_interp_type,
+                   const char* orient_interp_type, const int& with_orient,
+                   const int& three_phase);
 
-void FORT_COMP_RHS_ETA(const int& ifirst0, const int& ilast0,
-                       const int& ifirst1, const int& ilast1,
+void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                const int& ilast1,
 #if (NDIM == 3)
-                       const int& ifirst2, const int& ilast2,
+                const int& ifirst2, const int& ilast2,
 #endif
-                       const double* dx, const double* eta_flux0,
-                       const double* eta_flux1,
-#if (NDIM == 3)
-                       const double* eta_flux2,
-#endif
-                       const int& ngetaflux, const double* temperature,
-                       const int& ngtemp, const double& eta_well_scale,
-                       const double* phi, const int& ngphi, const double* eta,
-                       const int& ngeta, double* rhs, const int& ngrhs,
-                       const char* eta_well_type, const char* phi_interp_type);
+                const double* dx, const double* phase_flux0,
+                const int& ngphaseflux, const double& vel, const double* rhs,
+                const int& ngrhs);
 
-void FORT_SMOOTHQUAT(const int& ifirst0, const int& ilast0, const int& ifirst1,
-                     const int& ilast1,
+void COMPUTERHSTEMP(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                    const int& ilast1,
 #if (NDIM == 3)
-                     const int& ifirst2, const int& ilast2,
+                    const int& ifirst2, const int& ilast2,
 #endif
-                     const int& depth, const double*, const int&, const double*,
-                     const int&, const double*, const double*,
-#if (NDIM == 3)
-                     const double*,
-#endif
-                     const int&, const double*, const int&, const double&);
+                    const double* dx, const double& thermal_diffusivity,
+                    const double& latent_heat, const double* temperature,
+                    const int& ngtemp, const double* cpl, const int& ngcpl,
+                    const int& with_phase, const double* phirhs,
+                    const int& ngphirhs, double* rhs, const int& ngrhs);
 
-void FORT_DIFFS(const int&, const int&, const int&, const int&,
+void COMPUTERHSBIASWELL(const int& ifirst0, const int& ilast0,
+                        const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                const int&, const int&,
+                        const int& ifirst2, const int& ilast2,
 #endif
-                const double*, const int&, const int&, const int&, const int&,
+                        const double*, const int&, const double*, const int&,
+                        const double&, const double&, double* teq, const int&,
+                        double* rhs, const int&);
+
+void COMPUTERHSBIASWELLBECKERMANN(const int& ifirst0, const int& ilast0,
+                                  const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                const int&, const int&,
+                                  const int& ifirst2, const int& ilast2,
 #endif
-                const double*, const double*,
+                                  const double*, const int&, const double*,
+                                  const int&, const double&, double* teq,
+                                  const int&, double* rhs, const int&);
+
+void COMPUTERHSDELTATEMPERATURE(const int& ifirst0, const int& ilast0,
+                                const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                                const int& ifirst2, const int& ilast2,
+#endif
+                                const double*, const int&, const double*,
+                                const int&, const double&, const double&,
+                                double* rhs, const int&, const char* const);
+
+void COMPUTERHSETA(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                   const int& ilast1,
+#if (NDIM == 3)
+                   const int& ifirst2, const int& ilast2,
+#endif
+                   const double* dx, const double* eta_flux0,
+                   const double* eta_flux1,
+#if (NDIM == 3)
+                   const double* eta_flux2,
+#endif
+                   const int& ngetaflux, const double* temperature,
+                   const int& ngtemp, const double& eta_well_scale,
+                   const double* phi, const int& ngphi, const double* eta,
+                   const int& ngeta, double* rhs, const int& ngrhs,
+                   const char* eta_well_type, const char* phi_interp_type);
+
+void SMOOTHQUAT(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                const int& ilast1,
+#if (NDIM == 3)
+                const int& ifirst2, const int& ilast2,
+#endif
+                const int& depth, const double*, const int&, const double*,
+                const int&, const double*, const double*,
 #if (NDIM == 3)
                 const double*,
 #endif
-                const int&, const int&, const int&, const int&
+                const int&, const double*, const int&, const double&);
+
+void DIFFS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                ,
-                const int&, const int&
+           const int&, const int&,
+#endif
+           const double*, const int&, const int&, const int&, const int&,
+#if (NDIM == 3)
+           const int&, const int&,
+#endif
+           const double*, const double*,
+#if (NDIM == 3)
+           const double*,
+#endif
+           const int&, const int&, const int&, const int&
+#if (NDIM == 3)
+           ,
+           const int&, const int&
 #endif
 );
 
-void FORT_GRAD_CELL(const int&, const int&, const int&, const int&,
+void GRAD_CELL(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                    const int&, const int&,
+               const int&, const int&,
 #endif
-                    const double*, const double*,
+               const double*, const double*,
 #if (NDIM == 3)
-                    const double*,
+               const double*,
 #endif
-                    const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                    const int&, const int&,
+               const int&, const int&,
 #endif
-                    const double*, const double*, const double*,
+               const double*, const double*, const double*,
 #if (NDIM == 3)
-                    const double*,
+               const double*,
 #endif
-                    const int&, const int&, const int&, const int&
+               const int&, const int&, const int&, const int&
 #if (NDIM == 3)
-                    ,
-                    const int&, const int&
-#endif
-);
-
-void FORT_GRAD_SIDE(const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-                    const int&, const int&,
-#endif
-                    const double*, const double*,
-#if (NDIM == 3)
-                    const double*,
-#endif
-                    const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-                    const int&, const int&,
-#endif
-                    const double*, const double*, const double*,
-#if (NDIM == 3)
-                    const double*,
-#endif
-                    const double*, const double*,
-#if (NDIM == 3)
-                    const double*, const double*, const double*, const double*,
-#endif
-                    const int&, const int&, const int&, const int&
-#if (NDIM == 3)
-                    ,
-                    const int&, const int&
+               ,
+               const int&, const int&
 #endif
 );
 
-void FORT_GRAD_SIDE_ISOTROPIC(const int&, const int&, const int&, const int&,
+void GRAD_SIDE(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                              const int&, const int&,
+               const int&, const int&,
 #endif
-                              const double*, const double*,
+               const double*, const double*,
 #if (NDIM == 3)
-                              const double*,
+               const double*,
 #endif
-                              const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                              const int&, const int&,
+               const int&, const int&,
 #endif
-                              const double*, const double*, const double*,
+               const double*, const double*, const double*,
 #if (NDIM == 3)
-                              const double*,
+               const double*,
 #endif
-                              const double*, const double*,
+               const double*, const double*,
 #if (NDIM == 3)
-                              const double*, const double*, const double*,
-                              const double*,
+               const double*, const double*, const double*, const double*,
 #endif
-                              const int&, const int&, const int&, const int&
+               const int&, const int&, const int&, const int&
 #if (NDIM == 3)
-                              ,
-                              const int&, const int&
+               ,
+               const int&, const int&
 #endif
 );
 
-void FORT_QUATSYMMROTATION(const int& lo0, const int& hi0, const int& lo1,
-                           const int& hi1,
+void GRAD_SIDE_ISOTROPIC(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                           const int& lo2, const int& hi2,
+                         const int&, const int&,
 #endif
-                           const double* q, const int& ngq, const int& depth,
-                           const int* rot_x, const int* rot_y,
+                         const double*, const double*,
 #if (NDIM == 3)
-                           const int* rot_z,
+                         const double*,
 #endif
-                           const int& ngrot);
+                         const int&, const int&, const int&, const int&,
+#if (NDIM == 3)
+                         const int&, const int&,
+#endif
+                         const double*, const double*, const double*,
+#if (NDIM == 3)
+                         const double*,
+#endif
+                         const double*, const double*,
+#if (NDIM == 3)
+                         const double*, const double*, const double*,
+                         const double*,
+#endif
+                         const int&, const int&, const int&, const int&
+#if (NDIM == 3)
+                         ,
+                         const int&, const int&
+#endif
+);
 
-void FORT_QUATFUNDAMENTAL(const int&, const int&, const int&, const int&,
+void QUAT_SYMM_ROTATION(const int& lo0, const int& hi0, const int& lo1,
+                        const int& hi1,
 #if (NDIM == 3)
-                          const int&, const int&,
+                        const int& lo2, const int& hi2,
 #endif
-                          const double*, const int&, const int&, const int&,
-                          const int&,
+                        const double* q, const int& ngq, const int& depth,
+                        const int* rot_x, const int* rot_y,
 #if (NDIM == 3)
-                          const int&, const int&,
+                        const int* rot_z,
 #endif
-                          const int&);
+                        const int& ngrot);
 
-void FORT_QUATDIFFS(const int& lo0, const int& hi0, const int& lo1,
+void QUAT_FUNDAMENTAL(const int&, const int&, const int&, const int&,
+#if (NDIM == 3)
+                      const int&, const int&,
+#endif
+                      const double*, const int&, const int&, const int&,
+                      const int&,
+#if (NDIM == 3)
+                      const int&, const int&,
+#endif
+                      const int&);
+
+void QUATDIFFS(const int& lo0, const int& hi0, const int& lo1, const int& hi1,
+#if (NDIM == 3)
+               const int& lo2, const int& hi2,
+#endif
+               const int& depth, const double* q, const int& ngq,
+               const double* diff_x, const double* diff_y,
+#if (NDIM == 3)
+               const double* diff_z,
+#endif
+               const int& ngdiff);
+
+void QUATDIFFS_SYMM(const int& lo0, const int& hi0, const int& lo1,
                     const int& hi1,
 #if (NDIM == 3)
                     const int& lo2, const int& hi2,
@@ -373,26 +337,30 @@ void FORT_QUATDIFFS(const int& lo0, const int& hi0, const int& lo1,
 #if (NDIM == 3)
                     const double* diff_z,
 #endif
-                    const int& ngdiff);
+                    const int& ngdiff, const int* iqrot_x, const int* iqrot_y,
+#if (NDIM == 3)
+                    const int* iqrot_z,
+#endif
+                    const int& ngiq);
 
-void FORT_QUATDIFFS_SYMM(const int& lo0, const int& hi0, const int& lo1,
-                         const int& hi1,
+void QUATGRAD_CELL(const int& lo0, const int& hi0, const int& lo1,
+                   const int& hi1,
 #if (NDIM == 3)
-                         const int& lo2, const int& hi2,
+                   const int& lo2, const int& hi2,
 #endif
-                         const int& depth, const double* q, const int& ngq,
-                         const double* diff_x, const double* diff_y,
+                   const int& depth, const double* h, const double* diff_x,
+                   const double* diff_y,
 #if (NDIM == 3)
-                         const double* diff_z,
+                   const double* diff_z,
 #endif
-                         const int& ngdiff, const int* iqrot_x,
-                         const int* iqrot_y,
+                   const int& ngdiff, const double* grad_x,
+                   const double* grad_y,
 #if (NDIM == 3)
-                         const int* iqrot_z,
+                   const double* grad_z,
 #endif
-                         const int& ngiq);
+                   const int& nggrad);
 
-void FORT_QUATGRAD_CELL(const int& lo0, const int& hi0, const int& lo1,
+void QUATGRAD_CELL_SYMM(const int& lo0, const int& hi0, const int& lo1,
                         const int& hi1,
 #if (NDIM == 3)
                         const int& lo2, const int& hi2,
@@ -407,74 +375,36 @@ void FORT_QUATGRAD_CELL(const int& lo0, const int& hi0, const int& lo1,
 #if (NDIM == 3)
                         const double* grad_z,
 #endif
-                        const int& nggrad);
+                        const int& nggrad, const int* iqrot_x,
+                        const int* iqrot_y,
+#if (NDIM == 3)
+                        const int* iqrot_z,
+#endif
+                        const int& ngiq);
 
-void FORT_QUATGRAD_CELL_SYMM(const int& lo0, const int& hi0, const int& lo1,
-                             const int& hi1,
+void QUATGRAD_SIDE(const int& lo0, const int& hi0, const int& lo1,
+                   const int& hi1,
 #if (NDIM == 3)
-                             const int& lo2, const int& hi2,
+                   const int& lo2, const int& hi2,
 #endif
-                             const int& depth, const double* h,
-                             const double* diff_x, const double* diff_y,
+                   const int& depth, const double* h, const double* diff_x,
+                   const double* diff_y,
 #if (NDIM == 3)
-                             const double* diff_z,
+                   const double* diff_z,
 #endif
-                             const int& ngdiff, const double* grad_x,
-                             const double* grad_y,
+                   const int& ngdiff, const double* grad_x_x,
+                   const double* grad_y_x,
 #if (NDIM == 3)
-                             const double* grad_z,
+                   const double* grad_z_x,
 #endif
-                             const int& nggrad, const int* iqrot_x,
-                             const int* iqrot_y,
+                   const double* grad_x_y, const double* grad_y_y,
 #if (NDIM == 3)
-                             const int* iqrot_z,
+                   const double* grad_z_y, const double* grad_x_z,
+                   const double* grad_y_z, const double* grad_z_z,
 #endif
-                             const int& ngiq);
+                   const int& nggrad);
 
-void FORT_QUATGRAD_SIDE(const int& lo0, const int& hi0, const int& lo1,
-                        const int& hi1,
-#if (NDIM == 3)
-                        const int& lo2, const int& hi2,
-#endif
-                        const int& depth, const double* h, const double* diff_x,
-                        const double* diff_y,
-#if (NDIM == 3)
-                        const double* diff_z,
-#endif
-                        const int& ngdiff, const double* grad_x_x,
-                        const double* grad_y_x,
-#if (NDIM == 3)
-                        const double* grad_z_x,
-#endif
-                        const double* grad_x_y, const double* grad_y_y,
-#if (NDIM == 3)
-                        const double* grad_z_y, const double* grad_x_z,
-                        const double* grad_y_z, const double* grad_z_z,
-#endif
-                        const int& nggrad);
-
-void FORT_QUATGRAD_SIDE_ISOTROPIC(
-    const int& lo0, const int& hi0, const int& lo1, const int& hi1,
-#if (NDIM == 3)
-    const int& lo2, const int& hi2,
-#endif
-    const int& depth, const double* h, const double* diff_x,
-    const double* diff_y,
-#if (NDIM == 3)
-    const double* diff_z,
-#endif
-    const int& ngdiff, const double* grad_x_x, const double* grad_y_x,
-#if (NDIM == 3)
-    const double* grad_z_x,
-#endif
-    const double* grad_x_y, const double* grad_y_y,
-#if (NDIM == 3)
-    const double* grad_z_y, const double* grad_x_z, const double* grad_y_z,
-    const double* grad_z_z,
-#endif
-    const int& nggrad);
-
-void FORT_QUATGRAD_SIDE_SYMM(const int& lo0, const int& hi0, const int& lo1,
+void QUATGRAD_SIDE_ISOTROPIC(const int& lo0, const int& hi0, const int& lo1,
                              const int& hi1,
 #if (NDIM == 3)
                              const int& lo2, const int& hi2,
@@ -494,13 +424,35 @@ void FORT_QUATGRAD_SIDE_SYMM(const int& lo0, const int& hi0, const int& lo1,
                              const double* grad_z_y, const double* grad_x_z,
                              const double* grad_y_z, const double* grad_z_z,
 #endif
-                             const int& nggrad, const int* iqrot_x,
-                             const int* iqrot_y,
+                             const int& nggrad);
+
+void QUATGRAD_SIDE_SYMM(const int& lo0, const int& hi0, const int& lo1,
+                        const int& hi1,
 #if (NDIM == 3)
-                             const int* iqrot_z,
+                        const int& lo2, const int& hi2,
 #endif
-                             const int& ngiq);
-void FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC(
+                        const int& depth, const double* h, const double* diff_x,
+                        const double* diff_y,
+#if (NDIM == 3)
+                        const double* diff_z,
+#endif
+                        const int& ngdiff, const double* grad_x_x,
+                        const double* grad_y_x,
+#if (NDIM == 3)
+                        const double* grad_z_x,
+#endif
+                        const double* grad_x_y, const double* grad_y_y,
+#if (NDIM == 3)
+                        const double* grad_z_y, const double* grad_x_z,
+                        const double* grad_y_z, const double* grad_z_z,
+#endif
+                        const int& nggrad, const int* iqrot_x,
+                        const int* iqrot_y,
+#if (NDIM == 3)
+                        const int* iqrot_z,
+#endif
+                        const int& ngiq);
+void QUATGRAD_SIDE_SYMM_ISOTROPIC(
     const int& lo0, const int& hi0, const int& lo1, const int& hi1,
 #if (NDIM == 3)
     const int& lo2, const int& hi2,
@@ -525,47 +477,45 @@ void FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC(
 #endif
     const int& ngiq);
 
-void FORT_QUATGRAD_MODULUS(const int&, const int&, const int&, const int&,
+void QUATGRAD_MODULUS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                           const int&, const int&,
+                      const int&, const int&,
 #endif
-                           const int&, const double*, const double*,
+                      const int&, const double*, const double*,
 #if (NDIM == 3)
-                           const double*,
+                      const double*,
 #endif
-                           const int&, const int&, const int&, const int&,
+                      const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                           const int&, const int&,
+                      const int&, const int&,
 #endif
-                           const double*, const int&, const int&, const int&,
-                           const int&,
+                      const double*, const int&, const int&, const int&,
+                      const int&,
 #if (NDIM == 3)
-                           const int&, const int&,
+                      const int&, const int&,
 #endif
-                           const char*, const double&);
+                      const char*, const double&);
 
-void FORT_QUATGRAD_MODULUS_FROM_SIDES(const int&, const int&, const int&,
-                                      const int&,
+void QUATGRAD_MODULUS_FROM_SIDES(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                                      const int&, const int&,
+                                 const int&, const int&,
 #endif
-                                      const int&, const double*, const double*,
+                                 const int&, const double*, const double*,
 #if (NDIM == 3)
-                                      const double*,
+                                 const double*,
 #endif
-                                      const int&, const int&, const int&,
-                                      const int&,
+                                 const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                                      const int&, const int&,
+                                 const int&, const int&,
 #endif
-                                      const double*, const int&, const int&,
-                                      const int&, const int&,
+                                 const double*, const int&, const int&,
+                                 const int&, const int&,
 #if (NDIM == 3)
-                                      const int&, const int&,
+                                 const int&, const int&,
 #endif
-                                      const char*, const double&);
+                                 const char*, const double&);
 
-void FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
+void QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
     const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
     const int&, const int&,
@@ -584,35 +534,34 @@ void FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
 #endif
     const char*, const double&);
 
-void FORT_QUATDIFFUSION(const int&, const int&, const int&, const int&,
+void QUATDIFFUSION(const int&, const int&, const int&, const int&,
+#if (NDIM == 3)
+                   const int&, const int&,
+#endif
+                   const double&, const double*, const int&, const double*,
+                   const int&, const double*, const double*,
+#if (NDIM == 3)
+                   const double*,
+#endif
+                   const int&, const char*, const char*);
+
+void QUATDIFFUSIONDERIV(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
                         const int&, const int&,
 #endif
                         const double&, const double*, const int&, const double*,
+                        const int&, const int&, const double*, const double*,
+#if (NDIM == 3)
+                        const double*,
+#endif
                         const int&, const double*, const double*,
 #if (NDIM == 3)
                         const double*,
 #endif
-                        const int&, const char*, const char*);
+                        const int&, const double&, const char*, const char*,
+                        const char*);
 
-void FORT_QUATDIFFUSIONDERIV(const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-                             const int&, const int&,
-#endif
-                             const double&, const double*, const int&,
-                             const double*, const int&, const int&,
-                             const double*, const double*,
-#if (NDIM == 3)
-                             const double*,
-#endif
-                             const int&, const double*, const double*,
-#if (NDIM == 3)
-                             const double*,
-#endif
-                             const int&, const double&, const char*,
-                             const char*, const char*);
-
-void FORT_CORRECTRHSQUAT(
+void CORRECTRHSQUATFORSYMMETRY(
     const int& lo0, const int& hi0, const int& lo1, const int& hi1,
 #if (NDIM == 3)
     const int& lo2, const int& hi2,
@@ -638,7 +587,7 @@ void FORT_CORRECTRHSQUAT(
 #endif
     const int& ngiq);
 
-void FORT_CORRECTRHSQUATWITHCONSTRAINT(
+void CORRECTRHSQUATWITHCONSTRAINT(
     const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
     const int&, const int&,
@@ -661,74 +610,73 @@ void FORT_CORRECTRHSQUATWITHCONSTRAINT(
 #endif
     const double*, const double*);
 
-void FORT_TAG_GRAD(const int&, const int&, const int&, const int&,
+void TAGFROMGRADS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                   const int&, const int&,
+                  const int&, const int&,
 #endif
-                   const double*, const double*,
+                  const double*, const double*,
 #if (NDIM == 3)
-                   const double*,
+                  const double*,
 #endif
-                   const int&, const int&, const int&, const int&,
+                  const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                   const int&, const int&,
+                  const int&, const int&,
 #endif
-                   const double*, const int*, const int&, const int&,
-                   const int&, const int&,
+                  const double*, const int*, const int&, const int&, const int&,
+                  const int&,
 #if (NDIM == 3)
-                   const int&, const int&,
+                  const int&, const int&,
 #endif
-                   const int&, const double&);
+                  const int&, const double&);
 
-void FORT_TAG_QUAT_GRAD(const int&, const int&, const int&, const int&,
+void TAGFROMQUATGRADS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                        const int&, const int&,
+                      const int&, const int&,
 #endif
-                        const double*, const double*,
+                      const double*, const double*,
 #if (NDIM == 3)
-                        const double*,
+                      const double*,
 #endif
-                        const int&, const int&, const int&, const int&,
+                      const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                        const int&, const int&,
+                      const int&, const int&,
 #endif
-                        const int&, const double*, const int*, const int&,
-                        const int&, const int&, const int&,
+                      const int&, const double*, const int*, const int&,
+                      const int&, const int&, const int&,
 #if (NDIM == 3)
-                        const int&, const int&,
+                      const int&, const int&,
 #endif
-                        const int&, const double&);
+                      const int&, const double&);
 
-void FORT_QUATMOBILITY(const int& ifirst0, const int& ilast0,
+void QUATMOBILITY(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1,
+#if (NDIM == 3)
+                  const int& ifirst2, const int& ilast2,
+#endif
+                  const double* phase, const int& ngphase,
+                  const double* mobility, const int& ngmobility,
+                  const double& scale_mobility, const double& min_mobility,
+                  const char* func_type, const double& alt_scale_factor);
+
+void QUATMOBILITYDERIV(const int& ifirst0, const int& ilast0,
                        const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
                        const int& ifirst2, const int& ilast2,
 #endif
                        const double* phase, const int& ngphase,
-                       const double* mobility, const int& ngmobility,
+                       const double* dmobility, const int& ngmobility,
                        const double& scale_mobility, const double& min_mobility,
                        const char* func_type, const double& alt_scale_factor);
 
-void FORT_QUATMOBILITYDERIV(const int& ifirst0, const int& ilast0,
-                            const int& ifirst1, const int& ilast1,
+void TEMPERATURE_ENERGY(const int& ifirst0, const int& ilast0,
+                        const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
-                            const int& ifirst2, const int& ilast2,
+                        const int& ifirst2, const int& ilast2,
 #endif
-                            const double* phase, const int& ngphase,
-                            const double* dmobility, const int& ngmobility,
-                            const double& scale_mobility,
-                            const double& min_mobility, const char* func_type,
-                            const double& alt_scale_factor);
+                        const double* const temp, const int& ng, double* fs,
+                        const double& tm, const double& la);
 
-void FORT_TEMPERATURE_ENERGY(const int& ifirst0, const int& ilast0,
-                             const int& ifirst1, const int& ilast1,
-#if (NDIM == 3)
-                             const int& ifirst2, const int& ilast2,
-#endif
-                             const double* const temp, const int& ng,
-                             double* fs, const double& tm, const double& la);
-
-void FORT_QUATENERGY(
+void QUATENERGY(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -755,61 +703,61 @@ void FORT_QUATENERGY(
     const char* eta_well_type, const char* orient_interp_type,
     const char* avg_type, const char* floor_type, const double& floor2);
 
-void FORT_QUATAVG(const int&, const int&, const int&, const int&,
+void QUATAVG(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                  const int&, const int&,
+             const int&, const int&,
 #endif
-                  const int&, const double*, const int&, const int&, const int&,
-                  const int&,
+             const int&, const double*, const int&, const int&, const int&,
+             const int&,
 #if (NDIM == 3)
-                  const int&, const int&,
+             const int&, const int&,
 #endif
-                  const double*, const int&, const int&, const int&, const int&
+             const double*, const int&, const int&, const int&, const int&
 #if (NDIM == 3)
-                  ,
-                  const int&, const int&
+             ,
+             const int&, const int&
 #endif
 );
 
-void FORT_VELOCITY(const int&, const int&, const int&, const int&,
+void VELOCITY(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
-                   const int&, const int&,
+              const int&, const int&,
 #endif
-                   const double&, const double*, const double*,
+              const double&, const double*, const double*,
 #if (NDIM == 3)
-                   const double*,
+              const double*,
 #endif
-                   const double*, const double*);
+              const double*, const double*);
 
 #if NDIM == 2
 
 // 2d prototypes
 
-void compute_face_coef2d_(const int&, const int&, const int&, const int&,
-                          const int&, const double&, const double*, const int&,
-                          const int&, const int&, const int&, const double*,
-                          const int&, const int&, const int&, const int&,
-                          const double*, const int&, const int&, const int&,
-                          const int&, const double*, const int&, const int&,
-                          const int&, const int&, const double*, const int&,
-                          const int&, const int&, const int&, const double*,
-                          const int&, const int&, const int&, const int&,
-                          const double&, const char*);
-void compute_dquatdphi_face_coef2d_(
+void COMPUTE_FACE_COEF2D(const int&, const int&, const int&, const int&,
+                         const int&, const double&, const double*, const int&,
+                         const int&, const int&, const int&, const double*,
+                         const int&, const int&, const int&, const int&,
+                         const double*, const int&, const int&, const int&,
+                         const int&, const double*, const int&, const int&,
+                         const int&, const int&, const double*, const int&,
+                         const int&, const int&, const int&, const double*,
+                         const int&, const int&, const int&, const int&,
+                         const double&, const char*);
+void COMPUTE_DQUATDPHI_FACE_COEF2D(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const double*, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&);
-void compute_flux2d_(const int&, const int&, const int&, const int&, const int&,
-                     const double*, const int&, const int&, const int&,
-                     const int&, const double*, const int&, const int&,
-                     const int&, const int&, const double*, const int&,
-                     const int&, const int&, const int&, const double*,
-                     const double*, const int&, const int&, const int&,
-                     const int&, const double*, const int&, const int&,
-                     const int&, const int&);
-void compute_flux2d_from_gradq_(
+void COMPUTE_FLUX2D(const int&, const int&, const int&, const int&, const int&,
+                    const double*, const int&, const int&, const int&,
+                    const int&, const double*, const int&, const int&,
+                    const int&, const int&, const double*, const int&,
+                    const int&, const int&, const int&, const double*,
+                    const double*, const int&, const int&, const int&,
+                    const int&, const double*, const int&, const int&,
+                    const int&, const int&);
+void COMPUTE_FLUX2D_FROM_GRADQ(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&,
@@ -817,26 +765,26 @@ void compute_flux2d_from_gradq_(
     const double*,  // const int&, const int&, const int&, const int&,
     const double*, const int&, const int&, const int&, const int&,
     const double*, const int&, const int&, const int&, const int&);
-void compute_sym_flux2d_(const int&, const int&, const int&, const int&,
-                         const int&, const double*, const int&, const int&,
-                         const int&, const int&, const double*, const int&,
-                         const int&, const int&, const int&, const double*,
-                         const int&, const int&, const int&, const int&,
-                         const double*, const int&, const int&, const int&,
-                         const int&, const double*, const double*, const int&,
-                         const int&, const int&, const int&, const double*,
-                         const int&, const int&, const int&, const int&);
-void compute_q_residual2d_(const int&, const int&, const int&, const int&,
-                           const int&, const double*, const int&, const int&,
-                           const int&, const int&, const double*, const int&,
-                           const int&, const int&, const int&, const double*,
-                           const int&, const int&, const int&, const int&,
-                           const double*, const int&, const int&, const int&,
-                           const int&, const double*, const double&,
-                           const double*, const int&, const int&, const int&,
-                           const int&, const double*, const int&, const int&,
-                           const int&, const int&);
-void compute_q_residual2d_symm_(
+void COMPUTE_SYM_FLUX2D(const int&, const int&, const int&, const int&,
+                        const int&, const double*, const int&, const int&,
+                        const int&, const int&, const double*, const int&,
+                        const int&, const int&, const int&, const double*,
+                        const int&, const int&, const int&, const int&,
+                        const double*, const int&, const int&, const int&,
+                        const int&, const double*, const double*, const int&,
+                        const int&, const int&, const int&, const double*,
+                        const int&, const int&, const int&, const int&);
+void COMPUTE_Q_RESIDUAL2D(const int&, const int&, const int&, const int&,
+                          const int&, const double*, const int&, const int&,
+                          const int&, const int&, const double*, const int&,
+                          const int&, const int&, const int&, const double*,
+                          const int&, const int&, const int&, const int&,
+                          const double*, const int&, const int&, const int&,
+                          const int&, const double*, const double&,
+                          const double*, const int&, const int&, const int&,
+                          const int&, const double*, const int&, const int&,
+                          const int&, const int&);
+void COMPUTE_Q_RESIDUAL2D_SYMM(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const double*, const int&, const int&,
@@ -844,71 +792,70 @@ void compute_q_residual2d_symm_(
     const int&, const double*, const double&, const double*, const int&,
     const int&, const int&, const int&, const double*, const int&, const int&,
     const int&, const int&, const int*, const int*, const int&);
-void add_quat_op2d_(const int&, const int&, const int&, const int&, const int&,
-                    const double*, const int&, const int&, const int&,
-                    const int&, const double*, const int&, const int&,
-                    const int&, const int&, const double*, const int&,
-                    const int&, const int&, const int&, const double*,
-                    const double*, const int&, const int&, const int&,
-                    const int&);
-void add_quat_proj_op2d_(const int&, const int&, const int&, const int&,
-                         const int&, const double*, const int&, const int&,
-                         const int&, const int&, const double*, const int&,
-                         const int&, const int&, const int&, const double*,
-                         const int&, const int&, const int&, const int&,
-                         const double*, const int&, const int&, const int&,
-                         const int&, const double*, const int&, const int&,
-                         const int&, const int&, const double*, const double*,
-                         const int&, const int&, const int&, const int&);
-void add_quat_proj_op2d_symm_(const int&, const int&, const int&, const int&,
-                              const int&, const double*, const int&, const int&,
-                              const int&, const int&, const double*, const int&,
-                              const int&, const int&, const int&, const double*,
-                              const int&, const int&, const int&, const int&,
-                              const double*, const int&, const int&, const int&,
-                              const int&, const double*, const int&, const int&,
-                              const int&, const int&, const double*,
-                              const double*, const int&, const int&, const int&,
-                              const int&, const int*, const int*, const int&);
-void compute_lambda_flux2d_(const int&, const int&, const int&, const int&,
-                            const int&, const double*, const int&, const int&,
-                            const int&, const int&, const double*, const int&,
-                            const int&, const int&, const int&, const double*,
-                            const int&, const int&, const int&, const int&,
-                            const double*, const double*, const int&,
-                            const int&, const int&, const int&);
-void compute_lambda_flux2d_symm_(
+void ADD_QUAT_OP2D(const int&, const int&, const int&, const int&, const int&,
+                   const double*, const int&, const int&, const int&,
+                   const int&, const double*, const int&, const int&,
+                   const int&, const int&, const double*, const int&,
+                   const int&, const int&, const int&, const double*,
+                   const double*, const int&, const int&, const int&,
+                   const int&);
+void ADD_QUAT_PROJ_OP2D(const int&, const int&, const int&, const int&,
+                        const int&, const double*, const int&, const int&,
+                        const int&, const int&, const double*, const int&,
+                        const int&, const int&, const int&, const double*,
+                        const int&, const int&, const int&, const int&,
+                        const double*, const int&, const int&, const int&,
+                        const int&, const double*, const int&, const int&,
+                        const int&, const int&, const double*, const double*,
+                        const int&, const int&, const int&, const int&);
+void ADD_QUAT_PROJ_OP2D_SYMM(const int&, const int&, const int&, const int&,
+                             const int&, const double*, const int&, const int&,
+                             const int&, const int&, const double*, const int&,
+                             const int&, const int&, const int&, const double*,
+                             const int&, const int&, const int&, const int&,
+                             const double*, const int&, const int&, const int&,
+                             const int&, const double*, const int&, const int&,
+                             const int&, const int&, const double*,
+                             const double*, const int&, const int&, const int&,
+                             const int&, const int*, const int*, const int&);
+void COMPUTE_LAMBDA_FLUX2D(const int&, const int&, const int&, const int&,
+                           const int&, const double*, const int&, const int&,
+                           const int&, const int&, const double*, const int&,
+                           const int&, const int&, const int&, const double*,
+                           const int&, const int&, const int&, const int&,
+                           const double*, const double*, const int&, const int&,
+                           const int&, const int&);
+void COMPUTE_LAMBDA_FLUX2D_SYMM(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const double*, const int&, const int&,
     const int&, const int&, const double*, const double*, const int&,
     const int&, const int&, const int&, const int*, const int*, const int&);
-void fixflux2d_(double*, double*, const int&, const int&, const int&,
-                const double*, const double*, const int&, const int&,
-                const int&, const double*, const int&, const int&, const int&,
-                const int&, const int&, const int&, const int&, const int&,
-                const int&, const int*, const int*, const int*, const double*);
-void project2d_(const int&, const int&, const int&, const int&, const int&,
-                const double*, const int&, const int&, const int&, const int&,
-                const double*, const int&, const int&, const int&, const int&,
-                const double*, const int&, const int&, const int&, const int&);
-void take_square_root2d_(const int&, const int&, const int&, const int&,
-                         double*, const int&, const int&, const int&,
-                         const int&);
-void multicomponent_multiply2d_(const int&, const int&, const int&, const int&,
-                                const double*, const int&, const int&,
-                                const int&, const int&, double*, const int&,
-                                const int&, const int&, const int&, const int&);
-void multicomponent_divide2d_(const int&, const int&, const int&, const int&,
-                              const double*, const int&, const int&, const int&,
-                              const int&, double*, const int&, const int&,
-                              const int&, const int&, const int&);
+void FIXFLUX2D(double*, double*, const int&, const int&, const int&,
+               const double*, const double*, const int&, const int&, const int&,
+               const double*, const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&, const int&, const int&,
+               const int*, const int*, const int*, const double*);
+void PROJECT2D(const int&, const int&, const int&, const int&, const int&,
+               const double*, const int&, const int&, const int&, const int&,
+               const double*, const int&, const int&, const int&, const int&,
+               const double*, const int&, const int&, const int&, const int&);
+void TAKE_SQUARE_ROOT2D(const int&, const int&, const int&, const int&, double*,
+                        const int&, const int&, const int&, const int&);
+void MULTICOMPONENT_MULTIPLY2D(const int&, const int&, const int&, const int&,
+                               const double*, const int&, const int&,
+                               const int&, const int&, double*, const int&,
+                               const int&, const int&, const int&, const int&);
+void MULTICOMPONENT_DIVIDE2D(const int&, const int&, const int&, const int&,
+                             const double*, const int&, const int&, const int&,
+                             const int&, double*, const int&, const int&,
+                             const int&, const int&, const int&);
 #endif
 #if NDIM == 3
 
 // 3d prototypes
 
-void compute_face_coef3d_(
+void COMPUTE_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double&, const double*, const int&, const int&,
     const int&, const int&, const int&, const int&, const double*, const int&,
@@ -922,7 +869,7 @@ void compute_face_coef3d_(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const int&, const int&,
     const double&, const char*);
-void compute_dquatdphi_face_coef3d_(
+void COMPUTE_DQUATDPHI_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -933,7 +880,7 @@ void compute_dquatdphi_face_coef3d_(
     const double*, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&);
-void compute_flux3d_(
+void COMPUTE_FLUX3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -944,7 +891,7 @@ void compute_flux3d_(
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
     const int&, const int&, const int&);
-void compute_flux3d_from_gradq_(
+void COMPUTE_FLUX3D_FROM_GRADQ(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -954,7 +901,7 @@ void compute_flux3d_from_gradq_(
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const int&, const int&);
-void compute_sym_flux3d_(
+void COMPUTE_SYM_FLUX3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -966,7 +913,7 @@ void compute_sym_flux3d_(
     const int&, const int&, const int&, const double*, const int&, const int&,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const int&, const int&);
-void compute_q_residual3d_(
+void COMPUTE_Q_RESIDUAL3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -977,7 +924,7 @@ void compute_q_residual3d_(
     const double*, const double&, const double*, const int&, const int&,
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const int&, const int&);
-void compute_q_residual3d_symm_(
+void COMPUTE_Q_RESIDUAL3D_SYMM(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -989,17 +936,17 @@ void compute_q_residual3d_symm_(
     const int&, const int&, const int&, const int&, const double*, const int&,
     const int&, const int&, const int&, const int&, const int&, const int*,
     const int*, const int*, const int&);
-void add_quat_op3d_(const int&, const int&, const int&, const int&, const int&,
-                    const int&, const int&, const double*, const int&,
-                    const int&, const int&, const int&, const int&, const int&,
-                    const double*, const int&, const int&, const int&,
-                    const int&, const int&, const int&, const double*,
-                    const int&, const int&, const int&, const int&, const int&,
-                    const int&, const double*, const int&, const int&,
-                    const int&, const int&, const int&, const int&,
-                    const double*, const double*, const int&, const int&,
-                    const int&, const int&, const int&, const int&);
-void add_quat_proj_op3d_(
+void ADD_QUAT_OP3D(const int&, const int&, const int&, const int&, const int&,
+                   const int&, const int&, const double*, const int&,
+                   const int&, const int&, const int&, const int&, const int&,
+                   const double*, const int&, const int&, const int&,
+                   const int&, const int&, const int&, const double*,
+                   const int&, const int&, const int&, const int&, const int&,
+                   const int&, const double*, const int&, const int&,
+                   const int&, const int&, const int&, const int&,
+                   const double*, const double*, const int&, const int&,
+                   const int&, const int&, const int&, const int&);
+void ADD_QUAT_PROJ_OP3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
@@ -1010,46 +957,45 @@ void add_quat_proj_op3d_(
     const double*, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const double*, const int&, const int&,
     const int&, const int&, const int&, const int&);
-void compute_lambda_flux3d_(const int&, const int&, const int&, const int&,
-                            const int&, const int&, const int&, const double*,
-                            const int&, const int&, const int&, const int&,
-                            const int&, const int&, const double*, const int&,
-                            const int&, const int&, const int&, const int&,
-                            const int&, const double*, const int&, const int&,
-                            const int&, const int&, const int&, const int&,
-                            const double*, const int&, const int&, const int&,
-                            const int&, const int&, const int&, const double*,
-                            const double*, const int&, const int&, const int&,
-                            const int&, const int&, const int&);
-void fixflux3d_(double*, double*, double*, const int&, const int&, const int&,
-                const int&, const double*, const double*, const double*,
-                const int&, const int&, const int&, const int&, const double*,
-                const int&, const int&, const int&, const int&, const int&,
-                const int&, const int&, const int&, const int&, const int&,
-                const int&, const int&, const int*, const int*, const int*,
-                const double*);
-void project3d_(const int&, const int&, const int&, const int&, const int&,
-                const int&, const int&, const double*, const int&, const int&,
-                const int&, const int&, const int&, const int&, const double*,
-                const int&, const int&, const int&, const int&, const int&,
-                const int&, const double*, const int&, const int&, const int&,
-                const int&, const int&, const int&);
-void take_square_root3d_(const int&, const int&, const int&, const int&,
-                         const int&, const int&, double*, const int&,
-                         const int&, const int&, const int&, const int&,
-                         const int&);
-void multicomponent_multiply3d_(const int&, const int&, const int&, const int&,
-                                const int&, const int&, const double*,
-                                const int&, const int&, const int&, const int&,
-                                const int&, const int&, double*, const int&,
-                                const int&, const int&, const int&, const int&,
-                                const int&, const int&);
-void multicomponent_divide3d_(const int&, const int&, const int&, const int&,
-                              const int&, const int&, const double*, const int&,
-                              const int&, const int&, const int&, const int&,
-                              const int&, double*, const int&, const int&,
-                              const int&, const int&, const int&, const int&,
-                              const int&);
+void COMPUTE_LAMBDA_FLUX3D(const int&, const int&, const int&, const int&,
+                           const int&, const int&, const int&, const double*,
+                           const int&, const int&, const int&, const int&,
+                           const int&, const int&, const double*, const int&,
+                           const int&, const int&, const int&, const int&,
+                           const int&, const double*, const int&, const int&,
+                           const int&, const int&, const int&, const int&,
+                           const double*, const int&, const int&, const int&,
+                           const int&, const int&, const int&, const double*,
+                           const double*, const int&, const int&, const int&,
+                           const int&, const int&, const int&);
+void FIXFLUX3D(double*, double*, double*, const int&, const int&, const int&,
+               const int&, const double*, const double*, const double*,
+               const int&, const int&, const int&, const int&, const double*,
+               const int&, const int&, const int&, const int&, const int&,
+               const int&, const int&, const int&, const int&, const int&,
+               const int&, const int&, const int*, const int*, const int*,
+               const double*);
+void PROJECT3D(const int&, const int&, const int&, const int&, const int&,
+               const int&, const int&, const double*, const int&, const int&,
+               const int&, const int&, const int&, const int&, const double*,
+               const int&, const int&, const int&, const int&, const int&,
+               const int&, const double*, const int&, const int&, const int&,
+               const int&, const int&, const int&);
+void TAKE_SQUARE_ROOT3D(const int&, const int&, const int&, const int&,
+                        const int&, const int&, double*, const int&, const int&,
+                        const int&, const int&, const int&, const int&);
+void MULTICOMPONENT_MULTIPLY3D(const int&, const int&, const int&, const int&,
+                               const int&, const int&, const double*,
+                               const int&, const int&, const int&, const int&,
+                               const int&, const int&, double*, const int&,
+                               const int&, const int&, const int&, const int&,
+                               const int&, const int&);
+void MULTICOMPONENT_DIVIDE3D(const int&, const int&, const int&, const int&,
+                             const int&, const int&, const double*, const int&,
+                             const int&, const int&, const int&, const int&,
+                             const int&, double*, const int&, const int&,
+                             const int&, const int&, const int&, const int&,
+                             const int&);
 
 #endif
 }

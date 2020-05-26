@@ -3590,25 +3590,25 @@ void QuatModel::tagGradientDetectorCells(
       const hier::Index& gbox_lower = gbox.lower();
       const hier::Index& gbox_upper = gbox.upper();
 
-      FORT_TAG_GRAD(patch_lower(0), patch_upper(0), patch_lower(1),
-                    patch_upper(1),
+      TAGFROMGRADS(patch_lower(0), patch_upper(0), patch_lower(1),
+                   patch_upper(1),
 #if (NDIM == 3)
-                    patch_lower(2), patch_upper(2),
+                   patch_lower(2), patch_upper(2),
 #endif
-                    phase_grad->getPointer(0), phase_grad->getPointer(1),
+                   phase_grad->getPointer(0), phase_grad->getPointer(1),
 #if (NDIM == 3)
-                    phase_grad->getPointer(2),
+                   phase_grad->getPointer(2),
 #endif
-                    gbox_lower(0), gbox_upper(0), gbox_lower(1), gbox_upper(1),
+                   gbox_lower(0), gbox_upper(0), gbox_lower(1), gbox_upper(1),
 #if (NDIM == 3)
-                    gbox_lower(2), gbox_upper(2),
+                   gbox_lower(2), gbox_upper(2),
 #endif
-                    dx, tags->getPointer(0), tag_gbox_lower(0),
-                    tag_gbox_upper(0), tag_gbox_lower(1), tag_gbox_upper(1),
+                   dx, tags->getPointer(0), tag_gbox_lower(0),
+                   tag_gbox_upper(0), tag_gbox_lower(1), tag_gbox_upper(1),
 #if (NDIM == 3)
-                    tag_gbox_lower(2), tag_gbox_upper(2),
+                   tag_gbox_lower(2), tag_gbox_upper(2),
 #endif
-                    true, d_phase_threshold_untagged);
+                   true, d_phase_threshold_untagged);
    }
 
    if (d_tag_eta) {
@@ -3621,25 +3621,25 @@ void QuatModel::tagGradientDetectorCells(
       const hier::Index& gbox_lower = gbox.lower();
       const hier::Index& gbox_upper = gbox.upper();
 
-      FORT_TAG_GRAD(patch_lower(0), patch_upper(0), patch_lower(1),
-                    patch_upper(1),
+      TAGFROMGRADS(patch_lower(0), patch_upper(0), patch_lower(1),
+                   patch_upper(1),
 #if (NDIM == 3)
-                    patch_lower(2), patch_upper(2),
+                   patch_lower(2), patch_upper(2),
 #endif
-                    eta_grad->getPointer(0), eta_grad->getPointer(1),
+                   eta_grad->getPointer(0), eta_grad->getPointer(1),
 #if (NDIM == 3)
-                    eta_grad->getPointer(2),
+                   eta_grad->getPointer(2),
 #endif
-                    gbox_lower(0), gbox_upper(0), gbox_lower(1), gbox_upper(1),
+                   gbox_lower(0), gbox_upper(0), gbox_lower(1), gbox_upper(1),
 #if (NDIM == 3)
-                    gbox_lower(2), gbox_upper(2),
+                   gbox_lower(2), gbox_upper(2),
 #endif
-                    dx, tags->getPointer(0), tag_gbox_lower(0),
-                    tag_gbox_upper(0), tag_gbox_lower(1), tag_gbox_upper(1),
+                   dx, tags->getPointer(0), tag_gbox_lower(0),
+                   tag_gbox_upper(0), tag_gbox_lower(1), tag_gbox_upper(1),
 #if (NDIM == 3)
-                    tag_gbox_lower(2), tag_gbox_upper(2),
+                   tag_gbox_lower(2), tag_gbox_upper(2),
 #endif
-                    true, d_eta_threshold_untagged);
+                   true, d_eta_threshold_untagged);
    }
 
    if (d_tag_quat) {
@@ -3653,25 +3653,27 @@ void QuatModel::tagGradientDetectorCells(
       const hier::Index& gbox_lower = gbox.lower();
       const hier::Index& gbox_upper = gbox.upper();
 
-      FORT_TAG_QUAT_GRAD(
-          patch_lower(0), patch_upper(0), patch_lower(1), patch_upper(1),
+      TAGFROMQUATGRADS(patch_lower(0), patch_upper(0), patch_lower(1),
+                       patch_upper(1),
 #if (NDIM == 3)
-          patch_lower(2), patch_upper(2),
+                       patch_lower(2), patch_upper(2),
 #endif
-          quat_grad->getPointer(0 * d_qlen), quat_grad->getPointer(1 * d_qlen),
+                       quat_grad->getPointer(0 * d_qlen),
+                       quat_grad->getPointer(1 * d_qlen),
 #if (NDIM == 3)
-          quat_grad->getPointer(2 * d_qlen),
+                       quat_grad->getPointer(2 * d_qlen),
 #endif
-          gbox_lower(0), gbox_upper(0), gbox_lower(1), gbox_upper(1),
+                       gbox_lower(0), gbox_upper(0), gbox_lower(1),
+                       gbox_upper(1),
 #if (NDIM == 3)
-          gbox_lower(2), gbox_upper(2),
+                       gbox_lower(2), gbox_upper(2),
 #endif
-          d_qlen, dx, tags->getPointer(0), tag_gbox_lower(0), tag_gbox_upper(0),
-          tag_gbox_lower(1), tag_gbox_upper(1),
+                       d_qlen, dx, tags->getPointer(0), tag_gbox_lower(0),
+                       tag_gbox_upper(0), tag_gbox_lower(1), tag_gbox_upper(1),
 #if (NDIM == 3)
-          tag_gbox_lower(2), tag_gbox_upper(2),
+                       tag_gbox_lower(2), tag_gbox_upper(2),
 #endif
-          true, d_quat_threshold_untagged);
+                       true, d_quat_threshold_untagged);
    }
 }
 //=======================================================================
@@ -4362,18 +4364,18 @@ void QuatModel::smoothQuat(const boost::shared_ptr<hier::PatchLevel> level)
       assert(phase->getGhostCellWidth() ==
              hier::IntVector(tbox::Dimension(NDIM), 0));
 
-      FORT_SMOOTHQUAT(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      SMOOTHQUAT(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                      ifirst(2), ilast(2),
+                 ifirst(2), ilast(2),
 #endif
-                      d_qlen, quat_scratch->getPointer(), NGHOSTS,
-                      quat->getPointer(), 0, diff_data->getPointer(0, 0),
-                      diff_data->getPointer(1, 0),
+                 d_qlen, quat_scratch->getPointer(), NGHOSTS,
+                 quat->getPointer(), 0, diff_data->getPointer(0, 0),
+                 diff_data->getPointer(1, 0),
 #if (NDIM == 3)
-                      diff_data->getPointer(2, 0),
+                 diff_data->getPointer(2, 0),
 #endif
-                      diff_data->getGhostCellWidth()[0], phase->getPointer(), 0,
-                      d_phase_threshold);
+                 diff_data->getGhostCellWidth()[0], phase->getPointer(), 0,
+                 d_phase_threshold);
    }
 }
 
@@ -4434,23 +4436,22 @@ void QuatModel::computeVarDiffs(const boost::shared_ptr<hier::PatchLevel> level,
       const hier::Index& dlower = diff_gbox.lower();
       const hier::Index& dupper = diff_gbox.upper();
 
-      FORT_DIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      DIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                 ifirst(2), ilast(2),
+            ifirst(2), ilast(2),
 #endif
-                 var_data->getPointer(), qlower[0], qupper[0], qlower[1],
-                 qupper[1],
+            var_data->getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
 #if (NDIM == 3)
-                 qlower[2], qupper[2],
+            qlower[2], qupper[2],
 #endif
-                 diff_data->getPointer(0), diff_data->getPointer(1),
+            diff_data->getPointer(0), diff_data->getPointer(1),
 #if (NDIM == 3)
-                 diff_data->getPointer(2),
+            diff_data->getPointer(2),
 #endif
-                 dlower[0], dupper[0], dlower[1], dupper[1]
+            dlower[0], dupper[0], dlower[1], dupper[1]
 #if (NDIM == 3)
-                 ,
-                 dlower[2], dupper[2]
+            ,
+            dlower[2], dupper[2]
 #endif
       );
    }
@@ -4599,27 +4600,27 @@ void QuatModel::computeVarGradCell(
 
       assert(grad_cell_data->getDepth() == NDIM);
 
-      FORT_GRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      GRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                     ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-                     diff_data->getPointer(0), diff_data->getPointer(1),
+                diff_data->getPointer(0), diff_data->getPointer(1),
 #if (NDIM == 3)
-                     diff_data->getPointer(2),
+                diff_data->getPointer(2),
 #endif
-                     d_lower[0], d_upper[0], d_lower[1], d_upper[1],
+                d_lower[0], d_upper[0], d_lower[1], d_upper[1],
 #if (NDIM == 3)
-                     d_lower[2], d_upper[2],
+                d_lower[2], d_upper[2],
 #endif
-                     dx, grad_cell_data->getPointer(0),
-                     grad_cell_data->getPointer(1),
+                dx, grad_cell_data->getPointer(0),
+                grad_cell_data->getPointer(1),
 #if (NDIM == 3)
-                     grad_cell_data->getPointer(2),
+                grad_cell_data->getPointer(2),
 #endif
-                     g_lower[0], g_upper[0], g_lower[1], g_upper[1]
+                g_lower[0], g_upper[0], g_lower[1], g_upper[1]
 #if (NDIM == 3)
-                     ,
-                     g_lower[2], g_upper[2]
+                ,
+                g_lower[2], g_upper[2]
 #endif
       );
    }
@@ -4697,7 +4698,7 @@ void QuatModel::computeVarGradSide(
       // there is a gradient component for each dimension x,y,z
       assert(grad_side_data->getDepth() == NDIM);
 
-      FORT_GRAD_SIDE(
+      GRAD_SIDE(
           ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
           ifirst(2), ilast(2),
@@ -4800,18 +4801,18 @@ void QuatModel::computeQuatDiffs(
       const int symm_depth_offset = 0;
       const int nonsymm_depth_offset = isSymmetryAware() ? d_qlen : 0;
 
-      FORT_QUATDIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      QUATDIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                     ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-                     d_qlen, quat_data->getPointer(),
-                     quat_data->getGhostCellWidth()[0],
-                     diff_data->getPointer(0, nonsymm_depth_offset),
-                     diff_data->getPointer(1, nonsymm_depth_offset),
+                d_qlen, quat_data->getPointer(),
+                quat_data->getGhostCellWidth()[0],
+                diff_data->getPointer(0, nonsymm_depth_offset),
+                diff_data->getPointer(1, nonsymm_depth_offset),
 #if (NDIM == 3)
-                     diff_data->getPointer(2, nonsymm_depth_offset),
+                diff_data->getPointer(2, nonsymm_depth_offset),
 #endif
-                     diff_data->getGhostCellWidth()[0]);
+                diff_data->getGhostCellWidth()[0]);
 
       if (d_symmetry_aware) {
 
@@ -4823,24 +4824,24 @@ void QuatModel::computeQuatDiffs(
          assert(rotation_index->getGhostCellWidth() ==
                 hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-         FORT_QUATDIFFS_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         QUATDIFFS_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+                        ifirst(2), ilast(2),
 #endif
-                             d_qlen, quat_data->getPointer(),
-                             quat_data->getGhostCellWidth()[0],
-                             diff_data->getPointer(0, symm_depth_offset),
-                             diff_data->getPointer(1, symm_depth_offset),
+                        d_qlen, quat_data->getPointer(),
+                        quat_data->getGhostCellWidth()[0],
+                        diff_data->getPointer(0, symm_depth_offset),
+                        diff_data->getPointer(1, symm_depth_offset),
 #if (NDIM == 3)
-                             diff_data->getPointer(2, symm_depth_offset),
+                        diff_data->getPointer(2, symm_depth_offset),
 #endif
-                             diff_data->getGhostCellWidth()[0],
-                             rotation_index->getPointer(0),
-                             rotation_index->getPointer(1),
+                        diff_data->getGhostCellWidth()[0],
+                        rotation_index->getPointer(0),
+                        rotation_index->getPointer(1),
 #if (NDIM == 3)
-                             rotation_index->getPointer(2),
+                        rotation_index->getPointer(2),
 #endif
-                             rotation_index->getGhostCellWidth()[0]);
+                        rotation_index->getGhostCellWidth()[0]);
       }
 
       if (d_model_parameters.with_extra_visit_output()) {
@@ -4965,31 +4966,7 @@ void QuatModel::computeQuatGradCell(
          assert(rotation_index->getGhostCellWidth() ==
                 hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-         FORT_QUATGRAD_CELL_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                                 ifirst(2), ilast(2),
-#endif
-                                 d_qlen, dx, diff_data->getPointer(0, 0),
-                                 diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                                 diff_data->getPointer(2, 0),
-#endif
-                                 NGHOSTS,
-                                 grad_cell_data->getPointer(0 * d_qlen),
-                                 grad_cell_data->getPointer(1 * d_qlen),
-#if (NDIM == 3)
-                                 grad_cell_data->getPointer(2 * d_qlen),
-#endif
-                                 0, rotation_index->getPointer(0),
-                                 rotation_index->getPointer(1),
-#if (NDIM == 3)
-                                 rotation_index->getPointer(2),
-#endif
-                                 NGHOSTS);
-
-      } else {
-
-         FORT_QUATGRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         QUATGRAD_CELL_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                             ifirst(2), ilast(2),
 #endif
@@ -5003,7 +4980,30 @@ void QuatModel::computeQuatGradCell(
 #if (NDIM == 3)
                             grad_cell_data->getPointer(2 * d_qlen),
 #endif
-                            0);
+                            0, rotation_index->getPointer(0),
+                            rotation_index->getPointer(1),
+#if (NDIM == 3)
+                            rotation_index->getPointer(2),
+#endif
+                            NGHOSTS);
+
+      } else {
+
+         QUATGRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                       ifirst(2), ilast(2),
+#endif
+                       d_qlen, dx, diff_data->getPointer(0, 0),
+                       diff_data->getPointer(1, 0),
+#if (NDIM == 3)
+                       diff_data->getPointer(2, 0),
+#endif
+                       NGHOSTS, grad_cell_data->getPointer(0 * d_qlen),
+                       grad_cell_data->getPointer(1 * d_qlen),
+#if (NDIM == 3)
+                       grad_cell_data->getPointer(2 * d_qlen),
+#endif
+                       0);
       }
    }
 }
@@ -5089,7 +5089,7 @@ void QuatModel::computeQuatGradSide(
 
             // tbox::pout<<"compute quat grad at sides..."<<endl;
 
-            FORT_QUATGRAD_SIDE_SYMM(
+            QUATGRAD_SIDE_SYMM(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                 ifirst(2), ilast(2),
@@ -5126,7 +5126,7 @@ void QuatModel::computeQuatGradSide(
             // tbox::pout<<"compute quat grad at sides using wide
             // stencil..."<<endl;
 
-            FORT_QUATGRAD_SIDE_SYMM_ISOTROPIC(
+            QUATGRAD_SIDE_SYMM_ISOTROPIC(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                 ifirst(2), ilast(2),
@@ -5161,7 +5161,7 @@ void QuatModel::computeQuatGradSide(
       } else {
 
          if (!d_model_parameters.useIsotropicStencil()) {
-            FORT_QUATGRAD_SIDE(
+            QUATGRAD_SIDE(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                 ifirst(2), ilast(2),
@@ -5190,7 +5190,7 @@ void QuatModel::computeQuatGradSide(
 #endif
                 0);
          } else {
-            FORT_QUATGRAD_SIDE_ISOTROPIC(
+            QUATGRAD_SIDE_ISOTROPIC(
                 ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                 ifirst(2), ilast(2),
@@ -5307,26 +5307,26 @@ void QuatModel::computeQuatGradModulus(
       assert(grad_cell_data->getDepth() == NDIM * d_qlen);
       assert(grad_modulus_data->getDepth() == 1);
 
-      FORT_QUATGRAD_MODULUS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      QUATGRAD_MODULUS(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                            ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                            d_qlen, grad_cell_data->getPointer(0 * d_qlen),
-                            grad_cell_data->getPointer(1 * d_qlen),
+                       d_qlen, grad_cell_data->getPointer(0 * d_qlen),
+                       grad_cell_data->getPointer(1 * d_qlen),
 #if (NDIM == 3)
-                            grad_cell_data->getPointer(2 * d_qlen),
+                       grad_cell_data->getPointer(2 * d_qlen),
 #endif
-                            g_lower[0], g_upper[0], g_lower[1], g_upper[1],
+                       g_lower[0], g_upper[0], g_lower[1], g_upper[1],
 #if (NDIM == 3)
-                            g_lower[2], g_upper[2],
+                       g_lower[2], g_upper[2],
 #endif
-                            grad_modulus_data->getPointer(), m_lower[0],
-                            m_upper[0], m_lower[1], m_upper[1],
+                       grad_modulus_data->getPointer(), m_lower[0], m_upper[0],
+                       m_lower[1], m_upper[1],
 #if (NDIM == 3)
-                            m_lower[2], m_upper[2],
+                       m_lower[2], m_upper[2],
 #endif
-                            d_model_parameters.quat_grad_floor_type().c_str(),
-                            d_model_parameters.quat_grad_floor());
+                       d_model_parameters.quat_grad_floor_type().c_str(),
+                       d_model_parameters.quat_grad_floor());
    }
 }
 
@@ -5371,8 +5371,8 @@ void QuatModel::computeQuatGradModulusFromSides(
       assert(grad_side_data->getDepth() == NDIM * d_qlen);
       assert(grad_modulus_data->getDepth() == 1);
 
-      FORT_QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
-          //      FORT_QUATGRAD_MODULUS_FROM_SIDES(
+      QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
+          //      QUATGRAD_MODULUS_FROM_SIDES(
           ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
           ifirst(2), ilast(2),
@@ -5488,7 +5488,7 @@ void QuatModel::applyPolynomial(const boost::shared_ptr<hier::PatchLevel> level,
            ++i) {
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
-         const double hphi = FORT_INTERP_FUNC(phi, &interp);
+         const double hphi = INTERP_FUNC(phi, &interp);
          (*ddata)(cell) = hphi;
       }
    }
@@ -5744,7 +5744,7 @@ void QuatModel::computeEtaMobilityPatch(
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_phi];
 
-            double h_phi = FORT_INTERP_FUNC(phi, "p");
+            double h_phi = INTERP_FUNC(phi, "p");
 
             double Rt = t * gas_constant_R_JpKpmol;
 
@@ -5815,16 +5815,16 @@ void QuatModel::computeQuatMobility(
       assert(mobility_data->getGhostCellWidth() ==
              hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-      FORT_QUATMOBILITY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      QUATMOBILITY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                        ifirst(2), ilast(2),
+                   ifirst(2), ilast(2),
 #endif
-                        phase_data->getPointer(), NGHOSTS,
-                        mobility_data->getPointer(), NGHOSTS,
-                        d_model_parameters.quat_mobility(),
-                        d_model_parameters.min_quat_mobility(),
-                        d_model_parameters.quat_mobility_func_type().c_str(),
-                        alt_scale_factor);
+                   phase_data->getPointer(), NGHOSTS,
+                   mobility_data->getPointer(), NGHOSTS,
+                   d_model_parameters.quat_mobility(),
+                   d_model_parameters.min_quat_mobility(),
+                   d_model_parameters.quat_mobility_func_type().c_str(),
+                   alt_scale_factor);
    }
 }
 
@@ -5884,16 +5884,16 @@ void QuatModel::computeQuatMobilityDeriv(
       assert(mobility_deriv_data->getGhostCellWidth() ==
              hier::IntVector(tbox::Dimension(NDIM), 0));
 
-      FORT_QUATMOBILITYDERIV(
-          ifirst(0), ilast(0), ifirst(1), ilast(1),
+      QUATMOBILITYDERIV(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-          ifirst(2), ilast(2),
+                        ifirst(2), ilast(2),
 #endif
-          phase_data->getPointer(), NGHOSTS, mobility_deriv_data->getPointer(),
-          0, d_model_parameters.quat_mobility(),
-          d_model_parameters.min_quat_mobility(),
-          d_model_parameters.quat_mobility_func_type().c_str(),
-          alt_scale_factor);
+                        phase_data->getPointer(), NGHOSTS,
+                        mobility_deriv_data->getPointer(), 0,
+                        d_model_parameters.quat_mobility(),
+                        d_model_parameters.min_quat_mobility(),
+                        d_model_parameters.quat_mobility_func_type().c_str(),
+                        alt_scale_factor);
    }
 }
 
@@ -6254,33 +6254,33 @@ void QuatModel::evaluateEnergy(
             const char interpe =
                 energyInterpChar(d_model_parameters.eta_interp_func_type());
 
-            FORT_QUATENERGY(
-                ifirst(0), ilast(0), ifirst(1), ilast(1),
+            QUATENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                d_qlen, dx, pgrad_quat[0], pgrad_quat[1],
+                       d_qlen, dx, pgrad_quat[0], pgrad_quat[1],
 #if (NDIM == 3)
-                pgrad_quat[2],
+                       pgrad_quat[2],
 #endif
-                0, phase->getPointer(), NGHOSTS, ptr_eta, NGHOSTS, quat_ptr,
-                NGHOSTS, d_model_parameters.epsilon_phase(),
-                d_model_parameters.epsilon_eta(),
-                d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
-                2. * d_model_parameters.H_parameter(),
-                temperature->getPointer(), temperature->getGhostCellWidth()[0],
-                d_model_parameters.phase_well_scale(),
-                d_model_parameters.eta_well_scale(), fl->getPointer(),
-                fa->getPointer(), ptr_fb, three_phase, weight->getPointer(),
-                total_energy, total_phase_e, total_eta_e, total_orient_e,
-                total_qint_e, total_well_e, total_free_e, ptr_energy, per_cell,
-                &interpf, &interpe,
-                d_model_parameters.phase_well_func_type().c_str(),
-                d_model_parameters.eta_well_func_type().c_str(),
-                d_model_parameters.orient_interp_func_type().c_str(),
-                d_model_parameters.avg_func_type().c_str(),
-                d_model_parameters.quat_grad_floor_type().c_str(),
-                d_model_parameters.quat_grad_floor());
+                       0, phase->getPointer(), NGHOSTS, ptr_eta, NGHOSTS,
+                       quat_ptr, NGHOSTS, d_model_parameters.epsilon_phase(),
+                       d_model_parameters.epsilon_eta(),
+                       d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
+                       2. * d_model_parameters.H_parameter(),
+                       temperature->getPointer(),
+                       temperature->getGhostCellWidth()[0],
+                       d_model_parameters.phase_well_scale(),
+                       d_model_parameters.eta_well_scale(), fl->getPointer(),
+                       fa->getPointer(), ptr_fb, three_phase,
+                       weight->getPointer(), total_energy, total_phase_e,
+                       total_eta_e, total_orient_e, total_qint_e, total_well_e,
+                       total_free_e, ptr_energy, per_cell, &interpf, &interpe,
+                       d_model_parameters.phase_well_func_type().c_str(),
+                       d_model_parameters.eta_well_func_type().c_str(),
+                       d_model_parameters.orient_interp_func_type().c_str(),
+                       d_model_parameters.avg_func_type().c_str(),
+                       d_model_parameters.quat_grad_floor_type().c_str(),
+                       d_model_parameters.quat_grad_floor());
          }  // with_phase
       }
    }
@@ -6343,17 +6343,17 @@ void QuatModel::computeSymmetryRotations(
          assert(rotation_index->getGhostCellWidth() ==
                 hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-         FORT_QUATSYMMROTATION(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         QUAT_SYMM_ROTATION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                               ifirst(2), ilast(2),
+                            ifirst(2), ilast(2),
 #endif
-                               quat->getPointer(), quat->getGhostCellWidth()[0],
-                               d_qlen, rotation_index->getPointer(0),
-                               rotation_index->getPointer(1),
+                            quat->getPointer(), quat->getGhostCellWidth()[0],
+                            d_qlen, rotation_index->getPointer(0),
+                            rotation_index->getPointer(1),
 #if (NDIM == 3)
-                               rotation_index->getPointer(2),
+                            rotation_index->getPointer(2),
 #endif
-                               rotation_index->getGhostCellWidth()[0]);
+                            rotation_index->getGhostCellWidth()[0]);
 
          if (d_model_parameters.with_extra_visit_output()) {
             assert(d_quat_symm_rotation_cell_id >= 0);
@@ -6418,16 +6418,16 @@ void QuatModel::makeQuatFundamental(
          const hier::Index& q_lower = quat_gbox.lower();
          const hier::Index& q_upper = quat_gbox.upper();
 
-         FORT_QUATFUNDAMENTAL(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         QUAT_FUNDAMENTAL(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                              ifirst(2), ilast(2),
+                          ifirst(2), ilast(2),
 #endif
-                              quat->getPointer(), q_lower[0], q_upper[0],
-                              q_lower[1], q_upper[1],
+                          quat->getPointer(), q_lower[0], q_upper[0],
+                          q_lower[1], q_upper[1],
 #if (NDIM == 3)
-                              q_lower[2], q_upper[2],
+                          q_lower[2], q_upper[2],
 #endif
-                              d_qlen);
+                          d_qlen);
       }
    }
 }
@@ -6681,16 +6681,16 @@ void QuatModel::computeVelocity(boost::shared_ptr<hier::Patch> patch,
    // tbox::pout<<"QuatModel::computeVelocity() with threshold
    // "<<threshold<<endl;
 
-   FORT_VELOCITY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   VELOCITY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                 ifirst(2), ilast(2),
+            ifirst(2), ilast(2),
 #endif
-                 threshold, grad_cell_data->getPointer(0),
-                 grad_cell_data->getPointer(1),
+            threshold, grad_cell_data->getPointer(0),
+            grad_cell_data->getPointer(1),
 #if (NDIM == 3)
-                 grad_cell_data->getPointer(2),
+            grad_cell_data->getPointer(2),
 #endif
-                 phi_dot_data->getPointer(), velocity_data->getPointer());
+            phi_dot_data->getPointer(), velocity_data->getPointer());
 }
 
 //=======================================================================

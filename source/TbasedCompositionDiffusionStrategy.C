@@ -116,7 +116,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 
          // compute depth 0 of diffusion variables,
          // including phase fraction weight
-         FORT_CONCENTRATION_PFMDIFFUSION_OF_T(
+         CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
@@ -188,7 +188,7 @@ void TbasedCompositionDiffusionStrategy::setDiffCoeffInEachPhase(
          assert(diffcoeffA->getDepth() == 1 ||  // binary
                 diffcoeffA->getDepth() == 4);   // ternary
 
-         FORT_CONCENTRATION_DIFFCOEFF_OF_T(
+         CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),

@@ -788,12 +788,12 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             const int idxm1_pf = idx_pf - 1;
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double hphi = FORT_INTERP_FUNC(phi, &interp_func);
+            double hphi = INTERP_FUNC(phi, &interp_func);
 
             double heta = 0.0;
             if (d_with_third_phase) {
                double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = FORT_INTERP_FUNC(eta, &interp_func);
+               heta = INTERP_FUNC(eta, &interp_func);
             }
 
             for (unsigned int ic = 0; ic < nc2; ic++) {
@@ -824,12 +824,12 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             const int idxm1_pf = idx_pf - jp_pf;
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double hphi = FORT_INTERP_FUNC(phi, &interp_func);
+            double hphi = INTERP_FUNC(phi, &interp_func);
 
             double heta = 0.0;
             if (d_with_third_phase) {
                double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = FORT_INTERP_FUNC(eta, &interp_func);
+               heta = INTERP_FUNC(eta, &interp_func);
             }
 
             for (unsigned int ic = 0; ic < nc2; ic++) {
@@ -861,12 +861,12 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
                const int idxm1_pf = idx_pf - kp_pf;
 
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-               double hphi = FORT_INTERP_FUNC(phi, &interp_func);
+               double hphi = INTERP_FUNC(phi, &interp_func);
 
                double heta = 0.0;
                if (d_with_third_phase) {
                   double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-                  heta = FORT_INTERP_FUNC(eta, &interp_func);
+                  heta = INTERP_FUNC(eta, &interp_func);
                }
 
                for (unsigned int ic = 0; ic < nc2; ic++) {

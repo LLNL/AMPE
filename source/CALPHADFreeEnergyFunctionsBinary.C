@@ -538,7 +538,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
    d_L3[1] = lmixPhase(3, PhaseIndex::phaseA, temperature);
 
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hphi = INTERP_FUNC(phi, &interp_func_type);
 
    double heta = 0.0;
    // tbox::pout<<"d_ceq_a="<<d_ceq_a<<endl;
@@ -558,7 +558,7 @@ int CALPHADFreeEnergyFunctionsBinary::computePhaseConcentrations(
       d_L2[2] = lmixPhase(2, PhaseIndex::phaseB, temperature);
       d_L3[2] = lmixPhase(3, PhaseIndex::phaseB, temperature);
 
-      heta = FORT_INTERP_FUNC(eta, &interp_func_type);
+      heta = INTERP_FUNC(eta, &interp_func_type);
    }
 
    // conc could be outside of [0.,1.] in a trial step
@@ -675,8 +675,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsPhi(
       const double phi = i * dphi;
 
       double e = fchem(phi, eta, conc, temperature);
-      const double w =
-          phi_well_scale * FORT_WELL_FUNC(phi, phi_well_type.c_str());
+      const double w = phi_well_scale * WELL_FUNC(phi, phi_well_type.c_str());
 
       os << e + w + slopec * conc[0] << std::endl;
    }
@@ -700,7 +699,7 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsEta(
 
       double e = fchem(phi, eta, conc, temperature);
 
-      double w = eta_well_scale * FORT_WELL_FUNC(eta, eta_well_type.c_str());
+      double w = eta_well_scale * WELL_FUNC(eta, eta_well_type.c_str());
 
       os << e + w + slopec * conc[0] << std::endl;
    }
@@ -715,10 +714,10 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(const double phi,
                                                const double temperature)
 {
    const char interp_func_type = concInterpChar(d_conc_interp_func_type);
-   const double hcphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+   const double hcphi = INTERP_FUNC(phi, &interp_func_type);
    double heta = 0.0;
    if (d_with_third_phase) {
-      heta = FORT_INTERP_FUNC(eta, &interp_func_type);
+      heta = INTERP_FUNC(eta, &interp_func_type);
    }
 
    const double tol = 1.e-8;
@@ -738,7 +737,7 @@ double CALPHADFreeEnergyFunctionsBinary::fchem(const double phi,
    }
 
    const char interpf = energyInterpChar(d_energy_interp_func_type);
-   const double hfphi = FORT_INTERP_FUNC(phi, &interpf);
+   const double hfphi = INTERP_FUNC(phi, &interpf);
    double e = (1.0 - hfphi) * fl + hfphi * ((1.0 - heta) * fa + heta * fb);
 
    return e;

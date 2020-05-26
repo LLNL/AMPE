@@ -2466,19 +2466,17 @@ void QuatIntegrator::setDiffusionCoeffForQuatPatch(hier::Patch& patch)
 
 #endif
 
-   FORT_QUATDIFFUSION(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   QUATDIFFUSION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                      ifirst(2), ilast(2),
+                 ifirst(2), ilast(2),
 #endif
-                      2. * d_H_parameter, temperature->getPointer(),
-                      temperature->getGhostCellWidth()[0], phi->getPointer(),
-                      NGHOSTS, diffusion->getPointer(0),
-                      diffusion->getPointer(1),
+                 2. * d_H_parameter, temperature->getPointer(),
+                 temperature->getGhostCellWidth()[0], phi->getPointer(),
+                 NGHOSTS, diffusion->getPointer(0), diffusion->getPointer(1),
 #if (NDIM == 3)
-                      diffusion->getPointer(2),
+                 diffusion->getPointer(2),
 #endif
-                      0, d_orient_interp_func_type.c_str(),
-                      d_avg_func_type.c_str());
+                 0, d_orient_interp_func_type.c_str(), d_avg_func_type.c_str());
 }
 
 //-----------------------------------------------------------------------
@@ -2574,23 +2572,25 @@ void QuatIntegrator::setDerivDiffusionCoeffForQuatPatch(hier::Patch& patch)
    assert(grad_q);
 #endif
 
-   FORT_QUATDIFFUSIONDERIV(
-       ifirst(0), ilast(0), ifirst(1), ilast(1),
+   QUATDIFFUSIONDERIV(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-       ifirst(2), ilast(2),
+                      ifirst(2), ilast(2),
 #endif
-       2. * d_H_parameter, temperature->getPointer(),
-       temperature->getGhostCellWidth()[0], phi->getPointer(), NGHOSTS, d_qlen,
-       grad_q->getPointer(0), grad_q->getPointer(1),
+                      2. * d_H_parameter, temperature->getPointer(),
+                      temperature->getGhostCellWidth()[0], phi->getPointer(),
+                      NGHOSTS, d_qlen, grad_q->getPointer(0),
+                      grad_q->getPointer(1),
 #if (NDIM == 3)
-       grad_q->getPointer(2),
+                      grad_q->getPointer(2),
 #endif
-       0, diffusion_deriv->getPointer(0), diffusion_deriv->getPointer(1),
+                      0, diffusion_deriv->getPointer(0),
+                      diffusion_deriv->getPointer(1),
 #if (NDIM == 3)
-       diffusion_deriv->getPointer(2),
+                      diffusion_deriv->getPointer(2),
 #endif
-       0, d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
-       d_orient_interp_func_type.c_str(), d_avg_func_type.c_str());
+                      0, d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
+                      d_orient_interp_func_type.c_str(),
+                      d_avg_func_type.c_str());
 }
 
 //-----------------------------------------------------------------------
@@ -2815,24 +2815,26 @@ void QuatIntegrator::evaluatePhaseRHS(
 #endif
 
          // first compute component from interfacial energy
-         FORT_COMP_RHS_PBG(
-             ifirst(0), ilast(0), ifirst(1), ilast(1),
+         COMPUTERHSPBG(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-             ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-             dx, 2.0 * d_H_parameter, phase_flux->getPointer(0),
-             phase_flux->getPointer(1),
+                       dx, 2.0 * d_H_parameter, phase_flux->getPointer(0),
+                       phase_flux->getPointer(1),
 #if (NDIM == 3)
-             phase_flux->getPointer(2),
+                       phase_flux->getPointer(2),
 #endif
-             phase_flux->getGhostCellWidth()[0], temperature->getPointer(),
-             temperature->getGhostCellWidth()[0], d_phase_well_scale,
-             d_eta_well_scale, phase->getPointer(), NGHOSTS, ptr_eta, NGHOSTS,
-             ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
-             d_phase_well_func_type.c_str(), d_eta_well_func_type.c_str(),
-             &interpf, d_orient_interp_func_type.c_str(),
-             // d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
-             with_orient, three_phase);
+                       phase_flux->getGhostCellWidth()[0],
+                       temperature->getPointer(),
+                       temperature->getGhostCellWidth()[0], d_phase_well_scale,
+                       d_eta_well_scale, phase->getPointer(), NGHOSTS, ptr_eta,
+                       NGHOSTS, ptr_quat_grad_modulus, 0,
+                       phase_rhs->getPointer(), 0,
+                       d_phase_well_func_type.c_str(),
+                       d_eta_well_func_type.c_str(), &interpf,
+                       d_orient_interp_func_type.c_str(),
+                       // d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
+                       with_orient, three_phase);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
          double l2rhs = opc.L2Norm(phase_rhs, pbox);
@@ -2914,14 +2916,13 @@ void QuatIntegrator::evaluatePhaseRHS(
 
          if (d_model_parameters.inMovingFrame()) {
             assert(phase->getGhostCellWidth()[0] > 0);
-            FORT_ADD_VDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                             dx, phase->getPointer(),
-                             phase->getGhostCellWidth()[0], d_frame_velocity,
-                             phase_rhs->getPointer(),
-                             phase_rhs->getGhostCellWidth()[0]);
+                       dx, phase->getPointer(), phase->getGhostCellWidth()[0],
+                       d_frame_velocity, phase_rhs->getPointer(),
+                       phase_rhs->getGhostCellWidth()[0]);
          }
 
          if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
@@ -3022,20 +3023,20 @@ void QuatIntegrator::evaluateEtaRHS(
          assert(eta_rhs->getGhostCellWidth() ==
                 hier::IntVector(tbox::Dimension(NDIM), 0));
 
-         FORT_COMP_RHS_ETA(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         COMPUTERHSETA(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                           ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                           dx, eta_flux->getPointer(0), eta_flux->getPointer(1),
+                       dx, eta_flux->getPointer(0), eta_flux->getPointer(1),
 #if (NDIM == 3)
-                           eta_flux->getPointer(2),
+                       eta_flux->getPointer(2),
 #endif
-                           eta_flux->getGhostCellWidth()[0],
-                           temperature->getPointer(),
-                           temperature->getGhostCellWidth()[0],
-                           d_eta_well_scale, phase->getPointer(), NGHOSTS,
-                           eta->getPointer(), NGHOSTS, eta_rhs->getPointer(), 0,
-                           d_eta_well_func_type.c_str(), &interpf);
+                       eta_flux->getGhostCellWidth()[0],
+                       temperature->getPointer(),
+                       temperature->getGhostCellWidth()[0], d_eta_well_scale,
+                       phase->getPointer(), NGHOSTS, eta->getPointer(), NGHOSTS,
+                       eta_rhs->getPointer(), 0, d_eta_well_func_type.c_str(),
+                       &interpf);
 
          d_free_energy_strategy->addDrivingForceEta(time, *patch,
                                                     temperature_id, phase_id,
@@ -3123,29 +3124,29 @@ void QuatIntegrator::evaluateTemperatureRHS(
          assert(mincp > 0.);
 #endif
 
-         FORT_COMP_RHS_TEMP(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         COMPUTERHSTEMP(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                            ifirst(2), ilast(2),
+                        ifirst(2), ilast(2),
 #endif
-                            dx, d_thermal_diffusivity, d_latent_heat,
-                            temperature->getPointer(),
-                            temperature->getGhostCellWidth()[0],
-                            cp->getPointer(), cp->getGhostCellWidth()[0],
-                            (int)d_model_parameters.with_phase(), phase_rhs_ptr,
-                            phase_rhs_nghosts, temperature_rhs->getPointer(),
-                            temperature_rhs->getGhostCellWidth()[0]);
+                        dx, d_thermal_diffusivity, d_latent_heat,
+                        temperature->getPointer(),
+                        temperature->getGhostCellWidth()[0], cp->getPointer(),
+                        cp->getGhostCellWidth()[0],
+                        (int)d_model_parameters.with_phase(), phase_rhs_ptr,
+                        phase_rhs_nghosts, temperature_rhs->getPointer(),
+                        temperature_rhs->getGhostCellWidth()[0]);
 
          // add component related to moving frame if moving velocity!=0
          if (d_model_parameters.inMovingFrame()) {
             assert(temperature->getGhostCellWidth()[0] > 0);
-            FORT_ADD_VDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                             dx, temperature->getPointer(),
-                             temperature->getGhostCellWidth()[0],
-                             d_frame_velocity, temperature_rhs->getPointer(),
-                             temperature_rhs->getGhostCellWidth()[0]);
+                       dx, temperature->getPointer(),
+                       temperature->getGhostCellWidth()[0], d_frame_velocity,
+                       temperature_rhs->getPointer(),
+                       temperature_rhs->getGhostCellWidth()[0]);
          }
       }
    }
@@ -3235,31 +3236,29 @@ void QuatIntegrator::evaluateConcentrationRHS(
 
          // now compute r.h.s., one species at a time
          for (int ic = 0; ic < d_ncompositions; ic++)
-            FORT_COMPUTERHSCONCENTRATION(ifirst(0), ilast(0), ifirst(1),
-                                         ilast(1),
+            COMPUTERHSCONCENTRATION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                         ifirst(2), ilast(2),
+                                    ifirst(2), ilast(2),
 #endif
-                                         dx, flux->getPointer(0, ic),
-                                         flux->getPointer(1, ic),
+                                    dx, flux->getPointer(0, ic),
+                                    flux->getPointer(1, ic),
 #if (NDIM == 3)
-                                         flux->getPointer(2, ic),
+                                    flux->getPointer(2, ic),
 #endif
-                                         flux->getGhostCellWidth()[0],
-                                         d_conc_mobility,
-                                         conc_rhs->getPointer(ic), 0);
+                                    flux->getGhostCellWidth()[0],
+                                    d_conc_mobility, conc_rhs->getPointer(ic),
+                                    0);
 
          // add component related to moving frame if moving velocity!=0
          if (d_model_parameters.inMovingFrame()) {
             assert(conc->getGhostCellWidth()[0] > 0);
-            FORT_ADD_VDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                             dx, conc->getPointer(),
-                             conc->getGhostCellWidth()[0], d_frame_velocity,
-                             conc_rhs->getPointer(),
-                             conc_rhs->getGhostCellWidth()[0]);
+                       dx, conc->getPointer(), conc->getGhostCellWidth()[0],
+                       d_frame_velocity, conc_rhs->getPointer(),
+                       conc_rhs->getGhostCellWidth()[0]);
          }
       }
    }
@@ -4625,7 +4624,7 @@ void QuatIntegrator::correctRhsForSymmetry(
          const int symm_offset = 0 * d_qlen;
          const int nonsymm_offset = 1 * d_qlen;
 
-         FORT_CORRECTRHSQUAT(
+         CORRECTRHSQUATFORSYMMETRY(
              lower[0], upper[0], lower[1], upper[1],
 #if (NDIM == 3)
              lower[2], upper[2],

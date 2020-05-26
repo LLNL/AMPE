@@ -62,6 +62,8 @@
 #include "SAMRAI/xfer/PatchLevelFullFillPattern.h"
 #include "SAMRAI/tbox/Database.h"
 
+#include "fc_samrai_mangle.h"
+
 #include "boost/make_shared.hpp"
 
 #include <cassert>
@@ -69,14 +71,12 @@
 
 extern "C" {
 
-void efo_compfluxvardc2d_(double *xflux, double *yflux, const int *fluxgi,
-                          const int *fluxgj, const double *xdiff_coef,
-                          const double *ydiff_coef, const int *dcgi,
-                          const int *dcgj, const double *soln,
-                          const int *solngi, const int *solngj,
-                          const int *ifirst, const int *ilast,
-                          const int *jfirst, const int *jlast,
-                          const double *dx);
+void EFO_COMPFLUXVARDC2D(double *xflux, double *yflux, const int *fluxgi,
+                         const int *fluxgj, const double *xdiff_coef,
+                         const double *ydiff_coef, const int *dcgi,
+                         const int *dcgj, const double *soln, const int *solngi,
+                         const int *solngj, const int *ifirst, const int *ilast,
+                         const int *jfirst, const int *jlast, const double *dx);
 void SAMRAI_F77_FUNC(compfluxcondc2d, COMPFLUXCONDC2D)(
     double *xflux, double *yflux, const int *fluxgi, const int *fluxgj,
     const double &diff_coef, const double *soln, const int *solngi,
@@ -88,7 +88,7 @@ void SAMRAI_F77_FUNC(compfluxcondc3d, COMPFLUXCONDC3D)(
     const double *soln, const int *solngi, const int *solngj, const int *solngk,
     const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
     const int *kfirst, const int *klast, const double *dx);
-void efo_rbgswithfluxmaxvardcvarsf2d_(
+void EFO_RBGSWITHFLUXMAXVARDCVARSF2D(
     const double *xflux, const double *yflux, const int *fluxgi,
     const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
     const int *dcgi, const int *dcgj, const double *rhs, const int *rhsgi,
@@ -97,7 +97,7 @@ void efo_rbgswithfluxmaxvardcvarsf2d_(
     const int *m_gj, double *soln, const int *solngi, const int *solngj,
     const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
     const double *dx, const int *offset, const double *maxres);
-void efo_rbgswithfluxmaxcondcvarsf2d_(
+void EFO_RBGSWITHFLUXMAXCONDCVARSF2D(
     const double *xflux, const double *yflux, const int *fluxgi,
     const int *fluxgj, const double &dc, const double *rhs, const int *rhsgi,
     const int *rhsgj, const double *scalar_field, const int *scalar_field_gi,
@@ -105,7 +105,7 @@ void efo_rbgswithfluxmaxcondcvarsf2d_(
     const int *m_gj, double *soln, const int *solngi, const int *solngj,
     const int *ifirst, const int *ilast, const int *jfirst, const int *jlast,
     const double *dx, const int *offset, const double *maxres);
-void efo_rbgswithfluxmaxvardcconsf2d_(
+void EFO_RBGSWITHFLUXMAXVARDCCONSF2D(
     const double *xflux, const double *yflux, const int *fluxgi,
     const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
     const int *dcgi, const int *dcgj, const double *rhs, const int *rhsgi,
@@ -114,7 +114,7 @@ void efo_rbgswithfluxmaxvardcconsf2d_(
     const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
     const int *jlast, const double *dx, const int *offset,
     const double *maxres);
-void efo_rbgswithfluxmaxcondcconsf2d_(
+void EFO_RBGSWITHFLUXMAXCONDCCONSF2D(
     const double *xflux, const double *yflux, const int *fluxgi,
     const int *fluxgj, const double &dc, const double *rhs, const int *rhsgi,
     const int *rhsgj, const double &scalar_field, const double *m,
@@ -122,64 +122,70 @@ void efo_rbgswithfluxmaxcondcconsf2d_(
     const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
     const int *jlast, const double *dx, const int *offset,
     const double *maxres);
-void efo_compresvarsca2d_(
-    const double *xflux, const double *yflux, const int *fluxgi,
-    const int *fluxgj, const double *rhs, const int *rhsgi, const int *rhsgj,
-    double *residual, const int *residualgi, const int *residualgj,
-    const double *scalar_field, const int *scalar_field_gi,
-    const int *scalar_field_gj, const double *m, const int *mgi, const int *mgj,
-    const double *soln, const int *solngi, const int *solngj, const int *ifirst,
-    const int *ilast, const int *jfirst, const int *jlast, const double *dx);
-void efo_compresconsca2d_(
-    const double *xflux, const double *yflux, const int *fluxgi,
-    const int *fluxgj, const double *rhs, const int *rhsgi, const int *rhsgj,
-    double *residual, const int *residualgi, const int *residualgj,
-    const double &scalar_field, const double *m, const int *mgi, const int *mgj,
-    const double *soln, const int *solngi, const int *solngj, const int *ifirst,
-    const int *ilast, const int *jfirst, const int *jlast, const double *dx);
-void accumopvarsca2d_(const double *xflux, const double *yflux,
-                      const int *fluxgi, const int *fluxgj, const double *accum,
-                      const int *accumgi, const int *accumgj,
-                      const double *scalar_field, const int *scalar_field_gi,
-                      const int *scalar_field_gj, const double *m,
-                      const int *mgi, const int *mgj, const double *soln,
-                      const int *solngi, const int *solngj, const int *ifirst,
-                      const int *ilast, const int *jfirst, const int *jlast,
-                      const double *dx);
-void accumopconsca2d_(const double *xflux, const double *yflux,
-                      const int *fluxgi, const int *fluxgj, const double *accum,
-                      const int *accumgi, const int *accumgj,
-                      const double &scalar_field, const double *m,
-                      const int *mgi, const int *mgj, const double *soln,
-                      const int *solngi, const int *solngj, const int *ifirst,
-                      const int *ilast, const int *jfirst, const int *jlast,
-                      const double *dx);
-void efo_ewingfixfluxvardc2d_(
+void EFO_COMPRESVARSCA2D(const double *xflux, const double *yflux,
+                         const int *fluxgi, const int *fluxgj,
+                         const double *rhs, const int *rhsgi, const int *rhsgj,
+                         double *residual, const int *residualgi,
+                         const int *residualgj, const double *scalar_field,
+                         const int *scalar_field_gi, const int *scalar_field_gj,
+                         const double *m, const int *mgi, const int *mgj,
+                         const double *soln, const int *solngi,
+                         const int *solngj, const int *ifirst, const int *ilast,
+                         const int *jfirst, const int *jlast, const double *dx);
+void EFO_COMPRESCONSCA2D(const double *xflux, const double *yflux,
+                         const int *fluxgi, const int *fluxgj,
+                         const double *rhs, const int *rhsgi, const int *rhsgj,
+                         double *residual, const int *residualgi,
+                         const int *residualgj, const double &scalar_field,
+                         const double *m, const int *mgi, const int *mgj,
+                         const double *soln, const int *solngi,
+                         const int *solngj, const int *ifirst, const int *ilast,
+                         const int *jfirst, const int *jlast, const double *dx);
+void ACCUMOPVARSCA2D(const double *xflux, const double *yflux,
+                     const int *fluxgi, const int *fluxgj, const double *accum,
+                     const int *accumgi, const int *accumgj,
+                     const double *scalar_field, const int *scalar_field_gi,
+                     const int *scalar_field_gj, const double *m,
+                     const int *mgi, const int *mgj, const double *soln,
+                     const int *solngi, const int *solngj, const int *ifirst,
+                     const int *ilast, const int *jfirst, const int *jlast,
+                     const double *dx);
+void ACCUMOPCONSCA2D(const double *xflux, const double *yflux,
+                     const int *fluxgi, const int *fluxgj, const double *accum,
+                     const int *accumgi, const int *accumgj,
+                     const double &scalar_field, const double *m,
+                     const int *mgi, const int *mgj, const double *soln,
+                     const int *solngi, const int *solngj, const int *ifirst,
+                     const int *ilast, const int *jfirst, const int *jlast,
+                     const double *dx);
+void EFO_EWINGFIXFLUXVARDC2D(
     const double *xflux, const double *yflux, const int *fluxgi,
     const int *fluxgj, const double *xdiff_coef, const double *ydiff_coef,
     const int *dcgi, const int *dcgj, const double *soln, const int *solngi,
     const int *solngj, const int *ifirst, const int *ilast, const int *jfirst,
     const int *jlast, const int *location_index, const int *ratio_to_coarser,
     const int *blower, const int *bupper, const double *dx);
-void efo_ewingfixfluxcondc2d_(const double *xflux, const double *yflux,
-                              const int *fluxgi, const int *fluxgj,
-                              const double &diff_coef, const double *soln,
-                              const int *solngi, const int *solngj,
-                              const int *ifirst, const int *ilast,
-                              const int *jfirst, const int *jlast,
-                              const int *location_index,
-                              const int *ratio_to_coarser, const int *blower,
-                              const int *bupper, const double *dx);
+void EFO_EWINGFIXFLUXCONDC2D(const double *xflux, const double *yflux,
+                             const int *fluxgi, const int *fluxgj,
+                             const double &diff_coef, const double *soln,
+                             const int *solngi, const int *solngj,
+                             const int *ifirst, const int *ilast,
+                             const int *jfirst, const int *jlast,
+                             const int *location_index,
+                             const int *ratio_to_coarser, const int *blower,
+                             const int *bupper, const double *dx);
 
-void efo_compfluxvardc3d_(
-    double *xflux, double *yflux, double *zflux, const int *fluxgi,
-    const int *fluxgj, const int *fluxgk, const double *xdiff_coef,
-    const double *ydiff_coef, const double *zdiff_coef, const int *dcgi,
-    const int *dcgj, const int *dcgk, const double *soln, const int *solngi,
-    const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
-    const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
-    const double *dx);
-void efo_rbgswithfluxmaxvardcvarsf3d_(
+void EFO_COMPFLUXVARDC3D(double *xflux, double *yflux, double *zflux,
+                         const int *fluxgi, const int *fluxgj,
+                         const int *fluxgk, const double *xdiff_coef,
+                         const double *ydiff_coef, const double *zdiff_coef,
+                         const int *dcgi, const int *dcgj, const int *dcgk,
+                         const double *soln, const int *solngi,
+                         const int *solngj, const int *solngk,
+                         const int *ifirst, const int *ilast, const int *jfirst,
+                         const int *jlast, const int *kfirst, const int *klast,
+                         const double *dx);
+void EFO_RBGSWITHFLUXMAXVARDCVARSF3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk,
     const double *xdiff_coef, const double *ydiff_coef,
@@ -192,7 +198,7 @@ void efo_rbgswithfluxmaxvardcvarsf3d_(
     const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
     const int *klast, const double *dx, const int *offset,
     const double *maxres);
-void efo_rbgswithfluxmaxcondcvarsf3d_(
+void EFO_RBGSWITHFLUXMAXCONDCVARSF3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk, const double &dc,
     const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
@@ -203,7 +209,7 @@ void efo_rbgswithfluxmaxcondcvarsf3d_(
     const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
     const int *klast, const double *dx, const int *offset,
     const double *maxres);
-void efo_rbgswithfluxmaxvardcconsf3d_(
+void EFO_RBGSWITHFLUXMAXVARDCCONSF3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk,
     const double *xdiff_coef, const double *ydiff_coef,
@@ -214,7 +220,7 @@ void efo_rbgswithfluxmaxvardcconsf3d_(
     const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
     const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
     const double *dx, const int *offset, const double *maxres);
-void efo_rbgswithfluxmaxcondcconsf3d_(
+void EFO_RBGSWITHFLUXMAXCONDCCONSF3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk, const double &dc,
     const double *rhs, const int *rhsgi, const int *rhsgj, const int *rhsgk,
@@ -223,7 +229,7 @@ void efo_rbgswithfluxmaxcondcconsf3d_(
     const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
     const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
     const double *dx, const int *offset, const double *maxres);
-void efo_compresvarsca3d_(
+void EFO_COMPRESVARSCA3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk, const double *rhs,
     const int *rhsgi, const int *rhsgj, const int *rhsgk, double *residual,
@@ -234,7 +240,7 @@ void efo_compresvarsca3d_(
     const int *solngi, const int *solngj, const int *solngk, const int *ifirst,
     const int *ilast, const int *jfirst, const int *jlast, const int *kfirst,
     const int *klast, const double *dx);
-void efo_compresconsca3d_(
+void EFO_COMPRESCONSCA3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk, const double *rhs,
     const int *rhsgi, const int *rhsgj, const int *rhsgk, double *residual,
@@ -244,29 +250,28 @@ void efo_compresconsca3d_(
     const int *solngj, const int *solngk, const int *ifirst, const int *ilast,
     const int *jfirst, const int *jlast, const int *kfirst, const int *klast,
     const double *dx);
-void accumopvarsca3d_(const double *xflux, const double *yflux,
-                      const double *zflux, const int *fluxgi, const int *fluxgj,
-                      const int *fluxgk, const double *accum,
-                      const int *accumgi, const int *accumgj,
-                      const int *accumgk, const double *scalar_field,
-                      const int *scalar_field_gi, const int *scalar_field_gj,
-                      const int *scalar_field_gk, const double *m,
-                      const int *m_gi, const int *m_gj, const int *m_gk,
-                      const double *soln, const int *solngi, const int *solngj,
-                      const int *solngk, const int *ifirst, const int *ilast,
-                      const int *jfirst, const int *jlast, const int *kfirst,
-                      const int *klast, const double *dx);
-void accumopconsca3d_(const double *xflux, const double *yflux,
-                      const double *zflux, const int *fluxgi, const int *fluxgj,
-                      const int *fluxgk, const double *accum,
-                      const int *accumgi, const int *accumgj,
-                      const int *accumgk, const double &scalar_field,
-                      const double *m, const int *m_gi, const int *m_gj,
-                      const int *m_gk, const double *soln, const int *solngi,
-                      const int *solngj, const int *solngk, const int *ifirst,
-                      const int *ilast, const int *jfirst, const int *jlast,
-                      const int *kfirst, const int *klast, const double *dx);
-void efo_ewingfixfluxvardc3d_(
+void ACCUMOPVARSCA3D(const double *xflux, const double *yflux,
+                     const double *zflux, const int *fluxgi, const int *fluxgj,
+                     const int *fluxgk, const double *accum, const int *accumgi,
+                     const int *accumgj, const int *accumgk,
+                     const double *scalar_field, const int *scalar_field_gi,
+                     const int *scalar_field_gj, const int *scalar_field_gk,
+                     const double *m, const int *m_gi, const int *m_gj,
+                     const int *m_gk, const double *soln, const int *solngi,
+                     const int *solngj, const int *solngk, const int *ifirst,
+                     const int *ilast, const int *jfirst, const int *jlast,
+                     const int *kfirst, const int *klast, const double *dx);
+void ACCUMOPCONSCA3D(const double *xflux, const double *yflux,
+                     const double *zflux, const int *fluxgi, const int *fluxgj,
+                     const int *fluxgk, const double *accum, const int *accumgi,
+                     const int *accumgj, const int *accumgk,
+                     const double &scalar_field, const double *m,
+                     const int *m_gi, const int *m_gj, const int *m_gk,
+                     const double *soln, const int *solngi, const int *solngj,
+                     const int *solngk, const int *ifirst, const int *ilast,
+                     const int *jfirst, const int *jlast, const int *kfirst,
+                     const int *klast, const double *dx);
+void EFO_EWINGFIXFLUXVARDC3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk,
     const double *xdiff_coef, const double *ydiff_coef,
@@ -276,7 +281,7 @@ void efo_ewingfixfluxvardc3d_(
     const int *kfirst, const int *klast, const int *location_index,
     const int *ratio_to_coarser, const int *blower, const int *bupper,
     const double *dx);
-void efo_ewingfixfluxcondc3d_(
+void EFO_EWINGFIXFLUXCONDC3D(
     const double *xflux, const double *yflux, const double *zflux,
     const int *fluxgi, const int *fluxgj, const int *fluxgk,
     const double &diff_coef, const double *soln, const int *solngi,
@@ -1300,20 +1305,20 @@ void EllipticFACOps::ewingFixFlux(const hier::Patch &patch,
          const hier::Index &bupper = bdry_box.upper();
          const int location_index = boundary_box.getLocationIndex();
 #if NDIM == 2
-         efo_ewingfixfluxvardc2d_(flux0, flux1,
-                                  &flux_data.getGhostCellWidth()[0],
-                                  &flux_data.getGhostCellWidth()[1],
-                                  diffcoef_data->getPointer(0),
-                                  diffcoef_data->getPointer(1),
-                                  &diffcoef_data->getGhostCellWidth()[0],
-                                  &diffcoef_data->getGhostCellWidth()[1], sol,
-                                  &soln_data.getGhostCellWidth()[0],
-                                  &soln_data.getGhostCellWidth()[1], &plower[0],
-                                  &pupper[0], &plower[1], &pupper[1],
-                                  &location_index, &ratio_to_coarser[0],
-                                  &blower[0], &bupper[0], dx);
+         EFO_EWINGFIXFLUXVARDC2D(flux0, flux1,
+                                 &flux_data.getGhostCellWidth()[0],
+                                 &flux_data.getGhostCellWidth()[1],
+                                 diffcoef_data->getPointer(0),
+                                 diffcoef_data->getPointer(1),
+                                 &diffcoef_data->getGhostCellWidth()[0],
+                                 &diffcoef_data->getGhostCellWidth()[1], sol,
+                                 &soln_data.getGhostCellWidth()[0],
+                                 &soln_data.getGhostCellWidth()[1], &plower[0],
+                                 &pupper[0], &plower[1], &pupper[1],
+                                 &location_index, &ratio_to_coarser[0],
+                                 &blower[0], &bupper[0], dx);
 #else
-         efo_ewingfixfluxvardc3d_(
+         EFO_EWINGFIXFLUXVARDC3D(
              flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
              &flux_data.getGhostCellWidth()[1],
              &flux_data.getGhostCellWidth()[2], diffcoef_data->getPointer(0),
@@ -1340,17 +1345,17 @@ void EllipticFACOps::ewingFixFlux(const hier::Patch &patch,
          const hier::Index &bupper = bdry_box.upper();
          const int location_index = boundary_box.getLocationIndex();
 #if NDIM == 2
-         efo_ewingfixfluxcondc2d_(flux0, flux1,
-                                  &flux_data.getGhostCellWidth()[0],
-                                  &flux_data.getGhostCellWidth()[1],
-                                  diffcoef_constant, sol,
-                                  &soln_data.getGhostCellWidth()[0],
-                                  &soln_data.getGhostCellWidth()[1], &plower[0],
-                                  &pupper[0], &plower[1], &pupper[1],
-                                  &location_index, &ratio_to_coarser[0],
-                                  &blower[0], &bupper[0], dx);
+         EFO_EWINGFIXFLUXCONDC2D(flux0, flux1,
+                                 &flux_data.getGhostCellWidth()[0],
+                                 &flux_data.getGhostCellWidth()[1],
+                                 diffcoef_constant, sol,
+                                 &soln_data.getGhostCellWidth()[0],
+                                 &soln_data.getGhostCellWidth()[1], &plower[0],
+                                 &pupper[0], &plower[1], &pupper[1],
+                                 &location_index, &ratio_to_coarser[0],
+                                 &blower[0], &bupper[0], dx);
 #else
-         efo_ewingfixfluxcondc3d_(
+         EFO_EWINGFIXFLUXCONDC3D(
              flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
              &flux_data.getGhostCellWidth()[1],
              &flux_data.getGhostCellWidth()[2], diffcoef_constant, sol,
@@ -2008,17 +2013,17 @@ void EllipticFACOps::computeFluxOnPatch(
       TBOX_ASSERT(D_data);
       TBOX_ASSERT(D_data->getDepth() == 1);
 #if NDIM == 2
-      efo_compfluxvardc2d_(flux0, flux1, &Dgradw_data.getGhostCellWidth()[0],
-                           &Dgradw_data.getGhostCellWidth()[1],
-                           D_data->getPointer(0), D_data->getPointer(1),
-                           &D_data->getGhostCellWidth()[0],
-                           &D_data->getGhostCellWidth()[1],
-                           w_data.getPointer(depth),
-                           &w_data.getGhostCellWidth()[0],
-                           &w_data.getGhostCellWidth()[1], &lower[0], &upper[0],
-                           &lower[1], &upper[1], dx);
+      EFO_COMPFLUXVARDC2D(flux0, flux1, &Dgradw_data.getGhostCellWidth()[0],
+                          &Dgradw_data.getGhostCellWidth()[1],
+                          D_data->getPointer(0), D_data->getPointer(1),
+                          &D_data->getGhostCellWidth()[0],
+                          &D_data->getGhostCellWidth()[1],
+                          w_data.getPointer(depth),
+                          &w_data.getGhostCellWidth()[0],
+                          &w_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                          &lower[1], &upper[1], dx);
 #else
-      efo_compfluxvardc3d_(
+      EFO_COMPFLUXVARDC3D(
           flux0, flux1, flux2, &Dgradw_data.getGhostCellWidth()[0],
           &Dgradw_data.getGhostCellWidth()[1],
           &Dgradw_data.getGhostCellWidth()[2], D_data->getPointer(0),
@@ -2074,7 +2079,7 @@ void EllipticFACOps::accumulateOperatorOnPatch(
           boost::dynamic_pointer_cast<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(d_poisson_spec[0].getCPatchDataId()));
 #if NDIM == 2
-      accumopvarsca2d_(
+      ACCUMOPVARSCA2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], accum_data.getPointer(depth),
           &accum_data.getGhostCellWidth()[0],
@@ -2085,7 +2090,7 @@ void EllipticFACOps::accumulateOperatorOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx);
 #else
-      accumopvarsca3d_(
+      ACCUMOPVARSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
@@ -2103,19 +2108,18 @@ void EllipticFACOps::accumulateOperatorOnPatch(
    } else if (d_poisson_spec[0].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[0].getCConstant();
 #if NDIM == 2
-      accumopconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
-                       &flux_data.getGhostCellWidth()[1],
-                       accum_data.getPointer(depth),
-                       &accum_data.getGhostCellWidth()[0],
-                       &accum_data.getGhostCellWidth()[1],
-                       scalar_field_constant, m_data.getPointer(),
-                       &m_data.getGhostCellWidth()[0],
-                       &m_data.getGhostCellWidth()[1], sol,
-                       &soln_data.getGhostCellWidth()[0],
-                       &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
-                       &lower[1], &upper[1], dx);
+      ACCUMOPCONSCA2D(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                      &flux_data.getGhostCellWidth()[1],
+                      accum_data.getPointer(depth),
+                      &accum_data.getGhostCellWidth()[0],
+                      &accum_data.getGhostCellWidth()[1], scalar_field_constant,
+                      m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                      &m_data.getGhostCellWidth()[1], sol,
+                      &soln_data.getGhostCellWidth()[0],
+                      &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                      &lower[1], &upper[1], dx);
 #else
-      accumopconsca3d_(
+      ACCUMOPCONSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
@@ -2130,18 +2134,18 @@ void EllipticFACOps::accumulateOperatorOnPatch(
    } else {
       scalar_field_constant = 0.0;
 #if NDIM == 2
-      accumopconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
-                       &flux_data.getGhostCellWidth()[1],
-                       accum_data.getPointer(depth),
-                       &accum_data.getGhostCellWidth()[0],
-                       &accum_data.getGhostCellWidth()[1], 0.0,
-                       m_data.getPointer(), &m_data.getGhostCellWidth()[0],
-                       &m_data.getGhostCellWidth()[1], sol,
-                       &soln_data.getGhostCellWidth()[0],
-                       &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
-                       &lower[1], &upper[1], dx);
+      ACCUMOPCONSCA2D(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                      &flux_data.getGhostCellWidth()[1],
+                      accum_data.getPointer(depth),
+                      &accum_data.getGhostCellWidth()[0],
+                      &accum_data.getGhostCellWidth()[1], 0.0,
+                      m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                      &m_data.getGhostCellWidth()[1], sol,
+                      &soln_data.getGhostCellWidth()[0],
+                      &soln_data.getGhostCellWidth()[1], &lower[0], &upper[0],
+                      &lower[1], &upper[1], dx);
 #else
-      accumopconsca3d_(
+      ACCUMOPCONSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           accum_data.getPointer(depth), &accum_data.getGhostCellWidth()[0],
@@ -2195,22 +2199,22 @@ void EllipticFACOps::computeResidualOnPatch(
       TBOX_ASSERT(scalar_field_data);
 
 #if NDIM == 2
-      efo_compresvarsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
-                           &flux_data.getGhostCellWidth()[1], rhs,
-                           &rhs_data.getGhostCellWidth()[0],
-                           &rhs_data.getGhostCellWidth()[1], res,
-                           &residual_data.getGhostCellWidth()[0],
-                           &residual_data.getGhostCellWidth()[1],
-                           scalar_field_data->getPointer(),
-                           &scalar_field_data->getGhostCellWidth()[0],
-                           &scalar_field_data->getGhostCellWidth()[1],
-                           m_data.getPointer(), &m_data.getGhostCellWidth()[0],
-                           &m_data.getGhostCellWidth()[1], sol,
-                           &soln_data.getGhostCellWidth()[0],
-                           &soln_data.getGhostCellWidth()[1], &lower[0],
-                           &upper[0], &lower[1], &upper[1], dx);
+      EFO_COMPRESVARSCA2D(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                          &flux_data.getGhostCellWidth()[1], rhs,
+                          &rhs_data.getGhostCellWidth()[0],
+                          &rhs_data.getGhostCellWidth()[1], res,
+                          &residual_data.getGhostCellWidth()[0],
+                          &residual_data.getGhostCellWidth()[1],
+                          scalar_field_data->getPointer(),
+                          &scalar_field_data->getGhostCellWidth()[0],
+                          &scalar_field_data->getGhostCellWidth()[1],
+                          m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                          &m_data.getGhostCellWidth()[1], sol,
+                          &soln_data.getGhostCellWidth()[0],
+                          &soln_data.getGhostCellWidth()[1], &lower[0],
+                          &upper[0], &lower[1], &upper[1], dx);
 #else
-      efo_compresvarsca3d_(
+      EFO_COMPRESVARSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           rhs, &rhs_data.getGhostCellWidth()[0],
@@ -2231,20 +2235,20 @@ void EllipticFACOps::computeResidualOnPatch(
    } else if (d_poisson_spec[0].cIsConstant()) {
       scalar_field_constant = d_poisson_spec[0].getCConstant();
 #if NDIM == 2
-      efo_compresconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
-                           &flux_data.getGhostCellWidth()[1], rhs,
-                           &rhs_data.getGhostCellWidth()[0],
-                           &rhs_data.getGhostCellWidth()[1], res,
-                           &residual_data.getGhostCellWidth()[0],
-                           &residual_data.getGhostCellWidth()[1],
-                           scalar_field_constant, m_data.getPointer(),
-                           &m_data.getGhostCellWidth()[0],
-                           &m_data.getGhostCellWidth()[1], sol,
-                           &soln_data.getGhostCellWidth()[0],
-                           &soln_data.getGhostCellWidth()[1], &lower[0],
-                           &upper[0], &lower[1], &upper[1], dx);
+      EFO_COMPRESCONSCA2D(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                          &flux_data.getGhostCellWidth()[1], rhs,
+                          &rhs_data.getGhostCellWidth()[0],
+                          &rhs_data.getGhostCellWidth()[1], res,
+                          &residual_data.getGhostCellWidth()[0],
+                          &residual_data.getGhostCellWidth()[1],
+                          scalar_field_constant, m_data.getPointer(),
+                          &m_data.getGhostCellWidth()[0],
+                          &m_data.getGhostCellWidth()[1], sol,
+                          &soln_data.getGhostCellWidth()[0],
+                          &soln_data.getGhostCellWidth()[1], &lower[0],
+                          &upper[0], &lower[1], &upper[1], dx);
 #else
-      efo_compresconsca3d_(
+      EFO_COMPRESCONSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           rhs, &rhs_data.getGhostCellWidth()[0],
@@ -2261,19 +2265,19 @@ void EllipticFACOps::computeResidualOnPatch(
    } else {
       scalar_field_constant = 0.0;
 #if NDIM == 2
-      efo_compresconsca2d_(flux0, flux1, &flux_data.getGhostCellWidth()[0],
-                           &flux_data.getGhostCellWidth()[1], rhs,
-                           &rhs_data.getGhostCellWidth()[0],
-                           &rhs_data.getGhostCellWidth()[1], res,
-                           &residual_data.getGhostCellWidth()[0],
-                           &residual_data.getGhostCellWidth()[1], 0.0,
-                           m_data.getPointer(), &m_data.getGhostCellWidth()[0],
-                           &m_data.getGhostCellWidth()[1], sol,
-                           &soln_data.getGhostCellWidth()[0],
-                           &soln_data.getGhostCellWidth()[1], &lower[0],
-                           &upper[0], &lower[1], &upper[1], dx);
+      EFO_COMPRESCONSCA2D(flux0, flux1, &flux_data.getGhostCellWidth()[0],
+                          &flux_data.getGhostCellWidth()[1], rhs,
+                          &rhs_data.getGhostCellWidth()[0],
+                          &rhs_data.getGhostCellWidth()[1], res,
+                          &residual_data.getGhostCellWidth()[0],
+                          &residual_data.getGhostCellWidth()[1], 0.0,
+                          m_data.getPointer(), &m_data.getGhostCellWidth()[0],
+                          &m_data.getGhostCellWidth()[1], sol,
+                          &soln_data.getGhostCellWidth()[0],
+                          &soln_data.getGhostCellWidth()[1], &lower[0],
+                          &upper[0], &lower[1], &upper[1], dx);
 #else
-      efo_compresconsca3d_(
+      EFO_COMPRESCONSCA3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           rhs, &rhs_data.getGhostCellWidth()[0],
@@ -2361,7 +2365,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
 
    if (d_poisson_spec[0].dIsVariable() && d_poisson_spec[depth].cIsVariable()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxvardcvarsf2d_(
+      EFO_RBGSWITHFLUXMAXVARDCVARSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
           diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
@@ -2374,7 +2378,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxvardcvarsf3d_(
+      EFO_RBGSWITHFLUXMAXVARDCVARSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
@@ -2395,7 +2399,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
    } else if (d_poisson_spec[0].dIsVariable() &&
               d_poisson_spec[0].cIsConstant()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxvardcconsf2d_(
+      EFO_RBGSWITHFLUXMAXVARDCCONSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
           diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
@@ -2406,7 +2410,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxvardcconsf3d_(
+      EFO_RBGSWITHFLUXMAXVARDCCONSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
@@ -2423,7 +2427,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
 #endif
    } else if (d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxvardcconsf2d_(
+      EFO_RBGSWITHFLUXMAXVARDCCONSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_data->getPointer(0),
           diffcoef_data->getPointer(1), &diffcoef_data->getGhostCellWidth()[0],
@@ -2434,7 +2438,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxvardcconsf3d_(
+      EFO_RBGSWITHFLUXMAXVARDCCONSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_data->getPointer(0), diffcoef_data->getPointer(1),
@@ -2452,7 +2456,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
    } else if (!d_poisson_spec[0].dIsVariable() &&
               d_poisson_spec[0].cIsVariable()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxcondcvarsf2d_(
+      EFO_RBGSWITHFLUXMAXCONDCVARSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
           &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
@@ -2463,7 +2467,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxcondcvarsf3d_(
+      EFO_RBGSWITHFLUXMAXCONDCVARSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],
@@ -2481,7 +2485,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
    } else if (!d_poisson_spec[0].dIsVariable() &&
               d_poisson_spec[0].cIsConstant()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxcondcconsf2d_(
+      EFO_RBGSWITHFLUXMAXCONDCCONSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
           &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
@@ -2490,7 +2494,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxcondcconsf3d_(
+      EFO_RBGSWITHFLUXMAXCONDCCONSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],
@@ -2503,7 +2507,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
 #endif
    } else if (!d_poisson_spec[0].dIsVariable() && d_poisson_spec[0].cIsZero()) {
 #if NDIM == 2
-      efo_rbgswithfluxmaxcondcconsf2d_(
+      EFO_RBGSWITHFLUXMAXCONDCCONSF2D(
           flux0, flux1, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], diffcoef_constant, rhs,
           &rhs_data.getGhostCellWidth()[0], &rhs_data.getGhostCellWidth()[1],
@@ -2512,7 +2516,7 @@ void EllipticFACOps::redOrBlackSmoothingOnPatch(
           &soln_data.getGhostCellWidth()[0], &soln_data.getGhostCellWidth()[1],
           &lower[0], &upper[0], &lower[1], &upper[1], dx, &offset, &maxres);
 #else
-      efo_rbgswithfluxmaxcondcconsf3d_(
+      EFO_RBGSWITHFLUXMAXCONDCCONSF3D(
           flux0, flux1, flux2, &flux_data.getGhostCellWidth()[0],
           &flux_data.getGhostCellWidth()[1], &flux_data.getGhostCellWidth()[2],
           diffcoef_constant, rhs, &rhs_data.getGhostCellWidth()[0],

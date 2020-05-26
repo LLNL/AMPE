@@ -105,16 +105,15 @@ void SteadyStateTemperatureCompositionSource::setCurrentTemperature(
              BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
 
-         FORT_SOURCE_TEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         SOURCE_TEMPERATURE(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                 ifirst(2), ilast(2),
+                            ifirst(2), ilast(2),
 #endif
-                                 conc->getPointer(),
-                                 conc->getGhostCellWidth()[0],
-                                 rhs->getPointer(), rhs->getGhostCellWidth()[0],
-                                 cp->getPointer(), cp->getGhostCellWidth()[0],
-                                 &d_T_source[0],
-                                 static_cast<int>(d_T_source.size()));
+                            conc->getPointer(), conc->getGhostCellWidth()[0],
+                            rhs->getPointer(), rhs->getGhostCellWidth()[0],
+                            cp->getPointer(), cp->getGhostCellWidth()[0],
+                            &d_T_source[0],
+                            static_cast<int>(d_T_source.size()));
       }
    }
 
