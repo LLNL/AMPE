@@ -69,7 +69,7 @@ bool NewtonSolver::CheckTolerance(const double* const fvec)
 
 bool NewtonSolver::CheckToleranceFirstEq(const double* const fvec)
 {
-   if (abs(fvec[0]) >= d_tolerance) return false;
+   if (std::abs(fvec[0]) >= d_tolerance) return false;
    return true;
 }
 

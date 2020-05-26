@@ -74,6 +74,7 @@ class CompositionDiffusionStrategy
          default:
             TBOX_ERROR(
                 "Invalid interp_func_type for CompositionDiffusionStrategy");
+            return 'u';
       }
    }
 
