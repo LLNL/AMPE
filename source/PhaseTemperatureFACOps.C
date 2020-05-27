@@ -187,7 +187,7 @@ void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(
             const double phi = ptr_phi[idx_pf];
 
             const double g_phi_dbl_prime =
-                FORT_SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
+                SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
 
             ptr_c[idx_c] = latent_heat * m * phi_well_scale * g_phi_dbl_prime;
          }

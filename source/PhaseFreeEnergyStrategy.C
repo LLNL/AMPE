@@ -273,14 +273,14 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
    const char interpf = energyInterpChar(d_phase_interp_func_type);
    const char interpe = energyInterpChar(d_eta_interp_func_type);
 
-   FORT_PHASERHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   PHASERHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                         ifirst(2), ilast(2),
+                    ifirst(2), ilast(2),
 #endif
-                         fl->getPointer(), fa->getPointer(), ptr_fb,
-                         phase->getPointer(), phase->getGhostCellWidth()[0],
-                         ptr_eta, phase->getGhostCellWidth()[0],
-                         rhs->getPointer(), 0, &interpf, &interpe, three_phase);
+                    fl->getPointer(), fa->getPointer(), ptr_fb,
+                    phase->getPointer(), phase->getGhostCellWidth()[0], ptr_eta,
+                    phase->getGhostCellWidth()[0], rhs->getPointer(), 0,
+                    &interpf, &interpe, three_phase);
 }
 
 //=======================================================================
@@ -339,14 +339,14 @@ void PhaseFreeEnergyStrategy::addDrivingForceEta(
    const char interpf = energyInterpChar(d_phase_interp_func_type);
    const char interpe = energyInterpChar(d_eta_interp_func_type);
 
-   FORT_ETARHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   ETARHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                       ifirst(2), ilast(2),
+                  ifirst(2), ilast(2),
 #endif
-                       fl->getPointer(), fa->getPointer(), fb->getPointer(),
-                       phase->getPointer(), phase->getGhostCellWidth()[0],
-                       eta->getPointer(), eta->getGhostCellWidth()[0],
-                       rhs->getPointer(), 0, &interpf, &interpe);
+                  fl->getPointer(), fa->getPointer(), fb->getPointer(),
+                  phase->getPointer(), phase->getGhostCellWidth()[0],
+                  eta->getPointer(), eta->getGhostCellWidth()[0],
+                  rhs->getPointer(), 0, &interpf, &interpe);
 }
 
 //=======================================================================

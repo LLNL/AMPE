@@ -165,16 +165,15 @@ void SteadyStateTemperatureGaussianSource::setCurrentTemperature(
              BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_cp_id)));
 
-         FORT_INITGAUSSIAN_SOURCE(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1),
-                                  ilast(1),
+         INITGAUSSIANSOURCE(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1),
+                            ilast(1),
 #if (NDIM == 3)
-                                  ifirst(2), ilast(2),
+                            ifirst(2), ilast(2),
 #endif
-                                  rhs->getPointer(),
-                                  rhs->getGhostCellWidth()[0], cp->getPointer(),
-                                  cp->getGhostCellWidth()[0], d_center,
-                                  d_periodic_length, d_standard_dev,
-                                  scaled_source_peak);
+                            rhs->getPointer(), rhs->getGhostCellWidth()[0],
+                            cp->getPointer(), cp->getGhostCellWidth()[0],
+                            d_center, d_periodic_length, d_standard_dev,
+                            scaled_source_peak);
       }
    }
 

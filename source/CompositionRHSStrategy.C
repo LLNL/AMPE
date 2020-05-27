@@ -130,13 +130,12 @@ void CompositionRHSStrategy::setZeroFluxAtBoundaryOnPatch(hier::Patch& patch,
          }
 
 #if (NDIM == 3)
-         FORT_SETTOZERO(lo(0), lo(1), lo(2), up(0), up(1), up(2), glo(0),
-                        glo(1), glo(2), gup(0), gup(1), gup(2),
-                        flux->getPointer(dir));
+         SETTOZERO(lo(0), lo(1), lo(2), up(0), up(1), up(2), glo(0), glo(1),
+                   glo(2), gup(0), gup(1), gup(2), flux->getPointer(dir));
 #endif
 #if (NDIM == 2)
-         FORT_SETTOZERO(lo(0), lo(1), up(0), up(1), glo(0), glo(1), gup(0),
-                        gup(1), flux->getPointer(dir));
+         SETTOZERO(lo(0), lo(1), up(0), up(1), glo(0), glo(1), gup(0), gup(1),
+                   flux->getPointer(dir));
 #endif
       }
    }  // loop over bdry boxes

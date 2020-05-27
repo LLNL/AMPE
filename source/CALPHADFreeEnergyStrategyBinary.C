@@ -951,8 +951,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
             const double mu = computeMuA(t, c_a);
             // const double mu = 0.;
 
-            const double hphi = FORT_INTERP_FUNC(phi, &interpf);
-            const double heta_prime = FORT_DERIV_INTERP_FUNC(eta, &interpf);
+            const double hphi = INTERP_FUNC(phi, &interpf);
+            const double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));

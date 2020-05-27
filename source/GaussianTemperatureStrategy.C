@@ -206,11 +206,11 @@ void GaussianTemperatureStrategy::setCurrentTemperaturePrivatePatch(
    const hier::Index ifirst(patch.getBox().lower());
    const hier::Index ilast(patch.getBox().upper());
 
-   FORT_INITGAUSSIAN(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1), ilast(1),
+   INITGAUSSIAN(dx, xlo, xhi, ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                     ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-                     cd_temp->getPointer(), cd_temp->getGhostCellWidth()[0],
-                     d_center, d_periodic_length, d_standard_dev,
-                     d_temperature_base, tgaussian);
+                cd_temp->getPointer(), cd_temp->getGhostCellWidth()[0],
+                d_center, d_periodic_length, d_standard_dev, d_temperature_base,
+                tgaussian);
 }

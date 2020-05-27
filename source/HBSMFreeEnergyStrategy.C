@@ -871,7 +871,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
 
             double mu = computeMu(t, c_l);
 
-            double hphi_prime = FORT_DERIV_INTERP_FUNC(phi, &interp);
+            double hphi_prime = DERIV_INTERP_FUNC(phi, &interp);
 
             double heta = 0.0;
 
@@ -880,7 +880,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
 
-               heta = FORT_INTERP_FUNC(eta, &interp);
+               heta = INTERP_FUNC(eta, &interp);
             }
 
             ptr_rhs[idx_rhs] +=
@@ -1108,9 +1108,9 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
 
             double mu = computeMu(t, c_l);
 
-            double hphi = FORT_INTERP_FUNC(phi, &interpf);
+            double hphi = INTERP_FUNC(phi, &interpf);
 
-            double heta_prime = FORT_DERIV_INTERP_FUNC(eta, &interpf);
+            double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
 
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));

@@ -81,15 +81,15 @@ void LinearMeltingTemperatureStrategy::evaluate(hier::Patch& patch)
    assert(l2rhs == l2rhs);
 #endif
 
-   FORT_LINEARMELTINGLINE(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   LINEARMELTINGLINE(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                          ifirst(2), ilast(2),
+                     ifirst(2), ilast(2),
 #endif
-                          temperature->getPointer(),
-                          temperature->getGhostCellWidth()[0],
-                          concentration->getPointer(),
-                          concentration->getGhostCellWidth()[0], d_Tref, d_c0,
-                          d_liquidus_slope);
+                     temperature->getPointer(),
+                     temperature->getGhostCellWidth()[0],
+                     concentration->getPointer(),
+                     concentration->getGhostCellWidth()[0], d_Tref, d_c0,
+                     d_liquidus_slope);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    l2rhs = ops.L2Norm(temperature, patch.getBox());

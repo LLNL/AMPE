@@ -105,14 +105,13 @@ void BiasDoubleWellBeckermannFreeEnergyStrategy::addDrivingForce(
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
 
-   FORT_COMP_RHS_BIASWELL_BECKERMANN(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   COMPUTERHSBIASWELLBECKERMANN(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                     ifirst(2), ilast(2),
+                                ifirst(2), ilast(2),
 #endif
-                                     phase->getPointer(),
-                                     phase->getGhostCellWidth()[0],
-                                     temp->getPointer(),
-                                     temp->getGhostCellWidth()[0], d_alpha,
-                                     eq_temp->getPointer(), 0,
-                                     rhs->getPointer(), 0);
+                                phase->getPointer(),
+                                phase->getGhostCellWidth()[0],
+                                temp->getPointer(),
+                                temp->getGhostCellWidth()[0], d_alpha,
+                                eq_temp->getPointer(), 0, rhs->getPointer(), 0);
 }

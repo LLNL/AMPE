@@ -47,6 +47,7 @@
 
 #include "QuatLevelSolver.h"
 #include "krylov.h"
+#include "fc_mangle.h"
 
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -75,49 +76,48 @@ extern "C" {
 // 2d prototypes for the Fortran subroutines defined in
 // quaternionlevelsolver2d.f
 
-void set_j_ij2d_(const int &, const int &, const int &, const int &,
-                 const double *, const int &, const int &, const int &,
-                 const int &, const double *, const int &, const int &,
-                 const int &, const int &, const double *, const double *,
-                 const int &, const int &, const int &, const int &,
-                 const double *, const int &, const int &, const int &,
-                 const int &, const double *, const int &, const int &,
-                 const int &, const int &);
-void set_stencil2d_(const int &, const int &, const int &, const int &,
-                    const double &, const double *, const int &, const int &,
-                    const int &, const int &, const double *, const int &,
-                    const int &, const int &, const int &, const double *,
-                    const int &, const int &, const int &, const int &,
-                    const double *, const int &, const int &, const int &,
-                    const int &, double *);
-void set_symmetric_stencil2d_(const int &, const int &, const int &,
-                              const int &, const double &, const double *,
-                              const int &, const int &, const int &,
-                              const int &, const double *, const int &,
-                              const int &, const int &, const int &,
-                              const double *, const int &, const int &,
-                              const int &, const int &, const double *,
-                              const int &, const int &, const int &,
-                              const int &, double *);
-void copy2d_(const int &, const int &, const int &, const int &, const double *,
-             const int &, const int &, const int &, const int &, const double *,
-             const int &, const int &, const int &, const int &);
-void adjust_bdry2d_(const double &, const double *, const int &, const int &,
-                    const int &, const int &, double *diag,
-                    const double *offdiagi, const double *offdiagj,
-                    const int *pifirst, const int *pilast, const int *pjfirst,
-                    const int *pjlast, const double *acoef, const double *bcoef,
-                    const int *aifirst, const int *ailast, const int *ajfirst,
-                    const int *ajlast, const double *Ak0, const int *kifirst,
-                    const int *kilast, const int *kjfirst, const int *kjlast,
-                    const int *lower, const int *upper, const int *location,
-                    const double *h);
-void adjust_qrhs2d_(double *rhs, const int *rifirst, const int *rilast,
-                    const int *rjfirst, const int *rjlast, const double *Ak0,
-                    const int *kifirst, const int *kilast, const int *kjfirst,
-                    const int *kjlast, const double *gcoef, const int *aifirst,
-                    const int *ailast, const int *ajfirst, const int *ajlast,
-                    const int *lower, const int *upper, const int *location);
+void SET_J_IJ2D(const int &, const int &, const int &, const int &,
+                const double *, const int &, const int &, const int &,
+                const int &, const double *, const int &, const int &,
+                const int &, const int &, const double *, const double *,
+                const int &, const int &, const int &, const int &,
+                const double *, const int &, const int &, const int &,
+                const int &, const double *, const int &, const int &,
+                const int &, const int &);
+void SET_STENCIL2D(const int &, const int &, const int &, const int &,
+                   const double &, const double *, const int &, const int &,
+                   const int &, const int &, const double *, const int &,
+                   const int &, const int &, const int &, const double *,
+                   const int &, const int &, const int &, const int &,
+                   const double *, const int &, const int &, const int &,
+                   const int &, double *);
+void SET_SYMMETRIC_STENCIL2D(const int &, const int &, const int &, const int &,
+                             const double &, const double *, const int &,
+                             const int &, const int &, const int &,
+                             const double *, const int &, const int &,
+                             const int &, const int &, const double *,
+                             const int &, const int &, const int &, const int &,
+                             const double *, const int &, const int &,
+                             const int &, const int &, double *);
+void COPY2D(const int &, const int &, const int &, const int &, const double *,
+            const int &, const int &, const int &, const int &, const double *,
+            const int &, const int &, const int &, const int &);
+void ADJUST_BDRY2D(const double &, const double *, const int &, const int &,
+                   const int &, const int &, double *diag,
+                   const double *offdiagi, const double *offdiagj,
+                   const int *pifirst, const int *pilast, const int *pjfirst,
+                   const int *pjlast, const double *acoef, const double *bcoef,
+                   const int *aifirst, const int *ailast, const int *ajfirst,
+                   const int *ajlast, const double *Ak0, const int *kifirst,
+                   const int *kilast, const int *kjfirst, const int *kjlast,
+                   const int *lower, const int *upper, const int *location,
+                   const double *h);
+void ADJUST_QRHS2D(double *rhs, const int *rifirst, const int *rilast,
+                   const int *rjfirst, const int *rjlast, const double *Ak0,
+                   const int *kifirst, const int *kilast, const int *kjfirst,
+                   const int *kjlast, const double *gcoef, const int *aifirst,
+                   const int *ailast, const int *ajfirst, const int *ajlast,
+                   const int *lower, const int *upper, const int *location);
 
 #endif
 #if NDIM == 3
@@ -125,32 +125,31 @@ void adjust_qrhs2d_(double *rhs, const int *rifirst, const int *rilast,
 // 3d prototypes for the Fortran subroutines defined in
 // quaternionlevelsolver3d.f
 
-void set_j_ij3d_(const int &, const int &, const int &, const int &,
-                 const int &, const int &, const double *, const int &,
-                 const int &, const int &, const int &, const int &,
-                 const int &, const double *, const int &, const int &,
-                 const int &, const int &, const int &, const int &,
-                 const double *, const int &, const int &, const int &,
-                 const int &, const int &, const int &, const double *,
-                 const double *, const int &, const int &, const int &,
-                 const int &, const int &, const int &, const double *,
-                 const int &, const int &, const int &, const int &,
-                 const int &, const int &, const double *, const int &,
-                 const int &, const int &, const int &, const int &,
-                 const int &, const double *, const int &, const int &,
-                 const int &, const int &, const int &, const int &);
-void set_stencil3d_(const int &, const int &, const int &, const int &,
-                    const int &, const int &, const double &, const double *,
-                    const int &, const int &, const int &, const int &,
-                    const int &, const int &, const double *, const int &,
-                    const int &, const int &, const int &, const int &,
-                    const int &, const double *, const int &, const int &,
-                    const int &, const int &, const int &, const int &,
-                    const double *, const int &, const int &, const int &,
-                    const int &, const int &, const int &, const double *,
-                    const int &, const int &, const int &, const int &,
-                    const int &, const int &, double *);
-void set_symmetric_stencil3d_(
+void SET_J_IJ3D(const int &, const int &, const int &, const int &, const int &,
+                const int &, const double *, const int &, const int &,
+                const int &, const int &, const int &, const int &,
+                const double *, const int &, const int &, const int &,
+                const int &, const int &, const int &, const double *,
+                const int &, const int &, const int &, const int &, const int &,
+                const int &, const double *, const double *, const int &,
+                const int &, const int &, const int &, const int &, const int &,
+                const double *, const int &, const int &, const int &,
+                const int &, const int &, const int &, const double *,
+                const int &, const int &, const int &, const int &, const int &,
+                const int &, const double *, const int &, const int &,
+                const int &, const int &, const int &, const int &);
+void SET_STENCIL3D(const int &, const int &, const int &, const int &,
+                   const int &, const int &, const double &, const double *,
+                   const int &, const int &, const int &, const int &,
+                   const int &, const int &, const double *, const int &,
+                   const int &, const int &, const int &, const int &,
+                   const int &, const double *, const int &, const int &,
+                   const int &, const int &, const int &, const int &,
+                   const double *, const int &, const int &, const int &,
+                   const int &, const int &, const int &, const double *,
+                   const int &, const int &, const int &, const int &,
+                   const int &, const int &, double *);
+void SET_SYMMETRIC_STENCIL3D(
     const int &, const int &, const int &, const int &, const int &,
     const int &, const double &, const double *, const int &, const int &,
     const int &, const int &, const int &, const int &, const double *,
@@ -160,31 +159,30 @@ void set_symmetric_stencil3d_(
     const int &, const int &, const int &, const int &, const int &,
     const double *, const int &, const int &, const int &, const int &,
     const int &, const int &, double *);
-void copy3d_(const int &, const int &, const int &, const int &, const int &,
-             const int &, const double *, const int &, const int &, const int &,
-             const int &, const int &, const int &, const double *, const int &,
-             const int &, const int &, const int &, const int &, const int &);
-void adjust_bdry3d_(const double &, const double *, const int &, const int &,
-                    const int &, const int &, const int &, const int &,
-                    double *diag, const double *offdiagi,
-                    const double *offdiagj, const double *offdiagk,
-                    const int *pifirst, const int *pilast, const int *pjfirst,
-                    const int *pjlast, const int *pkfirst, const int *pklast,
-                    const double *acoef, const double *bcoef,
-                    const int *aifirst, const int *ailast, const int *ajfirst,
-                    const int *ajlast, const int *akfirst, const int *aklast,
-                    const double *Ak0, const int *kifirst, const int *kilast,
-                    const int *kjfirst, const int *kjlast, const int *kkfirst,
-                    const int *kklast, const int *lower, const int *upper,
-                    const int *location, const double *h);
-void adjust_qrhs3d_(double *rhs, const int *rifirst, const int *rilast,
-                    const int *rjfirst, const int *rjlast, const int *rkfirst,
-                    const int *rklast, const double *Ak0, const int *kifirst,
-                    const int *kilast, const int *kjfirst, const int *kjlast,
-                    const int *kkfirst, const int *kklast, const double *gcoef,
-                    const int *aifirst, const int *ailast, const int *ajfirst,
-                    const int *ajlast, const int *akfirst, const int *aklast,
-                    const int *lower, const int *upper, const int *location);
+void COPY3D(const int &, const int &, const int &, const int &, const int &,
+            const int &, const double *, const int &, const int &, const int &,
+            const int &, const int &, const int &, const double *, const int &,
+            const int &, const int &, const int &, const int &, const int &);
+void ADJUST_BDRY3D(const double &, const double *, const int &, const int &,
+                   const int &, const int &, const int &, const int &,
+                   double *diag, const double *offdiagi, const double *offdiagj,
+                   const double *offdiagk, const int *pifirst,
+                   const int *pilast, const int *pjfirst, const int *pjlast,
+                   const int *pkfirst, const int *pklast, const double *acoef,
+                   const double *bcoef, const int *aifirst, const int *ailast,
+                   const int *ajfirst, const int *ajlast, const int *akfirst,
+                   const int *aklast, const double *Ak0, const int *kifirst,
+                   const int *kilast, const int *kjfirst, const int *kjlast,
+                   const int *kkfirst, const int *kklast, const int *lower,
+                   const int *upper, const int *location, const double *h);
+void ADJUST_QRHS3D(double *rhs, const int *rifirst, const int *rilast,
+                   const int *rjfirst, const int *rjlast, const int *rkfirst,
+                   const int *rklast, const double *Ak0, const int *kifirst,
+                   const int *kilast, const int *kjfirst, const int *kjlast,
+                   const int *kkfirst, const int *kklast, const double *gcoef,
+                   const int *aifirst, const int *ailast, const int *ajfirst,
+                   const int *ajlast, const int *akfirst, const int *aklast,
+                   const int *lower, const int *upper, const int *location);
 #endif
 }
 
@@ -699,17 +697,17 @@ void QuatLevelSolver::copyToHypre(const int component,
    }
 
 #if NDIM == 2
-   copy2d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1),
-           src_data.getPointer(component), gbox.lower(0), gbox.upper(0),
-           gbox.lower(1), gbox.upper(1), values, box.lower(0), box.upper(0),
-           box.lower(1), box.upper(1));
+   COPY2D(box.lower(0), box.upper(0), box.lower(1), box.upper(1),
+          src_data.getPointer(component), gbox.lower(0), gbox.upper(0),
+          gbox.lower(1), gbox.upper(1), values, box.lower(0), box.upper(0),
+          box.lower(1), box.upper(1));
 #endif
 #if NDIM == 3
-   copy3d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2),
-           box.upper(2), src_data.getPointer(component), gbox.lower(0),
-           gbox.upper(0), gbox.lower(1), gbox.upper(1), gbox.lower(2),
-           gbox.upper(2), values, box.lower(0), box.upper(0), box.lower(1),
-           box.upper(1), box.lower(2), box.upper(2));
+   COPY3D(box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2),
+          box.upper(2), src_data.getPointer(component), gbox.lower(0),
+          gbox.upper(0), gbox.lower(1), gbox.upper(1), gbox.lower(2),
+          gbox.upper(2), values, box.lower(0), box.upper(0), box.lower(1),
+          box.upper(1), box.lower(2), box.upper(2));
 #endif
 
    HYPRE_SStructVectorSetBoxValues(dst_vector, PART, &lo[0], &up[0], 0, values);
@@ -748,17 +746,17 @@ void QuatLevelSolver::copyFromHypre(const int depth,
 
    // copy from values into dst_data
 #if NDIM == 2
-   copy2d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1), values,
-           box.lower(0), box.upper(0), box.lower(1), box.upper(1),
-           dst_data.getPointer(component), gbox.lower(0), gbox.upper(0),
-           gbox.lower(1), gbox.upper(1));
+   COPY2D(box.lower(0), box.upper(0), box.lower(1), box.upper(1), values,
+          box.lower(0), box.upper(0), box.lower(1), box.upper(1),
+          dst_data.getPointer(component), gbox.lower(0), gbox.upper(0),
+          gbox.lower(1), gbox.upper(1));
 #endif
 #if NDIM == 3
-   copy3d_(box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2),
-           box.upper(2), values, box.lower(0), box.upper(0), box.lower(1),
-           box.upper(1), box.lower(2), box.upper(2),
-           dst_data.getPointer(component), gbox.lower(0), gbox.upper(0),
-           gbox.lower(1), gbox.upper(1), gbox.lower(2), gbox.upper(2));
+   COPY3D(box.lower(0), box.upper(0), box.lower(1), box.upper(1), box.lower(2),
+          box.upper(2), values, box.lower(0), box.upper(0), box.lower(1),
+          box.upper(1), box.lower(2), box.upper(2),
+          dst_data.getPointer(component), gbox.lower(0), gbox.upper(0),
+          gbox.lower(1), gbox.upper(1), gbox.lower(2), gbox.upper(2));
 #endif
 
    delete[] values;
@@ -853,32 +851,32 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
       for (int depth = 0; depth < d_qlen; depth++) {
 
 #if NDIM == 2
-         set_j_ij2d_(lower[0], upper[0], lower[1], upper[1],
-                     face_coef_data->getPointer(0, depth), lower[0],
-                     upper[0] + 1, lower[1], upper[1],
-                     face_coef_data->getPointer(1, depth), lower[0], upper[0],
-                     lower[1], upper[1] + 1, h, diagonal.getPointer(depth),
-                     lower[0], upper[0], lower[1], upper[1],
-                     off_diagonal.getPointer(0, depth), lower[0], upper[0] + 1,
-                     lower[1], upper[1], off_diagonal.getPointer(1, depth),
-                     lower[0], upper[0], lower[1], upper[1] + 1);
+         SET_J_IJ2D(lower[0], upper[0], lower[1], upper[1],
+                    face_coef_data->getPointer(0, depth), lower[0],
+                    upper[0] + 1, lower[1], upper[1],
+                    face_coef_data->getPointer(1, depth), lower[0], upper[0],
+                    lower[1], upper[1] + 1, h, diagonal.getPointer(depth),
+                    lower[0], upper[0], lower[1], upper[1],
+                    off_diagonal.getPointer(0, depth), lower[0], upper[0] + 1,
+                    lower[1], upper[1], off_diagonal.getPointer(1, depth),
+                    lower[0], upper[0], lower[1], upper[1] + 1);
 #endif
 #if NDIM == 3
-         set_j_ij3d_(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                     face_coef_data->getPointer(0, depth), lower[0],
-                     upper[0] + 1, lower[1], upper[1], lower[2], upper[2],
-                     face_coef_data->getPointer(1, depth), lower[0], upper[0],
-                     lower[1], upper[1] + 1, lower[2], upper[2],
-                     face_coef_data->getPointer(2, depth), lower[0], upper[0],
-                     lower[1], upper[1], lower[2], upper[2] + 1, h,
-                     diagonal.getPointer(depth), lower[0], upper[0], lower[1],
-                     upper[1], lower[2], upper[2],
-                     off_diagonal.getPointer(0, depth), lower[0], upper[0] + 1,
-                     lower[1], upper[1], lower[2], upper[2],
-                     off_diagonal.getPointer(1, depth), lower[0], upper[0],
-                     lower[1], upper[1] + 1, lower[2], upper[2],
-                     off_diagonal.getPointer(2, depth), lower[0], upper[0],
-                     lower[1], upper[1], lower[2], upper[2] + 1);
+         SET_J_IJ3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                    face_coef_data->getPointer(0, depth), lower[0],
+                    upper[0] + 1, lower[1], upper[1], lower[2], upper[2],
+                    face_coef_data->getPointer(1, depth), lower[0], upper[0],
+                    lower[1], upper[1] + 1, lower[2], upper[2],
+                    face_coef_data->getPointer(2, depth), lower[0], upper[0],
+                    lower[1], upper[1], lower[2], upper[2] + 1, h,
+                    diagonal.getPointer(depth), lower[0], upper[0], lower[1],
+                    upper[1], lower[2], upper[2],
+                    off_diagonal.getPointer(0, depth), lower[0], upper[0] + 1,
+                    lower[1], upper[1], lower[2], upper[2],
+                    off_diagonal.getPointer(1, depth), lower[0], upper[0],
+                    lower[1], upper[1] + 1, lower[2], upper[2],
+                    off_diagonal.getPointer(2, depth), lower[0], upper[0],
+                    lower[1], upper[1], lower[2], upper[2] + 1);
 #endif
       }
 
@@ -1005,18 +1003,18 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
 #ifdef SYMMETRIC_STENCIL
 
 #if NDIM == 2
-         set_symmetric_stencil2d_(lower[0], upper[0], lower[1], upper[1], gamma,
-                                  sqrt_mobility_data->getPointer(), mlower[0],
-                                  mupper[0], mlower[1], mupper[1],
-                                  diagonal.getPointer(depth), lower[0],
-                                  upper[0], lower[1], upper[1],
-                                  off_diagonal.getPointer(0, depth), lower[0],
-                                  upper[0] + 1, lower[1], upper[1],
-                                  off_diagonal.getPointer(1, depth), lower[0],
-                                  upper[0], lower[1], upper[1] + 1, values);
+         SET_SYMMETRIC_STENCIL2D(lower[0], upper[0], lower[1], upper[1], gamma,
+                                 sqrt_mobility_data->getPointer(), mlower[0],
+                                 mupper[0], mlower[1], mupper[1],
+                                 diagonal.getPointer(depth), lower[0], upper[0],
+                                 lower[1], upper[1],
+                                 off_diagonal.getPointer(0, depth), lower[0],
+                                 upper[0] + 1, lower[1], upper[1],
+                                 off_diagonal.getPointer(1, depth), lower[0],
+                                 upper[0], lower[1], upper[1] + 1, values);
 #endif
 #if NDIM == 3
-         set_symmetric_stencil3d_(
+         SET_SYMMETRIC_STENCIL3D(
              lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], gamma,
              sqrt_mobility_data->getPointer(), mlower[0], mupper[0], mlower[1],
              mupper[1], mlower[2], mupper[2], diagonal.getPointer(depth),
@@ -1034,27 +1032,27 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
 #else
 
 #if NDIM == 2
-         set_stencil2d_(lower[0], upper[0], lower[1], upper[1], gamma,
-                        sqrt_mobility_data->getPointer(), mlower[0], mupper[0],
-                        mlower[1], mupper[1], diagonal.getPointer(depth),
-                        lower[0], upper[0], lower[1], upper[1],
-                        off_diagonal.getPointer(0, depth), lower[0],
-                        upper[0] + 1, lower[1], upper[1],
-                        off_diagonal.getPointer(1, depth), lower[0], upper[0],
-                        lower[1], upper[1] + 1, values);
+         SET_STENCIL2D(lower[0], upper[0], lower[1], upper[1], gamma,
+                       sqrt_mobility_data->getPointer(), mlower[0], mupper[0],
+                       mlower[1], mupper[1], diagonal.getPointer(depth),
+                       lower[0], upper[0], lower[1], upper[1],
+                       off_diagonal.getPointer(0, depth), lower[0],
+                       upper[0] + 1, lower[1], upper[1],
+                       off_diagonal.getPointer(1, depth), lower[0], upper[0],
+                       lower[1], upper[1] + 1, values);
 #endif
 #if NDIM == 3
-         set_stencil3d_(lower[0], upper[0], lower[1], upper[1], lower[2],
-                        upper[2], gamma, sqrt_mobility_data->getPointer(),
-                        mlower[0], mupper[0], mlower[1], mupper[1], mlower[2],
-                        mupper[2], diagonal.getPointer(depth), lower[0],
-                        upper[0], lower[1], upper[1], lower[2], upper[2],
-                        off_diagonal.getPointer(0, depth), lower[0],
-                        upper[0] + 1, lower[1], upper[1], lower[2], upper[2],
-                        off_diagonal.getPointer(1, depth), lower[0], upper[0],
-                        lower[1], upper[1] + 1, lower[2], upper[2],
-                        off_diagonal.getPointer(2, depth), lower[0], upper[0],
-                        lower[1], upper[1], lower[2], upper[2] + 1, values);
+         SET_STENCIL3D(lower[0], upper[0], lower[1], upper[1], lower[2],
+                       upper[2], gamma, sqrt_mobility_data->getPointer(),
+                       mlower[0], mupper[0], mlower[1], mupper[1], mlower[2],
+                       mupper[2], diagonal.getPointer(depth), lower[0],
+                       upper[0], lower[1], upper[1], lower[2], upper[2],
+                       off_diagonal.getPointer(0, depth), lower[0],
+                       upper[0] + 1, lower[1], upper[1], lower[2], upper[2],
+                       off_diagonal.getPointer(1, depth), lower[0], upper[0],
+                       lower[1], upper[1] + 1, lower[2], upper[2],
+                       off_diagonal.getPointer(2, depth), lower[0], upper[0],
+                       lower[1], upper[1], lower[2], upper[2] + 1, values);
 #endif
 
          int intra_q_indices[2 * NDIM + 1];
@@ -1186,7 +1184,7 @@ void QuatLevelSolver::add_gAk0_toRhs(
 #endif
 
 #if NDIM == 2
-         adjust_qrhs2d_(
+         ADJUST_QRHS2D(
              rhs.getPointer(depth), &rhsbox.lower()[0], &rhsbox.upper()[0],
              &rhsbox.lower()[1], &rhsbox.upper()[1],
              Ak0->getPointer(location_index / 2, location_index % 2, depth),
@@ -1197,7 +1195,7 @@ void QuatLevelSolver::add_gAk0_toRhs(
              &upper[0], &location_index);
 #endif
 #if NDIM == 3
-         adjust_qrhs3d_(
+         ADJUST_QRHS3D(
              rhs.getPointer(depth), &rhsbox.lower()[0], &rhsbox.upper()[0],
              &rhsbox.lower()[1], &rhsbox.upper()[1], &rhsbox.lower()[2],
              &rhsbox.upper()[2],
@@ -1690,7 +1688,7 @@ void QuatLevelSolver::adjustBoundaryEntries(
    for (int depth = 0; depth < d_qlen; depth++) {
 
 #if NDIM == 2
-      adjust_bdry2d_(
+      ADJUST_BDRY2D(
           gamma, sqrt_mobility_data.getPointer(), mlower[0], mupper[0],
           mlower[1], mupper[1], diagonal.getPointer(depth),
           off_diagonal.getPointer(0, depth), off_diagonal.getPointer(1, depth),
@@ -1703,7 +1701,7 @@ void QuatLevelSolver::adjustBoundaryEntries(
           &Ak0_box.upper()[1], &lower[0], &upper[0], &location_index, h);
 #endif
 #if NDIM == 3
-      adjust_bdry3d_(
+      ADJUST_BDRY3D(
           gamma, sqrt_mobility_data.getPointer(), mlower[0], mupper[0],
           mlower[1], mupper[1], mlower[2], mupper[2],
           diagonal.getPointer(depth), off_diagonal.getPointer(0, depth),

@@ -71,17 +71,17 @@ void PhaseFluxStrategyIsotropic::computeFluxes(
       const hier::Index& ifirst = pbox.lower();
       const hier::Index& ilast = pbox.upper();
 
-      FORT_COMPUTE_FLUX_ISOTROPIC(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      COMPUTE_FLUX_ISOTROPIC(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                  ifirst(2), ilast(2),
+                             ifirst(2), ilast(2),
 #endif
-                                  dx, d_epsilon_phase, phase->getPointer(),
-                                  phase->getGhostCellWidth()[0],
-                                  phase_flux->getPointer(0),
-                                  phase_flux->getPointer(1),
+                             dx, d_epsilon_phase, phase->getPointer(),
+                             phase->getGhostCellWidth()[0],
+                             phase_flux->getPointer(0),
+                             phase_flux->getPointer(1),
 #if (NDIM == 3)
-                                  phase_flux->getPointer(2),
+                             phase_flux->getPointer(2),
 #endif
-                                  phase_flux->getGhostCellWidth()[0]);
+                             phase_flux->getGhostCellWidth()[0]);
    }
 }

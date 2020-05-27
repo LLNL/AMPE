@@ -35,7 +35,7 @@
 
 #include "CellPoissonHypreSolver.h"
 #include "toolsSAMRAI.h"
-
+#include "fc_samrai_mangle.h"
 
 extern "C" {
 
@@ -43,18 +43,18 @@ extern "C" {
 #pragma warning(disable : 1419)
 #endif
 
-void compdiagvariablec2d_(double *diag, const double *c, const double *offdiagi,
-                          const double *offdiagj, const int *ifirst,
-                          const int *ilast, const int *jfirst, const int *jlast,
-                          const double *cscale, const double *dscale);
-void compdiagscalarc2d_(double *diag, const double *c, const double *offdiagi,
-                        const double *offdiagj, const int *ifirst,
-                        const int *ilast, const int *jfirst, const int *jlast,
-                        const double *cscale, const double *dscale);
-void compdiagzeroc2d_(double *diag, const double *offdiagi,
-                      const double *offdiagj, const int *ifirst,
-                      const int *ilast, const int *jfirst, const int *jlast,
-                      const double *cscale, const double *dscale);
+void COMPDIAGVARIABLEC2D(double *diag, const double *c, const double *offdiagi,
+                         const double *offdiagj, const int *ifirst,
+                         const int *ilast, const int *jfirst, const int *jlast,
+                         const double *cscale, const double *dscale);
+void COMPDIAGSCALARC2D(double *diag, const double *c, const double *offdiagi,
+                       const double *offdiagj, const int *ifirst,
+                       const int *ilast, const int *jfirst, const int *jlast,
+                       const double *cscale, const double *dscale);
+void COMPDIAGZEROC2D(double *diag, const double *offdiagi,
+                     const double *offdiagj, const int *ifirst,
+                     const int *ilast, const int *jfirst, const int *jlast,
+                     const double *cscale, const double *dscale);
 void SAMRAI_F77_FUNC(adjbdry2d, ADJBDRY2D)(
     double *diag, const double *offdiagi, const double *offdiagj,
     const int *pifirst, const int *pilast, const int *pjfirst,
@@ -63,36 +63,35 @@ void SAMRAI_F77_FUNC(adjbdry2d, ADJBDRY2D)(
     const int *ajlast, const double *Ak0, const int *kifirst, const int *kilast,
     const int *kjfirst, const int *kjlast, const int *lower, const int *upper,
     const int *location, const double *h);
-void adjbdryconstoffdiags2d_(
+void ADJBDRYCONSTOFFDIAGS2D(
     double *diag, const double *offdiag, const int *pifirst, const int *pilast,
     const int *pjfirst, const int *pjlast, const double *acoef,
     const int *aifirst, const int *ailast, const int *ajfirst,
     const int *ajlast, const double *Ak0, const int *kifirst, const int *kilast,
     const int *kjfirst, const int *kjlast, const int *lower, const int *upper,
     const int *location, const double *h);
-void adjustrhs2d_(double *rhs, const int *rifirst, const int *rilast,
-                  const int *rjfirst, const int *rjlast, const double *Ak0,
-                  const int *kifirst, const int *kilast, const int *kjfirst,
-                  const int *kjlast, const double *gcoef, const int *aifirst,
-                  const int *ailast, const int *ajfirst, const int *ajlast,
-                  const int *lower, const int *upper, const int *location);
+void ADJUSTRHS2D(double *rhs, const int *rifirst, const int *rilast,
+                 const int *rjfirst, const int *rjlast, const double *Ak0,
+                 const int *kifirst, const int *kilast, const int *kjfirst,
+                 const int *kjlast, const double *gcoef, const int *aifirst,
+                 const int *ailast, const int *ajfirst, const int *ajlast,
+                 const int *lower, const int *upper, const int *location);
 
-void compdiagvariablec3d_(double *diag, const double *c, const double *offdiagi,
-                          const double *offdiagj, const double *offdiagk,
-                          const int *ifirst, const int *ilast,
-                          const int *jfirst, const int *jlast,
-                          const int *kfirst, const int *klast,
-                          const double *cscale, const double *dscale);
-void compdiagscalarc3d_(double *diag, const double *c, const double *offdiagi,
-                        const double *offdiagj, const double *offdiagk,
-                        const int *ifirst, const int *ilast, const int *jfirst,
-                        const int *jlast, const int *kfirst, const int *klast,
-                        const double *cscale, const double *dscale);
-void compdiagzeroc3d_(double *diag, const double *offdiagi,
-                      const double *offdiagj, const double *offdiagk,
-                      const int *ifirst, const int *ilast, const int *jfirst,
-                      const int *jlast, const int *kfirst, const int *klast,
-                      const double *cscale, const double *dscale);
+void COMPDIAGVARIABLEC3D(double *diag, const double *c, const double *offdiagi,
+                         const double *offdiagj, const double *offdiagk,
+                         const int *ifirst, const int *ilast, const int *jfirst,
+                         const int *jlast, const int *kfirst, const int *klast,
+                         const double *cscale, const double *dscale);
+void COMPDIAGSCALARC3D(double *diag, const double *c, const double *offdiagi,
+                       const double *offdiagj, const double *offdiagk,
+                       const int *ifirst, const int *ilast, const int *jfirst,
+                       const int *jlast, const int *kfirst, const int *klast,
+                       const double *cscale, const double *dscale);
+void COMPDIAGZEROC3D(double *diag, const double *offdiagi,
+                     const double *offdiagj, const double *offdiagk,
+                     const int *ifirst, const int *ilast, const int *jfirst,
+                     const int *jlast, const int *kfirst, const int *klast,
+                     const double *cscale, const double *dscale);
 void SAMRAI_F77_FUNC(adjbdry3d, ADJBDRY3D)(
     double *diag, const double *offdiagi, const double *offdiagj,
     const double *offdiagk, const int *pifirst, const int *pilast,
@@ -103,7 +102,7 @@ void SAMRAI_F77_FUNC(adjbdry3d, ADJBDRY3D)(
     const int *kifirst, const int *kilast, const int *kjfirst,
     const int *kjlast, const int *kkfirst, const int *kklast, const int *lower,
     const int *upper, const int *location, const double *h);
-void adjbdryconstoffdiags3d_(
+void ADJBDRYCONSTOFFDIAGS3D(
     double *diag, const double *offdiag, const int *pifirst, const int *pilast,
     const int *pjfirst, const int *pjlast, const int *pkfirst,
     const int *pklast, const double *acoef, const int *aifirst,
@@ -112,24 +111,24 @@ void adjbdryconstoffdiags3d_(
     const int *kifirst, const int *kilast, const int *kjfirst,
     const int *kjlast, const int *kkfirst, const int *kklast, const int *lower,
     const int *upper, const int *location, const double *h);
-void adjustrhs3d_(double *rhs, const int *rifirst, const int *rilast,
-                  const int *rjfirst, const int *rjlast, const int *rkfirst,
-                  const int *rklast, const double *Ak0, const int *kifirst,
-                  const int *kilast, const int *kjfirst, const int *kjlast,
-                  const int *kkfirst, const int *kklast, const double *gcoef,
-                  const int *aifirst, const int *ailast, const int *ajfirst,
-                  const int *ajlast, const int *akfirst, const int *aklast,
-                  const int *lower, const int *upper, const int *location);
+void ADJUSTRHS3D(double *rhs, const int *rifirst, const int *rilast,
+                 const int *rjfirst, const int *rjlast, const int *rkfirst,
+                 const int *rklast, const double *Ak0, const int *kifirst,
+                 const int *kilast, const int *kjfirst, const int *kjlast,
+                 const int *kkfirst, const int *kklast, const double *gcoef,
+                 const int *aifirst, const int *ailast, const int *ajfirst,
+                 const int *ajlast, const int *akfirst, const int *aklast,
+                 const int *lower, const int *upper, const int *location);
 
-void multiplyoffdiagbym_(const int &, const int &, const int &, const int &,
+void MULTIPLYOFFDIAGBYM(const int &, const int &, const int &, const int &,
 #if (NDIM > 2)
-                         const int &, const int &,
+                        const int &, const int &,
 #endif
-                         double *const, double *const,
+                        double *const, double *const,
 #if (NDIM > 2)
-                         double *const,
+                        double *const,
 #endif
-                         const int &, const double *const, const int &);
+                        const int &, const double *const, const int &);
 }
 
 boost::shared_ptr<pdat::OutersideVariable<double> >
@@ -1270,30 +1269,26 @@ void CellPoissonHypreSolver::add_gAk0_toRhs(
        * beg=beginning, end=ending.
        */
       if (d_dim == tbox::Dimension(2)) {
-         adjustrhs2d_(rhs.getPointer(d_rhs_depth), &rhsbox.lower()[0],
-                      &rhsbox.upper()[0], &rhsbox.lower()[1],
-                      &rhsbox.upper()[1],
-                      Ak0->getPointer(location_index / 2, location_index % 2),
-                      &Ak0box.lower()[0], &Ak0box.upper()[0],
-                      &Ak0box.lower()[1], &Ak0box.upper()[1],
-                      gcoef_data->getPointer(), &bccoef_box.lower()[0],
-                      &bccoef_box.upper()[0], &bccoef_box.lower()[1],
-                      &bccoef_box.upper()[1], &lower[0], &upper[0],
-                      &location_index);
+         ADJUSTRHS2D(rhs.getPointer(d_rhs_depth), &rhsbox.lower()[0],
+                     &rhsbox.upper()[0], &rhsbox.lower()[1], &rhsbox.upper()[1],
+                     Ak0->getPointer(location_index / 2, location_index % 2),
+                     &Ak0box.lower()[0], &Ak0box.upper()[0], &Ak0box.lower()[1],
+                     &Ak0box.upper()[1], gcoef_data->getPointer(),
+                     &bccoef_box.lower()[0], &bccoef_box.upper()[0],
+                     &bccoef_box.lower()[1], &bccoef_box.upper()[1], &lower[0],
+                     &upper[0], &location_index);
       } else if (d_dim == tbox::Dimension(3)) {
-         adjustrhs3d_(rhs.getPointer(d_rhs_depth), &rhsbox.lower()[0],
-                      &rhsbox.upper()[0], &rhsbox.lower()[1],
-                      &rhsbox.upper()[1], &rhsbox.lower()[2],
-                      &rhsbox.upper()[2],
-                      Ak0->getPointer(location_index / 2, location_index % 2),
-                      &Ak0box.lower()[0], &Ak0box.upper()[0],
-                      &Ak0box.lower()[1], &Ak0box.upper()[1],
-                      &Ak0box.lower()[2], &Ak0box.upper()[2],
-                      gcoef_data->getPointer(), &bccoef_box.lower()[0],
-                      &bccoef_box.upper()[0], &bccoef_box.lower()[1],
-                      &bccoef_box.upper()[1], &bccoef_box.lower()[2],
-                      &bccoef_box.upper()[2], &lower[0], &upper[0],
-                      &location_index);
+         ADJUSTRHS3D(rhs.getPointer(d_rhs_depth), &rhsbox.lower()[0],
+                     &rhsbox.upper()[0], &rhsbox.lower()[1], &rhsbox.upper()[1],
+                     &rhsbox.lower()[2], &rhsbox.upper()[2],
+                     Ak0->getPointer(location_index / 2, location_index % 2),
+                     &Ak0box.lower()[0], &Ak0box.upper()[0], &Ak0box.lower()[1],
+                     &Ak0box.upper()[1], &Ak0box.lower()[2], &Ak0box.upper()[2],
+                     gcoef_data->getPointer(), &bccoef_box.lower()[0],
+                     &bccoef_box.upper()[0], &bccoef_box.lower()[1],
+                     &bccoef_box.upper()[1], &bccoef_box.lower()[2],
+                     &bccoef_box.upper()[2], &lower[0], &upper[0],
+                     &location_index);
       }
    }
    return;
@@ -1622,17 +1617,17 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
 #endif
 
    if (d_dim == tbox::Dimension(2)) {
-      compdiagvariablec2d_(diagonal.getPointer(), C_data.getPointer(),
-                           off_diagonal.getPointer(0),
-                           off_diagonal.getPointer(1), &patch_lo[0],
-                           &patch_up[0], &patch_lo[1], &patch_up[1], &c, &d);
+      COMPDIAGVARIABLEC2D(diagonal.getPointer(), C_data.getPointer(),
+                          off_diagonal.getPointer(0),
+                          off_diagonal.getPointer(1), &patch_lo[0],
+                          &patch_up[0], &patch_lo[1], &patch_up[1], &c, &d);
    } else if (d_dim == tbox::Dimension(3)) {
-      compdiagvariablec3d_(diagonal.getPointer(), C_data.getPointer(),
-                           off_diagonal.getPointer(0),
-                           off_diagonal.getPointer(1),
-                           off_diagonal.getPointer(2), &patch_lo[0],
-                           &patch_up[0], &patch_lo[1], &patch_up[1],
-                           &patch_lo[2], &patch_up[2], &c, &d);
+      COMPDIAGVARIABLEC3D(diagonal.getPointer(), C_data.getPointer(),
+                          off_diagonal.getPointer(0),
+                          off_diagonal.getPointer(1),
+                          off_diagonal.getPointer(2), &patch_lo[0],
+                          &patch_up[0], &patch_lo[1], &patch_up[1],
+                          &patch_lo[2], &patch_up[2], &c, &d);
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1651,14 +1646,14 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
    const hier::Index patch_up = patch_box.upper();
    const double c = 1.0, d = 1.0;
    if (d_dim == tbox::Dimension(2)) {
-      compdiagscalarc2d_(diagonal.getPointer(), &C, off_diagonal.getPointer(0),
-                         off_diagonal.getPointer(1), &patch_lo[0], &patch_up[0],
-                         &patch_lo[1], &patch_up[1], &c, &d);
+      COMPDIAGSCALARC2D(diagonal.getPointer(), &C, off_diagonal.getPointer(0),
+                        off_diagonal.getPointer(1), &patch_lo[0], &patch_up[0],
+                        &patch_lo[1], &patch_up[1], &c, &d);
    } else if (d_dim == tbox::Dimension(3)) {
-      compdiagscalarc3d_(diagonal.getPointer(), &C, off_diagonal.getPointer(0),
-                         off_diagonal.getPointer(1), off_diagonal.getPointer(2),
-                         &patch_lo[0], &patch_up[0], &patch_lo[1], &patch_up[1],
-                         &patch_lo[2], &patch_up[2], &c, &d);
+      COMPDIAGSCALARC3D(diagonal.getPointer(), &C, off_diagonal.getPointer(0),
+                        off_diagonal.getPointer(1), off_diagonal.getPointer(2),
+                        &patch_lo[0], &patch_up[0], &patch_lo[1], &patch_up[1],
+                        &patch_lo[2], &patch_up[2], &c, &d);
    } else {
       TBOX_ERROR("CellPoissonHypreSolver error...\n"
                  << "DIM > 3 not supported." << std::endl);
@@ -1674,14 +1669,14 @@ void CellPoissonHypreSolver::computeDiagonalEntries(
    const hier::Index patch_up = patch_box.upper();
    const double c = 1.0, d = 1.0;
    if (d_dim == tbox::Dimension(2)) {
-      compdiagzeroc2d_(diagonal.getPointer(), off_diagonal.getPointer(0),
-                       off_diagonal.getPointer(1), &patch_lo[0], &patch_up[0],
-                       &patch_lo[1], &patch_up[1], &c, &d);
+      COMPDIAGZEROC2D(diagonal.getPointer(), off_diagonal.getPointer(0),
+                      off_diagonal.getPointer(1), &patch_lo[0], &patch_up[0],
+                      &patch_lo[1], &patch_up[1], &c, &d);
    } else if (d_dim == tbox::Dimension(3)) {
-      compdiagzeroc3d_(diagonal.getPointer(), off_diagonal.getPointer(0),
-                       off_diagonal.getPointer(1), off_diagonal.getPointer(2),
-                       &patch_lo[0], &patch_up[0], &patch_lo[1], &patch_up[1],
-                       &patch_lo[2], &patch_up[2], &c, &d);
+      COMPDIAGZEROC3D(diagonal.getPointer(), off_diagonal.getPointer(0),
+                      off_diagonal.getPointer(1), off_diagonal.getPointer(2),
+                      &patch_lo[0], &patch_up[0], &patch_lo[1], &patch_up[1],
+                      &patch_lo[2], &patch_up[2], &c, &d);
    } else {
       TBOX_ERROR("CellPoissonHypreSolver error...\n"
                  << "DIM > 3 not supported." << std::endl);

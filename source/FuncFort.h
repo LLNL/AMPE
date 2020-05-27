@@ -36,33 +36,20 @@
 #ifndef FuncFort_H
 #define FuncFort_H
 
-// Link between C/C++ and Fortran files
-//       name in             name in
-//      C/C++ code            Fortran code
-//      ----------            ------------
-#define FORT_WELL_FUNC well_func_
-#define FORT_DERIV_WELL_FUNC deriv_well_func_
-#define FORT_SECOND_DERIV_WELL_FUNC second_deriv_well_func_
-#define FORT_INTERP_FUNC interp_func_
-#define FORT_DERIV_INTERP_FUNC deriv_interp_func_
-#define FORT_SECOND_DERIV_INTERP_FUNC second_deriv_interp_func_
-#define FORT_AVERAGE_FUNC average_func_
-#define FORT_DERIV_AVERAGE_FUNC deriv_average_func_
-#define FORT_INTERP_RATIO_FUNC interp_ratio_
-#define FORT_COMPL_INTERP_RATIO_FUNC compl_interp_ratio_
+#include "fc_mangle.h"
 
 // Function argument list interfaces
 extern "C" {
-double FORT_WELL_FUNC(const double&, const char*);
-double FORT_DERIV_WELL_FUNC(const double&, const char*);
-double FORT_SECOND_DERIV_WELL_FUNC(const double&, const char*);
-double FORT_INTERP_FUNC(const double&, const char*);
-double FORT_DERIV_INTERP_FUNC(const double&, const char*);
-double FORT_SECOND_DERIV_INTERP_FUNC(const double&, const char*);
-double FORT_AVERAGE_FUNC(const double&, const double&, const char*);
-double FORT_DERIV_AVERAGE_FUNC(const double&, const double&, const char*);
-double FORT_INTERP_RATIO_FUNC(const double&, const char*, const char*);
-double FORT_COMPL_INTERP_RATIO_FUNC(const double&, const char*, const char*);
+double WELL_FUNC(const double&, const char*);
+double DERIV_WELL_FUNC(const double&, const char*);
+double SECOND_DERIV_WELL_FUNC(const double&, const char*);
+double INTERP_FUNC(const double&, const char*);
+double DERIV_INTERP_FUNC(const double&, const char*);
+double SECOND_DERIV_INTERP_FUNC(const double&, const char*);
+double AVERAGE_FUNC(const double&, const double&, const char*);
+double DERIV_AVERAGE_FUNC(const double&, const double&, const char*);
+double INTERP_RATIO_FUNC(const double&, const char*, const char*);
+double COMPL_INTERP_RATIO_FUNC(const double&, const char*, const char*);
 }
 
 #endif

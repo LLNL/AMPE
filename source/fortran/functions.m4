@@ -563,17 +563,17 @@ c-----------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      function interp_ratio(phi, type1, type2)
+      function interp_ratio_func(phi, type1, type2)
 
       implicit none
 
-      double precision interp_ratio
+      double precision interp_ratio_func
       double precision phi, phit
       character*(*) type1, type2
 
       if ( type1(1:1) .eq. type2(1:1) )then
 
-         interp_ratio = 1.d0
+         interp_ratio_func = 1.d0
 
       else if ( type1(1:1) .eq. 'p' )then
 
@@ -581,7 +581,7 @@ c-----------------------------------------------------------------------
 
             phit = max( 0.d0, min( 1.d0, phi ) )
 
-            interp_ratio = phit * phit * 
+            interp_ratio_func = phit * phit * 
      &                     ( 10.d0 - 15.d0 * phit + 6.d0 * phit * phit )
 
          else
@@ -602,40 +602,42 @@ c-----------------------------------------------------------------------
 
 c-----------------------------------------------------------------------
 
-      function compl_interp_ratio(phi, type1, type2)
+      function compl_interp_ratio_func(phi, type1, type2)
 
       implicit none
 
-      double precision compl_interp_ratio
+      double precision compl_interp_ratio_func
       double precision phi, phit
       character*(*) type1, type2
 
       if ( type1(1:1) .eq. type2(1:1) )then
 
-         compl_interp_ratio = 1.d0
+         compl_interp_ratio_func = 1.d0
 
       else if ( type1(1:1) .eq. 'p' )then
 
          if ( type2(1:1) .eq. 'p' )then
 
-            compl_interp_ratio = 1.d0
+            compl_interp_ratio_func = 1.d0
 
          else if ( type2(1:1) .eq. 'l' )then
 
             phit = max( 0.d0, min( 1.d0, phi ) )
 
-            compl_interp_ratio = (1.d0-phit) * (1.d0-phit) *
+            compl_interp_ratio_func = (1.d0-phit) * (1.d0-phit) *
      &                     ( 1.d0 + 3.d0 * phit + 6.d0 * phit * phit )
 
          else
 
-            print *, "Error, compl_interp_ratio: unknown/incomp. types"
+            print *, "Error:"
+            print *, "compl_interp_ratio: unknown/incompatible types"
             stop
 
          endif
       else
 
-         print *, "Error, interp_ratio: unknown/incompatible types"
+         print *, "Error:"
+         print *, "compl_interp_ratio: unknown/incompatible types"
          stop
 
       endif

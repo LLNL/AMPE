@@ -225,7 +225,7 @@ void PhaseFACOps::setCOnPatchPrivate(
             const double phi = ptr_phi[idx_pf];
 
             const double g_phi_dbl_prime =
-                FORT_SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
+                SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
 
             const double gamma_m = gamma * m;
 
@@ -239,9 +239,9 @@ void PhaseFACOps::setCOnPatchPrivate(
                const double eta = ptr_eta[idx_pf];
 
                const double h_phi_dbl_prime =
-                   FORT_SECOND_DERIV_INTERP_FUNC(phi, &interp);
+                   SECOND_DERIV_INTERP_FUNC(phi, &interp);
 
-               const double g_eta = FORT_WELL_FUNC(eta, eta_well_func_type);
+               const double g_eta = WELL_FUNC(eta, eta_well_func_type);
 
                ptr_c[idx_c] +=
                    gamma_m * eta_well_scale * g_eta * h_phi_dbl_prime;

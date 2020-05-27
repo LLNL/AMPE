@@ -139,7 +139,7 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
             const double phi = ptr_phi[idx_pf];
             assert(phi == phi);
 
-            const double hphi = FORT_INTERP_FUNC(phi, &interp);
+            const double hphi = INTERP_FUNC(phi, &interp);
             assert(hphi >= 0.);
             // if( hphi>1. )std::cerr<<"phi="<<phi<<std::endl;
             // if( hphi>1. )std::cerr<<"hphi="<<hphi<<std::endl;

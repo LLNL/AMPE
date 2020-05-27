@@ -161,7 +161,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForConcentration(
          assert(cd_partition_coeff);
 
          const char interp_func_type = concInterpChar(d_phase_interp_func_type);
-         FORT_CONCENTRATIONDIFFUSIONBECKERMANN(
+         CONCENTRATIONDIFFUSION_BECKERMANN(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
@@ -320,7 +320,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
             const int idxm1_k = idx_k - 1;
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
-            double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+            double hphi = INTERP_FUNC(phi, &interp_func_type);
 
             double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
@@ -359,7 +359,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
             // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
 
-            double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+            double hphi = INTERP_FUNC(phi, &interp_func_type);
 
             double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
@@ -398,7 +398,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
                assert(phi == phi);
 
-               double hphi = FORT_INTERP_FUNC(phi, &interp_func_type);
+               double hphi = INTERP_FUNC(phi, &interp_func_type);
 
                double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
@@ -465,31 +465,30 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
 
    // now compute concentration flux
-   FORT_CONCENTRATION_FLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   CONCENTRATIONFLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                           ifirst(2), ilast(2),
+                     ifirst(2), ilast(2),
 #endif
-                           dx, conc->getPointer(), NGHOSTS, phase->getPointer(),
-                           NGHOSTS, 0, NGHOSTS,
-                           sd_conc_diffusion0->getPointer(0),
-                           sd_conc_diffusion0->getPointer(1),
+                     dx, conc->getPointer(), NGHOSTS, phase->getPointer(),
+                     NGHOSTS, 0, NGHOSTS, sd_conc_diffusion0->getPointer(0),
+                     sd_conc_diffusion0->getPointer(1),
 #if (NDIM == 3)
-                           sd_conc_diffusion0->getPointer(2),
+                     sd_conc_diffusion0->getPointer(2),
 #endif
-                           0, sd_conc_phase_coupling_diffusion->getPointer(0),
-                           sd_conc_phase_coupling_diffusion->getPointer(1),
+                     0, sd_conc_phase_coupling_diffusion->getPointer(0),
+                     sd_conc_phase_coupling_diffusion->getPointer(1),
 #if (NDIM == 3)
-                           sd_conc_phase_coupling_diffusion->getPointer(2),
+                     sd_conc_phase_coupling_diffusion->getPointer(2),
 #endif
-                           0, nullptr, nullptr,
+                     0, nullptr, nullptr,
 #if (NDIM == 3)
-                           nullptr,
+                     nullptr,
 #endif
-                           0, flux->getPointer(0), flux->getPointer(1),
+                     0, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
-                           flux->getPointer(2),
+                     flux->getPointer(2),
 #endif
-                           flux->getGhostCellWidth()[0], three_phase);
+                     flux->getGhostCellWidth()[0], three_phase);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2f = ops.L2Norm(flux, pbox);

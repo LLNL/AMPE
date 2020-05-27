@@ -676,7 +676,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
             assert(fabs(mu[1] - muprime[1]) < tol);
 #endif
 
-            double hphi_prime = FORT_DERIV_INTERP_FUNC(phi, &interpf);
+            double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
 
             ptr_rhs[idx_rhs] +=
                 hphi_prime * ((f_l - f_a) - mu[0] * (c_l[0] - c_a[0]) -

@@ -144,11 +144,11 @@ void HBSMequilibriumPhaseConcentrationsStrategy::
                eta = ptr_eta[idx_pf];
             }
 
-            double hphi = FORT_INTERP_FUNC(phi, &interpf);
+            double hphi = INTERP_FUNC(phi, &interpf);
 
             double heta = 0.0;
             if (d_with_third_phase) {
-               heta = FORT_INTERP_FUNC(eta, &interpf);
+               heta = INTERP_FUNC(eta, &interpf);
             }
 
             double c_l =
