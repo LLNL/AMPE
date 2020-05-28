@@ -258,6 +258,8 @@ c-----------------------------------------------------------------------
       double precision threshold, threshold2
       double precision invthreshold, grad2
 
+      logical isnan
+
       threshold2 = threshold*threshold
       invthreshold = 1./threshold
       

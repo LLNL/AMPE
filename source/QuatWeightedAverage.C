@@ -42,6 +42,8 @@
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/tbox/Utilities.h"
 
+#include "fc_mangle.h"
+
 #include <cassert>
 
 
@@ -54,21 +56,21 @@
 */
 extern "C" {
 #if (NDIM == 2)
-void quatcoarsen_(const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const int*, const double*,
-                  const double*, const double*, double*, const int&, const int&,
-                  const int*, const int*, const int&, const int&, const int&,
-                  const int&);
+void QUATCOARSEN(const int&, const int&, const int&, const int&, const int&,
+                 const int&, const int&, const int&, const int&, const int&,
+                 const int&, const int&, const int*, const double*,
+                 const double*, const double*, double*, const int&, const int&,
+                 const int*, const int*, const int&, const int&, const int&,
+                 const int&);
 #endif
 #if (NDIM == 3)
-void quatcoarsen_(const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const int&, const int*, const double*,
-                  const double*, const double*, double*, const int&, const int&,
-                  const int*, const int*, const int*, const int&, const int&,
-                  const int&, const int&, const int&, const int&);
+void QUATCOARSEN(const int&, const int&, const int&, const int&, const int&,
+                 const int&, const int&, const int&, const int&, const int&,
+                 const int&, const int&, const int&, const int&, const int&,
+                 const int&, const int&, const int&, const int*, const double*,
+                 const double*, const double*, double*, const int&, const int&,
+                 const int*, const int*, const int*, const int&, const int&,
+                 const int&, const int&, const int&, const int&);
 #endif
 }
 
@@ -156,38 +158,38 @@ void QuatWeightedAverage::coarsen(hier::Patch& coarse, const hier::Patch& fine,
       const hier::Index r_upper = rot_gbox.upper();
 
 #if (NDIM == 2)
-      quatcoarsen_(ifirstc(0), ifirstc(1), ilastc(0), ilastc(1), filo(0),
-                   filo(1), fihi(0), fihi(1), cilo(0), cilo(1), cihi(0),
-                   cihi(1), &ratio[0], fgeom->getDx(), cgeom->getDx(),
-                   fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
-                   sym_flag, rotation_index->getPointer(0),
-                   rotation_index->getPointer(1), r_lower[0], r_upper[0],
-                   r_lower[1], r_upper[1]);
+      QUATCOARSEN(ifirstc(0), ifirstc(1), ilastc(0), ilastc(1), filo(0),
+                  filo(1), fihi(0), fihi(1), cilo(0), cilo(1), cihi(0), cihi(1),
+                  &ratio[0], fgeom->getDx(), cgeom->getDx(),
+                  fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
+                  sym_flag, rotation_index->getPointer(0),
+                  rotation_index->getPointer(1), r_lower[0], r_upper[0],
+                  r_lower[1], r_upper[1]);
 #else
-      quatcoarsen_(ifirstc(0), ifirstc(1), ifirstc(2), ilastc(0), ilastc(1),
-                   ilastc(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
-                   fihi(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1),
-                   cihi(2), &ratio[0], fgeom->getDx(), cgeom->getDx(),
-                   fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
-                   sym_flag, rotation_index->getPointer(0),
-                   rotation_index->getPointer(1), rotation_index->getPointer(2),
-                   r_lower[0], r_upper[0], r_lower[1], r_upper[1], r_lower[2],
-                   r_upper[2]);
+      QUATCOARSEN(ifirstc(0), ifirstc(1), ifirstc(2), ilastc(0), ilastc(1),
+                  ilastc(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
+                  fihi(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1), cihi(2),
+                  &ratio[0], fgeom->getDx(), cgeom->getDx(),
+                  fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
+                  sym_flag, rotation_index->getPointer(0),
+                  rotation_index->getPointer(1), rotation_index->getPointer(2),
+                  r_lower[0], r_upper[0], r_lower[1], r_upper[1], r_lower[2],
+                  r_upper[2]);
 #endif
    } else {
 #if (NDIM == 2)
-      quatcoarsen_(ifirstc(0), ifirstc(1), ilastc(0), ilastc(1), filo(0),
-                   filo(1), fihi(0), fihi(1), cilo(0), cilo(1), cihi(0),
-                   cihi(1), &ratio[0], fgeom->getDx(), cgeom->getDx(),
-                   fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
-                   sym_flag, 0, 0, 0, 0, 0, 0);
+      QUATCOARSEN(ifirstc(0), ifirstc(1), ilastc(0), ilastc(1), filo(0),
+                  filo(1), fihi(0), fihi(1), cilo(0), cilo(1), cihi(0), cihi(1),
+                  &ratio[0], fgeom->getDx(), cgeom->getDx(),
+                  fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
+                  sym_flag, 0, 0, 0, 0, 0, 0);
 #else
-      quatcoarsen_(ifirstc(0), ifirstc(1), ifirstc(2), ilastc(0), ilastc(1),
-                   ilastc(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
-                   fihi(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1),
-                   cihi(2), &ratio[0], fgeom->getDx(), cgeom->getDx(),
-                   fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
-                   sym_flag, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      QUATCOARSEN(ifirstc(0), ifirstc(1), ifirstc(2), ilastc(0), ilastc(1),
+                  ilastc(2), filo(0), filo(1), filo(2), fihi(0), fihi(1),
+                  fihi(2), cilo(0), cilo(1), cilo(2), cihi(0), cihi(1), cihi(2),
+                  &ratio[0], fgeom->getDx(), cgeom->getDx(),
+                  fdata->getPointer(), cdata->getPointer(), cdata->getDepth(),
+                  sym_flag, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 #endif
    }
 }

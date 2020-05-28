@@ -43,12 +43,9 @@
 using namespace SAMRAI;
 
 
-#define COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE \
-   computedphidtemperaturedeltatemperature_
-
 extern "C" {
 
-void COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+void COMPUTEDPHIDTEMPERATUREDELTATEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
 #if (NDIM == 3)
@@ -196,7 +193,7 @@ void DeltaTemperatureFreeEnergyStrategy::applydPhidTBlock(
              BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(rhs_id)));
 
-         COMP_DPHIDTEMPERATURE_DELTA_TEMPERATURE(
+         COMPUTEDPHIDTEMPERATUREDELTATEMPERATURE(
              ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
              ifirst(2), ilast(2),
