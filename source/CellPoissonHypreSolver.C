@@ -955,19 +955,19 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
                diagonal(icell) += cval;
 
             }  // end cell loop
-            multiplyoffdiagbym_(patch_lo[0], patch_up[0], patch_lo[1],
-                                patch_up[1],
+            MULTIPLYOFFDIAGBYM(patch_lo[0], patch_up[0], patch_lo[1],
+                               patch_up[1],
 #if (NDIM > 2)
-                                patch_lo[2], patch_up[2],
+                               patch_lo[2], patch_up[2],
 #endif
-                                off_diagonal.getPointer(0),
-                                off_diagonal.getPointer(1),
+                               off_diagonal.getPointer(0),
+                               off_diagonal.getPointer(1),
 #if (NDIM > 2)
-                                off_diagonal.getPointer(2),
+                               off_diagonal.getPointer(2),
 #endif
-                                off_diagonal.getGhostCellWidth()[0],
-                                msqrt->getPointer(),
-                                msqrt->getGhostCellWidth()[0]);
+                               off_diagonal.getGhostCellWidth()[0],
+                               msqrt->getPointer(),
+                               msqrt->getGhostCellWidth()[0]);
 
          }      // M not constant
       } else {  // C not constant
@@ -1015,19 +1015,19 @@ void CellPoissonHypreSolver::setMatrixCoefficients(
 
             }  // end cell loop
 
-            multiplyoffdiagbym_(patch_lo[0], patch_up[0], patch_lo[1],
-                                patch_up[1],
+            MULTIPLYOFFDIAGBYM(patch_lo[0], patch_up[0], patch_lo[1],
+                               patch_up[1],
 #if (NDIM > 2)
-                                patch_lo[2], patch_up[2],
+                               patch_lo[2], patch_up[2],
 #endif
-                                off_diagonal.getPointer(0),
-                                off_diagonal.getPointer(1),
+                               off_diagonal.getPointer(0),
+                               off_diagonal.getPointer(1),
 #if (NDIM > 2)
-                                off_diagonal.getPointer(2),
+                               off_diagonal.getPointer(2),
 #endif
-                                off_diagonal.getGhostCellWidth()[0],
-                                msqrt->getPointer(),
-                                msqrt->getGhostCellWidth()[0]);
+                               off_diagonal.getGhostCellWidth()[0],
+                               msqrt->getPointer(),
+                               msqrt->getGhostCellWidth()[0]);
          }  // M not constant
       }     // C not constant
 
