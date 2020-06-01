@@ -215,7 +215,6 @@ void KKSdiluteBinary::computeFreeEnergyPrivate(hier::Patch& patch,
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
-   assert(conc_i_id >= 0);
 
    int conc_i_id = -1;
    if (pi == PhaseIndex::phaseL)
