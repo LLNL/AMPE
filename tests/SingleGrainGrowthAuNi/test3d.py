@@ -50,10 +50,7 @@ for line in lines:
     time=eval(words[6])
     if time>0.3:
       end_reached = True
-      dt=eval(words[10])
-      if (dt-0.0018)<0.:
-        print("Wrong dt")
-        sys.exit(1)
+
   num_matches = line.count(b'fraction')
   if num_matches:
     print(line)
