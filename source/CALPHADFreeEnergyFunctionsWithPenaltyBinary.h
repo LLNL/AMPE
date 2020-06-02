@@ -74,7 +74,6 @@ class CALPHADFreeEnergyFunctionsWithPenaltyBinary
    double computePenalty(const PhaseIndex index, const double conc)
    {
       assert(d_penalty_parameters.size() > 0);
-      assert(d_penalty_parameters.size() > index);
       const std::vector<double>& penalty_parameters(
           d_penalty_parameters[static_cast<int>(index)]);
       assert(penalty_parameters.size() == 6);
@@ -91,7 +90,6 @@ class CALPHADFreeEnergyFunctionsWithPenaltyBinary
    double computeDerivPenalty(const PhaseIndex index, const double conc)
    {
       assert(d_penalty_parameters.size() > 0);
-      assert(d_penalty_parameters.size() > index);
       const std::vector<double>& penalty_parameters(
           d_penalty_parameters[static_cast<int>(index)]);
       assert(penalty_parameters.size() == 6);
@@ -109,7 +107,6 @@ class CALPHADFreeEnergyFunctionsWithPenaltyBinary
    double compute2ndDerivPenalty(const PhaseIndex index, const double conc)
    {
       assert(d_penalty_parameters.size() > 0);
-      assert(d_penalty_parameters.size() > index);
       const std::vector<double>& penalty_parameters(
           d_penalty_parameters[static_cast<int>(index)]);
       assert(penalty_parameters.size() == 6);
