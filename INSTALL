@@ -33,7 +33,38 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-Step 0:
+////////////////////////////////////////////////////////////////////////////
+
+Step 0: Build any necessary third-party library as needed
+
+AMPE requires the third-party packages hypre and SAMRAI. These libaries
+are typically not pre-installed on most systems and need to be installed.
+SAMRAI: compatible with version 4.0.0 or later, built without Sundials.
+
+To build SAMRAI4.0.0, do something similar to this:
+--------------------------------------------------
+
+Download SAMRAI release from
+https://computing.llnl.gov/projects/samrai/software#download
+(includes BLT)
+
+gunzip  SAMRAI-v4.0.0.tar.gz
+cat SAMRAI-v4.0.0.tar|tar -xpf -
+mv SAMRAI SAMRAI-v4.0.0
+
+cd SAMRAI-v4.0.0
+mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_Fortran_COMPILER=mpif77 \
+      -DHDF5_DIR=$HDF5_DIR -DHYPRE_DIR=$HOME/hypre/gnu-cpu \
+      -DCMAKE_INSTALL_PREFIX=/home/q8j/SAMRAI/SAMRAI-v4.0.0 ..
+
+make
+make install
+
+////////////////////////////////////////////////////////////////////////////
+
+Step 1:
 Run autoconf:
 
    autoconf
@@ -42,7 +73,7 @@ This should generate the 'configure' file
 
 ////////////////////////////////////////////////////////////////////////////
 
-Step 1: Configure for a specific combination of platform, compiler and
+Step 2: Configure for a specific combination of platform, compiler and
         optimization level
 
 After checking out from the repository, cd into the top level
@@ -63,7 +94,7 @@ upon.
 
 ////////////////////////////////////////////////////////////////////////////
 
-Step 2: Install the base (i.e., third-party) libraries for the
+Step 3: Install the base (i.e., third-party) libraries for the
         new platform-compiler-optimization combination
 
 The configuration step just performed will create a subdirectory
@@ -92,42 +123,12 @@ execute the doinstall script located there:
   doinstall
 
 This will compile and install the base libraries, which currently
-consist of Hypre, Sundials and SAMRAI.  The SAMRAI build takes a while, so
-patience is required.
+consist of Sundials (including CPODES).
 
 ////////////////////////////////////////////////////////////////////////////
 
-Step 3: Build the AMPE code
+Step 4: Build the AMPE code with cmake
 
-We have two build options to build the main code: autoconf and cmake.
-The advantage of cmake is that it allows you to build and run a suite of
-unit tests
-
-------------------
-Option 1: autoconf
-------------------
-Under the build/platform-compiler-optimization/objects directory
-created by the configuration step performed in Step 1, you will find a
-directory tree that mirrors all of the subdirectories of the top level
-source directory that contain a "Makefile.in" file.
-                    
-To build the AMPE code, just cd to the objects directory amd gmake:
-
-   cd build/syrah-mpic++-mpif77-opt/objects
-   gmake
-
-The object files and executable are generated in the current
-directory.  You can run the code from there.  Note that the input
-files (which do not depend on the specific choice of
-platform-compiler-optimization) will still be over in the common
-source directory, so you will have to specify the path (or perhaps
-make a link).  For example,
-
-srun -n32 -ppdebug ampe2d top-level-directory/ampe/trunk/examples/AuNi_2D/9grains_AuNi_initial.input
-
----------------
-Option 2: Cmake
----------------
 From the build directory, run a "cmake script". For example on syrah:
 
    ../scripts/peloton_cmake
