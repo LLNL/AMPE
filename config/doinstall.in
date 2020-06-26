@@ -5,10 +5,3 @@ pushd @BASE_DIR@/sundials
 ./doconfig
 ./doinstall
 popd
-
-# Configure and install SAMRAI
-pushd @SAMCONFDIR@
-./doconfig
-./doinstall
-popd
-
