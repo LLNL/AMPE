@@ -120,7 +120,7 @@ To install the base libraries, cd into the base subdirectory and
 execute the doinstall script located there:
 
   cd build/syrah-mpic++-mpif77-opt/base
-  doinstall
+  ./doinstall
 
 This will compile and install the base libraries, which currently
 consist of Sundials (including CPODES).
