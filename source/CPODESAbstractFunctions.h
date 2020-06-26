@@ -55,7 +55,7 @@ using namespace SAMRAI;
  * below since they are superfluous via this interface.
  *
  * @see solv::CPODESSolver
- * @see solv::SundialsAbstractVector
+ * @see SundialsAbstractVector
  */
 
 class CPODESAbstractFunctions
@@ -84,8 +84,8 @@ class CPODESAbstractFunctions
     *
     * IMPORTANT: This function must not modify the vector y.
     */
-   virtual int evaluateRHSFunction(double t, solv::SundialsAbstractVector* y,
-                                   solv::SundialsAbstractVector* y_dot,
+   virtual int evaluateRHSFunction(double t, SundialsAbstractVector* y,
+                                   SundialsAbstractVector* y_dot,
                                    int fd_flag) = 0;
 
    /**
@@ -109,34 +109,33 @@ class CPODESAbstractFunctions
     *
     * IMPORTANT: This function must not modify the vector y.
     */
-   virtual int applyProjection(double t, solv::SundialsAbstractVector* y,
-                               solv::SundialsAbstractVector* corr,
-                               double epsProj,
-                               solv::SundialsAbstractVector* err) = 0;
+   virtual int applyProjection(double t, SundialsAbstractVector* y,
+                               SundialsAbstractVector* corr, double epsProj,
+                               SundialsAbstractVector* err) = 0;
 
    /**
     * User-supplied function for setting up the preconditioner
     * to be used in the solution of the linear system that arises
     * during Newton iteration.
     */
-   virtual int CPSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
-                                 solv::SundialsAbstractVector* fy, int jok,
+   virtual int CPSpgmrPrecondSet(double t, SundialsAbstractVector* y,
+                                 SundialsAbstractVector* fy, int jok,
                                  int* jcurPtr, double gamma,
-                                 solv::SundialsAbstractVector* vtemp1,
-                                 solv::SundialsAbstractVector* vtemp2,
-                                 solv::SundialsAbstractVector* vtemp3) = 0;
+                                 SundialsAbstractVector* vtemp1,
+                                 SundialsAbstractVector* vtemp2,
+                                 SundialsAbstractVector* vtemp3) = 0;
 
    /**
     * User-supplied function for setting up the preconditioner
     * to be used in the solution of the linear system that arises
     * during Newton iteration.
     */
-   virtual int CPSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
-                                   solv::SundialsAbstractVector* fy,
-                                   solv::SundialsAbstractVector* r,
-                                   solv::SundialsAbstractVector* z,
-                                   double gamma, double delta, int lr,
-                                   solv::SundialsAbstractVector* vtemp) = 0;
+   virtual int CPSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
+                                   SundialsAbstractVector* fy,
+                                   SundialsAbstractVector* r,
+                                   SundialsAbstractVector* z, double gamma,
+                                   double delta, int lr,
+                                   SundialsAbstractVector* vtemp) = 0;
 };
 
 #endif

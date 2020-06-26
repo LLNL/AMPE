@@ -13,11 +13,6 @@
 
 #include <cstdlib>
 
-namespace SAMRAI
-{
-namespace solv
-{
-
 SundialsAbstractVector::SundialsAbstractVector()
 {
    /* Create N vector */
@@ -78,6 +73,3 @@ N_Vector_Ops SundialsAbstractVector::createVectorOps()
 
    return ops;
 }
-
-}  // namespace solv
-}  // namespace SAMRAI

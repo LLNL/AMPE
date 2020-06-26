@@ -1750,8 +1750,9 @@ void QuatIntegrator::resetIntegrator(
    setSundialsOptions();
 
    // Convert the SAMRAI solution std::vector to a Sundials std::vector
-   solv::Sundials_SAMRAIVector* y = (solv::Sundials_SAMRAIVector*)
-       solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec);
+   Sundials_SAMRAIVector* y =
+       (Sundials_SAMRAIVector*)Sundials_SAMRAIVector::createSundialsVector(
+           d_solution_vec);
 
    d_sundials_solver->setInitialConditionVector(y);
 
@@ -2006,8 +2007,8 @@ void QuatIntegrator::initialize(
    initializeSolvers(hierarchy);
 
    d_sundials_solver->setInitialConditionVector(
-       (solv::Sundials_SAMRAIVector*)
-           solv::Sundials_SAMRAIVector::createSundialsVector(d_solution_vec));
+       (Sundials_SAMRAIVector*)Sundials_SAMRAIVector::createSundialsVector(
+           d_solution_vec));
 }
 
 //-----------------------------------------------------------------------
@@ -3711,9 +3712,8 @@ void QuatIntegrator::computePhaseConcentrations(
 // F(u+sigma*v) and calculate a finite difference with F(u) (call with
 // fd_flag=0)
 
-int QuatIntegrator::evaluateRHSFunction(double time,
-                                        solv::SundialsAbstractVector* y,
-                                        solv::SundialsAbstractVector* y_dot,
+int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
+                                        SundialsAbstractVector* y_dot,
                                         int fd_flag)
 {
    if (d_with_unsteady_temperature) assert(d_temperature_sys_solver);
@@ -3726,9 +3726,9 @@ int QuatIntegrator::evaluateRHSFunction(double time,
 
    // Convert the Sundials std::vectors to SAMRAI std::vectors
    std::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
-       solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
+       Sundials_SAMRAIVector::getSAMRAIVector(y);
    std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect =
-       solv::Sundials_SAMRAIVector::getSAMRAIVector(y_dot);
+       Sundials_SAMRAIVector::getSAMRAIVector(y_dot);
 
    std::shared_ptr<hier::PatchHierarchy> hierarchy =
        y_samvect->getPatchHierarchy();
@@ -3897,10 +3897,9 @@ int QuatIntegrator::
 #else
     CVSpgmrPrecondSet
 #endif
-    (double t, solv::SundialsAbstractVector* y,
-     solv::SundialsAbstractVector* fy, int jok, int* jcurPtr, double gamma,
-     solv::SundialsAbstractVector* vtemp1, solv::SundialsAbstractVector* vtemp2,
-     solv::SundialsAbstractVector* vtemp3)
+    (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy, int jok,
+     int* jcurPtr, double gamma, SundialsAbstractVector* vtemp1,
+     SundialsAbstractVector* vtemp2, SundialsAbstractVector* vtemp3)
 {
    (void)fy;
    (void)jok;
@@ -3918,7 +3917,7 @@ int QuatIntegrator::
 
    // Convert passed-in std::vector into SAMRAI std::vector
    std::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
-       solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
+       Sundials_SAMRAIVector::getSAMRAIVector(y);
 
    setCoefficients(t, y_samvect, true);
 
@@ -4265,10 +4264,9 @@ int QuatIntegrator::
 #else
     CVSpgmrPrecondSolve
 #endif
-    (double t, solv::SundialsAbstractVector* y,
-     solv::SundialsAbstractVector* fy, solv::SundialsAbstractVector* r,
-     solv::SundialsAbstractVector* z, double gamma, double delta, int lr,
-     solv::SundialsAbstractVector* vtemp)
+    (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy,
+     SundialsAbstractVector* r, SundialsAbstractVector* z, double gamma,
+     double delta, int lr, SundialsAbstractVector* vtemp)
 {
    (void)y;
    (void)fy;
@@ -4281,9 +4279,9 @@ int QuatIntegrator::
 
    // Convert passed-in std::vectors into SAMRAI std::vectors
    std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect =
-       solv::Sundials_SAMRAIVector::getSAMRAIVector(r);
+       Sundials_SAMRAIVector::getSAMRAIVector(r);
    std::shared_ptr<solv::SAMRAIVectorReal<double> > z_samvect =
-       solv::Sundials_SAMRAIVector::getSAMRAIVector(z);
+       Sundials_SAMRAIVector::getSAMRAIVector(z);
 
    int retcode = 0;
 
@@ -4511,11 +4509,9 @@ int QuatIntegrator::applyConcentrationPreconditioner(
 //-----------------------------------------------------------------------
 // Virtual function from CPODESAbstractFunction
 
-int QuatIntegrator::applyProjection(double time,
-                                    solv::SundialsAbstractVector* y,
-                                    solv::SundialsAbstractVector* corr,
-                                    double epsProj,
-                                    solv::SundialsAbstractVector* err)
+int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
+                                    SundialsAbstractVector* corr,
+                                    double epsProj, SundialsAbstractVector* err)
 {
    (void)time;
 
@@ -4526,11 +4522,11 @@ int QuatIntegrator::applyProjection(double time,
       // tbox::pout<<"QuatIntegrator::applyProjection()"<<endl;
       // Convert the Sundials std::vectors to SAMRAI std::vectors
       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
-          solv::Sundials_SAMRAIVector::getSAMRAIVector(y);
+          Sundials_SAMRAIVector::getSAMRAIVector(y);
       std::shared_ptr<solv::SAMRAIVectorReal<double> > corr_samvect =
-          solv::Sundials_SAMRAIVector::getSAMRAIVector(corr);
+          Sundials_SAMRAIVector::getSAMRAIVector(corr);
       std::shared_ptr<solv::SAMRAIVectorReal<double> > err_samvect =
-          solv::Sundials_SAMRAIVector::getSAMRAIVector(err);
+          Sundials_SAMRAIVector::getSAMRAIVector(err);
 
       const int q_id =
           y_samvect->getComponentDescriptorIndex(d_quat_component_index);
@@ -4670,14 +4666,14 @@ std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
    std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* cpodes_vec =
        new std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >;
 
-   std::vector<SAMRAI::solv::SundialsAbstractVector*>* sundials_vec =
+   std::vector<SundialsAbstractVector*>* sundials_vec =
        d_sundials_solver->getVectorsRequiringRegrid();
 
-   std::vector<SAMRAI::solv::SundialsAbstractVector*>::iterator it;
+   std::vector<SundialsAbstractVector*>::iterator it;
 
    for (it = sundials_vec->begin(); it < sundials_vec->end(); it++) {
       std::shared_ptr<solv::SAMRAIVectorReal<double> > samvec =
-          solv::Sundials_SAMRAIVector::getSAMRAIVector(*it);
+          Sundials_SAMRAIVector::getSAMRAIVector(*it);
 
       cpodes_vec->push_back(samvec);
    }

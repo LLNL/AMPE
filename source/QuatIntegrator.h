@@ -234,8 +234,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
     *
     * IMPORTANT: This function must not modify the vector y.
     */
-   int evaluateRHSFunction(double time, solv::SundialsAbstractVector* y,
-                           solv::SundialsAbstractVector* y_dot, int fd_flag);
+   int evaluateRHSFunction(double time, SundialsAbstractVector* y,
+                           SundialsAbstractVector* y_dot, int fd_flag);
 
 #ifdef USE_CPODE
 
@@ -243,42 +243,38 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    // Methods inherited from CPODEAbstractFunctions
    //
 
-   int applyProjection(double time, solv::SundialsAbstractVector* y,
-                       solv::SundialsAbstractVector* corr, double epsProj,
-                       solv::SundialsAbstractVector* err);
+   int applyProjection(double time, SundialsAbstractVector* y,
+                       SundialsAbstractVector* corr, double epsProj,
+                       SundialsAbstractVector* err);
 
-   int CPSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
-                         solv::SundialsAbstractVector* fy, int jok,
-                         int* jcurPtr, double gamma,
-                         solv::SundialsAbstractVector* vtemp1,
-                         solv::SundialsAbstractVector* vtemp2,
-                         solv::SundialsAbstractVector* vtemp3);
+   int CPSpgmrPrecondSet(double t, SundialsAbstractVector* y,
+                         SundialsAbstractVector* fy, int jok, int* jcurPtr,
+                         double gamma, SundialsAbstractVector* vtemp1,
+                         SundialsAbstractVector* vtemp2,
+                         SundialsAbstractVector* vtemp3);
 
-   int CPSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
-                           solv::SundialsAbstractVector* fy,
-                           solv::SundialsAbstractVector* r,
-                           solv::SundialsAbstractVector* z, double gamma,
-                           double delta, int lr,
-                           solv::SundialsAbstractVector* vtemp);
+   int CPSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
+                           SundialsAbstractVector* fy,
+                           SundialsAbstractVector* r, SundialsAbstractVector* z,
+                           double gamma, double delta, int lr,
+                           SundialsAbstractVector* vtemp);
 #else
 
    //
    // Methods inherited from CVODEAbstractFunctions
    //
 
-   int CVSpgmrPrecondSet(double t, solv::SundialsAbstractVector* y,
-                         solv::SundialsAbstractVector* fy, int jok,
-                         int* jcurPtr, double gamma,
-                         solv::SundialsAbstractVector* vtemp1,
-                         solv::SundialsAbstractVector* vtemp2,
-                         solv::SundialsAbstractVector* vtemp3);
+   int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
+                         SundialsAbstractVector* fy, int jok, int* jcurPtr,
+                         double gamma, SundialsAbstractVector* vtemp1,
+                         SundialsAbstractVector* vtemp2,
+                         SundialsAbstractVector* vtemp3);
 
-   int CVSpgmrPrecondSolve(double t, solv::SundialsAbstractVector* y,
-                           solv::SundialsAbstractVector* fy,
-                           solv::SundialsAbstractVector* r,
-                           solv::SundialsAbstractVector* z, double gamma,
-                           double delta, int lr,
-                           solv::SundialsAbstractVector* vtemp);
+   int CVSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
+                           SundialsAbstractVector* fy,
+                           SundialsAbstractVector* r, SundialsAbstractVector* z,
+                           double gamma, double delta, int lr,
+                           SundialsAbstractVector* vtemp);
 #endif
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);

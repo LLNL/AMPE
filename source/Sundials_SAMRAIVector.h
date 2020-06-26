@@ -24,15 +24,11 @@
 #include "SundialsAbstractVector.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 
-
-namespace SAMRAI
-{
-namespace solv
-{
+using namespace SAMRAI;
 
 /**
  * Class Sundials_SAMRAIVector wraps a real-valued SAMRAI vector
- * (see SAMRAIVectorReal class) object so that it may be used with
+ * (see solv::SAMRAIVectorReal class) object so that it may be used with
  * the Sundials solver packages.  This class is derived from the
  * abstract base class SundialsAbstractVector, which defines a <TT>C++</TT>
  * interface for Sundials vectors.  It also maintains a pointer to a SAMRAI
@@ -52,7 +48,7 @@ namespace solv
  * which is the default for Sundials.
  *
  * @see SundialsAbstractVector
- * @see SAMRAIVectorReal
+ * @see solv::SAMRAIVectorReal
  */
 
 class Sundials_SAMRAIVector : public SundialsAbstractVector
@@ -72,7 +68,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
     * @pre samrai_vec
     */
    static SundialsAbstractVector* createSundialsVector(
-       const std::shared_ptr<SAMRAIVectorReal<double> >& samrai_vec);
+       const std::shared_ptr<solv::SAMRAIVectorReal<double> >& samrai_vec);
 
    /**
     * Destroy a given Sundials vector object. It is important to note that
@@ -87,7 +83,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
     *
     * @pre sundials_vec != 0
     */
-   static std::shared_ptr<SAMRAIVectorReal<double> > getSAMRAIVector(
+   static std::shared_ptr<solv::SAMRAIVectorReal<double> > getSAMRAIVector(
        SundialsAbstractVector* sundials_vec);
 
    /**
@@ -96,7 +92,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
     *
     * @pre sundials_vec != 0
     */
-   static std::shared_ptr<SAMRAIVectorReal<double> > getSAMRAIVector(
+   static std::shared_ptr<solv::SAMRAIVectorReal<double> > getSAMRAIVector(
        N_Vector sundials_vec);
 
    /*
@@ -109,7 +105,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
     * Constructor for Sundials_SAMRAIVector.
     */
    explicit Sundials_SAMRAIVector(
-       const std::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector);
+       const std::shared_ptr<solv::SAMRAIVectorReal<double> >& samrai_vector);
 
    /*
     * Virtual destructor for Sundials_SAMRAIVector.
@@ -120,7 +116,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
    /*
     * Return SAMRAI vector owned by this Sundials_SAMRAIVector object.
     */
-   std::shared_ptr<SAMRAIVectorReal<double> > getSAMRAIVector()
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > getSAMRAIVector()
    {
       return d_samrai_vector;
    }
@@ -260,10 +256,7 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
    /*
     * Vector data is maintained in SAMRAI vector structure.
     */
-   std::shared_ptr<SAMRAIVectorReal<double> > d_samrai_vector;
+   std::shared_ptr<solv::SAMRAIVectorReal<double> > d_samrai_vector;
 };
-
-}  // namespace solv
-}  // namespace SAMRAI
 
 #endif

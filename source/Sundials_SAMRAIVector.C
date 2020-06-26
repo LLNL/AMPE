@@ -11,11 +11,6 @@
 
 #define SKVEC_CAST(x) (((Sundials_SAMRAIVector*)x))
 
-namespace SAMRAI
-{
-namespace solv
-{
-
 /*
  *************************************************************************
  *
@@ -25,7 +20,7 @@ namespace solv
  */
 
 SundialsAbstractVector* Sundials_SAMRAIVector::createSundialsVector(
-    const std::shared_ptr<SAMRAIVectorReal<double> >& samrai_vec)
+    const std::shared_ptr<solv::SAMRAIVectorReal<double> >& samrai_vec)
 {
    TBOX_ASSERT(samrai_vec);
    SundialsAbstractVector* skv = new Sundials_SAMRAIVector(samrai_vec);
@@ -41,7 +36,7 @@ void Sundials_SAMRAIVector::destroySundialsVector(
    }
 }
 
-std::shared_ptr<SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
+std::shared_ptr<solv::SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
     getSAMRAIVector(SundialsAbstractVector* sundials_vec)
 {
    TBOX_ASSERT(sundials_vec != 0);
@@ -49,7 +44,7 @@ std::shared_ptr<SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
        ->getSAMRAIVector();
 }
 
-std::shared_ptr<SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
+std::shared_ptr<solv::SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
     getSAMRAIVector(N_Vector sundials_vec)
 {
    TBOX_ASSERT(sundials_vec != 0);
@@ -67,7 +62,7 @@ std::shared_ptr<SAMRAIVectorReal<double> > Sundials_SAMRAIVector::
  */
 
 Sundials_SAMRAIVector::Sundials_SAMRAIVector(
-    const std::shared_ptr<SAMRAIVectorReal<double> >& samrai_vector)
+    const std::shared_ptr<solv::SAMRAIVectorReal<double> >& samrai_vector)
     : SundialsAbstractVector(), d_samrai_vector(samrai_vector)
 {
 }
@@ -202,6 +197,3 @@ int Sundials_SAMRAIVector::testReciprocal(const SundialsAbstractVector* x)
 {
    return d_samrai_vector->testReciprocal(SKVEC_CAST(x)->getSAMRAIVector());
 }
-
-}  // namespace solv
-}  // namespace SAMRAI

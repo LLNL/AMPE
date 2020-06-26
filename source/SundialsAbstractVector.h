@@ -22,11 +22,6 @@
 #define included_sundials_nvector
 #endif
 
-namespace SAMRAI
-{
-namespace solv
-{
-
 /**
  * Class SundialsAbstractVector is an abstract base class that declares
  * operations provided by any <TT>C++</TT> class that may be used as the
@@ -333,8 +328,5 @@ class SundialsAbstractVector
 
    static realtype N_VMinQuotient_SAMRAI(N_Vector num, N_Vector denom);
 };
-
-}  // namespace solv
-}  // namespace SAMRAI
 
 #endif
