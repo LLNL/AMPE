@@ -45,7 +45,7 @@
 //======================================================================
 
 EtaFACOps::EtaFACOps(const std::string& object_name,
-                     boost::shared_ptr<tbox::Database> database)
+                     std::shared_ptr<tbox::Database> database)
     : EllipticFACOps(tbox::Dimension(NDIM), object_name, database)
 {
    return;
@@ -85,30 +85,29 @@ void EtaFACOps::setC(const int phi_id, const int eta_id, const double gamma,
    assert(d_M_is_set);
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::iterator pi(level->begin()); pi != level->end();
            ++pi) {
 
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
          const hier::Box& patch_box = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<double> > phi_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phi_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > eta_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > eta_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(eta_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > local_m_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > local_m_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_m_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cdata(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_c_id[0])));
 
          setCOnPatchPrivate(phi_data, eta_data, local_m_data, cdata, gamma,
@@ -123,10 +122,10 @@ void EtaFACOps::setC(const int phi_id, const int eta_id, const double gamma,
 }
 
 void EtaFACOps::setCOnPatchPrivate(
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_m,
-    boost::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_m,
+    std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
     const EnergyInterpolationType phi_interp_func_type,
     const double eta_well_scale, const char* eta_well_func_type,
     const hier::Box& pbox)

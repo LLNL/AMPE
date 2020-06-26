@@ -48,7 +48,7 @@ class Noise
  public:
    virtual double gen() = 0;
 
-   void setField(boost::shared_ptr<hier::Patch> patch, const int data_id,
+   void setField(std::shared_ptr<hier::Patch> patch, const int data_id,
                  const int phi_id);
 };
 

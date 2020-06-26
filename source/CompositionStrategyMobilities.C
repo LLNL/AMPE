@@ -46,7 +46,7 @@
 const double m2toum2 = 1.e12;
 
 CompositionStrategyMobilities::CompositionStrategyMobilities(
-    boost::shared_ptr<tbox::Database> input_db, const bool with_third_phase,
+    std::shared_ptr<tbox::Database> input_db, const bool with_third_phase,
     const unsigned short ncompositions,
     FreeEnergyStrategy* free_energy_strategy)
     : d_free_energy_strategy(free_energy_strategy)
@@ -59,18 +59,18 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 
    std::string calphad_filename = input_db->getString("filename");
 
-   boost::shared_ptr<tbox::MemoryDatabase> calphad_db(
+   std::shared_ptr<tbox::MemoryDatabase> calphad_db(
        new tbox::MemoryDatabase("calphad_db"));
    tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                     calphad_db);
 
-   boost::shared_ptr<tbox::Database> mobility_db =
+   std::shared_ptr<tbox::Database> mobility_db =
        calphad_db->getDatabase("MobilityParameters");
-   boost::shared_ptr<tbox::Database> species0_db =
+   std::shared_ptr<tbox::Database> species0_db =
        mobility_db->getDatabase("Species0");
-   boost::shared_ptr<tbox::Database> species1_db =
+   std::shared_ptr<tbox::Database> species1_db =
        mobility_db->getDatabase("Species1");
-   boost::shared_ptr<tbox::Database> species2_db;
+   std::shared_ptr<tbox::Database> species2_db;
    if (d_ncompositions > 1) {
       species2_db = mobility_db->getDatabase("Species2");
    }
@@ -119,7 +119,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
 //-----------------------------------------------------------------------
 
 void CompositionStrategyMobilities::printDiagnostics(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_scratch_id)
 {
    tbox::plog << "CompositionRHSStrategy::printDiagnostics()" << std::endl;

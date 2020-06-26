@@ -55,25 +55,24 @@
 
 // Static class member definitions
 
-boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_cell_scratch_var;
+std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_cell_scratch_var;
 
-boost::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_flux_scratch_var;
+std::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_flux_scratch_var;
 
-boost::shared_ptr<pdat::OutersideVariable<double> >
+std::shared_ptr<pdat::OutersideVariable<double> >
     QuatFACOps::s_oflux_scratch_var;
 
-boost::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_face_coef_var;
+std::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_face_coef_var;
 
-boost::shared_ptr<pdat::SideVariable<double> >
-    QuatFACOps::s_face_coef_deriv_var;
+std::shared_ptr<pdat::SideVariable<double> > QuatFACOps::s_face_coef_deriv_var;
 
-boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_q_local_var;
+std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_q_local_var;
 
-boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_residual_var;
+std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_residual_var;
 
-boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_sqrt_m_var;
+std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_sqrt_m_var;
 
-boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
+std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
 
 
 /*
@@ -83,7 +82,7 @@ boost::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
 */
 
 QuatFACOps::QuatFACOps(const int ql, const std::string& object_name,
-                       const boost::shared_ptr<tbox::Database>& database)
+                       const std::shared_ptr<tbox::Database>& database)
     : d_qlen(ql),
       d_object_name(object_name),
       d_hierarchy(),
@@ -99,7 +98,7 @@ QuatFACOps::QuatFACOps(const int ql, const std::string& object_name,
       d_flux_id(-1),
       d_levelsolver_database(database && database->isDatabase("hypre_solver")
                                  ? database->getDatabase("hypre_solver")
-                                 : boost::shared_ptr<tbox::Database>()),
+                                 : std::shared_ptr<tbox::Database>()),
       d_physical_bc_coef(NULL),
       d_flux_scratch_id(-1),
       d_oflux_scratch_id(-1),
@@ -203,9 +202,9 @@ QuatFACOps::QuatFACOps(const int ql, const std::string& object_name,
    }
 
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
-   boost::shared_ptr<hier::VariableContext> private_context =
+   std::shared_ptr<hier::VariableContext> private_context =
        vdb->getContext(object_name + "::PRIVATE_CONTEXT");
-   boost::shared_ptr<hier::VariableContext> scratch_context =
+   std::shared_ptr<hier::VariableContext> scratch_context =
        vdb->getContext("SCRATCH");
 
    d_cell_scratch_id =
@@ -357,15 +356,16 @@ void QuatFACOps::initializeOperatorState(
     *   are allocated
     *   has sufficient ghost width
     */
-   boost::shared_ptr<hier::Variable> var;
+   std::shared_ptr<hier::Variable> var;
    {
       vdb->mapIndexToVariable(rhs.getComponentDescriptorIndex(0), var);
       if (!var) {
          TBOX_ERROR(d_object_name << ": RHS component does not\n"
                                   << "correspond to a variable.\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::CellVariable<double> > cell_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(
+              var));
       if (!cell_var) {
          TBOX_ERROR(d_object_name << ": RHS component variable is not "
                                      "cell-centered double\n");
@@ -377,28 +377,29 @@ void QuatFACOps::initializeOperatorState(
          TBOX_ERROR(d_object_name << ": Solution component does not\n"
                                   << "correspond to a variable.\n");
       }
-      boost::shared_ptr<pdat::CellVariable<double> > cell_var(
-          BOOST_CAST<pdat::CellVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::CellVariable<double> > cell_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<double>, hier::Variable>(
+              var));
       if (!cell_var) {
          TBOX_ERROR(d_object_name << ": Solution component variable is not "
                                      "cell-centered double\n");
       }
    }
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
          hier::Patch& patch = **pi;
          {
-            boost::shared_ptr<hier::PatchData> fd =
+            std::shared_ptr<hier::PatchData> fd =
                 patch.getPatchData(rhs.getComponentDescriptorIndex(0));
             if (fd) {
                /*
                Some data checks can only be done if the data already exists.
              */
-               boost::shared_ptr<pdat::CellData<double> > cd(
-                   BOOST_CAST<pdat::CellData<double>, hier::PatchData>(fd));
+               std::shared_ptr<pdat::CellData<double> > cd(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(fd));
                if (!cd) {
                   TBOX_ERROR(d_object_name << ": RHS data component is not "
                                               "cell-centered double\n");
@@ -409,14 +410,15 @@ void QuatFACOps::initializeOperatorState(
                                              << d_qlen << "\n");
                }
             }
-            boost::shared_ptr<hier::PatchData> ud =
+            std::shared_ptr<hier::PatchData> ud =
                 patch.getPatchData(solution.getComponentDescriptorIndex(0));
             if (ud) {
                /*
                Some data checks can only be done if the data already exists.
              */
-               boost::shared_ptr<pdat::CellData<double> > cd(
-                   BOOST_CAST<pdat::CellData<double>, hier::PatchData>(ud));
+               std::shared_ptr<pdat::CellData<double> > cd(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(ud));
                if (!cd) {
                   TBOX_ERROR(d_object_name << ": Solution data component is "
                                               "not cell-centered double\n");
@@ -495,12 +497,13 @@ void QuatFACOps::initializeOperatorState(
     *   which should be set to either "Ewing" or one of the
     *   acceptable std::strings for looking up the refine operator.
     */
-   boost::shared_ptr<geom::CartesianGridGeometry> geometry(
-       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+   std::shared_ptr<geom::CartesianGridGeometry> geometry(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianGridGeometry,
+                              hier::BaseGridGeometry>(
            d_hierarchy->getGridGeometry()));
    TBOX_ASSERT(geometry);
 
-   boost::shared_ptr<hier::Variable> variable;
+   std::shared_ptr<hier::Variable> variable;
 
    vdb->mapIndexToVariable(d_cell_scratch_id, variable);
    d_prolongation_refine_operator =
@@ -612,7 +615,7 @@ void QuatFACOps::initializeOperatorState(
       d_prolongation_refine_schedules[dest_ln] =
           d_prolongation_refine_algorithm->createSchedule(
               d_hierarchy->getPatchLevel(dest_ln),
-              boost::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
+              std::shared_ptr<hier::PatchLevel>(), dest_ln - 1, d_hierarchy,
               strategy);
       if (!d_prolongation_refine_schedules[dest_ln]) {
          TBOX_ERROR(d_object_name << ": Cannot create a refine schedule for "
@@ -681,7 +684,7 @@ void QuatFACOps::initializeOperatorState(
    assert(d_sqrt_m_id);
    assert(d_m_deriv_id);
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level_ptr =
+      std::shared_ptr<hier::PatchLevel> level_ptr =
           d_hierarchy->getPatchLevel(ln);
 
       // Allocate the local patch data
@@ -725,21 +728,20 @@ void QuatFACOps::computeFaceCoefs(const double epsilon_q,
    }
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
-         boost::shared_ptr<pdat::SideData<double> > diffusion_coef_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diffusion_coef_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(diffusion_coef_id)));
-         boost::shared_ptr<pdat::SideData<double> > grad_q_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > grad_q_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(grad_q_id)));
-         boost::shared_ptr<pdat::SideData<double> > face_coef_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > face_coef_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(face_coef_id)));
 
          assert(diffusion_coef_data->getDepth() == 1);
@@ -763,21 +765,20 @@ void QuatFACOps::computeDQuatDPhiFaceCoefs(const int dprime_id,
    // filled
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
-         boost::shared_ptr<pdat::SideData<double> > dprime_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > dprime_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(dprime_id)));
-         boost::shared_ptr<pdat::CellData<double> > phi_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phi_id)));
-         boost::shared_ptr<pdat::SideData<double> > face_coef_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > face_coef_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(face_coef_id)));
 
          computeDQuatDPhiFaceCoefsOnPatch(*patch, *dprime_data, *phi_data,
@@ -830,31 +831,30 @@ void QuatFACOps::setOperatorCoefficients(
                     grad_floor_type, d_face_coef_id);
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
            pi++) {
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
 
          // Copy q solution to "local" array member
 
-         boost::shared_ptr<pdat::CellData<double> > q_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > q_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(q_id)));
-         boost::shared_ptr<pdat::CellData<double> > q_local_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > q_local_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_q_local_id)));
 
          q_local_data->copy(*q_data);
 
          // Copy mobility into sqrt_m_data (including ghost values assumed to be
          // filled)
-         boost::shared_ptr<pdat::CellData<double> > mobility_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > mobility_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(mobility_id)));
-         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_sqrt_m_id)));
 
          sqrt_m_data->copy(*mobility_data);
@@ -864,11 +864,11 @@ void QuatFACOps::setOperatorCoefficients(
 
             // Copy mobility derivatives to local array
 
-            boost::shared_ptr<pdat::CellData<double> > mobility_deriv_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > mobility_deriv_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(mobility_deriv_id)));
-            boost::shared_ptr<pdat::CellData<double> > m_deriv_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > m_deriv_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_m_deriv_id)));
 
             m_deriv_data->copy(*mobility_deriv_data);
@@ -878,12 +878,11 @@ void QuatFACOps::setOperatorCoefficients(
 
             // Copy face coef derivatives to local array
 
-            boost::shared_ptr<pdat::SideData<double> > face_coef_deriv_data(
-                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::SideData<double> > face_coef_deriv_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(face_coef_deriv_id)));
-            boost::shared_ptr<pdat::SideData<double> >
-            local_face_coef_deriv_data(
-                BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::SideData<double> > local_face_coef_deriv_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(d_face_coef_deriv_id)));
 
             local_face_coef_deriv_data->copy(*face_coef_deriv_data);
@@ -910,7 +909,7 @@ void QuatFACOps::deallocateOperatorState()
    if (d_hierarchy) {
       int ln;
       for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
-         boost::shared_ptr<hier::PatchLevel> level_ptr =
+         std::shared_ptr<hier::PatchLevel> level_ptr =
              d_hierarchy->getPatchLevel(ln);
          if (ln > d_ln_min) {
             level_ptr->deallocatePatchData(d_oflux_scratch_id);
@@ -1048,7 +1047,7 @@ void QuatFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double>& s,
    }
 #endif
 
-   boost::shared_ptr<hier::PatchLevel> fine_level(
+   std::shared_ptr<hier::PatchLevel> fine_level(
        d_hierarchy->getPatchLevel(dest_ln));
 
    /*
@@ -1188,8 +1187,8 @@ void QuatFACOps::ewingFixFlux(const hier::Patch& patch,
 #if 0
    const int patch_ln = patch.getPatchLevelNumber();
    const int pn = patch.getPatchNumber();
-   boost::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
-      BOOST_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
+   std::shared_ptr< geom::CartesianPatchGeometry > patch_geom ( 
+      SAMRAI_SHARED_PTR_CAST< geom::CartesianPatchGeometry , hier::PatchGeometry>(patch.getPatchGeometry()) );
    const double * dx = patch_geom->getDx();
    const hier::Box & patch_box( patch.getBox() );
    const hier::Index & plower = patch_box.lower();
@@ -1310,7 +1309,7 @@ double QuatFACOps::computeResidualNorm(
 void QuatFACOps::computeLambdaOnPatch(
     const hier::Patch& patch, const pdat::SideData<double>& flux_data,
     const pdat::CellData<double>& q_data,
-    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    std::shared_ptr<pdat::SideData<int> > rotation_index,
     pdat::CellData<double>& lambda_data) const
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -1318,9 +1317,9 @@ void QuatFACOps::computeLambdaOnPatch(
    assert(q_data.getDepth() == d_qlen);
 #endif
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
    const hier::Box& box = patch.getBox();
@@ -1387,10 +1386,11 @@ void QuatFACOps::checkFluxPatchDataIndex() const
 {
    if (d_flux_id != -1) {
       hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
-      boost::shared_ptr<hier::Variable> var;
+      std::shared_ptr<hier::Variable> var;
       vdb.mapIndexToVariable(d_flux_id, var);
-      boost::shared_ptr<pdat::SideVariable<double> > flux_var(
-          BOOST_CAST<pdat::SideVariable<double>, hier::Variable>(var));
+      std::shared_ptr<pdat::SideVariable<double> > flux_var(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideVariable<double>, hier::Variable>(
+              var));
 #ifdef DEBUG_CHECK_ASSERTIONS
       assert(flux_var);
 #endif
@@ -1544,9 +1544,9 @@ void QuatFACOps::computeFluxOnPatch(
    // tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q
    // data..."<<endl;
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
    const hier::Box& box = patch.getBox();
@@ -1675,9 +1675,9 @@ void QuatFACOps::computeSymmetricFluxOnPatch(
    assert(face_coef_data.getDepth() == d_qlen);
 #endif
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
    const hier::Box& box = patch.getBox();
@@ -1761,7 +1761,7 @@ void QuatFACOps::computeCompositeResidualOnLevel(
                                   "internal hierarchy.");
    }
 #endif
-   boost::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
+   std::shared_ptr<hier::PatchLevel> level(d_hierarchy->getPatchLevel(ln));
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -1826,19 +1826,19 @@ void QuatFACOps::computeCompositeResidualOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::CellData<double> > q_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               solution.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
-      boost::shared_ptr<pdat::SideData<double> > face_coef_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > face_coef_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(d_face_coef_id)));
-      boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_sqrt_m_id)));
 
       computeSymmetricFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
@@ -1859,26 +1859,26 @@ void QuatFACOps::computeCompositeResidualOnLevel(
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
-      boost::shared_ptr<pdat::CellData<double> > q_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<pdat::CellData<double> > q_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               solution.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::CellData<double> > q_rhs_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_rhs_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               rhs.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::CellData<double> > q_residual_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_residual_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               residual.getComponentPatchData(0, *patch)));
-      boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_sqrt_m_id)));
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
-      boost::shared_ptr<pdat::SideData<int> > rotation_index;
+      std::shared_ptr<pdat::SideData<int> > rotation_index;
       if (d_rotation_index_id >= 0) {
          rotation_index =
-             boost::dynamic_pointer_cast<pdat::SideData<int>, hier::PatchData>(
+             std::dynamic_pointer_cast<pdat::SideData<int>, hier::PatchData>(
                  patch->getPatchData(d_rotation_index_id));
          assert(rotation_index);
       }
@@ -1894,8 +1894,9 @@ void QuatFACOps::computeCompositeResidualOnLevel(
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
-             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::OutersideData<double>,
+                                    hier::PatchData>(
                  patch->getPatchData(d_oflux_scratch_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
          assert(oflux_data);
@@ -1914,15 +1915,15 @@ void QuatFACOps::computeCompositeResidualOnLevel(
 
 void QuatFACOps::computeResidualOnPatch(
     const hier::Patch& patch, const pdat::SideData<double>& flux_data,
-    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    std::shared_ptr<pdat::SideData<int> > rotation_index,
     const pdat::CellData<double>& sqrt_m_data,
     const pdat::CellData<double>& q_soln_data,
     const pdat::CellData<double>& q_rhs_data,
     pdat::CellData<double>& q_residual_data) const
 {
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
 
    const double* dx = patch_geom->getDx();
 
@@ -2060,17 +2061,16 @@ void QuatFACOps::multiplyDQuatDPhiBlock(const int phase_id, const int out_id)
       accumulateOperatorOnLevel(d_m_deriv_id, d_face_coef_id, d_q_local_id, -1,
                                 out_id, ln, false, false);
 
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
       hier::PatchLevel::Iterator pi(level->begin());
       for (; pi != level->end(); pi++) {
          hier::Patch& patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > out_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > out_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(out_id)));
-         boost::shared_ptr<pdat::CellData<double> > phi_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(phase_id)));
 
          const hier::Box& box = patch.getBox();
@@ -2123,7 +2123,7 @@ void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
                                            bool error_equation_indicator)
 {
    checkFluxPatchDataIndex();
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
    /*
     * Set up the bc helper so that when we use a refine schedule
@@ -2188,26 +2188,26 @@ void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
     */
    hier::PatchLevel::Iterator pi(level->begin());
    for (; pi != level->end(); pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
-      boost::shared_ptr<pdat::SideData<double> > face_coef_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > face_coef_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(face_coef_id)));
 
       if (grad_q_id == -1) {
-         boost::shared_ptr<pdat::CellData<double> > q_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > q_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(q_id)));
 
          computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
                             *face_coef_data, *q_data, *flux_data);
       } else {
          // tbox::pout<<"call computeFluxOnPatch()..."<<endl;
-         boost::shared_ptr<pdat::SideData<double> > grad_q_data(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > grad_q_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(grad_q_id)));
          computeFluxOnPatch(*patch, level->getRatioToCoarserLevel(),
                             *face_coef_data, *grad_q_data, *flux_data);
@@ -2227,36 +2227,36 @@ void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
     */
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         pi++) {
-      boost::shared_ptr<hier::Patch> patch = *pi;
+      std::shared_ptr<hier::Patch> patch = *pi;
 
-      boost::shared_ptr<pdat::SideData<double> > flux_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > flux_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(flux_id)));
-      boost::shared_ptr<pdat::CellData<double> > mobility_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > mobility_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(mobility_id)));
-      boost::shared_ptr<pdat::CellData<double> > q_rhs_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_rhs_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(rhs_q_id)));
 
       if (project && d_qlen != 1) {
 
-         boost::shared_ptr<pdat::CellData<double> > q_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > q_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(q_id)));
 
          // Temporary to store lambda
-         boost::shared_ptr<pdat::CellData<double> > lambda_data(
+         std::shared_ptr<pdat::CellData<double> > lambda_data(
              new pdat::CellData<double>(pi->getBox(), 1,
                                         hier::IntVector(tbox::Dimension(NDIM),
                                                         0)));
          assert(lambda_data);
 
-         boost::shared_ptr<pdat::SideData<int> > rotation_index;
+         std::shared_ptr<pdat::SideData<int> > rotation_index;
          if (d_rotation_index_id >= 0) {
-            rotation_index = boost::dynamic_pointer_cast<pdat::SideData<int>,
-                                                         hier::PatchData>(
-                patch->getPatchData(d_rotation_index_id));
+            rotation_index =
+                std::dynamic_pointer_cast<pdat::SideData<int>, hier::PatchData>(
+                    patch->getPatchData(d_rotation_index_id));
             assert(rotation_index);
          }
 
@@ -2279,8 +2279,9 @@ void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
           *  loop through the patches, but we put it here to
           *  avoid writing another loop for it.
           */
-         boost::shared_ptr<pdat::OutersideData<double> > oflux_data(
-             BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::OutersideData<double> > oflux_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::OutersideData<double>,
+                                    hier::PatchData>(
                  patch->getPatchData(d_oflux_scratch_id)));
 #ifdef DEBUG_CHECK_ASSERTIONS
          assert(oflux_data);
@@ -2302,9 +2303,9 @@ void QuatFACOps::accumulateOperatorOnPatch(
 {
    assert(d_rotation_index_id == -1);
 
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
 
    const double* dx = patch_geom->getDx();
 
@@ -2353,12 +2354,12 @@ void QuatFACOps::accumulateProjectedOperatorOnPatch(
     const pdat::CellData<double>& mobility_data,
     const pdat::CellData<double>& q_soln_data,
     const pdat::CellData<double>& lambda_soln_data,
-    boost::shared_ptr<pdat::SideData<int> > rotation_index,
+    std::shared_ptr<pdat::SideData<int> > rotation_index,
     const pdat::CellData<double>& q_rhs_data) const
 {
-   boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
 
    const double* dx = patch_geom->getDx();
 
@@ -2436,17 +2437,16 @@ void QuatFACOps::accumulateProjectedOperatorOnPatch(
 void QuatFACOps::multiplyMobilitySqrt(const int id)
 {
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
       hier::PatchLevel::Iterator pi(level->begin());
       for (; pi != level->end(); pi++) {
          hier::Patch& patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(id)));
-         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(d_sqrt_m_id)));
          int ncomp = data->getDepth();
 
@@ -2486,17 +2486,16 @@ void QuatFACOps::divideMobilitySqrt(const int id)
 #endif
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
       hier::PatchLevel::Iterator pi(level->begin());
       for (; pi != level->end(); pi++) {
          hier::Patch& patch = **pi;
 
-         boost::shared_ptr<pdat::CellData<double> > data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(id)));
-         boost::shared_ptr<pdat::CellData<double> > sqrt_m_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > sqrt_m_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch.getPatchData(d_sqrt_m_id)));
          int ncomp = data->getDepth();
 
@@ -2545,19 +2544,19 @@ void QuatFACOps::divideMobilitySqrt(const int id)
 void QuatFACOps::applyProjectionOnLevel(const int q_id, const int corr_id,
                                         const int err_id, const int ln)
 {
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
    hier::PatchLevel::Iterator pi(level->begin());
    for (; pi != level->end(); pi++) {
       hier::Patch& patch = **pi;
 
-      boost::shared_ptr<pdat::CellData<double> > q_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(q_id)));
-      boost::shared_ptr<pdat::CellData<double> > corr_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > corr_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(corr_id)));
-      boost::shared_ptr<pdat::CellData<double> > err_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > err_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(err_id)));
 
       const hier::Box& box = patch.getBox();

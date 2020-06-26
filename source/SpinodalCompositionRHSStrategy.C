@@ -43,7 +43,7 @@
 using namespace SAMRAI;
 
 SpinodalCompositionRHSStrategy::SpinodalCompositionRHSStrategy(
-    boost::shared_ptr<tbox::Database> input_db, const int conc_scratch_id,
+    std::shared_ptr<tbox::Database> input_db, const int conc_scratch_id,
     const int phase_scratch_id, const int eta_scratch_id,
     const unsigned int ncompositions, const int conc_a_scratch_id,
     const int conc_b_scratch_id, const int temperature_scratch_id,
@@ -88,44 +88,44 @@ void SpinodalCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    assert(d_diffusion_id >= 0);
    assert(d_eta_scratch_id >= 0);
 
-   const boost::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-       BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
-           patch.getPatchGeometry()));
+   const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
    const double* dx = patch_geom->getDx();
 
    const hier::Box& pbox = patch.getBox();
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
 
-   boost::shared_ptr<pdat::CellData<double> > conc(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > conc(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_scratch_id)));
    assert(conc);
 
-   boost::shared_ptr<pdat::CellData<double> > conca(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > conca(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_a_scratch_id)));
    assert(conca);
 
-   boost::shared_ptr<pdat::CellData<double> > concb(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > concb(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_conc_b_scratch_id)));
    assert(concb);
 
-   boost::shared_ptr<pdat::CellData<double> > eta(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > eta(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(d_eta_scratch_id)));
    assert(eta);
 
-   boost::shared_ptr<pdat::SideData<double> > conc_diffusion(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > conc_diffusion(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion_id)));
    assert(conc_diffusion);
    assert(conc_diffusion->getDepth() == (1));
 
 
-   boost::shared_ptr<pdat::SideData<double> > flux(
-       BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::SideData<double> > flux(
+       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(flux_id)));
    assert(flux);
    assert(flux->getDepth() == 1);
@@ -154,7 +154,7 @@ void SpinodalCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 //-----------------------------------------------------------------------
 
 void SpinodalCompositionRHSStrategy::setDiffusionCoeff(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
    // tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeff"<<endl;
    assert(hierarchy);
@@ -175,7 +175,7 @@ void SpinodalCompositionRHSStrategy::setDiffusionCoeff(
 //=======================================================================
 
 void SpinodalCompositionRHSStrategy::setDiffusionForConc(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    // tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionForConcInPhase"<<endl;
    assert(d_diffusion_id >= 0);
@@ -183,23 +183,23 @@ void SpinodalCompositionRHSStrategy::setDiffusionForConc(
    const int maxl = hierarchy->getNumberOfLevels();
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
-      boost::shared_ptr<hier::PatchLevel> level =
+      std::shared_ptr<hier::PatchLevel> level =
           hierarchy->getPatchLevel(amr_level);
 
       for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
            p++) {
-         boost::shared_ptr<hier::Patch> patch = *p;
+         std::shared_ptr<hier::Patch> patch = *p;
 
-         boost::shared_ptr<pdat::CellData<double> > conc(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > conc(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_scratch_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > temp(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > temp(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_temperature_scratch_id)));
 
-         boost::shared_ptr<pdat::SideData<double> > diffusion(
-             BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::SideData<double> > diffusion(
+             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_id)));
 
          setDiffusionCoeffForConcOnPatch(conc, temp, diffusion,
@@ -211,10 +211,9 @@ void SpinodalCompositionRHSStrategy::setDiffusionForConc(
 //-----------------------------------------------------------------------
 
 void SpinodalCompositionRHSStrategy::setDiffusionCoeffForConcOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_c,
-    boost::shared_ptr<pdat::CellData<double> > cd_temp,
-    boost::shared_ptr<pdat::SideData<double> > sd_d_coeff,
-    const hier::Box& pbox)
+    std::shared_ptr<pdat::CellData<double> > cd_c,
+    std::shared_ptr<pdat::CellData<double> > cd_temp,
+    std::shared_ptr<pdat::SideData<double> > sd_d_coeff, const hier::Box& pbox)
 {
    std::vector<double*> ptr_c(d_ncompositions);
    for (unsigned int ic = 0; ic < d_ncompositions; ic++) {

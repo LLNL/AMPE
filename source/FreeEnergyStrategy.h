@@ -56,11 +56,11 @@ class FreeEnergyStrategy
 
    // mesh functions
    virtual void computeFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_l_id, const bool gp);
 
    virtual void computeDerivFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_l_id)
    {
       (void)temperature_id;  // unused
@@ -68,11 +68,11 @@ class FreeEnergyStrategy
    }
 
    virtual void computeFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_a_id, const bool gp);
 
    virtual void computeDerivFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_a_id)
    {
       (void)temperature_id;  // unused
@@ -80,7 +80,7 @@ class FreeEnergyStrategy
    }
 
    virtual void computeFreeEnergySolidB(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_b_id, const bool gp);
 
    // mesh functions
@@ -109,8 +109,8 @@ class FreeEnergyStrategy
                                     const int f_a_id, const int f_b_id,
                                     const int rhs_id)
    {
-      boost::shared_ptr<pdat::CellData<double> > rhs(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > rhs(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(rhs_id)));
       math::PatchCellDataOpsReal<double> ops;
       ops.setToScalar(rhs, 0., patch.getBox());
@@ -145,7 +145,6 @@ class FreeEnergyStrategy
 
  private:
    void computeDerivFreeEnergy(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int df_id);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int df_id);
 };
 #endif

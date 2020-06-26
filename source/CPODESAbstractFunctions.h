@@ -36,16 +36,10 @@
 #ifndef included_CPODESAbstractFunctions
 #define included_CPODESAbstractFunctions
 
-#ifndef included_SAMRAI_config
 #include "SAMRAI/SAMRAI_config.h"
-#endif
-#ifndef included_solv_SundialsAbstractVector
-#include "SAMRAI/solv/SundialsAbstractVector.h"
-#endif
+#include "SundialsAbstractVector.h"
 
 using namespace SAMRAI;
-
-#ifdef HAVE_SUNDIALS
 
 /**
  * Class CPODESAbstractFunctions is an abstract base class that defines
@@ -144,7 +138,5 @@ class CPODESAbstractFunctions
                                    double gamma, double delta, int lr,
                                    solv::SundialsAbstractVector* vtemp) = 0;
 };
-
-#endif
 
 #endif

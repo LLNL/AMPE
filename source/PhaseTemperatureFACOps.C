@@ -45,7 +45,7 @@
 //======================================================================
 
 PhaseTemperatureFACOps::PhaseTemperatureFACOps(
-    const std::string& object_name, boost::shared_ptr<tbox::Database> database)
+    const std::string& object_name, std::shared_ptr<tbox::Database> database)
     : EllipticFACOps(tbox::Dimension(NDIM), object_name, database)
 {
 }
@@ -85,25 +85,24 @@ void PhaseTemperatureFACOps::setC(const int phi_id, const double factor,
    // tbox::pout<<"PhaseTemperatureFACOps::setC()..."<<endl;
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      boost::shared_ptr<hier::PatchLevel> level =
-          d_hierarchy->getPatchLevel(ln);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
 
       for (hier::PatchLevel::iterator pi(level->begin()); pi != level->end();
            ++pi) {
 
-         boost::shared_ptr<hier::Patch> patch = *pi;
+         std::shared_ptr<hier::Patch> patch = *pi;
          const hier::Box& patch_box = patch->getBox();
 
-         boost::shared_ptr<pdat::CellData<double> > phi_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phi_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phi_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > local_m_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > local_m_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_m_id)));
 
-         boost::shared_ptr<pdat::CellData<double> > cdata(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > cdata(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_c_id[0])));
 
          setCOnPatchForPreconditionODE(phi_data, local_m_data, cdata, factor,
@@ -116,9 +115,9 @@ void PhaseTemperatureFACOps::setC(const int phi_id, const double factor,
 }
 
 void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_m,
-    boost::shared_ptr<pdat::CellData<double> > cd_c, const double latent_heat,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_m,
+    std::shared_ptr<pdat::CellData<double> > cd_c, const double latent_heat,
     const double phi_well_scale, const char* phi_well_func_type,
     const hier::Box& pbox)
 {

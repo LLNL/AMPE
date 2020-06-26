@@ -71,8 +71,8 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
     * @param database
     */
    HyprePoisson(const std::string& object_name, const tbox::Dimension& dim,
-                boost::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
-                boost::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
+                std::shared_ptr<solv::CellPoissonHypreSolver>& hypre_solver,
+                std::shared_ptr<solv::LocationIndexRobinBcCoefs>& bc_coefs);
 
    virtual ~HyprePoisson();
 
@@ -89,18 +89,18 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
     * @see mesh::StandardTagAndInitStrategy::initializeLevelData()
     */
    virtual void initializeLevelData(
-       const boost::shared_ptr<hier::PatchHierarchy>& hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
        const int level_number, const double init_data_time,
        const bool can_be_refined, const bool initial_time,
-       const boost::shared_ptr<hier::PatchLevel>& old_level =
-           boost::shared_ptr<hier::PatchLevel>(),
+       const std::shared_ptr<hier::PatchLevel>& old_level =
+           std::shared_ptr<hier::PatchLevel>(),
        const bool allocate_data = true);
 
    /*!
     * @brief Reset any internal hierarchy-dependent information.
     */
    virtual void resetHierarchyConfiguration(
-       const boost::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy>& new_hierarchy,
        int coarsest_level, int finest_level);
 
    //@}
@@ -153,7 +153,7 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
 
    const tbox::Dimension d_dim;
 
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    //@{
    /*!
@@ -163,12 +163,12 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
    /*!
     * @brief HYPRE poisson solver.
     */
-   boost::shared_ptr<solv::CellPoissonHypreSolver> d_poisson_hypre;
+   std::shared_ptr<solv::CellPoissonHypreSolver> d_poisson_hypre;
 
    /*!
     * @brief Boundary condition coefficient implementation.
     */
-   boost::shared_ptr<solv::LocationIndexRobinBcCoefs> d_bc_coefs;
+   std::shared_ptr<solv::LocationIndexRobinBcCoefs> d_bc_coefs;
 
    //@}
 
@@ -181,7 +181,7 @@ class HyprePoisson : public mesh::StandardTagAndInitStrategy,
    /*!
     * @brief Context owned by this object.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*!
     * @brief Descriptor indices of internal data.

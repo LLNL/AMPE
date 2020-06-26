@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
       //-----------------------------------------------------------------------
       // Create input database and parse all data in input file.
 
-      boost::shared_ptr<tbox::MemoryDatabase> input_db(
+      std::shared_ptr<tbox::MemoryDatabase> input_db(
           new tbox::MemoryDatabase("input_db"));
       tbox::InputManager::getManager()->parseInputFile(input_filename,
                                                        input_db);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
       tbox::plog << "input_filename = " << input_filename << std::endl;
 
-      boost::shared_ptr<tbox::Database> model_db =
+      std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
 
       EnergyInterpolationType energy_interp_func_type =
@@ -102,14 +102,14 @@ int main(int argc, char* argv[])
       ConcInterpolationType conc_interp_func_type =
           ConcInterpolationType::LINEAR;
 
-      boost::shared_ptr<tbox::Database> temperature_db =
+      std::shared_ptr<tbox::Database> temperature_db =
           model_db->getDatabase("Temperature");
       double temperature = temperature_db->getDouble("temperature");
 
-      boost::shared_ptr<tbox::Database> conc_db(
+      std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
 
-      boost::shared_ptr<tbox::Database> newton_db;
+      std::shared_ptr<tbox::Database> newton_db;
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
 

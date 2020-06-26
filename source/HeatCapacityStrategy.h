@@ -48,7 +48,7 @@ class HeatCapacityStrategy
    virtual ~HeatCapacityStrategy(){};
 
    virtual void setCurrentValue(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy) = 0;
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy) = 0;
 };
 
 #endif

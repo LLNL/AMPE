@@ -45,7 +45,7 @@ using namespace netCDF;
 #endif
 
 FieldsInitializer::FieldsInitializer(
-    boost::shared_ptr<geom::CartesianGridGeometry>& grid_geometry,
+    std::shared_ptr<geom::CartesianGridGeometry>& grid_geometry,
     const hier::IntVector& ratio_of_init_to_coarsest, const int verbosity)
     : d_grid_geometry(grid_geometry),
       d_ratio_of_init_to_coarsest(ratio_of_init_to_coarsest),
@@ -96,7 +96,7 @@ void FieldsInitializer::setTvalue(const float tvalue)
 }
 
 void FieldsInitializer::initializeLevelFromData(
-    boost::shared_ptr<hier::PatchLevel> level,
+    std::shared_ptr<hier::PatchLevel> level,
     const std::string& init_data_filename, const int slice_index)
 {
    int ln = level->getLevelNumber();
@@ -378,7 +378,7 @@ void FieldsInitializer::initializeLevelFromData(
 
    template <typename T>
    void FieldsInitializer::initializePatchFromData(
-       boost::shared_ptr<hier::Patch> patch, size_t islice,
+       std::shared_ptr<hier::Patch> patch, size_t islice,
 #ifdef HAVE_NETCDF3
        NcVar * ncPhase, NcVar * ncEta, NcVar * ncTemp,
        NcVar * *ncQuatComponents, NcVar * *ncConcComponents,
@@ -417,8 +417,8 @@ void FieldsInitializer::initializeLevelFromData(
 
       // initialize phase
       if (d_phase_id >= 0) {
-         boost::shared_ptr<pdat::CellData<double> > phase_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > phase_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_phase_id)));
          assert(phase_data);
 
@@ -451,8 +451,8 @@ void FieldsInitializer::initializeLevelFromData(
 
       // initialize eta
       if (d_eta_id >= 0) {
-         boost::shared_ptr<pdat::CellData<double> > eta_data(
-             BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+         std::shared_ptr<pdat::CellData<double> > eta_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_eta_id)));
          assert(eta_data);
 
@@ -490,8 +490,8 @@ void FieldsInitializer::initializeLevelFromData(
 #ifdef HAVE_NETCDF4
          if (readT() && !ncTemp.isNull()) {
 #endif
-            boost::shared_ptr<pdat::CellData<double> > temp_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > temp_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_id)));
             assert(temp_data);
 
@@ -520,8 +520,8 @@ void FieldsInitializer::initializeLevelFromData(
                (*temp_data)(ccell) = vals[idx];
             }
          } else if (d_temperature_id >= 0 && !readT()) {
-            boost::shared_ptr<pdat::CellData<double> > temp_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > temp_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_temperature_id)));
             assert(temp_data);
 
@@ -530,8 +530,8 @@ void FieldsInitializer::initializeLevelFromData(
 
          // initialize quaternion
          if (d_quat_id >= 0) {
-            boost::shared_ptr<pdat::CellData<double> > quat_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > quat_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_quat_id)));
             assert(quat_data);
 
@@ -584,8 +584,8 @@ void FieldsInitializer::initializeLevelFromData(
          // initialize concentration
          if (d_ncompositions > 0) {
             assert(d_conc_id >= 0);
-            boost::shared_ptr<pdat::CellData<double> > conc_data(
-                BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+            std::shared_ptr<pdat::CellData<double> > conc_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_conc_id)));
             assert(conc_data);
 

@@ -38,10 +38,8 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#ifdef HAVE_SUNDIALS
-
 #include "CPODESAbstractFunctions.h"
-#include "SAMRAI/solv/SundialsAbstractVector.h"
+#include "SundialsAbstractVector.h"
 #include "SAMRAI/tbox/IOStream.h"
 
 using namespace SAMRAI;
@@ -1276,5 +1274,4 @@ class CPODESSolver
 };
 
 
-#endif
 #endif

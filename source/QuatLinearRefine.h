@@ -77,7 +77,7 @@ class QuatLinearRefine : public hier::RefineOperator
     * Return true if the variable and name string match node-centered
     * double linear interpolation; otherwise, return false.
     */
-   bool findRefineOperator(const boost::shared_ptr<hier::Variable>& var,
+   bool findRefineOperator(const std::shared_ptr<hier::Variable>& var,
                            const std::string& op_name) const;
 
    /**

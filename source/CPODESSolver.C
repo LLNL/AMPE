@@ -35,8 +35,6 @@
 //
 #include "CPODESSolver.h"
 
-#ifdef HAVE_SUNDIALS
-
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -1154,5 +1152,3 @@ void CPODESSolver::addVectorToList(
       sundials_vec->push_back(y);
    }
 }
-
-#endif

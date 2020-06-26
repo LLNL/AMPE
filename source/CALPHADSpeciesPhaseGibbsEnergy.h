@@ -58,8 +58,7 @@ class CALPHADSpeciesPhaseGibbsEnergy
 
    std::string name() const { return d_name; }
 
-   void initialize(const std::string& name,
-                   boost::shared_ptr<tbox::Database> db);
+   void initialize(const std::string& name, std::shared_ptr<tbox::Database> db);
 
    double fenergy(const double T);  // expect T in Kelvin
    void plotFofT(std::ostream& os, const double T0 = 300.,

@@ -58,8 +58,7 @@ class ConstantTemperatureStrategy : public TemperatureStrategy
    ~ConstantTemperatureStrategy(){};
 
    virtual double getCurrentMinTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
-       const double time)
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
    {
       (void)time;
       math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
@@ -68,8 +67,7 @@ class ConstantTemperatureStrategy : public TemperatureStrategy
    }
 
    virtual double getCurrentMaxTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
-       const double time)
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
    {
       (void)time;
       math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
@@ -78,8 +76,7 @@ class ConstantTemperatureStrategy : public TemperatureStrategy
    }
 
    virtual double getCurrentAverageTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
-       const double time)
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
    {
       (void)time;
       math::HierarchyCellDataOpsReal<double> cellops(patch_hierarchy);
@@ -90,8 +87,7 @@ class ConstantTemperatureStrategy : public TemperatureStrategy
 
 
    virtual void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
-       const double time)
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
    {
       (void)patch_hierarchy;
       (void)time;

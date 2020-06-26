@@ -75,7 +75,7 @@ class MinIntCoarsen : public hier::CoarsenOperator
     * Return true if the variable and name string match cell-centered
     * double weighted averaging; otherwise, return false.
     */
-   bool findCoarsenOperator(const boost::shared_ptr<hier::Variable>& var,
+   bool findCoarsenOperator(const std::shared_ptr<hier::Variable>& var,
                             const std::string& op_name) const;
 
    /**

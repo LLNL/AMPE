@@ -46,7 +46,7 @@ SimpleGradStrategy::~SimpleGradStrategy() { d_pfmodel = nullptr; }
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeDiffs(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
     int& diffs_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_pfmodel != nullptr);
@@ -64,7 +64,7 @@ void SimpleGradStrategy::computeDiffs(
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeDiffs(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& var_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& var_id,
     int& diffs_id, const double time)
 {
    assert(d_pfmodel != nullptr);
@@ -75,7 +75,7 @@ void SimpleGradStrategy::computeDiffs(
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradCell(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
     int& grad_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_pfmodel != nullptr);
@@ -93,7 +93,7 @@ void SimpleGradStrategy::computeGradCell(
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradCell(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
     int& grad_id, const double time)
 {
    assert(d_pfmodel != nullptr);
@@ -104,7 +104,7 @@ void SimpleGradStrategy::computeGradCell(
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradSide(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
     int& grad_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_pfmodel != nullptr);
@@ -122,7 +122,7 @@ void SimpleGradStrategy::computeGradSide(
 //-----------------------------------------------------------------------
 
 void SimpleGradStrategy::computeGradSide(
-    const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+    const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
     int& grad_id, const double time)
 {
    assert(d_pfmodel != nullptr);

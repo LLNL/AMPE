@@ -43,7 +43,7 @@
 
 SteadyStateTemperatureStrategy::SteadyStateTemperatureStrategy(
     const int temperature_scratch_id, const int rhs_id, const int weight_id,
-    boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
+    std::shared_ptr<tbox::Database> temperature_sys_solver_database,
     solv::LocationIndexRobinBcCoefs* bc_coefs)
 {
    assert(temperature_scratch_id >= 0);
@@ -54,7 +54,7 @@ SteadyStateTemperatureStrategy::SteadyStateTemperatureStrategy(
    d_rhs_id = rhs_id;
    d_weight_id = weight_id;
 
-   boost::shared_ptr<TemperatureFACOps> fac_ops(
+   std::shared_ptr<TemperatureFACOps> fac_ops(
        new TemperatureFACOps("SteadyStateTemperatureStrategyFACOps",
                              temperature_sys_solver_database));
 
@@ -79,7 +79,7 @@ SteadyStateTemperatureStrategy::~SteadyStateTemperatureStrategy()
 //-----------------------------------------------------------------------
 
 void SteadyStateTemperatureStrategy::initialize(
-    const boost::shared_ptr<hier::PatchHierarchy>& patch_hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy>& patch_hierarchy)
 {
    int finest = patch_hierarchy->getFinestLevelNumber();
 
@@ -91,7 +91,7 @@ void SteadyStateTemperatureStrategy::initialize(
 //-----------------------------------------------------------------------
 
 void SteadyStateTemperatureStrategy::resetSolversState(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(d_temperature_sys_solver);
    d_temperature_sys_solver->resetSolverState(d_temperature_scratch_id,

@@ -37,14 +37,14 @@
 #include "FuncFort.h"
 
 void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
-    boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-    boost::shared_ptr<pdat::CellData<double> > cd_phi,
-    boost::shared_ptr<pdat::CellData<double> > cd_eta,
-    boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-    boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-    boost::shared_ptr<hier::Patch> patch)
+    std::shared_ptr<pdat::CellData<double> > cd_temperature,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
+    std::shared_ptr<pdat::CellData<double> > cd_eta,
+    std::shared_ptr<pdat::CellData<double> > cd_concentration,
+    std::shared_ptr<pdat::CellData<double> > cd_c_l,
+    std::shared_ptr<pdat::CellData<double> > cd_c_a,
+    std::shared_ptr<pdat::CellData<double> > cd_c_b,
+    std::shared_ptr<hier::Patch> patch)
 {
    (void)cd_temperature;
    (void)cd_eta;
@@ -58,8 +58,8 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
 
    const hier::Box& pbox = patch->getBox();
 
-   boost::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cd_partition_coeff(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(d_partition_coeff_id)));
    assert(cd_partition_coeff);
 

@@ -58,9 +58,9 @@ class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 
  protected:
    void evaluate(hier::Patch& patch,
-                 boost::shared_ptr<pdat::CellData<double> > velocity,
-                 boost::shared_ptr<pdat::CellData<double> > temperature,
-                 boost::shared_ptr<pdat::CellData<double> > partition_coeff);
+                 std::shared_ptr<pdat::CellData<double> > velocity,
+                 std::shared_ptr<pdat::CellData<double> > temperature,
+                 std::shared_ptr<pdat::CellData<double> > partition_coeff);
 
  private:
    FreeEnergyFunctions* d_free_energy;

@@ -45,7 +45,7 @@
 //======================================================================
 
 TemperatureFACOps::TemperatureFACOps(const std::string &object_name,
-                                     boost::shared_ptr<tbox::Database> database)
+                                     std::shared_ptr<tbox::Database> database)
     : EllipticFACOps(tbox::Dimension(NDIM), object_name, database)
 {
    return;

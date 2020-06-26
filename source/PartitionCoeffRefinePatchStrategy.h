@@ -60,7 +60,7 @@ class PartitionCoeffRefinePatchStrategy : public xfer::RefinePatchStrategy
 {
  public:
    PartitionCoeffRefinePatchStrategy(const std::string& object_name,
-                                     boost::shared_ptr<tbox::Database> input_db,
+                                     std::shared_ptr<tbox::Database> input_db,
                                      const int partition_coeff_id);
 
    /**

@@ -58,7 +58,7 @@ class CompositionRHSStrategy
                                         const int temperature_id,
                                         const int flux_id);
    virtual void printDiagnostics(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy)
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy)
    {
       (void)hierarchy;
    };

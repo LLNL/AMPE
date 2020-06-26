@@ -47,14 +47,14 @@ class TemperatureFACSolver : public EllipticFACSolver
 
  public:
    TemperatureFACSolver(const std::string &object_name,
-                        boost::shared_ptr<TemperatureFACOps> fac_ops,
-                        const boost::shared_ptr<tbox::Database> database =
-                            boost::shared_ptr<tbox::Database>());
+                        std::shared_ptr<TemperatureFACOps> fac_ops,
+                        const std::shared_ptr<tbox::Database> database =
+                            std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(const double, const double, const double);
 
  private:
-   boost::shared_ptr<tbox::Timer> t_set_op_coef;
+   std::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 
 #endif  // included_TemperatureFACSolver

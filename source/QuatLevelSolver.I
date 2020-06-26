@@ -73,7 +73,7 @@ QuatLevelSolver::setBoundaries(const std::string & boundary_type,
 SAMRAI_INLINE_KEYWORD void
 QuatLevelSolver::setPhysicalBcCoefObject(
    const solv::RobinBcCoefStrategy *physical_bc_coef_strategy,
-   const boost::shared_ptr< hier::Variable > variable )
+   const std::shared_ptr< hier::Variable > variable )
 {
   d_physical_bc_coef_strategy = physical_bc_coef_strategy;
   d_physical_bc_variable = variable;

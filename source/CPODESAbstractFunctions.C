@@ -35,10 +35,6 @@
 //
 #include "CPODESAbstractFunctions.h"
 
-#ifdef HAVE_SUNDIALS
-
 CPODESAbstractFunctions::CPODESAbstractFunctions() {}
 
 CPODESAbstractFunctions::~CPODESAbstractFunctions() {}
-
-#endif

@@ -118,8 +118,8 @@ class QuatLevelSolver
     * database:    tbox::Database for input.
     */
    QuatLevelSolver(const int qlen, const std::string& object_name,
-                   boost::shared_ptr<tbox::Database> database =
-                       boost::shared_ptr<tbox::Database>());
+                   std::shared_ptr<tbox::Database> database =
+                       std::shared_ptr<tbox::Database>());
 
    /*
     * The destructor releases all internally managed data.
@@ -133,7 +133,7 @@ class QuatLevelSolver
     * hierarchy: Hierarchy
     * ln:        Level number
     */
-   void initializeSolverState(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void initializeSolverState(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                               int ln = 0);
 
    /*
@@ -245,7 +245,7 @@ class QuatLevelSolver
     * cell centers, use the GhostCellRobinBcCoefs
     * implementation of the RobinBcCoefStrategy strategy.
     *
-    * physical_bc_coef_strategy ==boost::shared_ptr to a concrete
+    * physical_bc_coef_strategy ==std::shared_ptr to a concrete
     *        implementation of the Robin bc strategy.
     * variable == hier::Variable pointer to be passed
     *        to RobinBcCoefStrategy::setBcCoefs(),
@@ -253,8 +253,8 @@ class QuatLevelSolver
     */
    void setPhysicalBcCoefObject(
        const solv::RobinBcCoefStrategy* physical_bc_coef_strategy,
-       const boost::shared_ptr<hier::Variable> variable =
-           boost::shared_ptr<hier::Variable>());
+       const std::shared_ptr<hier::Variable> variable =
+           std::shared_ptr<hier::Variable>());
 
    /*
     * Set the flag for printing solver information.
@@ -295,7 +295,7 @@ class QuatLevelSolver
     * database: Input database.  If a NULL pointer is given,
     *           nothing is done.
     */
-   void getFromInput(boost::shared_ptr<tbox::Database> database);
+   void getFromInput(std::shared_ptr<tbox::Database> database);
 
    /*
     * Allocate the data structures need by Hypre, except for
@@ -390,7 +390,7 @@ class QuatLevelSolver
    /*
     * Associated hierarchy.
     */
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*
     * Level number.
@@ -400,7 +400,7 @@ class QuatLevelSolver
    /*
     * Scratch context for this object.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*
     * The coarse-fine boundary description for level d_ln.
@@ -409,7 +409,7 @@ class QuatLevelSolver
     * state is initialized.  It is used to allow solves on
     * levels that are not the coarsest in the hierarchy.
     */
-   boost::shared_ptr<hier::CoarseFineBoundary> d_cf_boundary;
+   std::shared_ptr<hier::CoarseFineBoundary> d_cf_boundary;
 
    /*
     * Robin boundary coefficient object for physical
@@ -419,7 +419,7 @@ class QuatLevelSolver
     * use d_physical_bc_simple_case.
     */
    const solv::RobinBcCoefStrategy* d_physical_bc_coef_strategy;
-   boost::shared_ptr<hier::Variable> d_physical_bc_variable;
+   std::shared_ptr<hier::Variable> d_physical_bc_variable;
 
    /*
     * Implementation of Robin boundary conefficients
@@ -436,7 +436,7 @@ class QuatLevelSolver
     * in the coarse-fine boundaries before solving.
     */
    solv::GhostCellRobinBcCoefs d_cf_bc_coef;
-   boost::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
+   std::shared_ptr<hier::Variable> d_coarsefine_bc_variable;
 
    /*
     * hier::Patch index of A*k0(a) quantity
@@ -461,7 +461,7 @@ class QuatLevelSolver
     */
    int d_Ak0_id;
 
-   static boost::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[NDIM];
+   static std::shared_ptr<pdat::OutersideVariable<double> > s_Ak0_var[NDIM];
 
    /*
     * Maximum number of iterations allowed
@@ -538,10 +538,10 @@ class QuatLevelSolver
    /*
     * Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_solve_system;
-   boost::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
-   boost::shared_ptr<tbox::Timer> t_create_hypre_solver;
-   boost::shared_ptr<tbox::Timer> t_hypre_solve;
+   std::shared_ptr<tbox::Timer> t_solve_system;
+   std::shared_ptr<tbox::Timer> t_set_matrix_coefficients;
+   std::shared_ptr<tbox::Timer> t_create_hypre_solver;
+   std::shared_ptr<tbox::Timer> t_hypre_solve;
 };
 
 #include "QuatLevelSolver.I"
