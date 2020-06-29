@@ -54,7 +54,7 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
 
    void computeFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp)
    {
       (void)temperature_id;
@@ -76,10 +76,9 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
                            const int fa_id, const int fb_id,
                            const int rhs_id){};
 
-   void applydPhidTBlock(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int phase_id, const int rhs_id,
-       const double phase_mobility);
+   void applydPhidTBlock(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
+                         const int temperature_id, const int phase_id,
+                         const int rhs_id, const double phase_mobility);
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,

@@ -48,8 +48,8 @@ class PhaseFACOps : public EllipticFACOps
 
  public:
    PhaseFACOps(const std::string& object_name, const bool with_third_phase,
-               const boost::shared_ptr<tbox::Database> database =
-                   boost::shared_ptr<tbox::Database>());
+               const std::shared_ptr<tbox::Database> database =
+                   std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(
        const int phase_id, const int eta_id, const int phase_mobility_id,
@@ -66,12 +66,12 @@ class PhaseFACOps : public EllipticFACOps
 
  private:
    // Timers
-   boost::shared_ptr<tbox::Timer> t_setcoeffs_timer;
+   std::shared_ptr<tbox::Timer> t_setcoeffs_timer;
 
-   void setCOnPatchPrivate(boost::shared_ptr<pdat::CellData<double> > cd_phi,
-                           boost::shared_ptr<pdat::CellData<double> > cd_eta,
-                           boost::shared_ptr<pdat::CellData<double> > cd_m,
-                           boost::shared_ptr<pdat::CellData<double> > cd_c,
+   void setCOnPatchPrivate(std::shared_ptr<pdat::CellData<double> > cd_phi,
+                           std::shared_ptr<pdat::CellData<double> > cd_eta,
+                           std::shared_ptr<pdat::CellData<double> > cd_m,
+                           std::shared_ptr<pdat::CellData<double> > cd_c,
                            const double gamma,
                            const EnergyInterpolationType phi_interp_func_type,
                            const double phi_well_scale,

@@ -38,16 +38,14 @@
 #include "NormalNoise.h"
 #include "UniformNoise.h"
 
-using namespace std;
-
 
 int main(int argc, char* argv[])
 {
-   cout << "Test noise generation." << endl;
+   std::cout << "Test noise generation." << std::endl;
 
    // 1st test
    {
-      cout << "Normal distributed noise..." << endl;
+      std::cout << "Normal distributed noise..." << std::endl;
       NormalNoise& noise(*(NormalNoise::instance()));
 
       int ntotal = 1000;
@@ -55,32 +53,32 @@ int main(int argc, char* argv[])
       double avg = 0.;
       for (int i = 0; i < ntotal; i++) {
          double val = noise.gen();
-         // cout<<val<<endl;
+         // std::cout<<val<<endl;
          if (fabs(val) <= 1.) count++;
          avg += val;
       }
       avg /= (double)ntotal;
 
-      cout << count << " out of " << ntotal << " values are between -1 and 1."
-           << endl;
-      cout << "Average value is " << avg << endl;
+      std::cout << count << " out of " << ntotal
+                << " values are between -1 and 1." << std::endl;
+      std::cout << "Average value is " << avg << std::endl;
 
       // 68% of values should be between -1 and 1
       if ((double)count > 0.71 * (double)ntotal ||
           (double)count < 0.65 * (double)ntotal) {
-         cerr << "TEST NormalNoise failed!!!" << endl;
+         std::cerr << "TEST NormalNoise failed!!!" << std::endl;
          return 1;
       }
 
       if (fabs(avg) > 0.04) {
-         cerr << "TEST average NormalNoise failed!!!" << endl;
+         std::cerr << "TEST average NormalNoise failed!!!" << std::endl;
          return 1;
       }
    }
 
    // 2nd test
    {
-      cout << "Uniform distributed noise..." << endl;
+      std::cout << "Uniform distributed noise..." << std::endl;
       UniformNoise& noise(*(UniformNoise::instance(42u)));
 
       int ntotal = 1000;
@@ -93,22 +91,22 @@ int main(int argc, char* argv[])
       }
       avg /= ntotal;
 
-      cout << count << " out of " << ntotal
-           << " values are between -0.5 and 0.5" << endl;
-      cout << "Average value is " << avg << endl;
+      std::cout << count << " out of " << ntotal
+                << " values are between -0.5 and 0.5" << std::endl;
+      std::cout << "Average value is " << avg << std::endl;
 
       if (count < ntotal) {
-         cerr << "TEST UniformNoise failed!!!" << endl;
+         std::cerr << "TEST UniformNoise failed!!!" << std::endl;
          return 1;
       }
 
       if (fabs(avg) > 0.02) {
-         cerr << "TEST average UniformNoise failed!!!" << endl;
+         std::cerr << "TEST average UniformNoise failed!!!" << std::endl;
          return 1;
       }
    }
 
-   cout << "TEST successful!" << endl;
+   std::cout << "TEST successful!" << std::endl;
 
    return 0;
 }

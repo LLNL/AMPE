@@ -49,39 +49,39 @@ class SimpleQuatGradStrategy : public QuatGradStrategy
    virtual bool isSymmetryAware(void);
 
    virtual void computeDiffs(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& quat_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& quat_id,
        int& diffs_id, const double time);
 
    virtual void computeDiffs(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
        int& diffs_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradCell(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_id, const double time);
 
    virtual void computeGradCell(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradSide(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& diffs_id,
        int& grad_id, const double time);
 
    virtual void computeGradSide(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradModulus(
-       const boost::shared_ptr<hier::PatchLevel> patch_level, int& grad_id,
+       const std::shared_ptr<hier::PatchLevel> patch_level, int& grad_id,
        int& mod_id, const double time);
 
    virtual void computeGradModulus(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
        int& mod_id, const double time, const CACHE_TYPE cache = CACHE);
 
    virtual void computeGradModulusFromSides(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& grad_id,
        int& mod_id, const double time, const CACHE_TYPE cache = CACHE);
 
  private:

@@ -533,13 +533,6 @@ fi
 AC_SUBST(dox_output_dir)
 
 dnl
-dnl Set SAMRAI_PERL to the perl binary for use in doxygen.
-dnl
-
-BTNG_PATH_PROG(SAMRAI_PERL,perl)
-BTNG_AC_LOG_VAR(SAMRAI_PERL)
-
-dnl
 dnl Whether restrict key word works.
 dnl
 BTNG_C_RESTRICT
@@ -679,70 +672,6 @@ fi
 BTNG_AC_LOG_VAR(with_mpi)
 
 
-dnl
-dnl Set variables for hdf5 support
-dnl
-BTNG_SUPPORT_HDF5
-if test "${hdf5_PREFIX+set}" = set; then
-  LIBS="$hdf5_LIBS $LIBS"
-  SAMRAI_SPLIT_LIBS_STRING(hdf5_LIBS,hdf5_LIB_PATH,hdf5_LIB_NAME)
-  AC_DEFINE(HAVE_HDF5,1,HDF5 library is available so use it)
-fi
-BTNG_AC_LOG_VAR(
-[hdf5_INCLUDES hdf5_LIB_PATH hdf5_LIB_NAME])
-
-
-dnl
-dnl BOOST support
-dnl
-BTNG_SUPPORT_BOOST
-if test "${boost_PREFIX+set}" = set; then
-   SAMRAI_SPLIT_LIBS_STRING(boost_LIBS,boost_LIB_PATH,boost_LIB_NAME)
-   LIB_PATH="$boost_LIB_PATH $LIB_PATH"
-   LIB_NAME="$boost_LIB_NAME $LIB_NAME"
-   INC_PATH="$boost_INCLUDES $INC_PATH"
-   AC_DEFINE([HAVE_BOOST_HEADERS],[1],[BOOST headers are available to use])
-else
-   AC_MSG_ERROR(
-     [Path to BOOST installation must be specified with --with-boost])
-fi
-BTNG_AC_LOG_VAR(
-[boost_INCLUDES INC_PATH boost_LIBS LIB_PATH LIB_NAME])
-
-dnl
-dnl NetCDF support
-dnl
-BTNG_SUPPORT_NETCDF
-if test "${netcdf_PREFIX+set}" = set; then
-   SAMRAI_SPLIT_LIBS_STRING(netcdf_LIBS,netcdf_LIB_PATH,netcdf_LIB_NAME)
-   LIB_PATH="$netcdf_LIB_PATH $LIB_PATH"
-   LIB_NAME="$netcdf_LIB_NAME $LIB_NAME"
-   INC_PATH="$netcdf_INCLUDES $INC_PATH"
-   AC_DEFINE([HAVE_NETCDF_HEADERS],[1],[NETCDF headers are available to use])
-else
-   AC_MSG_ERROR(
-     [Path to NetCDF installation must be specified with --with-netcdf])
-fi
-BTNG_AC_LOG_VAR(
-[netcdf_INCLUDES INC_PATH netcdf_LIBS LIB_PATH LIB_NAME])
-
-dnl
-dnl Hypre support
-dnl
-BTNG_SUPPORT_HYPRE
-if test "${hypre_PREFIX+set}" = set; then
-   SAMRAI_SPLIT_LIBS_STRING(hypre_LIBS,hypre_LIB_PATH,hypre_LIB_NAME)
-   LIB_PATH="$hypre_LIB_PATH $LIB_PATH"
-   LIB_NAME="$hypre_LIB_NAME $LIB_NAME"
-   INC_PATH="$hypre_INCLUDES $INC_PATH"
-   AC_DEFINE([HAVE_HYPRE_HEADERS],[1],[HYPRE headers are available to use])
-else
-   AC_MSG_ERROR(
-     [Path to Hypre installation must be specified with --with-hypre])
-fi
-BTNG_AC_LOG_VAR(
-[hypre_INCLUDES INC_PATH hypre_LIBS LIB_PATH LIB_NAME])
-
 #dnl
 #dnl The following are hacks for specific architectures.  We are not proud
 #dnl of these tests, and they should be changed to macros in the future.
@@ -832,11 +761,10 @@ else
 fi
 
 CONFIG_DIR=$INSTDIR/config
-SAM_CONFIG_DIR=$BASE_BUILD_DIR/SAMRAI/config
 
 dnl
 dnl Macro substitutions for the generated
-dnl doconfig.sundials.in and doconfig.SAMRAI.in templates
+dnl doconfig.sundials.in templates
 dnl
 
 AC_SUBST(DEBUG)
@@ -850,10 +778,6 @@ AC_SUBST(CXX)
 AC_SUBST(CXX_FLAGS)
 AC_SUBST(F77)
 AC_SUBST(F77_FLAGS)
-AC_SUBST(hdf5_PREFIX)
-AC_SUBST(boost_PREFIX)
-AC_SUBST(netcdf_PREFIX)
-AC_SUBST(hypre_PREFIX)
 AC_SUBST(BASE_BUILD_DIR)
 AC_SUBST(IMPLICIT_TEMPLATES)
 
@@ -863,7 +787,6 @@ dnl
 
 AC_SUBST(SOURCE_DIR)
 AC_SUBST(CONFIG_DIR)
-AC_SUBST(SAM_CONFIG_DIR)
 AC_SUBST(F77LIBDIRS)
 AC_SUBST(IS_AIX)
 
@@ -871,9 +794,7 @@ dnl
 dnl Macro substitutions for the generated doinstall.in templates
 dnl
 
-SAMCONFDIR=$BASE_DIR/SAMRAI/$SYSTYPE
 AC_SUBST(BASE_DIR)
-AC_SUBST(SAMCONFDIR)
 
 dnl
 dnl Find all Makefile.in and associated subdirectories
@@ -901,8 +822,6 @@ AC_CONFIG_FILES([
 $BASE_BUILD_DIR/doinstall:config/doinstall.in
 $BASE_DIR/sundials/doconfig:config/doconfig.sundials.in
 $BASE_DIR/sundials/doinstall:config/doinstall.sundials.in
-$SAMCONFDIR/doconfig:config/doconfig.SAMRAI.in
-$SAMCONFDIR/doinstall:config/doinstall.SAMRAI.in
 ])
 fi
 AC_CONFIG_FILES([
@@ -936,7 +855,6 @@ subdirs="$subdirs"
 instdir="$INSTDIR"
 rootdir="$ROOTDIR"
 sundialsconfdir="$BASE_DIR/sundials"
-samconfdir="$SAMCONFDIR"
 with_base="$with_base"
 ]])
 

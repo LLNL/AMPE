@@ -38,8 +38,8 @@
 
 
 EtaFACSolver::EtaFACSolver(const std::string &object_name,
-                           boost::shared_ptr<EtaFACOps> fac_ops,
-                           boost::shared_ptr<tbox::Database> database)
+                           std::shared_ptr<EtaFACOps> fac_ops,
+                           std::shared_ptr<tbox::Database> database)
     : EllipticFACSolver(object_name, fac_ops, database)
 {
    return;
@@ -51,8 +51,8 @@ void EtaFACSolver::setOperatorCoefficients(
     const EnergyInterpolationType phase_interp_func_type,
     const double eta_well_scale, const std::string eta_well_func_type)
 {
-   boost::shared_ptr<EtaFACOps> eta_fac_ops(
-       boost::dynamic_pointer_cast<EtaFACOps, EllipticFACOps>(d_fac_ops));
+   std::shared_ptr<EtaFACOps> eta_fac_ops(
+       std::dynamic_pointer_cast<EtaFACOps, EllipticFACOps>(d_fac_ops));
 
    eta_fac_ops->setOperatorCoefficients(phase_id, eta_id, eta_mobility_id,
                                         epsilon_eta, gamma,

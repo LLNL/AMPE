@@ -5,8 +5,4 @@ source scripts/modules.condo
             --with-CXX=mpiCC \
             --with-CC=mpicc \
             --with-F77=mpif77 \
-            --with-boost=$BOOST_DIR \
-            --with-hdf5=$HDF5_DIR \
-            --with-hypre=$HYPRE_DIR \
-            --with-netcdf=$NETCDF_DIR \
             --prefix=$PWD/build

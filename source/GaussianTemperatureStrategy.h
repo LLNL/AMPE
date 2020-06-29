@@ -51,23 +51,23 @@ class GaussianTemperatureStrategy : public TemperatureStrategy
  public:
    GaussianTemperatureStrategy(
        const int temperature_id, const int temperature_scratch_id,
-       const int weight_id, boost::shared_ptr<tbox::Database> temperature_db,
-       boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry);
+       const int weight_id, std::shared_ptr<tbox::Database> temperature_db,
+       std::shared_ptr<geom::CartesianGridGeometry> grid_geometry);
 
    ~GaussianTemperatureStrategy(){};
 
    virtual double getCurrentMaxTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
    virtual double getCurrentMinTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
    virtual double getCurrentAverageTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
    virtual void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
  private:
@@ -98,11 +98,11 @@ class GaussianTemperatureStrategy : public TemperatureStrategy
 
    double d_standard_dev;
 
-   boost::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
+   std::shared_ptr<geom::CartesianGridGeometry> d_grid_geometry;
    int d_periodic_flag[3];
 
    void setCurrentTemperaturePrivatePatch(
-       hier::Patch& patch, boost::shared_ptr<pdat::CellData<double> > cd_temp,
+       hier::Patch& patch, std::shared_ptr<pdat::CellData<double> > cd_temp,
        const double tgaussian);
 
    double getCurrentTemperature(const double time);

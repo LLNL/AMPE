@@ -46,7 +46,7 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
         const int conc_a_ref_id, const int conc_b_ref_id,
         const EnergyInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
-        boost::shared_ptr<tbox::Database> conc_db)
+        std::shared_ptr<tbox::Database> conc_db)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
                                   conc_b_scratch_id, false),
       d_conc_l_ref_id(conc_l_ref_id),
@@ -60,14 +60,14 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
 
 void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
-        boost::shared_ptr<pdat::CellData<double> > cd_te,
-        boost::shared_ptr<pdat::CellData<double> > cd_pf,
-        boost::shared_ptr<pdat::CellData<double> > cd_eta,
-        boost::shared_ptr<pdat::CellData<double> > cd_conc,
-        boost::shared_ptr<pdat::CellData<double> > cd_cl,
-        boost::shared_ptr<pdat::CellData<double> > cd_ca,
-        boost::shared_ptr<pdat::CellData<double> > cd_cb,
-        boost::shared_ptr<hier::Patch> patch)
+        std::shared_ptr<pdat::CellData<double> > cd_te,
+        std::shared_ptr<pdat::CellData<double> > cd_pf,
+        std::shared_ptr<pdat::CellData<double> > cd_eta,
+        std::shared_ptr<pdat::CellData<double> > cd_conc,
+        std::shared_ptr<pdat::CellData<double> > cd_cl,
+        std::shared_ptr<pdat::CellData<double> > cd_ca,
+        std::shared_ptr<pdat::CellData<double> > cd_cb,
+        std::shared_ptr<hier::Patch> patch)
 {
    (void)cd_eta;
 
@@ -88,15 +88,15 @@ void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
 #endif
 
    //   assert( d_conc_l_ref_id>=0 );
-   //   boost::shared_ptr< pdat::CellData<double> > cd_cl_ref (
-   //      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+   //   std::shared_ptr< pdat::CellData<double> > cd_cl_ref (
+   //      SAMRAI_SHARED_PTR_CAST< pdat::CellData<double>, hier::PatchData>(
    //         patch->getPatchData( d_conc_l_ref_id) ) );
    //   assert( cd_cl_ref );
    //   assert( cd_conc->getDepth()==cd_cl_ref->getDepth() );
 
    //   assert( d_conc_a_ref_id>=0 );
-   //   boost::shared_ptr< pdat::CellData<double> > cd_ca_ref (
-   //      BOOST_CAST< pdat::CellData<double>, hier::PatchData>(
+   //   std::shared_ptr< pdat::CellData<double> > cd_ca_ref (
+   //      SAMRAI_SHARED_PTR_CAST< pdat::CellData<double>, hier::PatchData>(
    //         patch->getPatchData( d_conc_a_ref_id) ) );
    //   assert( cd_ca_ref );
    //   assert( cd_conc->getDepth()==cd_ca_ref->getDepth() );

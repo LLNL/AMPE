@@ -55,11 +55,11 @@ MinIntCoarsen::MinIntCoarsen() : hier::CoarsenOperator("BASE_MIN_COARSEN")
 MinIntCoarsen::~MinIntCoarsen() {}
 
 bool MinIntCoarsen::findCoarsenOperator(
-    const boost::shared_ptr<hier::Variable>& var,
+    const std::shared_ptr<hier::Variable>& var,
     const std::string& op_name) const
 {
-   const boost::shared_ptr<pdat::CellVariable<int> > cast_var(
-       BOOST_CAST<pdat::CellVariable<int>, hier::Variable>(var));
+   const std::shared_ptr<pdat::CellVariable<int> > cast_var(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellVariable<int>, hier::Variable>(var));
    if (cast_var && (op_name == d_name_id)) {
       return (true);
    } else {
@@ -89,11 +89,11 @@ void MinIntCoarsen::coarsen(hier::Patch& coarse, const hier::Patch& fine,
                             const hier::Box& coarse_box,
                             const hier::IntVector& ratio) const
 {
-   boost::shared_ptr<pdat::CellData<int> > fdata(
-       BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<int> > fdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
            fine.getPatchData(src_component)));
-   boost::shared_ptr<pdat::CellData<int> > cdata(
-       BOOST_CAST<pdat::CellData<int>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<int> > cdata(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<int>, hier::PatchData>(
            coarse.getPatchData(dst_component)));
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(fdata);

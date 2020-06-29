@@ -38,9 +38,8 @@
 
 
 TemperatureFACSolver::TemperatureFACSolver(
-    const std::string &object_name,
-    boost::shared_ptr<TemperatureFACOps> fac_ops,
-    const boost::shared_ptr<tbox::Database> database)
+    const std::string &object_name, std::shared_ptr<TemperatureFACOps> fac_ops,
+    const std::shared_ptr<tbox::Database> database)
     : EllipticFACSolver(object_name, fac_ops, database)
 {
    t_set_op_coef = tbox::TimerManager::getManager()->getTimer(
@@ -56,9 +55,8 @@ void TemperatureFACSolver::setOperatorCoefficients(const double m,
 
    t_set_op_coef->start();
 
-   boost::shared_ptr<TemperatureFACOps> Temperature_fac_ops(
-       boost::dynamic_pointer_cast<TemperatureFACOps, EllipticFACOps>(
-           d_fac_ops));
+   std::shared_ptr<TemperatureFACOps> Temperature_fac_ops(
+       std::dynamic_pointer_cast<TemperatureFACOps, EllipticFACOps>(d_fac_ops));
 
    Temperature_fac_ops->setOperatorCoefficients(m, c, d);
 

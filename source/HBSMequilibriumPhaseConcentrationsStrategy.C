@@ -42,7 +42,7 @@ HBSMequilibriumPhaseConcentrationsStrategy::
     HBSMequilibriumPhaseConcentrationsStrategy(
         const int conc_l_id, const int conc_a_id, const int conc_b_id,
         const QuatModelParameters& model_parameters,
-        boost::shared_ptr<tbox::Database> conc_db)
+        std::shared_ptr<tbox::Database> conc_db)
     : d_energy_interp_func_type(model_parameters.energy_interp_func_type()),
       PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id,
                                   model_parameters.with_third_phase())
@@ -60,14 +60,14 @@ HBSMequilibriumPhaseConcentrationsStrategy::
 
 void HBSMequilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
-        boost::shared_ptr<pdat::CellData<double> > cd_temperature,
-        boost::shared_ptr<pdat::CellData<double> > cd_phi,
-        boost::shared_ptr<pdat::CellData<double> > cd_eta,
-        boost::shared_ptr<pdat::CellData<double> > cd_concentration,
-        boost::shared_ptr<pdat::CellData<double> > cd_c_l,
-        boost::shared_ptr<pdat::CellData<double> > cd_c_a,
-        boost::shared_ptr<pdat::CellData<double> > cd_c_b,
-        boost::shared_ptr<hier::Patch> patch)
+        std::shared_ptr<pdat::CellData<double> > cd_temperature,
+        std::shared_ptr<pdat::CellData<double> > cd_phi,
+        std::shared_ptr<pdat::CellData<double> > cd_eta,
+        std::shared_ptr<pdat::CellData<double> > cd_concentration,
+        std::shared_ptr<pdat::CellData<double> > cd_c_l,
+        std::shared_ptr<pdat::CellData<double> > cd_c_a,
+        std::shared_ptr<pdat::CellData<double> > cd_c_b,
+        std::shared_ptr<hier::Patch> patch)
 {
    assert(cd_temperature);
    assert(cd_phi);

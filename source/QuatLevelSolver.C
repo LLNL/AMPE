@@ -187,7 +187,7 @@ void ADJUST_QRHS3D(double *rhs, const int *rifirst, const int *rilast,
 }
 
 
-boost::shared_ptr<pdat::OutersideVariable<double> >
+std::shared_ptr<pdat::OutersideVariable<double> >
     QuatLevelSolver::s_Ak0_var[NDIM];
 
 /*
@@ -198,7 +198,7 @@ boost::shared_ptr<pdat::OutersideVariable<double> >
 
 
 QuatLevelSolver::QuatLevelSolver(const int ql, const std::string &object_name,
-                                 boost::shared_ptr<tbox::Database> database)
+                                 std::shared_ptr<tbox::Database> database)
     : d_dim(tbox::Dimension(NDIM)),
       d_qlen(ql),
       d_object_name(object_name),
@@ -252,7 +252,7 @@ QuatLevelSolver::QuatLevelSolver(const int ql, const std::string &object_name,
 // Note that tolerance and max iterations are set from QuatFACOps,
 // and depend if the solve is a coarse or fine level solve.
 
-void QuatLevelSolver::getFromInput(boost::shared_ptr<tbox::Database> database)
+void QuatLevelSolver::getFromInput(std::shared_ptr<tbox::Database> database)
 {
    d_print_solver_info =
        database->getBoolWithDefault("print_solver_info", d_print_solver_info);
@@ -290,7 +290,7 @@ void QuatLevelSolver::getFromInput(boost::shared_ptr<tbox::Database> database)
 
 
 void QuatLevelSolver::initializeSolverState(
-    boost::shared_ptr<hier::PatchHierarchy> hierarchy, int ln)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy, int ln)
 {
    TBOX_ASSERT(hierarchy);
 
@@ -308,7 +308,7 @@ void QuatLevelSolver::initializeSolverState(
    d_number_iterations = -1;
    d_relative_residual_norm = -1.0;
 
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
    level->allocatePatchData(d_Ak0_id);
    allocateHypreData();
 }
@@ -328,7 +328,7 @@ void QuatLevelSolver::deallocateSolverState()
    }
 
    d_cf_boundary->clear();
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
    level->deallocatePatchData(d_Ak0_id);
    deallocateHypreData();
    d_hierarchy.reset();
@@ -357,9 +357,10 @@ void QuatLevelSolver::allocateHypreData()
     * Set up the grid data - only set grid data for local boxes
     */
 
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
-   boost::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
-       BOOST_CAST<geom::CartesianGridGeometry, hier::BaseGridGeometry>(
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
+   std::shared_ptr<geom::CartesianGridGeometry> grid_geometry(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianGridGeometry,
+                              hier::BaseGridGeometry>(
            d_hierarchy->getGridGeometry()));
    const hier::IntVector ratio = level->getRatioToLevelZero();
    hier::IntVector periodic_shift = grid_geometry->getPeriodicShift(ratio);
@@ -608,7 +609,7 @@ QuatLevelSolver::~QuatLevelSolver()
    deallocateHypreData();
 
    if (d_hierarchy) {
-      boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(0);
+      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(0);
       level->deallocatePatchData(d_Ak0_id);
    }
    hier::VariableDatabase *vdb = hier::VariableDatabase::getDatabase();
@@ -799,21 +800,22 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
     * solving, thus allowing everything that does not affect A to change
     * from solve to solve.
     */
-   boost::shared_ptr<pdat::OutersideData<double> > Ak0;
+   std::shared_ptr<pdat::OutersideData<double> > Ak0;
 
    /*
     * Loop over patches and set matrix entries for each patch.
     */
 
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
 
    for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
         ++pi) {
       hier::Patch &patch = **pi;
 
       // Get the cell width array
-      boost::shared_ptr<geom::CartesianPatchGeometry> pg(
-          BOOST_CAST<geom::CartesianPatchGeometry, hier::PatchGeometry>(
+      std::shared_ptr<geom::CartesianPatchGeometry> pg(
+          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                                 hier::PatchGeometry>(
               patch.getPatchGeometry()));
 
       const double *h = pg->getDx();
@@ -828,8 +830,8 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
       hier::Index upper = patch_box.upper();
       int num_cells = patch_box.size();
 
-      Ak0 = boost::dynamic_pointer_cast<pdat::OutersideData<double>,
-                                        hier::PatchData>(
+      Ak0 = std::dynamic_pointer_cast<pdat::OutersideData<double>,
+                                      hier::PatchData>(
           patch.getPatchData(d_Ak0_id));
       assert(Ak0->getDepth() == d_qlen);
 
@@ -843,8 +845,8 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
                                           hier::IntVector(tbox::Dimension(NDIM),
                                                           0));
 
-      boost::shared_ptr<pdat::SideData<double> > face_coef_data(
-          BOOST_CAST<pdat::SideData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::SideData<double> > face_coef_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(face_coef_id)));
       //  Set the J_ij blocks
 
@@ -880,8 +882,8 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
 #endif
       }
 
-      boost::shared_ptr<pdat::CellData<double> > sqrt_mobility_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > sqrt_mobility_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch.getPatchData(sqrt_mobility_id)));
 
       const hier::Box &m_gbox = sqrt_mobility_data->getGhostBox();
@@ -917,11 +919,11 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
             const hier::BoundaryBox trimmed_boundary_box =
                 bbu.trimBoundaryBox(patch.getBox());
             const hier::Box bccoef_box = bbu.getSurfaceBoxFromBoundaryBox();
-            boost::shared_ptr<pdat::ArrayData<double> > acoef_data(
-                boost::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
-            boost::shared_ptr<pdat::ArrayData<double> > bcoef_data(
-                boost::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
-            boost::shared_ptr<pdat::ArrayData<double> > gcoef_data;
+            std::shared_ptr<pdat::ArrayData<double> > acoef_data(
+                std::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
+            std::shared_ptr<pdat::ArrayData<double> > bcoef_data(
+                std::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
+            std::shared_ptr<pdat::ArrayData<double> > gcoef_data;
             d_physical_bc_coef_strategy->setBcCoefs(acoef_data, bcoef_data,
                                                     gcoef_data,
                                                     d_physical_bc_variable,
@@ -963,11 +965,11 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
             const hier::BoundaryBox trimmed_boundary_box =
                 bbu.trimBoundaryBox(patch.getBox());
             const hier::Box bccoef_box = bbu.getSurfaceBoxFromBoundaryBox();
-            boost::shared_ptr<pdat::ArrayData<double> > acoef_data(
-                boost::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
-            boost::shared_ptr<pdat::ArrayData<double> > bcoef_data(
-                boost::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
-            boost::shared_ptr<pdat::ArrayData<double> > gcoef_data;
+            std::shared_ptr<pdat::ArrayData<double> > acoef_data(
+                std::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
+            std::shared_ptr<pdat::ArrayData<double> > bcoef_data(
+                std::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
+            std::shared_ptr<pdat::ArrayData<double> > gcoef_data;
 
             /*
            Reset invalid ghost data id to help detect use in setBcCoefs.
@@ -1127,8 +1129,8 @@ void QuatLevelSolver::add_gAk0_toRhs(
     * and so is moved to the rhs.  Before solving, g*A*k0(a) is added
     * to rhs.
     */
-   boost::shared_ptr<pdat::OutersideData<double> > Ak0(
-       BOOST_CAST<pdat::OutersideData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::OutersideData<double> > Ak0(
+       SAMRAI_SHARED_PTR_CAST<pdat::OutersideData<double>, hier::PatchData>(
            patch.getPatchData(d_Ak0_id)));
    assert(Ak0->getDepth() == d_qlen);
 
@@ -1151,10 +1153,10 @@ void QuatLevelSolver::add_gAk0_toRhs(
       const hier::Box &Ak0box =
           Ak0->getArrayData(location_index / 2, location_index % 2).getBox();
       const hier::Box bccoef_box = bbu.getSurfaceBoxFromBoundaryBox();
-      boost::shared_ptr<pdat::ArrayData<double> > acoef_data;
-      boost::shared_ptr<pdat::ArrayData<double> > bcoef_data;
-      boost::shared_ptr<pdat::ArrayData<double> > gcoef_data(
-          boost::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
+      std::shared_ptr<pdat::ArrayData<double> > acoef_data;
+      std::shared_ptr<pdat::ArrayData<double> > bcoef_data;
+      std::shared_ptr<pdat::ArrayData<double> > gcoef_data(
+          std::make_shared<pdat::ArrayData<double> >(bccoef_box, 1));
       static const double fill_time = 0.0;
       // Set bc coefficients
       robin_bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data,
@@ -1458,15 +1460,15 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
 
    math::ArrayDataNormOpsReal<double> ops;
 
-   boost::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
+   std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(d_ln);
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); p++) {
-      boost::shared_ptr<hier::Patch> patch = *p;
+      std::shared_ptr<hier::Patch> patch = *p;
 
       const hier::Box box = patch->getBox();
 
       // Get references to the hierarchy solution data
-      boost::shared_ptr<pdat::CellData<double> > q_solution_data_(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      std::shared_ptr<pdat::CellData<double> > q_solution_data_(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(q_solution_id)));
       TBOX_ASSERT(q_solution_data_);
       TBOX_ASSERT(q_solution_data_->getDepth() == d_qlen);
@@ -1644,9 +1646,9 @@ int QuatLevelSolver::solveSystem(const int q_rhs_id, const int q_solution_id,
     */
    for (hier::PatchLevel::iterator ip(level->begin()); ip != level->end();
         ++ip) {
-      const boost::shared_ptr<hier::Patch> &patch = *ip;
-      boost::shared_ptr<pdat::CellData<double> > q_solution_data(
-          BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+      const std::shared_ptr<hier::Patch> &patch = *ip;
+      std::shared_ptr<pdat::CellData<double> > q_solution_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(q_solution_id)));
 
       for (int depth = 0; depth < d_qlen; depth++) {

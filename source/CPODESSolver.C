@@ -35,8 +35,6 @@
 //
 #include "CPODESSolver.h"
 
-#ifdef HAVE_SUNDIALS
-
 #include "SAMRAI/tbox/MathUtilities.h"
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -72,7 +70,6 @@ extern "C" {
 #endif
 
 #include <cassert>
-using namespace solv;
 
 const int CPODESSolver::STAT_OUTPUT_BUFFER_SIZE = 256;
 
@@ -164,8 +161,8 @@ CPODESSolver::CPODESSolver(const std::string& object_name,
    d_uses_preconditioner = uses_preconditioner;
 
    d_solution_vector = 0;
-   d_solution_deriv_vector = (solv::SundialsAbstractVector*)NULL;
-   d_weight_vector = (solv::SundialsAbstractVector*)NULL;
+   d_solution_deriv_vector = (SundialsAbstractVector*)NULL;
+   d_weight_vector = (SundialsAbstractVector*)NULL;
 
    d_print_diagnostics = false;
    d_max_precond_steps = 20;  // the CPODES default
@@ -187,7 +184,7 @@ CPODESSolver::CPODESSolver(const std::string& object_name,
    d_t_0 = 0.0;
    d_user_t_f = 0.0;
    d_actual_t_f = 0.0;
-   d_ic_vector = ((solv::SundialsAbstractVector*)NULL);
+   d_ic_vector = ((SundialsAbstractVector*)NULL);
 
    /*
     * ODE integration parameters.
@@ -198,7 +195,7 @@ CPODESSolver::CPODESSolver(const std::string& object_name,
    setToleranceType("scalar");
    setRelativeTolerance(0.0);
    setAbsoluteTolerance(0.0);
-   d_absolute_tolerance_vector = (solv::SundialsAbstractVector*)NULL;
+   d_absolute_tolerance_vector = (SundialsAbstractVector*)NULL;
    setSteppingMethod(CP_NORMAL);
 
    d_max_order = -1;
@@ -249,11 +246,11 @@ CPODESSolver::~CPODESSolver()
 *************************************************************************
 */
 
-void CPODESSolver::initialize(solv::SundialsAbstractVector* solution)
+void CPODESSolver::initialize(SundialsAbstractVector* solution)
 {
    //#ifdef DEBUG_CHECK_ASSERTIONS
-   //   TBOX_ASSERT(!(solution == (solv::SundialsAbstractVector*)NULL));
-   //   TBOX_ASSERT(d_solution_vector == (solv::SundialsAbstractVector*)NULL);
+   //   TBOX_ASSERT(!(solution == (SundialsAbstractVector*)NULL));
+   //   TBOX_ASSERT(d_solution_vector == (SundialsAbstractVector*)NULL);
    //   double l1norm=solution->L1Norm();
    //   assert( l1norm==l1norm );
    //#endif
@@ -264,7 +261,7 @@ void CPODESSolver::initialize(solv::SundialsAbstractVector* solution)
 
 void CPODESSolver::initializeCPODES()
 {
-   TBOX_ASSERT(!(d_solution_vector == (solv::SundialsAbstractVector*)NULL));
+   TBOX_ASSERT(!(d_solution_vector == (SundialsAbstractVector*)NULL));
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
@@ -442,7 +439,7 @@ void CPODESSolver::initializeCPODES()
 
 void CPODESSolver::reinitializeAfterRegrid()
 {
-   TBOX_ASSERT(!(d_solution_vector == (solv::SundialsAbstractVector*)NULL));
+   TBOX_ASSERT(!(d_solution_vector == (SundialsAbstractVector*)NULL));
 
 // Disable Intel warning on real comparison
 #ifdef __INTEL_COMPILER
@@ -584,9 +581,9 @@ void CPODESSolver::setAbsoluteTolerance(double absolute_tolerance)
 }
 
 void CPODESSolver::setAbsoluteTolerance(
-    solv::SundialsAbstractVector* absolute_tolerance)
+    SundialsAbstractVector* absolute_tolerance)
 {
-   TBOX_ASSERT(!(absolute_tolerance == (solv::SundialsAbstractVector*)NULL));
+   TBOX_ASSERT(!(absolute_tolerance == (SundialsAbstractVector*)NULL));
    TBOX_ASSERT(absolute_tolerance->vecMin() >= 0.0);
 
    d_absolute_tolerance_vector = absolute_tolerance;
@@ -616,10 +613,9 @@ void CPODESSolver::setFinalValueOfIndependentVariable(
    d_CPODE_needs_initialization = cpode_needs_initialization;
 }
 
-void CPODESSolver::setInitialConditionVector(
-    solv::SundialsAbstractVector* ic_vector)
+void CPODESSolver::setInitialConditionVector(SundialsAbstractVector* ic_vector)
 {
-   TBOX_ASSERT(!(ic_vector == (solv::SundialsAbstractVector*)NULL));
+   TBOX_ASSERT(!(ic_vector == (SundialsAbstractVector*)NULL));
 
    d_ic_vector = ic_vector;
    d_CPODE_needs_initialization = true;
@@ -729,12 +725,12 @@ void CPODESSolver::setCPNonlinConvCoef(double coef)
 *                                                                       *
 *************************************************************************
 */
-solv::SundialsAbstractVector* CPODESSolver::getSolutionVector() const
+SundialsAbstractVector* CPODESSolver::getSolutionVector() const
 {
    return (d_solution_vector);
 }
 
-solv::SundialsAbstractVector* CPODESSolver::getWeightVector()
+SundialsAbstractVector* CPODESSolver::getWeightVector()
 {
    int ierr = CPodeGetErrWeights(d_cpode_mem, d_weight_vector->getNVector());
    CPODE_SAMRAI_ERROR(ierr);
@@ -743,7 +739,7 @@ solv::SundialsAbstractVector* CPODESSolver::getWeightVector()
 }
 
 int CPODESSolver::getDkyVector(double t, int k,
-                               solv::SundialsAbstractVector* dky) const
+                               SundialsAbstractVector* dky) const
 {
    int return_code;
 
@@ -1016,8 +1012,8 @@ void CPODESSolver::printClassData(std::ostream& os) const
    os << "Object name = " << d_object_name << std::endl;
 
    os << "this = " << (CPODESSolver*)this << std::endl;
-   os << "d_solution_vector = "
-      << (solv::SundialsAbstractVector*)d_solution_vector << std::endl;
+   os << "d_solution_vector = " << (SundialsAbstractVector*)d_solution_vector
+      << std::endl;
 
    os << "d_CPODE_functions = " << (CPODESAbstractFunctions*)d_cpode_functions
       << std::endl;
@@ -1029,8 +1025,7 @@ void CPODESSolver::printClassData(std::ostream& os) const
    os << std::endl;
    os << "CPODES parameters..." << std::endl;
    os << "d_t_0 = " << d_t_0 << std::endl;
-   os << "d_ic_vector = " << (solv::SundialsAbstractVector*)d_ic_vector
-      << std::endl;
+   os << "d_ic_vector = " << (SundialsAbstractVector*)d_ic_vector << std::endl;
 
    os << "d_linear_multistep_method = " << d_linear_multistep_method
       << std::endl;
@@ -1085,13 +1080,13 @@ void CPODESSolver::printClassData(std::ostream& os) const
    os << "...end of CPODESSolver object data members\n" << std::endl;
 }
 
-std::vector<solv::SundialsAbstractVector*>* CPODESSolver::
-    getVectorsRequiringRegrid(void) const
+std::vector<SundialsAbstractVector*>* CPODESSolver::getVectorsRequiringRegrid(
+    void) const
 {
    assert(d_cpode_mem != NULL);
 
-   std::vector<solv::SundialsAbstractVector*>* sundials_vec =
-       new std::vector<solv::SundialsAbstractVector*>;
+   std::vector<SundialsAbstractVector*>* sundials_vec =
+       new std::vector<SundialsAbstractVector*>;
 
    CPodeMem mem = (CPodeMem)d_cpode_mem;
 
@@ -1146,13 +1141,11 @@ std::vector<solv::SundialsAbstractVector*>* CPODESSolver::
 }
 
 void CPODESSolver::addVectorToList(
-    std::vector<solv::SundialsAbstractVector*>* sundials_vec, N_Vector& n) const
+    std::vector<SundialsAbstractVector*>* sundials_vec, N_Vector& n) const
 {
    if (n != NULL) {
 
-      solv::SundialsAbstractVector* y = SABSVEC_CAST(n);
+      SundialsAbstractVector* y = SABSVEC_CAST(n);
       sundials_vec->push_back(y);
    }
 }
-
-#endif

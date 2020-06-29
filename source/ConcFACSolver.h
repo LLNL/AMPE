@@ -46,16 +46,16 @@ class ConcFACSolver : public EllipticFACSolver
 
  public:
    ConcFACSolver(const std::string& object_name,
-                 boost::shared_ptr<ConcFACOps> fac_ops,
-                 const boost::shared_ptr<tbox::Database>& database =
-                     boost::shared_ptr<tbox::Database>());
+                 std::shared_ptr<ConcFACOps> fac_ops,
+                 const std::shared_ptr<tbox::Database>& database =
+                     std::shared_ptr<tbox::Database>());
 
    void setOperatorCoefficients(const double gamma,
                                 const std::vector<int>& diffusion_id,
                                 const double mobility);
 
  private:
-   boost::shared_ptr<tbox::Timer> t_set_op_coef;
+   std::shared_ptr<tbox::Timer> t_set_op_coef;
 };
 
 #endif  // included_ConcFACSolver

@@ -68,7 +68,7 @@ enum QuatModel::CACHE_TYPE SimpleQuatMobilityStrategy::translateCacheType(
 //-----------------------------------------------------------------------
 
 void SimpleQuatMobilityStrategy::computePhaseMobility(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -82,7 +82,7 @@ void SimpleQuatMobilityStrategy::computePhaseMobility(
 //-----------------------------------------------------------------------
 
 void SimpleQuatMobilityStrategy::computeEtaMobility(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -96,7 +96,7 @@ void SimpleQuatMobilityStrategy::computeEtaMobility(
 //-----------------------------------------------------------------------
 
 void SimpleQuatMobilityStrategy::computeQuatMobility(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);
@@ -110,7 +110,7 @@ void SimpleQuatMobilityStrategy::computeQuatMobility(
 //-----------------------------------------------------------------------
 
 void SimpleQuatMobilityStrategy::computeQuatMobilityDeriv(
-    const boost::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_deriv_id, const double time, const CACHE_TYPE cache)
 {
    assert(d_quat_model != nullptr);

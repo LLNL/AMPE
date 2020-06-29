@@ -52,7 +52,7 @@ class BiasDoubleWellFreeEnergyStrategy : public FreeEnergyStrategy
    virtual ~BiasDoubleWellFreeEnergyStrategy(){};
 
    void computeFreeEnergyLiquid(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fl_id, const bool gp)
    {
       (void)hierarchy;
@@ -62,7 +62,7 @@ class BiasDoubleWellFreeEnergyStrategy : public FreeEnergyStrategy
    };
 
    void computeFreeEnergySolidA(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp)
    {
       (void)hierarchy;
@@ -72,7 +72,7 @@ class BiasDoubleWellFreeEnergyStrategy : public FreeEnergyStrategy
    };
 
    void computeFreeEnergySolidB(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id, const bool gp)
    {
       (void)hierarchy;
@@ -124,7 +124,7 @@ class BiasDoubleWellFreeEnergyStrategy : public FreeEnergyStrategy
                            const int fa_id, const int fb_id, const int rhs_id);
 
    void computePhaseConcentrations(
-       const boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int phase_id, const int eta_id,
        const int concentration_id);
 

@@ -38,10 +38,8 @@
 
 #include "SAMRAI/SAMRAI_config.h"
 
-#ifdef HAVE_SUNDIALS
-
 #include "CPODESAbstractFunctions.h"
-#include "SAMRAI/solv/SundialsAbstractVector.h"
+#include "SundialsAbstractVector.h"
 #include "SAMRAI/tbox/IOStream.h"
 
 using namespace SAMRAI;
@@ -91,7 +89,7 @@ extern "C" {
  * functions is defined by the user in a subclass of the abstract base
  * class CPODESAbstractFunctions.  The vector objects used within the
  * solver are given in a subclass of the abstract class
- * solv::SundialsAbstractVector. The solv::SundialsAbstractVector
+ * SundialsAbstractVector. The solv::SundialsAbstractVector
  * class defines the vector kernel operations required by the CPODES
  * package so that they may be easily supplied by a user who opts not
  * to use the vector kernel supplied by the CPODES package.  (It should be
@@ -115,7 +113,7 @@ extern "C" {
  *           user must specify the integration parameters that s/he
  *           wishes to use.  Next, the user must call the CPODESSolver
  *           method initialize(solution_vector) with the
- *           solv::SundialsAbstractVector that s/he wants to put the solution
+ *           SundialsAbstractVector that s/he wants to put the solution
  *           in.  Finally, the solve() method is invoked to solve the
  *           system of ODEs to the specified value of the independent
  *           variable.
@@ -201,7 +199,7 @@ extern "C" {
  * Laboratory, 1994.
  *
  * @see solv::CPODESAbstractFunctions
- * @see solv::SundialsAbstractVector
+ * @see SundialsAbstractVector
  */
 
 class CPODESSolver
@@ -255,7 +253,7 @@ class CPODESSolver
     *        the solution vector must not have already been set
     *
     */
-   void initialize(solv::SundialsAbstractVector* solution);
+   void initialize(SundialsAbstractVector* solution);
 
    /**
     * Integrate ODE system specified t_f.  The integer return value is
@@ -513,7 +511,7 @@ class CPODESSolver
     * it is an error to simultaneously set relative and
     * absolute tolerances to 0.
     */
-   void setAbsoluteTolerance(solv::SundialsAbstractVector* absolute_tolerance);
+   void setAbsoluteTolerance(SundialsAbstractVector* absolute_tolerance);
 
    /**
     * Set stepping method to use for integration.  There are
@@ -573,7 +571,7 @@ class CPODESSolver
 
 
     */
-   void setInitialConditionVector(solv::SundialsAbstractVector* ic_vector);
+   void setInitialConditionVector(SundialsAbstractVector* ic_vector);
 
    /**
     * Set maximum order for the linear multistep method.
@@ -777,12 +775,12 @@ class CPODESSolver
    /**
     * Get solution vector.
     */
-   solv::SundialsAbstractVector* getSolutionVector() const;
+   SundialsAbstractVector* getSolutionVector() const;
 
    /**
     * Get weight vector.
     */
-   solv::SundialsAbstractVector* getWeightVector();
+   SundialsAbstractVector* getWeightVector();
 
    /**
     * Get k-th derivative vector at the specified value of the
@@ -837,7 +835,7 @@ class CPODESSolver
 
     *
     */
-   int getDkyVector(double t, int k, solv::SundialsAbstractVector* dky) const;
+   int getDkyVector(double t, int k, SundialsAbstractVector* dky) const;
 
    /**
     * Get actual value of the independent variable that CPODES integrated
@@ -1111,8 +1109,7 @@ class CPODESSolver
     * Return a pointer to vector of SundialsAbstractVector pointers
     * that will need to be regridding for a "warm start"
     */
-   std::vector<solv::SundialsAbstractVector*>* getVectorsRequiringRegrid(
-       void) const;
+   std::vector<SundialsAbstractVector*>* getVectorsRequiringRegrid(void) const;
 
    void reinitializeAfterRegrid();
 
@@ -1124,9 +1121,8 @@ class CPODESSolver
    static const int STAT_OUTPUT_BUFFER_SIZE;
 
 
-   void addVectorToList(
-       std::vector<solv::SundialsAbstractVector*>* sundials_vec,
-       N_Vector& n) const;
+   void addVectorToList(std::vector<SundialsAbstractVector*>* sundials_vec,
+                        N_Vector& n) const;
 
    /*
     * Static member function for linkage with CPODES routines.
@@ -1188,13 +1184,13 @@ class CPODESSolver
    /*
     * Solution vector and derivative
     */
-   solv::SundialsAbstractVector* d_solution_vector;
-   solv::SundialsAbstractVector* d_solution_deriv_vector;
+   SundialsAbstractVector* d_solution_vector;
+   SundialsAbstractVector* d_solution_deriv_vector;
 
    /*
     * Weight vector
     */
-   solv::SundialsAbstractVector* d_weight_vector;
+   SundialsAbstractVector* d_weight_vector;
 
    /*
     * Pointer to object which provides user-supplied functions to CPODES
@@ -1219,7 +1215,7 @@ class CPODESSolver
    double d_t_0;         // initial value for independent variable
    double d_user_t_f;    // user-specified final value for independent variable
    double d_actual_t_f;  // actual final value of indep. variable after a step
-   solv::SundialsAbstractVector* d_ic_vector;
+   SundialsAbstractVector* d_ic_vector;
 
    /*
     * ODE integration parameters.
@@ -1230,7 +1226,7 @@ class CPODESSolver
    double d_relative_tolerance;
    bool d_use_scalar_absolute_tolerance;
    double d_absolute_tolerance_scalar;
-   solv::SundialsAbstractVector* d_absolute_tolerance_vector;
+   SundialsAbstractVector* d_absolute_tolerance_vector;
    int d_stepping_method;
 
    /*
@@ -1276,5 +1272,4 @@ class CPODESSolver
 };
 
 
-#endif
 #endif

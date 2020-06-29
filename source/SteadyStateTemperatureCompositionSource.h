@@ -60,14 +60,14 @@ class SteadyStateTemperatureCompositionSource
        const int rhs_id,  // used internally only, but allocated outside class
        const int weight_id, const double thermal_diffusivity, const int cp_id,
        const std::vector<double>& T_source,
-       boost::shared_ptr<tbox::Database> temperature_sys_solver_database,
+       std::shared_ptr<tbox::Database> temperature_sys_solver_database,
        HeatCapacityStrategy* heat_capacity_strategy,
        solv::LocationIndexRobinBcCoefs* bc_coefs);
 
    ~SteadyStateTemperatureCompositionSource(){};
 
    void setCurrentTemperature(
-       boost::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
+       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
 
  private:

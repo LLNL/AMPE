@@ -48,10 +48,8 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
         const int conc_a_ref_id, const int conc_b_ref_id,
         const EnergyInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
-        const bool with_third_phase,
-        boost::shared_ptr<tbox::Database> calphad_db,
-        boost::shared_ptr<tbox::Database> newton_db,
-        const unsigned ncompositions)
+        const bool with_third_phase, std::shared_ptr<tbox::Database> calphad_db,
+        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
     : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
                                   conc_b_scratch_id, with_third_phase),
       d_conc_l_ref_id(conc_l_ref_id),
@@ -74,14 +72,14 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
 
 void CALPHADequilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
-        boost::shared_ptr<pdat::CellData<double> > cd_te,
-        boost::shared_ptr<pdat::CellData<double> > cd_pf,
-        boost::shared_ptr<pdat::CellData<double> > cd_eta,
-        boost::shared_ptr<pdat::CellData<double> > cd_conc,
-        boost::shared_ptr<pdat::CellData<double> > cd_cl,
-        boost::shared_ptr<pdat::CellData<double> > cd_ca,
-        boost::shared_ptr<pdat::CellData<double> > cd_cb,
-        boost::shared_ptr<hier::Patch> patch)
+        std::shared_ptr<pdat::CellData<double> > cd_te,
+        std::shared_ptr<pdat::CellData<double> > cd_pf,
+        std::shared_ptr<pdat::CellData<double> > cd_eta,
+        std::shared_ptr<pdat::CellData<double> > cd_conc,
+        std::shared_ptr<pdat::CellData<double> > cd_cl,
+        std::shared_ptr<pdat::CellData<double> > cd_ca,
+        std::shared_ptr<pdat::CellData<double> > cd_cb,
+        std::shared_ptr<hier::Patch> patch)
 {
    assert(cd_te);
    assert(cd_pf);
@@ -99,22 +97,23 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::
    assert(l2n == l2n);
 #endif
 
-   boost::shared_ptr<pdat::CellData<double> > cd_cl_ref(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cd_cl_ref(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(d_conc_l_ref_id)));
    assert(cd_cl_ref);
    assert(cd_conc->getDepth() == cd_cl_ref->getDepth());
 
-   boost::shared_ptr<pdat::CellData<double> > cd_ca_ref(
-       BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
+   std::shared_ptr<pdat::CellData<double> > cd_ca_ref(
+       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(d_conc_a_ref_id)));
    assert(cd_ca_ref);
    assert(cd_conc->getDepth() == cd_ca_ref->getDepth());
 
-   boost::shared_ptr<pdat::CellData<double> > cd_cb_ref;
+   std::shared_ptr<pdat::CellData<double> > cd_cb_ref;
    if (d_with_third_phase) {
-      cd_cb_ref = BOOST_CAST<pdat::CellData<double>, hier::PatchData>(
-          patch->getPatchData(d_conc_b_ref_id));
+      cd_cb_ref =
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch->getPatchData(d_conc_b_ref_id));
       assert(cd_cb_ref);
    }
 

@@ -46,13 +46,13 @@ class QuatModel;
 class MobilityFactory
 {
  public:
-   static boost::shared_ptr<QuatMobilityStrategy> create(
+   static std::shared_ptr<QuatMobilityStrategy> create(
        QuatModel* model, QuatModelParameters& model_parameters,
        const int conc_l_scratch_id, const int conc_a_scratch_id,
        const int temperature_scratch_id, const unsigned ncompositions,
-       boost::shared_ptr<tbox::Database> conc_db)
+       std::shared_ptr<tbox::Database> conc_db)
    {
-      boost::shared_ptr<QuatMobilityStrategy> mobility_strategy;
+      std::shared_ptr<QuatMobilityStrategy> mobility_strategy;
 
       if (model_parameters.isPhaseMobilityScalar())
          mobility_strategy.reset(new SimpleQuatMobilityStrategy(model));

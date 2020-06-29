@@ -139,8 +139,8 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     */
    EllipticFACOps(const tbox::Dimension &dim,
                   const std::string &object_name = std::string(),
-                  const boost::shared_ptr<tbox::Database> &input_db =
-                      boost::shared_ptr<tbox::Database>(),
+                  const std::shared_ptr<tbox::Database> &input_db =
+                      std::shared_ptr<tbox::Database>(),
                   const int depth = 1);
 
    /*!
@@ -399,7 +399,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * call this function to provide the implementation for
     * determining the boundary condition coefficients.
     *
-    * @param physical_bc_coef boost::shared_ptr to an object that can
+    * @param physical_bc_coef std::shared_ptr to an object that can
     *        set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
@@ -459,7 +459,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     *        in hierarchy.  Must not be less than @c coarsest_ln.
     *        Default to finest level in @c hierarchy.
     */
-   void computeVectorWeights(boost::shared_ptr<hier::PatchHierarchy> hierarchy,
+   void computeVectorWeights(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                              int weight_id, int coarsest_ln = -1,
                              int finest_ln = -1) const;
 
@@ -814,7 +814,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * function argument lists.  We use it to enforce working on one
     * hierarchy at a time.
     */
-   boost::shared_ptr<hier::PatchHierarchy> d_hierarchy;
+   std::shared_ptr<hier::PatchHierarchy> d_hierarchy;
 
    /*!
     * @brief Coarsest level for solve.
@@ -843,7 +843,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     *hier::CoarseFineBoundary is a light object before
     * it is set for a level.
     */
-   std::vector<boost::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
+   std::vector<std::shared_ptr<hier::CoarseFineBoundary> > d_cf_boundary;
 
 
    //@}
@@ -934,22 +934,22 @@ class EllipticFACOps : public solv::FACOperatorStrategy
 
 
    //@{ @name Internal context and scratch data
-   boost::shared_ptr<pdat::CellVariable<double> > d_cell_scratch_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_cell_scratch_var;
 
-   boost::shared_ptr<pdat::SideVariable<double> > d_flux_scratch_var;
+   std::shared_ptr<pdat::SideVariable<double> > d_flux_scratch_var;
 
-   boost::shared_ptr<pdat::OutersideVariable<double> > d_oflux_scratch_var;
+   std::shared_ptr<pdat::OutersideVariable<double> > d_oflux_scratch_var;
 
-   boost::shared_ptr<pdat::CellVariable<double> > d_m_var;
+   std::shared_ptr<pdat::CellVariable<double> > d_m_var;
 
-   std::vector<boost::shared_ptr<pdat::CellVariable<double> > > d_c_var;
+   std::vector<std::shared_ptr<pdat::CellVariable<double> > > d_c_var;
 
-   std::vector<boost::shared_ptr<pdat::SideVariable<double> > > d_d_var;
+   std::vector<std::shared_ptr<pdat::SideVariable<double> > > d_d_var;
 
    /*!
     * @brief Default context of internally maintained hierarchy data.
     */
-   boost::shared_ptr<hier::VariableContext> d_context;
+   std::shared_ptr<hier::VariableContext> d_context;
 
    /*!
     * @brief ID of the solution-like scratch data.
@@ -994,40 +994,39 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     */
 
    //! @brief Error prolongation (refinement) operator.
-   boost::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::shared_ptr<hier::RefineOperator> d_prolongation_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm> d_prolongation_refine_algorithm;
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_prolongation_refine_schedules;
 
    //! @brief Solution restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_urestriction_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_urestriction_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_urestriction_coarsen_schedules;
 
    //! @brief Residual restriction (coarsening) operator.
-   boost::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_rrestriction_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_rrestriction_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_rrestriction_coarsen_schedules;
 
    //! @brief Coarsen operator for outerflux-to-flux
-   boost::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
-   boost::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
-   std::vector<boost::shared_ptr<xfer::CoarsenSchedule> >
+   std::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_operator;
+   std::shared_ptr<xfer::CoarsenAlgorithm> d_flux_coarsen_algorithm;
+   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
        d_flux_coarsen_schedules;
 
    //! @brief Refine operator for cell-like data from coarser level.
-   boost::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::shared_ptr<hier::RefineOperator> d_ghostfill_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_refine_algorithm;
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_ghostfill_refine_schedules;
 
    //! @brief Refine operator for cell-like data from same level.
-   boost::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
-   boost::shared_ptr<xfer::RefineAlgorithm>
-       d_ghostfill_nocoarse_refine_algorithm;
-   std::vector<boost::shared_ptr<xfer::RefineSchedule> >
+   std::shared_ptr<hier::RefineOperator> d_ghostfill_nocoarse_refine_operator;
+   std::shared_ptr<xfer::RefineAlgorithm> d_ghostfill_nocoarse_refine_algorithm;
+   std::vector<std::shared_ptr<xfer::RefineSchedule> >
        d_ghostfill_nocoarse_refine_schedules;
 
    //@}
@@ -1071,26 +1070,26 @@ class EllipticFACOps : public solv::FACOperatorStrategy
    /*!
     * @brief Hierarchy cell operator used in debugging.
     */
-   boost::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
+   std::shared_ptr<math::HierarchyCellDataOpsReal<double> > d_hopscell;
 
    /*!
     * @brief Hierarchy side operator used in debugging.
     */
-   boost::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
+   std::shared_ptr<math::HierarchySideDataOpsReal<double> > d_hopsside;
 
    /*!
     * @brief Timers for performance measurement.
     */
-   boost::shared_ptr<tbox::Timer> t_restrict_solution;
-   boost::shared_ptr<tbox::Timer> t_restrict_residual;
-   boost::shared_ptr<tbox::Timer> t_prolong;
-   boost::shared_ptr<tbox::Timer> t_smooth_error;
-   boost::shared_ptr<tbox::Timer> t_solve_coarsest;
-   boost::shared_ptr<tbox::Timer> t_compute_composite_residual;
-   boost::shared_ptr<tbox::Timer> t_accumulate_operator;
-   boost::shared_ptr<tbox::Timer> t_compute_residual_norm;
-   boost::shared_ptr<tbox::Timer> t_compute_rhs;
-   boost::shared_ptr<tbox::Timer> t_finalizecoeffs;
+   std::shared_ptr<tbox::Timer> t_restrict_solution;
+   std::shared_ptr<tbox::Timer> t_restrict_residual;
+   std::shared_ptr<tbox::Timer> t_prolong;
+   std::shared_ptr<tbox::Timer> t_smooth_error;
+   std::shared_ptr<tbox::Timer> t_solve_coarsest;
+   std::shared_ptr<tbox::Timer> t_compute_composite_residual;
+   std::shared_ptr<tbox::Timer> t_accumulate_operator;
+   std::shared_ptr<tbox::Timer> t_compute_residual_norm;
+   std::shared_ptr<tbox::Timer> t_compute_rhs;
+   std::shared_ptr<tbox::Timer> t_finalizecoeffs;
 
    std::vector<bool> d_C_is_set;
    std::vector<bool> d_D_is_set;
@@ -1109,7 +1108,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     *
     * @param input_db Input Database.
     */
-   void getFromInput(const boost::shared_ptr<tbox::Database> &input_db);
+   void getFromInput(const std::shared_ptr<tbox::Database> &input_db);
 
  private:
    /*!

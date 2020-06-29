@@ -40,13 +40,11 @@
 #include <iomanip>
 #include <cmath>
 
-using namespace std;
-
 
 int main(int argc, char* argv[])
 {
-   cout << "=======================================" << endl;
-   cout << "Test CALPHADEqPhaseConcSolverTernary..." << endl;
+   std::cout << "=======================================" << std::endl;
+   std::cout << "Test CALPHADEqPhaseConcSolverTernary..." << std::endl;
 
    int nfailures = 0;
 
@@ -91,12 +89,12 @@ int main(int argc, char* argv[])
 
    solver.Jacobian(x, fjac);
 
-   cerr << setprecision(12);
+   std::cerr << std::setprecision(12);
 
    // loop over variables
    for (int j = 0; j < 5; j++) {
-      cout << "----------------------------" << endl;
-      cout << "Test variations of variable " << j << endl;
+      std::cout << "----------------------------" << std::endl;
+      std::cout << "Test variations of variable " << j << std::endl;
       x[j] += epsilon;
       solver.RHS(x, fvec2);
 
@@ -108,16 +106,16 @@ int main(int argc, char* argv[])
       for (int i = 0; i < 5; i++) {
          if (fabs(fd[i] - fjac[i][j]) > tol) {
             nfailures++;
-            cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
-                 << ", fjac=" << fjac[i][j] << endl;
+            std::cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
+                      << ", fjac=" << fjac[i][j] << std::endl;
          }
       }
 
       x[j] -= epsilon;
    }
 
-   cout << "=========================================" << endl;
-   cout << "Test CALPHADConcentrationSolverTernary..." << endl;
+   std::cout << "=========================================" << std::endl;
+   std::cout << "Test CALPHADConcentrationSolverTernary..." << std::endl;
    CALPHADConcentrationSolverTernary solver2;
 
    solver2.setup(cA, cB, 0.5, RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S,
@@ -127,12 +125,12 @@ int main(int argc, char* argv[])
 
    solver2.Jacobian(x, fjac);
 
-   cerr << setprecision(12);
+   std::cerr << std::setprecision(12);
 
    // loop over variables
    for (int j = 0; j < 4; j++) {
-      cout << "----------------------------" << endl;
-      cout << "Test variations of variable " << j << endl;
+      std::cout << "----------------------------" << std::endl;
+      std::cout << "Test variations of variable " << j << std::endl;
       x[j] += epsilon;
       solver2.RHS(x, fvec2);
 
@@ -144,15 +142,15 @@ int main(int argc, char* argv[])
       for (int i = 0; i < 4; i++) {
          if (fabs(fd[i] - fjac[i][j]) > tol) {
             nfailures++;
-            cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
-                 << ", fjac=" << fjac[i][j] << endl;
+            std::cerr << "ERROR: Equation " << i << ", FD=" << fd[i]
+                      << ", fjac=" << fjac[i][j] << std::endl;
          }
       }
 
       x[j] -= epsilon;
    }
 
-   if (nfailures == 0) cout << "TEST PASSED" << endl;
+   if (nfailures == 0) std::cout << "TEST PASSED" << std::endl;
 
    return nfailures;
 }
