@@ -72,8 +72,6 @@
 #include "SAMRAI/solv/CVODEAbstractFunctions.h"
 #endif
 
-
-#include <boost/make_shared.hpp>
 #include <set>
 #include <vector>
 

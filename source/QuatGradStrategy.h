@@ -36,7 +36,6 @@
 #ifndef included_QuatGradStrategy
 #define included_QuatGradStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 
 #include <cassert>

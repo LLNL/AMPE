@@ -39,19 +39,17 @@
 #include <iomanip>
 #include <cmath>
 
-using namespace std;
-
 
 int main(int argc, char *argv[])
 {
-   cout << "Test CALPHAD functions." << endl;
+   std::cout << "Test CALPHAD functions." << std::endl;
 
    const double epsilon = 1.e-8;
    const double tol = 1.e-6;
    int nfailures = 0;
 
-   cout << setprecision(12);
-   cerr << setprecision(12);
+   std::cout << std::setprecision(12);
+   std::cerr << std::setprecision(12);
 
    {
       double l0 = 2.3;
@@ -64,16 +62,17 @@ int main(int argc, char *argv[])
       double f1 = CALPHADcomputeFMixBinary(l0, l1, l2, l3, c + epsilon);
 
       double fd = (f1 - f0) / epsilon;
-      cout << "Numerical derivative   = " << fd << endl;
+      std::cout << "Numerical derivative   = " << fd << std::endl;
       double ad = CALPHADcomputeFMix_derivBinary(l0, l1, l2, l3, c);
-      cout << "Analytical derivative = " << ad << endl;
+      std::cout << "Analytical derivative = " << ad << std::endl;
 
       if (fabs(fd - ad) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_derivBinary failed!!!" << endl;
-         cerr << "Difference = " << fd - ad << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_derivBinary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd - ad << std::endl;
       } else {
-         cout << "TEST successful!" << endl;
+         std::cout << "TEST successful!" << std::endl;
       }
    }
 
@@ -86,28 +85,33 @@ int main(int argc, char *argv[])
       double f2 = CALPHADcomputeFIdealMixTernary(rt, cA, cB + epsilon);
       double deriv[2];
       CALPHADcomputeFIdealMix_derivTernary(rt, cA, cB, deriv);
-      cout << "Analytical derivative = " << deriv[0] << "," << deriv[1] << endl;
+      std::cout << "Analytical derivative = " << deriv[0] << "," << deriv[1]
+                << std::endl;
 
       double fd1 = (f1 - f0) / epsilon;
-      cout << "Numerical derivative   = " << fd1 << endl;
+      std::cout << "Numerical derivative   = " << fd1 << std::endl;
       if (fabs(fd1 - deriv[0]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!" << endl;
-         cerr << "Difference = " << fd1 - deriv[0] << endl;
+         std::cerr << "TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd1 - deriv[0] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFIdealMix_derivTernary, c0, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFIdealMix_derivTernary, c0, "
+                      "successful!"
+                   << std::endl;
       }
 
       double fd2 = (f2 - f0) / epsilon;
-      cout << "Numerical derivative   = " << fd2 << endl;
+      std::cout << "Numerical derivative   = " << fd2 << std::endl;
       if (fabs(fd2 - deriv[1]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!" << endl;
-         cerr << "Difference = " << fd2 - deriv[1] << endl;
+         std::cerr << "TEST: CALPHADcomputeFIdealMix_derivTernary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd2 - deriv[1] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFIdealMix_derivTernary, c1, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFIdealMix_derivTernary, c1, "
+                      "successful!"
+                   << std::endl;
       }
    }
 
@@ -132,20 +136,22 @@ int main(int argc, char *argv[])
       double fd1 = (f1 - f0) / epsilon;
       if (fabs(fd1 - deriv[0]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_derivTernary failed!!!" << endl;
-         cerr << "Difference = " << fd1 - deriv[0] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_derivTernary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd1 - deriv[0] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_derivTernary, c0, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_derivTernary, c0, successful!"
+                   << std::endl;
       }
       double fd2 = (f2 - f0) / epsilon;
       if (fabs(fd2 - deriv[1]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_derivTernary failed!!!" << endl;
-         cerr << "Difference = " << fd2 - deriv[1] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_derivTernary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd2 - deriv[1] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_derivTernary, c1, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_derivTernary, c1, successful!"
+                   << std::endl;
       }
 
       double deriv2[4];
@@ -159,51 +165,59 @@ int main(int argc, char *argv[])
                                       fderiv1);
 
       double fd = (fderiv0[0] - deriv[0]) / epsilon;
-      cout << "FD=" << fd << ", exact=" << deriv2[0] << endl;
+      std::cout << "FD=" << fd << ", exact=" << deriv2[0] << std::endl;
       if (fabs(fd - deriv2[0]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!" << endl;
-         cerr << "Difference = " << fd - deriv2[0] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd - deriv2[0] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c0, c0, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c0, c0, "
+                      "successful!"
+                   << std::endl;
       }
 
       fd = (fderiv1[1] - deriv[1]) / epsilon;
-      cout << "FD=" << fd << ", exact=" << deriv2[3] << endl;
+      std::cout << "FD=" << fd << ", exact=" << deriv2[3] << std::endl;
       if (fabs(fd - deriv2[3]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!" << endl;
-         cerr << "Difference = " << fd - deriv2[3] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd - deriv2[3] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c1, c1, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c1, c1, "
+                      "successful!"
+                   << std::endl;
       }
 
       // cross derivatives
       fd = (fderiv0[1] - deriv[1]) / epsilon;
-      cout << "FD=" << fd << ", exact=" << deriv2[1] << endl;
+      std::cout << "FD=" << fd << ", exact=" << deriv2[1] << std::endl;
       if (fabs(fd - deriv2[1]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!" << endl;
-         cerr << "Difference = " << fd - deriv2[0] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd - deriv2[0] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c0, c1, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c0, c1, "
+                      "successful!"
+                   << std::endl;
       }
 
       fd = (fderiv1[0] - deriv[0]) / epsilon;
-      cout << "FD=" << fd << ", exact=" << deriv2[2] << endl;
+      std::cout << "FD=" << fd << ", exact=" << deriv2[2] << std::endl;
       if (fabs(fd - deriv2[2]) > tol) {
          nfailures++;
-         cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!" << endl;
-         cerr << "Difference = " << fd - deriv2[0] << endl;
+         std::cerr << "TEST: CALPHADcomputeFMix_deriv2Ternary failed!!!"
+                   << std::endl;
+         std::cerr << "Difference = " << fd - deriv2[0] << std::endl;
       } else {
-         cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c1, c0, successful!"
-              << endl;
+         std::cout << "TEST CALPHADcomputeFMix_deriv2Ternary, c1, c0, "
+                      "successful!"
+                   << std::endl;
       }
    }
 
-   if (nfailures == 0) cout << "TEST PASSED" << endl;
+   if (nfailures == 0) std::cout << "TEST PASSED" << std::endl;
    return nfailures;
 }

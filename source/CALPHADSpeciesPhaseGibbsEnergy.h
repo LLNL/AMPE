@@ -38,7 +38,6 @@
 
 #include "CALPHADSpeciesPhaseGibbsEnergyExpansion.h"
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/Database.h"
 using namespace SAMRAI;
 

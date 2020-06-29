@@ -38,7 +38,6 @@
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/IEEE.h"
 
 // Headers for major algorithm/data structure objects

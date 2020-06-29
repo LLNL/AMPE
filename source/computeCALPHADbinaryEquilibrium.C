@@ -39,7 +39,6 @@
 #include "SAMRAI/SAMRAI_config.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/Database.h"
 

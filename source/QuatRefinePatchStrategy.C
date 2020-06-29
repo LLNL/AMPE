@@ -36,8 +36,6 @@
 #include "QuatRefinePatchStrategy.h"
 #include "TimeLocationIndexRobinBcCoefs.h"
 
-#include <boost/make_shared.hpp>
-
 #include <cassert>
 
 

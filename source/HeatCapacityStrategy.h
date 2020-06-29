@@ -36,7 +36,6 @@
 #ifndef included_HeatCapacityStrategy
 #define included_HeatCapacityStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 using namespace SAMRAI;
 

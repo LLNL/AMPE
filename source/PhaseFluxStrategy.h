@@ -38,8 +38,6 @@
 
 #include "SAMRAI/hier/PatchLevel.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 class PhaseFluxStrategy

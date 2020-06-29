@@ -64,8 +64,6 @@
 
 #include "fc_samrai_mangle.h"
 
-#include "boost/make_shared.hpp"
-
 #include <cassert>
 
 

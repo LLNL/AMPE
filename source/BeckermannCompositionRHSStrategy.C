@@ -46,7 +46,6 @@
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
-#include <boost/make_shared.hpp>
 #include <cassert>
 
 

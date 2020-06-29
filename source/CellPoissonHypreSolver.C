@@ -28,8 +28,6 @@
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
-#include <boost/make_shared.hpp>
-
 #include <cstdlib>
 #include <cassert>
 

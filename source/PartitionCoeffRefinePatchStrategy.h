@@ -46,8 +46,6 @@
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 #include "SAMRAI/xfer/RefinePatchStrategy.h"
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 using namespace SAMRAI;
 

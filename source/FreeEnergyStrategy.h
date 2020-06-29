@@ -42,7 +42,6 @@
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 
-#include <boost/make_shared.hpp>
 #include <vector>
 
 using namespace SAMRAI;

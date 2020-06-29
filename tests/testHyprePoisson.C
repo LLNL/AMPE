@@ -1,10 +1,9 @@
 /*************************************************************************
  * Adapted from SAMRAI test for Hypre
  ************************************************************************/
-#include "SAMRAI/SAMRAI_config.h"
+#include "HyprePoisson.h"
 
-#include <string>
-using namespace std;
+#include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/mesh/BergerRigoutsos.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -23,9 +22,7 @@ using namespace std;
 #include "SAMRAI/tbox/Utilities.h"
 #include "SAMRAI/appu/VisItDataWriter.h"
 
-#include "HyprePoisson.h"
-
-#include "boost/shared_ptr.hpp"
+#include <string>
 
 using namespace SAMRAI;
 
@@ -71,12 +68,12 @@ int main(int argc, char* argv[])
        *
        *    executable <input file name>
        */
-      string input_filename;
+      std::string input_filename;
 
       if (argc != 2) {
          TBOX_ERROR("USAGE:  " << argv[0] << " <input file> \n"
                                << "  options:\n"
-                               << "  none at this time" << endl);
+                               << "  none at this time" << std::endl);
       } else {
          input_filename = argv[1];
       }
@@ -93,20 +90,20 @@ int main(int argc, char* argv[])
        * Retrieve "Main" section from input database.
        * The main database is used only in main().
        * The base_name variable is a base name for
-       * all name strings in this program.
+       * all name std::strings in this program.
        */
       std::shared_ptr<tbox::Database> main_db(input_db->getDatabase("Main"));
 
       const tbox::Dimension dim(
           static_cast<unsigned short>(main_db->getInteger("dim")));
 
-      string base_name = "unnamed";
+      std::string base_name = "unnamed";
       base_name = main_db->getStringWithDefault("base_name", base_name);
 
       /*
        * Start logging.
        */
-      const string log_file_name = base_name + ".log";
+      const std::string log_file_name = base_name + ".log";
       bool log_all_nodes = false;
       log_all_nodes =
           main_db->getBoolWithDefault("log_all_nodes", log_all_nodes);
@@ -127,7 +124,7 @@ int main(int argc, char* argv[])
           new geom::CartesianGridGeometry(dim, base_name + "CartesianGeometry",
                                           input_db->getDatabase("CartesianGeome"
                                                                 "try")));
-      tbox::plog << "Cartesian Geometry:" << endl;
+      tbox::plog << "Cartesian Geometry:" << std::endl;
       grid_geometry->printClassData(tbox::plog);
 
       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy(
@@ -191,7 +188,7 @@ int main(int argc, char* argv[])
                                                             "m"),
                                       tag_and_initializer, box_generator,
                                       load_balancer));
-      tbox::plog << "Gridding algorithm:" << endl;
+      tbox::plog << "Gridding algorithm:" << std::endl;
       gridding_algorithm->printClassData(tbox::plog);
 
       /*
@@ -206,10 +203,10 @@ int main(int argc, char* argv[])
        * with the plotter.
        */
 #if 0
-      string vis_filename =
+      std::string vis_filename =
          main_db->getStringWithDefault("vis_filename", base_name);
       std::shared_ptr<appu::VisItDataWriter> visit_writer(
-         boost::make_shared<appu::VisItDataWriter>(dim,
+         std::make_shared<appu::VisItDataWriter>(dim,
                                                    "VisIt Writer",
                                                    vis_filename + ".visit"));
       hypre_poisson.registerVariablesWithPlotter(*visit_writer);
@@ -221,8 +218,8 @@ int main(int argc, char* argv[])
        * to the log file.
        */
       tbox::plog << "\nCheck input data and variables before simulation:"
-                 << endl;
-      tbox::plog << "Input database..." << endl;
+                 << std::endl;
+      tbox::plog << "Input database..." << std::endl;
       input_db->printClassData(tbox::plog);
 
       /*
@@ -239,15 +236,15 @@ int main(int argc, char* argv[])
 
       double error = hypre_poisson.compareSolutionWithExact();
       tbox::plog << "Difference between computed sol. and exact so. = " << error
-                 << endl;
+                 << std::endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
       if (converged && error < 1.e-2) {
-         tbox::pout << "\nPASSED:  hypre" << endl;
+         tbox::pout << "\nPASSED:  hypre" << std::endl;
       } else {
          tbox::pout << "\nFAILED: Hypre test did not converge to solution."
-                    << endl;
+                    << std::endl;
       }
    }
 

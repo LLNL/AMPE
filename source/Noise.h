@@ -36,8 +36,6 @@
 #ifndef included_Noise
 #define included_Noise
 
-#include "boost/shared_ptr.hpp"
-
 #include "SAMRAI/hier/Patch.h"
 
 using namespace SAMRAI;

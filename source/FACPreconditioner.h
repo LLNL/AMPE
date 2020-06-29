@@ -20,8 +20,6 @@
 #include <algorithm>
 #include <cctype>
 
-#include "boost/shared_ptr.hpp"
-
 using namespace SAMRAI;
 
 /*!

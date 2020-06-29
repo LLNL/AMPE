@@ -40,7 +40,6 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/RefineOperator.h"
 #include "SAMRAI/hier/Variable.h"
 #include "SAMRAI/hier/BoxOverlap.h"

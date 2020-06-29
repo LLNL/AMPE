@@ -43,10 +43,8 @@
 #include "SAMRAI/tbox/Database.h"
 using namespace SAMRAI;
 
-#include <boost/make_shared.hpp>
 #include <cmath>
 #include <cassert>
-
 #include <string>
 #include <vector>
 

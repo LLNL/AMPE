@@ -797,7 +797,6 @@ int CALPHADFreeEnergyFunctionsTernary::computePhaseConcentrations(
                    "failed for conc0="
                 << conc0 << ", conc1=" << conc1 << ", hphi=" << hphi
                 << ", heta=" << heta << std::endl;
-      sleep(5);
       tbox::SAMRAI_MPI::abort();
    }
 

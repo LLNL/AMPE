@@ -40,9 +40,9 @@
 #include "SAMRAI/hier/Box.h"
 #include "SAMRAI/hier/IntVector.h"
 #include "SAMRAI/hier/Patch.h"
-#include <boost/make_shared.hpp>
-#include <string>
 #include "SAMRAI/hier/CoarsenOperator.h"
+
+#include <string>
 
 using namespace SAMRAI;
 

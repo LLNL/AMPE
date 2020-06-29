@@ -39,14 +39,12 @@
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/SAMRAIManager.h"
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/Database.h"
 
 #include <string>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -68,12 +66,12 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) cout << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) std::cout << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      cout << endl;
+      std::cout << std::endl;
 #endif
 
-      cout << "input_filename = " << input_filename << endl;
+      std::cout << "input_filename = " << input_filename << std::endl;
 
       std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -124,13 +122,14 @@ int main(int argc, char *argv[])
       if (lceq[1] > 1.) found_ceq = false;
       if (lceq[1] < 0.) found_ceq = false;
 
-      cout << "Temperature = " << temperature << endl;
+      std::cout << "Temperature = " << temperature << std::endl;
       if (found_ceq) {
-         cout << "Found equilibrium concentrations: " << lceq[0] << " and "
-              << lceq[1] << "..." << endl;
+         std::cout << "Found equilibrium concentrations: " << lceq[0] << " and "
+                   << lceq[1] << "..." << std::endl;
          ret = 0;
       } else {
-         cout << "TEST FAILED: Equilibrium concentrations not found!" << endl;
+         std::cout << "TEST FAILED: Equilibrium concentrations not found!"
+                   << std::endl;
          ret = 1;
       }
 
@@ -141,11 +140,13 @@ int main(int argc, char *argv[])
 
       const double tol = 1.e-6;
       if ((expected_result[0] - lceq[0]) > tol) {
-         cout << "TEST FAILED: ceq[0] != " << expected_result[0] << endl;
+         std::cout << "TEST FAILED: ceq[0] != " << expected_result[0]
+                   << std::endl;
          ret = 1;
       }
       if ((expected_result[1] - lceq[1]) > tol) {
-         cout << "TEST FAILED: ceq[1] != " << expected_result[1] << endl;
+         std::cout << "TEST FAILED: ceq[1] != " << expected_result[1]
+                   << std::endl;
          ret = 1;
       }
 

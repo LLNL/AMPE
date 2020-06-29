@@ -36,7 +36,6 @@
 #ifndef included_TemperatureStrategy
 #define included_TemperatureStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 using namespace SAMRAI;
 

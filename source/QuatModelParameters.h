@@ -44,7 +44,6 @@
 #include "SAMRAI/tbox/MemoryDatabase.h"
 #include "SAMRAI/tbox/IEEE.h"
 
-#include <boost/make_shared.hpp>
 #include <vector>
 #include <string>
 #include <map>

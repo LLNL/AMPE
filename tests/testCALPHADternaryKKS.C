@@ -44,13 +44,10 @@
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char* argv[])
@@ -100,13 +97,13 @@ int main(int argc, char* argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) tbox::pout << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) tbox::pout << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      tbox::pout << endl;
+      tbox::pout << std::endl;
 #endif
 
-      tbox::pout << "Run with " << mpi.getSize() << " MPI tasks" << endl;
-      tbox::pout << "input_filename = " << input_filename << endl;
+      tbox::pout << "Run with " << mpi.getSize() << " MPI tasks" << std::endl;
+      tbox::pout << "input_filename = " << input_filename << std::endl;
 
       std::shared_ptr<tbox::Database> model_db =
           input_db->getDatabase("ModelParameters");
@@ -121,7 +118,7 @@ int main(int argc, char* argv[])
 
       std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
-      string conc_avg_func_type =
+      std::string conc_avg_func_type =
           conc_db->getStringWithDefault("avg_func_type", "a");
 
       std::shared_ptr<tbox::Database> dcalphad_db =
@@ -150,17 +147,17 @@ int main(int argc, char* argv[])
       double phi = model_db->getDouble("phi");
       cafe.computePhaseConcentrations(temperature, &conc[0], phi, 0., &sol[0]);
 
-      tbox::pout << "-------------------------------" << endl;
-      tbox::pout << "Temperature: " << temperature << endl;
+      tbox::pout << "-------------------------------" << std::endl;
+      tbox::pout << "Temperature: " << temperature << std::endl;
       tbox::pout << "Result for c = " << conc[0] << "," << conc[1]
-                 << " and phi = " << phi << endl;
-      tbox::pout << "   cL = " << sol[0] << ", " << sol[1] << endl;
-      tbox::pout << "   cS = " << sol[2] << ", " << sol[3] << endl;
+                 << " and phi = " << phi << std::endl;
+      tbox::pout << "   cL = " << sol[0] << ", " << sol[1] << std::endl;
+      tbox::pout << "   cS = " << sol[2] << ", " << sol[3] << std::endl;
 
       const PhaseIndex pi0 = PhaseIndex::phaseL;
       const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-      tbox::pout << "Verification:" << endl;
+      tbox::pout << "Verification:" << std::endl;
 
       double derivL[2];
       cafe.computeDerivFreeEnergy(temperature, &sol[0], pi0, &derivL[0]);
@@ -168,20 +165,20 @@ int main(int argc, char* argv[])
       double derivS[2];
       cafe.computeDerivFreeEnergy(temperature, &sol[2], pi1, &derivS[0]);
 
-      tbox::pout << "   dfL/dcL0 = " << derivL[0] << endl;
-      tbox::pout << "   dfS/dcS0 = " << derivS[0] << endl;
-      tbox::pout << "   dfL/dcL1 = " << derivL[1] << endl;
-      tbox::pout << "   dfS/dcS1 = " << derivS[1] << endl;
+      tbox::pout << "   dfL/dcL0 = " << derivL[0] << std::endl;
+      tbox::pout << "   dfS/dcS0 = " << derivS[0] << std::endl;
+      tbox::pout << "   dfL/dcL1 = " << derivL[1] << std::endl;
+      tbox::pout << "   dfS/dcS1 = " << derivS[1] << std::endl;
 
       const double tol = 1.e-5;
       if (fabs(derivS[0] - derivL[0]) < tol &&
           fabs(derivS[0] - derivL[0]) < tol) {
-         tbox::pout << "TEST PASSED" << endl;
+         tbox::pout << "TEST PASSED" << std::endl;
       } else {
          tbox::pout << "TEST FAILED!\n";
          tbox::pout << "Difference between derivatives: "
                     << derivS[0] - derivL[0] << "," << derivS[1] - derivL[1]
-                    << endl;
+                    << std::endl;
       }
 
       input_db.reset();

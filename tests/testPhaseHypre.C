@@ -24,9 +24,7 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 #include "SAMRAI/tbox/BalancedDepthFirstTree.h"
 
-#include "boost/shared_ptr.hpp"
 #include <string>
-using namespace std;
 using namespace SAMRAI;
 
 /*
@@ -76,11 +74,11 @@ int main(int argc, char* argv[])
        *
        *    executable <input file name>
        */
-      string input_filename;
+      std::string input_filename;
       if (argc != 2) {
          TBOX_ERROR("USAGE:  " << argv[0] << " <input file> \n"
                                << "  options:\n"
-                               << "  none at this time" << endl);
+                               << "  none at this time" << std::endl);
       } else {
          input_filename = argv[1];
       }
@@ -112,13 +110,13 @@ int main(int argc, char* argv[])
       const tbox::Dimension dim(
           static_cast<unsigned short>(main_db->getInteger("dim")));
 
-      string base_name = "unnamed";
+      std::string base_name = "unnamed";
       base_name = main_db->getStringWithDefault("base_name", base_name);
 
       /*
        * Start logging.
        */
-      const string log_file_name = base_name + ".log";
+      const std::string log_file_name = base_name + ".log";
       bool log_all_nodes = false;
       log_all_nodes =
           main_db->getBoolWithDefault("log_all_nodes", log_all_nodes);
@@ -133,7 +131,7 @@ int main(int argc, char* argv[])
                                           base_name + "CartesianGridGeometry",
                                           input_db->getDatabase("CartesianGridG"
                                                                 "eometry")));
-      tbox::plog << "Cartesian Geometry:" << endl;
+      tbox::plog << "Cartesian Geometry:" << std::endl;
       grid_geometry->printClassData(tbox::plog);
 
       std::shared_ptr<hier::PatchHierarchy> patch_hierarchy(
@@ -191,7 +189,7 @@ int main(int argc, char* argv[])
                                                             "m"),
                                       tag_and_initializer, box_generator,
                                       load_balancer));
-      tbox::plog << "Gridding algorithm:" << endl;
+      tbox::plog << "Gridding algorithm:" << std::endl;
       gridding_algorithm->printClassData(tbox::plog);
 
       /*
@@ -201,9 +199,10 @@ int main(int argc, char* argv[])
       bool done = false;
       for (int lnum = 0; patch_hierarchy->levelCanBeRefined(lnum) && !done;
            lnum++) {
-         tbox::plog << "Adding finner levels with lnum = " << lnum << endl;
+         tbox::plog << "Adding finner levels with lnum = " << lnum << std::endl;
          gridding_algorithm->makeFinerLevel(0, true, 0, 0.0);
-         tbox::plog << "Just added finer levels with lnum = " << lnum << endl;
+         tbox::plog << "Just added finer levels with lnum = " << lnum
+                    << std::endl;
          done = !(patch_hierarchy->finerLevelExists(lnum));
       }
 
@@ -211,10 +210,10 @@ int main(int argc, char* argv[])
        * Set up the plotter for the hierarchy just created.
        */
 #if 0
-      string vis_filename =
+      std::string vis_filename =
          main_db->getStringWithDefault("vis_filename", base_name);
       std::shared_ptr<appu::VisItDataWriter> visit_writer(
-         boost::make_shared<appu::VisItDataWriter>(dim,
+         std::make_shared<appu::VisItDataWriter>(dim,
                                                    "VisIt Writer",
                                                    vis_filename + ".visit"));
       poisson.setupPlotter(*visit_writer);
@@ -226,8 +225,8 @@ int main(int argc, char* argv[])
        * to the log file.
        */
       tbox::plog << "\nCheck input data and variables before simulation:"
-                 << endl;
-      tbox::plog << "Input database..." << endl;
+                 << std::endl;
+      tbox::plog << "Input database..." << std::endl;
       input_db->printClassData(tbox::plog);
 
       /*
@@ -246,16 +245,16 @@ int main(int argc, char* argv[])
 
       double error = poisson.compareSolutionWithExact();
       tbox::plog << "Difference between computed sol. and exact so. = " << error
-                 << endl;
+                 << std::endl;
 
       tbox::TimerManager::getManager()->print(tbox::plog);
 
       if (error < 1.e-2) {
-         tbox::pout << "\nPASSED" << endl;
+         tbox::pout << "\nPASSED" << std::endl;
       } else {
          tbox::pout << "\nFAILED: FAC Poisson test did not converge to "
                        "solution."
-                    << endl;
+                    << std::endl;
       }
    }
 

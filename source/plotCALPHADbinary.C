@@ -44,7 +44,6 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/make_shared.hpp>
 #include <string>
 
 using namespace SAMRAI;

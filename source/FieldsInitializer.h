@@ -36,8 +36,6 @@
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 
-#include <boost/make_shared.hpp>
-
 #define HAVE_NETCDF4
 //#define HAVE_NETCDF3
 

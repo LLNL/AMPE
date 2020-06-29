@@ -36,7 +36,6 @@
 #ifndef included_GradStrategy
 #define included_GradStrategy
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/hier/PatchHierarchy.h"
 using namespace SAMRAI;
 

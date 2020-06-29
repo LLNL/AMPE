@@ -36,7 +36,6 @@
 #ifndef included_EventInterval
 #define included_EventInterval
 
-#include <boost/make_shared.hpp>
 #include "SAMRAI/tbox/Database.h"
 
 #include <string>

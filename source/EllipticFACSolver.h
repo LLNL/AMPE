@@ -37,13 +37,11 @@
 #define included_EllipticFACSolver
 
 #include "SAMRAI/tbox/Database.h"
-
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "EllipticFACOps.h"
 #include "FACPreconditioner.h"
 
-#include <boost/make_shared.hpp>
 using namespace SAMRAI;
 
 /*!

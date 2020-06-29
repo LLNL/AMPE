@@ -45,11 +45,10 @@
  */
 
 #include "SAMRAI/SAMRAI_config.h"
-#include "QuatFACOps.h"
 
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
 
-#include <boost/shared_ptr.hpp>
+#include "QuatFACOps.h"
 
 using namespace SAMRAI;
 

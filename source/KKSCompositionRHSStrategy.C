@@ -34,16 +34,17 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "KKSCompositionRHSStrategy.h"
-#include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "QuatFort.h"
-#include "SAMRAI/pdat/CellData.h"
-#include "SAMRAI/pdat/SideData.h"
-#include <boost/make_shared.hpp>
-#include <cassert>
 #include "QuatParams.h"
 #include "ConcFort.h"
 #include "FuncFort.h"
+
+#include "SAMRAI/pdat/CellData.h"
+#include "SAMRAI/pdat/SideData.h"
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/tbox/TimerManager.h"
+
+#include <cassert>
 
 KKSCompositionRHSStrategy::KKSCompositionRHSStrategy(
     const int conc_scratch_id, const int phase_scratch_id,

@@ -27,7 +27,6 @@ extern "C" {
 #include "SAMRAI/solv/SimpleCellRobinBcCoefs.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/make_shared.hpp>
 #include <string>
 #include <iostream>
 

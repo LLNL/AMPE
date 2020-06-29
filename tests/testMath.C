@@ -38,38 +38,36 @@
 #include <iostream>
 #include <math.h>
 
-using namespace std;
-
 
 int main(int argc, char* argv[])
 {
-   cout << "Test determinant computation." << endl;
+   std::cout << "Test determinant computation." << std::endl;
 
    double* mat[4];
    double work[16] = {11, 2, 3, 4, 5, 16, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
    for (short i = 0; i < 4; ++i)
       mat[i] = &work[4 * i];
 
-   cout << "Test function Determinant4..." << endl;
+   std::cout << "Test function Determinant4..." << std::endl;
    double d = Determinant4(mat);
 
    const double tol = 1.e-8;
    if (fabs(d + 400.) > tol) {
-      cerr << "TEST: Determinant of 4x4 matrix failed!!!" << endl;
+      std::cerr << "TEST: Determinant of 4x4 matrix failed!!!" << std::endl;
       return 1;
    } else {
-      cout << "TEST successful!" << endl;
+      std::cout << "TEST successful!" << std::endl;
    }
 
-   cout << "Test function DeterminantN..." << endl;
+   std::cout << "Test function DeterminantN..." << std::endl;
    d = DeterminantN(mat, 4);
    if (fabs(d + 400.) > tol) {
-      cerr << "TEST: Determinant of 4x4 matrix failed!!!" << endl;
-      cerr << "computed d=" << d << endl;
-      cerr << "exact d=" << 400. << endl;
+      std::cerr << "TEST: Determinant of 4x4 matrix failed!!!" << std::endl;
+      std::cerr << "computed d=" << d << std::endl;
+      std::cerr << "exact d=" << 400. << std::endl;
       return 1;
    } else {
-      cout << "TEST successful!" << endl;
+      std::cout << "TEST successful!" << std::endl;
    }
 
    return (0);

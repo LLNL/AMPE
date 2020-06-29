@@ -43,7 +43,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 
-#include <boost/make_shared.hpp>
 #include <string>
 using namespace SAMRAI;
 

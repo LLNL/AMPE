@@ -40,8 +40,6 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/HierarchySideDataOpsReal.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 

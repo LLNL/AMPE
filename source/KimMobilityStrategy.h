@@ -45,7 +45,6 @@
 
 class QuatModel;
 
-#include <boost/make_shared.hpp>
 #include <string>
 
 using namespace SAMRAI;

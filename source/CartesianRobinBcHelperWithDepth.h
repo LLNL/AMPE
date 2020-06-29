@@ -20,7 +20,6 @@
 #include "SAMRAI/hier/Patch.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include <boost/shared_ptr.hpp>
 using namespace SAMRAI;
 
 /*!

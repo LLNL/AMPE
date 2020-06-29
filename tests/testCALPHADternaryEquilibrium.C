@@ -46,13 +46,10 @@
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/tbox/Database.h"
 
-#include <boost/make_shared.hpp>
-
 #include <string>
 #include <fstream>
 
 using namespace SAMRAI;
-using namespace std;
 
 
 int main(int argc, char *argv[])
@@ -76,9 +73,9 @@ int main(int argc, char *argv[])
 
 #ifdef GITVERSION
 #define xstr(x) #x
-#define LOG(x) cout << " AMPE: git version " << xstr(x) << endl;
+#define LOG(x) std::cout << " AMPE: git version " << xstr(x) << std::endl;
       LOG(GITVERSION);
-      cout << endl;
+      std::cout << std::endl;
 #endif
 
       std::shared_ptr<tbox::Database> model_db =
@@ -136,15 +133,17 @@ int main(int argc, char *argv[])
       if (lceq[1] > 1.) found_ceq = false;
       if (lceq[1] < 0.) found_ceq = false;
 
-      cout << "Temperature = " << temperature << endl;
+      std::cout << "Temperature = " << temperature << std::endl;
       if (found_ceq) {
-         cout << "For nominal composition " << nominalc[0] << "," << nominalc[1]
-              << ", found equilibrium concentrations: " << endl;
-         cout << "Liquid: " << lceq[0] << "," << lceq[1] << endl;
-         cout << "Solid:  " << lceq[2] << "," << lceq[3] << endl;
-         cout << "Solid fraction: " << lceq[4] << endl;
+         std::cout << "For nominal composition " << nominalc[0] << ","
+                   << nominalc[1]
+                   << ", found equilibrium concentrations: " << std::endl;
+         std::cout << "Liquid: " << lceq[0] << "," << lceq[1] << std::endl;
+         std::cout << "Solid:  " << lceq[2] << "," << lceq[3] << std::endl;
+         std::cout << "Solid fraction: " << lceq[4] << std::endl;
       } else {
-         cout << "TEST FAILED: Equilibrium concentrations not found!" << endl;
+         std::cout << "TEST FAILED: Equilibrium concentrations not found!"
+                   << std::endl;
          ret = 1;
       }
 
@@ -159,23 +158,23 @@ int main(int argc, char *argv[])
       // test values
       const double tol = 1.e-6;
       if (fabs(expected_cl[0] - lceq[0]) > tol) {
-         cout << "TEST FAILED: cleq[0] != " << expected_cl[0] << endl;
+         std::cout << "TEST FAILED: cleq[0] != " << expected_cl[0] << std::endl;
          ret = 1;
       }
       if (fabs(expected_cl[1] - lceq[1]) > tol) {
-         cout << "TEST FAILED: cleq[1] != " << expected_cl[1] << endl;
+         std::cout << "TEST FAILED: cleq[1] != " << expected_cl[1] << std::endl;
          ret = 1;
       }
       if (fabs(expected_cs[0] - lceq[2]) > tol) {
-         cout << "TEST FAILED: cseq[0] != " << expected_cs[0] << endl;
+         std::cout << "TEST FAILED: cseq[0] != " << expected_cs[0] << std::endl;
          ret = 1;
       }
       if (fabs(expected_cs[1] - lceq[3]) > tol) {
-         cout << "TEST FAILED: cseq[1] != " << expected_cs[1] << endl;
+         std::cout << "TEST FAILED: cseq[1] != " << expected_cs[1] << std::endl;
          ret = 1;
       }
       if (fabs(expected_fs - lceq[4]) > tol) {
-         cout << "TEST FAILED: fs != " << expected_fs << endl;
+         std::cout << "TEST FAILED: fs != " << expected_fs << std::endl;
          ret = 1;
       }
 

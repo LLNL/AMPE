@@ -38,7 +38,6 @@
 #include "SAMRAI/hier/BoundaryBox.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/hier/VariableDatabase.h"
-#include <boost/make_shared.hpp>
 
 #include <cassert>
 

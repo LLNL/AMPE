@@ -49,7 +49,6 @@
 #include "SAMRAI/mesh/StandardTagAndInitStrategy.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
 using namespace SAMRAI;
 
 class PFModel : public tbox::Serializable,

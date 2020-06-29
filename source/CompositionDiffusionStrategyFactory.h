@@ -39,8 +39,6 @@
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 
-#include <boost/make_shared.hpp>
-
 class CompositionDiffusionStrategyFactory
 {
  public:

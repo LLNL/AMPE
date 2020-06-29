@@ -38,8 +38,6 @@
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 enum class DiffusionInterpolationType { LINEAR, PBG, BIASED, UNDEFINED };

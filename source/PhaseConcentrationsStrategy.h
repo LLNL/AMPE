@@ -39,8 +39,6 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <boost/make_shared.hpp>
-
 using namespace SAMRAI;
 
 class PhaseConcentrationsStrategy
