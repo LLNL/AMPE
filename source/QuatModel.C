@@ -2877,6 +2877,7 @@ void QuatModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
                                           d_conc_refine_op);
    }
 
+#ifdef USE_CPODE
    if (d_use_warm_start) {
 
       std::set<int> cpodes_id_set;
@@ -2947,6 +2948,7 @@ void QuatModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
       }
 
    }  // if ( d_use_warm_start )
+#endif
 
    PFModel::Regrid(hierarchy);
 }

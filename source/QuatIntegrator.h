@@ -36,8 +36,6 @@
 #ifndef included_QuatIntegrator
 #define included_QuatIntegrator
 
-#define USE_CPODE
-
 #include "QuatSysSolver.h"
 #include "HeatCapacityStrategy.h"
 #include "PartitionCoefficientStrategy.h"
@@ -68,8 +66,8 @@
 #include "CPODESSolver.h"
 #include "CPODESAbstractFunctions.h"
 #else
-#include "SAMRAI/solv/CVODESolver.h"
-#include "SAMRAI/solv/CVODEAbstractFunctions.h"
+#include "CVODESolver.h"
+#include "CVODEAbstractFunctions.h"
 #endif
 
 #include <set>
@@ -98,7 +96,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                        public CPODESAbstractFunctions
 #else
     ,
-                       public solv::CVODEAbstractFunctions
+                       public CVODEAbstractFunctions
 #endif
 {
  public:
@@ -299,14 +297,14 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
       assert(partition_coeff_strategy != nullptr);
       d_partition_coeff_strategy = partition_coeff_strategy;
    }
-
+#ifdef USE_CPODE
    void getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
                                     std::set<int>& phase_id_set,
                                     std::set<int>& eta_id_set,
                                     std::set<int>& orient_id_set,
                                     std::set<int>& conc_id_set,
                                     std::set<int>& temp_id_set);
-
+#endif
    void setupBC();
 
  protected:
@@ -602,8 +600,10 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    void setSundialsOptions();
 
+#ifdef USE_CPODE
    std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >*
    getCPODESVectorsRequiringRegrid(void);
+#endif
 
    void computeVelocity(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int phi_dot_id);
@@ -857,7 +857,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 #ifdef USE_CPODE
    CPODESSolver* d_sundials_solver;
 #else
-   solv::CVODESolver* d_sundials_solver;
+   CVODESolver* d_sundials_solver;
 #endif
 
    std::shared_ptr<QuatSysSolver> d_quat_sys_solver;

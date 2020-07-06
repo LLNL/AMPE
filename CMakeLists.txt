@@ -36,6 +36,13 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+if(${USE_CVODE})
+  message(STATUS "Use CVODE")
+else()
+  message(STATUS "Use CPODES")
+  add_definitions(-DUSE_CPODE)
+endif()
+
 # clang-format (optional)
 set(AMPE_WITH_CLANG_FORMAT FALSE CACHE BOOL "Indent code with clang-format")
 if(${AMPE_WITH_CLANG_FORMAT})

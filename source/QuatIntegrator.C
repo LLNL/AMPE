@@ -627,11 +627,13 @@ void QuatIntegrator::resetHierarchyConfiguration(
 
    if (!d_use_warm_start) {
       resetIntegrator(hierarchy, coarsest_level, finest_level);
+#ifdef USE_CPODE
    } else {
       if (d_current_time > 0.0) {
          d_sundials_solver->reinitializeAfterRegrid();
          resetAfterRegrid(hierarchy, coarsest_level, finest_level);
       }
+#endif
    }
 }
 
@@ -1656,8 +1658,8 @@ void QuatIntegrator::createSundialsSolver()
    d_sundials_solver =
        new CPODESSolver(d_name + "_cpode_solver", this, d_use_preconditioner);
 #else
-   d_sundials_solver = new solv::CVODESolver(d_name + "_cvode_solver", this,
-                                             d_use_preconditioner);
+   d_sundials_solver =
+       new CVODESolver(d_name + "_cvode_solver", this, d_use_preconditioner);
 #endif
 }
 
@@ -1885,10 +1887,10 @@ void QuatIntegrator::initializeLevelData(
       std::set<int> orient_id_set;
       std::set<int> conc_id_set;
       std::set<int> temp_id_set;
-
+#ifdef USE_CPODE
       getCPODESIdsRequiringRegrid(cpodes_id_set, phase_id_set, eta_id_set,
                                   orient_id_set, conc_id_set, temp_id_set);
-
+#endif
       std::set<int>::iterator it;
 
       for (it = cpodes_id_set.begin(); it != cpodes_id_set.end(); it++) {
@@ -4657,7 +4659,7 @@ void QuatIntegrator::correctRhsForSymmetry(
 }
 
 //=======================================================================
-
+#ifdef USE_CPODE
 std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
     getCPODESVectorsRequiringRegrid(void)
 {
@@ -4682,9 +4684,11 @@ std::vector<std::shared_ptr<solv::SAMRAIVectorReal<double> > >* QuatIntegrator::
 
    return cpodes_vec;
 }
+#endif
 
 //-----------------------------------------------------------------------
 
+#ifdef USE_CPODE
 void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
                                                  std::set<int>& phase_id_set,
                                                  std::set<int>& eta_id_set,
@@ -4753,6 +4757,7 @@ void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
 
    delete cpodes_vec;
 }
+#endif
 
 double QuatIntegrator::computeFrameVelocity(
     const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const double time,
