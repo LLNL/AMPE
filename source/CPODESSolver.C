@@ -33,6 +33,8 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+#ifdef USE_CPODE
+
 #include "CPODESSolver.h"
 
 #include "SAMRAI/tbox/MathUtilities.h"
@@ -1149,3 +1151,4 @@ void CPODESSolver::addVectorToList(
       sundials_vec->push_back(y);
    }
 }
+#endif

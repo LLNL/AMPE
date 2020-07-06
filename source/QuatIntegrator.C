@@ -84,6 +84,12 @@
 
 #define NUM_FACES 2 * NDIM
 
+#ifndef TRUE
+#define TRUE (1)
+#endif
+#ifndef FALSE
+#define FALSE (0)
+#endif
 
 //-----------------------------------------------------------------------
 
@@ -3900,14 +3906,21 @@ int QuatIntegrator::
     CVSpgmrPrecondSet
 #endif
     (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy, int jok,
-     int* jcurPtr, double gamma, SundialsAbstractVector* vtemp1,
-     SundialsAbstractVector* vtemp2, SundialsAbstractVector* vtemp3)
+     int* jcurPtr, double gamma
+#ifdef USE_CPODE
+     ,
+     SundialsAbstractVector* vtemp1, SundialsAbstractVector* vtemp2,
+     SundialsAbstractVector* vtemp3
+#endif
+    )
 {
    (void)fy;
    (void)jok;
+#ifdef USE_CPODE
    (void)vtemp1;
    (void)vtemp2;
    (void)vtemp3;
+#endif
 
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok <<
    // std::endl;
@@ -4268,11 +4281,18 @@ int QuatIntegrator::
 #endif
     (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy,
      SundialsAbstractVector* r, SundialsAbstractVector* z, double gamma,
-     double delta, int lr, SundialsAbstractVector* vtemp)
+     double delta, int lr
+#ifdef USE_CPODE
+     ,
+     SundialsAbstractVector* vtemp
+#endif
+    )
 {
    (void)y;
    (void)fy;
+#ifdef USE_CPODE
    (void)vtemp;
+#endif
 
    assert(d_use_preconditioner);
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << std::endl;
