@@ -156,3 +156,8 @@ source.  This includes the generation of the file Makefile.depend in
 source, which describes the build dependencies.  This means that if
 any changes are made to the source code that could affect the
 dependencies, the configuration step should be redone.
+
+2. For the "CVODE" build (no projections, not quaternions propagation),
+one should link with an external (Sundials v3.0.0 or later) using cmake
+options like: 
+-DUSE_CVODE=ON -DSUNDIALS_DIR=$HOME/sundials/sundials-3.0.0/install

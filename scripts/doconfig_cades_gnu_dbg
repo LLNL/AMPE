@@ -1,16 +1,8 @@
 #!/bin/sh
-module load PE-gnu
-module load hdf5
-module load netcdf
-module load hypre
-module load boost
+source scripts/modules.condo
 
 ./configure --enable-debug \
             --with-CXX=mpiCC \
             --with-CC=mpicc \
             --with-F77=mpif77 \
-            --with-boost=$BOOST_DIR \
-            --with-hdf5=$HDF5_DIR \
-            --with-hypre=$HYPRE_DIR \
-            --with-netcdf=$NETCDF_DIR \
             --prefix=$PWD/build

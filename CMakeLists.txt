@@ -256,8 +256,14 @@ set( PROJECT_LINK_LIBS_SAMRAI ${PROJECT_LINK_LIBS9}
 
 set( PROJECT_LINK_LIBS_HYPRE libHYPRE.so )
 
+message(STATUS "Link with Sundials...")
 set( PROJECT_LINK_LIBS_CVODE libsundials_cvode.a )
-set( PROJECT_LINK_LIBS_CPODES libsundials_cpodes.a )
+if(${USE_CVODE})
+  message(STATUS "Do not link with CPODES...")
+else()
+  message(STATUS "Link with CPODES...")
+  set( PROJECT_LINK_LIBS_CPODES libsundials_cpodes.a )
+endif()
 
 set( PROJECT_LINK_LIBS_NETCDF NetCDF::NetCDF_CXX )
 

@@ -36,6 +36,7 @@
 #ifndef QUATINTEGRATORFACTORY_H
 #define QUATINTEGRATORFACTORY_H
 
+#include "QuatIntegrator.h"
 
 #include "SAMRAI/tbox/MemoryDatabase.h"
 

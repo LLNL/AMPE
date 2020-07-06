@@ -33,6 +33,8 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+#ifdef USE_CPODE
+
 #ifndef included_CPODESSolver
 #define included_CPODESSolver
 
@@ -1271,5 +1273,5 @@ class CPODESSolver
    int d_max_precond_steps;
 };
 
-
+#endif
 #endif

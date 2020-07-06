@@ -262,15 +262,12 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
                          SundialsAbstractVector* fy, int jok, int* jcurPtr,
-                         double gamma, SundialsAbstractVector* vtemp1,
-                         SundialsAbstractVector* vtemp2,
-                         SundialsAbstractVector* vtemp3);
+                         double gamma);
 
    int CVSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
                            SundialsAbstractVector* fy,
                            SundialsAbstractVector* r, SundialsAbstractVector* z,
-                           double gamma, double delta, int lr,
-                           SundialsAbstractVector* vtemp);
+                           double gamma, double delta, int lr);
 #endif
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
