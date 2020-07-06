@@ -100,6 +100,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/CPODESSolver.C
             ${CMAKE_SOURCE_DIR}/source/CPODESAbstractFunctions.C
+            ${CMAKE_SOURCE_DIR}/source/CVODESolver.C
+            ${CMAKE_SOURCE_DIR}/source/CVODEAbstractFunctions.C
             ${CMAKE_SOURCE_DIR}/source/Sundials_SAMRAIVector.C
             ${CMAKE_SOURCE_DIR}/source/SundialsAbstractVector.C
             ${CMAKE_SOURCE_DIR}/source/PoissonSpecifications.C
