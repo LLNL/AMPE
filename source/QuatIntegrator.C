@@ -1627,12 +1627,12 @@ void QuatIntegrator::setSundialsOptions()
    d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
    // d_sundials_solver->setCPSpgmrToleranceScaleFactor(0.005);
    //   d_sundials_solver->setCPNonlinConvCoef(0.1);
+   d_sundials_solver->setIterationType(NEWTON);
 #else
    //   d_sundials_solver->setCVSpgmrToleranceScaleFactor(0.005);
 #endif
    d_sundials_solver->setLinearMultistepMethod(BDF);
    d_sundials_solver->setSteppingMethod(ONE_STEP);
-   d_sundials_solver->setIterationType(NEWTON);
    d_sundials_solver->setInitialStepSize(d_previous_timestep);
    d_sundials_solver->setRelativeTolerance(d_rtol);
    d_sundials_solver->setAbsoluteTolerance(d_atol);
