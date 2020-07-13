@@ -1,19 +1,18 @@
 /*************************************************************************
  *
  * This file is part of the SAMRAI distribution.  For full copyright
- * information, see COPYRIGHT and COPYING.LESSER.
+ * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2020 Lawrence Livermore National Security, LLC
  * Description:   Interface to C++ vector kernel operations for Sundials
  *package.
  *
  ************************************************************************/
 
-#ifndef included_SundialsAbstractVector
-#define included_SundialsAbstractVector
+#ifndef included_solv_SundialsAbstractVector
+#define included_solv_SundialsAbstractVector
 
 #include "SAMRAI/SAMRAI_config.h"
-
 
 #define SABSVEC_CAST(v) (static_cast<SundialsAbstractVector*>(v->content))
 
@@ -197,6 +196,15 @@ class SundialsAbstractVector
     */
    virtual int testReciprocal(const SundialsAbstractVector* x) = 0;
 
+#ifndef USE_CPODE
+   /*!
+    * @brief Get the length of this vector.
+    *
+    * @return The length (number of elements in the underlying data)
+    */
+   virtual sunindextype getLength() const = 0;
+#endif
+
    /**
     * Return the wrapped Sundials N_Vector.
     */
@@ -327,6 +335,13 @@ class SundialsAbstractVector
    static booleantype N_VConstrMask_SAMRAI(N_Vector c, N_Vector x, N_Vector m);
 
    static realtype N_VMinQuotient_SAMRAI(N_Vector num, N_Vector denom);
+
+#ifndef USE_CPODE
+   static sunindextype N_VGetLength_SAMRAI(N_Vector x)
+   {
+      return SABSVEC_CAST(x)->getLength();
+   }
+#endif
 };
 
 #endif
