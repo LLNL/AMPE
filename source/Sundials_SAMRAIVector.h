@@ -1,16 +1,16 @@
 /*************************************************************************
  *
  * This file is part of the SAMRAI distribution.  For full copyright
- * information, see COPYRIGHT and COPYING.LESSER.
+ * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2020 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between Sundials vector interface and SAMRAI
  *vectors.
  *
  ************************************************************************/
 
-#ifndef included_Sundials_SAMRAIVector
-#define included_Sundials_SAMRAIVector
+#ifndef included_solv_Sundials_SAMRAIVector
+#define included_solv_Sundials_SAMRAIVector
 
 #include "SAMRAI/SAMRAI_config.h"
 
@@ -24,11 +24,13 @@
 #include "SundialsAbstractVector.h"
 #include "SAMRAI/solv/SAMRAIVectorReal.h"
 
+#include <memory>
+
 using namespace SAMRAI;
 
 /**
  * Class Sundials_SAMRAIVector wraps a real-valued SAMRAI vector
- * (see solv::SAMRAIVectorReal class) object so that it may be used with
+ * (see SAMRAIVectorReal class) object so that it may be used with
  * the Sundials solver packages.  This class is derived from the
  * abstract base class SundialsAbstractVector, which defines a <TT>C++</TT>
  * interface for Sundials vectors.  It also maintains a pointer to a SAMRAI
@@ -48,7 +50,7 @@ using namespace SAMRAI;
  * which is the default for Sundials.
  *
  * @see SundialsAbstractVector
- * @see solv::SAMRAIVectorReal
+ * @see SAMRAIVectorReal
  */
 
 class Sundials_SAMRAIVector : public SundialsAbstractVector
@@ -252,6 +254,15 @@ class Sundials_SAMRAIVector : public SundialsAbstractVector
     * = 0\f$, then return \f$0\f$.  Otherwise, \f$1\f$ is returned.
     */
    int testReciprocal(const SundialsAbstractVector* x);
+
+#ifndef USE_CPODE
+   /*!
+    * @brief Get the length of this vector.
+    *
+    * @return The length (number of elements in the underlying data)
+    */
+   sunindextype getLength() const;
+#endif
 
    /*
     * Vector data is maintained in SAMRAI vector structure.

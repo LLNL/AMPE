@@ -1,9 +1,9 @@
 /*************************************************************************
  *
  * This file is part of the SAMRAI distribution.  For full copyright
- * information, see COPYRIGHT and COPYING.LESSER.
+ * information, see COPYRIGHT and LICENSE.
  *
- * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
+ * Copyright:     (c) 1997-2020 Lawrence Livermore National Security, LLC
  * Description:   "Glue code" between SAMRAI vector object and Sundials vector.
  *
  ************************************************************************/
@@ -197,3 +197,10 @@ int Sundials_SAMRAIVector::testReciprocal(const SundialsAbstractVector* x)
 {
    return d_samrai_vector->testReciprocal(SKVEC_CAST(x)->getSAMRAIVector());
 }
+
+#ifndef USE_CPODE
+sunindextype Sundials_SAMRAIVector::getLength() const
+{
+   return static_cast<sunindextype>(d_samrai_vector->getLength());
+}
+#endif

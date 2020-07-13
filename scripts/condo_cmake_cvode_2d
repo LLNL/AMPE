@@ -11,9 +11,9 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
         -DCMAKE_Fortran_COMPILER=mpif77 \
         -DSAMRAI_DIR=$HOME/SAMRAI/SAMRAI-v4.0.0 \
         -DHYPRE_DIR=$HOME/hypre/hypre-2.11.1/src/hypre \
-        -DSUNDIALS_DIR=$HOME/sundials/sundials-4.0.2/install \
+        -DSUNDIALS_DIR=$HOME/sundials/sundials-5.3.0/install \
         -DNetCDF_CXX_ROOT=$NETCDF_DIR \
-        -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DAMPE_WITH_CLANG_FORMAT=ON \
         -DCMAKE_PREFIX_PATH=${HOME}/bin \
         -DNDIM="2" \
