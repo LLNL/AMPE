@@ -54,7 +54,7 @@ for line in lines:
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.218)>1.e-3:
+      if abs(sfraction-0.219)>2.e-3:
         print("Wrong solid fraction")
         sys.exit(1)
 
