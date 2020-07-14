@@ -7,6 +7,7 @@
  * Description:   C++ Wrapper class for CVODE solver package
  *
  ************************************************************************/
+#ifndef USE_CPODE
 
 #include "CVODESolver.h"
 
@@ -377,3 +378,5 @@ void CVODESolver::printClassData(std::ostream& os) const
 
    os << "...end of CVODESolver object data members\n" << std::endl;
 }
+
+#endif

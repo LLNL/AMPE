@@ -7,6 +7,7 @@
  * Description:   Wrapper class for CVODE solver function calls and data
  *
  ************************************************************************/
+#ifndef USE_CPODE
 
 #ifndef included_solv_CVODESolver
 #define included_solv_CVODESolver
@@ -1265,4 +1266,5 @@ class CVODESolver
    bool d_uses_preconditioner;
 };
 
+#endif
 #endif
