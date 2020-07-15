@@ -4526,7 +4526,7 @@ int QuatIntegrator::applyConcentrationPreconditioner(
    return retcode;
 }
 
-#ifdef USE_CPODE
+//#ifdef USE_CPODE
 
 //-----------------------------------------------------------------------
 // Virtual function from CPODESAbstractFunction
@@ -4563,7 +4563,7 @@ int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
    return 0;  // Always successful
 }
 
-#endif
+//#endif
 
 //=======================================================================
 
