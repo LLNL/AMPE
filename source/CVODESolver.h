@@ -1140,11 +1140,10 @@ class CVODESolver
       // evaluateRHSFunction requires an argument "fd_flag"
       // we set it to 0 always since this interface does not let
       // us provide one
-      int fd_flag = 0;
+      // int fd_flag = 0;
       return ((CVODESolver*)my_solver)
           ->getCVODEFunctions()
-          ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot),
-                                fd_flag);
+          ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot));
    }
 
    /*

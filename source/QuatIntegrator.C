@@ -1649,6 +1649,8 @@ void QuatIntegrator::setSundialsOptions()
    bool needs_initialization = true;
    d_sundials_solver->setFinalValueOfIndependentVariable(d_end_time,
                                                          needs_initialization);
+   // d_sundials_solver->setProjectionFunction(true);
+   d_sundials_solver->setJTimesRhsFunction(true);
 }
 
 //-----------------------------------------------------------------------
