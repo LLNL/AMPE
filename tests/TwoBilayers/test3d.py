@@ -47,7 +47,7 @@ for line in lines:
     if end_reached:
       words=line.split()
       qe = eval(words[4])
-      print("Q energy = {}.format(qe)")
+      print("Q energy = {}".format(qe))
       if abs(qe-0.000764)>1.e-5:
         print("Wrong qint energy")
         sys.exit(1)

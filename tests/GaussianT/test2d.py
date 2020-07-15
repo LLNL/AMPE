@@ -34,7 +34,22 @@ for line in lines:
 tol = 1.e-3
 expected_solid_fraction = 0.309
 if abs(solid_fraction-expected_solid_fraction)>tol:
-  printf("Final solid fraction differs from expected value")
+  print("Final solid fraction differs from expected value")
+  sys.exit(1)
+
+#final time
+final_time = 0.
+for line in lines:
+  if line.count(b'cycle'):
+    words=line.split()
+    final_time = eval(words[6])
+print("final time = {}".format(final_time))
+
+tol = 1.e-3
+expected_final_time = 0.04
+if abs(final_time-expected_final_time)>tol:
+  print(final_time)
+  print("Final time differs from expected value")
   sys.exit(1)
 
 #max. temperature
@@ -45,10 +60,12 @@ for line in lines:
     words=line.split()
     maxT = eval(words[3])
 
-tol = 2.e-2
-expected_max_T = 1443.01
+tol = 1.e-1
+expected_max_T = 1423. + final_time * 500.
 if abs(maxT-expected_max_T)>tol:
-  printf("Final Max. temperature differs from expected value")
+  print("max. T = {}".format(maxT))
+  print("expected value = {}".format(expected_max_T))
+  print("Final Max. temperature differs from expected value")
   sys.exit(1)
 
 #min. temperature
@@ -57,11 +74,11 @@ for line in lines:
   if line.count(b'Temperature') and line.count(b'Min.'):
     print(line)
     words=line.split()
-    maxT = eval(words[3])
+    minT = eval(words[3])
 
-expected_max_T = 1423.
-if abs(maxT-expected_max_T)>tol:
-  printf("Final Min. temperature differs from expected value")
+expected_min_T = 1423.
+if abs(minT-expected_min_T)>tol:
+  print("Final Min. temperature differs from expected value")
   sys.exit(1)
 
 #number of cycles
@@ -72,7 +89,7 @@ for line in lines:
 
 expected_ncycles = 259
 if cycle>expected_ncycles+10:
-  printf("Number of steps larger than expected")
+  print("Number of steps larger than expected")
   sys.exit(1)
 
 os.remove(initfilename)
