@@ -69,7 +69,12 @@ void AMPE::initialize(const std::string input_filename,
       run_name = input_db->getString("run_name");
    } else {
       // make from input file name
-      run_name = input_filename.substr(0, input_filename.rfind("."));
+      size_t a = input_filename.find_last_of("/");
+      if (a == input_filename.npos) a = 0;
+      if (a > 0) a++;
+      size_t b = input_filename.rfind(".");
+      run_name = input_filename.substr(a, b - a);
+      tbox::pout << "run_name = " << run_name << std::endl;
    }
 
    bool log_all_nodes = false;
