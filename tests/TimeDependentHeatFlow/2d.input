@@ -5,7 +5,7 @@
 model_type = "Quat"
 
 end_time = 3000.0  // required
-max_timesteps = 350000  // optional, default is INT_MAX (alias: max_cycles)
+max_timesteps = 100  // optional, default is INT_MAX (alias: max_cycles)
 
 Verbosity {  // optional, block
    level = 1  // optional, default=1

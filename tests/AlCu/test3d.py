@@ -25,6 +25,7 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 end_reached = False
+end_time = 0.00049
 first_concentration=-1.
 target_solid_fraction = 0.0614
 for line in lines:
@@ -43,7 +44,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.00049:
+    if time>end_time:
       end_reached = True
       dt=eval(words[10])
       if (dt-2.e-6)<0.:
@@ -66,5 +67,6 @@ os.remove(initfilename)
 if end_reached:
   sys.exit(0)
 else:
+  print("Target end time {} not reached!".format(end_time))
   sys.exit(1)
 
