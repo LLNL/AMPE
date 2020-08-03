@@ -23,6 +23,10 @@ output = subprocess.check_output(command,shell=True)
 #analyse AMPE standard output
 lines=output.split(b'\n')
 
+for line in lines:
+  if line.count(b'cycle'):
+    print(line)
+
 #solid fraction
 solid_fraction = 0.
 for line in lines:
@@ -34,6 +38,7 @@ for line in lines:
 tol = 1.e-3
 expected_solid_fraction = 0.309
 if abs(solid_fraction-expected_solid_fraction)>tol:
+  print("solid fraction = {}".format(solid_fraction))
   print("Final solid fraction differs from expected value")
   sys.exit(1)
 

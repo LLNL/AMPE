@@ -2,7 +2,7 @@
 model_type = "Quat"
 
 end_time            = 50.
-max_timesteps       = 5000
+max_timesteps       = 2000
 
 run_name = "test"
 

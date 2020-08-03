@@ -3,7 +3,7 @@ import sys
 import os
 import subprocess
 
-print("Test HeatFlux...")
+print("Test time-dependent heat flow...")
 
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
@@ -26,14 +26,16 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 end_reached = False
+end_time = 3000.
+
 for line in lines:
-  num_matches = line.count(b'cycle')
-  if num_matches:
+  if line.count(b'cycle'):
     print(line)
     words=line.split()
     time=eval(words[6])
-  num_matches = line.count(b'Average')
-  if num_matches:
+    if time>end_time:
+      end_reached = True
+  if line.count(b'Average'):
     print(line)
     words=line.split()
     temperature=eval(words[3])
@@ -42,4 +44,8 @@ for line in lines:
       print("time={}".format(time))
       print("temperature={}".format(temperature))
       sys.exit(1)
+
+if not end_reached:
+  print("End time not reached!")
+  sys.exit(1)
 
