@@ -45,6 +45,7 @@ target_velocity=0.06
 tol=0.01
 count=0
 l=len(lines)  ## no of lines in file
+print("Time         Velocity")
 for line in range(l): ## loop over lines of file 
   if lines[line].count(b'Volume fraction'):
     time_old=time
@@ -65,6 +66,11 @@ for line in range(l): ## loop over lines of file
         if(abs(velocity-target_velocity)>tol):
           sys.exit(1)
       count=count+1
+
+target_time = 7.5e-6
+if time<target_time:
+  print("Target time not reached")
+  sys.exit(1)
 
 os.remove(initfilename)
 

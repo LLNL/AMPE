@@ -66,6 +66,11 @@ for line in range(l): ## loop over lines of file
           sys.exit(1)
       count=count+1
 
+target_time = 7.5e-6
+if time<target_time:
+  print("Target time not reached")
+  sys.exit(1)
+
 os.remove(initfilename)
 
 sys.exit(0)
