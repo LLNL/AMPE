@@ -25,7 +25,7 @@ output = subprocess.check_output(command,shell=True)
 lines=output.split(b'\n')
 
 end_reached = False
-end_time = 0.00049
+end_time = 0.000499
 first_concentration=-1.
 target_solid_fraction = 0.0614
 for line in lines:
@@ -57,7 +57,7 @@ for line in lines:
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-target_solid_fraction)>1.e-4:
+      if abs(sfraction-target_solid_fraction)>2.e-4:
         print("Wrong solid fraction")
         print("{} instead of {}".format(sfraction,target_solid_fraction))
         sys.exit(1)
