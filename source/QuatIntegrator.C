@@ -4538,7 +4538,7 @@ int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
                                     double epsProj, SundialsAbstractVector* err)
 {
    (void)time;
-std::cout<<"applyProjection..."<<std::endl;
+
    // Zero all components of the correction
    corr->setToScalar(0.);
 
