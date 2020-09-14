@@ -24,12 +24,25 @@ endif()
 message(STATUS "MPIEXEC: ${MPIEXEC}\n")
 
 set(HDF5_USE_STATIC_LIBRARIES ON)
-find_package(HDF5 COMPONENTS CXX HL REQUIRED)
+find_package(HDF5 COMPONENTS C HL REQUIRED)
 message(STATUS ${HDF5_VERSION} )
 include_directories(${HDF5_INCLUDE_DIR})
 message(STATUS "hdf5 libraries: ${HDF5_LIBRARIES}")
 set(PROJECT_LINK_LIBS_HDF5 ${HDF5_HL_LIBRARIES} ${HDF5_LIBRARIES})
 message(STATUS "hdf5 libraries: ${PROJECT_LINK_LIBS_HDF5}")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(NetCDF REQUIRED netcdf-cxx4 IMPORTED_TARGET)
+
+if(NetCDF_FOUND)
+  message(STATUS "NETCDF link flags: ${NetCDF_LDFLAGS}")
+  set(PROJECT_LINK_LIBS_NETCDF ${NetCDF_LDFLAGS})
+  message(STATUS "NETCDF include directory: ${NetCDF_INCLUDE_DIRS}")
+  include_directories(${NetCDF_INCLUDE_DIRS})
+else()
+  find_package(NetCDF REQUIRED COMPONENTS CXX)
+  set( PROJECT_LINK_LIBS_NETCDF NetCDF::NetCDF_CXX )
+endif()
 
 find_package(Boost)
 if(Boost_FOUND)
@@ -237,7 +250,6 @@ else()
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake_modules")
-find_package(NetCDF REQUIRED COMPONENTS CXX)
 
 set( PROJECT_LINK_LIBS1 libSAMRAI_tbox.a )
 set( PROJECT_LINK_LIBS2 libSAMRAI_math.a )
@@ -268,8 +280,6 @@ else()
   message(STATUS "Link with CPODES...")
   set( PROJECT_LINK_LIBS_CPODES libsundials_cpodes.a )
 endif()
-
-set( PROJECT_LINK_LIBS_NETCDF NetCDF::NetCDF_CXX )
 
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
