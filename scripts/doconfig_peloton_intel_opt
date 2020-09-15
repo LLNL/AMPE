@@ -1,0 +1,8 @@
+#!/bin/csh
+source scripts/modules.peloton
+
+./configure --disable-debug --enable-opt \
+            --with-CXX=mpic++ \
+            --with-CC=mpicc \
+            --with-F77=mpif77 \
+            --prefix=$PWD/build

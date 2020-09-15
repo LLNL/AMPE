@@ -1,0 +1,19 @@
+#!/bin/csh
+#Assumes the following modules have been loaded:
+source ../scripts/modules.peloton
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+
+cmake -DCMAKE_CXX_COMPILER=mpic++ -DCMAKE_C_COMPILER=mpicc \
+        -DCMAKE_Fortran_COMPILER=mpif77 \
+        -DSAMRAI_DIR=$HOME/SAMRAI/cvode-projection \
+        -DHYPRE_DIR=/usr/gapps/phasefield/hypre/2.15.0 \
+        -DSUNDIALS_DIR=$PWD/syrah-mpic++-mpif77-opt/base/sundials \
+        -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_PREFIX_PATH=/usr/gapps/phasefield/lib/netcdf-cxx-intel \
+        -DNDIM="2" \
+        ..
+
