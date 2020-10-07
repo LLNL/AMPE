@@ -58,7 +58,7 @@ for line in lines:
       words=line.split()
       oe = eval(words[4])
       print("Orient enegy = {}".format(oe))
-      if abs(oe-0.00025)>1.e-5:
+      if abs(oe-0.00026)>1.e-5:
         print("Wrong orient energy")
         sys.exit(1)
 

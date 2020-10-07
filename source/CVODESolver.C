@@ -84,6 +84,8 @@ CVODESolver::CVODESolver(const std::string& object_name,
    setCVSpgmrToleranceScaleFactor(0);
 
    d_CVODE_needs_initialization = true;
+   d_uses_projectionfn = false;
+   d_uses_jtimesrhsfn = false;
 }
 
 CVODESolver::~CVODESolver()
@@ -184,6 +186,8 @@ void CVODESolver::initializeCVODE()
       ierr = CVSpilsSetLinearSolver(d_cvode_mem, d_linear_solver);
       CVODE_SAMRAI_ERROR(ierr);
 
+      CVodeSetLSetupFrequency(d_cvode_mem, d_max_precond_steps);
+
       if (!(d_max_order < 1)) {
          ierr = CVodeSetMaxOrd(d_cvode_mem, d_max_order);
          CVODE_SAMRAI_ERROR(ierr);
@@ -226,7 +230,21 @@ void CVODESolver::initializeCVODE()
          CVODE_SAMRAI_ERROR(ierr);
       }
 
+      if (d_uses_projectionfn) {
+         CVProjFn proj_fn = CVODESolver::CVODEProjEval;
+         ierr = CVodeSetProjFn(d_cvode_mem, proj_fn);
+      }
+
+      if (d_uses_jtimesrhsfn) {
+         CVRhsFn jtimesrhs_fn = CVODESolver::CVODEJTimesRHSFuncEval;
+         ierr = CVodeSetJacTimesRhsFn(d_cvode_mem, jtimesrhs_fn);
+      }
+
+      ierr = CVodeSetLSNormFactor(d_cvode_mem, -1.0);
+      CVODE_SAMRAI_ERROR(ierr);
+
    }  // if no need to initialize CVODE, function does nothing
+
 
    d_CVODE_needs_initialization = false;
 }

@@ -259,6 +259,19 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    //
    // Methods inherited from CVODEAbstractFunctions
    //
+   int applyProjection(double time, SundialsAbstractVector* y,
+                       SundialsAbstractVector* corr, double epsProj,
+                       SundialsAbstractVector* err);
+   int evaluateJTimesRHSFunction(double t, SundialsAbstractVector* y,
+                                 SundialsAbstractVector* y_dot)
+   {
+      evaluateRHSFunction(t, y, y_dot, 1);
+   }
+   int evaluateRHSFunction(double t, SundialsAbstractVector* y,
+                           SundialsAbstractVector* y_dot)
+   {
+      evaluateRHSFunction(t, y, y_dot, 0);
+   }
 
    int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
                          SundialsAbstractVector* fy, int jok, int* jcurPtr,

@@ -649,6 +649,16 @@ class CVODESolver
       d_CVODE_needs_initialization = true;
    }
 
+   void setProjectionFunction(bool uses_projectionfn)
+   {
+      d_uses_projectionfn = uses_projectionfn;
+   }
+
+   void setJTimesRhsFunction(bool uses_jtimesrhsfn)
+   {
+      d_uses_jtimesrhsfn = uses_jtimesrhsfn;
+   }
+
    /**
     * Get solution vector.
     */
@@ -791,6 +801,8 @@ class CVODESolver
     *
     */
    void printCVODEStatistics(std::ostream& os) const;
+
+   void setMaxPrecondSteps(int max_steps) { d_max_precond_steps = max_steps; }
 
    // CVODE optional return values.
 
@@ -1127,14 +1139,9 @@ class CVODESolver
    static int CVODERHSFuncEval(realtype t, N_Vector y, N_Vector y_dot,
                                void* my_solver)
    {
-      // evaluateRHSFunction requires an argument "fd_flag"
-      // we set it to 0 always since this interface does not let
-      // us provide one
-      int fd_flag = 0;
       return ((CVODESolver*)my_solver)
           ->getCVODEFunctions()
-          ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot),
-                                fd_flag);
+          ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot));
    }
 
    /*
@@ -1162,6 +1169,27 @@ class CVODESolver
               ->CVSpgmrPrecondSolve(t, SABSVEC_CAST(y), SABSVEC_CAST(fy),
                                     SABSVEC_CAST(r), SABSVEC_CAST(z), gamma,
                                     delta, lr);
+      return success;
+   }
+
+   static int CVODEProjEval(realtype t, N_Vector y, N_Vector corr,
+                            realtype epsProj, N_Vector err, void* my_solver)
+   {
+      int success =
+          ((CVODESolver*)my_solver)
+              ->getCVODEFunctions()
+              ->applyProjection(t, SABSVEC_CAST(y), SABSVEC_CAST(corr), epsProj,
+                                SABSVEC_CAST(err));
+      return success;
+   }
+
+   static int CVODEJTimesRHSFuncEval(realtype t, N_Vector y, N_Vector y_dot,
+                                     void* my_solver)
+   {
+      int success = ((CVODESolver*)my_solver)
+                        ->getCVODEFunctions()
+                        ->evaluateJTimesRHSFunction(t, SABSVEC_CAST(y),
+                                                    SABSVEC_CAST(y_dot));
       return success;
    }
 
@@ -1264,6 +1292,25 @@ class CVODESolver
     * CVODEAbstractFunctions.
     */
    bool d_uses_preconditioner;
+
+   /*
+    * Boolean flag indicating whether a user-supplied projection
+    * routine is provided in the concrete subclass of
+    * CVODEAbstractFunctions.
+    */
+   bool d_uses_projectionfn;
+
+   /*
+    * Boolean flag indicating whether a different RHS
+    * routine for Jacobian -vector products is provided
+    * in the concrete subclass of CVODEAbstractFunctions.
+    */
+   bool d_uses_jtimesrhsfn;
+
+   /*
+    * Maximum number of steps between Jacobian evaluations
+    */
+   int d_max_precond_steps;
 };
 
 #endif

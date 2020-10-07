@@ -71,14 +71,10 @@
 #ifdef USE_CPODE
 #define BDF CP_BDF
 #define ONE_STEP CP_ONE_STEP
-#define NEWTON CP_NEWTON
-#define SUNDIALS_PREFIX CP
 #include "cpodes/cpodes_spils.h"
 #else
 #define BDF CV_BDF
 #define ONE_STEP CV_ONE_STEP
-#define NEWTON CV_NEWTON
-#define SUNDIALS_PREFIX CV
 #include "cvode/cvode_spils.h"
 #endif
 
@@ -86,9 +82,6 @@
 
 #ifndef TRUE
 #define TRUE (1)
-#endif
-#ifndef FALSE
-#define FALSE (0)
 #endif
 
 //-----------------------------------------------------------------------
@@ -1624,13 +1617,13 @@ void QuatIntegrator::setSundialsOptions()
 #ifdef USE_CPODE
    // if ( d_show_solver_stats ) d_sundials_solver->printDiagnostics( true );
    d_sundials_solver->setMaxKrylovDimension(d_max_krylov_dimension);
-   d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
    // d_sundials_solver->setCPSpgmrToleranceScaleFactor(0.005);
    //   d_sundials_solver->setCPNonlinConvCoef(0.1);
-   d_sundials_solver->setIterationType(NEWTON);
+   d_sundials_solver->setIterationType(CP_NEWTON);
 #else
    //   d_sundials_solver->setCVSpgmrToleranceScaleFactor(0.005);
 #endif
+   d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
    d_sundials_solver->setLinearMultistepMethod(BDF);
    d_sundials_solver->setSteppingMethod(ONE_STEP);
    d_sundials_solver->setInitialStepSize(d_previous_timestep);
@@ -1649,6 +1642,10 @@ void QuatIntegrator::setSundialsOptions()
    bool needs_initialization = true;
    d_sundials_solver->setFinalValueOfIndependentVariable(d_end_time,
                                                          needs_initialization);
+#ifndef USE_CPODE
+   d_sundials_solver->setProjectionFunction(true);
+   d_sundials_solver->setJTimesRhsFunction(true);
+#endif
 }
 
 //-----------------------------------------------------------------------
@@ -4526,8 +4523,6 @@ int QuatIntegrator::applyConcentrationPreconditioner(
    return retcode;
 }
 
-#ifdef USE_CPODE
-
 //-----------------------------------------------------------------------
 // Virtual function from CPODESAbstractFunction
 
@@ -4562,8 +4557,6 @@ int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
 
    return 0;  // Always successful
 }
-
-#endif
 
 //=======================================================================
 

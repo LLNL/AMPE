@@ -59,8 +59,7 @@ class CVODEAbstractFunctions
     * IMPORTANT: This function must not modify the vector y.
     */
    virtual int evaluateRHSFunction(double t, SundialsAbstractVector* y,
-                                   SundialsAbstractVector* y_dot,
-                                   int fd_flag) = 0;
+                                   SundialsAbstractVector* y_dot) = 0;
 
    /**
     * User-supplied function for setting up the preconditioner
@@ -81,6 +80,12 @@ class CVODEAbstractFunctions
                                    SundialsAbstractVector* r,
                                    SundialsAbstractVector* z, double gamma,
                                    double delta, int lr) = 0;
+   virtual int applyProjection(double t, SundialsAbstractVector* y,
+                               SundialsAbstractVector* corr, double epsProj,
+                               SundialsAbstractVector* err) = 0;
+
+   virtual int evaluateJTimesRHSFunction(double t, SundialsAbstractVector* y,
+                                         SundialsAbstractVector* y_dot) = 0;
 };
 
 #endif

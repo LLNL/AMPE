@@ -65,7 +65,7 @@ for line in lines:
     words=line.split()
     maxT = eval(words[3])
 
-tol = 1.e-1
+tol = 2.e-1
 expected_max_T = 1423. + final_time * 500.
 if abs(maxT-expected_max_T)>tol:
   print("max. T = {}".format(maxT))

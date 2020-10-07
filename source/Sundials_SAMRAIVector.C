@@ -199,6 +199,8 @@ int Sundials_SAMRAIVector::testReciprocal(const SundialsAbstractVector* x)
 }
 
 #ifndef USE_CPODE
+// note: this function has been modified to include the missing
+// "allreduce" in the SAMRAI getLenght function
 sunindextype Sundials_SAMRAIVector::getLength() const
 {
    int64_t len = d_samrai_vector->getLength();
