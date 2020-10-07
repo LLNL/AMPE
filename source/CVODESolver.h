@@ -802,6 +802,8 @@ class CVODESolver
     */
    void printCVODEStatistics(std::ostream& os) const;
 
+   void setMaxPrecondSteps(int max_steps) { d_max_precond_steps = max_steps; }
+
    // CVODE optional return values.
 
    /**
@@ -1137,10 +1139,6 @@ class CVODESolver
    static int CVODERHSFuncEval(realtype t, N_Vector y, N_Vector y_dot,
                                void* my_solver)
    {
-      // evaluateRHSFunction requires an argument "fd_flag"
-      // we set it to 0 always since this interface does not let
-      // us provide one
-      // int fd_flag = 0;
       return ((CVODESolver*)my_solver)
           ->getCVODEFunctions()
           ->evaluateRHSFunction(t, SABSVEC_CAST(y), SABSVEC_CAST(y_dot));
@@ -1308,6 +1306,11 @@ class CVODESolver
     * in the concrete subclass of CVODEAbstractFunctions.
     */
    bool d_uses_jtimesrhsfn;
+
+   /*
+    * Maximum number of steps between Jacobian evaluations
+    */
+   int d_max_precond_steps;
 };
 
 #endif

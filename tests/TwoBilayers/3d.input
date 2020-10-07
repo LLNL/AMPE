@@ -6,7 +6,7 @@
 model_type = "Quat"
 
 end_time            = 0.05
-max_timesteps       = 500
+max_timesteps       = 425
 
 FreeEnergyDiagnostics{
    filename = "calphadAuNi.vtk" // where to dump f(phi,c) 

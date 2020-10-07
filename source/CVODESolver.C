@@ -186,6 +186,8 @@ void CVODESolver::initializeCVODE()
       ierr = CVSpilsSetLinearSolver(d_cvode_mem, d_linear_solver);
       CVODE_SAMRAI_ERROR(ierr);
 
+      CVodeSetLSetupFrequency(d_cvode_mem, d_max_precond_steps);
+
       if (!(d_max_order < 1)) {
          ierr = CVodeSetMaxOrd(d_cvode_mem, d_max_order);
          CVODE_SAMRAI_ERROR(ierr);
