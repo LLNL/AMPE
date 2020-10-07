@@ -17,8 +17,6 @@ Dependencies
 
 * [SAMRAI] (https://github.com/LLNL/SAMRAI)
 
-* [CPODES] (https://simtk.org/projects/cpodes)
-
 * [Sundials] (https://github.com/LLNL/sundials)
 
 * [HDF5] (https://support.hdfgroup.org/HDF5)
@@ -26,12 +24,6 @@ Dependencies
 * [NetCDF] (https://www.unidata.ucar.edu/software/netcdf)
 
 * [BOOST] (http://www.boost.org)
-
-Since CPODES is currently not distributed with Sundials, and SAMRAI
-does not supports the lastest SUNDIALS release, modifications to 
-these libraries had to be made. The modified libraries are distributed
-with this code under the 'base' directory and need to be built before
-building the main code.
 
 References
 ----------
