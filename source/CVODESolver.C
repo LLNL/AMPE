@@ -238,7 +238,7 @@ void CVODESolver::initializeCVODE()
          ierr = CVodeSetJacTimesRhsFn(d_cvode_mem, jtimesrhs_fn);
       }
 
-      ierr = CVodeSetWRMSNormFactor(d_cvode_mem, -1.0);
+      ierr = CVodeSetLSNormFactor(d_cvode_mem, -1.0);
       CVODE_SAMRAI_ERROR(ierr);
 
    }  // if no need to initialize CVODE, function does nothing
