@@ -265,12 +265,12 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    int evaluateJTimesRHSFunction(double t, SundialsAbstractVector* y,
                                  SundialsAbstractVector* y_dot)
    {
-      evaluateRHSFunction(t, y, y_dot, 1);
+      return evaluateRHSFunction(t, y, y_dot, 1);
    }
    int evaluateRHSFunction(double t, SundialsAbstractVector* y,
                            SundialsAbstractVector* y_dot)
    {
-      evaluateRHSFunction(t, y, y_dot, 0);
+      return evaluateRHSFunction(t, y, y_dot, 0);
    }
 
    int CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
