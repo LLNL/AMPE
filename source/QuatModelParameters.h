@@ -411,12 +411,6 @@ class QuatModelParameters
 
    bool adaptMovingFrame() const { return d_adapt_moving_frame; }
 
-   bool needDphiDt() const
-   {
-      return (d_with_phase &&
-              (d_with_antitrapping || inMovingFrame() || d_with_heat_equation));
-   }
-
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 

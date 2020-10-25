@@ -1139,7 +1139,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
 
    // dphidt is needed in ghost cells to compute
    // antitrapping fluxes
-   if (d_model_parameters.needDphiDt()) {
+   if (needDphiDt()) {
       d_dphidt_scratch_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name + "_QI_"
                                                                          "dphid"
@@ -1147,7 +1147,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
       d_dphidt_scratch_id = variable_db->registerVariableAndContext(
           d_dphidt_scratch_var, d_scratch,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-      assert(d_dphidt_scratch_id);
+      assert(d_dphidt_scratch_id >= 0);
       d_local_data.setFlag(d_dphidt_scratch_id);
    }
 }
@@ -1283,9 +1283,10 @@ void QuatIntegrator::setupBC()
                                                  "PhaseBcCoefs", phase_bc_db);
          setBChomogeneous(d_phase_bc_coefs);
       }
-      if (d_model_parameters.needDphiDt()) {
+      if (needDphiDt()) {
          std::shared_ptr<tbox::Database> phase_bc_db =
              d_boundary_cond_db->getDatabase("Phase");
+
          assert(d_dphidt_scratch_id >= 0);
          d_dphidt_bc_coefs =
              new solv::LocationIndexRobinBcCoefs(tbox::Dimension(NDIM),
@@ -2889,8 +2890,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    }
 
    // save dphidt if needed for other purposes
-   if (d_model_parameters.needDphiDt())
-      fillDphiDt(hierarchy, time, phase_rhs_id);
+   if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
 
    // add component related to moving frame if moving velocity!=0
    for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
