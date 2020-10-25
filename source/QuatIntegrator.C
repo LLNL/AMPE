@@ -2890,8 +2890,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    }
 
    // save dphidt if needed for other purposes
-   if (needDphiDt())
-      fillDphiDt(hierarchy, time, phase_rhs_id);
+   if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
 
    // add component related to moving frame if moving velocity!=0
    for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {

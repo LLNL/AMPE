@@ -318,12 +318,11 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setupBC();
 
  protected:
-
    bool needDphiDt() const
    {
       return (d_with_phase &&
-              (d_with_antitrapping || d_model_parameters.inMovingFrame()
-              || d_with_heat_equation));
+              (d_with_antitrapping || d_model_parameters.inMovingFrame() ||
+               d_with_heat_equation));
    }
 
    void evaluatePhaseRHS(
