@@ -260,3 +260,8 @@ add_executable(computeCALPHADbinaryEquilibrium
                )
 target_link_libraries(computeCALPHADbinaryEquilibrium
                       ${PROJECT_LINK_LIBS_SAMRAI})
+
+add_executable(convertDatabase2JSON
+               ${CMAKE_SOURCE_DIR}/source/convertDatabase2JSON.C )
+target_link_libraries(convertDatabase2JSON
+                      ${PROJECT_LINK_LIBS_SAMRAI})
