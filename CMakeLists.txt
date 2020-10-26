@@ -291,8 +291,12 @@ add_definitions(-DNDIM=${NDIM})
 
 enable_language(Fortran C CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -std=c++11")
+
+if(CMAKE_C_COMPILER_ID STREQUAL "XL")
+  set( CMAKE_CXX_FLAGS_RELEASE "-O -DNDEBUG")
+  message(STATUS "Override C++ release flags: ${CMAKE_CXX_FLAGS_RELEASE}\n")
+endif()
 
 add_subdirectory(source)
 
