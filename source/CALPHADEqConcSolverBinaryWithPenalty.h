@@ -38,7 +38,10 @@
 
 #include "CALPHADEqConcSolverBinary.h"
 #include "Phases.h"
+
 #include <vector>
+
+using namespace ampe_thermo;
 
 class CALPHADEqConcentrationSolverBinaryWithPenalty
     : public CALPHADEqConcentrationSolverBinary

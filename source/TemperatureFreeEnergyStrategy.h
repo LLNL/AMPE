@@ -42,6 +42,8 @@
 #include <string>
 #include <vector>
 
+using namespace ampe_thermo;
+
 class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:

@@ -48,6 +48,7 @@ class QuatModel;
 #include <string>
 
 using namespace SAMRAI;
+using namespace ampe_thermo;
 
 /*
  * Based on S.G. Kim, Acta Mat. 55 (2007), p. 4391-4399

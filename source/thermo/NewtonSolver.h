@@ -36,6 +36,9 @@
 #ifndef included_NewtonSolver
 #define included_NewtonSolver
 
+namespace ampe_thermo
+{
+
 class NewtonSolver
 {
  public:
@@ -80,4 +83,5 @@ class NewtonSolver
    bool d_verbose;
 };
 
+}  // namespace ampe_thermo
 #endif

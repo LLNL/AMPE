@@ -38,6 +38,9 @@
 
 #include "DampedNewtonSolver.h"
 
+namespace ampe_thermo
+{
+
 class CALPHADConcentrationSolverTernary : public DampedNewtonSolver
 {
  public:
@@ -89,5 +92,7 @@ class CALPHADConcentrationSolverTernary : public DampedNewtonSolver
 
    double d_RT;
 };
+
+}  // namespace ampe_thermo
 
 #endif

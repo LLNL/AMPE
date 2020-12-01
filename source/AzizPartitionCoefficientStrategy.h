@@ -39,6 +39,8 @@
 #include "PartitionCoefficientStrategy.h"
 #include "FreeEnergyFunctions.h"
 
+using namespace ampe_thermo;
+
 class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {
  public:

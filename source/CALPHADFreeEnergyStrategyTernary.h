@@ -50,6 +50,8 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
+using namespace ampe_thermo;
+
 class CALPHADFreeEnergyStrategyTernary : public FreeEnergyStrategy
 {
  public:

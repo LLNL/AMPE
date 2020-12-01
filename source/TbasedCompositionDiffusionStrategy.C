@@ -42,6 +42,8 @@
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 
+using namespace ampe_thermo;
+
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
     const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
     const int diffusion_coeff_l_id, const int diffusion_coeff_a_id,

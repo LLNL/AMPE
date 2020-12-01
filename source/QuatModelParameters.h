@@ -50,6 +50,7 @@
 #include <cmath>
 
 using namespace SAMRAI;
+using namespace ampe_thermo;
 
 class QuatModelParameters
 {

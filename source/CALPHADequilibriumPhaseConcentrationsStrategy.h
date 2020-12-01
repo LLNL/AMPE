@@ -42,6 +42,8 @@
 
 #include "SAMRAI/tbox/InputManager.h"
 
+using namespace ampe_thermo;
+
 class CALPHADequilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
 {

@@ -41,6 +41,9 @@
 
 #include <vector>
 
+namespace ampe_thermo
+{
+
 class CALPHADFreeEnergyFunctions : public FreeEnergyFunctions
 {
  public:
@@ -57,4 +60,5 @@ class CALPHADFreeEnergyFunctions : public FreeEnergyFunctions
        std::vector<double>& d2fdc2) = 0;
 };
 
+}  // namespace ampe_thermo
 #endif

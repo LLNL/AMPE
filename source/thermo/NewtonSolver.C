@@ -47,6 +47,8 @@
 
 #include <iomanip>
 
+namespace ampe_thermo
+{
 
 int NewtonSolver::s_N = 0;
 
@@ -237,3 +239,5 @@ int NewtonSolver::ComputeSolution(double* const conc, const int N)
 
    return iterations;
 }
+
+}  // namespace ampe_thermo

@@ -38,8 +38,7 @@
 
 #include "EllipticFACSolver.h"
 #include "InterpolationType.h"
-
-class PhaseFACOps;
+#include "PhaseFACOps.h"
 
 using namespace SAMRAI;
 

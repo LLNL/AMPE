@@ -40,6 +40,8 @@
 #include <cassert>
 #include <stddef.h>
 
+namespace ampe_thermo
+{
 
 double CALPHADcomputeFMixBinary(const double l0, const double l1,
                                 const double l2, const double l3,
@@ -557,3 +559,5 @@ void CALPHADcomputeFIdealMix_derivTernary(const double rt, const double cA,
 
    deriv[1] = rt * (xlogx_deriv(cB) - xlogx_deriv(1.0 - cA - cB));
 }
+
+}  // namespace ampe_thermo

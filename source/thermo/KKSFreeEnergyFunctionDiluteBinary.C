@@ -41,6 +41,8 @@
 
 #include <string>
 
+namespace ampe_thermo
+{
 
 KKSFreeEnergyFunctionDiluteBinary::KKSFreeEnergyFunctionDiluteBinary(
     std::shared_ptr<SAMRAI::tbox::Database> conc_db,
@@ -463,3 +465,5 @@ void KKSFreeEnergyFunctionDiluteBinary::printEnergyVsComposition(
       os << conc << "\t" << e << std::endl;
    }
 }
+
+}  // namespace ampe_thermo

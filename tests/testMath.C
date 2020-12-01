@@ -38,6 +38,7 @@
 #include <iostream>
 #include <math.h>
 
+using namespace ampe_thermo;
 
 int main(int argc, char* argv[])
 {

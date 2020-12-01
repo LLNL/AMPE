@@ -45,7 +45,7 @@
 #include <vector>
 
 using namespace SAMRAI;
-
+using namespace ampe_thermo;
 
 class FreeEnergyStrategy
 {

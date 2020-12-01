@@ -38,6 +38,9 @@
 
 #include "DampedNewtonSolver.h"
 
+namespace ampe_thermo
+{
+
 class CALPHADConcentrationSolverBinary : public DampedNewtonSolver
 {
  public:
@@ -82,5 +85,7 @@ class CALPHADConcentrationSolverBinary : public DampedNewtonSolver
    double d_heta;
    bool d_with_third_phase;
 };
+
+}  // namespace ampe_thermo
 
 #endif

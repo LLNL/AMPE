@@ -38,6 +38,9 @@
 
 #include <string>
 
+namespace ampe_thermo
+{
+
 class CALPHADSpeciesPhaseGibbsEnergyExpansion
 {
  public:
@@ -64,4 +67,5 @@ class CALPHADSpeciesPhaseGibbsEnergyExpansion
    const double d_dm9;
 };
 
+}  // namespace ampe_thermo
 #endif

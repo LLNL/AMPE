@@ -41,6 +41,8 @@
 #include <cmath>
 #include <cassert>
 
+namespace ampe_thermo
+{
 
 static const double s_smallc = 1.0e-8;
 static const double s_inv_smallc = 1. / s_smallc;
@@ -260,3 +262,5 @@ int CALPHADConcentrationSolverBinary::ComputeConcentration(
    int ret = NewtonSolver::ComputeSolution(conc, d_N);
    return ret;
 }
+
+}  // namespace ampe_thermo

@@ -44,6 +44,9 @@ using namespace SAMRAI;
 #include <vector>
 #include <string>
 
+namespace ampe_thermo
+{
+
 class CALPHADSpeciesPhaseGibbsEnergy
 {
  private:
@@ -63,5 +66,7 @@ class CALPHADSpeciesPhaseGibbsEnergy
    void plotFofT(std::ostream& os, const double T0 = 300.,
                  const double T1 = 3000.);
 };
+
+}  // namespace ampe_thermo
 
 #endif

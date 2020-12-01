@@ -36,6 +36,10 @@
 #ifndef included_Phases
 #define included_Phases
 
+namespace ampe_thermo
+{
+
 enum class PhaseIndex { phaseL, phaseA, phaseB };
+}
 
 #endif

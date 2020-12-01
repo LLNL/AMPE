@@ -40,6 +40,7 @@
 #include <iomanip>
 #include <cmath>
 
+using namespace ampe_thermo;
 
 int main(int argc, char* argv[])
 {

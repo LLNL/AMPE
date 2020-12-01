@@ -39,6 +39,9 @@
 //
 #include <cmath>
 
+namespace ampe_thermo
+{
+
 static const double s_smallx = 1.0e-8;
 static const double s_inv_smallx = 1. / s_smallx;
 static const double s_log_smallx = log(s_smallx);
@@ -83,3 +86,5 @@ double xlogx_deriv2(const double x)
 
    return r;
 }
+
+}  // namespace ampe_thermo

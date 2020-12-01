@@ -39,6 +39,8 @@
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
+using namespace ampe_thermo;
+
 class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:

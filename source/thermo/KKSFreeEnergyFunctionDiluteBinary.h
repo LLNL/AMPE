@@ -46,6 +46,9 @@
 
 using namespace SAMRAI;
 
+namespace ampe_thermo
+{
+
 class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
 {
  public:
@@ -127,5 +130,7 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
    void computePhasesFreeEnergies(const double temperature, const double hphi,
                                   const double conc, double& fl, double& fa);
 };
+
+}  // namespace ampe_thermo
 
 #endif

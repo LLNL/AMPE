@@ -43,6 +43,7 @@
 
 #include <cstring>
 
+using namespace ampe_thermo;
 
 class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 {

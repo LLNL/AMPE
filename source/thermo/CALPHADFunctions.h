@@ -38,6 +38,9 @@
 
 #include <vector>
 
+namespace ampe_thermo
+{
+
 double CALPHADcomputeFMixBinary(const double l0, const double l1,
                                 const double l2, const double l3,
                                 const double conc);
@@ -96,4 +99,6 @@ void CALPHADcomputeFMix_deriv2Ternary(const double* lAB, const double* lAC,
                                       const double* lBC, const double* lABC,
                                       const double cA, const double cB,
                                       double* deriv);
+}  // namespace ampe_thermo
+
 #endif

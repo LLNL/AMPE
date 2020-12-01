@@ -52,6 +52,9 @@
 #define MAX_POL_T_INDEX 2
 #endif
 
+namespace ampe_thermo
+{
+
 class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
 {
  public:
@@ -245,5 +248,7 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
                                   const double heta, const double conc,
                                   double& fl, double& fa, double& fb);
 };
+
+}  // namespace ampe_thermo
 
 #endif

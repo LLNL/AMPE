@@ -39,6 +39,8 @@
 #include "PhaseConcentrationsStrategy.h"
 #include "InterpolationType.h"
 
+using namespace ampe_thermo;
+
 // compute c_l, c_s using partition coefficient
 class PartitionPhaseConcentrationsStrategy : public PhaseConcentrationsStrategy
 {

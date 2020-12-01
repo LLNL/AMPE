@@ -36,8 +36,8 @@
 #include "math_utilities.h"
 #include <math.h>
 
-
-//-----------------------------------------------------------------------
+namespace ampe_thermo
+{
 
 double Determinant3(double** const m)
 {
@@ -95,3 +95,5 @@ double DeterminantN(double** mat, const short n)
       return d;
    }
 }
+
+}  // namespace ampe_thermo

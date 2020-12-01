@@ -42,6 +42,8 @@
 #include <cmath>
 #include <cassert>
 
+namespace ampe_thermo
+{
 
 //=======================================================================
 
@@ -324,3 +326,5 @@ int CALPHADEqPhaseConcentrationSolverTernary::ComputeConcentration(
 {
    return DampedNewtonSolver::ComputeSolution(x, 5);
 }
+
+}  // namespace ampe_thermo

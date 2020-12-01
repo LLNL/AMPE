@@ -42,6 +42,8 @@
 
 #include <string>
 
+namespace ampe_thermo
+{
 
 #ifdef HAVE_TLOT
 void readLcoefficients(std::shared_ptr<tbox::Database> db,
@@ -780,3 +782,5 @@ void CALPHADFreeEnergyFunctionsBinary::printEnergyVsComposition(
       }
    }
 }
+
+}  // namespace ampe_thermo

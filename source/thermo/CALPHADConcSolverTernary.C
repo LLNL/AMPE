@@ -40,6 +40,8 @@
 #include <cmath>
 #include <cassert>
 
+namespace ampe_thermo
+{
 
 //=======================================================================
 
@@ -231,3 +233,5 @@ int CALPHADConcentrationSolverTernary::ComputeConcentration(
 
    return ret;
 }
+
+}  // namespace ampe_thermo
