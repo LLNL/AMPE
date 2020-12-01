@@ -18,35 +18,20 @@ MACRO(m4tof filename dir)
   ENDIF()
 ENDMACRO(m4tof)
 
+add_subdirectory(thermo)
+
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
-            ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/xlogx.C
-            ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
-            ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-            ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-            ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-            ${CMAKE_SOURCE_DIR}/source/math_utilities.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
             ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
             ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinaryWithPenalty.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
             ${CMAKE_SOURCE_DIR}/source/tools.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/AMPE.C
             ${CMAKE_SOURCE_DIR}/source/Noise.C
@@ -190,76 +175,35 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_NETCDF}
                               ${PROJECT_LINK_LIBS_HDF5}
                       )
+target_link_libraries(${MAIN} ${internal_libs})
 
 add_executable(plotCALPHADbinary plotCALPHADbinary.C
-                                 InterpolationType.C
-                                 CALPHADEqConcSolverBinary.C
-                                 CALPHADFreeEnergyFunctionsBinary.C
-                                 CALPHADSpeciesPhaseGibbsEnergy.C
-                                 CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-                                 CALPHADFunctions.C
-                                 xlogx.C
-                                 CALPHADConcSolverBinary.C
-                                 DampedNewtonSolver.C
-                                 NewtonSolver.C
-                                 math_utilities.C
                                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
-target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI})
+target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
+                                        ${internal_libs})
 
 add_executable(plotEquilibriumCompositions
                   plotEquilibriumCompositions.C
-                  InterpolationType.C
-                  CALPHADEqConcSolverBinary.C
-                  CALPHADFreeEnergyFunctionsBinary.C
-                  CALPHADSpeciesPhaseGibbsEnergy.C
-                  CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-                  CALPHADFunctions.C
-                  xlogx.C
-                  CALPHADConcSolverBinary.C
-                  DampedNewtonSolver.C
-                  NewtonSolver.C
-                  math_utilities.C
                   ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
-                                                  ${PROJECT_LINK_LIBS_HDF5})
+                                                  ${PROJECT_LINK_LIBS_HDF5}
+                                                  ${internal_libs})
 
 add_executable(plotEquilibriumCompositionsTernary
                   plotEquilibriumCompositionsTernary.C
-                  InterpolationType.C
-                  CALPHADEqConcSolverTernary.C
-                  CALPHADEqPhaseConcSolverTernary.C
-                  CALPHADFreeEnergyFunctionsTernary.C
-                  CALPHADSpeciesPhaseGibbsEnergy.C
-                  CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-                  CALPHADFunctions.C
-                  xlogx.C
-                  CALPHADConcSolverTernary.C
-                  DampedNewtonSolver.C
-                  NewtonSolver.C
-                  math_utilities.C
                   ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_SAMRAI}
-                         ${PROJECT_LINK_LIBS_HDF5})
+                         ${PROJECT_LINK_LIBS_HDF5}
+                         ${internal_libs})
 
 add_executable(computeCALPHADbinaryEquilibrium
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                computeCALPHADbinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 target_link_libraries(computeCALPHADbinaryEquilibrium
-                      ${PROJECT_LINK_LIBS_SAMRAI})
+                      ${PROJECT_LINK_LIBS_SAMRAI}
+                      ${internal_libs})
 
 add_executable(convertDatabase2JSON
                ${CMAKE_SOURCE_DIR}/source/convertDatabase2JSON.C )

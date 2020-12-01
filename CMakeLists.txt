@@ -239,6 +239,8 @@ FortranCInterface_HEADER(
         COMPUTEDPHIDTEMPERATUREDELTATEMPERATURE
 )
 
+set(internal_libs ampe_thermo)
+
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 link_directories( ${SAMRAI_DIR}/lib )
@@ -284,6 +286,7 @@ endif()
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
 include_directories( ${SUNDIALS_DIR}/include )
+include_directories( source/thermo )
 
 enable_testing()
 
