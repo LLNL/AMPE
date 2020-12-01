@@ -17,8 +17,7 @@ set_source_files_properties( ${fortran_dir_dim}/phase.f
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.C)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.C)
 add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.C)
-add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.C
-                        ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
+add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.C )
 add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.C
                          ${CMAKE_SOURCE_DIR}/source/UniformNoise.C 
                          ${CMAKE_SOURCE_DIR}/source/NormalNoise.C )
@@ -31,7 +30,6 @@ add_executable(testHyprePoisson
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
                ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
                ${CMAKE_SOURCE_DIR}/source/CellPoissonHypreSolver.C
                ${CMAKE_SOURCE_DIR}/source/tools.C
@@ -45,100 +43,31 @@ add_executable(testFACPoisson
                ${CMAKE_SOURCE_DIR}/source/FACPoisson.C
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testCALPHADFunctions
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C )
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.C )
 add_executable(testCALPHADJacobianTernary
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C )
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.C )
 add_executable(testKKSdiluteBinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
-               ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testKKSdiluteBinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/KKSFreeEnergyFunctionDiluteBinary.C
-               ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinaryConcentrationSolver.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/InterpolationType.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADEqPhaseConcSolverTernary.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergy.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-               ${CMAKE_SOURCE_DIR}/source/CALPHADFunctions.C
-               ${CMAKE_SOURCE_DIR}/source/xlogx.C
-               ${CMAKE_SOURCE_DIR}/source/NewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/DampedNewtonSolver.C
-               ${CMAKE_SOURCE_DIR}/source/math_utilities.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 
@@ -292,6 +221,7 @@ target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     ${internal_libs}
                                      )
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
@@ -299,18 +229,31 @@ target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      )
 target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     ${internal_libs}
                                      )
 target_link_libraries(testKKSdiluteBinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     ${internal_libs}
                                      )
 target_link_libraries(testCALPHADbinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     ${internal_libs}
                                      )
 target_link_libraries(testCALPHADternaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     ${PROJECT_LINK_LIBS_HDF5}
+                                     ${internal_libs}
                                      )
 target_link_libraries(testCALPHADbinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
+                                                   ${internal_libs}
                      )
-target_link_libraries(testCALPHADternaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
+target_link_libraries(testCALPHADternaryEquilibrium
+                      ${PROJECT_LINK_LIBS_SAMRAI}
+                      ${internal_libs}
                      )
-
+target_link_libraries(testCALPHADFunctions
+                      ${internal_libs})
+target_link_libraries(testCALPHADJacobianTernary
+                      ${internal_libs})
+target_link_libraries(testMath
+                      ${internal_libs})
