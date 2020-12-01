@@ -36,6 +36,8 @@
 #ifndef included_MolarVolumeStrategy
 #define included_MolarVolumeStrategy
 
+using namespace ampe_thermo;
+
 class MolarVolumeStrategy
 {
  public:

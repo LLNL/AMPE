@@ -41,6 +41,9 @@
 #include <string>
 #include <vector>
 
+namespace ampe_thermo
+{
+
 class FreeEnergyFunctions
 {
  public:
@@ -76,5 +79,7 @@ class FreeEnergyFunctions
       return false;
    };
 };
+
+}  // namespace ampe_thermo
 
 #endif

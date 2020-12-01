@@ -47,6 +47,9 @@
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 
+namespace ampe_thermo
+{
+
 class CALPHADFreeEnergyFunctionsTernary : public CALPHADFreeEnergyFunctions
 {
  public:
@@ -587,4 +590,5 @@ class CALPHADFreeEnergyFunctionsTernary : public CALPHADFreeEnergyFunctions
                                   double& fl, double& fa);
 };
 
+}  // namespace ampe_thermo
 #endif

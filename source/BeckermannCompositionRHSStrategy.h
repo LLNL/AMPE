@@ -45,6 +45,8 @@
 
 #include <string>
 
+using namespace ampe_thermo;
+
 class QuatModel;
 
 class BeckermannCompositionRHSStrategy : public CompositionRHSStrategy

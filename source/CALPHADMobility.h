@@ -48,6 +48,8 @@ using namespace SAMRAI;
 #include <string>
 #include <vector>
 
+using namespace ampe_thermo;
+
 // to store coefficients of linear polynomial
 typedef std::pair<double, double> double_pair;
 

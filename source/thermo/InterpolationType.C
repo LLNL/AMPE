@@ -37,6 +37,9 @@
 
 #include "SAMRAI/tbox/Utilities.h"
 
+namespace ampe_thermo
+{
+
 char concInterpChar(ConcInterpolationType interp_func_type)
 {
    switch (interp_func_type) {
@@ -56,3 +59,5 @@ char energyInterpChar(EnergyInterpolationType interp_func_type)
       default: return '0';
    }
 }
+
+}  // namespace ampe_thermo

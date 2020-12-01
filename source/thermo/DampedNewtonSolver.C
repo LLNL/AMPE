@@ -41,6 +41,8 @@
 
 #include <iomanip>
 
+namespace ampe_thermo
+{
 
 //=======================================================================
 
@@ -99,3 +101,5 @@ void DampedNewtonSolver::UpdateSolution(double* const c,
       c[ii] = c[ii] - w * del[ii];
    }
 }
+
+}  // namespace ampe_thermo

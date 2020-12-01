@@ -51,6 +51,8 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
+using namespace ampe_thermo;
+
 class KKSdiluteBinary : public FreeEnergyStrategy
 {
  public:

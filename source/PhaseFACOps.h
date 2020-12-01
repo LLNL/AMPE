@@ -42,6 +42,7 @@
 #include <string>
 
 using namespace SAMRAI;
+using namespace ampe_thermo;
 
 class PhaseFACOps : public EllipticFACOps
 {

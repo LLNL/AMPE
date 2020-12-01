@@ -42,6 +42,8 @@
 
 #include <string>
 
+namespace ampe_thermo
+{
 
 CALPHADFreeEnergyFunctionsTernary::CALPHADFreeEnergyFunctionsTernary(
     std::shared_ptr<SAMRAI::tbox::Database> calphad_db,
@@ -1066,3 +1068,5 @@ void CALPHADFreeEnergyFunctionsTernary::printEnergyVsComposition(
    }
    os6 << std::endl;
 }
+
+}  // namespace ampe_thermo

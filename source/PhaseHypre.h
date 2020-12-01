@@ -23,6 +23,7 @@
 #include "SAMRAI/appu/VisItDataWriter.h"
 
 using namespace SAMRAI;
+using namespace ampe_thermo;
 
 /*!
  * @brief Class to solve a sample Poisson equation on a SAMR grid.

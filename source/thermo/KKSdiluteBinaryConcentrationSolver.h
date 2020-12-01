@@ -38,6 +38,9 @@
 
 #include "DampedNewtonSolver.h"
 
+namespace ampe_thermo
+{
+
 class KKSdiluteBinaryConcentrationSolver : public DampedNewtonSolver
 {
  public:
@@ -66,5 +69,7 @@ class KKSdiluteBinaryConcentrationSolver : public DampedNewtonSolver
    double d_hphi;
    double d_heta;
 };
+
+}  // namespace ampe_thermo
 
 #endif

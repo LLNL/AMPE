@@ -38,6 +38,9 @@
 
 #include "DampedNewtonSolver.h"
 
+namespace ampe_thermo
+{
+
 class CALPHADEqPhaseConcentrationSolverTernary : public DampedNewtonSolver
 {
  public:
@@ -92,5 +95,7 @@ class CALPHADEqPhaseConcentrationSolverTernary : public DampedNewtonSolver
    // nominal concentration
    double d_c[2];
 };
+
+}  // namespace ampe_thermo
 
 #endif

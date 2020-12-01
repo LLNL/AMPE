@@ -40,6 +40,8 @@
 #include <cmath>
 #include <cassert>
 
+namespace ampe_thermo
+{
 
 //=======================================================================
 
@@ -92,3 +94,5 @@ int KKSdiluteBinaryConcentrationSolver::ComputeConcentration(
    int ret = NewtonSolver::ComputeSolution(conc, d_N);
    return ret;
 }
+
+}  // namespace ampe_thermo

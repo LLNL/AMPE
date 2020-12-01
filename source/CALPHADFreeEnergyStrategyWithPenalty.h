@@ -40,6 +40,8 @@
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
 
+using namespace ampe_thermo;
+
 
 class CALPHADFreeEnergyStrategyWithPenalty
     : public CALPHADFreeEnergyStrategyBinary

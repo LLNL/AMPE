@@ -41,6 +41,9 @@
 #include <cassert>
 
 
+namespace ampe_thermo
+{
+
 //=======================================================================
 
 void CALPHADEqConcentrationSolverBinary::RHS(
@@ -125,3 +128,5 @@ int CALPHADEqConcentrationSolverBinary::ComputeConcentration(
 
    return DampedNewtonSolver::ComputeSolution(conc, 2);
 }
+
+}  // namespace ampe_thermo

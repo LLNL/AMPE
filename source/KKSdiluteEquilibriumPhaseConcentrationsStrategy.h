@@ -42,6 +42,8 @@
 
 #include "SAMRAI/tbox/InputManager.h"
 
+using namespace ampe_thermo;
+
 class KKSdiluteEquilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
 {

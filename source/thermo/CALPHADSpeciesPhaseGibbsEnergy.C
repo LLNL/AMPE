@@ -38,6 +38,8 @@
 
 #include <cassert>
 
+namespace ampe_thermo
+{
 
 void CALPHADSpeciesPhaseGibbsEnergy::initialize(
     const std::string& name, std::shared_ptr<tbox::Database> db)
@@ -162,3 +164,5 @@ void CALPHADSpeciesPhaseGibbsEnergy::plotFofT(std::ostream& os, const double T0,
    }
    os << std::endl;
 }
+
+}  // namespace ampe_thermo

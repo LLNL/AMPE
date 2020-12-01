@@ -38,8 +38,7 @@
 
 #include "EllipticFACSolver.h"
 #include "InterpolationType.h"
-
-class EtaFACOps;
+#include "EtaFACOps.h"
 
 using namespace SAMRAI;
 

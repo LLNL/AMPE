@@ -40,6 +40,8 @@
 #include "CALPHADFunctions.h"
 #include <vector>
 
+using namespace ampe_thermo;
+
 class CALPHADFreeEnergyFunctionsWithPenaltyBinary
     : public CALPHADFreeEnergyFunctionsBinary
 {

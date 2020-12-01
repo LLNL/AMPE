@@ -37,6 +37,9 @@
 
 #include <math.h>
 
+namespace ampe_thermo
+{
+
 CALPHADSpeciesPhaseGibbsEnergyExpansion::
     CALPHADSpeciesPhaseGibbsEnergyExpansion(const double a, const double b,
                                             const double c, const double d2,
@@ -66,3 +69,5 @@ double CALPHADSpeciesPhaseGibbsEnergyExpansion::value(
           d_d7 * t4 * t2 * temperature + d_dm1 / temperature +
           d_dm9 / (t4 * t4 * temperature);
 }
+
+}  // namespace ampe_thermo

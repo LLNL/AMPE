@@ -45,6 +45,7 @@
 #include <string>
 
 using namespace SAMRAI;
+using namespace ampe_thermo;
 
 
 int main(int argc, char *argv[])

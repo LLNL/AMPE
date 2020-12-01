@@ -38,6 +38,9 @@
 
 #include "NewtonSolver.h"
 
+namespace ampe_thermo
+{
+
 class DampedNewtonSolver : public NewtonSolver
 {
  public:
@@ -53,5 +56,7 @@ class DampedNewtonSolver : public NewtonSolver
  private:
    double d_alpha;  // damping factor
 };
+
+}  // namespace ampe_thermo
 
 #endif

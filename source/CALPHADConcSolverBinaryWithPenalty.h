@@ -40,6 +40,8 @@
 
 #include <vector>
 
+using namespace ampe_thermo;
+
 class CALPHADConcentrationSolverBinaryWithPenalty
     : public CALPHADConcentrationSolverBinary
 {
