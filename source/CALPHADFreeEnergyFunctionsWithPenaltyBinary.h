@@ -40,7 +40,11 @@
 #include "CALPHADFunctions.h"
 #include <vector>
 
+#ifdef HAVE_THERMO4PFM
+using namespace thermo4pfm;
+#else
 using namespace ampe_thermo;
+#endif
 
 class CALPHADFreeEnergyFunctionsWithPenaltyBinary
     : public CALPHADFreeEnergyFunctionsBinary

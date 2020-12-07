@@ -42,7 +42,11 @@
 #include <string>
 
 using namespace SAMRAI;
+#ifdef HAVE_THERMO4PFM
+using namespace thermo4pfm;
+#else
 using namespace ampe_thermo;
+#endif
 
 class PhaseFACOps : public EllipticFACOps
 {

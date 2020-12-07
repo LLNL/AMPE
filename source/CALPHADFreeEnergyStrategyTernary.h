@@ -50,7 +50,11 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
+#ifdef HAVE_THERMO4PFM
+using namespace thermo4pfm;
+#else
 using namespace ampe_thermo;
+#endif
 
 class CALPHADFreeEnergyStrategyTernary : public FreeEnergyStrategy
 {
