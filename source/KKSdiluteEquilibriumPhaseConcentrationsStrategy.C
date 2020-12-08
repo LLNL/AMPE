@@ -38,6 +38,11 @@
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/IEEE.h"
 
+#include "Database2JSON.h"
+
+#ifdef HAVE_THERMO4PFM
+namespace pt = boost::property_tree;
+#endif
 
 KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     KKSdiluteEquilibriumPhaseConcentrationsStrategy(
@@ -53,9 +58,17 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id)
 {
+#ifdef HAVE_THERMO4PFM
+   pt::ptree troot;
+   copyDatabase(conc_db, troot);
+   d_fenergy =
+       new KKSFreeEnergyFunctionDiluteBinary(troot, energy_interp_func_type,
+                                             conc_interp_func_type);
+#else
    d_fenergy =
        new KKSFreeEnergyFunctionDiluteBinary(conc_db, energy_interp_func_type,
                                              conc_interp_func_type);
+#endif
 }
 
 void KKSdiluteEquilibriumPhaseConcentrationsStrategy::

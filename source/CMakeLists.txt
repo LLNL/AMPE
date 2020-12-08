@@ -18,7 +18,16 @@ MACRO(m4tof filename dir)
   ENDIF()
 ENDMACRO(m4tof)
 
-add_subdirectory(thermo)
+if(NOT ${USE_THERMO4PFM})
+  add_subdirectory(thermo)
+endif()
+
+set(SOURCES_WPENALTY
+    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.C
+    ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.C
+    ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinaryWithPenalty.C
+    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyWithPenalty.C
+    )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.C
@@ -28,9 +37,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinaryWithPenalty.C
             ${CMAKE_SOURCE_DIR}/source/tools.C
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/AMPE.C
@@ -94,7 +100,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/EventInterval.C
             ${CMAKE_SOURCE_DIR}/source/HBSMFreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/HBSMequilibriumPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyWithPenalty.C
             ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategy.C
             ${CMAKE_SOURCE_DIR}/source/GaussianTemperatureStrategy.C
             ${CMAKE_SOURCE_DIR}/source/ScalarTemperatureStrategy.C
@@ -119,6 +124,10 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACOps.C
             ${CMAKE_SOURCE_DIR}/source/FACPreconditioner.C
             ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.C )
+
+if(NOT ${USE_THERMO4PFM})
+  string(APPEND SOURCES ${SOURCES_WPENALTY})
+endif()
 
 set(SOURCES_FORTRAN
             ${CMAKE_SOURCE_DIR}/source/fortran/quat.f
@@ -175,6 +184,9 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_NETCDF}
                               ${PROJECT_LINK_LIBS_HDF5}
                       )
+if(${USE_THERMO4PFM})
+  target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_THERMO4PFM})
+endif()
 target_link_libraries(${MAIN} ${internal_libs})
 
 add_executable(plotCALPHADbinary plotCALPHADbinary.C
@@ -206,6 +218,7 @@ target_link_libraries(computeCALPHADbinaryEquilibrium
                       ${internal_libs})
 
 add_executable(convertDatabase2JSON
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/convertDatabase2JSON.C )
 target_link_libraries(convertDatabase2JSON
                       ${PROJECT_LINK_LIBS_SAMRAI})

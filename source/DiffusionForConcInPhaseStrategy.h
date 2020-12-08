@@ -36,12 +36,17 @@
 #ifndef included_DIFFUSIONFORCONCINPHASESTRATEGY
 #define included_DIFFUSIONFORCONCINPHASESTRATEGY
 
-#include "FuncAvgFort.h"
 #include "CompositionDiffusionStrategy.h"
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "functions.h"
+#endif
+
+#include "FuncAvgFort.h"
 
 #include <string>
 using namespace SAMRAI;

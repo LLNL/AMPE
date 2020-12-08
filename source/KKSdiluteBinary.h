@@ -38,7 +38,6 @@
 
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "FreeEnergyStrategy.h"
-#include "FuncFort.h"
 #include "InterpolationType.h"
 #include "Phases.h"
 
@@ -52,8 +51,10 @@ class MolarVolumeStrategy;
 #include <vector>
 
 #ifdef HAVE_THERMO4PFM
-using namespace thermo4pfm;
+#include "functions.h"
+using namespace Thermo4PFM;
 #else
+#include "FuncFort.h"
 using namespace ampe_thermo;
 #endif
 
@@ -190,7 +191,11 @@ class KKSdiluteBinary : public FreeEnergyStrategy
    double hprime(const double phi)
    {
       const char interp = energyInterpChar(d_energy_interp_func_type);
+#ifdef HAVE_THERMO4PFM
+      return deriv_interp_func(phi, interp);
+#else
       return DERIV_INTERP_FUNC(phi, &interp);
+#endif
    }
 
    void addDrivingForceOnPatch(

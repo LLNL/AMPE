@@ -247,7 +247,21 @@ FortranCInterface_HEADER(
         COMPUTEDPHIDTEMPERATUREDELTATEMPERATURE
 )
 
-set(internal_libs ampe_thermo)
+if(${USE_THERMO4PFM})
+  message(STATUS "Use THERMO4PFM...")
+  add_definitions(-DHAVE_THERMO4PFM)
+  set( PROJECT_LINK_LIBS_THERMO4PFM libthermo4pfm.a)
+  include_directories( ${THERMO4PFM_DIR}/include )
+  if(${WITH_TLOGT4L})
+    add_definitions(-DMAX_POL_T_INDEX=3)
+    add_definitions(-DLMIX_WTLOGT)
+  else()
+    add_definitions(-DMAX_POL_T_INDEX=2)
+  endif(${WITH_TLOGT4L})
+else()
+  include_directories( source/thermo )
+  set(internal_libs ampe_thermo)
+endif()
 
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -294,7 +308,7 @@ endif()
 include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
 include_directories( ${SUNDIALS_DIR}/include )
-include_directories( source/thermo )
+
 include_directories( source/fortran )
 
 enable_testing()
