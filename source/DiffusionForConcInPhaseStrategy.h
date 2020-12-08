@@ -36,7 +36,7 @@
 #ifndef included_DIFFUSIONFORCONCINPHASESTRATEGY
 #define included_DIFFUSIONFORCONCINPHASESTRATEGY
 
-#include "FuncFort.h"
+#include "FuncAvgFort.h"
 #include "CompositionDiffusionStrategy.h"
 
 #include "SAMRAI/hier/PatchHierarchy.h"
