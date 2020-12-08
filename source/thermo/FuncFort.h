@@ -46,8 +46,6 @@ double SECOND_DERIV_WELL_FUNC(const double&, const char*);
 double INTERP_FUNC(const double&, const char*);
 double DERIV_INTERP_FUNC(const double&, const char*);
 double SECOND_DERIV_INTERP_FUNC(const double&, const char*);
-double AVERAGE_FUNC(const double&, const double&, const char*);
-double DERIV_AVERAGE_FUNC(const double&, const double&, const char*);
 double INTERP_RATIO_FUNC(const double&, const char*, const char*);
 double COMPL_INTERP_RATIO_FUNC(const double&, const char*, const char*);
 }

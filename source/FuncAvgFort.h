@@ -33,56 +33,15 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef included_CompositionRHSStrategy
-#define included_CompositionRHSStrategy
+#ifndef FuncAvgFort_H
+#define FuncAvgFort_H
 
-#include "FreeEnergyStrategy.h"
-#include "FuncAvgFort.h"
+#include "fc_mangle.h"
 
-#include "SAMRAI/hier/PatchHierarchy.h"
-#include "SAMRAI/hier/Patch.h"
-
-#include <string>
-
-using namespace SAMRAI;
-
-class CompositionRHSStrategy
-{
- public:
-   CompositionRHSStrategy(const std::string& avg_func_type);
-
-   virtual ~CompositionRHSStrategy(){};
-
-   virtual void computeFluxOnPatch(hier::Patch& patch, const int flux_id) = 0;
-   virtual void addFluxFromGradTonPatch(hier::Patch& patch,
-                                        const int temperature_id,
-                                        const int flux_id);
-   virtual void printDiagnostics(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy)
-   {
-      (void)hierarchy;
-   };
-   void setZeroFluxAtBoundaryOnPatch(hier::Patch& patch, const int flux_id);
-   virtual void addFluxFromAntitrappingonPatch(hier::Patch& patch,
-                                               const int phase_scratch_id,
-                                               const int dphidt_id,
-                                               const double alpha,
-                                               const int flux_id);
-
- protected:
-   double average(const double a, const double b) const
-   {
-      return AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
-   }
-
-   const char* average() const { return d_avg_func_type.c_str(); }
-
- private:
-   /*!
-    * function to use to take averages between two phase values
-    * at cell centers and define quantity at cell boundary
-    */
-   std::string d_avg_func_type;
-};
+// Function argument list interfaces
+extern "C" {
+double AVERAGE_FUNC(const double&, const double&, const char*);
+double DERIV_AVERAGE_FUNC(const double&, const double&, const char*);
+}
 
 #endif
