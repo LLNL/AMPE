@@ -45,7 +45,7 @@
 
 #include <cassert>
 
-#include "fc_mangle.h"
+#include "fc_internal_mangle.h"
 
 /*
 *************************************************************************

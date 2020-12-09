@@ -36,7 +36,7 @@
 #ifndef FuncFort_H
 #define FuncFort_H
 
-#include "fc_mangle.h"
+#include "fc_functions_mangle.h"
 
 // Function argument list interfaces
 extern "C" {

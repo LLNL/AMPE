@@ -42,7 +42,7 @@
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/tbox/Utilities.h"
 
-#include "fc_mangle.h"
+#include "fc_internal_mangle.h"
 
 #include <cassert>
 

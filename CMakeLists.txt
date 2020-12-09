@@ -111,8 +111,8 @@ FortranCInterface_HEADER(
        EFO_EWINGFIXFLUXCONDC3D
 )      
 FortranCInterface_HEADER(
-    fc_mangle.h
-    MACRO_NAMESPACE "FC_INTERNAL_"
+    fc_functions_mangle.h
+    MACRO_NAMESPACE "FC_FUNCTIONS_"
     SYMBOLS
         WELL_FUNC
         DERIV_WELL_FUNC
@@ -124,6 +124,11 @@ FortranCInterface_HEADER(
         DERIV_AVERAGE_FUNC
         INTERP_RATIO_FUNC
         COMPL_INTERP_RATIO_FUNC
+)
+FortranCInterface_HEADER(
+    fc_internal_mangle.h
+    MACRO_NAMESPACE "FC_INTERNAL_"
+    SYMBOLS
         CONCENTRATIONFLUX
         ADD_CONCENTRATIONFLUX_EBS
         CONCENTRATIONFLUX_SPINODAL
@@ -290,6 +295,7 @@ include_directories( ${SAMRAI_DIR}/include )
 include_directories( ${HYPRE_DIR}/include )
 include_directories( ${SUNDIALS_DIR}/include )
 include_directories( source/thermo )
+include_directories( source/fortran )
 
 enable_testing()
 

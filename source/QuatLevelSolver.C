@@ -47,7 +47,7 @@
 
 #include "QuatLevelSolver.h"
 #include "krylov.h"
-#include "fc_mangle.h"
+#include "fc_internal_mangle.h"
 
 #include "SAMRAI/geom/CartesianGridGeometry.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"

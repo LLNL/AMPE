@@ -33,7 +33,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "fc_mangle.h"
+#include "fc_internal_mangle.h"
 
 
 // Function argument list interfaces
