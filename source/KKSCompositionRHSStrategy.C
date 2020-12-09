@@ -402,24 +402,35 @@ void KKSCompositionRHSStrategy::setDiffCoeffForPhaseOnPatch(
             double c_a = 0.5 * (ptr_c_a[idx_c_i] + ptr_c_a[idxm1_c_i]);
             double c_b = 0.0;
 
+#ifdef HAVE_THERMO4PFM
+            double hphi_prime = deriv_interp_func(phi, interpf);
+#else
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
-
+#endif
             double heta = 0.0;
 
             if (d_with_third_phase) {
                eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
                c_b = 0.5 * (ptr_c_b[idx_c_i] + ptr_c_b[idxm1_c_i]);
 
+#ifdef HAVE_THERMO4PFM
+               heta = interp_func(eta, interpf);
+#else
                heta = INTERP_FUNC(eta, &interpf);
+#endif
             }
 
             ptr_phi_diffx[idx_dcoeff] = ptr_dx0_coeff[idx_dcoeff] * hphi_prime *
                                         (c_l - (1.0 - heta) * c_a - heta * c_b);
 
             if (d_with_third_phase) {
+#ifdef HAVE_THERMO4PFM
+               double hphi = interp_func(phi, interpf);
+               double heta_prime = deriv_interp_func(eta, interpf);
+#else
                double hphi = INTERP_FUNC(phi, &interpf);
-
                double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
+#endif
 
                ptr_eta_diffx[idx_dcoeff] =
                    ptr_dx0_coeff[idx_dcoeff] * hphi * heta_prime * (c_a - c_b);

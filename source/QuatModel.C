@@ -49,7 +49,6 @@
 #include "BeckermannCompositionRHSStrategy.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
-#include "FuncFort.h"
 #include "QuatFort.h"
 #include "QuatLinearRefine.h"
 #include "QuatWeightedAverage.h"
@@ -82,6 +81,14 @@
 #include "tools.h"
 #include "MobilityFactory.h"
 #include "CompositionDiffusionStrategyFactory.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "functions.h"
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#else
+#include "FuncFort.h"
+#endif
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -430,6 +437,12 @@ void QuatModel::initializeRHSandEnergyStrategies(
             newton_db.reset(new tbox::MemoryDatabase("newton_db"));
          }
 
+#ifdef HAVE_THERMO4PFM
+        pt::ptree calphad_pt;
+        pt::ptree newton_pt;
+        copyDatabase(calphad_db, calphad_pt); 
+        copyDatabase(newton_db, newton_pt);
+#endif
          {
             if (d_ncompositions == 1) {
                d_free_energy_strategy_for_diffusion =
@@ -460,13 +473,21 @@ void QuatModel::initializeRHSandEnergyStrategies(
                        << std::endl;
             if (d_ncompositions == 1) {
                d_cafe = new CALPHADFreeEnergyFunctionsBinary(
+#ifdef HAVE_THERMO4PFM
+                       calphad_pt, newton_pt,
+#else
                    calphad_db, newton_db,
+#endif
                    d_model_parameters.energy_interp_func_type(),
                    d_model_parameters.conc_interp_func_type(),
                    d_model_parameters.with_third_phase());
             } else {
                d_cafe = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+                       calphad_pt, newton_pt,
+#else
                    calphad_db, newton_db,
+#endif
                    d_model_parameters.energy_interp_func_type(),
                    d_model_parameters.conc_interp_func_type());
             }
@@ -2420,12 +2441,18 @@ void QuatModel::preRunDiagnostics(void)
                d_cafe->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
-                   d_model_parameters.phase_well_func_type(), false);
+#ifndef HAVE_THERMO4PFM
+                   d_model_parameters.phase_well_func_type(),
+#endif
+ false);
             if (d_model_parameters.with_third_phase()) {
                d_cafe->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
-                   d_model_parameters.phase_well_func_type(), true);
+#ifndef HAVE_THERMO4PFM
+                   d_model_parameters.phase_well_func_type(),
+#endif
+                   true);
             }
          }
          mpi.Barrier();
@@ -5495,7 +5522,11 @@ void QuatModel::applyPolynomial(const std::shared_ptr<hier::PatchLevel> level,
            ++i) {
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
+#ifdef HAVE_THERMO4PFM
+         const double hphi = interp_func(phi, interp);
+#else
          const double hphi = INTERP_FUNC(phi, &interp);
+#endif
          (*ddata)(cell) = hphi;
       }
    }
@@ -5751,8 +5782,11 @@ void QuatModel::computeEtaMobilityPatch(
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_phi];
 
+#ifdef HAVE_THERMO4PFM
+            double h_phi = interp_func(phi, 'p');
+#else
             double h_phi = INTERP_FUNC(phi, "p");
-
+#endif
             double Rt = t * gas_constant_R_JpKpmol;
 
             double m = d_model_parameters.eta_mobility() *

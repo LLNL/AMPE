@@ -36,7 +36,6 @@
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "CompositionStrategyMobilities.h"
 #include "FreeEnergyStrategy.h"
-#include "FuncFort.h"
 
 #include <vector>
 

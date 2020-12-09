@@ -34,7 +34,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "PartitionPhaseConcentrationsStrategy.h"
+#ifdef HAVE_THERMO4PFM
+#include "functions.h"
+#else
 #include "FuncFort.h"
+#endif
 
 void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -139,7 +143,11 @@ void PartitionPhaseConcentrationsStrategy::computePhaseConcentrationsOnPatch(
             const double phi = ptr_phi[idx_pf];
             assert(phi == phi);
 
+#ifdef HAVE_THERMO4PFM
+            const double hphi = interp_func(phi, interp);
+#else
             const double hphi = INTERP_FUNC(phi, &interp);
+#endif
             assert(hphi >= 0.);
             // if( hphi>1. )std::cerr<<"phi="<<phi<<std::endl;
             // if( hphi>1. )std::cerr<<"hphi="<<hphi<<std::endl;

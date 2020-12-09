@@ -35,8 +35,12 @@
 //
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
-#include "FuncFort.h"
 
+#ifdef HAVE_THERMO4PFM
+#include "functions.h"
+#else
+#include "FuncFort.h"
+#endif
 
 HBSMequilibriumPhaseConcentrationsStrategy::
     HBSMequilibriumPhaseConcentrationsStrategy(
@@ -144,12 +148,19 @@ void HBSMequilibriumPhaseConcentrationsStrategy::
                eta = ptr_eta[idx_pf];
             }
 
+#ifdef HAVE_THERMO4PFM
+            double hphi = interp_func(phi, interpf);
+            double heta = 0.0;
+            if (d_with_third_phase) {
+               heta = interp_func(eta, interpf);
+            }
+#else
             double hphi = INTERP_FUNC(phi, &interpf);
-
             double heta = 0.0;
             if (d_with_third_phase) {
                heta = INTERP_FUNC(eta, &interpf);
             }
+#endif
 
             double c_l =
                 d_hbsm_fenergy->computeLiquidConcentration(hphi, heta, c);

@@ -38,7 +38,13 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/tbox/Utilities.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "functions.h"
+#include "well_functions.h"
+#else
 #include "FuncFort.h"
+#endif
 
 #include <cassert>
 
@@ -224,8 +230,11 @@ void PhaseFACOps::setCOnPatchPrivate(
             const double phi = ptr_phi[idx_pf];
 
             const double g_phi_dbl_prime =
+#ifdef HAVE_THERMO4PFM
+                second_deriv_well_func(phi);
+#else
                 SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
-
+#endif
             const double gamma_m = gamma * m;
 
             // C = 1 + gamma * phi_mobility * (
@@ -238,10 +247,17 @@ void PhaseFACOps::setCOnPatchPrivate(
                const double eta = ptr_eta[idx_pf];
 
                const double h_phi_dbl_prime =
+#ifdef HAVE_THERMO4PFM
+                   second_deriv_interp_func(phi, interp);
+#else
                    SECOND_DERIV_INTERP_FUNC(phi, &interp);
-
-               const double g_eta = WELL_FUNC(eta, eta_well_func_type);
-
+#endif
+               const double g_eta = 
+#ifdef HAVE_THERMO4PFM
+well_func(eta);
+#else
+WELL_FUNC(eta, eta_well_func_type);
+#endif
                ptr_c[idx_c] +=
                    gamma_m * eta_well_scale * g_eta * h_phi_dbl_prime;
             }
