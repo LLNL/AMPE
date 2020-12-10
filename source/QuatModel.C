@@ -80,14 +80,13 @@
 #include "tools.h"
 #include "MobilityFactory.h"
 #include "CompositionDiffusionStrategyFactory.h"
+#include "FuncFort.h"
 
 #ifdef HAVE_THERMO4PFM
-#include "functions.h"
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 #else
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
-#include "FuncFort.h"
 #endif
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -5524,11 +5523,7 @@ void QuatModel::applyPolynomial(const std::shared_ptr<hier::PatchLevel> level,
            ++i) {
          pdat::CellIndex cell = *i;
          const double phi = (*sdata)(cell);
-#ifdef HAVE_THERMO4PFM
-         const double hphi = interp_func(phi, interp);
-#else
          const double hphi = INTERP_FUNC(phi, &interp);
-#endif
          (*ddata)(cell) = hphi;
       }
    }
@@ -5784,11 +5779,7 @@ void QuatModel::computeEtaMobilityPatch(
             double t = ptr_temp[idx_temp];
             double phi = ptr_phi[idx_phi];
 
-#ifdef HAVE_THERMO4PFM
-            double h_phi = interp_func(phi, 'p');
-#else
             double h_phi = INTERP_FUNC(phi, "p");
-#endif
             double Rt = t * gas_constant_R_JpKpmol;
 
             double m = d_model_parameters.eta_mobility() *

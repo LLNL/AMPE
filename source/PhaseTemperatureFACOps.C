@@ -34,15 +34,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "PhaseTemperatureFACOps.h"
+#include "FuncFort.h"
 
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/tbox/Utilities.h"
-#ifdef HAVE_THERMO4PFM
-#include "well_functions.h"
-#else
-#include "FuncFort.h"
-#endif
 
 #include <cassert>
 
@@ -190,11 +186,7 @@ void PhaseTemperatureFACOps::setCOnPatchForPreconditionODE(
             const double phi = ptr_phi[idx_pf];
 
             const double g_phi_dbl_prime =
-#ifdef HAVE_THERMO4PFM
-                Thermo4PFM::second_deriv_well_func(phi);
-#else
                 SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
-#endif
             ptr_c[idx_c] = latent_heat * m * phi_well_scale * g_phi_dbl_prime;
          }
       }

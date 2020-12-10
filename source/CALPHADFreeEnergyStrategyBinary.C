@@ -40,6 +40,8 @@
 #include "MolarVolumeStrategy.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "FuncFort.h"
+
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
@@ -967,13 +969,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
             const double mu = computeMuA(t, c_a);
             // const double mu = 0.;
 
-#ifdef HAVE_THERMO4PFM
-            const double hphi = interp_func(phi, interpf);
-            const double heta_prime = deriv_interp_func(eta, interpf);
-#else
             const double hphi = INTERP_FUNC(phi, &interpf);
             const double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-#endif
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }

@@ -38,12 +38,11 @@
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
+#include "FuncFort.h"
+
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
-#include "functions.h"
 namespace pt = boost::property_tree;
-#else
-#include "FuncFort.h"
 #endif
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -52,10 +51,10 @@ namespace pt = boost::property_tree;
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
+#include <cassert>
+
 using namespace SAMRAI;
 
-
-#include <cassert>
 
 //=======================================================================
 
@@ -694,11 +693,7 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
             assert(fabs(mu[1] - muprime[1]) < tol);
 #endif
 
-#ifdef HAVE_THERMO4PFM
-            double hphi_prime = deriv_interp_func(phi, interpf);
-#else
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
-#endif
             ptr_rhs[idx_rhs] +=
                 hphi_prime * ((f_l - f_a) - mu[0] * (c_l[0] - c_a[0]) -
                               mu[1] * (c_l[1] - c_a[1]));

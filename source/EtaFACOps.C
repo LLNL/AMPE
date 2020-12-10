@@ -34,16 +34,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "EtaFACOps.h"
+#include "FuncFort.h"
 
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/tbox/Utilities.h"
-#ifdef HAVE_THERMO4PFM
-#include "well_functions.h"
-#include "functions.h"
-#else
-#include "FuncFort.h"
-#endif
 
 #include <cassert>
 
@@ -203,17 +198,9 @@ void EtaFACOps::setCOnPatchPrivate(
             const double phi = ptr_phi[idx_pf];
             const double eta = ptr_eta[idx_pf];
 
-#ifdef HAVE_THERMO4PFM
-            const double h_phi = interp_func(phi, interpf);
-#else
             const double h_phi = INTERP_FUNC(phi, &interpf);
-#endif
             const double g_eta_dbl_prime =
-#ifdef HAVE_THERMO4PFM
-                second_deriv_well_func(eta);
-#else
                 SECOND_DERIV_WELL_FUNC(eta, eta_well_func_type);
-#endif
 
             const double gamma_m = gamma * m;
 

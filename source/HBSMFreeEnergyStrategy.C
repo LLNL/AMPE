@@ -33,27 +33,21 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+#include "FuncFort.h"
+#include "ConcFort.h"
+#include "QuatParams.h"
+#include "HBSMFreeEnergyStrategy.h"
+
 #include "SAMRAI/tbox/InputManager.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/hier/Index.h"
 
-#ifdef HAVE_THERMO4PFM
-#include "functions.h"
-#else
-#include "FuncFort.h"
-#endif
-
-#include "ConcFort.h"
-#include "QuatParams.h"
-#include "HBSMFreeEnergyStrategy.h"
-
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 using namespace SAMRAI;
 
 #include <cassert>
-
 #include <vector>
 
 
@@ -874,11 +868,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
 
             double mu = computeMu(t, c_l);
 
-#ifdef HAVE_THERMO4PFM
-            double hphi_prime = deriv_interp_func(phi, interp);
-#else
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interp);
-#endif
             double heta = 0.0;
 
             if (d_with_third_phase) {
@@ -886,11 +876,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
                f_b = ptr_f_b[idx_f_i];
                c_b = ptr_c_b[idx_c_i];
 
-#ifdef HAVE_THERMO4PFM
-               heta = interp_func(eta, interp);
-#else
                heta = INTERP_FUNC(eta, &interp);
-#endif
             }
 
             ptr_rhs[idx_rhs] +=
@@ -1118,13 +1104,8 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
 
             double mu = computeMu(t, c_l);
 
-#ifdef HAVE_THERMO4PFM
-            double hphi = interp_func(phi, interpf);
-            double heta_prime = deriv_interp_func(eta, interpf);
-#else
             double hphi = INTERP_FUNC(phi, &interpf);
             double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-#endif
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }

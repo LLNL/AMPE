@@ -42,11 +42,7 @@
 #include "FreeEnergyStrategy.h"
 #include "FreeEnergyFunctions.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
-#ifdef HAVE_THERMO4PFM
-#include "functions.h"
-#else
 #include "FuncFort.h"
-#endif
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -56,12 +52,6 @@ class MolarVolumeStrategy;
 
 #include <string>
 #include <vector>
-
-#ifdef HAVE_THERMO4PFM
-using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
 
 class CALPHADFreeEnergyStrategyBinary : public FreeEnergyStrategy
 {
@@ -222,11 +212,7 @@ class CALPHADFreeEnergyStrategyBinary : public FreeEnergyStrategy
    double hprime(const double phi)
    {
       const char interp = energyInterpChar(d_energy_interp_func_type);
-#ifdef HAVE_THERMO4PFM
-      return deriv_interp_func(phi, interp);
-#else
       return DERIV_INTERP_FUNC(phi, &interp);
-#endif
    }
 
    void addDrivingForceOnPatch(
