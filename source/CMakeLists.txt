@@ -18,10 +18,6 @@ MACRO(m4tof filename dir)
   ENDIF()
 ENDMACRO(m4tof)
 
-if(NOT ${USE_THERMO4PFM})
-  add_subdirectory(thermo)
-endif()
-
 set(SOURCES_WPENALTY
     ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.C
     ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.C
@@ -180,6 +176,7 @@ if(${USE_THERMO4PFM})
                          ${SOURCES_Database2JSON})
 else()
   add_executable(${MAIN} ${SOURCES}
+                         ${SOURCES_WPENALTY}
                          ${SOURCES_FORTRAN}
                          ${SOURCES_FORTRAN_DIM})
 endif(${USE_THERMO4PFM})
@@ -195,6 +192,7 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
 if(${USE_THERMO4PFM})
   set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
 else()
+  add_subdirectory(thermo)
   set(THERMOLIB ${internal_libs})
 endif(${USE_THERMO4PFM})
 
