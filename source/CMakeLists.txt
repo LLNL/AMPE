@@ -125,9 +125,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/FACPreconditioner.C
             ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.C )
 
-if(NOT ${USE_THERMO4PFM})
-  string(APPEND SOURCES ${SOURCES_WPENALTY})
-endif()
+set(SOURCES_Database2JSON
+    ${CMAKE_SOURCE_DIR}/source/Database2JSON.C )
 
 set(SOURCES_FORTRAN
             ${CMAKE_SOURCE_DIR}/source/fortran/quat.f
@@ -175,7 +174,15 @@ foreach(file ${M4FILESDIM})
 endforeach()
 
 set(MAIN ampe${NDIM}d)
-add_executable(${MAIN} ${SOURCES} ${SOURCES_FORTRAN} ${SOURCES_FORTRAN_DIM})
+if(${USE_THERMO4PFM})
+  add_executable(${MAIN} ${SOURCES} ${SOURCES_FORTRAN}
+                         ${SOURCES_FORTRAN_DIM}
+                         ${SOURCES_Database2JSON})
+else()
+  add_executable(${MAIN} ${SOURCES}
+                         ${SOURCES_FORTRAN}
+                         ${SOURCES_FORTRAN_DIM})
+endif(${USE_THERMO4PFM})
 
 target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_HYPRE}
@@ -184,38 +191,47 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_NETCDF}
                               ${PROJECT_LINK_LIBS_HDF5}
                       )
-if(${USE_THERMO4PFM})
-  target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_THERMO4PFM})
-endif()
-target_link_libraries(${MAIN} ${internal_libs})
 
-add_executable(plotCALPHADbinary plotCALPHADbinary.C
-                                 ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+if(${USE_THERMO4PFM})
+  set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
+else()
+  set(THERMOLIB ${internal_libs})
+endif(${USE_THERMO4PFM})
+
+target_link_libraries(${MAIN} ${THERMOLIB})
+
+add_executable(plotCALPHADbinary
+               plotCALPHADbinary.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C)
 target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
-                                        ${internal_libs})
+                                        ${THERMOLIB})
 
 add_executable(plotEquilibriumCompositions
-                  plotEquilibriumCompositions.C
-                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+               plotEquilibriumCompositions.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5}
-                                                  ${internal_libs})
+                                                  ${THERMOLIB})
 
 add_executable(plotEquilibriumCompositionsTernary
-                  plotEquilibriumCompositionsTernary.C
-                  ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
+               plotEquilibriumCompositionsTernary.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_SAMRAI}
                          ${PROJECT_LINK_LIBS_HDF5}
-                         ${internal_libs})
+                         ${THERMOLIB})
 
 add_executable(computeCALPHADbinaryEquilibrium
                computeCALPHADbinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 target_link_libraries(computeCALPHADbinaryEquilibrium
                       ${PROJECT_LINK_LIBS_SAMRAI}
-                      ${internal_libs})
+                      ${THERMOLIB})
 
 add_executable(convertDatabase2JSON
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.C

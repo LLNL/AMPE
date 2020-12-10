@@ -409,9 +409,9 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                assert(phi == phi);
 
 #ifdef HAVE_THERMO4PFM
-            double hphi = interp_func(phi, interp_func_type);
+               double hphi = interp_func(phi, interp_func_type);
 #else
-            double hphi = INTERP_FUNC(phi, &interp_func_type);
+               double hphi = INTERP_FUNC(phi, &interp_func_type);
 #endif
 
                double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);

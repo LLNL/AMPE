@@ -883,7 +883,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
 
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
 #ifdef HAVE_THERMO4PFM
-            double hphi = interp_func(phi, interp_func_char);
+               double hphi = interp_func(phi, interp_func_char);
 #else
                double hphi = INTERP_FUNC(phi, &interp_func_char);
 #endif
@@ -892,7 +892,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
                if (d_with_third_phase) {
                   double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
 #ifdef HAVE_THERMO4PFM
-               heta = interp_func(eta, interp_func_char);
+                  heta = interp_func(eta, interp_func_char);
 #else
                   heta = INTERP_FUNC(eta, &interp_func_char);
 #endif

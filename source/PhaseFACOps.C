@@ -252,11 +252,11 @@ void PhaseFACOps::setCOnPatchPrivate(
 #else
                    SECOND_DERIV_INTERP_FUNC(phi, &interp);
 #endif
-               const double g_eta = 
+               const double g_eta =
 #ifdef HAVE_THERMO4PFM
-well_func(eta);
+                   well_func(eta);
 #else
-WELL_FUNC(eta, eta_well_func_type);
+                   WELL_FUNC(eta, eta_well_func_type);
 #endif
                ptr_c[idx_c] +=
                    gamma_m * eta_well_scale * g_eta * h_phi_dbl_prime;

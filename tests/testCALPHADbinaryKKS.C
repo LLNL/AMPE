@@ -49,7 +49,14 @@
 #include <fstream>
 
 using namespace SAMRAI;
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+using namespace Thermo4PFM;
+#else
 using namespace ampe_thermo;
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -136,10 +143,20 @@ int main(int argc, char* argv[])
 
       bool with_third_phase = false;
 
-      CALPHADFreeEnergyFunctionsBinary cafe(calphad_db, newton_db,
-                                            energy_interp_func_type,
-                                            conc_interp_func_type,
-                                            false);  // no 3rd phase
+#ifdef HAVE_THERMO4PFM
+      pt::ptree calphad_pt;
+      pt::ptree newton_pt;
+      copyDatabase(calphad_db, calphad_pt);
+      copyDatabase(newton_db, newton_pt);
+#endif
+      CALPHADFreeEnergyFunctionsBinary cafe(
+#ifdef HAVE_THERMO4PFM
+          calphad_pt, newton_pt,
+#else
+          calphad_db, newton_db,
+#endif
+          energy_interp_func_type, conc_interp_func_type,
+          false);  // no 3rd phase
 
       // initial guesses
       double c_init0 = 0.5;

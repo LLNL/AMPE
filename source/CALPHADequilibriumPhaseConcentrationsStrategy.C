@@ -62,32 +62,27 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
       d_conc_b_ref_id(conc_b_ref_id)
 {
 #ifdef HAVE_THERMO4PFM
-        pt::ptree calphad_pt;
-        pt::ptree newton_pt;
-        copyDatabase(calphad_db, calphad_pt);
-        copyDatabase(newton_db, newton_pt);
+   pt::ptree calphad_pt;
+   pt::ptree newton_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   copyDatabase(newton_db, newton_pt);
 #endif
    if (ncompositions == 1) {
-      d_calphad_fenergy =
-          new CALPHADFreeEnergyFunctionsBinary(
+      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsBinary(
 #ifdef HAVE_THERMO4PFM
-calphad_pt, newton_pt,
+          calphad_pt, newton_pt,
 #else
-calphad_db, newton_db,
+          calphad_db, newton_db,
 #endif
-                                               energy_interp_func_type,
-                                               conc_interp_func_type,
-                                               with_third_phase);
+          energy_interp_func_type, conc_interp_func_type, with_third_phase);
    } else {
-      d_calphad_fenergy =
-          new CALPHADFreeEnergyFunctionsTernary(
+      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsTernary(
 #ifdef HAVE_THERMO4PFM
-calphad_pt, newton_pt,
+          calphad_pt, newton_pt,
 #else
-calphad_db, newton_db,
+          calphad_db, newton_db,
 #endif
-                                                energy_interp_func_type,
-                                                conc_interp_func_type);
+          energy_interp_func_type, conc_interp_func_type);
    }
 }
 
