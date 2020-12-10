@@ -38,8 +38,8 @@
 #include "QuatFort.h"
 #include "QuatParams.h"
 #include "ConcFort.h"
-#include "QuatModel.h"
 #include "FuncFort.h"
+#include "QuatModel.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -320,6 +320,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
             double hphi = INTERP_FUNC(phi, &interp_func_type);
+
             double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
             double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);
@@ -356,7 +357,9 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
 
             // double phi = 0.5 * ( ptr_phi[idx_pf] + ptr_phi[idxm1_pf] );
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
+
             double hphi = INTERP_FUNC(phi, &interp_func_type);
+
             double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
             double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);
@@ -395,6 +398,7 @@ void BeckermannCompositionRHSStrategy::setDiffusionCoeffForPhaseOnPatch(
                assert(phi == phi);
 
                double hphi = INTERP_FUNC(phi, &interp_func_type);
+
                double c = average(ptr_c[idx_c_i], ptr_c[idxm1_c_i]);
 
                double k = average(ptr_k[idx_k], ptr_k[idxm1_k]);

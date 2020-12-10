@@ -34,11 +34,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "PhaseFACOps.h"
-#include "FuncFort.h"
 
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/tbox/Utilities.h"
+#include "FuncFort.h"
 
 #include <cassert>
 
@@ -225,6 +225,7 @@ void PhaseFACOps::setCOnPatchPrivate(
 
             const double g_phi_dbl_prime =
                 SECOND_DERIV_WELL_FUNC(phi, phi_well_func_type);
+
             const double gamma_m = gamma * m;
 
             // C = 1 + gamma * phi_mobility * (
@@ -238,7 +239,9 @@ void PhaseFACOps::setCOnPatchPrivate(
 
                const double h_phi_dbl_prime =
                    SECOND_DERIV_INTERP_FUNC(phi, &interp);
+
                const double g_eta = WELL_FUNC(eta, eta_well_func_type);
+
                ptr_c[idx_c] +=
                    gamma_m * eta_well_scale * g_eta * h_phi_dbl_prime;
             }

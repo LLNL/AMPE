@@ -38,6 +38,16 @@
 
 #include "PhaseFreeEnergyStrategy.h"
 #include "QuatModelParameters.h"
+#include "PFModel.h"
+#include "QuatIntegrator.h"
+#include "QuatRefinePatchStrategy.h"
+#include "PartitionCoeffRefinePatchStrategy.h"
+#include "CALPHADMobility.h"
+#include "QuatParams.h"
+#include "Grains.h"
+#include "FieldsInitializer.h"
+#include "EventInterval.h"
+#include "FreeEnergyFunctions.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -49,20 +59,13 @@
 #include "SAMRAI/pdat/CellVariable.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
 
-#include "FieldsInitializer.h"
-
-#include "PFModel.h"
-#include "QuatIntegrator.h"
-#include "QuatRefinePatchStrategy.h"
-#include "PartitionCoeffRefinePatchStrategy.h"
-#include "CALPHADMobility.h"
-#include "QuatParams.h"
-#include "Grains.h"
-#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
-
-#include "EventInterval.h"
-
 #include <map>
+
+#ifdef HAVE_THERMO4PFM
+using namespace Thermo4PFM;
+#else
+using namespace ampe_thermo;
+#endif
 
 using namespace SAMRAI;
 

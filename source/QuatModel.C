@@ -87,6 +87,7 @@
 namespace pt = boost::property_tree;
 #else
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
+#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
 #endif
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"

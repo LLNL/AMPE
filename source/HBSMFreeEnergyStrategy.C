@@ -33,21 +33,22 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "FuncFort.h"
-#include "ConcFort.h"
-#include "QuatParams.h"
-#include "HBSMFreeEnergyStrategy.h"
-
 #include "SAMRAI/tbox/InputManager.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/hier/Index.h"
 
+#include "FuncFort.h"
+#include "ConcFort.h"
+#include "QuatParams.h"
+#include "HBSMFreeEnergyStrategy.h"
+
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 using namespace SAMRAI;
 
 #include <cassert>
+
 #include <vector>
 
 
@@ -869,6 +870,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
             double mu = computeMu(t, c_l);
 
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interp);
+
             double heta = 0.0;
 
             if (d_with_third_phase) {
@@ -1105,7 +1107,9 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
             double mu = computeMu(t, c_l);
 
             double hphi = INTERP_FUNC(phi, &interpf);
+
             double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
+
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }

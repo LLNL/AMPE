@@ -37,6 +37,7 @@
 #include "HBSMFreeEnergyStrategy.h"
 #include "FuncFort.h"
 
+
 HBSMequilibriumPhaseConcentrationsStrategy::
     HBSMequilibriumPhaseConcentrationsStrategy(
         const int conc_l_id, const int conc_a_id, const int conc_b_id,
@@ -144,6 +145,7 @@ void HBSMequilibriumPhaseConcentrationsStrategy::
             }
 
             double hphi = INTERP_FUNC(phi, &interpf);
+
             double heta = 0.0;
             if (d_with_third_phase) {
                heta = INTERP_FUNC(eta, &interpf);
