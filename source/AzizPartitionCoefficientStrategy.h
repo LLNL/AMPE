@@ -39,7 +39,11 @@
 #include "PartitionCoefficientStrategy.h"
 #include "FreeEnergyFunctions.h"
 
+#ifdef HAVE_THERMO4PFM
+using namespace Thermo4PFM;
+#else
 using namespace ampe_thermo;
+#endif
 
 class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {

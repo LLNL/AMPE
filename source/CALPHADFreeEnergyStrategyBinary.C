@@ -40,6 +40,12 @@
 #include "MolarVolumeStrategy.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "FuncFort.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -88,11 +94,23 @@ void CALPHADFreeEnergyStrategyBinary::setup(
     std::shared_ptr<tbox::Database> calphad_db,
     std::shared_ptr<tbox::Database> newton_db)
 {
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   pt::ptree newton_pt;
+   copyDatabase(newton_db, newton_pt);
+   d_calphad_fenergy =
+       new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
+                                            d_energy_interp_func_type,
+                                            d_conc_interp_func_type,
+                                            d_with_third_phase);
+#else
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
                                             d_energy_interp_func_type,
                                             d_conc_interp_func_type,
                                             d_with_third_phase);
+#endif
 }
 
 //=======================================================================
@@ -953,7 +971,6 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
 
             const double hphi = INTERP_FUNC(phi, &interpf);
             const double heta_prime = DERIV_INTERP_FUNC(eta, &interpf);
-
             ptr_rhs[idx_rhs] +=
                 hphi * heta_prime * ((f_a - f_b) - mu * (c_a - c_b));
          }

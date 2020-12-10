@@ -38,9 +38,9 @@
 
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "FreeEnergyStrategy.h"
-#include "FuncFort.h"
 #include "InterpolationType.h"
 #include "Phases.h"
+#include "FuncFort.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -50,8 +50,6 @@ class MolarVolumeStrategy;
 
 #include <string>
 #include <vector>
-
-using namespace ampe_thermo;
 
 class KKSdiluteBinary : public FreeEnergyStrategy
 {

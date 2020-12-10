@@ -39,6 +39,7 @@
 #include "QuatParams.h"
 #include "ConcFort.h"
 #include "QuatFort.h"
+#include "FuncFort.h"
 #include "CompositionDiffusionStrategy.h"
 #include "CompositionStrategyMobilities.h"
 

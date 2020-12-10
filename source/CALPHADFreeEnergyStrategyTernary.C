@@ -33,12 +33,17 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "FuncFort.h"
 #include "ConcFort.h"
 #include "QuatParams.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
+#include "FuncFort.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
 
 #include "SAMRAI/tbox/InputManager.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -46,10 +51,10 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
+#include <cassert>
+
 using namespace SAMRAI;
 
-
-#include <cassert>
 
 //=======================================================================
 
@@ -89,10 +94,22 @@ void CALPHADFreeEnergyStrategyTernary::setup(
     std::shared_ptr<tbox::Database> calphad_db,
     std::shared_ptr<tbox::Database> newton_db)
 {
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   pt::ptree newton_pt;
+   copyDatabase(newton_db, newton_pt);
+   d_calphad_fenergy =
+       new CALPHADFreeEnergyFunctionsTernary(calphad_pt, newton_pt,
+                                             d_energy_interp_func_type,
+                                             d_conc_interp_func_type);
+#else
+
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsTernary(calphad_db, newton_db,
                                              d_energy_interp_func_type,
                                              d_conc_interp_func_type);
+#endif
 }
 
 //=======================================================================
@@ -677,7 +694,6 @@ void CALPHADFreeEnergyStrategyTernary::addDrivingForceOnPatch(
 #endif
 
             double hphi_prime = DERIV_INTERP_FUNC(phi, &interpf);
-
             ptr_rhs[idx_rhs] +=
                 hphi_prime * ((f_l - f_a) - mu[0] * (c_l[0] - c_a[0]) -
                               mu[1] * (c_l[1] - c_a[1]));

@@ -45,9 +45,14 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 
-using namespace SAMRAI;
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
 
 #include <cassert>
+
+using namespace SAMRAI;
 
 //=======================================================================
 
@@ -81,9 +86,17 @@ KKSdiluteBinary::KKSdiluteBinary(
 
 void KKSdiluteBinary::setup(std::shared_ptr<tbox::Database> conc_db)
 {
+#ifdef HAVE_THERMO4PFM
+   pt::ptree troot;
+   copyDatabase(conc_db, troot);
+   d_kksdilute_fenergy =
+       new KKSFreeEnergyFunctionDiluteBinary(troot, d_energy_interp_func_type,
+                                             d_conc_interp_func_type);
+#else
    d_kksdilute_fenergy =
        new KKSFreeEnergyFunctionDiluteBinary(conc_db, d_energy_interp_func_type,
                                              d_conc_interp_func_type);
+#endif
 }
 
 //=======================================================================

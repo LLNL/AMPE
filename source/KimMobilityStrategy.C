@@ -39,7 +39,12 @@
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "QuatModel.h"
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
 
+#include "SAMRAI/tbox/InputManager.h"
 
 KimMobilityStrategy::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
@@ -75,24 +80,43 @@ KimMobilityStrategy::KimMobilityStrategy(
       std::shared_ptr<tbox::Database> newton_db;
       if (conc_db->isDatabase("NewtonSolver"))
          newton_db = conc_db->getDatabase("NewtonSolver");
+#ifdef HAVE_THERMO4PFM
+      pt::ptree calphad_pt;
+      copyDatabase(calphad_db, calphad_pt);
+      pt::ptree newton_pt;
+      copyDatabase(newton_db, newton_pt);
+#endif
 
       if (ncompositions == 1) {
-         d_fenergy =
-             new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
-                                                  energy_interp_func_type,
-                                                  conc_interp_func_type,
-                                                  false);  // no 3rd phase
+         d_fenergy = new CALPHADFreeEnergyFunctionsBinary(
+#ifdef HAVE_THERMO4PFM
+             calphad_pt, newton_pt,
+#else
+             calphad_db, newton_db,
+#endif
+             energy_interp_func_type, conc_interp_func_type,
+             false);  // no 3rd phase
       } else {
-         d_fenergy =
-             new CALPHADFreeEnergyFunctionsTernary(calphad_db, newton_db,
-                                                   energy_interp_func_type,
-                                                   conc_interp_func_type);
+         d_fenergy = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+             calphad_pt, newton_pt,
+#else
+             calphad_db, newton_db,
+#endif
+             energy_interp_func_type, conc_interp_func_type);
       }
    } else if (conc_model[0] == 'd') {
-
+#ifdef HAVE_THERMO4PFM
+      pt::ptree conc_pt;
+      copyDatabase(conc_db, conc_pt);
+      d_fenergy = new KKSFreeEnergyFunctionDiluteBinary(conc_pt,
+                                                        energy_interp_func_type,
+                                                        conc_interp_func_type);
+#else
       d_fenergy = new KKSFreeEnergyFunctionDiluteBinary(conc_db,
                                                         energy_interp_func_type,
                                                         conc_interp_func_type);
+#endif
    } else {
       TBOX_ERROR("Error: unknown concentration model in KimMobilityStrategy");
    }

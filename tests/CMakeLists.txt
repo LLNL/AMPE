@@ -6,6 +6,12 @@ set( fortran_dir ${CMAKE_SOURCE_DIR}/source/fortran )
 set( fortran_dir_dim ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d )
 set( TEST_DIR ${CMAKE_SOURCE_DIR}/tests )
 
+if(${USE_THERMO4PFM})
+  set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
+else()
+  set(THERMOLIB ${internal_libs})
+endif(${USE_THERMO4PFM})
+
 #Within the scope of this file, cmake doesn't know *.f are generated files
 set_source_files_properties( ${fortran_dir}/functions.f 
                              PROPERTIES GENERATED TRUE)
@@ -48,26 +54,32 @@ add_executable(testCALPHADJacobianTernary
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.C )
 add_executable(testKKSdiluteBinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testKKSdiluteBinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryKKS
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryKKS.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.C
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 
@@ -221,7 +233,7 @@ target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
                                      ${PROJECT_LINK_LIBS_HDF5}
-                                     ${internal_libs}
+                                     ${THERMOLIB}
                                      )
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
@@ -229,31 +241,34 @@ target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      )
 target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
-                                     ${internal_libs}
+                                     ${THERMOLIB}
                                      )
+if(${USE_THERMO4PFM})
+  target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_THERMO4PFM})
+endif()
 target_link_libraries(testKKSdiluteBinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
-                                     ${internal_libs}
+                                     ${THERMOLIB}
                                      )
 target_link_libraries(testCALPHADbinaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
-                                     ${internal_libs}
+                                     ${THERMOLIB}
                                      )
 target_link_libraries(testCALPHADternaryKKS ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${PROJECT_LINK_LIBS_HDF5}
-                                     ${internal_libs}
+                                     ${THERMOLIB}
                                      )
 target_link_libraries(testCALPHADbinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
-                                                   ${internal_libs}
+                                                   ${THERMOLIB}
                      )
 target_link_libraries(testCALPHADternaryEquilibrium
                       ${PROJECT_LINK_LIBS_SAMRAI}
-                      ${internal_libs}
+                      ${THERMOLIB}
                      )
 target_link_libraries(testCALPHADFunctions
-                      ${internal_libs})
+                      ${THERMOLIB})
 target_link_libraries(testCALPHADJacobianTernary
-                      ${internal_libs})
+                      ${THERMOLIB})
 target_link_libraries(testMath
-                      ${internal_libs})
+                      ${THERMOLIB})

@@ -47,7 +47,14 @@
 #include <string>
 
 using namespace SAMRAI;
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+using namespace Thermo4PFM;
+#else
 using namespace ampe_thermo;
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -107,12 +114,17 @@ int main(int argc, char* argv[])
       std::shared_ptr<tbox::Database> conc_db(
           model_db->getDatabase("ConcentrationModel"));
 
-      std::shared_ptr<tbox::Database> newton_db;
-      if (conc_db->isDatabase("NewtonSolver"))
-         newton_db = conc_db->getDatabase("NewtonSolver");
-
-      KKSFreeEnergyFunctionDiluteBinary cafe(conc_db, energy_interp_func_type,
-                                             conc_interp_func_type);
+#ifdef HAVE_THERMO4PFM
+      pt::ptree conc_pt;
+      copyDatabase(conc_db, conc_pt);
+#endif
+      KKSFreeEnergyFunctionDiluteBinary cafe(
+#ifdef HAVE_THERMO4PFM
+          conc_pt,
+#else
+          conc_db,
+#endif
+          energy_interp_func_type, conc_interp_func_type);
 
       const double tol = 1.e-5;
 

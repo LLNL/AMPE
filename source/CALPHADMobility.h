@@ -48,7 +48,11 @@ using namespace SAMRAI;
 #include <string>
 #include <vector>
 
+#ifdef HAVE_THERMO4PFM
+using namespace Thermo4PFM;
+#else
 using namespace ampe_thermo;
+#endif
 
 // to store coefficients of linear polynomial
 typedef std::pair<double, double> double_pair;

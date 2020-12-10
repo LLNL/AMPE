@@ -43,13 +43,11 @@
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
-#include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "KKSCompositionRHSStrategy.h"
 #include "EBSCompositionRHSStrategy.h"
 #include "BeckermannCompositionRHSStrategy.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
-#include "FuncFort.h"
 #include "QuatFort.h"
 #include "QuatLinearRefine.h"
 #include "QuatWeightedAverage.h"
@@ -82,6 +80,15 @@
 #include "tools.h"
 #include "MobilityFactory.h"
 #include "CompositionDiffusionStrategyFactory.h"
+#include "FuncFort.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#else
+#include "CALPHADFreeEnergyStrategyWithPenalty.h"
+#include "CALPHADFreeEnergyFunctionsWithPenaltyBinary.h"
+#endif
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
 #include "SAMRAI/tbox/RestartManager.h"
@@ -430,6 +437,12 @@ void QuatModel::initializeRHSandEnergyStrategies(
             newton_db.reset(new tbox::MemoryDatabase("newton_db"));
          }
 
+#ifdef HAVE_THERMO4PFM
+         pt::ptree calphad_pt;
+         pt::ptree newton_pt;
+         copyDatabase(calphad_db, calphad_pt);
+         copyDatabase(newton_db, newton_pt);
+#endif
          {
             if (d_ncompositions == 1) {
                d_free_energy_strategy_for_diffusion =
@@ -460,16 +473,25 @@ void QuatModel::initializeRHSandEnergyStrategies(
                        << std::endl;
             if (d_ncompositions == 1) {
                d_cafe = new CALPHADFreeEnergyFunctionsBinary(
+#ifdef HAVE_THERMO4PFM
+                   calphad_pt, newton_pt,
+#else
                    calphad_db, newton_db,
+#endif
                    d_model_parameters.energy_interp_func_type(),
                    d_model_parameters.conc_interp_func_type(),
                    d_model_parameters.with_third_phase());
             } else {
                d_cafe = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+                   calphad_pt, newton_pt,
+#else
                    calphad_db, newton_db,
+#endif
                    d_model_parameters.energy_interp_func_type(),
                    d_model_parameters.conc_interp_func_type());
             }
+#ifndef HAVE_THERMO4PFM
          } else {
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy" << std::endl;
@@ -488,6 +510,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
                 d_model_parameters.energy_interp_func_type(),
                 d_model_parameters.conc_interp_func_type(),
                 d_model_parameters.with_third_phase());
+#endif
          }
       }  // d_model_parameters.isConcentrationModelCALPHAD()
       else if (d_model_parameters.isConcentrationModelKKSdilute()) {
@@ -2420,12 +2443,18 @@ void QuatModel::preRunDiagnostics(void)
                d_cafe->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
-                   d_model_parameters.phase_well_func_type(), false);
+#ifndef HAVE_THERMO4PFM
+                   d_model_parameters.phase_well_func_type(),
+#endif
+                   false);
             if (d_model_parameters.with_third_phase()) {
                d_cafe->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
-                   d_model_parameters.phase_well_func_type(), true);
+#ifndef HAVE_THERMO4PFM
+                   d_model_parameters.phase_well_func_type(),
+#endif
+                   true);
             }
          }
          mpi.Barrier();
@@ -5752,7 +5781,6 @@ void QuatModel::computeEtaMobilityPatch(
             double phi = ptr_phi[idx_phi];
 
             double h_phi = INTERP_FUNC(phi, "p");
-
             double Rt = t * gas_constant_R_JpKpmol;
 
             double m = d_model_parameters.eta_mobility() *

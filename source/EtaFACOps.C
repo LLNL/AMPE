@@ -34,11 +34,11 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "EtaFACOps.h"
+#include "FuncFort.h"
 
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/hier/PatchData.h"
 #include "SAMRAI/tbox/Utilities.h"
-#include "FuncFort.h"
 
 #include <cassert>
 
@@ -199,7 +199,6 @@ void EtaFACOps::setCOnPatchPrivate(
             const double eta = ptr_eta[idx_pf];
 
             const double h_phi = INTERP_FUNC(phi, &interpf);
-
             const double g_eta_dbl_prime =
                 SECOND_DERIV_WELL_FUNC(eta, eta_well_func_type);
 

@@ -33,6 +33,11 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
+
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
@@ -56,17 +61,28 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
       d_conc_a_ref_id(conc_a_ref_id),
       d_conc_b_ref_id(conc_b_ref_id)
 {
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   pt::ptree newton_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   copyDatabase(newton_db, newton_pt);
+#endif
    if (ncompositions == 1) {
-      d_calphad_fenergy =
-          new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
-                                               energy_interp_func_type,
-                                               conc_interp_func_type,
-                                               with_third_phase);
+      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsBinary(
+#ifdef HAVE_THERMO4PFM
+          calphad_pt, newton_pt,
+#else
+          calphad_db, newton_db,
+#endif
+          energy_interp_func_type, conc_interp_func_type, with_third_phase);
    } else {
-      d_calphad_fenergy =
-          new CALPHADFreeEnergyFunctionsTernary(calphad_db, newton_db,
-                                                energy_interp_func_type,
-                                                conc_interp_func_type);
+      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+          calphad_pt, newton_pt,
+#else
+          calphad_db, newton_db,
+#endif
+          energy_interp_func_type, conc_interp_func_type);
    }
 }
 
