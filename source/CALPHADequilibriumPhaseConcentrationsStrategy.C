@@ -70,11 +70,12 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
    if (ncompositions == 1) {
       d_calphad_fenergy = new CALPHADFreeEnergyFunctionsBinary(
 #ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt,
+          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
 #else
-          calphad_db, newton_db,
+          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
+          with_third_phase
 #endif
-          energy_interp_func_type, conc_interp_func_type, with_third_phase);
+      );
    } else {
       d_calphad_fenergy = new CALPHADFreeEnergyFunctionsTernary(
 #ifdef HAVE_THERMO4PFM
@@ -230,7 +231,11 @@ void CALPHADequilibriumPhaseConcentrationsStrategy::
             }
 
             // compute cL, cS
-            d_calphad_fenergy->computePhaseConcentrations(temp, c, phi, eta, x);
+            d_calphad_fenergy->computePhaseConcentrations(temp, c, phi,
+#ifndef HAVE_THERMO4PFM
+                                                          eta,
+#endif
+                                                          x);
 
             // set cell values with cL and cS just computed
             for (int ic = 0; ic < nc; ic++) {

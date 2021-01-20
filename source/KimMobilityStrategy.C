@@ -94,8 +94,12 @@ KimMobilityStrategy::KimMobilityStrategy(
 #else
              calphad_db, newton_db,
 #endif
-             energy_interp_func_type, conc_interp_func_type,
-             false);  // no 3rd phase
+             energy_interp_func_type, conc_interp_func_type
+#ifndef HAVE_THERMO4PFM
+             ,
+             false  // no 3rd phase
+#endif
+         );
       } else {
          d_fenergy = new CALPHADFreeEnergyFunctionsTernary(
 #ifdef HAVE_THERMO4PFM

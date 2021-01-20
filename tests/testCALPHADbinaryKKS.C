@@ -151,12 +151,12 @@ int main(int argc, char* argv[])
 #endif
       CALPHADFreeEnergyFunctionsBinary cafe(
 #ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt,
+          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
 #else
-          calphad_db, newton_db,
+          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
+          false  // no 3rd phase
 #endif
-          energy_interp_func_type, conc_interp_func_type,
-          false);  // no 3rd phase
+      );
 
       // initial guesses
       double c_init0 = 0.5;
@@ -167,7 +167,11 @@ int main(int argc, char* argv[])
       // compute concentrations satisfying KKS equations
       double conc = model_db->getDouble("concentration");
       double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc, phi, 0., &sol[0]);
+      cafe.computePhaseConcentrations(temperature, &conc, phi,
+#ifndef HAVE_THERMO4PFM
+                                      0.,
+#endif
+                                      &sol[0]);
 
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Temperature = " << temperature << std::endl;

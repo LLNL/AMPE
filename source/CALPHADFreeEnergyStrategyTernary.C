@@ -763,7 +763,12 @@ void CALPHADFreeEnergyStrategyTernary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
                                                         PhaseIndex::phaseL,
-                                                        d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                        d2fdc2.data()
+#else
+                                                        d2fdc2
+#endif
+   );
 
    if (use_internal_units) {
       double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
@@ -783,7 +788,12 @@ void CALPHADFreeEnergyStrategyTernary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
                                                         PhaseIndex::phaseA,
-                                                        d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                        d2fdc2.data()
+#else
+                                                        d2fdc2
+#endif
+   );
 
    if (use_internal_units) {
       double voli = d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],

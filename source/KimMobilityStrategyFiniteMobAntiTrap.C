@@ -79,7 +79,12 @@ double KimMobilityStrategyFiniteMobAntiTrap::evaluateMobility(
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
    d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
-                                                d_d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                d_d2fdc2.data()
+#else
+                                                d_d2fdc2
+#endif
+   );
 
    const double* const cl = &phaseconc[0];
    const double* const cs = &phaseconc[d_ncompositions];
