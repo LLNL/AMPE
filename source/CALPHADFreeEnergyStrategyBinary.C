@@ -102,8 +102,7 @@ void CALPHADFreeEnergyStrategyBinary::setup(
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
                                             d_energy_interp_func_type,
-                                            d_conc_interp_func_type,
-                                            d_with_third_phase);
+                                            d_conc_interp_func_type);
 #else
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
@@ -989,7 +988,12 @@ void CALPHADFreeEnergyStrategyBinary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_l[0],
                                                         PhaseIndex::phaseL,
-                                                        d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                        d2fdc2.data()
+#else
+                                                        d2fdc2
+#endif
+   );
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_l[0],
@@ -1006,7 +1010,12 @@ void CALPHADFreeEnergyStrategyBinary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_a[0],
                                                         PhaseIndex::phaseA,
-                                                        d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                        d2fdc2.data()
+#else
+                                                        d2fdc2
+#endif
+   );
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_a[0],
@@ -1023,7 +1032,12 @@ void CALPHADFreeEnergyStrategyBinary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
                                                         PhaseIndex::phaseB,
-                                                        d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                        d2fdc2.data()
+#else
+                                                        d2fdc2
+#endif
+   );
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],

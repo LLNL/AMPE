@@ -115,11 +115,12 @@ int main(int argc, char *argv[])
 #endif
       CALPHADFreeEnergyFunctionsBinary cafe(
 #ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt,
+          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
 #else
-          calphad_db, newton_db,
+          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
+          with_third_phase
 #endif
-          energy_interp_func_type, conc_interp_func_type, with_third_phase);
+      );
 
       // choose pair of phases: phaseL, phaseA, phaseB
       const PhaseIndex pi0 = PhaseIndex::phaseL;
@@ -132,7 +133,11 @@ int main(int argc, char *argv[])
       double lceq[2] = {init_guess[0], init_guess[1]};
 
       // compute equilibrium concentrations in each phase
-      bool found_ceq = cafe.computeCeqT(temperature, pi0, pi1, &lceq[0]);
+      bool found_ceq = cafe.computeCeqT(temperature,
+#ifndef HAVE_THERMO4PFM
+                                        pi0, pi1,
+#endif
+                                        &lceq[0]);
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;
       if (lceq[1] > 1.) found_ceq = false;
@@ -150,11 +155,23 @@ int main(int argc, char *argv[])
 
       std::vector<double> d2fdc2(1, 0.);
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
-                                             PhaseIndex::phaseL, d2fdc2);
+                                             PhaseIndex::phaseL,
+#ifdef HAVE_THERMO4PFM
+                                             d2fdc2.data()
+#else
+                                             d2fdc2
+#endif
+      );
       std::cout << "2nd derivative of fL [J/mol]: " << d2fdc2[0] << std::endl;
 
       cafe.computeSecondDerivativeFreeEnergy(temperature, lceq,
-                                             PhaseIndex::phaseA, d2fdc2);
+                                             PhaseIndex::phaseA,
+#ifdef HAVE_THERMO4PFM
+                                             d2fdc2.data()
+#else
+                                             d2fdc2
+#endif
+      );
       std::cout << "2nd derivative of fS [J/mol]: " << d2fdc2[0] << std::endl;
 
       input_db.reset();

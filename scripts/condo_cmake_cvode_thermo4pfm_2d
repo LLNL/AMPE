@@ -18,5 +18,7 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
         -DCMAKE_PREFIX_PATH=${HOME}/bin \
         -DNDIM="2" \
         -DUSE_CVODE=ON \
+        -DUSE_THERMO4PFM=ON \
+        -DTHERMO4PFM_DIR=$HOME/GIT/calphad4pfm \
         ..
 

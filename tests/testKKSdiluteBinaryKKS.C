@@ -140,7 +140,11 @@ int main(int argc, char* argv[])
       // solve KKS equations
       double conc = model_db->getDouble("concentration");
       double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc, phi, 0., &sol[0]);
+      cafe.computePhaseConcentrations(temperature, &conc, phi,
+#ifndef HAVE_THERMO4PFM
+                                      0.,
+#endif
+                                      &sol[0]);
 
       tbox::pout << "-------------------------------" << std::endl;
       tbox::pout << "Temperature = " << temperature << std::endl;

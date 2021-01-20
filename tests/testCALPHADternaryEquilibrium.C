@@ -142,8 +142,12 @@ int main(int argc, char *argv[])
       const PhaseIndex pi0 = PhaseIndex::phaseL;
       const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-      bool found_ceq = cafe.computeCeqT(temperature, pi0, pi1, nominalc[0],
-                                        nominalc[1], &lceq[0], maxits);
+      bool found_ceq =
+          cafe.computeCeqT(temperature,
+#ifndef HAVE_THERMO4PFM
+                           pi0, pi1,
+#endif
+                           nominalc[0], nominalc[1], &lceq[0], maxits);
       if (lceq[0] != lceq[0]) found_ceq = false;
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;

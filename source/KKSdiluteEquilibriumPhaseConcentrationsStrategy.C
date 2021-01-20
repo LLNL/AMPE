@@ -194,7 +194,11 @@ void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
             x[1] = cd_ca->getPointer(0)[idx_ci];
 
             // compute cL, cS
-            d_fenergy->computePhaseConcentrations(temp, &c, phi, 0., x);
+            d_fenergy->computePhaseConcentrations(temp, &c, phi,
+#ifndef HAVE_THERMO4PFM
+                                                  0.,
+#endif
+                                                  x);
             //            std::cout<<"cl, cs = "<<x[0]<<","<<x[1]<<std::endl;
 
             // set cell values with cL and cS just computed

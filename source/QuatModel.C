@@ -479,8 +479,12 @@ void QuatModel::initializeRHSandEnergyStrategies(
                    calphad_db, newton_db,
 #endif
                    d_model_parameters.energy_interp_func_type(),
-                   d_model_parameters.conc_interp_func_type(),
-                   d_model_parameters.with_third_phase());
+                   d_model_parameters.conc_interp_func_type()
+#ifndef HAVE_THERMO4PFM
+                       ,
+                   d_model_parameters.with_third_phase()
+#endif
+               );
             } else {
                d_cafe = new CALPHADFreeEnergyFunctionsTernary(
 #ifdef HAVE_THERMO4PFM
@@ -2517,8 +2521,11 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
    if (mpi.getRank() ==
        0)  // do it on PE0 only to avoid error message prints from all PEs
    {
-      found_ceq =
-          d_cafe->computeCeqT(temperature, pi0, pi1, &lceq[0], 50, true);
+      found_ceq = d_cafe->computeCeqT(temperature,
+#ifndef HAVE_THERMO4PFM
+                                      pi0, pi1,
+#endif
+                                      &lceq[0], 50, true);
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;
       if (lceq[1] > 1.) found_ceq = false;
@@ -2529,8 +2536,11 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
                     << std::endl;
          lceq[0] = ceq_init1;
          lceq[1] = ceq_init0;
-         found_ceq =
-             d_cafe->computeCeqT(temperature, pi0, pi1, &lceq[0], 50, true);
+         found_ceq = d_cafe->computeCeqT(temperature,
+#ifndef HAVE_THERMO4PFM
+                                         pi0, pi1,
+#endif
+                                         &lceq[0], 50, true);
          if (lceq[0] > 1.) found_ceq = false;
          if (lceq[0] < 0.) found_ceq = false;
          if (lceq[1] > 1.) found_ceq = false;
@@ -2549,12 +2559,22 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
             CALPHADFreeEnergyFunctionsBinary* cafe =
                 dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_cafe);
             cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi0,
-                                                    d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                    d2fdc2.data()
+#else
+                                                    d2fdc2
+#endif
+            );
             for (std::vector<double>::const_iterator it = d2fdc2.begin();
                  it != d2fdc2.end(); ++it)
                tbox::plog << "d2fdc2=" << *it << std::endl;
             cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi1,
-                                                    d2fdc2);
+#ifdef HAVE_THERMO4PFM
+                                                    d2fdc2.data()
+#else
+                                                    d2fdc2
+#endif
+            );
             for (std::vector<double>::const_iterator it = d2fdc2.begin();
                  it != d2fdc2.end(); ++it)
                tbox::plog << "d2fdc2=" << *it << std::endl;
