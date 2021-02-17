@@ -51,6 +51,10 @@ class FreeEnergyFunctions
 
    virtual ~FreeEnergyFunctions(){};
 
+   virtual int computePhaseConcentrations(const double temperature,
+                                          const double* conc, const double phi,
+                                          const double eta, double* x) = 0;
+
    virtual void energyVsPhiAndC(const double temperature,
                                 const double* const ceq, const bool found_ceq,
                                 const double phi_well_scale,

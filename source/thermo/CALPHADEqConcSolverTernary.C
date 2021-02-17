@@ -47,7 +47,7 @@ namespace ampe_thermo
 
 //=======================================================================
 
-CALPHADEqConcentrationSolverTernary::CALPHADEqConcentrationSolverTernary()
+CALPHADEqConcSolverTernary::CALPHADEqConcSolverTernary()
 {
    double def_val = SAMRAI::tbox::IEEE::getSignalingNaN();
 
@@ -60,8 +60,7 @@ CALPHADEqConcentrationSolverTernary::CALPHADEqConcentrationSolverTernary()
 }
 
 
-void CALPHADEqConcentrationSolverTernary::RHS(const double* const c,
-                                              double* const fvec)
+void CALPHADEqConcSolverTernary::RHS(const double* const c, double* const fvec)
 {
    assert(d_fA[0] == d_fA[0]);
    assert(d_fC[1] == d_fC[1]);
@@ -125,8 +124,8 @@ void CALPHADEqConcentrationSolverTernary::RHS(const double* const c,
 
 //=======================================================================
 
-void CALPHADEqConcentrationSolverTernary::Jacobian(const double* const c,
-                                                   double** const fjac)
+void CALPHADEqConcSolverTernary::Jacobian(const double* const c,
+                                          double** const fjac)
 {
    // tbox::pout<<"Compute Jacobian for CALPHAD..."<<endl;
    const double* const cL = &c[0];
@@ -223,7 +222,7 @@ void CALPHADEqConcentrationSolverTernary::Jacobian(const double* const c,
 
 //=======================================================================
 
-int CALPHADEqConcentrationSolverTernary::ComputeConcentration(
+int CALPHADEqConcSolverTernary::ComputeConcentration(
     double* const conc, const double RTinv, const double* const L_AB_L,
     const double* const L_AC_L, const double* const L_BC_L,
     const double* const L_AB_S, const double* const L_AC_S,

@@ -41,12 +41,12 @@
 namespace ampe_thermo
 {
 
-class CALPHADEqConcentrationSolverTernary : public DampedNewtonSolver
+class CALPHADEqConcSolverTernary : public DampedNewtonSolver
 {
  public:
-   CALPHADEqConcentrationSolverTernary();
+   CALPHADEqConcSolverTernary();
 
-   virtual ~CALPHADEqConcentrationSolverTernary(){};
+   virtual ~CALPHADEqConcSolverTernary(){};
 
    int ComputeConcentration(
        double* const conc, const double RTinv, const double* const L_AB_L,

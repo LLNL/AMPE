@@ -138,16 +138,17 @@ int main(int argc, char *argv[])
                         init_guess[2], init_guess[3],  // solid
                         init_guess[4]};
 
+#ifdef HAVE_THERMO4PFM
+      bool found_ceq = cafe.computeTieLine(temperature, nominalc[0],
+                                           nominalc[1], &lceq[0], maxits);
+#else
       // choose pair of phases: phaseL, phaseA
       const PhaseIndex pi0 = PhaseIndex::phaseL;
       const PhaseIndex pi1 = PhaseIndex::phaseA;
 
-      bool found_ceq =
-          cafe.computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                           pi0, pi1,
+      bool found_ceq = cafe.computeCeqT(temperature, pi0, pi1, nominalc[0],
+                                        nominalc[1], &lceq[0], maxits);
 #endif
-                           nominalc[0], nominalc[1], &lceq[0], maxits);
       if (lceq[0] != lceq[0]) found_ceq = false;
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;

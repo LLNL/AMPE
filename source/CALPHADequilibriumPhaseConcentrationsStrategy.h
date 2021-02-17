@@ -81,7 +81,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
 
-   CALPHADFreeEnergyFunctions* d_calphad_fenergy;
+   FreeEnergyFunctions* d_calphad_fenergy;
 };
 
 #endif
