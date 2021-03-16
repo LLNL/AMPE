@@ -33,7 +33,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "CALPHADEqPhaseConcSolverTernary.h"
+#include "CALPHADTieLineConcSolverTernary.h"
 #include "CALPHADConcSolverTernary.h"
 
 #include <iostream>
@@ -49,7 +49,7 @@ using namespace ampe_thermo;
 int main(int argc, char* argv[])
 {
    std::cout << "=======================================" << std::endl;
-   std::cout << "Test CALPHADEqPhaseConcSolverTernary..." << std::endl;
+   std::cout << "Test CALPHADTieLineConcSolverTernary..." << std::endl;
 
    int nfailures = 0;
 
@@ -58,7 +58,11 @@ int main(int argc, char* argv[])
 
    double cA = 0.1;
    double cB = 0.2;
-   CALPHADEqPhaseConcentrationSolverTernary solver(cA, cB);
+#ifdef HAVE_THERMO4PFM
+   CALPHADTieLineConcSolverTernary solver;
+#else
+   CALPHADTieLineConcSolverTernary solver(cA, cB);
+#endif
 
    // energies of 3 species, in two phase each
    double fA[2] = {2.3, 4.5};
@@ -79,8 +83,13 @@ int main(int argc, char* argv[])
 
    double RTinv = 10.;
 
+#ifdef HAVE_THERMO4PFM
+   solver.setup(cA, cB, RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S, L_BC_S,
+                L_ABC_L, L_ABC_S, fA, fB, fC);
+#else
    solver.setup(RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S, L_BC_S, L_ABC_L,
                 L_ABC_S, fA, fB, fC);
+#endif
 
    double fvec1[5];
    double fvec2[5];
@@ -121,8 +130,7 @@ int main(int argc, char* argv[])
 
    std::cout << "=========================================" << std::endl;
    std::cout << "Test CALPHADConcentrationSolverTernary..." << std::endl;
-   CALPHADConcentrationSolverTernary solver2;
-
+   CALPHADConcSolverTernary solver2;
    solver2.setup(cA, cB, 0.5, RTinv, L_AB_L, L_AC_L, L_BC_L, L_AB_S, L_AC_S,
                  L_BC_S, L_ABC_L, L_ABC_S, fA, fB, fC);
 

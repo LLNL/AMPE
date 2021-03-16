@@ -33,20 +33,20 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#ifndef included_CALPHADEqPhaseConcSolverTernary
-#define included_CALPHADEqPhaseConcSolverTernary
+#ifndef included_CALPHADTieLineConcSolverTernary
+#define included_CALPHADTieLineConcSolverTernary
 
 #include "DampedNewtonSolver.h"
 
 namespace ampe_thermo
 {
 
-class CALPHADEqPhaseConcentrationSolverTernary : public DampedNewtonSolver
+class CALPHADTieLineConcSolverTernary : public DampedNewtonSolver
 {
  public:
-   CALPHADEqPhaseConcentrationSolverTernary(const double c0, const double c1);
+   CALPHADTieLineConcSolverTernary(const double c0, const double c1);
 
-   virtual ~CALPHADEqPhaseConcentrationSolverTernary(){};
+   virtual ~CALPHADTieLineConcSolverTernary(){};
 
    int ComputeConcentration(
        double* const conc, const double RTinv, const double* const L_AB_L,

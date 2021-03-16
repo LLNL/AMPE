@@ -131,8 +131,12 @@ int main(int argc, char *argv[])
 #endif
       );
 
+#ifdef HAVE_THERMO4PFM
+      std::ofstream os("FvsC.dat", std::ios::out);
+      cafe.printEnergyVsComposition(temperature, os);
+#else
       cafe.printEnergyVsComposition(temperature);
-
+#endif
       input_db.reset();
    }
 

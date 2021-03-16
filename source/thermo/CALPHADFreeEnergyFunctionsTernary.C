@@ -98,7 +98,7 @@ void CALPHADFreeEnergyFunctionsTernary::setupSolver(
 {
    tbox::plog << "CALPHADFreeEnergyFunctionsTernary::setupSolver()..."
               << std::endl;
-   d_solver = new CALPHADConcentrationSolverTernary();
+   d_solver = new CALPHADConcSolverTernary();
 
    readNewtonparameters(newton_db);
 }
@@ -588,7 +588,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    assert(d_L_ABC_L[0] == d_L_ABC_L[0]);
 
    double RTinv = 1.0 / (gas_constant_R_JpKpmol * temperature);
-   CALPHADEqConcentrationSolverTernary eq_solver;
+   CALPHADEqConcSolverTernary eq_solver;
    eq_solver.SetMaxIterations(maxits);
 
    int ret =
@@ -629,7 +629,7 @@ bool CALPHADFreeEnergyFunctionsTernary::computeCeqT(
    setupValuesForTwoPhasesSolver(temperature, pi0, pi1);
 
    double RTinv = 1.0 / (gas_constant_R_JpKpmol * temperature);
-   CALPHADEqPhaseConcentrationSolverTernary eq_solver(c0, c1);
+   CALPHADTieLineConcSolverTernary eq_solver(c0, c1);
    eq_solver.SetMaxIterations(maxits);
 
    int ret =

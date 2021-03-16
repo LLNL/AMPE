@@ -6,7 +6,7 @@ set(SOURCES
     CALPHADEqConcSolverTernary.C
     CALPHADConcSolverBinary.C
     CALPHADConcSolverTernary.C
-    CALPHADEqPhaseConcSolverTernary.C
+    CALPHADTieLineConcSolverTernary.C
     CALPHADFreeEnergyFunctionsBinary.C
     CALPHADFreeEnergyFunctionsTernary.C
     CALPHADSpeciesPhaseGibbsEnergy.C

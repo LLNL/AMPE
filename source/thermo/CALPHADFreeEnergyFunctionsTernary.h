@@ -40,7 +40,7 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverTernary.h"
 #include "CALPHADEqConcSolverTernary.h"
-#include "CALPHADEqPhaseConcSolverTernary.h"
+#include "CALPHADTieLineConcSolverTernary.h"
 #include "CALPHADFreeEnergyFunctions.h"
 #include "InterpolationType.h"
 
@@ -151,7 +151,7 @@ class CALPHADFreeEnergyFunctionsTernary : public CALPHADFreeEnergyFunctions
    };
 
  protected:
-   CALPHADConcentrationSolverTernary* d_solver;
+   CALPHADConcSolverTernary* d_solver;
 
    double d_ceq_l[2];
    double d_ceq_s[2];

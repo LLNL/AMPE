@@ -45,13 +45,12 @@ namespace ampe_thermo
 
 //=======================================================================
 
-CALPHADConcentrationSolverTernary::CALPHADConcentrationSolverTernary() {}
+CALPHADConcSolverTernary::CALPHADConcSolverTernary() {}
 
 //=======================================================================
 
 // solve for c=(c_L, c_A)
-void CALPHADConcentrationSolverTernary::RHS(const double* const c,
-                                            double* const fvec)
+void CALPHADConcSolverTernary::RHS(const double* const c, double* const fvec)
 {
    assert(d_fC[0] == d_fC[0]);
 
@@ -116,8 +115,8 @@ void CALPHADConcentrationSolverTernary::RHS(const double* const c,
 
 //=======================================================================
 
-void CALPHADConcentrationSolverTernary::Jacobian(const double* const c,
-                                                 double** const fjac)
+void CALPHADConcSolverTernary::Jacobian(const double* const c,
+                                        double** const fjac)
 {
    const double* const cL = &c[0];
    const double* const cS = &c[2];
@@ -174,7 +173,7 @@ void CALPHADConcentrationSolverTernary::Jacobian(const double* const c,
 
 //=======================================================================
 
-void CALPHADConcentrationSolverTernary::setup(
+void CALPHADConcSolverTernary::setup(
     const double c0, const double c1, const double hphi, const double RTinv,
     const double* const L_AB_L, const double* const L_AC_L,
     const double* const L_BC_L, const double* const L_AB_S,
@@ -184,7 +183,7 @@ void CALPHADConcentrationSolverTernary::setup(
 {
    assert(fC[0] == fC[0]);
 
-   // std::cout<<"CALPHADConcentrationSolverTernary::ComputeConcentration()"<<endl;
+   // std::cout<<"CALPHADConcSolverTernary::ComputeConcentration()"<<endl;
    d_c0[0] = c0;
    d_c0[1] = c1;
    d_hphi = hphi;
@@ -218,7 +217,7 @@ void CALPHADConcentrationSolverTernary::setup(
       d_fC[ii] = fC[ii];
 }
 
-int CALPHADConcentrationSolverTernary::ComputeConcentration(
+int CALPHADConcSolverTernary::ComputeConcentration(
     double* const conc, const double c0, const double c1, const double hphi,
     const double RTinv, const double* const L_AB_L, const double* const L_AC_L,
     const double* const L_BC_L, const double* const L_AB_S,

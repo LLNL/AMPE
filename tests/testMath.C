@@ -40,6 +40,7 @@
 
 #ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
+#include "Determinant.h"
 #else
 using namespace ampe_thermo;
 #endif
@@ -54,7 +55,11 @@ int main(int argc, char* argv[])
       mat[i] = &work[4 * i];
 
    std::cout << "Test function Determinant4..." << std::endl;
+#ifdef HAVE_THERMO4PFM
+   double d = evalDeterminant<4>(mat);
+#else
    double d = Determinant4(mat);
+#endif
 
    const double tol = 1.e-8;
    if (fabs(d + 400.) > tol) {
@@ -65,7 +70,11 @@ int main(int argc, char* argv[])
    }
 
    std::cout << "Test function DeterminantN..." << std::endl;
+#ifdef HAVE_THERMO4PFM
+   d = evalDeterminant<4>(mat);
+#else
    d = DeterminantN(mat, 4);
+#endif
    if (fabs(d + 400.) > tol) {
       std::cerr << "TEST: Determinant of 4x4 matrix failed!!!" << std::endl;
       std::cerr << "computed d=" << d << std::endl;

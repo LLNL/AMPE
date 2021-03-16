@@ -51,10 +51,6 @@ class CALPHADFreeEnergyFunctions : public FreeEnergyFunctions
 
    virtual ~CALPHADFreeEnergyFunctions(){};
 
-   virtual int computePhaseConcentrations(const double temperature,
-                                          const double* conc, const double phi,
-                                          const double eta, double* x) = 0;
-
    virtual void computeSecondDerivativeFreeEnergy(
        const double temp, const double* const conc, const PhaseIndex pi,
        std::vector<double>& d2fdc2) = 0;

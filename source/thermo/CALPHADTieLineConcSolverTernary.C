@@ -33,7 +33,7 @@
 // IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 //
-#include "CALPHADEqPhaseConcSolverTernary.h"
+#include "CALPHADTieLineConcSolverTernary.h"
 #include "CALPHADFunctions.h"
 
 #include "SAMRAI/tbox/IEEE.h"
@@ -47,8 +47,8 @@ namespace ampe_thermo
 
 //=======================================================================
 
-CALPHADEqPhaseConcentrationSolverTernary::
-    CALPHADEqPhaseConcentrationSolverTernary(const double c0, const double c1)
+CALPHADTieLineConcSolverTernary::CALPHADTieLineConcSolverTernary(
+    const double c0, const double c1)
 {
    double def_val = SAMRAI::tbox::IEEE::getSignalingNaN();
 
@@ -64,8 +64,8 @@ CALPHADEqPhaseConcentrationSolverTernary::
 }
 
 
-void CALPHADEqPhaseConcentrationSolverTernary::RHS(const double* const x,
-                                                   double* const fvec)
+void CALPHADTieLineConcSolverTernary::RHS(const double* const x,
+                                          double* const fvec)
 {
    assert(d_fA[0] == d_fA[0]);
    assert(d_fC[1] == d_fC[1]);
@@ -140,8 +140,8 @@ void CALPHADEqPhaseConcentrationSolverTernary::RHS(const double* const x,
 
 //=======================================================================
 
-void CALPHADEqPhaseConcentrationSolverTernary::Jacobian(const double* const x,
-                                                        double** const fjac)
+void CALPHADTieLineConcSolverTernary::Jacobian(const double* const x,
+                                               double** const fjac)
 {
    // tbox::pout<<"Compute Jacobian for CALPHAD..."<<endl;
    const double* const cL = &x[0];
@@ -252,7 +252,7 @@ void CALPHADEqPhaseConcentrationSolverTernary::Jacobian(const double* const x,
 
 //=======================================================================
 // A,B,C refers to 3 species
-int CALPHADEqPhaseConcentrationSolverTernary::ComputeConcentration(
+int CALPHADTieLineConcSolverTernary::ComputeConcentration(
     double* const x, const double RTinv, const double* const L_AB_L,
     const double* const L_AC_L, const double* const L_BC_L,
     const double* const L_AB_S, const double* const L_AC_S,
@@ -288,7 +288,7 @@ int CALPHADEqPhaseConcentrationSolverTernary::ComputeConcentration(
    return DampedNewtonSolver::ComputeSolution(x, 5);
 }
 
-void CALPHADEqPhaseConcentrationSolverTernary::setup(
+void CALPHADTieLineConcSolverTernary::setup(
     const double RTinv, const double* const L_AB_L, const double* const L_AC_L,
     const double* const L_BC_L, const double* const L_AB_S,
     const double* const L_AC_S, const double* const L_BC_S,
@@ -321,8 +321,7 @@ void CALPHADEqPhaseConcentrationSolverTernary::setup(
    }
 }
 
-int CALPHADEqPhaseConcentrationSolverTernary::ComputeConcentration(
-    double* const x)
+int CALPHADTieLineConcSolverTernary::ComputeConcentration(double* const x)
 {
    return DampedNewtonSolver::ComputeSolution(x, 5);
 }
