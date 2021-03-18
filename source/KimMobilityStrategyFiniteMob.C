@@ -34,17 +34,22 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "KimMobilityStrategyFiniteMob.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
-KimMobilityStrategyFiniteMob::KimMobilityStrategyFiniteMob(
+template <class FreeEnergyType>
+KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const double interface_mobility, const double epsilon,
     const double phase_well_scale,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
-    : KimMobilityStrategy(quat_model, conc_l_id, conc_s_id, temp_id,
-                          energy_interp_func_type, conc_interp_func_type,
-                          conc_db, ncompositions)
+    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id,
+                                          temp_id, energy_interp_func_type,
+                                          conc_interp_func_type, conc_db,
+                                          ncompositions)
 {
    assert(epsilon > 0.);
    assert(phase_well_scale >= 0.);
@@ -54,3 +59,7 @@ KimMobilityStrategyFiniteMob::KimMobilityStrategyFiniteMob(
 
    d_alpha = 3. * sqrt(2.) * xi / interface_mobility;
 }
+
+template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategyFiniteMob<CALPHADFreeEnergyFunctionsTernary>;
+template class KimMobilityStrategyFiniteMob<KKSFreeEnergyFunctionDiluteBinary>;

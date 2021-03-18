@@ -3551,6 +3551,7 @@ void QuatIntegrator::computeMobilities(
     double time, std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    if (d_with_phase) {
+      assert(d_mobility_strategy);
       d_mobility_strategy->computePhaseMobility(hierarchy, d_phase_scratch_id,
                                                 d_phase_mobility_id, time,
                                                 QuatMobilityStrategy::FORCE);
