@@ -34,19 +34,24 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "KimMobilityStrategyInfMob.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
 #include <iomanip>
 
-KimMobilityStrategyInfMob::KimMobilityStrategyInfMob(
+template <class FreeEnergyType>
+KimMobilityStrategyInfMob<FreeEnergyType>::KimMobilityStrategyInfMob(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const double epsilon, const double phase_well_scale,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
     const double DL, const double Q0, const double mv)
-    : KimMobilityStrategy(quat_model, conc_l_id, conc_s_id, temp_id,
-                          energy_interp_func_type, conc_interp_func_type,
-                          conc_db, ncompositions),
+    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id,
+                                          temp_id, energy_interp_func_type,
+                                          conc_interp_func_type, conc_db,
+                                          ncompositions),
       d_DL(DL),
       d_Q0(Q0)
 {
@@ -68,30 +73,31 @@ KimMobilityStrategyInfMob::KimMobilityStrategyInfMob(
    d_factor = 3. * (2. * xi * xi) * a2;
    d_factor *= (1.e-6 / mv);  // convert from J/mol to pJ/um^3
 
-   d_d2fdc2.resize(d_ncompositions * d_ncompositions);
+   d_d2fdc2.resize(this->d_ncompositions * this->d_ncompositions);
 }
 
-double KimMobilityStrategyInfMob::evaluateMobility(
+template <class FreeEnergyType>
+double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
     const double temp, const std::vector<double>& phaseconc)
 {
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
-   d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
+   this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
 #ifdef HAVE_THERMO4PFM
-                                                d_d2fdc2.data()
+                                                      d_d2fdc2.data()
 #else
-                                                d_d2fdc2
+                                                      d_d2fdc2
 #endif
    );
 
    // std::cout<<std::setprecision(15);
    // std::cout<<"c="<<phaseconc[0]<<", d2fdc2="<<d_d2fdc2[0]<<std::endl;
    const double* const cl = &phaseconc[0];
-   const double* const cs = &phaseconc[d_ncompositions];
+   const double* const cs = &phaseconc[this->d_ncompositions];
 
    double zeta = 0.;
-   for (unsigned i = 0; i < d_ncompositions; i++)
-      for (unsigned j = 0; j < d_ncompositions; j++)
+   for (unsigned i = 0; i < this->d_ncompositions; i++)
+      for (unsigned j = 0; j < this->d_ncompositions; j++)
          zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
    const double DL = d_DL * exp(-d_Q0 / (gas_constant_R_JpKpmol * temp));
 
@@ -100,3 +106,7 @@ double KimMobilityStrategyInfMob::evaluateMobility(
    assert(mob == mob);
    return mob;
 }
+
+template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsTernary>;
+template class KimMobilityStrategyInfMob<KKSFreeEnergyFunctionDiluteBinary>;

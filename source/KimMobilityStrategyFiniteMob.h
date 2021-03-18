@@ -38,7 +38,8 @@
 
 #include "KimMobilityStrategy.h"
 
-class KimMobilityStrategyFiniteMob : public KimMobilityStrategy
+template <class FreeEnergyType>
+class KimMobilityStrategyFiniteMob : public KimMobilityStrategy<FreeEnergyType>
 {
  public:
    KimMobilityStrategyFiniteMob(

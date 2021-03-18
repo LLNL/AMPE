@@ -34,18 +34,24 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 #include "KimMobilityStrategyFiniteMobAntiTrap.h"
+#include "CALPHADFreeEnergyFunctionsBinary.h"
+#include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
-KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const double interface_mobility, const double epsilon,
-    const double phase_well_scale,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
-    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
-    const double DL, const double Q0, const double mv)
-    : KimMobilityStrategy(quat_model, conc_l_id, conc_s_id, temp_id,
-                          energy_interp_func_type, conc_interp_func_type,
-                          conc_db, ncompositions),
+template <class FreeEnergyType>
+KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
+    KimMobilityStrategyFiniteMobAntiTrap(
+        QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
+        const int temp_id, const double interface_mobility,
+        const double epsilon, const double phase_well_scale,
+        const EnergyInterpolationType energy_interp_func_type,
+        const ConcInterpolationType conc_interp_func_type,
+        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
+        const double DL, const double Q0, const double mv)
+    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id,
+                                          temp_id, energy_interp_func_type,
+                                          conc_interp_func_type, conc_db,
+                                          ncompositions),
       d_DL(DL),
       d_Q0(Q0)
 {
@@ -70,28 +76,29 @@ KimMobilityStrategyFiniteMobAntiTrap::KimMobilityStrategyFiniteMobAntiTrap(
    d_beta = 3. * a2 * xi * xi;
    d_beta *= (1.e-6 / mv);  // convert zeta from J/mol to pJ/um^3
 
-   d_d2fdc2.resize(d_ncompositions * d_ncompositions);
+   d_d2fdc2.resize(this->d_ncompositions * this->d_ncompositions);
 }
 
-double KimMobilityStrategyFiniteMobAntiTrap::evaluateMobility(
+template <class FreeEnergyType>
+double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
     const double temp, const std::vector<double>& phaseconc)
 {
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
-   d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
+   this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
 #ifdef HAVE_THERMO4PFM
-                                                d_d2fdc2.data()
+                                                      d_d2fdc2.data()
 #else
-                                                d_d2fdc2
+                                                      d_d2fdc2
 #endif
    );
 
    const double* const cl = &phaseconc[0];
-   const double* const cs = &phaseconc[d_ncompositions];
+   const double* const cs = &phaseconc[this->d_ncompositions];
 
    double zeta = 0.;
-   for (unsigned i = 0; i < d_ncompositions; i++)
-      for (unsigned j = 0; j < d_ncompositions; j++)
+   for (unsigned i = 0; i < this->d_ncompositions; i++)
+      for (unsigned j = 0; j < this->d_ncompositions; j++)
          zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
    // tbox::pout<<"zeta="<<zeta<<std::endl;
    const double DL = d_DL * exp(-d_Q0 / (gas_constant_R_JpKpmol * temp));
@@ -99,3 +106,10 @@ double KimMobilityStrategyFiniteMobAntiTrap::evaluateMobility(
 
    return 1. / (d_alpha + d_beta * zeta);
 }
+
+template class KimMobilityStrategyFiniteMobAntiTrap<
+    CALPHADFreeEnergyFunctionsBinary>;
+template class KimMobilityStrategyFiniteMobAntiTrap<
+    CALPHADFreeEnergyFunctionsTernary>;
+template class KimMobilityStrategyFiniteMobAntiTrap<
+    KKSFreeEnergyFunctionDiluteBinary>;

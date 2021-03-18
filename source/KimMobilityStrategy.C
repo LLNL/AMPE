@@ -46,7 +46,8 @@ namespace pt = boost::property_tree;
 
 #include "SAMRAI/tbox/InputManager.h"
 
-KimMobilityStrategy::KimMobilityStrategy(
+template <>
+KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
@@ -65,68 +66,120 @@ KimMobilityStrategy::KimMobilityStrategy(
    t_compute = tbox::TimerManager::getManager()->getTimer(
        "AMPE::KimMobilityStrategy::compute");
 
-   std::string conc_model = conc_db->getStringWithDefault("model", "undefined");
+   std::shared_ptr<tbox::Database> conc_calphad_db =
+       conc_db->getDatabase("Calphad");
+   std::string calphad_filename = conc_calphad_db->getString("filename");
+   std::shared_ptr<tbox::MemoryDatabase> calphad_db(
+       new tbox::MemoryDatabase("calphad_db"));
+   tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                    calphad_db);
 
-   if (conc_model[0] == 'c') {
-
-      std::shared_ptr<tbox::Database> conc_calphad_db =
-          conc_db->getDatabase("Calphad");
-      std::string calphad_filename = conc_calphad_db->getString("filename");
-      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
-          new tbox::MemoryDatabase("calphad_db"));
-      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                       calphad_db);
-
-      std::shared_ptr<tbox::Database> newton_db;
-      if (conc_db->isDatabase("NewtonSolver"))
-         newton_db = conc_db->getDatabase("NewtonSolver");
+   std::shared_ptr<tbox::Database> newton_db;
+   if (conc_db->isDatabase("NewtonSolver"))
+      newton_db = conc_db->getDatabase("NewtonSolver");
 #ifdef HAVE_THERMO4PFM
-      pt::ptree calphad_pt;
-      copyDatabase(calphad_db, calphad_pt);
-      pt::ptree newton_pt;
-      copyDatabase(newton_db, newton_pt);
+   pt::ptree calphad_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   pt::ptree newton_pt;
+   copyDatabase(newton_db, newton_pt);
 #endif
 
-      if (ncompositions == 1) {
-         d_fenergy = new CALPHADFreeEnergyFunctionsBinary(
+   d_fenergy = new CALPHADFreeEnergyFunctionsBinary(
 #ifdef HAVE_THERMO4PFM
-             calphad_pt, newton_pt,
+       calphad_pt, newton_pt,
 #else
-             calphad_db, newton_db,
+       calphad_db, newton_db,
 #endif
-             energy_interp_func_type, conc_interp_func_type
+       energy_interp_func_type, conc_interp_func_type
 #ifndef HAVE_THERMO4PFM
-             ,
-             false  // no 3rd phase
+       ,
+       false  // no 3rd phase
 #endif
-         );
-      } else {
-         d_fenergy = new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-             calphad_pt, newton_pt,
-#else
-             calphad_db, newton_db,
-#endif
-             energy_interp_func_type, conc_interp_func_type);
-      }
-   } else if (conc_model[0] == 'd') {
-#ifdef HAVE_THERMO4PFM
-      pt::ptree conc_pt;
-      copyDatabase(conc_db, conc_pt);
-      d_fenergy = new KKSFreeEnergyFunctionDiluteBinary(conc_pt,
-                                                        energy_interp_func_type,
-                                                        conc_interp_func_type);
-#else
-      d_fenergy = new KKSFreeEnergyFunctionDiluteBinary(conc_db,
-                                                        energy_interp_func_type,
-                                                        conc_interp_func_type);
-#endif
-   } else {
-      TBOX_ERROR("Error: unknown concentration model in KimMobilityStrategy");
-   }
+   );
 }
 
-void KimMobilityStrategy::computePhaseMobility(
+template <>
+KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
+    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
+    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    const ConcInterpolationType conc_interp_func_type,
+    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+    : SimpleQuatMobilityStrategy(quat_model),
+      d_conc_l_id(conc_l_id),
+      d_conc_s_id(conc_s_id),
+      d_temp_id(temp_id),
+      d_ncompositions(ncompositions)
+{
+   assert(d_conc_l_id >= 0);
+   assert(d_conc_s_id >= 0);
+   assert(d_temp_id >= 0);
+   assert(d_ncompositions > 0);
+
+   t_compute = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::KimMobilityStrategy::compute");
+
+   std::shared_ptr<tbox::Database> conc_calphad_db =
+       conc_db->getDatabase("Calphad");
+   std::string calphad_filename = conc_calphad_db->getString("filename");
+   std::shared_ptr<tbox::MemoryDatabase> calphad_db(
+       new tbox::MemoryDatabase("calphad_db"));
+   tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                    calphad_db);
+
+   std::shared_ptr<tbox::Database> newton_db;
+   if (conc_db->isDatabase("NewtonSolver"))
+      newton_db = conc_db->getDatabase("NewtonSolver");
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   pt::ptree newton_pt;
+   copyDatabase(newton_db, newton_pt);
+#endif
+
+   d_fenergy = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+       calphad_pt, newton_pt,
+#else
+       calphad_db, newton_db,
+#endif
+       energy_interp_func_type, conc_interp_func_type);
+}
+
+template <>
+KimMobilityStrategy<KKSFreeEnergyFunctionDiluteBinary>::KimMobilityStrategy(
+    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
+    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    const ConcInterpolationType conc_interp_func_type,
+    std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
+    : SimpleQuatMobilityStrategy(quat_model),
+      d_conc_l_id(conc_l_id),
+      d_conc_s_id(conc_s_id),
+      d_temp_id(temp_id),
+      d_ncompositions(ncompositions)
+{
+   assert(d_conc_l_id >= 0);
+   assert(d_conc_s_id >= 0);
+   assert(d_temp_id >= 0);
+   assert(d_ncompositions > 0);
+
+   t_compute = tbox::TimerManager::getManager()->getTimer(
+       "AMPE::KimMobilityStrategy::compute");
+
+#ifdef HAVE_THERMO4PFM
+   pt::ptree conc_pt;
+   copyDatabase(conc_db, conc_pt);
+   d_fenergy =
+       new KKSFreeEnergyFunctionDiluteBinary(conc_pt, energy_interp_func_type,
+                                             conc_interp_func_type);
+#else
+   d_fenergy =
+       new KKSFreeEnergyFunctionDiluteBinary(conc_db, energy_interp_func_type,
+                                             conc_interp_func_type);
+#endif
+}
+
+template <class FreeEnergyType>
+void KimMobilityStrategy<FreeEnergyType>::computePhaseMobility(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
@@ -173,7 +226,8 @@ void KimMobilityStrategy::computePhaseMobility(
    t_compute->stop();
 }
 
-void KimMobilityStrategy::update(
+template <class FreeEnergyType>
+void KimMobilityStrategy<FreeEnergyType>::update(
     std::shared_ptr<pdat::CellData<double> > cd_te,
     std::shared_ptr<pdat::CellData<double> > cd_cl,
     std::shared_ptr<pdat::CellData<double> > cd_cs,

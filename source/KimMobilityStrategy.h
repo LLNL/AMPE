@@ -36,8 +36,8 @@
 #ifndef included_KimMobilityStrategy
 #define included_KimMobilityStrategy
 
-#include "CALPHADFreeEnergyFunctions.h"
 #include "SimpleQuatMobilityStrategy.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/tbox/Database.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -57,6 +57,7 @@ using namespace ampe_thermo;
 /*
  * Based on S.G. Kim, Acta Mat. 55 (2007), p. 4391-4399
  */
+template <class FreeEnergyType>
 class KimMobilityStrategy : public SimpleQuatMobilityStrategy
 {
  public:
@@ -81,7 +82,7 @@ class KimMobilityStrategy : public SimpleQuatMobilityStrategy
 
    const unsigned d_ncompositions;
 
-   FreeEnergyFunctions* d_fenergy;
+   FreeEnergyType* d_fenergy;
 
  private:
    void update(std::shared_ptr<pdat::CellData<double> > cd_te,
