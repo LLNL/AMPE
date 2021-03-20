@@ -400,6 +400,8 @@ class QuatModel : public PFModel
    void setPhaseConcentrationsToEquilibrium(const double* const ceq);
    void setRefPhaseConcentrationsToEquilibrium(const double* const ceq);
 
+   void setupAziz();
+
    void findAndNumberGrains(void);
    void computeGrainDiagnostics(void);
    void extendGrainOrientation(void);

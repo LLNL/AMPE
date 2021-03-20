@@ -37,7 +37,9 @@
 #define included_AzizPartitionCoefficientStrategy
 
 #include "PartitionCoefficientStrategy.h"
-#include "FreeEnergyFunctions.h"
+#include "InterpolationType.h"
+
+#include <memory>
 
 #ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
@@ -45,22 +47,18 @@ using namespace Thermo4PFM;
 using namespace ampe_thermo;
 #endif
 
+template <class FreeEnergyType>
 class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {
  public:
-   AzizPartitionCoefficientStrategy(const int velocity_id,
-                                    const int temperature_id,
-                                    const int partition_coeff_id,
-                                    FreeEnergyFunctions* free_energy,
-                                    const double vd, const double keq)
-       : PartitionCoefficientStrategy(velocity_id, temperature_id,
-                                      partition_coeff_id),
-         d_free_energy(free_energy),
-         d_inv_vd(1. / vd),
-         d_keq(keq)
-   {
-      assert(d_inv_vd == d_inv_vd);
-   }
+   AzizPartitionCoefficientStrategy(
+       const int velocity_id, const int temperature_id,
+       const int partition_coeff_id, const double vd, const double keq,
+       const EnergyInterpolationType energy_interp_func_type,
+       const ConcInterpolationType conc_interp_func_type,
+       std::shared_ptr<tbox::Database> conc_db);
+
+   ~AzizPartitionCoefficientStrategy() {}
 
  protected:
    void evaluate(hier::Patch& patch,
@@ -69,7 +67,7 @@ class AzizPartitionCoefficientStrategy : public PartitionCoefficientStrategy
                  std::shared_ptr<pdat::CellData<double> > partition_coeff);
 
  private:
-   FreeEnergyFunctions* d_free_energy;
+   std::unique_ptr<FreeEnergyType> d_fenergy;
 
    // inverse of diffusion speed corresponding to interface
    double d_inv_vd;
