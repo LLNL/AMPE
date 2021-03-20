@@ -682,12 +682,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
    }
 
    if (d_model_parameters.with_Aziz_partition_coeff()) {
-
-      // use d_temperature_scratch_id since that field will be uptodate when
-      // integrator needs partion function
-      d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy(
-          d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id, d_cafe,
-          d_model_parameters.vd(), d_model_parameters.keq());
+      setupAziz();
    }
 
    if (d_model_parameters.with_uniform_partition_coeff()) {
@@ -700,6 +695,35 @@ void QuatModel::initializeRHSandEnergyStrategies(
                                                   d_partition_coeff_id,
                                                   d_model_parameters.keq());
    }
+}
+
+void QuatModel::setupAziz()
+{
+   // use d_temperature_scratch_id since that field will be uptodate when
+   // integrator needs partion function
+   if (d_model_parameters.isConcentrationModelCALPHAD()) {
+      if (d_ncompositions > 1)
+         d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
+             CALPHADFreeEnergyFunctionsTernary>(
+             d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
+             d_model_parameters.vd(), d_model_parameters.keq(),
+             d_model_parameters.energy_interp_func_type(),
+             d_model_parameters.conc_interp_func_type(), d_conc_db);
+      else {
+         d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
+             CALPHADFreeEnergyFunctionsBinary>(
+             d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
+             d_model_parameters.vd(), d_model_parameters.keq(),
+             d_model_parameters.energy_interp_func_type(),
+             d_model_parameters.conc_interp_func_type(), d_conc_db);
+      }
+   } else
+      d_partition_coeff_strategy = new AzizPartitionCoefficientStrategy<
+          KKSFreeEnergyFunctionDiluteBinary>(
+          d_velocity_id, d_temperature_scratch_id, d_partition_coeff_id,
+          d_model_parameters.vd(), d_model_parameters.keq(),
+          d_model_parameters.energy_interp_func_type(),
+          d_model_parameters.conc_interp_func_type(), d_conc_db);
 }
 
 //=======================================================================
@@ -1044,8 +1068,9 @@ void QuatModel::initializeRefineCoarsenAlgorithms()
          d_quat_coarsen_op.reset(
              new QuatWeightedAverage(true, d_quat_symm_rotation_id));
       } else {
-         d_quat_refine_op =
-             d_grid_geometry->lookupRefineOperator(d_quat_var, "LINEAR_REFINE");
+         d_quat_refine_op = d_grid_geometry->lookupRefineOperator(d_quat_var,
+                                                                  "LINEAR_"
+                                                                  "REFINE");
          d_quat_coarsen_op.reset(new QuatWeightedAverage(false));
       }
    }
@@ -1597,7 +1622,9 @@ void QuatModel::registerEtaVariables(void)
        d_eta_grad_side_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
 
    d_eta_mobility_var.reset(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM), "eta_mobility"));
+       new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                      "eta_"
+                                      "mobility"));
    assert(d_eta_mobility_var);
    d_eta_mobility_id = variable_db->registerVariableAndContext(
        d_eta_mobility_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
@@ -2667,14 +2694,16 @@ void QuatModel::preRunDiagnosticsMobilityInPhases(const double temperature)
                                                                  tfile);
 
             tfile << std::endl
-                  << "#Diffusion in phase A for species 0 [m^2/s] vs. 10000./T"
+                  << "#Diffusion in phase A for species 0 [m^2/s] vs. "
+                     "10000./T"
                   << std::endl;
             calphad_mobility0_phaseA.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
                                                                  tfile);
 
             tfile << std::endl
-                  << "#Diffusion in phase A for species 1 [m^2/s] vs. 10000./T"
+                  << "#Diffusion in phase A for species 1 [m^2/s] vs. "
+                     "10000./T"
                   << std::endl;
             calphad_mobility1_phaseA.printDiffusionVsTemperature(tempmin,
                                                                  tempmax,
@@ -3047,9 +3076,9 @@ void QuatModel::initializeLevelData(
 
    assert(d_curr_to_curr_refine_alg);
 
-   // Note that this method is pure virtual in PFModel and MUST be implemented
-   // here. However, we might also have some default behavior in PFModel, so it
-   // should be called.
+   // Note that this method is pure virtual in PFModel and MUST be
+   // implemented here. However, we might also have some default behavior in
+   // PFModel, so it should be called.
    PFModel::initializeLevelData(hierarchy, level_number, time, can_be_refined,
                                 initial_time, old_level, allocate_data);
 
@@ -3101,16 +3130,19 @@ void QuatModel::initializeLevelData(
                                          d_phase_var, "CONSERVATIVE_COARSEN"));
 
          if (d_model_parameters.with_third_phase()) {
-            coarsen_alg.registerCoarsen(d_eta_id, d_eta_id,
-                                        d_grid_geometry->lookupCoarsenOperator(
-                                            d_eta_var, "CONSERVATIVE_COARSEN"));
+            coarsen_alg.registerCoarsen(
+                d_eta_id, d_eta_id,
+                d_grid_geometry->lookupCoarsenOperator(d_eta_var,
+                                                       "CONSERVATIVE_"
+                                                       "COARSEN"));
          }
 
          if (d_model_parameters.with_heat_equation()) {
             coarsen_alg.registerCoarsen(
                 d_temperature_id, d_temperature_id,
                 d_grid_geometry->lookupCoarsenOperator(d_temperature_var,
-                                                       "CONSERVATIVE_COARSEN"));
+                                                       "CONSERVATIVE_"
+                                                       "COARSEN"));
          }
 
          if (d_model_parameters.with_concentration()) {
@@ -3512,9 +3544,9 @@ void QuatModel::resetHierarchyConfiguration(
 
    int nlev = hierarchy->getNumberOfLevels();
 
-   // Note that this method is pure virtual in PFModel and MUST be implemented
-   // here. However, we might have some default behavior in PFModel, so it
-   // should be called.
+   // Note that this method is pure virtual in PFModel and MUST be
+   // implemented here. However, we might have some default behavior in
+   // PFModel, so it should be called.
    PFModel::resetHierarchyConfiguration(hierarchy, coarsest_level,
                                         finest_level);
 
@@ -3749,7 +3781,8 @@ void QuatModel::WriteInitialConditionsFile(void)
 {
    tbox::plog << "Write initial conditions file..." << std::endl;
 
-   // get new PatchLevel with uniform mesh at level "d_initial_conditions_level"
+   // get new PatchLevel with uniform mesh at level
+   // "d_initial_conditions_level"
    std::shared_ptr<hier::PatchLevel> flattened_level =
        FlattenHierarchy(d_patch_hierarchy, d_initial_conditions_level, d_time);
 
@@ -4177,8 +4210,8 @@ std::shared_ptr<hier::PatchLevel> QuatModel::FlattenHierarchy(
 
    // Compute physical domain box array describing the index space of the
    // physical domain managed by this geometry object. If any entry of ratio
-   // std::vector is negative, the index space is coarsened with respect to the
-   // physical domain description. Otherwise, the index space is refined.
+   // std::vector is negative, the index space is coarsened with respect to
+   // the physical domain description. Otherwise, the index space is refined.
 
    // get boxes corresponding to level 0 of hierarchy, then refine them to
    // "level_number"
@@ -6033,7 +6066,8 @@ void QuatModel::computeVectorWeights(
    if (coarsest_ln == -1) coarsest_ln = 0;
    if (finest_ln == -1) finest_ln = hierarchy->getFinestLevelNumber();
    if (finest_ln < coarsest_ln) {
-      TBOX_ERROR(d_object_name << ": Illegal level number range.  finest_ln < "
+      TBOX_ERROR(d_object_name << ": Illegal level number range.  finest_ln "
+                                  "< "
                                   "coarsest_ln.");
    }
 
