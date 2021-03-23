@@ -137,9 +137,6 @@ class QuatModel : public PFModel
 
    void setupHierarchy(void);
 
-   void computeMinMaxQModulus(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
-
    void tagGradientDetectorCells(hier::Patch& patch, const double regrid_time,
                                  const bool initial_error, const int tag_index,
                                  const bool uses_richardson_extrapolation_too);
@@ -374,7 +371,6 @@ class QuatModel : public PFModel
        std::shared_ptr<pdat::CellData<double> > cd_mobility,
        std::shared_ptr<pdat::CellData<double> > cd_phi);
 
-   void preRunDiagnosticsMobilityInPhases(const double temperature);
    bool computeCeq(const double temperature, const PhaseIndex pi0,
                    const PhaseIndex pi1, double* ceq) const;
 
@@ -401,6 +397,7 @@ class QuatModel : public PFModel
    void setRefPhaseConcentrationsToEquilibrium(const double* const ceq);
 
    void setupAziz();
+   void setupFreeEnergyFunctions();
 
    void findAndNumberGrains(void);
    void computeGrainDiagnostics(void);
@@ -411,7 +408,6 @@ class QuatModel : public PFModel
                    const double time);
    void initializeRHSandEnergyStrategies(
        std::shared_ptr<tbox::MemoryDatabase>& quat_db);
-   void initializeCompositionRHSStrategy();
 
    QuatModelParameters d_model_parameters;
 
@@ -630,7 +626,7 @@ class QuatModel : public PFModel
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
    TemperatureStrategy* d_temperature_strategy;
    TemperatureStrategy* d_temperature_strategy_quat_only;
-   CompositionRHSStrategy* d_composition_rhs_strategy;
+   std::shared_ptr<CompositionRHSStrategy> d_composition_rhs_strategy;
 
    HeatCapacityStrategy* d_heat_capacity_strategy;
    MolarVolumeStrategy* d_mvstrategy;

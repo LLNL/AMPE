@@ -43,9 +43,6 @@
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
-#include "KKSCompositionRHSStrategy.h"
-#include "EBSCompositionRHSStrategy.h"
-#include "BeckermannCompositionRHSStrategy.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
 #include "QuatFort.h"
@@ -80,7 +77,9 @@
 #include "tools.h"
 #include "MobilityFactory.h"
 #include "CompositionDiffusionStrategyFactory.h"
+#include "CompositionRHSStrategyFactory.h"
 #include "FuncFort.h"
+#include "diagnostics.h"
 
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
@@ -130,7 +129,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_meltingT_strategy = nullptr;
 
    d_composition_strategy_mobilities = nullptr;
-   d_composition_rhs_strategy = nullptr;
    d_free_energy_strategy_for_diffusion = nullptr;
 
    d_heat_capacity_strategy = nullptr;
@@ -238,7 +236,6 @@ QuatModel::~QuatModel()
       delete d_free_energy_strategy;
    if (d_free_energy_strategy_for_diffusion != nullptr)
       delete d_free_energy_strategy_for_diffusion;
-   delete d_composition_rhs_strategy;
    delete d_temperature_strategy;
    delete d_temperature_strategy_quat_only;
    if (d_heat_capacity_strategy) delete d_heat_capacity_strategy;
@@ -335,44 +332,64 @@ void QuatModel::initializeAmr(std::shared_ptr<tbox::Database> amr_db)
 
 //=======================================================================
 
-void QuatModel::initializeCompositionRHSStrategy()
+void QuatModel::setupFreeEnergyFunctions()
 {
-   if (d_model_parameters.concRHSstrategyIsKKS()) {
-      d_composition_rhs_strategy = new KKSCompositionRHSStrategy(
-          d_conc_scratch_id, d_phase_scratch_id,
-          d_conc_pfm_diffusion_id[0],  // use 1x1 diffusion matrix
-          d_conc_phase_coupling_diffusion_id, d_temperature_scratch_id,
-          d_eta_scratch_id, d_conc_eta_coupling_diffusion_id,
-          d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-          d_model_parameters.D_liquid(), d_model_parameters.D_solid_A(),
-          d_model_parameters.D_solid_B(), d_model_parameters.Q0_liquid(),
-          d_model_parameters.Q0_solid_A(), d_model_parameters.Q0_solid_B(),
-          d_model_parameters.energy_interp_func_type(),
-          d_model_parameters.avg_func_type());
-   } else if (d_model_parameters.concRHSstrategyIsEBS()) {
+   std::shared_ptr<tbox::MemoryDatabase> calphad_db;
+   calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
+   std::string calphad_filename = d_calphad_db->getString("filename");
+   tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                    calphad_db);
+   std::shared_ptr<tbox::MemoryDatabase> newton_db;
+   if (d_conc_db->isDatabase("NewtonSolver")) {
+      d_newton_db = d_conc_db->getDatabase("NewtonSolver");
+      newton_db.reset(new tbox::MemoryDatabase("newton_db"));
+   }
 
-      assert(d_diffusion_for_conc_in_phase);
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   pt::ptree newton_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   copyDatabase(newton_db, newton_pt);
+#endif
 
-      d_composition_rhs_strategy = new EBSCompositionRHSStrategy(
-          d_phase_scratch_id, d_eta_scratch_id,
-          static_cast<unsigned short>(d_ncompositions), d_conc_l_scratch_id,
-          d_conc_a_scratch_id, d_conc_b_scratch_id, d_temperature_scratch_id,
-          d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
-          d_conc_pfm_diffusion_b_id, d_conc_Mq_id,
-          d_model_parameters.Q_heat_transport(), d_conc_pfm_diffusion_id,
-          d_model_parameters.avg_func_type(),
-          d_free_energy_strategy_for_diffusion,
-          d_composition_strategy_mobilities, d_diffusion_for_conc_in_phase);
-   } else if (d_model_parameters.concRHSstrategyIsBeckermann()) {
-      d_composition_rhs_strategy = new BeckermannCompositionRHSStrategy(
-          this, d_conc_scratch_id, d_phase_scratch_id,
-          d_partition_coeff_scratch_id, d_conc_pfm_diffusion_id[0],
-          d_conc_phase_coupling_diffusion_id, d_model_parameters.D_liquid(),
-          d_model_parameters.D_solid_A(),
-          d_model_parameters.conc_interp_func_type(),
-          d_model_parameters.avg_func_type());
+   if (!calphad_db->keyExists("PenaltyPhaseL")) {
+
+      if (d_ncompositions == 1) {
+         d_cafe = new CALPHADFreeEnergyFunctionsBinary(
+#ifdef HAVE_THERMO4PFM
+             calphad_pt, newton_pt,
+#else
+             calphad_db, newton_db,
+#endif
+             d_model_parameters.energy_interp_func_type(),
+             d_model_parameters.conc_interp_func_type()
+#ifndef HAVE_THERMO4PFM
+                 ,
+             d_model_parameters.with_third_phase()
+#endif
+         );
+      } else {
+         d_cafe = new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+             calphad_pt, newton_pt,
+#else
+             calphad_db, newton_db,
+#endif
+             d_model_parameters.energy_interp_func_type(),
+             d_model_parameters.conc_interp_func_type());
+      }
+#ifndef HAVE_THERMO4PFM
    } else {
-      TBOX_ERROR("Error: unknown composition RHS Strategy");
+      tbox::plog << "QuatModel: "
+                 << "Adding penalty to CALPHAD energy" << std::endl;
+
+      assert(d_ncompositions == 1);
+
+      d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
+          calphad_db, newton_db, d_model_parameters.energy_interp_func_type(),
+          d_model_parameters.conc_interp_func_type(),
+          d_model_parameters.with_third_phase());
+#endif
    }
 }
 
@@ -437,65 +454,30 @@ void QuatModel::initializeRHSandEnergyStrategies(
             newton_db.reset(new tbox::MemoryDatabase("newton_db"));
          }
 
-#ifdef HAVE_THERMO4PFM
-         pt::ptree calphad_pt;
-         pt::ptree newton_pt;
-         copyDatabase(calphad_db, calphad_pt);
-         copyDatabase(newton_db, newton_pt);
-#endif
-         {
-            if (d_ncompositions == 1) {
-               d_free_energy_strategy_for_diffusion =
-                   new CALPHADFreeEnergyStrategyBinary(
-                       calphad_db, newton_db,
-                       d_model_parameters.energy_interp_func_type(),
-                       d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                       d_conc_l_scratch_id, d_conc_a_scratch_id,
-                       d_conc_b_scratch_id,
-                       d_model_parameters.with_third_phase());
-            } else {
-               assert(d_ncompositions == 2);
-               d_free_energy_strategy_for_diffusion =
-                   new CALPHADFreeEnergyStrategyTernary(
-                       calphad_db, newton_db,
-                       d_model_parameters.energy_interp_func_type(),
-                       d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                       d_conc_l_scratch_id, d_conc_a_scratch_id);
-            }
+         if (d_ncompositions == 1) {
+            d_free_energy_strategy_for_diffusion =
+                new CALPHADFreeEnergyStrategyBinary(
+                    calphad_db, newton_db,
+                    d_model_parameters.energy_interp_func_type(),
+                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
+                    d_conc_l_scratch_id, d_conc_a_scratch_id,
+                    d_conc_b_scratch_id, d_model_parameters.with_third_phase());
+         } else {
+            assert(d_ncompositions == 2);
+            d_free_energy_strategy_for_diffusion =
+                new CALPHADFreeEnergyStrategyTernary(
+                    calphad_db, newton_db,
+                    d_model_parameters.energy_interp_func_type(),
+                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
+                    d_conc_l_scratch_id, d_conc_a_scratch_id);
          }
+
+         setupFreeEnergyFunctions();
 
          if (!calphad_db->keyExists("PenaltyPhaseL")) {
 
             d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
 
-            tbox::plog << "QuatModel: "
-                       << "CALPHAD with " << d_ncompositions + 1 << " species"
-                       << std::endl;
-            if (d_ncompositions == 1) {
-               d_cafe = new CALPHADFreeEnergyFunctionsBinary(
-#ifdef HAVE_THERMO4PFM
-                   calphad_pt, newton_pt,
-#else
-                   calphad_db, newton_db,
-#endif
-                   d_model_parameters.energy_interp_func_type(),
-                   d_model_parameters.conc_interp_func_type()
-#ifndef HAVE_THERMO4PFM
-                       ,
-                   d_model_parameters.with_third_phase()
-#endif
-               );
-            } else {
-               d_cafe = new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-                   calphad_pt, newton_pt,
-#else
-                   calphad_db, newton_db,
-#endif
-                   d_model_parameters.energy_interp_func_type(),
-                   d_model_parameters.conc_interp_func_type());
-            }
-#ifndef HAVE_THERMO4PFM
          } else {
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy" << std::endl;
@@ -508,13 +490,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
                 d_model_parameters.conc_interp_func_type(), d_mvstrategy,
                 d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
                 d_ncompositions, d_model_parameters.with_third_phase());
-
-            d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
-                calphad_db, newton_db,
-                d_model_parameters.energy_interp_func_type(),
-                d_model_parameters.conc_interp_func_type(),
-                d_model_parameters.with_third_phase());
-#endif
          }
       }  // d_model_parameters.isConcentrationModelCALPHAD()
       else if (d_model_parameters.isConcentrationModelKKSdilute()) {
@@ -567,15 +542,29 @@ void QuatModel::initializeRHSandEnergyStrategies(
       if (d_model_parameters.kks_phase_concentration()) {
          tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (d_model_parameters.isConcentrationModelCALPHAD()) {
-            d_phase_conc_strategy =
-                new CALPHADequilibriumPhaseConcentrationsStrategy(
-                    d_conc_l_scratch_id, d_conc_a_scratch_id,
-                    d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
-                    d_conc_b_ref_id,
-                    d_model_parameters.energy_interp_func_type(),
-                    d_model_parameters.conc_interp_func_type(),
-                    d_model_parameters.with_third_phase(), calphad_db,
-                    newton_db, d_ncompositions);
+            if (d_ncompositions == 1)
+               d_phase_conc_strategy =
+                   new CALPHADequilibriumPhaseConcentrationsStrategy<
+                       CALPHADFreeEnergyFunctionsBinary>(
+                       d_conc_l_scratch_id, d_conc_a_scratch_id,
+                       d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
+                       d_conc_b_ref_id,
+                       d_model_parameters.energy_interp_func_type(),
+                       d_model_parameters.conc_interp_func_type(),
+                       d_model_parameters.with_third_phase(), calphad_db,
+                       newton_db, d_ncompositions);
+            else if (d_ncompositions == 2)
+               d_phase_conc_strategy =
+                   new CALPHADequilibriumPhaseConcentrationsStrategy<
+                       CALPHADFreeEnergyFunctionsTernary>(
+                       d_conc_l_scratch_id, d_conc_a_scratch_id,
+                       d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
+                       d_conc_b_ref_id,
+                       d_model_parameters.energy_interp_func_type(),
+                       d_model_parameters.conc_interp_func_type(),
+                       d_model_parameters.with_third_phase(), calphad_db,
+                       newton_db, d_ncompositions);
+
          } else if (d_model_parameters.isConcentrationModelKKSdilute()) {
             d_phase_conc_strategy =
                 new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
@@ -633,7 +622,16 @@ void QuatModel::initializeRHSandEnergyStrategies(
                  d_composition_strategy_mobilities, d_free_energy_strategy);
       }
 
-      initializeCompositionRHSStrategy();
+      d_composition_rhs_strategy = CompositionRHSStrategyFactory::create(
+          this, d_free_energy_strategy_for_diffusion, d_model_parameters,
+          d_ncompositions, d_conc_scratch_id, d_phase_scratch_id,
+          d_temperature_scratch_id, d_conc_pfm_diffusion_id,
+          d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
+          d_conc_pfm_diffusion_b_id, d_conc_phase_coupling_diffusion_id,
+          d_eta_scratch_id, d_conc_eta_coupling_diffusion_id,
+          d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
+          d_partition_coeff_scratch_id, d_conc_Mq_id,
+          d_composition_strategy_mobilities, d_diffusion_for_conc_in_phase);
 
    }  // d_model_parameters.with_concentration()
    else if (d_model_parameters.with_heat_equation()) {
@@ -968,7 +966,7 @@ void QuatModel::InitializeIntegrator(void)
    if (d_model_parameters.with_concentration()) {
       d_integrator->setCompositionDiffusionStrategy(
           d_diffusion_for_conc_in_phase);
-      d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy);
+      d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy.get());
    }
    d_integrator->setFreeEnergyStrategy(d_free_energy_strategy);
    if (d_model_parameters.with_concentration())
@@ -2510,8 +2508,10 @@ void QuatModel::preRunDiagnostics(void)
       printScalarDiagnostics();
    }
 
-   if (d_model_parameters.with_concentration())
-      preRunDiagnosticsMobilityInPhases(temperature);
+   if (d_model_parameters.with_concentration() &&
+       d_model_parameters.isConcentrationModelCALPHAD() && mpi.getRank() == 0)
+      preRunDiagnosticsMobilityInPhases(temperature, d_model_parameters,
+                                        d_calphad_db);
 }
 
 //-----------------------------------------------------------------------
@@ -2631,86 +2631,6 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
    ceq[3] = lceq[3];
 
    return found_ceq;
-}
-
-
-//-----------------------------------------------------------------------
-
-void QuatModel::preRunDiagnosticsMobilityInPhases(const double temperature)
-{
-   if (d_model_parameters.isConcentrationModelCALPHAD()) {
-      const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-
-      assert(d_calphad_db);
-      std::string calphad_filename = d_calphad_db->getString("filename");
-
-      std::shared_ptr<tbox::MemoryDatabase> calphad_db(
-          new tbox::MemoryDatabase("calphad_db"));
-      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                       calphad_db);
-
-      if (calphad_db->isDatabase("MobilityParameters")) {
-         std::shared_ptr<tbox::Database> mobility_db(
-             calphad_db->getDatabase("MobilityParameters"));
-         std::shared_ptr<tbox::Database> species0_db(
-             mobility_db->getDatabase("Species0"));
-         std::shared_ptr<tbox::Database> species1_db(
-             mobility_db->getDatabase("Species1"));
-
-         CALPHADMobility calphad_mobility0_phaseL("MobilitySpecies0");
-         calphad_mobility0_phaseL.initialize(
-             species0_db->getDatabase("PhaseL"));
-
-         CALPHADMobility calphad_mobility1_phaseL("MobilitySpecies1");
-         calphad_mobility1_phaseL.initialize(
-             species1_db->getDatabase("PhaseL"));
-
-         CALPHADMobility calphad_mobility0_phaseA("MobilitySpecies0");
-         calphad_mobility0_phaseA.initialize(
-             species0_db->getDatabase("PhaseA"));
-
-         CALPHADMobility calphad_mobility1_phaseA("MobilitySpecies1");
-         calphad_mobility1_phaseA.initialize(
-             species1_db->getDatabase("PhaseA"));
-
-         const double tempmin = temperature * 0.5;
-         const double tempmax = temperature * 2.;
-
-         if (mpi.getRank() == 0) {
-            std::ofstream tfile("D.dat", std::ios::out);
-            tfile << "#Diffusion in liquid phase for species 0 [m^2/s] vs. "
-                     "10000./T"
-                  << std::endl;
-            calphad_mobility0_phaseL.printDiffusionVsTemperature(tempmin,
-                                                                 tempmax,
-                                                                 tfile);
-
-            tfile << std::endl
-                  << "#Diffusion in liquid phase for species 1 [m^2/s] vs. "
-                     "10000./T"
-                  << std::endl;
-            calphad_mobility0_phaseL.printDiffusionVsTemperature(tempmin,
-                                                                 tempmax,
-                                                                 tfile);
-
-            tfile << std::endl
-                  << "#Diffusion in phase A for species 0 [m^2/s] vs. "
-                     "10000./T"
-                  << std::endl;
-            calphad_mobility0_phaseA.printDiffusionVsTemperature(tempmin,
-                                                                 tempmax,
-                                                                 tfile);
-
-            tfile << std::endl
-                  << "#Diffusion in phase A for species 1 [m^2/s] vs. "
-                     "10000./T"
-                  << std::endl;
-            calphad_mobility1_phaseA.printDiffusionVsTemperature(tempmin,
-                                                                 tempmax,
-                                                                 tfile);
-         }
-      }
-   }
 }
 
 //-----------------------------------------------------------------------
@@ -2847,65 +2767,6 @@ void QuatModel::computeGrainDiagnostics(void)
       d_grains->computeGrainConcentrations(d_patch_hierarchy, d_time, d_conc_id,
                                            d_weight_id);
    }
-}
-
-//=======================================================================
-
-void QuatModel::computeMinMaxQModulus(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
-{
-   if (!d_model_parameters.with_orientation()) return;
-   if (d_qlen == 1) return;
-
-   double mx = 0.;
-   double mn = 2.0;
-
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
-           ++p) {
-         std::shared_ptr<hier::Patch> patch = *p;
-
-         std::shared_ptr<pdat::CellData<double> > y(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_quat_id)));
-         const hier::Box& pbox = patch->getBox();
-
-         std::shared_ptr<pdat::CellData<double> > q_norm_err;
-         if (d_model_parameters.with_extra_visit_output()) {
-            q_norm_err = std::dynamic_pointer_cast<pdat::CellData<double>,
-                                                   hier::PatchData>(
-                patch->getPatchData(d_quat_norm_error_id));
-         }
-
-         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
-         for (pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i != iend;
-              ++i) {
-            pdat::CellIndex cell = *i;
-            double qnorm2 = 0.;
-            for (int q = 0; q < d_qlen; q++) {
-               qnorm2 += (*y)(cell, q) * (*y)(cell, q);
-            }
-            double qnorm = sqrt(qnorm2);
-            if (qnorm > mx) mx = qnorm;
-            if (qnorm < mn) mn = qnorm;
-
-            if (d_model_parameters.with_extra_visit_output()) {
-               (*q_norm_err)(cell) = qnorm - 1.;
-            }
-         }
-      }
-   }
-
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   mpi.AllReduce(&mx, 1, MPI_MAX);
-   mpi.AllReduce(&mn, 1, MPI_MIN);
-
-   tbox::pout << std::endl;
-   tbox::pout << "Q magnitude maximum - 1: " << mx - 1. << std::endl;
-   tbox::pout << "Q magnitude minimum - 1: " << mn - 1. << std::endl;
 }
 
 //=======================================================================

@@ -37,7 +37,6 @@
 #define included_UniformPartitionCoefficientStrategy
 
 #include "PartitionCoefficientStrategy.h"
-#include "FreeEnergyFunctions.h"
 
 class UniformPartitionCoefficientStrategy : public PartitionCoefficientStrategy
 {

@@ -26,6 +26,7 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
+            ${CMAKE_SOURCE_DIR}/source/diagnostics.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.C
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.C
             ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
