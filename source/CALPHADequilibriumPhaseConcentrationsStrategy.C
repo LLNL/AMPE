@@ -46,7 +46,9 @@ namespace pt = boost::property_tree;
 #include "SAMRAI/tbox/IEEE.h"
 
 
-CALPHADequilibriumPhaseConcentrationsStrategy::
+template <>
+CALPHADequilibriumPhaseConcentrationsStrategy<
+    CALPHADFreeEnergyFunctionsBinary>::
     CALPHADequilibriumPhaseConcentrationsStrategy(
         const int conc_l_scratch_id, const int conc_a_scratch_id,
         const int conc_b_scratch_id, const int conc_l_ref_id,
@@ -67,27 +69,52 @@ CALPHADequilibriumPhaseConcentrationsStrategy::
    copyDatabase(calphad_db, calphad_pt);
    copyDatabase(newton_db, newton_pt);
 #endif
-   if (ncompositions == 1) {
-      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsBinary(
+   d_calphad_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsBinary>(
+       new CALPHADFreeEnergyFunctionsBinary(
 #ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
+           calphad_pt, newton_pt, energy_interp_func_type, conc_interp_func_type
 #else
-          calphad_db, newton_db, energy_interp_func_type, conc_interp_func_type,
-          with_third_phase
+           calphad_db, newton_db, energy_interp_func_type,
+           conc_interp_func_type, with_third_phase
 #endif
-      );
-   } else {
-      d_calphad_fenergy = new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-          calphad_pt, newton_pt,
-#else
-          calphad_db, newton_db,
-#endif
-          energy_interp_func_type, conc_interp_func_type);
-   }
+           ));
 }
 
-void CALPHADequilibriumPhaseConcentrationsStrategy::
+template <>
+CALPHADequilibriumPhaseConcentrationsStrategy<
+    CALPHADFreeEnergyFunctionsTernary>::
+    CALPHADequilibriumPhaseConcentrationsStrategy(
+        const int conc_l_scratch_id, const int conc_a_scratch_id,
+        const int conc_b_scratch_id, const int conc_l_ref_id,
+        const int conc_a_ref_id, const int conc_b_ref_id,
+        const EnergyInterpolationType energy_interp_func_type,
+        const ConcInterpolationType conc_interp_func_type,
+        const bool with_third_phase, std::shared_ptr<tbox::Database> calphad_db,
+        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+    : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
+                                  conc_b_scratch_id, with_third_phase),
+      d_conc_l_ref_id(conc_l_ref_id),
+      d_conc_a_ref_id(conc_a_ref_id),
+      d_conc_b_ref_id(conc_b_ref_id)
+{
+#ifdef HAVE_THERMO4PFM
+   pt::ptree calphad_pt;
+   pt::ptree newton_pt;
+   copyDatabase(calphad_db, calphad_pt);
+   copyDatabase(newton_db, newton_pt);
+#endif
+   d_calphad_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsTernary>(
+       new CALPHADFreeEnergyFunctionsTernary(
+#ifdef HAVE_THERMO4PFM
+           calphad_pt, newton_pt,
+#else
+           calphad_db, newton_db,
+#endif
+           energy_interp_func_type, conc_interp_func_type));
+}
+
+template <class FreeEnergyType>
+void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,

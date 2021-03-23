@@ -48,6 +48,7 @@ using namespace Thermo4PFM;
 using namespace ampe_thermo;
 #endif
 
+template <class FreeEnergyType>
 class CALPHADequilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
 {
@@ -61,10 +62,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        const bool with_third_phase, std::shared_ptr<tbox::Database> calphad_db,
        std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
 
-   ~CALPHADequilibriumPhaseConcentrationsStrategy()
-   {
-      delete d_calphad_fenergy;
-   }
+   ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
 
    virtual void computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -81,7 +79,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
    int d_conc_a_ref_id;
    int d_conc_b_ref_id;
 
-   FreeEnergyFunctions* d_calphad_fenergy;
+   std::unique_ptr<FreeEnergyType> d_calphad_fenergy;
 };
 
 #endif
