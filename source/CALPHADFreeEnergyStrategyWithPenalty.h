@@ -36,6 +36,8 @@
 #ifndef included_CALPHADFreeEnergyStrategyWithPenalty
 #define included_CALPHADFreeEnergyStrategyWithPenalty
 
+#ifndef HAVE_THERMO4PFM
+
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFunctions.h"
 #include "MolarVolumeStrategy.h"
@@ -197,5 +199,6 @@ class CALPHADFreeEnergyStrategyWithPenalty
  private:
    std::vector<std::vector<double> > d_penalty_parameters;
 };
+#endif
 
 #endif

@@ -40,6 +40,14 @@
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
 #include "Phases.h"
 
+#include "SAMRAI/tbox/MemoryDatabase.h"
+#include "SAMRAI/tbox/InputManager.h"
+
+#ifdef HAVE_THERMO4PFM
+#include "Database2JSON.h"
+namespace pt = boost::property_tree;
+#endif
+
 template <>
 AzizPartitionCoefficientStrategy<CALPHADFreeEnergyFunctionsBinary>::
     AzizPartitionCoefficientStrategy(

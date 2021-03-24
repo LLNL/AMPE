@@ -43,6 +43,7 @@
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
+#include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
 #include "QuatFort.h"
@@ -477,7 +478,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
          if (!calphad_db->keyExists("PenaltyPhaseL")) {
 
             d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
-
+#ifndef HAVE_THERMO4PFM
          } else {
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy" << std::endl;
@@ -490,6 +491,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
                 d_model_parameters.conc_interp_func_type(), d_mvstrategy,
                 d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
                 d_ncompositions, d_model_parameters.with_third_phase());
+#endif
          }
       }  // d_model_parameters.isConcentrationModelCALPHAD()
       else if (d_model_parameters.isConcentrationModelKKSdilute()) {
