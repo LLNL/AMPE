@@ -9,6 +9,7 @@
 #include <boost/property_tree/ptree.hpp>
 
 #include <string>
+#include <sstream>
 
 using namespace SAMRAI;
 namespace pt = boost::property_tree;
@@ -58,11 +59,22 @@ void copyDatabase(std::shared_ptr<tbox::Database> database,
          }
       } else if (my_type == tbox::Database::SAMRAI_DOUBLE) {
          if (size == 1) {
-            new_database.put(key, database->getDouble(key));
+            double value = database->getDouble(key);
+            std::stringstream ss;
+            ss << std::setprecision(10);
+            ss << value;
+            new_database.put(key, ss.str());
          } else {
             std::vector<double> bvec(database->getDoubleVector(key));
+            std::vector<std::string> sbvec;
+            for (auto& value : bvec) {
+               std::stringstream ss;
+               ss << std::setprecision(10);
+               ss << value;
+               sbvec.push_back(ss.str());
+            }
             pt::ptree nodes;
-            for (auto& vec : bvec) {
+            for (auto& vec : sbvec) {
                pt::ptree node;
                node.put("", vec);
                nodes.push_back(std::make_pair("", node));
