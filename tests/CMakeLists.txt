@@ -220,6 +220,12 @@ add_test(NAME TwoBilayers
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/${NDIM}d.input
          )
+add_test(NAME Dendrite
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/${NDIM}d.input
+         )
 
 target_link_libraries(testNetCDFwrite ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
