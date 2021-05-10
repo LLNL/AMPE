@@ -92,28 +92,7 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
                             const int maxits = 20, const bool verbose = false);
 
    void preRunDiagnostics(const double temperature, const double T0 = 300.,
-                          const double T1 = 3000.)
-   {
-      std::ofstream os1("FlC0vsT.dat", std::ios::out);
-      os1 << "#Species 0, Phase L" << std::endl;
-      d_g_species_phaseL[0].plotFofT(os1, T0, T1);
-
-      std::ofstream os2("FlC1vsT.dat", std::ios::out);
-      os2 << "#Species 1, Phase L" << std::endl;
-      d_g_species_phaseL[1].plotFofT(os2, T0, T1);
-
-      std::ofstream os3("FsC0vsT.dat", std::ios::out);
-      os3 << "#Species 0, Phase A" << std::endl;
-      d_g_species_phaseA[0].plotFofT(os3, T0, T1);
-
-      std::ofstream os4("FsC1vsT.dat", std::ios::out);
-      os4 << "#Species 1, Phase A" << std::endl;
-      d_g_species_phaseA[1].plotFofT(os4, T0, T1);
-
-      // energy vs. composition for phi=0 and phi=1
-      std::ofstream os("FvsC.dat", std::ios::out);
-      printEnergyVsComposition(temperature, os);
-   }
+                          const double T1 = 3000.);
 
    int computePhaseConcentrations(const double temperature, const double* conc,
                                   const double phi, const double eta,

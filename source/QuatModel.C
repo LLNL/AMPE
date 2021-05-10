@@ -220,8 +220,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_verbosity = new QuatVerbosity();
    PFModel::setVerbosity(d_verbosity);
 
-   d_cafe = 0;
-
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_resetGrains_timer = tman->getTimer("AMPE::QuatModel::resetGrains()");
 
@@ -333,69 +331,6 @@ void QuatModel::initializeAmr(std::shared_ptr<tbox::Database> amr_db)
 
 //=======================================================================
 
-void QuatModel::setupFreeEnergyFunctions()
-{
-   std::shared_ptr<tbox::MemoryDatabase> calphad_db;
-   calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
-   std::string calphad_filename = d_calphad_db->getString("filename");
-   tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                    calphad_db);
-   std::shared_ptr<tbox::MemoryDatabase> newton_db;
-   if (d_conc_db->isDatabase("NewtonSolver")) {
-      d_newton_db = d_conc_db->getDatabase("NewtonSolver");
-      newton_db.reset(new tbox::MemoryDatabase("newton_db"));
-   }
-
-#ifdef HAVE_THERMO4PFM
-   pt::ptree calphad_pt;
-   pt::ptree newton_pt;
-   copyDatabase(calphad_db, calphad_pt);
-   copyDatabase(newton_db, newton_pt);
-#endif
-
-   if (!calphad_db->keyExists("PenaltyPhaseL")) {
-
-      if (d_ncompositions == 1) {
-         d_cafe = new CALPHADFreeEnergyFunctionsBinary(
-#ifdef HAVE_THERMO4PFM
-             calphad_pt, newton_pt,
-#else
-             calphad_db, newton_db,
-#endif
-             d_model_parameters.energy_interp_func_type(),
-             d_model_parameters.conc_interp_func_type()
-#ifndef HAVE_THERMO4PFM
-                 ,
-             d_model_parameters.with_third_phase()
-#endif
-         );
-      } else {
-         d_cafe = new CALPHADFreeEnergyFunctionsTernary(
-#ifdef HAVE_THERMO4PFM
-             calphad_pt, newton_pt,
-#else
-             calphad_db, newton_db,
-#endif
-             d_model_parameters.energy_interp_func_type(),
-             d_model_parameters.conc_interp_func_type());
-      }
-#ifndef HAVE_THERMO4PFM
-   } else {
-      tbox::plog << "QuatModel: "
-                 << "Adding penalty to CALPHAD energy" << std::endl;
-
-      assert(d_ncompositions == 1);
-
-      d_cafe = new CALPHADFreeEnergyFunctionsWithPenaltyBinary(
-          calphad_db, newton_db, d_model_parameters.energy_interp_func_type(),
-          d_model_parameters.conc_interp_func_type(),
-          d_model_parameters.with_third_phase());
-#endif
-   }
-}
-
-//=======================================================================
-
 void QuatModel::initializeRHSandEnergyStrategies(
     std::shared_ptr<tbox::MemoryDatabase>& input_db)
 {
@@ -472,8 +407,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
                     d_model_parameters.conc_interp_func_type(), d_mvstrategy,
                     d_conc_l_scratch_id, d_conc_a_scratch_id);
          }
-
-         setupFreeEnergyFunctions();
 
          if (!calphad_db->keyExists("PenaltyPhaseL")) {
 
@@ -2454,36 +2387,20 @@ void QuatModel::preRunDiagnostics(void)
          if (phi_min < 0.1) {
             found_ceq = computeCeq(temperature, PhaseIndex::phaseL,
                                    PhaseIndex::phaseA, &ceq[0]);
-
-            // compute equilibrium composition for pair L,B
-            if (d_model_parameters.with_third_phase()) {
-               found_ceq = computeCeq(temperature, PhaseIndex::phaseL,
-                                      PhaseIndex::phaseB, &ceq[0]);
-            }
          }
 
-         if (d_model_parameters.with_third_phase()) {
-            found_ceq = computeCeq(temperature, PhaseIndex::phaseA,
-                                   PhaseIndex::phaseB, &ceq[0]);
-         }
+         ConcFreeEnergyStrategy* free_energy_strategy =
+             dynamic_cast<ConcFreeEnergyStrategy*>(d_free_energy_strategy);
 
-         if (d_cafe != 0 && found_ceq) {
-            if (phi_min < 0.1)
-               d_cafe->energyVsPhiAndC(
+         if (free_energy_strategy && found_ceq) {
+            if (phi_min < 0.1) {
+               free_energy_strategy->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
 #ifndef HAVE_THERMO4PFM
                    d_model_parameters.phase_well_func_type(),
 #endif
-                   false);
-            if (d_model_parameters.with_third_phase()) {
-               d_cafe->energyVsPhiAndC(
-                   temperature, &ceq[0], found_ceq,
-                   d_model_parameters.phase_well_scale(),
-#ifndef HAVE_THERMO4PFM
-                   d_model_parameters.phase_well_func_type(),
-#endif
-                   true);
+                   51, 50);
             }
          }
          mpi.Barrier();
@@ -2548,11 +2465,15 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
    if (mpi.getRank() ==
        0)  // do it on PE0 only to avoid error message prints from all PEs
    {
-      found_ceq = d_cafe->computeCeqT(temperature,
+      ConcFreeEnergyStrategy* free_energy_strategy =
+          dynamic_cast<ConcFreeEnergyStrategy*>(d_free_energy_strategy);
+      assert(free_energy_strategy);
+
+      found_ceq = free_energy_strategy->computeCeqT(temperature,
 #ifndef HAVE_THERMO4PFM
-                                      pi0, pi1,
+                                                    pi0, pi1,
 #endif
-                                      &lceq[0], 50, true);
+                                                    &lceq[0]);
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;
       if (lceq[1] > 1.) found_ceq = false;
@@ -2563,11 +2484,11 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
                     << std::endl;
          lceq[0] = ceq_init1;
          lceq[1] = ceq_init0;
-         found_ceq = d_cafe->computeCeqT(temperature,
+         found_ceq = free_energy_strategy->computeCeqT(temperature,
 #ifndef HAVE_THERMO4PFM
-                                         pi0, pi1,
+                                                       pi0, pi1,
 #endif
-                                         &lceq[0], 50, true);
+                                                       &lceq[0]);
          if (lceq[0] > 1.) found_ceq = false;
          if (lceq[0] < 0.) found_ceq = false;
          if (lceq[1] > 1.) found_ceq = false;
@@ -2580,32 +2501,6 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
          if (d_ncompositions > 1)
             tbox::plog << "                                  " << lceq[2]
                        << ", " << lceq[3] << "..." << std::endl;
-
-         if (d_model_parameters.isConcentrationModelCALPHAD()) {
-            std::vector<double> d2fdc2(1);
-            CALPHADFreeEnergyFunctionsBinary* cafe =
-                dynamic_cast<CALPHADFreeEnergyFunctionsBinary*>(d_cafe);
-            cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi0,
-#ifdef HAVE_THERMO4PFM
-                                                    d2fdc2.data()
-#else
-                                                    d2fdc2
-#endif
-            );
-            for (std::vector<double>::const_iterator it = d2fdc2.begin();
-                 it != d2fdc2.end(); ++it)
-               tbox::plog << "d2fdc2=" << *it << std::endl;
-            cafe->computeSecondDerivativeFreeEnergy(temperature, &lceq[0], pi1,
-#ifdef HAVE_THERMO4PFM
-                                                    d2fdc2.data()
-#else
-                                                    d2fdc2
-#endif
-            );
-            for (std::vector<double>::const_iterator it = d2fdc2.begin();
-                 it != d2fdc2.end(); ++it)
-               tbox::plog << "d2fdc2=" << *it << std::endl;
-         }
       } else {
          tbox::plog << "ERROR: Equilibrium concentrations not found... "
                     << std::endl;
