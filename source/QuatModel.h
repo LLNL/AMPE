@@ -47,7 +47,6 @@
 #include "Grains.h"
 #include "FieldsInitializer.h"
 #include "EventInterval.h"
-#include "FreeEnergyFunctions.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -397,7 +396,6 @@ class QuatModel : public PFModel
    void setRefPhaseConcentrationsToEquilibrium(const double* const ceq);
 
    void setupAziz();
-   void setupFreeEnergyFunctions();
 
    void findAndNumberGrains(void);
    void computeGrainDiagnostics(void);
@@ -630,7 +628,6 @@ class QuatModel : public PFModel
 
    HeatCapacityStrategy* d_heat_capacity_strategy;
    MolarVolumeStrategy* d_mvstrategy;
-   FreeEnergyFunctions* d_cafe;
    PhaseFluxStrategy* d_phase_flux_strategy;
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
