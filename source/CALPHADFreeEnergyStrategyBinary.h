@@ -178,7 +178,10 @@ class CALPHADFreeEnergyStrategyBinary : public FreeEnergyStrategy
       }
    }
 
-   void preRunDiagnostics() { d_calphad_fenergy->preRunDiagnostics(); }
+   void preRunDiagnostics(const double temperature)
+   {
+      d_calphad_fenergy->preRunDiagnostics(temperature);
+   }
 
  protected:
    void defaultComputeSecondDerivativeEnergyPhaseL(

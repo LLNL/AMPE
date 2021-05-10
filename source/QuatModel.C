@@ -2440,19 +2440,9 @@ void QuatModel::preRunDiagnostics(void)
           d_model_parameters.isConcentrationModelCALPHAD()) {
          assert(temperature > 0.);
          if (mpi.getRank() == 0) {
-            std::ofstream ffile("FvsT.dat", std::ios::out);
             assert(d_free_energy_strategy_for_diffusion);
-            d_free_energy_strategy_for_diffusion->preRunDiagnostics(ffile);
-         }
-
-         if (mpi.getRank() == 0 && d_cafe != 0) {
-            // energy vs. composition for phi=0 and phi=1
-#ifdef HAVE_THERMO4PFM
-            std::ofstream os("FvsC.dat", std::ios::out);
-            d_cafe->printEnergyVsComposition(temperature, os);
-#else
-            d_cafe->printEnergyVsComposition(temperature);
-#endif
+            d_free_energy_strategy_for_diffusion->preRunDiagnostics(
+                temperature);
          }
 
          // compute equilibrium composition for pair L,A

@@ -116,7 +116,7 @@ class CALPHADFreeEnergyFunctionsTernary : public CALPHADFreeEnergyFunctions
        const double phi_well_scale, const std::string& phi_well_type,
        const int npts_phi = 51,
        const int npts_c = 50);  // number of compositions to use (>1)
-   void printEnergyVsComposition(const double temperature,
+   void printEnergyVsComposition(const double temperature, std::ofstream& os,
                                  const int npts = 100);
    double fchem(const double phi, const double eta, const double* const conc,
                 const double temperature);

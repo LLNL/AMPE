@@ -152,7 +152,10 @@ class KKSdiluteBinary : public FreeEnergyStrategy
       }
    }
 
-   void preRunDiagnostics() { d_kksdilute_fenergy->preRunDiagnostics(); }
+   void preRunDiagnostics(const double temperature)
+   {
+      d_kksdilute_fenergy->preRunDiagnostics(temperature);
+   }
 
  private:
    EnergyInterpolationType d_energy_interp_func_type;
