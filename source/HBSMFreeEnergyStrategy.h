@@ -130,6 +130,8 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
    double computeSolidBConcentration(const double hphi, const double heta,
                                      const double cB) const;
 
+   void preRunDiagnostics(const double temperature){};
+
  private:
    double computeFreeEnergyPrivate(const double temperature, const double conc,
                                    const double A, const double Ceq,

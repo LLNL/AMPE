@@ -91,7 +91,8 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
                             const PhaseIndex pi1, double* ceq,
                             const int maxits = 20, const bool verbose = false);
 
-   void preRunDiagnostics(const double T0 = 300., const double T1 = 3000.)
+   void preRunDiagnostics(const double temperature, const double T0 = 300.,
+                          const double T1 = 3000.)
    {
       std::ofstream os1("FlC0vsT.dat", std::ios::out);
       os1 << "#Species 0, Phase L" << std::endl;
@@ -108,6 +109,10 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
       std::ofstream os4("FsC1vsT.dat", std::ios::out);
       os4 << "#Species 1, Phase A" << std::endl;
       d_g_species_phaseA[1].plotFofT(os4, T0, T1);
+
+      // energy vs. composition for phi=0 and phi=1
+      std::ofstream os("FvsC.dat", std::ios::out);
+      printEnergyVsComposition(temperature, os);
    }
 
    int computePhaseConcentrations(const double temperature, const double* conc,
@@ -118,7 +123,7 @@ class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
        const double phi_well_scale, const std::string& phi_well_type,
        const int npts_phi = 51,
        const int npts_c = 50);  // # of compositions to use (>1)
-   void printEnergyVsComposition(const double temperature,
+   void printEnergyVsComposition(const double temperature, std::ofstream& os,
                                  const int npts = 100);
    double fchem(const double phi, const double eta, const double* const conc,
                 const double temperature);

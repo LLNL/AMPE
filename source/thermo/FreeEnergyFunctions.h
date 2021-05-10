@@ -40,6 +40,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace ampe_thermo
 {
@@ -62,6 +63,7 @@ class FreeEnergyFunctions
                                 const int npts_phi = 51,
                                 const int npts_c = 50) = 0;
    virtual void printEnergyVsComposition(const double temperature,
+                                         std::ofstream& os,
                                          const int npts = 100) = 0;
 
    virtual void computeSecondDerivativeFreeEnergy(

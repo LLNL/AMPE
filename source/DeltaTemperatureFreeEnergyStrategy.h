@@ -104,6 +104,8 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
                                 const int fb_id, const bool gp);
 
+   void preRunDiagnostics(const double temperature){};
+
  private:
    // melting temperature
    const double d_Tm;

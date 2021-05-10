@@ -61,6 +61,9 @@ class BiasDoubleWellBeckermannFreeEnergyStrategy
                         const int eta_id, const int conc_id, const int fl_id,
                         const int fa_id, const int fb_id, const int rhs_id);
 
+   void preRunDiagnostics(const double temperature){};
+
+
  private:
    double d_alpha;
    MeltingTemperatureStrategy* d_meltingTstrat;

@@ -74,7 +74,10 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
                             const PhaseIndex pi1, double* ceq,
                             const int maxits = 20, const bool verbose = false);
 
-   void preRunDiagnostics(const double T0 = 300., const double T1 = 3000.) {}
+   void preRunDiagnostics(const double temperature, const double T0 = 300.,
+                          const double T1 = 3000.)
+   {
+   }
 
    int computePhaseConcentrations(const double temperature, const double* conc,
                                   const double phi, const double eta,
@@ -84,7 +87,7 @@ class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
        const double phi_well_scale, const std::string& phi_well_type,
        const int npts_phi = 51,
        const int npts_c = 50);  // # of compositions to use (>1)
-   void printEnergyVsComposition(const double temperature,
+   void printEnergyVsComposition(const double temperature, std::ofstream& os,
                                  const int npts = 100);
    double fchem(const double phi, const double eta, const double* const conc,
                 const double temperature);
