@@ -977,7 +977,7 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator->setPartitionCoefficientStrategy(d_partition_coeff_strategy);
 
 
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       d_integrator_quat_only->setQuatGradStrategy(d_quat_grad_strategy);
       d_integrator_quat_only->setMobilityStrategy(d_mobility_strategy);
       d_integrator_quat_only->setFreeEnergyStrategy(d_free_energy_strategy);
@@ -1008,7 +1008,7 @@ void QuatModel::InitializeIntegrator(void)
        d_model_parameters.conc_interp_func_type(),
        d_model_parameters.eta_well_func_type());
 
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->setModelParameters(
           d_time,
           1.e8,  // end_time large enough to never be reached
@@ -1030,7 +1030,7 @@ void QuatModel::InitializeIntegrator(void)
    }
 
    d_integrator->initialize(d_patch_hierarchy);
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       const double atol = 1.e-4;
       const double rtol = atol * 1.e-2;
       tbox::pout << "QuatModel --- "
@@ -1182,7 +1182,7 @@ void QuatModel::initializeCoarseRefineOperators()
    d_integrator->initializeCoarseRefineOperators(d_gridding_algorithm,
                                                  d_quat_refine_op,
                                                  d_quat_coarsen_op);
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->initializeCoarseRefineOperators(
           d_gridding_algorithm, d_quat_refine_op, d_quat_coarsen_op);
 }
@@ -1291,7 +1291,7 @@ void QuatModel::CreateIntegrator(std::shared_ptr<tbox::Database> input_db)
           "Integrator", d_model_parameters, this, d_grid_geometry, d_qlen,
           d_ncompositions, input_db, d_use_warm_start, d_symmetry_aware,
           d_all_periodic));
-      if (d_model_parameters.with_orientation())
+      if (d_model_parameters.evolveQuat())
          d_integrator_quat_only.reset(QuatIntegratorFactory::create(
              "quatonly", d_model_parameters, this, d_grid_geometry, d_qlen, 0,
              input_db, false, d_symmetry_aware, d_all_periodic));
@@ -1302,7 +1302,7 @@ void QuatModel::CreateIntegrator(std::shared_ptr<tbox::Database> input_db)
    }
 
    d_integrator->setVerbosity(d_verbosity->basicLevel());
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->setVerbosity(d_verbosity->basicLevel());
 }
 
@@ -1711,14 +1711,17 @@ void QuatModel::registerOrientationVariables(void)
    d_quat_scratch_id = variable_db->registerVariableAndContext(
        d_quat_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-   d_quat_relax_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                                         "quat_relax", d_qlen));
-   assert(d_quat_relax_var);
-   d_quat_relax_id = variable_db->registerVariableAndContext(
-       d_quat_relax_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
-   d_quat_relax_scratch_id = variable_db->registerVariableAndContext(
-       d_quat_relax_var, scratch,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+   if (d_model_parameters.evolveQuat()) {
+      d_quat_relax_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM), "quat_relax",
+                                         d_qlen));
+      assert(d_quat_relax_var);
+      d_quat_relax_id = variable_db->registerVariableAndContext(
+          d_quat_relax_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
+      d_quat_relax_scratch_id = variable_db->registerVariableAndContext(
+          d_quat_relax_var, scratch,
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+   }
 
    d_quat_diffs_var.reset(new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                                          "quat_diffs",
@@ -1937,7 +1940,7 @@ void QuatModel::RegisterVariables(void)
                                    d_quat_diffs_var, d_quat_symm_rotation_var,
                                    d_weight_var, d_temperature_var, d_cp_var);
 
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       d_integrator_quat_only->RegisterVariables(
           d_phase_var, d_eta_var, d_quat_relax_var, d_quat_grad_cell_var,
           d_quat_grad_side_var, d_quat_grad_modulus_var, d_phase_mobility_var,
@@ -1975,7 +1978,7 @@ void QuatModel::RegisterVariables(void)
    }
 
    d_integrator->RegisterFreeEnergyVariables(d_f_l_var, d_f_a_var, d_f_b_var);
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->RegisterFreeEnergyVariables(d_f_l_var, d_f_a_var,
                                                           d_f_b_var);
 
@@ -1999,7 +2002,7 @@ void QuatModel::RegisterVariables(void)
 
    d_integrator->setupBC();
 
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       d_integrator_quat_only->setupBC();
    }
 }
@@ -2800,10 +2803,12 @@ void QuatModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
                                           d_quat_id,          // source
                                           d_quat_scratch_id,  // temporary
                                           d_quat_refine_op);
-      d_regrid_refine_alg->registerRefine(d_quat_relax_id,  // destination
-                                          d_quat_relax_id,  // source
-                                          d_quat_relax_scratch_id,  // temporary
-                                          d_quat_refine_op);
+      if (d_model_parameters.evolveQuat())
+         d_regrid_refine_alg->registerRefine(
+             d_quat_relax_id,          // destination
+             d_quat_relax_id,          // source
+             d_quat_relax_scratch_id,  // temporary
+             d_quat_refine_op);
    }
 
    if (d_model_parameters.with_heat_equation()) {
@@ -2954,7 +2959,7 @@ void QuatModel::initializeLevelData(
    d_integrator->initializeLevelData(hierarchy, level_number, time,
                                      can_be_refined, initial_time, old_level,
                                      allocate_data);
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->initializeLevelData(hierarchy, level_number, time,
                                                   can_be_refined, initial_time,
                                                   old_level, allocate_data);
@@ -3079,14 +3084,15 @@ void QuatModel::AllocateQuatLocalPatchData(
    if (!level->checkAllocated(d_quat_id))
       level->allocatePatchData(d_quat_id, time);
 
-   if (!level->checkAllocated(d_quat_relax_id))
-      level->allocatePatchData(d_quat_relax_id, time);
+   if (d_model_parameters.evolveQuat()) {
+      if (!level->checkAllocated(d_quat_relax_id))
+         level->allocatePatchData(d_quat_relax_id, time);
+      AllocateAndZeroData<pdat::CellData<double> >(d_quat_relax_scratch_id,
+                                                   level, time, zero_data);
+   }
 
    AllocateAndZeroData<pdat::CellData<double> >(d_quat_scratch_id, level, time,
                                                 zero_data);
-
-   AllocateAndZeroData<pdat::CellData<double> >(d_quat_relax_scratch_id, level,
-                                                time, zero_data);
 
    AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffusion_id, level,
                                                 time, zero_data);
@@ -3354,9 +3360,10 @@ void QuatModel::DeallocateIntermediateLocalPatchData(
       level->deallocatePatchData(d_quat_grad_side_id);
       level->deallocatePatchData(d_quat_grad_modulus_id);
       level->deallocatePatchData(d_quat_diffs_id);
-      level->deallocatePatchData(d_quat_relax_id);
-      level->deallocatePatchData(d_quat_relax_scratch_id);
-
+      if (d_model_parameters.evolveQuat()) {
+         level->deallocatePatchData(d_quat_relax_id);
+         level->deallocatePatchData(d_quat_relax_scratch_id);
+      }
       if (d_symmetry_aware) {
          level->deallocatePatchData(d_quat_symm_rotation_id);
          if (d_model_parameters.with_extra_visit_output()) {
@@ -3435,7 +3442,7 @@ void QuatModel::resetHierarchyConfiguration(
 
    d_integrator->resetHierarchyConfiguration(hierarchy, coarsest_level,
                                              finest_level);
-   if (d_model_parameters.with_orientation())
+   if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->resetHierarchyConfiguration(hierarchy,
                                                           coarsest_level,
                                                           finest_level);
