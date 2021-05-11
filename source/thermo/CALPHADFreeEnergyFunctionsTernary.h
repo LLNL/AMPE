@@ -41,7 +41,6 @@
 #include "CALPHADConcSolverTernary.h"
 #include "CALPHADEqConcSolverTernary.h"
 #include "CALPHADTieLineConcSolverTernary.h"
-#include "CALPHADFreeEnergyFunctions.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -50,7 +49,7 @@
 namespace ampe_thermo
 {
 
-class CALPHADFreeEnergyFunctionsTernary : public CALPHADFreeEnergyFunctions
+class CALPHADFreeEnergyFunctionsTernary
 {
  public:
    CALPHADFreeEnergyFunctionsTernary(

@@ -40,7 +40,6 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverBinary.h"
 #include "CALPHADEqConcSolverBinary.h"
-#include "CALPHADFreeEnergyFunctions.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -55,7 +54,7 @@
 namespace ampe_thermo
 {
 
-class CALPHADFreeEnergyFunctionsBinary : public CALPHADFreeEnergyFunctions
+class CALPHADFreeEnergyFunctionsBinary
 {
  public:
    CALPHADFreeEnergyFunctionsBinary(

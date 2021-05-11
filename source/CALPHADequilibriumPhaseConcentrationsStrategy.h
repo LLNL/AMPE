@@ -37,7 +37,6 @@
 #define included_CALPHADequilibriumPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
-#include "CALPHADFreeEnergyFunctions.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"

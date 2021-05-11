@@ -40,7 +40,6 @@
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverBinary.h"
 #include "FreeEnergyStrategy.h"
-#include "FreeEnergyFunctions.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "FuncFort.h"
 

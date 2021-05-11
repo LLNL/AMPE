@@ -38,7 +38,6 @@
 
 #include "Phases.h"
 #include "KKSdiluteBinaryConcentrationSolver.h"
-#include "FreeEnergyFunctions.h"
 #include "InterpolationType.h"
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -49,7 +48,7 @@ using namespace SAMRAI;
 namespace ampe_thermo
 {
 
-class KKSFreeEnergyFunctionDiluteBinary : public FreeEnergyFunctions
+class KKSFreeEnergyFunctionDiluteBinary
 {
  public:
    KKSFreeEnergyFunctionDiluteBinary(
