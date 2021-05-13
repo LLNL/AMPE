@@ -198,7 +198,10 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
                         const int npts_c)
    {
       d_calphad_fenergy->energyVsPhiAndC(temperature, ceq, found_ceq,
-                                         phi_well_scale, phi_well_type,
+                                         phi_well_scale,
+#ifndef HAVE_THERMO4PFM
+                                         phi_well_type,
+#endif
                                          npts_phi, npts_c);
    }
 

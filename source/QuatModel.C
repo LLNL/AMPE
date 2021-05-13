@@ -2397,10 +2397,7 @@ void QuatModel::preRunDiagnostics(void)
                free_energy_strategy->energyVsPhiAndC(
                    temperature, &ceq[0], found_ceq,
                    d_model_parameters.phase_well_scale(),
-#ifndef HAVE_THERMO4PFM
-                   d_model_parameters.phase_well_func_type(),
-#endif
-                   51, 50);
+                   d_model_parameters.phase_well_func_type(), 51, 50);
             }
          }
          mpi.Barrier();
@@ -2469,11 +2466,8 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
           dynamic_cast<ConcFreeEnergyStrategy*>(d_free_energy_strategy);
       assert(free_energy_strategy);
 
-      found_ceq = free_energy_strategy->computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                                    pi0, pi1,
-#endif
-                                                    &lceq[0]);
+      found_ceq =
+          free_energy_strategy->computeCeqT(temperature, pi0, pi1, &lceq[0]);
       if (lceq[0] > 1.) found_ceq = false;
       if (lceq[0] < 0.) found_ceq = false;
       if (lceq[1] > 1.) found_ceq = false;
@@ -2484,11 +2478,8 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
                     << std::endl;
          lceq[0] = ceq_init1;
          lceq[1] = ceq_init0;
-         found_ceq = free_energy_strategy->computeCeqT(temperature,
-#ifndef HAVE_THERMO4PFM
-                                                       pi0, pi1,
-#endif
-                                                       &lceq[0]);
+         found_ceq =
+             free_energy_strategy->computeCeqT(temperature, pi0, pi1, &lceq[0]);
          if (lceq[0] > 1.) found_ceq = false;
          if (lceq[0] < 0.) found_ceq = false;
          if (lceq[1] > 1.) found_ceq = false;
