@@ -5959,12 +5959,13 @@ void QuatModel::evaluateEnergy(
 
    d_free_energy_strategy->computeFreeEnergySolidA(hierarchy, d_temperature_id,
                                                    d_f_a_id, gp);
-
+#ifndef HAVE_THERMO4PFM
    if (d_model_parameters.with_third_phase()) {
       d_free_energy_strategy->computeFreeEnergySolidB(hierarchy,
                                                       d_temperature_id,
                                                       d_f_b_id, gp);
    }
+#endif
 
    const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
 

@@ -115,8 +115,10 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
                                      const std::vector<double>& c);
    void computeLocalDiffusionMatrixA(const double temperature,
                                      const std::vector<double>& c);
+#ifndef HAVE_THERMO4PFM
    void computeLocalDiffusionMatrixB(const double temperature,
                                      const std::vector<double>& c);
+#endif
 
    bool d_same_composition_for_third_phase;
 

@@ -42,8 +42,10 @@
 
 #ifdef HAVE_THERMO4PFM
 using namespace Thermo4PFM;
+typedef float jacobian_dtype;
 #else
 using namespace ampe_thermo;
+typedef double jacobian_dtype;
 #endif
 
 int main(int argc, char* argv[])
@@ -93,9 +95,9 @@ int main(int argc, char* argv[])
 
    double fvec1[5];
    double fvec2[5];
-   double* fjac[5];
+   jacobian_dtype* fjac[5];
    for (int i = 0; i < 5; i++)
-      fjac[i] = new double[5];
+      fjac[i] = new jacobian_dtype[5];
 
    double x[5] = {0.1, 0.2, 0.3, 0.4, 0.5};
 

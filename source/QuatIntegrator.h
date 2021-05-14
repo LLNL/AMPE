@@ -589,11 +589,13 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                          const int conc_id, const int quat_id,
                          const int phase_rhs_id, const int temperature_id,
                          const bool visit_flag);
+#ifndef HAVE_THERMO4PFM
    void evaluateEtaRHS(const double time,
                        std::shared_ptr<hier::PatchHierarchy> hierarchy,
                        const int phase_id, const int eta_id, const int conc_id,
                        const int quat_id, const int eta_rhs_id,
                        const int temperature_id);
+#endif
    void evaluateTemperatureRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
                                const int temperature_id, const int phase_rhs_id,
                                const int temperature_rhs_id,

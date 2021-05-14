@@ -397,6 +397,7 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
          << amob[0] * d2f[0] / m2toum2 << std::endl;
    }
 
+#ifndef HAVE_THERMO4PFM
    if (d_with_third_phase) {
       os << std::endl;
       os << "#Interdiffusion[m2/s]  vs. composition in phase B at T="
@@ -413,4 +414,5 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
             << amob[0] * d2f[0] / m2toum2 << std::endl;
       }
    }
+#endif
 }

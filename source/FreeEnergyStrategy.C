@@ -94,6 +94,7 @@ void FreeEnergyStrategy::computeFreeEnergySolidA(
    }
 }
 
+#ifndef HAVE_THERMO4PFM
 void FreeEnergyStrategy::computeFreeEnergySolidB(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fb_id, const bool gp)
@@ -110,3 +111,4 @@ void FreeEnergyStrategy::computeFreeEnergySolidB(
       }
    }
 }
+#endif

@@ -774,20 +774,17 @@ void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseA(
 
 //=======================================================================
 
+#ifndef HAVE_THERMO4PFM
 void KKSdiluteBinary::computeSecondDerivativeEnergyPhaseB(
     const double temp, const std::vector<double>& c_b,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {
    d_kksdilute_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
                                                           PhaseIndex::phaseB,
-#ifdef HAVE_THERMO4PFM
-                                                          d2fdc2.data()
-#else
-                                                          d2fdc2
-#endif
-   );
+                                                          d2fdc2);
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
                                                         PhaseIndex::phaseB);
 }
+#endif

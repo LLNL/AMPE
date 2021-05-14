@@ -167,7 +167,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
 }
 
 //=======================================================================
-
+#ifndef HAVE_THERMO4PFM
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int fs_id, const bool gp)
@@ -191,7 +191,7 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
    computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfs_id, d_conc_b_id,
                                  PhaseIndex::phaseB);
 }
-
+#endif
 
 //=======================================================================
 
@@ -222,7 +222,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
 }
 
 //=======================================================================
-
+#ifndef HAVE_THERMO4PFM
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
     hier::Patch& patch, const int temperature_id, const int fs_id,
     const bool gp)
@@ -233,7 +233,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
    computeFreeEnergyPrivate(patch, temperature_id, fs_id, d_conc_b_id,
                             PhaseIndex::phaseB, gp);
 }
-
+#endif
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
@@ -1023,7 +1023,7 @@ void CALPHADFreeEnergyStrategyBinary::
 }
 
 //=======================================================================
-
+#ifndef HAVE_THERMO4PFM
 void CALPHADFreeEnergyStrategyBinary::
     defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
                                                const std::vector<double>& c_b,
@@ -1032,14 +1032,10 @@ void CALPHADFreeEnergyStrategyBinary::
 {
    d_calphad_fenergy->computeSecondDerivativeFreeEnergy(temp, &c_b[0],
                                                         PhaseIndex::phaseB,
-#ifdef HAVE_THERMO4PFM
-                                                        d2fdc2.data()
-#else
-                                                        d2fdc2
-#endif
-   );
+                                                        d2fdc2);
 
    if (use_internal_units)
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
                                                         PhaseIndex::phaseB);
 }
+#endif

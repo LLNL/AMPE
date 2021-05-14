@@ -51,7 +51,9 @@ class ConstantMolarVolumeStrategy : public MolarVolumeStrategy
 
       d_inv_vm[static_cast<int>(PhaseIndex::phaseL)] = 1.e-6 / vml;
       d_inv_vm[static_cast<int>(PhaseIndex::phaseA)] = 1.e-6 / vma;
+#ifndef HAVE_THERMO4PFM
       d_inv_vm[static_cast<int>(PhaseIndex::phaseB)] = 1.e-6 / vmb;
+#endif
    }
 
 

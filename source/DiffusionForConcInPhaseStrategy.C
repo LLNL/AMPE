@@ -134,6 +134,7 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixA(
       assert(d_local_dmat[i] == d_local_dmat[i]);
 }
 
+#ifndef HAVE_THERMO4PFM
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
     const double temperature, const std::vector<double>& c)
 {
@@ -144,6 +145,7 @@ void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixB(
 
    small_mat_mult(d_ncompositions, &d_mobmat[0], &d_d2f[0], &d_local_dmat[0]);
 }
+#endif
 
 void DiffusionForConcInPhaseStrategy::setDiffusion(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -474,11 +476,13 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                for (int ic = 0; ic < nc2; ic++)
                   ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
 
+#ifndef HAVE_THERMO4PFM
                if (d_with_third_phase) {
                   computeLocalDiffusionMatrixB(temp, c_b);
                   for (int ic = 0; ic < nc2; ic++)
                      ptr_dx_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                }
+#endif
             }
          }
       }
@@ -544,11 +548,13 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                for (int ic = 0; ic < nc2; ic++)
                   ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
 
+#ifndef HAVE_THERMO4PFM
                if (d_with_third_phase) {
                   computeLocalDiffusionMatrixB(temp, c_b);
                   for (int ic = 0; ic < nc2; ic++)
                      ptr_dy_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                }
+#endif
             }
          }
       }
@@ -619,11 +625,13 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                   for (int ic = 0; ic < nc2; ic++)
                      ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
 
+#ifndef HAVE_THERMO4PFM
                   if (d_with_third_phase) {
                      computeLocalDiffusionMatrixB(temp, c_b);
                      for (int ic = 0; ic < nc2; ic++)
                         ptr_dz_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
                   }
+#endif
                }
             }
          }

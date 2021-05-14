@@ -2956,6 +2956,7 @@ void QuatIntegrator::evaluatePhaseRHS(
 
 //-----------------------------------------------------------------------
 
+#ifndef HAVE_THERMO4PFM
 void QuatIntegrator::evaluateEtaRHS(
     const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int phase_id, const int eta_id, const int conc_id, const int quat_id,
@@ -3062,6 +3063,7 @@ void QuatIntegrator::evaluateEtaRHS(
 
    t_eta_rhs_timer->stop();
 }
+#endif
 
 //-----------------------------------------------------------------------
 
@@ -3846,6 +3848,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    // tbox::plog<<"L2 Norm ydot_phase_id="<<norm_ydot_phase_id<<endl;
 
    // Set the eta component of the RHS
+#ifndef HAVE_THERMO4PFM
    if (d_with_third_phase) {
       const int ydot_eta_id =
           y_dot_samvect->getComponentDescriptorIndex(d_eta_component_index);
@@ -3854,6 +3857,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
                      d_conc_scratch_id, d_quat_scratch_id, ydot_eta_id,
                      d_temperature_scratch_id);
    }
+#endif
 
    // Set the quaternion component of the RHS
    if (d_evolve_quat) {
