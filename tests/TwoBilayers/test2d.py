@@ -65,5 +65,6 @@ for line in lines:
 if end_reached:
   sys.exit(0)
 else:
+  print("End time not reached")
   sys.exit(1)
 
