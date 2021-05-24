@@ -41,26 +41,27 @@ AMPE requires the third-party packages hypre, Sundials and SAMRAI. These
 libaries are typically not pre-installed on most systems and need to be
 installed.
 
-SAMRAI: compatible with version 4.0.0 or later, built without Sundials.
+SAMRAI: compatible with version 4.1.0 or later, built without Sundials.
 Sundials: compatible with version 5.4.0 or later.
 
-To build SAMRAI4.0.0, do something similar to this:
+To build SAMRAI4.1.0, do something similar to this:
 --------------------------------------------------
 
 Download SAMRAI release from
 https://computing.llnl.gov/projects/samrai/software#download
 (includes BLT)
 
-gunzip  SAMRAI-v4.0.0.tar.gz
+gunzip  SAMRAI-v4.1.0.tar.gz
 cat SAMRAI-v4.0.0.tar|tar -xpf -
-mv SAMRAI SAMRAI-v4.0.0
+mv SAMRAI SAMRAI-v4.1.0
 
-cd SAMRAI-v4.0.0
+cd SAMRAI-v4.1.0
 mkdir build
 cd build
-cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_Fortran_COMPILER=mpif77 \
+cmake -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_Fortran_COMPILER=mpif77 \
       -DHDF5_DIR=$HDF5_DIR -DHYPRE_DIR=$HOME/hypre/gnu-cpu \
-      -DCMAKE_INSTALL_PREFIX=/home/q8j/SAMRAI/SAMRAI-v4.0.0 ..
+      -DCMAKE_INSTALL_PREFIX=/home/q8j/SAMRAI/SAMRAI-v4.1.0 ..
 
 make
 make install
