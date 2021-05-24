@@ -199,17 +199,8 @@ int Sundials_SAMRAIVector::testReciprocal(const SundialsAbstractVector* x)
 }
 
 #ifndef USE_CPODE
-// note: this function has been modified to include the missing
-// "allreduce" in the SAMRAI getLenght function
 sunindextype Sundials_SAMRAIVector::getLength() const
 {
-   int64_t len = d_samrai_vector->getLength();
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   if (mpi.getSize() > 1) {
-      int64_t glen = len;
-      mpi.Allreduce(&glen, &len, 1, MPI_INT64_T, MPI_SUM);
-   }
-
-   return static_cast<sunindextype>(len);
+   return static_cast<sunindextype>(d_samrai_vector->getLength());
 }
 #endif
