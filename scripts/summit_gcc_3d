@@ -1,0 +1,30 @@
+#!/bin/csh
+module load gcc/6.4.0
+module load netcdf
+module load netcdf-cxx4
+module load hdf5
+module load boost
+module load python/3.7.0-anaconda3-5.3.0
+module load cmake
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+rm -f ../source/fortran/3d/*.f
+
+cmake -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc \
+      -DCMAKE_Fortran_COMPILER=gfortran \
+      -DMPIEXEC_EXECUTABLE="/sw/summit/xalt/1.2.1/bin/jsrun" \
+      -DMPIEXEC_NUMPROCS_FLAG="-n" \
+      -DMPIEXEC_PREFLAGS="-a1;-c7;-bpacked:2;-g1" \
+      -DSAMRAI_DIR=$HOME/SAMRAI/SAMRAI-v4.1.0/install_gcc \
+      -DHYPRE_DIR=$HOME/hypre/summit_gcc_cpu \
+      -DSUNDIALS_DIR=$HOME/sundials/sundials-5.7.0/install_gcc \
+      -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
+      -DCMAKE_PREFIX_PATH=${HOME}/bin:$OLCF_NETCDF_CXX4_ROOT \
+      -DNDIM="3" \
+      -DUSE_CVODE=ON \
+      ..
+
