@@ -287,7 +287,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
    void setFreeEnergyStrategy(FreeEnergyStrategy* free_energy_strategy);
    void setPhaseConcentrationsStrategy(
-       PhaseConcentrationsStrategy* phase_conc_strategy)
+       std::shared_ptr<PhaseConcentrationsStrategy> phase_conc_strategy)
    {
       assert(phase_conc_strategy != nullptr);
       d_phase_conc_strategy = phase_conc_strategy;
@@ -669,7 +669,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    QuatGradStrategy* d_quat_grad_strategy;
    std::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
-   PhaseConcentrationsStrategy* d_phase_conc_strategy;
+   std::shared_ptr<PhaseConcentrationsStrategy> d_phase_conc_strategy;
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
 
    // use temperature strategy if temperature function of time only,
