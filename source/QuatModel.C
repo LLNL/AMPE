@@ -40,7 +40,6 @@
 #include "TemperatureFreeEnergyStrategy.h"
 #include "HBSMFreeEnergyStrategy.h"
 #include "KKSdiluteBinary.h"
-#include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -61,9 +60,6 @@
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
-#include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
-#include "HBSMequilibriumPhaseConcentrationsStrategy.h"
-#include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "AzizPartitionCoefficientStrategy.h"
 #include "UniformPartitionCoefficientStrategy.h"
@@ -79,6 +75,7 @@
 #include "MobilityFactory.h"
 #include "CompositionDiffusionStrategyFactory.h"
 #include "CompositionRHSStrategyFactory.h"
+#include "PhaseConcentrationsStrategyFactory.h"
 #include "FuncFort.h"
 #include "diagnostics.h"
 
@@ -238,7 +235,6 @@ QuatModel::~QuatModel()
    delete d_temperature_strategy;
    delete d_temperature_strategy_quat_only;
    if (d_heat_capacity_strategy) delete d_heat_capacity_strategy;
-   if (d_phase_conc_strategy) delete d_phase_conc_strategy;
    if (d_partition_coeff_strategy) delete d_partition_coeff_strategy;
    d_integrator.reset();
    d_integrator_quat_only.reset();
@@ -474,60 +470,11 @@ void QuatModel::initializeRHSandEnergyStrategies(
          }
       }
 
-      if (d_model_parameters.kks_phase_concentration()) {
-         tbox::plog << "Phase concentration determined by KKS" << std::endl;
-         if (d_model_parameters.isConcentrationModelCALPHAD()) {
-            if (d_ncompositions == 1)
-               d_phase_conc_strategy =
-                   new CALPHADequilibriumPhaseConcentrationsStrategy<
-                       CALPHADFreeEnergyFunctionsBinary>(
-                       d_conc_l_scratch_id, d_conc_a_scratch_id,
-                       d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
-                       d_conc_b_ref_id,
-                       d_model_parameters.energy_interp_func_type(),
-                       d_model_parameters.conc_interp_func_type(),
-                       d_model_parameters.with_third_phase(), calphad_db,
-                       newton_db, d_ncompositions);
-            else if (d_ncompositions == 2)
-               d_phase_conc_strategy =
-                   new CALPHADequilibriumPhaseConcentrationsStrategy<
-                       CALPHADFreeEnergyFunctionsTernary>(
-                       d_conc_l_scratch_id, d_conc_a_scratch_id,
-                       d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
-                       d_conc_b_ref_id,
-                       d_model_parameters.energy_interp_func_type(),
-                       d_model_parameters.conc_interp_func_type(),
-                       d_model_parameters.with_third_phase(), calphad_db,
-                       newton_db, d_ncompositions);
-
-         } else if (d_model_parameters.isConcentrationModelKKSdilute()) {
-            d_phase_conc_strategy =
-                new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
-                    d_conc_l_scratch_id, d_conc_a_scratch_id,
-                    d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
-                    d_conc_b_ref_id,
-                    d_model_parameters.energy_interp_func_type(),
-                    d_model_parameters.conc_interp_func_type(), d_conc_db);
-         } else {
-            if (d_model_parameters.isConcentrationModelHBSM())
-               d_phase_conc_strategy =
-                   new HBSMequilibriumPhaseConcentrationsStrategy(
-                       d_conc_l_scratch_id, d_conc_a_scratch_id,
-                       d_conc_b_scratch_id, d_model_parameters, d_conc_db);
-         }
-      } else {
-         if (d_model_parameters.partition_phase_concentration()) {
-            d_phase_conc_strategy = new PartitionPhaseConcentrationsStrategy(
-                d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-                d_model_parameters.conc_interp_func_type(),
-                d_partition_coeff_id);
-         } else {  // simply use cl=ca=c
-            d_phase_conc_strategy =
-                new PhaseIndependentConcentrationsStrategy(d_conc_l_scratch_id,
-                                                           d_conc_a_scratch_id,
-                                                           d_conc_b_scratch_id);
-         }
-      }
+      d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
+          d_model_parameters, d_conc_l_scratch_id, d_conc_a_scratch_id,
+          d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
+          d_conc_b_ref_id, d_partition_coeff_id, d_ncompositions, d_conc_db,
+          newton_db);
 
       math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
       mathops.copyData(d_conc_l_id, d_conc_id);
