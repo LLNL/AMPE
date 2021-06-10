@@ -158,7 +158,15 @@ class QuatLevelSolver
     * residual_tol = the maximum error tolerance
     */
    void setStoppingCriteria(const int max_iterations = 10,
-                            const double relative_residual_tol = 1.0e-6);
+                            const double relative_residual_tol = 1.0e-6)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      assert(max_iterations >= 0);
+      assert(residual_tol >= 0.0);
+#endif
+      d_max_iterations = max_iterations;
+      d_relative_residual_tol = relative_residual_tol;
+   }
 
    /*
     * Solve the linear system Au=f.
@@ -200,22 +208,34 @@ class QuatLevelSolver
    /*
     * Return the number of iterations taken by the solver to converge.
     */
-   int getNumberOfIterations() const;
+   int getNumberOfIterations() const { return d_number_iterations; }
 
    /*
     * Set the number of pre-relax steps used by the Hypre solve.
     */
-   void setNumPreRelaxSteps(const int steps);
+   void setNumPreRelaxSteps(const int steps)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      assert(d_hierarchy);
+#endif
+      d_num_pre_relax_steps = steps;
+   }
 
    /*
     * Set the number of post-relax steps used by the Hypre solve.
     */
-   void setNumPostRelaxSteps(const int steps);
+   void setNumPostRelaxSteps(const int steps)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      assert(d_hierarchy);
+#endif
+      d_num_post_relax_steps = steps;
+   }
 
    /*
     * Return the final residual norm returned by the Hypre solve.
     */
-   double getRelativeResidualNorm() const;
+   double getRelativeResidualNorm() const { return d_relative_residual_norm; }
 
    /*
     * Specify boundary condition directly, without using
@@ -230,11 +250,17 @@ class QuatLevelSolver
     * for an explanation of the arguments.
     */
    void setBoundaries(const std::string& boundary_type, const int fluxes = -1,
-                      const int flags = -1, int* bdry_types = NULL);
+                      const int flags = -1, int* bdry_types = NULL)
+   {
+      d_physical_bc_simple_case.setBoundaries(boundary_type, fluxes, flags,
+                                              bdry_types);
+      d_physical_bc_coef_strategy = &d_physical_bc_simple_case;
+      d_physical_bc_variable.reset();
+   }
 
    /*
-    * Specify boundary condition through the use of a
     * Robin boundary condition object.
+    * Specify boundary condition through the use of a
     *
     * Use either setBoundaries() or setPhysicalBcCoefObject(),
     * but not both.
@@ -254,7 +280,11 @@ class QuatLevelSolver
    void setPhysicalBcCoefObject(
        const solv::RobinBcCoefStrategy* physical_bc_coef_strategy,
        const std::shared_ptr<hier::Variable> variable =
-           std::shared_ptr<hier::Variable>());
+           std::shared_ptr<hier::Variable>())
+   {
+      d_physical_bc_coef_strategy = physical_bc_coef_strategy;
+      d_physical_bc_variable = variable;
+   }
 
    /*
     * Set the flag for printing solver information.
@@ -275,7 +305,7 @@ class QuatLevelSolver
     * If this method is not called, or the flag is set false, no printing
     * will occur.
     */
-   void setPrintSolverInfo(const bool print);
+   void setPrintSolverInfo(const bool print) { d_print_solver_info = print; }
 
    /*
     * Set the flag for printing iteration information to the
@@ -283,7 +313,8 @@ class QuatLevelSolver
     *
     * verbose: Print?
     */
-   void setVerbose(const bool verbose);
+   void setVerbose(const bool verbose) { d_verbose = verbose; }
+
 
  private:
    /*
@@ -543,7 +574,5 @@ class QuatLevelSolver
    std::shared_ptr<tbox::Timer> t_create_hypre_solver;
    std::shared_ptr<tbox::Timer> t_hypre_solve;
 };
-
-#include "QuatLevelSolver.I"
 
 #endif  // included_QuatLevelSolver_h

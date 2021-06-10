@@ -163,7 +163,11 @@ class CellPoissonHypreSolver
     *
     * @param relative_residual_tol the maximum error tolerance
     */
-   void setStoppingCriteria(const double relative_residual_tol);
+   void setStoppingCriteria(const double relative_residual_tol)
+   {
+      TBOX_ASSERT(relative_residual_tol >= 0.0);
+      d_relative_residual_tol = relative_residual_tol;
+   }
 
    /*!
     * @brief Solve the linear system Au=f.
@@ -527,7 +531,5 @@ class CellPoissonHypreSolver
    std::shared_ptr<tbox::Timer> t_initsolver;
    std::shared_ptr<tbox::Timer> t_setupsolver;
 };
-
-#include "CellPoissonHypreSolver.I"
 
 #endif

@@ -135,15 +135,23 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * This flag controls the printing of solver information
     * to tbox::pout
     */
-   void setVerbose(bool verbose);
+   void setVerbose(bool verbose) { d_verbose = verbose; }
 
    /*
     * Functions for setting solver mathematic algorithm controls
     */
 
-   void setLevelSolverTolerance(double tol);
+   void setLevelSolverTolerance(double tol) { d_levelsolver_tolerance = tol; }
 
-   void setLevelSolverMaxIterations(int max_iterations);
+   void setLevelSolverMaxIterations(int max_iterations)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (max_iterations < 0) {
+         TBOX_ERROR(d_object_name << ": Invalid number of max iterations\n");
+      }
+#endif
+      d_levelsolver_max_iterations = max_iterations;
+   }
 
    /*
     * Set tolerance for coarse level solve.
@@ -151,7 +159,10 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * If the coarse level solver requires a tolerance (currently, they all do),
     * the specified value is used.
     */
-   void setCoarsestLevelSolverTolerance(double tol);
+   void setCoarsestLevelSolverTolerance(double tol)
+   {
+      d_coarse_levelsolver_tolerance = tol;
+   }
 
    /*
     * Set max iterations for coarse level solve.
@@ -159,7 +170,15 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * If the coarse level solver requires a max iteration limit
     * (currently, they all do), the specified value is used.
     */
-   void setCoarsestLevelSolverMaxIterations(int max_iterations);
+   void setCoarsestLevelSolverMaxIterations(int max_iterations)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (max_iterations < 0) {
+         TBOX_ERROR(d_object_name << ": Invalid number of max iterations\n");
+      }
+#endif
+      d_coarse_levelsolver_max_iterations = max_iterations;
+   }
 
    /*
     * Set the coarse-fine boundary discretization method.
@@ -182,7 +201,19 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     *
     * method: String selecting the coarse-fine discretization method.
     */
-   void setCoarseFineDiscretization(const std::string &coarsefine_method);
+   void setCoarseFineDiscretization(const std::string &coarsefine_method)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (d_hierarchy) {
+         TBOX_ERROR(d_object_name << ": Cannot change coarse-fine\n"
+                                  << "discretization method while operator "
+                                     "state\n"
+                                  << "is initialized because that causes a\n"
+                                  << "corruption in the state.\n");
+      }
+#endif
+      d_cf_discretization = coarsefine_method;
+   }
 
    /*
     * Set the name of the prolongation method.
@@ -203,7 +234,18 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * prolongation_method: String selecting the coarse-fine
     *                      discretization method.
     */
-   void setProlongationMethod(const std::string &prolongation_method);
+   void setProlongationMethod(const std::string &prolongation_method)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (d_hierarchy) {
+         TBOX_ERROR(d_object_name << ": Cannot change prolongation method\n"
+                                  << "while operator state is initialized "
+                                     "because that\n"
+                                  << "causes a corruption in the state.\n");
+      }
+#endif
+      d_prolongation_method = prolongation_method;
+   }
 
 
    /*
@@ -221,7 +263,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * flux and you would like that to be used, set flux id to the
     * patch data index of that space.
     */
-   void setFluxId(int flux_id);
+   void setFluxId(int flux_id) { d_flux_id = flux_id; }
 
 
    /*
@@ -243,7 +285,11 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     *                   set the Robin bc coefficients.
     */
    void setPhysicalBcCoefObject(
-       const solv::RobinBcCoefStrategy *physical_bc_coef);
+       const solv::RobinBcCoefStrategy *physical_bc_coef)
+   {
+      d_physical_bc_coef = physical_bc_coef;
+      d_bc_helper.setCoefImplementation(physical_bc_coef);
+   }
 
    /*
     * Functions for checking validity and correctness of state.
@@ -261,7 +307,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * The FAC Solver is accessed to get convergence data during
     * the cycle postprocessing step.  It is optional.
     */
-   void setSolver(const FACPreconditioner *fac_solver);
+   void setSolver(const FACPreconditioner *solver) { d_solver = solver; }
 
    /*
     * Set the operator coefficients.
@@ -926,7 +972,5 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     */
    int d_rotation_index_id;
 };
-
-#include "QuatFACOps.I"
 
 #endif  // included_QuatFACOps_h

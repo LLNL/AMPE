@@ -287,7 +287,18 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * Current smoothing choices are:
     * - "redblack": Red-black Gauss-Seidel smoothing.
     */
-   void setSmoothingChoice(const std::string &smoothing_choice);
+   void setSmoothingChoice(const std::string &smoothing_choice)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (smoothing_choice != "redblack") {
+         TBOX_ERROR(d_object_name
+                    << ": Bad smoothing choice '" << smoothing_choice
+                    << "' in EllipticFACOps::setSmoothingChoice.");
+      }
+#endif
+      d_smoothing_choice = smoothing_choice;
+      return;
+   }
 
    /*!
     * @brief Set coarse level solver.
@@ -296,7 +307,18 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * - @c "redblack" (red-black smoothing until convergence--very slow!)
     * - @c "hypre" (only if the HYPRE library is available).
     */
-   void setCoarsestLevelSolverChoice(const std::string &choice);
+   void setCoarsestLevelSolverChoice(const std::string &choice)
+   {
+      if (choice == "redblack" || choice == "hypre") {
+         d_coarse_solver_choice = choice;
+      } else {
+         TBOX_ERROR(d_object_name
+                    << ": Bad coarse level solver choice '" << choice
+                    << "' in scapCellPoissonOpsX::setCoarseLevelSolver.");
+      }
+      return;
+   }
+
 
    /*!
     * @brief Set tolerance for coarse level solve.
@@ -304,7 +326,18 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * If the coarse level solver requires a tolerance (currently, they all do),
     * the specified value is used.
     */
-   void setCoarsestLevelSolverTolerance(double tol);
+   void setCoarsestLevelSolverTolerance(double tol)
+   {
+      d_coarse_solver_tolerance = tol;
+      if (d_coarse_solver_choice == "hypre") {
+         std::vector<CellPoissonHypreSolver *>::iterator it(
+             d_hypre_solver.begin());
+         for (; it != d_hypre_solver.end(); ++it)
+            (*it)->setStoppingCriteria(tol);
+      }
+      return;
+   }
+
 
    /*!
     * @brief Set max iterations for coarse level solve.
@@ -312,7 +345,17 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * If the coarse level solver requires a max iteration limit
     * (currently, they all do), the specified value is used.
     */
-   void setCoarsestLevelSolverMaxIterations(int max_iterations);
+   void setCoarsestLevelSolverMaxIterations(int max_iterations)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (max_iterations < 0) {
+         TBOX_ERROR(d_object_name << ": Invalid number of max iterations\n");
+      }
+#endif
+      d_coarse_solver_max_iterations = max_iterations;
+      return;
+   }
+
 
    /*!
     * @brief Set the coarse-fine boundary discretization method.
@@ -336,7 +379,20 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * @param coarsefine_method String selecting the coarse-fine discretization
     * method.
     */
-   void setCoarseFineDiscretization(const std::string &coarsefine_method);
+   void setCoarseFineDiscretization(const std::string &coarsefine_method)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (d_hierarchy) {
+         TBOX_ERROR(d_object_name << ": Cannot change coarse-fine\n"
+                                  << "discretization method while operator "
+                                     "state\n"
+                                  << "is initialized because that causes a\n"
+                                  << "corruption in the state.\n");
+      }
+#endif
+      d_cf_discretization = coarsefine_method;
+      return;
+   }
 
    /*!
     * @brief Set the name of the prolongation method.
@@ -357,7 +413,20 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * @param prolongation_method String selecting the coarse-fine
     *        discretization method.
     */
-   void setProlongationMethod(const std::string &prolongation_method);
+   void setProlongationMethod(const std::string &prolongation_method)
+   {
+#ifdef DEBUG_CHECK_ASSERTIONS
+      if (d_hierarchy) {
+         TBOX_ERROR(d_object_name << ": Cannot change prolongation method\n"
+                                  << "while operator state is initialized "
+                                     "because that\n"
+                                  << "causes a corruption in the state.\n");
+      }
+#endif
+      d_prolongation_method = prolongation_method;
+      return;
+   }
+
 
    //@}
 
@@ -378,7 +447,7 @@ class EllipticFACOps : public solv::FACOperatorStrategy
     * flux and you would like that to be used, set flux id to the
     * patch data index of that space.
     */
-   void setFluxId(int flux_id);
+   void setFluxId(int flux_id) { d_flux_id = flux_id; }
 
    //@}
 
@@ -1120,8 +1189,5 @@ class EllipticFACOps : public solv::FACOperatorStrategy
 
    const int d_depth;
 };
-
-
-#include "EllipticFACOps.I"
 
 #endif  // included_EllipticFACOps
