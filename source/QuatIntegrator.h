@@ -298,7 +298,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void setCompositionDiffusionStrategy(
        std::shared_ptr<CompositionDiffusionStrategy>);
 
-   void setPhaseFluxStrategy(PhaseFluxStrategy*);
+   void setPhaseFluxStrategy(std::shared_ptr<PhaseFluxStrategy>);
    void setTemperatureStrategy(TemperatureStrategy*);
    void setHeatCapacityStrategy(HeatCapacityStrategy*);
 
@@ -685,7 +685,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    std::shared_ptr<CompositionDiffusionStrategy>
        d_composition_diffusion_strategy;
 
-   PhaseFluxStrategy* d_phase_flux_strategy;
+   std::shared_ptr<PhaseFluxStrategy> d_phase_flux_strategy;
 
    double d_current_time;
    double d_previous_timestep;

@@ -16,6 +16,7 @@
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
+#include "PhaseIndependentConcentrationsStrategy.h"
 
 class PhaseConcentrationsStrategyFactory
 {

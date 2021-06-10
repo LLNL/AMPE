@@ -628,7 +628,7 @@ class QuatModel : public PFModel
 
    HeatCapacityStrategy* d_heat_capacity_strategy;
    MolarVolumeStrategy* d_mvstrategy;
-   PhaseFluxStrategy* d_phase_flux_strategy;
+   std::shared_ptr<PhaseFluxStrategy> d_phase_flux_strategy;
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
    std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
