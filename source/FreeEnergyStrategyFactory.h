@@ -8,6 +8,7 @@
 #include "HBSMFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
+#include "DeltaTemperatureFreeEnergyStrategy.h"
 
 class FreeEnergyStrategyFactory
 {

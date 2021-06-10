@@ -51,11 +51,7 @@
 #include "TemperatureStrategyFactory.h"
 #include "ConstantHeatCapacityStrategy.h"
 #include "NKRHeatCapacityStrategy.h"
-#include "PhaseFluxStrategySimple.h"
-#include "PhaseFluxStrategyIsotropic.h"
-#include "PhaseFluxStrategyAnisotropy.h"
-#include "DeltaTemperatureFreeEnergyStrategy.h"
-#include "PhaseIndependentConcentrationsStrategy.h"
+#include "PhaseFluxStrategyFactory.h"
 #include "AzizPartitionCoefficientStrategy.h"
 #include "UniformPartitionCoefficientStrategy.h"
 #include "ConstantMeltingTemperatureStrategy.h"
@@ -333,19 +329,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
    std::shared_ptr<tbox::Database> model_db =
        input_db->getDatabase("ModelParameters");
 
-   double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
-
-   if (epsilon_anisotropy >= 0.)
-      d_phase_flux_strategy =
-          new PhaseFluxStrategyAnisotropy(d_model_parameters.epsilon_phase(),
-                                          epsilon_anisotropy, 4);
-   else if (d_model_parameters.useIsotropicStencil()) {
-      d_phase_flux_strategy =
-          new PhaseFluxStrategyIsotropic(d_model_parameters.epsilon_phase());
-   } else {
-      d_phase_flux_strategy =
-          new PhaseFluxStrategySimple(d_model_parameters.epsilon_phase());
-   }
+   d_phase_flux_strategy = PhaseFluxStrategyFactory::create(d_model_parameters);
 
    std::shared_ptr<tbox::MemoryDatabase> calphad_db;
    std::shared_ptr<tbox::MemoryDatabase> newton_db;

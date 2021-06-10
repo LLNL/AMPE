@@ -53,7 +53,7 @@
 #include "QuatRefinePatchStrategy.h"
 #include "QuatMobilityStrategy.h"
 #include "CompositionRHSStrategy.h"
-#include "PhaseFluxStrategySimple.h"
+#include "PhaseFluxStrategy.h"
 #include "PhaseConcentrationsStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "UniformNoise.h"
@@ -160,7 +160,6 @@ QuatIntegrator::QuatIntegrator(
       d_partition_coeff_strategy(nullptr),
       d_temperature_strategy(nullptr),
       d_composition_rhs_strategy(nullptr),
-      d_phase_flux_strategy(nullptr),
       d_current_time(tbox::IEEE::getSignalingNaN()),
       d_previous_timestep(0.),
       d_eta_id(-1),
@@ -1589,9 +1588,9 @@ void QuatIntegrator::setCompositionDiffusionStrategy(
 }
 
 void QuatIntegrator::setPhaseFluxStrategy(
-    PhaseFluxStrategy* phase_flux_strategy)
+    std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
 {
-   assert(phase_flux_strategy != nullptr);
+   assert(phase_flux_strategy);
    d_phase_flux_strategy = phase_flux_strategy;
 }
 
@@ -2680,7 +2679,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    assert(phase_id >= 0);
    assert(phase_rhs_id >= 0);
    assert(temperature_id >= 0);
-   assert(d_phase_flux_strategy != nullptr);
+   assert(d_phase_flux_strategy);
 
    t_phase_rhs_timer->start();
 
