@@ -46,9 +46,10 @@
 class CompositionStrategyMobilities
 {
  public:
-   CompositionStrategyMobilities(std::shared_ptr<tbox::Database> input_db,
-                                 const bool, const unsigned short ncompositions,
-                                 FreeEnergyStrategy* free_energy_strategy);
+   CompositionStrategyMobilities(
+       std::shared_ptr<tbox::Database> input_db, const bool,
+       const unsigned short ncompositions,
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy);
 
    virtual ~CompositionStrategyMobilities(){};
 
@@ -72,7 +73,7 @@ class CompositionStrategyMobilities
 
  protected:
    // free energy needed to compute diffusion in each phase
-   FreeEnergyStrategy* d_free_energy_strategy;
+   std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    void printMobilitiesVsComposition(const double temperature,
                                      std::ostream& os);

@@ -48,10 +48,10 @@ const double m2toum2 = 1.e12;
 CompositionStrategyMobilities::CompositionStrategyMobilities(
     std::shared_ptr<tbox::Database> input_db, const bool with_third_phase,
     const unsigned short ncompositions,
-    FreeEnergyStrategy* free_energy_strategy)
+    std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
     : d_free_energy_strategy(free_energy_strategy)
 {
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    d_ncompositions = ncompositions;
 
@@ -297,7 +297,7 @@ void CompositionStrategyMobilities::printMobilitiesVsComposition(
 {
    assert(temperature > 0.);
    assert(temperature < 100000.);
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    int nc = 20;
    double eps = 1.e-7;
@@ -357,7 +357,7 @@ void CompositionStrategyMobilities::printDiffusionVsComposition(
 {
    assert(temperature > 0.);
    assert(temperature < 100000.);
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    int nc = 50;
    double eps = 1.e-7;

@@ -143,7 +143,6 @@ QuatIntegrator::QuatIntegrator(
       d_precond_has_dPhidT(false),
       d_grid_geometry(grid_geom),
       d_lag_quat_sidegrad(true),
-      d_free_energy_strategy(nullptr),
       d_uniform_diffusion_time_threshold(tbox::IEEE::getSignalingNaN()),
       d_conc_mobility(tbox::IEEE::getSignalingNaN()),
       d_show_conc_sys_stats(false),
@@ -1566,9 +1565,9 @@ void QuatIntegrator::setMobilityStrategy(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::setFreeEnergyStrategy(
-    FreeEnergyStrategy* free_energy_strategy)
+    std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
 {
-   assert(free_energy_strategy != nullptr);
+   assert(free_energy_strategy);
    d_free_energy_strategy = free_energy_strategy;
 }
 
@@ -4021,10 +4020,10 @@ int QuatIntegrator::PhasePrecondSolve(
 #endif
 
    if (d_precond_has_dPhidT) {
-      DeltaTemperatureFreeEnergyStrategy* free_energy_strategy(
-          dynamic_cast<DeltaTemperatureFreeEnergyStrategy*>(
-              d_free_energy_strategy));
-      TBOX_ASSERT(free_energy_strategy != 0);
+      std::shared_ptr<DeltaTemperatureFreeEnergyStrategy> free_energy_strategy =
+          std::dynamic_pointer_cast<DeltaTemperatureFreeEnergyStrategy>(
+              d_free_energy_strategy);
+      TBOX_ASSERT(free_energy_strategy);
       free_energy_strategy->applydPhidTBlock(
           hierarchy, d_temperature_sol_id, z_phase_id, d_phase_rhs_id,
           d_model_parameters.phase_mobility());

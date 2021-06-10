@@ -61,7 +61,7 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
        const std::string& avg_func_type,
        DiffusionInterpolationType diff_interp_type,
        CompositionStrategyMobilities* mobilities_strategy,
-       FreeEnergyStrategy* free_energy_strategy);
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy);
 
    ~DiffusionForConcInPhaseStrategy(){};
 
@@ -148,7 +148,7 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
    CompositionStrategyMobilities* d_mobilities_strategy;
 
    // free energy needed to compute diffusion in each phase
-   FreeEnergyStrategy* d_free_energy_strategy;
+   std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    /*!
     * function to use to take averages between two phase values

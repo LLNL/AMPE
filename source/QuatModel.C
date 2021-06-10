@@ -38,10 +38,7 @@
 #include "SimpleGradStrategy.h"
 #include "SimpleQuatGradStrategy.h"
 #include "TemperatureFreeEnergyStrategy.h"
-#include "HBSMFreeEnergyStrategy.h"
-#include "KKSdiluteBinary.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
-#include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "ConstantTemperatureStrategy.h"
 #include "SteadyStateTemperatureStrategy.h"
@@ -57,8 +54,6 @@
 #include "PhaseFluxStrategySimple.h"
 #include "PhaseFluxStrategyIsotropic.h"
 #include "PhaseFluxStrategyAnisotropy.h"
-#include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
-#include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "AzizPartitionCoefficientStrategy.h"
@@ -76,6 +71,7 @@
 #include "CompositionDiffusionStrategyFactory.h"
 #include "CompositionRHSStrategyFactory.h"
 #include "PhaseConcentrationsStrategyFactory.h"
+#include "FreeEnergyStrategyFactory.h"
 #include "FuncFort.h"
 #include "diagnostics.h"
 
@@ -127,7 +123,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_meltingT_strategy = nullptr;
 
    d_composition_strategy_mobilities = nullptr;
-   d_free_energy_strategy_for_diffusion = nullptr;
 
    d_heat_capacity_strategy = nullptr;
 
@@ -228,10 +223,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
 QuatModel::~QuatModel()
 {
    delete d_quat_grad_strategy;
-   if (d_free_energy_strategy != d_free_energy_strategy_for_diffusion)
-      delete d_free_energy_strategy;
-   if (d_free_energy_strategy_for_diffusion != nullptr)
-      delete d_free_energy_strategy_for_diffusion;
    delete d_temperature_strategy;
    delete d_temperature_strategy_quat_only;
    if (d_heat_capacity_strategy) delete d_heat_capacity_strategy;
@@ -370,8 +361,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
              d_model_parameters.molar_volume_solid_B());
       }
 
-      // setup free energy strategy first since it may be needed
-      // to setup d_composition_rhs_strategy
       if (d_model_parameters.isConcentrationModelCALPHAD()) {
          tbox::pout << "QuatModel: "
                     << "Using CALPHAD model for concentration" << std::endl;
@@ -380,75 +369,11 @@ void QuatModel::initializeRHSandEnergyStrategies(
          calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
          tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                           calphad_db);
+      }
+   }
 
-         if (d_conc_db->isDatabase("NewtonSolver")) {
-            d_newton_db = d_conc_db->getDatabase("NewtonSolver");
-            newton_db.reset(new tbox::MemoryDatabase("newton_db"));
-         }
-
-         if (d_ncompositions == 1) {
-            d_free_energy_strategy_for_diffusion =
-                new CALPHADFreeEnergyStrategyBinary(
-                    calphad_db, newton_db,
-                    d_model_parameters.energy_interp_func_type(),
-                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                    d_conc_l_scratch_id, d_conc_a_scratch_id,
-                    d_conc_b_scratch_id, d_model_parameters.with_third_phase());
-         } else {
-            assert(d_ncompositions == 2);
-            d_free_energy_strategy_for_diffusion =
-                new CALPHADFreeEnergyStrategyTernary(
-                    calphad_db, newton_db,
-                    d_model_parameters.energy_interp_func_type(),
-                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                    d_conc_l_scratch_id, d_conc_a_scratch_id);
-         }
-
-         if (!calphad_db->keyExists("PenaltyPhaseL")) {
-
-            d_free_energy_strategy = d_free_energy_strategy_for_diffusion;
-#ifndef HAVE_THERMO4PFM
-         } else {
-            tbox::plog << "QuatModel: "
-                       << "Adding penalty to CALPHAD energy" << std::endl;
-
-            assert(d_ncompositions == 1);
-
-            d_free_energy_strategy = new CALPHADFreeEnergyStrategyWithPenalty(
-                calphad_db, newton_db,
-                d_model_parameters.energy_interp_func_type(),
-                d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-                d_ncompositions, d_model_parameters.with_third_phase());
-#endif
-         }
-      }  // d_model_parameters.isConcentrationModelCALPHAD()
-      else if (d_model_parameters.isConcentrationModelKKSdilute()) {
-         tbox::pout << "QuatModel: "
-                    << "Using KKS dilute model for concentration" << std::endl;
-         d_free_energy_strategy =
-             new KKSdiluteBinary(d_conc_db,
-                                 d_model_parameters.energy_interp_func_type(),
-                                 d_model_parameters.conc_interp_func_type(),
-                                 d_mvstrategy, d_conc_l_scratch_id,
-                                 d_conc_a_scratch_id);
-         d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
-      } else if (d_model_parameters.isConcentrationModelHBSM()) {
-         tbox::pout << "QuatModel: "
-                    << "Using HBSM model for concentration" << std::endl;
-         d_free_energy_strategy = new HBSMFreeEnergyStrategy(
-             d_conc_db->getDatabase("HBSM"),
-             d_model_parameters.energy_interp_func_type(),
-             d_model_parameters.molar_volume_liquid(),
-             d_model_parameters.molar_volume_solid_A(),
-             d_model_parameters.molar_volume_solid_B(),
-             d_model_parameters.D_liquid(), d_model_parameters.D_solid_A(),
-             d_model_parameters.D_solid_B(), d_model_parameters.Q0_liquid(),
-             d_model_parameters.Q0_solid_A(), d_model_parameters.Q0_solid_B(),
-             d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-             d_model_parameters.with_third_phase());
-      }  // d_model_parameters.isConcentrationModelHBSM()
-      else if (d_model_parameters.with_bias_well()) {
+   if (d_model_parameters.with_concentration()) {
+      if (d_model_parameters.with_bias_well()) {
          if (d_model_parameters.isConcentrationModelLinear()) {
             d_meltingT_strategy = new LinearMeltingTemperatureStrategy(
                 Tref, d_model_parameters.average_concentration(),
@@ -459,15 +384,46 @@ void QuatModel::initializeRHSandEnergyStrategies(
             d_meltingT_strategy = new ConstantMeltingTemperatureStrategy(
                 Tref, d_equilibrium_temperature_id);
          }
-         if (d_model_parameters.wellBiasBeckermann()) {
-            d_free_energy_strategy =
-                new BiasDoubleWellBeckermannFreeEnergyStrategy(
-                    d_model_parameters.well_bias_alpha(), d_meltingT_strategy);
-         } else {
-            d_free_energy_strategy = new BiasDoubleWellUTRCFreeEnergyStrategy(
-                d_model_parameters.well_bias_alpha(),
-                d_model_parameters.well_bias_gamma(), d_meltingT_strategy);
+      }
+   } else if (d_model_parameters.with_heat_equation()) {
+      if (d_model_parameters.with_bias_well()) {
+         d_meltingT_strategy = new ConstantMeltingTemperatureStrategy(
+             Tref, d_equilibrium_temperature_id);
+      }
+   }
+
+   d_free_energy_strategy =
+       FreeEnergyStrategyFactory::create(d_model_parameters, d_ncompositions,
+                                         d_conc_l_scratch_id,
+                                         d_conc_a_scratch_id,
+                                         d_conc_b_scratch_id, d_mvstrategy,
+                                         d_meltingT_strategy, Tref, d_conc_db);
+
+   if (d_model_parameters.with_concentration()) {
+
+      d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
+
+      // setup free energy strategy first since it may be needed
+      // to setup d_composition_rhs_strategy
+      if (d_model_parameters.isConcentrationModelCALPHAD()) {
+
+#ifndef HAVE_THERMO4PFM
+         if (calphad_db->keyExists("PenaltyPhaseL")) {
+            tbox::plog << "QuatModel: "
+                       << "Adding penalty to CALPHAD energy" << std::endl;
+
+            assert(d_ncompositions == 1);
+
+            d_free_energy_strategy_for_diffusion.reset(
+                new CALPHADFreeEnergyStrategyBinary(
+                    calphad_db, newton_db,
+                    d_model_parameters.energy_interp_func_type(),
+                    d_model_parameters.conc_interp_func_type(), d_mvstrategy,
+                    d_conc_l_scratch_id, d_conc_a_scratch_id,
+                    d_conc_b_scratch_id,
+                    d_model_parameters.with_third_phase()));
          }
+#endif
       }
 
       d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
@@ -516,50 +472,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
           d_composition_strategy_mobilities, d_diffusion_for_conc_in_phase);
 
    }  // d_model_parameters.with_concentration()
-   else if (d_model_parameters.with_heat_equation()) {
-      if (d_model_parameters.with_bias_well()) {
-         d_meltingT_strategy = new ConstantMeltingTemperatureStrategy(
-             Tref, d_equilibrium_temperature_id);
-
-         d_free_energy_strategy = new BiasDoubleWellUTRCFreeEnergyStrategy(
-             d_model_parameters.well_bias_alpha(),
-             d_model_parameters.well_bias_gamma(), d_meltingT_strategy);
-      } else if (d_model_parameters.free_energy_type()[0] == 'l') {
-         d_free_energy_strategy = new DeltaTemperatureFreeEnergyStrategy(
-             Tref, d_model_parameters.latent_heat(),
-             d_model_parameters.energy_interp_func_type());
-      } else
-         d_free_energy_strategy = new TemperatureFreeEnergyStrategy(
-             d_model_parameters.energy_interp_func_type(),
-             d_model_parameters.eta_interp_func_type(),
-             d_model_parameters.free_energy_solid_A(),
-             d_model_parameters.free_energy_solid_B(),
-             d_model_parameters.molar_volume_solid_A(),
-             d_model_parameters.molar_volume_solid_B(),
-             d_model_parameters.latent_heat(), Tref,
-             d_model_parameters.with_third_phase());
-
-   } else {  // no composition, no heat equation
-      if (d_model_parameters.free_energy_type()[0] == 's') {
-         d_free_energy_strategy = new PhaseFreeEnergyStrategy(
-             d_model_parameters.energy_interp_func_type(),
-             d_model_parameters.eta_interp_func_type(),
-             d_model_parameters.free_energy_liquid(),
-             d_model_parameters.free_energy_solid_A(),
-             d_model_parameters.free_energy_solid_B(),
-             d_model_parameters.molar_volume_liquid(),
-             d_model_parameters.molar_volume_solid_A(),
-             d_model_parameters.molar_volume_solid_B(),
-             d_model_parameters.with_third_phase());
-      }
-   }
-
-   // pure element free energy
-   if (d_model_parameters.free_energy_type()[0] == 'l') {
-      d_free_energy_strategy = new DeltaTemperatureFreeEnergyStrategy(
-          Tref, d_model_parameters.latent_heat(),
-          d_model_parameters.energy_interp_func_type());
-   }
 
    if (d_model_parameters.with_Aziz_partition_coeff()) {
       setupAziz();
@@ -2336,8 +2248,9 @@ void QuatModel::preRunDiagnostics(void)
                                    PhaseIndex::phaseA, &ceq[0]);
          }
 
-         ConcFreeEnergyStrategy* free_energy_strategy =
-             dynamic_cast<ConcFreeEnergyStrategy*>(d_free_energy_strategy);
+         std::shared_ptr<ConcFreeEnergyStrategy> free_energy_strategy =
+             std::dynamic_pointer_cast<ConcFreeEnergyStrategy>(
+                 d_free_energy_strategy);
 
          if (free_energy_strategy && found_ceq) {
             if (phi_min < 0.1) {
@@ -2409,8 +2322,9 @@ bool QuatModel::computeCeq(const double temperature, const PhaseIndex pi0,
    if (mpi.getRank() ==
        0)  // do it on PE0 only to avoid error message prints from all PEs
    {
-      ConcFreeEnergyStrategy* free_energy_strategy =
-          dynamic_cast<ConcFreeEnergyStrategy*>(d_free_energy_strategy);
+      std::shared_ptr<ConcFreeEnergyStrategy> free_energy_strategy =
+          std::dynamic_pointer_cast<ConcFreeEnergyStrategy>(
+              d_free_energy_strategy);
       assert(free_energy_strategy);
 
       found_ceq =

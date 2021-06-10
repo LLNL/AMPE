@@ -60,7 +60,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
        const std::vector<double>& Q_heat_transport,
        const std::vector<int> diffusion_precond_id,
        const std::string& avg_func_type,
-       FreeEnergyStrategy* free_energy_strategy,
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        CompositionStrategyMobilities* mobilities_strategy,
        std::shared_ptr<CompositionDiffusionStrategy>
            diffusion_for_conc_in_phase);
@@ -121,7 +121,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    std::vector<int> d_diffusion_precond_id;
 
    // free energy needed to compute diffusion in each phase
-   FreeEnergyStrategy* d_free_energy_strategy;
+   std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
 

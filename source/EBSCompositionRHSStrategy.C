@@ -61,7 +61,8 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const int diffusion_a_id, const int diffusion_b_id, const int Mq_id,
     const std::vector<double>& Q_heat_transport,
     const std::vector<int> diffusion_precond_id,
-    const std::string& avg_func_type, FreeEnergyStrategy* free_energy_strategy,
+    const std::string& avg_func_type,
+    std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     CompositionStrategyMobilities* mobilities_strategy,
     std::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase)
     : CompositionRHSStrategy(avg_func_type),
@@ -71,7 +72,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
 {
    assert(diffusion_l_id >= 0);
    assert(temperature_scratch_id >= 0);
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    if (Mq_id >= 0) {
       assert(Q_heat_transport.size() > 0);
@@ -119,7 +120,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeff(
 
    // tbox::pout<<"EBSCompositionRHSStrategy::setDiffusionCoeff"<<endl;
    assert(hierarchy);
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    // set coefficient for (grad T)/T term
    if (d_with_gradT)
