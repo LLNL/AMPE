@@ -25,7 +25,7 @@ class CompositionRHSStrategyFactory
  public:
    static std::shared_ptr<CompositionRHSStrategy> create(
        QuatModel* quatmodel,
-       FreeEnergyStrategy* free_energy_strategy_for_diffusion,
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy_for_diffusion,
        QuatModelParameters& model_parameters, int ncompositions,
        int conc_scratch_id, int phase_scratch_id, int temperature_scratch_id,
        std::vector<int>& conc_pfm_diffusion_id, int conc_pfm_diffusion_l_id,
@@ -54,7 +54,7 @@ class CompositionRHSStrategyFactory
              model_parameters.avg_func_type()));
       } else if (model_parameters.concRHSstrategyIsEBS()) {
 
-         assert(d_diffusion_for_conc_in_phase);
+         assert(diffusion_for_conc_in_phase);
 
          strategy.reset(new EBSCompositionRHSStrategy(
              phase_scratch_id, eta_scratch_id,

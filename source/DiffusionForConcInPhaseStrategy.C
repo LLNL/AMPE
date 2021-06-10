@@ -61,7 +61,7 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
     const std::string& avg_func_type,
     DiffusionInterpolationType diff_interp_type,
     CompositionStrategyMobilities* mobilities_strategy,
-    FreeEnergyStrategy* free_energy_strategy)
+    std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
     : CompositionDiffusionStrategy(diff_interp_type),
       d_mobilities_strategy(mobilities_strategy),
       d_free_energy_strategy(free_energy_strategy)
@@ -86,7 +86,7 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
 
    d_same_composition_for_third_phase = false;
 
-   assert(d_free_energy_strategy != nullptr);
+   assert(d_free_energy_strategy);
 
    d_d2f.resize(d_ncompositions * d_ncompositions);
    d_mobmat.resize(d_ncompositions * d_ncompositions);

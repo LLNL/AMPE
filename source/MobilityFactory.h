@@ -42,6 +42,7 @@
 #include "QuatModelParameters.h"
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
+#include "KKSFreeEnergyFunctionDiluteBinary.h"
 
 class QuatModel;
 

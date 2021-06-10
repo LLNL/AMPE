@@ -50,7 +50,7 @@ class CompositionDiffusionStrategyFactory
        const int conc_pfm_diffusion_b_id, const int conc_diffusion_coeff_l_id,
        const int conc_diffusion_coeff_a_id, const int conc_diffusion_coeff_b_id,
        CompositionStrategyMobilities* composition_strategy_mobilities,
-       FreeEnergyStrategy* free_energy_strategy)
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
    {
       std::shared_ptr<CompositionDiffusionStrategy> strategy;
 

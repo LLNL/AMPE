@@ -285,7 +285,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
    void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
-   void setFreeEnergyStrategy(FreeEnergyStrategy* free_energy_strategy);
+   void setFreeEnergyStrategy(
+       std::shared_ptr<FreeEnergyStrategy> free_energy_strategy);
    void setPhaseConcentrationsStrategy(
        std::shared_ptr<PhaseConcentrationsStrategy> phase_conc_strategy)
    {
@@ -469,7 +470,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    ConcInterpolationType d_conc_interp_func_type;
 
-   FreeEnergyStrategy* d_free_energy_strategy;
+   std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    hier::ComponentSelector d_local_data;
 
