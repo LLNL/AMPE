@@ -86,14 +86,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/MinIntCoarsen.C
             ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/CPODESSolver.C
-            ${CMAKE_SOURCE_DIR}/source/CPODESAbstractFunctions.C
-            ${CMAKE_SOURCE_DIR}/source/CVODESolver.C
-            ${CMAKE_SOURCE_DIR}/source/CVODEAbstractFunctions.C
-            ${CMAKE_SOURCE_DIR}/source/Sundials_SAMRAIVector.C
-            ${CMAKE_SOURCE_DIR}/source/SundialsAbstractVector.C
-            ${CMAKE_SOURCE_DIR}/source/PoissonSpecifications.C
-            ${CMAKE_SOURCE_DIR}/source/CellPoissonHypreSolver.C
             ${CMAKE_SOURCE_DIR}/source/EventInterval.C
             ${CMAKE_SOURCE_DIR}/source/HBSMFreeEnergyStrategy.C
             ${CMAKE_SOURCE_DIR}/source/HBSMequilibriumPhaseConcentrationsStrategy.C
@@ -119,7 +111,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
             ${CMAKE_SOURCE_DIR}/source/Grains.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACSolver.C
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/FACPreconditioner.C
             ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.C )
 
 set(SOURCES_Database2JSON
@@ -182,14 +173,6 @@ else()
                          ${SOURCES_FORTRAN_DIM})
 endif(${USE_THERMO4PFM})
 
-target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
-                              ${PROJECT_LINK_LIBS_HYPRE}
-                              ${PROJECT_LINK_LIBS_CVODE}
-                              ${PROJECT_LINK_LIBS_CPODES}
-                              ${PROJECT_LINK_LIBS_NETCDF}
-                              ${PROJECT_LINK_LIBS_HDF5}
-                      )
-
 if(${USE_THERMO4PFM})
   set(THERMOLIB ${PROJECT_LINK_LIBS_THERMO4PFM})
 else()
@@ -198,6 +181,19 @@ else()
 endif(${USE_THERMO4PFM})
 
 target_link_libraries(${MAIN} ${THERMOLIB})
+
+add_subdirectory(samrai)
+set(SAMRAILIB ${internal_samrai})
+
+target_link_libraries(${MAIN} ${SAMRAILIB})
+
+target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
+                              ${PROJECT_LINK_LIBS_HYPRE}
+                              ${PROJECT_LINK_LIBS_CVODE}
+                              ${PROJECT_LINK_LIBS_CPODES}
+                              ${PROJECT_LINK_LIBS_NETCDF}
+                              ${PROJECT_LINK_LIBS_HDF5}
+                      )
 
 add_executable(plotCALPHADbinary
                plotCALPHADbinary.C

@@ -1,8 +1,12 @@
-/*
- * This file is adapted from SAMRAI library class solv/CellPoissonHypreSolver
- * Copyright:     (c) 1997-2018 Lawrence Livermore National Security, LLC
- */
-
+/*************************************************************************
+ *
+ * This file is adapted from the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and LICENSE at https://github.com/LLNL/SAMRAI.
+ *
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Description:   Specifications for the scalar Poisson equation
+ *
+ ************************************************************************/
 #ifndef included_CellPoissonHypreSolver
 #define included_CellPoissonHypreSolver
 

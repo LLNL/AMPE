@@ -37,9 +37,9 @@ add_executable(testHyprePoisson
 add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.C
                ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
-               ${CMAKE_SOURCE_DIR}/source/CellPoissonHypreSolver.C
+               ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.C
                ${CMAKE_SOURCE_DIR}/source/tools.C
-               ${CMAKE_SOURCE_DIR}/source/PoissonSpecifications.C
+               ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.C
                ${CMAKE_SOURCE_DIR}/source/PhaseHypre.C
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                ${fortran_dir_dim}/phase.f

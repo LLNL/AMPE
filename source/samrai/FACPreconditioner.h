@@ -1,12 +1,12 @@
 /*************************************************************************
  *
- * Adapted from the SAMRAI distribution.
+ * This file is adapted from the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and LICENSE at https://github.com/LLNL/SAMRAI.
  *
- * Copyright:     (c) 1997-2016 Lawrence Livermore National Security, LLC
- * Description:   FAC algorithm for solving linear equations on a hierarchy
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Description:   Specifications for the scalar Poisson equation
  *
  ************************************************************************/
-
 #ifndef included_FACPreconditioner
 #define included_FACPreconditioner
 

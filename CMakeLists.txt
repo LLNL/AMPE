@@ -264,6 +264,9 @@ else()
   set(internal_libs ampe_thermo)
 endif()
 
+include_directories( source/samrai)
+set(internal_samrai ampe_samrai)
+
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 link_directories( ${SAMRAI_DIR}/lib )
