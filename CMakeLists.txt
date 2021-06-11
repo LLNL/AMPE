@@ -65,7 +65,7 @@ if(${AMPE_WITH_CLANG_FORMAT})
   mark_as_advanced(CLANG_FORMAT_EXECUTABLE)
   if(CLANG_FORMAT_EXECUTABLE)
     message(STATUS "Indent with clang-format")
-    file(GLOB_RECURSE FORMAT_SOURCES source/*.C source/*.h tests/*.C tests/*.h)
+    file(GLOB_RECURSE FORMAT_SOURCES source/*.cc source/*.h tests/*.cc tests/*.h)
     add_custom_target(format
       COMMAND ${CLANG_FORMAT_EXECUTABLE} -i -style=file ${FORMAT_SOURCES}
       DEPENDS ${FORMAT_SOURCES})

@@ -1,21 +1,21 @@
 set(SOURCES
-    NewtonSolver.C
-    DampedNewtonSolver.C
-    CALPHADFunctions.C
-    CALPHADEqConcSolverBinary.C
-    CALPHADEqConcSolverTernary.C
-    CALPHADConcSolverBinary.C
-    CALPHADConcSolverTernary.C
-    CALPHADTieLineConcSolverTernary.C
-    CALPHADFreeEnergyFunctionsBinary.C
-    CALPHADFreeEnergyFunctionsTernary.C
-    CALPHADSpeciesPhaseGibbsEnergy.C
-    CALPHADSpeciesPhaseGibbsEnergyExpansion.C
-    KKSdiluteBinaryConcentrationSolver.C
-    KKSFreeEnergyFunctionDiluteBinary.C
-    InterpolationType.C
-    xlogx.C
-    math_utilities.C
+    NewtonSolver.cc
+    DampedNewtonSolver.cc
+    CALPHADFunctions.cc
+    CALPHADEqConcSolverBinary.cc
+    CALPHADEqConcSolverTernary.cc
+    CALPHADConcSolverBinary.cc
+    CALPHADConcSolverTernary.cc
+    CALPHADTieLineConcSolverTernary.cc
+    CALPHADFreeEnergyFunctionsBinary.cc
+    CALPHADFreeEnergyFunctionsTernary.cc
+    CALPHADSpeciesPhaseGibbsEnergy.cc
+    CALPHADSpeciesPhaseGibbsEnergyExpansion.cc
+    KKSdiluteBinaryConcentrationSolver.cc
+    KKSFreeEnergyFunctionDiluteBinary.cc
+    InterpolationType.cc
+    xlogx.cc
+    math_utilities.cc
 )
 
 add_library(ampe_thermo ${SOURCES})

@@ -19,102 +19,102 @@ MACRO(m4tof filename dir)
 ENDMACRO(m4tof)
 
 set(SOURCES_WPENALTY
-    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.C
-    ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.C
-    ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinaryWithPenalty.C
-    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyWithPenalty.C
+    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyFunctionsWithPenaltyBinary.cc
+    ${CMAKE_SOURCE_DIR}/source/CALPHADEqConcSolverBinaryWithPenalty.cc
+    ${CMAKE_SOURCE_DIR}/source/CALPHADConcSolverBinaryWithPenalty.cc
+    ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyWithPenalty.cc
     )
 
-set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.C
-            ${CMAKE_SOURCE_DIR}/source/diagnostics.C
-            ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.C
-            ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
-            ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.C
-            ${CMAKE_SOURCE_DIR}/source/tools.C
-            ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/AMPE.C
-            ${CMAKE_SOURCE_DIR}/source/Noise.C
-            ${CMAKE_SOURCE_DIR}/source/NormalNoise.C
-            ${CMAKE_SOURCE_DIR}/source/UniformNoise.C
-            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyInfMob.C
-            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMob.C
-            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMobAntiTrap.C
-            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/FieldsInitializer.C
-            ${CMAKE_SOURCE_DIR}/source/GradientTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/toolsSAMRAI.C
-            ${CMAKE_SOURCE_DIR}/source/TbasedCompositionDiffusionStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/DiffusionForConcInPhaseStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/QuatIntegrator.C
-            ${CMAKE_SOURCE_DIR}/source/BeckermannCompositionRHSStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/DeltaTemperatureFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/ConstantHeatCapacityStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PFModel.C
-            ${CMAKE_SOURCE_DIR}/source/CartesianRobinBcHelperWithDepth.C
-            ${CMAKE_SOURCE_DIR}/source/ConstantMeltingTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/LinearMeltingTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PartitionCoeffRefinePatchStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PartitionCoefficientStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseIndependentConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/AzizPartitionCoefficientStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/UniformPartitionCoefficientStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PartitionPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/NKRHeatCapacityStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategySimple.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyIsotropic.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyAnisotropy.C
-            ${CMAKE_SOURCE_DIR}/source/TemperatureStrategyFactory.C
-            ${CMAKE_SOURCE_DIR}/source/QuatModel.C
-            ${CMAKE_SOURCE_DIR}/source/QuatRefinePatchStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/ran2.C
-            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellBeckermannFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellUTRCFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/SimpleGradStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/SimpleQuatGradStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/SimpleQuatMobilityStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/QuatMobilityStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/QuatSysSolver.C
-            ${CMAKE_SOURCE_DIR}/source/QuatFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/QuatLevelSolver.C
-            ${CMAKE_SOURCE_DIR}/source/QuatLinearRefine.C
-            ${CMAKE_SOURCE_DIR}/source/QuatWeightedAverage.C
-            ${CMAKE_SOURCE_DIR}/source/MinIntCoarsen.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/EventInterval.C
-            ${CMAKE_SOURCE_DIR}/source/HBSMFreeEnergyStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/HBSMequilibriumPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/GaussianTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/ScalarTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureGaussianSource.C
-            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureCompositionSource.C
-            ${CMAKE_SOURCE_DIR}/source/EllipticFACSolver.C
-            ${CMAKE_SOURCE_DIR}/source/EllipticFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseConcentrationsStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFACSolver.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/PhaseTemperatureFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/EtaFACSolver.C
-            ${CMAKE_SOURCE_DIR}/source/EtaFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/ConcFACSolver.C
-            ${CMAKE_SOURCE_DIR}/source/ConcFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/KKSCompositionRHSStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/EBSCompositionRHSStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/CompositionRHSStrategy.C
-            ${CMAKE_SOURCE_DIR}/source/Grains.C
-            ${CMAKE_SOURCE_DIR}/source/TemperatureFACSolver.C
-            ${CMAKE_SOURCE_DIR}/source/TemperatureFACOps.C
-            ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.C )
+set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
+            ${CMAKE_SOURCE_DIR}/source/diagnostics.cc
+            ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/KKSdiluteBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.cc
+            ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
+            ${CMAKE_SOURCE_DIR}/source/tools.cc
+            ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/AMPE.cc
+            ${CMAKE_SOURCE_DIR}/source/Noise.cc
+            ${CMAKE_SOURCE_DIR}/source/NormalNoise.cc
+            ${CMAKE_SOURCE_DIR}/source/UniformNoise.cc
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyInfMob.cc
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMob.cc
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMobAntiTrap.cc
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/FieldsInitializer.cc
+            ${CMAKE_SOURCE_DIR}/source/GradientTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/toolsSAMRAI.cc
+            ${CMAKE_SOURCE_DIR}/source/TbasedCompositionDiffusionStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/DiffusionForConcInPhaseStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatIntegrator.cc
+            ${CMAKE_SOURCE_DIR}/source/BeckermannCompositionRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/DeltaTemperatureFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/ConstantHeatCapacityStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PFModel.cc
+            ${CMAKE_SOURCE_DIR}/source/CartesianRobinBcHelperWithDepth.cc
+            ${CMAKE_SOURCE_DIR}/source/ConstantMeltingTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/LinearMeltingTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PartitionCoeffRefinePatchStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PartitionCoefficientStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseIndependentConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/AzizPartitionCoefficientStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/UniformPartitionCoefficientStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PartitionPhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/NKRHeatCapacityStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategySimple.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyIsotropic.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFluxStrategyAnisotropy.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureStrategyFactory.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatModel.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatRefinePatchStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/ran2.cc
+            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellBeckermannFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellUTRCFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/SimpleGradStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/SimpleQuatGradStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/SimpleQuatMobilityStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatMobilityStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatSysSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatLevelSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatLinearRefine.cc
+            ${CMAKE_SOURCE_DIR}/source/QuatWeightedAverage.cc
+            ${CMAKE_SOURCE_DIR}/source/MinIntCoarsen.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/EventInterval.cc
+            ${CMAKE_SOURCE_DIR}/source/HBSMFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/HBSMequilibriumPhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/GaussianTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/ScalarTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureGaussianSource.cc
+            ${CMAKE_SOURCE_DIR}/source/SteadyStateTemperatureCompositionSource.cc
+            ${CMAKE_SOURCE_DIR}/source/EllipticFACSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/EllipticFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFACSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/PhaseTemperatureFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/EtaFACSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/EtaFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/ConcFACSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/ConcFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/KKSCompositionRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/EBSCompositionRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/CompositionRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/Grains.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureFACSolver.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureFACOps.cc
+            ${CMAKE_SOURCE_DIR}/source/TimeLocationIndexRobinBcCoefs.cc )
 
 set(SOURCES_Database2JSON
-    ${CMAKE_SOURCE_DIR}/source/Database2JSON.C )
+    ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc )
 
 set(SOURCES_FORTRAN
             ${CMAKE_SOURCE_DIR}/source/fortran/quat.f
@@ -196,23 +196,23 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                       )
 
 add_executable(plotCALPHADbinary
-               plotCALPHADbinary.C
+               plotCALPHADbinary.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C)
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc)
 target_link_libraries(plotCALPHADbinary ${PROJECT_LINK_LIBS_SAMRAI}
                                         ${THERMOLIB})
 
 add_executable(plotEquilibriumCompositions
-               plotEquilibriumCompositions.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               plotEquilibriumCompositions.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositions ${PROJECT_LINK_LIBS_SAMRAI}
                                                   ${PROJECT_LINK_LIBS_HDF5}
                                                   ${THERMOLIB})
 
 add_executable(plotEquilibriumCompositionsTernary
-               plotEquilibriumCompositionsTernary.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               plotEquilibriumCompositionsTernary.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f)
 target_link_libraries(plotEquilibriumCompositionsTernary
                          ${PROJECT_LINK_LIBS_SAMRAI}
@@ -220,8 +220,8 @@ target_link_libraries(plotEquilibriumCompositionsTernary
                          ${THERMOLIB})
 
 add_executable(computeCALPHADbinaryEquilibrium
-               computeCALPHADbinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               computeCALPHADbinaryEquilibrium.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 target_link_libraries(computeCALPHADbinaryEquilibrium
@@ -229,7 +229,7 @@ target_link_libraries(computeCALPHADbinaryEquilibrium
                       ${THERMOLIB})
 
 add_executable(convertDatabase2JSON
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
-               ${CMAKE_SOURCE_DIR}/source/convertDatabase2JSON.C )
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+               ${CMAKE_SOURCE_DIR}/source/convertDatabase2JSON.cc )
 target_link_libraries(convertDatabase2JSON
                       ${PROJECT_LINK_LIBS_SAMRAI})

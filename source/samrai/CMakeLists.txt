@@ -1,13 +1,13 @@
 set(SOURCES
-    CellPoissonHypreSolver.C
-    PoissonSpecifications.C
-    SundialsAbstractVector.C
-    Sundials_SAMRAIVector.C
-    CVODEAbstractFunctions.C
-    CVODESolver.C
-    CPODESAbstractFunctions.C
-    CPODESSolver.C
-    FACPreconditioner.C)
+    CellPoissonHypreSolver.cc
+    PoissonSpecifications.cc
+    SundialsAbstractVector.cc
+    Sundials_SAMRAIVector.cc
+    CVODEAbstractFunctions.cc
+    CVODESolver.cc
+    CPODESAbstractFunctions.cc
+    CPODESSolver.cc
+    FACPreconditioner.cc)
 
 add_library(ampe_samrai ${SOURCES})
 

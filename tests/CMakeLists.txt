@@ -20,66 +20,66 @@ set_source_files_properties( ${fortran_dir_dim}/hyprepoisson.f
 set_source_files_properties( ${fortran_dir_dim}/phase.f 
                              PROPERTIES GENERATED TRUE)
 
-add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.C)
-add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.C)
-add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.C)
-add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.C )
-add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.C
-                         ${CMAKE_SOURCE_DIR}/source/UniformNoise.C 
-                         ${CMAKE_SOURCE_DIR}/source/NormalNoise.C )
+add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
+add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
+add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.cc)
+add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.cc )
+add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.cc
+                         ${CMAKE_SOURCE_DIR}/source/UniformNoise.cc 
+                         ${CMAKE_SOURCE_DIR}/source/NormalNoise.cc )
 add_executable(testInterpolation
-               ${CMAKE_SOURCE_DIR}/tests/testInterpolationFunctions.C
+               ${CMAKE_SOURCE_DIR}/tests/testInterpolationFunctions.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 add_executable(testHyprePoisson
-               ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.C
-               ${CMAKE_SOURCE_DIR}/source/HyprePoisson.C
+               ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
+               ${CMAKE_SOURCE_DIR}/source/HyprePoisson.cc
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testPhaseHypre
-               ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.C
-               ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.C
-               ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.C
-               ${CMAKE_SOURCE_DIR}/source/tools.C
-               ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.C
-               ${CMAKE_SOURCE_DIR}/source/PhaseHypre.C
+               ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.cc
+               ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.cc
+               ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.cc
+               ${CMAKE_SOURCE_DIR}/source/tools.cc
+               ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.cc
+               ${CMAKE_SOURCE_DIR}/source/PhaseHypre.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                ${fortran_dir_dim}/phase.f
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testFACPoisson
-               ${CMAKE_SOURCE_DIR}/tests/testFACPoisson.C
-               ${CMAKE_SOURCE_DIR}/source/FACPoisson.C
+               ${CMAKE_SOURCE_DIR}/tests/testFACPoisson.cc
+               ${CMAKE_SOURCE_DIR}/source/FACPoisson.cc
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testCALPHADFunctions
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.C )
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
 add_executable(testCALPHADJacobianTernary
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.C )
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADJacobianTernary.cc )
 add_executable(testKKSdiluteBinaryEquilibrium
-               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryEquilibrium.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testKKSdiluteBinaryKKS
-               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testKKSdiluteBinaryKKS.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryKKS
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryKKS.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryKKS
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryKKS.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryKKS.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADbinaryEquilibrium
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADbinaryEquilibrium.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 add_executable(testCALPHADternaryEquilibrium
-               ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.C
-               ${CMAKE_SOURCE_DIR}/source/Database2JSON.C
+               ${CMAKE_SOURCE_DIR}/tests/testCALPHADternaryEquilibrium.cc
+               ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
 
