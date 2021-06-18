@@ -756,6 +756,84 @@ void QuatIntegrator::RegisterConcentrationVariables(
 
 //-----------------------------------------------------------------------
 
+void QuatIntegrator::RegisterQuatVariables(
+    const std::shared_ptr<pdat::CellVariable<double> > quat_var,
+    const std::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
+    const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
+    const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
+    const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
+    const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
+    const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
+    const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var)
+{
+   assert(quat_var);
+   assert(quat_grad_cell_var);
+   assert(quat_grad_side_var);
+   assert(quat_grad_modulus_var);
+   assert(quat_mobility_var);
+   assert(quat_diffusion_var);
+
+   hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
+
+   d_quat_id = variable_db->registerVariableAndContext(
+       d_quat_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
+   d_quat_scratch_id = variable_db->registerVariableAndContext(
+       d_quat_var, d_scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+
+   d_quat_grad_cell_var = quat_grad_cell_var;
+   d_quat_grad_cell_id = variable_db->registerVariableAndContext(
+       d_quat_grad_cell_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   d_quat_grad_side_var = quat_grad_side_var;
+   d_quat_grad_side_id = variable_db->registerVariableAndContext(
+       d_quat_grad_side_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   d_quat_grad_modulus_var = quat_grad_modulus_var;
+   d_quat_grad_modulus_id = variable_db->registerVariableAndContext(
+       d_quat_grad_modulus_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   d_quat_mobility_var = quat_mobility_var;
+   d_quat_mobility_id = variable_db->registerVariableAndContext(
+       d_quat_mobility_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 1));
+
+   d_quat_diffusion_var = quat_diffusion_var;
+   d_quat_diffusion_id = variable_db->registerVariableAndContext(
+       d_quat_diffusion_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+
+   d_quat_diffs_var = quat_diffs_var;
+   d_quat_diffs_id = variable_db->registerVariableAndContext(
+       d_quat_diffs_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+
+
+   if (d_symmetry_aware) {
+      assert(quat_symm_rotation_var);
+
+      d_quat_symm_rotation_var = quat_symm_rotation_var;
+      d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
+          d_quat_symm_rotation_var, d_current,
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+
+      assert(d_quat_symm_rotation_id >= 0);
+   }
+
+   assert(d_quat_id >= 0);
+   assert(d_quat_scratch_id >= 0);
+   assert(d_quat_diffs_id >= 0);
+   assert(d_quat_mobility_id >= 0);
+   assert(d_quat_diffusion_id >= 0);
+   assert(d_quat_grad_cell_id >= 0);
+   assert(d_quat_grad_side_id >= 0);
+   assert(d_quat_grad_modulus_id >= 0);
+}
+
+//-----------------------------------------------------------------------
+
 void QuatIntegrator::RegisterVariables(
     const std::shared_ptr<pdat::CellVariable<double> > phase_var,
     const std::shared_ptr<pdat::CellVariable<double> > eta_var,
@@ -826,67 +904,10 @@ void QuatIntegrator::RegisterVariables(
 
    d_quat_var = quat_var;
    if (d_with_orientation) {
-      assert(quat_var);
-      assert(quat_grad_cell_var);
-      assert(quat_grad_side_var);
-      assert(quat_grad_modulus_var);
-      assert(quat_mobility_var);
-      assert(quat_diffusion_var);
-
-      d_quat_id = variable_db->registerVariableAndContext(
-          d_quat_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
-      d_quat_scratch_id = variable_db->registerVariableAndContext(
-          d_quat_var, d_scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
-      d_quat_grad_cell_var = quat_grad_cell_var;
-      d_quat_grad_cell_id = variable_db->registerVariableAndContext(
-          d_quat_grad_cell_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      d_quat_grad_side_var = quat_grad_side_var;
-      d_quat_grad_side_id = variable_db->registerVariableAndContext(
-          d_quat_grad_side_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-      d_quat_grad_modulus_var = quat_grad_modulus_var;
-      d_quat_grad_modulus_id = variable_db->registerVariableAndContext(
-          d_quat_grad_modulus_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      d_quat_mobility_var = quat_mobility_var;
-      d_quat_mobility_id = variable_db->registerVariableAndContext(
-          d_quat_mobility_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 1));
-
-      d_quat_diffusion_var = quat_diffusion_var;
-      d_quat_diffusion_id = variable_db->registerVariableAndContext(
-          d_quat_diffusion_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      d_quat_diffs_var = quat_diffs_var;
-      d_quat_diffs_id = variable_db->registerVariableAndContext(
-          d_quat_diffs_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
-      assert(d_quat_id >= 0);
-      assert(d_quat_scratch_id >= 0);
-      assert(d_quat_diffs_id >= 0);
-      assert(d_quat_mobility_id >= 0);
-      assert(d_quat_diffusion_id >= 0);
-      assert(d_quat_grad_cell_id >= 0);
-      assert(d_quat_grad_side_id >= 0);
-      assert(d_quat_grad_modulus_id >= 0);
-
-      if (d_symmetry_aware) {
-         assert(quat_symm_rotation_var);
-
-         d_quat_symm_rotation_var = quat_symm_rotation_var;
-         d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
-             d_quat_symm_rotation_var, d_current,
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
-         assert(d_quat_symm_rotation_id >= 0);
-      }
+      RegisterQuatVariables(quat_var, quat_grad_cell_var, quat_grad_side_var,
+                            quat_grad_modulus_var, quat_mobility_var,
+                            quat_diffusion_var, quat_diffs_var,
+                            quat_symm_rotation_var);
    }
 
    if (d_with_phase) {
@@ -1096,7 +1117,6 @@ void QuatIntegrator::RegisterLocalEtaVariables()
    d_eta_sol_id = variable_db->registerVariableAndContext(
        d_eta_sol_var, d_current,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-   assert(d_eta_sol_id >= 0);
    d_local_data.setFlag(d_eta_sol_id);
 
    d_eta_rhs_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -1106,8 +1126,10 @@ void QuatIntegrator::RegisterLocalEtaVariables()
        d_eta_rhs_var, d_current,
        //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
        hier::IntVector(tbox::Dimension(NDIM), 0));
-   assert(d_eta_rhs_id >= 0);
    d_local_data.setFlag(d_eta_rhs_id);
+
+   assert(d_eta_rhs_id >= 0);
+   assert(d_eta_sol_id >= 0);
 }
 
 void QuatIntegrator::RegisterLocalPhaseVariables()
