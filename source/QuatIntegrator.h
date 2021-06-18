@@ -524,6 +524,16 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void RegisterLocalEtaVariables();
    void RegisterLocalVisitVariables();
 
+   void RegisterQuatVariables(
+       const std::shared_ptr<pdat::CellVariable<double> > quat_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_cell_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
+       const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
+       const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
+       const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var);
+
    virtual int applyPhasePreconditioner(
        std::shared_ptr<hier::PatchHierarchy> hierarchy, const double t,
        std::shared_ptr<solv::SAMRAIVectorReal<double> > r_samvect,
