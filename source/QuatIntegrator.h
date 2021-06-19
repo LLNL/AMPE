@@ -46,6 +46,7 @@
 #include "PhaseTemperatureFACOps.h"
 #include "EllipticFACSolver.h"
 #include "InterpolationType.h"
+#include "DiffusionCoeffForQuat.h"
 #include "Sundials_SAMRAIVector.h"
 #include "SundialsAbstractVector.h"
 
@@ -842,9 +843,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    std::shared_ptr<pdat::CellVariable<double> > d_tmp2_var;
    int d_tmp2_id;
 
-   xfer::CoarsenAlgorithm d_quat_diffusion_coarsen;
-   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
-       d_quat_diffusion_coarsen_schedule;
+   std::shared_ptr<DiffusionCoeffForQuat> d_diffusion4quat;
 
    xfer::CoarsenAlgorithm d_quat_diffusion_deriv_coarsen;
    std::vector<std::shared_ptr<xfer::CoarsenSchedule> >

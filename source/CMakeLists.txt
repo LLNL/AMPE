@@ -49,6 +49,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/toolsSAMRAI.cc
             ${CMAKE_SOURCE_DIR}/source/TbasedCompositionDiffusionStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/DiffusionForConcInPhaseStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/DiffusionCoeffForQuat.cc
             ${CMAKE_SOURCE_DIR}/source/QuatIntegrator.cc
             ${CMAKE_SOURCE_DIR}/source/BeckermannCompositionRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/DeltaTemperatureFreeEnergyStrategy.cc
