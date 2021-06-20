@@ -8,31 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
 #ifndef included_QuatIntegrator
 #define included_QuatIntegrator
 
@@ -389,12 +364,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void computeMobilities(double time,
                           std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
-   void setDiffusionCoeffForQuat(const std::shared_ptr<hier::PatchHierarchy>,
-                                 const double time);
    void setUniformDiffusionCoeffForQuat(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
-   void setDerivDiffusionCoeffForQuat(
-       const std::shared_ptr<hier::PatchHierarchy>, const double time);
 
    std::shared_ptr<solv::SAMRAIVectorReal<double> > d_solution_vec;
 
@@ -589,7 +560,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    void updateTimeForPatchID(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int id);
 
-   void setDiffusionCoeffForQuatPatch(hier::Patch& patch);
    void setDerivDiffusionCoeffForQuatPatch(hier::Patch& patch);
    void setDiffusionCoeffForConcentration(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -844,10 +814,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    int d_tmp2_id;
 
    std::shared_ptr<DiffusionCoeffForQuat> d_diffusion4quat;
-
-   xfer::CoarsenAlgorithm d_quat_diffusion_deriv_coarsen;
-   std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
-       d_quat_diffusion_deriv_coarsen_schedule;
 
    xfer::CoarsenAlgorithm d_conc_diffusion_coarsen;
    std::vector<std::shared_ptr<xfer::CoarsenSchedule> >
