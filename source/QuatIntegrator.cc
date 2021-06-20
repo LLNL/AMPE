@@ -8,31 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
 #include "QuatIntegrator.h"
 
 // external definitions for Fortran numerical routines
@@ -207,7 +182,6 @@ QuatIntegrator::QuatIntegrator(
       d_quat_grad_side_copy_id(-1),
       d_tmp1_id(-1),
       d_tmp2_id(-1),
-      d_quat_diffusion_deriv_coarsen(tbox::Dimension(NDIM)),
       d_conc_diffusion_coarsen(tbox::Dimension(NDIM)),
       d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
       d_flux_conc_coarsen_algorithm(tbox::Dimension(NDIM)),
@@ -589,11 +563,6 @@ void QuatIntegrator::resetHierarchyConfiguration(
    d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
    d_flux_conc_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
-   if (d_precond_has_dquatdphi) {
-      d_quat_diffusion_deriv_coarsen_schedule.resize(
-          hierarchy->getNumberOfLevels());
-   }
-
    d_conc_diffusion_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    int ln_beg = coarsest_level - (coarsest_level > 0);
@@ -602,11 +571,6 @@ void QuatIntegrator::resetHierarchyConfiguration(
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
       std::shared_ptr<hier::PatchLevel> finer_level =
           hierarchy->getPatchLevel(ln + 1);
-
-      if (d_precond_has_dquatdphi) {
-         d_quat_diffusion_deriv_coarsen_schedule[ln] =
-             d_quat_diffusion_deriv_coarsen.createSchedule(level, finer_level);
-      }
 
       d_conc_diffusion_coarsen_schedule[ln] =
           d_conc_diffusion_coarsen.createSchedule(level, finer_level);
@@ -1239,16 +1203,6 @@ void QuatIntegrator::RegisterLocalQuatVariables()
           hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(d_quat_diffusion_deriv_id >= 0);
       d_local_data.setFlag(d_quat_diffusion_deriv_id);
-   }
-
-   // schedules
-   if (d_precond_has_dquatdphi) {
-      std::shared_ptr<hier::CoarsenOperator> diff_deriv_coarsen_op =
-          d_grid_geometry->lookupCoarsenOperator(d_quat_diffusion_deriv_var,
-                                                 "CONSERVATIVE_COARSEN");
-      d_quat_diffusion_deriv_coarsen.registerCoarsen(d_quat_diffusion_deriv_id,
-                                                     d_quat_diffusion_deriv_id,
-                                                     diff_deriv_coarsen_op);
    }
 }
 
@@ -2016,10 +1970,11 @@ void QuatIntegrator::initialize(
    resetIntegrator(hierarchy, 0, finest);
 
    if (d_with_orientation) {
-      d_diffusion4quat.reset(
-          new DiffusionCoeffForQuat(d_grid_geometry, d_H_parameter,
-                                    d_orient_interp_func_type, d_avg_func_type,
-                                    d_quat_diffusion_var, d_quat_diffusion_id));
+      d_diffusion4quat.reset(new DiffusionCoeffForQuat(
+          d_grid_geometry, d_H_parameter, d_quat_grad_floor, d_qlen,
+          d_orient_interp_func_type, d_avg_func_type, d_quat_smooth_floor_type,
+          d_precond_has_dquatdphi, d_quat_diffusion_var, d_quat_diffusion_id,
+          d_quat_diffusion_deriv_id));
       d_diffusion4quat->setup(hierarchy);
    }
 
@@ -2385,120 +2340,6 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
    }
 
    t_set_diffcoeff_conc_timer->stop();
-}
-
-//-----------------------------------------------------------------------
-
-void QuatIntegrator::setDerivDiffusionCoeffForQuat(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
-{
-   (void)time;
-
-   assert(hierarchy);
-
-   const int maxl = hierarchy->getNumberOfLevels();
-
-   // set diffusion coefficients
-   int amr_level;
-   for (amr_level = 0; amr_level < maxl; amr_level++) {
-      std::shared_ptr<hier::PatchLevel> level =
-          hierarchy->getPatchLevel(amr_level);
-
-      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
-           ++p) {
-         std::shared_ptr<hier::Patch> patch = *p;
-
-         setDerivDiffusionCoeffForQuatPatch(*patch);
-      }
-   }
-
-   for (amr_level = hierarchy->getFinestLevelNumber() - 1; amr_level >= 0;
-        amr_level--) {
-      d_quat_diffusion_deriv_coarsen_schedule[amr_level]->coarsenData();
-   }
-}
-
-//-----------------------------------------------------------------------
-// set derivative of diffusion coefficient
-
-void QuatIntegrator::setDerivDiffusionCoeffForQuatPatch(hier::Patch& patch)
-{
-   assert(d_phase_scratch_id >= 0);
-   assert(d_temperature_scratch_id >= 0);
-   assert(d_quat_diffusion_deriv_id >= 0);
-   assert(d_quat_grad_side_copy_id >= 0);
-
-   const hier::Box& pbox = patch.getBox();
-   const hier::Index& ifirst = pbox.lower();
-   const hier::Index& ilast = pbox.upper();
-
-   std::shared_ptr<pdat::CellData<double> > phi(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_phase_scratch_id)));
-
-   std::shared_ptr<pdat::CellData<double> > temperature(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch.getPatchData(d_temperature_scratch_id)));
-
-   std::shared_ptr<pdat::SideData<double> > diffusion_deriv(
-       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-           patch.getPatchData(d_quat_diffusion_deriv_id)));
-
-   std::shared_ptr<pdat::SideData<double> > grad_q(
-       SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-           patch.getPatchData(d_quat_grad_side_copy_id)));
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-   assert(phi);
-   const hier::Box& phi_gbox = phi->getGhostBox();
-   const hier::Index& philower = phi_gbox.lower();
-   const hier::Index& phiupper = phi_gbox.upper();
-   for (int i = 0; i < NDIM; i++) {
-      assert(philower[i] <= ifirst(i));
-      assert(phiupper[i] >= ilast(i));
-   }
-   assert(phi->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-   assert(temperature->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
-   assert(diffusion_deriv);
-   assert(diffusion_deriv->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-   const hier::Box& diffderiv_gbox = diffusion_deriv->getGhostBox();
-   const hier::Index& diffderivlower = diffderiv_gbox.lower();
-   const hier::Index& diffderivupper = diffderiv_gbox.upper();
-   for (int i = 0; i < NDIM; i++) {
-      assert(diffderivlower[i] <= ifirst(i));
-      assert(diffderivupper[i] >= ilast(i));
-   }
-
-   for (int d = 0; d < NDIM; d++) {
-      assert(diffusion_deriv->getPointer(d) != nullptr);
-   }
-
-   assert(grad_q);
-#endif
-
-   QUATDIFFUSIONDERIV(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                      ifirst(2), ilast(2),
-#endif
-                      2. * d_H_parameter, temperature->getPointer(),
-                      temperature->getGhostCellWidth()[0], phi->getPointer(),
-                      NGHOSTS, d_qlen, grad_q->getPointer(0),
-                      grad_q->getPointer(1),
-#if (NDIM == 3)
-                      grad_q->getPointer(2),
-#endif
-                      0, diffusion_deriv->getPointer(0),
-                      diffusion_deriv->getPointer(1),
-#if (NDIM == 3)
-                      diffusion_deriv->getPointer(2),
-#endif
-                      0, d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
-                      d_orient_interp_func_type.c_str(),
-                      d_avg_func_type.c_str());
 }
 
 //-----------------------------------------------------------------------
@@ -3560,7 +3401,9 @@ void QuatIntegrator::setCoefficients(
          d_diffusion4quat->setDiffusion(hierarchy, d_phase_scratch_id,
                                         d_temperature_scratch_id);
          if (d_precond_has_dquatdphi)
-            setDerivDiffusionCoeffForQuat(hierarchy, time);
+            d_diffusion4quat->setDerivDiffusion(hierarchy, d_phase_scratch_id,
+                                                d_temperature_scratch_id,
+                                                d_quat_grad_side_copy_id);
       }
    }
 
