@@ -38,7 +38,7 @@ for line in lines:
     print(line)
     if end_reached:
       words=line.split()
-      if abs(eval(words[6])-0.91)>1.e-2:
+      if abs(eval(words[6])-0.95)>1.e-2:
         print("Wrong solid fraction")
         sys.exit(1)
 
@@ -48,7 +48,7 @@ for line in lines:
       words=line.split()
       qe = eval(words[4])
       print("Q energy = {}".format(qe))
-      if abs(qe-0.0155)>1.e-4:
+      if abs(qe-0.0077)>1.e-4:
         print("Wrong qint energy")
         sys.exit(1)
 
@@ -58,7 +58,7 @@ for line in lines:
       words=line.split()
       oe = eval(words[4])
       print("Orient enegy = {}".format(oe))
-      if abs(oe-0.0049)>3.e-4:
+      if abs(oe-0.0020)>3.e-4:
         print("Wrong orient energy")
         sys.exit(1)
 

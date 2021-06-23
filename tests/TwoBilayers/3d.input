@@ -44,10 +44,41 @@ ModelParameters {
       Calphad {
          filename ="calphadAuNi.dat"
       }
-      mobility = 1.e2
+      //use artificial diffusions to equilibrate faster
+      diffusion_type = "temperature_dependent"
+      D_solid  =  1.e2 //um**2/s
+      D_liquid  = 1.e2 //um**2/s
+      Q0_solid  = 0.   // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
       gc = TRUE
       NewtonSolver {
          max_its = 50
+      }
+   }
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
    }
 }
@@ -78,6 +109,7 @@ InitialConditions {
 }
 
 Geometry{
+   periodic_dimension = 0, 1, 1
    coarsest_level_resolution = 256, 8, 8
    x_lo         = -0.8, -0.025, -0.025 // [um]
    x_up         =  0.8,  0.025,  0.025 // [um]

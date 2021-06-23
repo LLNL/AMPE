@@ -8,30 +8,6 @@
 # This file is part of AMPE. 
 # For details, see https://github.com/LLNL/AMPE
 # Please also read AMPE/LICENSE.
-# Redistribution and use in source and binary forms, with or without 
-# modification, are permitted provided that the following conditions are met:
-# - Redistributions of source code must retain the above copyright notice,
-#   this list of conditions and the disclaimer below.
-# - Redistributions in binary form must reproduce the above copyright notice,
-#   this list of conditions and the disclaimer (as noted below) in the
-#   documentation and/or other materials provided with the distribution.
-# - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-#   used to endorse or promote products derived from this software without
-#   specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-# LLC, UT BATTELLE, LLC,
-# THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-# IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
 # 
 # standard packages
 import math
@@ -104,10 +80,6 @@ parser.add_option( "--concentration-in", type="string",
                    help="concentration in interior region" )
 parser.add_option( "--concentration-out", type="string", 
                    help="concentration in exterior region" )
-parser.add_option( "--eta-in", type="float",
-                   help="eta in interior region [default: %default]" )
-parser.add_option( "--eta-out", type="float", default=0.,
-                   help="eta in exterior region [default: %default]" )
 parser.add_option( "-s", "--symmetry-test", action="store_true",
                    default=False,
                    help="rotate each octant by a random symmetry rotation" )
@@ -120,7 +92,6 @@ parser.add_option( "--gradxT", type="float",
                    help="gradxT" )
 parser.add_option( "--gaussT", type="float",
                    help="gaussT" )
-parser.add_option( "--double", action="store_true", dest="double_precision", default=False)
 parser.add_option( "--centerx", type="float", 
                    help="x position of grain 1" )
 parser.add_option( "--centery", type="float", 
@@ -147,10 +118,6 @@ if ( options.two ) :
     print( "Error: cannot use options one and two together")
     sys.exit(1)
   n_solid_layers = "two"
-
-double_precision = options.double_precision
-if double_precision:
-  print( "use double precision...")
 
 nx = options.ncells
 ny = options.ncells
@@ -221,9 +188,6 @@ print("interface width (in cells) = {}".format(delta))
 
 phase_inside = options.phase_in
 phase_outside = options.phase_out
-
-eta_inside = options.eta_in
-eta_outside = options.eta_out
 
 conc_inside   = options.concentration_in
 conc_outside  = options.concentration_out
@@ -441,55 +405,31 @@ print("nspecies={}".format(nspecies))
 # Open and define file
 
 #f = NetCDF.NetCDFFile( filename, 'w' )
-f = nc4.Dataset(filename, 'w', format='NETCDF4')
+ncfile = nc4.Dataset(filename, 'w', format='NETCDF4')
 
-f.createDimension( 'x', nx )
-f.createDimension( 'y', ny )
-f.createDimension( 'z', nz )
-f.createDimension( 'qlen', QLEN )
-f.createDimension( 'ns', nspecies )
+ncfile.createDimension( 'x', nx )
+ncfile.createDimension( 'y', ny )
+ncfile.createDimension( 'z', nz )
+ncfile.createDimension( 'qlen', QLEN )
+ncfile.createDimension( 'ns', nspecies )
+
 ncquat = []
 ncconc = []
 
-if double_precision:
-  ncphase       = f.createVariable( 'phase', 'd', ('z','y','x') )
-  if( not eta_inside is None ):
-    nceta         = f.createVariable( 'eta', 'd', ('z','y','x') )
-  nctemperature = f.createVariable( 'temperature', 'd', ('z','y','x') )
-  for n in range( QLEN ) :
-    q_comp = f.createVariable( 'quat%d' % (n+1), 'd', ('z','y','x') )
-    ncquat.append( q_comp )
-  for s in range(nspecies):
-    c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
-    ncconc.append(c_comp)
-else:
-  ncphase       = f.createVariable( 'phase', 'f', ('z','y','x') )
-  if( not eta_inside is None ):
-    nceta         = f.createVariable( 'eta', 'f', ('z','y','x') )
-  nctemperature = f.createVariable( 'temperature', 'f', ('z','y','x') )
-  for n in range( QLEN ) :
-    q_comp = f.createVariable( 'quat%d' % (n+1), 'f', ('z','y','x') )
-    ncquat.append( q_comp )
-  for s in range(nspecies):
-    c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
-    ncconc.append(c_comp)
+ncphase       = ncfile.createVariable( 'phase', 'f', ('z','y','x') )
+nctemperature = ncfile.createVariable( 'temperature', 'f', ('z','y','x') )
+for n in range( QLEN ) :
+  q_comp = ncfile.createVariable( 'quat%d' % (n+1), 'f', ('z','y','x') )
+  ncquat.append( q_comp )
+for s in range(nspecies):
+  c_comp = ncfile.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
+  ncconc.append(c_comp)
 
 
-
-if double_precision:
-  phase = N.ones( (nz,ny,nx), N.float64 )
-  if( not eta_inside is None ):
-    eta   = N.ones( (nz,ny,nx), N.float64 )
-  quat  = N.zeros( (QLEN,nz,ny,nx), N.float64 )
-  conc  = N.ones( (nspecies,nz,ny,nx), N.float64 )
-  temperature = N.zeros( (nz,ny,nx), N.float64 )
-else:
-  phase = N.ones( (nz,ny,nx), N.float32 )
-  if( not eta_inside is None ):
-    eta   = N.ones( (nz,ny,nx), N.float32 )
-  quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
-  conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
-  temperature = N.zeros( (nz,ny,nx), N.float32 )
+phase = N.ones( (nz,ny,nx), N.float32 )
+quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
+conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
+temperature = N.zeros( (nz,ny,nx), N.float32 )
 
 r_sq = radius**2
 r_sq_two = radius_two**2
@@ -606,39 +546,29 @@ for k in range( nz ) :
         distance_sq1 = (y - cy_one)**2
       elif ( direction == 2 ) :
         distance_sq1 = (z - cz_one)**2
-      distance_sq1 = math.sqrt(distance_sq1)
+      distance_one = math.sqrt(distance_sq1)
 
-      d = distance_sq1 - radius
+      d1 = distance_one - radius
       if( delta>0. ):
-        sd=d
-        v = 0.5*(1.+math.tanh(-0.5*sd*invdelta))
+        phi = 0.5*(1.+math.tanh(-0.5*d1*invdelta))
       else :
-        if( d>0. ):
-          v=0.; #outside
+        if( d1>0. ):
+          phi=0.; #outside
         else:
-          v=1.; #inside
+          phi=1.; #inside
 
       if ( not temperature0 is None ) :
         temperature[k,j,i] = temperature0
         if ( not gradxT is None ) :
           temperature[k,j,i] = temperature[k,j,i] + gradxT*(i-0.5*nx+0.5)
         if ( not gaussT is None ) :
-          d2=(x - cx_one)**2
-          temperature[k,j,i] = temperature[k,j,i] + gaussT*math.exp(-distance_sq1/(0.0625*nx*nx))
+          temperature[k,j,i] = temperature[k,j,i] + gaussT*math.exp(-distance_one/(0.0625*nx*nx))
       
       #smooth interface
-      phase[k,j,i] = v*phase_inside+(1.-v)*phase_outside
+      phase[k,j,i] = phi*phase_inside+(1.-phi)*phase_outside
       
-      if ( d<0. ) :  #inside grain 1
-        if( not eta_inside is None ):
-          eta[k,j,i]   = eta_inside
-        if ( nspecies>0 ):
-          c = ci
-      else : #outside
-        if( not eta_inside is None ):
-          eta[k,j,i]   = eta_outside
-        if ( nspecies>0 ):
-          c = co
+      for s in range(nspecies):
+        c[s] = phi*ci[s]+(1.-phi)*co[s]
       if ( QLEN == 1 ) :
         q = angle_inside
       else :
@@ -651,29 +581,39 @@ for k in range( nz ) :
           distance_sq2 = (y - cy_two)**2
         elif ( direction == 2 ) :
           distance_sq2 = (z - cz_two)**2
-        distance_sq2 = math.sqrt(distance_sq2)
-        d = distance_sq2 - radius_two
+        distance_two = math.sqrt(distance_sq2)
+        d2 = distance_two - radius_two
 
         if( delta>0. ):
-          v = 0.5*(1.+math.tanh(-0.5*d*invdelta))
+          phi = 0.5*(1.+math.tanh(-0.5*d2*invdelta))
         else :
-          if( d>0. ):
-            v=0.;
+          if( d2>0. ):
+            phi=0.;
           else:
-            v=1.;
+            phi=1.;
 
-        if ( d<delta ) : #inside grain 2
-          phase[k,j,i] = v*phase_inside+(1.-v)*phase_outside
-          if( not eta_inside is None ):
-            eta[k,j,i]   = eta_inside
-          c = ci
-        
-        if ( distance_sq2<distance_sq1 ) : 
+        if ( d2<delta ) : #inside grain 2
+          phase[k,j,i] = phi*phase_inside+(1.-phi)*phase_outside
+          for s in range(nspecies):
+            c[s] = phi*ci[s]+(1.-phi)*co[s]
+
+        #set q based on closest grain center
+        if ( distance_two<distance_one ) :
           if ( QLEN == 1 ) :
             q = angle_inside_two
           else :
             q = quat_inside_two
-        
+
+        #region in between two grains
+        if(d2>0. and d1>0. and delta>0.) :
+          f=d1/(d1+d2)
+          pf=f*f*f*(10.-15.*f+6*f*f)
+          if ( QLEN == 1 ) :
+            q = pf*angle_inside_two+(1.-pf)*angle_inside
+          else :
+            q = pf*quat_inside_two+(1.-pf)*quat_inside
+
+
       qr = None
       if ( options.symmetry_test ) :
         qr = rotateByOctant( x, y, z, cx, cy, cz )
@@ -699,8 +639,6 @@ for k in range( nz ) :
 # Write data to file and close
 
 ncphase[:,:,:]=phase
-if( not eta_inside is None ):
-  nceta[:,:,:]=eta
 nctemperature[:,:,:]= temperature
 
 for n in range( QLEN ) :
@@ -710,4 +648,4 @@ if ( nspecies>0 ):
   for s in range(nspecies):
     ncconc[s][:,:,:]=conc[s,:,:,:]
 
-f.close()
+ncfile.close()
