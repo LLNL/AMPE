@@ -24,6 +24,7 @@
 #include "DiffusionCoeffForQuat.h"
 #include "Sundials_SAMRAIVector.h"
 #include "SundialsAbstractVector.h"
+#include "PhaseRHSStrategy.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -294,7 +295,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 #endif
    void setupBC();
 
- protected:
    bool needDphiDt() const
    {
       return (d_with_phase &&
@@ -302,6 +302,10 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                d_with_heat_equation));
    }
 
+   void fillDphiDt(std::shared_ptr<hier::PatchHierarchy> hierarchy,
+                   const double time, const int phase_rhs_id);
+
+ protected:
    void evaluatePhaseRHS(
        const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
        std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
@@ -310,9 +314,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
       const int ydot_phase_id =
           y_dot_samvect->getComponentDescriptorIndex(d_phase_component_index);
 
-      evaluatePhaseRHS(time, hierarchy, d_phase_scratch_id, d_eta_scratch_id,
-                       d_conc_scratch_id, d_quat_scratch_id, ydot_phase_id,
-                       d_temperature_scratch_id, fd_flag == 0);
+      evaluatePhaseRHS(time, hierarchy, d_phase_scratch_id, ydot_phase_id,
+                       fd_flag == 0);
    }
 
    void evaluateQuatRHS(
@@ -567,10 +570,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    void evaluatePhaseRHS(const double time,
                          std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                         const int phase_id, const int eta_id,
-                         const int conc_id, const int quat_id,
-                         const int phase_rhs_id, const int temperature_id,
-                         const bool visit_flag);
+                         const int phase_id, const int phase_rhs_id,
+                         const bool eval_flag);
 #ifndef HAVE_THERMO4PFM
    void evaluateEtaRHS(const double time,
                        std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -625,9 +626,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        const std::shared_ptr<hier::PatchHierarchy>&);
    virtual void setCompositionOperatorCoefficients(const double gamma);
 
-   void fillDphiDt(std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                   const double time, const int phase_rhs_id);
-
    double computeFrameVelocity(const std::shared_ptr<hier::PatchHierarchy>&,
                                const double time, int phase_id,
                                const bool newtime);
@@ -667,6 +665,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        d_composition_diffusion_strategy;
 
    std::shared_ptr<PhaseFluxStrategy> d_phase_flux_strategy;
+
+   std::shared_ptr<PhaseRHSStrategy> d_phase_rhs_strategy;
 
    double d_current_time;
    double d_previous_timestep;
@@ -965,7 +965,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    // Timers
    std::shared_ptr<tbox::Timer> t_advance_timer;
-   std::shared_ptr<tbox::Timer> t_phase_rhs_timer;
    std::shared_ptr<tbox::Timer> t_eta_rhs_timer;
    std::shared_ptr<tbox::Timer> t_conc_rhs_timer;
    std::shared_ptr<tbox::Timer> t_symm_rhs_timer;

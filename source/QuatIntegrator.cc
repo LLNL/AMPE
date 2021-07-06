@@ -34,6 +34,7 @@
 #include "UniformNoise.h"
 #include "toolsSAMRAI.h"
 #include "EBSCompositionRHSStrategy.h"
+#include "PhaseRHSStrategyWithQ.h"
 
 #include "QuatParams.h"
 
@@ -253,8 +254,6 @@ QuatIntegrator::QuatIntegrator(
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
    t_advance_timer = tman->getTimer("AMPE::QuatIntegrator::Advance()");
    t_rhs_timer = tman->getTimer("AMPE::QuatIntegrator::evaluateRHSFunction()");
-   t_phase_rhs_timer =
-       tman->getTimer("AMPE::QuatIntegrator::evaluatePhaseRHS()");
    t_eta_rhs_timer = tman->getTimer("AMPE::QuatIntegrator::evaluateEtaRHS()");
    t_conc_rhs_timer =
        tman->getTimer("AMPE::QuatIntegrator::evaluateConcentrationRHS()");
@@ -1986,6 +1985,16 @@ void QuatIntegrator::initialize(
    d_sundials_solver->setInitialConditionVector(
        (Sundials_SAMRAIVector*)Sundials_SAMRAIVector::createSundialsVector(
            d_solution_vec));
+
+   d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
+       d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+       d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id, d_f_l_id,
+       d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
+       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
+       d_driving_force_visit_id, this, d_sundials_solver,
+       d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+
+   d_phase_rhs_strategy->setup(hierarchy);
 }
 
 //-----------------------------------------------------------------------
@@ -2418,284 +2427,20 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
 
 void QuatIntegrator::evaluatePhaseRHS(
     const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int phase_id, const int eta_id, const int conc_id, const int quat_id,
-    const int phase_rhs_id, const int temperature_id, const bool eval_flag)
+    const int phase_id, const int phase_rhs_id, const bool eval_flag)
 {
-   assert(d_phase_mobility_id >= 0);
    assert(phase_id >= 0);
    assert(phase_rhs_id >= 0);
-   assert(temperature_id >= 0);
-   assert(d_phase_flux_strategy);
-
-   t_phase_rhs_timer->start();
-
-   static double old_time = -1.;
-
-   math::PatchCellDataOpsReal<double> mathops;
-   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
-#ifdef DEBUG_CHECK_ASSERTIONS
-   const double norm_y = cellops.L2Norm(phase_id);
-   assert(norm_y == norm_y);
-#endif
-
-   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
-   UniformNoise& noise(*(UniformNoise::instance(mpi.getRank())));
-   // tbox::pout<<"time="<<time<<endl;
-
-   // get time of last accepted step
-   double last_time =
-       d_sundials_solver->getActualFinalValueOfIndependentVariable();
-   // tbox::pout<<"last_time="<<last_time<<endl;
-
-   // if this is not a FD operation and the time has been updated
-   // turn flag ON to recompute random noise
-   bool newtime = false;
-   static double deltat = 1.e9;
-   if (time != old_time && eval_flag) {
-      deltat = time - last_time;
-      // tbox::pout<<"deltat="<<deltat<<endl;
-      newtime = true;
-   }
 
    // frame velocity saved in class data member so that it can be used
    // by other functions
    d_frame_velocity =
        d_model_parameters.adaptMovingFrame()
-           ? computeFrameVelocity(hierarchy, time, phase_id, newtime)
+           ? computeFrameVelocity(hierarchy, time, phase_id, eval_flag)
            : d_model_parameters.movingVelocity();
 
-   // Loop from finest coarsest levels.  We assume that ghost cells
-   // on all levels have already been filled by a prior call to
-   // setCoefficients (via fillScratch).
-
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
-
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-      // tbox::pout<<"quat_id="<<quat_id<<endl;
-      d_phase_flux_strategy->computeFluxes(level, phase_id, quat_id, d_flux_id);
-
-      // Coarsen flux data from next finer level so that
-      // the computed flux becomes the composite grid flux.
-      if (ln < hierarchy->getFinestLevelNumber()) {
-         d_flux_coarsen_schedule[ln]->coarsenData();
-      }
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         d_free_energy_strategy->computeFreeEnergyLiquid(
-             *patch, d_temperature_scratch_id, d_f_l_id, false);
-
-         d_free_energy_strategy->computeFreeEnergySolidA(
-             *patch, d_temperature_scratch_id, d_f_a_id, false);
-
-         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         const double* dx = patch_geom->getDx();
-
-         std::shared_ptr<pdat::CellData<double> > phase(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_id)));
-         assert(phase);
-
-         std::shared_ptr<pdat::CellData<double> > phase_rhs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_rhs_id)));
-         assert(phase_rhs);
-         std::shared_ptr<pdat::CellData<double> > fl(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_f_l_id)));
-         assert(fl);
-         std::shared_ptr<pdat::CellData<double> > fa(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_f_a_id)));
-         assert(fa);
-
-         std::shared_ptr<pdat::SideData<double> > phase_flux(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(d_flux_id)));
-         assert(phase_flux);
-
-         std::shared_ptr<pdat::CellData<double> > temperature(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_id)));
-         assert(temperature);
-
-         int with_orient = 0;
-         double* ptr_quat_grad_modulus = nullptr;
-         if (d_with_orientation) {
-            with_orient = 1;
-            assert(d_quat_grad_modulus_id >= 0);
-            std::shared_ptr<pdat::CellData<double> > qgm(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_quat_grad_modulus_id)));
-            ptr_quat_grad_modulus = qgm->getPointer();
-         }
-
-         int three_phase = 0;
-         double* ptr_eta = nullptr;
-         if (d_with_third_phase) {
-            three_phase = 1;
-            std::shared_ptr<pdat::CellData<double> > eta(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_id)));
-            ptr_eta = eta->getPointer();
-         }
-
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
-
-         assert(phase->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-         assert(phase_rhs->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), 0));
-#ifdef DEBUG_CHECK_ASSERTIONS
-         SAMRAI::math::PatchCellDataNormOpsReal<double> opc;
-         double l2t = opc.L2Norm(temperature, pbox);
-         assert(l2t == l2t);
-
-         SAMRAI::math::PatchSideDataNormOpsReal<double> ops;
-         double l2f = ops.L2Norm(phase_flux, pbox);
-         assert(l2f == l2f);
-#endif
-
-         // first compute component from interfacial energy
-         COMPUTERHSPBG(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       dx, 2.0 * d_H_parameter, phase_flux->getPointer(0),
-                       phase_flux->getPointer(1),
-#if (NDIM == 3)
-                       phase_flux->getPointer(2),
-#endif
-                       phase_flux->getGhostCellWidth()[0],
-                       temperature->getPointer(),
-                       temperature->getGhostCellWidth()[0], d_phase_well_scale,
-                       d_eta_well_scale, phase->getPointer(), NGHOSTS, ptr_eta,
-                       NGHOSTS, ptr_quat_grad_modulus, 0,
-                       phase_rhs->getPointer(), 0,
-                       d_phase_well_func_type.c_str(),
-                       d_eta_well_func_type.c_str(), &interpf,
-                       d_orient_interp_func_type.c_str(),
-                       // d_quat_grad_floor, d_quat_smooth_floor_type.c_str(),
-                       with_orient, three_phase);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-         double l2rhs = opc.L2Norm(phase_rhs, pbox);
-         assert(l2rhs == l2rhs);
-#endif
-
-         // then add component from chemical energy
-         d_free_energy_strategy->addDrivingForce(time, *patch, temperature_id,
-                                                 phase_id, eta_id, conc_id,
-                                                 d_f_l_id, d_f_a_id, d_f_b_id,
-                                                 phase_rhs_id);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-         l2rhs = opc.L2Norm(phase_rhs, pbox);
-         assert(l2rhs == l2rhs);
-#endif
-
-         std::shared_ptr<pdat::CellData<double> > phase_mobility(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_phase_mobility_id)));
-         assert(phase_mobility);
-
-         if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
-            std::shared_ptr<pdat::CellData<double> > phase_rhs_visit(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_phase_rhs_visit_id)));
-            assert(phase_rhs_visit);
-            mathops.copyData(phase_rhs_visit, phase_rhs, pbox);
-         }
-
-         // multiply by mobility
-         mathops.multiply(phase_rhs, phase_mobility, phase_rhs, pbox);
-
-         // add noise
-         if (d_model_parameters.noise_amplitude() > 0. && deltat > 0.) {
-            if (newtime) {
-               noise.setField(patch, d_noise_id, phase_id);
-            }
-            std::shared_ptr<pdat::CellData<double> > noise_field(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_noise_id)));
-            double alpha = d_model_parameters.noise_amplitude() / sqrt(deltat);
-            mathops.axpy(phase_rhs, alpha, noise_field, phase_rhs,
-                         patch->getBox());
-         }
-      }
-   }
-
-   // save dphidt if needed for other purposes
-   if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
-
-   // add component related to moving frame if moving velocity!=0
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         const double* dx = patch_geom->getDx();
-
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
-
-         std::shared_ptr<pdat::CellData<double> > phase(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_id)));
-         assert(phase);
-
-         std::shared_ptr<pdat::CellData<double> > phase_rhs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_rhs_id)));
-         assert(phase_rhs);
-
-         if (d_model_parameters.inMovingFrame()) {
-            assert(phase->getGhostCellWidth()[0] > 0);
-            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       dx, phase->getPointer(), phase->getGhostCellWidth()[0],
-                       d_frame_velocity, phase_rhs->getPointer(),
-                       phase_rhs->getGhostCellWidth()[0]);
-         }
-
-         if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
-            assert(d_driving_force_visit_id >= 0);
-            d_free_energy_strategy->computeDrivingForce(
-                time, *patch, temperature_id, phase_id, eta_id, conc_id,
-                d_f_l_id, d_f_a_id, d_f_b_id, d_driving_force_visit_id);
-         }
-      }
-   }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-   double l2rhs = cellops.L2Norm(phase_rhs_id);
-   assert(l2rhs == l2rhs);
-#endif
-
-   //   if( d_model_parameters.with_rhs_visit_output() && eval_flag ){
-   //      cellops.copyData( d_phase_rhs_visit_id, phase_rhs_id, false );
-   //   }
-
-   old_time = time;
-
-   t_phase_rhs_timer->stop();
+   d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag,
+                                     d_frame_velocity);
 }
 
 //-----------------------------------------------------------------------
@@ -4526,7 +4271,7 @@ void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
 
 double QuatIntegrator::computeFrameVelocity(
     const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const double time,
-    int phase_id, const bool newtime)
+    int phase_id, const bool eval_flag)
 {
    static double frame_velocity = d_model_parameters.movingVelocity();
    static double previous_frame_velocity = d_model_parameters.movingVelocity();
@@ -4540,7 +4285,7 @@ double QuatIntegrator::computeFrameVelocity(
        d_sundials_solver->getActualFinalValueOfIndependentVariable();
 
    // update reference frame velocity
-   if (newtime && last_time != time_previous_frame_velocity) {
+   if (eval_flag && last_time != time_previous_frame_velocity) {
       previous_frame_velocity = frame_velocity;
       time_previous_frame_velocity = last_time;
       previous_fs = fs;
