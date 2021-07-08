@@ -34,8 +34,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
        const int f_l_id, const int f_a_id, const int f_b_id,
        const int phase_mobility_id, const int flux_id,
        const int quat_grad_modulus_id, const int noise_id,
-       const int phase_rhs_visit_id, const int driving_force_visit_id,
-       QuatIntegrator* integrator,
+       const int phase_rhs_visit_id, QuatIntegrator* integrator,
 #ifdef USE_CPODE
        CPODESSolver* sundials_solver,
 #else
@@ -79,7 +78,6 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
    const int d_noise_id;
 
    const int d_phase_rhs_visit_id;
-   const int d_driving_force_visit_id;
 
    QuatIntegrator* d_integrator;
 #ifdef USE_CPODE

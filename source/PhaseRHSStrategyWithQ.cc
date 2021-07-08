@@ -26,8 +26,7 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
     const int f_l_id, const int f_a_id, const int f_b_id,
     const int phase_mobility_id, const int flux_id,
     const int quat_grad_modulus_id, const int noise_id,
-    const int phase_rhs_visit_id, const int driving_force_visit_id,
-    QuatIntegrator* integrator,
+    const int phase_rhs_visit_id, QuatIntegrator* integrator,
 #ifdef USE_CPODE
     CPODESSolver* sundials_solver,
 #else
@@ -55,7 +54,6 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
       d_quat_grad_modulus_id(quat_grad_modulus_id),
       d_noise_id(noise_id),
       d_phase_rhs_visit_id(phase_rhs_visit_id),
-      d_driving_force_visit_id(driving_force_visit_id),
       d_integrator(integrator),
       d_sundials_solver(sundials_solver),
       d_free_energy_strategy(free_energy_strategy),
@@ -192,14 +190,6 @@ void PhaseRHSStrategyWithQ::evaluateRHS(
                        dx, phase->getPointer(), phase->getGhostCellWidth()[0],
                        frame_velocity, phase_rhs->getPointer(),
                        phase_rhs->getGhostCellWidth()[0]);
-         }
-
-         if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
-            assert(d_driving_force_visit_id >= 0);
-            d_free_energy_strategy->computeDrivingForce(
-                time, *patch, d_temperature_scratch_id, d_phase_scratch_id,
-                d_eta_scratch_id, d_conc_scratch_id, d_f_l_id, d_f_a_id,
-                d_f_b_id, d_driving_force_visit_id);
          }
       }
    }

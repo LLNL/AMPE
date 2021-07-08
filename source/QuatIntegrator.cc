@@ -1990,9 +1990,9 @@ void QuatIntegrator::initialize(
        d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
        d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id, d_f_l_id,
        d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
-       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
-       d_driving_force_visit_id, this, d_sundials_solver,
-       d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id, this,
+       d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
+       d_phase_flux_strategy));
 
    d_phase_rhs_strategy->setup(hierarchy);
 }
@@ -2441,6 +2441,15 @@ void QuatIntegrator::evaluatePhaseRHS(
 
    d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag,
                                      d_frame_velocity);
+
+   if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
+      assert(d_driving_force_visit_id >= 0);
+      // recompute driving force just for visualization
+      d_free_energy_strategy->computeDrivingForce(
+          time, hierarchy, d_temperature_scratch_id, d_phase_scratch_id,
+          d_eta_scratch_id, d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
+          d_driving_force_visit_id);
+   }
 }
 
 //-----------------------------------------------------------------------
