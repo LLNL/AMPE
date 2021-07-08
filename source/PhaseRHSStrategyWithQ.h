@@ -13,8 +13,13 @@
 
 #include "PhaseRHSStrategy.h"
 #include "PhaseFluxStrategy.h"
-#include "QuatIntegrator.h"
 #include "FreeEnergyStrategy.h"
+#include "QuatModelParameters.h"
+#ifdef USE_CPODE
+#include "CPODESSolver.h"
+#else
+#include "CVODESolver.h"
+#endif
 
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
@@ -34,7 +39,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
        const int f_l_id, const int f_a_id, const int f_b_id,
        const int phase_mobility_id, const int flux_id,
        const int quat_grad_modulus_id, const int noise_id,
-       const int phase_rhs_visit_id, QuatIntegrator* integrator,
+       const int phase_rhs_visit_id,
 #ifdef USE_CPODE
        CPODESSolver* sundials_solver,
 #else
@@ -48,8 +53,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
 
    virtual void evaluateRHS(const double time,
                             std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                            const int ydot_phase_id, const bool eval_flag,
-                            const double frame_velocity);
+                            const int ydot_phase_id, const bool eval_flag);
 
  private:
    const QuatModelParameters& d_model_parameters;
@@ -79,7 +83,6 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
 
    const int d_phase_rhs_visit_id;
 
-   QuatIntegrator* d_integrator;
 #ifdef USE_CPODE
    CPODESSolver* d_sundials_solver;
 #else

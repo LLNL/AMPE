@@ -26,6 +26,7 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
+            ${CMAKE_SOURCE_DIR}/source/MovingFrameRHS.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseRHSStrategyWithQ.cc
             ${CMAKE_SOURCE_DIR}/source/diagnostics.cc
             ${CMAKE_SOURCE_DIR}/source/KKSdiluteEquilibriumPhaseConcentrationsStrategy.cc

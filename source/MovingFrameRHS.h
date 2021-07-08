@@ -7,23 +7,23 @@
 // All rights reserved.
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-#ifndef included_PhaseRHSStrategy
-#define included_PhaseRHSStrategy
+#ifndef included_MovingFrameRHS
+#define included_MovingFrameRHS
 
 #include "SAMRAI/hier/PatchHierarchy.h"
 
-#include <memory>
-
 using namespace SAMRAI;
 
-class PhaseRHSStrategy
+class MovingFrameRHS
 {
  public:
-   virtual void evaluateRHS(const double time,
-                            std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                            const int ydot_phase_id, const bool eval_flag) = 0;
-   virtual void setup(std::shared_ptr<hier::PatchHierarchy> hierarchy) = 0;
+   MovingFrameRHS(const int phase_scratch_id);
+
+   void addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
+               const int ydot_phase_id, const double frame_velocity);
+
+ private:
+   const int d_phase_scratch_id;
 };
 
 #endif

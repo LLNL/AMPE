@@ -25,6 +25,7 @@
 #include "Sundials_SAMRAIVector.h"
 #include "SundialsAbstractVector.h"
 #include "PhaseRHSStrategy.h"
+#include "MovingFrameRHS.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -667,6 +668,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    std::shared_ptr<PhaseFluxStrategy> d_phase_flux_strategy;
 
    std::shared_ptr<PhaseRHSStrategy> d_phase_rhs_strategy;
+
+   std::shared_ptr<MovingFrameRHS> d_movingframe_rhs;
 
    double d_current_time;
    double d_previous_timestep;

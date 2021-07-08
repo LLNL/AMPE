@@ -26,7 +26,7 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
     const int f_l_id, const int f_a_id, const int f_b_id,
     const int phase_mobility_id, const int flux_id,
     const int quat_grad_modulus_id, const int noise_id,
-    const int phase_rhs_visit_id, QuatIntegrator* integrator,
+    const int phase_rhs_visit_id,
 #ifdef USE_CPODE
     CPODESSolver* sundials_solver,
 #else
@@ -54,7 +54,6 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
       d_quat_grad_modulus_id(quat_grad_modulus_id),
       d_noise_id(noise_id),
       d_phase_rhs_visit_id(phase_rhs_visit_id),
-      d_integrator(integrator),
       d_sundials_solver(sundials_solver),
       d_free_energy_strategy(free_energy_strategy),
       d_grid_geometry(grid_geom),
@@ -95,7 +94,7 @@ void PhaseRHSStrategyWithQ::setup(
 
 void PhaseRHSStrategyWithQ::evaluateRHS(
     const double time, std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int ydot_phase_id, const bool eval_flag, const double frame_velocity)
+    const int ydot_phase_id, const bool eval_flag)
 {
    assert(ydot_phase_id >= 0);
    assert(d_phase_scratch_id >= 0);
@@ -148,56 +147,6 @@ void PhaseRHSStrategyWithQ::evaluateRHS(
          evaluateRHS(time, patch, ydot_phase_id, eval_flag);
       }
    }
-
-   // save dphidt if needed for other purposes
-   if (d_integrator->needDphiDt())
-      d_integrator->fillDphiDt(hierarchy, time, ydot_phase_id);
-
-   // add component related to moving frame if moving velocity!=0
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         const double* dx = patch_geom->getDx();
-
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
-
-         std::shared_ptr<pdat::CellData<double> > phase(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_phase_scratch_id)));
-         assert(phase);
-
-         std::shared_ptr<pdat::CellData<double> > phase_rhs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(ydot_phase_id)));
-         assert(phase_rhs);
-
-         if (d_model_parameters.inMovingFrame()) {
-            assert(phase->getGhostCellWidth()[0] > 0);
-            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       dx, phase->getPointer(), phase->getGhostCellWidth()[0],
-                       frame_velocity, phase_rhs->getPointer(),
-                       phase_rhs->getGhostCellWidth()[0]);
-         }
-      }
-   }
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-   double l2rhs = cellops.L2Norm(ydot_phase_id);
-   assert(l2rhs == l2rhs);
-#endif
 
    old_time = time;
 

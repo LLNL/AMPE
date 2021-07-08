@@ -1990,11 +1990,14 @@ void QuatIntegrator::initialize(
        d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
        d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id, d_f_l_id,
        d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
-       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id, this,
+       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
        d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
        d_phase_flux_strategy));
 
    d_phase_rhs_strategy->setup(hierarchy);
+
+   if (d_model_parameters.inMovingFrame())
+      d_movingframe_rhs.reset(new MovingFrameRHS(d_phase_scratch_id));
 }
 
 //-----------------------------------------------------------------------
@@ -2439,8 +2442,15 @@ void QuatIntegrator::evaluatePhaseRHS(
            ? computeFrameVelocity(hierarchy, time, phase_id, eval_flag)
            : d_model_parameters.movingVelocity();
 
-   d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag,
-                                     d_frame_velocity);
+   d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag);
+
+   // save dphidt if needed for other purposes
+   if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
+
+   if (d_model_parameters.inMovingFrame()) {
+      assert(d_movingframe_rhs);
+      d_movingframe_rhs->addRHS(hierarchy, phase_rhs_id, d_frame_velocity);
+   }
 
    if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
       assert(d_driving_force_visit_id >= 0);
@@ -2450,6 +2460,11 @@ void QuatIntegrator::evaluatePhaseRHS(
           d_eta_scratch_id, d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
           d_driving_force_visit_id);
    }
+
+#ifdef DEBUG_CHECK_ASSERTIONS
+   double l2rhs = cellops.L2Norm(phase_rhs_id);
+   assert(l2rhs == l2rhs);
+#endif
 }
 
 //-----------------------------------------------------------------------
