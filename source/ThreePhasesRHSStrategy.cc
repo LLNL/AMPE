@@ -172,15 +172,7 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch->getPatchData(ydot_phase_id)));
    assert(phase_rhs);
-
-   std::shared_ptr<pdat::CellData<double> > fl(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch->getPatchData(d_f_l_id)));
-   assert(fl);
-   std::shared_ptr<pdat::CellData<double> > fa(
-       SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-           patch->getPatchData(d_f_a_id)));
-   assert(fa);
+   assert(phase_rhs->getDepth() == 3);
 
    std::shared_ptr<pdat::SideData<double> > phase_flux(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -234,11 +226,11 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
 #endif
 
    // then add component from chemical energy
-   d_free_energy_strategy->addDrivingForce(time, *patch,
-                                           d_temperature_scratch_id,
-                                           d_phase_scratch_id, -1,
-                                           d_conc_scratch_id, d_f_l_id,
-                                           d_f_a_id, d_f_b_id, ydot_phase_id);
+   // d_free_energy_strategy->addDrivingForce(time, *patch,
+   //                                        d_temperature_scratch_id,
+   //                                        d_phase_scratch_id, -1,
+   //                                        d_conc_scratch_id, d_f_l_id,
+   //                                        d_f_a_id, d_f_b_id, ydot_phase_id);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    l2rhs = opc.L2Norm(phase_rhs, pbox);

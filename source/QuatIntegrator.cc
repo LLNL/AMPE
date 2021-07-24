@@ -347,8 +347,9 @@ void QuatIntegrator::setupPreconditionersPhase(
           phase_sys_solver_database->getBoolWithDefault("verbose", false);
    }
 
+   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops(
-       new PhaseFACOps(d_name + "_QIPhaseFACOps", d_with_third_phase,
+       new PhaseFACOps(d_name + "_QIPhaseFACOps", nphases,
                        phase_sys_solver_database));
 
    d_phase_sys_solver.reset(new PhaseFACSolver(d_name + "QIPhaseSysSolver",
@@ -1098,10 +1099,12 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
 {
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
+   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+
    d_phase_sol_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         d_name + "_QI_phase_"
                                                                  "sol_",
-                                                        1));
+                                                        nphases));
    d_phase_sol_id = variable_db->registerVariableAndContext(
        d_phase_sol_var, d_current,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
@@ -1111,7 +1114,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
    d_phase_rhs_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         d_name + "_QI_phase_"
                                                                  "rhs_",
-                                                        1));
+                                                        nphases));
    d_phase_rhs_id = variable_db->registerVariableAndContext(
        d_phase_rhs_var, d_current,
        //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
@@ -1122,10 +1125,9 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
    // dphidt is needed in ghost cells to compute
    // antitrapping fluxes
    if (needDphiDt()) {
+      std::string name(d_name + "_QI_dphiddphidt");
       d_dphidt_scratch_var.reset(
-          new pdat::CellVariable<double>(tbox::Dimension(NDIM), d_name + "_QI_"
-                                                                         "dphid"
-                                                                         "t"));
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM), name, nphases));
       d_dphidt_scratch_id = variable_db->registerVariableAndContext(
           d_dphidt_scratch_var, d_scratch,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));

@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
       std::shared_ptr<PhaseFACOps> fac_ops(
           new PhaseFACOps(fac_ops_name,
-                          false,  // no third phase
+                          1,  // one phase variable
                           input_db->isDatabase("fac_ops")
                               ? input_db->getDatabase("fac_ops")
                               : std::shared_ptr<tbox::Database>()));
