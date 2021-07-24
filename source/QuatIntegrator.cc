@@ -35,6 +35,7 @@
 #include "toolsSAMRAI.h"
 #include "EBSCompositionRHSStrategy.h"
 #include "PhaseRHSStrategyWithQ.h"
+#include "ThreePhasesRHSStrategy.h"
 
 #include "QuatParams.h"
 
@@ -86,7 +87,7 @@ QuatIntegrator::QuatIntegrator(
     const int ncompositions, std::shared_ptr<tbox::Database> db,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<tbox::Database> bc_db, const bool with_phase,
-    const bool with_concentration, const bool with_third_phase,
+    const bool with_concentration, const bool with_three_phases,
     const bool with_heat_equation, const bool with_steady_temperature,
     const bool with_gradT, const bool with_antitrapping,
     const bool with_partition_coeff, const bool use_warm_start,
@@ -231,7 +232,8 @@ QuatIntegrator::QuatIntegrator(
 
    d_quat_model = model;
 
-   d_with_third_phase = with_third_phase;
+   d_with_third_phase = false;
+   d_with_three_phases = with_three_phases;
    d_with_heat_equation = with_heat_equation;
    d_with_steady_temperature = with_steady_temperature;
    d_with_gradT = with_gradT;
@@ -909,8 +911,10 @@ void QuatIntegrator::RegisterVariables(
       RegisterLocalPhaseVariables();
    }
 
+   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
    d_flux_var.reset(new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                                   d_name + "_QUI_flux_", 1));
+                                                   d_name + "_QUI_flux_",
+                                                   nphases));
    d_flux_id = variable_db->registerVariableAndContext(
        d_flux_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_flux_id >= 0);
@@ -1986,13 +1990,20 @@ void QuatIntegrator::initialize(
        (Sundials_SAMRAIVector*)Sundials_SAMRAIVector::createSundialsVector(
            d_solution_vec));
 
-   d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
-       d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
-       d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id, d_f_l_id,
-       d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
-       d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
-       d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
-       d_phase_flux_strategy));
+   if (d_model_parameters.with_three_phases())
+      d_phase_rhs_strategy.reset(new ThreePhasesRHSStrategy(
+          d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+          d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
+          d_phase_mobility_id, d_flux_id, d_sundials_solver,
+          d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+   else
+      d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
+          d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+          d_quat_scratch_id, d_temperature_scratch_id, d_eta_scratch_id,
+          d_f_l_id, d_f_a_id, d_f_b_id, d_phase_mobility_id, d_flux_id,
+          d_quat_grad_modulus_id, d_noise_id, d_phase_rhs_visit_id,
+          d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
+          d_phase_flux_strategy));
 
    d_phase_rhs_strategy->setup(hierarchy);
 
@@ -3260,6 +3271,7 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    //#ifdef DEBUG_CHECK_ASSERTIONS
    int n = 0;
    if (d_with_phase) n++;
+   if (d_with_three_phases) n += 2;
    if (d_with_third_phase) n++;
    if (d_evolve_quat) n++;
    if (d_with_concentration) n++;

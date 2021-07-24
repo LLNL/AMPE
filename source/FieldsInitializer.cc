@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "FieldsInitializer.h"
 
@@ -65,13 +41,15 @@ void FieldsInitializer::registerFieldsIds(const int phase_id, const int eta_id,
                                           const int temperature_id,
                                           const int quat_id, const int qlen,
                                           const int conc_id,
-                                          const int ncompositions)
+                                          const int ncompositions,
+                                          const int nphases)
 {
    d_phase_id = phase_id, d_eta_id = eta_id, d_temperature_id = temperature_id,
    d_quat_id = quat_id, d_conc_id = conc_id;
 
    d_qlen = qlen;
    d_ncompositions = ncompositions;
+   d_nphases = nphases;
 }
 
 void FieldsInitializer::setQvalue(const std::vector<float>& qvalue)
@@ -129,9 +107,10 @@ void FieldsInitializer::initializeLevelFromData(
    tbox::plog << "Opened NetCDF file " << init_data_filename << std::endl;
 
    size_t qlen_file = 0;
+   NcVar* ncPhase;
 #ifdef HAVE_NETCDF3
    tbox::plog << "Try to read phase values..." << std::endl;
-   NcVar* ncPhase = ncf->get_var("phase");
+   ncPhase = ncf->get_var("phase");
    if (ncPhase == nullptr) {
       TBOX_ERROR("Could not read variable 'phase' from input data"
                  << std::endl);
@@ -170,13 +149,17 @@ void FieldsInitializer::initializeLevelFromData(
 #endif
 #ifdef HAVE_NETCDF4
    tbox::plog << "Reading fields..." << std::endl;
-   NcVar ncPhase;
    if (d_phase_id >= 0) {
+      ncPhase = new NcVar[d_nphases];
       tbox::plog << "Reading phase values..." << std::endl;
-      ncPhase = ncf->getVar("phase");
-      if (ncPhase.isNull())
-         TBOX_ERROR("Could not read variable 'phase' from input data"
-                    << std::endl);
+      for (int i = 0; i < d_nphases; i++) {
+         std::ostringstream o;
+         o << "phase" << i;
+         ncPhase[i] = ncf->getVar(o.str());
+         if (ncPhase[i].isNull())
+            TBOX_ERROR("Could not read variable 'phase' from input data"
+                       << std::endl);
+      }
    }
    NcVar ncEta;
    if (d_eta_id >= 0) {
@@ -221,9 +204,9 @@ void FieldsInitializer::initializeLevelFromData(
    size_t nz_file = nz_prob;
    std::vector<NcDim> dims;
    if (d_phase_id >= 0) {
-      dims.push_back(ncPhase.getDim(2));
-      dims.push_back(ncPhase.getDim(1));
-      dims.push_back(ncPhase.getDim(0));
+      dims.push_back(ncPhase[0].getDim(2));
+      dims.push_back(ncPhase[0].getDim(1));
+      dims.push_back(ncPhase[0].getDim(0));
    } else if (readT()) {
       if (ncTemp.isNull())
          TBOX_ERROR("Field 'temperature' was not read" << std::endl);
@@ -335,7 +318,7 @@ void FieldsInitializer::initializeLevelFromData(
 #ifdef HAVE_NETCDF4
          bool float_flag = true;
          if (d_phase_id >= 0) {
-            NcType type = ncPhase.getType();
+            NcType type = ncPhase[0].getType();
             if (type.getTypeClassName() == "nc_DOUBLE") float_flag = false;
          } else {
             if (readT()) {
@@ -384,7 +367,7 @@ void FieldsInitializer::initializeLevelFromData(
        NcVar * *ncQuatComponents, NcVar * *ncConcComponents,
 #endif
 #ifdef HAVE_NETCDF4
-       NcVar & ncPhase, NcVar & ncEta, NcVar & ncTemp, NcVar * ncQuatComponents,
+       NcVar * ncPhase, NcVar & ncEta, NcVar & ncTemp, NcVar * ncQuatComponents,
        NcVar * ncConcComponents,
 #endif
        T * vals)
@@ -422,30 +405,32 @@ void FieldsInitializer::initializeLevelFromData(
                  patch->getPatchData(d_phase_id)));
          assert(phase_data);
 
+         for (int depth = 0; depth < d_nphases; depth++) {
 #ifdef HAVE_NETCDF3
-         ncPhase->set_cur(z_lower, y_lower, x_lower);
-         if (!ncPhase->get(vals, nz, ny, nx)) {
-            TBOX_ERROR("Could not read 'phase' data from input data"
-                       << std::endl);
-         }
+            ncPhase->set_cur(z_lower, y_lower, x_lower);
+            if (!ncPhase->get(vals, nz, ny, nx)) {
+               TBOX_ERROR("Could not read 'phase' data from input data"
+                          << std::endl);
+            }
 #endif
 #ifdef HAVE_NETCDF4
-         ncPhase.getVar(startp, countp, vals);
+            ncPhase[depth].getVar(startp, countp, vals);
 #endif
 
-         pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
-         for (pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
-              i != iend; ++i) {
-            const pdat::CellIndex ccell = *i;
-            int ix = ccell(0) - x_lower;
-            int iy = ccell(1) - y_lower;
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for (pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+                 i != iend; ++i) {
+               const pdat::CellIndex ccell = *i;
+               int ix = ccell(0) - x_lower;
+               int iy = ccell(1) - y_lower;
 #if (NDIM == 2)
-            int idx = nx * iy + ix;
+               int idx = nx * iy + ix;
 #else
-         int iz = ccell(2) - z_lower;
-         int idx = nx * ny * iz + nx * iy + ix;
+            int iz = ccell(2) - z_lower;
+            int idx = nx * ny * iz + nx * iy + ix;
 #endif
-            (*phase_data)(ccell) = vals[idx];
+               (*phase_data)(ccell, depth) = vals[idx];
+            }
          }
       }
 

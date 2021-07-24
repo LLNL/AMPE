@@ -622,9 +622,10 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       int temperature_id =
           d_model_parameters.isTemperatureConstant() ? d_temperature_id : -1;
       int qlen = (d_model_parameters.H_parameter() >= 0.) ? d_qlen : 0;
+      int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
       initializer.registerFieldsIds(d_phase_id, d_eta_id, temperature_id,
-                                    d_quat_id, qlen, d_conc_id,
-                                    d_ncompositions);
+                                    d_quat_id, qlen, d_conc_id, d_ncompositions,
+                                    nphases);
 
       if (!d_init_c.empty()) initializer.setCvalue(d_init_c);
       if (!d_init_q.empty()) initializer.setQvalue(d_init_q);
@@ -1073,7 +1074,7 @@ void QuatModel::registerPhaseConcentrationVariables()
                                                         d_ncompositions));
    assert(d_conc_a_var);
 
-   if (d_model_parameters.with_third_phase()) {
+   if (d_model_parameters.with_three_phases()) {
       if (!d_conc_b_var)
          d_conc_b_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b",
@@ -1120,7 +1121,7 @@ void QuatModel::registerPhaseConcentrationVariables(
    assert(d_conc_a_id >= 0);
    assert(d_conc_a_scratch_id >= 0);
 
-   if (d_model_parameters.with_third_phase()) {
+   if (d_model_parameters.with_three_phases()) {
       assert(d_conc_b_var);
       d_conc_b_id = variable_db->registerVariableAndContext(
           d_conc_b_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -1233,7 +1234,7 @@ void QuatModel::registerConcentrationVariables(void)
          assert(d_conc_Mq_id >= 0);
       }
 
-      if (d_model_parameters.with_third_phase()) {
+      if (d_model_parameters.with_three_phases()) {
          d_conc_pfm_diffusion_b_var.reset(
              new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                             "conc_pfm_diffusion_b",
@@ -1276,7 +1277,7 @@ void QuatModel::registerConcentrationVariables(void)
           d_conc_a_ref_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
       assert(d_conc_l_ref_id >= 0);
       assert(d_conc_a_ref_id >= 0);
-      if (d_model_parameters.with_third_phase()) {
+      if (d_model_parameters.with_three_phases()) {
          d_conc_b_ref_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_b_ref",
                                             d_ncompositions));
@@ -1394,8 +1395,9 @@ void QuatModel::registerPhaseVariables(void)
    std::shared_ptr<hier::VariableContext> scratch =
        variable_db->getContext("SCRATCH");
 
+   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
    d_phase_var.reset(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM), "phase"));
+       new pdat::CellVariable<double>(tbox::Dimension(NDIM), "phase", nphases));
    assert(d_phase_var);
    d_phase_id = variable_db->registerVariableAndContext(
        d_phase_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -1597,7 +1599,7 @@ void QuatModel::registerPatchDataForRestart(void)
              ->registerPatchDataForRestart(d_conc_l_scratch_id);
          hier::PatchDataRestartManager::getManager()
              ->registerPatchDataForRestart(d_conc_a_scratch_id);
-         if (d_model_parameters.with_third_phase())
+         if (d_model_parameters.with_three_phases())
             hier::PatchDataRestartManager::getManager()
                 ->registerPatchDataForRestart(d_conc_b_scratch_id);
       }
@@ -1721,7 +1723,7 @@ void QuatModel::RegisterVariables(void)
        d_f_a_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_f_a_id >= 0);
 
-   if (d_model_parameters.with_third_phase()) {
+   if (d_model_parameters.with_three_phases()) {
       d_f_b_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), "f_b"));
       assert(d_f_b_var);
@@ -1767,8 +1769,12 @@ void QuatModel::RegisterWithVisit(void)
    assert(d_visit_data_writer);
 
    if (d_model_parameters.with_phase()) {
-      d_visit_data_writer->registerPlotQuantity("phase", "SCALAR", d_phase_id,
-                                                0);
+      const int n = d_model_parameters.with_three_phases() ? 3 : 1;
+      for (int i = 0; i < n; i++) {
+         std::string visit_name("phase" + tbox::Utilities::intToString(i, 1));
+         d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
+                                                   d_phase_id, i);
+      }
    }
    if (d_model_parameters.with_third_phase()) {
       assert(d_eta_id >= 0);
@@ -1813,7 +1819,7 @@ void QuatModel::RegisterWithVisit(void)
                                     tbox::Utilities::intToString(n, 1));
             d_visit_data_writer->registerPlotQuantity(visit_namea, "SCALAR",
                                                       d_conc_a_scratch_id, n);
-            if (d_model_parameters.with_third_phase()) {
+            if (d_model_parameters.with_three_phases()) {
                assert(d_conc_b_id >= 0);
                std::string visit_nameb("conc_b" +
                                        tbox::Utilities::intToString(n, 1));
@@ -2760,7 +2766,7 @@ void QuatModel::initializeLevelData(
          assert(fa);
          fa->fillAll(d_model_parameters.free_energy_solid_A());
 
-         if (d_model_parameters.with_third_phase()) {
+         if (d_model_parameters.with_three_phases()) {
             std::shared_ptr<pdat::CellData<double> > fb(
                 SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_f_b_id)));
@@ -2907,7 +2913,7 @@ void QuatModel::AllocateLocalPatchData(
                                                       level, time, zero_data);
          AllocateAndZeroData<pdat::SideData<double> >(d_conc_pfm_diffusion_a_id,
                                                       level, time, zero_data);
-         if (d_model_parameters.with_third_phase()) {
+         if (d_model_parameters.with_three_phases()) {
             AllocateAndZeroData<pdat::SideData<double> >(
                 d_conc_pfm_diffusion_b_id, level, time, zero_data);
          }
@@ -2915,7 +2921,7 @@ void QuatModel::AllocateLocalPatchData(
              d_conc_diffusion_coeff_l_id, level, time, zero_data);
          AllocateAndZeroData<pdat::SideData<double> >(
              d_conc_diffusion_coeff_a_id, level, time, zero_data);
-         if (d_model_parameters.with_third_phase()) {
+         if (d_model_parameters.with_three_phases()) {
             AllocateAndZeroData<pdat::SideData<double> >(
                 d_conc_diffusion_coeff_b_id, level, time, zero_data);
          }
@@ -2927,7 +2933,7 @@ void QuatModel::AllocateLocalPatchData(
                                                          time, zero_data);
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_id, level,
                                                          time, zero_data);
-            if (d_model_parameters.with_third_phase())
+            if (d_model_parameters.with_three_phases())
                AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
                                                             time, zero_data);
          }
@@ -2939,7 +2945,7 @@ void QuatModel::AllocateLocalPatchData(
                AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_ref_id,
                                                             level, time,
                                                             zero_data);
-               if (d_model_parameters.with_third_phase())
+               if (d_model_parameters.with_three_phases())
                   AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_ref_id,
                                                                level, time,
                                                                zero_data);
@@ -2948,7 +2954,7 @@ void QuatModel::AllocateLocalPatchData(
                                                       level, time, zero_data);
          AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_scratch_id,
                                                       level, time, zero_data);
-         if (d_model_parameters.with_third_phase())
+         if (d_model_parameters.with_three_phases())
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_scratch_id,
                                                          level, time,
                                                          zero_data);
@@ -3023,7 +3029,7 @@ void QuatModel::AllocateLocalPatchData(
    AllocateAndZeroData<pdat::CellData<double> >(d_f_a_id, level, time,
                                                 zero_data);
 
-   if (d_model_parameters.with_third_phase()) {
+   if (d_model_parameters.with_three_phases()) {
       AllocateAndZeroData<pdat::CellData<double> >(d_f_b_id, level, time,
                                                    zero_data);
    }
@@ -3048,7 +3054,7 @@ void QuatModel::DeallocateIntermediateLocalPatchData(
          if (level->checkAllocated(d_conc_l_ref_id)) {
             level->deallocatePatchData(d_conc_l_ref_id);
             level->deallocatePatchData(d_conc_a_ref_id);
-            if (d_model_parameters.with_third_phase())
+            if (d_model_parameters.with_three_phases())
                level->deallocatePatchData(d_conc_b_ref_id);
          }
    }
@@ -3376,17 +3382,19 @@ void QuatModel::WriteInitialConditionsFile(void)
       // tbox::plog<<"pp="<<pp<<endl;
       if (mpi.getRank() == pp) {
 
-#ifdef HAVE_NETCDF3
          NcFile* f;
          NcVar* nc_phase;
+         if (d_model_parameters.with_three_phases())
+            nc_phase = new NcVar[3];
+         else
+            nc_phase = new NcVar[1];
+#ifdef HAVE_NETCDF3
          NcVar* nc_eta = nullptr;
          NcVar** nc_conc = new NcVar*[d_ncompositions];
          NcVar** nc_qcomp = new NcVar*[d_qlen];
          NcVar* nc_temp = nullptr;
 #endif
 #ifdef HAVE_NETCDF4
-         NcFile* f;
-         NcVar nc_phase;
          NcVar nc_eta;
          NcVar* nc_conc = new NcVar[d_ncompositions];
          NcVar* nc_qcomp = new NcVar[d_qlen];
@@ -3419,7 +3427,12 @@ void QuatModel::WriteInitialConditionsFile(void)
             NcDim* nc_nz = f->add_dim("z", nz_prob);
             f->add_dim("qlen", d_qlen);
 
-            nc_phase = f->add_var("phase", ncFloat, nc_nz, nc_ny, nc_nx);
+            if (d_model_parameters.with_three_phases()) {
+               nc_phase[0] = f->add_var("phase0", ncFloat, nc_nz, nc_ny, nc_nx);
+               nc_phase[1] = f->add_var("phase1", ncFloat, nc_nz, nc_ny, nc_nx);
+               nc_phase[2] = f->add_var("phase2", ncFloat, nc_nz, nc_ny, nc_nx);
+            } else
+               nc_phase[0] = f->add_var("phase", ncFloat, nc_nz, nc_ny, nc_nx);
 
             if (d_model_parameters.with_third_phase()) {
                nc_eta = f->add_var("eta", ncFloat, nc_nz, nc_ny, nc_nx);
@@ -3458,8 +3471,13 @@ void QuatModel::WriteInitialConditionsFile(void)
             dims.push_back(nc_nz);
             dims.push_back(nc_ny);
             dims.push_back(nc_nx);
-            nc_phase = f->addVar("phase", ncFloat, dims);
-            if (nc_phase.isNull()) {
+            if (d_model_parameters.with_three_phases()) {
+               nc_phase[0] = f->addVar("phase0", ncFloat, dims);
+               nc_phase[1] = f->addVar("phase1", ncFloat, dims);
+               nc_phase[2] = f->addVar("phase2", ncFloat, dims);
+            } else
+               nc_phase[0] = f->addVar("phase", ncFloat, dims);
+            if (nc_phase[0].isNull()) {
                TBOX_ERROR("Could add variable 'phase'" << std::endl);
             }
             if (d_model_parameters.with_third_phase()) {
@@ -3534,7 +3552,12 @@ void QuatModel::WriteInitialConditionsFile(void)
 #endif
 #ifdef HAVE_NETCDF4
             // clog<<"add variables from PE >0..."<<endl;
-            nc_phase = f->getVar("phase");
+            if (d_model_parameters.with_three_phases()) {
+               nc_phase[0] = f->getVar("phase0");
+               nc_phase[1] = f->getVar("phase1");
+               nc_phase[2] = f->getVar("phase2");
+            } else
+               nc_phase[0] = f->getVar("phase");
 
             if (d_model_parameters.with_third_phase()) {
                nc_eta = f->getVar("eta");
@@ -3599,7 +3622,7 @@ void QuatModel::WriteInitialConditionsFile(void)
 #endif
 
 #ifdef HAVE_NETCDF4
-         if (nc_phase.isNull()) {
+         if (nc_phase[0].isNull()) {
             TBOX_ERROR("Could not create variable 'phase'" << std::endl);
          }
 
@@ -3674,7 +3697,11 @@ void QuatModel::WriteInitialConditionsFile(void)
             // std::cout<<"Write data into variable 'phase'"<<endl;
             // std::cout<<"nx="<<countp[0]<<", ny="<<countp[1]<<",
             // nz="<<countp[2]<<endl;
-            nc_phase.putVar(startp, countp, phase_data->getPointer());
+            nc_phase[0].putVar(startp, countp, phase_data->getPointer(0));
+            if (d_model_parameters.with_three_phases()) {
+               nc_phase[1].putVar(startp, countp, phase_data->getPointer(1));
+               nc_phase[2].putVar(startp, countp, phase_data->getPointer(2));
+            }
             // std::cout<<"Data written into variable 'phase'"<<endl;
 #endif
             if (d_model_parameters.with_third_phase()) {
@@ -5733,7 +5760,7 @@ void QuatModel::evaluateEnergy(
    d_free_energy_strategy->computeFreeEnergySolidA(hierarchy, d_temperature_id,
                                                    d_f_a_id, gp);
 #ifndef HAVE_THERMO4PFM
-   if (d_model_parameters.with_third_phase()) {
+   if (d_model_parameters.with_three_phases()) {
       d_free_energy_strategy->computeFreeEnergySolidB(hierarchy,
                                                       d_temperature_id,
                                                       d_f_b_id, gp);
@@ -5741,6 +5768,7 @@ void QuatModel::evaluateEnergy(
 #endif
 
    const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
+   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
 
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
@@ -5833,16 +5861,18 @@ void QuatModel::evaluateEnergy(
             assert(l2fa == l2fa);
 #endif
 
-            int three_phase = 0;
+            int _phase = 0;
             double* ptr_fb = nullptr;
             double* ptr_eta = nullptr;
-            if (d_model_parameters.with_third_phase()) {
-               three_phase = 1;
+            if (d_model_parameters.with_three_phases()) {
                std::shared_ptr<pdat::CellData<double> > fb(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
                        patch->getPatchData(d_f_b_id)));
                ptr_fb = fb->getPointer();
+            }
+            if (d_model_parameters.with_third_phase()) {
+               _phase = 1;
                std::shared_ptr<pdat::CellData<double> > eta(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
@@ -5883,8 +5913,9 @@ void QuatModel::evaluateEnergy(
 #if (NDIM == 3)
                        pgrad_quat[2],
 #endif
-                       0, phase->getPointer(), NGHOSTS, ptr_eta, NGHOSTS,
-                       quat_ptr, NGHOSTS, d_model_parameters.epsilon_phase(),
+                       0, phase->getPointer(), NGHOSTS, nphases, ptr_eta,
+                       NGHOSTS, quat_ptr, NGHOSTS,
+                       d_model_parameters.epsilon_phase(),
                        d_model_parameters.epsilon_eta(),
                        d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
                        2. * d_model_parameters.H_parameter(),
@@ -5892,10 +5923,10 @@ void QuatModel::evaluateEnergy(
                        temperature->getGhostCellWidth()[0],
                        d_model_parameters.phase_well_scale(),
                        d_model_parameters.eta_well_scale(), fl->getPointer(),
-                       fa->getPointer(), ptr_fb, three_phase,
-                       weight->getPointer(), total_energy, total_phase_e,
-                       total_eta_e, total_orient_e, total_qint_e, total_well_e,
-                       total_free_e, ptr_energy, per_cell, &interpf, &interpe,
+                       fa->getPointer(), ptr_fb, _phase, weight->getPointer(),
+                       total_energy, total_phase_e, total_eta_e, total_orient_e,
+                       total_qint_e, total_well_e, total_free_e, ptr_energy,
+                       per_cell, &interpf, &interpe,
                        d_model_parameters.phase_well_func_type().c_str(),
                        d_model_parameters.eta_well_func_type().c_str(),
                        d_model_parameters.orient_interp_func_type().c_str(),
@@ -6163,7 +6194,7 @@ void QuatModel::resetRefPhaseConcentrations()
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
    cellops.copyData(d_conc_l_ref_id, d_conc_l_scratch_id, false);
    cellops.copyData(d_conc_a_ref_id, d_conc_a_scratch_id, false);
-   if (d_model_parameters.with_third_phase())
+   if (d_model_parameters.with_three_phases())
       cellops.copyData(d_conc_b_ref_id, d_conc_b_scratch_id, false);
 }
 
@@ -6180,7 +6211,7 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
    math::HierarchyCellDataOpsReal<double> cellops( d_patch_hierarchy );
    cellops.setToScalar( d_conc_l_id, ceq[0], false );
    cellops.setToScalar( d_conc_a_id, ceq[1], false );
-   if( d_model_parameters.with_third_phase() )
+   if( d_model_parameters.with_three_phases() )
       cellops.setToScalar( d_conc_b_id, ceq[2], false );
 #else
    int offset = d_ncompositions;
@@ -6207,7 +6238,7 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
 
          for (int i = 0; i < d_ncompositions; i++)
             conca->fill(ceq[offset + i], i);
-         if (d_model_parameters.with_third_phase()) {
+         if (d_model_parameters.with_three_phases()) {
             std::shared_ptr<pdat::CellData<double> > concb(
                 SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_conc_b_id)));
@@ -6234,7 +6265,7 @@ void QuatModel::setRefPhaseConcentrationsToEquilibrium(const double* const ceq)
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
    cellops.setToScalar(d_conc_l_ref_id, ceq[0], false);
    cellops.setToScalar(d_conc_a_ref_id, ceq[1], false);
-   if (d_model_parameters.with_third_phase())
+   if (d_model_parameters.with_three_phases())
       cellops.setToScalar(d_conc_b_ref_id, ceq[2], false);
 }
 

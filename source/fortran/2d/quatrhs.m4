@@ -6,29 +6,6 @@ c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
 c 
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
@@ -419,6 +396,88 @@ c     &              epsilon_q2 * orient_grad_mod(ic0,ic1) )
          enddo
 
       endif
+
+      return
+      end
+
+c***********************************************************************
+c
+c compute r.h.s. for 3 phases
+c
+      subroutine computerhsthreephases(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   flux0,
+     &   flux1,
+     &   ngflux,
+     &   phi_well_scale,
+     &   phi, ngphi,
+     &   rhs, ngrhs,
+     &   energy_interp_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+
+      double precision dx(2)
+      double precision phi_well_scale
+      integer ngflux, ngphi, ngrhs
+      character*(*) energy_interp_type
+c
+c variables in 2d cell indexed
+      double precision phi(CELL2d(ifirst,ilast,ngphi),3)
+      double precision rhs(CELL2d(ifirst,ilast,ngrhs),3)
+
+c variables in 2d side indexed
+      double precision
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux),3),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux),3)
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1
+      integer ip, ip1, ip2
+      double precision diff_term_x, diff_term_y, diff_term
+
+      double precision g, g_prime, h_prime, p_prime
+      double precision deriv_interp_func
+      double precision deriv_triple_well_func
+      double precision dxinv, dyinv
+
+c
+      dxinv = 1.d0 / dx(1)
+      dyinv = 1.d0 / dx(2)
+c
+      do ip = 1, 3
+         ip1 = MOD(ip,3)+1
+         ip2 = MOD(ip+1,3)+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               diff_term_x =
+     &              (flux0(ic0+1,ic1,ip) - flux0(ic0,ic1,ip)) * dxinv
+               diff_term_y =
+     &              (flux1(ic0,ic1+1,ip) - flux1(ic0,ic1,ip)) * dyinv
+
+               diff_term = diff_term_x + diff_term_y
+
+               rhs(ic0,ic1,ip) = diff_term
+
+c  Phase energy well
+
+               g_prime =
+     &            deriv_triple_well_func(
+     &               phi(ic0,ic1,ip), phi(ic0,ic1,ip1),
+     &               phi(ic0,ic1,ip2) )
+
+               rhs(ic0,ic1,ip) = rhs(ic0,ic1,ip) -
+     &            phi_well_scale * g_prime
+
+            enddo
+         enddo
+      enddo
 
       return
       end

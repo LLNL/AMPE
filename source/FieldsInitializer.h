@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "SAMRAI/hier/PatchLevel.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -58,7 +34,7 @@ class FieldsInitializer
    void registerFieldsIds(const int phase_id, const int eta_id,
                           const int temperature_id, const int quat_id,
                           const int qlen, const int conc_id,
-                          const int ncompositions);
+                          const int ncompositions, const int nphases);
 
    void initializeLevelFromData(std::shared_ptr<hier::PatchLevel> level,
                                 const std::string& filename,
@@ -72,7 +48,7 @@ class FieldsInitializer
        NcVar** ncConcComponents,
 #endif
 #ifdef HAVE_NETCDF4
-       netCDF::NcVar& ncPhase, netCDF::NcVar& ncEta, netCDF::NcVar& ncTemp,
+       netCDF::NcVar* ncPhase, netCDF::NcVar& ncEta, netCDF::NcVar& ncTemp,
        netCDF::NcVar* ncQuatComponents, netCDF::NcVar* ncConcComponents,
 #endif
        T* vals);
@@ -96,6 +72,7 @@ class FieldsInitializer
 
    int d_qlen;
    int d_ncompositions;
+   int d_nphases;
 
    /*!
     * Uniform initial values for fields

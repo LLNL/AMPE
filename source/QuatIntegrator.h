@@ -86,7 +86,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                   std::shared_ptr<tbox::Database> input_db,
                   std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
                   std::shared_ptr<tbox::Database> bc_db, const bool with_phase,
-                  const bool with_concentration, const bool with_third_phase,
+                  const bool with_concentration, const bool with_three_phases,
                   const bool with_heat_equation,
                   const bool with_steady_temperature, const bool with_gradT,
                   const bool with_antitrapping, const bool with_partition_coeff,
@@ -885,6 +885,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    std::shared_ptr<hier::CoarsenOperator> d_flux_coarsen_op;
 
    bool d_with_third_phase;
+   bool d_with_three_phases;
    bool d_with_heat_equation;
    bool d_with_steady_temperature;
    bool d_with_gradT;

@@ -122,6 +122,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 
    d_with_phase = true;
    d_with_third_phase = false;
+   d_with_three_phases = false;
    d_with_heat_equation = false;
    d_with_steady_temperature = false;
    d_with_gradT = false;
@@ -239,7 +240,7 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       d_D_liquid = conc_db->getDouble("D_liquid");
       d_Q0_liquid = conc_db->getDoubleWithDefault("Q0_liquid", 0.);
 
-      if (!d_with_third_phase) {
+      if (!d_with_three_phases) {
          if (conc_db->keyExists("D_solid_A"))
             d_D_solid_A = conc_db->getDouble("D_solid_A");
          else
@@ -883,7 +884,7 @@ void QuatModelParameters::readModelParameters(
        model_db->getBoolWithDefault("use_diffs_to_compute_flux", false);
    d_stencil_type = model_db->getStringWithDefault("stencil_type", "normal");
 
-   d_with_third_phase = model_db->getBoolWithDefault("three_phase", false);
+   d_with_three_phases = model_db->getBoolWithDefault("three_phases", false);
 
    d_moving_frame_velocity =
        model_db->getDoubleWithDefault("moving_frame_velocity", 0.);
@@ -977,7 +978,7 @@ void QuatModelParameters::readFreeEnergies(
    if (d_free_energy_type[0] == 's') {
       d_free_energy_liquid = db->getDouble("free_energy_liquid");
 
-      if (!with_third_phase()) {
+      if (!with_three_phases()) {
          d_free_energy_solid_A = db->getDouble("free_energy_solid");
       } else {
          d_free_energy_solid_A = db->getDouble("free_energy_solid_A");
