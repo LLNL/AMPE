@@ -349,7 +349,7 @@ void QuatIntegrator::setupPreconditionersPhase(
 
    const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops(
-       new PhaseFACOps(d_name + "_QIPhaseFACOps", nphases,
+       new PhaseFACOps(d_name + "_QIPhaseFACOps", (nphases > 1),
                        phase_sys_solver_database));
 
    d_phase_sys_solver.reset(new PhaseFACSolver(d_name + "QIPhaseSysSolver",

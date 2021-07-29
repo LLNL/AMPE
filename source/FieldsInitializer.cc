@@ -154,11 +154,12 @@ void FieldsInitializer::initializeLevelFromData(
       tbox::plog << "Reading phase values..." << std::endl;
       for (int i = 0; i < d_nphases; i++) {
          std::ostringstream o;
-         o << "phase" << i;
+         o << "phase";
+         if (d_nphases > 1) o << i;
          ncPhase[i] = ncf->getVar(o.str());
          if (ncPhase[i].isNull())
-            TBOX_ERROR("Could not read variable 'phase' from input data"
-                       << std::endl);
+            TBOX_ERROR("Could not read variable "
+                       << o.str() << " from input data" << std::endl);
       }
    }
    NcVar ncEta;

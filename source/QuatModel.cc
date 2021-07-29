@@ -5862,7 +5862,7 @@ void QuatModel::evaluateEnergy(
             assert(l2fa == l2fa);
 #endif
 
-            int _phase = 0;
+            int third_phase = 0;
             double* ptr_fb = nullptr;
             double* ptr_eta = nullptr;
             if (d_model_parameters.with_three_phases()) {
@@ -5873,7 +5873,7 @@ void QuatModel::evaluateEnergy(
                ptr_fb = fb->getPointer();
             }
             if (d_model_parameters.with_third_phase()) {
-               _phase = 1;
+               third_phase = 1;
                std::shared_ptr<pdat::CellData<double> > eta(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
@@ -5924,10 +5924,10 @@ void QuatModel::evaluateEnergy(
                        temperature->getGhostCellWidth()[0],
                        d_model_parameters.phase_well_scale(),
                        d_model_parameters.eta_well_scale(), fl->getPointer(),
-                       fa->getPointer(), ptr_fb, _phase, weight->getPointer(),
-                       total_energy, total_phase_e, total_eta_e, total_orient_e,
-                       total_qint_e, total_well_e, total_free_e, ptr_energy,
-                       per_cell, &interpf, &interpe,
+                       fa->getPointer(), ptr_fb, third_phase,
+                       weight->getPointer(), total_energy, total_phase_e,
+                       total_eta_e, total_orient_e, total_qint_e, total_well_e,
+                       total_free_e, ptr_energy, per_cell, &interpf, &interpe,
                        d_model_parameters.phase_well_func_type().c_str(),
                        d_model_parameters.eta_well_func_type().c_str(),
                        d_model_parameters.orient_interp_func_type().c_str(),
