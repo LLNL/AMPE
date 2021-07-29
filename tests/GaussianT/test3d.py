@@ -36,7 +36,7 @@ for line in lines:
     solid_fraction = eval(words[6])
 
 tol = 1.e-3
-expected_solid_fraction = 0.258
+expected_solid_fraction = 0.260
 if abs(solid_fraction-expected_solid_fraction)>tol:
   print("solid fraction = {}".format(solid_fraction))
   print("Final solid fraction differs from expected value")

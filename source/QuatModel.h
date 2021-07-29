@@ -273,9 +273,8 @@ class QuatModel : public PFModel
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int component);
    double evaluateVolumeSolid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
-   double evaluateVolumeEta(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy);
+       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
+       const int phase_id);
    double evaluateIntegralPhaseConcentration(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int component);
