@@ -2404,13 +2404,13 @@ void QuatModel::printScalarDiagnostics(void)
 
    double vphi = vol;
    if (d_model_parameters.with_phase()) {
-      vphi = evaluateVolumeSolid(d_patch_hierarchy);
+      vphi = evaluateVolumeSolid(d_patch_hierarchy, d_phase_id);
       tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
                  << std::endl;
    }
 
    if (d_model_parameters.with_third_phase()) {
-      const double vphi_eta = evaluateVolumeEta(d_patch_hierarchy);
+      const double vphi_eta = evaluateVolumeSolid(d_patch_hierarchy, d_eta_id);
       tbox::pout << "  Volume fraction of eta phase = " << vphi_eta / vol
                  << std::endl;
    }
@@ -6104,30 +6104,13 @@ double QuatModel::evaluateIntegralPhaseConcentration(
 //=======================================================================
 
 double QuatModel::evaluateVolumeSolid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id)
 {
    assert(d_weight_id != -1);
 
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
 
-   double value = mathops.L1Norm(d_phase_id, d_weight_id);
-
-   return value;
-}
-
-//=======================================================================
-
-double QuatModel::evaluateVolumeEta(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy)
-{
-   assert(d_weight_id != -1);
-   assert(d_eta_id != -1);
-
-   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-
-   double value = mathops.L1Norm(d_eta_id, d_weight_id);
-
-   return value;
+   return mathops.L1Norm(phase_id, d_weight_id);
 }
 
 //=======================================================================

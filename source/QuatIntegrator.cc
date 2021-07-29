@@ -4326,8 +4326,7 @@ double QuatIntegrator::computeFrameVelocity(
       vol *= (up[d] - low[d]);
 
    // compute new solid fraction
-   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
-   fs = cellops.L1Norm(phase_id, d_weight_id) / vol;
+   fs = d_quat_model->evaluateVolumeSolid(hierarchy, phase_id) / vol;
    // tbox::plog<<"fs = "<<fs<<endl;
 
    // compute new frame velocity
