@@ -27,7 +27,7 @@ lines=output.split(b'\n')
 end_reached = False
 end_time = 0.000499
 first_concentration=-1.
-target_solid_fraction = 0.0614
+target_solid_fraction = 0.0593
 for line in lines:
   num_matches = line.count(b'Integral')
   if num_matches:

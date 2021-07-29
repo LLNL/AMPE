@@ -6110,10 +6110,7 @@ double QuatModel::evaluateVolumeSolid(
 
    math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
 
-   ApplyPolynomial app(d_model_parameters.energy_interp_func_type());
-   app.apply(hierarchy, d_phase_id, d_phase_scratch_id);
-
-   double value = mathops.L1Norm(d_phase_scratch_id, d_weight_id);
+   double value = mathops.L1Norm(d_phase_id, d_weight_id);
 
    return value;
 }
