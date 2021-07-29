@@ -123,7 +123,7 @@ class QuatRefinePatchStrategy : public xfer::RefinePatchStrategy
    std::string d_object_name;
 
    int d_phase_id;
-   solv::CartesianRobinBcHelper* d_phase_refine_strategy;
+   CartesianRobinBcHelperWithDepth* d_phase_refine_strategy;
    solv::LocationIndexRobinBcCoefs* d_phase_bc_coefs;
 
    int d_eta_id;
