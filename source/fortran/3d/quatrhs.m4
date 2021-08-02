@@ -527,6 +527,99 @@ c
 
 c***********************************************************************
 c
+c compute r.h.s. for 3 phases
+c
+      subroutine computerhsthreephases(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   dx,
+     &   flux0,
+     &   flux1,
+     &   flux2,
+     &   ngflux,
+     &   phi_well_scale,
+     &   phi, ngphi,
+     &   rhs, ngrhs,
+     &   energy_interp_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+
+      double precision dx(3)
+      double precision phi_well_scale
+      integer ngflux, ngphi, ngrhs
+      character*(*) energy_interp_type
+c
+c variables in 2d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi),3)
+      double precision rhs(CELL3d(ifirst,ilast,ngrhs),3)
+
+c variables in 2d side indexed
+      double precision
+     &     flux0(SIDE3d0(ifirst,ilast,ngflux),3),
+     &     flux1(SIDE3d1(ifirst,ilast,ngflux),3),
+     &     flux2(SIDE3d2(ifirst,ilast,ngflux),3)
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2
+      integer ip, ip1, ip2
+      double precision diff_term_x, diff_term_y, diff_term_z
+      double precision diff_term
+
+      double precision g, g_prime, h_prime, p_prime
+      double precision deriv_interp_func
+      double precision deriv_triple_well_func
+      double precision dxinv, dyinv, dzinv
+
+c
+      dxinv = 1.d0 / dx(1)
+      dyinv = 1.d0 / dx(2)
+      dzinv = 1.d0 / dx(3)
+c
+      do ip = 1, 3
+         ip1 = MOD(ip,3)+1
+         ip2 = MOD(ip+1,3)+1
+         do ic2 = ifirst2, ilast2
+            do ic1 = ifirst1, ilast1
+               do ic0 = ifirst0, ilast0
+
+               diff_term_x =
+     &            (flux0(ic0+1,ic1,ic2,ip) - flux0(ic0,ic1,ic2,ip))
+     &            * dxinv
+               diff_term_y =
+     &            (flux1(ic0,ic1+1,ic2,ip) - flux1(ic0,ic1,ic2,ip))
+     &            * dyinv
+               diff_term_z =
+     &            (flux2(ic0,ic1,ic2+1,ip) - flux2(ic0,ic1,ic2,ip))
+     &            * dzinv
+
+               diff_term = diff_term_x + diff_term_y + diff_term_z
+
+               rhs(ic0,ic1,ic2,ip) = diff_term
+
+c  Phase energy well
+
+               g_prime =
+     &            deriv_triple_well_func(
+     &               phi(ic0,ic1,ic2,ip), phi(ic0,ic1,ic2,ip1),
+     &               phi(ic0,ic1,ic2,ip2) )
+
+               rhs(ic0,ic1,ic2,ip) = rhs(ic0,ic1,ic2,ip) -
+     &            phi_well_scale * g_prime
+
+               enddo
+            enddo
+         enddo
+      enddo
+
+      return
+      end
+
+c***********************************************************************
+c
 c compute r.h.s. for eta variable phi
 c
 c   7 point stencil

@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "fc_internal_mangle.h"
 
@@ -120,6 +96,20 @@ void COMPUTERHSPBG(const int& ifirst0, const int& ilast0, const int& ifirst1,
                    const char* eta_well_type, const char* phi_interp_type,
                    const char* orient_interp_type, const int& with_orient,
                    const int& three_phase);
+
+void COMPUTERHSTHREEPHASES(const int& ifirst0, const int& ilast0,
+                           const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                           const int& ifirst2, const int& ilast2,
+#endif
+                           const double* dx, const double* phase_flux0,
+                           const double* phase_flux1,
+#if (NDIM == 3)
+                           const double* phase_flux2,
+#endif
+                           const int& ngphaseflux, const double& phi_well_scale,
+                           const double* phi, const int& ngphi, double* rhs,
+                           const int& ngrhs, const char* phi_interp_type);
 
 void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
@@ -676,32 +666,35 @@ void TEMPERATURE_ENERGY(const int& ifirst0, const int& ilast0,
                         const double* const temp, const int& ng, double* fs,
                         const double& tm, const double& la);
 
-void QUATENERGY(
-    const int& ifirst0, const int& ilast0, const int& ifirst1,
-    const int& ilast1,
+void QUATENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                const int& ilast1,
 #if (NDIM == 3)
-    const int& ifirst2, const int& ilast2,
+                const int& ifirst2, const int& ilast2,
 #endif
-    const int& depth, const double* const dx, const double* const gqx,
-    const double* const gqy,
+                const int& depth, const double* const dx,
+                const double* const gqx, const double* const gqy,
 #if (NDIM == 3)
-    const double* const gqz,
+                const double* const gqz,
 #endif
-    const int& nggq, const double* const phi, const int& ngphi,
-    const double* const eta, const int& ngeta, const double* const quat,
-    const int& ngq, const double& epsilon_phi, const double& epsilon_eta,
-    const double& epsilon_q, const double& anisotropy, const int& knumber,
-    const double& misorientation_factor, const double* const temperature,
-    const int& ngtemp, const double& phi_well_scale,
-    const double& eta_well_scale, const double* const fl,
-    const double* const fa, const double* const fb, const int& three_phase,
-    const double* const weight, double& total_energy, double& total_phi_e,
-    double& total_eta_e, double& total_orient_e, double& total_qint_e,
-    double& total_well_e, double& total_free_e, const double* const energy,
-    const int& eval_per_cell, const char* phi_interp_type,
-    const char* eta_interp_type, const char* phi_well_type,
-    const char* eta_well_type, const char* orient_interp_type,
-    const char* avg_type, const char* floor_type, const double& floor2);
+                const int& nggq, const double* const phi, const int& ngphi,
+                const int& nphases, const double* const eta, const int& ngeta,
+                const double* const quat, const int& ngq,
+                const double& epsilon_phi, const double& epsilon_eta,
+                const double& epsilon_q, const double& anisotropy,
+                const int& knumber, const double& misorientation_factor,
+                const double* const temperature, const int& ngtemp,
+                const double& phi_well_scale, const double& eta_well_scale,
+                const double* const fl, const double* const fa,
+                const double* const fb, const int& three_phase,
+                const double* const weight, double& total_energy,
+                double& total_phi_e, double& total_eta_e,
+                double& total_orient_e, double& total_qint_e,
+                double& total_well_e, double& total_free_e,
+                const double* const energy, const int& eval_per_cell,
+                const char* phi_interp_type, const char* eta_interp_type,
+                const char* phi_well_type, const char* eta_well_type,
+                const char* orient_interp_type, const char* avg_type,
+                const char* floor_type, const double& floor2);
 
 void QUATAVG(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)

@@ -55,8 +55,8 @@ QuatRefinePatchStrategy::QuatRefinePatchStrategy(
 
    if (d_phase_id >= 0) {
       d_phase_refine_strategy =
-          new solv::CartesianRobinBcHelper(tbox::Dimension(NDIM),
-                                           "PhaseBcHelper");
+          new CartesianRobinBcHelperWithDepth(tbox::Dimension(NDIM),
+                                              "PhaseBcHelper");
       d_phase_refine_strategy->setTargetDataId(d_phase_id);
       std::shared_ptr<tbox::Database> phase_bc_db =
           input_bc_db->getDatabase("Phase");

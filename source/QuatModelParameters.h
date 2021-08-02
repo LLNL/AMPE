@@ -232,6 +232,7 @@ class QuatModelParameters
    bool with_phase() const { return d_with_phase; }
    bool with_concentration() const { return d_with_concentration; }
    bool with_third_phase() const { return d_with_third_phase; }
+   bool with_three_phases() const { return d_with_three_phases; }
    bool with_heat_equation() const { return d_with_heat_equation; }
    bool with_unsteady_heat_equation() const
    {
@@ -533,6 +534,7 @@ class QuatModelParameters
    bool d_with_phase;
    bool d_with_concentration;
    bool d_with_third_phase;
+   bool d_with_three_phases;
    bool d_with_heat_equation;
    bool d_with_steady_temperature;
    bool d_with_gradT;
