@@ -51,11 +51,13 @@ c
       dyinv = 0.5d0 / dx(2)
 c
       phi_e = 0.d0
-      do j = lo1, hi1
-         do i = lo0, hi0
-            energy(i,j) = 0.d0
+      if ( eval_per_cell /= 0 ) then
+         do j = lo1, hi1
+            do i = lo0, hi0
+               energy(i,j) = 0.d0
+            enddo
          enddo
-      enddo
+      endif
 c
       do p = 1, nphases
          do j = lo1, hi1
