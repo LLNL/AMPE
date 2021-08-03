@@ -13,7 +13,7 @@ c        reworked completely for performance reasons.
 
 c=======================================================================
 
-c        Valid values for type are "quadratic" and "pbg"
+c Valid values for type are "quadratic", "pbg", "harmonic",...
 
       function interp_func( phi, type )
 

@@ -126,12 +126,6 @@ set(SOURCES_FORTRAN
             ${CMAKE_SOURCE_DIR}/source/fortran/quat.f
             ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 
-set(M4FILES quat functions)
-foreach(file ${M4FILES})
-  message(STATUS "${file}...")
-  m4tof(${file} ${CMAKE_SOURCE_DIR}/source/fortran)
-endforeach()
-
 set(M4FILESDIM concentrationdiffusion
               concentrationrhs
               concentrations
