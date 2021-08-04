@@ -49,8 +49,6 @@ parser.add_option( "--solid-fraction", type="float", default=1./60.,
                   help="solid-fraction at bottom")
 parser.add_option( "--noise", type="float", default=0.,
                   help="amplitude of noise in y interface")
-parser.add_option( "--double", action="store_true", dest="double_precision", 
-                  default=False)
 parser.add_option( "--plane", type="int", default=1,
                   help="direction orthogonal to plane")
 
@@ -58,9 +56,6 @@ parser.add_option( "--plane", type="int", default=1,
 
 filename = args[0]
 
-double_precision = options.double_precision
-if double_precision:
-  print( "use double precision...")
 
 plane = options.plane
 
@@ -77,7 +72,10 @@ dir2=2
 if plane==0:
   dir1=0
   dir0=1
-  
+if plane==2:
+  dir1=2
+  dir2=1
+
 
 ngrains = options.ngrains
 sf      = options.solid_fraction
@@ -217,45 +215,24 @@ f.createDimension( 'ns', nspecies )
 ncquat=[]
 ncconc = []
 
-if double_precision:
-  print("Data in double precision...")
-  if not(temperature is None):
-    nctemp  = f.createVariable( 'temperature', 'd', ('z','y','x') )
-  ncphase = f.createVariable( 'phase',         'd', ('z','y','x') )
-  for m in range(QLEN):
-    name = "quat%d" % (m+1)
-    print( name )
-    ncquat.append( f.createVariable( name, 'd', ('z','y','x') ) )
-  for s in range(nspecies):
-    c_comp = f.createVariable( 'concentration%d' % s, 'd', ('z','y','x') )
-    ncconc.append(c_comp)
+print( 'Data in single precision...')
+if not(temperature is None):
+  nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
+ncphase = f.createVariable( 'phase',         'f', ('z','y','x') )
 
-else:
-  print( 'Data in single precision...')
-  if not(temperature is None):
-    nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
-  ncphase = f.createVariable( 'phase',         'f', ('z','y','x') )
-
-  for m in range(QLEN):
-    name = "quat%d" % (m+1)
-    print( name )
-    ncquat.append( f.createVariable( name, 'f', ('z','y','x') ) )
-  for s in range(nspecies):
-    c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
-    ncconc.append(c_comp)
+for m in range(QLEN):
+  name = "quat%d" % (m+1)
+  print( name )
+  ncquat.append( f.createVariable( name, 'f', ('z','y','x') ) )
+for s in range(nspecies):
+  c_comp = f.createVariable( 'concentration%d' % s , 'f', ('z','y','x') )
+  ncconc.append(c_comp)
 
 
-
-if double_precision:
-  phase = N.zeros( (nn[2],nn[1],nn[0]), N.float64 )
-  if QLEN>0:
-    quat  = N.zeros( (QLEN,nn[2],nn[1],nn[0]), N.float64 )
-  conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float64 )
-else:
-  phase = N.zeros( (nn[2],nn[1],nn[0]), N.float32 )
-  if QLEN>0:
-    quat  = N.zeros( (QLEN,nn[2],nn[1],nn[0]), N.float32 )
-  conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float32 )
+phase = N.zeros( (nn[2],nn[1],nn[0]), N.float32 )
+if QLEN>0:
+  quat  = N.zeros( (QLEN,nn[2],nn[1],nn[0]), N.float32 )
+conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float32 )
 
 #-----------------------------------------------------------------------
 
