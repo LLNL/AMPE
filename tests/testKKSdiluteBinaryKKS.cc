@@ -140,9 +140,11 @@ int main(int argc, char* argv[])
       // solve KKS equations
       double conc = model_db->getDouble("concentration");
       double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc, phi,
-#ifndef HAVE_THERMO4PFM
-                                      0.,
+      cafe.computePhaseConcentrations(temperature, &conc,
+#ifdef HAVE_THERMO4PFM
+                                      &phi,
+#else
+                                      phi, 0.,
 #endif
                                       &sol[0]);
 

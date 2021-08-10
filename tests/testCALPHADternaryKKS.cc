@@ -162,9 +162,11 @@ int main(int argc, char* argv[])
       double conc[2];
       model_db->getDoubleArray("concentration", &conc[0], 2);
       double phi = model_db->getDouble("phi");
-      cafe.computePhaseConcentrations(temperature, &conc[0], phi,
-#ifndef HAVE_THERMO4PFM
-                                      0.,
+      cafe.computePhaseConcentrations(temperature, &conc[0],
+#ifdef HAVE_THERMO4PFM
+                                      &phi,
+#else
+                                      phi, 0.,
 #endif
                                       &sol[0]);
 

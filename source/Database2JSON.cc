@@ -1,3 +1,14 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
+// UT-Battelle, LLC.
+// Produced at the Lawrence Livermore National Laboratory and
+// the Oak Ridge National Laboratory
+// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE.
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
+//
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/SAMRAI_MPI.h"
@@ -17,6 +28,8 @@ namespace pt = boost::property_tree;
 void copyDatabase(std::shared_ptr<tbox::Database> database,
                   pt::ptree& new_database)
 {
+   assert(database);
+
    std::vector<std::string> keys(database->getAllKeys());
 
    for (std::vector<std::string>::const_iterator k_itr = keys.begin();
