@@ -1,0 +1,106 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 0.05
+max_timesteps       = 10
+
+ModelParameters {
+   H_parameter = 0.25
+   epsilon_orient = 0.3125
+   
+   Temperature {
+      temperature        = 1707.4834 // [K], 1K below Tsol
+   }
+
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+
+   phi_mobility = 6.4
+   orient_mobility = 0.64
+   
+   phi_well_scale = 2.5  // 6.6/16. [pJ/um^3]
+   phi_well_func_type = "double"
+   phi_interp_func_type ="pbg"
+
+   avg_func_type = "arithmetic"
+   
+   orient_grad_floor = 1.e-2
+
+   ConcentrationModel {
+      model    = "dilute"
+      rhs_form = "ebs"
+      molar_volume = 6.8812e-6 // [m^3/mol]
+
+      liquidus_slope = -310.9
+      meltingT = 1728.
+      keq      = 0.7965
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  1.e-2 //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.   // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+   }
+
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.001
+   interval_type = "time"
+   extra_energy_detail = TRUE
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+      precond_has_dquatdphi = FALSE  // optional, default=TRUE
+   }
+}
+
+InitialConditions {
+   filename = "initial.nc"
+   WriteEndingFile {  // optional block
+      filename = "final.nc"  // required
+   }
+}
+
+Geometry{
+   periodic_dimension = 0, 1, 0
+   coarsest_level_resolution = 32, 16, 16
+   x_lo         = -0.1,  0.0, 0.0 // [um]
+   x_up         =  0.1,  0.1, 0.1 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "PFModel::*"
+    print_threshold = 0.0
+}
