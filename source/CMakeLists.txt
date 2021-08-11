@@ -50,6 +50,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyFiniteMobAntiTrap.cc
             ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/FieldsInitializer.cc
+            ${CMAKE_SOURCE_DIR}/source/FieldsWriter.cc
             ${CMAKE_SOURCE_DIR}/source/GradientTemperatureStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/toolsSAMRAI.cc
             ${CMAKE_SOURCE_DIR}/source/TbasedCompositionDiffusionStrategy.cc

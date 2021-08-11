@@ -126,11 +126,7 @@ class QuatModel : public PFModel
 
    void readInitialDatabase(std::shared_ptr<tbox::Database> main_input_db);
 
-   void WriteInitialConditionsFile(void);
-
-   std::shared_ptr<hier::PatchLevel> FlattenHierarchy(
-       const std::shared_ptr<hier::PatchHierarchy> src_hierarchy,
-       const int level_number, const double time);
+   void WriteInitialConditionsFile(std::string filename, int level);
 
    void setupInitialDataLevel(void);
 
