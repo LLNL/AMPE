@@ -86,7 +86,7 @@ void FieldsWriter::writeInitialConditionsFile(
 
    for (int pp = 0; pp < npp; pp++) {
 
-      // tbox::plog<<"pp="<<pp<<endl;
+      // tbox::plog << "pp=" << pp << std::endl;
       if (mpi.getRank() == pp) {
 
          NcFile* f;
@@ -483,7 +483,6 @@ void FieldsWriter::writeInitialConditionsFile(
       }
       mpi.Barrier();
    }  // for ( int pp ...
-   flattened_level.reset();
 }
 
 //=======================================================================
@@ -497,12 +496,17 @@ std::shared_ptr<hier::PatchLevel> FieldsWriter::FlattenHierarchy(
    assert(level_number >= 0);
    assert(level_number < 10);
 
+   // early return for single level case
+   if (level_number == 0) return src_hierarchy->getPatchLevel(level_number);
+
    // It will be assumed that the levels of src_hierarchy are
    // synchronized at this point.
 
    hier::IntVector ratio(tbox::Dimension(NDIM), 1);
    for (int l = level_number; l > 0; l--)
       ratio *= src_hierarchy->getRatioToCoarserLevel(l);
+
+   tbox::plog << "ratio: " << ratio << std::endl;
 
    // Compute physical domain box array describing the index space of the
    // physical domain managed by this geometry object. If any entry of ratio
@@ -571,6 +575,7 @@ std::shared_ptr<hier::PatchLevel> FieldsWriter::FlattenHierarchy(
    }
 
    // fill new level with data
+   tbox::plog << "Fill new level with data..." << std::endl;
    std::shared_ptr<hier::Variable> variable;
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
    if (d_model_parameters.with_phase())
@@ -628,6 +633,8 @@ std::shared_ptr<hier::PatchLevel> FieldsWriter::FlattenHierarchy(
                                                d_all_refine_patch_strategy));
 
    schedule->fillData(time);
+
+   tbox::plog << "Flatten done..." << std::endl;
 
    return flattened_level;
 }
