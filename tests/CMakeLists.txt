@@ -32,7 +32,7 @@ add_executable(testInterpolation
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 add_executable(testHyprePoisson
                ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
-               ${CMAKE_SOURCE_DIR}/source/HyprePoisson.cc
+               ${CMAKE_SOURCE_DIR}/tests/HyprePoisson.cc
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.cc
@@ -46,7 +46,7 @@ add_executable(testPhaseHypre
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testFACPoisson
                ${CMAKE_SOURCE_DIR}/tests/testFACPoisson.cc
-               ${CMAKE_SOURCE_DIR}/source/FACPoisson.cc
+               ${CMAKE_SOURCE_DIR}/tests/FACPoisson.cc
                ${fortran_dir_dim}/hyprepoisson.f )
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
