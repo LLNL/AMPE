@@ -153,7 +153,7 @@ set(M4FILESDIM concentrationdiffusion
 
 set(SOURCE_FORTRAN_DIM_DIR ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d)
 foreach(file ${M4FILESDIM})
-  message(STATUS ".m2 -> .f: ${file}...")
+  message(STATUS ".m4 -> .f: ${file}...")
   m4tof(${file} ${SOURCE_FORTRAN_DIM_DIR})
 endforeach()
 

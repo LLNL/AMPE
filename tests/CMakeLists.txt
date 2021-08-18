@@ -12,6 +12,24 @@ else()
   set(THERMOLIB ${internal_libs})
 endif(${USE_THERMO4PFM})
 
+
+set(M4FILESDIM ellipticfacops
+               hyprepoisson
+               phase)
+
+set(SOURCE_FORTRAN_DIM_DIR ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d)
+foreach(file ${M4FILESDIM})
+  message(STATUS ".m4 -> .f: ${file}...")
+  m4tof(${file} ${SOURCE_FORTRAN_DIM_DIR})
+endforeach()
+
+set(SOURCES_FORTRAN_DIM "")
+foreach(file ${M4FILESDIM})
+  list(APPEND SOURCES_FORTRAN_DIM ${SOURCE_FORTRAN_DIM_DIR}/${file}.f)
+endforeach()
+
+
+
 #Within the scope of this file, cmake doesn't know *.f are generated files
 set_source_files_properties( ${fortran_dir}/functions.f 
                              PROPERTIES GENERATED TRUE)
@@ -40,7 +58,7 @@ add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.cc
                ${CMAKE_SOURCE_DIR}/source/tools.cc
                ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.cc
-               ${CMAKE_SOURCE_DIR}/source/PhaseHypre.cc
+               PhaseHypre.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                ${fortran_dir_dim}/phase.f
                ${fortran_dir_dim}/hyprepoisson.f )
@@ -48,6 +66,21 @@ add_executable(testFACPoisson
                ${CMAKE_SOURCE_DIR}/tests/testFACPoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/FACPoisson.cc
                ${fortran_dir_dim}/hyprepoisson.f )
+add_executable(testPhaseFAC
+               ${CMAKE_SOURCE_DIR}/tests/testPhaseFAC.cc
+               ${CMAKE_SOURCE_DIR}/source/PhaseFACOps.cc
+               ${CMAKE_SOURCE_DIR}/source/PhaseFACSolver.cc
+               ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.cc
+               ${CMAKE_SOURCE_DIR}/source/EllipticFACOps.cc
+               ${CMAKE_SOURCE_DIR}/source/EllipticFACSolver.cc
+               ${CMAKE_SOURCE_DIR}/source/CartesianRobinBcHelperWithDepth.cc
+               ${CMAKE_SOURCE_DIR}/source/tools.cc
+               ${CMAKE_SOURCE_DIR}/source/samrai/FACPreconditioner.cc
+               ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.cc
+               ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.cc
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
+               PhaseFAC.cc
+               ${SOURCES_FORTRAN_DIM})
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
 add_executable(testCALPHADJacobianTernary
@@ -113,6 +146,10 @@ add_test(NAME testFACPoisson
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testFACPoisson ${NDIM}d.input
          WORKING_DIRECTORY ${TEST_DIR}/FACPoisson)
+add_test(NAME testPhaseFAC
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+                 ${CMAKE_CURRENT_BINARY_DIR}/testPhaseFAC ${NDIM}d.input
+         WORKING_DIRECTORY ${TEST_DIR}/PhaseFAC)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADFunctions)
@@ -263,6 +300,11 @@ target_link_libraries(testPhaseHypre ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testFACPoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
                                      ${PROJECT_LINK_LIBS_HDF5}
+                                     )
+target_link_libraries(testPhaseFAC ${PROJECT_LINK_LIBS_SAMRAI}
+                                     ${PROJECT_LINK_LIBS_HYPRE}
+                                     ${PROJECT_LINK_LIBS_HDF5}
+                                     ${THERMOLIB}
                                      )
 target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
