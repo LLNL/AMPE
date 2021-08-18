@@ -93,7 +93,7 @@ class PhaseFAC : public mesh::StandardTagAndInitStrategy,
     * -# Specify Poisson equation parameters
     * -# Call solver
     */
-   int solve(std::string phase_interp_func_type, double,
+   int solve(const EnergyInterpolationType phase_interp_func_type, double,
              std::string phase_well_func_type);
 
 #ifdef HAVE_HDF5

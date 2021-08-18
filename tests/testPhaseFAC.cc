@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
       std::shared_ptr<PhaseFACOps> fac_ops(
           new PhaseFACOps(fac_ops_name,
-                          1,  // one phase variable
+                          false,  // no third phase
                           input_db->isDatabase("fac_ops")
                               ? input_db->getDatabase("fac_ops")
                               : std::shared_ptr<tbox::Database>()));
@@ -236,21 +236,6 @@ int main(int argc, char* argv[])
       }
 
       /*
-       * Set up the plotter for the hierarchy just created.
-       * The FACPoisson object handles the data and has the
-       * function setupExternalPlotter to register its data
-       * with the plotter.
-       */
-#ifdef HAVE_HDF5
-      std::string vis_filename =
-          main_db->getStringWithDefault("vis_filename", base_name);
-      std::shared_ptr<appu::VisItDataWriter> visit_writer(
-          std::make_shared<appu::VisItDataWriter>(dim, "VisIt Writer",
-                                                  vis_filename + ".visit"));
-      fac_poisson.setupPlotter(*visit_writer);
-#endif
-
-      /*
        * After creating all objects and initializing their state,
        * we print the input database and variable database contents
        * to the log file.
@@ -266,13 +251,6 @@ int main(int argc, char* argv[])
       fac_poisson.solve(d_model_parameters.energy_interp_func_type(),
                         d_model_parameters.phase_well_scale(),
                         d_model_parameters.phase_well_func_type());
-
-#ifdef HAVE_HDF5
-      /*
-       * Plot.
-       */
-      visit_writer->writePlotData(patch_hierarchy, 0);
-#endif
 
       double error = fac_poisson.compareSolutionWithExact();
       tbox::plog << "Difference between computed sol. and exact so. = " << error
