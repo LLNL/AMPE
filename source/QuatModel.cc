@@ -35,7 +35,6 @@
 #include "LinearMeltingTemperatureStrategy.h"
 #include "QuatIntegratorFactory.h"
 #include "CompositionStrategyMobilities.h"
-#include "DiffusionForConcInPhaseStrategy.h"
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "toolsSAMRAI.h"
@@ -635,9 +634,9 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                                           d_slice_index);
       // rescale initial conditions for temperature if we are solving
       // time evolution equation for T since we use reduced units
+      math::HierarchyCellDataOpsReal<double> hopscell(d_patch_hierarchy);
       if (d_model_parameters.with_rescaled_temperature()) {
          assert(d_model_parameters.meltingT() == d_model_parameters.meltingT());
-         math::HierarchyCellDataOpsReal<double> hopscell(d_patch_hierarchy);
 
          hopscell.scale(d_temperature_id,
                         1. / d_model_parameters.rescale_factorT(),
@@ -2470,9 +2469,17 @@ void QuatModel::printScalarDiagnostics(void)
 
    double vphi = vol;
    if (d_model_parameters.with_phase()) {
-      vphi = evaluateVolumeSolid(d_patch_hierarchy, d_phase_id);
-      tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
-                 << std::endl;
+      if (d_model_parameters.with_three_phases()) {
+         for (int i = 0; i < 3; i++) {
+            vphi = evaluatePhaseFraction(d_patch_hierarchy, d_phase_id, i);
+            tbox::pout << "  Volume fraction of phase " << i << " = "
+                       << vphi / vol << std::endl;
+         }
+      } else {
+         vphi = evaluateVolumeSolid(d_patch_hierarchy, d_phase_id);
+         tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
+                    << std::endl;
+      }
    }
 
    if (d_model_parameters.with_third_phase()) {
@@ -2498,16 +2505,18 @@ void QuatModel::printScalarDiagnostics(void)
          tbox::pout << "  Max. concentration " << ic << "= " << cmax
                     << std::endl;
 
-         // average concentration
-         const double c0 = c0V0 / vol;
+         if (!d_model_parameters.with_three_phases()) {
+            // average concentration
+            const double c0 = c0V0 / vol;
 
-         // now computes coring factor according to HBSM formula
-         const double cphi =
-             evaluateIntegralPhaseConcentration(d_patch_hierarchy, ic);
+            // now computes coring factor according to HBSM formula
+            const double cphi =
+                evaluateIntegralPhaseConcentration(d_patch_hierarchy, ic);
 
-         const double cex = (cphi - c0 * vphi) / c0V0;
-         tbox::pout << "  Cex (HBSM) for component " << ic << " = " << cex
-                    << std::endl;
+            const double cex = (cphi - c0 * vphi) / c0V0;
+            tbox::pout << "  Cex (HBSM) for component " << ic << " = " << cex
+                       << std::endl;
+         }
       }
    }
 }
@@ -4717,8 +4726,6 @@ void QuatModel::computeUniformPhaseMobility(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(mobility_id)));
       assert(mobility_data);
-      assert(mobility_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 1));
 
       mobility_data->fillAll(d_model_parameters.phase_mobility());
    }
@@ -5295,18 +5302,20 @@ void QuatModel::evaluateEnergy(
           d_eta_scratch_id, d_conc_scratch_id);
    }
 
-   d_free_energy_strategy->computeFreeEnergyLiquid(hierarchy, d_temperature_id,
-                                                   d_f_l_id, gp);
-
-   d_free_energy_strategy->computeFreeEnergySolidA(hierarchy, d_temperature_id,
-                                                   d_f_a_id, gp);
-#ifndef HAVE_THERMO4PFM
-   if (d_model_parameters.with_three_phases()) {
-      d_free_energy_strategy->computeFreeEnergySolidB(hierarchy,
+   if (d_free_energy_strategy) {
+      d_free_energy_strategy->computeFreeEnergyLiquid(hierarchy,
                                                       d_temperature_id,
-                                                      d_f_b_id, gp);
+                                                      d_f_l_id, gp);
+
+      d_free_energy_strategy->computeFreeEnergySolidA(hierarchy,
+                                                      d_temperature_id,
+                                                      d_f_a_id, gp);
+      if (d_model_parameters.with_three_phases()) {
+         d_free_energy_strategy->computeFreeEnergySolidB(hierarchy,
+                                                         d_temperature_id,
+                                                         d_f_b_id, gp);
+      }
    }
-#endif
 
    const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
    const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
@@ -5666,11 +5675,27 @@ double QuatModel::evaluateIntegralPhaseConcentration(
       conc_id = d_work_id;
    }
 
+   // assumes d_phase_id has depth 1
    mathops.multiply(d_phase_scratch_id, conc_id, d_phase_id);
 
    double value = mathops.L1Norm(d_phase_scratch_id, d_weight_id);
 
    return value;
+}
+
+//=======================================================================
+
+double QuatModel::evaluatePhaseFraction(
+    const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
+    const int depth)
+{
+   assert(d_weight_id != -1);
+
+   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+
+   copyDepthCellData(hierarchy, d_work_id, 0, d_phase_id, depth);
+
+   return mathops.integral(d_work_id, d_weight_id);
 }
 
 //=======================================================================

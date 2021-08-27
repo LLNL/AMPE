@@ -24,6 +24,13 @@ void preRunDiagnosticsMobilityInPhases(const double temperature,
    assert(db);
    std::string calphad_filename = db->getString("filename");
 
+   // JSON databases do not contain mobility parameters at the moment
+   // jlf 08/27/2021
+   if (calphad_filename.compare(calphad_filename.size() - 4, 4, "json") == 0)
+      return;
+
+   tbox::pout << "preRunDiagnosticsMobilityInPhases, open " << calphad_filename
+              << std::endl;
    std::shared_ptr<tbox::MemoryDatabase> calphad_db(
        new tbox::MemoryDatabase("calphad_db"));
    tbox::InputManager::getManager()->parseInputFile(calphad_filename,

@@ -49,6 +49,9 @@ ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
       d_flux_coarsen_algorithm(tbox::Dimension(NDIM)),
       d_phase_flux_strategy(phase_flux_strategy)
 {
+   assert(d_f_b_id >= 0);
+   assert(d_flux_id >= 0);
+
    hier::VariableDatabase* vdb = hier::VariableDatabase::getDatabase();
 
    std::shared_ptr<hier::Variable> variable;
@@ -69,6 +72,8 @@ ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
 void ThreePhasesRHSStrategy::setup(
     std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
+   d_patch_hierarchy = hierarchy;
+
    d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
 
    for (int ln = 0; ln < hierarchy->getFinestLevelNumber(); ln++) {
@@ -149,14 +154,6 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
 {
    math::PatchCellDataOpsReal<double> mathops;
 
-   d_free_energy_strategy->computeFreeEnergyLiquid(*patch,
-                                                   d_temperature_scratch_id,
-                                                   d_f_l_id, false);
-
-   d_free_energy_strategy->computeFreeEnergySolidA(*patch,
-                                                   d_temperature_scratch_id,
-                                                   d_f_a_id, false);
-
    const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
                               hier::PatchGeometry>(patch->getPatchGeometry()));
@@ -226,12 +223,24 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    assert(l2rhs == l2rhs);
 #endif
 
-   // then add component from chemical energy
-   // d_free_energy_strategy->addDrivingForce(time, *patch,
-   //                                        d_temperature_scratch_id,
-   //                                        d_phase_scratch_id, -1,
-   //                                        d_conc_scratch_id, d_f_l_id,
-   //                                        d_f_a_id, d_f_b_id, ydot_phase_id);
+   if (d_free_energy_strategy) {
+      d_free_energy_strategy->computeFreeEnergyLiquid(*patch,
+                                                      d_temperature_scratch_id,
+                                                      d_f_l_id, false);
+
+      d_free_energy_strategy->computeFreeEnergySolidA(*patch,
+                                                      d_temperature_scratch_id,
+                                                      d_f_a_id, false);
+
+      d_free_energy_strategy->computeFreeEnergySolidB(*patch,
+                                                      d_temperature_scratch_id,
+                                                      d_f_b_id, false);
+
+      // then add component from chemical energy
+      d_free_energy_strategy->addDrivingForce(
+          time, *patch, d_temperature_scratch_id, d_phase_scratch_id, -1,
+          d_conc_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id, ydot_phase_id);
+   }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    l2rhs = opc.L2Norm(phase_rhs, pbox);
@@ -244,5 +253,59 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    assert(phase_mobility);
 
    // multiply by mobility
+   assert(phase_mobility->getDepth() == phase_rhs->getDepth());
    mathops.multiply(phase_rhs, phase_mobility, phase_rhs, pbox);
+}
+
+void ThreePhasesRHSStrategy::projectPhases(const int phase_id,
+                                           const int corr_id, const int err_id)
+{
+   std::shared_ptr<hier::PatchLevel> level =
+       d_patch_hierarchy->getPatchLevel(0);
+   hier::PatchLevel::Iterator pi(level->begin());
+   for (; pi != level->end(); pi++) {
+      hier::Patch& patch = **pi;
+
+      std::shared_ptr<pdat::CellData<double> > p_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(phase_id)));
+      std::shared_ptr<pdat::CellData<double> > corr_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(corr_id)));
+      std::shared_ptr<pdat::CellData<double> > err_data(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(err_id)));
+
+      const hier::Box& box = patch.getBox();
+      const hier::Index& lower = box.lower();
+      const hier::Index& upper = box.upper();
+
+      const hier::Box& p_gbox = p_data->getGhostBox();
+      const hier::Index& plower = p_gbox.lower();
+      const hier::Index& pupper = p_gbox.upper();
+
+      const hier::Box& c_gbox = corr_data->getGhostBox();
+      const hier::Index& clower = c_gbox.lower();
+      const hier::Index& cupper = c_gbox.upper();
+
+      const hier::Box& e_gbox = err_data->getGhostBox();
+      const hier::Index& elower = e_gbox.lower();
+      const hier::Index& eupper = e_gbox.upper();
+
+#if NDIM == 2
+      PROJECTPHI2D(lower[0], upper[0], lower[1], upper[1], 3,
+                   p_data->getPointer(), plower[0], pupper[0], plower[1],
+                   pupper[1], corr_data->getPointer(), clower[0], cupper[0],
+                   clower[1], cupper[1], err_data->getPointer(), elower[0],
+                   eupper[0], elower[1], eupper[1]);
+#endif
+#if NDIM == 3
+      PROJECTPHI3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
+                   3, p_data->getPointer(), plower[0], pupper[0], plower[1],
+                   pupper[1], plower[2], pupper[2], corr_data->getPointer(),
+                   clower[0], cupper[0], clower[1], cupper[1], clower[2],
+                   cupper[2], err_data->getPointer(), elower[0], eupper[0],
+                   elower[1], eupper[1], elower[2], eupper[2]);
+#endif
+   }
 }

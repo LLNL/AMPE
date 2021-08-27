@@ -48,6 +48,9 @@ add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.cc
 add_executable(testInterpolation
                ${CMAKE_SOURCE_DIR}/tests/testInterpolationFunctions.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
+add_executable(test3PhasesInterpolation
+               ${CMAKE_SOURCE_DIR}/tests/test3PhasesInterpolationFunctions.cc
+               ${CMAKE_SOURCE_DIR}/source/interpolation.cc )
 add_executable(testHyprePoisson
                ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/HyprePoisson.cc
@@ -134,6 +137,9 @@ add_test(NAME testNoise
 add_test(NAME testInterpolation
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testInterpolation)
+add_test(NAME test3PhasesInterpolation
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/test3PhasesInterpolation)
 add_test(NAME testHyprePoisson
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testHyprePoisson ${NDIM}d.input
@@ -270,12 +276,21 @@ add_test(NAME FeNbNiWithNoise
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
-add_test(NAME ThreePhases
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
-         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-         ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
-         )
+if(${USE_THERMO4PFM})
+  add_test(NAME ThreePhases
+           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
+           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
+           )
+  add_test(NAME ThreePhasesCALPHAD
+           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
+           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
+           ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
+           )
+endif()
 add_test(NAME DumpNetCDF
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4

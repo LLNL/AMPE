@@ -15,6 +15,7 @@
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
+#include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "KKSdiluteBinary.h"
 #include "HBSMFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
@@ -65,12 +66,27 @@ class FreeEnergyStrategyFactory
             }
 
             if (ncompositions == 1) {
-               free_energy_strategy.reset(new CALPHADFreeEnergyStrategyBinary(
-                   calphad_db, newton_db,
-                   model_parameters.energy_interp_func_type(),
-                   model_parameters.conc_interp_func_type(), mvstrategy,
-                   conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
-                   model_parameters.with_third_phase()));
+#ifdef HAVE_THERMO4PFM
+               if (conc_b_scratch_id >= 0) {
+                  tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
+                             << std::endl;
+                  free_energy_strategy.reset(
+                      new CALPHADFreeEnergyStrategyBinaryThreePhase(
+                          calphad_pt, newton_db,
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(), mvstrategy,
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id));
+               } else
+#endif
+                  free_energy_strategy.reset(
+                      new CALPHADFreeEnergyStrategyBinary(
+                          calphad_db, newton_db,
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(), mvstrategy,
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id,
+                          model_parameters.with_third_phase()));
             } else {
                assert(ncompositions == 2);
                free_energy_strategy.reset(new CALPHADFreeEnergyStrategyTernary(

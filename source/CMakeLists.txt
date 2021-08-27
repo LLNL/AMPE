@@ -38,6 +38,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
             ${CMAKE_SOURCE_DIR}/source/tools.cc
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.cc

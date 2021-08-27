@@ -6,29 +6,6 @@ c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
 c 
 define(NDIM,3)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
@@ -322,7 +299,151 @@ c
 c
       return
       end
+c
+      subroutine concentration_pfmdiffusion_of_temperature_threephases(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   phi, nphi, ngphi,
+     &   diffL0, diffL1, diffL2,
+     &   diffA0, diffA1, diffA2,
+     &   diffB0, diffB1, diffB2, ngdiff,
+     &   temp, ngtemp,
+     &   d_liquid, q0_liquid,
+     &   d_solid_A, q0_solid_A,
+     &   d_solid_B, q0_solid_B,
+     &   gas_constant_R,
+     &   interp_type,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      integer nphi, ngphi, ngdiff, ngtemp, three_phases
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solid_A, d_solid_B
+      double precision q0_liquid, q0_solid_A, q0_solid_B
+      double precision gas_constant_R
+c
+c variables in 3d cell indexed
+      double precision phi(CELL3d(ifirst,ilast,ngphi),nphi)
+      double precision temp(CELL3d(ifirst,ilast,ngtemp))
+      double precision diffL0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffL1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffL2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffA0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffA2(SIDE3d2(ifirst,ilast,ngdiff))
+      double precision diffB0(SIDE3d0(ifirst,ilast,ngdiff))
+      double precision diffB1(SIDE3d1(ifirst,ilast,ngdiff))
+      double precision diffB2(SIDE3d2(ifirst,ilast,ngdiff))
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2
+      double precision vphi, phi0, phi1, phi2, invT
+      double precision q0_liquid_invR, q0_solid_A_invR, q0_solid_B_invR
+      double precision diff_liquid, diff_solid_A, diff_solid_B
+      double precision interp_func
+      double precision average_func
+c
+      q0_liquid_invR = q0_liquid / gas_constant_R
+      q0_solid_A_invR = q0_solid_A / gas_constant_R
+      q0_solid_B_invR = q0_solid_B / gas_constant_R
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0+1
 
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,1), phi(ic0,ic1,ic2,1), avg_type )
+               phi0 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,2), phi(ic0,ic1,ic2,2), avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0-1,ic1,ic2,3), phi(ic0,ic1,ic2,3), avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 / ( temp(ic0-1,ic1,ic2)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+               diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+
+               diffL0(ic0,ic1,ic2) = phi0 * diff_liquid
+               diffA0(ic0,ic1,ic2) = phi1 * diff_solid_A
+               diffB0(ic0,ic1,ic2) = phi2 * diff_solid_B
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1+1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2,1), phi(ic0,ic1,ic2,1), avg_type )
+               phi0 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &             phi(ic0,ic1-1,ic2,2), phi(ic0,ic1,ic2,2), avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1-1,ic2,3), phi(ic0,ic1,ic2,3), avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 / ( temp(ic0,ic1-1,ic2)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+               diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+
+               diffL1(ic0,ic1,ic2) = phi0 * diff_liquid
+               diffA1(ic0,ic1,ic2) = phi1 * diff_solid_A
+               diffB1(ic0,ic1,ic2) = phi2 * diff_solid_B
+
+            end do
+         end do
+      end do
+c
+      do ic2 = ifirst2, ilast2+1
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1,1), phi(ic0,ic1,ic2,1), avg_type )
+               phi0 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &             phi(ic0,ic1,ic2-1,2), phi(ic0,ic1,ic2,2), avg_type )
+               phi1 = interp_func( vphi, interp_type )
+
+               vphi = average_func(
+     &            phi(ic0,ic1,ic2-1,3), phi(ic0,ic1,ic2,3), avg_type )
+               phi2 = interp_func( vphi, interp_type )
+
+               invT = 2.0d0 / ( temp(ic0,ic1,ic2-1)+temp(ic0,ic1,ic2) )
+
+               diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+               diff_solid_A = d_solid_A * exp( -q0_solid_A_invR * invT )
+               diff_solid_B = d_solid_B * exp( -q0_solid_B_invR * invT )
+
+               diffL2(ic0,ic1,ic2) = phi0 * diff_liquid
+               diffA2(ic0,ic1,ic2) = phi1 * diff_solid_A
+               diffB2(ic0,ic1,ic2) = phi2 * diff_solid_B
+
+            end do
+         end do
+      end do
+
+      return
+      end
 c
 c Coefficient \tilde D from Beckermann, Diepers, Steinbach, Karma, Tong, 1999
 c
@@ -345,7 +466,7 @@ c input arrays:
       character*(*) avg_type, interp_type
       double precision d_liquid, d_solid
 c
-c variables in 2d cell indexed
+c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi))
       double precision partition_coeff(CELL3d(ifirst,ilast,ngk))
       double precision diff0(SIDE3d0(ifirst,ilast,ngdiff))

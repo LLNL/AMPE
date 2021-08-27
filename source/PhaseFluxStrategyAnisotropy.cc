@@ -55,21 +55,20 @@ void PhaseFluxStrategyAnisotropy::computeFluxes(
       const hier::Index& ifirst = pbox.lower();
       const hier::Index& ilast = pbox.upper();
 
-      ANISOTROPIC_GRADIENT_FLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      for (int i = 0; i < phase->getDepth(); i++)
+         ANISOTROPIC_GRADIENT_FLUX(
+             ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                ifirst(2), ilast(2),
+             ifirst(2), ilast(2),
 #endif
-                                dx, d_epsilon_phase, d_nu, d_knumber,
-                                phase->getPointer(),
-                                phase->getGhostCellWidth()[0],
-                                quat->getPointer(),
-                                quat->getGhostCellWidth()[0], quat->getDepth(),
-                                phase_flux->getPointer(0),
-                                phase_flux->getPointer(1),
+             dx, d_epsilon_phase, d_nu, d_knumber, phase->getPointer(i),
+             phase->getGhostCellWidth()[0], quat->getPointer(),
+             quat->getGhostCellWidth()[0], quat->getDepth(),
+             phase_flux->getPointer(0, i), phase_flux->getPointer(1, i),
 #if (NDIM == 3)
-                                phase_flux->getPointer(2),
+             phase_flux->getPointer(2, i),
 #endif
-                                phase_flux->getGhostCellWidth()[0]);
+             phase_flux->getGhostCellWidth()[0]);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
       SAMRAI::math::PatchSideDataNormOpsReal<double> ops;

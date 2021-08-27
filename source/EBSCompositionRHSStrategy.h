@@ -113,7 +113,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
 
    int d_temperature_scratch_id;
 
-   bool d_with_third_phase;
+   bool d_with_three_phases;
 
    bool d_with_gradT;
 
