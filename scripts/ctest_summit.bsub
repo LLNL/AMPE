@@ -10,8 +10,8 @@ source scripts/modules.summit
 module list
 
 #assume conda env was created with:
-#   conda create --name conda-netcdf4 netCDF4 numpy python
-conda activate conda-netcdf4
+#   conda create --name conda-ampe netCDF4 numpy scipy python
+conda activate conda-ampe
 
 cd build
 
