@@ -5,7 +5,7 @@ rm -rf CMakeCache.txt
 rm -rf CMakeFiles/
 rm cmake_install.cmake
 rm Makefile
-rm -f ../source/fortran/2d/*.f
+rm -f ../source/fortran/3d/*.f
 
 cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc \
         -DCMAKE_Fortran_COMPILER=xlf \
@@ -18,6 +18,6 @@ cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_PREFIX_PATH=${HOME}/bin:$OLCF_NETCDF_CXX4_ROOT \
         -DUSE_CVODE=ON \
-        -DNDIM="2" \
+        -DNDIM="3" \
         ..
 
