@@ -272,7 +272,7 @@ set(internal_samrai ampe_samrai)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 link_directories( ${SAMRAI_DIR}/lib )
-link_directories( ${HYPRE_DIR}/lib )
+link_directories( ${HYPRE_DIR}/lib64 )
 if(${USE_CVODE})
   link_directories( ${SUNDIALS_DIR}/lib64 )
 else()
