@@ -1,0 +1,10 @@
+#!/bin/csh
+module load PrgEnv-cray
+module load craype-accel-amd-gfx908
+module load boost
+module load cmake
+module load cray-python
+module load rocm
+module load cray-hdf5/1.12.0.6
+module load cray-netcdf/4.7.4.6
+
