@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "EllipticFACOps.h"
 #include "CellPoissonHypreSolver.h"
@@ -442,17 +418,13 @@ void EllipticFACOps::getFromInput(
           input_db->getStringWithDefault("coarse_solver_choice",
                                          d_coarse_solver_choice);
       if (!(d_coarse_solver_choice == "hypre" ||
-            d_coarse_solver_choice == "redblack" ||
-            d_coarse_solver_choice == "jacobi")) {
+            d_coarse_solver_choice == "redblack")) {
          INPUT_VALUE_ERROR("coarse_solver_choice");
       }
 
       d_coarse_solver_tolerance =
           input_db->getDoubleWithDefault("coarse_solver_tolerance",
                                          d_coarse_solver_tolerance);
-      if (!(d_coarse_solver_tolerance > 0)) {
-         INPUT_RANGE_ERROR("coarse_solver_tolerance");
-      }
 
       d_coarse_solver_max_iterations =
           input_db->getIntegerWithDefault("coarse_solver_max_iterations",
@@ -1097,9 +1069,6 @@ void EllipticFACOps::smoothErrorByRedBlack(
     const solv::SAMRAIVectorReal<double> &residual, int ln, int num_sweeps,
     double residual_tolerance)
 {
-
-   checkInputPatchDataIndices();
-
 #ifdef DEBUG_CHECK_ASSERTIONS
    if (data.getPatchHierarchy() != d_hierarchy ||
        residual.getPatchHierarchy() != d_hierarchy) {
@@ -1141,6 +1110,9 @@ void EllipticFACOps::smoothErrorByRedBlack(
     */
    int not_converged = 1;
    for (isweep = 0; isweep < num_sweeps && not_converged; ++isweep) {
+      //tbox::plog<<"isweep="<<isweep
+      //          <<", num_sweep="<<num_sweeps
+      //          <<", residual_tolerance="<<residual_tolerance<<std::endl;
       red_maxres = blk_maxres = 0;
 
       // Red sweep.
@@ -1391,11 +1363,7 @@ int EllipticFACOps::solveCoarsestLevel(
 
    int return_value = 0;
 
-   if (d_coarse_solver_choice == "jacobi") {
-      d_residual_tolerance_during_smoothing = d_coarse_solver_tolerance;
-      smoothError(data, residual, coarsest_ln, d_coarse_solver_max_iterations);
-      d_residual_tolerance_during_smoothing = -1.0;
-   } else if (d_coarse_solver_choice == "redblack") {
+   if (d_coarse_solver_choice == "redblack") {
       d_residual_tolerance_during_smoothing = d_coarse_solver_tolerance;
       smoothError(data, residual, coarsest_ln, d_coarse_solver_max_iterations);
       d_residual_tolerance_during_smoothing = -1.0;
