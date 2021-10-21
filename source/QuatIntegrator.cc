@@ -2226,18 +2226,16 @@ void QuatIntegrator::setTimestep(const double dt)
 
 void QuatIntegrator::printSolverTotals(void)
 {
-   if (d_show_integrator_stats) {
-      tbox::pout << "Integrator Totals:"
-                 << "\n   Newton iterations    " << d_cum_newton_iter
-                 << "\n   Newton failures      " << d_cum_newton_fail
-                 << "\n   Linear iterations    " << d_cum_lin_iter
-                 << "\n   Linear failures      " << d_cum_lin_fail
-                 << "\n   Error test failures  " << d_cum_err_test_fail
-                 << "\n   Function evaluations " << d_cum_f_eval
-                 << "\n   Precond setups       " << d_cum_p_setup
-                 << "\n   Precond applications " << d_cum_p_apply;
-      tbox::pout << std::endl;
-   }
+   tbox::pout << "Integrator Totals:"
+              << "\n   Newton iterations    " << d_cum_newton_iter
+              << "\n   Newton failures      " << d_cum_newton_fail
+              << "\n   Linear iterations    " << d_cum_lin_iter
+              << "\n   Linear failures      " << d_cum_lin_fail
+              << "\n   Error test failures  " << d_cum_err_test_fail
+              << "\n   Function evaluations " << d_cum_f_eval
+              << "\n   Precond setups       " << d_cum_p_setup
+              << "\n   Precond applications " << d_cum_p_apply;
+   tbox::pout << std::endl;
 }
 
 //-----------------------------------------------------------------------
