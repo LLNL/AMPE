@@ -95,6 +95,11 @@ Integrator {
    Preconditioner {  // optional block
       enabled = TRUE  // optional, default=TRUE
    }
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      coarse_solver_max_iterations = 5
+      coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+      coarse_solver_choice = "redblack"
+   }
 }
 
 InitialConditions {
