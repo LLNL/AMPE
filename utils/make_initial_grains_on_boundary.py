@@ -51,6 +51,8 @@ parser.add_option( "--noise", type="float", default=0.,
                   help="amplitude of noise in y interface")
 parser.add_option( "--plane", type="int", default=1,
                   help="direction orthogonal to plane")
+parser.add_option( "--quatin", type="string", # something like "1,0,0,0",
+                   help="quaternion in grain" )
 
 (options, args) = parser.parse_args()
 
@@ -81,6 +83,7 @@ ngrains = options.ngrains
 sf      = options.solid_fraction
 widthy  = options.width/nn[1]
 noise   = options.noise
+quatin  = options.quatin
 
 if ( not ( nx and ny and nz ) ) :
   print( "Error: all of -nx -ny -nz are required")
@@ -274,7 +277,14 @@ for j in range( nn[dir1] ) :
 
 
 #fill quat values
-setRandomQinGrains()
+if not quatin is None and ngrains==1:
+  q = list(map( float, options.quatin.split(',') ))
+  if ( QLEN == 4 ) :
+    quat_inside.append( Q.makeNormalizedQuat( q[0], q[1], q[2], q[3] ) )
+  else :
+    quat_inside.append( Q.makeNormalizedQuat2( q[0], q[1] ) )
+else:
+  setRandomQinGrains()
 
 offset=0.5*fraction*nn[0]
 if QLEN>0:
