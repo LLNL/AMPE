@@ -173,6 +173,27 @@ def setRandomQinGrains():
       quat_inside.append( Q.makeQuat( q0, q1, q2, q3 ) )
       print("--- q={}".format(quat_inside[g]))
 
+#-----------------------------------------------------------------------
+def smoothQuat(quat):
+  print("smoothQuat...")
+  nx=nn[0]
+  ny=nn[1]
+  nz=nn[2]
+  quat_new = N.zeros( (nn[2],nn[1],nn[0]), N.float32 )
+  for i in range(nx):
+    for j in range(ny):
+      for k in range(nz):
+        quat_new[k,j,i] = 0.25*quat[k,j,i] \
+                        + 0.125*(quat[(k-1)%nz,j,i]) \
+                        + 0.125*(quat[(k+1)%nz,j,i]) \
+                        + 0.125*(quat[k,(j-1)%ny,i]) \
+                        + 0.125*(quat[k,(j+1)%ny,i]) \
+                        + 0.125*(quat[k,j,(i-1)%nx]) \
+                        + 0.125*(quat[k,j,(i+1)%nx])
+  quat[:,:,:]=quat_new[:,:,:]
+
+
+
 #fill conc values
 nspecies=0
 if ( not ( nomconc is None ) ):
@@ -312,6 +333,10 @@ if QLEN>0:
 for isp in range(nspecies):
   for x,y in N.nditer([conc[isp,:,:,:],phase], op_flags=['readwrite']):
     x[...]= ci[isp]*y+co[isp]*(1.-y)
+
+for it in range(3):
+  for m in range(QLEN):
+    smoothQuat(quat[m,:,:,:])
 
 #-----------------------------------------------------------------------
 # Write data to file and close
