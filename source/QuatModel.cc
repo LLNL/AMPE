@@ -1983,6 +1983,8 @@ void QuatModel::extendGrainOrientation(void)
 bool QuatModel::resetGrains(void)
 {
    assert(d_grains);
+   assert(d_quat_relax_id >= 0);
+   assert(d_integrator_quat_only);
 
    // test if number of grains has changed first...
    int old_number_of_grains = d_number_of_grains;
@@ -2050,8 +2052,8 @@ bool QuatModel::resetGrains(void)
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
    cellops.copyData(d_quat_relax_id, d_quat_id, false);
-
-   d_integrator_quat_only->initialize(d_patch_hierarchy);
+   // commented out jlf 10/30/2021
+   //   d_integrator_quat_only->initialize(d_patch_hierarchy);
 
    // double time=d_time;
    double time = 0.;
@@ -2143,10 +2145,13 @@ double QuatModel::Advance(void)
       // update_solution = true;
    }
 
-   if (update_solution) {
-      d_integrator->updateSolution(d_patch_hierarchy, 0,
-                                   d_patch_hierarchy->getFinestLevelNumber());
-   }
+   // jlf, 10/30/2021: this call is not working, possibly due to some
+   // objects not being clean up properly before being reinitialized
+   // however, call not necessary if mesh not adapted
+   // if (update_solution) {
+   //   d_integrator->updateSolution(d_patch_hierarchy, 0,
+   //                                d_patch_hierarchy->getFinestLevelNumber());
+   //}
 
    const double dt = d_integrator->Advance(d_patch_hierarchy);
 
