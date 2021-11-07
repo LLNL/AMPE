@@ -552,7 +552,8 @@ c
 
                   if ( three_phase /= 0 ) then
                      f_b = fb(i,j,k)
-                     h_eta = interp_func( eta, eta_interp_type )
+                     h_eta = interp_func( eta(i,j,k),
+     &                                    eta_interp_type )
                   else
                      f_b = 0.0d0
                      h_eta = 0.0d0
