@@ -1110,7 +1110,7 @@ void EllipticFACOps::smoothErrorByRedBlack(
     */
    int not_converged = 1;
    for (isweep = 0; isweep < num_sweeps && not_converged; ++isweep) {
-      //tbox::plog<<"isweep="<<isweep
+      // tbox::plog<<"isweep="<<isweep
       //          <<", num_sweep="<<num_sweeps
       //          <<", residual_tolerance="<<residual_tolerance<<std::endl;
       red_maxres = blk_maxres = 0;

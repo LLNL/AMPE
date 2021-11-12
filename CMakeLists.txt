@@ -56,6 +56,12 @@ else()
   add_definitions(-DUSE_CPODE)
 endif()
 
+# gpu offload (optional)
+set(GPU_OFFLOAD FALSE CACHE BOOL "GPU offload")
+if(${GPU_OFFLOAD})
+  add_definitions(-DGPU_OFFLOAD)
+endif()
+
 # clang-format (optional)
 set(AMPE_WITH_CLANG_FORMAT FALSE CACHE BOOL "Indent code with clang-format")
 if(${AMPE_WITH_CLANG_FORMAT})

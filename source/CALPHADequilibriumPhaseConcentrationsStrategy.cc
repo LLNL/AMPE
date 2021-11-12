@@ -21,6 +21,7 @@ namespace pt = boost::property_tree;
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/IEEE.h"
 
+#include <omp.h>
 
 template <>
 CALPHADequilibriumPhaseConcentrationsStrategy<
@@ -106,6 +107,7 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
+   assert(!cd_eta);
    assert(d_calphad_fenergy != nullptr);
    assert(cd_conc->getDepth() == cd_cl->getDepth());
    assert(cd_conc->getDepth() == cd_ca->getDepth());
@@ -139,10 +141,6 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 
    const double* const ptr_temp = cd_te->getPointer();
    const double* const ptr_phi = cd_pf->getPointer();
-   double* ptr_eta = nullptr;
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-   }
 
    const hier::Box& temp_gbox = cd_te->getGhostBox();
    int imin_te = temp_gbox.lower(0);
@@ -192,82 +190,80 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    imax[2] = ci_gbox.upper(2);
 #endif
 
-   int N = 2 * cd_conc->getDepth();
-   if (d_with_third_phase) {
-      N += cd_conc->getDepth();
-   }
-
-   double c[2];  // up to 2 concentrations/3 species
-   int offset = cd_conc->getDepth();
-   double* x = new double[N];
-   for (short i = 0; i < N; i++)
-      x[i] = tbox::IEEE::getSignalingNaN();
-
-   int idx_pf = (imin[0] - imin_pf) + (imin[1] - jmin_pf) * inc_j_pf +
-                (imin[2] - kmin_pf) * inc_k_pf;
-   int idx_te = (imin[0] - imin_te) + (imin[1] - jmin_te) * inc_j_te +
-                (imin[2] - kmin_te) * inc_k_te;
-   int idx_ci = (imin[0] - imin_ci) + (imin[1] - jmin_ci) * inc_j_ci +
-                (imin[2] - kmin_ci) * inc_k_ci;
-
+   // number of compositions fields (number of species -1)
    const int nc = cd_conc->getDepth();
-   for (int kk = imin[2]; kk <= imax[2]; kk++) {
-      for (int jj = imin[1]; jj <= imax[1]; jj++) {
-         for (int ii = imin[0]; ii <= imax[0]; ii++) {
 
-            const double temp = ptr_temp[idx_te];
-            const double phi = ptr_phi[idx_pf];
-            double eta = 0.0;
-            if (d_with_third_phase) eta = ptr_eta[idx_pf];
+   double* cl = cd_cl->getPointer(0);
+   double* ca = cd_ca->getPointer(0);
+   double* conc = cd_conc->getPointer(0);
+   double* cl_ref = cd_cl_ref->getPointer(0);
+   double* ca_ref = cd_ca_ref->getPointer(0);
 
-            // loop over atomic species to initialize c and x
-            for (int ic = 0; ic < nc; ic++) {
-               c[ic] = cd_conc->getPointer(ic)[idx_pf];
-               TBOX_ASSERT(c[ic] == c[ic]);
-            }
-            for (int ic = 0; ic < nc; ic++) {
-               x[ic] = cd_cl_ref->getPointer(ic)[idx_ci];
-               x[offset + ic] = cd_ca_ref->getPointer(ic)[idx_ci];
-               if (d_with_third_phase) {
-                  x[2 * offset + ic] = cd_cb_ref->getPointer(ic)[idx_ci];
-               }
-            }
+   // number of cells for each field
+   const int ncp = pf_gbox.size();
+   const int ncc = ci_gbox.size();
+   const int nct = temp_gbox.size();
 
-            // compute cL, cS
-            d_calphad_fenergy->computePhaseConcentrations(temp, c,
-#ifdef HAVE_THERMO4PFM
-                                                          &phi,
-#else
-                                                          phi, eta,
+#ifdef GPU_OFFLOAD
+// clang-format off
+#pragma omp target map(to: ptr_temp[:nct]) \
+                   map(to: ptr_phi[:ncp]) \
+                   map(to: conc[:nc*ncp]) \
+                   map(to : cl_ref[:nc*ncc]) \
+                   map(to : ca_ref[:nc*ncc]) \
+                   map(from : cl[:nc*ncc]) \
+                   map(from : ca[:nc*ncc])
+   // clang-format on
+   {
+#pragma omp teams distribute
 #endif
-                                                          x);
+      for (int kk = imin[2]; kk <= imax[2]; kk++) {
+#ifdef GPU_OFFLOAD
+#pragma omp parallel for collapse(2) schedule(static, 1)
+#endif
+         for (int jj = imin[1]; jj <= imax[1]; jj++) {
+            for (int ii = imin[0]; ii <= imax[0]; ii++) {
 
-            // set cell values with cL and cS just computed
-            for (int ic = 0; ic < nc; ic++) {
-               cd_cl->getPointer(ic)[idx_ci] = x[ic];
-               cd_ca->getPointer(ic)[idx_ci] = x[offset + ic];
-               if (d_with_third_phase) {
-                  cd_cb->getPointer(ic)[idx_ci] = x[2 * offset + ic];
+               int idx_ci = (ii - imin_ci) + (jj - jmin_ci) * inc_j_ci +
+                            (kk - kmin_ci) * inc_k_ci;
+               int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * inc_j_pf +
+                            (kk - kmin_pf) * inc_k_pf;
+               int idx_te = (ii - imin_te) + (jj - jmin_te) * inc_j_te +
+                            (kk - kmin_te) * inc_k_te;
+
+               const double temp = ptr_temp[idx_te];
+               const double phi = ptr_phi[idx_pf];
+               double c[2];  // up to 2 components
+               for (int ic = 0; ic < nc; ic++) {
+                  c[ic] = conc[ic * ncp + idx_pf];
                }
-            }  // ic
+               double x[4];
+               for (int ic = 0; ic < nc; ic++) {
+                  x[ic] = cl_ref[ic * ncc + idx_ci];
+                  x[ic + nc] = ca_ref[ic * ncc + idx_ci];
+               }
 
-            idx_pf++;
-            idx_te++;
-            idx_ci++;
+               // compute cL, cS
+               d_calphad_fenergy->computePhaseConcentrations(temp, c,
+#ifdef HAVE_THERMO4PFM
+                                                             &phi,
+#else
+                                                          phi, 0.,
+#endif
+                                                             x);
 
-         }  // ii
+               // set cell values with cL and cS just computed
+               for (int ic = 0; ic < nc; ic++) {
+                  cl[ic * ncc + idx_ci] = x[ic];
+                  ca[ic * ncc + idx_ci] = x[ic + nc];
+               }  // ic
 
-         idx_pf += 2 * (cd_pf->getGhostCellWidth()[0] -
-                        cd_cl->getGhostCellWidth()[0]);
-         idx_te += 2 * (cd_te->getGhostCellWidth()[0] -
-                        cd_cl->getGhostCellWidth()[0]);
-      }  // jj
+            }  // ii
 
-      idx_pf += 2 * inc_j_pf *
-                (cd_pf->getGhostCellWidth()[1] - cd_cl->getGhostCellWidth()[1]);
-      idx_te += 2 * inc_j_te *
-                (cd_te->getGhostCellWidth()[1] - cd_cl->getGhostCellWidth()[1]);
-   }  // kk
+         }  // jj
 
-   delete[] x;
+      }  // kk
+#ifdef GPU_OFFLOAD
+   }
+#endif
 }
