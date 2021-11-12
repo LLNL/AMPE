@@ -4,6 +4,7 @@ module load netcdf-c
 module load netcdf-cxx4
 module load hdf5
 module load boost
+module load cuda/11
 module load python
 module load cmake
 
@@ -26,5 +27,10 @@ cmake -DCMAKE_BUILD_TYPE=Release \
       -DCMAKE_PREFIX_PATH=${HOME}/bin:$OLCF_NETCDF_CXX4_ROOT \
       -DNDIM="3" \
       -DUSE_CVODE=ON \
+      -DUSE_THERMO4PFM=ON \
+      -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
+      -DGPU_OFFLOAD=ON \
+      -DCMAKE_CXX_FLAGS="-fopenmp -foffload=-lm -foffload=nvptx-none -foffload="-O3" -fno-stack-protector" \
+      -DCMAKE_EXE_LINKER_FLAGS="-lm -fopenmp" \
       ..
 
