@@ -374,6 +374,22 @@ void PFModel::readInitialDatabase(std::shared_ptr<tbox::Database> input_db)
       d_init_c.resize(n);
       data_db->getFloatArray("init_c", &d_init_c[0], n);
    }
+   if (data_db->keyExists("init_cl")) {
+      size_t n = data_db->getArraySize("init_cl");
+      d_init_cl.resize(n);
+      data_db->getFloatArray("init_cl", &d_init_cl[0], n);
+   }
+   if (data_db->keyExists("init_ca")) {
+      size_t n = data_db->getArraySize("init_ca");
+      d_init_ca.resize(n);
+      data_db->getFloatArray("init_ca", &d_init_ca[0], n);
+   }
+   if (data_db->keyExists("init_cb")) {
+      size_t n = data_db->getArraySize("init_cb");
+      d_init_cb.resize(n);
+      data_db->getFloatArray("init_cb", &d_init_cb[0], n);
+   }
+
    // Read value for uniform temperature if available
    if (data_db->keyExists("init_t")) {
       d_init_t = data_db->getFloat("init_t");

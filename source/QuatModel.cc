@@ -388,6 +388,7 @@ void QuatModel::initializeRHSandEnergyStrategies(
           d_conc_b_ref_id, d_partition_coeff_id, d_ncompositions, d_conc_db,
           newton_db);
 
+      tbox::pout << "Initialize cl, ca, cb with c..." << std::endl;
       math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
       mathops.copyData(d_conc_l_id, d_conc_id);
       mathops.copyData(d_conc_a_id, d_conc_id);
@@ -648,6 +649,68 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
           d_model_parameters.isTemperatureGradient()) {
          d_temperature_strategy->setCurrentTemperature(d_patch_hierarchy, 0.0);
       }
+
+      int depth = 0;
+      for (auto& init_cl : d_init_cl) {
+         std::cout << "Set cl to " << init_cl << std::endl;
+         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
+              --ln) {
+            std::shared_ptr<hier::PatchLevel> level =
+                d_patch_hierarchy->getPatchLevel(ln);
+            for (hier::PatchLevel::Iterator ip(level->begin());
+                 ip != level->end(); ++ip) {
+               std::shared_ptr<hier::Patch> patch = *ip;
+               std::shared_ptr<pdat::CellData<double> > cl(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(
+                       patch->getPatchData(d_conc_l_scratch_id)));
+               assert(cl);
+               cl->fill(init_cl, depth);
+            }
+         }
+         depth++;
+      }
+      depth = 0;
+      for (auto& init_ca : d_init_ca) {
+         std::cout << "Set ca to " << init_ca << std::endl;
+         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
+              --ln) {
+            std::shared_ptr<hier::PatchLevel> level =
+                d_patch_hierarchy->getPatchLevel(ln);
+            for (hier::PatchLevel::Iterator ip(level->begin());
+                 ip != level->end(); ++ip) {
+               std::shared_ptr<hier::Patch> patch = *ip;
+               std::shared_ptr<pdat::CellData<double> > ca(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(
+                       patch->getPatchData(d_conc_a_scratch_id)));
+               assert(ca);
+               ca->fill(init_ca, depth);
+            }
+         }
+         depth++;
+      }
+      depth = 0;
+      for (auto& init_cb : d_init_cb) {
+         std::cout << "Set cb to " << init_cb << std::endl;
+         for (int ln = d_patch_hierarchy->getFinestLevelNumber(); ln >= 0;
+              --ln) {
+            std::shared_ptr<hier::PatchLevel> level =
+                d_patch_hierarchy->getPatchLevel(ln);
+            for (hier::PatchLevel::Iterator ip(level->begin());
+                 ip != level->end(); ++ip) {
+               std::shared_ptr<hier::Patch> patch = *ip;
+               std::shared_ptr<pdat::CellData<double> > cb(
+                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
+                                          hier::PatchData>(
+                       patch->getPatchData(d_conc_b_scratch_id)));
+               assert(cb);
+               cb->fill(init_cb, depth);
+            }
+         }
+         depth++;
+      }
+
 
    } else {
       const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
