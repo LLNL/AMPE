@@ -1500,8 +1500,7 @@ void QuatIntegrator::RegisterWithVisit(
 
          assert(d_q_rhs_visit_id > 0);
          for (int q = 0; q < d_qlen; q++) {
-            std::string visit_namem("q_rhs" +
-                                    tbox::Utilities::intToString(q, 1));
+            std::string visit_namem("q_rhs" + std::to_string(q));
             visit_data_writer->registerPlotQuantity(visit_namem, "SCALAR",
                                                     d_q_rhs_visit_id, q);
          }
