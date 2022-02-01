@@ -1830,7 +1830,7 @@ void QuatModel::RegisterWithVisit(void)
    if (d_model_parameters.with_phase()) {
       const int n = d_model_parameters.with_three_phases() ? 3 : 1;
       for (int i = 0; i < n; i++) {
-         std::string visit_name("phase" + tbox::Utilities::intToString(i, 1));
+         std::string visit_name("phase" + std::to_string(i));
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_phase_id, i);
       }
@@ -1851,7 +1851,7 @@ void QuatModel::RegisterWithVisit(void)
        d_model_parameters.evolveQuat()) {
       assert(d_quat_id >= 0);
       for (int n = 0; n < d_qlen; n++) {
-         std::string visit_name("q" + tbox::Utilities::intToString(n, 1));
+         std::string visit_name("q" + std::to_string(n));
 
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_quat_id, n);
@@ -1861,8 +1861,7 @@ void QuatModel::RegisterWithVisit(void)
    if (d_model_parameters.with_concentration()) {
       assert(d_conc_id >= 0);
       for (int n = 0; n < d_ncompositions; n++) {
-         std::string visit_name("concentration" +
-                                tbox::Utilities::intToString(n, 1));
+         std::string visit_name("concentration" + std::to_string(n));
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                    d_conc_id, n);
 
@@ -1870,18 +1869,15 @@ void QuatModel::RegisterWithVisit(void)
              d_model_parameters.with_extra_visit_output()) {
             assert(d_conc_l_scratch_id >= 0);
             assert(d_conc_a_scratch_id >= 0);
-            std::string visit_namel("conc_l" +
-                                    tbox::Utilities::intToString(n, 1));
+            std::string visit_namel("conc_l" + std::to_string(n));
             d_visit_data_writer->registerPlotQuantity(visit_namel, "SCALAR",
                                                       d_conc_l_scratch_id, n);
-            std::string visit_namea("conc_a" +
-                                    tbox::Utilities::intToString(n, 1));
+            std::string visit_namea("conc_a" + std::to_string(n));
             d_visit_data_writer->registerPlotQuantity(visit_namea, "SCALAR",
                                                       d_conc_a_scratch_id, n);
             if (d_model_parameters.with_three_phases()) {
                assert(d_conc_b_id >= 0);
-               std::string visit_nameb("conc_b" +
-                                       tbox::Utilities::intToString(n, 1));
+               std::string visit_nameb("conc_b" + std::to_string(n));
                d_visit_data_writer->registerPlotQuantity(visit_nameb, "SCALAR",
                                                          d_conc_b_scratch_id,
                                                          n);
@@ -1899,8 +1895,7 @@ void QuatModel::RegisterWithVisit(void)
    if (d_model_parameters.with_extra_visit_output()) {
       if (d_phase_diffs_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
-            std::string visit_name("phase_diffs_cell" +
-                                   tbox::Utilities::intToString(d, 1));
+            std::string visit_name("phase_diffs_cell" + std::to_string(d));
             d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                       d_phase_diffs_cell_id, d);
          }
@@ -1908,8 +1903,7 @@ void QuatModel::RegisterWithVisit(void)
 
       if (d_phase_grad_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
-            std::string visit_name("phase_grad_cell" +
-                                   tbox::Utilities::intToString(d, 1));
+            std::string visit_name("phase_grad_cell" + std::to_string(d));
             d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                       d_phase_grad_cell_id, d);
          }
@@ -1918,9 +1912,8 @@ void QuatModel::RegisterWithVisit(void)
       if (d_quat_grad_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
             for (int n = 0; n < d_qlen; n++) {
-               std::string visit_name(
-                   "quat_grad_cell_d" + tbox::Utilities::intToString(d, 1) +
-                   "_q" + tbox::Utilities::intToString(n, 1));
+               std::string visit_name("quat_grad_cell_d" + std::to_string(d) +
+                                      "_q" + std::to_string(n));
 
                d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
                                                          d_quat_grad_cell_id,
@@ -1932,19 +1925,18 @@ void QuatModel::RegisterWithVisit(void)
       if (d_quat_diffs_cell_id >= 0) {
          for (int d = 0; d < NDIM; d++) {
             for (int n = 0; n < d_qlen; n++) {
-               std::string visit_symm_name(
-                   "quat_diffs_cell_d" + tbox::Utilities::intToString(d, 1) +
-                   "_q" + tbox::Utilities::intToString(n, 1));
+               std::string visit_symm_name("quat_diffs_cell_d" +
+                                           std::to_string(d) + "_q" +
+                                           std::to_string(n));
 
                d_visit_data_writer->registerPlotQuantity(visit_symm_name,
                                                          "SCALAR",
                                                          d_quat_diffs_cell_id,
                                                          d * d_qlen + n);
 
-               std::string visit_nonsymm_name(
-                   "quat_nonsymm_diffs_cell_d" +
-                   tbox::Utilities::intToString(d, 1) + "_q" +
-                   tbox::Utilities::intToString(n, 1));
+               std::string visit_nonsymm_name("quat_nonsymm_diffs_cell_d" +
+                                              std::to_string(d) + "_q" +
+                                              std::to_string(n));
 
                d_visit_data_writer->registerPlotQuantity(
                    visit_nonsymm_name, "SCALAR", d_quat_nonsymm_diffs_cell_id,
@@ -1983,7 +1975,7 @@ void QuatModel::RegisterWithVisit(void)
 
          for (int d = 0; d < NDIM; d++) {
             std::string visit_name("quat_symm_rotation_cell" +
-                                   tbox::Utilities::intToString(d, 1));
+                                   std::to_string(d));
 
             d_visit_data_writer->registerPlotQuantity(
                 visit_name, "SCALAR", d_quat_symm_rotation_cell_id, d);

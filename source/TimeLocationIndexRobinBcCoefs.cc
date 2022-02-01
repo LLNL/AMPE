@@ -55,7 +55,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
 
    // loop over faces
    for (int i = 0; i < 2 * d_dim.getValue(); ++i) {
-      std::string name = "boundary_" + tbox::Utilities::intToString(i);
+      std::string name = "boundary_" + std::to_string(i);
       if (input_db->isString(name)) {
          std::vector<std::string> specs = input_db->getStringVector(name);
          if (specs[0] == "file") {
@@ -69,8 +69,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
                int j = 0;
                bool flag = true;
                do {
-                  std::string timestring =
-                      "time_" + tbox::Utilities::intToString(j);
+                  std::string timestring = "time_" + std::to_string(j);
                   if (bc_db->keyExists(timestring)) {
                      double tmp[2];
                      bc_db->getDoubleArray(timestring, &tmp[0], 2);
@@ -89,8 +88,7 @@ void TimeLocationIndexRobinBcCoefs::getFromInput(
                int j = 0;
                bool flag = true;
                do {
-                  std::string timestring =
-                      "time_" + tbox::Utilities::intToString(j);
+                  std::string timestring = "time_" + std::to_string(j);
                   if (bc_db->keyExists(timestring)) {
                      double tmp[2];
                      bc_db->getDoubleArray(timestring, &tmp[0], 2);
