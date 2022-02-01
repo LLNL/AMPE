@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef included_FreeEnergyStrategy
 #define included_FreeEnergyStrategy
@@ -82,11 +58,9 @@ class FreeEnergyStrategy
       computeDerivFreeEnergy(hierarchy, f_a_id);
    }
 
-#ifndef HAVE_THERMO4PFM
    virtual void computeFreeEnergySolidB(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_b_id, const bool gp);
-#endif
 
    // mesh functions
    virtual void computeFreeEnergyLiquid(hier::Patch& patch,
@@ -97,11 +71,9 @@ class FreeEnergyStrategy
                                         const int temperature_id,
                                         const int f_a_id, const bool gp) = 0;
 
-#ifndef HAVE_THERMO4PFM
    virtual void computeFreeEnergySolidB(hier::Patch& patch,
                                         const int temperature_id,
                                         const int f_b_id, const bool gp) = 0;
-#endif
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
@@ -131,13 +103,6 @@ class FreeEnergyStrategy
       addDrivingForce(time, patch, temperature_id, phase_id, eta_id, conc_id,
                       f_l_id, f_a_id, f_b_id, rhs_id);
    };
-
-
-   virtual void addDrivingForceEta(const double time, hier::Patch& patch,
-                                   const int temperature_id, const int phase_id,
-                                   const int eta_id, const int conc_id,
-                                   const int f_l_id, const int f_a_id,
-                                   const int f_b_id, const int rhs_id) = 0;
 
    // pointwise functions
    virtual void computeSecondDerivativeEnergyPhaseL(
