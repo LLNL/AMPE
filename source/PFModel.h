@@ -149,6 +149,9 @@ class PFModel : public tbox::Serializable,
    std::shared_ptr<hier::PatchLevel> d_initial_level;
    std::vector<float> d_init_q;
    std::vector<float> d_init_c;
+   std::vector<float> d_init_cl;
+   std::vector<float> d_init_ca;
+   std::vector<float> d_init_cb;
    float d_init_t;
 
    int d_max_cycles;
