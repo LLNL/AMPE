@@ -26,15 +26,22 @@ class PhaseConcentrationsStrategyFactory
        int conc_a_scratch_id, int conc_b_scratch_id, int conc_l_ref_id,
        int conc_a_ref_id, int conc_b_ref_id, int partition_coeff_id,
        const int ncompositions, std::shared_ptr<tbox::Database> conc_db,
-       std::shared_ptr<tbox::MemoryDatabase> newton_db)
+       std::shared_ptr<tbox::Database> newton_db)
    {
       std::shared_ptr<tbox::MemoryDatabase> calphad_db;
+      boost::property_tree::ptree calphad_pt;
       if (model_parameters.isConcentrationModelCALPHAD()) {
          std::shared_ptr<tbox::Database> db(conc_db->getDatabase("Calphad"));
          std::string calphad_filename = db->getString("filename");
-         calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
-         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                          calphad_db);
+         tbox::plog << "Read file " << calphad_filename << std::endl;
+         if (calphad_filename.compare(calphad_filename.size() - 4, 4, "json") ==
+             0) {
+            boost::property_tree::read_json(calphad_filename, calphad_pt);
+         } else {
+            calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
+            tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                             calphad_db);
+         }
       }
 
       std::shared_ptr<PhaseConcentrationsStrategy> phase_conc_strategy;
@@ -42,7 +49,7 @@ class PhaseConcentrationsStrategyFactory
       if (model_parameters.kks_phase_concentration()) {
          tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (model_parameters.isConcentrationModelCALPHAD()) {
-            if (ncompositions == 1)
+            if (ncompositions == 1) {
                phase_conc_strategy.reset(
                    new CALPHADequilibriumPhaseConcentrationsStrategy<
                        CALPHADFreeEnergyFunctionsBinary>(
@@ -52,7 +59,7 @@ class PhaseConcentrationsStrategyFactory
                        model_parameters.conc_interp_func_type(),
                        model_parameters.with_third_phase(), calphad_db,
                        newton_db, ncompositions));
-            else if (ncompositions == 2)
+            } else if (ncompositions == 2)
                phase_conc_strategy.reset(
                    new CALPHADequilibriumPhaseConcentrationsStrategy<
                        CALPHADFreeEnergyFunctionsTernary>(

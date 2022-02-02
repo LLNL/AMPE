@@ -304,7 +304,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
    d_phase_flux_strategy = PhaseFluxStrategyFactory::create(d_model_parameters);
 
    std::shared_ptr<tbox::MemoryDatabase> calphad_db;
-   std::shared_ptr<tbox::MemoryDatabase> newton_db;
 
    if (d_model_parameters.with_concentration()) {
       d_conc_db = model_db->getDatabase("ConcentrationModel");
@@ -321,10 +320,6 @@ void QuatModel::initializeRHSandEnergyStrategies(
          tbox::pout << "QuatModel: "
                     << "Using CALPHAD model for concentration" << std::endl;
          d_calphad_db = d_conc_db->getDatabase("Calphad");
-         std::string calphad_filename = d_calphad_db->getString("filename");
-         calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
-         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                          calphad_db);
       }
    }
 
@@ -357,6 +352,11 @@ void QuatModel::initializeRHSandEnergyStrategies(
 
    if (d_model_parameters.with_concentration()) {
 
+      std::shared_ptr<tbox::Database> newton_db;
+      if (d_conc_db->isDatabase("NewtonSolver")) {
+         newton_db = d_conc_db->getDatabase("NewtonSolver");
+      }
+
       d_free_energy_strategy_for_diffusion = d_free_energy_strategy;
 
       // setup free energy strategy first since it may be needed
@@ -364,6 +364,10 @@ void QuatModel::initializeRHSandEnergyStrategies(
       if (d_model_parameters.isConcentrationModelCALPHAD()) {
 
 #ifndef HAVE_THERMO4PFM
+         std::string calphad_filename = d_calphad_db->getString("filename");
+         calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
+         tbox::InputManager::getManager()->parseInputFile(calphad_filename,
+                                                          calphad_db);
          if (calphad_db->keyExists("PenaltyPhaseL")) {
             tbox::plog << "QuatModel: "
                        << "Adding penalty to CALPHAD energy" << std::endl;
@@ -5726,7 +5730,7 @@ void QuatModel::resetRefPhaseConcentrations()
    assert(d_conc_l_ref_id >= 0);
    assert(d_conc_a_ref_id >= 0);
 
-   // tbox::pout<<"QuatModel::resetRefPhaseConcentrations()"<<endl;
+   // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
    cellops.copyData(d_conc_l_ref_id, d_conc_l_scratch_id, false);
