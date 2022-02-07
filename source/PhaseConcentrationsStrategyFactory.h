@@ -18,6 +18,9 @@
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 class PhaseConcentrationsStrategyFactory
 {
  public:
