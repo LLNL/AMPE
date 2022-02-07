@@ -2569,11 +2569,11 @@ void QuatIntegrator::evaluateEtaRHS(
                        eta_rhs->getPointer(), 0, d_eta_well_func_type.c_str(),
                        &interpf);
 
-         d_free_energy_strategy->addDrivingForceEta(time, *patch,
-                                                    temperature_id, phase_id,
-                                                    eta_id, conc_id, d_f_l_id,
-                                                    d_f_a_id, d_f_b_id,
-                                                    eta_rhs_id);
+         // d_free_energy_strategy->addDrivingForceEta(time, *patch,
+         //                                           temperature_id, phase_id,
+         //                                           eta_id, conc_id, d_f_l_id,
+         //                                           d_f_a_id, d_f_b_id,
+         //                                           eta_rhs_id);
 
          std::shared_ptr<pdat::CellData<double> > eta_mobility(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(

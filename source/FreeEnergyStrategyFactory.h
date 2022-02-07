@@ -21,10 +21,8 @@
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 
-#ifdef HAVE_THERMO4PFM
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-#endif
 
 class FreeEnergyStrategyFactory
 {
