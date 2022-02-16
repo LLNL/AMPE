@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "TbasedCompositionDiffusionStrategy.h"
 #include "toolsSAMRAI.h"
@@ -50,25 +26,33 @@ using namespace ampe_thermo;
 
 TbasedCompositionDiffusionStrategy::TbasedCompositionDiffusionStrategy(
     const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
-    const int diffusion_coeff_l_id, const int diffusion_coeff_a_id,
+    const int pfm_diffusion_b_id, const int diffusion_coeff_l_id,
+    const int diffusion_coeff_a_id, const int diffusion_coeff_b_id,
     const double D_liquid, const double Q0_liquid, const double D_solid_A,
-    const double Q0_solid_A, const DiffusionInterpolationType interp_func_type,
+    const double Q0_solid_A, const double D_solid_B, const double Q0_solid_B,
+    const DiffusionInterpolationType interp_func_type,
     const std::string& avg_func_type)
     : CompositionDiffusionStrategy(interp_func_type),
       d_pfm_diffusion_l_id(pfm_diffusion_l_id),
       d_pfm_diffusion_a_id(pfm_diffusion_a_id),
+      d_pfm_diffusion_b_id(pfm_diffusion_b_id),
       d_diffusion_coeff_l_id(diffusion_coeff_l_id),
       d_diffusion_coeff_a_id(diffusion_coeff_a_id),
+      d_diffusion_coeff_b_id(diffusion_coeff_b_id),
       d_D_liquid(D_liquid),
       d_Q0_liquid(Q0_liquid),
       d_D_solid_A(D_solid_A),
       d_Q0_solid_A(Q0_solid_A),
-      d_avg_func_type(avg_func_type)
+      d_D_solid_B(D_solid_B),
+      d_Q0_solid_B(Q0_solid_B),
+      d_avg_func_type(avg_func_type),
+      d_with_three_phases(d_diffusion_coeff_b_id >= 0)
 {
    assert(D_liquid >= 0.);
    assert(Q0_liquid >= 0.);
    assert(Q0_solid_A >= 0.);
    assert(D_solid_A >= 0.);
+   if (d_with_three_phases) assert(D_solid_B >= 0.);
 }
 
 void TbasedCompositionDiffusionStrategy::setDiffusion(
@@ -116,36 +100,86 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_pfm_diffusion_a_id)));
 
+         std::shared_ptr<pdat::SideData<double> > pfm_diffusionB;
+
          assert(pfm_diffusionA->getDepth() == pfm_diffusionL->getDepth());
          assert(pfm_diffusionA->getDepth() == 1 ||  // binary
                 pfm_diffusionA->getDepth() == 4);   // ternary
 
+         double* diffBptr0 = nullptr;
+         double* diffBptr1 = nullptr;
+#if (NDIM == 3)
+         double* diffBptr2 = nullptr;
+#endif
+         if (d_with_three_phases) {
+            pfm_diffusionB =
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
+                    patch->getPatchData(d_pfm_diffusion_b_id));
+            diffBptr0 = pfm_diffusionB->getPointer(0, 0);
+            diffBptr1 = pfm_diffusionB->getPointer(1, 0);
+#if (NDIM == 3)
+            diffBptr2 = pfm_diffusionB->getPointer(2, 0);
+#endif
+         }
+
          // compute depth 0 of diffusion variables,
          // including phase fraction weight
-         CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
-             ifirst(0), ilast(0), ifirst(1), ilast(1),
+         if (d_with_three_phases) {
+            CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
+                ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-             ifirst(2), ilast(2),
+                ifirst(2), ilast(2),
 #endif
-             phi->getPointer(), phi->getGhostCellWidth()[0],
-             pfm_diffusionL->getPointer(0, 0), pfm_diffusionL->getPointer(1, 0),
+                phi->getPointer(), phi->getDepth(), phi->getGhostCellWidth()[0],
+                pfm_diffusionL->getPointer(0, 0),
+                pfm_diffusionL->getPointer(1, 0),
 #if (NDIM == 3)
-             pfm_diffusionL->getPointer(2, 0),
+                pfm_diffusionL->getPointer(2, 0),
 #endif
-             pfm_diffusionA->getPointer(0, 0), pfm_diffusionA->getPointer(1, 0),
+                pfm_diffusionA->getPointer(0, 0),
+                pfm_diffusionA->getPointer(1, 0),
 #if (NDIM == 3)
-             pfm_diffusionA->getPointer(2, 0),
+                pfm_diffusionA->getPointer(2, 0),
 #endif
-             0,  // assuming no ghosts for diffusion data
-             temperature->getPointer(), temperature->getGhostCellWidth()[0],
-             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
-             gas_constant_R_JpKpmol, &interp_func_type,
-             d_avg_func_type.c_str());
+                diffBptr0, diffBptr1,
+#if (NDIM == 3)
+                diffBptr2,
+#endif
+                0,  // assuming no ghosts for diffusion data
+                temperature->getPointer(), temperature->getGhostCellWidth()[0],
+                d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
+                d_Q0_solid_B, gas_constant_R_JpKpmol, &interp_func_type,
+                d_avg_func_type.c_str());
+         } else {
+            CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
+                ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                ifirst(2), ilast(2),
+#endif
+                phi->getPointer(), phi->getGhostCellWidth()[0],
+                pfm_diffusionL->getPointer(0, 0),
+                pfm_diffusionL->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionL->getPointer(2, 0),
+#endif
+                pfm_diffusionA->getPointer(0, 0),
+                pfm_diffusionA->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionA->getPointer(2, 0),
+#endif
+                0,  // assuming no ghosts for diffusion data
+                temperature->getPointer(), temperature->getGhostCellWidth()[0],
+                d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+                gas_constant_R_JpKpmol, &interp_func_type,
+                d_avg_func_type.c_str());
+         }
 
          // fill other diagonal value with same value for ternaries for now
          if (pfm_diffusionL->getDepth() > 1) {
             pfm_diffusionL->copyDepth(3, *pfm_diffusionL, 0);
             pfm_diffusionA->copyDepth(3, *pfm_diffusionA, 0);
+            if (d_with_three_phases)
+               pfm_diffusionB->copyDepth(3, *pfm_diffusionB, 0);
          }
       }
    }
@@ -190,6 +224,23 @@ void TbasedCompositionDiffusionStrategy::setDiffCoeffInEachPhase(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_a_id)));
 
+         std::shared_ptr<pdat::SideData<double> > diffcoeffB;
+
+         double* diffcoeffBptr0 = nullptr;
+         double* diffcoeffBptr1 = nullptr;
+#if (NDIM == 3)
+         double* diffcoeffBptr2 = nullptr;
+#endif
+         if (d_with_three_phases) {
+            diffcoeffB =
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
+                    patch->getPatchData(d_diffusion_coeff_b_id));
+            diffcoeffBptr0 = diffcoeffB->getPointer(0, 0);
+            diffcoeffBptr1 = diffcoeffB->getPointer(1, 0);
+#if (NDIM == 3)
+            diffcoeffBptr2 = diffcoeffB->getPointer(2, 0);
+#endif
+         }
          assert(diffcoeffA->getDepth() == diffcoeffL->getDepth());
          assert(diffcoeffA->getDepth() == 1 ||  // binary
                 diffcoeffA->getDepth() == 4);   // ternary
@@ -207,10 +258,14 @@ void TbasedCompositionDiffusionStrategy::setDiffCoeffInEachPhase(
 #if (NDIM == 3)
              diffcoeffA->getPointer(2, 0),
 #endif
+             diffcoeffBptr0, diffcoeffBptr1,
+#if (NDIM == 3)
+             diffcoeffBptr2,
+#endif
              0,  // assuming no ghosts for diffusion data
              temperature->getPointer(), temperature->getGhostCellWidth()[0],
-             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
-             gas_constant_R_JpKpmol);
+             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
+             d_Q0_solid_B, gas_constant_R_JpKpmol, (int)d_with_three_phases);
       }
    }
 }

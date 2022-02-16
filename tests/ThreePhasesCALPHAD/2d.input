@@ -1,13 +1,13 @@
 // Input file
 model_type = "KWCcomplex"
 
-end_time            = 240.
-max_timesteps       = 300
+end_time            = 140.
+max_timesteps       = 750
 
 run_name = "test"
 
 Visit {
-   interval = 50
+   interval = 100
    interval_type = "step"
 }
 
@@ -31,10 +31,37 @@ ModelParameters {
 
    phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
 
+   phi_interp_func_type ="h"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      Calphad {
+         filename ="calphad3phases.json"
+      }
+      NewtonSolver {
+        max_its = 50
+        tol = 1.e-12
+      }
+      diffusion_type = "temperature_dependent"
+      D_solid_A  =  3.e-1 //um**2/s
+      D_solid_B  =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Q0_solid_A  = 0.    // [J/mol]
+      Q0_solid_B  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+   }
+
    molar_volume = 1.e-5 // [m^3/mol]
 
    BoundaryConditions {
        Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
          boundary_0 = "slope", "0"
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
@@ -57,6 +84,9 @@ Integrator {
 
 InitialConditions {
    filename = "test.nc"
+   init_cl = 0.5309
+   init_ca = 0.7686
+   init_cb = 0.2314
 }
 
 Geometry{

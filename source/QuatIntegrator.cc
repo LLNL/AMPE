@@ -1004,9 +1004,9 @@ void QuatIntegrator::RegisterLocalVisitVariables()
           hier::VariableDatabase::getDatabase();
 
       if (d_with_phase) {
-         d_phase_rhs_visit_var.reset(
-             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                            d_name + "_phase_rhs_visit_", 1));
+         const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+         d_phase_rhs_visit_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), d_name + "_phase_rhs_visit_", nphases));
          d_phase_rhs_visit_id = variable_db->registerVariableAndContext(
              d_phase_rhs_visit_var, d_current,
              hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -1014,7 +1014,7 @@ void QuatIntegrator::RegisterLocalVisitVariables()
          d_local_data.setFlag(d_phase_rhs_visit_id);
 
          d_driving_force_visit_var.reset(new pdat::CellVariable<double>(
-             tbox::Dimension(NDIM), d_name + "_driving_force_visit_", 1));
+             tbox::Dimension(NDIM), d_name + "_driving_force_visit_", nphases));
          d_driving_force_visit_id = variable_db->registerVariableAndContext(
              d_driving_force_visit_var, d_current,
              hier::IntVector(tbox::Dimension(NDIM), 0));
@@ -1475,12 +1475,20 @@ void QuatIntegrator::RegisterWithVisit(
    if (d_model_parameters.with_rhs_visit_output()) {
       if (d_with_phase) {
          assert(d_phase_rhs_visit_id >= 0);
-         visit_data_writer->registerPlotQuantity("phase_rhs", "SCALAR",
-                                                 d_phase_rhs_visit_id, 0);
-
          assert(d_driving_force_visit_id >= 0);
-         visit_data_writer->registerPlotQuantity("driving_force", "SCALAR",
-                                                 d_driving_force_visit_id, 0);
+         const int n = d_model_parameters.with_three_phases() ? 3 : 1;
+         for (int i = 0; i < n; i++) {
+            visit_data_writer->registerPlotQuantity("phase_rhs" +
+                                                        std::to_string(i),
+                                                    "SCALAR",
+                                                    d_phase_rhs_visit_id, i);
+
+            visit_data_writer->registerPlotQuantity("driving_force" +
+                                                        std::to_string(i),
+                                                    "SCALAR",
+                                                    d_driving_force_visit_id,
+                                                    i);
+         }
       }
       if (d_with_concentration) {
          assert(d_conc_rhs_visit_id >= 0);
@@ -1534,7 +1542,6 @@ void QuatIntegrator::setMobilityStrategy(
 void QuatIntegrator::setFreeEnergyStrategy(
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
 {
-   assert(free_energy_strategy);
    d_free_energy_strategy = free_energy_strategy;
 }
 
@@ -4085,6 +4092,28 @@ int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
           err_samvect->getComponentDescriptorIndex(d_quat_component_index);
       // tbox::pout<<"q_id="<<q_id<<endl;
       d_quat_sys_solver->applyProjection(q_id, corr_id, err_id);
+   }
+
+   if (d_with_three_phases) {
+      std::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
+          Sundials_SAMRAIVector::getSAMRAIVector(y);
+      std::shared_ptr<solv::SAMRAIVectorReal<double> > corr_samvect =
+          Sundials_SAMRAIVector::getSAMRAIVector(corr);
+      std::shared_ptr<solv::SAMRAIVectorReal<double> > err_samvect =
+          Sundials_SAMRAIVector::getSAMRAIVector(err);
+
+      const int phi_id =
+          y_samvect->getComponentDescriptorIndex(d_phase_component_index);
+      const int corr_id =
+          corr_samvect->getComponentDescriptorIndex(d_phase_component_index);
+      const int err_id =
+          err_samvect->getComponentDescriptorIndex(d_phase_component_index);
+
+      std::shared_ptr<ThreePhasesRHSStrategy> phase_rhs_strategy =
+          std::dynamic_pointer_cast<ThreePhasesRHSStrategy>(
+              d_phase_rhs_strategy);
+      assert(phase_rhs_strategy);
+      phase_rhs_strategy->projectPhases(phi_id, corr_id, err_id);
    }
 
    return 0;  // Always successful

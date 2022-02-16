@@ -45,9 +45,11 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
  public:
    TbasedCompositionDiffusionStrategy(
        const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
-       const int diffusion_coeff_l_id, const int diffusion_coeff_a_id,
+       const int pfm_diffusion_b_id, const int diffusion_coeff_l_id,
+       const int diffusion_coeff_a_id, const int diffusion_coeff_b_id,
        const double D_liquid, const double Q0_liquid, const double D_solid_A,
-       const double Q0_solid_A, DiffusionInterpolationType interp_func_type,
+       const double Q0_solid_A, const double D_solid_B, const double Q0_solid_B,
+       DiffusionInterpolationType interp_func_type,
        const std::string& avg_func_type);
 
 
@@ -73,9 +75,11 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
     */
    int d_pfm_diffusion_l_id;
    int d_pfm_diffusion_a_id;
+   int d_pfm_diffusion_b_id;
 
    int d_diffusion_coeff_l_id;
    int d_diffusion_coeff_a_id;
+   int d_diffusion_coeff_b_id;
 
    double d_D_liquid;
    double d_Q0_liquid;
@@ -83,7 +87,12 @@ class TbasedCompositionDiffusionStrategy : public CompositionDiffusionStrategy
    double d_D_solid_A;
    double d_Q0_solid_A;
 
+   double d_D_solid_B;
+   double d_Q0_solid_B;
+
    std::string d_avg_func_type;
+
+   bool d_with_three_phases;
 };
 
 #endif

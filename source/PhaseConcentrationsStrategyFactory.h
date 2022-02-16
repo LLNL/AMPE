@@ -17,6 +17,12 @@
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
+#ifdef HAVE_THERMO4PFM
+#include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
+#endif
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -53,15 +59,32 @@ class PhaseConcentrationsStrategyFactory
          tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (model_parameters.isConcentrationModelCALPHAD()) {
             if (ncompositions == 1) {
-               phase_conc_strategy.reset(
-                   new CALPHADequilibriumPhaseConcentrationsStrategy<
-                       CALPHADFreeEnergyFunctionsBinary>(
-                       conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
-                       conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
-                       model_parameters.energy_interp_func_type(),
-                       model_parameters.conc_interp_func_type(),
-                       model_parameters.with_third_phase(), calphad_db,
-                       newton_db, ncompositions));
+#ifdef HAVE_THERMO4PFM
+               if (conc_b_scratch_id >= 0) {
+                  phase_conc_strategy.reset(
+                      new CALPHADequilibriumPhaseConcentrationsStrategy<
+                          CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                          conc_b_ref_id,
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(),
+                          model_parameters.with_third_phase(), calphad_pt,
+                          newton_db, ncompositions));
+               } else
+#endif
+               {
+                  phase_conc_strategy.reset(
+                      new CALPHADequilibriumPhaseConcentrationsStrategy<
+                          CALPHADFreeEnergyFunctionsBinary>(
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                          conc_b_ref_id,
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(),
+                          model_parameters.with_third_phase(), calphad_db,
+                          newton_db, ncompositions));
+               }
             } else if (ncompositions == 2)
                phase_conc_strategy.reset(
                    new CALPHADequilibriumPhaseConcentrationsStrategy<

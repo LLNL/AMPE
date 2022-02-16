@@ -196,6 +196,7 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch->getPatchData(d_flux_id)));
    assert(phase_flux);
+   assert(phase_flux->getDepth() == 1);
 
    std::shared_ptr<pdat::CellData<double> > temperature(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(

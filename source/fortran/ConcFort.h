@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "fc_internal_mangle.h"
 
@@ -172,6 +148,31 @@ void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
     const double& gas_constant_R, const char* phi_interp_type,
     const char* avg_func_type);
 
+void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_THREEPHASES(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phi, const int& nphi, const int& ngphi, const double* diffl0,
+    const double* diffl1,
+#if (NDIM == 3)
+    const double* diffl2,
+#endif
+    const double* diffa0, const double* diffa1,
+#if (NDIM == 3)
+    const double* diffa2,
+#endif
+    const double* diffb0, const double* diffb1,
+#if (NDIM == 3)
+    const double* diffb2,
+#endif
+    const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
+    const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
+    const double& d_phase2, const double& q0_phase2,
+    const double& gas_constant_R, const char* phi_interp_type,
+    const char* avg_func_type);
+
 void CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
     const int& ifirst0, const int& ilast0, const int& ifirst1,
     const int& ilast1,
@@ -186,9 +187,14 @@ void CONCENTRATION_DIFFCOEFF_OF_TEMPERATURE(
 #if (NDIM == 3)
     const double* diffa2,
 #endif
+    const double* diffb0, const double* diffb1,
+#if (NDIM == 3)
+    const double* diffb2,
+#endif
     const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
     const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
-    const double& gas_constant_R);
+    const double& d_phase2, const double& q0_phase2,
+    const double& gas_constant_R, const int& with_three_phases);
 
 void CONCENTRATIONDIFFUSION_BECKERMANN(const int& ifirst0, const int& ilast0,
                                        const int& ifirst1, const int& ilast1,

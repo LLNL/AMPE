@@ -50,4 +50,65 @@ c r.h.s. resulting from "C*u" term
       return
       end
 c
+      subroutine projectphi3d(
+     &     lo0, hi0, lo1, hi1, lo2, hi2,
+     &     depth,
+     &     phi, plo0, phi0, plo1, phi1, plo2, phi2,
+     &     corr, clo0, chi0, clo1, chi1, clo2, chi2,
+     &     err, elo0, ehi0, elo1, ehi1, elo2, ehi2
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1, lo2, hi2,
+     &        depth,
+     &        plo0, phi0, plo1, phi1, plo2, phi2,
+     &        clo0, chi0, clo1, chi1, clo2, chi2,
+     &        elo0, ehi0, elo1, ehi1, elo2, ehi2
+      double precision
+     &        phi(plo0:phi0,plo1:phi1,plo2:phi2,depth),
+     &        corr(clo0:chi0,clo1:chi1,clo2:chi2,depth),
+     &        err(elo0:ehi0,elo1:ehi1,elo2:ehi2,depth)
 
+c     local variables:
+      double precision fac
+      integer i, j, k, m
+
+      do k = lo2, hi2
+         do j = lo1, hi1
+            do i = lo0, hi0
+
+c           Projection into plane sum_m phi_m=1
+c           consists in adding a correction in the direction (1,1,1)
+               fac = 0.d0
+               do m = 1, depth
+                  fac = fac + phi(i,j,k,m)
+               enddo
+               fac = (fac - 1.d0)/3.d0
+
+c              Store the projection in the correction array for now
+               do m = 1, depth
+                  corr(i,j,k,m) = phi(i,j,k,m) - fac
+               enddo
+
+c              Compute the dot product of the error with the projected phi
+               fac = 0.d0
+               do m = 1, depth
+                  fac = fac + corr(i,j,k,m) * err(i,j,k,m)
+               enddo
+
+c              Subtract the error component in the phi direction
+               do m = 1, depth
+                  err(i,j,k,m) = err(i,j,k,m) - corr(i,j,k,m) * fac
+               enddo
+
+c              Finalize the correction: phi + corr is on the constraint
+               do m = 1, depth
+                  corr(i,j,k,m) = corr(i,j,k,m) - phi(i,j,k,m)
+               enddo
+
+            enddo
+         enddo
+      enddo
+
+      return
+      end

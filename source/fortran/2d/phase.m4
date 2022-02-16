@@ -48,3 +48,64 @@ c      print*,gamma,m,omega,delta
       return
       end
 c
+      subroutine projectphi2d(
+     &     lo0, hi0, lo1, hi1,
+     &     depth,
+     &     phi, plo0, phi0, plo1, phi1,
+     &     corr, clo0, chi0, clo1, chi1,
+     &     err, elo0, ehi0, elo1, ehi1
+     &     )
+c
+      implicit none
+      integer lo0, hi0, lo1, hi1,
+     &        depth,
+     &        plo0, phi0, plo1, phi1,
+     &        clo0, chi0, clo1, chi1,
+     &        elo0, ehi0, elo1, ehi1
+      double precision
+     &        phi(plo0:phi0,plo1:phi1,depth),
+     &        corr(clo0:chi0,clo1:chi1,depth),
+     &        err(elo0:ehi0,elo1:ehi1,depth)
+
+c     local variables:
+      double precision fac
+      integer i, j, m
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+
+c           Projection into plane sum_m phi_m=1
+c           consists in adding a correction in the direction (1,1,1)
+            fac = 0.d0
+            do m = 1, depth
+               fac = fac + phi(i,j,m)
+            enddo
+            fac = (fac - 1.d0)/3.d0
+
+c           Store the projection in the correction array for now
+            do m = 1, depth
+               corr(i,j,m) = phi(i,j,m) - fac
+            enddo
+
+c           Compute the dot product of the error with the projected phi
+            fac = 0.d0
+            do m = 1, depth
+               fac = fac + corr(i,j,m) * err(i,j,m)
+            enddo
+
+c           Subtract the error component in the phi direction
+            do m = 1, depth
+               err(i,j,m) = err(i,j,m) - corr(i,j,m) * fac
+            enddo
+
+c           Finalize the correction: phi + corr is on the constraint
+            do m = 1, depth
+               corr(i,j,m) = corr(i,j,m) - phi(i,j,m)
+            enddo
+
+         enddo
+      enddo
+
+      return
+      end
+

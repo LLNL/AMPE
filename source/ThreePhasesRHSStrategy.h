@@ -52,6 +52,11 @@ class ThreePhasesRHSStrategy : public PhaseRHSStrategy
                             std::shared_ptr<hier::PatchHierarchy> hierarchy,
                             const int ydot_phase_id, const bool eval_flag);
 
+   ///
+   /// Enforce constraint phi1+phi2+ph3=1 for CVODE
+   ///
+   void projectPhases(const int phase_id, const int corr_id, const int err_id);
+
  private:
    const QuatModelParameters& d_model_parameters;
 
@@ -69,6 +74,8 @@ class ThreePhasesRHSStrategy : public PhaseRHSStrategy
 
    const int d_phase_mobility_id;
    const int d_flux_id;
+
+   std::shared_ptr<hier::PatchHierarchy> d_patch_hierarchy;
 
 #ifdef USE_CPODE
    CPODESSolver* d_sundials_solver;

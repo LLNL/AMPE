@@ -91,6 +91,9 @@ DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
    d_d2f.resize(d_ncompositions * d_ncompositions);
    d_mobmat.resize(d_ncompositions * d_ncompositions);
    d_local_dmat.resize(d_ncompositions * d_ncompositions);
+
+   // not supported for now
+   assert(!d_with_third_phase);
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
