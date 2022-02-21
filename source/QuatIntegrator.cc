@@ -2479,6 +2479,7 @@ void QuatIntegrator::evaluatePhaseRHS(
    }
 
 #ifdef DEBUG_CHECK_ASSERTIONS
+   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
    double l2rhs = cellops.L2Norm(phase_rhs_id);
    assert(l2rhs == l2rhs);
 #endif
@@ -3213,8 +3214,8 @@ void QuatIntegrator::computePhaseConcentrations(
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
-   assert(cellops.max(d_phase_scratch_id) == cellops.max(d_phase_scratch_id));
    double maxphi = cellops.max(d_phase_scratch_id);
+   assert(maxphi == maxphi);
    double minphi = cellops.min(d_phase_scratch_id);
    assert(maxphi >= 0.);
    assert(maxphi < 1.1);

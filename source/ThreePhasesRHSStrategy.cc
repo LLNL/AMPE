@@ -17,6 +17,7 @@
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
+#include "SAMRAI/math/PatchSideDataOpsReal.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 
 ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
@@ -102,7 +103,7 @@ void ThreePhasesRHSStrategy::evaluateRHS(
 
    math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
 #ifdef DEBUG_CHECK_ASSERTIONS
-   const double norm_y = cellops.L2Norm(phase_id);
+   const double norm_y = cellops.L2Norm(d_phase_scratch_id);
    assert(norm_y == norm_y);
 #endif
 

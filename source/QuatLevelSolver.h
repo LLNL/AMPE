@@ -162,7 +162,6 @@ class QuatLevelSolver
    {
 #ifdef DEBUG_CHECK_ASSERTIONS
       assert(max_iterations >= 0);
-      assert(residual_tol >= 0.0);
 #endif
       d_max_iterations = max_iterations;
       d_relative_residual_tol = relative_residual_tol;
