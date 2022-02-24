@@ -40,6 +40,7 @@ set_source_files_properties( ${fortran_dir_dim}/phase.f
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
+add_executable(testHDF5 ${CMAKE_SOURCE_DIR}/tests/testHDF5.cc)
 add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.cc)
 add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.cc )
 add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.cc
@@ -125,6 +126,9 @@ add_test(NAME testNetCDFwrite
 add_test(NAME testNetCDFread
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testNetCDFread)
+add_test(NAME testHDF5
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testHDF5)
 add_test(NAME testMPI
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testMPI)
@@ -302,6 +306,7 @@ target_link_libraries(testNetCDFwrite ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testNetCDFread ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
+target_link_libraries(testHDF5 ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testMPI ${PROJECT_LINK_LIBS1})
 target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
