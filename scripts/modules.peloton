@@ -2,8 +2,8 @@ module load intel
 module load hdf5-serial
 module load boost
 module load netcdf
-module load cmake/3.12.1
-module load python/3.7.2
+module load cmake
+module load python/3.8.2
 
 setenv LD_LIBRARY_PATH /usr/gapps/phasefield/lib/netcdf-cxx-intel/lib:$LD_LIBRARY_PATH
 

@@ -9,7 +9,7 @@ end_time            = 3.e-3
 max_timesteps       = 1000
 
 FreeEnergyDiagnostics{
-   filename = "calphadCuNi.vtk" // where to dump f(phi,c) 
+   filename = "diluteCuNi.vtk" // where to dump f(phi,c)
 }
 
 ModelParameters {

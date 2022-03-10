@@ -78,9 +78,10 @@ void FieldsInitializer::initializeLevelFromData(
     const std::string& init_data_filename, const int slice_index)
 {
    int ln = level->getLevelNumber();
-   if (ln > 0 && d_verbosity > 0) {
+   if ( d_verbosity > 0) {
       tbox::pout << "QuatModel::initializeLevelFromData(), lev# = " << ln
                  << std::endl;
+      tbox::pout << "Use file " << init_data_filename << std::endl;
    }
 
    std::unique_ptr<NcFile> ncf;
