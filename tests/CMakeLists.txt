@@ -42,6 +42,11 @@ add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
 add_executable(testHDF5 ${CMAKE_SOURCE_DIR}/tests/testHDF5.cc)
 add_executable(testMPI ${CMAKE_SOURCE_DIR}/tests/testMPI.cc)
+add_executable(testSAMRAIcommunication
+               ${CMAKE_SOURCE_DIR}/tests/SAMRAIcommunication/main.cpp
+               ${CMAKE_SOURCE_DIR}/tests/SAMRAIcommunication/PatchDataTestStrategy.cpp
+               ${CMAKE_SOURCE_DIR}/tests/SAMRAIcommunication/CommTester.cpp
+               ${CMAKE_SOURCE_DIR}/tests/SAMRAIcommunication/CellDataTest.cpp)
 add_executable(testMath ${CMAKE_SOURCE_DIR}/tests/testMath.cc )
 add_executable(testNoise ${CMAKE_SOURCE_DIR}/tests/testNoise.cc
                          ${CMAKE_SOURCE_DIR}/source/UniformNoise.cc 
@@ -132,6 +137,11 @@ add_test(NAME testHDF5
 add_test(NAME testMPI
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testMPI)
+add_test(NAME testSAMRAIcommunication
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+                 ${CMAKE_CURRENT_BINARY_DIR}/testSAMRAIcommunication
+                 cell_refine_a.${NDIM}d.input
+         WORKING_DIRECTORY ${TEST_DIR}/SAMRAIcommunication)
 add_test(NAME testMath
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testMath)
@@ -308,6 +318,9 @@ target_link_libraries(testNetCDFread ${PROJECT_LINK_LIBS_NETCDF}
                                  ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testHDF5 ${PROJECT_LINK_LIBS_HDF5})
 target_link_libraries(testMPI ${PROJECT_LINK_LIBS1})
+target_link_libraries(testSAMRAIcommunication ${PROJECT_LINK_LIBS_SAMRAI}
+                                     ${PROJECT_LINK_LIBS_HDF5}
+                                     )
 target_link_libraries(testHyprePoisson ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HYPRE}
                                      ${PROJECT_LINK_LIBS_HDF5}
