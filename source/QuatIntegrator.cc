@@ -978,14 +978,17 @@ void QuatIntegrator::RegisterVariables(
       RegisterLocalUnsteadyTemperatureVariables();
    }
 
-
-   d_quat_grad_side_copy_var.reset(new pdat::SideVariable<double>(
-       tbox::Dimension(NDIM), d_name + "_quat_grad_side_copy", NDIM * d_qlen));
-   d_quat_grad_side_copy_id = variable_db->registerVariableAndContext(
-       d_quat_grad_side_copy_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), 0));
-   assert(d_quat_grad_side_copy_id >= 0);
-   d_local_data.setFlag(d_quat_grad_side_copy_id);
+   if (d_evolve_quat) {
+      d_quat_grad_side_copy_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                         d_name + "_quat_grad_side_copy",
+                                         NDIM * d_qlen));
+      d_quat_grad_side_copy_id = variable_db->registerVariableAndContext(
+          d_quat_grad_side_copy_var, d_current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+      assert(d_quat_grad_side_copy_id >= 0);
+      d_local_data.setFlag(d_quat_grad_side_copy_id);
+   }
 
    if (d_model_parameters.noise_amplitude() > 0.) {
       d_noise_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
