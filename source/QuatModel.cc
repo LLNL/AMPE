@@ -5761,7 +5761,11 @@ void QuatModel::resetRefPhaseConcentrations()
    cellops.copyData(d_conc_l_ref_id, d_conc_l_scratch_id, false);
    cellops.copyData(d_conc_a_ref_id, d_conc_a_scratch_id, false);
    if (d_model_parameters.with_three_phases())
+   {
+      assert(d_conc_b_scratch_id >= 0);
+      assert(d_conc_b_ref_id >= 0);
       cellops.copyData(d_conc_b_ref_id, d_conc_b_scratch_id, false);
+   }
 }
 
 //=======================================================================
