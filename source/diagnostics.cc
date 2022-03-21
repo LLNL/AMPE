@@ -31,11 +31,15 @@ void preRunDiagnosticsMobilityInPhases(const double temperature,
 
    tbox::pout << "preRunDiagnosticsMobilityInPhases, open " << calphad_filename
               << std::endl;
+
    std::shared_ptr<tbox::MemoryDatabase> calphad_db(
        new tbox::MemoryDatabase("calphad_db"));
+   // WARNING: needs to be called from all MPI tasks!!!
    tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                     calphad_db);
 
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   if(mpi.getRank() == 0)
    if (calphad_db->isDatabase("MobilityParameters")) {
       std::shared_ptr<tbox::Database> mobility_db(
           calphad_db->getDatabase("MobilityParameters"));

@@ -2304,7 +2304,7 @@ void QuatModel::preRunDiagnostics(void)
    }
 
    if (d_model_parameters.with_concentration() &&
-       d_model_parameters.isConcentrationModelCALPHAD() && mpi.getRank() == 0)
+       d_model_parameters.isConcentrationModelCALPHAD() )
       preRunDiagnosticsMobilityInPhases(temperature, d_model_parameters,
                                         d_calphad_db);
 }
