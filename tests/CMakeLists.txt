@@ -253,6 +253,7 @@ add_test(NAME SingleGrainGrowthAuNi
          ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
+set_tests_properties(SingleGrainGrowthAuNi PROPERTIES TIMEOUT 120)
 add_test(NAME AlCu
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -271,18 +272,21 @@ add_test(NAME GaussianT
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/GaussianT/${NDIM}d.input
          )
+set_tests_properties(GaussianT PROPERTIES TIMEOUT 120)
 add_test(NAME TwoBilayers
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/${NDIM}d.input
          )
+set_tests_properties(TwoBilayers PROPERTIES TIMEOUT 120)
 add_test(NAME Dendrite
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/${NDIM}d.input
          )
+set_tests_properties(Dendrite PROPERTIES TIMEOUT 120)
 add_test(NAME FeNbNiWithNoise
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -290,6 +294,7 @@ add_test(NAME FeNbNiWithNoise
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
+set_tests_properties(FeNbNiWithNoise PROPERTIES TIMEOUT 120)
 if(${USE_THERMO4PFM})
   add_test(NAME ThreePhases
            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
@@ -297,6 +302,7 @@ if(${USE_THERMO4PFM})
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
            )
+  set_tests_properties(ThreePhases PROPERTIES TIMEOUT 120)
   add_test(NAME ThreePhasesCALPHAD
            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -304,6 +310,7 @@ if(${USE_THERMO4PFM})
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
            )
+  set_tests_properties(ThreePhasesCALPHAD PROPERTIES TIMEOUT 120)
 endif()
 add_test(NAME DumpNetCDF
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
