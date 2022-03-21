@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+module load intel
+module load hdf5-serial
+module load boost
+module load netcdf
+module load cmake
+module load python/3.8.2
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/gapps/phasefield/lib/netcdf-cxx-intel/lib
+
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles/
+rm cmake_install.cmake
+rm Makefile
+rm -f ../source/fortran/2d/*.f
+
+NETCDF_DIR=/usr/gapps/phasefield/lib/netcdf-cxx-intel
+
+cmake -DCMAKE_CXX_COMPILER=mpic++ \
+      -DCMAKE_C_COMPILER=mpicc \
+      -DCMAKE_Fortran_COMPILER=mpif77 \
+      -DSAMRAI_DIR=/usr/gapps/phasefield/samrai/samrai-4.1.0 \
+      -DHYPRE_DIR=/usr/gapps/phasefield/hypre/hypre-2.21.0 \
+      -DSUNDIALS_DIR=/usr/gapps/phasefield/sundials/sundials-5.4.0 \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DCMAKE_PREFIX_PATH=$NETCDF_DIR \
+      -DNDIM="2" \
+      -DUSE_CVODE=ON \
+      -DUSE_THERMO4PFM=ON \
+      -DTHERMO4PFM_DIR=/usr/gapps/phasefield/Thermo4PFM \
+      ..
+
