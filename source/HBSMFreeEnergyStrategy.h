@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef included_HBSMFreeEnergyStrategy
 #define included_HBSMFreeEnergyStrategy
@@ -54,42 +30,6 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
                           const int conc_b_id, const bool with_third_phase);
 
    ~HBSMFreeEnergyStrategy(){};
-
-   //   double computeValFreeEnergyLiquid(
-   //      const double temperature, const double conc,
-   //      const bool gp = false );
-
-   //   double computeValFreeEnergySolidA(
-   //      const double temperature, const double conc,
-   //      const bool gp = false );
-
-   //   double computeValFreeEnergySolidB(
-   //      const double temperature, const double conc,
-   //      const bool gp = false );
-
-   void computeFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id, const bool gp = false);
-
-   void computeDerivFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id);
-
-   void computeFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp = false);
-
-   void computeDerivFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
-
-   void computeFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp = false);
-
-   void computeDerivFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
                                 const int fl_id, const bool gp = false);
@@ -133,26 +73,18 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
    void preRunDiagnostics(const double temperature){};
 
  private:
-   double computeFreeEnergyPrivate(const double temperature, const double conc,
-                                   const double A, const double Ceq,
-                                   const double energy_factor,
-                                   const bool gp = false) const;
+   double computeFreeEnergy(const double temperature, const double conc,
+                            const double A, const double Ceq,
+                            const double energy_factor,
+                            const bool gp = false) const;
 
-   void computeFreeEnergyPrivate(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const double A, const double Ceq,
-       const int f_id, const int c_i_id, const double energy_factor);
+   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
+                          const double A, const double Ceq, const int f_id,
+                          const int c_i_id, const double energy_factor);
 
-   void computeFreeEnergyPrivate(hier::Patch& patch, const int temperature_id,
-                                 const double A, const double Ceq,
-                                 const int f_id, const int c_i_id,
-                                 const double energy_factor);
-
-   void computeDerivFreeEnergyPrivate(hier::Patch& patch,
-                                      const int temperature_id, const double A,
-                                      const double Ceq, const int f_id,
-                                      const int c_i_id,
-                                      const double energy_factor);
+   void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
+                               const double A, const double Ceq, const int f_id,
+                               const int c_i_id, const double energy_factor);
 
    double computeLiquidConcentration(const double hphi, const double heta,
                                      const double c, const double Al,
@@ -172,21 +104,21 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
                                      const double Ceql, const double CeqA,
                                      const double CeqB) const;
 
-   void computeFreeEnergyPrivatePatch(
+   void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        const double A, const double Ceq,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 
-   void computeDerivFreeEnergyPrivatePatch(
+   void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        const double A, const double Ceq,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 
-   void addDrivingForceOnPatchPrivate(
+   void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -198,7 +130,7 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
-   void addDrivingForceEtaOnPatchPrivate(
+   void addDrivingForceEtaOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -212,10 +144,9 @@ class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
 
    double computeMu(const double t, const double c);
 
-   double computeDerivFreeEnergyPrivate(const double temperature,
-                                        const double conc, const double A,
-                                        const double Ceq,
-                                        const double energy_factor) const;
+   double computeDerivFreeEnergy(const double temperature, const double conc,
+                                 const double A, const double Ceq,
+                                 const double energy_factor) const;
 
    EnergyInterpolationType d_energy_interp_func_type;
 

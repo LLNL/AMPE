@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "SAMRAI/tbox/InputManager.h"
 
@@ -131,155 +107,6 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id, const bool gp)
-{
-   assert(fl_id >= 0);
-   assert(temperature_id >= 0);
-   assert(d_conc_l_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeFreeEnergyPrivate(*patch, temperature_id, d_A_liquid,
-                                  d_Ceq_liquid, fl_id, d_conc_l_id,
-                                  d_energy_conv_factor_L);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id)
-{
-   assert(fl_id >= 0);
-   assert(temperature_id >= 0);
-
-   assert(d_conc_l_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_liquid,
-                                       d_Ceq_liquid, fl_id, d_conc_l_id,
-                                       d_energy_conv_factor_L);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   assert(temperature_id >= 0.);
-
-   assert(d_conc_a_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeFreeEnergyPrivate(*patch, temperature_id, d_A_solid_A,
-                                  d_Ceq_solid_A, fs_id, d_conc_a_id,
-                                  d_energy_conv_factor_A);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
-{
-   assert(dfs_id >= 0);
-   assert(temperature_id >= 0.);
-
-   assert(d_conc_a_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_solid_A,
-                                       d_Ceq_solid_A, dfs_id, d_conc_a_id,
-                                       d_energy_conv_factor_A);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   assert(temperature_id >= 0.);
-
-   assert(d_conc_a_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeFreeEnergyPrivate(*patch, temperature_id, d_A_solid_B,
-                                  d_Ceq_solid_B, fs_id, d_conc_a_id,
-                                  d_energy_conv_factor_B);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
-{
-   assert(dfs_id >= 0);
-   assert(temperature_id >= 0.);
-
-   assert(d_conc_a_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, d_A_solid_B,
-                                       d_Ceq_solid_B, dfs_id, d_conc_a_id,
-                                       d_energy_conv_factor_B);
-      }
-   }
-}
-
-//=======================================================================
-
 void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
                                                      const int temperature_id,
                                                      const int fl_id,
@@ -290,8 +117,8 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
 
    assert(d_conc_l_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, d_A_liquid, d_Ceq_liquid,
-                            fl_id, d_conc_l_id, d_energy_conv_factor_L);
+   computeFreeEnergy(patch, temperature_id, d_A_liquid, d_Ceq_liquid, fl_id,
+                     d_conc_l_id, d_energy_conv_factor_L);
 }
 
 //=======================================================================
@@ -306,8 +133,8 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
 
    assert(d_conc_a_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A,
-                            fs_id, d_conc_a_id, d_energy_conv_factor_A);
+   computeFreeEnergy(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A, fs_id,
+                     d_conc_a_id, d_energy_conv_factor_A);
 }
 
 //=======================================================================
@@ -322,50 +149,15 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
 
    assert(d_conc_b_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, d_A_solid_B, d_Ceq_solid_B,
-                            fs_id, d_conc_b_id, d_energy_conv_factor_B);
+   computeFreeEnergy(patch, temperature_id, d_A_solid_B, d_Ceq_solid_B, fs_id,
+                     d_conc_b_id, d_energy_conv_factor_B);
 }
 
 //=======================================================================
 
-// double HBSMFreeEnergyStrategy::computeValFreeEnergyLiquid(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return computeFreeEnergyPrivate(
-//      temperature, conc,
-//      d_A_liquid, d_Ceq_liquid,
-//      d_energy_conv_factor_L, gp );
-//}
-//
-// double HBSMFreeEnergyStrategy::computeValFreeEnergySolidA(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return computeFreeEnergyPrivate(
-//      temperature, conc,
-//      d_A_solid_A, d_Ceq_solid_A,
-//      d_energy_conv_factor_A, gp );
-//}
-//
-// double HBSMFreeEnergyStrategy::computeValFreeEnergySolidB(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return computeFreeEnergyPrivate(
-//      temperature, conc,
-//      d_A_solid_B, d_Ceq_solid_B,
-//      d_energy_conv_factor_B, gp );
-//}
-//
-//-----------------------------------------------------------------------
-
 // \/\/ No temperature dependence yet
 
-double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
+double HBSMFreeEnergyStrategy::computeFreeEnergy(
     const double temperature, const double conc, const double A,
     const double Ceq, const double energy_factor, const bool gp) const
 {
@@ -378,8 +170,7 @@ double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
 
    // subtract -mu*c to get grand potential
    if (gp)
-      fe -= computeDerivFreeEnergyPrivate(temperature, conc, A, Ceq,
-                                          energy_factor) *
+      fe -= computeDerivFreeEnergy(temperature, conc, A, Ceq, energy_factor) *
             conc;
 
    return fe;
@@ -387,7 +178,7 @@ double HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
+double HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
     const double temperature, const double conc, const double A,
     const double Ceq, const double energy_factor) const
 {
@@ -400,48 +191,12 @@ double HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const double A, const double Ceq, const int f_id,
-    const int conc_i_id, const double energy_factor)
-{
-   assert(temperature_id >= 0);
-   assert(f_id >= 0);
-   assert(conc_i_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         const hier::Box& pbox = patch->getBox();
-
-         std::shared_ptr<pdat::CellData<double> > temperature(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_id)));
-
-         std::shared_ptr<pdat::CellData<double> > f(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(f_id)));
-
-         std::shared_ptr<pdat::CellData<double> > c_i(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(conc_i_id)));
-
-         computeFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, f, c_i,
-                                       energy_factor);
-      }
-   }
-}
-
-//=======================================================================
-
-void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
-    hier::Patch& patch, const int temperature_id, const double A,
-    const double Ceq, const int f_id, const int conc_i_id,
-    const double energy_factor)
+void HBSMFreeEnergyStrategy::computeFreeEnergy(hier::Patch& patch,
+                                               const int temperature_id,
+                                               const double A, const double Ceq,
+                                               const int f_id,
+                                               const int conc_i_id,
+                                               const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -461,13 +216,12 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivate(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, f, c_i,
-                                 energy_factor);
+   computeFreeEnergy(pbox, temperature, A, Ceq, f, c_i, energy_factor);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
+void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const double A,
     const double Ceq, const int df_id, const int conc_i_id,
     const double energy_factor)
@@ -490,13 +244,12 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivate(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeDerivFreeEnergyPrivatePatch(pbox, temperature, A, Ceq, df, c_i,
-                                      energy_factor);
+   computeDerivFreeEnergy(pbox, temperature, A, Ceq, df, c_i, energy_factor);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
+void HBSMFreeEnergyStrategy::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     const double A, const double Ceq,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -568,8 +321,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
 
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] =
-                computeFreeEnergyPrivate(t, c_i, A, Ceq, energy_factor);
+            ptr_f[idx_f] = computeFreeEnergy(t, c_i, A, Ceq, energy_factor);
          }
       }
    }
@@ -577,7 +329,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyPrivatePatch(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
+void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     const double A, const double Ceq,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -650,7 +402,7 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergyPrivatePatch(
             double c_i = ptr_c_i[idx_c_i];
 
             ptr_f[idx_f] =
-                computeDerivFreeEnergyPrivate(t, c_i, A, Ceq, energy_factor);
+                computeDerivFreeEnergy(t, c_i, A, Ceq, energy_factor);
          }
       }
    }
@@ -732,13 +484,12 @@ void HBSMFreeEnergyStrategy::addDrivingForce(
 
    const hier::Box& pbox = patch.getBox();
 
-   addDrivingForceOnPatchPrivate(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b,
-                                 pbox);
+   addDrivingForceOnPatch(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b, pbox);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForceOnPatchPrivate(
+void HBSMFreeEnergyStrategy::addDrivingForceOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -896,8 +647,7 @@ double HBSMFreeEnergyStrategy::computeMu(const double t, const double c_l)
    const double A = d_A_liquid;
    const double Ceq = d_Ceq_liquid;
 
-   double mu =
-       computeDerivFreeEnergyPrivate(t, c_l, A, Ceq, d_energy_conv_factor_L);
+   double mu = computeDerivFreeEnergy(t, c_l, A, Ceq, d_energy_conv_factor_L);
 
    return mu;
 }
@@ -977,13 +727,13 @@ void HBSMFreeEnergyStrategy::addDrivingForceEta(
 
    const hier::Box& pbox = patch.getBox();
 
-   addDrivingForceEtaOnPatchPrivate(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a,
-                                    c_b, pbox);
+   addDrivingForceEtaOnPatch(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a, c_b,
+                             pbox);
 }
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatchPrivate(
+void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,

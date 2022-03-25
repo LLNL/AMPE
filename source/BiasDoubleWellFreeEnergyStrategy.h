@@ -51,36 +51,6 @@ class BiasDoubleWellFreeEnergyStrategy : public FreeEnergyStrategy
 
    virtual ~BiasDoubleWellFreeEnergyStrategy(){};
 
-   void computeFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id, const bool gp)
-   {
-      (void)hierarchy;
-      (void)temperature_id;
-      (void)fl_id;
-      (void)gp;
-   };
-
-   void computeFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp)
-   {
-      (void)hierarchy;
-      (void)temperature_id;
-      (void)fs_id;
-      (void)gp;
-   };
-
-   void computeFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp)
-   {
-      (void)hierarchy;
-      (void)temperature_id;
-      (void)fs_id;
-      (void)gp;
-   };
-
    // mesh functions
    virtual void computeFreeEnergyLiquid(hier::Patch& patch,
                                         const int temperature_id,

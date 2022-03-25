@@ -9,13 +9,11 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "FreeEnergyStrategy.h"
+#include "ConcFreeEnergyStrategy.h"
 
-#include "SAMRAI/pdat/CellData.h"
-
-void FreeEnergyStrategy::computeFreeEnergyLiquid(
+void ConcFreeEnergyStrategy::computeDerivFreeEnergyLiquid(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id, const bool gp)
+    const int temperature_id, const int fl_id)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
@@ -25,14 +23,14 @@ void FreeEnergyStrategy::computeFreeEnergyLiquid(
            ++p) {
          std::shared_ptr<hier::Patch> patch = *p;
 
-         computeFreeEnergyLiquid(*patch, temperature_id, fl_id, gp);
+         computeDerivFreeEnergyLiquid(*patch, temperature_id, fl_id);
       }
    }
 }
 
-void FreeEnergyStrategy::computeFreeEnergySolidA(
+void ConcFreeEnergyStrategy::computeDerivFreeEnergySolidA(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fa_id, const bool gp)
+    const int temperature_id, const int fl_id)
 {
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
@@ -42,37 +40,15 @@ void FreeEnergyStrategy::computeFreeEnergySolidA(
            ++p) {
          std::shared_ptr<hier::Patch> patch = *p;
 
-         computeFreeEnergySolidA(*patch, temperature_id, fa_id, gp);
+         computeDerivFreeEnergySolidA(*patch, temperature_id, fl_id);
       }
    }
 }
 
-void FreeEnergyStrategy::computeDrivingForce(
-    const double time, const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int phase_id, const int eta_id,
-    const int conc_id, const int f_l_id, const int f_a_id, const int f_b_id,
-    const int rhs_id)
-{
-   const int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
-           ++p) {
-         std::shared_ptr<hier::Patch> patch = *p;
-         computeDrivingForce(time, *patch, temperature_id, phase_id, eta_id,
-                             conc_id, f_l_id, f_a_id, f_b_id, rhs_id);
-      }
-   }
-}
-
-void FreeEnergyStrategy::computeFreeEnergySolidB(
+void ConcFreeEnergyStrategy::computeDerivFreeEnergySolidB(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fb_id, const bool gp)
+    const int temperature_id, const int fl_id)
 {
-   assert(temperature_id >= 0);
-   assert(fb_id >= 0);
-
    const int maxln = hierarchy->getFinestLevelNumber();
    for (int ln = 0; ln <= maxln; ln++) {
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
@@ -81,7 +57,7 @@ void FreeEnergyStrategy::computeFreeEnergySolidB(
            ++p) {
          std::shared_ptr<hier::Patch> patch = *p;
 
-         computeFreeEnergySolidB(*patch, temperature_id, fb_id, gp);
+         computeDerivFreeEnergySolidB(*patch, temperature_id, fl_id);
       }
    }
 }

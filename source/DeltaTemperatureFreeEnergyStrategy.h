@@ -34,27 +34,6 @@ class DeltaTemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 
    virtual ~DeltaTemperatureFreeEnergyStrategy(){};
 
-   void computeFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp)
-   {
-      (void)temperature_id;
-      (void)gp;
-
-      SAMRAI::math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-      mathops.setToScalar(fs_id, 0.);
-   };
-
-   void computeFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp)
-   {
-      (void)temperature_id;
-      (void)gp;
-      tbox::pout << "DeltaTemperatureFreeEnergyStrategy: undefined function!"
-                 << std::endl;
-   };
-
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
                                 const int eta_id, const int conc_id,

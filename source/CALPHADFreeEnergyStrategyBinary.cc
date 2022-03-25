@@ -90,85 +90,39 @@ void CALPHADFreeEnergyStrategyBinary::setup(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id, const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(fl_id >= 0);
-
-   assert(d_conc_l_id >= 0);
-
-   computeFreeEnergyPrivate(hierarchy, temperature_id, fl_id, d_conc_l_id,
-                            PhaseIndex::phaseL, gp);
-}
-
-//=======================================================================
-
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfl_id)
+    hier::Patch& patch, const int temperature_id, const int dfl_id)
 {
    assert(temperature_id >= 0);
    assert(dfl_id >= 0);
 
-   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfl_id, d_conc_l_id,
-                                 PhaseIndex::phaseL);
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fs_id >= 0);
-
-   computeFreeEnergyPrivate(hierarchy, temperature_id, fs_id, d_conc_a_id,
-                            PhaseIndex::phaseA, gp);
+   computeDerivFreeEnergy(patch, temperature_id, dfl_id, d_conc_l_id,
+                          PhaseIndex::phaseL);
 }
 
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
+    hier::Patch& patch, const int temperature_id, const int dfs_id)
 {
    assert(temperature_id >= 0.);
    assert(dfs_id >= 0);
 
-   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfs_id, d_conc_a_id,
-                                 PhaseIndex::phaseA);
+   computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_a_id,
+                          PhaseIndex::phaseA);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(temperature_id >= 0.);
-   assert(fs_id >= 0);
-
-   computeFreeEnergyPrivate(hierarchy, temperature_id, fs_id, d_conc_b_id,
-                            PhaseIndex::phaseB, gp);
-}
-
-//=======================================================================
-
-#ifndef HAVE_THERMO4PFM
 void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int dfs_id)
+    hier::Patch& patch, const int temperature_id, const int dfs_id)
 {
    assert(temperature_id >= 0.);
    assert(dfs_id >= 0);
 
-   computeDerivFreeEnergyPrivate(hierarchy, temperature_id, dfs_id, d_conc_b_id,
-                                 PhaseIndex::phaseB);
+   computeDerivFreeEnergy(patch, temperature_id, dfs_id, d_conc_b_id,
+                          PhaseIndex::phaseB);
 }
-#endif
 
 //=======================================================================
 
@@ -181,8 +135,8 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
 
    assert(d_conc_l_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, fl_id, d_conc_l_id,
-                            PhaseIndex::phaseL, gp);
+   computeFreeEnergy(patch, temperature_id, fl_id, d_conc_l_id,
+                     PhaseIndex::phaseL, gp);
 }
 
 //=======================================================================
@@ -194,8 +148,8 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
    assert(temperature_id >= 0.);
    assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, fs_id, d_conc_a_id,
-                            PhaseIndex::phaseA, gp);
+   computeFreeEnergy(patch, temperature_id, fs_id, d_conc_a_id,
+                     PhaseIndex::phaseA, gp);
 }
 
 //=======================================================================
@@ -207,13 +161,13 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
    assert(temperature_id >= 0.);
    assert(fs_id >= 0);
 
-   computeFreeEnergyPrivate(patch, temperature_id, fs_id, d_conc_b_id,
-                            PhaseIndex::phaseB, gp);
+   computeFreeEnergy(patch, temperature_id, fs_id, d_conc_b_id,
+                     PhaseIndex::phaseB, gp);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
+void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
     const int conc_i_id, const PhaseIndex pi, const bool gp)
 {
@@ -235,12 +189,12 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeFreeEnergyPrivatePatch(pbox, temperature, f, c_i, pi, gp);
+   computeFreeEnergy(pbox, temperature, f, c_i, pi, gp);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
+void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int df_id,
     const int conc_i_id, const PhaseIndex pi)
 {
@@ -262,60 +216,12 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeDerivFreeEnergyPrivatePatch(pbox, temperature, df, c_i, pi);
+   computeDerivFreeEnergy(pbox, temperature, df, c_i, pi);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivate(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int f_id, const int conc_i_id,
-    const PhaseIndex pi, const bool gp)
-{
-   assert(temperature_id >= 0);
-   assert(f_id >= 0);
-   assert(conc_i_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeFreeEnergyPrivate(*patch, temperature_id, f_id, conc_i_id, pi,
-                                  gp);
-      }
-   }
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivate(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int df_id, const int conc_i_id,
-    const PhaseIndex pi)
-{
-   assert(temperature_id >= 0);
-   assert(df_id >= 0);
-   assert(conc_i_id >= 0);
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         computeDerivFreeEnergyPrivate(*patch, temperature_id, df_id, conc_i_id,
-                                       pi);
-      }
-   }
-}
-
-//=======================================================================
-
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
+void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
@@ -395,7 +301,7 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyPrivatePatch(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyPrivatePatch(
+void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
@@ -570,12 +476,12 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
 
    const hier::Box& pbox(patch.getBox());
 
-   addDrivingForceOnPatch(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b, pbox);
+   addDrivingForce(rhs, t, phase, eta, fl, fa, fb, c_l, c_a, c_b, pbox);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForceOnPatch(
+void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -817,13 +723,12 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
 
    const hier::Box& pbox = patch.getBox();
 
-   addDrivingForceEtaOnPatchPrivate(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a,
-                                    c_b, pbox);
+   addDrivingForceEta(rhs, t, phase, eta, f_l, f_a, f_b, c_l, c_a, c_b, pbox);
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForceEtaOnPatchPrivate(
+void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
