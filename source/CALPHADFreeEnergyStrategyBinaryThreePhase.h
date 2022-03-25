@@ -45,48 +45,31 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    virtual void setup(boost::property_tree::ptree calphad_db,
                       std::shared_ptr<tbox::Database> newton_db);
 
-   void computeFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id, const bool gp);
-
-   void computeDerivFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id);
-
-   void computeFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp);
-
-   void computeDerivFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
-
+   // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
                                 const int fl_id, const bool gp);
 
    void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
                                 const int fs_id, const bool gp);
-   void computeFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp);
 
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
                                 const int fs_id, const bool gp);
-   void computeDerivFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id);
+
+   // implement pure virtual functions of ConcFreeEnergyStrategy
+   void computeDerivFreeEnergyLiquid(hier::Patch& patch,
+                                     const int temperature_id, const int fl_id);
+
+   void computeDerivFreeEnergySolidA(hier::Patch& patch,
+                                     const int temperature_id, const int fs_id);
+
+   void computeDerivFreeEnergySolidB(hier::Patch& patch,
+                                     const int temperature_id, const int fs_id);
 
    virtual void addDrivingForce(const double time, hier::Patch& patch,
                                 const int temperature_id, const int phase_id,
                                 const int eta_id, const int conc_id,
                                 const int f_l_id, const int f_a_id,
                                 const int f_b_id, const int rhs_id);
-
-   void computeDrivingForce(const double time, hier::Patch& patch,
-                            const int temperature_id, const int phase_id,
-                            const int eta_id, const int conc_id,
-                            const int f_l_id, const int f_a_id,
-                            const int f_b_id, const int rhs_id);
 
    virtual void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
@@ -206,31 +189,21 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_a,
        std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox);
 
-   void computeFreeEnergyPrivate(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_id, const int c_i_id,
-       const PhaseIndex pi, const bool gp);
+   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
+                          const int f_id, const int c_i_id, const PhaseIndex pi,
+                          const bool gp);
 
-   void computeDerivFreeEnergyPrivate(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_id, const int c_i_id,
-       const PhaseIndex pi);
+   void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
+                               const int f_id, const int c_i_id,
+                               const PhaseIndex pi);
 
-   void computeFreeEnergyPrivate(hier::Patch& patch, const int temperature_id,
-                                 const int f_id, const int c_i_id,
-                                 const PhaseIndex pi, const bool gp);
-
-   void computeDerivFreeEnergyPrivate(hier::Patch& patch,
-                                      const int temperature_id, const int f_id,
-                                      const int c_i_id, const PhaseIndex pi);
-
-   void computeFreeEnergyPrivatePatch(
+   void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
        const bool gp);
 
-   void computeDerivFreeEnergyPrivatePatch(
+   void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi);

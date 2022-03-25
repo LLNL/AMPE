@@ -42,6 +42,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
             ${CMAKE_SOURCE_DIR}/source/tools.cc
             ${CMAKE_SOURCE_DIR}/source/FreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/ConcFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/AMPE.cc
             ${CMAKE_SOURCE_DIR}/source/Noise.cc
             ${CMAKE_SOURCE_DIR}/source/NormalNoise.cc

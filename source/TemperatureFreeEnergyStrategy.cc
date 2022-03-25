@@ -88,43 +88,6 @@ double TemperatureFreeEnergyStrategy::computeValFreeEnergyLiquid(
 //=======================================================================
 
 void TemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id, const bool gp)
-{
-   assert(fl_id >= 0);
-   (void)temperature_id;  // unused
-   (void)gp;
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-         const hier::Box& pbox = patch->getBox();
-
-         std::shared_ptr<pdat::CellData<double> > fl(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fl_id)));
-         assert(fl);
-         std::shared_ptr<pdat::CellData<double> > temperature(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_id)));
-         assert(temperature);
-
-         pdat::CellIterator iend(pdat::CellGeometry::end(pbox));
-         for (pdat::CellIterator i(pdat::CellGeometry::begin(pbox)); i != iend;
-              ++i) {
-            pdat::CellIndex cell = *i;
-            (*fl)(cell) = computeValFreeEnergyLiquid((*temperature)(cell), 0.);
-         }
-      }
-   }
-}
-
-//=======================================================================
-
-void TemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
     hier::Patch& patch, const int temperature_id, const int fl_id,
     const bool gp)
 {
@@ -153,33 +116,6 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergyLiquid(
 //=======================================================================
 
 void TemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   (void)temperature_id;  // unused
-   (void)gp;
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         std::shared_ptr<pdat::CellData<double> > fs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fs_id)));
-         assert(fs);
-
-         fs->fillAll(d_f_a);
-      }
-   }
-}
-
-//=======================================================================
-
-void TemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
     hier::Patch& patch, const int temperature_id, const int fs_id,
     const bool gp)
 {
@@ -193,33 +129,6 @@ void TemperatureFreeEnergyStrategy::computeFreeEnergySolidA(
    assert(fs);
 
    fs->fillAll(d_f_a);
-}
-
-//=======================================================================
-
-void TemperatureFreeEnergyStrategy::computeFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   (void)temperature_id;  // unused
-   (void)gp;
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         std::shared_ptr<pdat::CellData<double> > fs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fs_id)));
-         assert(fs);
-
-         fs->fillAll(d_f_b);
-      }
-   }
 }
 
 //=======================================================================

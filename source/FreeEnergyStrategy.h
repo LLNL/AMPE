@@ -38,25 +38,9 @@ class FreeEnergyStrategy
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_l_id, const bool gp);
 
-   virtual void computeDerivFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_l_id)
-   {
-      (void)temperature_id;  // unused
-      computeDerivFreeEnergy(hierarchy, f_l_id);
-   }
-
    virtual void computeFreeEnergySolidA(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_a_id, const bool gp);
-
-   virtual void computeDerivFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_a_id)
-   {
-      (void)temperature_id;  // unused
-      computeDerivFreeEnergy(hierarchy, f_a_id);
-   }
 
    virtual void computeFreeEnergySolidB(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,

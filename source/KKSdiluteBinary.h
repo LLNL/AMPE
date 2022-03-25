@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef included_KKSdiluteBinary
 #define included_KKSdiluteBinary
@@ -64,25 +40,13 @@ class KKSdiluteBinary : public FreeEnergyStrategy
 
    virtual void setup(std::shared_ptr<tbox::Database> calphad_db);
 
-   void computeFreeEnergyLiquid(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fl_id, const bool gp);
-
    void computeDerivFreeEnergyLiquid(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fl_id);
 
-   void computeFreeEnergySolidA(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp);
-
    void computeDerivFreeEnergySolidA(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int fs_id);
-
-   void computeFreeEnergySolidB(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int fs_id, const bool gp);
 
    void computeDerivFreeEnergySolidB(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -202,35 +166,32 @@ class KKSdiluteBinary : public FreeEnergyStrategy
        std::shared_ptr<pdat::CellData<double> > cd_c_l,
        std::shared_ptr<pdat::CellData<double> > cd_c_a, const hier::Box& pbox);
 
-   void computeFreeEnergyPrivate(
-       const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-       const int temperature_id, const int f_id, const PhaseIndex pi,
-       const bool gp);
+   void computeFreeEnergy(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
+                          const int temperature_id, const int f_id,
+                          const PhaseIndex pi, const bool gp);
 
-   void computeDerivFreeEnergyPrivate(
+   void computeDerivFreeEnergy(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int f_id, const PhaseIndex pi);
 
-   void computeFreeEnergyPrivate(hier::Patch& patch, const int temperature_id,
-                                 const int f_id, const PhaseIndex pi,
-                                 const bool gp);
+   void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
+                          const int f_id, const PhaseIndex pi, const bool gp);
 
-   void computeDerivFreeEnergyPrivate(hier::Patch& patch,
-                                      const int temperature_id, const int f_id,
-                                      const PhaseIndex pi);
+   void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
+                               const int f_id, const PhaseIndex pi);
 
-   void computeFreeEnergyPrivatePatch(
+   void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
        const bool gp);
 
-   void computeDerivFreeEnergyPrivatePatch(
+   void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi);
 
-   void addDrivingForceEtaOnPatchPrivate(
+   void addDrivingForceEtaOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
