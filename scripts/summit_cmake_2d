@@ -17,7 +17,6 @@ cmake -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_C_COMPILER=mpicc \
         -DSUNDIALS_DIR=$HOME/sundials/sundials-5.7.0/install_xl \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_PREFIX_PATH=${HOME}/bin:$OLCF_NETCDF_CXX4_ROOT \
-        -DUSE_CVODE=ON \
         -DNDIM="2" \
         ..
 

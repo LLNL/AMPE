@@ -16,6 +16,5 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC -DCMAKE_C_COMPILER=mpicc \
         -DAMPE_WITH_CLANG_FORMAT=ON \
         -DCMAKE_PREFIX_PATH=${HOME}/bin \
         -DNDIM="2" \
-        -DUSE_CVODE=ON \
         ..
 
