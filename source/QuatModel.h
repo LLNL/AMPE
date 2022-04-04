@@ -209,9 +209,6 @@ class QuatModel : public PFModel
    void computeUniformPhaseMobility(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
        int& mobility_id, const double time, const CACHE_TYPE cache = CACHE);
-   void computeUniformPhaseMobility(
-       const std::shared_ptr<hier::PatchLevel> patch_level, int& phase_id,
-       int& mobility_id, const double time);
 
    void computeEtaMobility(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,

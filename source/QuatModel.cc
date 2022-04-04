@@ -2818,30 +2818,15 @@ void QuatModel::initializeLevelData(
    }
 
    if (!d_model_parameters.with_concentration()) {
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
+      math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
 
-         if (d_model_parameters.free_energy_type()[0] == 's') {
-            std::shared_ptr<pdat::CellData<double> > fl(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_f_l_id)));
-            assert(fl);
-            fl->fillAll(d_model_parameters.free_energy_liquid());
-         }
-         std::shared_ptr<pdat::CellData<double> > fa(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_f_a_id)));
-         assert(fa);
-         fa->fillAll(d_model_parameters.free_energy_solid_A());
-
-         if (d_model_parameters.with_three_phases()) {
-            std::shared_ptr<pdat::CellData<double> > fb(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_f_b_id)));
-            assert(fb);
-            fb->fillAll(d_model_parameters.free_energy_solid_B());
-         }
+      if (d_model_parameters.free_energy_type()[0] == 's') {
+         mathops.setToScalar(d_f_l_id, d_model_parameters.free_energy_liquid());
+      }
+      mathops.setToScalar(d_f_a_id, d_model_parameters.free_energy_solid_A());
+      if (d_model_parameters.with_three_phases()) {
+         mathops.setToScalar(d_f_b_id,
+                             d_model_parameters.free_energy_solid_B());
       }
    }
 }
@@ -4700,35 +4685,11 @@ void QuatModel::computeUniformPhaseMobility(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computeUniformPhaseMobility(patch_level, phase_id, mobility_id, time);
-   }
-}
-
-void QuatModel::computeUniformPhaseMobility(
-    const std::shared_ptr<hier::PatchLevel> level, int& phase_id,
-    int& mobility_id, const double time)
-{
-   (void)time;
-
    if (phase_id < 0) phase_id = d_phase_scratch_id;
    if (mobility_id < 0) mobility_id = d_phase_mobility_id;
 
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-
-      std::shared_ptr<hier::Patch> patch = *p;
-
-      std::shared_ptr<pdat::CellData<double> > mobility_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(mobility_id)));
-      assert(mobility_data);
-
-      mobility_data->fillAll(d_model_parameters.phase_mobility());
-   }
+   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
+   mathops.setToScalar(mobility_id, d_model_parameters.phase_mobility());
 }
 
 //-----------------------------------------------------------------------
