@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "PhaseFreeEnergyStrategy.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -73,31 +49,6 @@ PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
 
 //=======================================================================
 
-void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fl_id, const bool gp)
-{
-   assert(fl_id >= 0);
-   (void)temperature_id;  // unused
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         std::shared_ptr<pdat::CellData<double> > fl(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fl_id)));
-         assert(fl);
-
-         fl->fillAll(d_f_l);
-      }
-   }
-}
-
-//=======================================================================
 void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
                                                       const int temperature_id,
                                                       const int fl_id,
@@ -116,31 +67,6 @@ void PhaseFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
 
 //=======================================================================
 
-void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   (void)temperature_id;  // unused
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         std::shared_ptr<pdat::CellData<double> > fs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fs_id)));
-         assert(fs);
-
-         fs->fillAll(d_f_a);
-      }
-   }
-}
-
-//=======================================================================
 void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
                                                       const int temperature_id,
                                                       const int fs_id,
@@ -158,42 +84,7 @@ void PhaseFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
 }
 
 //=======================================================================
-//
-// double PhaseFreeEnergyStrategy::computeValFreeEnergySolidB(
-//   const double temperature,
-//   const double conc,
-//   const bool gp )
-//{
-//   return d_f_b;
-//}
-//
-//=======================================================================
 
-void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int temperature_id, const int fs_id, const bool gp)
-{
-   assert(fs_id >= 0);
-   (void)temperature_id;  // unused
-
-   for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ln++) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ip++) {
-         std::shared_ptr<hier::Patch> patch = *ip;
-
-         std::shared_ptr<pdat::CellData<double> > fs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(fs_id)));
-         assert(fs);
-
-         fs->fillAll(d_f_b);
-      }
-   }
-}
-
-//=======================================================================
 void PhaseFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
                                                       const int temperature_id,
                                                       const int fs_id,

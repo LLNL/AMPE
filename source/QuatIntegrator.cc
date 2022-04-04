@@ -2416,34 +2416,9 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
    tbox::pout << "dval=" << dval << std::endl;
 
    // set diffusion coefficients
-   for (int amr_level = 0; amr_level < maxl; amr_level++) {
-
-      // tbox::pout<<"QuatSplitIntegrator, level = "<<amr_level<<endl;
-      std::shared_ptr<hier::PatchLevel> this_patch_level =
-          hierarchy->getPatchLevel(amr_level);
-
-      for (hier::PatchLevel::Iterator this_p(this_patch_level->begin());
-           this_p != this_patch_level->end(); ++this_p) {
-         std::shared_ptr<hier::Patch> this_patch = *this_p;
-
-         std::shared_ptr<pdat::SideData<double> > diffusion(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 this_patch->getPatchData(d_quat_diffusion_id)));
-         diffusion->fillAll(dval);
-
-         std::shared_ptr<pdat::SideData<double> > grad_side_copy_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 this_patch->getPatchData(d_quat_grad_side_copy_id)));
-         assert(grad_side_copy_data);
-         grad_side_copy_data->fillAll(alpha);
-
-         std::shared_ptr<pdat::SideData<double> > grad_side_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 this_patch->getPatchData(d_quat_grad_side_id)));
-         assert(grad_side_data);
-         grad_side_data->fillAll(alpha);
-      }
-   }
+   math::HierarchySideDataOpsReal<double> smathops(hierarchy);
+   smathops.setToScalar(d_quat_diffusion_id, dval);
+   smathops.setToScalar(d_quat_grad_side_copy_id, alpha);
 }
 
 //-----------------------------------------------------------------------
