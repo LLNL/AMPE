@@ -14,7 +14,6 @@ cmake -DCMAKE_CXX_COMPILER=CC -DCMAKE_C_COMPILER=cc \
         -DSUNDIALS_DIR=$HOME/sundials/sundials-5.7.0/install_spock \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_PREFIX_PATH=${HOME}/bin \
-        -DUSE_CVODE=ON \
         -DNDIM="3" \
         ..
 

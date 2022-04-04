@@ -49,6 +49,7 @@ if(Boost_FOUND)
   include_directories(${Boost_INCLUDE_DIRS})
 endif()
 
+set(USE_CVODE TRUE CACHE BOOL "Use CVODE")
 if(${USE_CVODE})
   message(STATUS "Use CVODE")
 else()

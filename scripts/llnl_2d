@@ -27,7 +27,6 @@ cmake -DCMAKE_CXX_COMPILER=mpic++ \
       -DBUILD_SHARED_LIBS=OFF \
       -DCMAKE_PREFIX_PATH=$NETCDF_DIR \
       -DNDIM="2" \
-      -DUSE_CVODE=ON \
       -DUSE_THERMO4PFM=ON \
       -DTHERMO4PFM_DIR=/usr/gapps/phasefield/Thermo4PFM \
       ..
