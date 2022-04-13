@@ -270,14 +270,14 @@ c=======================================================================
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' ) then
-
-         well_func = ( 1.d0 - phi ) * ( 1.d0 - phi )
-
-      else if ( type(1:1) .eq. 'd' ) then
+      if ( type(1:1) .eq. 'd' ) then
 
          well_func =
      &      16.d0 * phi * phi * ( 1.d0 - phi ) * ( 1.d0 - phi )
+
+      else if ( type(1:1) .eq. 's' ) then
+
+         well_func = ( 1.d0 - phi ) * ( 1.d0 - phi )
 
       else
 
@@ -299,14 +299,14 @@ c-----------------------------------------------------------------------
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' ) then
-
-         deriv_well_func = 2.d0 * ( phi - 1.d0 )
-
-      else if ( type(1:1) .eq. 'd' ) then
+      if ( type(1:1) .eq. 'd' ) then
 
          deriv_well_func =
      &      32.d0 * phi * ( 1.d0 - phi ) * ( 1.d0 - 2.d0 * phi )
+
+      else if ( type(1:1) .eq. 's' ) then
+
+         deriv_well_func = 2.d0 * ( phi - 1.d0 )
 
       else
 
@@ -328,14 +328,14 @@ c-----------------------------------------------------------------------
       double precision phi
       character*(*) type
 
-      if ( type(1:1) .eq. 's' ) then
-
-         second_deriv_well_func = 2.d0
-
-      else if ( type(1:1) .eq. 'd' ) then
+      if ( type(1:1) .eq. 'd' ) then
 
          second_deriv_well_func =
      &      32.d0 * ( 1.d0 + 6.d0 * phi * ( phi - 1.d0 ) )
+
+      else if ( type(1:1) .eq. 's' ) then
+
+         second_deriv_well_func = 2.d0
 
       else
 
