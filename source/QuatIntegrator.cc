@@ -36,6 +36,7 @@
 #include "EBSCompositionRHSStrategy.h"
 #include "PhaseRHSStrategyWithQ.h"
 #include "ThreePhasesRHSStrategy.h"
+#include "SimpleTemperatureRHSStrategy.h"
 
 #include "QuatParams.h"
 
@@ -2018,6 +2019,11 @@ void QuatIntegrator::initialize(
 
    d_phase_rhs_strategy->setup(hierarchy);
 
+   if (d_with_unsteady_temperature)
+      d_temperature_rhs_strategy.reset(
+          new SimpleTemperatureRHSStrategy(d_thermal_diffusivity, d_latent_heat,
+                                           d_temperature_scratch_id, d_cp_id));
+
    if (d_model_parameters.inMovingFrame())
       d_movingframe_rhs.reset(new MovingFrameRHS(d_phase_scratch_id));
 }
@@ -2580,83 +2586,45 @@ void QuatIntegrator::evaluateTemperatureRHS(
     std::shared_ptr<hier::PatchHierarchy> hierarchy, const int temperature_id,
     const int phase_rhs_id, const int temperature_rhs_id, const bool visit_flag)
 {
-   // tbox::pout<<"QuatIntegrator::evaluateTemperatureRHS()..."<<endl;
-   // tbox::pout<<"d_thermal_diffusivity="<<d_thermal_diffusivity<<endl;
-   // tbox::pout<<"d_latent_heat="<<d_latent_heat<<endl;
-   assert(d_cp_id >= 0);
+   // tbox::pout << "QuatIntegrator::evaluateTemperatureRHS()..." << std::endl;
    assert(temperature_id >= 0);
    assert(temperature_rhs_id >= 0);
-   assert(d_latent_heat > 0.);
-   assert(d_latent_heat < 1.e32);
-
-   math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
+   assert(d_temperature_rhs_strategy);
 
    d_heat_capacity_strategy->setCurrentValue(hierarchy);
+   d_temperature_rhs_strategy->evaluateRHS(hierarchy, temperature_rhs_id,
+                                           phase_rhs_id);
 
-   for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
+   // add component related to moving frame if moving velocity!=0
+   if (d_model_parameters.inMovingFrame())
+      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
+         std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
-      for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-           ++ip) {
-         std::shared_ptr<hier::Patch> patch = *ip;
+         for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
+              ++ip) {
+            std::shared_ptr<hier::Patch> patch = *ip;
 
-         const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         const double* dx = patch_geom->getDx();
+            const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
+                SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                                       hier::PatchGeometry>(
+                    patch->getPatchGeometry()));
+            const double* dx = patch_geom->getDx();
 
-         std::shared_ptr<pdat::CellData<double> > temperature(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_id)));
-         assert(temperature);
-         assert(temperature->getGhostCellWidth()[0] > 0);
-
-         std::shared_ptr<pdat::CellData<double> > cp(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_cp_id)));
-         assert(cp);
-
-         std::shared_ptr<pdat::CellData<double> > temperature_rhs(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(temperature_rhs_id)));
-         assert(temperature_rhs);
-
-         double* phase_rhs_ptr = nullptr;
-         int phase_rhs_nghosts = 0;
-         if (d_model_parameters.with_phase()) {
-            std::shared_ptr<pdat::CellData<double> > phase_rhs(
+            std::shared_ptr<pdat::CellData<double> > temperature(
                 SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_dphidt_scratch_id)));
-            assert(phase_rhs);
-            phase_rhs_ptr = phase_rhs->getPointer();
-            phase_rhs_nghosts = phase_rhs->getGhostCellWidth()[0];
-         }
+                    patch->getPatchData(temperature_id)));
+            assert(temperature);
+            assert(temperature->getGhostCellWidth()[0] > 0);
 
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
+            std::shared_ptr<pdat::CellData<double> > temperature_rhs(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(temperature_rhs_id)));
+            assert(temperature_rhs);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
-         math::PatchCellDataBasicOps<double> mathops;
-         const double mincp = mathops.min(cp, pbox);
-         assert(mincp > 0.);
-#endif
+            const hier::Box& pbox = patch->getBox();
+            const hier::Index& ifirst = pbox.lower();
+            const hier::Index& ilast = pbox.upper();
 
-         COMPUTERHSTEMP(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                        ifirst(2), ilast(2),
-#endif
-                        dx, d_thermal_diffusivity, d_latent_heat,
-                        temperature->getPointer(),
-                        temperature->getGhostCellWidth()[0], cp->getPointer(),
-                        cp->getGhostCellWidth()[0],
-                        (int)d_model_parameters.with_phase(), phase_rhs_ptr,
-                        phase_rhs_nghosts, temperature_rhs->getPointer(),
-                        temperature_rhs->getGhostCellWidth()[0]);
-
-         // add component related to moving frame if moving velocity!=0
-         if (d_model_parameters.inMovingFrame()) {
             assert(temperature->getGhostCellWidth()[0] > 0);
             ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -2668,10 +2636,10 @@ void QuatIntegrator::evaluateTemperatureRHS(
                        temperature_rhs->getGhostCellWidth()[0]);
          }
       }
-   }
 
    if (d_model_parameters.with_rhs_visit_output() && visit_flag) {
       assert(d_temperature_rhs_visit_id >= 0);
+      math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
       cellops.copyData(d_temperature_rhs_visit_id, temperature_rhs_id, false);
    }
 }
