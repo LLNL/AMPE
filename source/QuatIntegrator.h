@@ -25,6 +25,7 @@
 #include "Sundials_SAMRAIVector.h"
 #include "SundialsAbstractVector.h"
 #include "PhaseRHSStrategy.h"
+#include "TemperatureRHSStrategy.h"
 #include "MovingFrameRHS.h"
 
 // Headers for SAMRAI objects
@@ -335,14 +336,11 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
        std::shared_ptr<solv::SAMRAIVectorReal<double> > y_dot_samvect,
        int fd_flag)
    {
-      const int ydot_phase_id =
-          d_with_phase ? y_dot_samvect->getComponentDescriptorIndex(
-                             d_phase_component_index)
-                       : -1;
+      const int phase_rhs_id = d_with_phase ? d_dphidt_scratch_id : -1;
       const int ydot_temperature_id =
           y_dot_samvect->getComponentDescriptorIndex(
               d_temperature_component_index);
-      evaluateTemperatureRHS(hierarchy, d_temperature_scratch_id, ydot_phase_id,
+      evaluateTemperatureRHS(hierarchy, d_temperature_scratch_id, phase_rhs_id,
                              ydot_temperature_id, fd_flag == 0);
    }
 
@@ -668,6 +666,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    std::shared_ptr<PhaseFluxStrategy> d_phase_flux_strategy;
 
    std::shared_ptr<PhaseRHSStrategy> d_phase_rhs_strategy;
+
+   std::shared_ptr<TemperatureRHSStrategy> d_temperature_rhs_strategy;
 
    std::shared_ptr<MovingFrameRHS> d_movingframe_rhs;
 
