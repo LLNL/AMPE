@@ -13,6 +13,7 @@
 
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "MolarVolumeStrategy.h"
 #include "interpolation.h"
 
@@ -731,4 +732,6 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
 
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
     CALPHADFreeEnergyFunctionsBinaryThreePhase>;
+template class CALPHADFreeEnergyStrategyBinaryThreePhase<
+    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
 #endif
