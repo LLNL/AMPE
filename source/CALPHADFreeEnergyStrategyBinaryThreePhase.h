@@ -15,7 +15,7 @@
 #ifdef HAVE_THERMO4PFM
 
 #include "ConcFreeEnergyStrategy.h"
-#include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/tbox/Database.h"
@@ -26,6 +26,7 @@ class MolarVolumeStrategy;
 #include <vector>
 #include <boost/property_tree/ptree.hpp>
 
+template <class FreeEnergyFunctionType>
 class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
 {
  public:
@@ -37,13 +38,10 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id);
 
-   virtual ~CALPHADFreeEnergyStrategyBinaryThreePhase()
-   {
-      delete d_calphad_fenergy;
-   };
+   ~CALPHADFreeEnergyStrategyBinaryThreePhase(){};
 
-   virtual void setup(boost::property_tree::ptree calphad_db,
-                      std::shared_ptr<tbox::Database> newton_db);
+   void setup(boost::property_tree::ptree calphad_db,
+              std::shared_ptr<tbox::Database> newton_db);
 
    // implement pure virtual functions of FreeEnergyStrategy
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
@@ -65,13 +63,12 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
    void computeDerivFreeEnergySolidB(hier::Patch& patch,
                                      const int temperature_id, const int fs_id);
 
-   virtual void addDrivingForce(const double time, hier::Patch& patch,
-                                const int temperature_id, const int phase_id,
-                                const int eta_id, const int conc_id,
-                                const int f_l_id, const int f_a_id,
-                                const int f_b_id, const int rhs_id);
+   void addDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int eta_id, const int conc_id, const int f_l_id,
+                        const int f_a_id, const int f_b_id, const int rhs_id);
 
-   virtual void computeSecondDerivativeEnergyPhaseL(
+   void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true)
    {
@@ -81,7 +78,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
       //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase L
       //   for c="<<c[0]<<"!!!"<<std::endl;
    }
-   virtual void computeSecondDerivativeEnergyPhaseA(
+   void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true)
    {
@@ -91,7 +88,7 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
       //   tbox::pout<<"CALPHADFreeEnergyStrategy, WARNING: fcc<0. in phase A
       //   for c="<<c[0]<<"!!!"<<std::endl;
    }
-   virtual void computeSecondDerivativeEnergyPhaseB(
+   void computeSecondDerivativeEnergyPhaseB(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units = true)
    {
@@ -149,7 +146,18 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
                                          phi_well_scale, npts_phi, npts_c);
    }
 
- protected:
+ private:
+   int d_conc_l_id;
+   int d_conc_a_id;
+   int d_conc_b_id;
+
+   std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
+
+   MolarVolumeStrategy* d_mv_strategy;
+
+   EnergyInterpolationType d_energy_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
+
    void defaultComputeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units);
@@ -160,24 +168,12 @@ class CALPHADFreeEnergyStrategyBinaryThreePhase : public ConcFreeEnergyStrategy
        const double temperature, const std::vector<double>& c,
        std::vector<double>& d2fdc2, const bool use_internal_units);
 
-   MolarVolumeStrategy* d_mv_strategy;
-
-   CALPHADFreeEnergyFunctionsBinaryThreePhase* d_calphad_fenergy;
-
-   EnergyInterpolationType d_energy_interp_func_type;
-   ConcInterpolationType d_conc_interp_func_type;
-
    double computeMuA(const double t, const double c);
 
    double computeMuL(const double t, const double c);
 
    double computeMuB(const double t, const double c);
 
-   int d_conc_l_id;
-   int d_conc_a_id;
-   int d_conc_b_id;
-
- private:
    void addDrivingForceOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_rhs,
        std::shared_ptr<pdat::CellData<double> > cd_temperature,

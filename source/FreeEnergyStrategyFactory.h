@@ -71,7 +71,8 @@ class FreeEnergyStrategyFactory
                   tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
                              << std::endl;
                   free_energy_strategy.reset(
-                      new CALPHADFreeEnergyStrategyBinaryThreePhase(
+                      new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                          CALPHADFreeEnergyFunctionsBinaryThreePhase>(
                           calphad_pt, newton_db,
                           model_parameters.energy_interp_func_type(),
                           model_parameters.conc_interp_func_type(), mvstrategy,
