@@ -19,6 +19,8 @@
 #include "PhaseIndependentConcentrationsStrategy.h"
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
+#include "CALPHADFunctions.h"
 #endif
 
 #include <boost/property_tree/ptree.hpp>
@@ -61,16 +63,30 @@ class PhaseConcentrationsStrategyFactory
             if (ncompositions == 1) {
 #ifdef HAVE_THERMO4PFM
                if (conc_b_scratch_id >= 0) {
-                  phase_conc_strategy.reset(
-                      new CALPHADequilibriumPhaseConcentrationsStrategy<
-                          CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
-                          conc_b_ref_id,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(),
-                          model_parameters.with_third_phase(), calphad_pt,
-                          newton_db, ncompositions));
+                  bool subl = checkSublattice(calphad_pt);
+                  if (subl) {
+                     phase_conc_strategy.reset(
+                         new CALPHADequilibriumPhaseConcentrationsStrategy<
+                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                             conc_b_ref_id,
+                             model_parameters.energy_interp_func_type(),
+                             model_parameters.conc_interp_func_type(),
+                             model_parameters.with_third_phase(), calphad_pt,
+                             newton_db, ncompositions));
+                  } else {
+                     phase_conc_strategy.reset(
+                         new CALPHADequilibriumPhaseConcentrationsStrategy<
+                             CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                             conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                             conc_b_ref_id,
+                             model_parameters.energy_interp_func_type(),
+                             model_parameters.conc_interp_func_type(),
+                             model_parameters.with_third_phase(), calphad_pt,
+                             newton_db, ncompositions));
+                  }
                } else
 #endif
                {

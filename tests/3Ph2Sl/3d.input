@@ -1,0 +1,101 @@
+// Input file
+model_type = "Quat"
+
+end_time            = 2.2
+max_timesteps       = 1000
+
+run_name = "test"
+
+Visit {
+   interval = 0.2
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = -1.
+
+   three_phases = TRUE
+   
+   Temperature{
+      temperature = 821.4
+   }
+   
+   epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
+
+   phi_mobility = 1.985 // muk*Tm/(6.*delta*L)
+
+   phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
+
+   phi_interp_func_type ="h"
+
+   ConcentrationModel {
+      model    = "calphad"
+      rhs_form = "ebs"
+      Calphad {
+         filename ="calphadAlCuLFccTheta.json"
+      }
+      NewtonSolver {
+        max_its = 50
+        tol = 1.e-12
+      }
+      diffusion_type = "temperature_dependent"
+      D_solid_A  =  3.e-1 //um**2/s
+      D_solid_B  =  3.e-1 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Q0_solid_A  = 0.    // [J/mol]
+      Q0_solid_B  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 0.1
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner{
+     enabled = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "test.nc"
+   init_cl = 0.82
+   init_ca = 0.97
+   init_cb = 0.68
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 32, 32, 8
+   x_lo         =  0.,    0.,  0.
+   x_up         =  100., 100., 25.
+}

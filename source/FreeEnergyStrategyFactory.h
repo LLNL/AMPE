@@ -12,6 +12,11 @@
 #ifndef included_FreeEnergyStrategyFactory
 #define included_FreeEnergyStrategyFactory
 
+#ifdef HAVE_THERMO4PFM
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
+#include "CALPHADFunctions.h"
+#endif
+
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -70,14 +75,31 @@ class FreeEnergyStrategyFactory
                if (conc_b_scratch_id >= 0) {
                   tbox::pout << "Use CALPHADFreeEnergyStrategyBinaryThreePhase"
                              << std::endl;
-                  free_energy_strategy.reset(
-                      new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                          CALPHADFreeEnergyFunctionsBinaryThreePhase>(
-                          calphad_pt, newton_db,
-                          model_parameters.energy_interp_func_type(),
-                          model_parameters.conc_interp_func_type(), mvstrategy,
-                          conc_l_scratch_id, conc_a_scratch_id,
-                          conc_b_scratch_id));
+                  // check if sublattice parameters are in CALPHAD database
+                  bool subl = checkSublattice(calphad_pt);
+                  if (subl) {
+                     tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl"
+                                << std::endl;
+                     free_energy_strategy.reset(
+                         new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                             calphad_pt, newton_db,
+                             model_parameters.energy_interp_func_type(),
+                             model_parameters.conc_interp_func_type(),
+                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+                  } else {
+                     tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePhase"
+                                << std::endl;
+                     free_energy_strategy.reset(
+                         new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                             CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                             calphad_pt, newton_db,
+                             model_parameters.energy_interp_func_type(),
+                             model_parameters.conc_interp_func_type(),
+                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
+                             conc_b_scratch_id));
+                  }
                } else
 #endif
                   free_energy_strategy.reset(

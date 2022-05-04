@@ -304,6 +304,13 @@ if(${USE_THERMO4PFM})
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
            )
+  add_test(NAME 3Ph2Sl
+           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
+           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+           ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/${NDIM}d.input
+           ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl
+           )
 endif()
 add_test(NAME DumpNetCDF
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
