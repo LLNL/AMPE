@@ -53,6 +53,12 @@ parser.add_option( "--plane", type="int", default=1,
                   help="direction orthogonal to plane")
 parser.add_option( "--quatin", type="string", # something like "1,0,0,0",
                    help="quaternion in grain" )
+parser.add_option( "--periodicx", type="int", default=0,
+                  help="periodic in direction x")
+parser.add_option( "--periodicy", type="int", default=0,
+                  help="periodic in direction y")
+parser.add_option( "--periodicz", type="int", default=0,
+                  help="periodic in direction z")
 
 (options, args) = parser.parse_args()
 
@@ -174,15 +180,34 @@ def setRandomQinGrains():
       print("--- q={}".format(quat_inside[g]))
 
 #-----------------------------------------------------------------------
-def smoothQuat(quat):
+def smoothQuat(quat,px,py,pz):
   print("smoothQuat...")
-  nx=nn[0]
-  ny=nn[1]
-  nz=nn[2]
+  if(px):
+    ix=0
+    nx=nn[0]
+  else:
+    ix=1
+    nx=nn[0]-1
+  if(py):
+    iy=0
+    ny=nn[1]
+  else:
+    iy=1
+    ny=nn[1]-1
+  if(pz or nn[2]==1):
+    iz=0
+    nz=nn[2]
+  else:
+    iz=1
+    nz=nn[2]-1
+  print("ix={}, nx={}".format(ix,nx))
+  print("iy={}, ny={}".format(iy,ny))
+  print("iz={}, nz={}".format(iz,nz))
   quat_new = N.zeros( (nn[2],nn[1],nn[0]), N.float32 )
-  for i in range(nx):
-    for j in range(ny):
-      for k in range(nz):
+  quat_new[:,:,:]=quat[:,:,:]
+  for i in range(ix,nx):
+    for j in range(iy,ny):
+      for k in range(iz,nz):
         quat_new[k,j,i] = 0.25*quat[k,j,i] \
                         + 0.125*(quat[(k-1)%nz,j,i]) \
                         + 0.125*(quat[(k+1)%nz,j,i]) \
@@ -336,7 +361,7 @@ for isp in range(nspecies):
 
 for it in range(3):
   for m in range(QLEN):
-    smoothQuat(quat[m,:,:,:])
+    smoothQuat(quat[m,:,:,:], options.periodicx, options.periodicy, options.periodicz)
 
 #-----------------------------------------------------------------------
 # Write data to file and close
