@@ -222,11 +222,11 @@ def smoothQuat(quat,px,py,pz):
 #fill conc values
 nspecies=0
 if ( not ( nomconc is None ) ):
-  c = map( float, string.split( options.nomconc, ',' ) )
+  c = list(map( float, options.nomconc.split(',' ) ))
   nspecies=len(c)
   print( "Nominal composition={}".format(c))
 if not(conc_inside is None):
-  ci = map( float, string.split( options.concentration_in, ',' ) )
+  ci = list(map( float, options.concentration_in.split(',' ) ))
   if nspecies==0:
     nspecies=len(ci)
   print( "Composition inside={}".format(ci))
@@ -234,7 +234,7 @@ else:
   ci = N.zeros( nspecies, N.float32 )
 
 if ( not ( conc_outside is None ) ):
-  co = map( float, string.split( options.concentration_out, ',' ) )
+  co = list(map( float, options.concentration_out.split(',' ) ))
   print( "Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
