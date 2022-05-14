@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 /*
  * This class is a high-level wrapper for a quaternion system
@@ -196,8 +172,10 @@ void QuatSysSolver::initializeSolverState(
     const int q_soln_id, const int q_rhs_id, const int weight_id,
     std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
-   TBOX_ASSERT(hierarchy);
+   assert(hierarchy);
    assert(q_soln_id >= 0);
+   assert(q_rhs_id >= 0);
+   assert(weight_id >= 0);
 
    if (d_bc_object == NULL) {
       TBOX_ERROR(d_object_name << ": No BC coefficient strategy object!\n"
@@ -207,18 +185,6 @@ void QuatSysSolver::initializeSolverState(
    }
 
    if (!d_solver_is_initialized) {
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (q_soln_id < 0 || q_rhs_id < 0 || weight_id < 0) {
-         TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
-      }
-#endif
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-      if (!hierarchy) {
-         TBOX_ERROR(d_object_name << ": NULL hierarchy pointer not allowed\n"
-                                  << "in inititialization.");
-      }
-#endif
       d_hierarchy = hierarchy;
 
       d_ln_min = 0;
@@ -277,14 +243,6 @@ void QuatSysSolver::deallocateSolverState()
       // Deallocate FAC preconditioner
       d_fac_solver.deallocateSolverState();
 
-      /*
-       * Delete internally managed data.
-       */
-      //    int ln;
-      //    for ( ln=d_ln_min; ln<=d_ln_max; ++ln ) {
-      //      d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_weight_id);
-      //    }
-
       d_hierarchy.reset();
       d_ln_min = -1;
       d_ln_max = -1;
@@ -299,13 +257,11 @@ void QuatSysSolver::setBoundaries(const std::string& boundary_type,
                                   const int fluxes, const int flags,
                                   int* bdry_types)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    if (d_bc_object != NULL && d_bc_object != &d_simple_bc) {
       TBOX_ERROR(d_object_name << ": Bad attempt to set boundary condition\n"
                                << "by using default bc object after it has "
                                   "been overriden.\n");
    }
-#endif
    d_simple_bc.setBoundaries(boundary_type, fluxes, flags, bdry_types);
    d_bc_object = &d_simple_bc;
    d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
@@ -462,9 +418,7 @@ void QuatSysSolver::createVectorWrappers(
     int q_u, int q_f, std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
     std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(d_weight_id != -1);
-#endif
 
    hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
    std::shared_ptr<hier::Variable> variable;

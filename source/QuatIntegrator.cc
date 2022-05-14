@@ -2762,20 +2762,23 @@ void QuatIntegrator::evaluateConcentrationRHS(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::evaluateQuatRHS(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy, const int quat_id,
-    const int quat_rhs_id, const bool visit_flag)
+    std::shared_ptr<hier::PatchHierarchy> hierarchy, const int quat_rhs_id,
+    const bool visit_flag)
 {
    assert(d_quat_sys_solver);
+   assert(d_quat_grad_side_id >= 0);
 
-   // tbox::pout<<"QuatIntegrator::evaluateQuatRHS()"<<endl;
+   // tbox::plog<<"QuatIntegrator::evaluateQuatRHS()"<<std::endl;
    int quat_symm_rotation_id =
        d_use_gradq_for_flux ? d_quat_symm_rotation_id : -1;
 
+   // compute RHS using the gradient of q at sides (d_quat_grad_side_id)
+   // computed with physical BC
    d_quat_sys_solver->evaluateRHS(d_epsilon_q, d_quat_grad_floor,
                                   d_quat_smooth_floor_type, d_quat_diffusion_id,
                                   d_quat_grad_side_id, d_quat_grad_side_copy_id,
                                   quat_symm_rotation_id, d_quat_mobility_id,
-                                  quat_id, quat_rhs_id, d_use_gradq_for_flux);
+                                  d_quat_scratch_id, quat_rhs_id, true);
 
 
    if (visit_flag && d_model_parameters.with_rhs_visit_output())
@@ -2810,7 +2813,7 @@ void QuatIntegrator::evaluateQuatRHS(
    // doesn't know about symmetry!
    if (d_symmetry_aware && !d_use_gradq_for_flux) {
       // tbox::pout<<"Correct r.h.s. for symmetry..."<<endl;
-      correctRhsForSymmetry(hierarchy, quat_id, quat_rhs_id);
+      correctRhsForSymmetry(hierarchy, d_quat_scratch_id, quat_rhs_id);
    }
 
    if (visit_flag && d_model_parameters.with_rhs_visit_output()) {
