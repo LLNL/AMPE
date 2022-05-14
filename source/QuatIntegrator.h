@@ -328,7 +328,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
       const int ydot_quat_id =
           y_dot_samvect->getComponentDescriptorIndex(d_quat_component_index);
 
-      evaluateQuatRHS(hierarchy, d_quat_scratch_id, ydot_quat_id, fd_flag == 0);
+      evaluateQuatRHS(hierarchy, ydot_quat_id, fd_flag == 0);
    }
 
    void evaluateTemperatureRHS(
@@ -583,8 +583,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                                const int temperature_rhs_id,
                                const bool visit_flag);
    void evaluateQuatRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
-                        const int quat_id, const int quat_rhs_id,
-                        const bool visit_flag);
+                        const int quat_rhs_id, const bool visit_flag);
 
    void correctRhsForSymmetry(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, const int,
