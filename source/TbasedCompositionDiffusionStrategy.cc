@@ -19,7 +19,7 @@
 #include "SAMRAI/pdat/SideData.h"
 
 #ifdef HAVE_THERMO4PFM
-using namespace Thermo4PFM;
+const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 #else
 using namespace ampe_thermo;
 #endif

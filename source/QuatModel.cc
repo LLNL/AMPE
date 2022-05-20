@@ -69,6 +69,11 @@ namespace pt = boost::property_tree;
 #include <set>
 #include <map>
 
+#ifdef HAVE_THERMO4PFM
+const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
+#else
+using namespace ampe_thermo;
+#endif
 
 const double um2tom2 = 1.e-12;
 
