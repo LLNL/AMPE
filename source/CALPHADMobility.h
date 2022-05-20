@@ -8,30 +8,6 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #ifndef included_CALPHADMobility
 #define included_CALPHADMobility
@@ -49,9 +25,9 @@ using namespace SAMRAI;
 #include <vector>
 
 #ifdef HAVE_THERMO4PFM
-using namespace Thermo4PFM;
+const double gas_constant = GASCONSTANT_R_JPKPMOL;
 #else
-using namespace ampe_thermo;
+const double gas_constant = ampe_thermo::gas_constant_R_JpKpmol;
 #endif
 
 // to store coefficients of linear polynomial
@@ -77,8 +53,8 @@ class CALPHADMobility
       assert(isp0 < (unsigned short)d_q.size());
       assert(d_q[isp0].second > 0.);
 
-      double val = d_q[isp0].first +
-                   gas_constant_R_JpKpmol * temperature * log(d_q[isp0].second);
+      double val =
+          d_q[isp0].first + gas_constant * temperature * log(d_q[isp0].second);
 
       if (!d_q_extra.empty()) {
          val += d_q_extra[isp0].first * temperature * log(temperature) +
@@ -92,8 +68,8 @@ class CALPHADMobility
    {
       assert(d_qq0[isp0][isp1].second > 0.);
 
-      return d_qq0[isp0][isp1].first + gas_constant_R_JpKpmol * temperature *
-                                           log(d_qq0[isp0][isp1].second);
+      return d_qq0[isp0][isp1].first +
+             gas_constant * temperature * log(d_qq0[isp0][isp1].second);
    }
 
    double getQQ1(const unsigned short isp0, const unsigned short isp1,
@@ -101,8 +77,8 @@ class CALPHADMobility
    {
       assert(d_qq1[isp0][isp1].second > 0.);
 
-      return d_qq1[isp0][isp1].first + gas_constant_R_JpKpmol * temperature *
-                                           log(d_qq1[isp0][isp1].second);
+      return d_qq1[isp0][isp1].first +
+             gas_constant * temperature * log(d_qq1[isp0][isp1].second);
    }
 
    double getQQ2(const unsigned short isp0, const unsigned short isp1,
@@ -110,8 +86,8 @@ class CALPHADMobility
    {
       assert(d_qq2[isp0][isp1].second > 0.);
 
-      return d_qq2[isp0][isp1].first + gas_constant_R_JpKpmol * temperature *
-                                           log(d_qq2[isp0][isp1].second);
+      return d_qq2[isp0][isp1].first +
+             gas_constant * temperature * log(d_qq2[isp0][isp1].second);
    }
 
    double getQQ3(const unsigned short isp0, const unsigned short isp1,
@@ -119,8 +95,8 @@ class CALPHADMobility
    {
       assert(d_qq3[isp0][isp1].second > 0.);
 
-      return d_qq3[isp0][isp1].first + gas_constant_R_JpKpmol * temperature *
-                                           log(d_qq3[isp0][isp1].second);
+      return d_qq3[isp0][isp1].first +
+             gas_constant * temperature * log(d_qq3[isp0][isp1].second);
    }
 
    double getDeltaG(const double c0, const double c1, const double temp) const;
@@ -144,7 +120,7 @@ class CALPHADMobility
       assert(c1 <= 1.);
 
       const double dG = getDeltaG(c0, c1, temp);
-      const double rtinv = 1. / (gas_constant_R_JpKpmol * temp);
+      const double rtinv = 1. / (gas_constant * temp);
       return exp(dG * rtinv) * rtinv;
    }
 
@@ -154,7 +130,7 @@ class CALPHADMobility
       assert(temp > 0.);
 
       const double dG = getDeltaG(c0, c1, c2, temp);
-      const double rtinv = 1. / (gas_constant_R_JpKpmol * temp);
+      const double rtinv = 1. / (gas_constant * temp);
       return exp(dG * rtinv) * rtinv;
    }
 
