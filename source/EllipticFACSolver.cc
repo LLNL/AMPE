@@ -49,12 +49,6 @@ EllipticFACSolver::EllipticFACSolver(
       d_enable_logging(false),
       d_verbose(false)
 {
-   std::shared_ptr<pdat::CellVariable<double> > vol_var(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                      object_name + "::weight"));
-   d_vol_id = hier::VariableDatabase::getDatabase()->registerVariableAndContext(
-       vol_var, d_context, hier::IntVector(tbox::Dimension(NDIM), 0));
-
    /*
     * The FAC operator optionally uses the preconditioner
     * to get data for logging.
@@ -155,13 +149,6 @@ void EllipticFACSolver::initializeSolverState(
       }
 #endif
 
-      for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-         d_hierarchy->getPatchLevel(ln)->allocatePatchData(d_vol_id);
-      }
-
-      d_fac_ops->computeVectorWeights(d_hierarchy, d_vol_id, d_ln_min,
-                                      d_ln_max);
-
       createVectorWrappers(solution, rhs);
 
       d_fac_precond.initializeSolverState(*d_uv, *d_fv);
@@ -191,14 +178,6 @@ void EllipticFACSolver::deallocateSolverState()
    if (d_hierarchy) {
 
       d_fac_precond.deallocateSolverState();
-
-      /*
-       * Delete internally managed data.
-       */
-      int ln;
-      for (ln = d_ln_min; ln <= d_ln_max; ++ln) {
-         d_hierarchy->getPatchLevel(ln)->deallocatePatchData(d_vol_id);
-      }
 
       d_hierarchy.reset();
       d_ln_min = -1;
@@ -353,6 +332,8 @@ bool EllipticFACSolver::solveSystem(
 
 void EllipticFACSolver::createVectorWrappers(int u, int f)
 {
+   // vol_id=-1 sets SAMRAIVectorReal without control volume array
+   int vol_id = -1;
 
    hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
    std::shared_ptr<hier::Variable> variable;
@@ -375,7 +356,7 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
                                   << " is not a cell-double variable.\n");
       }
 #endif
-      d_uv->addComponent(variable, u, d_vol_id);
+      d_uv->addComponent(variable, u, vol_id);
    }
 
    if (!d_fv || d_fv->getComponentDescriptorIndex(0) != f) {
@@ -396,7 +377,7 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
                                   << " is not a cell-double variable.\n");
       }
 #endif
-      d_fv->addComponent(variable, f, d_vol_id);
+      d_fv->addComponent(variable, f, vol_id);
    }
 }
 
