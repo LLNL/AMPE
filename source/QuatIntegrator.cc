@@ -1828,7 +1828,7 @@ void QuatIntegrator::resetSolversState(
    if (d_evolve_quat) {
       assert(d_quat_sys_solver);
       d_quat_sys_solver->resetSolverState(d_quat_sol_id, d_quat_rhs_id,
-                                          d_weight_id, hierarchy);
+                                          hierarchy);
    }
 
 
@@ -1963,7 +1963,7 @@ void QuatIntegrator::initializeSolvers(
    if (d_evolve_quat) {
       assert(d_quat_sys_solver);
       d_quat_sys_solver->initializeSolverState(d_quat_sol_id, d_quat_rhs_id,
-                                               d_weight_id, hierarchy);
+                                               hierarchy);
    }
 }
 

@@ -169,13 +169,12 @@ void QuatSysSolver::getFromInput(
  *                                                                       *
  *************************************************************************/
 void QuatSysSolver::initializeSolverState(
-    const int q_soln_id, const int q_rhs_id, const int weight_id,
+    const int q_soln_id, const int q_rhs_id,
     std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(hierarchy);
    assert(q_soln_id >= 0);
    assert(q_rhs_id >= 0);
-   assert(weight_id >= 0);
 
    if (d_bc_object == NULL) {
       TBOX_ERROR(d_object_name << ": No BC coefficient strategy object!\n"
@@ -209,8 +208,6 @@ void QuatSysSolver::initializeSolverState(
          d_simple_bc.setHierarchy(d_hierarchy, d_ln_min, d_ln_max);
       }
 
-      d_weight_id = weight_id;
-
       // Wrap the temporary std::vectors
       createVectorWrappers(q_soln_id, q_rhs_id, d_uv, d_fv);
 
@@ -223,15 +220,14 @@ void QuatSysSolver::initializeSolverState(
 
 
 void QuatSysSolver::resetSolverState(
-    const int q_soln_id, const int q_rhs_id, const int weight_id,
+    const int q_soln_id, const int q_rhs_id,
     const std::shared_ptr<hier::PatchHierarchy> hierarchy)
 {
    assert(q_soln_id != -1);
-   assert(weight_id != -1);
 
    if (d_solver_is_initialized) {
       deallocateSolverState();
-      initializeSolverState(q_soln_id, q_rhs_id, weight_id, hierarchy);
+      initializeSolverState(q_soln_id, q_rhs_id, hierarchy);
    }
 }
 
@@ -301,8 +297,6 @@ void QuatSysSolver::setOperatorCoefficients(
 bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 {
    t_solve_system->start();
-
-   assert(d_weight_id != -1);
 
    std::shared_ptr<solv::SAMRAIVectorReal<double> > solution;
    solution.reset();
@@ -418,7 +412,7 @@ void QuatSysSolver::createVectorWrappers(
     int q_u, int q_f, std::shared_ptr<solv::SAMRAIVectorReal<double> >& uv,
     std::shared_ptr<solv::SAMRAIVectorReal<double> >& fv)
 {
-   assert(d_weight_id != -1);
+   int weight_id = -1;  // no control volume associated with SAMRAIVectorReal
 
    hier::VariableDatabase& vdb(*hier::VariableDatabase::getDatabase());
    std::shared_ptr<hier::Variable> variable;
@@ -445,7 +439,7 @@ void QuatSysSolver::createVectorWrappers(
                                   << " is not a cell-double variable.\n");
       }
 #endif
-      uv->addComponent(variable, q_u, d_weight_id);
+      uv->addComponent(variable, q_u, weight_id);
    }
 
 
@@ -471,7 +465,7 @@ void QuatSysSolver::createVectorWrappers(
                                   << " is not a cell-double variable.\n");
       }
 #endif
-      fv->addComponent(variable, q_f, d_weight_id);
+      fv->addComponent(variable, q_f, weight_id);
    }
 }
 
