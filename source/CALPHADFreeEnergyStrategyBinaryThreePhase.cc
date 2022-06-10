@@ -622,17 +622,20 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType>::
             //                         ", muB=" << muB
             //                         << std::endl;
             //            }
-            ptr_rhs0[idx_rhs] -= (dg0dp0(phi0, phi1, phi2) * (fl - mu * cl) +
-                                  dg0dp1(phi1, phi0, phi2) * (fa - mu * ca) +
-                                  dg0dp1(phi2, phi0, phi1) * (fb - mu * cb));
+            ptr_rhs0[idx_rhs] -=
+                (dg0dp0_soft_heaviside(phi0, phi1, phi2) * (fl - mu * cl) +
+                 dg0dp1_soft_heaviside(phi1, phi0, phi2) * (fa - mu * ca) +
+                 dg0dp1_soft_heaviside(phi2, phi0, phi1) * (fb - mu * cb));
 
-            ptr_rhs1[idx_rhs] -= (dg0dp0(phi1, phi0, phi2) * (fa - mu * ca) +
-                                  dg0dp1(phi0, phi1, phi2) * (fl - mu * cl) +
-                                  dg0dp1(phi2, phi1, phi0) * (fb - mu * cb));
+            ptr_rhs1[idx_rhs] -=
+                (dg0dp0_soft_heaviside(phi1, phi0, phi2) * (fa - mu * ca) +
+                 dg0dp1_soft_heaviside(phi0, phi1, phi2) * (fl - mu * cl) +
+                 dg0dp1_soft_heaviside(phi2, phi1, phi0) * (fb - mu * cb));
 
-            ptr_rhs2[idx_rhs] -= (dg0dp0(phi2, phi1, phi0) * (fb - mu * cb) +
-                                  dg0dp1(phi1, phi2, phi0) * (fa - mu * ca) +
-                                  dg0dp1(phi0, phi2, phi1) * (fl - mu * cl));
+            ptr_rhs2[idx_rhs] -=
+                (dg0dp0_soft_heaviside(phi2, phi1, phi0) * (fb - mu * cb) +
+                 dg0dp1_soft_heaviside(phi1, phi2, phi0) * (fa - mu * ca) +
+                 dg0dp1_soft_heaviside(phi0, phi2, phi1) * (fl - mu * cl));
          }
       }
    }

@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
    cout << "Test 3 phases interpolation functions..." << endl;
 
    const double tol = 1.e-8;
+   cout << "tol = " << tol << endl;
 
    {
       double val = g0(1., 0., 0.);
@@ -63,6 +64,39 @@ int main(int argc, char *argv[])
       deriv0 = (val1 - val0) / eps;
       deriv1 = dg0dp1(p0, p1, p2);
       cerr << "FD deriv=" << deriv0 << ", Analytical deriv=" << deriv1
+           << std::endl;
+      if (fabs(deriv1 - deriv0) > tol) {
+         return 1;
+      }
+   }
+
+   /*
+    * Derivatives composed with soft Heaviside function
+    */
+   cout << "Compose interpolation functions with Heaviside..." << endl;
+   {
+      double p0 = 0.15;
+      double p1 = 0.30;
+      double p2 = 0.55;
+      // compare with finite difference
+      double eps = 1.e-8;
+      double val0 = g0_soft_heaviside(p0, p1, p2);
+      double val1 =
+          g0_soft_heaviside(p0 + 2. * eps / 3., p1 - eps / 3., p2 - eps / 3.);
+      double deriv0 = (val1 - val0) / eps;
+      double deriv1 = dg0dp0_soft_heaviside(p0, p1, p2);
+      cerr << "dg0dp0: FD deriv=" << deriv0 << ", Analytical deriv=" << deriv1
+           << std::endl;
+      if (fabs(deriv1 - deriv0) > tol) {
+         //         return 1;
+      }
+
+      val0 = g0_soft_heaviside(p0, p1, p2);
+      val1 =
+          g0_soft_heaviside(p0 - eps / 3., p1 + 2. * eps / 3., p2 - eps / 3.);
+      deriv0 = (val1 - val0) / eps;
+      deriv1 = dg0dp1_soft_heaviside(p0, p1, p2);
+      cerr << "dg0dp1: FD deriv=" << deriv0 << ", Analytical deriv=" << deriv1
            << std::endl;
       if (fabs(deriv1 - deriv0) > tol) {
          return 1;
