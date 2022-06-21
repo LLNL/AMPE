@@ -26,6 +26,7 @@
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
+#include "TiltingFolchPlapp2005.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -82,7 +83,8 @@ class FreeEnergyStrategyFactory
                                 << std::endl;
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                             TiltingFolchPlapp2005>(
                              calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),
@@ -93,7 +95,8 @@ class FreeEnergyStrategyFactory
                                 << std::endl;
                      free_energy_strategy.reset(
                          new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                             CALPHADFreeEnergyFunctionsBinaryThreePhase>(
+                             CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                             TiltingFolchPlapp2005>(
                              calphad_pt, newton_db,
                              model_parameters.energy_interp_func_type(),
                              model_parameters.conc_interp_func_type(),

@@ -56,7 +56,7 @@ add_executable(testInterpolation
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 add_executable(test3PhasesInterpolation
                ${CMAKE_SOURCE_DIR}/tests/test3PhasesInterpolationFunctions.cc
-               ${CMAKE_SOURCE_DIR}/source/interpolation.cc )
+               ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc )
 add_executable(testHyprePoisson
                ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/HyprePoisson.cc
