@@ -37,7 +37,11 @@ using namespace SAMRAI;
 //=======================================================================
 
 CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
+#ifdef HAVE_THERMO4PFM
+    pt::ptree calphad_db,
+#else
     std::shared_ptr<tbox::Database> calphad_db,
+#endif
     std::shared_ptr<tbox::Database> newton_db,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
@@ -67,14 +71,16 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 //=======================================================================
 
 void CALPHADFreeEnergyStrategyBinary::setup(
+#ifdef HAVE_THERMO4PFM
+    pt::ptree calphad_pt,
+#else
     std::shared_ptr<tbox::Database> calphad_db,
+#endif
     std::shared_ptr<tbox::Database> newton_db)
 {
 #ifdef HAVE_THERMO4PFM
-   pt::ptree calphad_pt;
-   copyDatabase(calphad_db, calphad_pt);
    pt::ptree newton_pt;
-   copyDatabase(newton_db, newton_pt);
+   if (newton_db) copyDatabase(newton_db, newton_pt);
    d_calphad_fenergy =
        new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
                                             d_energy_interp_func_type,

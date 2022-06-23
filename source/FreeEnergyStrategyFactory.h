@@ -64,6 +64,7 @@ class FreeEnergyStrategyFactory
                           << calphad_filename << std::endl;
                tbox::InputManager::getManager()->parseInputFile(
                    calphad_filename, calphad_db);
+               copyDatabase(calphad_db, calphad_pt);
             }
 
             std::shared_ptr<tbox::Database> newton_db;
@@ -107,8 +108,12 @@ class FreeEnergyStrategyFactory
 #endif
                   free_energy_strategy.reset(
                       new CALPHADFreeEnergyStrategyBinary(
-                          calphad_db, newton_db,
-                          model_parameters.energy_interp_func_type(),
+#ifdef HAVE_THERMO4PFM
+                          calphad_pt,
+#else
+                       calphad_db,
+#endif
+                          newton_db, model_parameters.energy_interp_func_type(),
                           model_parameters.conc_interp_func_type(), mvstrategy,
                           conc_l_scratch_id, conc_a_scratch_id,
                           conc_b_scratch_id,

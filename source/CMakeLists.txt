@@ -175,7 +175,8 @@ else()
   add_executable(${MAIN} ${SOURCES}
                          ${SOURCES_WPENALTY}
                          ${SOURCES_FORTRAN}
-                         ${SOURCES_FORTRAN_DIM})
+                         ${SOURCES_FORTRAN_DIM}
+                         ${SOURCES_Database2JSON})
 endif(${USE_THERMO4PFM})
 
 if(${USE_THERMO4PFM})

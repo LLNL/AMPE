@@ -17,6 +17,7 @@
 #include "HBSMequilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
+#include "Database2JSON.h"
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
@@ -39,8 +40,9 @@ class PhaseConcentrationsStrategyFactory
        const int ncompositions, std::shared_ptr<tbox::Database> conc_db,
        std::shared_ptr<tbox::Database> newton_db)
    {
-      std::shared_ptr<tbox::MemoryDatabase> calphad_db;
       boost::property_tree::ptree calphad_pt;
+      std::shared_ptr<tbox::MemoryDatabase> calphad_db;
+
       if (model_parameters.isConcentrationModelCALPHAD()) {
          std::shared_ptr<tbox::Database> db(conc_db->getDatabase("Calphad"));
          std::string calphad_filename = db->getString("filename");
@@ -52,6 +54,7 @@ class PhaseConcentrationsStrategyFactory
             calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
             tbox::InputManager::getManager()->parseInputFile(calphad_filename,
                                                              calphad_db);
+            copyDatabase(calphad_db, calphad_pt);
          }
       }
 
@@ -98,7 +101,12 @@ class PhaseConcentrationsStrategyFactory
                           conc_b_ref_id,
                           model_parameters.energy_interp_func_type(),
                           model_parameters.conc_interp_func_type(),
-                          model_parameters.with_third_phase(), calphad_db,
+                          model_parameters.with_third_phase(),
+#ifdef HAVE_THERMO4PFM
+                          calphad_pt,
+#else
+                          calphad_db,
+#endif
                           newton_db, ncompositions));
                }
             } else if (ncompositions == 2)
@@ -109,7 +117,12 @@ class PhaseConcentrationsStrategyFactory
                        conc_l_ref_id, conc_a_ref_id, conc_b_ref_id,
                        model_parameters.energy_interp_func_type(),
                        model_parameters.conc_interp_func_type(),
-                       model_parameters.with_third_phase(), calphad_db,
+                       model_parameters.with_third_phase(),
+#ifdef HAVE_THERMO4PFM
+                       calphad_pt,
+#else
+                       calphad_db,
+#endif
                        newton_db, ncompositions));
 
          } else if (model_parameters.isConcentrationModelKKSdilute()) {

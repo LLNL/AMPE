@@ -31,7 +31,11 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 {
  public:
    CALPHADFreeEnergyStrategyBinary(
+#ifdef HAVE_THERMO4PFM
+       boost::property_tree::ptree calphad_db,
+#else
        std::shared_ptr<tbox::Database> input_db,
+#endif
        std::shared_ptr<tbox::Database> newton_db,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
@@ -40,8 +44,13 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    virtual ~CALPHADFreeEnergyStrategyBinary() { delete d_calphad_fenergy; };
 
-   virtual void setup(std::shared_ptr<tbox::Database> calphad_db,
-                      std::shared_ptr<tbox::Database> newton_db);
+   virtual void setup(
+#ifdef HAVE_THERMO4PFM
+       boost::property_tree::ptree calphad_db,
+#else
+       std::shared_ptr<tbox::Database> calphad_db,
+#endif
+       std::shared_ptr<tbox::Database> newton_db);
 
    void computeDerivFreeEnergyLiquid(hier::Patch& patch,
                                      const int temperature_id, const int fl_id);
