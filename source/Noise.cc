@@ -83,7 +83,7 @@ void Noise::setField(std::shared_ptr<hier::Patch> patch, const int data_id,
       for (int jj = imin[1]; jj <= imax[1]; jj++) {
          for (int ii = imin[0]; ii <= imax[0]; ii++) {
 
-            ptr_data[idx] +=
+            ptr_data[idx] =
                 gen() * 4. * ptr_phi[idx_phi] * (1. - ptr_phi[idx_phi]);
             idx++;
             idx_phi++;

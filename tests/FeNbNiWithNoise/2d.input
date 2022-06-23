@@ -26,7 +26,11 @@ ModelParameters {
 
    epsilon_phi = 0.0693   // [(pJ/um)^1/2]
 
-   noise_amplitude = 0.6723
+   // Tourret, Karma 2015 use 0.01 for dx=1 um
+   // dx=0.05 um here
+   // in addition they have a factor (1-p)/2
+   // so 0.01*(1./0.05)/2=0.1
+   noise_amplitude = 0.1
 
    phi_mobility_type = "kim"
 
@@ -38,6 +42,7 @@ ModelParameters {
    diffusion_interp_func_type = "l"
 
    Temperature {
+      type = "frozen"
       temperature    = 1615. // [K]
       dtemperaturedt = -2.6e5 // K/s
       center =   0., 0.
