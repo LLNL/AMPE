@@ -34,19 +34,13 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
        const int conc_b_ref_id,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
-       const bool with_third_phase, std::shared_ptr<tbox::Database> calphad_db,
-       std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
-
+       const bool with_third_phase,
 #ifdef HAVE_THERMO4PFM
-   CALPHADequilibriumPhaseConcentrationsStrategy(
-       const int conc_l_id, const int conc_a_id, const int conc_b_id,
-       const int conc_l_ref_id, const int conc_a_ref_id,
-       const int conc_b_ref_id,
-       const EnergyInterpolationType energy_interp_func_type,
-       const ConcInterpolationType conc_interp_func_type,
-       const bool with_third_phase, boost::property_tree::ptree calphad_pt,
-       std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
+       boost::property_tree::ptree calphad_pt,
+#else
+       std::shared_ptr<tbox::Database> calphad_db,
 #endif
+       std::shared_ptr<tbox::Database> newton_d, const unsigned ncompositions);
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
 
