@@ -27,6 +27,8 @@
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
 #include "TiltingFolchPlapp2005.h"
+#include "TiltingMoelans2011.h"
+#include "thermo/InterpolationType.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -82,27 +84,53 @@ class FreeEnergyStrategyFactory
                   if (subl) {
                      tbox::plog << "CALPHADFreeEnergyFunctionsBinary3Ph2Sl"
                                 << std::endl;
-                     free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                             CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
-                             TiltingFolchPlapp2005>(
-                             calphad_pt, newton_db,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id));
+                     if (model_parameters
+                             .energy_three_args_interp_func_type() ==
+                         EnergyThreeArgsInterpolationType::MOELANS2011)
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                                TiltingMoelans2011>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     else
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                CALPHADFreeEnergyFunctionsBinary3Ph2Sl,
+                                TiltingFolchPlapp2005>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
                   } else {
                      tbox::plog << "CALPHADFreeEnergyFunctionsBinaryThreePhase"
                                 << std::endl;
-                     free_energy_strategy.reset(
-                         new CALPHADFreeEnergyStrategyBinaryThreePhase<
-                             CALPHADFreeEnergyFunctionsBinaryThreePhase,
-                             TiltingFolchPlapp2005>(
-                             calphad_pt, newton_db,
-                             model_parameters.energy_interp_func_type(),
-                             model_parameters.conc_interp_func_type(),
-                             mvstrategy, conc_l_scratch_id, conc_a_scratch_id,
-                             conc_b_scratch_id));
+                     if (model_parameters
+                             .energy_three_args_interp_func_type() ==
+                         EnergyThreeArgsInterpolationType::MOELANS2011)
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                TiltingMoelans2011>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
+                     else  // default
+                        free_energy_strategy.reset(
+                            new CALPHADFreeEnergyStrategyBinaryThreePhase<
+                                CALPHADFreeEnergyFunctionsBinaryThreePhase,
+                                TiltingFolchPlapp2005>(
+                                calphad_pt, newton_db,
+                                model_parameters.energy_interp_func_type(),
+                                model_parameters.conc_interp_func_type(),
+                                mvstrategy, conc_l_scratch_id,
+                                conc_a_scratch_id, conc_b_scratch_id));
                   }
                } else
 #endif

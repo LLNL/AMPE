@@ -85,6 +85,10 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_orient_interp_func_type = "";
    d_conc_interp_func_type = ConcInterpolationType::UNDEFINED;
    d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
+   d_conc_three_args_interp_func_type =
+       ConcThreeArgsInterpolationType::UNDEFINED;
+   d_energy_three_args_interp_func_type =
+       EnergyThreeArgsInterpolationType::UNDEFINED;
    d_diffusion_interp_type = DiffusionInterpolationType::UNDEFINED;
    d_eta_well_func_type = "";
    d_eta_interp_func_type = EnergyInterpolationType::UNDEFINED;
@@ -823,6 +827,45 @@ void QuatModelParameters::readModelParameters(
                        << std::endl;
             TBOX_ERROR("Error: invalid conc_interp_func_type!!!");
       }
+   }
+
+   std::string energy_three_args_interp_func_type =
+       model_db->getStringWithDefault("energy_three_args_interp_func_type",
+                                      "F");
+   switch (energy_three_args_interp_func_type[0]) {
+      case 'm':
+      case 'M':
+         d_energy_three_args_interp_func_type =
+             EnergyThreeArgsInterpolationType::MOELANS2011;
+         break;
+      case 'f':
+      case 'F':
+         d_energy_three_args_interp_func_type =
+             EnergyThreeArgsInterpolationType::FOLCHPLAPP2005;
+         break;
+      default:
+         tbox::pout << "energy_three_args_interp_func_type = "
+                    << energy_three_args_interp_func_type << std::endl;
+         TBOX_ERROR("Error: invalid energy_three_args_interp_func_type!!!");
+   }
+
+   std::string conc_three_args_interp_func_type =
+       model_db->getStringWithDefault("conc_three_args_interp_func_type", "F");
+   switch (conc_three_args_interp_func_type[0]) {
+      case 'm':
+      case 'M':
+         d_conc_three_args_interp_func_type =
+             ConcThreeArgsInterpolationType::MOELANS2011;
+         break;
+      case 'f':
+      case 'F':
+         d_conc_three_args_interp_func_type =
+             ConcThreeArgsInterpolationType::FOLCHPLAPP2005;
+         break;
+      default:
+         tbox::pout << "conc_three_args_interp_func_type = "
+                    << conc_three_args_interp_func_type << std::endl;
+         TBOX_ERROR("Error: invalid conc_three_args_interp_func_type!!!");
    }
 
    std::string diffusion_interp_type =

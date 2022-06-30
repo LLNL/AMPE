@@ -8,21 +8,16 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-//
-#ifndef InterpolationType_H
-#define InterpolationType_H
 
-namespace ampe_thermo
+#ifndef included_TiltingMoelans2011
+#define included_TiltingMoelans2011
+
+class TiltingMoelans2011
 {
-
-enum class ConcInterpolationType { LINEAR, PBG, HARMONIC, UNDEFINED };
-
-enum class EnergyInterpolationType { LINEAR, PBG, HARMONIC, UNDEFINED };
-
-
-char energyInterpChar(EnergyInterpolationType interp_func_type);
-char concInterpChar(ConcInterpolationType interp_func_type);
-
-}  // namespace ampe_thermo
+ public:
+   static double g0(const double p0, const double p1, const double p2);
+   static double dg0dp0(const double p0, const double p1, const double p2);
+   static double dg0dp1(const double p0, const double p1, const double p2);
+};
 
 #endif
