@@ -60,6 +60,8 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
    int d_conc_b_ref_id;
 
    std::unique_ptr<FreeEnergyType> d_calphad_fenergy;
+
+   const ConcInterpolationType d_conc_interp_func_type;
 };
 
 #endif

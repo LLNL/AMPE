@@ -16,6 +16,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "MolarVolumeStrategy.h"
 #include "TiltingFolchPlapp2005.h"
+#include "TiltingMoelans2011.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include "Database2JSON.h"
@@ -757,5 +758,9 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
     CALPHADFreeEnergyFunctionsBinaryThreePhase, TiltingFolchPlapp2005>;
 template class CALPHADFreeEnergyStrategyBinaryThreePhase<
+    CALPHADFreeEnergyFunctionsBinaryThreePhase, TiltingMoelans2011>;
+template class CALPHADFreeEnergyStrategyBinaryThreePhase<
     CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingFolchPlapp2005>;
+template class CALPHADFreeEnergyStrategyBinaryThreePhase<
+    CALPHADFreeEnergyFunctionsBinary3Ph2Sl, TiltingMoelans2011>;
 #endif

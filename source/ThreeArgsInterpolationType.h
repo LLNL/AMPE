@@ -9,20 +9,19 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef InterpolationType_H
-#define InterpolationType_H
+#ifndef ThreeArgsInterpolationType_H
+#define ThreeArgsInterpolationType_H
 
-namespace ampe_thermo
-{
+enum class ConcThreeArgsInterpolationType {
+   FOLCHPLAPP2005,
+   MOELANS2011,
+   UNDEFINED
+};
 
-enum class ConcInterpolationType { LINEAR, PBG, HARMONIC, UNDEFINED };
-
-enum class EnergyInterpolationType { LINEAR, PBG, HARMONIC, UNDEFINED };
-
-
-char energyInterpChar(EnergyInterpolationType interp_func_type);
-char concInterpChar(ConcInterpolationType interp_func_type);
-
-}  // namespace ampe_thermo
+enum class EnergyThreeArgsInterpolationType {
+   FOLCHPLAPP2005,
+   MOELANS2011,
+   UNDEFINED
+};
 
 #endif
