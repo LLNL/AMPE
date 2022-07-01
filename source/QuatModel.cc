@@ -10,7 +10,6 @@
 // Please also read AMPE/LICENSE.
 //
 #include "QuatModel.h"
-#include "ApplyPolynomial.h"
 #include "QuatIntegrator.h"
 #include "SimpleGradStrategy.h"
 #include "SimpleQuatGradStrategy.h"
@@ -47,6 +46,7 @@
 #include "FuncFort.h"
 #include "diagnostics.h"
 #include "FieldsWriter.h"
+#include "TwoPhasesEnergyEvaluationStrategy.h"
 
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
@@ -762,6 +762,11 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    InitializeIntegrator();
 
    copyCurrentToScratch(d_patch_hierarchy, d_time, d_all_refine_patch_strategy);
+
+   d_energy_eval_strategy.reset(new TwoPhasesEnergyEvaluationStrategy(
+       d_model_parameters, d_qlen, d_phase_scratch_id, d_quat_scratch_id,
+       d_quat_grad_side_id, d_weight_id, d_f_l_id, d_f_a_id, d_temperature_id,
+       d_energy_diag_id));
 }
 
 //=======================================================================
@@ -5283,191 +5288,12 @@ void QuatModel::evaluateEnergy(
       }
    }
 
-   const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
-   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
-
-   const int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-
-      std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
-           ++p) {
-
-         std::shared_ptr<hier::Patch> patch = *p;
-         std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-             SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                    hier::PatchGeometry>(
-                 patch->getPatchGeometry()));
-         TBOX_ASSERT(patch_geom);
-
-         const double* dx = patch_geom->getDx();
-
-         const hier::Box& pbox = patch->getBox();
-         const hier::Index& ifirst = pbox.lower();
-         const hier::Index& ilast = pbox.upper();
-
-         double* pgrad_quat[NDIM];
-         if (d_model_parameters.with_orientation()) {
-            std::shared_ptr<pdat::SideData<double> > grad_quat(
-                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                    patch->getPatchData(d_quat_grad_side_id)));
-            assert(grad_quat);
-            assert(grad_quat->getGhostCellWidth() ==
-                   hier::IntVector(tbox::Dimension(NDIM), 0));
-            for (int d = 0; d < NDIM; d++) {
-               pgrad_quat[d] = grad_quat->getPointer(d);
-            }
-#ifdef DEBUG_CHECK_ASSERTIONS
-            SAMRAI::math::PatchSideDataNormOpsReal<double> sops;
-            double l2gq = sops.L2Norm(grad_quat, pbox);
-            assert(l2gq == l2gq);
-#endif
-         } else {
-            for (int d = 0; d < NDIM; d++) {
-               pgrad_quat[d] = nullptr;
-            }
-         }
-
-         if (d_model_parameters.with_phase()) {
-
-            std::shared_ptr<pdat::CellData<double> > phase(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_phase_scratch_id)));
-            std::shared_ptr<pdat::CellData<double> > weight(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_weight_id)));
-            std::shared_ptr<pdat::CellData<double> > fl(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_f_l_id)));
-            std::shared_ptr<pdat::CellData<double> > fa(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_f_a_id)));
-            std::shared_ptr<pdat::CellData<double> > temperature(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_temperature_id)));
-
-            double* quat_ptr = nullptr;
-            if (epsilon_anisotropy >= 0.) {
-               std::shared_ptr<pdat::CellData<double> > quat(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_quat_scratch_id)));
-               quat_ptr = quat->getPointer();
-               assert(quat_ptr != nullptr);
-            }
-
-            assert(phase);
-            assert(weight);
-            assert(fl);
-            assert(fa);
-
-#ifdef DEBUG_CHECK_ASSERTIONS
-            SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
-            double l2phi = ops.L2Norm(phase, pbox);
-            assert(l2phi == l2phi);
-
-            double l2t = ops.L2Norm(temperature, pbox);
-            assert(l2t == l2t);
-
-            double l2fl = ops.L2Norm(fl, pbox);
-            assert(l2fl == l2fl);
-
-            double l2fa = ops.L2Norm(fa, pbox);
-            assert(l2fa == l2fa);
-#endif
-
-            int third_phase = 0;
-            double* ptr_fb = nullptr;
-            double* ptr_eta = nullptr;
-            if (d_model_parameters.with_three_phases()) {
-               std::shared_ptr<pdat::CellData<double> > fb(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_f_b_id)));
-               ptr_fb = fb->getPointer();
-            }
-            if (d_model_parameters.with_third_phase()) {
-               third_phase = 1;
-               std::shared_ptr<pdat::CellData<double> > eta(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_eta_scratch_id)));
-               ptr_eta = eta->getPointer();
-            }
-
-            int per_cell = 0;
-            double* ptr_energy = nullptr;
-            if (d_model_parameters.with_visit_energy_output()) {
-               per_cell = 1;
-               std::shared_ptr<pdat::CellData<double> > energy(
-                   SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
-                                          hier::PatchData>(
-                       patch->getPatchData(d_energy_diag_id)));
-               ptr_energy = energy->getPointer();
-            }
-
-            assert(phase->getGhostCellWidth() ==
-                   hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-            assert(weight->getGhostCellWidth() ==
-                   hier::IntVector(tbox::Dimension(NDIM), 0));
-#if (NDIM == 3)
-            if (d_model_parameters.with_orientation())
-               assert(pgrad_quat[2] != nullptr);
-#endif
-
-            const char interpf =
-                energyInterpChar(d_model_parameters.energy_interp_func_type());
-            const char interpe =
-                energyInterpChar(d_model_parameters.eta_interp_func_type());
-
-            QUATENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       d_qlen, dx, pgrad_quat[0], pgrad_quat[1],
-#if (NDIM == 3)
-                       pgrad_quat[2],
-#endif
-                       0, phase->getPointer(), NGHOSTS, nphases, ptr_eta,
-                       NGHOSTS, quat_ptr, NGHOSTS,
-                       d_model_parameters.epsilon_phase(),
-                       d_model_parameters.epsilon_eta(),
-                       d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
-                       2. * d_model_parameters.H_parameter(),
-                       temperature->getPointer(),
-                       temperature->getGhostCellWidth()[0],
-                       d_model_parameters.phase_well_scale(),
-                       d_model_parameters.eta_well_scale(), fl->getPointer(),
-                       fa->getPointer(), ptr_fb, third_phase,
-                       weight->getPointer(), total_energy, total_phase_e,
-                       total_eta_e, total_orient_e, total_qint_e, total_well_e,
-                       total_free_e, ptr_energy, per_cell, &interpf, &interpe,
-                       d_model_parameters.phase_well_func_type().c_str(),
-                       d_model_parameters.eta_well_func_type().c_str(),
-                       d_model_parameters.orient_interp_func_type().c_str(),
-                       d_model_parameters.avg_func_type().c_str(),
-                       d_model_parameters.quat_grad_floor_type().c_str(),
-                       d_model_parameters.quat_grad_floor());
-         }  // with_phase
-      }
-   }
-
-   total_energy = sumReduction(total_energy);
-   total_phase_e = sumReduction(total_phase_e);
-   total_orient_e = sumReduction(total_orient_e);
-   total_qint_e = sumReduction(total_qint_e);
-   total_well_e = sumReduction(total_well_e);
-   total_free_e = sumReduction(total_free_e);
-
-   math::HierarchyCellDataOpsReal<double> mathops(hierarchy);
-
-   if (d_model_parameters.with_visit_energy_output()) {
-      double emin = mathops.min(d_energy_diag_id);
-      double emax = mathops.max(d_energy_diag_id);
-      tbox::plog << "Min. energy density = " << emin << std::endl;
-      tbox::plog << "Max. energy density = " << emax << std::endl;
-   }
+   if (!d_model_parameters.with_three_phases() &&
+       d_model_parameters.with_phase())
+      d_energy_eval_strategy->evaluateEnergy(hierarchy, time, total_energy,
+                                             total_phase_e, total_orient_e,
+                                             total_qint_e, total_well_e,
+                                             total_free_e, gp);
 }
 
 //=======================================================================

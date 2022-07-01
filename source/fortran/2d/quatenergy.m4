@@ -182,30 +182,22 @@ c
      &   dx,
      &   gqx,gqy,gqghosts,
      &   phi, pghosts, nphases,
-     &   eta, ngeta,
      &   quat, ngq,
-     &   epsilon_phi, epsilon_eta, epsilon_q,
+     &   epsilon_phi, epsilon_q,
      &   anisotropy, knumber,
      &   misorientation_factor,
      &   temperature, tghosts,
      &   phi_well_scale,
-     &   eta_well_scale,
-     &   fl, fa, fb,
-     &   three_phase,
      &   weight,
      &   total_energy,
      &   total_phi_e,
-     &   total_eta_e,
      &   total_orient_e,
      &   total_qint_e,
      &   total_well_e,
-     &   total_free_e,
      &   energy,
      &   eval_per_cell,
      &   phi_interp_type,
-     &   eta_interp_type,
      &   phi_well_type,
-     &   eta_well_type,
      &   orient_interp_type,
      &   avg_type,
      &   floor_type,
@@ -216,26 +208,20 @@ c
 
       integer
      &   lo0, hi0, lo1, hi1, nphases,
-     &   depth, gqghosts, pghosts, tghosts, ngeta, ngq,
+     &   depth, gqghosts, pghosts, tghosts, ngq,
      &   knumber
 
       double precision phi(CELL2d(lo,hi,pghosts),nphases)
-      double precision eta(CELL2d(lo,hi,ngeta))
       double precision temperature(CELL2d(lo,hi,tghosts))
 
       double precision quat(CELL2d(lo,hi,ngq),depth)
       double precision gqx(SIDE2d0(lo,hi,gqghosts),depth,NDIM)
       double precision gqy(SIDE2d1(lo,hi,gqghosts),depth,NDIM)
-      double precision fl(CELL2d(lo,hi,0))
-      double precision fa(CELL2d(lo,hi,0))
-      double precision fb(CELL2d(lo,hi,0))
       double precision energy(CELL2d(lo,hi,0))
       
       double precision weight(CELL2d(lo,hi,0))
       character*(*) phi_interp_type
-      character*(*) eta_interp_type
       character*(*) phi_well_type
-      character*(*) eta_well_type
       character*(*) orient_interp_type
       character*(*) avg_type
       character*(*) floor_type
@@ -244,20 +230,18 @@ c
       integer three_phase
 
       double precision anisotropy, misorientation_factor
-      double precision phi_well_scale, eta_well_scale
-      double precision f_l, f_a, f_b
-      double precision epsilon_phi, epsilon_q, epsilon_eta
+      double precision phi_well_scale
+      double precision epsilon_phi, epsilon_q
       double precision epsilonq2
       double precision total_energy, e, o2
       double precision total_phi_e, phi_e, total_orient_e
-      double precision total_qint_e, total_well_e, total_free_e
-      double precision total_eta_e, eta_e
+      double precision total_qint_e, total_well_e
       double precision p_phi
       double precision dx(NDIM), dx2inv, dy2inv
       double precision diff_term_x, diff_term_y
       double precision diff_term
 
-      double precision g_phi, aphi, g_eta, h_phi, h_eta
+      double precision g_phi, aphi, h_phi
       double precision interp_func
       double precision well_func
       double precision average_func
@@ -291,18 +275,6 @@ c
 
       total_phi_e = total_phi_e + phi_e
       total_energy = total_energy + phi_e
-
-c
-c eta interface energy
-c    
-      if ( three_phase /= 0 ) then
-         call phi_interface_energy(lo0, hi0, lo1, hi1, dx, eta, ngeta,
-     &      1, epsilon_phi, weight, eta_e, energy,  eval_per_cell)
-
-         total_eta_e = total_eta_e + eta_e
-         total_energy = total_energy + eta_e
-
-      endif
 
 c
 c Orientational energy: average over 2 cell sides in each direction
@@ -407,25 +379,15 @@ c              factor 0.25 because of cell average and double counting
 c
 c double well energy
 c
+      total_well_e = 0.d0
       do p = 1, nphases
          do j = lo1, hi1
             do i = lo0, hi0
 
                g_phi = well_func( phi(i,j,p), phi_well_type )
 
-               if ( three_phase /= 0 ) then
-                  g_eta = well_func( eta, eta_well_type )
-               else
-                  g_eta = 0.0d0
-               endif
-            
                e = phi_well_scale * g_phi
 
-               if ( three_phase /= 0 ) then
-                  h_phi = interp_func( phi(i,j,p), phi_interp_type )
-                  e = e + h_phi * eta_well_scale * g_eta
-               endif
-            
                if ( eval_per_cell /= 0 ) then
                   energy(i,j) = energy(i,j) + e
                endif
@@ -437,39 +399,62 @@ c
          enddo
       enddo
 
+      return
+      end
+
 c
-c free energy
+c bulk energy
 c
-      do p = 1, nphases
-         do j = lo1, hi1
-            do i = lo0, hi0
+      subroutine bulkenergy(
+     &   lo0, hi0, lo1, hi1,
+     &   phi, pghosts,
+     &   fl, fa,
+     &   weight,
+     &   total_energy,
+     &   total_free_e,
+     &   energy, eval_per_cell,
+     &   phi_interp_type
+     &   )
 
-               f_l = fl(i,j)
-               f_a = fa(i,j)
+      implicit none
 
-               h_phi = interp_func( phi(i,j,p), phi_interp_type )
+      integer
+     &   lo0, hi0, lo1, hi1, pghosts
+      integer eval_per_cell
+      character*(*) phi_interp_type
+      double precision total_energy, total_free_e
 
-               if ( three_phase /= 0 ) then
-                  f_b = fb(i,j)
-                  h_eta = interp_func( eta(i,j), eta_interp_type )
-               else
-                  f_b = 0.0d0
-                  h_eta = 0.0d0
-               endif
-            
-               e = (
-     &            ( 1.0d0 - h_phi ) * f_l +
-     &            h_phi * ( ( 1.0d0 - h_eta ) * f_a + h_eta * f_b )
-     &            )
+      double precision phi(CELL2d(lo,hi,pghosts))
 
-               if ( eval_per_cell /= 0 ) then
-                  energy(i,j) = energy(i,j) + e
-               endif
-               e = e * weight(i,j)
+      double precision fl(CELL2d(lo,hi,0))
+      double precision fa(CELL2d(lo,hi,0))
+      double precision energy(CELL2d(lo,hi,0))
+      double precision weight(CELL2d(lo,hi,0))
 
-               total_energy = total_energy + e
-               total_free_e = total_free_e + e
-            enddo
+      double precision f_l, f_a, e, h_phi
+      integer i, j
+      double precision interp_func
+
+      total_free_e = 0.d0
+
+      do j = lo1, hi1
+         do i = lo0, hi0
+
+            f_l = fl(i,j)
+            f_a = fa(i,j)
+
+            h_phi = interp_func( phi(i,j), phi_interp_type )
+
+            e =
+     &         ( 1.0d0 - h_phi ) * f_l + h_phi * f_a
+
+            if ( eval_per_cell /= 0 ) then
+               energy(i,j) = energy(i,j) + e
+            endif
+            e = e * weight(i,j)
+
+            total_energy = total_energy + e
+            total_free_e = total_free_e + e
          enddo
       enddo
 
