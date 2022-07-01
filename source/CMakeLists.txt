@@ -26,7 +26,8 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
-            ${CMAKE_SOURCE_DIR}/source/ApplyPolynomial.cc
+            ${CMAKE_SOURCE_DIR}/source/EnergyEvaluationStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/TwoPhasesEnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingMoelans2011.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureRHSStrategy.cc

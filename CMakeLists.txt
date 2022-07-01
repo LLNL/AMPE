@@ -199,6 +199,7 @@ FortranCInterface_HEADER(
         QUATMOBILITY
         QUATMOBILITYDERIV
         QUATENERGY
+        BULKENERGY
         TEMPERATURE_ENERGY
         QUATAVG
         SMOOTHQUAT

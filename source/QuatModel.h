@@ -23,6 +23,7 @@
 #include "Grains.h"
 #include "FieldsInitializer.h"
 #include "EventInterval.h"
+#include "EnergyEvaluationStrategy.h"
 
 // Headers for basic SAMRAI objects
 #include "SAMRAI/tbox/MemoryDatabase.h"
@@ -603,6 +604,8 @@ class QuatModel : public PFModel
    MeltingTemperatureStrategy* d_meltingT_strategy;
    CompositionStrategyMobilities* d_composition_strategy_mobilities;
    std::shared_ptr<CompositionDiffusionStrategy> d_diffusion_for_conc_in_phase;
+
+   std::shared_ptr<EnergyEvaluationStrategy> d_energy_eval_strategy;
 
    bool d_tag_phase;
    bool d_tag_eta;

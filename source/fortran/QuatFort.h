@@ -677,24 +677,30 @@ void QUATENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const double* const gqz,
 #endif
                 const int& nggq, const double* const phi, const int& ngphi,
-                const int& nphases, const double* const eta, const int& ngeta,
-                const double* const quat, const int& ngq,
-                const double& epsilon_phi, const double& epsilon_eta,
-                const double& epsilon_q, const double& anisotropy,
-                const int& knumber, const double& misorientation_factor,
+                const int& nphases, const double* const quat, const int& ngq,
+                const double& epsilon_phi, const double& epsilon_q,
+                const double& anisotropy, const int& knumber,
+                const double& misorientation_factor,
                 const double* const temperature, const int& ngtemp,
-                const double& phi_well_scale, const double& eta_well_scale,
-                const double* const fl, const double* const fa,
-                const double* const fb, const int& three_phase,
-                const double* const weight, double& total_energy,
-                double& total_phi_e, double& total_eta_e,
+                const double& phi_well_scale, const double* const weight,
+                double& total_energy, double& total_phi_e,
                 double& total_orient_e, double& total_qint_e,
-                double& total_well_e, double& total_free_e,
-                const double* const energy, const int& eval_per_cell,
-                const char* phi_interp_type, const char* eta_interp_type,
-                const char* phi_well_type, const char* eta_well_type,
-                const char* orient_interp_type, const char* avg_type,
-                const char* floor_type, const double& floor2);
+                double& total_well_e, const double* const energy,
+                const int& eval_per_cell, const char* phi_interp_type,
+                const char* phi_well_type, const char* orient_interp_type,
+                const char* avg_type, const char* floor_type,
+                const double& floor2);
+
+void BULKENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                const int& ilast1,
+#if (NDIM == 3)
+                const int& ifirst2, const int& ilast2,
+#endif
+                const double* const phi, const int& ngphi,
+                const double* const fl, const double* const fa,
+                const double* const weight, double& total_energy,
+                double& total_bulk_e, const double* const energy,
+                const int& eval_per_cell, const char* phi_interp_type);
 
 void QUATAVG(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
