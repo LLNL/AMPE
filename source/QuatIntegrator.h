@@ -22,6 +22,7 @@
 #include "EllipticFACSolver.h"
 #include "InterpolationType.h"
 #include "DiffusionCoeffForQuat.h"
+#include "DerivDiffusionCoeffForQuat.h"
 #include "Sundials_SAMRAIVector.h"
 #include "SundialsAbstractVector.h"
 #include "PhaseRHSStrategy.h"
@@ -816,6 +817,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
    int d_tmp2_id;
 
    std::shared_ptr<DiffusionCoeffForQuat> d_diffusion4quat;
+   std::shared_ptr<DerivDiffusionCoeffForQuat> d_diffusion4quatderiv;
 
    xfer::CoarsenAlgorithm d_conc_diffusion_coarsen;
    std::vector<std::shared_ptr<xfer::CoarsenSchedule> >

@@ -1985,12 +1985,18 @@ void QuatIntegrator::initialize(
    resetIntegrator(hierarchy, 0, finest);
 
    if (d_with_orientation) {
-      d_diffusion4quat.reset(new DiffusionCoeffForQuat(
-          d_grid_geometry, d_H_parameter, d_quat_grad_floor, d_qlen,
-          d_orient_interp_func_type, d_avg_func_type, d_quat_smooth_floor_type,
-          d_precond_has_dquatdphi, d_quat_diffusion_var, d_quat_diffusion_id,
-          d_quat_diffusion_deriv_id));
+      d_diffusion4quat.reset(
+          new DiffusionCoeffForQuat(d_grid_geometry, d_H_parameter, d_qlen,
+                                    d_orient_interp_func_type, d_avg_func_type,
+                                    d_quat_diffusion_id));
       d_diffusion4quat->setup(hierarchy);
+      if (d_precond_has_dquatdphi) {
+         d_diffusion4quatderiv.reset(new DerivDiffusionCoeffForQuat(
+             d_grid_geometry, d_H_parameter, d_quat_grad_floor, d_qlen,
+             d_orient_interp_func_type, d_avg_func_type,
+             d_quat_smooth_floor_type, d_quat_diffusion_deriv_id));
+         d_diffusion4quatderiv->setup(hierarchy);
+      }
    }
 
    if (d_temperature_strategy != nullptr)
@@ -3137,9 +3143,10 @@ void QuatIntegrator::setCoefficients(
          d_diffusion4quat->setDiffusion(hierarchy, d_phase_scratch_id,
                                         d_temperature_scratch_id);
          if (d_precond_has_dquatdphi)
-            d_diffusion4quat->setDerivDiffusion(hierarchy, d_phase_scratch_id,
-                                                d_temperature_scratch_id,
-                                                d_quat_grad_side_copy_id);
+            d_diffusion4quatderiv->setDerivDiffusion(hierarchy,
+                                                     d_phase_scratch_id,
+                                                     d_temperature_scratch_id,
+                                                     d_quat_grad_side_copy_id);
       }
    }
 
