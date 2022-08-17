@@ -785,8 +785,10 @@ void QuatModel::InitializeIntegrator(void)
    if (d_model_parameters.with_phase())
       d_mobility_strategy =
           MobilityFactory::create(this, d_model_parameters, d_conc_l_scratch_id,
-                                  d_conc_a_scratch_id, d_temperature_scratch_id,
-                                  d_ncompositions, d_conc_db);
+                                  d_conc_a_scratch_id, d_conc_b_scratch_id,
+                                  d_temperature_scratch_id, d_ncompositions,
+                                  d_model_parameters.with_three_phases(),
+                                  d_conc_db);
 
    d_integrator->setQuatGradStrategy(d_quat_grad_strategy);
    d_integrator->setMobilityStrategy(d_mobility_strategy);
