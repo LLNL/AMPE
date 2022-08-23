@@ -119,9 +119,10 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    );
 
    // AB
-   zeta = compute_zeta(ca, cb, temp);
-   const double mobAB = DL / (d_factor * zeta);
-   assert(mobAB == mobAB);
+   // since Kim's formula was derived for DS << DL, it cannot be used for AB
+   // so we use mobAB = 0.5*(mobLA+mobLB)
+   // see Kim, Kim, Suzuki, Ode, J. Crystal Growth 2004
+   const double mobAB = 0.5 * (mobLA + mobLB);
 
    double wLA, wLB, wAB;
    computeWeights3Pairs(phiL, phiA, phiB, wLA, wLB, wAB);
