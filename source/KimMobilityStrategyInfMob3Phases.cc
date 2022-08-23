@@ -85,8 +85,6 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    const double phiB = phi[2];
 
    const PhaseIndex pil = PhaseIndex::phaseL;
-   const PhaseIndex pia = PhaseIndex::phaseA;
-   const PhaseIndex pib = PhaseIndex::phaseB;
 
    // std::cout<<std::setprecision(15);
    // std::cout<<"c="<<phaseconc[0]<<", d2fdc2="<<d_d2fdc2[0]<<std::endl;
@@ -114,14 +112,6 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    zeta = compute_zeta(cl, cb, temp);
    const double mobLB = DL / (d_factor * zeta);
    assert(mobLB == mobLB);
-
-   this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pia,
-#ifdef HAVE_THERMO4PFM
-                                                      d_d2fdc2.data()
-#else
-                                                      d_d2fdc2
-#endif
-   );
 
    // AB
    // since Kim's formula was derived for DS << DL, it cannot be used for AB
