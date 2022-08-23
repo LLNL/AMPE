@@ -8,30 +8,16 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef ThreeArgsInterpolationType_H
-#define ThreeArgsInterpolationType_H
-
+#include "ThreeArgsInterpolationType.h"
 #include "InterpolationType.h"
 
-#ifdef HAVE_THERMO4PFM
-using namespace Thermo4PFM;
-#else
-using namespace ampe_thermo;
-#endif
-
-enum class ConcThreeArgsInterpolationType {
-   FOLCHPLAPP2005,
-   MOELANS2011,
-   UNDEFINED
-};
-
-enum class EnergyThreeArgsInterpolationType {
-   FOLCHPLAPP2005,
-   MOELANS2011,
-   UNDEFINED
-};
-
+// return two-phases interpolation type the three-phases
+// interpolation reduces to when one phase is 0
 EnergyInterpolationType getTwoPhasesInterpolationType(
-    EnergyThreeArgsInterpolationType type);
-
-#endif
+    EnergyThreeArgsInterpolationType type)
+{
+   if (type == EnergyThreeArgsInterpolationType::FOLCHPLAPP2005)
+      return EnergyInterpolationType::PBG;
+   else
+      return EnergyInterpolationType::UNDEFINED;
+}

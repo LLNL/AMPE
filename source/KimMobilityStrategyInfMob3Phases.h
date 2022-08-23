@@ -22,7 +22,7 @@ class KimMobilityStrategyInfMob3Phases
        QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
        const int conc_b_id, const int temp_id, const double epsilon,
        const double phase_well_scale,
-       const EnergyInterpolationType energy_interp_func_type,
+       const EnergyThreeArgsInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
        const double DL, const double Q0, const double mv);

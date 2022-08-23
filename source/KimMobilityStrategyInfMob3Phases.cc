@@ -22,15 +22,14 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
         QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const int temp_id, const double epsilon,
         const double phase_well_scale,
-        const EnergyInterpolationType energy_interp_func_type,
+        const EnergyThreeArgsInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
         const double DL, const double Q0, const double mv)
-    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_a_id,
-                                          conc_b_id, temp_id,
-                                          energy_interp_func_type,
-                                          conc_interp_func_type, conc_db,
-                                          ncompositions),
+    : KimMobilityStrategy<FreeEnergyType>(
+          quat_model, conc_l_id, conc_a_id, conc_b_id, temp_id,
+          getTwoPhasesInterpolationType(energy_interp_func_type),
+          conc_interp_func_type, conc_db, ncompositions),
       d_DL(DL),
       d_Q0(Q0)
 {
@@ -41,8 +40,14 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
 
    double a2 = 0.;
    switch (energy_interp_func_type) {
-      case EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
-      case EnergyInterpolationType::HARMONIC: a2 = 0.5; break;
+      // FolchPlapp2005 reduces to PBG for two phases
+      case EnergyThreeArgsInterpolationType::FOLCHPLAPP2005:
+         a2 = 47. / 60.;
+         break;
+      case EnergyThreeArgsInterpolationType::MOELANS2011:
+         TBOX_ERROR(
+             "MOELANS2011 is not a valid interpolation option in "
+             "KimMobilityStrategyInfMob3Phases");
       default:
          TBOX_ERROR(
              "Invalid interpolation function in "

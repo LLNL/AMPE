@@ -120,7 +120,7 @@ class MobilityFactory
                     conc_b_scratch_id, temperature_scratch_id,
                     model_parameters.epsilon_phase(),
                     model_parameters.phase_well_scale(),
-                    model_parameters.energy_interp_func_type(),
+                    model_parameters.energy_three_args_interp_func_type(),
                     model_parameters.conc_interp_func_type(), conc_db,
                     ncompositions, model_parameters.D_liquid(),
                     model_parameters.Q0_liquid(),
