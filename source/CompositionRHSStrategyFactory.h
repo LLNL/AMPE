@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -41,6 +40,7 @@ class CompositionRHSStrategyFactory
       std::shared_ptr<CompositionRHSStrategy> strategy;
 
       if (model_parameters.concRHSstrategyIsKKS()) {
+         tbox::plog << "Use KKSCompositionRHSStrategy..." << std::endl;
          strategy.reset(new KKSCompositionRHSStrategy(
              conc_scratch_id, phase_scratch_id,
              conc_pfm_diffusion_id[0],  // use 1x1 diffusion matrix
@@ -53,6 +53,7 @@ class CompositionRHSStrategyFactory
              model_parameters.energy_interp_func_type(),
              model_parameters.avg_func_type()));
       } else if (model_parameters.concRHSstrategyIsEBS()) {
+         tbox::plog << "Use EBSCompositionRHSStrategy..." << std::endl;
 
          assert(diffusion_for_conc_in_phase);
 

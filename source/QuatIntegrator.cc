@@ -37,6 +37,7 @@
 #include "PhaseRHSStrategyWithQ.h"
 #include "ThreePhasesRHSStrategy.h"
 #include "SimpleTemperatureRHSStrategy.h"
+#include "KKSCompositionRHSStrategy.h"
 
 #include "QuatParams.h"
 
@@ -137,7 +138,6 @@ QuatIntegrator::QuatIntegrator(
       d_phase_conc_strategy(nullptr),
       d_partition_coeff_strategy(nullptr),
       d_temperature_strategy(nullptr),
-      d_composition_rhs_strategy(nullptr),
       d_current_time(tbox::IEEE::getSignalingNaN()),
       d_previous_timestep(0.),
       d_eta_id(-1),
@@ -1552,9 +1552,9 @@ void QuatIntegrator::setFreeEnergyStrategy(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::setCompositionRHSStrategy(
-    CompositionRHSStrategy* composition_rhs_strategy)
+    std::shared_ptr<CompositionRHSStrategy> composition_rhs_strategy)
 {
-   assert(composition_rhs_strategy != nullptr);
+   assert(composition_rhs_strategy);
    d_composition_rhs_strategy = composition_rhs_strategy;
 }
 
@@ -1562,7 +1562,6 @@ void QuatIntegrator::setCompositionDiffusionStrategy(
     std::shared_ptr<CompositionDiffusionStrategy>
         composition_diffusion_strategy)
 {
-   assert(composition_diffusion_strategy);
    d_composition_diffusion_strategy = composition_diffusion_strategy;
 }
 
@@ -2364,19 +2363,28 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time)
 {
    assert(hierarchy);
-   assert(d_composition_diffusion_strategy);
 
    t_set_diffcoeff_conc_timer->start();
    // tbox::pout<<"QuatIntegrator::setDiffusionCoeffForConcentration"<<endl;
 
-   // set diffusion coefficients which is a function of the free energy form
-   d_composition_diffusion_strategy->setDiffusion(hierarchy,
-                                                  d_temperature_scratch_id,
-                                                  d_phase_scratch_id, time);
+   std::shared_ptr<EBSCompositionRHSStrategy> ebs_rhs =
+       std::dynamic_pointer_cast<EBSCompositionRHSStrategy>(
+           d_composition_rhs_strategy);
+   if (ebs_rhs) {
+      ebs_rhs->setDiffusionCoeffForPreconditioner(hierarchy);
+      // set diffusion coefficients which is a function of the free energy form
+      assert(d_composition_diffusion_strategy);
+      d_composition_diffusion_strategy->setDiffusion(hierarchy,
+                                                     d_temperature_scratch_id,
+                                                     d_phase_scratch_id, time);
+   }
 
-   EBSCompositionRHSStrategy* ebs_rhs =
-       static_cast<EBSCompositionRHSStrategy*>(d_composition_rhs_strategy);
-   if (ebs_rhs) ebs_rhs->setDiffusionCoeffForPreconditioner(hierarchy);
+   std::shared_ptr<KKSCompositionRHSStrategy> kks_rhs =
+       std::dynamic_pointer_cast<KKSCompositionRHSStrategy>(
+           d_composition_rhs_strategy);
+   if (kks_rhs) {
+      kks_rhs->setDiffusionCoeff(hierarchy, time);
+   }
 
    for (int amr_level = hierarchy->getFinestLevelNumber() - 1; amr_level >= 0;
         amr_level--) {
@@ -2677,7 +2685,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
            ++ip) {
          std::shared_ptr<hier::Patch> patch = *ip;
 
-         assert(d_composition_rhs_strategy != nullptr);
+         assert(d_composition_rhs_strategy);
          d_composition_rhs_strategy->computeFluxOnPatch(*patch, d_flux_conc_id);
          if (d_with_gradT)
             d_composition_rhs_strategy->addFluxFromGradTonPatch(*patch,
