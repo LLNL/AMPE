@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -793,7 +792,7 @@ void QuatModel::InitializeIntegrator(void)
    if (d_model_parameters.with_concentration()) {
       d_integrator->setCompositionDiffusionStrategy(
           d_diffusion_for_conc_in_phase);
-      d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy.get());
+      d_integrator->setCompositionRHSStrategy(d_composition_rhs_strategy);
    }
    d_integrator->setFreeEnergyStrategy(d_free_energy_strategy);
    if (d_model_parameters.with_concentration())
