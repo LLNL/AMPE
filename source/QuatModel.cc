@@ -1547,99 +1547,103 @@ void QuatModel::registerOrientationVariables(void)
       d_quat_relax_scratch_id = variable_db->registerVariableAndContext(
           d_quat_relax_var, scratch,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-   }
 
-   d_quat_diffs_var.reset(new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                                         "quat_diffs",
-                                                         symm_depth));
-   assert(d_quat_diffs_var);
-   d_quat_diffs_id = variable_db->registerVariableAndContext(
-       d_quat_diffs_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      d_quat_diffs_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM), "quat_diffs",
+                                         symm_depth));
+      assert(d_quat_diffs_var);
+      d_quat_diffs_id = variable_db->registerVariableAndContext(
+          d_quat_diffs_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-   d_quat_grad_cell_var.reset(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM), "quat_grad_cell",
-                                      NDIM * d_qlen));
-   assert(d_quat_grad_cell_var);
-   d_quat_grad_cell_id = variable_db->registerVariableAndContext(
-       d_quat_grad_cell_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), 0));
-
-   d_quat_grad_side_var.reset(
-       new pdat::SideVariable<double>(tbox::Dimension(NDIM), "quat_grad_side",
-                                      NDIM * d_qlen));
-   assert(d_quat_grad_side_var);
-   d_quat_grad_side_id = variable_db->registerVariableAndContext(
-       d_quat_grad_side_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), 0));
-
-   if (d_model_parameters.with_extra_visit_output()) {
-      d_quat_diffs_cell_var.reset(
+      d_quat_grad_cell_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                         "quat_diffs_cell", d_qlen * NDIM));
-      assert(d_quat_diffs_cell_var);
-      d_quat_diffs_cell_id = variable_db->registerVariableAndContext(
-          d_quat_diffs_cell_var, current,
+                                         "quat_grad_cell", NDIM * d_qlen));
+      assert(d_quat_grad_cell_var);
+      d_quat_grad_cell_id = variable_db->registerVariableAndContext(
+          d_quat_grad_cell_var, current,
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
-      d_quat_nonsymm_diffs_cell_var.reset(new pdat::CellVariable<double>(
-          tbox::Dimension(NDIM), "quat_nonsymm_diffs_cell", d_qlen * NDIM));
-      assert(d_quat_nonsymm_diffs_cell_var);
-      d_quat_nonsymm_diffs_cell_id = variable_db->registerVariableAndContext(
-          d_quat_nonsymm_diffs_cell_var, current,
+      d_quat_grad_side_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                         "quat_grad_side", NDIM * d_qlen));
+      assert(d_quat_grad_side_var);
+      d_quat_grad_side_id = variable_db->registerVariableAndContext(
+          d_quat_grad_side_var, current,
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
-      d_quat_norm_error_var.reset(
-          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                         "quat_norm_error"));
-      assert(d_quat_norm_error_var);
-      d_quat_norm_error_id = variable_db->registerVariableAndContext(
-          d_quat_norm_error_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
+      if (d_model_parameters.with_extra_visit_output()) {
+         d_quat_diffs_cell_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                            "quat_diffs_cell", d_qlen * NDIM));
+         assert(d_quat_diffs_cell_var);
+         d_quat_diffs_cell_id = variable_db->registerVariableAndContext(
+             d_quat_diffs_cell_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), 0));
+
+         d_quat_nonsymm_diffs_cell_var.reset(new pdat::CellVariable<double>(
+             tbox::Dimension(NDIM), "quat_nonsymm_diffs_cell", d_qlen * NDIM));
+         assert(d_quat_nonsymm_diffs_cell_var);
+         d_quat_nonsymm_diffs_cell_id = variable_db->registerVariableAndContext(
+             d_quat_nonsymm_diffs_cell_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), 0));
+
+         d_quat_norm_error_var.reset(
+             new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                            "quat_norm_error"));
+         assert(d_quat_norm_error_var);
+         d_quat_norm_error_id = variable_db->registerVariableAndContext(
+             d_quat_norm_error_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), 0));
+
+         if (d_symmetry_aware) {
+            d_quat_symm_rotation_cell_var.reset(
+                new pdat::CellVariable<int>(tbox::Dimension(NDIM),
+                                            "quat_symm_rotation_cell", NDIM));
+            assert(d_quat_symm_rotation_cell_var);
+            d_quat_symm_rotation_cell_id =
+                variable_db->registerVariableAndContext(
+                    d_quat_symm_rotation_cell_var, current,
+                    hier::IntVector(tbox::Dimension(NDIM), 0));
+         }
+      }
 
       if (d_symmetry_aware) {
-         d_quat_symm_rotation_cell_var.reset(
-             new pdat::CellVariable<int>(tbox::Dimension(NDIM),
-                                         "quat_symm_rotation_cell", NDIM));
-         assert(d_quat_symm_rotation_cell_var);
-         d_quat_symm_rotation_cell_id = variable_db->registerVariableAndContext(
-             d_quat_symm_rotation_cell_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), 0));
+         d_quat_symm_rotation_var.reset(
+             new pdat::SideVariable<int>(tbox::Dimension(NDIM),
+                                         "quat_symm_rotation"));
+         assert(d_quat_symm_rotation_var);
+         d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
+             d_quat_symm_rotation_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
       }
+
+      d_quat_grad_modulus_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                         "quat_grad_modulus"));
+      assert(d_quat_grad_modulus_var);
+      d_quat_grad_modulus_id = variable_db->registerVariableAndContext(
+          d_quat_grad_modulus_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
+
+      // we have ghost values for quat_mobility so that values are defined
+      // at physical boundaries when needed to compute sqrt_mobility
+      d_quat_mobility_var.reset(
+          new pdat::CellVariable<double>(tbox::Dimension(NDIM),
+                                         "quat_mobility"));
+      assert(d_quat_mobility_var);
+      d_quat_mobility_id = variable_db->registerVariableAndContext(
+          d_quat_mobility_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 1));
+
+      d_quat_diffusion_var.reset(
+          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                         "quat_diffusion"));
+      assert(d_quat_diffusion_var);
+      d_quat_diffusion_id = variable_db->registerVariableAndContext(
+          d_quat_diffusion_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), 0));
    }
-
-   if (d_symmetry_aware) {
-      d_quat_symm_rotation_var.reset(
-          new pdat::SideVariable<int>(tbox::Dimension(NDIM),
-                                      "quat_symm_rotation"));
-      assert(d_quat_symm_rotation_var);
-      d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
-          d_quat_symm_rotation_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-   }
-
-   d_quat_grad_modulus_var.reset(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM),
-                                      "quat_grad_modulus"));
-   assert(d_quat_grad_modulus_var);
-   d_quat_grad_modulus_id = variable_db->registerVariableAndContext(
-       d_quat_grad_modulus_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), 0));
-
-   // we have ghost values for quat_mobility so that values are defined
-   // at physical boundaries when needed to compute sqrt_mobility
-   d_quat_mobility_var.reset(
-       new pdat::CellVariable<double>(tbox::Dimension(NDIM), "quat_mobility"));
-   assert(d_quat_mobility_var);
-   d_quat_mobility_id = variable_db->registerVariableAndContext(
-       d_quat_mobility_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
-
-   d_quat_diffusion_var.reset(
-       new pdat::SideVariable<double>(tbox::Dimension(NDIM), "quat_diffusion"));
-   assert(d_quat_diffusion_var);
-   d_quat_diffusion_id = variable_db->registerVariableAndContext(
-       d_quat_diffusion_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), 0));
 }
 
 //=======================================================================
@@ -2851,53 +2855,52 @@ void QuatModel::AllocateQuatLocalPatchData(
    if (!level->checkAllocated(d_quat_id))
       level->allocatePatchData(d_quat_id, time);
 
+   AllocateAndZeroData<pdat::CellData<double> >(d_quat_scratch_id, level, time,
+                                                zero_data);
+
    if (d_model_parameters.evolveQuat()) {
       if (!level->checkAllocated(d_quat_relax_id))
          level->allocatePatchData(d_quat_relax_id, time);
       AllocateAndZeroData<pdat::CellData<double> >(d_quat_relax_scratch_id,
                                                    level, time, zero_data);
-   }
-
-   AllocateAndZeroData<pdat::CellData<double> >(d_quat_scratch_id, level, time,
-                                                zero_data);
-
-   AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffusion_id, level,
-                                                time, zero_data);
-
-   AllocateAndZeroData<pdat::CellData<double> >(d_quat_mobility_id, level, time,
-                                                zero_data);
-
-   AllocateAndZeroData<pdat::CellData<double> >(d_quat_grad_cell_id, level,
-                                                time, zero_data);
-
-   AllocateAndZeroData<pdat::SideData<double> >(d_quat_grad_side_id, level,
-                                                time, zero_data);
-
-   AllocateAndZeroData<pdat::CellData<double> >(d_quat_grad_modulus_id, level,
-                                                time, zero_data);
-
-   AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffs_id, level, time,
-                                                zero_data);
-
-   if (d_symmetry_aware) {
-      assert(d_quat_symm_rotation_id >= 0);
-      AllocateAndZeroData<pdat::SideData<int> >(d_quat_symm_rotation_id, level,
-                                                time, zero_data);
-   }
-
-   if (d_model_parameters.with_extra_visit_output()) {
-      AllocateAndZeroData<pdat::CellData<double> >(d_quat_diffs_cell_id, level,
+      AllocateAndZeroData<pdat::CellData<double> >(d_quat_mobility_id, level,
                                                    time, zero_data);
-      AllocateAndZeroData<pdat::CellData<double> >(d_quat_nonsymm_diffs_cell_id,
+
+      AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffusion_id, level,
+                                                   time, zero_data);
+
+      AllocateAndZeroData<pdat::CellData<double> >(d_quat_grad_cell_id, level,
+                                                   time, zero_data);
+
+      AllocateAndZeroData<pdat::SideData<double> >(d_quat_grad_side_id, level,
+                                                   time, zero_data);
+
+      AllocateAndZeroData<pdat::CellData<double> >(d_quat_grad_modulus_id,
                                                    level, time, zero_data);
 
-      AllocateAndZeroData<pdat::CellData<double> >(d_quat_norm_error_id, level,
-                                                   time, zero_data);
+      AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffs_id, level, time,
+                                                   zero_data);
 
       if (d_symmetry_aware) {
-         assert(d_quat_symm_rotation_cell_id >= 0);
-         AllocateAndZeroData<pdat::CellData<int> >(d_quat_symm_rotation_cell_id,
+         assert(d_quat_symm_rotation_id >= 0);
+         AllocateAndZeroData<pdat::SideData<int> >(d_quat_symm_rotation_id,
                                                    level, time, zero_data);
+      }
+
+      if (d_model_parameters.with_extra_visit_output()) {
+         AllocateAndZeroData<pdat::CellData<double> >(d_quat_diffs_cell_id,
+                                                      level, time, zero_data);
+         AllocateAndZeroData<pdat::CellData<double> >(
+             d_quat_nonsymm_diffs_cell_id, level, time, zero_data);
+
+         AllocateAndZeroData<pdat::CellData<double> >(d_quat_norm_error_id,
+                                                      level, time, zero_data);
+
+         if (d_symmetry_aware) {
+            assert(d_quat_symm_rotation_cell_id >= 0);
+            AllocateAndZeroData<pdat::CellData<int> >(
+                d_quat_symm_rotation_cell_id, level, time, zero_data);
+         }
       }
    }
 
@@ -3122,7 +3125,7 @@ void QuatModel::DeallocateIntermediateLocalPatchData(
          }
    }
 
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       level->deallocatePatchData(d_quat_grad_cell_id);
       level->deallocatePatchData(d_quat_grad_side_id);
       level->deallocatePatchData(d_quat_grad_modulus_id);
@@ -3560,6 +3563,8 @@ void QuatModel::computeVarDiffs(
 
 void QuatModel::smoothQuat(const std::shared_ptr<hier::PatchLevel> level)
 {
+   assert(d_quat_diffs_id >= 0);
+
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
       std::shared_ptr<hier::Patch> patch = *p;
       const hier::Box& box = patch->getBox();
@@ -4945,6 +4950,7 @@ void QuatModel::computeQuatMobility(
     int& mobility_id, const double time)
 {
    (void)time;
+   assert(d_model_parameters.evolveQuat());
 
    if (phase_id < 0) phase_id = d_phase_scratch_id;
    if (mobility_id < 0) mobility_id = d_quat_mobility_id;
@@ -5244,7 +5250,7 @@ void QuatModel::evaluateEnergy(
 
    copyCurrentToScratch(hierarchy, time, d_all_refine_patch_strategy);
 
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       int diff_id = -1;
       d_quat_grad_strategy->computeDiffs(hierarchy, d_quat_scratch_id, diff_id,
                                          time, QuatGradStrategy::FORCE);

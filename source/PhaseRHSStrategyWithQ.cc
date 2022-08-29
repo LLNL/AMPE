@@ -206,7 +206,7 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
 
    int with_orient = 0;
    double* ptr_quat_grad_modulus = nullptr;
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       with_orient = 1;
       assert(d_quat_grad_modulus_id >= 0);
       std::shared_ptr<pdat::CellData<double> > qgm(
