@@ -52,7 +52,7 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
    const hier::Index& ilast = pbox.upper();
 
    double* pgrad_quat[NDIM];
-   if (d_model_parameters.with_orientation()) {
+   if (d_model_parameters.evolveQuat()) {
       std::shared_ptr<pdat::SideData<double> > grad_quat(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(d_quat_grad_side_id)));
