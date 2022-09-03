@@ -39,6 +39,8 @@ set_source_files_properties( ${fortran_dir_dim}/phase.f
                              PROPERTIES GENERATED TRUE)
 set_source_files_properties( ${fortran_dir_dim}/quatdiffs.f
                              PROPERTIES GENERATED TRUE)
+set_source_files_properties( ${fortran_dir_dim}/quatgrad.f
+                             PROPERTIES GENERATED TRUE)
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
@@ -97,6 +99,7 @@ add_executable(testGradQ
                ${CMAKE_SOURCE_DIR}/tests/testGradQ.cc
                ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
                ${fortran_dir_dim}/quatdiffs.f
+               ${fortran_dir_dim}/quatgrad.f
                ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
@@ -180,7 +183,7 @@ add_test(NAME testPhaseFAC
          WORKING_DIRECTORY ${TEST_DIR}/PhaseFAC)
 add_test(NAME testGradQ
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-                 ${CMAKE_CURRENT_BINARY_DIR}/testGradQ ${NDIM}d.input
+                 ${CMAKE_CURRENT_BINARY_DIR}/testGradQ
          WORKING_DIRECTORY ${TEST_DIR}/GradQ)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1

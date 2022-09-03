@@ -4154,47 +4154,12 @@ void QuatModel::computeQuatGradCell(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
                  patch->getPatchData(d_quat_symm_rotation_id)));
          assert(rotation_index);
-         assert(rotation_index->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
-         QUATGRAD_CELL_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                            ifirst(2), ilast(2),
-#endif
-                            d_qlen, dx, diff_data->getPointer(0, 0),
-                            diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                            diff_data->getPointer(2, 0),
-#endif
-                            NGHOSTS, grad_cell_data->getPointer(0 * d_qlen),
-                            grad_cell_data->getPointer(1 * d_qlen),
-#if (NDIM == 3)
-                            grad_cell_data->getPointer(2 * d_qlen),
-#endif
-                            0, rotation_index->getPointer(0),
-                            rotation_index->getPointer(1),
-#if (NDIM == 3)
-                            rotation_index->getPointer(2),
-#endif
-                            NGHOSTS);
+         computeQGrad(diff_data, grad_cell_data, dx, true, rotation_index);
 
       } else {
 
-         QUATGRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       d_qlen, dx, diff_data->getPointer(0, 0),
-                       diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                       diff_data->getPointer(2, 0),
-#endif
-                       NGHOSTS, grad_cell_data->getPointer(0 * d_qlen),
-                       grad_cell_data->getPointer(1 * d_qlen),
-#if (NDIM == 3)
-                       grad_cell_data->getPointer(2 * d_qlen),
-#endif
-                       0);
+         computeQGrad(diff_data, grad_cell_data, dx, false, nullptr);
       }
    }
 }

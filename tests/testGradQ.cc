@@ -16,6 +16,7 @@
 
 #include "computeQDiffs.h"
 
+#include <vector>
 
 using namespace SAMRAI;
 
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
       hier::Index box_lower(dim, 0);
       hier::Index box_upper(dim);
       for (int d = 0; d < dim.getValue(); ++d) {
-         box_upper(d) = (d + 4) * 3;
+         box_upper(d) = (d + 2) * 3;
       }
 
       hier::Box box(box_lower, box_upper, hier::BlockId(0));
@@ -56,12 +57,11 @@ int main(int argc, char* argv[])
       std::shared_ptr<pdat::SideData<double>> quat_diffs(
           new pdat::SideData<double>(box, qlen, hier::IntVector(dim, 1)));
 
-      // initialize quat field
-      const double alpha[3] = {
-          2.,
-          3.,
-          4,
-      };
+      // initialize quat fields as linear functions of x,y,z
+      std::vector<double> alpha(NDIM * qlen);
+      for (int axis = 0; axis < dim.getValue(); ++axis)
+         for (int q = 0; q < qlen; q++)
+            alpha[axis * qlen + q] = (double)(axis + 1) + 0.1 * (double)q;
 
       hier::Box gbox(quat->getGhostBox());
 
@@ -81,9 +81,10 @@ int main(int argc, char* argv[])
          int iz = cell(2) - z_lower;
 #endif
          for (int q = 0; q < qlen; q++) {
-            (*quat)(cell, q) = ix * alpha[0] + iy * alpha[1]
+            (*quat)(cell, q) = ix * alpha[0 * qlen + q] +
+                               iy * alpha[1 * qlen + q]
 #if (NDIM == 3)
-                               + iz * alpha[2]
+                               + iz * alpha[2 * qlen + q]
 #endif
                 ;
          }
@@ -94,15 +95,44 @@ int main(int argc, char* argv[])
 
       // verify result
       for (int axis = 0; axis < dim.getValue(); ++axis) {
+         tbox::pout << "Verify component " << axis << " of diff Q..."
+                    << std::endl;
          pdat::SideIterator iend(pdat::SideGeometry::end(box, axis));
          for (pdat::SideIterator si(pdat::SideGeometry::begin(box, axis));
               si != iend; ++si) {
             pdat::SideIndex side = *si;
             for (int q = 0; q < qlen; q++) {
-               if (((*quat_diffs)(side, q) - alpha[axis]) > 1.e-6) {
-                  tbox::pout << "expected diff = " << alpha[axis]
+               if (((*quat_diffs)(side, q) - alpha[axis * qlen + q]) > 1.e-6) {
+                  tbox::pout << "expected diff = " << alpha[axis * qlen + q]
                              << ", computed = " << (*quat_diffs)(side, q)
                              << std::endl;
+                  ret = 1;
+               }
+            }
+         }
+      }
+
+      // compute gradients at cell centers
+      double dx[3] = {0.1, 0.11, 0.12};
+      std::shared_ptr<pdat::CellData<double>> quat_grad(
+          new pdat::CellData<double>(box, NDIM * qlen,
+                                     hier::IntVector(dim, 0)));
+      computeQGrad(quat_diffs, quat_grad, dx, false, nullptr);
+
+      // verify result
+      for (int axis = 0; axis < dim.getValue(); ++axis) {
+         tbox::pout << "Verify component " << axis << " of grad Q..."
+                    << std::endl;
+         pdat::CellIterator iend(pdat::CellGeometry::end(box));
+         for (pdat::CellIterator ci(pdat::CellGeometry::begin(box)); ci != iend;
+              ++ci) {
+            pdat::CellIndex cell = *ci;
+            for (int q = 0; q < qlen; q++) {
+               double val = (*quat_grad)(cell, q + axis * qlen);
+               double expected = alpha[axis * qlen + q] / dx[axis];
+               if ((val - expected) > 1.e-6) {
+                  tbox::pout << "q=" << q << ": expected grad = " << expected
+                             << ", computed = " << val << std::endl;
                   ret = 1;
                }
             }
