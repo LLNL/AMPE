@@ -4206,176 +4206,37 @@ void QuatModel::computeQuatGradSide(
 
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
       std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
 
       std::shared_ptr<pdat::SideData<double> > diff_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(quat_diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::SideData<double> > grad_side_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(grad_side_id)));
       assert(grad_side_data);
-      assert(grad_side_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(grad_side_data->getDepth() == NDIM * d_qlen);
 
       std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
           SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
                                  hier::PatchGeometry>(
               patch->getPatchGeometry()));
-      TBOX_ASSERT(patch_geom);
+      assert(patch_geom);
 
       const double* dx = patch_geom->getDx();
 
       if (d_symmetry_aware) {
-
          std::shared_ptr<pdat::SideData<int> > rotation_index(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
                  patch->getPatchData(d_quat_symm_rotation_id)));
          assert(rotation_index);
-         assert(rotation_index->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
-         if (!d_model_parameters.useIsotropicStencil()) {
-
-            // tbox::pout<<"compute quat grad at sides..."<<endl;
-
-            QUATGRAD_SIDE_SYMM(
-                ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                ifirst(2), ilast(2),
-#endif
-                d_qlen, dx, diff_data->getPointer(0, 0),
-                diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                diff_data->getPointer(2, 0),
-#endif
-                NGHOSTS,
-                grad_side_data->getPointer(0, 0 * d_qlen),  // grad_x, xside
-                grad_side_data->getPointer(0, 1 * d_qlen),  // grad_y, xside
-#if (NDIM == 3)
-                grad_side_data->getPointer(0, 2 * d_qlen),  // grad_z, xside
-#endif
-                grad_side_data->getPointer(1, 0 * d_qlen),  // grad_x, yside
-                grad_side_data->getPointer(1, 1 * d_qlen),  // grad_y, yside
-#if (NDIM == 3)
-                grad_side_data->getPointer(1, 2 * d_qlen),  // grad_z, yside
-#endif
-#if (NDIM == 3)
-                grad_side_data->getPointer(2, 0 * d_qlen),
-                grad_side_data->getPointer(2, 1 * d_qlen),
-                grad_side_data->getPointer(2, 2 * d_qlen),
-#endif
-                0, rotation_index->getPointer(0), rotation_index->getPointer(1),
-#if (NDIM == 3)
-                rotation_index->getPointer(2),
-#endif
-                NGHOSTS);
-
-         } else {
-
-            // tbox::pout<<"compute quat grad at sides using wide
-            // stencil..."<<endl;
-
-            QUATGRAD_SIDE_SYMM_ISOTROPIC(
-                ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                ifirst(2), ilast(2),
-#endif
-                d_qlen, dx, diff_data->getPointer(0, 0),
-                diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                diff_data->getPointer(2, 0),
-#endif
-                NGHOSTS,
-                grad_side_data->getPointer(0, 0 * d_qlen),  // grad_x, xside
-                grad_side_data->getPointer(0, 1 * d_qlen),  // grad_y, xside
-#if (NDIM == 3)
-                grad_side_data->getPointer(0, 2 * d_qlen),  // grad_z, xside
-#endif
-                grad_side_data->getPointer(1, 0 * d_qlen),  // grad_x, yside
-                grad_side_data->getPointer(1, 1 * d_qlen),  // grad_y, yside
-#if (NDIM == 3)
-                grad_side_data->getPointer(1, 2 * d_qlen),  // grad_z, yside
-#endif
-#if (NDIM == 3)
-                grad_side_data->getPointer(2, 0 * d_qlen),
-                grad_side_data->getPointer(2, 1 * d_qlen),
-                grad_side_data->getPointer(2, 2 * d_qlen),
-#endif
-                0, rotation_index->getPointer(0), rotation_index->getPointer(1),
-#if (NDIM == 3)
-                rotation_index->getPointer(2),
-#endif
-                NGHOSTS);
-         }
+         computeQGradSide(diff_data, grad_side_data, dx, true,
+                          d_model_parameters.useIsotropicStencil(),
+                          rotation_index);
       } else {
-
-         if (!d_model_parameters.useIsotropicStencil()) {
-            QUATGRAD_SIDE(
-                ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                ifirst(2), ilast(2),
-#endif
-                d_qlen, dx, diff_data->getPointer(0, 0),
-                diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                diff_data->getPointer(2, 0),
-#endif
-                NGHOSTS,
-                // output
-                grad_side_data->getPointer(0, 0 * d_qlen),  // grad_x, xside
-                grad_side_data->getPointer(0, 1 * d_qlen),  // grad_y, xside
-#if (NDIM == 3)
-                grad_side_data->getPointer(0, 2 * d_qlen),  // grad_z, xside
-#endif
-                grad_side_data->getPointer(1, 0 * d_qlen),  // grad_x, yside
-                grad_side_data->getPointer(1, 1 * d_qlen),  // grad_y, yside
-#if (NDIM == 3)
-                grad_side_data->getPointer(1, 2 * d_qlen),  // grad_z, yside
-#endif
-#if (NDIM == 3)
-                grad_side_data->getPointer(2, 0 * d_qlen),
-                grad_side_data->getPointer(2, 1 * d_qlen),
-                grad_side_data->getPointer(2, 2 * d_qlen),
-#endif
-                0);
-         } else {
-            QUATGRAD_SIDE_ISOTROPIC(
-                ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                ifirst(2), ilast(2),
-#endif
-                d_qlen, dx, diff_data->getPointer(0, 0),
-                diff_data->getPointer(1, 0),
-#if (NDIM == 3)
-                diff_data->getPointer(2, 0),
-#endif
-                NGHOSTS,
-                // output
-                grad_side_data->getPointer(0, 0 * d_qlen),  // grad_x, xside
-                grad_side_data->getPointer(0, 1 * d_qlen),  // grad_y, xside
-#if (NDIM == 3)
-                grad_side_data->getPointer(0, 2 * d_qlen),  // grad_z, xside
-#endif
-                grad_side_data->getPointer(1, 0 * d_qlen),  // grad_x, yside
-                grad_side_data->getPointer(1, 1 * d_qlen),  // grad_y, yside
-#if (NDIM == 3)
-                grad_side_data->getPointer(1, 2 * d_qlen),  // grad_z, yside
-#endif
-#if (NDIM == 3)
-                grad_side_data->getPointer(2, 0 * d_qlen),
-                grad_side_data->getPointer(2, 1 * d_qlen),
-                grad_side_data->getPointer(2, 2 * d_qlen),
-#endif
-                0);
-         }
+         computeQGradSide(diff_data, grad_side_data, dx, false,
+                          d_model_parameters.useIsotropicStencil(), nullptr);
       }
    }
 }

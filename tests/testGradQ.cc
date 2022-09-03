@@ -1,3 +1,12 @@
+// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
+// UT-Battelle, LLC.
+// Produced at the Lawrence Livermore National Laboratory and
+// the Oak Ridge National Laboratory
+// LLNL-CODE-747500
+// All rights reserved.
+// This file is part of AMPE.
+// For details, see https://github.com/LLNL/AMPE
+// Please also read AMPE/LICENSE.
 #include "SAMRAI/SAMRAI_config.h"
 
 #include "SAMRAI/tbox/Database.h"
@@ -113,6 +122,7 @@ int main(int argc, char* argv[])
       }
 
       // compute gradients at cell centers
+      tbox::pout << "Gradients at cell centers..." << std::endl;
       double dx[3] = {0.1, 0.11, 0.12};
       std::shared_ptr<pdat::CellData<double>> quat_grad(
           new pdat::CellData<double>(box, NDIM * qlen,
@@ -129,6 +139,33 @@ int main(int argc, char* argv[])
             pdat::CellIndex cell = *ci;
             for (int q = 0; q < qlen; q++) {
                double val = (*quat_grad)(cell, q + axis * qlen);
+               double expected = alpha[axis * qlen + q] / dx[axis];
+               if ((val - expected) > 1.e-6) {
+                  tbox::pout << "q=" << q << ": expected grad = " << expected
+                             << ", computed = " << val << std::endl;
+                  ret = 1;
+               }
+            }
+         }
+      }
+
+      // compute gradients at cell sides
+      tbox::pout << "Gradients at cell sides..." << std::endl;
+      std::shared_ptr<pdat::SideData<double>> quat_grad_side(
+          new pdat::SideData<double>(box, NDIM * qlen,
+                                     hier::IntVector(dim, 0)));
+      computeQGradSide(quat_diffs, quat_grad_side, dx, false, false, nullptr);
+
+      // verify result
+      for (int axis = 0; axis < dim.getValue(); ++axis) {
+         tbox::pout << "Verify component " << axis << " of grad Q..."
+                    << std::endl;
+         pdat::SideIterator iend(pdat::SideGeometry::end(box, axis));
+         for (pdat::SideIterator si(pdat::SideGeometry::begin(box, axis));
+              si != iend; ++si) {
+            pdat::SideIndex side = *si;
+            for (int q = 0; q < qlen; q++) {
+               double val = (*quat_grad_side)(side, q + axis * qlen);
                double expected = alpha[axis * qlen + q] / dx[axis];
                if ((val - expected) > 1.e-6) {
                   tbox::pout << "q=" << q << ": expected grad = " << expected
