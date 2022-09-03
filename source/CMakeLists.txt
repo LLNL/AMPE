@@ -26,6 +26,7 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
+            ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
             ${CMAKE_SOURCE_DIR}/source/EnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TwoPhasesEnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc

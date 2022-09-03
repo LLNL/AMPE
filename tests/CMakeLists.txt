@@ -37,6 +37,10 @@ set_source_files_properties( ${fortran_dir_dim}/hyprepoisson.f
                              PROPERTIES GENERATED TRUE)
 set_source_files_properties( ${fortran_dir_dim}/phase.f 
                              PROPERTIES GENERATED TRUE)
+set_source_files_properties( ${fortran_dir_dim}/quatdiffs.f
+                             PROPERTIES GENERATED TRUE)
+set_source_files_properties( ${fortran_dir_dim}/quatgrad.f
+                             PROPERTIES GENERATED TRUE)
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
@@ -91,6 +95,12 @@ add_executable(testPhaseFAC
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                PhaseFAC.cc
                ${SOURCES_FORTRAN_DIM})
+add_executable(testGradQ
+               ${CMAKE_SOURCE_DIR}/tests/testGradQ.cc
+               ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
+               ${fortran_dir_dim}/quatdiffs.f
+               ${fortran_dir_dim}/quatgrad.f
+               ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
 add_executable(testCALPHADJacobianTernary
@@ -171,6 +181,10 @@ add_test(NAME testPhaseFAC
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testPhaseFAC ${NDIM}d.input
          WORKING_DIRECTORY ${TEST_DIR}/PhaseFAC)
+add_test(NAME testGradQ
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+                 ${CMAKE_CURRENT_BINARY_DIR}/testGradQ
+         WORKING_DIRECTORY ${TEST_DIR}/GradQ)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADFunctions)
@@ -354,6 +368,9 @@ target_link_libraries(testPhaseFAC ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${THERMOLIB}
                                      )
+target_link_libraries(testGradQ ${PROJECT_LINK_LIBS_SAMRAI}
+                                ${PROJECT_LINK_LIBS_HDF5}
+                                )
 target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${THERMOLIB}
