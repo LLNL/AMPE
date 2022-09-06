@@ -361,7 +361,7 @@ c
 
       double precision grad_x_xside(SIDE3d0(lo,hi,0),depth)
       double precision grad_y_yside(SIDE3d1(lo,hi,0),depth)
-      double precision grad_z_zside(SIDE3d1(lo,hi,0),depth)
+      double precision grad_z_zside(SIDE3d2(lo,hi,0),depth)
 
 c     local variables:
       integer i, j, k, m
