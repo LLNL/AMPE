@@ -1,0 +1,84 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 200
+end_time            = 0.09
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.01
+   interval_type = "time"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = 0.001
+   epsilon_orient = 0.1
+   
+   temperature = 873.
+   dtemperaturedt     = -20.
+   target_temperature = 573.
+
+   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
+   orient_mobility  = 200.
+   phi_mobility     = 200.
+   
+   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
+   phi_interp_func_type ="hbsm"
+   
+   ConcentrationModel{
+      model    = "hbsm"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid  =  1.3e8
+      D_liquid  = 5.6e4
+      Q0_solid  = 156377.   // Edwards et al. [J/mol]
+      Q0_liquid = 55329.    // Wade 1971      [J/mol]
+      mobility = 1.
+      HBSM {
+         A_liquid = 1.e4 
+         A_solid  = 1.e4
+         Ceq_liquid = 0.05
+         Ceq_solid  = 0.10
+      }
+   }
+}
+
+Integrator {
+   atol = 1.e-4
+}
+
+ScalarDiagnostics {
+   interval = 0.01
+   interval_type = "time"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+   extra_energy_detail = TRUE
+}   
+
+GrainDiagnostics {  // optional block
+   interval = 0.01  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = FALSE  // optional
+   phase_threshold = 0.85  // optional
+}
+
+InitialConditions {
+   filename = "2spheres.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 64, 64, 32
+   x_lo         =  0.0, 0.0, 0.0 // lower end of computational domain.
+   x_up         =  3.2, 3.2, 1.6 // upper end of computational domain.
+}
