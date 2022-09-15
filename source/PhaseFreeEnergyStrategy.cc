@@ -25,6 +25,11 @@ PhaseFreeEnergyStrategy::PhaseFreeEnergyStrategy(
     const double fa, const double fb, const double vml, const double vma,
     const double vmb, const bool with_third_phase)
 {
+   assert(vml == vml);
+   assert(vma == vma);
+   assert(vml > 0.);
+   assert(vma > 0.);
+
    d_phase_interp_func_type = phase_interp_func_type;
    d_eta_interp_func_type = eta_interp_func_type;
    d_f_l = fl;
