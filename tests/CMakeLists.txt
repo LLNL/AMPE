@@ -298,6 +298,12 @@ add_test(NAME TwoGrainsHBSM
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsHBSM/${NDIM}d.input
          )
+add_test(NAME FourCorners
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FourCorners/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/FourCorners/${NDIM}d.input
+         )
 add_test(NAME Dendrite
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
