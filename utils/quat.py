@@ -458,7 +458,7 @@ def quatSymm( q1, q2, iq=0 ) :
     global iq_qr4_conj
     qr = qr4
     iq_qr_conj = iq_qr4_conj
-    CRIT_DIFF = 2.0 * math.sin( math.pi / 16.0 )
+    CRIT_DIFF = 2.0 * math.sin( math.pi * 0.0625 )
     N_ROTATIONS = 48
   else :
     global qr2

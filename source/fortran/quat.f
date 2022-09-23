@@ -61,7 +61,7 @@ c=======================================================================
 
       else
          
-         print *, "Error in quatsymmrotate"
+         print *, "Error in quatsymmrotate, qlen = ", qlen
          stop
 
       endif
