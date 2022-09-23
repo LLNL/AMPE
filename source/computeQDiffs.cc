@@ -26,6 +26,7 @@ void computeQGradSide(std::shared_ptr<pdat::SideData<double> > diff_data,
    assert(grad_data);
 
    int qlen = diff_data->getDepth();
+   if (isSymmetryAware) qlen /= 2;
 
    const hier::Box& box = grad_data->getBox();
    const hier::Index& ifirst = box.lower();
@@ -171,7 +172,8 @@ void computeQGrad(std::shared_ptr<pdat::SideData<double> > diff_data,
    assert(diff_data);
    assert(grad_data);
 
-   const int qlen = diff_data->getDepth();
+   int qlen = diff_data->getDepth();
+   if (isSymmetryAware) qlen /= 2;
 
    const hier::Box& box = grad_data->getBox();
    const hier::Index& ifirst = box.lower();
@@ -232,7 +234,10 @@ void computeQDiffs(std::shared_ptr<pdat::CellData<double> > quat_data,
 {
    assert(quat_data);
    assert(diff_data);
-   assert(quat_data->getDepth() == diff_data->getDepth());
+   if (isSymmetryAware)
+      assert(2 * quat_data->getDepth() == diff_data->getDepth());
+   else
+      assert(quat_data->getDepth() == diff_data->getDepth());
    assert(quat_data->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
    assert(diff_data->getGhostCellWidth() ==
