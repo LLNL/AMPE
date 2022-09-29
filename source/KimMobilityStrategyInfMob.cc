@@ -13,6 +13,9 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#ifdef HAVE_THERMO4PFM
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#endif
 
 #include <iomanip>
 
@@ -86,3 +89,7 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
 template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsBinary>;
 template class KimMobilityStrategyInfMob<CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyInfMob<KKSFreeEnergyFunctionDiluteBinary>;
+#ifdef HAVE_THERMO4PFM
+template class KimMobilityStrategyInfMob<
+    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+#endif

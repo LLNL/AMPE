@@ -15,8 +15,8 @@
 #include "ConcFreeEnergyStrategy.h"
 #include "CALPHADSpeciesPhaseGibbsEnergy.h"
 #include "CALPHADConcSolverBinary.h"
-#include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "FuncFort.h"
+#include "InterpolationType.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -27,6 +27,7 @@ class MolarVolumeStrategy;
 #include <string>
 #include <vector>
 
+template <class FreeEnergyFunctionType>
 class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 {
  public:
@@ -42,7 +43,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
        const int conc_a_id, const int conc_b_id, const bool with_third_phase);
 
-   virtual ~CALPHADFreeEnergyStrategyBinary() { delete d_calphad_fenergy; };
+   virtual ~CALPHADFreeEnergyStrategyBinary(){};
 
    virtual void setup(
 #ifdef HAVE_THERMO4PFM
@@ -193,7 +194,7 @@ class CALPHADFreeEnergyStrategyBinary : public ConcFreeEnergyStrategy
 
    MolarVolumeStrategy* d_mv_strategy;
 
-   CALPHADFreeEnergyFunctionsBinary* d_calphad_fenergy;
+   std::shared_ptr<FreeEnergyFunctionType> d_calphad_fenergy;
 
    EnergyInterpolationType d_energy_interp_func_type;
    ConcInterpolationType d_conc_interp_func_type;

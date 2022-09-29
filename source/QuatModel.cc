@@ -379,7 +379,8 @@ void QuatModel::initializeRHSandEnergyStrategies(
             assert(d_ncompositions == 1);
 
             d_free_energy_strategy_for_diffusion.reset(
-                new CALPHADFreeEnergyStrategyBinary(
+                new CALPHADFreeEnergyStrategyBinary<
+                    CALPHADFreeEnergyFunctionsBinary>(
                     calphad_db, newton_db,
                     d_model_parameters.energy_interp_func_type(),
                     d_model_parameters.conc_interp_func_type(), d_mvstrategy,

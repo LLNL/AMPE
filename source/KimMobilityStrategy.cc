@@ -17,6 +17,7 @@
 #include "QuatModel.h"
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #endif
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -25,8 +26,8 @@
 #include <boost/property_tree/ptree.hpp>
 namespace pt = boost::property_tree;
 
-template <>
-KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>::KimMobilityStrategy(
+template <class FreeEnergyType>
+KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
     QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
     const int temp_id, const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
@@ -71,7 +72,7 @@ KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>::KimMobilityStrategy(
    if (newton_db) copyDatabase(newton_db, newton_pt);
 #endif
 
-   d_fenergy = new CALPHADFreeEnergyFunctionsBinary(
+   d_fenergy = new FreeEnergyType(
 #ifdef HAVE_THERMO4PFM
        calphad_pt, newton_pt,
 #else
@@ -299,3 +300,8 @@ void KimMobilityStrategy<FreeEnergyType>::update(
           (cd_cl->getGhostCellWidth()[1] - cd_mob->getGhostCellWidth()[1]);
    }
 }
+
+template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>;
+#ifdef HAVE_THERMO4PFM
+template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+#endif

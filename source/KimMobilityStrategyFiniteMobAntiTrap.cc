@@ -13,6 +13,9 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#ifdef HAVE_THERMO4PFM
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#endif
 
 template <class FreeEnergyType>
 KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
@@ -89,3 +92,7 @@ template class KimMobilityStrategyFiniteMobAntiTrap<
     CALPHADFreeEnergyFunctionsTernary>;
 template class KimMobilityStrategyFiniteMobAntiTrap<
     KKSFreeEnergyFunctionDiluteBinary>;
+#ifdef HAVE_THERMO4PFM
+template class KimMobilityStrategyFiniteMobAntiTrap<
+    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+#endif
