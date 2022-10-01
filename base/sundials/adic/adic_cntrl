@@ -1,3 +1,0 @@
-[GENERAL]
-        type_prefix = ad_
-        include_dirs = ../../BUILD_LAM/include
