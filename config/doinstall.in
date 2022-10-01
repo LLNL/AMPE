@@ -1,7 +1,0 @@
-#! /bin/csh
-
-# Configure and install Sundials
-pushd @BASE_DIR@/sundials
-./doconfig
-./doinstall
-popd

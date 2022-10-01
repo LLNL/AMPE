@@ -1,5 +1,0 @@
-#!/bin/sh
-
-gmake clean
-gmake
-gmake install

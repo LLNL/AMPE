@@ -1,8 +1,0 @@
-#!/bin/tcsh
-source scripts/modules.summit
-
-./configure --disable-debug --enable-opt \
-            --with-CXX=mpicxx \
-            --with-CC=mpicc \
-            --with-F77=mpif77 \
-            --prefix=$PWD/build

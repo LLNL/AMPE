@@ -1,8 +1,0 @@
-#!/bin/sh
-source scripts/modules.condo
-
-./configure --disable-debug --enable-opt \
-            --with-CXX=mpiCC \
-            --with-CC=mpicc \
-            --with-F77=mpif77 \
-            --prefix=$PWD/build
