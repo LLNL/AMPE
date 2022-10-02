@@ -20,6 +20,7 @@ namespace pt = boost::property_tree;
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #else
 #include "FuncFort.h"
 #endif
@@ -69,6 +70,32 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 #ifdef HAVE_THERMO4PFM
+template <>
+CALPHADequilibriumPhaseConcentrationsStrategy<
+    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>::
+    CALPHADequilibriumPhaseConcentrationsStrategy(
+        const int conc_l_scratch_id, const int conc_a_scratch_id,
+        const int conc_b_scratch_id, const int conc_l_ref_id,
+        const int conc_a_ref_id, const int conc_b_ref_id,
+        const EnergyInterpolationType energy_interp_func_type,
+        const ConcInterpolationType conc_interp_func_type,
+        const bool with_third_phase, pt::ptree calphad_pt,
+        std::shared_ptr<tbox::Database> newton_db, const unsigned ncompositions)
+    : PhaseConcentrationsStrategy(conc_l_scratch_id, conc_a_scratch_id,
+                                  conc_b_scratch_id, with_third_phase),
+      d_conc_l_ref_id(conc_l_ref_id),
+      d_conc_a_ref_id(conc_a_ref_id),
+      d_conc_b_ref_id(conc_b_ref_id),
+      d_conc_interp_func_type(conc_interp_func_type)
+{
+   pt::ptree newton_pt;
+   if (newton_db) copyDatabase(newton_db, newton_pt);
+   d_calphad_fenergy = std::unique_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+       new CALPHADFreeEnergyFunctionsBinary2Ph1Sl(
+           calphad_pt, newton_pt, energy_interp_func_type,
+           ConcInterpolationType::LINEAR));
+}
+
 template <>
 CALPHADequilibriumPhaseConcentrationsStrategy<
     CALPHADFreeEnergyFunctionsBinaryThreePhase>::

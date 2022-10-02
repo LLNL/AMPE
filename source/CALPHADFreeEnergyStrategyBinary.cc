@@ -19,6 +19,7 @@
 #include "FuncFort.h"
 
 #ifdef HAVE_THERMO4PFM
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "Database2JSON.h"
 namespace pt = boost::property_tree;
 #endif
@@ -36,17 +37,19 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
+template <class FreeEnergyFunctionType>
+CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    CALPHADFreeEnergyStrategyBinary(
 #ifdef HAVE_THERMO4PFM
-    pt::ptree calphad_db,
+        pt::ptree calphad_db,
 #else
-    std::shared_ptr<tbox::Database> calphad_db,
+        std::shared_ptr<tbox::Database> calphad_db,
 #endif
-    std::shared_ptr<tbox::Database> newton_db,
-    const EnergyInterpolationType energy_interp_func_type,
-    const ConcInterpolationType conc_interp_func_type,
-    MolarVolumeStrategy* mvstrategy, const int conc_l_id, const int conc_a_id,
-    const int conc_b_id, const bool with_third_phase)
+        std::shared_ptr<tbox::Database> newton_db,
+        const EnergyInterpolationType energy_interp_func_type,
+        const ConcInterpolationType conc_interp_func_type,
+        MolarVolumeStrategy* mvstrategy, const int conc_l_id,
+        const int conc_a_id, const int conc_b_id, const bool with_third_phase)
     : d_mv_strategy(mvstrategy),
       d_energy_interp_func_type(energy_interp_func_type),
       d_conc_interp_func_type(conc_interp_func_type),
@@ -70,7 +73,8 @@ CALPHADFreeEnergyStrategyBinary::CALPHADFreeEnergyStrategyBinary(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::setup(
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::setup(
 #ifdef HAVE_THERMO4PFM
     pt::ptree calphad_pt,
 #else
@@ -81,23 +85,23 @@ void CALPHADFreeEnergyStrategyBinary::setup(
 #ifdef HAVE_THERMO4PFM
    pt::ptree newton_pt;
    if (newton_db) copyDatabase(newton_db, newton_pt);
-   d_calphad_fenergy =
-       new CALPHADFreeEnergyFunctionsBinary(calphad_pt, newton_pt,
-                                            d_energy_interp_func_type,
-                                            d_conc_interp_func_type);
+   d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_pt, newton_pt,
+                                                      d_energy_interp_func_type,
+                                                      d_conc_interp_func_type));
 #else
-   d_calphad_fenergy =
-       new CALPHADFreeEnergyFunctionsBinary(calphad_db, newton_db,
-                                            d_energy_interp_func_type,
-                                            d_conc_interp_func_type,
-                                            d_with_third_phase);
+   d_calphad_fenergy.reset(new FreeEnergyFunctionType(calphad_db, newton_db,
+                                                      d_energy_interp_func_type,
+                                                      d_conc_interp_func_type,
+                                                      d_with_third_phase));
 #endif
 }
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
-    hier::Patch& patch, const int temperature_id, const int dfl_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDerivFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
+                                 const int dfl_id)
 {
    assert(temperature_id >= 0);
    assert(dfl_id >= 0);
@@ -108,8 +112,10 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergyLiquid(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
-    hier::Patch& patch, const int temperature_id, const int dfs_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDerivFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
+                                 const int dfs_id)
 {
    assert(temperature_id >= 0.);
    assert(dfs_id >= 0);
@@ -120,8 +126,10 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidA(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
-    hier::Patch& patch, const int temperature_id, const int dfs_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDerivFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
+                                 const int dfs_id)
 {
    assert(temperature_id >= 0.);
    assert(dfs_id >= 0);
@@ -132,9 +140,12 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergySolidB(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
-    hier::Patch& patch, const int temperature_id, const int fl_id,
-    const bool gp)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<
+    FreeEnergyFunctionType>::computeFreeEnergyLiquid(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fl_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0);
    assert(fl_id >= 0);
@@ -147,9 +158,12 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergyLiquid(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<
+    FreeEnergyFunctionType>::computeFreeEnergySolidA(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fs_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0.);
    assert(fs_id >= 0);
@@ -160,9 +174,12 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidA(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
-    hier::Patch& patch, const int temperature_id, const int fs_id,
-    const bool gp)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<
+    FreeEnergyFunctionType>::computeFreeEnergySolidB(hier::Patch& patch,
+                                                     const int temperature_id,
+                                                     const int fs_id,
+                                                     const bool gp)
 {
    assert(temperature_id >= 0.);
    assert(fs_id >= 0);
@@ -173,7 +190,8 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergySolidB(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const int f_id,
     const int conc_i_id, const PhaseIndex pi, const bool gp)
 {
@@ -200,9 +218,13 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
-    hier::Patch& patch, const int temperature_id, const int df_id,
-    const int conc_i_id, const PhaseIndex pi)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<
+    FreeEnergyFunctionType>::computeDerivFreeEnergy(hier::Patch& patch,
+                                                    const int temperature_id,
+                                                    const int df_id,
+                                                    const int conc_i_id,
+                                                    const PhaseIndex pi)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -227,7 +249,8 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi,
@@ -307,10 +330,12 @@ void CALPHADFreeEnergyStrategyBinary::computeFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
-    const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-    std::shared_ptr<pdat::CellData<double> > cd_free_energy,
-    std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDerivFreeEnergy(
+        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
+        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
+        std::shared_ptr<pdat::CellData<double> > cd_conc_i, const PhaseIndex pi)
 {
    double* ptr_temp = cd_temp->getPointer();
    double* ptr_f = cd_free_energy->getPointer();
@@ -386,10 +411,12 @@ void CALPHADFreeEnergyStrategyBinary::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::computeDrivingForce(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    computeDrivingForce(const double time, hier::Patch& patch,
+                        const int temperature_id, const int phase_id,
+                        const int eta_id, const int conc_id, const int f_l_id,
+                        const int f_a_id, const int f_b_id, const int rhs_id)
 {
    EnergyInterpolationType d_energy_interp_func_type_saved(
        d_energy_interp_func_type);
@@ -406,7 +433,8 @@ void CALPHADFreeEnergyStrategyBinary::computeDrivingForce(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
     const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
     const int f_a_id, const int f_b_id, const int rhs_id)
@@ -487,7 +515,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::addDrivingForce(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -637,8 +666,9 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForce(
 
 //=======================================================================
 
-double CALPHADFreeEnergyStrategyBinary::computeMuA(const double t,
-                                                   const double c)
+template <class FreeEnergyFunctionType>
+double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuA(
+    const double t, const double c)
 {
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseA, &mu);
@@ -649,8 +679,9 @@ double CALPHADFreeEnergyStrategyBinary::computeMuA(const double t,
 
 //=======================================================================
 
-double CALPHADFreeEnergyStrategyBinary::computeMuL(const double t,
-                                                   const double c)
+template <class FreeEnergyFunctionType>
+double CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::computeMuL(
+    const double t, const double c)
 {
    double mu;
    d_calphad_fenergy->computeDerivFreeEnergy(t, &c, PhaseIndex::phaseL, &mu);
@@ -661,10 +692,12 @@ double CALPHADFreeEnergyStrategyBinary::computeMuL(const double t,
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
-    const double time, hier::Patch& patch, const int temperature_id,
-    const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
-    const int f_a_id, const int f_b_id, const int rhs_id)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    addDrivingForceEta(const double time, hier::Patch& patch,
+                       const int temperature_id, const int phase_id,
+                       const int eta_id, const int conc_id, const int f_l_id,
+                       const int f_a_id, const int f_b_id, const int rhs_id)
 {
    (void)time;
 
@@ -734,17 +767,19 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
-    std::shared_ptr<pdat::CellData<double> > cd_rhs,
-    std::shared_ptr<pdat::CellData<double> > cd_temperature,
-    std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
-    std::shared_ptr<pdat::CellData<double> > cd_f_l,
-    std::shared_ptr<pdat::CellData<double> > cd_f_a,
-    std::shared_ptr<pdat::CellData<double> > cd_f_b,
-    std::shared_ptr<pdat::CellData<double> > cd_c_l,
-    std::shared_ptr<pdat::CellData<double> > cd_c_a,
-    std::shared_ptr<pdat::CellData<double> > cd_c_b, const hier::Box& pbox)
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
+    addDrivingForceEta(std::shared_ptr<pdat::CellData<double> > cd_rhs,
+                       std::shared_ptr<pdat::CellData<double> > cd_temperature,
+                       std::shared_ptr<pdat::CellData<double> > cd_phi,
+                       std::shared_ptr<pdat::CellData<double> > cd_eta,
+                       std::shared_ptr<pdat::CellData<double> > cd_f_l,
+                       std::shared_ptr<pdat::CellData<double> > cd_f_a,
+                       std::shared_ptr<pdat::CellData<double> > cd_f_b,
+                       std::shared_ptr<pdat::CellData<double> > cd_c_l,
+                       std::shared_ptr<pdat::CellData<double> > cd_c_a,
+                       std::shared_ptr<pdat::CellData<double> > cd_c_b,
+                       const hier::Box& pbox)
 {
    double* ptr_rhs = cd_rhs->getPointer();
 
@@ -868,7 +903,8 @@ void CALPHADFreeEnergyStrategyBinary::addDrivingForceEta(
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseL(const double temp,
                                                const std::vector<double>& c_l,
                                                std::vector<double>& d2fdc2,
@@ -890,7 +926,8 @@ void CALPHADFreeEnergyStrategyBinary::
 
 //=======================================================================
 
-void CALPHADFreeEnergyStrategyBinary::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseA(const double temp,
                                                const std::vector<double>& c_a,
                                                std::vector<double>& d2fdc2,
@@ -912,7 +949,8 @@ void CALPHADFreeEnergyStrategyBinary::
 
 //=======================================================================
 #ifndef HAVE_THERMO4PFM
-void CALPHADFreeEnergyStrategyBinary::
+template <class FreeEnergyFunctionType>
+void CALPHADFreeEnergyStrategyBinary<FreeEnergyFunctionType>::
     defaultComputeSecondDerivativeEnergyPhaseB(const double temp,
                                                const std::vector<double>& c_b,
                                                std::vector<double>& d2fdc2,
@@ -926,4 +964,11 @@ void CALPHADFreeEnergyStrategyBinary::
       d2fdc2[0] *= d_mv_strategy->computeInvMolarVolume(temp, &c_b[0],
                                                         PhaseIndex::phaseB);
 }
+#endif
+
+template class CALPHADFreeEnergyStrategyBinary<
+    CALPHADFreeEnergyFunctionsBinary>;
+#ifdef HAVE_THERMO4PFM
+template class CALPHADFreeEnergyStrategyBinary<
+    CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
 #endif

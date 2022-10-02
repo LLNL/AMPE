@@ -21,6 +21,7 @@
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinaryThreePhase.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #include "CALPHADFunctions.h"
 #endif
 
@@ -65,8 +66,8 @@ class PhaseConcentrationsStrategyFactory
          if (model_parameters.isConcentrationModelCALPHAD()) {
             if (ncompositions == 1) {
 #ifdef HAVE_THERMO4PFM
+               bool subl = checkSublattice(calphad_pt);
                if (conc_b_scratch_id >= 0) {
-                  bool subl = checkSublattice(calphad_pt);
                   if (subl) {
                      phase_conc_strategy.reset(
                          new CALPHADequilibriumPhaseConcentrationsStrategy<
@@ -90,6 +91,18 @@ class PhaseConcentrationsStrategyFactory
                              model_parameters.with_third_phase(), calphad_pt,
                              newton_db, ncompositions));
                   }
+               } else if (subl) {
+                  phase_conc_strategy.reset(
+                      new CALPHADequilibriumPhaseConcentrationsStrategy<
+                          CALPHADFreeEnergyFunctionsBinary2Ph1Sl>(
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          conc_b_scratch_id, conc_l_ref_id, conc_a_ref_id,
+                          conc_b_ref_id,
+                          model_parameters.energy_interp_func_type(),
+                          model_parameters.conc_interp_func_type(),
+                          model_parameters.with_third_phase(), calphad_pt,
+                          newton_db, ncompositions));
+
                } else
 #endif
                {
