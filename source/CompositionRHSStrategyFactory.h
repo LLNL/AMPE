@@ -58,15 +58,12 @@ class CompositionRHSStrategyFactory
          assert(diffusion_for_conc_in_phase);
 
          strategy.reset(new EBSCompositionRHSStrategy(
-             phase_scratch_id, eta_scratch_id,
-             static_cast<unsigned short>(ncompositions), conc_l_scratch_id,
-             conc_a_scratch_id, conc_b_scratch_id, temperature_scratch_id,
-             conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
-             conc_pfm_diffusion_b_id, conc_Mq_id,
-             model_parameters.Q_heat_transport(), conc_pfm_diffusion_id,
-             model_parameters.avg_func_type(),
-             free_energy_strategy_for_diffusion,
-             composition_strategy_mobilities, diffusion_for_conc_in_phase));
+             phase_scratch_id, static_cast<unsigned short>(ncompositions),
+             conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
+             temperature_scratch_id, conc_pfm_diffusion_l_id,
+             conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
+             conc_pfm_diffusion_id, model_parameters.avg_func_type(),
+             free_energy_strategy_for_diffusion, diffusion_for_conc_in_phase));
       } else if (model_parameters.concRHSstrategyIsBeckermann()) {
          strategy.reset(new BeckermannCompositionRHSStrategy(
              quatmodel, conc_scratch_id, phase_scratch_id,

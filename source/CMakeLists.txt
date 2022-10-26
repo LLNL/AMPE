@@ -122,6 +122,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/ConcFACOps.cc
             ${CMAKE_SOURCE_DIR}/source/KKSCompositionRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/EBSCompositionRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/EBSCompositionRHSStrategyWithGradT.cc
             ${CMAKE_SOURCE_DIR}/source/CompositionRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/Grains.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureFACSolver.cc
