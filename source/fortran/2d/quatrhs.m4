@@ -1,6 +1,5 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
@@ -412,8 +411,7 @@ c
      &   ngflux,
      &   phi_well_scale,
      &   phi, ngphi,
-     &   rhs, ngrhs,
-     &   energy_interp_type)
+     &   rhs, ngrhs)
 c***********************************************************************
       implicit none
 c***********************************************************************
@@ -423,7 +421,6 @@ c input arrays:
       double precision dx(2)
       double precision phi_well_scale
       integer ngflux, ngphi, ngrhs
-      character*(*) energy_interp_type
 c
 c variables in 2d cell indexed
       double precision phi(CELL2d(ifirst,ilast,ngphi),3)

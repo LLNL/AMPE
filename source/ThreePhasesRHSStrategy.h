@@ -62,8 +62,6 @@ class ThreePhasesRHSStrategy : public PhaseRHSStrategy
 
    const double d_phase_well_scale;
 
-   const EnergyInterpolationType d_energy_interp_func_type;
-
    const int d_phase_scratch_id;
    const int d_conc_scratch_id;
    const int d_temperature_scratch_id;

@@ -35,7 +35,6 @@ ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
     : d_model_parameters(model_parameters),
       d_phase_well_scale(model_parameters.phase_well_scale()),
-      d_energy_interp_func_type(model_parameters.energy_interp_func_type()),
       d_phase_scratch_id(phase_scratch_id),
       d_conc_scratch_id(conc_scratch_id),
       d_temperature_scratch_id(temperature_scratch_id),
@@ -202,7 +201,6 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    double l2f = ops.L2Norm(phase_flux, pbox);
    assert(l2f == l2f);
 #endif
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
 
    // first compute component from interfacial energy
    // for all 3 phases
@@ -217,7 +215,7 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
 #endif
                          phase_flux->getGhostCellWidth()[0], d_phase_well_scale,
                          phase->getPointer(), NGHOSTS, phase_rhs->getPointer(),
-                         0, &interpf);
+                         0);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2rhs = opc.L2Norm(phase_rhs, pbox);
