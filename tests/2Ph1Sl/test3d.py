@@ -7,7 +7,7 @@ print("Test Binary2Ph1Sl...")
 
 #prepare initial conditions file
 subprocess.call(["python3", "../../tests/2Ph1Sl/make_initial.py", "-d", "2",
-  "-x", "64", "-y", "128", "-z", "1", "--solid-fraction", "0.2",
+  "-x", "16", "-y", "64", "-z", "4", "--solid-fraction", "0.2",
   "--concL", "0.825", "--concA", "0.68",
   "test.nc"])
 
@@ -50,7 +50,7 @@ if abs(f0-0.25)>tol:
   sys.exit(1)
 
 #check target time is reached
-if time<1.e-4:
+if time<5.e-5:
   print("Final time not reached")
   sys.exit(1)
 

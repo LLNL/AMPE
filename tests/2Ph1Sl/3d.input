@@ -1,8 +1,8 @@
 // Input file
-model_type = "KWCcomplex"
+model_type = "Quat"
 
-end_time            = 1.e-4
-max_timesteps       = 1000
+end_time            = 5.e-5
+max_timesteps       = 400
 
 run_name = "test"
 
@@ -24,19 +24,18 @@ ModelParameters {
    Temperature{
       temperature = 815.
       type = "frozen"
-      gradient = 0., 1.0
+      gradient = 0., 1.0, 0.
       dtemperaturedt = -5.0e2
-      center = 0., 0.
+      center = 0., 0., 0.
    }
    
-   epsilon_phi = 0.06 // sqrt(6.*delta*L*Gamma/Tm)
+   epsilon_phi = 0.06
 
    phi_mobility_type = "kim"
 
-   phi_well_scale =  4.5 // ((eps/delta)**2)/32
-   phi_well_func_type = "double"
+   phi_well_scale =  4.5
+   phi_well_func_t5pe = "double"
 
-   phi_interp_func_type ="h"
    conc_interp_func_type = "l"
 
    ConcentrationModel {
@@ -67,12 +66,16 @@ ModelParameters {
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
       Conc{
          boundary_0 = "slope", "0"
          boundary_1 = "slope", "0"
          boundary_2 = "slope", "0"
          boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
       }
    }
 }
@@ -94,8 +97,8 @@ InitialConditions {
 }
 
 Geometry{
-   periodic_dimension = 0, 0
-   coarsest_level_resolution = 64, 128
-   x_lo         =  0.,    0. 
-   x_up         =  0.375, 0.75
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 16, 64, 4
+   x_lo         =  0.,      0.,    0. 
+   x_up         =  0.09375, 0.375, 0.0234375
 }
