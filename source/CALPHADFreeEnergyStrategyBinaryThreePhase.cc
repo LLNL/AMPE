@@ -625,33 +625,38 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
 
             double t = ptr_temp[idx_temp];
             double mu = computeMuA(t, ca);
-            //            double muL = computeMuL(t, cl);
-            //            double muB = computeMuB(t, cb);
-            //            if (fabs(mu - muL) > 1.e-2 * fabs(mu) ||
-            //                fabs(muB - muL) > 1.e-2 * fabs(muB)) {
-            //               double c = phi0 * cl + phi1 * ca + phi2 * cb;
-            //               std::cout << "WARNING: c=" << c << ", ca=" << ca <<
-            //               ", cl=" << cl
-            //                         << ", cb=" << cb << ", phi0=" << phi0
-            //                         << ", phi1=" << phi1 << ", phi2=" << phi2
-            //                         << ", muA=" << mu << ", muL=" << muL <<
-            //                         ", muB=" << muB
-            //                         << std::endl;
-            //            }
-            ptr_rhs0[idx_rhs] -=
+            // double muL = computeMuL(t, cl);
+            // double muB = computeMuB(t, cb);
+            // if (fabs(mu - muL) > 1.e-2 * fabs(mu) ||
+            //    fabs(muB - muL) > 1.e-2 * fabs(muB)) {
+            //   double c = phi0 * cl + phi1 * ca + phi2 * cb;
+            //   std::cout << "WARNING: c=" << c << ", ca=" << ca << ", cl=" <<
+            //   cl
+            //             << ", cb=" << cb << ", phi0=" << phi0
+            //             << ", phi1=" << phi1 << ", phi2=" << phi2
+            //             << ", muA=" << mu << ", muL=" << muL << ", muB=" <<
+            //             muB
+            //             << std::endl;
+            //}
+            double rhs0 =
                 (TiltingFunction::dg0dp0(phi0, phi1, phi2) * (fl - mu * cl) +
                  TiltingFunction::dg0dp1(phi1, phi0, phi2) * (fa - mu * ca) +
                  TiltingFunction::dg0dp1(phi2, phi0, phi1) * (fb - mu * cb));
 
-            ptr_rhs1[idx_rhs] -=
+            double rhs1 =
                 (TiltingFunction::dg0dp0(phi1, phi0, phi2) * (fa - mu * ca) +
                  TiltingFunction::dg0dp1(phi0, phi1, phi2) * (fl - mu * cl) +
                  TiltingFunction::dg0dp1(phi2, phi1, phi0) * (fb - mu * cb));
 
-            ptr_rhs2[idx_rhs] -=
+            double rhs2 =
                 (TiltingFunction::dg0dp0(phi2, phi1, phi0) * (fb - mu * cb) +
                  TiltingFunction::dg0dp1(phi1, phi2, phi0) * (fa - mu * ca) +
                  TiltingFunction::dg0dp1(phi0, phi2, phi1) * (fl - mu * cl));
+            // add to rhs a component that satisfies the constraint on phi
+            double corr = (rhs0 + rhs1 + rhs2) / 3.;
+            ptr_rhs0[idx_rhs] -= (rhs0 - corr);
+            ptr_rhs1[idx_rhs] -= (rhs1 - corr);
+            ptr_rhs2[idx_rhs] -= (rhs2 - corr);
          }
       }
    }
