@@ -109,7 +109,7 @@ void COMPUTERHSTHREEPHASES(const int& ifirst0, const int& ilast0,
 #endif
                            const int& ngphaseflux, const double& phi_well_scale,
                            const double* phi, const int& ngphi, double* rhs,
-                           const int& ngrhs, const char* phi_interp_type);
+                           const int& ngrhs);
 
 void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
