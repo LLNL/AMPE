@@ -31,8 +31,6 @@ ModelParameters {
 
    phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
 
-   phi_interp_func_type ="h"
-
    ConcentrationModel {
       model    = "calphad"
       rhs_form = "ebs"

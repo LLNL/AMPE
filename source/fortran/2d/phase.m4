@@ -87,17 +87,6 @@ c           Store the projection in the correction array for now
                corr(i,j,m) = phi(i,j,m) - fac
             enddo
 
-c           Compute the dot product of the error with the projected phi
-            fac = 0.d0
-            do m = 1, depth
-               fac = fac + corr(i,j,m) * err(i,j,m)
-            enddo
-
-c           Subtract the error component in the phi direction
-            do m = 1, depth
-               err(i,j,m) = err(i,j,m) - corr(i,j,m) * fac
-            enddo
-
 c           Finalize the correction: phi + corr is on the constraint
             do m = 1, depth
                corr(i,j,m) = corr(i,j,m) - phi(i,j,m)
