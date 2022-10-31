@@ -27,8 +27,9 @@ namespace pt = boost::property_tree;
 
 template <class FreeEnergyType>
 KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+    const int conc_b_id, const int temp_id,
+    const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
