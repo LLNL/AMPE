@@ -15,11 +15,7 @@
 #include "PhaseFluxStrategy.h"
 #include "FreeEnergyStrategy.h"
 #include "QuatModelParameters.h"
-#ifdef USE_CPODE
-#include "CPODESSolver.h"
-#else
 #include "CVODESolver.h"
-#endif
 
 #include "SAMRAI/hier/CoarsenOperator.h"
 #include "SAMRAI/xfer/CoarsenAlgorithm.h"
@@ -40,11 +36,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
        const int phase_mobility_id, const int flux_id,
        const int quat_grad_modulus_id, const int noise_id,
        const int phase_rhs_visit_id,
-#ifdef USE_CPODE
-       CPODESSolver* sundials_solver,
-#else
        CVODESolver* sundials_solver,
-#endif
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
        std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy);
@@ -83,11 +75,7 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
 
    const int d_phase_rhs_visit_id;
 
-#ifdef USE_CPODE
-   CPODESSolver* d_sundials_solver;
-#else
    CVODESolver* d_sundials_solver;
-#endif
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
 
    double d_deltat;

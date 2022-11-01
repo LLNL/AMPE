@@ -42,13 +42,8 @@
 #include "SAMRAI/solv/CartesianRobinBcHelper.h"
 
 
-#ifdef USE_CPODE
-#include "CPODESSolver.h"
-#include "CPODESAbstractFunctions.h"
-#else
 #include "CVODESolver.h"
 #include "CVODEAbstractFunctions.h"
-#endif
 
 #include <set>
 #include <vector>
@@ -71,13 +66,8 @@ class PhaseFluxStrategy;
 class PhaseConcentrationsStrategy;
 
 class QuatIntegrator : public mesh::StandardTagAndInitStrategy
-#ifdef USE_CPODE
-    ,
-                       public CPODESAbstractFunctions
-#else
     ,
                        public CVODEAbstractFunctions
-#endif
 {
  public:
    QuatIntegrator(const std::string& name,
@@ -197,7 +187,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    /**
     * User-supplied right-hand side function evaluation inherited
-    * from CPODEAbstractFunctions or CVODEAbstractFunctions.
+    * from CVODEAbstractFunctions.
     *
     * The function arguments are:
     *
@@ -212,29 +202,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
     */
    int evaluateRHSFunction(double time, SundialsAbstractVector* y,
                            SundialsAbstractVector* y_dot, int fd_flag);
-
-#ifdef USE_CPODE
-
-   //
-   // Methods inherited from CPODEAbstractFunctions
-   //
-
-   int applyProjection(double time, SundialsAbstractVector* y,
-                       SundialsAbstractVector* corr, double epsProj,
-                       SundialsAbstractVector* err);
-
-   int CPSpgmrPrecondSet(double t, SundialsAbstractVector* y,
-                         SundialsAbstractVector* fy, int jok, int* jcurPtr,
-                         double gamma, SundialsAbstractVector* vtemp1,
-                         SundialsAbstractVector* vtemp2,
-                         SundialsAbstractVector* vtemp3);
-
-   int CPSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
-                           SundialsAbstractVector* fy,
-                           SundialsAbstractVector* r, SundialsAbstractVector* z,
-                           double gamma, double delta, int lr,
-                           SundialsAbstractVector* vtemp);
-#else
 
    //
    // Methods inherited from CVODEAbstractFunctions
@@ -261,7 +228,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
                            SundialsAbstractVector* fy,
                            SundialsAbstractVector* r, SundialsAbstractVector* z,
                            double gamma, double delta, int lr);
-#endif
 
    void setQuatGradStrategy(QuatGradStrategy* quat_grad_strategy);
    void setMobilityStrategy(std::shared_ptr<QuatMobilityStrategy>&);
@@ -853,11 +819,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy
 
    std::string d_quat_smooth_floor_type;
 
-#ifdef USE_CPODE
-   CPODESSolver* d_sundials_solver;
-#else
    CVODESolver* d_sundials_solver;
-#endif
 
    std::shared_ptr<QuatSysSolver> d_quat_sys_solver;
 
