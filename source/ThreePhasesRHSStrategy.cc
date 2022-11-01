@@ -25,11 +25,7 @@ ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
     const int conc_scratch_id, const int temperature_scratch_id,
     const int f_l_id, const int f_a_id, const int f_b_id,
     const int phase_mobility_id, const int flux_id,
-#ifdef USE_CPODE
-    CPODESSolver* sundials_solver,
-#else
     CVODESolver* sundials_solver,
-#endif
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)

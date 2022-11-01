@@ -5,8 +5,6 @@ set(SOURCES
     Sundials_SAMRAIVector.cc
     CVODEAbstractFunctions.cc
     CVODESolver.cc
-    CPODESAbstractFunctions.cc
-    CPODESSolver.cc
     FACPreconditioner.cc)
 
 add_library(ampe_samrai ${SOURCES})

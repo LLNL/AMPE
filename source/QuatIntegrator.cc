@@ -47,15 +47,9 @@
 #include "SAMRAI/hier/Index.h"
 #include "SAMRAI/math/PatchSideDataNormOpsReal.h"
 
-#ifdef USE_CPODE
-#define BDF CP_BDF
-#define ONE_STEP CP_ONE_STEP
-#include "cpodes/cpodes_spils.h"
-#else
 #define BDF CV_BDF
 #define ONE_STEP CV_ONE_STEP
 #include "cvode/cvode_spils.h"
-#endif
 
 #define NUM_FACES 2 * NDIM
 
@@ -1594,15 +1588,6 @@ void QuatIntegrator::setHeatCapacityStrategy(
 // Set solver options
 void QuatIntegrator::setSundialsOptions()
 {
-#ifdef USE_CPODE
-   // if ( d_show_solver_stats ) d_sundials_solver->printDiagnostics( true );
-   d_sundials_solver->setMaxKrylovDimension(d_max_krylov_dimension);
-   // d_sundials_solver->setCPSpgmrToleranceScaleFactor(0.005);
-   //   d_sundials_solver->setCPNonlinConvCoef(0.1);
-   d_sundials_solver->setIterationType(CP_NEWTON);
-#else
-   //   d_sundials_solver->setCVSpgmrToleranceScaleFactor(0.005);
-#endif
    d_sundials_solver->setMaxPrecondSteps(d_max_precond_steps);
    d_sundials_solver->setLinearMultistepMethod(BDF);
    d_sundials_solver->setSteppingMethod(ONE_STEP);
@@ -1622,10 +1607,8 @@ void QuatIntegrator::setSundialsOptions()
    bool needs_initialization = true;
    d_sundials_solver->setFinalValueOfIndependentVariable(d_end_time,
                                                          needs_initialization);
-#ifndef USE_CPODE
    d_sundials_solver->setProjectionFunction(true);
    d_sundials_solver->setJTimesRhsFunction(true);
-#endif
 }
 
 //-----------------------------------------------------------------------
@@ -1637,13 +1620,8 @@ void QuatIntegrator::createSundialsSolver()
       delete d_sundials_solver;
    }
 
-#ifdef USE_CPODE
-   d_sundials_solver =
-       new CPODESSolver(d_name + "_cpode_solver", this, d_use_preconditioner);
-#else
    d_sundials_solver =
        new CVODESolver(d_name + "_cvode_solver", this, d_use_preconditioner);
-#endif
 }
 
 void QuatIntegrator::resetSolutionVector(
@@ -3216,7 +3194,7 @@ void QuatIntegrator::computePhaseConcentrations(
 
 
 //-----------------------------------------------------------------------
-// Virtual function from CPODESAbstractFunction or CVODEAbstractFunction
+// Virtual function from CVODEAbstractFunction
 // jlf (7/11): fd_flag is set to 1 when the function is called to evaluate
 // F(u+sigma*v) and calculate a finite difference with F(u) (call with
 // fd_flag=0)
@@ -3404,27 +3382,13 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 // Virtual function from CPODESAbstractFunction or CVODEAbstractFunction
 
 int QuatIntegrator::
-#ifdef USE_CPODE
-    CPSpgmrPrecondSet
-#else
     CVSpgmrPrecondSet
-#endif
     (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy, int jok,
      int* jcurPtr, double gamma
-#ifdef USE_CPODE
-     ,
-     SundialsAbstractVector* vtemp1, SundialsAbstractVector* vtemp2,
-     SundialsAbstractVector* vtemp3
-#endif
     )
 {
    (void)fy;
    (void)jok;
-#ifdef USE_CPODE
-   (void)vtemp1;
-   (void)vtemp2;
-   (void)vtemp3;
-#endif
 
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSet, jok = " << jok <<
    // std::endl;
@@ -3760,7 +3724,7 @@ int QuatIntegrator::QuatPrecondSolve(
 }
 
 //-----------------------------------------------------------------------
-// Virtual function from CPODESAbstractFunction or CVODEAbstractFunction
+// Virtual function from CVODEAbstractFunction
 
 /*!
   Solve the system Mz = r for z given r, where M is an
@@ -3778,25 +3742,14 @@ int QuatIntegrator::QuatPrecondSolve(
 */
 
 int QuatIntegrator::
-#ifdef USE_CPODE
-    CPSpgmrPrecondSolve
-#else
     CVSpgmrPrecondSolve
-#endif
     (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy,
      SundialsAbstractVector* r, SundialsAbstractVector* z, double gamma,
      double delta, int lr
-#ifdef USE_CPODE
-     ,
-     SundialsAbstractVector* vtemp
-#endif
     )
 {
    (void)y;
    (void)fy;
-#ifdef USE_CPODE
-   (void)vtemp;
-#endif
 
    assert(d_use_preconditioner);
    // tbox::pout << "QuatIntegrator::CVSpgmrPrecondSolve" << std::endl;
@@ -4031,7 +3984,7 @@ int QuatIntegrator::applyConcentrationPreconditioner(
 }
 
 //-----------------------------------------------------------------------
-// Virtual function from CPODESAbstractFunction
+// Virtual function from CVODEAbstractFunction
 
 int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
                                     SundialsAbstractVector* corr,
