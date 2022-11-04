@@ -79,14 +79,13 @@ class QuatIntegratorFactory
                                          false,  // without phase
                                          false,  // without concentration
                                          false, false, false, false, false,
-                                         false, false, symmetry_aware, false);
+                                         false, symmetry_aware, false);
       } else {
          integrator = new QuatIntegrator(
              "Integrator", model_parameters, quat_model, current, scratch, qlen,
              ncompositions, input_db, grid_geometry, bc_db,
              model_parameters.with_phase(),
              model_parameters.with_concentration(),
-             model_parameters.with_third_phase(),
              model_parameters.with_heat_equation(),
              model_parameters.with_steady_temperature(),
              model_parameters.with_gradT(),

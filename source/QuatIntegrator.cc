@@ -83,11 +83,10 @@ QuatIntegrator::QuatIntegrator(
     const int ncompositions, std::shared_ptr<tbox::Database> db,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<tbox::Database> bc_db, const bool with_phase,
-    const bool with_concentration, const bool with_three_phases,
-    const bool with_heat_equation, const bool with_steady_temperature,
-    const bool with_gradT, const bool with_antitrapping,
-    const bool with_partition_coeff, const bool use_warm_start,
-    const bool symmetry_aware,
+    const bool with_concentration, const bool with_heat_equation,
+    const bool with_steady_temperature, const bool with_gradT,
+    const bool with_antitrapping, const bool with_partition_coeff,
+    const bool use_warm_start, const bool symmetry_aware,
     const bool use_gradq_for_flux)
     :  // protected data members
       d_phase_component_index(-1),
@@ -228,7 +227,6 @@ QuatIntegrator::QuatIntegrator(
    d_quat_model = model;
 
    d_with_third_phase = false;
-   d_with_three_phases = with_three_phases;
    d_with_heat_equation = with_heat_equation;
    d_with_steady_temperature = with_steady_temperature;
    d_with_gradT = with_gradT;
@@ -3223,7 +3221,6 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
    //#ifdef DEBUG_CHECK_ASSERTIONS
    int n = 0;
    if (d_with_phase) n++;
-   if (d_with_three_phases) n += 2;
    if (d_with_third_phase) n++;
    if (d_evolve_quat) n++;
    if (d_with_concentration) n++;
@@ -3381,11 +3378,9 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
 //-----------------------------------------------------------------------
 // Virtual function from CPODESAbstractFunction or CVODEAbstractFunction
 
-int QuatIntegrator::
-    CVSpgmrPrecondSet
-    (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy, int jok,
-     int* jcurPtr, double gamma
-    )
+int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
+                                      SundialsAbstractVector* fy, int jok,
+                                      int* jcurPtr, double gamma)
 {
    (void)fy;
    (void)jok;
@@ -3741,12 +3736,11 @@ int QuatIntegrator::QuatPrecondSolve(
   Returns 0 if all block solves converged.
 */
 
-int QuatIntegrator::
-    CVSpgmrPrecondSolve
-    (double t, SundialsAbstractVector* y, SundialsAbstractVector* fy,
-     SundialsAbstractVector* r, SundialsAbstractVector* z, double gamma,
-     double delta, int lr
-    )
+int QuatIntegrator::CVSpgmrPrecondSolve(double t, SundialsAbstractVector* y,
+                                        SundialsAbstractVector* fy,
+                                        SundialsAbstractVector* r,
+                                        SundialsAbstractVector* z, double gamma,
+                                        double delta, int lr)
 {
    (void)y;
    (void)fy;
@@ -4015,7 +4009,8 @@ int QuatIntegrator::applyProjection(double time, SundialsAbstractVector* y,
       d_quat_sys_solver->applyProjection(q_id, corr_id, err_id);
    }
 
-   if (d_with_three_phases) {
+   if (d_model_parameters.with_three_phases()) {
+      // tbox::pout << "3 phases projection..." << std::endl;
       std::shared_ptr<solv::SAMRAIVectorReal<double> > y_samvect =
           Sundials_SAMRAIVector::getSAMRAIVector(y);
       std::shared_ptr<solv::SAMRAIVectorReal<double> > corr_samvect =
