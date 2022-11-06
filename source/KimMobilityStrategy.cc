@@ -17,6 +17,7 @@
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #endif
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -332,4 +333,5 @@ void KimMobilityStrategy<FreeEnergyType>::update(
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>;
 #ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
 #endif

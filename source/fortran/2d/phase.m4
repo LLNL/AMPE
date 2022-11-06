@@ -87,6 +87,18 @@ c           Store the projection in the correction array for now
                corr(i,j,m) = phi(i,j,m) - fac
             enddo
 
+c
+            fac = 0.d0
+            do m = 1, depth
+               fac = fac + err(i,j,m)
+            enddo
+            fac = fac / depth;
+
+c           Subtract the error component in the (1,1,1) direction
+            do m = 1, depth
+               err(i,j,m) = err(i,j,m) - fac
+            enddo
+
 c           Finalize the correction: phi + corr is on the constraint
             do m = 1, depth
                corr(i,j,m) = corr(i,j,m) - phi(i,j,m)

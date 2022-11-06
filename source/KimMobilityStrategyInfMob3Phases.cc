@@ -9,9 +9,7 @@
 // Please also read AMPE/LICENSE.
 //
 #include "KimMobilityStrategyInfMob3Phases.h"
-#include "CALPHADFreeEnergyFunctionsBinary.h"
-#include "CALPHADFreeEnergyFunctionsTernary.h"
-#include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "AMPE_internal.h"
 
 #include <iomanip>
@@ -129,8 +127,4 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
 }
 
 template class KimMobilityStrategyInfMob3Phases<
-    CALPHADFreeEnergyFunctionsBinary>;
-template class KimMobilityStrategyInfMob3Phases<
-    CALPHADFreeEnergyFunctionsTernary>;
-template class KimMobilityStrategyInfMob3Phases<
-    KKSFreeEnergyFunctionDiluteBinary>;
+    CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;

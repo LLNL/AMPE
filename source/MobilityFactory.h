@@ -19,6 +19,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 
 class QuatModel;
 
@@ -51,15 +52,24 @@ class MobilityFactory
                return createInternal<CALPHADFreeEnergyFunctionsTernary>(
                    model, model_parameters, conc_l_scratch_id,
                    conc_a_scratch_id, conc_b_scratch_id, temperature_scratch_id,
-                   ncompositions, three_phases, conc_db);
+                   ncompositions, conc_db);
             else {
-               tbox::plog << "FreeEnergyFunctionType: "
-                             "CALPHADFreeEnergyFunctionsBinary"
-                          << std::endl;
-               return createInternal<CALPHADFreeEnergyFunctionsBinary>(
-                   model, model_parameters, conc_l_scratch_id,
-                   conc_a_scratch_id, conc_b_scratch_id, temperature_scratch_id,
-                   ncompositions, three_phases, conc_db);
+               if (!three_phases) {
+                  tbox::plog << "FreeEnergyFunctionType: "
+                                "CALPHADFreeEnergyFunctionsBinary"
+                             << std::endl;
+                  return createInternal<CALPHADFreeEnergyFunctionsBinary>(
+                      model, model_parameters, conc_l_scratch_id,
+                      conc_a_scratch_id, conc_b_scratch_id,
+                      temperature_scratch_id, ncompositions, conc_db);
+               } else {
+                  return create3phasesMobility(model, model_parameters,
+                                               conc_l_scratch_id,
+                                               conc_a_scratch_id,
+                                               conc_b_scratch_id,
+                                               temperature_scratch_id,
+                                               ncompositions, conc_db);
+               }
             }
          } else {
             tbox::plog << "FreeEnergyFunctionType: "
@@ -68,7 +78,7 @@ class MobilityFactory
             return createInternal<KKSFreeEnergyFunctionDiluteBinary>(
                 model, model_parameters, conc_l_scratch_id, conc_a_scratch_id,
                 conc_b_scratch_id, temperature_scratch_id, ncompositions,
-                three_phases, conc_db);
+                conc_db);
          }
       }
    }
@@ -79,8 +89,7 @@ class MobilityFactory
        QuatModel* model, QuatModelParameters& model_parameters,
        const int conc_l_scratch_id, const int conc_a_scratch_id,
        const int conc_b_scratch_id, const int temperature_scratch_id,
-       const unsigned ncompositions, const bool three_phases,
-       std::shared_ptr<tbox::Database> conc_db)
+       const unsigned ncompositions, std::shared_ptr<tbox::Database> conc_db)
    {
       std::shared_ptr<QuatMobilityStrategy> mobility_strategy;
 
@@ -112,33 +121,39 @@ class MobilityFactory
                     ncompositions));
          }
       } else {
-         if (three_phases) {
-            tbox::plog << "KimMobilityStrategyInfMob3Phases" << std::endl;
-            mobility_strategy.reset(
-                new KimMobilityStrategyInfMob3Phases<FreeEnergyFunctionType>(
-                    model, conc_l_scratch_id, conc_a_scratch_id,
-                    conc_b_scratch_id, temperature_scratch_id,
-                    model_parameters.epsilon_phase(),
-                    model_parameters.phase_well_scale(),
-                    model_parameters.energy_three_args_interp_func_type(),
-                    model_parameters.conc_interp_func_type(), conc_db,
-                    ncompositions, model_parameters.D_liquid(),
-                    model_parameters.Q0_liquid(),
-                    model_parameters.molar_volume_liquid()));
-         } else {
-            tbox::plog << "KimMobilityStrategyInfMob" << std::endl;
-            mobility_strategy.reset(
-                new KimMobilityStrategyInfMob<FreeEnergyFunctionType>(
-                    model, conc_l_scratch_id, conc_a_scratch_id,
-                    temperature_scratch_id, model_parameters.epsilon_phase(),
-                    model_parameters.phase_well_scale(),
-                    model_parameters.energy_interp_func_type(),
-                    model_parameters.conc_interp_func_type(), conc_db,
-                    ncompositions, model_parameters.D_liquid(),
-                    model_parameters.Q0_liquid(),
-                    model_parameters.molar_volume_liquid()));
-         }
+         tbox::plog << "KimMobilityStrategyInfMob" << std::endl;
+         mobility_strategy.reset(
+             new KimMobilityStrategyInfMob<FreeEnergyFunctionType>(
+                 model, conc_l_scratch_id, conc_a_scratch_id,
+                 temperature_scratch_id, model_parameters.epsilon_phase(),
+                 model_parameters.phase_well_scale(),
+                 model_parameters.energy_interp_func_type(),
+                 model_parameters.conc_interp_func_type(), conc_db,
+                 ncompositions, model_parameters.D_liquid(),
+                 model_parameters.Q0_liquid(),
+                 model_parameters.molar_volume_liquid()));
       }
+      return mobility_strategy;
+   }
+
+   static std::shared_ptr<QuatMobilityStrategy> create3phasesMobility(
+       QuatModel* model, QuatModelParameters& model_parameters,
+       const int conc_l_scratch_id, const int conc_a_scratch_id,
+       const int conc_b_scratch_id, const int temperature_scratch_id,
+       const unsigned ncompositions, std::shared_ptr<tbox::Database> conc_db)
+   {
+      std::shared_ptr<QuatMobilityStrategy> mobility_strategy;
+
+      tbox::plog << "KimMobilityStrategyInfMob3Phases" << std::endl;
+      mobility_strategy.reset(new KimMobilityStrategyInfMob3Phases<
+                              CALPHADFreeEnergyFunctionsBinary3Ph2Sl>(
+          model, conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
+          temperature_scratch_id, model_parameters.epsilon_phase(),
+          model_parameters.phase_well_scale(),
+          model_parameters.energy_three_args_interp_func_type(),
+          model_parameters.conc_interp_func_type(), conc_db, ncompositions,
+          model_parameters.D_liquid(), model_parameters.Q0_liquid(),
+          model_parameters.molar_volume_liquid()));
       return mobility_strategy;
    }
 };
