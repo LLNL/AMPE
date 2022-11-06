@@ -12,6 +12,7 @@
 #include "UniformNoise.h"
 #include "QuatFort.h"
 #include "QuatParams.h"
+#include "MultiplyOperation.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -19,6 +20,7 @@
 #include "SAMRAI/math/PatchCellDataOpsReal.h"
 #include "SAMRAI/math/PatchSideDataOpsReal.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/pdat/ArrayDataOperationUtilities.h"
 
 ThreePhasesRHSStrategy::ThreePhasesRHSStrategy(
     const QuatModelParameters& model_parameters, const int phase_scratch_id,
@@ -248,8 +250,19 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    assert(phase_mobility);
 
    // multiply by mobility
-   assert(phase_mobility->getDepth() == phase_rhs->getDepth());
-   mathops.multiply(phase_rhs, phase_mobility, phase_rhs, pbox);
+   assert(phase_mobility->getDepth() == 1);
+   const hier::IntVector src_shift(pbox.getDim(), 0);
+   MultiplyOperation<double> multop;
+
+   const unsigned int src_depth = 0;
+   const unsigned int num_depth = 1;
+   for (int dst_depth = 0; dst_depth < 3; dst_depth++) {
+      pdat::ArrayDataOperationUtilities<double, MultiplyOperation<double> >::
+          doArrayDataOperationOnBox(phase_rhs->getArrayData(),
+                                    phase_mobility->getArrayData(), pbox,
+                                    src_shift, dst_depth, src_depth, num_depth,
+                                    multop);
+   }
 }
 
 void ThreePhasesRHSStrategy::projectPhases(const int phase_id,
