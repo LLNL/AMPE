@@ -1511,7 +1511,7 @@ void QuatModel::registerPhaseVariables(void)
 
    d_phase_mobility_var.reset(
        new pdat::CellVariable<double>(tbox::Dimension(NDIM), "phase_mobility",
-                                      nphases));
+                                      1));
    assert(d_phase_mobility_var);
    d_phase_mobility_id = variable_db->registerVariableAndContext(
        d_phase_mobility_var, current,
