@@ -10,13 +10,9 @@
 #ifndef included_MultiplyOperation
 #define included_MultiplyOperation
 
-template<class TYPE>
-struct MultiplyOperation
-{
-   void
-   operator () (
-      TYPE& vdst,
-      const TYPE& vsrc) const;
+template <class TYPE>
+struct MultiplyOperation {
+   void operator()(TYPE& vdst, const TYPE& vsrc) const;
 };
 
 #include "MultiplyOperation.cc"

@@ -13,12 +13,9 @@
 #include "MultiplyOperation.h"
 
 template <class TYPE>
-void
-MultiplyOperation<TYPE>::operator () (
-   TYPE& vdst,
-   const TYPE& vsrc) const
+void MultiplyOperation<TYPE>::operator()(TYPE& vdst, const TYPE& vsrc) const
 {
-   vdst = vdst*vsrc;
+   vdst = vdst * vsrc;
 }
 
 #endif

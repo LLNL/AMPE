@@ -27,8 +27,7 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
     const int f_l_id, const int f_a_id, const int f_b_id,
     const int phase_mobility_id, const int flux_id,
     const int quat_grad_modulus_id, const int noise_id,
-    const int phase_rhs_visit_id,
-    CVODESolver* sundials_solver,
+    const int phase_rhs_visit_id, CVODESolver* sundials_solver,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<geom::CartesianGridGeometry> grid_geom,
     std::shared_ptr<PhaseFluxStrategy> phase_flux_strategy)
