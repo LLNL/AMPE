@@ -143,10 +143,11 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
       const double temperature0 =
           readTemperature0(temperature_db,
                            QuatModelParameters::TemperatureType::SCALAR);
-
+      const double frame_velocity = model_parameters.movingVelocity();
       strategy = new GradientTemperatureStrategy(d_temperature_id,
                                                  d_temperature_scratch_id,
-                                                 temperature0, temperature_db);
+                                                 temperature0, frame_velocity,
+                                                 temperature_db);
    } else if (model_parameters.with_heat_equation()) {
 
       if (model_parameters.with_steady_temperature()) {
