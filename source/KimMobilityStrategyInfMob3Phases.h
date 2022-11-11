@@ -8,6 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
+#ifdef HAVE_THERMO4PFM
+
 #ifndef included_KimMobilityStrategyInfMob3Phases
 #define included_KimMobilityStrategyInfMob3Phases
 
@@ -43,4 +45,5 @@ class KimMobilityStrategyInfMob3Phases
    double d_factor;
 };
 
+#endif
 #endif

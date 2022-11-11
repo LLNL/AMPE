@@ -8,6 +8,8 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
+#ifdef HAVE_THERMO4PFM
+
 #include "KimMobilityStrategyInfMob3Phases.h"
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "AMPE_internal.h"
@@ -35,6 +37,7 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
    assert(phase_well_scale >= 0.);
    assert(mv > 0.);
    assert(conc_b_id > -1);
+   assert(ncompositions > 0);
 
    double a2 = 0.;
    switch (energy_interp_func_type) {
@@ -57,7 +60,7 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
    d_factor = 3. * (2. * xi * xi) * a2;
    d_factor *= (1.e-6 / mv);  // convert from J/mol to pJ/um^3
 
-   d_d2fdc2.resize(this->d_ncompositions * this->d_ncompositions);
+   d_d2fdc2.resize(ncompositions * ncompositions);
 }
 
 template <class FreeEnergyType>
@@ -75,6 +78,7 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
     const double temp, const std::vector<double>& phaseconc,
     const std::vector<double>& phi)
 {
+   // return 1.5e5;
    assert(phi.size() == 3);
    assert(phaseconc.size() > 0);
 
@@ -91,12 +95,7 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    const double* const cb = &phaseconc[2 * this->d_ncompositions];
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pil,
-#ifdef HAVE_THERMO4PFM
-                                                      d_d2fdc2.data()
-#else
-                                                      d_d2fdc2
-#endif
-   );
+                                                      d_d2fdc2.data());
 
    const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
 
@@ -128,3 +127,5 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
 
 template class KimMobilityStrategyInfMob3Phases<
     CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
+
+#endif
