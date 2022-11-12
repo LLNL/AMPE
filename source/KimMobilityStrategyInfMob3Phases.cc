@@ -71,6 +71,7 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::compute_zeta(
    for (unsigned i = 0; i < this->d_ncompositions; i++)
       for (unsigned j = 0; j < this->d_ncompositions; j++)
          zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
+   return zeta;
 }
 
 template <class FreeEnergyType>
