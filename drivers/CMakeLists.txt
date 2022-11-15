@@ -44,3 +44,12 @@ add_executable(convertDatabase2JSON
                convertDatabase2JSON.cc )
 target_link_libraries(convertDatabase2JSON
                       ${PROJECT_LINK_LIBS_SAMRAI})
+
+if(${USE_THERMO4PFM})
+  add_executable(computeMobilityCALPHADbinary
+                 ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
+                 computeMobilityCALPHADbinary.cc)
+  target_link_libraries(computeMobilityCALPHADbinary
+                        ${PROJECT_LINK_LIBS_SAMRAI}
+                        ${THERMOLIB})
+endif(${USE_THERMO4PFM})

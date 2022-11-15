@@ -1,0 +1,32 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+
+ModelParameters {
+   temperature        = 1400. // [K]
+ 
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+   phi_well_scale = 2.5  // 6.6/16. [pJ/um^3]
+
+   initial_guess = 0.2, 0.1
+   concentration = 0.25
+
+   phaseL = "PhaseL"
+   phaseS = "PhaseA"
+
+   ConcentrationModel {
+      model    = "calphad"
+      molar_volume = 7.68e-6 // [m^3/mol] at 80% Ni/20% Au
+      Calphad {
+         filename ="calphadAuNi.dat"
+      }
+      D_liquid  = 1.e2 //um**2/s
+   }
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "PFModel::*"
+    print_threshold = 0.0
+}
