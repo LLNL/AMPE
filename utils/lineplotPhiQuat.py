@@ -57,7 +57,7 @@ for frame in frames:
   DB.append(visitdir+"/"+frame)
 
 Vars=[]
-Vars.append("phase")
+Vars.append("phase0")
 Vars.append("concentration0")
 Vars.append("concentration1")
 Vars.append("q0")
