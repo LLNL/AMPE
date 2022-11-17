@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -18,6 +17,7 @@
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
+#include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #endif
 
 #include "SAMRAI/tbox/InputManager.h"
@@ -28,18 +28,20 @@ namespace pt = boost::property_tree;
 
 template <class FreeEnergyType>
 KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+    const int conc_b_id, const int temp_id,
+    const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
-      d_conc_s_id(conc_s_id),
+      d_conc_a_id(conc_a_id),
+      d_conc_b_id(conc_b_id),
       d_temp_id(temp_id),
       d_ncompositions(ncompositions)
 {
    assert(d_conc_l_id >= 0);
-   assert(d_conc_s_id >= 0);
+   assert(d_conc_a_id >= 0);
    assert(d_temp_id >= 0);
    assert(d_ncompositions > 0);
 
@@ -88,18 +90,20 @@ KimMobilityStrategy<FreeEnergyType>::KimMobilityStrategy(
 
 template <>
 KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+    const int conc_b_id, const int temp_id,
+    const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
-      d_conc_s_id(conc_s_id),
+      d_conc_a_id(conc_a_id),
+      d_conc_b_id(conc_b_id),
       d_temp_id(temp_id),
       d_ncompositions(ncompositions)
 {
    assert(d_conc_l_id >= 0);
-   assert(d_conc_s_id >= 0);
+   assert(d_conc_a_id >= 0);
    assert(d_temp_id >= 0);
    assert(d_ncompositions > 0);
 
@@ -135,18 +139,20 @@ KimMobilityStrategy<CALPHADFreeEnergyFunctionsTernary>::KimMobilityStrategy(
 
 template <>
 KimMobilityStrategy<KKSFreeEnergyFunctionDiluteBinary>::KimMobilityStrategy(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const EnergyInterpolationType energy_interp_func_type,
+    QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+    const int conc_b_id, const int temp_id,
+    const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
     : SimpleQuatMobilityStrategy(quat_model),
       d_conc_l_id(conc_l_id),
-      d_conc_s_id(conc_s_id),
+      d_conc_a_id(conc_a_id),
+      d_conc_b_id(conc_b_id),
       d_temp_id(temp_id),
       d_ncompositions(ncompositions)
 {
    assert(d_conc_l_id >= 0);
-   assert(d_conc_s_id >= 0);
+   assert(d_conc_a_id >= 0);
    assert(d_temp_id >= 0);
    assert(d_ncompositions > 0);
 
@@ -171,7 +177,6 @@ void KimMobilityStrategy<FreeEnergyType>::computePhaseMobility(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
     int& mobility_id, const double time, const CACHE_TYPE cache)
 {
-   (void)phase_id;
    (void)time;
    (void)cache;
 
@@ -192,22 +197,34 @@ void KimMobilityStrategy<FreeEnergyType>::computePhaseMobility(
                  patch->getPatchData(d_temp_id)));
          assert(temperature);
 
+         std::shared_ptr<pdat::CellData<double> > phi(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phase_id)));
+
          std::shared_ptr<pdat::CellData<double> > concl(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_id)));
          assert(concl);
 
-         std::shared_ptr<pdat::CellData<double> > concs(
+         std::shared_ptr<pdat::CellData<double> > conca(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_conc_s_id)));
-         assert(concs);
+                 patch->getPatchData(d_conc_a_id)));
+         assert(conca);
+
+         std::shared_ptr<pdat::CellData<double> > concb;
+         if (d_conc_b_id > -1) {
+            concb =
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_conc_b_id));
+            assert(concb);
+         }
 
          std::shared_ptr<pdat::CellData<double> > mobility(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(mobility_id)));
          assert(mobility);
 
-         update(temperature, concl, concs, mobility, patch);
+         update(temperature, phi, concl, conca, concb, mobility, patch);
       }
    }
 
@@ -217,17 +234,20 @@ void KimMobilityStrategy<FreeEnergyType>::computePhaseMobility(
 template <class FreeEnergyType>
 void KimMobilityStrategy<FreeEnergyType>::update(
     std::shared_ptr<pdat::CellData<double> > cd_te,
+    std::shared_ptr<pdat::CellData<double> > cd_phi,
     std::shared_ptr<pdat::CellData<double> > cd_cl,
-    std::shared_ptr<pdat::CellData<double> > cd_cs,
+    std::shared_ptr<pdat::CellData<double> > cd_ca,
+    std::shared_ptr<pdat::CellData<double> > cd_cb,
     std::shared_ptr<pdat::CellData<double> > cd_mob,
     std::shared_ptr<hier::Patch> patch)
 {
    assert(cd_te);
    assert(cd_cl);
-   assert(cd_cs);
+   assert(cd_ca);
    assert(cd_mob);
    assert(cd_mob->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0]);
    assert(cd_mob->getGhostCellWidth()[0] <= cd_cl->getGhostCellWidth()[0]);
+   assert(cd_phi->getGhostCellWidth()[0] <= cd_cl->getGhostCellWidth()[0]);
 
    const hier::Box& temp_gbox = cd_te->getGhostBox();
    int min_te[3] = {temp_gbox.lower(0), temp_gbox.lower(1), 0};
@@ -239,7 +259,7 @@ void KimMobilityStrategy<FreeEnergyType>::update(
    int inc_k_te = 0;
 #endif
 
-   // assume cs and cl have the same number of ghost values
+   // assume ca and cl have the same number of ghost values
    const hier::Box& ci_gbox = cd_cl->getGhostBox();
    int min_ci[3] = {ci_gbox.lower(0), ci_gbox.lower(1), 0};
    int inc_j_ci = ci_gbox.numberCells(0);
@@ -267,9 +287,12 @@ void KimMobilityStrategy<FreeEnergyType>::update(
                 (min_mo[2] - min_ci[2]) * inc_k_ci;
    int idx_mo = 0;
 
-   std::vector<double> phaseconc(2 * d_ncompositions);  // 2 for two phases
+   std::vector<double> phaseconc(3 *
+                                 d_ncompositions);  // 3 for up to three phases
    double* cl = &phaseconc[0];
-   double* cs = &phaseconc[d_ncompositions];
+   double* ca = &phaseconc[d_ncompositions];
+   double* cb = &phaseconc[2 * d_ncompositions];
+   std::vector<double> phi(3);
 
    for (int kk = min_mo[2]; kk <= max_mo[2]; kk++) {
       for (int jj = min_mo[1]; jj <= max_mo[1]; jj++) {
@@ -279,9 +302,15 @@ void KimMobilityStrategy<FreeEnergyType>::update(
             for (unsigned ic = 0; ic < d_ncompositions; ic++)
                cl[ic] = cd_cl->getPointer(ic)[idx_ci];
             for (unsigned ic = 0; ic < d_ncompositions; ic++)
-               cs[ic] = cd_cs->getPointer(ic)[idx_ci];
-
-            cd_mob->getPointer()[idx_mo] = evaluateMobility(temp, phaseconc);
+               ca[ic] = cd_ca->getPointer(ic)[idx_ci];
+            if (d_conc_b_id > -1) {
+               for (unsigned ic = 0; ic < d_ncompositions; ic++)
+                  cb[ic] = cd_cb->getPointer(ic)[idx_ci];
+               for (unsigned i = 0; i < 3; i++)
+                  phi[i] = cd_phi->getPointer(i)[idx_ci];
+            }
+            cd_mob->getPointer()[idx_mo] =
+                evaluateMobility(temp, phaseconc, phi);
 
             idx_te++;
             idx_ci++;
@@ -304,4 +333,5 @@ void KimMobilityStrategy<FreeEnergyType>::update(
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary>;
 #ifdef HAVE_THERMO4PFM
 template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary2Ph1Sl>;
+template class KimMobilityStrategy<CALPHADFreeEnergyFunctionsBinary3Ph2Sl>;
 #endif

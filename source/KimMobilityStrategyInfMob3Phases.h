@@ -8,40 +8,46 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_KimMobilityStrategyFiniteMobAntiTrap
-#define included_KimMobilityStrategyFiniteMobAntiTrap
+#ifdef HAVE_THERMO4PFM
+
+#ifndef included_KimMobilityStrategyInfMob3Phases
+#define included_KimMobilityStrategyInfMob3Phases
 
 #include "KimMobilityStrategy.h"
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 
 template <class FreeEnergyType>
-class KimMobilityStrategyFiniteMobAntiTrap
+class KimMobilityStrategyInfMob3Phases
     : public KimMobilityStrategy<FreeEnergyType>
 {
  public:
-   KimMobilityStrategyFiniteMobAntiTrap(
-       QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-       const int temp_id, const double interface_mobility, const double epsilon,
+   KimMobilityStrategyInfMob3Phases(
+       QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
+       const int conc_b_id, const int temp_id, const double epsilon,
        const double phase_well_scale,
-       const EnergyInterpolationType energy_interp_func_type,
+       const EnergyThreeArgsInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
        const double DL, const double Q0, const double mv);
 
  private:
+   double compute_zeta(const double* const cl, const double* const cs,
+                       const double temp);
+
    double evaluateMobility(const double temp,
                            const std::vector<double>& phaseconc,
                            const std::vector<double>& phi);
 
-   /*!
-    * Diffusivity in liquid
-    */
-   const double d_DL;
-   const double d_Q0;
+   double d_DL;
+   double d_Q0;
 
    std::vector<double> d_d2fdc2;
 
-   double d_alpha;
-   double d_beta;
+   double d_factor;
+
+   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LA;
+   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LB;
 };
 
+#endif
 #endif

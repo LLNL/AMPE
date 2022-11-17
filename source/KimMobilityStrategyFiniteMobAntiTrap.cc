@@ -27,7 +27,7 @@ KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
         const ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
         const double DL, const double Q0, const double mv)
-    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id,
+    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id, -1,
                                           temp_id, energy_interp_func_type,
                                           conc_interp_func_type, conc_db,
                                           ncompositions),
@@ -60,7 +60,8 @@ KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
 
 template <class FreeEnergyType>
 double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
-    const double temp, const std::vector<double>& phaseconc)
+    const double temp, const std::vector<double>& phaseconc,
+    const std::vector<double>& phi)
 {
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 

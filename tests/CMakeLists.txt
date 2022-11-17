@@ -62,6 +62,9 @@ add_executable(test3PhasesInterpolation
                ${CMAKE_SOURCE_DIR}/tests/test3PhasesInterpolationFunctions.cc
                ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc
                ${CMAKE_SOURCE_DIR}/source/TiltingMoelans2011.cc )
+add_executable(testWeights3Pairs
+               ${CMAKE_SOURCE_DIR}/tests/testWeights3Pairs.cc
+               ${CMAKE_SOURCE_DIR}/source/computeWeights3Pairs.cc )
 add_executable(testHyprePoisson
                ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/HyprePoisson.cc
@@ -165,6 +168,9 @@ add_test(NAME testInterpolation
 add_test(NAME test3PhasesInterpolation
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/test3PhasesInterpolation)
+add_test(NAME testWeights3Pairs
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testWeights3Pairs)
 add_test(NAME testHyprePoisson
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testHyprePoisson ${NDIM}d.input

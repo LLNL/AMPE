@@ -24,7 +24,7 @@ KimMobilityStrategyFiniteMob<FreeEnergyType>::KimMobilityStrategyFiniteMob(
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions)
-    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id,
+    : KimMobilityStrategy<FreeEnergyType>(quat_model, conc_l_id, conc_s_id, -1,
                                           temp_id, energy_interp_func_type,
                                           conc_interp_func_type, conc_db,
                                           ncompositions)

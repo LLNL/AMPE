@@ -27,6 +27,9 @@ set(SOURCES_WPENALTY
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
+            ${CMAKE_SOURCE_DIR}/source/ThreeArgsInterpolationType.cc
+            ${CMAKE_SOURCE_DIR}/source/computeWeights3Pairs.cc
+            ${CMAKE_SOURCE_DIR}/source/KimMobilityStrategyInfMob3Phases.cc
             ${CMAKE_SOURCE_DIR}/source/EnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TwoPhasesEnergyEvaluationStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TiltingFolchPlapp2005.cc
