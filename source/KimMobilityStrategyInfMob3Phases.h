@@ -14,6 +14,7 @@
 #define included_KimMobilityStrategyInfMob3Phases
 
 #include "KimMobilityStrategy.h"
+#include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 
 template <class FreeEnergyType>
 class KimMobilityStrategyInfMob3Phases
@@ -43,6 +44,9 @@ class KimMobilityStrategyInfMob3Phases
    std::vector<double> d_d2fdc2;
 
    double d_factor;
+
+   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LA;
+   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LB;
 };
 
 #endif
