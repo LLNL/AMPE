@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -382,14 +381,29 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                assert(x[1] == x[1]);
 
                // compute cL, cS
-               d_calphad_fenergy->computePhaseConcentrations(temp, c,
+               int status =
+                   d_calphad_fenergy->computePhaseConcentrations(temp, c,
 #ifdef HAVE_THERMO4PFM
-                                                             hphi,
+                                                                 hphi,
 #else
-                                                          hphi[0], eta,
+                                                              hphi[0], eta,
 #endif
-                                                             x);
+                                                                 x);
+               if (status < 0) {
+                  std::cerr
+                      << "computePhaseConcentrations failed for T=" << temp
+                      << ", hphi=";
+                  for (short i = 0; i < nphases; i++)
+                     std::cerr << hphi[i] << ", ";
+                  std::cerr << ", c=" << c[0] << std::endl;
+                  std::cerr << "c_ref=" << cl_ref[0] << "," << ca_ref[0] << ","
+                            << cb_ref[0] << std::endl;
+                  std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
+                            << std::endl;
+                  abort();
+               }
                assert(x[0] == x[0]);
+
                // std::cout << "phi=" << phi[0] << "," << phi[1] << "," <<
                // phi[2]
                //          << "c=" << c[0] << ", x=" << x[0] << "," << x[1] <<
