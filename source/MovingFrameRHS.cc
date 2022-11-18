@@ -50,15 +50,20 @@ void MovingFrameRHS::addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(ydot_phase_id)));
          assert(phase_rhs);
-
          assert(phase->getGhostCellWidth()[0] > 0);
-         ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         assert(phase->getDepth() == phase_rhs->getDepth());
+
+         const short nphases = phase->getDepth();
+         // std::cout<<"ADDVDPHIDX for "<<nphases<<" phases"<<std::endl;
+
+         for (short i = 0; i < nphases; i++)
+            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                    ifirst(2), ilast(2),
+                       ifirst(2), ilast(2),
 #endif
-                    dx, phase->getPointer(), phase->getGhostCellWidth()[0],
-                    frame_velocity, phase_rhs->getPointer(),
-                    phase_rhs->getGhostCellWidth()[0]);
+                       dx, phase->getPointer(i), phase->getGhostCellWidth()[0],
+                       frame_velocity, phase_rhs->getPointer(i),
+                       phase_rhs->getGhostCellWidth()[0]);
       }
    }
 }
