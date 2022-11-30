@@ -2716,7 +2716,7 @@ void QuatIntegrator::evaluateConcentrationRHS(
          const hier::Index& ilast = pbox.upper();
 
          // now compute r.h.s., one species at a time
-         for (int ic = 0; ic < d_ncompositions; ic++)
+         for (int ic = 0; ic < d_ncompositions; ic++) {
             COMPUTERHSCONCENTRATION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                                     ifirst(2), ilast(2),
@@ -2730,16 +2730,18 @@ void QuatIntegrator::evaluateConcentrationRHS(
                                     d_conc_mobility, conc_rhs->getPointer(ic),
                                     0);
 
-         // add component related to moving frame if moving velocity!=0
-         if (d_model_parameters.inMovingFrame()) {
-            assert(conc->getGhostCellWidth()[0] > 0);
-            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
+            // add component related to moving frame if moving velocity!=0
+            if (d_model_parameters.inMovingFrame()) {
+               assert(conc->getGhostCellWidth()[0] > 0);
+               ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                       ifirst(2), ilast(2),
+                          ifirst(2), ilast(2),
 #endif
-                       dx, conc->getPointer(), conc->getGhostCellWidth()[0],
-                       d_frame_velocity, conc_rhs->getPointer(),
-                       conc_rhs->getGhostCellWidth()[0]);
+                          dx, conc->getPointer(ic),
+                          conc->getGhostCellWidth()[0], d_frame_velocity,
+                          conc_rhs->getPointer(ic),
+                          conc_rhs->getGhostCellWidth()[0]);
+            }
          }
       }
    }
