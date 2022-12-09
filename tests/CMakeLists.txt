@@ -189,8 +189,7 @@ add_test(NAME testPhaseFAC
          WORKING_DIRECTORY ${TEST_DIR}/PhaseFAC)
 add_test(NAME testGradQ
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-                 ${CMAKE_CURRENT_BINARY_DIR}/testGradQ
-         WORKING_DIRECTORY ${TEST_DIR}/GradQ)
+                 ${CMAKE_CURRENT_BINARY_DIR}/testGradQ)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADFunctions)
