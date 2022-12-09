@@ -88,7 +88,6 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureStrategyFactory.cc
             ${CMAKE_SOURCE_DIR}/source/QuatModel.cc
             ${CMAKE_SOURCE_DIR}/source/QuatRefinePatchStrategy.cc
-            ${CMAKE_SOURCE_DIR}/source/ran2.cc
             ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellBeckermannFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/BiasDoubleWellUTRCFreeEnergyStrategy.cc
