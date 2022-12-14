@@ -41,6 +41,7 @@ ModelParameters {  // required block
    phi_well_func_type = "double"
 
    Temperature{
+      type = "scalar"
       temperature = 915.
    }
 

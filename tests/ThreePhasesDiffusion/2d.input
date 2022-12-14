@@ -23,6 +23,7 @@ ModelParameters {
    three_phases = TRUE
    
    Temperature{
+      type = "scalar"
       temperature = 1000.
    }
    

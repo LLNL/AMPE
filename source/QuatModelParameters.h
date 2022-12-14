@@ -53,7 +53,8 @@ class QuatModelParameters
       CONSTANT,  // read from a file and left constant in time
       SCALAR,    // constant in space, but possibly not in time
       GAUSSIAN,  // Gaussian in space, varying in time
-      GRADIENT   // linear in space and time
+      GRADIENT,  // linear in space and time
+      UNDEFINED
    };
 
    enum class ConcDiffusionType {

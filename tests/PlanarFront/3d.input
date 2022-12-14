@@ -20,6 +20,7 @@ ModelParameters {
    H_parameter = -1.
    
    Temperature{
+      type = "scalar"
       meltingT = 921.12
       temperature = 920.87
       latent_heat = 9.5e3 // [J/mol*K]

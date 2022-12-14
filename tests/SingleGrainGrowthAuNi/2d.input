@@ -26,6 +26,7 @@ ModelParameters {
    epsilon_orient = 0.3125
    
    Temperature {
+      type = "scalar"
       temperature        = 1450. // [K]
       dtemperaturedt     = -200.
       target_temperature = 1220.
