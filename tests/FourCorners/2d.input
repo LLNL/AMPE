@@ -25,6 +25,7 @@ ModelParameters {
    epsilon_orient = 0.0447
    
    Temperature{
+      type = "scalar"
       meltingT = 1000.
       temperature = 975.
       latent_heat = 2.e4 // [J/mol*K]

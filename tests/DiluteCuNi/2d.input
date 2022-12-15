@@ -16,6 +16,7 @@ ModelParameters {
    H_parameter = -1
    
    Temperature {
+      type = "scalar"
       temperature        = 1707.4834 // [K], 1K below Tsol
    }
 

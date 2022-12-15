@@ -13,6 +13,7 @@ ModelParameters {
    epsilon_orient = 0.3125
    
    Temperature {
+      type = "scalar"
       temperature        = 1707.4834 // [K], 1K below Tsol
    }
 

@@ -100,7 +100,7 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_conc_model = ConcModel::UNDEFINED;
    d_conc_rhs_strategy = ConcRHSstrategy::UNKNOWN;
    d_conc_diffusion_type = ConcDiffusionType::UNDEFINED;
-   d_temperature_type = TemperatureType::SCALAR;
+   d_temperature_type = TemperatureType::UNDEFINED;
 
    d_with_concentration = false;
    d_ncompositions = -1;
@@ -375,7 +375,7 @@ void QuatModelParameters::readTemperatureModel(
    std::string temperature_type = "";
    if (model_db->keyExists("Temperature")) {
       temperature_db = model_db->getDatabase("Temperature");
-      temperature_type = temperature_db->getStringWithDefault("type", "scalar");
+      temperature_type = temperature_db->getString("type");
    } else {
       temperature_db = model_db;
       temperature_type =
@@ -506,8 +506,10 @@ void QuatModelParameters::readTemperatureModel(
          d_H_parameter *= d_rescale_factorT;
       }
 
-   } else {
+   } else if (temperature_type[0] == 'c' || temperature_type[0] == 'C') {
       d_temperature_type = TemperatureType::CONSTANT;
+   } else {
+      TBOX_ERROR("ERROR: Temperature type needs to be specified!");
    }
 
    if (temperature_db->keyExists("latent_heat")) {
