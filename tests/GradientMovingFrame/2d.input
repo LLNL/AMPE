@@ -1,0 +1,102 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 0.022
+max_timesteps       = 1600
+
+Visit {
+   interval = 1.e-3
+   interval_type = "time"
+}
+
+ModelParameters {
+   moving_frame_velocity = 2.e3
+   adapt_frame = TRUE
+
+   H_parameter = -1.
+   orient_mobility = 1.
+   epsilon_orient = 1.
+
+   Interface {
+      sigma = 0.37  // pJ/um^2 = J/m^2
+      delta = 0.05 // um
+   }
+ 
+   Temperature {
+      type = "frozen"
+      temperature        = 1688. // [K]
+      dtemperaturedt = -2.e3 // K/s
+      center =   0., 0.
+      gradient = 1., 0. // in [K/um]
+   }
+
+   phi_mobility_type = "kim"
+
+   phi_interp_func_type ="p"
+
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   avg_func_type = "arithmetic"
+   
+   ConcentrationModel {
+      model    = "dilute"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      molar_volume = 6.8812e-6 // [m^3/mol]
+
+      liquidus_slope = -310.9
+      meltingT = 1728.
+      keq      = 0.7965
+
+      diffusion_type = "temperature_dependent"
+      D_solid  =  1.e-2  //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+   }
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "value", "0.05"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 1.e-3
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+}
+
+InitialConditions {
+   filename = "1000.nc"
+   init_c   = 0.05
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 1000, 1
+   x_lo         =  0.,  0.   // [um]
+   x_up         =  50., 0.05 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "AMPE::*::*"
+    print_exclusive = TRUE
+}

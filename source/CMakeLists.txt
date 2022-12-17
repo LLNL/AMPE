@@ -26,6 +26,7 @@ set(SOURCES_WPENALTY
     )
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
+            ${CMAKE_SOURCE_DIR}/source/AdaptMovingFrame.cc
             ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
             ${CMAKE_SOURCE_DIR}/source/ThreeArgsInterpolationType.cc
             ${CMAKE_SOURCE_DIR}/source/computeWeights3Pairs.cc

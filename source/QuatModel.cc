@@ -90,8 +90,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_phase_conc_strategy = nullptr;
    d_partition_coeff_strategy = nullptr;
 
-   d_temperature_strategy = nullptr;
-   d_temperature_strategy_quat_only = nullptr;
    d_meltingT_strategy = nullptr;
 
    d_composition_strategy_mobilities = nullptr;
@@ -195,8 +193,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
 QuatModel::~QuatModel()
 {
    delete d_quat_grad_strategy;
-   delete d_temperature_strategy;
-   delete d_temperature_strategy_quat_only;
    if (d_heat_capacity_strategy) delete d_heat_capacity_strategy;
    if (d_partition_coeff_strategy) delete d_partition_coeff_strategy;
    d_integrator.reset();
@@ -240,9 +236,9 @@ void QuatModel::initializeTemperature(
    d_temperature_strategy =
        factory.create(model_db, integrator_db, d_model_parameters);
 
-   d_temperature_strategy_quat_only =
+   d_temperature_strategy_quat_only.reset(
        new ConstantTemperatureStrategy(d_temperature_id,
-                                       d_temperature_scratch_id);
+                                       d_temperature_scratch_id));
 }
 
 //=======================================================================
@@ -2464,7 +2460,7 @@ void QuatModel::printScalarDiagnostics(void)
       tbox::pout << "  Total energy [pJ] = " << total_energy << std::endl;
    }
 
-   if (d_temperature_strategy != nullptr) {
+   if (d_temperature_strategy) {
       double t =
           d_temperature_strategy->getCurrentMinTemperature(d_patch_hierarchy,
                                                            d_time);

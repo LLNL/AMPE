@@ -2,36 +2,11 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "TemperatureStrategyFactory.h"
 
@@ -95,12 +70,12 @@ double TemperatureStrategyFactory::readTemperature0(
    return temperature0;
 }
 
-TemperatureStrategy* TemperatureStrategyFactory::create(
+std::shared_ptr<TemperatureStrategy> TemperatureStrategyFactory::create(
     std::shared_ptr<tbox::Database> model_db,
     std::shared_ptr<tbox::Database> integrator_db,
     const QuatModelParameters& model_parameters)
 {
-   static TemperatureStrategy* strategy = 0;
+   std::shared_ptr<TemperatureStrategy> strategy;
 
    std::shared_ptr<tbox::Database> temperature_db;
    if (model_db->keyExists("Temperature")) {
@@ -130,24 +105,24 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
           readTemperature0(temperature_db,
                            QuatModelParameters::TemperatureType::SCALAR);
 
-      strategy = new ScalarTemperatureStrategy(d_temperature_id,
-                                               d_temperature_scratch_id,
-                                               temperature0, temperature_db);
+      strategy.reset(new ScalarTemperatureStrategy(d_temperature_id,
+                                                   d_temperature_scratch_id,
+                                                   temperature0,
+                                                   temperature_db));
    } else if (model_parameters.isTemperatureGaussian()) {
 
-      strategy =
+      strategy.reset(
           new GaussianTemperatureStrategy(d_temperature_id,
                                           d_temperature_scratch_id, d_weight_id,
-                                          temperature_db, d_grid_geometry);
+                                          temperature_db, d_grid_geometry));
    } else if (model_parameters.isTemperatureGradient()) {
       const double temperature0 =
           readTemperature0(temperature_db,
                            QuatModelParameters::TemperatureType::SCALAR);
       const double frame_velocity = model_parameters.movingVelocity();
-      strategy = new GradientTemperatureStrategy(d_temperature_id,
-                                                 d_temperature_scratch_id,
-                                                 temperature0, frame_velocity,
-                                                 temperature_db);
+      strategy.reset(new GradientTemperatureStrategy(
+          d_temperature_id, d_temperature_scratch_id, temperature0,
+          frame_velocity, temperature_db));
    } else if (model_parameters.with_heat_equation()) {
 
       if (model_parameters.with_steady_temperature()) {
@@ -162,27 +137,28 @@ TemperatureStrategy* TemperatureStrategyFactory::create(
                 integrator_db->getDatabase("TemperatureSysSolver");
          }
          if (model_parameters.isHeatSourceCompositionDependent())
-            strategy = new SteadyStateTemperatureCompositionSource(
+            strategy.reset(new SteadyStateTemperatureCompositionSource(
                 d_temperature_scratch_id, d_conc_id, d_temperature_rhs_id,
                 d_weight_id, model_parameters.thermal_diffusivity(), d_cp_id,
                 model_parameters.T_source(), temperature_sys_solver_database,
-                d_heat_capacity_strategy, d_temperature_bc_coefs);
+                d_heat_capacity_strategy, d_temperature_bc_coefs));
          else {
             std::shared_ptr<tbox::Database> heat_source_db =
                 temperature_db->getDatabase("HeatSource");
-            strategy = new SteadyStateTemperatureGaussianSource(
+            strategy.reset(new SteadyStateTemperatureGaussianSource(
                 d_temperature_scratch_id, d_temperature_rhs_id, d_weight_id,
                 model_parameters.thermal_diffusivity(), d_cp_id, heat_source_db,
                 temperature_sys_solver_database, d_grid_geometry,
-                d_heat_capacity_strategy, d_temperature_bc_coefs);
+                d_heat_capacity_strategy, d_temperature_bc_coefs));
          }
       } else {
-         strategy =
-             new ConstantTemperatureStrategy(d_temperature_id, d_weight_id);
+         strategy.reset(
+             new ConstantTemperatureStrategy(d_temperature_id, d_weight_id));
       }
 
    } else {
-      strategy = new ConstantTemperatureStrategy(d_temperature_id, d_weight_id);
+      strategy.reset(
+          new ConstantTemperatureStrategy(d_temperature_id, d_weight_id));
    }
 
    return strategy;

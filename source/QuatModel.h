@@ -594,8 +594,8 @@ class QuatModel : public PFModel
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy_for_diffusion;
    std::shared_ptr<PhaseConcentrationsStrategy> d_phase_conc_strategy;
    PartitionCoefficientStrategy* d_partition_coeff_strategy;
-   TemperatureStrategy* d_temperature_strategy;
-   TemperatureStrategy* d_temperature_strategy_quat_only;
+   std::shared_ptr<TemperatureStrategy> d_temperature_strategy;
+   std::shared_ptr<TemperatureStrategy> d_temperature_strategy_quat_only;
    std::shared_ptr<CompositionRHSStrategy> d_composition_rhs_strategy;
 
    HeatCapacityStrategy* d_heat_capacity_strategy;
