@@ -29,6 +29,7 @@ GradientTemperatureStrategy::GradientTemperatureStrategy(
    d_temperature_scratch_id = temperature_scratch_id;
    d_temperature0 = temperature0;
    d_velocity_x = velocity_x;
+   d_ref_time = 0.;
 
    d_dtemperaturedt =
        temperature_db->getDoubleWithDefault("dtemperaturedt", 0.0);
@@ -41,13 +42,16 @@ GradientTemperatureStrategy::GradientTemperatureStrategy(
    temperature_db->getDoubleArray("gradient", &d_gradient[0], NDIM);
 
    if (temperature_db->isDouble("center"))
-      temperature_db->getDoubleArray("center", &d_center_init[0], NDIM);
+      temperature_db->getDoubleArray("center", &d_ref_center[0], NDIM);
    else
       for (short i = 0; i < NDIM; i++)
-         d_center_init[i] = 0.;
+         d_ref_center[i] = 0.;
 
    for (short i = 0; i < NDIM; i++)
-      d_center[i] = d_center_init[i];
+      d_center[i] = d_ref_center[i];
+
+   assert(d_ref_center[0] < 1.e10);
+   assert(d_center[0] < 1.e10);
 }
 
 double GradientTemperatureStrategy::getCurrentMaxTemperature(
@@ -80,19 +84,23 @@ double GradientTemperatureStrategy::getCurrentAverageTemperature(
    return 0.5 * (ops.max(d_temperature_id) + ops.min(d_temperature_id));
 }
 
+// set temperature field according to current temperature profile
 void GradientTemperatureStrategy::setCurrentTemperature(
     std::shared_ptr<hier::PatchHierarchy> patch_hierarchy, const double time)
 {
    assert(d_temperature_id >= 0);
    assert(d_temperature_scratch_id >= 0);
 
+   // update temperature according to cooling rate
    double temperature0 = d_temperature0 + d_dtemperaturedt * time;
-   // tbox::pout<<"GradientTemperatureStrategy: set center T to "
-   //          <<temperature0<<std::endl;
 
-   // from a moving frame perspective, the reference "center"
+   // from a moving frame perspective, the "center"
    // is moving backward
-   d_center[0] = d_center_init[0] - time * d_velocity_x;
+   d_center[0] = d_ref_center[0] - (time - d_ref_time) * d_velocity_x;
+   // tbox::pout << "GradientTemperatureStrategy:" << std::endl;
+   // tbox::pout << "d_center[0] = " << d_center[0] << std::endl;
+   // tbox::pout << "d_ref_center[0] = " << d_ref_center[0] << std::endl;
+   // tbox::pout << "d_velocity_x = " << d_velocity_x << std::endl;
 
    int maxln = patch_hierarchy->getFinestLevelNumber();
 

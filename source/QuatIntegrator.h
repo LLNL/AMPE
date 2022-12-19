@@ -28,6 +28,7 @@
 #include "PhaseRHSStrategy.h"
 #include "TemperatureRHSStrategy.h"
 #include "MovingFrameRHS.h"
+#include "AdaptMovingFrame.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -243,7 +244,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        std::shared_ptr<CompositionDiffusionStrategy>);
 
    void setPhaseFluxStrategy(std::shared_ptr<PhaseFluxStrategy>);
-   void setTemperatureStrategy(TemperatureStrategy*);
+   void setTemperatureStrategy(std::shared_ptr<TemperatureStrategy>);
    void setHeatCapacityStrategy(HeatCapacityStrategy*);
 
    void setPartitionCoefficientStrategy(
@@ -313,7 +314,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
                             double time)
    {
       if (!d_model_parameters.with_unsteady_heat_equation()) {
-         assert(d_temperature_strategy != nullptr);
+         assert(d_temperature_strategy);
          d_temperature_strategy->setCurrentTemperature(hierarchy, time);
       }
    }
@@ -589,10 +590,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const std::shared_ptr<hier::PatchHierarchy>&);
    virtual void setCompositionOperatorCoefficients(const double gamma);
 
-   double computeFrameVelocity(const std::shared_ptr<hier::PatchHierarchy>&,
-                               const double time, int phase_id,
-                               const bool newtime);
-
    std::string d_name;
 
    const QuatModelParameters& d_model_parameters;
@@ -618,7 +615,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    // use temperature strategy if temperature function of time only,
    // or if solving for steady state
    // Not used if temperature evolves with an ODE
-   TemperatureStrategy* d_temperature_strategy;
+   std::shared_ptr<TemperatureStrategy> d_temperature_strategy;
    HeatCapacityStrategy* d_heat_capacity_strategy;
 
 
@@ -912,6 +909,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::string d_eta_well_func_type;
 
    QuatModel* d_quat_model;
+
+   std::shared_ptr<AdaptMovingFrame> d_adapt_moving_frame;
 
    bool d_use_gradq_for_flux;
 

@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -38,6 +37,7 @@
 #include "ThreePhasesRHSStrategy.h"
 #include "SimpleTemperatureRHSStrategy.h"
 #include "KKSCompositionRHSStrategy.h"
+#include "GradientTemperatureStrategy.h"
 
 #include "QuatParams.h"
 
@@ -130,7 +130,6 @@ QuatIntegrator::QuatIntegrator(
       d_quat_grad_strategy(nullptr),
       d_phase_conc_strategy(nullptr),
       d_partition_coeff_strategy(nullptr),
-      d_temperature_strategy(nullptr),
       d_current_time(tbox::IEEE::getSignalingNaN()),
       d_previous_timestep(0.),
       d_eta_id(-1),
@@ -244,6 +243,8 @@ QuatIntegrator::QuatIntegrator(
    d_use_warm_start = use_warm_start;
    d_symmetry_aware = symmetry_aware;
    d_use_gradq_for_flux = use_gradq_for_flux;
+
+   d_frame_velocity = d_model_parameters.movingVelocity();
 
    // Get timers
    tbox::TimerManager* tman = tbox::TimerManager::getManager();
@@ -1570,9 +1571,9 @@ void QuatIntegrator::setPhaseFluxStrategy(
 //-----------------------------------------------------------------------
 
 void QuatIntegrator::setTemperatureStrategy(
-    TemperatureStrategy* temperature_strategy)
+    std::shared_ptr<TemperatureStrategy> temperature_strategy)
 {
-   assert(temperature_strategy != nullptr);
+   assert(temperature_strategy);
    d_temperature_strategy = temperature_strategy;
 }
 
@@ -1810,7 +1811,7 @@ void QuatIntegrator::resetSolversState(
    }
 
 
-   if (d_with_steady_temperature && d_temperature_strategy != nullptr) {
+   if (d_with_steady_temperature && d_temperature_strategy) {
       d_temperature_strategy->resetSolversState(hierarchy, coarsest_level,
                                                 finest_level);
    }
@@ -1977,8 +1978,7 @@ void QuatIntegrator::initialize(
       }
    }
 
-   if (d_temperature_strategy != nullptr)
-      d_temperature_strategy->initialize(hierarchy);
+   if (d_temperature_strategy) d_temperature_strategy->initialize(hierarchy);
 
    initializeSolvers(hierarchy);
 
@@ -2008,8 +2008,12 @@ void QuatIntegrator::initialize(
           new SimpleTemperatureRHSStrategy(d_thermal_diffusivity, d_latent_heat,
                                            d_temperature_scratch_id, d_cp_id));
 
-   if (d_model_parameters.inMovingFrame())
+   if (d_model_parameters.inMovingFrame()) {
       d_movingframe_rhs.reset(new MovingFrameRHS(d_phase_scratch_id));
+      d_adapt_moving_frame.reset(new AdaptMovingFrame(d_grid_geometry,
+                                                      d_quat_model,
+                                                      d_frame_velocity));
+   }
 }
 
 //-----------------------------------------------------------------------
@@ -2166,6 +2170,25 @@ double QuatIntegrator::Advance(
    // Coarsen updated data to have consistent data on all levels when regridding
    coarsenData(d_phase_id, d_eta_id, d_quat_id, d_conc_id, d_temperature_id,
                hierarchy);
+
+   if (d_model_parameters.adaptMovingFrame()) {
+      static int astep = 0;
+      if (astep % 25 == 0) {
+         d_frame_velocity =
+             d_adapt_moving_frame->adaptVelocity(time, hierarchy,
+                                                 d_frame_velocity,
+                                                 d_phase_scratch_id);
+
+         std::shared_ptr<GradientTemperatureStrategy> temperature_strategy =
+             std::dynamic_pointer_cast<GradientTemperatureStrategy>(
+                 d_temperature_strategy);
+         if (temperature_strategy) {
+            temperature_strategy->resetVelocity(time, d_frame_velocity);
+            tbox::pout << "resetVelocity to " << d_frame_velocity << std::endl;
+         }
+      }
+      astep++;
+   }
 
    // Save the cumulative counters
    d_previous_timestep = dt;
@@ -2428,13 +2451,6 @@ void QuatIntegrator::evaluatePhaseRHS(
 {
    assert(phase_id >= 0);
    assert(phase_rhs_id >= 0);
-
-   // frame velocity saved in class data member so that it can be used
-   // by other functions
-   d_frame_velocity =
-       d_model_parameters.adaptMovingFrame()
-           ? computeFrameVelocity(hierarchy, time, phase_id, eval_flag)
-           : d_model_parameters.movingVelocity();
 
    d_phase_rhs_strategy->evaluateRHS(time, hierarchy, phase_rhs_id, eval_flag);
 
@@ -3276,7 +3292,6 @@ int QuatIntegrator::evaluateRHSFunction(double time, SundialsAbstractVector* y,
       bool need_iterate = false;  // is a fixed point iteration needed?
       math::HierarchyCellDataOpsReal<double> cellops(hierarchy);
       do {
-
          // tbox::pout<<"Evaluate phase rhs..."<<endl;
          evaluatePhaseRHS(time, hierarchy, y_dot_samvect, fd_flag);
 
@@ -4250,52 +4265,3 @@ void QuatIntegrator::getCPODESIdsRequiringRegrid(std::set<int>& cpode_id_set,
    delete cpodes_vec;
 }
 #endif
-
-double QuatIntegrator::computeFrameVelocity(
-    const std::shared_ptr<hier::PatchHierarchy>& hierarchy, const double time,
-    int phase_id, const bool eval_flag)
-{
-   static double frame_velocity = d_model_parameters.movingVelocity();
-   static double previous_frame_velocity = d_model_parameters.movingVelocity();
-   static double time_previous_frame_velocity = time;
-   static double fs = 0.5;
-   static double previous_fs = 0.5;
-   static bool first_time = true;
-
-   // get time of last accepted step
-   double last_time =
-       d_sundials_solver->getActualFinalValueOfIndependentVariable();
-
-   // update reference frame velocity
-   if (eval_flag && last_time != time_previous_frame_velocity) {
-      previous_frame_velocity = frame_velocity;
-      time_previous_frame_velocity = last_time;
-      previous_fs = fs;
-      tbox::plog << "Update reference frame velocity to "
-                 << previous_frame_velocity << std::endl;
-      first_time = false;
-   }
-
-   // computes volume of physical domain
-   const double* low = d_grid_geometry->getXLower();
-   const double* up = d_grid_geometry->getXUpper();
-   double vol = 1.;
-   for (int d = 0; d < NDIM; d++)
-      vol *= (up[d] - low[d]);
-
-   // compute new solid fraction
-   fs = d_quat_model->evaluateVolumeSolid(hierarchy, phase_id) / vol;
-   // tbox::plog<<"fs = "<<fs<<endl;
-
-   // compute new frame velocity
-   double acceleration = 0.;
-   if (!first_time) {
-      double dfs = (fs - previous_fs);
-      const double alpha = 5.e5;
-      acceleration = alpha * dfs;
-   }
-   // tbox::plog<<"acceleration = "<<acceleration<<endl;
-   frame_velocity = previous_frame_velocity + acceleration;
-
-   return frame_velocity;
-}

@@ -33,6 +33,17 @@ class GradientTemperatureStrategy : public TemperatureStrategy
 
    ~GradientTemperatureStrategy(){};
 
+   void resetVelocity(const double time, const double velocity_x)
+   {
+      // reset d_ref_center and d_ref_time first according
+      // to velocity used between d_ref_time and time
+      d_ref_center[0] -= (time - d_ref_time) * d_velocity_x;
+
+      // now reset d_ref_time and d_velocity_x
+      d_ref_time = time;
+      d_velocity_x = velocity_x;
+   }
+
    virtual double getCurrentMaxTemperature(
        std::shared_ptr<hier::PatchHierarchy> patch_hierarchy,
        const double time);
@@ -57,12 +68,14 @@ class GradientTemperatureStrategy : public TemperatureStrategy
    double d_target_temperature;
 
    double d_gradient[NDIM];
-   double d_center[3];
-   double d_center_init[3];
+   double d_center[NDIM];
+   double d_ref_center[NDIM];
+
+   // time associated with d_ref_center
+   double d_ref_time;
 
    // moving frame velocity in x direction
    double d_velocity_x;
-   ;
 
    void setCurrentTemperature(const double temperature, hier::Patch& patch,
                               std::shared_ptr<pdat::CellData<double> > cd_temp);
