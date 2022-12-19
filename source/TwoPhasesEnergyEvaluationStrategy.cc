@@ -132,9 +132,10 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
    assert(weight->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
-#if (NDIM == 3)
-   if (d_model_parameters.with_orientation()) assert(pgrad_quat[2] != nullptr);
-#endif
+
+   if (d_model_parameters.evolveQuat())
+      for (int i = 0; i < NDIM; i++)
+         assert(pgrad_quat[i] != nullptr);
 
    const char interpf =
        energyInterpChar(d_model_parameters.energy_interp_func_type());
