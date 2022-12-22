@@ -54,6 +54,7 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
 #endif
 
    const int maxl = hierarchy->getNumberOfLevels();
+   int nits = 0;
 
    for (int amr_level = 0; amr_level < maxl; amr_level++) {
       std::shared_ptr<hier::PatchLevel> level =
@@ -112,8 +113,16 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
             assert(c_b);
          }
 
-         computePhaseConcentrationsOnPatch(temperature, phi, eta, concentration,
-                                           c_l, c_a, c_b, patch);
+         nits += computePhaseConcentrationsOnPatch(temperature, phi, eta,
+                                                   concentration, c_l, c_a, c_b,
+                                                   patch);
       }
    }
+#if 0
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
+   mpi.AllReduce(&nits, 1, MPI_SUM);
+
+   tbox::pout << "computePhaseConcentrations: total nits = " << nits
+              << std::endl;
+#endif
 }

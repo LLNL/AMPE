@@ -188,7 +188,7 @@ CALPHADequilibriumPhaseConcentrationsStrategy<
 }
 
 template <class FreeEnergyType>
-void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
+int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,
@@ -322,6 +322,8 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    const int ncc = ci_gbox.size();
    const int nct = temp_gbox.size();
 
+   int nits = 0;
+
 #ifdef GPU_OFFLOAD
 // clang-format off
 #pragma omp target map(to: ptr_temp[:nct]) \
@@ -403,7 +405,9 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                   abort();
                }
                assert(x[0] == x[0]);
-
+#ifndef GPU_OFFLOAD
+               nits += status;
+#endif
                // std::cout << "phi=" << phi[0] << "," << phi[1] << "," <<
                // phi[2]
                //          << "c=" << c[0] << ", x=" << x[0] << "," << x[1] <<
@@ -429,4 +433,5 @@ void CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 #ifdef GPU_OFFLOAD
    }
 #endif
+   return nits;
 }

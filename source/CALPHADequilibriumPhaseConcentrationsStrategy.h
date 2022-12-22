@@ -44,7 +44,7 @@ class CALPHADequilibriumPhaseConcentrationsStrategy
 
    ~CALPHADequilibriumPhaseConcentrationsStrategy() {}
 
-   virtual void computePhaseConcentrationsOnPatch(
+   virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
        std::shared_ptr<pdat::CellData<double> > cd_phi,
        std::shared_ptr<pdat::CellData<double> > cd_eta,
