@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -47,7 +46,7 @@ KKSdiluteEquilibriumPhaseConcentrationsStrategy::
 #endif
 }
 
-void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
+int KKSdiluteEquilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_te,
         std::shared_ptr<pdat::CellData<double> > cd_pf,
@@ -154,6 +153,7 @@ void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
    int idx_ci = (imin[0] - imin_ci) + (imin[1] - jmin_ci) * inc_j_ci +
                 (imin[2] - kmin_ci) * inc_k_ci;
 
+   int nits = 0;
    for (int kk = imin[2]; kk <= imax[2]; kk++) {
       for (int jj = imin[1]; jj <= imax[1]; jj++) {
          for (int ii = imin[0]; ii <= imax[0]; ii++) {
@@ -170,13 +170,13 @@ void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
             x[1] = cd_ca->getPointer(0)[idx_ci];
 
             // compute cL, cS
-            d_fenergy->computePhaseConcentrations(temp, &c,
+            nits += d_fenergy->computePhaseConcentrations(temp, &c,
 #ifdef HAVE_THERMO4PFM
-                                                  &phi,
+                                                          &phi,
 #else
-                                                  phi, 0.,
+                                                          phi, 0.,
 #endif
-                                                  x);
+                                                          x);
             //            std::cout<<"cl, cs = "<<x[0]<<","<<x[1]<<std::endl;
 
             // set cell values with cL and cS just computed
@@ -200,4 +200,6 @@ void KKSdiluteEquilibriumPhaseConcentrationsStrategy::
       idx_te += 2 * inc_j_te *
                 (cd_te->getGhostCellWidth()[1] - cd_cl->getGhostCellWidth()[1]);
    }  // kk
+
+   return nits;
 }
