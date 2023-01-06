@@ -2,7 +2,6 @@
 # UT-Battelle, LLC.
 # Produced at the Lawrence Livermore National Laboratory and
 # the Oak Ridge National Laboratory
-# Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 # LLNL-CODE-747500
 # All rights reserved.
 # This file is part of AMPE. 
@@ -21,8 +20,6 @@ import quat as Q
 
 # other required packages
 import numpy as N
-#from Scientific.IO import NetCDF
-from scipy.io import netcdf as NetCDF
 
 import netCDF4 as nc4
 
@@ -403,8 +400,6 @@ print("nspecies={}".format(nspecies))
 
 #-----------------------------------------------------------------------
 # Open and define file
-
-#f = NetCDF.NetCDFFile( filename, 'w' )
 ncfile = nc4.Dataset(filename, 'w', format='NETCDF4')
 
 ncfile.createDimension( 'x', nx )
