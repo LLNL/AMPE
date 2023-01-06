@@ -391,6 +391,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                                                               hphi[0], eta,
 #endif
                                                                  x);
+#ifndef HAVE_THERMO4PFM
                if (status < 0) {
                   std::cerr
                       << "computePhaseConcentrations failed for T=" << temp
@@ -405,6 +406,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                   abort();
                }
                assert(x[0] == x[0]);
+#endif
 #ifndef GPU_OFFLOAD
                nits += status;
 #endif
