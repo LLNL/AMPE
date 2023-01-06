@@ -74,6 +74,21 @@ void ADDCONCENTRATIONFLUXFROMANTITRAPPING(
 #endif
     const int& ngflux);
 
+void ADDCONCENTRATIONFLUXFROMANTITRAPPING3PHASES(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* dx, const double* phase, const int& ngphase, const double* cl,
+    const double* ca, const double* cb, const int& ngc, const double* dphi,
+    const int& ngdphi, const double& alpha, const double* flux0,
+    const double* flux1,
+#if (NDIM == 3)
+    const double* flux2,
+#endif
+    const int& ngflux);
+
 void ADD_CONCENTRATIONFLUX_EBS(const int& ifirst0, const int& ilast0,
                                const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)

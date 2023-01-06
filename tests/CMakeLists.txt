@@ -41,6 +41,8 @@ set_source_files_properties( ${fortran_dir_dim}/quatdiffs.f
                              PROPERTIES GENERATED TRUE)
 set_source_files_properties( ${fortran_dir_dim}/quatgrad.f
                              PROPERTIES GENERATED TRUE)
+set_source_files_properties( ${fortran_dir_dim}/concentrationrhs.f
+                             PROPERTIES GENERATED TRUE)
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
 add_executable(testNetCDFread ${CMAKE_SOURCE_DIR}/tests/simple_xy_rd.cc)
@@ -104,6 +106,10 @@ add_executable(testGradQ
                ${fortran_dir_dim}/quatdiffs.f
                ${fortran_dir_dim}/quatgrad.f
                ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
+add_executable(testAntitrapping3Phases
+               ${CMAKE_SOURCE_DIR}/tests/testAntitrapping3Phases.cc
+               ${SOURCE_FORTRAN_DIM_DIR}/concentrationrhs.f
+               ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 add_executable(testCALPHADFunctions
                ${CMAKE_SOURCE_DIR}/tests/testCALPHADFunctions.cc )
 add_executable(testCALPHADJacobianTernary
@@ -190,6 +196,9 @@ add_test(NAME testPhaseFAC
 add_test(NAME testGradQ
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testGradQ)
+add_test(NAME testAntitrapping3Phases
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testAntitrapping3Phases)
 add_test(NAME testCALPHADFunctions
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADFunctions)
@@ -402,6 +411,9 @@ target_link_libraries(testPhaseFAC ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testGradQ ${PROJECT_LINK_LIBS_SAMRAI}
                                 ${PROJECT_LINK_LIBS_HDF5}
                                 )
+target_link_libraries(testAntitrapping3Phases ${PROJECT_LINK_LIBS_SAMRAI}
+                                              ${PROJECT_LINK_LIBS_HDF5}
+                      )
 target_link_libraries(testKKSdiluteBinaryEquilibrium ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${PROJECT_LINK_LIBS_HDF5}
                                      ${THERMOLIB}
