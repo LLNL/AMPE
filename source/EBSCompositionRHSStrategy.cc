@@ -468,18 +468,37 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    assert(cl->getGhostCellWidth()[0] > 0);
    assert(dphidt->getGhostCellWidth()[0] > 0);
 
-   // now compute concentration flux
-   ADDCONCENTRATIONFLUXFROMANTITRAPPING(
-       ifirst(0), ilast(0), ifirst(1), ilast(1),
+   // now compute concentration flux anti-trapping correction
+   if (d_with_three_phases) {
+      std::shared_ptr<pdat::CellData<double> > cb(
+          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+              patch.getPatchData(d_conc_b_scratch_id)));
+      assert(cb);
+      ADDCONCENTRATIONFLUXFROMANTITRAPPING3PHASES(
+          ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-       ifirst(2), ilast(2),
+          ifirst(2), ilast(2),
 #endif
-       dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
-       cl->getGhostCellWidth()[0], d_ncompositions, dphidt->getPointer(),
-       dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
-       flux->getPointer(1),
+          dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
+          cb->getPointer(), cl->getGhostCellWidth()[0], dphidt->getPointer(),
+          dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
+          flux->getPointer(1),
 #if (NDIM == 3)
-       flux->getPointer(2),
+          flux->getPointer(2),
 #endif
-       flux->getGhostCellWidth()[0]);
+          flux->getGhostCellWidth()[0]);
+   } else
+      ADDCONCENTRATIONFLUXFROMANTITRAPPING(
+          ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+          ifirst(2), ilast(2),
+#endif
+          dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
+          cl->getGhostCellWidth()[0], d_ncompositions, dphidt->getPointer(),
+          dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
+          flux->getPointer(1),
+#if (NDIM == 3)
+          flux->getPointer(2),
+#endif
+          flux->getGhostCellWidth()[0]);
 }

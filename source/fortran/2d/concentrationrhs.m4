@@ -1,35 +1,10 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
-c 
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
@@ -492,4 +467,145 @@ c
 
       return
       end
+c
+c***********************************************************************
+c
+c compute the concentration flux
+c 0.25 coeff is 0.5 for average over 2 gradients times 0.5
+c for 1./2dx
+c
+      subroutine addconcentrationfluxfromantitrapping3phases(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   phase, ngp,
+     &   cl, ca, cb, ngc,
+     &   dphidt, ngd,
+     &   alpha,
+     &   flux0, flux1, ngflux )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngflux, ngd, ngp, ngc
+      double precision
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux))
+      double precision phase(CELL2d(ifirst,ilast,ngp),3)
+      double precision cl(CELL2d(ifirst,ilast,ngc))
+      double precision ca(CELL2d(ifirst,ilast,ngc))
+      double precision cb(CELL2d(ifirst,ilast,ngc))
+      double precision dphidt(CELL2d(ifirst,ilast,ngd),3)
+      double precision dx(0:1)
+      double precision alpha
+c
+      double precision dxinv, dyinv
+      double precision dphix, dphiy, dphi2, dphin
+      double precision dphipx, dphipy, dphipn, dphip2
+      integer          ic0, ic1, ip
+      double precision tol, tol2, dpdt
+      double precision ac(3)
+      double precision factor
 
+      tol = 1.e-8
+      tol2 = tol*tol
+
+      dxinv = 1.d0 / dx(0)
+      dyinv = 1.d0 / dx(1)
+
+c x-faces
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0+1
+c compute gradient liquid phase first
+            dphix = dxinv * ( phase(ic0,ic1,1)
+     &                      - phase(ic0-1,ic1,1) )
+            dphiy = dyinv*0.25d0*(phase(ic0-1,ic1+1,1)
+     &                           -phase(ic0-1,ic1-1,1)
+     &                           +phase(ic0  ,ic1+1,1)
+     &                           -phase(ic0  ,ic1-1,1)
+     &                          )
+            dphi2 = dphix*dphix+dphiy*dphiy
+            if( abs(dphi2) .gt. tol2 ) then
+               dphin = sqrt(dphi2)
+
+c average compositions to get values on x-face
+               ac(1) = 0.5d0*(cl(ic0-1,ic1)+cl(ic0,ic1))
+               ac(2) = 0.5d0*(ca(ic0-1,ic1)+ca(ic0,ic1))
+               ac(3) = 0.5d0*(cb(ic0-1,ic1)+cb(ic0,ic1))
+
+c loop over two solid phases
+               do ip = 2, 3
+                  dphipx = dxinv * ( phase(ic0,ic1,ip)
+     &                             - phase(ic0-1,ic1,ip) )
+                  dphipy = dyinv*0.25d0
+     &                   * (phase(ic0-1,ic1+1,ip)
+     &                     -phase(ic0-1,ic1-1,ip)
+     &                     +phase(ic0  ,ic1+1,ip)
+     &                     -phase(ic0  ,ic1-1,ip))
+                  dphip2 = dphipx*dphipx+dphipy*dphipy
+
+                  if( abs(dphip2) .gt. tol2 ) then
+                     dpdt=0.5d0*( dphidt(ic0-1,ic1,ip)
+     &                           +dphidt(ic0,ic1,ip) )
+                     dphipn = sqrt(dphip2)
+c factor should be one when only two phases are present
+                     factor=-1.d0*(dphipx*dphix+dphipy*dphiy)
+     &                     /(dphipn*dphin)
+
+                     flux0(ic0,ic1) = flux0(ic0,ic1) +
+     &                  alpha*factor*(dphix/dphin)*(ac(1)-ac(ip))*dpdt
+                  endif
+               enddo
+            endif
+         enddo
+      enddo
+
+      do ic1 = ifirst1, ilast1+1
+         do ic0 = ifirst0, ilast0
+c compute gradient liquid phase first
+            dphiy = dyinv * ( phase(ic0,ic1,1)
+     &                      - phase(ic0,ic1-1,1) )
+            dphix = dxinv*0.25d0*(phase(ic0+1,ic1-1,1)
+     &                           -phase(ic0-1,ic1-1,1)
+     &                           +phase(ic0+1,ic1  ,1)
+     &                           -phase(ic0-1,ic1  ,1)
+     &                           )
+            dphi2 = dphix*dphix+dphiy*dphiy
+            if( abs(dphi2) .gt. tol2 ) then
+               dphin = sqrt(dphi2)
+
+c average compositions to get values on y-face
+               ac(1) = 0.5d0*(cl(ic0,ic1-1)+cl(ic0,ic1))
+               ac(2) = 0.5d0*(ca(ic0,ic1-1)+ca(ic0,ic1))
+               ac(3) = 0.5d0*(cb(ic0,ic1-1)+cb(ic0,ic1))
+
+c loop over two solid phases
+               do ip = 2, 3
+                  dphipy = dyinv * ( phase(ic0,ic1,ip)
+     &                             - phase(ic0,ic1-1,ip) )
+                  dphipx = dxinv*0.25d0
+     &                   * (phase(ic0+1,ic1-1,ip)
+     &                     -phase(ic0-1,ic1-1,ip)
+     &                     +phase(ic0+1,ic1  ,ip)
+     &                     -phase(ic0-1,ic1  ,ip))
+                  dphip2 = dphipx*dphipx+dphipy*dphipy
+
+                  if( abs(dphip2) .gt. tol2 ) then
+                     dpdt=0.5d0*( dphidt(ic0,ic1-1,ip)
+     &                           +dphidt(ic0,ic1,ip) )
+                     dphipn = sqrt(dphip2)
+c factor should be one when only two phases are present
+                     factor=-1.d0*(dphipx*dphix+dphipy*dphiy)
+     &                     /(dphipn*dphin)
+
+                     flux1(ic0,ic1) = flux1(ic0,ic1) +
+     &                  alpha*(factor*dphiy/dphin)*(ac(1)-ac(ip))*dpdt
+                  endif
+               enddo
+            endif
+         enddo
+      enddo
+
+      return
+      end
