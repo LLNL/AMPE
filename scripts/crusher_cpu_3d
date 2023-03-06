@@ -21,7 +21,6 @@ cmake -DCMAKE_CXX_COMPILER=CC -DCMAKE_C_COMPILER=cc \
         -DSUNDIALS_DIR=/ccs/proj/mat190/sundials/sundials-5.7.0/install_spock \
         -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF \
         -DCMAKE_PREFIX_PATH=${HOME}/bin \
-        -DUSE_THERMO4PFM=ON \
         -DTHERMO4PFM_DIR=/ccs/proj/mat190/Thermo4PFM/install_crusher_cpu \
         -DNDIM="3" \
         ..

@@ -1,51 +1,22 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
-// UT-Battelle, LLC.
-// Produced at the Lawrence Livermore National Laboratory and
-// the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
-// LLNL-CODE-747500
-// All rights reserved.
-// This file is part of AMPE. 
-// For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without 
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC, 
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-
 ////////////////////////////////////////////////////////////////////////////
 
 Step 0: Build any necessary third-party library as needed
 
-AMPE requires the third-party packages hypre, Sundials and SAMRAI. These
-libaries are typically not pre-installed on most systems and need to be
+AMPE requires the third-party packages hypre, Sundials, SAMRAI and Thermo4PFM.
+These libaries are typically not pre-installed on most systems and need to be
 installed.
 
-SAMRAI: compatible with version 4.1.0 or later, built without Sundials.
-Sundials: compatible with version 5.4.0 or later.
+Hypre:      https://github.com/hypre-space/hypre
+Sundials:   https://github.com/LLNL/sundials
+SAMRAI:     https://github.com/LLNL/SAMRAI
+Thermo4PFM: https://github.com/ORNL/Thermo4PFM
 
-To build SAMRAI4.1.0, do something similar to this:
---------------------------------------------------
+Version requirements:
+SAMRAI: version 4.1.0 or later, built with hypre, but without Sundials.
+Sundials: version 5.4.0 to 5.8.0.
+
+To build SAMRAI4.1.0 (with hypre), do something similar to this:
+---------------------------------------------------------------
 
 Download SAMRAI release from
 https://computing.llnl.gov/projects/samrai/software#download
@@ -73,15 +44,14 @@ Step 1: Build the AMPE code with cmake
 mkdir build
 cd build
 
-From the build directory, run a "cmake script". For example on syrah:
+From the build directory, run a "cmake script". For example on condo@ORNL:
 
-../scripts/peloton_cmake
+../scripts/build_condo_thermo4pfm_2d
 
 where the solver dimension is specified (2d or 3d).
 If a script does not exist for the platform-compiler_optimization
 combination you want, you'll have to create your own using one of the
 existing "cmake" scripts as an example.
-Note that the option "-DUSE_CVODE=ON" is required for that build to work.
 
 Then run:
    make
@@ -89,5 +59,11 @@ Then run:
 It will create the main executable build/source/ampe2d (or ampe3d) as well
 as executable unit tests.
 
-To run the test suite, run:
+////////////////////////////////////////////////////////////////////////////
+
+Step 2: Run test suite
+
+To run the test suite (unit + regression), run:
    make test
+
+from the build directory.
