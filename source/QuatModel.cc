@@ -2493,6 +2493,11 @@ void QuatModel::printScalarDiagnostics(void)
          tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
                     << std::endl;
       }
+      math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
+      double m = mathops.max(d_phase_mobility_id);
+      tbox::pout << "  Max. Phase mobility = " << m << std::endl;
+      m = mathops.min(d_phase_mobility_id);
+      tbox::pout << "  Min. Phase mobility = " << m << std::endl;
    }
 
    if (d_model_parameters.with_third_phase()) {
