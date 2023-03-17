@@ -38,7 +38,7 @@ for line in lines:
     print(line)
     words=line.split()
     time = eval(words[6])
-  if line.count(b'Max.'):
+  if line.count(b'Max.') and  line.count(b'concentration'):
     print(line)
     words=line.split()
     cmax = eval(words[3])
