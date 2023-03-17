@@ -63,6 +63,8 @@ for line in range(l): ## loop over lines of file
       velocity=(vol-vol_old)*lx/(time-time_old)
       print("{}, {}".format(time,velocity))
       if(count>2):
+        print("velocity = {}".format(velocity))
+        print("target velocity = {}".format(target_velocity))
         if(abs(velocity-target_velocity)>tol):
           sys.exit(1)
       count=count+1

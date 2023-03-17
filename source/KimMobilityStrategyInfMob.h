@@ -18,8 +18,9 @@ class KimMobilityStrategyInfMob : public KimMobilityStrategy<FreeEnergyType>
 {
  public:
    KimMobilityStrategyInfMob(
-       QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-       const int temp_id, const double epsilon, const double phase_well_scale,
+       const QuatModelParameters& parameters, QuatModel* quat_model,
+       const int conc_l_id, const int conc_s_id, const int temp_id,
+       const double epsilon, const double phase_well_scale,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
@@ -30,10 +31,13 @@ class KimMobilityStrategyInfMob : public KimMobilityStrategy<FreeEnergyType>
                            const std::vector<double>& phaseconc,
                            const std::vector<double>& phi);
 
-   double d_DL;
-   double d_Q0;
+   const QuatModelParameters& d_model_parameters;
+   const double d_DL;
+   const double d_Q0;
 
    std::vector<double> d_d2fdc2;
+   // molar volume
+   const double d_mv;
 
    double d_factor;
 };

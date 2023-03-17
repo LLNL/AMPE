@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
                (*dphidt)(cell, 1) = 0.88;
                (*dphidt)(cell, 2) = 0.88;
 
-               (*cl)(cell) = 0.1; // arbitrary value
+               (*cl)(cell) = 0.1;  // arbitrary value
                (*ca)(cell) = 0.2;
                (*cb)(cell) = 0.2;
             }

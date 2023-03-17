@@ -25,7 +25,8 @@ set(SOURCES_WPENALTY
     ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyWithPenalty.cc
     )
 
-set(SOURCES ${CMAKE_SOURCE_DIR}/source/main.cc
+set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
+            ${CMAKE_SOURCE_DIR}/source/main.cc
             ${CMAKE_SOURCE_DIR}/source/AdaptMovingFrame.cc
             ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
             ${CMAKE_SOURCE_DIR}/source/ThreeArgsInterpolationType.cc

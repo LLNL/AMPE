@@ -39,9 +39,9 @@ ModelParameters {
    adapt_frame = TRUE
  
    epsilon_phi = 0.2   // [(pJ/um)^1/2]
-
-   phi_mobility_type = "kim"
- 
+   PhaseMobility{
+      type = "kim"
+   }
    phi_well_scale = 0.3 // [pJ/um^3]
    phi_well_func_type = "double"
    phi_interp_func_type ="pbg"

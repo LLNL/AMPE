@@ -19,9 +19,9 @@ ModelParameters {
    temperature        = 873. // [K]
    
    epsilon_phi = 1.   // [(pJ/um)^1/2]
-
-   phi_mobility     = 1.
-   
+   PhaseMobility{
+      value = 1.
+   }
    phi_well_scale = 0.0625  // 1./16.
    phi_well_func_type = "double"
 

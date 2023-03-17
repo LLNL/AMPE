@@ -13,6 +13,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "KKStools.h"
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #endif
@@ -20,9 +21,10 @@
 template <class FreeEnergyType>
 KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
     KimMobilityStrategyFiniteMobAntiTrap(
-        QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-        const int temp_id, const double interface_mobility,
-        const double epsilon, const double phase_well_scale,
+        const QuatModelParameters& model_parameters, QuatModel* quat_model,
+        const int conc_l_id, const int conc_s_id, const int temp_id,
+        const double interface_mobility, const double epsilon,
+        const double phase_well_scale,
         const EnergyInterpolationType energy_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
@@ -31,29 +33,22 @@ KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::
                                           temp_id, energy_interp_func_type,
                                           conc_interp_func_type, conc_db,
                                           ncompositions),
+      d_model_parameters(model_parameters),
       d_DL(DL),
-      d_Q0(Q0)
+      d_Q0(Q0),
+      d_mv(mv)
 {
    assert(epsilon > 0.);
    assert(phase_well_scale >= 0.);
    assert(mv > 0.);
    assert(interface_mobility > 0.);
 
-   double a2 = 0.;
-   switch (energy_interp_func_type) {
-      case EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
-      case EnergyInterpolationType::HARMONIC: a2 = 5. / 6.; break;
-      default:
-         TBOX_ERROR(
-             "Invalid interpolation function in "
-             "KimMobilityStrategyFiniteMobAntiTrap");
-   }
-   // a2=19./30.; //for Kim2007
+   d_beta = 1. / kks_mobility_factor(energy_interp_func_type, epsilon,
+                                     phase_well_scale);
+
    const double xi = epsilon / sqrt(16. * phase_well_scale);
    tbox::pout << "interface_mobility=" << interface_mobility << std::endl;
    d_alpha = 3. * sqrt(2.) * xi / interface_mobility;
-   d_beta = 3. * a2 * xi * xi;
-   d_beta *= (1.e-6 / mv);  // convert zeta from J/mol to pJ/um^3
 
    d_d2fdc2.resize(this->d_ncompositions * this->d_ncompositions);
 }
@@ -76,15 +71,20 @@ double KimMobilityStrategyFiniteMobAntiTrap<FreeEnergyType>::evaluateMobility(
    const double* const cl = &phaseconc[0];
    const double* const cs = &phaseconc[this->d_ncompositions];
 
-   double zeta = 0.;
-   for (unsigned i = 0; i < this->d_ncompositions; i++)
-      for (unsigned j = 0; j < this->d_ncompositions; j++)
-         zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
-   // tbox::pout<<"zeta="<<zeta<<std::endl;
-   const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
-   zeta /= DL;
+   double zeta_factor = d_model_parameters.zetaFactor(temp);
+   if (zeta_factor < 0.) {
+      const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
+      double zeta = 0.;
+      for (unsigned i = 0; i < this->d_ncompositions; i++)
+         for (unsigned j = 0; j < this->d_ncompositions; j++)
+            zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
+      // tbox::pout<<"zeta="<<zeta<<std::endl;
+      zeta_factor = zeta / DL;
+   }
+   // convert from J/mol to pJ/um^3
+   zeta_factor *= (1.e-6 / d_mv);
 
-   return 1. / (d_alpha + d_beta * zeta);
+   return 1. / (d_alpha + d_beta * zeta_factor);
 }
 
 template class KimMobilityStrategyFiniteMobAntiTrap<

@@ -27,8 +27,7 @@ lines=output.split(b'\n')
 end_reached = False
 first_concentration=-1.
 for line in lines:
-  num_matches = line.count(b'Integral')
-  if num_matches:
+  if line.count(b'Integral'):
     words=line.split()
     concentration=eval(words[3])
     if first_concentration<0.:
@@ -36,8 +35,7 @@ for line in lines:
     if abs(concentration-first_concentration)>1.e-4:
       sys.exit(1)
 
-  num_matches = line.count(b'cycle')
-  if num_matches:
+  if line.count(b'cycle'):
     print(line)
     words=line.split()
     time=eval(words[6])
@@ -48,13 +46,12 @@ for line in lines:
         print("Wrong dt: too small")
         sys.exit(1)
 
-  num_matches = line.count(b'fraction')
-  if num_matches:
+  if line.count(b'fraction'):
     print(line)
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.219)>2.e-3:
+      if abs(sfraction-0.21)>2.e-3:
         print("Wrong solid fraction")
         sys.exit(1)
 

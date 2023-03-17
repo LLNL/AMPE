@@ -19,8 +19,9 @@ class KimMobilityStrategyFiniteMobAntiTrap
 {
  public:
    KimMobilityStrategyFiniteMobAntiTrap(
-       QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-       const int temp_id, const double interface_mobility, const double epsilon,
+       const QuatModelParameters& parameters, QuatModel* quat_model,
+       const int conc_l_id, const int conc_s_id, const int temp_id,
+       const double interface_mobility, const double epsilon,
        const double phase_well_scale,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
@@ -32,6 +33,8 @@ class KimMobilityStrategyFiniteMobAntiTrap
                            const std::vector<double>& phaseconc,
                            const std::vector<double>& phi);
 
+   const QuatModelParameters& d_model_parameters;
+
    /*!
     * Diffusivity in liquid
     */
@@ -39,6 +42,8 @@ class KimMobilityStrategyFiniteMobAntiTrap
    const double d_Q0;
 
    std::vector<double> d_d2fdc2;
+   // molar volume
+   const double d_mv;
 
    double d_alpha;
    double d_beta;
