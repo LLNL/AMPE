@@ -14,6 +14,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary3Ph2Sl.h"
 #include "AMPE_internal.h"
 #include "Database2JSON.h"
+#include "KKStools.h"
 
 #include <boost/property_tree/json_parser.hpp>
 #include <iomanip>
@@ -26,16 +27,17 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
         QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
         const int conc_b_id, const int temp_id, const double epsilon,
         const double phase_well_scale,
-        const EnergyThreeArgsInterpolationType energy_interp_func_type,
+        const EnergyThreeArgsInterpolationType energy_three_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
         const double DL, const double Q0, const double mv)
     : KimMobilityStrategy<FreeEnergyType>(
           quat_model, conc_l_id, conc_a_id, conc_b_id, temp_id,
-          getTwoPhasesInterpolationType(energy_interp_func_type),
+          getTwoPhasesInterpolationType(energy_three_interp_func_type),
           conc_interp_func_type, conc_db, ncompositions),
       d_DL(DL),
-      d_Q0(Q0)
+      d_Q0(Q0),
+      d_mv(mv)
 {
    assert(epsilon > 0.);
    assert(phase_well_scale >= 0.);
@@ -43,11 +45,11 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
    assert(conc_b_id > -1);
    assert(ncompositions > 0);
 
-   double a2 = 0.;
-   switch (energy_interp_func_type) {
+   EnergyInterpolationType energy_interp_func_type;
+   switch (energy_three_interp_func_type) {
       // FolchPlapp2005 reduces to PBG for two phases
       case EnergyThreeArgsInterpolationType::FOLCHPLAPP2005:
-         a2 = 47. / 60.;
+         energy_interp_func_type = EnergyInterpolationType::PBG;
          break;
       case EnergyThreeArgsInterpolationType::MOELANS2011:
          TBOX_ERROR(
@@ -59,10 +61,8 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
              "KimMobilityStrategyInfMob3Phases");
    }
 
-   const double xi = epsilon / sqrt(32. * phase_well_scale);
-
-   d_factor = 3. * (2. * xi * xi) * a2;
-   d_factor *= (1.e-6 / mv);  // convert from J/mol to pJ/um^3
+   d_factor = 1. / kks_mobility_factor(energy_interp_func_type, epsilon,
+                                       phase_well_scale);
 
    d_d2fdc2.resize(ncompositions * ncompositions);
 
@@ -91,11 +91,11 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
 
    d_free_energy_LA.reset(new CALPHADFreeEnergyFunctionsBinary2Ph1Sl(
        calphad_pt, newton_db,
-       getTwoPhasesInterpolationType(energy_interp_func_type),
+       getTwoPhasesInterpolationType(energy_three_interp_func_type),
        conc_interp_func_type, phaseL, phaseA));
    d_free_energy_LB.reset(new CALPHADFreeEnergyFunctionsBinary2Ph1Sl(
        calphad_pt, newton_db,
-       getTwoPhasesInterpolationType(energy_interp_func_type),
+       getTwoPhasesInterpolationType(energy_three_interp_func_type),
        conc_interp_func_type, phaseL, phaseB));
 }
 
@@ -150,7 +150,9 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    }
    d_free_energy_LA->computeSecondDerivativeFreeEnergy(temp, ceq, pil,
                                                        d_d2fdc2.data());
+
    double zeta = compute_zeta(&ceq[0], &ceq[1], temp);
+   zeta *= (1.e-6 / d_mv);
    const double mobLA = DL / (d_factor * zeta);
    // std::cout<<"DL="<<DL<<", zeta="<<zeta<<std::endl;
    assert(mobLA == mobLA);
@@ -169,7 +171,10 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    }
    d_free_energy_LB->computeSecondDerivativeFreeEnergy(temp, ceq, pil,
                                                        d_d2fdc2.data());
+   for (auto d2f : d_d2fdc2)
+      d2f *= (1.e-6 / d_mv);
    zeta = compute_zeta(&ceq[0], &ceq[1], temp);
+   zeta *= (1.e-6 / d_mv);
    const double mobLB = DL / (d_factor * zeta);
    assert(mobLB == mobLB);
 

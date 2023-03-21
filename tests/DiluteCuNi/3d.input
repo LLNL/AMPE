@@ -24,10 +24,10 @@ ModelParameters {
       sigma = 0.37  // pJ/um^2 = J/m^2
       delta = 1.e-3 // um
    }
-
-   phi_mobility_type = "kim"
-   kinetics_coefficient = 2.e-5 // beta = 20 K*s/m
- 
+   PhaseMobility{
+      type = "kim"
+      kinetics_coefficient = 2.e-5 // beta = 20 K*s/m
+   }
    phi_well_func_type = "double"
 
    phi_interp_func_type ="h"

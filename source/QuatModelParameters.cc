@@ -937,22 +937,25 @@ void QuatModelParameters::readModelParameters(
    }
 
    // Mobility
-   if (d_with_phase) {
-      readPhaseMobility(model_db);
+   if (model_db->keyExists("PhaseMobility")) {
+      assert(d_with_phase);
+      std::shared_ptr<tbox::Database> mob_db(
+          model_db->getDatabase("PhaseMobility"));
+      readPhaseMobility(mob_db);
+   } else if (d_with_phase) {
+      d_phase_mobility = model_db->getDouble("phi_mobility");
+      d_phi_mobility_type = "scalar";
    }
 }
 
 void QuatModelParameters::readPhaseMobility(
     std::shared_ptr<tbox::Database> model_db)
 {
-   d_phi_mobility_type =
-       model_db->getStringWithDefault("phi_mobility_type", "scalar");
+   d_zetaTref = -1.;
+   d_phi_mobility_type = model_db->getStringWithDefault("type", "scalar");
    if (isPhaseMobilityScalar()) {
-      if (model_db->keyExists("phi_mobility")) {
-         d_phase_mobility = model_db->getDouble("phi_mobility");
-      } else if (model_db->keyExists("phase_mobility")) {
-         d_phase_mobility = model_db->getDouble("phase_mobility");
-         printDeprecated("phase_mobility", "phi_mobility");
+      if (model_db->keyExists("value")) {
+         d_phase_mobility = model_db->getDouble("value");
       } else {
          TBOX_ERROR("Error: phi_mobility not specified");
       }
@@ -966,6 +969,13 @@ void QuatModelParameters::readPhaseMobility(
       if (beta < 0.) {
          d_interface_mobility =
              model_db->getDoubleWithDefault("interface_mobility", -1.);
+         if (model_db->keyExists("zeta")) {
+            d_zetaTref = model_db->getDouble("Tref");
+            double val[3];
+            model_db->getDoubleArray("zeta", &val[0], 3);
+            for (int i = 0; i < 3; i++)
+               d_zetaKimMobility[i] = val[i];
+         }
       } else {
          // compute interface_mobility from beta value
          assert(beta > 0.);

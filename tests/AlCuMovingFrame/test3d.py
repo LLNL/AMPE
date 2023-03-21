@@ -57,7 +57,7 @@ for line in lines:
         sys.exit(1)
 
 print("Max. concentration: {}".format(c0))
-if abs(c0-0.0211)>1.e-4:
+if abs(c0-0.0212)>1.e-4:
   print("Max. concentration incorrect!!!")
   sys.exit(1)
 

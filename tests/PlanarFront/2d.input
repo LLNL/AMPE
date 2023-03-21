@@ -28,8 +28,9 @@ ModelParameters {
    
    epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
 
-   phi_mobility = 1.985 // muk*Tm/(6.*delta*L)
-
+   PhaseMobility{
+      value = 1.985 // muk*Tm/(6.*delta*L)
+   }
    phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
    phi_well_func_type = "double"
 

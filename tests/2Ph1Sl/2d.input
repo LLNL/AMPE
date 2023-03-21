@@ -30,9 +30,11 @@ ModelParameters {
    }
    
    epsilon_phi = 0.06 // sqrt(6.*delta*L*Gamma/Tm)
-
-   phi_mobility_type = "kim"
-
+   PhaseMobility{
+      type = "kim"
+      Tref = 800.
+      zeta = 0.6719597785824969, -0.011694533563104714, 5.239785657384641e-05
+   }
    phi_well_scale =  4.5 // ((eps/delta)**2)/32
    phi_well_func_type = "double"
 

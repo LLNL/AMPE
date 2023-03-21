@@ -98,7 +98,7 @@ class MobilityFactory
             tbox::plog << "KimMobilityStrategyFiniteMobAntiTrap" << std::endl;
             mobility_strategy.reset(new KimMobilityStrategyFiniteMobAntiTrap<
                                     FreeEnergyFunctionType>(
-                model, conc_l_scratch_id, conc_a_scratch_id,
+                model_parameters, model, conc_l_scratch_id, conc_a_scratch_id,
                 temperature_scratch_id, model_parameters.interfaceMobility(),
                 model_parameters.epsilon_phase(),
                 model_parameters.phase_well_scale(),
@@ -124,7 +124,7 @@ class MobilityFactory
          tbox::plog << "KimMobilityStrategyInfMob" << std::endl;
          mobility_strategy.reset(
              new KimMobilityStrategyInfMob<FreeEnergyFunctionType>(
-                 model, conc_l_scratch_id, conc_a_scratch_id,
+                 model_parameters, model, conc_l_scratch_id, conc_a_scratch_id,
                  temperature_scratch_id, model_parameters.epsilon_phase(),
                  model_parameters.phase_well_scale(),
                  model_parameters.energy_interp_func_type(),

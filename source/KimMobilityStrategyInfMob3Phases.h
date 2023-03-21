@@ -38,11 +38,12 @@ class KimMobilityStrategyInfMob3Phases
                            const std::vector<double>& phaseconc,
                            const std::vector<double>& phi);
 
-   double d_DL;
-   double d_Q0;
+   const double d_DL;
+   const double d_Q0;
 
    std::vector<double> d_d2fdc2;
-
+   // molar volume
+   const double d_mv;
    double d_factor;
 
    std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LA;

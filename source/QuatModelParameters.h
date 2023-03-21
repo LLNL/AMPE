@@ -403,6 +403,15 @@ class QuatModelParameters
 
    bool adaptMovingFrame() const { return d_adapt_moving_frame; }
 
+   double zetaFactor(const double temp) const
+   {
+      if (d_zetaTref < 0.) return -1.;
+
+      const double dT = (temp - d_zetaTref);
+      return d_zetaKimMobility[0] + d_zetaKimMobility[1] * dT +
+             d_zetaKimMobility[2] * dT * dT;
+   }
+
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
@@ -430,6 +439,10 @@ class QuatModelParameters
    std::vector<std::map<short, double> > d_cp;
    double d_meltingT;
    double d_interface_mobility;
+
+   // inverse zeta polynomial expansion coefficients in Kim's mobility
+   double d_zetaTref;
+   std::array<double, 3> d_zetaKimMobility;
 
    std::string d_heat_source_type;
    std::vector<double> d_T_source;

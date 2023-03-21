@@ -31,9 +31,9 @@ ModelParameters {
    // in addition they have a factor (1-p)/2
    // so 0.01*(1./0.05)/2=0.1
    noise_amplitude = 0.1
-
-   phi_mobility_type = "kim"
-
+   PhaseMobility{
+      type = "kim"
+   }
    phi_well_scale = 6. // [pJ/um^3]
    phi_well_func_type = "double"
 

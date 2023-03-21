@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -13,6 +12,7 @@
 #include "CALPHADFreeEnergyFunctionsBinary.h"
 #include "CALPHADFreeEnergyFunctionsTernary.h"
 #include "KKSFreeEnergyFunctionDiluteBinary.h"
+#include "KKStools.h"
 #ifdef HAVE_THERMO4PFM
 #include "CALPHADFreeEnergyFunctionsBinary2Ph1Sl.h"
 #endif
@@ -21,8 +21,9 @@
 
 template <class FreeEnergyType>
 KimMobilityStrategyInfMob<FreeEnergyType>::KimMobilityStrategyInfMob(
-    QuatModel* quat_model, const int conc_l_id, const int conc_s_id,
-    const int temp_id, const double epsilon, const double phase_well_scale,
+    const QuatModelParameters& model_parameters, QuatModel* quat_model,
+    const int conc_l_id, const int conc_s_id, const int temp_id,
+    const double epsilon, const double phase_well_scale,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
@@ -31,26 +32,17 @@ KimMobilityStrategyInfMob<FreeEnergyType>::KimMobilityStrategyInfMob(
                                           temp_id, energy_interp_func_type,
                                           conc_interp_func_type, conc_db,
                                           ncompositions),
+      d_model_parameters(model_parameters),
       d_DL(DL),
-      d_Q0(Q0)
+      d_Q0(Q0),
+      d_mv(mv)
 {
    assert(epsilon > 0.);
    assert(phase_well_scale >= 0.);
    assert(mv > 0.);
 
-   double a2 = 0.;
-   switch (energy_interp_func_type) {
-      case EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
-      case EnergyInterpolationType::HARMONIC: a2 = 0.5; break;
-      default:
-         TBOX_ERROR(
-             "Invalid interpolation function in KimMobilityStrategyInfMob");
-   }
-
-   const double xi = epsilon / sqrt(32. * phase_well_scale);
-
-   d_factor = 3. * (2. * xi * xi) * a2;
-   d_factor *= (1.e-6 / mv);  // convert from J/mol to pJ/um^3
+   d_factor =
+       kks_mobility_factor(energy_interp_func_type, epsilon, phase_well_scale);
 
    d_d2fdc2.resize(this->d_ncompositions * this->d_ncompositions);
 }
@@ -75,14 +67,20 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
    const double* const cl = &phaseconc[0];
    const double* const cs = &phaseconc[this->d_ncompositions];
 
-   double zeta = 0.;
-   for (unsigned i = 0; i < this->d_ncompositions; i++)
-      for (unsigned j = 0; j < this->d_ncompositions; j++)
-         zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
-   const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
+   double zeta_factor = d_model_parameters.zetaFactor(temp);
+   if (zeta_factor < 0.) {
+      const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
+      double zeta = 0.;
+      for (unsigned i = 0; i < this->d_ncompositions; i++)
+         for (unsigned j = 0; j < this->d_ncompositions; j++)
+            zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
+      zeta_factor = zeta / DL;
+   }
+   // convert from J/mol to pJ/um^3
+   zeta_factor *= (1.e-6 / d_mv);
 
-   const double mob = DL / (d_factor * zeta);
-   // std::cout<<"DL="<<DL<<", zeta="<<zeta<<std::endl;
+   const double mob = d_factor / zeta_factor;
+   // std::cout<<"mob="<<mob<<", inv_zeta="<<inv_zeta_factor<<std::endl;
    assert(mob == mob);
    return mob;
 }

@@ -31,10 +31,11 @@ ModelParameters {
       dtemperaturedt     = -200.
       target_temperature = 1220.
    }
-   
-   epsilon_phi = 0.25   // [(pJ/um)^1/2]
 
-   phi_mobility = 6.4
+   epsilon_phi = 0.25   // [(pJ/um)^1/2]
+   PhaseMobility{
+      value = 6.4
+   }
    orient_mobility = 0.64
  
    phi_well_scale = 2.5  //  [pJ/um^3]

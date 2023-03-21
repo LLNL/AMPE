@@ -33,7 +33,9 @@ ModelParameters {
       gradient = 1., 0. // in [K/um]
    }
 
-   phi_mobility_type = "kim"
+   PhaseMobility{
+      type = "kim"
+   }
 
    phi_interp_func_type ="p"
 
