@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -356,7 +355,7 @@ void QuatSysSolver::evaluateRHS(
     const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
     const int rotations_id, const int mobility_id, const int solution_id,
-    int rhs_id, const bool use_gradq_for_flux)
+    int rhs_id)
 {
    assert(diffusion_coef_id >= 0);
    assert(grad_q_id >= 0);
@@ -366,8 +365,7 @@ void QuatSysSolver::evaluateRHS(
 
    d_fac_ops->evaluateRHS(epsilon_q, diffusion_coef_id, grad_q_id,
                           grad_q_copy_id, quat_grad_floor, quat_floor_type,
-                          mobility_id, rotations_id, solution_id, rhs_id,
-                          use_gradq_for_flux);
+                          mobility_id, rotations_id, solution_id, rhs_id);
 }
 
 

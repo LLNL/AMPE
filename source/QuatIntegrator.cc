@@ -2789,7 +2789,7 @@ void QuatIntegrator::evaluateQuatRHS(
                                   d_quat_smooth_floor_type, d_quat_diffusion_id,
                                   d_quat_grad_side_id, d_quat_grad_side_copy_id,
                                   quat_symm_rotation_id, d_quat_mobility_id,
-                                  d_quat_scratch_id, quat_rhs_id, true);
+                                  d_quat_scratch_id, quat_rhs_id);
 
 
    if (visit_flag && d_model_parameters.with_rhs_visit_output())

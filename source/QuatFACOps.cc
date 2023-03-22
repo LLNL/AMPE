@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -1998,16 +1997,14 @@ void QuatFACOps::evaluateRHS(
     const int grad_q_copy_id,  // for computation of diffusion coefficient
     const double gradient_floor, const std::string gradient_floor_type,
     const int mobility_id, const int rotation_index_id, const int q_id,
-    int rhs_id, const bool use_gradq_for_flux)
+    int rhs_id)
 {
    t_compute_rhs->start();
 
-   if (use_gradq_for_flux) assert(grad_q_id >= 0);
+   assert(grad_q_id >= 0);
    assert(grad_q_copy_id >= 0);
 
    d_rotation_index_id = rotation_index_id;
-
-   const int gq_id = use_gradq_for_flux ? grad_q_id : -1;
 
    // Initialize the output array
    d_hopscell->setToScalar(rhs_id, 0., false);
@@ -2018,7 +2015,7 @@ void QuatFACOps::evaluateRHS(
 
    for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
       accumulateOperatorOnLevel(mobility_id, d_face_coef_scratch_id, q_id,
-                                gq_id, rhs_id, ln, true, false);
+                                grad_q_id, rhs_id, ln, true, false);
    }
 
    t_compute_rhs->stop();
