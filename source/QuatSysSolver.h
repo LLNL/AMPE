@@ -262,10 +262,7 @@ class QuatSysSolver
       d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }
 
-   void setOperatorCoefficients(const double time_step, const double epsilon_q,
-                                const double quat_grad_floor,
-                                const std::string quat_smooth_floor_type,
-                                const int mobility_id,
+   void setOperatorCoefficients(const double time_step, const int mobility_id,
                                 const int mobility_deriv_id,
                                 const int diff_coef_id,
                                 const int diff_coef_deriv_id,
@@ -279,7 +276,8 @@ class QuatSysSolver
                     const int grad_q_copy_id, const int rotations_id,
                     const int mobility_id, const int solution_id, int rhs_id);
 
-   void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id);
+   void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id,
+                               const int face_coef_id);
 
    void applyProjection(const int q_id, const int corr_id, const int err_id);
 

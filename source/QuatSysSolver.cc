@@ -263,11 +263,12 @@ void QuatSysSolver::setBoundaries(const std::string& boundary_type,
 }
 
 
-void QuatSysSolver::setOperatorCoefficients(
-    const double time_step, const double epsilon_q,
-    const double quat_grad_floor, const std::string quat_smooth_floor_type,
-    const int mobility_id, const int mobility_deriv_id, const int diff_coef_id,
-    const int diff_coef_deriv_id, const int grad_q_id, const int q_id)
+void QuatSysSolver::setOperatorCoefficients(const double time_step,
+                                            const int mobility_id,
+                                            const int mobility_deriv_id,
+                                            const int diff_coef_id,
+                                            const int diff_coef_deriv_id,
+                                            const int grad_q_id, const int q_id)
 {
    t_set_op_coef->start();
 
@@ -284,10 +285,9 @@ void QuatSysSolver::setOperatorCoefficients(
    }
 #endif
 
-   d_fac_ops->setOperatorCoefficients(time_step, epsilon_q, mobility_id,
-                                      mobility_deriv_id, diff_coef_id,
-                                      diff_coef_deriv_id, grad_q_id, q_id,
-                                      quat_grad_floor, quat_smooth_floor_type);
+   d_fac_ops->setOperatorCoefficients(time_step, mobility_id, mobility_deriv_id,
+                                      diff_coef_id, diff_coef_deriv_id,
+                                      grad_q_id, q_id);
 
    t_set_op_coef->stop();
 }
@@ -370,12 +370,13 @@ void QuatSysSolver::evaluateRHS(
 
 
 void QuatSysSolver::multiplyDQuatDPhiBlock(const int q_id,
-                                           const int operator_q_id)
+                                           const int operator_q_id,
+                                           const int face_coef_id)
 {
    assert(q_id >= 0);
    assert(operator_q_id >= 0);
 
-   d_fac_ops->multiplyDQuatDPhiBlock(q_id, operator_q_id);
+   d_fac_ops->multiplyDQuatDPhiBlock(q_id, operator_q_id, face_coef_id);
 }
 
 

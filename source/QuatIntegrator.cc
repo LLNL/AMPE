@@ -142,6 +142,7 @@ QuatIntegrator::QuatIntegrator(
       d_quat_mobility_id(-1),
       d_quat_diffusion_id(-1),
       d_quat_diffusion_deriv_id(-1),
+      d_quat_face_coef_id(-1),
       d_quat_symm_rotation_id(-1),
       d_conc_diffusion_id(-1),
       d_conc_phase_coupling_diffusion_id(-1),
@@ -501,7 +502,9 @@ void QuatIntegrator::setupPreconditioners()
                                                 d_name + "_QuatIntegratorQuatSy"
                                                          "sSolver",
                                                 quatsys_db));
-
+      d_quat_face_coeffs.reset(new QuatFaceCoeffs(d_qlen, d_epsilon_q,
+                                                  d_quat_grad_floor,
+                                                  d_quat_smooth_floor_type));
       assert(d_quat_sys_solver);
    } else {
       d_quat_sys_solver.reset();
@@ -766,7 +769,6 @@ void QuatIntegrator::RegisterQuatVariables(
       d_quat_diffs_id = variable_db->registerVariableAndContext(
           d_quat_diffs_var, d_current,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
 
       if (d_symmetry_aware) {
          assert(quat_symm_rotation_var);
@@ -1189,8 +1191,17 @@ void QuatIntegrator::RegisterLocalQuatVariables()
    assert(d_quat_rhs_id >= 0);
    d_local_data.setFlag(d_quat_rhs_id);
 
-   if (d_precond_has_dquatdphi) {
+   // coeff eps^2+D(\phi)/|grad| to be used in diffusion operator
+   d_quat_face_coef_var.reset(
+       new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                      d_name + "_QI_quat_face_coef_", d_qlen));
+   d_quat_face_coef_id = variable_db->registerVariableAndContext(
+       d_quat_face_coef_var, d_current,
+       hier::IntVector(tbox::Dimension(NDIM), 0));
+   assert(d_quat_face_coef_id >= 0);
+   d_local_data.setFlag(d_quat_face_coef_id);
 
+   if (d_precond_has_dquatdphi) {
       d_quat_mobility_deriv_var.reset(new pdat::CellVariable<double>(
           tbox::Dimension(NDIM), d_name + "_QI_quat_mobility_deriv_", 1));
       d_quat_mobility_deriv_id = variable_db->registerVariableAndContext(
@@ -2783,10 +2794,14 @@ void QuatIntegrator::evaluateQuatRHS(
    int quat_symm_rotation_id =
        d_use_gradq_for_flux ? d_quat_symm_rotation_id : -1;
 
+   d_quat_face_coeffs->computeCoeffs(hierarchy, d_quat_diffusion_id,
+                                     d_quat_grad_side_copy_id,
+                                     d_quat_face_coef_id);
+
    // compute RHS using the gradient of q at sides (d_quat_grad_side_id)
    // computed with physical BC
    d_quat_sys_solver->evaluateRHS(d_epsilon_q, d_quat_grad_floor,
-                                  d_quat_smooth_floor_type, d_quat_diffusion_id,
+                                  d_quat_smooth_floor_type, d_quat_face_coef_id,
                                   d_quat_grad_side_id, d_quat_grad_side_copy_id,
                                   quat_symm_rotation_id, d_quat_mobility_id,
                                   d_quat_scratch_id, quat_rhs_id);
@@ -3452,11 +3467,12 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
    if (d_evolve_quat) {
       assert(d_quat_sys_solver);
 
-      d_quat_sys_solver->setOperatorCoefficients(
-          gamma, d_epsilon_q, d_quat_grad_floor, d_quat_smooth_floor_type,
-          d_quat_mobility_id, d_quat_mobility_deriv_id, d_quat_diffusion_id,
-          d_quat_diffusion_deriv_id, d_quat_grad_side_copy_id,
-          d_quat_scratch_id);
+      d_quat_sys_solver->setOperatorCoefficients(gamma, d_quat_mobility_id,
+                                                 d_quat_mobility_deriv_id,
+                                                 d_quat_face_coef_id,
+                                                 d_quat_diffusion_deriv_id,
+                                                 d_quat_grad_side_copy_id,
+                                                 d_quat_scratch_id);
    }
 
    // Tell the integrator that the Jacobian data was recomputed
@@ -3700,7 +3716,8 @@ int QuatIntegrator::QuatPrecondSolve(
 
       // Compute the product of DQuatDPhi block of the Jacobian with the
       // just computed phi correction
-      d_quat_sys_solver->multiplyDQuatDPhiBlock(d_phase_sol_id, d_quat_rhs_id);
+      d_quat_sys_solver->multiplyDQuatDPhiBlock(d_phase_sol_id, d_quat_rhs_id,
+                                                d_quat_face_coef_id);
 
       // Add gamma times the just computed product to the right-hand side
       cellops.axpy(d_quat_rhs_id, gamma, d_quat_rhs_id, r_quat_id, false);

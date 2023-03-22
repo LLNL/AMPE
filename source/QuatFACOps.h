@@ -287,11 +287,11 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    /*
     * Set the operator coefficients.
     */
-   void setOperatorCoefficients(
-       const double time_step, const double epsilon_q, const int mobility_id,
-       const int mobility_deriv_id, const int diff_coef_id,
-       const int diff_coef_deriv_id, const int grad_q_id, const int q_id,
-       const double gradient_floor, const std::string grad_floor_type);
+   void setOperatorCoefficients(const double time_step, const int mobility_id,
+                                const int mobility_deriv_id,
+                                const int diff_coef_id,
+                                const int diff_coef_deriv_id,
+                                const int grad_q_id, const int q_id);
 
    // FACOperatorStrategy virtuals
 
@@ -353,7 +353,8 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
                                   int operator_q_id, int ln, bool project,
                                   bool error_equation_indicator);
 
-   void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id);
+   void multiplyDQuatDPhiBlock(const int q_id, const int operator_q_id,
+                               const int face_coeff_id);
 
    void applyProjectionOnLevel(const int q_id, const int corr_id,
                                const int err_id, const int ln);
