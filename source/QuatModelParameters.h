@@ -403,14 +403,25 @@ class QuatModelParameters
 
    bool adaptMovingFrame() const { return d_adapt_moving_frame; }
 
-   double zetaFactor(const double temp) const
+   double zetaFactorLA(const double temp) const
    {
       if (d_zetaTref < 0.) return -1.;
 
       const double dT = (temp - d_zetaTref);
-      return d_zetaKimMobility[0] + d_zetaKimMobility[1] * dT +
-             d_zetaKimMobility[2] * dT * dT;
+      return d_zetaKimMobilityLA[0] + d_zetaKimMobilityLA[1] * dT +
+             d_zetaKimMobilityLA[2] * dT * dT;
    }
+
+   double zetaFactorLB(const double temp) const
+   {
+      if (d_zetaTref < 0.) return -1.;
+
+      const double dT = (temp - d_zetaTref);
+      return d_zetaKimMobilityLB[0] + d_zetaKimMobilityLB[1] * dT +
+             d_zetaKimMobilityLB[2] * dT * dT;
+   }
+
+   double zetaFactor(const double temp) const { return zetaFactorLA(temp); }
 
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
@@ -442,7 +453,8 @@ class QuatModelParameters
 
    // inverse zeta polynomial expansion coefficients in Kim's mobility
    double d_zetaTref;
-   std::array<double, 3> d_zetaKimMobility;
+   std::array<double, 3> d_zetaKimMobilityLA;
+   std::array<double, 3> d_zetaKimMobilityLB;
 
    std::string d_heat_source_type;
    std::vector<double> d_T_source;
