@@ -24,19 +24,18 @@ namespace pt = boost::property_tree;
 template <class FreeEnergyType>
 KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
     KimMobilityStrategyInfMob3Phases(
-        QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
-        const int conc_b_id, const int temp_id, const double epsilon,
-        const double phase_well_scale,
+        const QuatModelParameters& model_parameters, QuatModel* quat_model,
+        const int conc_l_id, const int conc_a_id, const int conc_b_id,
+        const int temp_id, const double epsilon, const double phase_well_scale,
         const EnergyThreeArgsInterpolationType energy_three_interp_func_type,
         const ConcInterpolationType conc_interp_func_type,
         std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
-        const double DL, const double Q0, const double mv)
+        const double mv)
     : KimMobilityStrategy<FreeEnergyType>(
           quat_model, conc_l_id, conc_a_id, conc_b_id, temp_id,
           getTwoPhasesInterpolationType(energy_three_interp_func_type),
           conc_interp_func_type, conc_db, ncompositions),
-      d_DL(DL),
-      d_Q0(Q0),
+      d_model_parameters(model_parameters),
       d_mv(mv)
 {
    assert(epsilon > 0.);
@@ -61,53 +60,8 @@ KimMobilityStrategyInfMob3Phases<FreeEnergyType>::
              "KimMobilityStrategyInfMob3Phases");
    }
 
-   d_factor = 1. / kks_mobility_factor(energy_interp_func_type, epsilon,
-                                       phase_well_scale);
-
-   d_d2fdc2.resize(ncompositions * ncompositions);
-
-   pt::ptree newton_db;
-   std::string phaseL("PhaseL");
-   std::string phaseA("PhaseA");
-   std::string phaseB("PhaseB");
-
-   std::shared_ptr<tbox::Database> conc_calphad_db =
-       conc_db->getDatabase("Calphad");
-   std::string calphad_filename = conc_calphad_db->getString("filename");
-
-   std::shared_ptr<tbox::MemoryDatabase> calphad_db;
-   boost::property_tree::ptree calphad_pt;
-
-   if (calphad_filename.compare(calphad_filename.size() - 4, 4, "json") == 0) {
-      boost::property_tree::read_json(calphad_filename, calphad_pt);
-   } else {
-      calphad_db.reset(new tbox::MemoryDatabase("calphad_db"));
-      tbox::InputManager::getManager()->parseInputFile(calphad_filename,
-                                                       calphad_db);
-#ifdef HAVE_THERMO4PFM
-      copyDatabase(calphad_db, calphad_pt);
-#endif
-   }
-
-   d_free_energy_LA.reset(new CALPHADFreeEnergyFunctionsBinary2Ph1Sl(
-       calphad_pt, newton_db,
-       getTwoPhasesInterpolationType(energy_three_interp_func_type),
-       conc_interp_func_type, phaseL, phaseA));
-   d_free_energy_LB.reset(new CALPHADFreeEnergyFunctionsBinary2Ph1Sl(
-       calphad_pt, newton_db,
-       getTwoPhasesInterpolationType(energy_three_interp_func_type),
-       conc_interp_func_type, phaseL, phaseB));
-}
-
-template <class FreeEnergyType>
-double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::compute_zeta(
-    const double* const cl, const double* const cs, const double temp)
-{
-   double zeta = 0.;
-   for (unsigned i = 0; i < this->d_ncompositions; i++)
-      for (unsigned j = 0; j < this->d_ncompositions; j++)
-         zeta += (cl[i] - cs[i]) * d_d2fdc2[2 * i + j] * (cl[j] - cs[j]);
-   return zeta;
+   d_factor =
+       kks_mobility_factor(energy_interp_func_type, epsilon, phase_well_scale);
 }
 
 template <class FreeEnergyType>
@@ -127,55 +81,27 @@ double KimMobilityStrategyInfMob3Phases<FreeEnergyType>::evaluateMobility(
    const PhaseIndex pil = PhaseIndex::phaseL;
 
    // std::cout<<std::setprecision(15);
-   // std::cout<<"c="<<phaseconc[0]<<", d2fdc2="<<d_d2fdc2[0]<<std::endl;
    const double* const cl = &phaseconc[0];
    const double* const ca = &phaseconc[this->d_ncompositions];
    const double* const cb = &phaseconc[2 * this->d_ncompositions];
 
-   double ceq[2];
+   double zeta_factor = d_model_parameters.zetaFactorLA(temp);
+   assert(zeta_factor > 0.);
 
-   const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
+   // convert from J/mol to pJ/um^3
+   zeta_factor *= (1.e-6 / d_mv);
 
-   // LA
-   // ceq[0] = cl[0];
-   // ceq[1] = ca[0];
-   // jlf, 11/17/22: hard coded values for AlCu to avoid convergence issues
-   ceq[0] = 0.82;
-   ceq[1] = 0.97;
-   bool thermo4pfm_status = d_free_energy_LA->computeCeqT(temp, ceq);
-   if (!thermo4pfm_status) {
-      std::cerr << "computeCeqT failed for LA: c_init=" << cl[0] << ", "
-                << ca[0] << std::endl;
-      abort();
-   }
-   d_free_energy_LA->computeSecondDerivativeFreeEnergy(temp, ceq, pil,
-                                                       d_d2fdc2.data());
-
-   double zeta = compute_zeta(&ceq[0], &ceq[1], temp);
-   zeta *= (1.e-6 / d_mv);
-   const double mobLA = DL / (d_factor * zeta);
+   const double mobLA = d_factor / zeta_factor;
    // std::cout<<"DL="<<DL<<", zeta="<<zeta<<std::endl;
    assert(mobLA == mobLA);
 
-   // LB
-   // ceq[0] = cl[0];
-   // ceq[1] = cb[0];
-   // jlf, 11/17/22: hard coded values for AlCu to avoid convergence issues
-   ceq[0] = 0.83;
-   ceq[1] = 0.68;
-   thermo4pfm_status = d_free_energy_LB->computeCeqT(temp, ceq);
-   if (!thermo4pfm_status) {
-      std::cerr << "computeCeqT failed for LB: c_init=" << cl[0] << ", "
-                << cb[0] << std::endl;
-      abort();
-   }
-   d_free_energy_LB->computeSecondDerivativeFreeEnergy(temp, ceq, pil,
-                                                       d_d2fdc2.data());
-   for (auto d2f : d_d2fdc2)
-      d2f *= (1.e-6 / d_mv);
-   zeta = compute_zeta(&ceq[0], &ceq[1], temp);
-   zeta *= (1.e-6 / d_mv);
-   const double mobLB = DL / (d_factor * zeta);
+   zeta_factor = d_model_parameters.zetaFactorLB(temp);
+   assert(zeta_factor > 0.);
+
+   // convert from J/mol to pJ/um^3
+   zeta_factor *= (1.e-6 / d_mv);
+
+   const double mobLB = d_factor / zeta_factor;
    assert(mobLB == mobLB);
 
    // AB

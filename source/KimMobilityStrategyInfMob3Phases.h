@@ -22,32 +22,24 @@ class KimMobilityStrategyInfMob3Phases
 {
  public:
    KimMobilityStrategyInfMob3Phases(
-       QuatModel* quat_model, const int conc_l_id, const int conc_a_id,
-       const int conc_b_id, const int temp_id, const double epsilon,
-       const double phase_well_scale,
+       const QuatModelParameters& parameters, QuatModel* quat_model,
+       const int conc_l_id, const int conc_a_id, const int conc_b_id,
+       const int temp_id, const double epsilon, const double phase_well_scale,
        const EnergyThreeArgsInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
        std::shared_ptr<tbox::Database> conc_db, const unsigned ncompositions,
-       const double DL, const double Q0, const double mv);
+       const double mv);
 
  private:
-   double compute_zeta(const double* const cl, const double* const cs,
-                       const double temp);
-
    double evaluateMobility(const double temp,
                            const std::vector<double>& phaseconc,
                            const std::vector<double>& phi);
 
-   const double d_DL;
-   const double d_Q0;
+   const QuatModelParameters& d_model_parameters;
 
-   std::vector<double> d_d2fdc2;
    // molar volume
    const double d_mv;
    double d_factor;
-
-   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LA;
-   std::shared_ptr<CALPHADFreeEnergyFunctionsBinary2Ph1Sl> d_free_energy_LB;
 };
 
 #endif

@@ -969,12 +969,20 @@ void QuatModelParameters::readPhaseMobility(
       if (beta < 0.) {
          d_interface_mobility =
              model_db->getDoubleWithDefault("interface_mobility", -1.);
-         if (model_db->keyExists("zeta")) {
+         if (model_db->keyExists("zeta") || model_db->keyExists("zetaLA")) {
             d_zetaTref = model_db->getDouble("Tref");
             double val[3];
-            model_db->getDoubleArray("zeta", &val[0], 3);
+            if (model_db->keyExists("zeta"))
+               model_db->getDoubleArray("zeta", &val[0], 3);
+            else
+               model_db->getDoubleArray("zetaLA", &val[0], 3);
             for (int i = 0; i < 3; i++)
-               d_zetaKimMobility[i] = val[i];
+               d_zetaKimMobilityLA[i] = val[i];
+            if (model_db->keyExists("zetaLB")) {
+               model_db->getDoubleArray("zetaLB", &val[0], 3);
+               for (int i = 0; i < 3; i++)
+                  d_zetaKimMobilityLB[i] = val[i];
+            }
          }
       } else {
          // compute interface_mobility from beta value
