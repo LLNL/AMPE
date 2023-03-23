@@ -29,6 +29,7 @@
 #include "TemperatureRHSStrategy.h"
 #include "MovingFrameRHS.h"
 #include "AdaptMovingFrame.h"
+#include "QuatFaceCoeffs.h"
 
 // Headers for SAMRAI objects
 #include "SAMRAI/tbox/Database.h"
@@ -677,6 +678,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    std::shared_ptr<pdat::SideVariable<double> > d_quat_diffs_var;
    int d_quat_diffs_id;
+   std::shared_ptr<pdat::SideVariable<double> > d_quat_face_coef_var;
+   int d_quat_face_coef_id;
 
    std::shared_ptr<pdat::CellVariable<double> > d_f_l_var;
    int d_f_l_id;
@@ -817,6 +820,7 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    CVODESolver* d_sundials_solver;
 
    std::shared_ptr<QuatSysSolver> d_quat_sys_solver;
+   std::shared_ptr<QuatFaceCoeffs> d_quat_face_coeffs;
 
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops;
    std::shared_ptr<PhaseFACSolver> d_phase_sys_solver;

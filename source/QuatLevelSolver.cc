@@ -824,6 +824,7 @@ void QuatLevelSolver::setMatrixCoefficients(const double gamma,
       std::shared_ptr<pdat::SideData<double> > face_coef_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(face_coef_id)));
+      assert(face_coef_data->getDepth() == d_qlen);
       //  Set the J_ij blocks
 
       for (int depth = 0; depth < d_qlen; depth++) {
