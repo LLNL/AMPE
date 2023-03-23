@@ -57,9 +57,12 @@ std::shared_ptr<pdat::CellVariable<double> > QuatFACOps::s_m_deriv_var;
 ********************************************************************
 */
 
-QuatFACOps::QuatFACOps(const int ql, const std::string& object_name,
+QuatFACOps::QuatFACOps(const int ql,
+                       std::shared_ptr<QuatFaceCoeff> quat_face_coeff_strategy,
+                       const std::string& object_name,
                        const std::shared_ptr<tbox::Database>& database)
     : d_qlen(ql),
+      d_quat_face_coeff_strategy(quat_face_coeff_strategy),
       d_object_name(object_name),
       d_hierarchy(),
       d_ln_min(-1),
@@ -682,57 +685,6 @@ void QuatFACOps::initializeOperatorState(
 }
 
 
-void QuatFACOps::computeFaceCoefs(const double epsilon_q,
-                                  const int diffusion_coef_id,
-                                  const int grad_q_id,
-                                  const double gradient_floor,
-                                  const std::string grad_floor_type,
-                                  const int face_coef_id)  // output
-{
-
-   // Check for negative diffusion coefficients.  We don't like them.
-   // Zero is ok since epsilon^2 is added later
-
-   math::HierarchySideDataOpsReal<double> sideops(d_hierarchy, d_ln_min,
-                                                  d_ln_max - 1);
-
-   double diffusion_coef_min = sideops.min(diffusion_coef_id);
-
-   if ((diffusion_coef_min + epsilon_q * epsilon_q) < 0.) {
-      TBOX_ERROR(d_object_name << ": Negative diffusion coefficient passed to "
-                                  "computeFaceCoefs().");
-   }
-
-   for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
-      std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
-
-      for (hier::PatchLevel::Iterator pi(level->begin()); pi != level->end();
-           pi++) {
-         std::shared_ptr<hier::Patch> patch = *pi;
-
-         std::shared_ptr<pdat::SideData<double> > diffusion_coef_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(diffusion_coef_id)));
-         std::shared_ptr<pdat::SideData<double> > grad_q_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(grad_q_id)));
-         std::shared_ptr<pdat::SideData<double> > face_coef_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(face_coef_id)));
-
-         assert(diffusion_coef_data->getDepth() == 1);
-         computeFaceCoefsOnPatch(*patch, epsilon_q, *diffusion_coef_data,
-                                 *grad_q_data, *face_coef_data, gradient_floor,
-                                 grad_floor_type);
-      }
-   }
-#if 0
-   double norm = sideops.L1Norm( face_coef_id );
-   tbox::plog<<"L1 Norm face_coef_id="<<norm<<endl;
-#endif
-}
-
-
 void QuatFACOps::computeDQuatDPhiFaceCoefs(const int dprime_id,
                                            const int phi_id,
                                            const int face_coef_id)
@@ -783,14 +735,13 @@ void QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double>& data)
 }
 
 
-void QuatFACOps::setOperatorCoefficients(
-    const double gamma, const double epsilon_q, const int mobility_id,
-    const int mobility_deriv_id, const int diffusion_coef_id,
-    const int face_coef_deriv_id, const int grad_q_id, const int q_id,
-    const double gradient_floor, const std::string grad_floor_type)
+void QuatFACOps::setOperatorCoefficients(const double gamma,
+                                         const int mobility_id,
+                                         const int mobility_deriv_id,
+                                         const int diffusion_coef_id,
+                                         const int face_coef_deriv_id,
+                                         const int grad_q_id, const int q_id)
 {
-   assert(epsilon_q > 0.);
-
    d_gamma = gamma;
 
    // Check for non-positive mobility
@@ -803,8 +754,8 @@ void QuatFACOps::setOperatorCoefficients(
 
    // Compute the face coefficients
 
-   computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_id, gradient_floor,
-                    grad_floor_type, d_face_coef_id);
+   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, diffusion_coef_id,
+                                                grad_q_id, d_face_coef_id);
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
       std::shared_ptr<hier::PatchLevel> level = d_hierarchy->getPatchLevel(ln);
@@ -1381,72 +1332,6 @@ void QuatFACOps::checkFluxPatchDataIndex() const
 *                                                                 *
 *******************************************************************
 */
-void QuatFACOps::computeFaceCoefsOnPatch(
-    const hier::Patch& patch, const double epsilon_q,
-    pdat::SideData<double>& diffusion_coef_data,
-    pdat::SideData<double>& grad_q_data,
-    pdat::SideData<double>& face_coef_data,  // output
-    const double gradient_floor, const std::string grad_floor_type) const
-{
-#ifdef DEBUG_CHECK_ASSERTIONS
-   assert(patch.inHierarchy());
-   assert(diffusion_coef_data.getDepth() == 1);
-   assert(grad_q_data.getDepth() == NDIM * d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
-
-   const hier::Box& box = patch.getBox();
-   const hier::Index& lower = box.lower();
-   const hier::Index& upper = box.upper();
-
-   const hier::Box& dc_gbox = diffusion_coef_data.getGhostBox();
-   const hier::Index& dcglower = dc_gbox.lower();
-   const hier::Index& dcgupper = dc_gbox.upper();
-
-   const hier::Box& gq_gbox = grad_q_data.getGhostBox();
-   const hier::Index& gqlower = gq_gbox.lower();
-   const hier::Index& gqupper = gq_gbox.upper();
-
-   const hier::Box& d_gbox = face_coef_data.getGhostBox();
-   const hier::Index& dlower = d_gbox.lower();
-   const hier::Index& dupper = d_gbox.upper();
-
-#if NDIM == 2
-   COMPUTE_FACE_COEF2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                       epsilon_q, diffusion_coef_data.getPointer(0),
-                       dcglower[0], dcgupper[0] + 1, dcglower[1], dcgupper[1],
-                       diffusion_coef_data.getPointer(1), dcglower[0],
-                       dcgupper[0], dcglower[1], dcgupper[1] + 1,
-                       grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
-                       gqlower[1], gqupper[1], grad_q_data.getPointer(1),
-                       gqlower[0], gqupper[0], gqlower[1], gqupper[1] + 1,
-                       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-                       dlower[1], dupper[1],  // output
-                       face_coef_data.getPointer(1), dlower[0], dupper[0],
-                       dlower[1], dupper[1] + 1,  // output
-                       gradient_floor, grad_floor_type.c_str());
-#endif
-#if NDIM == 3
-   COMPUTE_FACE_COEF3D(
-       lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
-       epsilon_q, diffusion_coef_data.getPointer(0), dcglower[0],
-       dcgupper[0] + 1, dcglower[1], dcgupper[1], dcglower[2], dcgupper[2],
-       diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0], dcglower[1],
-       dcgupper[1] + 1, dcglower[2], dcgupper[2],
-       diffusion_coef_data.getPointer(2), dcglower[0], dcgupper[0], dcglower[1],
-       dcgupper[1], dcglower[2], dcgupper[2] + 1, grad_q_data.getPointer(0),
-       gqlower[0], gqupper[0] + 1, gqlower[1], gqupper[1], gqlower[2],
-       gqupper[2], grad_q_data.getPointer(1), gqlower[0], gqupper[0],
-       gqlower[1], gqupper[1] + 1, gqlower[2], gqupper[2],
-       grad_q_data.getPointer(2), gqlower[0], gqupper[0], gqlower[1],
-       gqupper[1], gqlower[2], gqupper[2] + 1, face_coef_data.getPointer(0),
-       dlower[0], dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
-       face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
-       dupper[1] + 1, dlower[2], dupper[2], face_coef_data.getPointer(2),
-       dlower[0], dupper[0], dlower[1], dupper[1], dlower[2], dupper[2] + 1,
-       gradient_floor, grad_floor_type.c_str());
-#endif
-}
 
 void QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
     const hier::Patch& patch, pdat::SideData<double>& dprime_data,
@@ -1994,9 +1879,8 @@ void QuatFACOps::computeResidualOnPatch(
 
 
 void QuatFACOps::evaluateRHS(
-    const double epsilon_q, const int diffusion_coef_id, const int grad_q_id,
+    const int diffusion_coef_id, const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
-    const double gradient_floor, const std::string gradient_floor_type,
     const int mobility_id, const int rotation_index_id, const int q_id,
     int rhs_id, const bool use_gradq_for_flux)
 {
@@ -2012,9 +1896,9 @@ void QuatFACOps::evaluateRHS(
    // Initialize the output array
    d_hopscell->setToScalar(rhs_id, 0., false);
 
-   computeFaceCoefs(epsilon_q, diffusion_coef_id, grad_q_copy_id,
-                    gradient_floor, gradient_floor_type,
-                    d_face_coef_scratch_id);
+   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, diffusion_coef_id,
+                                                grad_q_copy_id,
+                                                d_face_coef_scratch_id);
 
    for (int ln = d_ln_max; ln >= d_ln_min; ln--) {
       accumulateOperatorOnLevel(mobility_id, d_face_coef_scratch_id, q_id,

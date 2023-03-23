@@ -130,7 +130,9 @@ class QuatSysSolver
     * object_name:   Name of object used in outputs
     * database:      tbox::Database for initialization (may be NULL)
     */
-   QuatSysSolver(const int qlen, const std::string& object_name,
+   QuatSysSolver(const int qlen,
+                 std::shared_ptr<QuatFaceCoeff> quat_face_coeff_strategy,
+                 const std::string& object_name,
                  std::shared_ptr<tbox::Database> database =
                      std::shared_ptr<tbox::Database>());
 
@@ -263,10 +265,7 @@ class QuatSysSolver
       d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }
 
-   void setOperatorCoefficients(const double time_step, const double epsilon_q,
-                                const double quat_grad_floor,
-                                const std::string quat_smooth_floor_type,
-                                const int mobility_id,
+   void setOperatorCoefficients(const double time_step, const int mobility_id,
                                 const int mobility_deriv_id,
                                 const int diff_coef_id,
                                 const int diff_coef_deriv_id,
@@ -274,9 +273,7 @@ class QuatSysSolver
 
    bool solveSystem(const int q_soln_id, const int q_rhs_id);
 
-   void evaluateRHS(const double epsilon_q, const double quat_grad_floor,
-                    const std::string quat_smooth_floor_type,
-                    const int diff_coef_id, const int grad_q_id,
+   void evaluateRHS(const int diff_coef_id, const int grad_q_id,
                     const int grad_q_copy_id, const int rotations_id,
                     const int mobility_id, const int solution_id, int rhs_id,
                     const bool use_gradq_for_flux = false);

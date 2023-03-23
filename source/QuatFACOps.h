@@ -9,30 +9,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
-//
 #ifndef included_QuatFACOps_h
 #define included_QuatFACOps_h
 
@@ -57,6 +33,7 @@
 
 #include "QuatLevelSolver.h"
 #include "CartesianRobinBcHelperWithDepth.h"
+#include "QuatFaceCoeff.h"
 
 #include <vector>
 
@@ -118,7 +95,9 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * @param object_name:  Ojbect name
     * @param database:     Input database
     */
-   QuatFACOps(const int qlen, const std::string &object_name = std::string(),
+   QuatFACOps(const int qlen,
+              std::shared_ptr<QuatFaceCoeff> quat_face_coeff_strategy,
+              const std::string &object_name = std::string(),
               const std::shared_ptr<tbox::Database> &database =
                   std::shared_ptr<tbox::Database>());
 
@@ -312,11 +291,11 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    /*
     * Set the operator coefficients.
     */
-   void setOperatorCoefficients(
-       const double time_step, const double epsilon_q, const int mobility_id,
-       const int mobility_deriv_id, const int diff_coef_id,
-       const int diff_coef_deriv_id, const int grad_q_id, const int q_id,
-       const double gradient_floor, const std::string grad_floor_type);
+   void setOperatorCoefficients(const double time_step, const int mobility_id,
+                                const int mobility_deriv_id,
+                                const int diff_coef_id,
+                                const int diff_coef_deriv_id,
+                                const int grad_q_id, const int q_id);
 
    // FACOperatorStrategy virtuals
 
@@ -366,12 +345,10 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    int getFaceDiffCoeffId() { return d_face_coef_id; }
    int getFaceDiffCoeffScratchId() { return d_face_coef_scratch_id; }
 
-   void evaluateRHS(const double epsilon_q, const int diff_coef_id,
-                    const int grad_q_id, const int grad_q_copy_id,
-                    const double gradient_floor,
-                    const std::string gradient_floor_type,
-                    const int mobility_id, const int rotations_id,
-                    const int q_id, int rhs_id, const bool use_gradq_for_flux);
+   void evaluateRHS(const int diff_coef_id, const int grad_q_id,
+                    const int grad_q_copy_id, const int mobility_id,
+                    const int rotations_id, const int q_id, int rhs_id,
+                    const bool use_gradq_for_flux);
 
    void accumulateOperatorOnLevel(const int mobility_id, const int face_coef_id,
                                   const int q_id, const int grad_q_id,
@@ -388,6 +365,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    void divideMobilitySqrt(const int id);
 
  private:
+   std::shared_ptr<QuatFaceCoeff> d_quat_face_coeff_strategy;
    /*
     * Function to compute flux, using general diffusion
     * coefficient data.
@@ -446,19 +424,6 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
        const pdat::CellData<double> &q_data,
        std::shared_ptr<pdat::SideData<int> > rotation_index,
        pdat::CellData<double> &lambda_data) const;
-
-   void computeFaceCoefs(const double epsilon_q, const int diff_coef_id,
-                         const int grad_q_id, const double gradient_floor,
-                         const std::string grad_floor_type,
-                         const int face_coef_id);
-
-   void computeFaceCoefsOnPatch(const hier::Patch &patch,
-                                const double epsilon_q,
-                                pdat::SideData<double> &diff_coef_data,
-                                pdat::SideData<double> &grad_q_data,
-                                pdat::SideData<double> &face_coef_data,
-                                const double gradient_floor,
-                                const std::string grad_floor_type) const;
 
    void computeDQuatDPhiFaceCoefs(const int dprime_id, const int phi_id,
                                   const int face_coef_id);

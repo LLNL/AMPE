@@ -818,6 +818,27 @@ void QuatModel::InitializeIntegrator(void)
       d_integrator->setHeatCapacityStrategy(d_heat_capacity_strategy);
    }
 
+   if (d_model_parameters.with_concentration()) {
+      d_integrator->setConcentrationModelParameters(
+          d_model_parameters.conc_mobility());
+   }
+
+   d_integrator->initialize(d_patch_hierarchy);
+   if (d_model_parameters.evolveQuat()) {
+      const double atol = 1.e-4;
+      const double rtol = atol * 1.e-2;
+      tbox::pout << "QuatModel --- "
+                 << "set tolerance for Quaternion only integrator:" << atol
+                 << " and " << rtol << std::endl;
+      d_integrator_quat_only->setAbsTol(atol);
+      d_integrator_quat_only->setRelTol(rtol);
+      d_integrator_quat_only->initialize(d_patch_hierarchy);
+   }
+}
+
+void QuatModel::setIntegratorModelParameters()
+{
+   tbox::plog << "QuatModel::setIntegratorModelParameters()" << std::endl;
    d_integrator->setModelParameters(
        d_time, d_end_time, d_model_parameters.H_parameter(),
        d_model_parameters.epsilon_phase(), d_model_parameters.epsilon_eta(),
@@ -847,23 +868,6 @@ void QuatModel::InitializeIntegrator(void)
           d_model_parameters.energy_interp_func_type(),
           d_model_parameters.conc_interp_func_type(),
           d_model_parameters.eta_well_func_type());
-
-   if (d_model_parameters.with_concentration()) {
-      d_integrator->setConcentrationModelParameters(
-          d_model_parameters.conc_mobility());
-   }
-
-   d_integrator->initialize(d_patch_hierarchy);
-   if (d_model_parameters.evolveQuat()) {
-      const double atol = 1.e-4;
-      const double rtol = atol * 1.e-2;
-      tbox::pout << "QuatModel --- "
-                 << "set tolerance for Quaternion only integrator:" << atol
-                 << " and " << rtol << std::endl;
-      d_integrator_quat_only->setAbsTol(atol);
-      d_integrator_quat_only->setRelTol(rtol);
-      d_integrator_quat_only->initialize(d_patch_hierarchy);
-   }
 }
 
 //=======================================================================
@@ -1128,6 +1132,8 @@ void QuatModel::CreateIntegrator(std::shared_ptr<tbox::Database> input_db)
    d_integrator->setVerbosity(d_verbosity->basicLevel());
    if (d_model_parameters.evolveQuat())
       d_integrator_quat_only->setVerbosity(d_verbosity->basicLevel());
+
+   setIntegratorModelParameters();
 }
 
 void QuatModel::registerPhaseConcentrationVariables()
