@@ -309,8 +309,6 @@ QuatIntegrator::QuatIntegrator(
    for (int dd = 0; dd < NDIM; dd++) {
       d_all_periodic = d_all_periodic && periodic[dd];
    }
-
-   setupPreconditioners();
 }
 
 //-----------------------------------------------------------------------
@@ -496,8 +494,12 @@ void QuatIntegrator::setupPreconditioners()
          d_show_quat_sys_stats =
              quatsys_db->getBoolWithDefault("verbose", false);
       }
+      d_quat_face_coeff_strategy.reset(
+          new QuatFaceCoeff(d_qlen, d_epsilon_q, d_quat_grad_floor,
+                            d_quat_smooth_floor_type));
 
       d_quat_sys_solver.reset(new QuatSysSolver(d_qlen,
+                                                d_quat_face_coeff_strategy,
                                                 d_name + "_QuatIntegratorQuatSy"
                                                          "sSolver",
                                                 quatsys_db));
@@ -554,7 +556,7 @@ void QuatIntegrator::resetHierarchyConfiguration(
     const std::shared_ptr<hier::PatchHierarchy>& hierarchy,
     const int coarsest_level, const int finest_level)
 {
-   // tbox::pout<<"QuatIntegrator::resetHierarchyConfiguration()"<<endl;
+   tbox::plog << "QuatIntegrator::resetHierarchyConfiguration()" << std::endl;
 
    d_flux_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
    d_flux_conc_coarsen_schedule.resize(hierarchy->getNumberOfLevels());
@@ -1419,6 +1421,8 @@ void QuatIntegrator::setModelParameters(
     const ConcInterpolationType conc_interp_func_type,
     const std::string eta_well_func_type)
 {
+   tbox::plog << "QuatIntegrator::setModelParameters()" << std::endl;
+
    d_current_time = current_time;
    d_end_time = end_time;
 
@@ -1443,6 +1447,8 @@ void QuatIntegrator::setModelParameters(
    d_T_source = d_model_parameters.T_source();
 
    d_alpha_AT = d_epsilon_phase / sqrt(32. * d_phase_well_scale);
+
+   setupPreconditioners();
 }
 
 //-----------------------------------------------------------------------
@@ -1694,6 +1700,8 @@ void QuatIntegrator::resetIntegrator(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int coarsest_level, const int finest_level)
 {
+   tbox::plog << "QuatIntegrator::resetIntegrator()" << std::endl;
+
    assert(d_weight_id != -1);
 
    std::shared_ptr<hier::PatchLevel> level(
@@ -1780,9 +1788,10 @@ void QuatIntegrator::resetSolversState(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int coarsest_level, const int finest_level)
 {
-   // tbox::pout<<"QuatIntegrator::resetSolversState()"<<endl;
+   tbox::plog << "QuatIntegrator::resetSolversState()" << std::endl;
 
    if (d_with_phase && d_phase_sys_solver) {
+      assert(d_phase_sys_solver);
       d_phase_sys_solver->resetSolverState(d_phase_sol_id, d_phase_rhs_id,
                                            hierarchy);
    }
@@ -2785,9 +2794,8 @@ void QuatIntegrator::evaluateQuatRHS(
 
    // compute RHS using the gradient of q at sides (d_quat_grad_side_id)
    // computed with physical BC
-   d_quat_sys_solver->evaluateRHS(d_epsilon_q, d_quat_grad_floor,
-                                  d_quat_smooth_floor_type, d_quat_diffusion_id,
-                                  d_quat_grad_side_id, d_quat_grad_side_copy_id,
+   d_quat_sys_solver->evaluateRHS(d_quat_diffusion_id, d_quat_grad_side_id,
+                                  d_quat_grad_side_copy_id,
                                   quat_symm_rotation_id, d_quat_mobility_id,
                                   d_quat_scratch_id, quat_rhs_id, true);
 
@@ -3452,11 +3460,12 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
    if (d_evolve_quat) {
       assert(d_quat_sys_solver);
 
-      d_quat_sys_solver->setOperatorCoefficients(
-          gamma, d_epsilon_q, d_quat_grad_floor, d_quat_smooth_floor_type,
-          d_quat_mobility_id, d_quat_mobility_deriv_id, d_quat_diffusion_id,
-          d_quat_diffusion_deriv_id, d_quat_grad_side_copy_id,
-          d_quat_scratch_id);
+      d_quat_sys_solver->setOperatorCoefficients(gamma, d_quat_mobility_id,
+                                                 d_quat_mobility_deriv_id,
+                                                 d_quat_diffusion_id,
+                                                 d_quat_diffusion_deriv_id,
+                                                 d_quat_grad_side_copy_id,
+                                                 d_quat_scratch_id);
    }
 
    // Tell the integrator that the Jacobian data was recomputed

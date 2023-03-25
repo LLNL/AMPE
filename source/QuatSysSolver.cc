@@ -39,10 +39,12 @@
 */
 
 
-QuatSysSolver::QuatSysSolver(const int ql, const std::string& object_name,
-                             std::shared_ptr<tbox::Database> database)
+QuatSysSolver::QuatSysSolver(
+    const int ql, std::shared_ptr<QuatFaceCoeff> quat_face_coeff_strategy,
+    const std::string& object_name, std::shared_ptr<tbox::Database> database)
     : d_object_name(object_name),
-      d_fac_ops(new QuatFACOps(ql, object_name + "::fac_ops", database)),
+      d_fac_ops(new QuatFACOps(ql, quat_face_coeff_strategy,
+                               object_name + "::fac_ops", database)),
       d_fac_solver(object_name + "::fac_precond", d_fac_ops),
       d_bc_object(NULL),
       d_simple_bc(tbox::Dimension(NDIM), object_name + "::bc"),
@@ -264,11 +266,12 @@ void QuatSysSolver::setBoundaries(const std::string& boundary_type,
 }
 
 
-void QuatSysSolver::setOperatorCoefficients(
-    const double time_step, const double epsilon_q,
-    const double quat_grad_floor, const std::string quat_smooth_floor_type,
-    const int mobility_id, const int mobility_deriv_id, const int diff_coef_id,
-    const int diff_coef_deriv_id, const int grad_q_id, const int q_id)
+void QuatSysSolver::setOperatorCoefficients(const double time_step,
+                                            const int mobility_id,
+                                            const int mobility_deriv_id,
+                                            const int diff_coef_id,
+                                            const int diff_coef_deriv_id,
+                                            const int grad_q_id, const int q_id)
 {
    t_set_op_coef->start();
 
@@ -285,10 +288,9 @@ void QuatSysSolver::setOperatorCoefficients(
    }
 #endif
 
-   d_fac_ops->setOperatorCoefficients(time_step, epsilon_q, mobility_id,
-                                      mobility_deriv_id, diff_coef_id,
-                                      diff_coef_deriv_id, grad_q_id, q_id,
-                                      quat_grad_floor, quat_smooth_floor_type);
+   d_fac_ops->setOperatorCoefficients(time_step, mobility_id, mobility_deriv_id,
+                                      diff_coef_id, diff_coef_deriv_id,
+                                      grad_q_id, q_id);
 
    t_set_op_coef->stop();
 }
@@ -350,8 +352,6 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 
 
 void QuatSysSolver::evaluateRHS(
-    const double epsilon_q, const double quat_grad_floor,
-    const std::string quat_floor_type,
     const int diffusion_coef_id,  // D_q(phi)
     const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
@@ -364,8 +364,7 @@ void QuatSysSolver::evaluateRHS(
    assert(solution_id >= 0);
    assert(rhs_id >= 0);
 
-   d_fac_ops->evaluateRHS(epsilon_q, diffusion_coef_id, grad_q_id,
-                          grad_q_copy_id, quat_grad_floor, quat_floor_type,
+   d_fac_ops->evaluateRHS(diffusion_coef_id, grad_q_id, grad_q_copy_id,
                           mobility_id, rotations_id, solution_id, rhs_id,
                           use_gradq_for_flux);
 }

@@ -307,6 +307,8 @@ class QuatModel : public PFModel
        const std::shared_ptr<hier::PatchHierarchy> hierarchy);
 
  private:
+   void setIntegratorModelParameters();
+
    void copyCurrentToScratch(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, const double time,
        QuatRefinePatchStrategy* patch_strategy);
