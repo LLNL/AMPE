@@ -266,12 +266,10 @@ void QuatSysSolver::setBoundaries(const std::string& boundary_type,
 }
 
 
-void QuatSysSolver::setOperatorCoefficients(const double time_step,
-                                            const int mobility_id,
-                                            const int mobility_deriv_id,
-                                            const int diff_coef_id,
-                                            const int diff_coef_deriv_id,
-                                            const int grad_q_id, const int q_id)
+void QuatSysSolver::setOperatorCoefficients(
+    const double time_step, const int mobility_id, const int mobility_deriv_id,
+    const int phase_id, const int temp_id, const int diff_coef_deriv_id,
+    const int grad_q_id, const int q_id)
 {
    t_set_op_coef->start();
 
@@ -289,7 +287,7 @@ void QuatSysSolver::setOperatorCoefficients(const double time_step,
 #endif
 
    d_fac_ops->setOperatorCoefficients(time_step, mobility_id, mobility_deriv_id,
-                                      diff_coef_id, diff_coef_deriv_id,
+                                      phase_id, temp_id, diff_coef_deriv_id,
                                       grad_q_id, q_id);
 
    t_set_op_coef->stop();
@@ -352,19 +350,19 @@ bool QuatSysSolver::solveSystem(const int q_soln_id, const int q_rhs_id)
 
 
 void QuatSysSolver::evaluateRHS(
-    const int diffusion_coef_id,  // D_q(phi)
-    const int grad_q_id,
+    const int phase_id, const int temperature_id, const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
     const int rotations_id, const int mobility_id, const int solution_id,
     int rhs_id, const bool use_gradq_for_flux)
 {
-   assert(diffusion_coef_id >= 0);
+   assert(phase_id >= 0);
+   assert(temperature_id >= 0);
    assert(grad_q_id >= 0);
    assert(mobility_id >= 0);
    assert(solution_id >= 0);
    assert(rhs_id >= 0);
 
-   d_fac_ops->evaluateRHS(diffusion_coef_id, grad_q_id, grad_q_copy_id,
+   d_fac_ops->evaluateRHS(phase_id, temperature_id, grad_q_id, grad_q_copy_id,
                           mobility_id, rotations_id, solution_id, rhs_id,
                           use_gradq_for_flux);
 }

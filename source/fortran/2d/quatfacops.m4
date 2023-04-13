@@ -1,83 +1,66 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
-c 
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 c
 c Evaluate coefficient eps_q^2+D_q(phi)/|nabla q|
-c dx = D_q on face x
-c dy = D_q on face y
 c
       subroutine compute_face_coef2d(
      &     lo0, hi0, lo1, hi1,
      &     depth,
      &     eps_q,
-     &     dx, dxlo0, dxhi0, dxlo1, dxhi1,
-     &     dy, dylo0, dyhi0, dylo1, dyhi1,
+     &     phi, ngp,
+     &     temp, ngt,
+     &     misorientation_factor,
      &     gqx, gqxlo0, gqxhi0, gqxlo1, gqxhi1,
      &     gqy, gqylo0, gqyhi0, gqylo1, gqyhi1,
      &     fcx, fcxlo0, fcxhi0, fcxlo1, fcxhi1,
      &     fcy, fcylo0, fcyhi0, fcylo1, fcyhi1,
-     &     gradient_floor, floor_type
+     &     gradient_floor, floor_type, interp_type,
+     &     avg_type
      &     )
 c
       implicit none
+c
+c variables in 2d cell indexed
+      integer ngp, ngt
+      double precision phi(CELL2d(lo,hi,ngp))
+      double precision temp(CELL2d(lo,hi,ngt))
+      character*(*) interp_type
+      character*(*) floor_type
+      character*(*) avg_type
+
       integer lo0, hi0, lo1, hi1,
      &        depth,
      &        gqxlo0, gqxhi0, gqxlo1, gqxhi1,
      &        gqylo0, gqyhi0, gqylo1, gqyhi1,
-     &        dxlo0, dxhi0, dxlo1, dxhi1,
-     &        dylo0, dyhi0, dylo1, dyhi1,
      &        fcxlo0, fcxhi0, fcxlo1, fcxhi1,
      &        fcylo0, fcyhi0, fcylo1, fcyhi1
 
-      character*(*)         floor_type
       double precision
      &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,depth,NDIM),
      &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,depth,NDIM),
-     &           dx(dxlo0:dxhi0,dxlo1:dxhi1),
-     &           dy(dylo0:dyhi0,dylo1:dyhi1),
      &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,depth),
      &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,depth),
      &           gradient_floor, eps_q
 
       double precision eval_grad_normi
+      double precision misorientation_factor
 
 c     local variables:
       integer i, j, m, n
       double precision grad_norm2, grad_normi,
      &     floor_grad_norm2,
      &     max_grad_normi, eps2
+      double precision phia, tempa, diff
+      double precision interp_func
+      double precision average_func
 
       floor_grad_norm2 = gradient_floor**2
       eps2 = eps_q*eps_q
@@ -88,6 +71,12 @@ c     x faces
 
       do j = lo1, hi1
          do i = lo0, hi0+1
+
+            phia = average_func(phi(i-1,j), phi(i,j),
+     &                          avg_type)
+            tempa = 0.5d0*(temp(i-1,j) + temp(i,j))
+            diff = misorientation_factor * tempa 
+     &           * interp_func( phia, interp_type )
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
@@ -102,7 +91,7 @@ c loop over quaternion components
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
             do m = 1, depth
-               fcx(i,j,m) = - grad_normi * dx(i,j) - eps2
+               fcx(i,j,m) = - grad_normi * diff - eps2
             enddo
 
          enddo
@@ -112,6 +101,12 @@ c     y faces
 
       do j = lo1, hi1+1
          do i = lo0, hi0
+
+            phia = average_func(phi(i,j-1), phi(i,j),
+     &                          avg_type)
+            tempa = 0.5d0*(temp(i,j-1) + temp(i,j))
+            diff = misorientation_factor * tempa
+     &           * interp_func( phia, interp_type )
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
@@ -124,7 +119,7 @@ c           compute reciprocal of gradient L2 norm on this face
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
             do m = 1, depth
-               fcy(i,j,m) = - grad_normi * dy(i,j) - eps2
+               fcy(i,j,m) = - grad_normi * diff - eps2
             enddo
 
          enddo

@@ -17,11 +17,17 @@
 
 QuatFaceCoeff::QuatFaceCoeff(const int qlen, const double epsilon_q,
                              const double gradient_floor,
-                             const std::string grad_floor_type)
+                             const std::string grad_floor_type,
+                             const double Hparameter,
+                             const std::string interp_type,
+                             const std::string avg_type)
     : d_qlen(qlen),
       d_epsilon_q(epsilon_q),
       d_gradient_floor(gradient_floor),
-      d_grad_floor_type(grad_floor_type)
+      d_grad_floor_type(grad_floor_type),
+      d_Hparameter(Hparameter),
+      d_interp_type(interp_type),
+      d_avg_type(avg_type)
 {
    assert(d_epsilon_q > 0.);
 }
@@ -29,24 +35,10 @@ QuatFaceCoeff::QuatFaceCoeff(const int qlen, const double epsilon_q,
 QuatFaceCoeff::~QuatFaceCoeff() {}
 
 void QuatFaceCoeff::computeFaceCoefs(
-    std::shared_ptr<hier::PatchHierarchy> hierarchy,
-    const int diffusion_coef_id, const int grad_q_id,
+    std::shared_ptr<hier::PatchHierarchy> hierarchy, const int phase_id,
+    const int temp_id, const int grad_q_id,
     const int face_coef_id)  // output
 {
-
-   // Check for negative diffusion coefficients.  We don't like them.
-   // Zero is ok since epsilon^2 is added later
-
-   math::HierarchySideDataOpsReal<double> sideops(hierarchy, 0, 0);
-
-   double diffusion_coef_min = sideops.min(diffusion_coef_id);
-
-   if ((diffusion_coef_min + d_epsilon_q * d_epsilon_q) < 0.) {
-      TBOX_ERROR(
-          "Negative diffusion coefficient passed to "
-          "computeFaceCoefs().");
-   }
-
    for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln) {
       std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
@@ -54,9 +46,12 @@ void QuatFaceCoeff::computeFaceCoefs(
            pi++) {
          std::shared_ptr<hier::Patch> patch = *pi;
 
-         std::shared_ptr<pdat::SideData<double> > diffusion_coef_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(diffusion_coef_id)));
+         std::shared_ptr<pdat::CellData<double> > phase_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(phase_id)));
+         std::shared_ptr<pdat::CellData<double> > temp_data(
+             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                 patch->getPatchData(temp_id)));
          std::shared_ptr<pdat::SideData<double> > grad_q_data(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(grad_q_id)));
@@ -64,8 +59,7 @@ void QuatFaceCoeff::computeFaceCoefs(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(face_coef_id)));
 
-         assert(diffusion_coef_data->getDepth() == 1);
-         computeFaceCoefsOnPatch(*patch, *diffusion_coef_data, *grad_q_data,
+         computeFaceCoefsOnPatch(*patch, *phase_data, *temp_data, *grad_q_data,
                                  *face_coef_data);
       }
    }
@@ -84,10 +78,12 @@ void QuatFaceCoeff::computeFaceCoefs(
 *******************************************************************
 */
 void QuatFaceCoeff::computeFaceCoefsOnPatch(
-    const hier::Patch& patch, pdat::SideData<double>& diffusion_coef_data,
-    pdat::SideData<double>& grad_q_data,
+    const hier::Patch& patch, pdat::CellData<double>& phase_data,
+    pdat::CellData<double>& temp_data, pdat::SideData<double>& grad_q_data,
     pdat::SideData<double>& face_coef_data) const  // output
 {
+   assert(d_Hparameter > 0.);
+
 #ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
    assert(diffusion_coef_data.getDepth() == 1);
@@ -99,10 +95,6 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box& dc_gbox = diffusion_coef_data.getGhostBox();
-   const hier::Index& dcglower = dc_gbox.lower();
-   const hier::Index& dcgupper = dc_gbox.upper();
-
    const hier::Box& gq_gbox = grad_q_data.getGhostBox();
    const hier::Index& gqlower = gq_gbox.lower();
    const hier::Index& gqupper = gq_gbox.upper();
@@ -112,38 +104,34 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
    const hier::Index& dupper = d_gbox.upper();
 
 #if NDIM == 2
-   COMPUTE_FACE_COEF2D(lower[0], upper[0], lower[1], upper[1], d_qlen,
-                       d_epsilon_q, diffusion_coef_data.getPointer(0),
-                       dcglower[0], dcgupper[0] + 1, dcglower[1], dcgupper[1],
-                       diffusion_coef_data.getPointer(1), dcglower[0],
-                       dcgupper[0], dcglower[1], dcgupper[1] + 1,
-                       grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
-                       gqlower[1], gqupper[1], grad_q_data.getPointer(1),
-                       gqlower[0], gqupper[0], gqlower[1], gqupper[1] + 1,
-                       face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-                       dlower[1], dupper[1],  // output
-                       face_coef_data.getPointer(1), dlower[0], dupper[0],
-                       dlower[1], dupper[1] + 1,  // output
-                       d_gradient_floor, d_grad_floor_type.c_str());
+   COMPUTE_FACE_COEF2D(
+       lower[0], upper[0], lower[1], upper[1], d_qlen, d_epsilon_q,
+       phase_data.getPointer(), phase_data.getGhostCellWidth()[0],
+       temp_data.getPointer(), temp_data.getGhostCellWidth()[0],
+       2. * d_Hparameter, grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
+       gqlower[1], gqupper[1], grad_q_data.getPointer(1), gqlower[0],
+       gqupper[0], gqlower[1], gqupper[1] + 1, face_coef_data.getPointer(0),
+       dlower[0], dupper[0] + 1, dlower[1], dupper[1],  // output
+       face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
+       dupper[1] + 1,  // output
+       d_gradient_floor, d_grad_floor_type.c_str(), d_interp_type.c_str(),
+       d_avg_type.c_str());
 #endif
 #if NDIM == 3
    COMPUTE_FACE_COEF3D(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
-       d_epsilon_q, diffusion_coef_data.getPointer(0), dcglower[0],
-       dcgupper[0] + 1, dcglower[1], dcgupper[1], dcglower[2], dcgupper[2],
-       diffusion_coef_data.getPointer(1), dcglower[0], dcgupper[0], dcglower[1],
-       dcgupper[1] + 1, dcglower[2], dcgupper[2],
-       diffusion_coef_data.getPointer(2), dcglower[0], dcgupper[0], dcglower[1],
-       dcgupper[1], dcglower[2], dcgupper[2] + 1, grad_q_data.getPointer(0),
-       gqlower[0], gqupper[0] + 1, gqlower[1], gqupper[1], gqlower[2],
-       gqupper[2], grad_q_data.getPointer(1), gqlower[0], gqupper[0],
-       gqlower[1], gqupper[1] + 1, gqlower[2], gqupper[2],
-       grad_q_data.getPointer(2), gqlower[0], gqupper[0], gqlower[1],
-       gqupper[1], gqlower[2], gqupper[2] + 1, face_coef_data.getPointer(0),
-       dlower[0], dupper[0] + 1, dlower[1], dupper[1], dlower[2], dupper[2],
-       face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
-       dupper[1] + 1, dlower[2], dupper[2], face_coef_data.getPointer(2),
-       dlower[0], dupper[0], dlower[1], dupper[1], dlower[2], dupper[2] + 1,
-       d_gradient_floor, d_grad_floor_type.c_str());
+       d_epsilon_q, phase_data.getPointer(), phase_data.getGhostCellWidth()[0],
+       temp_data.getPointer(), temp_data.getGhostCellWidth()[0],
+       2. * d_Hparameter, grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
+       gqlower[1], gqupper[1], gqlower[2], gqupper[2],
+       grad_q_data.getPointer(1), gqlower[0], gqupper[0], gqlower[1],
+       gqupper[1] + 1, gqlower[2], gqupper[2], grad_q_data.getPointer(2),
+       gqlower[0], gqupper[0], gqlower[1], gqupper[1], gqlower[2],
+       gqupper[2] + 1, face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
+       dlower[1], dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1),
+       dlower[0], dupper[0], dlower[1], dupper[1] + 1, dlower[2], dupper[2],
+       face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1], dupper[1],
+       dlower[2], dupper[2] + 1, d_gradient_floor, d_grad_floor_type.c_str(),
+       d_interp_type.c_str(), d_avg_type.c_str());
 #endif
 }
