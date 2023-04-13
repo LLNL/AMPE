@@ -3,7 +3,7 @@ find_package(PythonInterp 3.2 REQUIRED)
 include_directories( ${CMAKE_SOURCE_DIR}/source )
 
 set( fortran_dir ${CMAKE_SOURCE_DIR}/source/fortran )
-set( fortran_dir_dim ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d )
+set( SOURCE_FORTRAN_DIM_DIR ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d )
 set( TEST_DIR ${CMAKE_SOURCE_DIR}/tests )
 
 if(${USE_THERMO4PFM})
@@ -15,9 +15,11 @@ endif(${USE_THERMO4PFM})
 
 set(M4FILESDIM ellipticfacops
                hyprepoisson
-               phase)
+               phase
+               quatdiffs
+               quatgrad
+               concentrationrhs)
 
-set(SOURCE_FORTRAN_DIM_DIR ${CMAKE_SOURCE_DIR}/source/fortran/${NDIM}d)
 foreach(file ${M4FILESDIM})
   message(STATUS ".m4 -> .f: ${file}...")
   m4tof(${file} ${SOURCE_FORTRAN_DIM_DIR})
@@ -33,15 +35,15 @@ endforeach()
 #Within the scope of this file, cmake doesn't know *.f are generated files
 set_source_files_properties( ${fortran_dir}/functions.f 
                              PROPERTIES GENERATED TRUE)
-set_source_files_properties( ${fortran_dir_dim}/hyprepoisson.f
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/hyprepoisson.f
                              PROPERTIES GENERATED TRUE)
-set_source_files_properties( ${fortran_dir_dim}/phase.f 
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/phase.f
                              PROPERTIES GENERATED TRUE)
-set_source_files_properties( ${fortran_dir_dim}/quatdiffs.f
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/quatdiffs.f
                              PROPERTIES GENERATED TRUE)
-set_source_files_properties( ${fortran_dir_dim}/quatgrad.f
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/quatgrad.f
                              PROPERTIES GENERATED TRUE)
-set_source_files_properties( ${fortran_dir_dim}/concentrationrhs.f
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/concentrationrhs.f
                              PROPERTIES GENERATED TRUE)
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
@@ -70,7 +72,7 @@ add_executable(testWeights3Pairs
 add_executable(testHyprePoisson
                ${CMAKE_SOURCE_DIR}/tests/testHyprePoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/HyprePoisson.cc
-               ${fortran_dir_dim}/hyprepoisson.f )
+               ${SOURCE_FORTRAN_DIM_DIR}/hyprepoisson.f )
 add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/tests/testPhaseHypre.cc
                ${CMAKE_SOURCE_DIR}/source/QuatModelParameters.cc
@@ -79,12 +81,12 @@ add_executable(testPhaseHypre
                ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.cc
                PhaseHypre.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
-               ${fortran_dir_dim}/phase.f
-               ${fortran_dir_dim}/hyprepoisson.f )
+               ${SOURCE_FORTRAN_DIM_DIR}/phase.f
+               ${SOURCE_FORTRAN_DIM_DIR}/hyprepoisson.f )
 add_executable(testFACPoisson
                ${CMAKE_SOURCE_DIR}/tests/testFACPoisson.cc
                ${CMAKE_SOURCE_DIR}/tests/FACPoisson.cc
-               ${fortran_dir_dim}/hyprepoisson.f )
+               ${SOURCE_FORTRAN_DIM_DIR}/hyprepoisson.f )
 add_executable(testPhaseFAC
                ${CMAKE_SOURCE_DIR}/tests/testPhaseFAC.cc
                ${CMAKE_SOURCE_DIR}/source/PhaseFACOps.cc
@@ -98,13 +100,15 @@ add_executable(testPhaseFAC
                ${CMAKE_SOURCE_DIR}/source/samrai/PoissonSpecifications.cc
                ${CMAKE_SOURCE_DIR}/source/samrai/CellPoissonHypreSolver.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
-               PhaseFAC.cc
-               ${SOURCES_FORTRAN_DIM})
+               ${SOURCE_FORTRAN_DIM_DIR}/phase.f
+               ${SOURCE_FORTRAN_DIM_DIR}/hyprepoisson.f
+               ${SOURCE_FORTRAN_DIM_DIR}/ellipticfacops.f
+               PhaseFAC.cc)
 add_executable(testGradQ
                ${CMAKE_SOURCE_DIR}/tests/testGradQ.cc
                ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc
-               ${fortran_dir_dim}/quatdiffs.f
-               ${fortran_dir_dim}/quatgrad.f
+               ${SOURCE_FORTRAN_DIM_DIR}/quatdiffs.f
+               ${SOURCE_FORTRAN_DIM_DIR}/quatgrad.f
                ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
 add_executable(testAntitrapping3Phases
                ${CMAKE_SOURCE_DIR}/tests/testAntitrapping3Phases.cc
