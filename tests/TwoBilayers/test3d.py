@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
 import subprocess
+import os
 
 print("Test TwoBilayers...")
 
@@ -15,6 +16,13 @@ subprocess.call(["python3", "../../utils/make_bilayer.py", "-2",
 mpicmd = sys.argv[1]+" "+sys.argv[2]+" "+sys.argv[3]
 exe = sys.argv[4]
 inp = sys.argv[5]
+thermdatadir = sys.argv[6]
+
+#make symbolic link to calphad database
+calphad_data = "calphadAuNi.dat"
+if not os.path.exists(calphad_data):
+  src = thermdatadir+'/'+calphad_data
+  os.symlink(src, calphad_data)
 
 #run AMPE
 command = "{} {} {}".format(mpicmd,exe,inp)
