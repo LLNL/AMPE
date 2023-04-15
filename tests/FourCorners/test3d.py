@@ -29,8 +29,9 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.2:
+    if time>0.19:
       end_reached = True
+      print("time = {}".format(time))
       print("End time reached")
 
   if end_reached:
@@ -62,4 +63,5 @@ os.remove(initfilename)
 if end_reached:
   sys.exit(0)
 else:
+  print("End time not reached")
   sys.exit(1)

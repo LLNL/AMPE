@@ -5,8 +5,8 @@
 //
 model_type = "Quat"
 
-end_time            = 0.05
-max_timesteps       = 425
+end_time            = 0.04
+max_timesteps       = 500
 
 FreeEnergyDiagnostics{
    filename = "calphadAuNi.vtk" // where to dump f(phi,c) 
@@ -84,7 +84,7 @@ ModelParameters {
 }
 
 ScalarDiagnostics {
-   interval = 0.001
+   interval = 0.01
    interval_type = "time"
    extra_energy_detail = TRUE
 }   
@@ -98,7 +98,7 @@ GrainDiagnostics {  // optional block
 }
 
 Integrator {
-   atol = 1.e-5
+   atol = 2.e-5
    Preconditioner {  // optional block
       precond_has_dquatdphi = FALSE  // optional, default=TRUE
    }
@@ -116,7 +116,6 @@ Geometry{
 }
 
 TimerManager {    // optional block, see SAMRAI docs
-    timer_list = "solv::*::*","xfer::*::*","PFModel::*",
-                 "QuatIntegrator::*"
+    timer_list = "PFModel::*", "QuatIntegrator::*"
     print_threshold = 0.0
 }

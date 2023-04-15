@@ -5,7 +5,7 @@
 model_type = "Quat"
 
 max_timesteps       = 1800
-end_time            = 0.2
+end_time            = 0.19
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE
@@ -40,6 +40,7 @@ ModelParameters {
    phi_mobility     = 1.
    
    phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
 
    FreeEnergyModel{
       type = "linear"

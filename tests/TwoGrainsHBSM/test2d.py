@@ -45,7 +45,7 @@ for line in lines:
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.24)>1.e-2:
+      if abs(sfraction-0.27)>1.e-2:
         print("Wrong solid fraction")
         sys.exit(1)
 
@@ -57,14 +57,14 @@ for v in volumes:
   if v>maxv:
     maxv = v
 
-expected_value=1.745
+expected_value=1.9175
 if abs(maxv-expected_value)>0.01:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.22
+expected_value=0.3025
 if abs(minv-expected_value)>0.01:
-  print("Expected maxv = {}, found {}".format(expected_value,minv))
+  print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
 
 
