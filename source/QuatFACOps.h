@@ -292,9 +292,8 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
     * Set the operator coefficients.
     */
    void setOperatorCoefficients(const double time_step, const int mobility_id,
-                                const int mobility_deriv_id,
-                                const int diff_coef_id,
-                                const int diff_coef_deriv_id,
+                                const int mobility_deriv_id, const int phase_id,
+                                const int temp_id, const int diff_coef_deriv_id,
                                 const int grad_q_id, const int q_id);
 
    // FACOperatorStrategy virtuals
@@ -345,7 +344,7 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
    int getFaceDiffCoeffId() { return d_face_coef_id; }
    int getFaceDiffCoeffScratchId() { return d_face_coef_scratch_id; }
 
-   void evaluateRHS(const int diff_coef_id, const int grad_q_id,
+   void evaluateRHS(const int phase_id, const int temp_id, const int grad_q_id,
                     const int grad_q_copy_id, const int mobility_id,
                     const int rotations_id, const int q_id, int rhs_id,
                     const bool use_gradq_for_flux);

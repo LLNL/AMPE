@@ -140,7 +140,6 @@ QuatIntegrator::QuatIntegrator(
       d_quat_grad_modulus_id(-1),
       d_eta_mobility_id(-1),
       d_quat_mobility_id(-1),
-      d_quat_diffusion_id(-1),
       d_quat_diffusion_deriv_id(-1),
       d_quat_symm_rotation_id(-1),
       d_conc_diffusion_id(-1),
@@ -496,7 +495,8 @@ void QuatIntegrator::setupPreconditioners()
       }
       d_quat_face_coeff_strategy.reset(
           new QuatFaceCoeff(d_qlen, d_epsilon_q, d_quat_grad_floor,
-                            d_quat_smooth_floor_type));
+                            d_quat_smooth_floor_type, d_H_parameter,
+                            d_orient_interp_func_type, d_avg_func_type));
 
       d_quat_sys_solver.reset(new QuatSysSolver(d_qlen,
                                                 d_quat_face_coeff_strategy,
@@ -759,11 +759,6 @@ void QuatIntegrator::RegisterQuatVariables(
           d_quat_mobility_var, d_current,
           hier::IntVector(tbox::Dimension(NDIM), 1));
 
-      d_quat_diffusion_var = quat_diffusion_var;
-      d_quat_diffusion_id = variable_db->registerVariableAndContext(
-          d_quat_diffusion_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-
       d_quat_diffs_var = quat_diffs_var;
       d_quat_diffs_id = variable_db->registerVariableAndContext(
           d_quat_diffs_var, d_current,
@@ -783,7 +778,6 @@ void QuatIntegrator::RegisterQuatVariables(
 
       assert(d_quat_diffs_id >= 0);
       assert(d_quat_mobility_id >= 0);
-      assert(d_quat_diffusion_id >= 0);
       assert(d_quat_grad_cell_id >= 0);
       assert(d_quat_grad_side_id >= 0);
       assert(d_quat_grad_modulus_id >= 0);
@@ -1973,11 +1967,6 @@ void QuatIntegrator::initialize(
    resetIntegrator(hierarchy, 0, finest);
 
    if (d_evolve_quat) {
-      d_diffusion4quat.reset(
-          new DiffusionCoeffForQuat(d_grid_geometry, d_H_parameter, d_qlen,
-                                    d_orient_interp_func_type, d_avg_func_type,
-                                    d_quat_diffusion_id));
-      d_diffusion4quat->setup(hierarchy);
       if (d_precond_has_dquatdphi) {
          d_diffusion4quatderiv.reset(new DerivDiffusionCoeffForQuat(
              d_grid_geometry, d_H_parameter, d_quat_grad_floor, d_qlen,
@@ -2448,7 +2437,6 @@ void QuatIntegrator::setUniformDiffusionCoeffForQuat(
 
    // set diffusion coefficients
    math::HierarchySideDataOpsReal<double> smathops(hierarchy);
-   smathops.setToScalar(d_quat_diffusion_id, dval);
    smathops.setToScalar(d_quat_grad_side_copy_id, alpha);
 }
 
@@ -2794,8 +2782,8 @@ void QuatIntegrator::evaluateQuatRHS(
 
    // compute RHS using the gradient of q at sides (d_quat_grad_side_id)
    // computed with physical BC
-   d_quat_sys_solver->evaluateRHS(d_quat_diffusion_id, d_quat_grad_side_id,
-                                  d_quat_grad_side_copy_id,
+   d_quat_sys_solver->evaluateRHS(d_phase_scratch_id, d_temperature_scratch_id,
+                                  d_quat_grad_side_id, d_quat_grad_side_copy_id,
                                   quat_symm_rotation_id, d_quat_mobility_id,
                                   d_quat_scratch_id, quat_rhs_id, true);
 
@@ -3153,8 +3141,6 @@ void QuatIntegrator::setCoefficients(
       if (time < d_uniform_diffusion_time_threshold) {
          setUniformDiffusionCoeffForQuat(hierarchy);
       } else {
-         d_diffusion4quat->setDiffusion(hierarchy, d_phase_scratch_id,
-                                        d_temperature_scratch_id);
          if (d_precond_has_dquatdphi)
             d_diffusion4quatderiv->setDerivDiffusion(hierarchy,
                                                      d_phase_scratch_id,
@@ -3462,7 +3448,8 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
 
       d_quat_sys_solver->setOperatorCoefficients(gamma, d_quat_mobility_id,
                                                  d_quat_mobility_deriv_id,
-                                                 d_quat_diffusion_id,
+                                                 d_phase_scratch_id,
+                                                 d_temperature_scratch_id,
                                                  d_quat_diffusion_deriv_id,
                                                  d_quat_grad_side_copy_id,
                                                  d_quat_scratch_id);

@@ -734,14 +734,13 @@ void VELOCITY(const int&, const int&, const int&, const int&,
 
 void COMPUTE_FACE_COEF2D(const int&, const int&, const int&, const int&,
                          const int&, const double&, const double*, const int&,
-                         const int&, const int&, const int&, const double*,
-                         const int&, const int&, const int&, const int&,
+                         const double*, const int&, const double&,
                          const double*, const int&, const int&, const int&,
                          const int&, const double*, const int&, const int&,
                          const int&, const int&, const double*, const int&,
                          const int&, const int&, const int&, const double*,
                          const int&, const int&, const int&, const int&,
-                         const double&, const char*);
+                         const double&, const char*, const char*, const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF2D(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
@@ -861,18 +860,19 @@ void MULTICOMPONENT_DIVIDE2D(const int&, const int&, const int&, const int&,
 
 void COMPUTE_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const double&, const double*, const int&, const int&,
-    const int&, const int&, const int&, const int&, const double*, const int&,
-    const int&, const int&, const int&, const int&, const int&, const double*,
-    const int&, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double&, const double*, const int&, const double*,
+    const int&, const double&,
+    // grad_q_data
     const double*, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
-    const int&, const int&, const int&, const double*, const int&, const int&,
-    const int&, const int&, const int&, const int&, const double*, const int&,
-    const int&, const int&, const int&, const int&, const int&, const double*,
-    const int&, const int&, const int&, const int&, const int&, const int&,
-    const double&, const char*);
+    const int&, const int&, const int&,
+    // face_coef_data
+    const double*, const int&, const int&, const int&, const int&, const int&,
+    const int&, const double*, const int&, const int&, const int&, const int&,
+    const int&, const int&, const double*, const int&, const int&, const int&,
+    const int&, const int&, const int&, const double&, const char*, const char*,
+    const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,

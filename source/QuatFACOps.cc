@@ -738,7 +738,7 @@ void QuatFACOps::takeSquareRootOnPatch(pdat::CellData<double>& data)
 void QuatFACOps::setOperatorCoefficients(const double gamma,
                                          const int mobility_id,
                                          const int mobility_deriv_id,
-                                         const int diffusion_coef_id,
+                                         const int phase_id, const int temp_id,
                                          const int face_coef_deriv_id,
                                          const int grad_q_id, const int q_id)
 {
@@ -754,7 +754,7 @@ void QuatFACOps::setOperatorCoefficients(const double gamma,
 
    // Compute the face coefficients
 
-   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, diffusion_coef_id,
+   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, phase_id, temp_id,
                                                 grad_q_id, d_face_coef_id);
 
    for (int ln = d_ln_min; ln <= d_ln_max; ++ln) {
@@ -1879,7 +1879,7 @@ void QuatFACOps::computeResidualOnPatch(
 
 
 void QuatFACOps::evaluateRHS(
-    const int diffusion_coef_id, const int grad_q_id,
+    const int phase_id, const int temp_id, const int grad_q_id,
     const int grad_q_copy_id,  // for computation of diffusion coefficient
     const int mobility_id, const int rotation_index_id, const int q_id,
     int rhs_id, const bool use_gradq_for_flux)
@@ -1896,7 +1896,7 @@ void QuatFACOps::evaluateRHS(
    // Initialize the output array
    d_hopscell->setToScalar(rhs_id, 0., false);
 
-   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, diffusion_coef_id,
+   d_quat_face_coeff_strategy->computeFaceCoefs(d_hierarchy, phase_id, temp_id,
                                                 grad_q_copy_id,
                                                 d_face_coef_scratch_id);
 
