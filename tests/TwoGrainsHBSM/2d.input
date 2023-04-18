@@ -35,6 +35,7 @@ ModelParameters {
    
    phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
    phi_interp_func_type ="hbsm"
+   avg_func_type = "arithmetic"
    
    ConcentrationModel{
       model    = "hbsm"

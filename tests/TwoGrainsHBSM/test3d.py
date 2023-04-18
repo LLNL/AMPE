@@ -8,7 +8,7 @@ print("Test Two grains HBSM...")
 #prepare initial conditions file
 initfilename="2spheres.nc"
 subprocess.call(["python3", "../../utils/make_nuclei.py",
-  "--nx", "64", "--ny", "64", "--nz", "32", "-r", "8",
+  "--nx", "64", "--ny", "64", "--nz", "48", "-r", "8",
   "--concentration-in", "0.1", "--concentration-out", "0.06",
   "--ngrains", "2", "-q", "4", 
   initfilename])
@@ -37,7 +37,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.09:
+    if time>0.08:
       end_reached = True
 
   if line.count(b'fraction'):
@@ -45,7 +45,7 @@ for line in lines:
     if end_reached:
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.138)>1.e-2:
+      if abs(sfraction-0.13)>1.e-2:
         print("Wrong solid fraction")
         sys.exit(1)
 
@@ -57,14 +57,14 @@ for v in volumes:
   if v>maxv:
     maxv = v
 
-expected_value=1.7
+expected_value=2.0
 if abs(maxv-expected_value)>0.01:
   print("Expected maxv = {}, found {}".format(expected_value,maxv))
   sys.exit(1)
 
-expected_value=0.014
+expected_value=0.179
 if abs(minv-expected_value)>0.001:
-  print("Expected maxv = {}, found {}".format(expected_value,minv))
+  print("Expected minv = {}, found {}".format(expected_value,minv))
   sys.exit(1)
 
 

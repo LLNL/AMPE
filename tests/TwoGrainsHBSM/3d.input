@@ -5,14 +5,14 @@
 model_type = "Quat"
 
 max_timesteps       = 200
-end_time            = 0.09
+end_time            = 0.08
 
 Verbosity {  // optional, block
    initial_energy_diagnostics = TRUE  // optional, default=FALSE
 }
 
 Visit {
-   interval = 0.01
+   interval = 0.02
    interval_type = "time"
 }
 
@@ -35,6 +35,7 @@ ModelParameters {
    
    phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
    phi_interp_func_type ="hbsm"
+   avg_func_type = "arithmetic"
    
    ConcentrationModel{
       model    = "hbsm"
@@ -78,7 +79,7 @@ InitialConditions {
 }
 
 Geometry{
-   coarsest_level_resolution = 64, 64, 32
+   coarsest_level_resolution = 64, 64, 48
    x_lo         =  0.0, 0.0, 0.0 // lower end of computational domain.
-   x_up         =  3.2, 3.2, 1.6 // upper end of computational domain.
+   x_up         =  3.2, 3.2, 2.4 // upper end of computational domain.
 }

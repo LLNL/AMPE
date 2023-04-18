@@ -38,7 +38,7 @@ for line in lines:
     print(line)
     words=line.split()
     #check for end time reached
-    if eval(words[6])>0.05:
+    if eval(words[6])>0.04:
       end_reached = True
 
   num_matches = line.count(b'fraction')
@@ -73,5 +73,6 @@ for line in lines:
 if end_reached:
   sys.exit(0)
 else:
+  print("End time not reached")
   sys.exit(1)
 

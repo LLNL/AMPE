@@ -40,6 +40,7 @@ ModelParameters {
    phi_mobility     = 1.
    
    phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
 
    FreeEnergyModel{
       type = "linear"
