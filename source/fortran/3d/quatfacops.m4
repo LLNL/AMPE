@@ -53,9 +53,9 @@ c variables in 3d cell indexed
      &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,gqxlo2:gqxhi2,depth,NDIM),
      &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,gqylo2:gqyhi2,depth,NDIM),
      &           gqz(gqzlo0:gqzhi0,gqzlo1:gqzhi1,gqzlo2:gqzhi2,depth,NDIM),
-     &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2,depth),
-     &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2,depth),
-     &           fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2,depth),
+     &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
+     &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
+     &           fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2),
      &           gradient_floor, eps_q
 
       double precision eval_grad_normi
@@ -98,9 +98,7 @@ c              compute reciprocal of gradient L2 norm on this face
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
      &                                      floor_grad_norm2, 
      &                                      max_grad_normi)
-               do m = 1, depth
-                  fcx(i,j,k,m) = - grad_normi * diff - eps2 * hphi2
-               enddo
+               fcx(i,j,k) = - grad_normi * diff - eps2 * hphi2
 
             enddo
          enddo
@@ -129,9 +127,7 @@ c              compute reciprocal of gradient L2 norm on this face
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
      &                                      floor_grad_norm2, 
      &                                      max_grad_normi)
-               do m = 1, depth
-                  fcy(i,j,k,m) = - grad_normi * diff - eps2 * hphi2
-               enddo
+               fcy(i,j,k) = - grad_normi * diff - eps2 * hphi2
 
             enddo
          enddo
@@ -160,9 +156,7 @@ c              compute reciprocal of gradient L2 norm on this face
                grad_normi = eval_grad_normi(grad_norm2, floor_type, 
      &                                      floor_grad_norm2, 
      &                                      max_grad_normi)
-               do m = 1, depth
-                  fcz(i,j,k,m) = - grad_normi * diff - eps2 * hphi2
-               enddo
+               fcz(i,j,k) = - grad_normi * diff - eps2 * hphi2
 
             enddo
          enddo
@@ -194,52 +188,46 @@ c
      &        fcylo0, fcyhi0, fcylo1, fcyhi1, fcylo2, fcyhi2,
      &        fczlo0, fczhi0, fczlo1, fczhi1, fczlo2, fczhi2
       double precision
-     &     dprimex(dpxlo0:dpxhi0,dpxlo1:dpxhi1,dpxlo2:dpxhi2,depth*2),
-     &     dprimey(dpylo0:dpyhi0,dpylo1:dpyhi1,dpylo2:dpyhi2,depth*2),
-     &     dprimez(dpzlo0:dpzhi0,dpzlo1:dpzhi1,dpzlo2:dpzhi2,depth*2),
+     &     dprimex(dpxlo0:dpxhi0,dpxlo1:dpxhi1,dpxlo2:dpxhi2,2),
+     &     dprimey(dpylo0:dpyhi0,dpylo1:dpyhi1,dpylo2:dpyhi2,2),
+     &     dprimez(dpzlo0:dpzhi0,dpzlo1:dpzhi1,dpzlo2:dpzhi2,2),
      &     phi(plo0:phi0,plo1:phi1,plo2:phi2),
-     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2,depth),
-     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2,depth),
-     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2,depth)
+     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
+     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
+     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2)
 
 c     local variables:
       integer i, j, k, m
 
 c     x faces
 
-      do m = 1, depth
-         do k = lo2, hi2
-            do j = lo1, hi1
-               do i = lo0, hi0+1
-                  fcx(i,j,k,m) = - dprimex(i,j,k,2*m-1) * phi(i-1,j,k)
-     &                           - dprimex(i,j,k,2*m  ) * phi(i  ,j,k)
-               enddo
+      do k = lo2, hi2
+         do j = lo1, hi1
+            do i = lo0, hi0+1
+               fcx(i,j,k) = - dprimex(i,j,k,1) * phi(i-1,j,k)
+     &                      - dprimex(i,j,k,2) * phi(i  ,j,k)
             enddo
          enddo
       enddo
 
 c     y faces
 
-      do m = 1, depth
-         do k = lo2, hi2
-            do j = lo1, hi1+1
-               do i = lo0, hi0
-                  fcy(i,j,k,m) = - dprimey(i,j,k,2*m-1) * phi(i,j-1,k)
-     &                           - dprimey(i,j,k,2*m  ) * phi(i,j  ,k)
-               enddo
+      do k = lo2, hi2
+         do j = lo1, hi1+1
+            do i = lo0, hi0
+               fcy(i,j,k) = - dprimey(i,j,k,1) * phi(i,j-1,k)
+     &                      - dprimey(i,j,k,2) * phi(i,j  ,k)
             enddo
          enddo
       enddo
 
 c     z faces
 
-      do m = 1, depth
-         do k = lo2, hi2+1
-            do j = lo1, hi1
-               do i = lo0, hi0
-                  fcz(i,j,k,m) = - dprimez(i,j,k,2*m-1) * phi(i,j,k-1)
-     &                           - dprimez(i,j,k,2*m  ) * phi(i,j,k  )
-               enddo
+      do k = lo2, hi2+1
+         do j = lo1, hi1
+            do i = lo0, hi0
+               fcz(i,j,k) = - dprimez(i,j,k,1) * phi(i,j,k-1)
+     &                      - dprimez(i,j,k,2) * phi(i,j,k  )
             enddo
          enddo
       enddo
@@ -271,9 +259,9 @@ c
      &        fylo0, fyhi0, fylo1, fyhi1, fylo2, fyhi2,
      &        fzlo0, fzhi0, fzlo1, fzhi1, fzlo2, fzhi2
       double precision 
-     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2,depth),
-     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2,depth),
-     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2,depth),
+     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
+     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
+     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2),
      &     q(qlo0:qhi0,qlo1:qhi1,qlo2:qhi2,depth),
      &     h(NDIM),
      &     fx(fxlo0:fxhi0,fxlo1:fxhi1,fxlo2:fxhi2,depth),
@@ -292,7 +280,7 @@ c     x faces
          do k = lo2, hi2
             do j = lo1, hi1
                do i = lo0, hi0+1
-                  fx(i,j,k,m) = fcx(i,j,k,m) * hinv
+                  fx(i,j,k,m) = fcx(i,j,k) * hinv
      &                 * (q(i,j,k,m) - q(i-1,j,k,m))
                enddo
             enddo
@@ -307,7 +295,7 @@ c     y faces
          do k = lo2, hi2
             do j = lo1, hi1+1
                do i = lo0, hi0
-                  fy(i,j,k,m) = fcy(i,j,k,m) * hinv
+                  fy(i,j,k,m) = fcy(i,j,k) * hinv
      &                 * (q(i,j,k,m) - q(i,j-1,k,m))
                enddo
 
@@ -323,7 +311,7 @@ c     z faces
          do k = lo2, hi2+1
             do j = lo1, hi1
                do i = lo0, hi0
-                  fz(i,j,k,m) = fcz(i,j,k,m) * hinv
+                  fz(i,j,k,m) = fcz(i,j,k) * hinv
      &                 * (q(i,j,k,m) - q(i,j,k-1,m))
                enddo
             enddo
@@ -358,9 +346,9 @@ c
      &        fylo0, fyhi0, fylo1, fyhi1, fylo2, fyhi2,
      &        fzlo0, fzhi0, fzlo1, fzhi1, fzlo2, fzhi2
       double precision 
-     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2,depth),
-     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2,depth),
-     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2,depth),
+     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
+     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
+     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2),
      &     fx(fxlo0:fxhi0,fxlo1:fxhi1,fxlo2:fxhi2,depth),
      &     fy(fylo0:fyhi0,fylo1:fyhi1,fylo2:fyhi2,depth),
      &     fz(fzlo0:fzhi0,fzlo1:fzhi1,fzlo2:fzhi2,depth)
@@ -378,7 +366,7 @@ c     x faces
          do k = lo2, hi2
             do j = lo1, hi1
                do i = lo0, hi0+1
-                  fx(i,j,k,m) = fcx(i,j,k,m) * grad_x_xside(i,j,k,m)
+                  fx(i,j,k,m) = fcx(i,j,k) * grad_x_xside(i,j,k,m)
                enddo
             enddo
          enddo
@@ -390,7 +378,7 @@ c     y faces
          do k = lo2, hi2
             do j = lo1, hi1+1
                do i = lo0, hi0
-                  fy(i,j,k,m) = fcy(i,j,k,m) * grad_y_yside(i,j,k,m)
+                  fy(i,j,k,m) = fcy(i,j,k) * grad_y_yside(i,j,k,m)
                enddo
 
             enddo
@@ -403,7 +391,7 @@ c     z faces
          do k = lo2, hi2+1
             do j = lo1, hi1
                do i = lo0, hi0
-                  fz(i,j,k,m) = fcz(i,j,k,m) * grad_z_zside(i,j,k,m)
+                  fz(i,j,k,m) = fcz(i,j,k) * grad_z_zside(i,j,k,m)
                enddo
             enddo
          enddo
@@ -438,9 +426,9 @@ c
      &        fylo0, fyhi0, fylo1, fyhi1, fylo2, fyhi2,
      &        fzlo0, fzhi0, fzlo1, fzhi1, fzlo2, fzhi2
       double precision 
-     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2,depth),
-     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2,depth),
-     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2,depth),
+     &     fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
+     &     fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
+     &     fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2),
      &     sqrt_m(mlo0:mhi0,mlo1:mhi1,mlo2:mhi2),
      &     q(qlo0:qhi0,qlo1:qhi1,qlo2:qhi2,depth),
      &     h(NDIM),
@@ -460,7 +448,7 @@ c     x faces
          do k = lo2, hi2
             do j = lo1, hi1
                do i = lo0, hi0+1
-                  fx(i,j,k,m) = fcx(i,j,k,m) * hinv
+                  fx(i,j,k,m) = fcx(i,j,k) * hinv
      &                 * (sqrt_m(i  ,j,k)*q(i  ,j,k,m) 
      &                  - sqrt_m(i-1,j,k)*q(i-1,j,k,m))
                enddo
@@ -476,7 +464,7 @@ c     y faces
          do k = lo2, hi2
             do j = lo1, hi1+1
                do i = lo0, hi0
-                  fy(i,j,k,m) = fcy(i,j,k,m) * hinv
+                  fy(i,j,k,m) = fcy(i,j,k) * hinv
      &                 * (sqrt_m(i,j  ,k)*q(i,j  ,k,m)
      &                  - sqrt_m(i,j-1,k)*q(i,j-1,k,m))
                enddo
@@ -492,7 +480,7 @@ c     z faces
          do k = lo2, hi2+1
             do j = lo1, hi1
                do i = lo0, hi0
-                  fz(i,j,k,m) = fcz(i,j,k,m) * hinv
+                  fz(i,j,k,m) = fcz(i,j,k) * hinv
      &                 * (sqrt_m(i,j,k  )*q(i,j,k  ,m)
      &                  - sqrt_m(i,j,k-1)*q(i,j,k-1,m))
                enddo

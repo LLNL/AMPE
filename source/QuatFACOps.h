@@ -338,10 +338,6 @@ class QuatFACOps : public SAMRAI::solv::FACOperatorStrategy
        int iteration_num, const solv::SAMRAIVectorReal<double> &current_soln,
        const solv::SAMRAIVectorReal<double> &residual);
 
-   /*
-    * return ID of the side-centered face diffusion coefficient data.
-    */
-   int getFaceDiffCoeffId() { return d_face_coef_id; }
    int getFaceDiffCoeffScratchId() { return d_face_coef_scratch_id; }
 
    void evaluateRHS(const int phase_id, const int temp_id, const int grad_q_id,

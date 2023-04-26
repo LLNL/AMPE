@@ -36,9 +36,9 @@ c variables in 3d cell indexed
       double precision gradq0(SIDE3d0(ifirst,ilast,nggradq),depth,NDIM)
       double precision gradq1(SIDE3d1(ifirst,ilast,nggradq),depth,NDIM)
       double precision gradq2(SIDE3d2(ifirst,ilast,nggradq),depth,NDIM)
-      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff),depth*2)
-      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff),depth*2)
-      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff),depth*2)
+      double precision diff0(SIDE3d0(ifirst,ilast,ngdiff),2)
+      double precision diff1(SIDE3d1(ifirst,ilast,ngdiff),2)
+      double precision diff2(SIDE3d2(ifirst,ilast,ngdiff),2)
       character*(*) diff_type
       character*(*) avg_type
 c
@@ -68,8 +68,8 @@ c
                if (var(ic0-1,ic1,ic2) .lt. jlf_threshold .or.
      &             var(ic0  ,ic1,ic2) .lt. jlf_threshold ) then
                   do m = 1, depth
-                     diff0(ic0,ic1,ic2,2*m-1) = 0.d0
-                     diff0(ic0,ic1,ic2,2*m  ) = 0.d0
+                     diff0(ic0,ic1,ic2,1) = 0.d0
+                     diff0(ic0,ic1,ic2,2) = 0.d0
                   end do
                else
                   phi = average_func(var(ic0-1,ic1,ic2),
@@ -95,19 +95,15 @@ c
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
 
-                  do m = 1, depth
+                  fac = grad_normi * d_deriv
 
-                     fac = grad_normi * d_deriv
+                  dphi = deriv_average_func( phi, var(ic0-1,ic1,ic2),
+     &                                       avg_type)
+                  diff0(ic0,ic1,ic2,1) = fac * dphi
 
-                     dphi = deriv_average_func( phi, var(ic0-1,ic1,ic2),
-     &                                          avg_type)
-                     diff0(ic0,ic1,ic2,2*m-1) = fac * dphi
-
-                     dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
-     &                                          avg_type)
-                     diff0(ic0,ic1,ic2,2*m) = fac * dphi
-
-                  end do
+                  dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
+     &                                       avg_type)
+                  diff0(ic0,ic1,ic2,2) = fac * dphi
                end if
             end do
          end do
@@ -119,8 +115,8 @@ c
                if (var(ic0,ic1-1,ic2) .lt. jlf_threshold .or.
      &             var(ic0,ic1  ,ic2) .lt. jlf_threshold ) then
                   do m = 1, depth
-                     diff1(ic0,ic1,ic2,2*m-1) = 0.d0
-                     diff1(ic0,ic1,ic2,2*m  ) = 0.d0
+                     diff1(ic0,ic1,ic2,1) = 0.d0
+                     diff1(ic0,ic1,ic2,2) = 0.d0
                   end do
                else
                   phi = average_func(var(ic0,ic1-1,ic2),
@@ -146,19 +142,16 @@ c
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
 
-                  do m = 1, depth
+                  fac = grad_normi * d_deriv
 
-                     fac = grad_normi * d_deriv
+                  dphi = deriv_average_func( phi, var(ic0,ic1-1,ic2),
+     &                                       avg_type)
+                  diff1(ic0,ic1,ic2,1) = fac * dphi
 
-                     dphi = deriv_average_func( phi, var(ic0,ic1-1,ic2),
-     &                                          avg_type)
-                     diff1(ic0,ic1,ic2,2*m-1) = fac * dphi
+                  dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
+     &                                       avg_type)
+                  diff1(ic0,ic1,ic2,2) = fac * dphi
 
-                     dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
-     &                                          avg_type)
-                     diff1(ic0,ic1,ic2,2*m) = fac * dphi
-
-                  end do
                end if
             end do
          end do
@@ -170,8 +163,8 @@ c
                if (var(ic0,ic1,ic2-1) .lt. jlf_threshold .or.
      &             var(ic0,ic1,ic2  ) .lt. jlf_threshold ) then
                   do m = 1, depth
-                     diff2(ic0,ic1,ic2,2*m-1) = 0.d0
-                     diff2(ic0,ic1,ic2,2*m  ) = 0.d0
+                     diff2(ic0,ic1,ic2,1) = 0.d0
+                     diff2(ic0,ic1,ic2,2) = 0.d0
                   end do
                else
 
@@ -198,19 +191,16 @@ c
      &                                   floor_grad_norm2,
      &                                   max_grad_normi)
 
-                  do m = 1, depth
+                  fac = grad_normi * d_deriv
 
-                     fac = grad_normi * d_deriv
+                  dphi = deriv_average_func( phi, var(ic0,ic1,ic2-1),
+     &                                       avg_type)
+                  diff2(ic0,ic1,ic2,1) = fac * dphi
 
-                     dphi = deriv_average_func( phi, var(ic0,ic1,ic2-1),
-     &                                          avg_type)
-                     diff2(ic0,ic1,ic2,2*m-1) = fac * dphi
+                  dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
+     &                                       avg_type)
+                  diff2(ic0,ic1,ic2,2) = fac * dphi
 
-                     dphi = deriv_average_func( phi, var(ic0,ic1,ic2),
-     &                                          avg_type)
-                     diff2(ic0,ic1,ic2,2*m) = fac * dphi
-
-                  end do
                end if
             end do
          end do

@@ -453,7 +453,6 @@ class QuatSysSolver
     */
    void printFACConvergenceFactors(const int solver_ret);
 
-   int getFaceDiffCoeffId() { return d_fac_ops->getFaceDiffCoeffId(); }
    int getFaceDiffCoeffScratchId()
    {
       return d_fac_ops->getFaceDiffCoeffScratchId();
