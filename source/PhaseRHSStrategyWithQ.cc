@@ -36,7 +36,8 @@ PhaseRHSStrategyWithQ::PhaseRHSStrategyWithQ(
       d_eta_well_scale(model_parameters.eta_well_scale()),
       d_H_parameter(model_parameters.H_parameter()),
       d_energy_interp_func_type(model_parameters.energy_interp_func_type()),
-      d_orient_interp_func_type(model_parameters.orient_interp_func_type()),
+      d_orient_interp_func_type1(model_parameters.orient_interp_func_type1()),
+      d_orient_interp_func_type2(model_parameters.orient_interp_func_type2()),
       d_phase_scratch_id(phase_scratch_id),
       d_conc_scratch_id(conc_scratch_id),
       d_quat_scratch_id(quat_scratch_id),
@@ -245,8 +246,8 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
 #if (NDIM == 3)
                  ifirst(2), ilast(2),
 #endif
-                 dx, 2.0 * d_H_parameter, phase_flux->getPointer(0),
-                 phase_flux->getPointer(1),
+                 dx, 2.0 * d_H_parameter, d_model_parameters.epsilon_q(),
+                 phase_flux->getPointer(0), phase_flux->getPointer(1),
 #if (NDIM == 3)
                  phase_flux->getPointer(2),
 #endif
@@ -255,7 +256,8 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
                  d_eta_well_scale, phase->getPointer(), NGHOSTS, ptr_eta,
                  NGHOSTS, ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
                  &well_func_type, &well_func_type, &interpf,
-                 d_orient_interp_func_type.c_str(), with_orient, three_phase);
+                 d_orient_interp_func_type1.c_str(),
+                 d_orient_interp_func_type2.c_str(), with_orient, three_phase);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2rhs = opc.L2Norm(phase_rhs, pbox);

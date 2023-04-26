@@ -9,7 +9,7 @@ define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
 c
-c Evaluate coefficient eps_q^2+D_q(phi)/|nabla q|
+c Evaluate coefficient p2(phi)*eps_q^2+D_q(phi)/|nabla q|
 c
       subroutine compute_face_coef2d(
      &     lo0, hi0, lo1, hi1,
@@ -22,7 +22,8 @@ c
      &     gqy, gqylo0, gqyhi0, gqylo1, gqyhi1,
      &     fcx, fcxlo0, fcxhi0, fcxlo1, fcxhi1,
      &     fcy, fcylo0, fcyhi0, fcylo1, fcyhi1,
-     &     gradient_floor, floor_type, interp_type,
+     &     gradient_floor, floor_type,
+     &     interp_type1, interp_type2,
      &     avg_type
      &     )
 c
@@ -32,7 +33,7 @@ c variables in 2d cell indexed
       integer ngp, ngt
       double precision phi(CELL2d(lo,hi,ngp))
       double precision temp(CELL2d(lo,hi,ngt))
-      character*(*) interp_type
+      character*(*) interp_type1, interp_type2
       character*(*) floor_type
       character*(*) avg_type
 
@@ -57,7 +58,7 @@ c     local variables:
       integer i, j, m, n
       double precision grad_norm2, grad_normi,
      &     floor_grad_norm2,
-     &     max_grad_normi, eps2
+     &     max_grad_normi, eps2, hphi2
       double precision phia, tempa, diff
       double precision interp_func
       double precision average_func
@@ -76,7 +77,8 @@ c     x faces
      &                          avg_type)
             tempa = 0.5d0*(temp(i-1,j) + temp(i,j))
             diff = misorientation_factor * tempa 
-     &           * interp_func( phia, interp_type )
+     &           * interp_func(phia, interp_type1)
+            hphi2 = interp_func(phia, interp_type2)
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
@@ -91,7 +93,7 @@ c loop over quaternion components
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
             do m = 1, depth
-               fcx(i,j,m) = - grad_normi * diff - eps2
+               fcx(i,j,m) = - grad_normi * diff - eps2 * hphi2
             enddo
 
          enddo
@@ -106,7 +108,8 @@ c     y faces
      &                          avg_type)
             tempa = 0.5d0*(temp(i,j-1) + temp(i,j))
             diff = misorientation_factor * tempa
-     &           * interp_func( phia, interp_type )
+     &           * interp_func(phia, interp_type1)
+            hphi2 = interp_func(phia, interp_type2)
 
 c           compute reciprocal of gradient L2 norm on this face
             grad_norm2 = 0.d0
@@ -119,7 +122,7 @@ c           compute reciprocal of gradient L2 norm on this face
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
             do m = 1, depth
-               fcy(i,j,m) = - grad_normi * diff - eps2
+               fcy(i,j,m) = - grad_normi * diff - eps2 * hphi2
             enddo
 
          enddo

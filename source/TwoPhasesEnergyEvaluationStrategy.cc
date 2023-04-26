@@ -156,7 +156,8 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
               total_energy, total_phase_e, total_orient_e, total_qint_e,
               total_well_e, ptr_energy, per_cell, &interpf,
               d_model_parameters.phase_well_func_type().c_str(),
-              d_model_parameters.orient_interp_func_type().c_str(),
+              d_model_parameters.orient_interp_func_type1().c_str(),
+              d_model_parameters.orient_interp_func_type2().c_str(),
               d_model_parameters.avg_func_type().c_str(),
               d_model_parameters.quat_grad_floor_type().c_str(),
               d_model_parameters.quat_grad_floor());

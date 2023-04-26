@@ -358,6 +358,7 @@ c
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
      &   dx, 
      &   misorientation_factor,
+     &   epsilonq,
      &   flux0,
      &   flux1,
      &   flux2,
@@ -372,7 +373,8 @@ c
      &   phi_well_type,
      &   eta_well_type,
      &   phi_interp_type,
-     &   orient_interp_type, 
+     &   orient_interp_type1,
+     &   orient_interp_type2,
      &   with_orient,
      &   three_phase )
 c***********************************************************************
@@ -384,13 +386,13 @@ c input arrays:
       integer with_orient, three_phase
 
       double precision dx(3)
-      double precision misorientation_factor
+      double precision misorientation_factor, epsilonq
       double precision phi_well_scale, eta_well_scale
       integer ngflux, ngphi, ngeta, ngogm, ngrhs, ngtemp
       character*(*) phi_well_type
       character*(*) eta_well_type
       character*(*) phi_interp_type
-      character*(*) orient_interp_type
+      character*(*) orient_interp_type1, orient_interp_type2
 c
 c variables in 3d cell indexed
       double precision phi(CELL3d(ifirst,ilast,ngphi))
@@ -411,16 +413,18 @@ c
       integer ic0, ic1, ic2
       double precision diff_term_x, diff_term_y, diff_term_z, diff_term
 
-      double precision g, g_prime, h_prime, p_prime
+      double precision g, g_prime, h_prime, p1_prime, p2_prime
       double precision deriv_interp_func
       double precision well_func
       double precision deriv_well_func
       double precision t
       double precision dxinv, dyinv, dzinv
+      double precision epsilonq2
 c
       dxinv = 1.d0 / dx(1)
       dyinv = 1.d0 / dx(2)
       dzinv = 1.d0 / dx(3)
+      epsilonq2 = 0.5d0*epsilonq*epsilonq
 c
       do ic2 = ifirst2, ilast2
          do ic1 = ifirst1, ilast1
@@ -481,15 +485,22 @@ c
             do ic1 = ifirst1, ilast1
                do ic0 = ifirst0, ilast0
 
-                  p_prime =
+                  p1_prime =
      &               deriv_interp_func(
      &                  phi(ic0,ic1,ic2),
-     &                  orient_interp_type )
+     &                  orient_interp_type1 )
+                  p2_prime =
+     &               deriv_interp_func(
+     &                  phi(ic0,ic1,ic2),
+     &                  orient_interp_type2 )
 
                   rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2) -
      &               misorientation_factor *
      &               temp(ic0,ic1,ic2) *
-     &               p_prime *
+     &               p1_prime *
+     &               orient_grad_mod(ic0,ic1,ic2)
+     &             - p2_prime * epsilonq2 *
+     &               orient_grad_mod(ic0,ic1,ic2) *
      &               orient_grad_mod(ic0,ic1,ic2)
 
                enddo

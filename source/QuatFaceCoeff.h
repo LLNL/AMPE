@@ -33,8 +33,8 @@ class QuatFaceCoeff
  public:
    QuatFaceCoeff(const int qlen, const double epsilon_q,
                  const double gradient_floor, const std::string grad_floor_type,
-                 const double Hparameter, const std::string interp_type,
-                 const std::string avg_type);
+                 const double Hparameter, const std::string interp_type1,
+                 const std::string interp_type2, const std::string avg_type);
 
    ~QuatFaceCoeff();
 
@@ -50,7 +50,10 @@ class QuatFaceCoeff
    const double d_gradient_floor;
    const std::string d_grad_floor_type;
    const double d_Hparameter;
-   const std::string d_interp_type;
+   // interpolation polynomial for phase fraction in |\nabla q| term
+   const std::string d_interp_type1;
+   // interpolation polynomial for phase fraction in |\nabla q|^2 term
+   const std::string d_interp_type2;
    const std::string d_avg_type;
 
    void computeFaceCoefsOnPatch(

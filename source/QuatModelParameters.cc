@@ -82,7 +82,6 @@ QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
    d_diffq_avg_func_type = "";
    d_phase_well_func_type = "";
 
-   d_orient_interp_func_type = "";
    d_conc_interp_func_type = ConcInterpolationType::UNDEFINED;
    d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
    d_conc_three_args_interp_func_type =
@@ -596,29 +595,36 @@ void QuatModelParameters::initializeOrientation(
        model_db->getStringWithDefault("quat_grad_modulus_type", "cells");
 
    if (model_db->keyExists("diff_interp_func_type")) {
-      d_orient_interp_func_type = model_db->getString("diff_interp_func_type");
+      d_orient_interp_func_type1 = model_db->getString("diff_interp_func_type");
       printDeprecated("diff_interp_func_type", "orient_interp_func_type");
+   } else if (model_db->keyExists("orient_interp_func_type")) {
+      d_orient_interp_func_type1 =
+          model_db->getString("orient_interp_func_type");
+      printDeprecated("orient_interp_func_type", "orient_interp_func_type1");
    } else {
-      d_orient_interp_func_type =
-          model_db->getStringWithDefault("orient_interp_func_type",
-                                         "quadrati"
-                                         "c");
+      d_orient_interp_func_type1 =
+          model_db->getStringWithDefault("orient_interp_func_type1",
+                                         "quadratic");
    }
-   if (d_orient_interp_func_type[0] != 'q' &&
-       d_orient_interp_func_type[0] != 'w' &&
-       d_orient_interp_func_type[0] != 'p' &&
-       d_orient_interp_func_type[0] != 'l' &&
-       d_orient_interp_func_type[0] != 't' &&
-       d_orient_interp_func_type[0] != 's' &&
-       d_orient_interp_func_type[0] != '3' &&
-       d_orient_interp_func_type[0] != 'c') {
-      TBOX_ERROR("Error: invalid value for orient_interp_func_type");
+   d_orient_interp_func_type2 =
+       model_db->getStringWithDefault("orient_interp_func_type2", "constant");
+   if (d_orient_interp_func_type1[0] != 'q' &&
+       d_orient_interp_func_type1[0] != 'w' &&
+       d_orient_interp_func_type1[0] != 'p' &&
+       d_orient_interp_func_type1[0] != 'l' &&
+       d_orient_interp_func_type1[0] != 't' &&
+       d_orient_interp_func_type1[0] != 's' &&
+       d_orient_interp_func_type1[0] != '3' &&
+       d_orient_interp_func_type1[0] != 'c') {
+      TBOX_ERROR("Error: invalid value for orient_interp_func_type1");
    }
 
    if (model_db->keyExists("quat_mobility_func_type")) {
       d_quat_mobility_func_type =
           model_db->getString("quat_mobility_func_type");
-      printDeprecated("quat_mobility_func_type", "orient_mobility_func_type");
+      printDeprecated("quat_mobility_func_type",
+                      "orient_mobility_func_"
+                      "type");
    } else {
       d_quat_mobility_func_type =
           model_db->getStringWithDefault("orient_mobility_func_type", "pbg");
@@ -871,7 +877,9 @@ void QuatModelParameters::readModelParameters(
    }
 
    std::string diffusion_interp_type =
-       model_db->getStringWithDefault("diffusion_interp_func_type", "linear");
+       model_db->getStringWithDefault("diffusion_interp_func_type",
+                                      "linea"
+                                      "r");
    switch (diffusion_interp_type[0]) {
       case 'l':
       case 'L':
@@ -920,8 +928,8 @@ void QuatModelParameters::readModelParameters(
 
    if (with_orientation()) initializeOrientation(model_db);
 
-   // we need to know how many species we have before reading temperature model
-   // which may include species dependent Cp
+   // we need to know how many species we have before reading temperature
+   // model which may include species dependent Cp
    if (model_db->keyExists("ConcentrationModel")) {
       readNumberSpecies(model_db->getDatabase("ConcentrationModel"));
    } else {
@@ -1013,7 +1021,8 @@ void QuatModelParameters::readFreeEnergies(
     std::shared_ptr<tbox::Database> model_db)
 {
    std::shared_ptr<tbox::Database> db(model_db->keyExists("FreeEnergyModel")
-                                          ? model_db->getDatabase("FreeEnergy"
+                                          ? model_db->getDatabase("FreeEnerg"
+                                                                  "y"
                                                                   "Model")
                                           : model_db);
 

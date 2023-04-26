@@ -54,7 +54,8 @@ class PhaseRHSStrategyWithQ : public PhaseRHSStrategy
    const double d_H_parameter;
 
    const EnergyInterpolationType d_energy_interp_func_type;
-   std::string d_orient_interp_func_type;
+   std::string d_orient_interp_func_type1;
+   std::string d_orient_interp_func_type2;
 
    const int d_phase_scratch_id;
    const int d_conc_scratch_id;
