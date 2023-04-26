@@ -19,14 +19,16 @@ QuatFaceCoeff::QuatFaceCoeff(const int qlen, const double epsilon_q,
                              const double gradient_floor,
                              const std::string grad_floor_type,
                              const double Hparameter,
-                             const std::string interp_type,
+                             const std::string interp_type1,
+                             const std::string interp_type2,
                              const std::string avg_type)
     : d_qlen(qlen),
       d_epsilon_q(epsilon_q),
       d_gradient_floor(gradient_floor),
       d_grad_floor_type(grad_floor_type),
       d_Hparameter(Hparameter),
-      d_interp_type(interp_type),
+      d_interp_type1(interp_type1),
+      d_interp_type2(interp_type2),
       d_avg_type(avg_type)
 {
    assert(d_epsilon_q > 0.);
@@ -114,8 +116,8 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
        dlower[0], dupper[0] + 1, dlower[1], dupper[1],  // output
        face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
        dupper[1] + 1,  // output
-       d_gradient_floor, d_grad_floor_type.c_str(), d_interp_type.c_str(),
-       d_avg_type.c_str());
+       d_gradient_floor, d_grad_floor_type.c_str(), d_interp_type1.c_str(),
+       d_interp_type2.c_str(), d_avg_type.c_str());
 #endif
 #if NDIM == 3
    COMPUTE_FACE_COEF3D(
@@ -132,6 +134,6 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
        dlower[0], dupper[0], dlower[1], dupper[1] + 1, dlower[2], dupper[2],
        face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1], dupper[1],
        dlower[2], dupper[2] + 1, d_gradient_floor, d_grad_floor_type.c_str(),
-       d_interp_type.c_str(), d_avg_type.c_str());
+       d_interp_type1.c_str(), d_interp_type2.c_str(), d_avg_type.c_str());
 #endif
 }

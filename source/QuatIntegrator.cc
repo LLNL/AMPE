@@ -496,7 +496,8 @@ void QuatIntegrator::setupPreconditioners()
       d_quat_face_coeff_strategy.reset(
           new QuatFaceCoeff(d_qlen, d_epsilon_q, d_quat_grad_floor,
                             d_quat_smooth_floor_type, d_H_parameter,
-                            d_orient_interp_func_type, d_avg_func_type));
+                            d_orient_interp_func_type1,
+                            d_orient_interp_func_type2, d_avg_func_type));
 
       d_quat_sys_solver.reset(new QuatSysSolver(d_qlen,
                                                 d_quat_face_coeff_strategy,
@@ -1409,8 +1410,9 @@ void QuatIntegrator::setModelParameters(
     const double epsilon_phase, const double epsilon_eta,
     const double epsilon_q, const double quat_grad_floor,
     const std::string quat_smooth_floor_type, const double phase_well_scale,
-    const double eta_well_scale, const std::string orient_interp_func_type,
-    const std::string avg_func_type, const std::string phase_well_func_type,
+    const double eta_well_scale, const std::string orient_interp_func_type1,
+    const std::string orient_interp_func_type2, const std::string avg_func_type,
+    const std::string phase_well_func_type,
     const EnergyInterpolationType energy_interp_func_type,
     const ConcInterpolationType conc_interp_func_type,
     const std::string eta_well_func_type)
@@ -1429,7 +1431,8 @@ void QuatIntegrator::setModelParameters(
    d_phase_well_scale = phase_well_scale;
    d_eta_well_scale = eta_well_scale;
 
-   d_orient_interp_func_type = orient_interp_func_type;
+   d_orient_interp_func_type1 = orient_interp_func_type1;
+   d_orient_interp_func_type2 = orient_interp_func_type2;
    d_avg_func_type = avg_func_type;
    d_phase_well_func_type = phase_well_func_type;
    d_energy_interp_func_type = energy_interp_func_type;
@@ -1970,7 +1973,7 @@ void QuatIntegrator::initialize(
       if (d_precond_has_dquatdphi) {
          d_diffusion4quatderiv.reset(new DerivDiffusionCoeffForQuat(
              d_grid_geometry, d_H_parameter, d_quat_grad_floor, d_qlen,
-             d_orient_interp_func_type, d_avg_func_type,
+             d_orient_interp_func_type1, d_avg_func_type,
              d_quat_smooth_floor_type, d_quat_diffusion_deriv_id));
          d_diffusion4quatderiv->setup(hierarchy);
       }

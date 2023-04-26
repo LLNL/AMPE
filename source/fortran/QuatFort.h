@@ -83,7 +83,8 @@ void COMPUTERHSPBG(const int& ifirst0, const int& ilast0, const int& ifirst1,
                    const int& ifirst2, const int& ilast2,
 #endif
                    const double* dx, const double& misorientation_factor,
-                   const double* phase_flux0, const double* phase_flux1,
+                   const double& epsilonq, const double* phase_flux0,
+                   const double* phase_flux1,
 #if (NDIM == 3)
                    const double* phase_flux2,
 #endif
@@ -94,7 +95,8 @@ void COMPUTERHSPBG(const int& ifirst0, const int& ilast0, const int& ifirst1,
                    const double* orient_grad_mod, const int& ngogm, double* rhs,
                    const int& ngrhs, const char* phi_well_type,
                    const char* eta_well_type, const char* phi_interp_type,
-                   const char* orient_interp_type, const int& with_orient,
+                   const char* orient_interp_type1,
+                   const char* orient_interp_type2, const int& with_orient,
                    const int& three_phase);
 
 void COMPUTERHSTHREEPHASES(const int& ifirst0, const int& ilast0,
@@ -687,9 +689,9 @@ void QUATENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 double& total_orient_e, double& total_qint_e,
                 double& total_well_e, const double* const energy,
                 const int& eval_per_cell, const char* phi_interp_type,
-                const char* phi_well_type, const char* orient_interp_type,
-                const char* avg_type, const char* floor_type,
-                const double& floor2);
+                const char* phi_well_type, const char* orient_interp_type1,
+                const char* orient_interp_type2, const char* avg_type,
+                const char* floor_type, const double& floor2);
 
 void BULKENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
@@ -740,7 +742,8 @@ void COMPUTE_FACE_COEF2D(const int&, const int&, const int&, const int&,
                          const int&, const int&, const double*, const int&,
                          const int&, const int&, const int&, const double*,
                          const int&, const int&, const int&, const int&,
-                         const double&, const char*, const char*, const char*);
+                         const double&, const char*, const char*, const char*,
+                         const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF2D(
     const int&, const int&, const int&, const int&, const int&, const double*,
     const int&, const int&, const int&, const int&, const double*, const int&,
@@ -872,7 +875,7 @@ void COMPUTE_FACE_COEF3D(
     const int&, const double*, const int&, const int&, const int&, const int&,
     const int&, const int&, const double*, const int&, const int&, const int&,
     const int&, const int&, const int&, const double&, const char*, const char*,
-    const char*);
+    const char*, const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,

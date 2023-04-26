@@ -102,7 +102,8 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const double epsilon_eta, const double epsilon_q,
        const double quat_grad_floor, const std::string quat_smooth_floor_type,
        const double phase_well_scale, const double eta_well_scale,
-       const std::string orient_interp_func_type,
+       const std::string orient_interp_func_type1,
+       const std::string orient_interp_func_type2,
        const std::string avg_func_type, const std::string phase_well_func_type,
        const EnergyInterpolationType energy_interp_func_type,
        const ConcInterpolationType conc_interp_func_type,
@@ -897,8 +898,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    // Cumulative number of preconditioner applications
    int d_cum_p_apply;
 
-
-   std::string d_orient_interp_func_type;
+   // interpolation polynomial types for 1st and 2nd order grad q terms
+   std::string d_orient_interp_func_type1;
+   std::string d_orient_interp_func_type2;
 
    /*!
     * function type to take averages between two cell centered quantities

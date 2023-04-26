@@ -198,7 +198,8 @@ c
      &   eval_per_cell,
      &   phi_interp_type,
      &   phi_well_type,
-     &   orient_interp_type,
+     &   orient_interp_type1,
+     &   orient_interp_type2,
      &   avg_type,
      &   floor_type,
      $   gradient_floor
@@ -222,7 +223,7 @@ c
       double precision weight(CELL2d(lo,hi,0))
       character*(*) phi_interp_type
       character*(*) phi_well_type
-      character*(*) orient_interp_type
+      character*(*) orient_interp_type1, orient_interp_type2
       character*(*) avg_type
       character*(*) floor_type
       double precision gradient_floor, floor2
@@ -288,7 +289,7 @@ c
 
                   aphi = average_func( phi(i-1,j,p), phi(i,j,p),
      &                                 avg_type)
-                  p_phi = interp_func( aphi, orient_interp_type )
+                  p_phi = interp_func( aphi, orient_interp_type1 )
                   o2 = 0.d0               
                   do n = 1, NDIM
                      do m = 1, depth
@@ -300,7 +301,7 @@ c
 c
                   aphi = average_func( phi(i,j,p), phi(i+1,j,p),
      &                                 avg_type)
-                  p_phi = interp_func( aphi, orient_interp_type )
+                  p_phi = interp_func( aphi, orient_interp_type1 )
                   o2 = 0.d0
                   do n = 1, NDIM
                      do m = 1, depth
@@ -312,7 +313,7 @@ c
 c
                   aphi = average_func( phi(i,j-1,p), phi(i,j,p),
      &                                 avg_type)
-                  p_phi = interp_func( aphi, orient_interp_type )
+                  p_phi = interp_func( aphi, orient_interp_type1 )
                   o2 = 0.d0
                   do n = 1, NDIM
                      do m = 1, depth
@@ -324,7 +325,7 @@ c
 c
                   aphi = average_func( phi(i,j,p), phi(i,j+1,p),
      &                                 avg_type)
-                  p_phi = interp_func( aphi, orient_interp_type )
+                  p_phi = interp_func( aphi, orient_interp_type1 )
                   o2 = 0.d0
                   do n = 1, NDIM
                      do m = 1, depth
@@ -353,6 +354,7 @@ c
          epsilonq2 = 0.5d0 * epsilon_q * epsilon_q
          do j = lo1, hi1
             do i = lo0, hi0
+               p_phi = interp_func( phi(i,j,p), orient_interp_type2 )
                e = 0.d0
                do n = 1, NDIM
                   do m = 1, depth
@@ -365,7 +367,7 @@ c
                   enddo
                enddo
 c              factor 0.25 because of cell average and double counting
-               e = e * 0.25d0 * epsilonq2
+               e = e * 0.25d0 * epsilonq2 * p_phi
                if ( eval_per_cell /= 0 ) then
                   energy(i,j) = energy(i,j) + e
                endif

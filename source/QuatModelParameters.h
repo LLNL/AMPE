@@ -153,9 +153,13 @@ class QuatModelParameters
    double well_bias_alpha() const { return d_well_bias_alpha; }
    double well_bias_gamma() const { return d_well_bias_gamma; }
 
-   std::string orient_interp_func_type() const
+   std::string orient_interp_func_type1() const
    {
-      return d_orient_interp_func_type;
+      return d_orient_interp_func_type1;
+   }
+   std::string orient_interp_func_type2() const
+   {
+      return d_orient_interp_func_type2;
    }
    ConcInterpolationType conc_interp_func_type() const
    {
@@ -484,12 +488,16 @@ class QuatModelParameters
    double d_average_concentration;
 
    /*!
-    * function "p" in p(phi) in quaternion diffusion coefficient
+    * polynomial types for phi interpolation in quaternion diffusion
+    * coefficient (1st and 2nd order grad q terms)
     * valid options are:
-    *    "q" for quadratic, phi^2 (default)
+    *    "q" for quadratic, phi^2 (default for |grad q|)
     *    "3" for cubic, phi^3
+    *    "p" for "pbg"
+    *    "c" for constant, h(phi)=1 (default for |grad q|^2)
     */
-   std::string d_orient_interp_func_type;
+   std::string d_orient_interp_func_type1;
+   std::string d_orient_interp_func_type2;
 
    /*!
     * form of h_r(phi)
