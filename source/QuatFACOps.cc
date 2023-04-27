@@ -115,7 +115,6 @@ QuatFACOps::QuatFACOps(const int ql,
 
    if (!s_cell_scratch_var || !s_flux_scratch_var || !s_oflux_scratch_var ||
        !s_q_local_var || !s_residual_var || !s_sqrt_m_var || !s_m_deriv_var) {
-#ifdef DEBUG_CHECK_ASSERTIONS
       assert(!s_cell_scratch_var);
       assert(!s_flux_scratch_var);
       assert(!s_oflux_scratch_var);
@@ -123,7 +122,6 @@ QuatFACOps::QuatFACOps(const int ql,
       assert(!s_residual_var);
       assert(!s_sqrt_m_var);
       assert(!s_m_deriv_var);
-#endif
       if (!s_cell_scratch_var) {
          s_cell_scratch_var.reset(
              new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -148,7 +146,7 @@ QuatFACOps::QuatFACOps(const int ql,
 
       if (!s_face_coef_var) {
          s_face_coef_var.reset(new pdat::SideVariable<double>(
-             tbox::Dimension(NDIM), "QuatFACOps::private_face_coef", d_qlen));
+             tbox::Dimension(NDIM), "QuatFACOps::private_face_coef", 1));
       }
 
       if (!s_face_coef_deriv_var) {
@@ -156,7 +154,7 @@ QuatFACOps::QuatFACOps(const int ql,
              new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                             "QuatFACOps::private_face_coef_"
                                             "deriv",
-                                            2 * d_qlen));
+                                            2));
       }
 
       if (!s_q_local_var) {
@@ -966,13 +964,11 @@ void QuatFACOps::prolongErrorAndCorrect(const solv::SAMRAIVectorReal<double>& s,
 {
    t_prolong->start();
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    if (s.getPatchHierarchy() != d_hierarchy ||
        d.getPatchHierarchy() != d_hierarchy) {
       TBOX_ERROR(d_object_name << ": Vector hierarchy does not match\n"
                                   "internal state hierarchy.");
    }
-#endif
 
    std::shared_ptr<hier::PatchLevel> fine_level(
        d_hierarchy->getPatchLevel(dest_ln));
@@ -1047,9 +1043,7 @@ void QuatFACOps::doLevelSolve(solv::SAMRAIVectorReal<double>& solution,
                               int ln, int max_iterations,
                               double residual_tolerance)
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(d_quat_level_solver[ln] != NULL);
-#endif
 
    int q_solution_id = solution.getComponentDescriptorIndex(0);
    int q_residual_id = residual.getComponentDescriptorIndex(0);
@@ -1239,10 +1233,8 @@ void QuatFACOps::computeLambdaOnPatch(
     std::shared_ptr<pdat::SideData<int> > rotation_index,
     pdat::CellData<double>& lambda_data) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
    assert(q_data.getDepth() == d_qlen);
-#endif
 
    std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
@@ -1318,9 +1310,7 @@ void QuatFACOps::checkFluxPatchDataIndex() const
       std::shared_ptr<pdat::SideVariable<double> > flux_var(
           SAMRAI_SHARED_PTR_CAST<pdat::SideVariable<double>, hier::Variable>(
               var));
-#ifdef DEBUG_CHECK_ASSERTIONS
       assert(flux_var);
-#endif
    }
 }
 
@@ -1338,11 +1328,9 @@ void QuatFACOps::computeDQuatDPhiFaceCoefsOnPatch(
     pdat::CellData<double>& phi_data,
     pdat::SideData<double>& face_coef_data) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
-   assert(dprime_data.getDepth() == 2 * d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
+   assert(dprime_data.getDepth() == 2);
+   assert(face_coef_data.getDepth() == 1);
 
    const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();
@@ -1395,12 +1383,10 @@ void QuatFACOps::computeFluxOnPatch(
     const pdat::CellData<double>& q_data,
     pdat::SideData<double>& flux_data) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
    assert(q_data.getDepth() == d_qlen);
    assert(flux_data.getDepth() == d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
+   assert(face_coef_data.getDepth() == 1);
 
    // tbox::pout<<"QuatFACOps::computeFluxOnPatch() NOT using grad_q
    // data..."<<endl;
@@ -1469,14 +1455,12 @@ void QuatFACOps::computeFluxOnPatch(
 {
    (void)ratio_to_coarser_level;
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    // tbox::pout<<"check array sizes in
    // QuatFACOps::computeFluxOnPatch()..."<<endl;
    assert(patch.inHierarchy());
    assert(gradq_data.getDepth() == d_qlen * NDIM);
    assert(flux_data.getDepth() == d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
+   assert(face_coef_data.getDepth() == 1);
 
    // tbox::pout<<"QuatFACOps::computeFluxOnPatch() using grad_q data..."<<endl;
 
@@ -1529,12 +1513,10 @@ void QuatFACOps::computeSymmetricFluxOnPatch(
     const pdat::CellData<double>& q_data,
     pdat::SideData<double>& flux_data) const
 {
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
    assert(q_data.getDepth() == d_qlen);
    assert(flux_data.getDepth() == d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
+   assert(face_coef_data.getDepth() == 1);
 
    std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
        SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,

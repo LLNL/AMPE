@@ -34,8 +34,8 @@ c variables in 2d cell indexed
       double precision temperature(CELL2d(ifirst,ilast,tghosts))
       double precision gradq0(SIDE2d0(ifirst,ilast,nggradq),depth,NDIM)
       double precision gradq1(SIDE2d1(ifirst,ilast,nggradq),depth,NDIM)
-      double precision diff0(SIDE2d0(ifirst,ilast,ngdiff),depth*2)
-      double precision diff1(SIDE2d1(ifirst,ilast,ngdiff),depth*2)
+      double precision diff0(SIDE2d0(ifirst,ilast,ngdiff),2)
+      double precision diff1(SIDE2d1(ifirst,ilast,ngdiff),2)
 
       character*(*) smooth_floor_type
       character*(*) interp_type
@@ -65,10 +65,8 @@ c
          do ic0=ifirst0,ilast0+1
             if (var(ic0-1,ic1) .lt. jlf_threshold .or.
      &          var(ic0  ,ic1) .lt. jlf_threshold ) then
-               do m = 1, depth
-                  diff0(ic0,ic1,2*m-1) = 0.d0
-                  diff0(ic0,ic1,2*m  ) = 0.d0
-               enddo
+               diff0(ic0,ic1,1) = 0.d0
+               diff0(ic0,ic1,2) = 0.d0
             else
                phi = average_func(var(ic0-1,ic1),var(ic0  ,ic1),
      &                            avg_type)
@@ -90,20 +88,16 @@ c
      &                                   smooth_floor_type, 
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
-               
-               do m = 1, depth
 
-                  fac = grad_normi * d_deriv
+               fac = grad_normi * d_deriv
 
-                  dphi = deriv_average_func( phi, var(ic0-1,ic1),
-     &                                       avg_type)
-                  diff0(ic0,ic1,2*m-1) = fac * dphi
+               dphi = deriv_average_func( phi, var(ic0-1,ic1),
+     &                                    avg_type)
+               diff0(ic0,ic1,1) = fac * dphi
 
-                  dphi = deriv_average_func( phi, var(ic0  ,ic1),
-     &                                       avg_type)
-                  diff0(ic0,ic1,2*m  ) = fac * dphi
-
-               end do
+               dphi = deriv_average_func( phi, var(ic0  ,ic1),
+     &                                    avg_type)
+               diff0(ic0,ic1,2) = fac * dphi
 
             endif
          end do
@@ -113,10 +107,8 @@ c
          do ic0=ifirst0,ilast0
             if (var(ic0,ic1-1) .lt. jlf_threshold .or.
      &          var(ic0,ic1  ) .lt. jlf_threshold ) then
-               do m = 1, depth
-                  diff1(ic0,ic1,2*m-1) = 0.d0
-                  diff1(ic0,ic1,2*m  ) = 0.d0
-               end do
+                diff1(ic0,ic1,1) = 0.d0
+                diff1(ic0,ic1,2) = 0.d0
             else
 
                phi = average_func(var(ic0,ic1-1),var(ic0  ,ic1),
@@ -140,19 +132,15 @@ c
      &                                   floor_grad_norm2, 
      &                                   max_grad_normi)
 
-               do m = 1, depth
+               fac = grad_normi * d_deriv
 
-                  fac = grad_normi * d_deriv
+               dphi = deriv_average_func( phi, var(ic0,ic1-1),
+     &                                    avg_type)
+               diff1(ic0,ic1,1) = fac * dphi
 
-                  dphi = deriv_average_func( phi, var(ic0,ic1-1),
-     &                                       avg_type)
-                  diff1(ic0,ic1,2*m-1) = fac * dphi
-
-                  dphi = deriv_average_func( phi, var(ic0  ,ic1),
-     &                                       avg_type)
-                  diff1(ic0,ic1,2*m  ) = fac * dphi
-
-               end do
+               dphi = deriv_average_func( phi, var(ic0  ,ic1),
+     &                                    avg_type)
+               diff1(ic0,ic1,2) = fac * dphi
 
             endif
 
