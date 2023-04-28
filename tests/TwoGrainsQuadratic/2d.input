@@ -38,15 +38,14 @@ ModelParameters {
    avg_func_type = "arithmetic"
    
    ConcentrationModel{
-      model    = "hbsm"
+      model    = "quadratic"
       molar_volume_solid_A = 1.5e-5 // [m^3/mol]
       molar_volume_liquid  = 1.5e-5 // [m^3/mol]
       D_solid  =  1.3e8
       D_liquid  = 5.6e4
       Q0_solid  = 156377.   // Edwards et al. [J/mol]
       Q0_liquid = 55329.    // Wade 1971      [J/mol]
-      mobility = 1.
-      HBSM {
+      Quadratic {
          A_liquid = 1.e4 
          A_solid  = 1.e4
          Ceq_liquid = 0.05

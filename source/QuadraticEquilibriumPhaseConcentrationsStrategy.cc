@@ -8,13 +8,13 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#include "HBSMequilibriumPhaseConcentrationsStrategy.h"
-#include "HBSMFreeEnergyStrategy.h"
+#include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
+#include "QuadraticFreeEnergyStrategy.h"
 #include "FuncFort.h"
 
 
-HBSMequilibriumPhaseConcentrationsStrategy::
-    HBSMequilibriumPhaseConcentrationsStrategy(
+QuadraticEquilibriumPhaseConcentrationsStrategy::
+    QuadraticEquilibriumPhaseConcentrationsStrategy(
         const int conc_l_id, const int conc_a_id, const int conc_b_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
@@ -22,8 +22,9 @@ HBSMequilibriumPhaseConcentrationsStrategy::
       PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id,
                                   model_parameters.with_third_phase())
 {
-   d_hbsm_fenergy = new HBSMFreeEnergyStrategy(
-       conc_db->getDatabase("HBSM"), model_parameters.energy_interp_func_type(),
+   d_fenergy = new QuadraticFreeEnergyStrategy(
+       conc_db->getDatabase("Quadratic"),
+       model_parameters.energy_interp_func_type(),
        model_parameters.molar_volume_liquid(),
        model_parameters.molar_volume_solid_A(),
        model_parameters.molar_volume_solid_B(), model_parameters.D_liquid(),
@@ -33,7 +34,7 @@ HBSMequilibriumPhaseConcentrationsStrategy::
        model_parameters.with_third_phase());
 }
 
-int HBSMequilibriumPhaseConcentrationsStrategy::
+int QuadraticEquilibriumPhaseConcentrationsStrategy::
     computePhaseConcentrationsOnPatch(
         std::shared_ptr<pdat::CellData<double> > cd_temperature,
         std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -126,17 +127,15 @@ int HBSMequilibriumPhaseConcentrationsStrategy::
                heta = INTERP_FUNC(eta, &interpf);
             }
 
-            double c_l =
-                d_hbsm_fenergy->computeLiquidConcentration(hphi, heta, c);
+            double c_l = d_fenergy->computeLiquidConcentration(hphi, heta, c);
 
-            double c_a =
-                d_hbsm_fenergy->computeSolidAConcentration(hphi, heta, c);
+            double c_a = d_fenergy->computeSolidAConcentration(hphi, heta, c);
 
             ptr_c_l[idx_c_i] = c_l;
             ptr_c_a[idx_c_i] = c_a;
             if (d_with_third_phase) {
                double c_b =
-                   d_hbsm_fenergy->computeSolidBConcentration(hphi, heta, c);
+                   d_fenergy->computeSolidBConcentration(hphi, heta, c);
                ptr_c_b[idx_c_i] = c_b;
             }
          }

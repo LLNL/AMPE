@@ -3,7 +3,7 @@ import sys
 import subprocess
 import os
 
-print("Test Two grains HBSM...")
+print("Test Two grains with Quadratic energies...")
 
 #prepare initial conditions file
 initfilename="2spheres.nc"

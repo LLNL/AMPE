@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -14,7 +13,7 @@
 
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
-#include "HBSMequilibriumPhaseConcentrationsStrategy.h"
+#include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "Database2JSON.h"
@@ -146,9 +145,9 @@ class PhaseConcentrationsStrategyFactory
                     model_parameters.energy_interp_func_type(),
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
-            if (model_parameters.isConcentrationModelHBSM())
+            if (model_parameters.isConcentrationModelQuadratic())
                phase_conc_strategy.reset(
-                   new HBSMequilibriumPhaseConcentrationsStrategy(
+                   new QuadraticEquilibriumPhaseConcentrationsStrategy(
                        conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
                        model_parameters, conc_db));
          }

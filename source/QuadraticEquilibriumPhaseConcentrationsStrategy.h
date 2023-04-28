@@ -8,25 +8,25 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_HBSMEquilibriumPhaseConcentrationsStrategy
-#define included_HBSMEquilibriumPhaseConcentrationsStrategy
+#ifndef included_QuadraticEquilibriumPhaseConcentrationsStrategy
+#define included_QuadraticEquilibriumPhaseConcentrationsStrategy
 
 #include "PhaseConcentrationsStrategy.h"
 #include "QuatModelParameters.h"
-#include "HBSMFreeEnergyStrategy.h"
+#include "QuadraticFreeEnergyStrategy.h"
 
 #include <string>
 
-class HBSMequilibriumPhaseConcentrationsStrategy
+class QuadraticEquilibriumPhaseConcentrationsStrategy
     : public PhaseConcentrationsStrategy
 {
  public:
-   HBSMequilibriumPhaseConcentrationsStrategy(
+   QuadraticEquilibriumPhaseConcentrationsStrategy(
        const int conc_l_id, const int conc_a_id, const int conc_b_id,
        const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
-   ~HBSMequilibriumPhaseConcentrationsStrategy() { delete d_hbsm_fenergy; }
+   ~QuadraticEquilibriumPhaseConcentrationsStrategy() { delete d_fenergy; }
 
    virtual int computePhaseConcentrationsOnPatch(
        std::shared_ptr<pdat::CellData<double> > cd_temperature,
@@ -41,7 +41,7 @@ class HBSMequilibriumPhaseConcentrationsStrategy
  private:
    EnergyInterpolationType d_energy_interp_func_type;
 
-   HBSMFreeEnergyStrategy* d_hbsm_fenergy;
+   QuadraticFreeEnergyStrategy* d_fenergy;
 };
 
 #endif

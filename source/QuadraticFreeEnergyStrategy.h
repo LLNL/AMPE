@@ -2,34 +2,32 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-#ifndef included_HBSMFreeEnergyStrategy
-#define included_HBSMFreeEnergyStrategy
+#ifndef included_QuadraticFreeEnergyStrategy
+#define included_QuadraticFreeEnergyStrategy
 
 #include "FreeEnergyStrategy.h"
 #include "InterpolationType.h"
 
 #include <string>
 
-class HBSMFreeEnergyStrategy : public FreeEnergyStrategy
+class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
-   HBSMFreeEnergyStrategy(std::shared_ptr<tbox::Database> input_db,
-                          const EnergyInterpolationType energy_interp_func_type,
-                          const double vml, const double vma, const double vmb,
-                          const double D_liquid, const double D_solid_A,
-                          const double D_solid_B, const double Q0_liquid,
-                          const double Q0_solid_A, const double Q0_solid_B,
-                          const int conc_l_id, const int conc_a_id,
-                          const int conc_b_id, const bool with_third_phase);
+   QuadraticFreeEnergyStrategy(
+       std::shared_ptr<tbox::Database> input_db,
+       const EnergyInterpolationType energy_interp_func_type, const double vml,
+       const double vma, const double vmb, const double D_liquid,
+       const double D_solid_A, const double D_solid_B, const double Q0_liquid,
+       const double Q0_solid_A, const double Q0_solid_B, const int conc_l_id,
+       const int conc_a_id, const int conc_b_id, const bool with_third_phase);
 
-   ~HBSMFreeEnergyStrategy(){};
+   ~QuadraticFreeEnergyStrategy(){};
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
                                 const int fl_id, const bool gp = false);

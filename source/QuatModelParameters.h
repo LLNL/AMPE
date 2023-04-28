@@ -40,7 +40,7 @@ class QuatModelParameters
 
    enum class ConcModel {
       CALPHAD,
-      HBSM,
+      QUADRATIC,
       LINEAR,
       INDEPENDENT,  // energy does not depend on c
       KKSdilute,
@@ -276,16 +276,16 @@ class QuatModelParameters
       return (d_conc_model == ConcModel::LINEAR);
    }
 
-   bool isConcentrationModelCALPHADorHBSM() const
+   bool isConcentrationModelCALPHADorQuadratic() const
    {
       return (d_conc_model == ConcModel::CALPHAD ||
-              d_conc_model == ConcModel::HBSM);
+              d_conc_model == ConcModel::QUADRATIC);
    }
 
    bool concentrationModelNeedsPhaseConcentrations() const
    {
       return (d_conc_model == ConcModel::CALPHAD ||
-              d_conc_model == ConcModel::HBSM ||
+              d_conc_model == ConcModel::QUADRATIC ||
               d_conc_model == ConcModel::LINEAR ||
               d_conc_model == ConcModel::KKSdilute ||
               (d_conc_model == ConcModel::INDEPENDENT && d_with_concentration));
@@ -298,11 +298,11 @@ class QuatModelParameters
       return (d_conc_model == ConcModel::CALPHAD);
    }
 
-   bool isConcentrationModelHBSM() const
+   bool isConcentrationModelQuadratic() const
    {
       assert(d_conc_model != ConcModel::UNDEFINED);
 
-      return (d_conc_model == ConcModel::HBSM);
+      return (d_conc_model == ConcModel::QUADRATIC);
    }
 
    bool isConcentrationModelKKSdilute() const
