@@ -170,8 +170,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    std::string conc_model = conc_db->getStringWithDefault("model", "undefined");
    if (conc_model[0] == 'c') {
       d_conc_model = ConcModel::CALPHAD;
-   } else if (conc_model[0] == 'h') {
-      d_conc_model = ConcModel::HBSM;
+   } else if (conc_model[0] == 'q') {
+      d_conc_model = ConcModel::QUADRATIC;
    } else if (conc_model[0] == 'l') {
       d_conc_model = ConcModel::LINEAR;
    } else if (conc_model[0] == 'i') {
@@ -292,7 +292,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
           d_partition_coeff.compare("none") == 0);
 
    std::string default_model = "none";
-   if (d_conc_model == ConcModel::CALPHAD || d_conc_model == ConcModel::HBSM ||
+   if (d_conc_model == ConcModel::CALPHAD ||
+       d_conc_model == ConcModel::QUADRATIC ||
        d_conc_model == ConcModel::KKSdilute)
       default_model = "kks";
    d_phase_concentration_model =

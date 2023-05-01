@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -18,7 +17,7 @@
 #include "FuncFort.h"
 #include "ConcFort.h"
 #include "QuatParams.h"
-#include "HBSMFreeEnergyStrategy.h"
+#include "QuadraticFreeEnergyStrategy.h"
 
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 using namespace SAMRAI;
@@ -30,7 +29,7 @@ using namespace SAMRAI;
 
 //=======================================================================
 
-HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
+QuadraticFreeEnergyStrategy::QuadraticFreeEnergyStrategy(
     std::shared_ptr<tbox::Database> input_db,
     const EnergyInterpolationType energy_interp_func_type, const double vml,
     const double vma, const double vmb, const double D_liquid,
@@ -66,7 +65,7 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    d_energy_conv_factor_A = 1.e-6 / d_vm_A;
    if (d_with_third_phase) d_energy_conv_factor_B = 1.e-6 / d_vm_B;
 
-   tbox::plog << "HBSMFreeEnergyStrategy:" << std::endl;
+   tbox::plog << "QuadraticFreeEnergyStrategy:" << std::endl;
    tbox::plog << "Molar volume L =" << d_vm_L << std::endl;
    tbox::plog << "Molar volume A =" << d_vm_A << std::endl;
    if (d_with_third_phase)
@@ -97,7 +96,7 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
    }
 
    // print database just read
-   tbox::plog << "HBSM database..." << std::endl;
+   tbox::plog << "Quadratic database..." << std::endl;
    input_db->printClassData(tbox::plog);
 
    d_conc_l_id = conc_l_id;
@@ -107,10 +106,9 @@ HBSMFreeEnergyStrategy::HBSMFreeEnergyStrategy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fl_id,
-                                                     const bool gp)
+void QuadraticFreeEnergyStrategy::computeFreeEnergyLiquid(
+    hier::Patch& patch, const int temperature_id, const int fl_id,
+    const bool gp)
 {
    assert(fl_id >= 0);
    assert(temperature_id >= 0.);
@@ -123,10 +121,9 @@ void HBSMFreeEnergyStrategy::computeFreeEnergyLiquid(hier::Patch& patch,
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fs_id,
-                                                     const bool gp)
+void QuadraticFreeEnergyStrategy::computeFreeEnergySolidA(
+    hier::Patch& patch, const int temperature_id, const int fs_id,
+    const bool gp)
 {
    assert(fs_id >= 0);
    assert(temperature_id >= 0.);
@@ -139,10 +136,9 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidA(hier::Patch& patch,
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
-                                                     const int temperature_id,
-                                                     const int fs_id,
-                                                     const bool gp)
+void QuadraticFreeEnergyStrategy::computeFreeEnergySolidB(
+    hier::Patch& patch, const int temperature_id, const int fs_id,
+    const bool gp)
 {
    assert(fs_id >= 0);
    assert(temperature_id >= 0.);
@@ -157,7 +153,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergySolidB(hier::Patch& patch,
 
 // \/\/ No temperature dependence yet
 
-double HBSMFreeEnergyStrategy::computeFreeEnergy(
+double QuadraticFreeEnergyStrategy::computeFreeEnergy(
     const double temperature, const double conc, const double A,
     const double Ceq, const double energy_factor, const bool gp) const
 {
@@ -178,7 +174,7 @@ double HBSMFreeEnergyStrategy::computeFreeEnergy(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
+double QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     const double temperature, const double conc, const double A,
     const double Ceq, const double energy_factor) const
 {
@@ -191,12 +187,10 @@ double HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergy(hier::Patch& patch,
-                                               const int temperature_id,
-                                               const double A, const double Ceq,
-                                               const int f_id,
-                                               const int conc_i_id,
-                                               const double energy_factor)
+void QuadraticFreeEnergyStrategy::computeFreeEnergy(
+    hier::Patch& patch, const int temperature_id, const double A,
+    const double Ceq, const int f_id, const int conc_i_id,
+    const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -221,7 +215,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergy(hier::Patch& patch,
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
+void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const double A,
     const double Ceq, const int df_id, const int conc_i_id,
     const double energy_factor)
@@ -249,7 +243,7 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeFreeEnergy(
+void QuadraticFreeEnergyStrategy::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     const double A, const double Ceq,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -329,7 +323,7 @@ void HBSMFreeEnergyStrategy::computeFreeEnergy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
+void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
     const double A, const double Ceq,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
@@ -410,7 +404,7 @@ void HBSMFreeEnergyStrategy::computeDerivFreeEnergy(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForce(
+void QuadraticFreeEnergyStrategy::addDrivingForce(
     const double time, hier::Patch& patch, const int temperature_id,
     const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
     const int f_a_id, const int f_b_id, const int rhs_id)
@@ -489,7 +483,7 @@ void HBSMFreeEnergyStrategy::addDrivingForce(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForceOnPatch(
+void QuadraticFreeEnergyStrategy::addDrivingForceOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -642,7 +636,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceOnPatch(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeMu(const double t, const double c_l)
+double QuadraticFreeEnergyStrategy::computeMu(const double t, const double c_l)
 {
    const double A = d_A_liquid;
    const double Ceq = d_Ceq_liquid;
@@ -654,7 +648,7 @@ double HBSMFreeEnergyStrategy::computeMu(const double t, const double c_l)
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForceEta(
+void QuadraticFreeEnergyStrategy::addDrivingForceEta(
     const double time, hier::Patch& patch, const int temperature_id,
     const int phase_id, const int eta_id, const int conc_id, const int f_l_id,
     const int f_a_id, const int f_b_id, const int rhs_id)
@@ -733,7 +727,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceEta(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatch(
+void QuadraticFreeEnergyStrategy::addDrivingForceEtaOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_rhs,
     std::shared_ptr<pdat::CellData<double> > cd_temperature,
     std::shared_ptr<pdat::CellData<double> > cd_phi,
@@ -869,7 +863,7 @@ void HBSMFreeEnergyStrategy::addDrivingForceEtaOnPatch(
 
 //=======================================================================
 #if 0
-double HBSMFreeEnergyStrategy::computeLocalInvD2fDc2(
+double QuadraticFreeEnergyStrategy::computeLocalInvD2fDc2(
    const double c,
    const double hphi,
    const double heta,
@@ -900,9 +894,8 @@ double HBSMFreeEnergyStrategy::computeLocalInvD2fDc2(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeLiquidConcentration(const double hphi,
-                                                          const double heta,
-                                                          const double c) const
+double QuadraticFreeEnergyStrategy::computeLiquidConcentration(
+    const double hphi, const double heta, const double c) const
 {
    return (c -
            hphi * (1.0 - heta) *
@@ -915,9 +908,8 @@ double HBSMFreeEnergyStrategy::computeLiquidConcentration(const double hphi,
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidAConcentration(const double hphi,
-                                                          const double heta,
-                                                          const double c) const
+double QuadraticFreeEnergyStrategy::computeSolidAConcentration(
+    const double hphi, const double heta, const double c) const
 {
    return (c -
            (1.0 - hphi) *
@@ -930,9 +922,8 @@ double HBSMFreeEnergyStrategy::computeSolidAConcentration(const double hphi,
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidBConcentration(const double hphi,
-                                                          const double heta,
-                                                          const double c) const
+double QuadraticFreeEnergyStrategy::computeSolidBConcentration(
+    const double hphi, const double heta, const double c) const
 {
    return (c -
            (1.0 - hphi) *
@@ -945,7 +936,7 @@ double HBSMFreeEnergyStrategy::computeSolidBConcentration(const double hphi,
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeLiquidConcentration(
+double QuadraticFreeEnergyStrategy::computeLiquidConcentration(
     const double hphi, const double heta, const double c, const double Al,
     const double Aa, const double Ab, const double Ceql, const double CeqA,
     const double CeqB) const
@@ -958,7 +949,7 @@ double HBSMFreeEnergyStrategy::computeLiquidConcentration(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidAConcentration(
+double QuadraticFreeEnergyStrategy::computeSolidAConcentration(
     const double hphi, const double heta, const double c, const double Al,
     const double Aa, const double Ab, const double Ceql, const double CeqA,
     const double CeqB) const
@@ -971,7 +962,7 @@ double HBSMFreeEnergyStrategy::computeSolidAConcentration(
 
 //=======================================================================
 
-double HBSMFreeEnergyStrategy::computeSolidBConcentration(
+double QuadraticFreeEnergyStrategy::computeSolidBConcentration(
     const double hphi, const double heta, const double c, const double Al,
     const double Aa, const double Ab, const double Ceql, const double CeqA,
     const double CeqB) const
@@ -984,7 +975,7 @@ double HBSMFreeEnergyStrategy::computeSolidBConcentration(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
+void QuadraticFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
     const double temp, const std::vector<double>& c_l,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {
@@ -997,7 +988,7 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseL(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
+void QuadraticFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
     const double temp, const std::vector<double>& c_a,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {
@@ -1010,7 +1001,7 @@ void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseA(
 
 //=======================================================================
 
-void HBSMFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
+void QuadraticFreeEnergyStrategy::computeSecondDerivativeEnergyPhaseB(
     const double temp, const std::vector<double>& c_b,
     std::vector<double>& d2fdc2, const bool use_internal_units)
 {

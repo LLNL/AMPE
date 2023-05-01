@@ -106,8 +106,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureFreeEnergyStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/EventInterval.cc
-            ${CMAKE_SOURCE_DIR}/source/HBSMFreeEnergyStrategy.cc
-            ${CMAKE_SOURCE_DIR}/source/HBSMequilibriumPhaseConcentrationsStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticEquilibriumPhaseConcentrationsStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADequilibriumPhaseConcentrationsStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/GaussianTemperatureStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/ScalarTemperatureStrategy.cc

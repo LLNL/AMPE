@@ -23,7 +23,7 @@
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
 #include "KKSdiluteBinary.h"
-#include "HBSMFreeEnergyStrategy.h"
+#include "QuadraticFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
 #include "BiasDoubleWellUTRCFreeEnergyStrategy.h"
 #include "DeltaTemperatureFreeEnergyStrategy.h"
@@ -205,11 +205,12 @@ class FreeEnergyStrategyFactory
                 conc_db, model_parameters.energy_interp_func_type(),
                 model_parameters.conc_interp_func_type(), mvstrategy,
                 conc_l_scratch_id, conc_a_scratch_id));
-         } else if (model_parameters.isConcentrationModelHBSM()) {
+         } else if (model_parameters.isConcentrationModelQuadratic()) {
             tbox::pout << "QuatModel: "
-                       << "Using HBSM model for concentration" << std::endl;
-            free_energy_strategy.reset(new HBSMFreeEnergyStrategy(
-                conc_db->getDatabase("HBSM"),
+                       << "Using Quadratic model for concentration"
+                       << std::endl;
+            free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
+                conc_db->getDatabase("Quadratic"),
                 model_parameters.energy_interp_func_type(),
                 model_parameters.molar_volume_liquid(),
                 model_parameters.molar_volume_solid_A(),
