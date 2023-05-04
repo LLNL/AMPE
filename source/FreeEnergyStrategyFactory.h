@@ -214,11 +214,8 @@ class FreeEnergyStrategyFactory
                 model_parameters.energy_interp_func_type(),
                 model_parameters.molar_volume_liquid(),
                 model_parameters.molar_volume_solid_A(),
-                model_parameters.molar_volume_solid_B(),
-                model_parameters.D_liquid(), model_parameters.D_solid_A(),
-                model_parameters.D_solid_B(), model_parameters.Q0_liquid(),
-                model_parameters.Q0_solid_A(), model_parameters.Q0_solid_B(),
-                conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
+                model_parameters.molar_volume_solid_B(), conc_l_scratch_id,
+                conc_a_scratch_id, conc_b_scratch_id,
                 model_parameters.with_third_phase()));
          } else if (model_parameters.with_bias_well()) {
             if (model_parameters.wellBiasBeckermann()) {

@@ -39,7 +39,7 @@ class QuadraticEquilibriumPhaseConcentrationsStrategy
        std::shared_ptr<hier::Patch> patch);
 
  private:
-   EnergyInterpolationType d_energy_interp_func_type;
+   ConcInterpolationType d_conc_interp_func_type;
 
    QuadraticFreeEnergyStrategy* d_fenergy;
 };
