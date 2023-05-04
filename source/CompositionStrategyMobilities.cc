@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -15,9 +14,7 @@
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"
 #include "SAMRAI/tbox/InputManager.h"
 
-
 #include <cassert>
-
 
 const double m2toum2 = 1.e12;
 
@@ -27,6 +24,7 @@ CompositionStrategyMobilities::CompositionStrategyMobilities(
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
     : d_free_energy_strategy(free_energy_strategy)
 {
+   assert(input_db);
    assert(d_free_energy_strategy);
 
    d_ncompositions = ncompositions;

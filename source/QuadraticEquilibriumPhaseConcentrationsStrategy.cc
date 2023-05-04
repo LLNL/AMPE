@@ -18,7 +18,7 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
         const int conc_l_id, const int conc_a_id, const int conc_b_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
-    : d_energy_interp_func_type(model_parameters.energy_interp_func_type()),
+    : d_conc_interp_func_type(model_parameters.conc_interp_func_type()),
       PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id,
                                   model_parameters.with_third_phase())
 {
@@ -27,10 +27,7 @@ QuadraticEquilibriumPhaseConcentrationsStrategy::
        model_parameters.energy_interp_func_type(),
        model_parameters.molar_volume_liquid(),
        model_parameters.molar_volume_solid_A(),
-       model_parameters.molar_volume_solid_B(), model_parameters.D_liquid(),
-       model_parameters.D_solid_A(), model_parameters.D_solid_B(),
-       model_parameters.Q0_liquid(), model_parameters.Q0_solid_A(),
-       model_parameters.Q0_solid_B(), conc_l_id, conc_a_id, conc_b_id,
+       model_parameters.molar_volume_solid_B(), conc_l_id, conc_a_id, conc_b_id,
        model_parameters.with_third_phase());
 }
 
@@ -101,7 +98,7 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
    kmin = c_i_gbox.lower(2);
    kmax = c_i_gbox.upper(2);
 #endif
-   const char interpf = energyInterpChar(d_energy_interp_func_type);
+   const char interpf = concInterpChar(d_conc_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {

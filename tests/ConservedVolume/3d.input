@@ -1,0 +1,73 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 330
+end_time            = 0.008
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 20
+   interval_type = "step"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = -1
+   
+   temperature = 1000.
+
+   epsilon_phi = 0.165   // [(pJ/um)^1/2]
+
+   phi_mobility     = 200.
+   
+   phi_well_scale = 0.4125  // 6.6/16. [pJ/um^3]
+   phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
+   conc_interp_func_type = "lin"
+
+   ConcentrationModel{
+      rhs_form = "ebs"
+      model    = "quadratic"
+      diffusion_type = "temperature_dependent"
+      molar_volume_solid_A = 1.5e-5 // [m^3/mol]
+      molar_volume_liquid  = 1.5e-5 // [m^3/mol]
+      D_solid  =  1.3e8
+      D_liquid  = 5.6e4
+      Quadratic {
+         A_liquid = 1.e4 
+         A_solid  = 1.e4
+         Ceq_liquid = 0.
+         Ceq_solid  = 1.
+      }
+   }
+}
+
+Integrator {
+   atol = 2.e-5
+}
+
+ScalarDiagnostics {
+   interval = 0.001
+   interval_type = "time"
+   include_first_step = TRUE
+   include_last_step  = TRUE
+}   
+
+InitialConditions {
+   filename = "3d.nc"
+}
+
+Geometry{
+   coarsest_level_resolution = 32, 32, 32
+   x_lo         =  0.0,  0.0, 0.0 // lower end of computational domain.
+   x_up         =  1.6,  1.6, 1.6 // upper end of computational domain.
+}

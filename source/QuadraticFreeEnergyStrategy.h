@@ -22,9 +22,7 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
    QuadraticFreeEnergyStrategy(
        std::shared_ptr<tbox::Database> input_db,
        const EnergyInterpolationType energy_interp_func_type, const double vml,
-       const double vma, const double vmb, const double D_liquid,
-       const double D_solid_A, const double D_solid_B, const double Q0_liquid,
-       const double Q0_solid_A, const double Q0_solid_B, const int conc_l_id,
+       const double vma, const double vmb, const int conc_l_id,
        const int conc_a_id, const int conc_b_id, const bool with_third_phase);
 
    ~QuadraticFreeEnergyStrategy(){};
@@ -157,13 +155,6 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
    double d_energy_conv_factor_L;  // molar volume
    double d_energy_conv_factor_A;  // molar volume
    double d_energy_conv_factor_B;  // molar volume
-
-   double d_D_liquid;
-   double d_D_solid_A;
-   double d_D_solid_B;
-   double d_Q0_liquid;
-   double d_Q0_solid_A;
-   double d_Q0_solid_B;
 
    double d_A_liquid;
    double d_A_solid_A;

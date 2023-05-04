@@ -32,24 +32,13 @@ using namespace SAMRAI;
 QuadraticFreeEnergyStrategy::QuadraticFreeEnergyStrategy(
     std::shared_ptr<tbox::Database> input_db,
     const EnergyInterpolationType energy_interp_func_type, const double vml,
-    const double vma, const double vmb, const double D_liquid,
-    const double D_solid_A, const double D_solid_B, const double Q0_liquid,
-    const double Q0_solid_A, const double Q0_solid_B, const int conc_l_id,
+    const double vma, const double vmb, const int conc_l_id,
     const int conc_a_id, const int conc_b_id, const bool with_third_phase)
 {
-   assert(D_liquid >= 0.);
-   assert(Q0_liquid >= 0.);
-   assert(Q0_solid_A >= 0.);
-   assert(D_solid_A >= 0.);
-
    assert(conc_l_id >= 0);
    assert(conc_a_id >= 0);
 
    d_with_third_phase = with_third_phase;
-   if (d_with_third_phase) {
-      assert(Q0_solid_B >= 0.);
-      assert(D_solid_B >= 0.);
-   }
 
    d_energy_interp_func_type = energy_interp_func_type;
 
@@ -71,14 +60,6 @@ QuadraticFreeEnergyStrategy::QuadraticFreeEnergyStrategy(
    if (d_with_third_phase)
       tbox::plog << "Molar volume B =" << d_vm_B << std::endl;
    // tbox::plog << "jpmol2pjpmumcube=" << d_jpmol2pjpmumcube << std::endl;
-
-   d_D_liquid = D_liquid;
-   d_D_solid_A = D_solid_A;
-   d_D_solid_B = D_solid_B;
-
-   d_Q0_liquid = Q0_liquid;
-   d_Q0_solid_A = Q0_solid_A;
-   d_Q0_solid_B = Q0_solid_B;
 
    d_A_liquid = input_db->getDouble("A_liquid");
    d_Ceq_liquid = input_db->getDouble("Ceq_liquid");
