@@ -412,7 +412,8 @@ ncquat = []
 ncconc = []
 
 ncphase       = ncfile.createVariable( 'phase', 'f', ('z','y','x') )
-nctemperature = ncfile.createVariable( 'temperature', 'f', ('z','y','x') )
+if ( not temperature0 is None ) :
+  nctemperature = ncfile.createVariable( 'temperature', 'f', ('z','y','x') )
 for n in range( QLEN ) :
   q_comp = ncfile.createVariable( 'quat%d' % (n+1), 'f', ('z','y','x') )
   ncquat.append( q_comp )
@@ -424,7 +425,8 @@ for s in range(nspecies):
 phase = N.ones( (nz,ny,nx), N.float32 )
 quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
 conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
-temperature = N.zeros( (nz,ny,nx), N.float32 )
+if ( not temperature0 is None ) :
+  temperature = N.zeros( (nz,ny,nx), N.float32 )
 
 r_sq = radius**2
 r_sq_two = radius_two**2
@@ -634,7 +636,8 @@ for k in range( nz ) :
 # Write data to file and close
 
 ncphase[:,:,:]=phase
-nctemperature[:,:,:]= temperature
+if ( not temperature0 is None ) :
+  nctemperature[:,:,:]= temperature
 
 for n in range( QLEN ) :
   ncquat[n][:,:,:]=quat[n,:,:,:]

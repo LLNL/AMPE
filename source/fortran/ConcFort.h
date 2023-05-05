@@ -287,17 +287,13 @@ void INITGAUSSIAN(const double*, const double*, const double*,
                   const double*, const int&, const double*, const double*,
                   const double&, const double&, const double&);
 
-void INITGRADIENT(const double*, const double*, const double*,
-                  const int& ifirst0, const int& ilast0, const int& ifirst1,
-                  const int& ilast1,
+void INITGRADIENT(const double*, const double*, const int& ifirst0,
+                  const int& ilast0, const int& ifirst1, const int& ilast1,
 #if (NDIM == 3)
                   const int& ifirst2, const int& ilast2,
 #endif
-                  const int&, const int&,
-#if (NDIM == 3)
-                  const int&,
-#endif
-                  const double*, const double*, const double&, const double*);
+                  const double*, const int&, const double*, const double&,
+                  const double*);
 
 void INITGAUSSIANSOURCE(const double*, const double*, const double*,
                         const int& ifirst0, const int& ilast0,

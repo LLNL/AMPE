@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -168,16 +167,16 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    assert(d_ncompositions > 0);
 
    std::string conc_model = conc_db->getStringWithDefault("model", "undefined");
-   if (conc_model[0] == 'c') {
+   if (conc_model.compare("calphad") == 0) {
       d_conc_model = ConcModel::CALPHAD;
-   } else if (conc_model[0] == 'q') {
+   } else if (conc_model.compare("quadratic") == 0) {
       d_conc_model = ConcModel::QUADRATIC;
-   } else if (conc_model[0] == 'l') {
+   } else if (conc_model.compare("linear") == 0) {
       d_conc_model = ConcModel::LINEAR;
-   } else if (conc_model[0] == 'i') {
+   } else if (conc_model.compare("independent") == 0) {
       d_conc_model =
           ConcModel::INDEPENDENT;  // energy independent of composition
-   } else if (conc_model[0] == 'd') {
+   } else if (conc_model.compare("dilute") == 0) {
       d_conc_model = ConcModel::KKSdilute;
    } else {
       TBOX_ERROR("Error: unknown concentration model in QuatModelParameters");
@@ -186,11 +185,11 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    {
       std::string conc_rhs_strategy =
           conc_db->getStringWithDefault("rhs_form", "kks");
-      if (conc_rhs_strategy[0] == 'k') {
+      if (conc_rhs_strategy.compare("kks") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::KKS;
-      } else if (conc_rhs_strategy[0] == 'e') {
+      } else if (conc_rhs_strategy.compare("ebs") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::EBS;
-      } else if (conc_rhs_strategy[0] == 's') {
+      } else if (conc_rhs_strategy.compare("spinodal") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||
                  conc_rhs_strategy[0] == 'b') {
@@ -204,12 +203,12 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
    // default setup so that older inputs files need not to be changed
    std::string default_concdiff_type =
        d_conc_rhs_strategy == ConcRHSstrategy::EBS ? "composition_dependent"
-                                                   : "time_dependent";
+                                                   : "temperature_dependent";
    std::string conc_diffusion_strategy =
        conc_db->getStringWithDefault("diffusion_type", default_concdiff_type);
-   if (conc_diffusion_strategy[0] == 'c') {
+   if (conc_diffusion_strategy.compare("composition_dependent") == 0) {
       d_conc_diffusion_type = ConcDiffusionType::CTD;
-   } else if (conc_diffusion_strategy[0] == 't') {
+   } else if (conc_diffusion_strategy.compare("temperature_dependent") == 0) {
       d_conc_diffusion_type = ConcDiffusionType::TD;
    }
 
@@ -382,37 +381,44 @@ void QuatModelParameters::readTemperatureModel(
           temperature_db->getStringWithDefault("temperature_type", "scalar");
    }
 
-   if (temperature_type[0] != 's' &&  // scalar
-       temperature_type[0] != 'S' &&
-       temperature_type[0] != 'f' &&  // Frozen (gradient)
-       temperature_type[0] != 'F' && temperature_type[0] != 'g' &&  // Gaussian
-       temperature_type[0] != 'G' && temperature_type[0] != 'c' &&  // constant
-       temperature_type[0] != 'C' &&
-       temperature_type[0] != 'h' &&  // heat equation
-       temperature_type[0] != 'H') {
+   // fix first letter so we don't need to check for capital letters later
+   if (temperature_type[0] == 'S') temperature_type[0] = 's';
+   if (temperature_type[0] == 'F') temperature_type[0] = 'f';
+   if (temperature_type[0] == 'G') temperature_type[0] = 'g';
+   if (temperature_type[0] == 'C') temperature_type[0] = 'c';
+   if (temperature_type[0] == 'H') temperature_type[0] = 'h';
+
+   // check if option is valid
+   if (temperature_type.compare("scalar") != 0 &&    // scalar
+       temperature_type.compare("frozen") != 0 &&    // Frozen (gradient)
+       temperature_type.compare("gaussian") != 0 &&  // Gaussian
+       temperature_type.compare("constant") != 0 &&  // constant
+       temperature_type.compare("heat") != 0 &&      // heat equation
+       temperature_type.compare("file") != 0         // read from file
+   ) {
       TBOX_ERROR("Error: invalid value for temperature_type");
    }
 
    d_meltingT =
        temperature_db->getDoubleWithDefault("meltingT", -1.);  // in [K]
 
-   if (temperature_type[0] == 's' || temperature_type[0] == 'S') {
+   if (temperature_type.compare("scalar") == 0) {
 
       d_temperature_type = TemperatureType::SCALAR;
       d_with_heat_equation = false;
 
-   } else if (temperature_type[0] == 'g' || temperature_type[0] == 'G') {
+   } else if (temperature_type.compare("gaussian") == 0) {
 
       d_temperature_type = TemperatureType::GAUSSIAN;
       d_with_heat_equation = false;
 
-   } else if (temperature_type[0] == 'f' ||  // frozen approx.
-              temperature_type[0] == 'F') {
+   } else if (temperature_type.compare("frozen") == 0)  // frozen approx.
+   {
 
       d_temperature_type = TemperatureType::GRADIENT;
       d_with_heat_equation = false;
 
-   } else if (temperature_type[0] == 'h' || temperature_type[0] == 'H') {
+   } else if (temperature_type.compare("heat") == 0) {
 
       assert(d_molar_volume_liquid == d_molar_volume_liquid);
       assert(d_molar_volume_liquid > 0.);
@@ -506,7 +512,7 @@ void QuatModelParameters::readTemperatureModel(
          d_H_parameter *= d_rescale_factorT;
       }
 
-   } else if (temperature_type[0] == 'c' || temperature_type[0] == 'C') {
+   } else if (temperature_type.compare("constant") == 0) {
       d_temperature_type = TemperatureType::CONSTANT;
    } else {
       TBOX_ERROR("ERROR: Temperature type needs to be specified!");

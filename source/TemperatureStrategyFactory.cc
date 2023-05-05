@@ -116,13 +116,11 @@ std::shared_ptr<TemperatureStrategy> TemperatureStrategyFactory::create(
                                           d_temperature_scratch_id, d_weight_id,
                                           temperature_db, d_grid_geometry));
    } else if (model_parameters.isTemperatureGradient()) {
-      const double temperature0 =
-          readTemperature0(temperature_db,
-                           QuatModelParameters::TemperatureType::SCALAR);
       const double frame_velocity = model_parameters.movingVelocity();
-      strategy.reset(new GradientTemperatureStrategy(
-          d_temperature_id, d_temperature_scratch_id, temperature0,
-          frame_velocity, temperature_db));
+      strategy.reset(new GradientTemperatureStrategy(d_temperature_id,
+                                                     d_temperature_scratch_id,
+                                                     frame_velocity,
+                                                     temperature_db));
    } else if (model_parameters.with_heat_equation()) {
 
       if (model_parameters.with_steady_temperature()) {
