@@ -116,10 +116,6 @@ quat_inside=[]
 nangles = 20. #actually means fewer different angles if symmetry is on
 h = 2.*math.pi/nangles
 
-h1=0.1
-h2=0.5*h1
-h3=h2
-
 #-----------------------------------------------------------------------
 def setRandomQinGrains():
   print("setRandomQinGrains...")
@@ -144,32 +140,8 @@ def setRandomQinGrains():
         q3 = 0.
 
       else :
-        if ( QLEN == 4 ) :
-          #K. Shoemake. "Uniform random rotations."
-          #In D. Kirk, editor, Graphics Gems III, pages 124-132. Academic, New York, 1992. 
-          u1 = random.uniform(0, 1.)
-          u2 = random.uniform(0, 1.)
-          u3 = random.uniform(0, 1.)
-          #print( u1,u2,u3
 
-          #restricts possible orientations
-          n  = math.floor( u1/h1 )
-          u1 = n*h1
-          n  = math.floor( u2/h2 )
-          u2 = n*h2
-          n  = math.floor( u3/h3 )
-          u3 = n*h3
-
-          w = math.sqrt(1.-u1)*math.sin(2.*math.pi*u2)
-          x = math.sqrt(1.-u1)*math.cos(2.*math.pi*u2)
-          y = math.sqrt(u1)*math.sin(2.*math.pi*u3)
-          z = math.sqrt(u1)*math.cos(2.*math.pi*u3)
- 
-        else : #QLEN=2
-          w = math.cos( t )
-          x = math.sin( t)
-          y = 0.
-          z = 0.
+        [w,x,y,z] = Q.getQuatRandom(t,QLEN)
 
         q0 = w
         q1 = x
@@ -222,11 +194,11 @@ def smoothQuat(quat,px,py,pz):
 #fill conc values
 nspecies=0
 if ( not ( nomconc is None ) ):
-  c = list(map( float, options.nomconc.split(',' ) ))
+  c = list(map( float, nomconc.split(',' ) ))
   nspecies=len(c)
   print( "Nominal composition={}".format(c))
 if not(conc_inside is None):
-  ci = list(map( float, options.concentration_in.split(',' ) ))
+  ci = list(map( float, conc_inside.split(',' ) ))
   if nspecies==0:
     nspecies=len(ci)
   print( "Composition inside={}".format(ci))
@@ -234,7 +206,7 @@ else:
   ci = N.zeros( nspecies, N.float32 )
 
 if ( not ( conc_outside is None ) ):
-  co = list(map( float, options.concentration_out.split(',' ) ))
+  co = list(map( float, conc_outside.split(',' ) ))
   print( "Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
