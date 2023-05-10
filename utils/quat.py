@@ -2,39 +2,15 @@
 # UT-Battelle, LLC.
 # Produced at the Lawrence Livermore National Laboratory and
 # the Oak Ridge National Laboratory
-# Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 # LLNL-CODE-747500
 # All rights reserved.
 # This file is part of AMPE. 
 # For details, see https://github.com/LLNL/AMPE
 # Please also read AMPE/LICENSE.
-# Redistribution and use in source and binary forms, with or without 
-# modification, are permitted provided that the following conditions are met:
-# - Redistributions of source code must retain the above copyright notice,
-#   this list of conditions and the disclaimer below.
-# - Redistributions in binary form must reproduce the above copyright notice,
-#   this list of conditions and the disclaimer (as noted below) in the
-#   documentation and/or other materials provided with the distribution.
-# - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-#   used to endorse or promote products derived from this software without
-#   specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-# LLC, UT BATTELLE, LLC,
-# THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-# DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-# STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-# IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
 # 
 import numpy
 import math
+import random
 
 def makeQuat( w=0, x=0, y=0, z=0 ) :
   q = numpy.array( [ w, x, y, z ], numpy.float )
@@ -542,4 +518,36 @@ def quatToColor( q1,q2,q3,q4 ) :
   qq = makeQuat(q1,q2,q3,q4)
   qq = quatMakeFundamental( qq )
   return color4(128+127*qq[1],128+127*qq[2],128+127*qq[3],191+64*qq[0])
-  
+
+def getQuatRandom(t, qlen=4):
+  if ( qlen == 4 ) :
+    h1=0.1
+    h2=0.5*h1
+    h3=h2
+    #K. Shoemake. "Uniform random rotations."
+    #In D. Kirk, editor, Graphics Gems III, pages 124-132. Academic, New York, 1992.
+    u1 = random.uniform(0, 1.)
+    u2 = random.uniform(0, 1.)
+    u3 = random.uniform(0, 1.)
+    #print( u1,u2,u3
+
+    #restricts possible orientations
+    n  = math.floor( u1/h1 )
+    u1 = n*h1
+    n  = math.floor( u2/h2 )
+    u2 = n*h2
+    n  = math.floor( u3/h3 )
+    u3 = n*h3
+
+    w = math.sqrt(1.-u1)*math.sin(2.*math.pi*u2)
+    x = math.sqrt(1.-u1)*math.cos(2.*math.pi*u2)
+    y = math.sqrt(u1)*math.sin(2.*math.pi*u3)
+    z = math.sqrt(u1)*math.cos(2.*math.pi*u3)
+
+  else : #qlen=2
+    w = math.cos( t )
+    x = math.sin( t)
+    y = 0.
+    z = 0.
+
+  return [w,x,y,z]
