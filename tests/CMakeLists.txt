@@ -148,6 +148,10 @@ add_executable(testCALPHADternaryEquilibrium
                ${CMAKE_SOURCE_DIR}/source/Database2JSON.cc
                ${CMAKE_SOURCE_DIR}/source/fortran/functions.f
                )
+add_executable(testTemperatureHistory
+               ${CMAKE_SOURCE_DIR}/tests/testTemperatureHistory.cc
+               ${CMAKE_SOURCE_DIR}/source/TemperatureHistory.cc
+               )
 
 add_test(NAME testNetCDFwrite
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
@@ -237,6 +241,9 @@ add_test(NAME testCALPHADternaryEquilibrium2
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
          ${CMAKE_CURRENT_BINARY_DIR}/testCALPHADternaryEquilibrium test2.input
          WORKING_DIRECTORY ${TEST_DIR}/CALPHADternaryEquilibrium)
+add_test(NAME testTemperatureHistory
+         COMMAND ${CMAKE_CURRENT_BINARY_DIR}/testTemperatureHistory
+         WORKING_DIRECTORY ${TEST_DIR}/TemperatureHistory)
 
 #regression tests
 add_test(NAME PlanarFront
@@ -266,7 +273,14 @@ add_test(NAME GradientMovingFrame
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/GradientMovingFrame/${NDIM}d.input
          )
-
+add_test(NAME TemperatureHistoryMovingFrame
+         COMMAND ${PYTHON_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/TemperatureHistoryMovingFrame/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/TemperatureHistoryMovingFrame/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/TemperatureHistoryMovingFrame
+         )
 add_test(NAME ChenShen98
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
@@ -460,3 +474,5 @@ target_link_libraries(testCALPHADJacobianTernary
                       ${THERMOLIB})
 target_link_libraries(testMath
                       ${THERMOLIB})
+target_link_libraries(testTemperatureHistory
+                      ${PROJECT_LINK_LIBS_SAMRAI})

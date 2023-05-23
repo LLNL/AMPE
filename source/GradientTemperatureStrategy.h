@@ -12,6 +12,7 @@
 #define included_GradientTemperatureStrategy
 
 #include "TemperatureStrategy.h"
+#include "TemperatureHistory.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/geom/CartesianGridGeometry.h"
@@ -27,7 +28,6 @@ class GradientTemperatureStrategy : public TemperatureStrategy
  public:
    GradientTemperatureStrategy(const int temperature_id,
                                const int temperature_scratch_id,
-                               const double temperature0,
                                const double velocity_x,
                                std::shared_ptr<tbox::Database> temperature_db);
 
@@ -37,7 +37,10 @@ class GradientTemperatureStrategy : public TemperatureStrategy
    {
       // reset d_ref_center and d_ref_time first according
       // to velocity used between d_ref_time and time
-      d_ref_center[0] -= (time - d_ref_time) * d_velocity_x;
+      if (d_temperature_history)
+         d_ref_center[0] += (time - d_ref_time) * d_velocity_x;
+      else
+         d_ref_center[0] -= (time - d_ref_time) * d_velocity_x;
 
       // now reset d_ref_time and d_velocity_x
       d_ref_time = time;
@@ -65,7 +68,9 @@ class GradientTemperatureStrategy : public TemperatureStrategy
 
    double d_temperature0;
    double d_dtemperaturedt;
-   double d_target_temperature;
+
+   // center at first time step
+   double d_init_center[NDIM];
 
    double d_gradient[NDIM];
    double d_center[NDIM];
@@ -76,6 +81,8 @@ class GradientTemperatureStrategy : public TemperatureStrategy
 
    // moving frame velocity in x direction
    double d_velocity_x;
+
+   std::shared_ptr<TemperatureHistory> d_temperature_history;
 
    void setCurrentTemperature(const double temperature, hier::Patch& patch,
                               std::shared_ptr<pdat::CellData<double> > cd_temp);

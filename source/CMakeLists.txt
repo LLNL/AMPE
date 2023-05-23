@@ -27,6 +27,7 @@ set(SOURCES_WPENALTY
 
 set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/main.cc
+            ${CMAKE_SOURCE_DIR}/source/TemperatureHistory.cc
             ${CMAKE_SOURCE_DIR}/source/QuatFaceCoeff.cc
             ${CMAKE_SOURCE_DIR}/source/AdaptMovingFrame.cc
             ${CMAKE_SOURCE_DIR}/source/computeQDiffs.cc

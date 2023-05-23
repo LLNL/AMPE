@@ -1,35 +1,10 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
-c 
 define(NDIM,2)dnl
 define(REAL,`double precision')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
@@ -269,12 +244,14 @@ c
       end
 
 c***********************************************************************
-
-      subroutine initgradient(dx,xlo,xhi,
+c Input:
+c   ref_position: position of global node (0,0)
+c   ref_temperature: temperature at ref_position
+c
+      subroutine initgradient(dx,xlo,
      &  ifirst0,ilast0,ifirst1,ilast1,
-     &  gcw0,gcw1,
-     &  var,
-     &  center,temperature_center,
+     &  var, ng,
+     &  ref_position,ref_temperature,
      &  gradient)
 c***********************************************************************
       implicit none
@@ -282,27 +259,26 @@ c***********************************************************************
       REAL half
       parameter (half=.5d0)
 
-      integer ifirst0,ilast0,ifirst1,ilast1
-      integer gcw0,gcw1
-      REAL center(0:NDIM-1)
-      REAL temperature_center
-      REAL dx(0:NDIM-1),xlo(0:NDIM-1),xhi(0:NDIM-1)
+      integer ifirst0,ilast0,ifirst1,ilast1, ng
+      REAL ref_position(0:NDIM-1)
+      REAL ref_temperature
+      REAL dx(0:NDIM-1),xlo(0:NDIM-1)
       REAL gradient(0:NDIM-1)
 c variables in 2d cell indexed
-      REAL var(CELL2dVECG(ifirst,ilast,gcw))
+      REAL var(CELL2d(ifirst,ilast,ng))
 
 c***********************************************************************
       integer ic0,ic1
       REAL xc(0:NDIM-1),x0,x1
 
-      do ic1=ifirst1-gcw1,ilast1+gcw1
+      do ic1=ifirst1-ng,ilast1+ng
         xc(1) = xlo(1)+dx(1)*(dble(ic1-ifirst1)+half)
-        x1 = xc(1)-center(1)
-        do ic0=ifirst0-gcw0,ilast0+gcw0
+        x1 = xc(1)-ref_position(1)
+        do ic0=ifirst0-ng,ilast0+ng
            xc(0) = xlo(0)+dx(0)*(dble(ic0-ifirst0)+half)
-           x0 = xc(0)-center(0)
+           x0 = xc(0)-ref_position(0)
 
-           var(ic0,ic1) = temperature_center
+           var(ic0,ic1) = ref_temperature
      &                  + x0*gradient(0)
      &                  + x1*gradient(1)
 
@@ -311,4 +287,3 @@ c***********************************************************************
 
       return
       end
-
