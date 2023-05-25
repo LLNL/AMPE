@@ -41,8 +41,6 @@ parser.add_option( "--concentration-in", type="string",
                    help="concentration in interior region" )
 parser.add_option( "--concentration-out", type="string", 
                    help="concentration in outside region" )
-parser.add_option( "--temperature", type="float",
-                   help="temperature" )
 parser.add_option( "-w", "--width", type="float",
                    help="interface width (in mesh points)", default=5.0 )
 parser.add_option( "--solid-fraction", type="float", default=1./60.,
@@ -59,6 +57,8 @@ parser.add_option( "--periodicy", type="int", default=0,
                   help="periodic in direction y")
 parser.add_option( "--periodicz", type="int", default=0,
                   help="periodic in direction z")
+parser.add_option( "--smooth", type="int", default=1,
+                  help="smooth quaternion field")
 
 (options, args) = parser.parse_args()
 
@@ -66,6 +66,7 @@ filename = args[0]
 
 
 plane = options.plane
+smooth_quat = options.smooth
 
 nx = options.nx
 ny = options.ny
@@ -108,8 +109,6 @@ conc_outside  = options.concentration_out
 if conc_inside is None :
   conc_inside = nomconc
 
-temperature = options.temperature
-
 # generate quaternions corresponding to random orientations
 random.seed( 112345 )
 quat_inside=[]
@@ -140,7 +139,6 @@ def setRandomQinGrains():
         q3 = 0.
 
       else :
-
         [w,x,y,z] = Q.getQuatRandom(t,QLEN)
 
         q0 = w
@@ -194,7 +192,7 @@ def smoothQuat(quat,px,py,pz):
 #fill conc values
 nspecies=0
 if ( not ( nomconc is None ) ):
-  c = list(map( float, nomconc.split(',' ) ))
+  c = list(map( float, options.nomconc.split(',' ) ))
   nspecies=len(c)
   print( "Nominal composition={}".format(c))
 if not(conc_inside is None):
@@ -206,7 +204,7 @@ else:
   ci = N.zeros( nspecies, N.float32 )
 
 if ( not ( conc_outside is None ) ):
-  co = list(map( float, conc_outside.split(',' ) ))
+  co = list(map( float, options.concentration_out.split(',' ) ))
   print( "Composition outside={}".format(co))
 else:
   co = N.zeros( nspecies, N.float32 )
@@ -221,9 +219,7 @@ if not(nomconc is None):
     print("conc_outside={}".format(co[isp]))
 
 #-----------------------------------------------------------------------
-# Open and define file
-
-#f = NetCDF.NetCDFFile( filename, 'w' )
+# Open output file
 f = nc4.Dataset(filename, 'w', format='NETCDF4')
 
 f.createDimension( 'x', nn[0] )
@@ -236,9 +232,6 @@ f.createDimension( 'ns', nspecies )
 ncquat=[]
 ncconc = []
 
-print( 'Data in single precision...')
-if not(temperature is None):
-  nctemp  = f.createVariable( 'temperature', 'f', ('z','y','x') )
 ncphase = f.createVariable( 'phase',         'f', ('z','y','x') )
 
 for m in range(QLEN):
@@ -331,9 +324,25 @@ for isp in range(nspecies):
   for x,y in N.nditer([conc[isp,:,:,:],phase], op_flags=['readwrite']):
     x[...]= ci[isp]*y+co[isp]*(1.-y)
 
-for it in range(3):
-  for m in range(QLEN):
-    smoothQuat(quat[m,:,:,:], options.periodicx, options.periodicy, options.periodicz)
+if smooth_quat:
+  for it in range(3):
+    for m in range(QLEN):
+      smoothQuat(quat[m,:,:,:], options.periodicx, options.periodicy, options.periodicz)
+else:
+  #set q to random quaternion in liquid phase
+  for i in range( nn[0] ) :
+    index[dir0] = i
+    for j in range( nn[1] ) :
+      index[dir1] = j
+      for k in range( nn[2] ) :
+        index[dir2] = k
+        if ( phase[index[2],index[1],index[0]]<0.1 ) :
+          n = random.randint(0,nangles-1)
+          #print( 'random number =',n
+          t = n*h
+          qq=Q.getQuatRandom(t,QLEN)
+          for m in range(QLEN):
+            quat[m,k,j,i] = qq[m]
 
 #-----------------------------------------------------------------------
 # Write data to file and close
@@ -342,8 +351,6 @@ print("Write data to file")
 if ( nspecies>0 ):
   for s in range(nspecies):
     ncconc[s][:,:,:]=conc[s,:,:,:]
-if not(temperature is None):
-  nctemp[:,:,:]= temperature
 ncphase[:,:,:]=phase
 for m in range(QLEN):
   ncquat[m][:,:,:]=quat[m,:,:,:]
