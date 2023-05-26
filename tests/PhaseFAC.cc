@@ -283,10 +283,8 @@ int PhaseFAC::solve(const EnergyInterpolationType phase_interp_func_type,
    assert(value == value);
 #endif
 
-   d_poisson_fac_solver->setOperatorCoefficients(d_exact_id,
-                                                 -1,  // no third phase
-                                                 d_mobility_id, d_epsilon,
-                                                 d_gamma,
+   d_poisson_fac_solver->setOperatorCoefficients(d_exact_id, d_mobility_id,
+                                                 d_epsilon, d_gamma,
                                                  phase_interp_func_type,
                                                  phase_well_scale,
                                                  phase_well_func_type);

@@ -1,14 +1,12 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
-// UT-Battelle, LLC.
-// Produced at the Lawrence Livermore National Laboratory and
-// the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
-// LLNL-CODE-747500
-// All rights reserved.
-// This file is part of AMPE.
-// For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-//
+/*************************************************************************
+ *
+ * This file is adapted from the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and LICENSE at https://github.com/LLNL/SAMRAI.
+ *
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Description:   Specifications for the scalar Poisson equation
+ *
+ ************************************************************************/
 #include "EllipticFACSolver.h"
 #include "EllipticFACOps.h"
 
@@ -119,18 +117,14 @@ void EllipticFACSolver::initializeSolverState(
    }
 
    if (!d_solver_is_initialized) {
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (solution < 0 || rhs < 0) {
          TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
       }
-#endif
 
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (!hierarchy) {
          TBOX_ERROR(d_object_name << ": NULL hierarchy pointer not allowed\n"
                                   << "in inititialization.");
       }
-#endif
       d_hierarchy = hierarchy;
 
       d_ln_min = coarse_level;
@@ -142,12 +136,10 @@ void EllipticFACSolver::initializeSolverState(
          d_ln_max = d_hierarchy->getFinestLevelNumber();
       }
 
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (d_ln_min < 0 || d_ln_max < 0 || d_ln_min > d_ln_max) {
          TBOX_ERROR(d_object_name << ": Bad range of levels in\n"
                                   << "inititialization.\n");
       }
-#endif
 
       createVectorWrappers(solution, rhs);
 
@@ -235,7 +227,6 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id)
 {
    // tbox::pout<<"EllipticFACSolver::solveSystem() for object
    // "<<d_object_name<<endl;
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(u_id != -1);
    assert(f_id != -1);
    if (!d_solver_is_initialized) {
@@ -251,7 +242,6 @@ bool EllipticFACSolver::solveSystem(const int u_id, const int f_id)
    if (u_id < 0 || f_id < 0) {
       TBOX_ERROR(d_object_name << ": Bad patch data id.\n");
    }
-#endif
    if (d_bc_object == &d_simple_bc) {
       /*
        * Knowing that we are using the SimpelCellRobinBcCoefsX
@@ -305,7 +295,6 @@ bool EllipticFACSolver::solveSystem(
       tbox::plog << "EllipticFACSolver::solveSystem (" << d_object_name
                  << ")\n";
    }
-#ifdef DEBUG_CHECK_ASSERTIONS
    if (d_solver_is_initialized) {
       TBOX_ERROR(d_object_name << ".solveSystem(int,int,...): initialized\n"
                                << "solver state.  This function can only used "
@@ -319,7 +308,6 @@ bool EllipticFACSolver::solveSystem(
       TBOX_ERROR(d_object_name << ".solveSystem(): Null hierarchy\n"
                                << "specified.\n");
    }
-#endif
    initializeSolverState(u_id, f_id, hierarchy, coarse_ln, fine_ln);
 
    bool solver_rval = solveSystem(u_id, f_id);
@@ -343,7 +331,6 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
                                                     d_hierarchy, d_ln_min,
                                                     d_ln_max));
       vdb.mapIndexToVariable(u, variable);
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (!variable) {
          TBOX_ERROR(d_object_name << ": No variable for patch data index " << u
                                   << "\n");
@@ -355,7 +342,6 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << u
                                   << " is not a cell-double variable.\n");
       }
-#endif
       d_uv->addComponent(variable, u, vol_id);
    }
 
@@ -364,7 +350,6 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
                                                     d_hierarchy, d_ln_min,
                                                     d_ln_max));
       vdb.mapIndexToVariable(f, variable);
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (!variable) {
          TBOX_ERROR(d_object_name << ": No variable for patch data index " << f
                                   << "\n");
@@ -376,7 +361,6 @@ void EllipticFACSolver::createVectorWrappers(int u, int f)
          TBOX_ERROR(d_object_name << ": hier::Patch data index " << f
                                   << " is not a cell-double variable.\n");
       }
-#endif
       d_fv->addComponent(variable, f, vol_id);
    }
 }

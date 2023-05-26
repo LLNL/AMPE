@@ -23,8 +23,7 @@ lines=output.split(b'\n')
 
 end_reached = False
 for line in lines:
-  num_matches = line.count(b'cycle')
-  if num_matches:
+  if line.count(b'cycle'):
     print(line)
     words=line.split()
     if eval(words[6])>300.:
@@ -33,8 +32,7 @@ for line in lines:
       if (eval(dt)-0.69)>1.e-2:
         print("Wrong dt")
         sys.exit(1)
-  num_matches = line.count(b'fraction')
-  if num_matches:
+  if line.count(b'fraction'):
     print(line)
     if end_reached:
       words=line.split()
@@ -45,5 +43,6 @@ for line in lines:
 if end_reached:
   sys.exit(0)
 else:
+  print("End time not reached!")
   sys.exit(1)
 
