@@ -340,8 +340,7 @@ void QuatIntegrator::setupPreconditionersPhase(
 
    const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops(
-       new PhaseFACOps(d_name + "_QIPhaseFACOps", (nphases > 1),
-                       phase_sys_solver_database));
+       new PhaseFACOps(d_name + "_QIPhaseFACOps", phase_sys_solver_database));
 
    d_phase_sys_solver.reset(new PhaseFACSolver(d_name + "QIPhaseSysSolver",
                                                d_phase_fac_ops,
@@ -3414,10 +3413,12 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
    setCoefficients(t, y_samvect, true);
 
    if (d_with_phase && d_phase_sys_solver) {
-      d_phase_sys_solver->setOperatorCoefficients(
-          d_phase_scratch_id, d_eta_scratch_id, d_phase_mobility_id,
-          d_epsilon_phase, gamma, d_energy_interp_func_type, d_phase_well_scale,
-          d_phase_well_func_type, d_eta_well_scale, d_eta_well_func_type);
+      d_phase_sys_solver->setOperatorCoefficients(d_phase_scratch_id,
+                                                  d_phase_mobility_id,
+                                                  d_epsilon_phase, gamma,
+                                                  d_energy_interp_func_type,
+                                                  d_phase_well_scale,
+                                                  d_phase_well_func_type);
    }
 
    if (d_with_third_phase && d_eta_sys_solver) {

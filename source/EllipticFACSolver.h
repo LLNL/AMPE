@@ -1,14 +1,12 @@
-// Copyright (c) 2018, Lawrence Livermore National Security, LLC and
-// UT-Battelle, LLC.
-// Produced at the Lawrence Livermore National Laboratory and
-// the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
-// LLNL-CODE-747500
-// All rights reserved.
-// This file is part of AMPE.
-// For details, see https://github.com/LLNL/AMPE
-// Please also read AMPE/LICENSE.
-//
+/*************************************************************************
+ *
+ * This file is adapted from the SAMRAI distribution.  For full copyright
+ * information, see COPYRIGHT and LICENSE at https://github.com/LLNL/SAMRAI.
+ *
+ * Copyright:     (c) 1997-2021 Lawrence Livermore National Security, LLC
+ * Description:   Specifications for the scalar Poisson equation
+ *
+ ************************************************************************/
 #ifndef included_EllipticFACSolver
 #define included_EllipticFACSolver
 
@@ -272,12 +270,10 @@ class EllipticFACSolver
     */
    void setBcObject(const solv::RobinBcCoefStrategy* bc_object)
    {
-#ifdef DEBUG_CHECK_ASSERTIONS
       if (!bc_object) {
          TBOX_ERROR(d_object_name << ": NULL pointer for boundary condition\n"
                                   << "object.\n");
       }
-#endif
       d_bc_object = bc_object;
       d_fac_ops->setPhysicalBcCoefObject(d_bc_object);
    }

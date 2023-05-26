@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -22,10 +21,8 @@
 //======================================================================
 
 PhaseFACOps::PhaseFACOps(const std::string& object_name,
-                         const bool with_third_phase,
                          std::shared_ptr<tbox::Database> database)
-    : EllipticFACOps(tbox::Dimension(NDIM), object_name, database),
-      d_with_third_phase(with_third_phase)
+    : EllipticFACOps(tbox::Dimension(NDIM), object_name, database)
 {
    t_setcoeffs_timer = tbox::TimerManager::getManager()->getTimer(
        "AMPE::PhaseFACOps::setOperatorCoefficients()");
@@ -34,11 +31,9 @@ PhaseFACOps::PhaseFACOps(const std::string& object_name,
 //======================================================================
 
 void PhaseFACOps::setOperatorCoefficients(
-    const int phase_id, const int eta_id, const int phase_mobility_id,
-    const double epsilon_phase, const double gamma,
-    const EnergyInterpolationType phase_interp_func_type,
-    const double phase_well_scale, const std::string phase_well_func_type,
-    const double eta_well_scale, const std::string eta_well_func_type)
+    const int phase_id, const int phase_mobility_id, const double epsilon_phase,
+    const double gamma, const EnergyInterpolationType phase_interp_func_type,
+    const double phase_well_scale, const std::string phase_well_func_type)
 {
    assert(phase_mobility_id >= 0);
 
@@ -47,8 +42,8 @@ void PhaseFACOps::setOperatorCoefficients(
    setM(phase_mobility_id);
 
    // C to be set after M since it uses M
-   setC(phase_id, eta_id, gamma, phase_interp_func_type, phase_well_scale,
-        phase_well_func_type, eta_well_scale, eta_well_func_type);
+   setC(phase_id, gamma, phase_interp_func_type, phase_well_scale,
+        phase_well_func_type);
 
    setDConstant(-gamma * epsilon_phase * epsilon_phase);
 
@@ -58,20 +53,14 @@ void PhaseFACOps::setOperatorCoefficients(
 //======================================================================
 
 // C = 1 + gamma * phi_mobility * (
-//       phi_well_scale * phi_well_func'' +
-//       eta_well_scale * eta_well_func * phi_interp_func''
+//       phi_well_scale * phi_well_func'' )
 
-void PhaseFACOps::setC(const int phi_id, const int eta_id, const double gamma,
+void PhaseFACOps::setC(const int phi_id, const double gamma,
                        const EnergyInterpolationType phi_interp_func_type,
                        const double phi_well_scale,
-                       const std::string phi_well_func_type,
-                       const double eta_well_scale,
-                       const std::string eta_well_func_type)
+                       const std::string phi_well_func_type)
 {
    assert(phi_id >= 0);
-   if (d_with_third_phase) {
-      assert(eta_id >= 0);
-   }
    assert(d_m_id >= 0);
    assert(d_c_id[0] >= 0);
    assert(d_M_is_set);
@@ -91,13 +80,6 @@ void PhaseFACOps::setC(const int phi_id, const int eta_id, const double gamma,
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(phi_id)));
 
-         std::shared_ptr<pdat::CellData<double> > eta_data;
-         if (d_with_third_phase) {
-            eta_data = std::dynamic_pointer_cast<pdat::CellData<double>,
-                                                 hier::PatchData>(
-                patch->getPatchData(eta_id));
-         }
-
          std::shared_ptr<pdat::CellData<double> > local_m_data(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_m_id)));
@@ -106,10 +88,9 @@ void PhaseFACOps::setC(const int phi_id, const int eta_id, const double gamma,
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_c_id[0])));
 
-         setCOnPatchPrivate(phi_data, eta_data, local_m_data, cdata, gamma,
+         setCOnPatchPrivate(phi_data, local_m_data, cdata, gamma,
                             phi_interp_func_type, phi_well_scale,
-                            phi_well_func_type.c_str(), eta_well_scale,
-                            eta_well_func_type.c_str(), patch_box);
+                            phi_well_func_type.c_str(), patch_box);
       }
    }
 
@@ -120,22 +101,15 @@ void PhaseFACOps::setC(const int phi_id, const int eta_id, const double gamma,
 
 void PhaseFACOps::setCOnPatchPrivate(
     std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::CellData<double> > cd_m,
     std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
     const EnergyInterpolationType phi_interp_func_type,
     const double phi_well_scale, const char* phi_well_func_type,
-    const double eta_well_scale, const char* eta_well_func_type,
     const hier::Box& pbox)
 {
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_m = cd_m->getPointer();
    double* ptr_c = cd_c->getPointer();
-   double* ptr_eta = NULL;
-
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-   }
 
    const hier::Box& c_gbox = cd_c->getGhostBox();
    int imin_c = c_gbox.lower(0);
@@ -159,7 +133,6 @@ void PhaseFACOps::setCOnPatchPrivate(
    kp_m = jp_m * m_gbox.numberCells(1);
 #endif
 
-   // Assuming phi and eta have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -205,22 +178,8 @@ void PhaseFACOps::setCOnPatchPrivate(
             const double gamma_m = gamma * m;
 
             // C = 1 + gamma * phi_mobility * (
-            //       phi_well_scale * phi_well_func'' +
-            //       eta_well_scale * eta_well_func * phi_interp_func''
-
+            //       phi_well_scale * phi_well_func'' )
             ptr_c[idx_c] = 1.0 + gamma_m * phi_well_scale * g_phi_dbl_prime;
-
-            if (d_with_third_phase) {
-               const double eta = ptr_eta[idx_pf];
-
-               const double h_phi_dbl_prime =
-                   SECOND_DERIV_INTERP_FUNC(phi, &interp);
-
-               const double g_eta = WELL_FUNC(eta, eta_well_func_type);
-
-               ptr_c[idx_c] +=
-                   gamma_m * eta_well_scale * g_eta * h_phi_dbl_prime;
-            }
          }
       }
    }
