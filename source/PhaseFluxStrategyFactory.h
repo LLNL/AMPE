@@ -15,11 +15,13 @@ class PhaseFluxStrategyFactory
 
       double epsilon_anisotropy = model_parameters.epsilon_anisotropy();
 
-      if (epsilon_anisotropy >= 0.)
+      if (epsilon_anisotropy >= 0.) {
+         if (!model_parameters.with_orientation())
+            TBOX_ERROR("Phase anisotropy requires quaternion orientation");
          phase_flux_strategy.reset(
              new PhaseFluxStrategyAnisotropy(model_parameters.epsilon_phase(),
                                              epsilon_anisotropy, 4));
-      else if (model_parameters.useIsotropicStencil()) {
+      } else if (model_parameters.useIsotropicStencil()) {
          phase_flux_strategy.reset(
              new PhaseFluxStrategyIsotropic(model_parameters.epsilon_phase()));
       } else {
