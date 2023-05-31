@@ -2562,14 +2562,16 @@ void QuatModel::findAndNumberGrains(void)
 
 void QuatModel::computeGrainDiagnostics(void)
 {
-   tbox::pout << "Computing grain diagnostics" << std::endl;
+   if (d_model_parameters.with_orientation()) {
+      tbox::pout << "Computing grain diagnostics" << std::endl;
 
-   findAndNumberGrains();
-   d_grains->computeGrainVolumes(d_patch_hierarchy, d_weight_id);
+      findAndNumberGrains();
+      d_grains->computeGrainVolumes(d_patch_hierarchy, d_weight_id);
 
-   if (d_model_parameters.with_concentration()) {
-      d_grains->computeGrainConcentrations(d_patch_hierarchy, d_time, d_conc_id,
-                                           d_weight_id);
+      if (d_model_parameters.with_concentration()) {
+         d_grains->computeGrainConcentrations(d_patch_hierarchy, d_time,
+                                              d_conc_id, d_weight_id);
+      }
    }
 }
 
