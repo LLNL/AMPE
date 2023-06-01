@@ -1,0 +1,98 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+max_timesteps       = 2000
+end_time            = 0.8
+
+Verbosity {  // optional, block
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 0.2
+   interval_type = "time"
+}
+
+TimerManager {
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = 0.884e-3
+   epsilon_orient = 0.0447
+   orient_interp_func_type1 = "q"
+   orient_interp_func_type2 = "q"
+ 
+   Temperature{
+      type = "scalar"
+      meltingT = 1000.
+      temperature = 975.
+      latent_heat = 2.e4 // [J/mol*K]
+   }
+
+   Interface {
+      sigma = 0.44 // pJ/um^2 = J/m^2
+      delta = 2.e-3 // um
+   }
+
+   orient_mobility  = 1.
+   phi_mobility     = 1.
+   
+   phi_interp_func_type ="pbg"
+   avg_func_type = "arithmetic"
+
+   FreeEnergyModel{
+      type = "linear"
+   }
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+Integrator {
+   atol = 2.e-5
+}
+
+ScalarDiagnostics {
+   interval = 0.1
+   interval_type = "time"
+}   
+
+GrainDiagnostics {  // optional block
+   interval = 0.1  // optional, default=0.0
+   interval_type = "time"  // optional, default="step"
+   include_first_step = FALSE  // optional
+   phase_threshold = 0.85  // optional
+}
+
+InitialConditions {
+   filename = "test.nc"
+}
+
+Geometry{
+   periodic_dimension = 1, 0, 1
+   coarsest_level_resolution = 48, 24, 8
+   x_lo         =  0.0,   0.0,   0.0   // lower end of computational domain.
+   x_up         =  0.096, 0.048, 0.016 // upper end of computational domain.
+}
