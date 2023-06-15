@@ -13,22 +13,22 @@ import math
 import random
 
 def makeQuat( w=0, x=0, y=0, z=0 ) :
-  q = numpy.array( [ w, x, y, z ], numpy.float )
+  q = numpy.array( [ w, x, y, z ], float )
   return q
 
 def makeQuat2( x=0, y=0 ) :
-  q = numpy.array( [ x, y ], numpy.float )
+  q = numpy.array( [ x, y ], float )
   return q
 
 #=======================================================================
 
 def makeNormalizedQuat( w=1, x=0, y=0, z=0 ) :
-  q = numpy.array( [ w, x, y, z ], numpy.float )
+  q = numpy.array( [ w, x, y, z ], float )
   normalizeQuat( q )
   return q
 
 def makeNormalizedQuat2( x=1, y=0 ) :
-  q = numpy.array( [ x, y ], numpy.float )
+  q = numpy.array( [ x, y ], float )
   normalizeQuat( q )
   return q
 
@@ -47,9 +47,9 @@ def duplicateQuat( q ) :
   qlen = len( q )
   assert( qlen == 4 or qlen == 2 )
   if ( qlen == 4 ) :
-    q_copy = numpy.array( [ 1, 0, 0, 0 ], numpy.float )
+    q_copy = numpy.array( [ 1, 0, 0, 0 ], float )
   elif ( qlen == 2 ) :
-    q_copy = numpy.array( [ 1, 0 ], numpy.float )
+    q_copy = numpy.array( [ 1, 0 ], float )
 
   for j in range( len( q ) ) :
     q_copy[j] = q[j]
@@ -227,7 +227,7 @@ def quatDiff1( q1, q2, qr ) :
 
 #=======================================================================
 
-qr4 = numpy.zeros( ( 48, 4 ), numpy.float )
+qr4 = numpy.zeros( ( 48, 4 ), float )
 
 qr4[ 0,:] = makeNormalizedQuat(  1,  0,  0,  0 )
 qr4[ 1,:] = makeNormalizedQuat(  0,  1,  0,  0 )
@@ -280,7 +280,7 @@ qr4[45,:] = makeNormalizedQuat( -1, -1,  1, -1 )
 qr4[46,:] = makeNormalizedQuat( -1, -1, -1,  1 )
 qr4[47,:] = makeNormalizedQuat( -1, -1, -1, -1 )
 
-iq_qr4_conj = numpy.zeros( 48, numpy.int )
+iq_qr4_conj = numpy.zeros( 48, int )
 
 iq_qr4_conj[0] = 0
 iq_qr4_conj[1] = 5
@@ -333,14 +333,14 @@ iq_qr4_conj[47] = 33
 
 #-----------------------------------------------------------------------
 
-qr2 = numpy.zeros( ( 4, 2 ), numpy.float )
+qr2 = numpy.zeros( ( 4, 2 ), float )
 
 qr2[0,:] = makeNormalizedQuat2(  1,  0 )
 qr2[1,:] = makeNormalizedQuat2(  0,  1 )
 qr2[2,:] = makeNormalizedQuat2( -1,  0 )
 qr2[3,:] = makeNormalizedQuat2(  0, -1 )
 
-iq_qr2_conj = numpy.zeros( 4, numpy.int )
+iq_qr2_conj = numpy.zeros( 4, int )
 
 iq_qr2_conj[0] = 0
 iq_qr2_conj[1] = 3
@@ -349,7 +349,7 @@ iq_qr2_conj[3] = 1
 
 #-----------------------------------------------------------------------
 
-qr1 = numpy.zeros( 9, numpy.float )
+qr1 = numpy.zeros( 9, float )
 
 qr1[0] = 0.0
 qr1[1] = 0.5 * math.pi
@@ -361,7 +361,7 @@ qr1[6] = -1.5 * math.pi
 qr1[7] = 2.0 * math.pi
 qr1[8] = -2.0 * math.pi
 
-iq_qr1_conj = numpy.zeros( 9, numpy.int )
+iq_qr1_conj = numpy.zeros( 9, int )
 
 iq_qr1_conj[0] = 0
 iq_qr1_conj[1] = 2
