@@ -1,6 +1,5 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
@@ -347,34 +346,34 @@ c        factor 0.25 because of cell averaging and double counting
                   total_orient_e = total_orient_e + e
                enddo
             enddo
-         enddo
 c
 c q interface energy
 c
-         epsilonq2 = 0.5d0 * epsilon_q * epsilon_q
-         do j = lo1, hi1
-            do i = lo0, hi0
-               p_phi = interp_func( phi(i,j,p), orient_interp_type2 )
-               e = 0.d0
-               do n = 1, NDIM
-                  do m = 1, depth
-                     e = e + (
-     &                  gqx(i,  j,m,n) * gqx(i,  j,m,n)
-     &                + gqx(i+1,j,m,n) * gqx(i+1,j,m,n)
-     &                + gqy(i,j  ,m,n) * gqy(i,j  ,m,n)
-     &                + gqy(i,j+1,m,n) * gqy(i,j+1,m,n)
-     &                )
+            epsilonq2 = 0.5d0 * epsilon_q * epsilon_q
+            do j = lo1, hi1
+               do i = lo0, hi0
+                  p_phi = interp_func( phi(i,j,p), orient_interp_type2 )
+                  e = 0.d0
+                  do n = 1, NDIM
+                     do m = 1, depth
+                        e = e + (
+     &                     gqx(i,  j,m,n) * gqx(i,  j,m,n)
+     &                   + gqx(i+1,j,m,n) * gqx(i+1,j,m,n)
+     &                   + gqy(i,j  ,m,n) * gqy(i,j  ,m,n)
+     &                   + gqy(i,j+1,m,n) * gqy(i,j+1,m,n)
+     &                   )
+                     enddo
                   enddo
-               enddo
-c              factor 0.25 because of cell average and double counting
-               e = e * 0.25d0 * epsilonq2 * p_phi
-               if ( eval_per_cell /= 0 ) then
-                  energy(i,j) = energy(i,j) + e
-               endif
-               e = e * weight(i,j)
+c                 factor 0.25 because of cell average and double counting
+                  e = e * 0.25d0 * epsilonq2 * p_phi
+                  if ( eval_per_cell /= 0 ) then
+                     energy(i,j) = energy(i,j) + e
+                  endif
+                  e = e * weight(i,j)
 
-               total_energy = total_energy + e
-               total_qint_e = total_qint_e + e
+                  total_energy = total_energy + e
+                  total_qint_e = total_qint_e + e
+               enddo
             enddo
          enddo
       endif
