@@ -52,6 +52,8 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
     const double temp, const std::vector<double>& phaseconc,
     const std::vector<double>& phi)
 {
+   assert(d_mv > 0.);
+
    const PhaseIndex pi0 = PhaseIndex::phaseL;
 
    this->d_fenergy->computeSecondDerivativeFreeEnergy(temp, &phaseconc[0], pi0,
@@ -69,6 +71,8 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
 
    double zeta_factor = d_model_parameters.zetaFactor(temp);
    if (zeta_factor < 0.) {
+      assert(temp > 0.);
+      assert(d_DL > 0.);
       const double DL = d_DL * exp(-d_Q0 / (gas_constant * temp));
       double zeta = 0.;
       for (unsigned i = 0; i < this->d_ncompositions; i++)
@@ -81,7 +85,7 @@ double KimMobilityStrategyInfMob<FreeEnergyType>::evaluateMobility(
 
    const double mob = d_factor / zeta_factor;
    // std::cout<<"mob="<<mob<<", inv_zeta="<<inv_zeta_factor<<std::endl;
-   assert(mob == mob);
+   assert(!std::isnan(mob));
    return mob;
 }
 

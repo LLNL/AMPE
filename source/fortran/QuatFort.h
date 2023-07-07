@@ -842,10 +842,8 @@ void PROJECT2D(const int&, const int&, const int&, const int&, const int&,
                const double*, const int&, const int&, const int&, const int&,
                const double*, const int&, const int&, const int&, const int&);
 void PROJECTPHI2D(const int&, const int&, const int&, const int&, const int&,
-                  const double*, const int&, const int&, const int&, const int&,
-                  const double*, const int&, const int&, const int&, const int&,
-                  const double*, const int&, const int&, const int&,
-                  const int&);
+                  const double*, const int&, const double*, const int&,
+                  const double*, const int&);
 void TAKE_SQUARE_ROOT2D(const int&, const int&, const int&, const int&, double*,
                         const int&, const int&, const int&, const int&);
 void MULTICOMPONENT_MULTIPLY2D(const int&, const int&, const int&, const int&,
@@ -989,11 +987,8 @@ void PROJECT3D(const int&, const int&, const int&, const int&, const int&,
                const int&, const double*, const int&, const int&, const int&,
                const int&, const int&, const int&);
 void PROJECTPHI3D(const int&, const int&, const int&, const int&, const int&,
-                  const int&, const int&, const double*, const int&, const int&,
-                  const int&, const int&, const int&, const int&, const double*,
-                  const int&, const int&, const int&, const int&, const int&,
-                  const int&, const double*, const int&, const int&, const int&,
-                  const int&, const int&, const int&);
+                  const int&, const int&, const double*, const int&,
+                  const double*, const int&, const double*, const int&);
 void TAKE_SQUARE_ROOT3D(const int&, const int&, const int&, const int&,
                         const int&, const int&, double*, const int&, const int&,
                         const int&, const int&, const int&, const int&);

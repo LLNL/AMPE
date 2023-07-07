@@ -261,7 +261,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    inc_k_te = inc_j_te * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    assert(cd_pf->getGhostCellWidth()[0] == cd_conc->getGhostCellWidth()[0]);
 
    const hier::Box& pf_gbox = cd_pf->getGhostBox();
@@ -380,7 +380,8 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                      x[ic + 2 * nc] = cb_ref[ic * ncc + idx_ci];
                   }
                }
-               assert(x[1] == x[1]);
+               assert(!std::isnan(x[0]));
+               assert(!std::isnan(x[nc]));
 
                // compute cL, cS
                int status =
@@ -405,9 +406,30 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                             << std::endl;
                   abort();
                }
-               assert(x[0] == x[0]);
 #endif
 #ifndef GPU_OFFLOAD
+               assert(!std::isnan(x[0]));
+               /*
+                              if(std::isnan(x[0]))
+                              {
+                                 std::cerr
+                                     << "computePhaseConcentrations failed for
+                  T=" << temp
+                                     << ", hphi=";
+                                 for (short i = 0; i < nphases; i++)
+                                    std::cerr << hphi[i] << ", ";
+                                 std::cerr << "c=" << c[0] << std::endl;
+                                 std::cerr << ", c_ref=" << cl_ref[0] << "," <<
+                  ca_ref[0] << ","
+                                           << cb_ref[0] << std::endl;
+                                 std::cerr << ", x=" << x[0] << "," << x[1] <<
+                  "," << x[2]
+                                           << ", idx_pf="<<idx_pf<<",
+                  imin[0]="<<imin[0]
+                                           << std::endl;
+                                 abort();
+                              }
+               */
                nits += status;
 #endif
                // std::cout << "phi=" << phi[0] << "," << phi[1] << "," <<
@@ -415,7 +437,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                //          << "c=" << c[0] << ", x=" << x[0] << "," << x[1] <<
                //          ","
                //          << x[2] << std::endl;
-               // set cell values with cL and cS just computed
 
                // set cell values with cL and cS just computed
                for (int ic = 0; ic < nc; ic++) {

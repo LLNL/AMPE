@@ -545,7 +545,6 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
    kp_temp = jp_temp * temp_gbox.numberCells(1);
 #endif
 
-   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -557,7 +556,9 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
    kp_pf = jp_pf * pf_gbox.numberCells(1);
 #endif
 
-   // Assuming f_l, f_a, and f_b all have same box
+   // Assuming f_l, f_a, and f_b all have same ghost box
+   assert(cd_f_l->getGhostCellWidth()[0] == cd_f_a->getGhostCellWidth()[0]);
+   assert(cd_f_l->getGhostCellWidth()[0] == cd_f_b->getGhostCellWidth()[0]);
    const hier::Box& f_i_gbox = cd_f_l->getGhostBox();
    int imin_f_i = f_i_gbox.lower(0);
    int jmin_f_i = f_i_gbox.lower(1);
@@ -569,7 +570,9 @@ void CALPHADFreeEnergyStrategyBinaryThreePhase<FreeEnergyFunctionType,
    kp_f_i = jp_f_i * f_i_gbox.numberCells(1);
 #endif
 
-   // Assuming c_l, c_a, and c_b all have same box
+   // Assuming c_l, c_a, and c_b all have same ghost box
+   assert(cd_c_l->getGhostCellWidth()[0] == cd_c_a->getGhostCellWidth()[0]);
+   assert(cd_c_l->getGhostCellWidth()[0] == cd_c_b->getGhostCellWidth()[0]);
    const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
    int imin_c_i = c_i_gbox.lower(0);
    int jmin_c_i = c_i_gbox.lower(1);

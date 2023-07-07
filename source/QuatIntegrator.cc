@@ -648,9 +648,8 @@ void QuatIntegrator::RegisterConcentrationVariables(
           d_conc_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(d_conc_id >= 0);
 
-      d_conc_scratch_id = variable_db->registerVariableAndContext(
-          d_conc_var, d_scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      d_conc_scratch_id =
+          variable_db->mapVariableAndContextToIndex(d_conc_var, d_scratch);
       assert(d_conc_scratch_id >= 0);
 
       if (conc_diffusion_var) {
@@ -818,11 +817,10 @@ void QuatIntegrator::RegisterVariables(
    // Variables owned by QuatModel
    if (phase_var) {
       d_phase_var = phase_var;
-      d_phase_id = variable_db->registerVariableAndContext(
-          d_phase_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
-      d_phase_scratch_id = variable_db->registerVariableAndContext(
-          d_phase_var, d_scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      d_phase_id =
+          variable_db->mapVariableAndContextToIndex(d_phase_var, d_current);
+      d_phase_scratch_id =
+          variable_db->mapVariableAndContextToIndex(d_phase_var, d_scratch);
       assert(d_phase_id >= 0);
       assert(d_phase_scratch_id >= 0);
    }
@@ -840,12 +838,11 @@ void QuatIntegrator::RegisterVariables(
    }
 
    d_temperature_var = temperature_var;
-   d_temperature_id = variable_db->registerVariableAndContext(
-       d_temperature_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
+   d_temperature_id =
+       variable_db->mapVariableAndContextToIndex(d_temperature_var, d_current);
    assert(d_temperature_id >= 0);
-   d_temperature_scratch_id = variable_db->registerVariableAndContext(
-       d_temperature_var, d_scratch,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+   d_temperature_scratch_id =
+       variable_db->mapVariableAndContextToIndex(d_temperature_var, d_scratch);
    assert(d_temperature_scratch_id >= 0);
 
    d_cp_var = cp_var;
@@ -1082,9 +1079,7 @@ void QuatIntegrator::RegisterLocalEtaVariables()
                                                       d_name + "_QI_eta_rhs_",
                                                       1));
    d_eta_rhs_id = variable_db->registerVariableAndContext(
-       d_eta_rhs_var, d_current,
-       //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-       hier::IntVector(tbox::Dimension(NDIM), 0));
+       d_eta_rhs_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_local_data.setFlag(d_eta_rhs_id);
 
    assert(d_eta_rhs_id >= 0);
@@ -1112,9 +1107,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
                                                                  "rhs_",
                                                         nphases));
    d_phase_rhs_id = variable_db->registerVariableAndContext(
-       d_phase_rhs_var, d_current,
-       //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-       hier::IntVector(tbox::Dimension(NDIM), 0));
+       d_phase_rhs_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_phase_rhs_id >= 0);
    d_local_data.setFlag(d_phase_rhs_id);
 
@@ -1144,9 +1137,7 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
                                                        d_name + "_QI_conc_rhs_",
                                                        d_ncompositions));
    d_conc_rhs_id = variable_db->registerVariableAndContext(
-       d_conc_rhs_var, d_current,
-       //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-       hier::IntVector(tbox::Dimension(NDIM), 0));
+       d_conc_rhs_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_conc_rhs_id >= 0);
    d_local_data.setFlag(d_conc_rhs_id);
 
@@ -1179,9 +1170,7 @@ void QuatIntegrator::RegisterLocalQuatVariables()
                                                        d_name + "_QI_quat_rhs_",
                                                        d_qlen));
    d_quat_rhs_id = variable_db->registerVariableAndContext(
-       d_quat_rhs_var, d_current,
-       //      hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
-       hier::IntVector(tbox::Dimension(NDIM), 0));
+       d_quat_rhs_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_quat_rhs_id >= 0);
    d_local_data.setFlag(d_quat_rhs_id);
 
@@ -1226,7 +1215,6 @@ void QuatIntegrator::RegisterLocalUnsteadyTemperatureVariables()
                                       d_name + "_QI_temperature_rhs_", 1));
    d_temperature_rhs_id = variable_db->registerVariableAndContext(
        d_temperature_rhs_var, d_current,
-       //         hier::IntVector(tbox::Dimension(NDIM),NGHOSTS) );
        hier::IntVector(tbox::Dimension(NDIM), 0));
    assert(d_temperature_rhs_id >= 0);
    d_local_data.setFlag(d_temperature_rhs_id);
@@ -2549,8 +2537,6 @@ void QuatIntegrator::evaluateEtaRHS(
          const hier::Index& ifirst = pbox.lower();
          const hier::Index& ilast = pbox.upper();
 
-         assert(eta->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
          assert(eta_rhs->getGhostCellWidth() ==
                 hier::IntVector(tbox::Dimension(NDIM), 0));
 
@@ -2565,7 +2551,8 @@ void QuatIntegrator::evaluateEtaRHS(
                        eta_flux->getGhostCellWidth()[0],
                        temperature->getPointer(),
                        temperature->getGhostCellWidth()[0], d_eta_well_scale,
-                       phase->getPointer(), NGHOSTS, eta->getPointer(), NGHOSTS,
+                       phase->getPointer(), phase->getGhostCellWidth()[0],
+                       eta->getPointer(), eta->getGhostCellWidth()[0],
                        eta_rhs->getPointer(), 0, d_eta_well_func_type.c_str(),
                        &interpf);
 
@@ -4103,16 +4090,13 @@ void QuatIntegrator::correctRhsForSymmetry(
                  patch->getPatchData(d_quat_diffs_id)));
          assert(quat_diffs);
          assert(quat_diffs->getDepth() == 2 * d_qlen);
-         assert(quat_diffs->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
          std::shared_ptr<pdat::CellData<double> > mobility(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_quat_mobility_id)));
          assert(mobility);
          assert(mobility->getDepth() == 1);
-         assert(mobility->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), 1));
+         assert(mobility->getGhostCellWidth()[0] > 0);
 
          std::shared_ptr<pdat::CellData<double> > rhs(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -4124,8 +4108,6 @@ void QuatIntegrator::correctRhsForSymmetry(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
                  patch->getPatchData(d_quat_symm_rotation_id)));
          assert(rotation_index);
-         assert(rotation_index->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
          const int symm_offset = 0 * d_qlen;
          const int nonsymm_offset = 1 * d_qlen;

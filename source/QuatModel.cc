@@ -1185,17 +1185,18 @@ void QuatModel::registerPhaseConcentrationVariables(
 
    // we need internal composition with ghost values for EBS r.h.s.
    // in particular
+   const int nghosts = NGHOSTS;
    d_conc_l_id = variable_db->registerVariableAndContext(
        d_conc_l_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_conc_l_scratch_id = variable_db->registerVariableAndContext(
-       d_conc_l_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_conc_l_var, scratch, hier::IntVector(tbox::Dimension(NDIM), nghosts));
    assert(d_conc_l_id >= 0);
    assert(d_conc_l_scratch_id >= 0);
 
    d_conc_a_id = variable_db->registerVariableAndContext(
        d_conc_a_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_conc_a_scratch_id = variable_db->registerVariableAndContext(
-       d_conc_a_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_conc_a_var, scratch, hier::IntVector(tbox::Dimension(NDIM), nghosts));
    assert(d_conc_a_id >= 0);
    assert(d_conc_a_scratch_id >= 0);
 
@@ -1205,7 +1206,7 @@ void QuatModel::registerPhaseConcentrationVariables(
           d_conc_b_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
       d_conc_b_scratch_id = variable_db->registerVariableAndContext(
           d_conc_b_var, scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), nghosts));
       assert(d_conc_b_id >= 0);
       assert(d_conc_b_scratch_id >= 0);
    }
@@ -1350,9 +1351,11 @@ void QuatModel::registerConcentrationVariables(void)
                                          d_ncompositions));
       assert(d_conc_a_ref_var);
       d_conc_l_ref_id = variable_db->registerVariableAndContext(
-          d_conc_l_ref_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
+          d_conc_l_ref_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
       d_conc_a_ref_id = variable_db->registerVariableAndContext(
-          d_conc_a_ref_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
+          d_conc_a_ref_var, current,
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
       assert(d_conc_l_ref_id >= 0);
       assert(d_conc_a_ref_id >= 0);
       if (d_model_parameters.with_three_phases()) {
@@ -1362,7 +1365,7 @@ void QuatModel::registerConcentrationVariables(void)
          assert(d_conc_b_ref_var);
          d_conc_b_ref_id = variable_db->registerVariableAndContext(
              d_conc_b_ref_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), 1));
+             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
          assert(d_conc_b_ref_id >= 0);
       }
 
@@ -3445,8 +3448,8 @@ void QuatModel::WriteInitialConditionsFile(std::string filename, int level)
 
 //=======================================================================
 
-// phase_id is CellData with NGHOSTS
-// phase_diffs_id is SideData with NGHOSTS
+// phase_id is CellData
+// phase_diffs_id is SideData
 
 void QuatModel::computePhaseDiffs(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& phase_id,
@@ -3522,8 +3525,8 @@ void QuatModel::computePhaseDiffs(const std::shared_ptr<hier::PatchLevel> level,
 
 //=======================================================================
 
-// eta_id is CellData with NGHOSTS
-// eta_diffs_id is SideData with NGHOSTS
+// eta_id is CellData
+// eta_diffs_id is SideData
 
 void QuatModel::computeEtaDiffs(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_id,
@@ -3555,8 +3558,8 @@ void QuatModel::computeEtaDiffs(
 
 //=======================================================================
 
-// var_id is CellData with NGHOSTS
-// diff_id is SideData with NGHOSTS
+// var_id is CellData
+// diff_id is SideData
 
 void QuatModel::computeVarDiffs(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& var_id,
@@ -4762,22 +4765,19 @@ void QuatModel::computeQuatMobility(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(phase_id)));
       assert(phase_data);
-      assert(phase_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::CellData<double> > mobility_data(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(mobility_id)));
       assert(mobility_data);
-      assert(mobility_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       QUATMOBILITY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                    ifirst(2), ilast(2),
 #endif
-                   phase_data->getPointer(), NGHOSTS,
-                   mobility_data->getPointer(), NGHOSTS,
+                   phase_data->getPointer(), phase_data->getGhostCellWidth()[0],
+                   mobility_data->getPointer(),
+                   mobility_data->getGhostCellWidth()[0],
                    d_model_parameters.quat_mobility(),
                    d_model_parameters.min_quat_mobility(),
                    d_model_parameters.quat_mobility_func_type().c_str(),
@@ -4831,8 +4831,6 @@ void QuatModel::computeQuatMobilityDeriv(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(phase_id)));
       assert(phase_data);
-      assert(phase_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::CellData<double> > mobility_deriv_data(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -4845,7 +4843,8 @@ void QuatModel::computeQuatMobilityDeriv(
 #if (NDIM == 3)
                         ifirst(2), ilast(2),
 #endif
-                        phase_data->getPointer(), NGHOSTS,
+                        phase_data->getPointer(),
+                        phase_data->getGhostCellWidth()[0],
                         mobility_deriv_data->getPointer(), 0,
                         d_model_parameters.quat_mobility(),
                         d_model_parameters.min_quat_mobility(),
