@@ -51,31 +51,28 @@ c r.h.s. resulting from "C*u" term
       end
 c
       subroutine projectphi3d(
-     &     lo0, hi0, lo1, hi1, lo2, hi2,
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
      &     depth,
-     &     phi, plo0, phi0, plo1, phi1, plo2, phi2,
-     &     corr, clo0, chi0, clo1, chi1, clo2, chi2,
-     &     err, elo0, ehi0, elo1, ehi1, elo2, ehi2
+     &     phi, ng,
+     &     corr, ngc,
+     &     err, nge
      &     )
 c
       implicit none
-      integer lo0, hi0, lo1, hi1, lo2, hi2,
-     &        depth,
-     &        plo0, phi0, plo1, phi1, plo2, phi2,
-     &        clo0, chi0, clo1, chi1, clo2, chi2,
-     &        elo0, ehi0, elo1, ehi1, elo2, ehi2
-      double precision
-     &        phi(plo0:phi0,plo1:phi1,plo2:phi2,depth),
-     &        corr(clo0:chi0,clo1:chi1,clo2:chi2,depth),
-     &        err(elo0:ehi0,elo1:ehi1,elo2:ehi2,depth)
+      integer ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+      integer depth, ng, ngc, nge
+
+      double precision phi(CELL3d(ifirst,ilast,ng),depth)
+      double precision corr(CELL3d(ifirst,ilast,ngc),depth)
+      double precision err(CELL3d(ifirst,ilast,nge),depth)
 
 c     local variables:
       double precision fac
       integer i, j, k, m
 
-      do k = lo2, hi2
-         do j = lo1, hi1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
 
 c           Projection into plane sum_m phi_m=1
 c           consists in adding a correction in the direction (1,1,1)

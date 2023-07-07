@@ -186,8 +186,6 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
    const hier::Index& ilast = pbox.upper();
 
    assert(phase->getDepth() == 3);
-   assert(phase->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
    assert(phase_rhs->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -212,8 +210,8 @@ void ThreePhasesRHSStrategy::evaluateRHS(const double time,
                          phase_flux->getPointer(2),
 #endif
                          phase_flux->getGhostCellWidth()[0], d_phase_well_scale,
-                         phase->getPointer(), NGHOSTS, phase_rhs->getPointer(),
-                         0);
+                         phase->getPointer(), phase->getGhostCellWidth()[0],
+                         phase_rhs->getPointer(), 0);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
    double l2rhs = opc.L2Norm(phase_rhs, pbox);
@@ -288,32 +286,17 @@ void ThreePhasesRHSStrategy::projectPhases(const int phase_id,
       const hier::Index& lower = box.lower();
       const hier::Index& upper = box.upper();
 
-      const hier::Box& p_gbox = p_data->getGhostBox();
-      const hier::Index& plower = p_gbox.lower();
-      const hier::Index& pupper = p_gbox.upper();
-
-      const hier::Box& c_gbox = corr_data->getGhostBox();
-      const hier::Index& clower = c_gbox.lower();
-      const hier::Index& cupper = c_gbox.upper();
-
-      const hier::Box& e_gbox = err_data->getGhostBox();
-      const hier::Index& elower = e_gbox.lower();
-      const hier::Index& eupper = e_gbox.upper();
-
 #if NDIM == 2
       PROJECTPHI2D(lower[0], upper[0], lower[1], upper[1], 3,
-                   p_data->getPointer(), plower[0], pupper[0], plower[1],
-                   pupper[1], corr_data->getPointer(), clower[0], cupper[0],
-                   clower[1], cupper[1], err_data->getPointer(), elower[0],
-                   eupper[0], elower[1], eupper[1]);
+                   p_data->getPointer(), p_data->getGhostCellWidth()[0],
+                   corr_data->getPointer(), corr_data->getGhostCellWidth()[0],
+                   err_data->getPointer(), err_data->getGhostCellWidth()[0]);
 #endif
 #if NDIM == 3
       PROJECTPHI3D(lower[0], upper[0], lower[1], upper[1], lower[2], upper[2],
-                   3, p_data->getPointer(), plower[0], pupper[0], plower[1],
-                   pupper[1], plower[2], pupper[2], corr_data->getPointer(),
-                   clower[0], cupper[0], clower[1], cupper[1], clower[2],
-                   cupper[2], err_data->getPointer(), elower[0], eupper[0],
-                   elower[1], eupper[1], elower[2], eupper[2]);
+                   3, p_data->getPointer(), p_data->getGhostCellWidth()[0],
+                   corr_data->getPointer(), corr_data->getGhostCellWidth()[0],
+                   err_data->getPointer(), err_data->getGhostCellWidth()[0]);
 #endif
    }
 }

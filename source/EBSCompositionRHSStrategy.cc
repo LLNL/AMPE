@@ -163,7 +163,8 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                              ifirst(2), ilast(2),
 #endif
-                             dx, conc_l->getPointer(), NGHOSTS, d_ncompositions,
+                             dx, conc_l->getPointer(),
+                             conc_l->getGhostCellWidth()[0], d_ncompositions,
                              conc_diffusionl->getPointer(0),
                              conc_diffusionl->getPointer(1),
 #if (NDIM == 3)
@@ -179,7 +180,8 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                              ifirst(2), ilast(2),
 #endif
-                             dx, conc_a->getPointer(), NGHOSTS, d_ncompositions,
+                             dx, conc_a->getPointer(),
+                             conc_a->getGhostCellWidth()[0], d_ncompositions,
                              conc_diffusiona->getPointer(0),
                              conc_diffusiona->getPointer(1),
 #if (NDIM == 3)
@@ -212,8 +214,9 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                                 ifirst(2), ilast(2),
 #endif
-                                dx, conc_b->getPointer(), NGHOSTS,
-                                d_ncompositions, conc_diffusionb->getPointer(0),
+                                dx, conc_b->getPointer(),
+                                conc_b->getGhostCellWidth()[0], d_ncompositions,
+                                conc_diffusionb->getPointer(0),
                                 conc_diffusionb->getPointer(1),
 #if (NDIM == 3)
                                 conc_diffusionb->getPointer(2),
@@ -479,8 +482,9 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
 #if (NDIM == 3)
           ifirst(2), ilast(2),
 #endif
-          dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
-          cb->getPointer(), cl->getGhostCellWidth()[0], dphidt->getPointer(),
+          dx, phase->getPointer(), phase->getGhostCellWidth()[0],
+          cl->getPointer(), ca->getPointer(), cb->getPointer(),
+          cl->getGhostCellWidth()[0], dphidt->getPointer(),
           dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
           flux->getPointer(1),
 #if (NDIM == 3)
@@ -493,10 +497,10 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
 #if (NDIM == 3)
           ifirst(2), ilast(2),
 #endif
-          dx, phase->getPointer(), NGHOSTS, cl->getPointer(), ca->getPointer(),
-          cl->getGhostCellWidth()[0], d_ncompositions, dphidt->getPointer(),
-          dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
-          flux->getPointer(1),
+          dx, phase->getPointer(), phase->getGhostCellWidth()[0],
+          cl->getPointer(), ca->getPointer(), cl->getGhostCellWidth()[0],
+          d_ncompositions, dphidt->getPointer(), dphidt->getGhostCellWidth()[0],
+          alpha, flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
           flux->getPointer(2),
 #endif

@@ -49,30 +49,28 @@ c      print*,gamma,m,omega,delta
       end
 c
       subroutine projectphi2d(
-     &     lo0, hi0, lo1, hi1,
+     &     ifirst0,ilast0,ifirst1,ilast1,
      &     depth,
-     &     phi, plo0, phi0, plo1, phi1,
-     &     corr, clo0, chi0, clo1, chi1,
-     &     err, elo0, ehi0, elo1, ehi1
+     &     phi, ng,
+     &     corr, ngc,
+     &     err, nge
      &     )
 c
       implicit none
-      integer lo0, hi0, lo1, hi1,
-     &        depth,
-     &        plo0, phi0, plo1, phi1,
-     &        clo0, chi0, clo1, chi1,
-     &        elo0, ehi0, elo1, ehi1
-      double precision
-     &        phi(plo0:phi0,plo1:phi1,depth),
-     &        corr(clo0:chi0,clo1:chi1,depth),
-     &        err(elo0:ehi0,elo1:ehi1,depth)
+
+      integer ifirst0,ilast0,ifirst1,ilast1
+      integer depth, ng, ngc, nge
+
+      double precision phi(CELL2d(ifirst,ilast,ng),depth)
+      double precision corr(CELL2d(ifirst,ilast,ngc),depth)
+      double precision err(CELL2d(ifirst,ilast,nge),depth)
 
 c     local variables:
       double precision fac
       integer i, j, m
 
-      do j = lo1, hi1
-         do i = lo0, hi0
+      do j = ifirst1, ilast1
+         do i = ifirst0, ilast0
 
 c           Projection into plane sum_m phi_m=1
 c           consists in adding a correction in the direction (1,1,1)

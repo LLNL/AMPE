@@ -19,7 +19,8 @@ double kks_mobility_factor(
       case EnergyInterpolationType::PBG: a2 = 47. / 60.; break;
       case EnergyInterpolationType::HARMONIC: a2 = 0.5; break;
       default:
-         TBOX_ERROR("Invalid interpolation function in mobility_factor()");
+         a2 = 0.5;
+         // TBOX_ERROR("Invalid interpolation function in mobility_factor()");
    }
 
    // factor 16 due to AMPE convention for phase_well_scale

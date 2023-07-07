@@ -128,8 +128,6 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
       ptr_energy = energy->getPointer();
    }
 
-   assert(phase->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
    assert(weight->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 
@@ -139,6 +137,8 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
 
    const char interpf =
        energyInterpChar(d_model_parameters.energy_interp_func_type());
+   // printf("orient_interp_func_type2 =%s\n",
+   // d_model_parameters.orient_interp_func_type2().c_str()[0]);
    QUATENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
               ifirst(2), ilast(2),
@@ -147,8 +147,8 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
 #if (NDIM == 3)
               pgrad_quat[2],
 #endif
-              0, phase->getPointer(), NGHOSTS, 1, quat_ptr, NGHOSTS,
-              d_model_parameters.epsilon_phase(),
+              0, phase->getPointer(), phase->getGhostCellWidth()[0], 1,
+              quat_ptr, NGHOSTS, d_model_parameters.epsilon_phase(),
               d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
               2. * d_model_parameters.H_parameter(), temperature->getPointer(),
               temperature->getGhostCellWidth()[0],
@@ -166,7 +166,7 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
 #if (NDIM == 3)
               ifirst(2), ilast(2),
 #endif
-              phase->getPointer(), NGHOSTS, fl->getPointer(), fa->getPointer(),
-              weight->getPointer(), total_energy, total_free_e, ptr_energy,
-              per_cell, &interpf);
+              phase->getPointer(), phase->getGhostCellWidth()[0],
+              fl->getPointer(), fa->getPointer(), weight->getPointer(),
+              total_energy, total_free_e, ptr_energy, per_cell, &interpf);
 }

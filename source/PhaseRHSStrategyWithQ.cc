@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -225,8 +224,6 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
    const hier::Index& ifirst = pbox.lower();
    const hier::Index& ilast = pbox.upper();
 
-   assert(phase->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
    assert(phase_rhs->getGhostCellWidth() ==
           hier::IntVector(tbox::Dimension(NDIM), 0));
 #ifdef DEBUG_CHECK_ASSERTIONS
@@ -253,8 +250,9 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
 #endif
                  phase_flux->getGhostCellWidth()[0], temperature->getPointer(),
                  temperature->getGhostCellWidth()[0], d_phase_well_scale,
-                 d_eta_well_scale, phase->getPointer(), NGHOSTS, ptr_eta,
-                 NGHOSTS, ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
+                 d_eta_well_scale, phase->getPointer(),
+                 phase->getGhostCellWidth()[0], ptr_eta, NGHOSTS,
+                 ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
                  &well_func_type, &well_func_type, &interpf,
                  d_orient_interp_func_type1.c_str(),
                  d_orient_interp_func_type2.c_str(), with_orient, three_phase);

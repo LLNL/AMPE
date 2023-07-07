@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -170,22 +169,20 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
             ptr_eta = eta->getPointer();
          }
 
-         CONCENTRATION_PFMDIFFUSION(ifirst(0), ilast(0), ifirst(1), ilast(1),
+         CONCENTRATION_PFMDIFFUSION(
+             ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                    ifirst(2), ilast(2),
+             ifirst(2), ilast(2),
 #endif
-                                    phi->getPointer(), NGHOSTS, ptr_eta,
-                                    NGHOSTS, pfm_diffusion->getPointer(0),
-                                    pfm_diffusion->getPointer(1),
+             phi->getPointer(), phi->getGhostCellWidth()[0], ptr_eta, NGHOSTS,
+             pfm_diffusion->getPointer(0), pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
-                                    pfm_diffusion->getPointer(2),
+             pfm_diffusion->getPointer(2),
 #endif
-                                    0, temperature->getPointer(),
-                                    temperature->getGhostCellWidth()[0],
-                                    d_D_liquid, d_Q0_liquid, d_D_solid_A,
-                                    d_Q0_solid_A, d_D_solid_B, d_Q0_solid_B,
-                                    gas_constant_R_JpKpmol, &interpf,
-                                    d_avg_func_type.c_str(), three_phase);
+             0, temperature->getPointer(), temperature->getGhostCellWidth()[0],
+             d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
+             d_Q0_solid_B, gas_constant_R_JpKpmol, &interpf,
+             d_avg_func_type.c_str(), three_phase);
       }
    }
 }
@@ -795,9 +792,9 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                         ifirst(2), ilast(2),
 #endif
-                        dx, conc->getPointer(ic), NGHOSTS, phase->getPointer(),
-                        NGHOSTS, ptr_eta, NGHOSTS,
-                        conc_pfm_diffusion->getPointer(0),
+                        dx, conc->getPointer(ic), conc->getGhostCellWidth()[0],
+                        phase->getPointer(), phase->getGhostCellWidth()[0],
+                        ptr_eta, NGHOSTS, conc_pfm_diffusion->getPointer(0),
                         conc_pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
                         conc_pfm_diffusion->getPointer(2),
