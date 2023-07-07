@@ -1342,7 +1342,6 @@ void QuatModel::registerConcentrationVariables(void)
 
    }  // if d_model_parameters.concentrationModelNeedsPhaseConcentrations()
    if (d_model_parameters.isConcentrationModelCALPHAD()) {
-      const int nghosts = 1;
       d_conc_l_ref_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
                                          d_ncompositions));
@@ -1353,10 +1352,10 @@ void QuatModel::registerConcentrationVariables(void)
       assert(d_conc_a_ref_var);
       d_conc_l_ref_id = variable_db->registerVariableAndContext(
           d_conc_l_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), nghosts));
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
       d_conc_a_ref_id = variable_db->registerVariableAndContext(
           d_conc_a_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), nghosts));
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
       assert(d_conc_l_ref_id >= 0);
       assert(d_conc_a_ref_id >= 0);
       if (d_model_parameters.with_three_phases()) {
@@ -1366,7 +1365,7 @@ void QuatModel::registerConcentrationVariables(void)
          assert(d_conc_b_ref_var);
          d_conc_b_ref_id = variable_db->registerVariableAndContext(
              d_conc_b_ref_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), nghosts));
+             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
          assert(d_conc_b_ref_id >= 0);
       }
 

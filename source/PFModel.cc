@@ -268,14 +268,6 @@ void PFModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       grid_db->putDatabase("ratio_to_coarser");
    }
 
-   int sm_patch_size[NDIM];
-   for (int ii = 0; ii < NDIM; ii++) {
-      sm_patch_size[ii] = 4;
-   }
-   std::shared_ptr<tbox::Database> smallest_patch_db(
-       grid_db->putDatabase("smallest_patch_size"));
-   smallest_patch_db->putIntegerArray("level_0", sm_patch_size, NDIM);
-
    std::shared_ptr<mesh::StandardTagAndInitialize> error_detector(
        new mesh::StandardTagAndInitialize("StandardTagAndInitialize", this,
                                           tag_db));
