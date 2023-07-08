@@ -247,7 +247,8 @@ void KimMobilityStrategy<FreeEnergyType>::update(
    assert(cd_mob);
    assert(cd_mob->getGhostCellWidth()[0] <= cd_te->getGhostCellWidth()[0]);
    assert(cd_mob->getGhostCellWidth()[0] <= cd_cl->getGhostCellWidth()[0]);
-   assert(cd_phi->getGhostCellWidth()[0] <= cd_cl->getGhostCellWidth()[0]);
+   if (d_conc_b_id > -1)
+      assert(cd_mob->getGhostCellWidth()[0] <= cd_phi->getGhostCellWidth()[0]);
 
    const hier::Box& temp_gbox = cd_te->getGhostBox();
    int min_te[3] = {temp_gbox.lower(0), temp_gbox.lower(1), 0};

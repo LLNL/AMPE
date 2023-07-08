@@ -11,7 +11,6 @@
 #include "BeckermannCompositionRHSStrategy.h"
 
 #include "QuatFort.h"
-#include "QuatParams.h"
 #include "ConcFort.h"
 #include "FuncFort.h"
 #include "QuatModel.h"
@@ -439,13 +438,14 @@ void BeckermannCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
 
    // now compute concentration flux
+   double* eta = nullptr;
    CONCENTRATIONFLUX(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                      ifirst(2), ilast(2),
 #endif
                      dx, conc->getPointer(), conc->getGhostCellWidth()[0],
-                     phase->getPointer(), phase->getGhostCellWidth()[0], 0,
-                     NGHOSTS, sd_conc_diffusion0->getPointer(0),
+                     phase->getPointer(), phase->getGhostCellWidth()[0], eta, 0,
+                     sd_conc_diffusion0->getPointer(0),
                      sd_conc_diffusion0->getPointer(1),
 #if (NDIM == 3)
                      sd_conc_diffusion0->getPointer(2),

@@ -10,7 +10,6 @@
 //
 #include "KKSCompositionRHSStrategy.h"
 #include "QuatFort.h"
-#include "QuatParams.h"
 #include "ConcFort.h"
 #include "FuncFort.h"
 
@@ -160,6 +159,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
 
          int three_phase = 0;
          double* ptr_eta = nullptr;
+         int ngeta = 0;
          std::shared_ptr<pdat::CellData<double> > eta;
          if (d_with_third_phase) {
             three_phase = 1;
@@ -167,6 +167,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
                 SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(eta_id));
             ptr_eta = eta->getPointer();
+            ngeta = eta->getGhostCellWidth()[0];
          }
 
          CONCENTRATION_PFMDIFFUSION(
@@ -174,7 +175,7 @@ void KKSCompositionRHSStrategy::setPFMDiffCoeffForConcentration(
 #if (NDIM == 3)
              ifirst(2), ilast(2),
 #endif
-             phi->getPointer(), phi->getGhostCellWidth()[0], ptr_eta, NGHOSTS,
+             phi->getPointer(), phi->getGhostCellWidth()[0], ptr_eta, ngeta,
              pfm_diffusion->getPointer(0), pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
              pfm_diffusion->getPointer(2),
@@ -777,6 +778,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
    double* ptr_conc_eta_diff2 = nullptr;
 #endif
+   int ngeta = 0;
    if (d_with_third_phase) {
       three_phase = 1;
       std::shared_ptr<pdat::CellData<double> > eta(
@@ -784,6 +786,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
               patch.getPatchData(d_eta_scratch_id)));
       assert(eta);
       ptr_eta = eta->getPointer();
+      ngeta = eta->getGhostCellWidth()[0];
    }
 
    // now compute concentration flux
@@ -794,7 +797,7 @@ void KKSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #endif
                         dx, conc->getPointer(ic), conc->getGhostCellWidth()[0],
                         phase->getPointer(), phase->getGhostCellWidth()[0],
-                        ptr_eta, NGHOSTS, conc_pfm_diffusion->getPointer(0),
+                        ptr_eta, ngeta, conc_pfm_diffusion->getPointer(0),
                         conc_pfm_diffusion->getPointer(1),
 #if (NDIM == 3)
                         conc_pfm_diffusion->getPointer(2),

@@ -10,7 +10,6 @@
 #include "PhaseRHSStrategyWithQ.h"
 #include "UniformNoise.h"
 #include "QuatFort.h"
-#include "QuatParams.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
@@ -212,12 +211,14 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
 
    int three_phase = 0;
    double* ptr_eta = nullptr;
+   int ngeta = 0;
    if (d_eta_scratch_id >= 0) {
       three_phase = 1;
       std::shared_ptr<pdat::CellData<double> > eta(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_eta_scratch_id)));
       ptr_eta = eta->getPointer();
+      ngeta = eta->getGhostCellWidth()[0];
    }
 
    const hier::Box& pbox = patch->getBox();
@@ -251,7 +252,7 @@ void PhaseRHSStrategyWithQ::evaluateRHS(const double time,
                  phase_flux->getGhostCellWidth()[0], temperature->getPointer(),
                  temperature->getGhostCellWidth()[0], d_phase_well_scale,
                  d_eta_well_scale, phase->getPointer(),
-                 phase->getGhostCellWidth()[0], ptr_eta, NGHOSTS,
+                 phase->getGhostCellWidth()[0], ptr_eta, ngeta,
                  ptr_quat_grad_modulus, 0, phase_rhs->getPointer(), 0,
                  &well_func_type, &well_func_type, &interpf,
                  d_orient_interp_func_type1.c_str(),

@@ -10,7 +10,6 @@
 //
 #include "EBSCompositionRHSStrategyWithGradT.h"
 
-#include "QuatParams.h"
 #include "ConcFort.h"
 #include "QuatFort.h"
 #include "FuncFort.h"
@@ -520,7 +519,8 @@ void EBSCompositionRHSStrategyWithGradT::addFluxFromGradTonPatch(
 #if (NDIM == 3)
                                  ifirst(2), ilast(2),
 #endif
-                                 dx, temperature->getPointer(), NGHOSTS,
+                                 dx, temperature->getPointer(),
+                                 temperature->getGhostCellWidth()[0],
                                  mq->getPointer(0), mq->getPointer(1),
 #if (NDIM == 3)
                                  mq->getPointer(2),

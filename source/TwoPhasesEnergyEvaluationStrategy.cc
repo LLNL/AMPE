@@ -10,7 +10,6 @@
 
 #include "TwoPhasesEnergyEvaluationStrategy.h"
 #include "QuatFort.h"
-#include "QuatParams.h"
 
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/CellData.h"
@@ -89,12 +88,14 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
            patch->getPatchData(d_temperature_id)));
 
    double* quat_ptr = nullptr;
+   int ngquat = 0;
    const double epsilon_anisotropy = d_model_parameters.epsilon_anisotropy();
    if (epsilon_anisotropy >= 0.) {
       std::shared_ptr<pdat::CellData<double> > quat(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_quat_scratch_id)));
       quat_ptr = quat->getPointer();
+      ngquat = quat->getGhostCellWidth()[0];
       assert(quat_ptr != nullptr);
    }
 
@@ -148,7 +149,7 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
               pgrad_quat[2],
 #endif
               0, phase->getPointer(), phase->getGhostCellWidth()[0], 1,
-              quat_ptr, NGHOSTS, d_model_parameters.epsilon_phase(),
+              quat_ptr, ngquat, d_model_parameters.epsilon_phase(),
               d_model_parameters.epsilon_q(), epsilon_anisotropy, 4,
               2. * d_model_parameters.H_parameter(), temperature->getPointer(),
               temperature->getGhostCellWidth()[0],

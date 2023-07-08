@@ -69,6 +69,12 @@ namespace pt = boost::property_tree;
 #include <set>
 #include <map>
 
+#define NGHOSTS (1)
+
+// we need internal composition with ghost values for EBS r.h.s.
+// in particular
+#define NGHOSTS_AUX_CONC (1)
+
 #ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 #else
@@ -1185,18 +1191,19 @@ void QuatModel::registerPhaseConcentrationVariables(
 
    // we need internal composition with ghost values for EBS r.h.s.
    // in particular
-   const int nghosts = NGHOSTS;
    d_conc_l_id = variable_db->registerVariableAndContext(
        d_conc_l_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_conc_l_scratch_id = variable_db->registerVariableAndContext(
-       d_conc_l_var, scratch, hier::IntVector(tbox::Dimension(NDIM), nghosts));
+       d_conc_l_var, scratch,
+       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_l_id >= 0);
    assert(d_conc_l_scratch_id >= 0);
 
    d_conc_a_id = variable_db->registerVariableAndContext(
        d_conc_a_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_conc_a_scratch_id = variable_db->registerVariableAndContext(
-       d_conc_a_var, scratch, hier::IntVector(tbox::Dimension(NDIM), nghosts));
+       d_conc_a_var, scratch,
+       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_a_id >= 0);
    assert(d_conc_a_scratch_id >= 0);
 
@@ -1206,7 +1213,7 @@ void QuatModel::registerPhaseConcentrationVariables(
           d_conc_b_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
       d_conc_b_scratch_id = variable_db->registerVariableAndContext(
           d_conc_b_var, scratch,
-          hier::IntVector(tbox::Dimension(NDIM), nghosts));
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
       assert(d_conc_b_id >= 0);
       assert(d_conc_b_scratch_id >= 0);
    }
@@ -1352,10 +1359,10 @@ void QuatModel::registerConcentrationVariables(void)
       assert(d_conc_a_ref_var);
       d_conc_l_ref_id = variable_db->registerVariableAndContext(
           d_conc_l_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
       d_conc_a_ref_id = variable_db->registerVariableAndContext(
           d_conc_a_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
       assert(d_conc_l_ref_id >= 0);
       assert(d_conc_a_ref_id >= 0);
       if (d_model_parameters.with_three_phases()) {
@@ -1365,7 +1372,7 @@ void QuatModel::registerConcentrationVariables(void)
          assert(d_conc_b_ref_var);
          d_conc_b_ref_id = variable_db->registerVariableAndContext(
              d_conc_b_ref_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
          assert(d_conc_b_ref_id >= 0);
       }
 
@@ -1439,8 +1446,7 @@ void QuatModel::registerEtaVariables(void)
        new pdat::SideVariable<double>(tbox::Dimension(NDIM), "eta_diffs"));
    assert(d_eta_diffs_var);
    d_eta_diffs_id = variable_db->registerVariableAndContext(
-       d_eta_diffs_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_eta_diffs_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
 
    d_eta_grad_cell_var.reset(
        new pdat::CellVariable<double>(tbox::Dimension(NDIM), "eta_grad_cell",
@@ -1489,8 +1495,7 @@ void QuatModel::registerPhaseVariables(void)
        new pdat::SideVariable<double>(tbox::Dimension(NDIM), "phase_diffs"));
    assert(d_phase_diffs_var);
    d_phase_diffs_id = variable_db->registerVariableAndContext(
-       d_phase_diffs_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_phase_diffs_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
 
    if (d_model_parameters.with_extra_visit_output()) {
       d_phase_diffs_cell_var.reset(
@@ -1564,8 +1569,7 @@ void QuatModel::registerOrientationVariables(void)
                                          symm_depth));
       assert(d_quat_diffs_var);
       d_quat_diffs_id = variable_db->registerVariableAndContext(
-          d_quat_diffs_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          d_quat_diffs_var, current, hier::IntVector(tbox::Dimension(NDIM), 1));
 
       d_quat_grad_cell_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -1626,7 +1630,7 @@ void QuatModel::registerOrientationVariables(void)
          assert(d_quat_symm_rotation_var);
          d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
              d_quat_symm_rotation_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+             hier::IntVector(tbox::Dimension(NDIM), 1));
       }
 
       d_quat_grad_modulus_var.reset(
@@ -1723,7 +1727,7 @@ void QuatModel::RegisterVariables(void)
                                          "temperature_rhs_", 1));
       d_temperature_rhs_steady_id = variable_db->registerVariableAndContext(
           d_temperature_rhs_steady_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), 1));
       assert(d_temperature_rhs_steady_id >= 0);
    }
 
@@ -3481,8 +3485,6 @@ void QuatModel::computePhaseDiffs(const std::shared_ptr<hier::PatchLevel> level,
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(phase_diffs_id)));
          assert(diff_data);
-         assert(diff_data->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
          std::shared_ptr<pdat::CellData<double> > cell_diffs_data(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -3588,35 +3590,29 @@ void QuatModel::smoothQuat(const std::shared_ptr<hier::PatchLevel> level)
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_quat_scratch_id)));
       assert(quat_scratch);
-      assert(quat_scratch->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::SideData<double> > diff_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(d_quat_diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::CellData<double> > phase(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(d_phase_id)));
       assert(phase);
-      assert(phase->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
 
       SMOOTHQUAT(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
                  ifirst(2), ilast(2),
 #endif
-                 d_qlen, quat_scratch->getPointer(), NGHOSTS,
-                 quat->getPointer(), 0, diff_data->getPointer(0, 0),
-                 diff_data->getPointer(1, 0),
+                 d_qlen, quat_scratch->getPointer(),
+                 quat_scratch->getGhostCellWidth()[0], quat->getPointer(), 0,
+                 diff_data->getPointer(0, 0), diff_data->getPointer(1, 0),
 #if (NDIM == 3)
                  diff_data->getPointer(2, 0),
 #endif
-                 diff_data->getGhostCellWidth()[0], phase->getPointer(), 0,
-                 d_phase_threshold);
+                 diff_data->getGhostCellWidth()[0], phase->getPointer(),
+                 phase->getGhostCellWidth()[0], d_phase_threshold);
    }
 }
 
@@ -3659,15 +3655,13 @@ void QuatModel::computeVarDiffs(const std::shared_ptr<hier::PatchLevel> level,
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(var_id)));
       assert(var_data);
-      assert(var_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      assert(var_data->getGhostCellWidth()[0] > 0);
 
       std::shared_ptr<pdat::SideData<double> > diff_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      assert(diff_data->getGhostCellWidth()[0] > 0);
 
       const hier::Box& var_gbox = var_data->getGhostBox();
       const hier::Index& qlower = var_gbox.lower();
@@ -3702,7 +3696,7 @@ void QuatModel::computeVarDiffs(const std::shared_ptr<hier::PatchLevel> level,
 
 // Computes phase gradients at cell centers.
 
-// phase_diffs_id is SideData with NGHOSTS
+// phase_diffs_id is SideData
 // phase_grad_id is CellData with no ghosts with depth NDIM
 
 void QuatModel::computePhaseGradCell(
@@ -3738,7 +3732,7 @@ void QuatModel::computePhaseGradCell(
 
 // Computes eta gradients at cell centers.
 
-// eta_diffs_id is SideData with NGHOSTS
+// eta_diffs_id is SideData
 // eta_grad_id is CellData with no ghosts with depth NDIM
 
 void QuatModel::computeEtaGradCell(
@@ -3773,7 +3767,7 @@ void QuatModel::computeEtaGradCell(
 
 // Computes gradients at cell centers.
 
-// diff_id is SideData with NGHOSTS
+// diff_id is SideData
 // grad_id is CellData with no ghosts with depth NDIM
 
 void QuatModel::computeVarGradCell(
@@ -3813,15 +3807,11 @@ void QuatModel::computeVarGradCell(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       std::shared_ptr<pdat::CellData<double> > grad_cell_data(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
               patch->getPatchData(grad_cell_id)));
       assert(grad_cell_data);
-      assert(grad_cell_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
 
       const hier::Box& diff_gbox = diff_data->getGhostBox();
       const hier::Index& d_lower = diff_gbox.lower();
@@ -3849,21 +3839,12 @@ void QuatModel::computeVarGradCell(
 #if (NDIM == 3)
                 diff_data->getPointer(2),
 #endif
-                d_lower[0], d_upper[0], d_lower[1], d_upper[1],
-#if (NDIM == 3)
-                d_lower[2], d_upper[2],
-#endif
-                dx, grad_cell_data->getPointer(0),
-                grad_cell_data->getPointer(1),
+                diff_data->getGhostCellWidth()[0], dx,
+                grad_cell_data->getPointer(0), grad_cell_data->getPointer(1),
 #if (NDIM == 3)
                 grad_cell_data->getPointer(2),
 #endif
-                g_lower[0], g_upper[0], g_lower[1], g_upper[1]
-#if (NDIM == 3)
-                ,
-                g_lower[2], g_upper[2]
-#endif
-      );
+                grad_cell_data->getGhostCellWidth()[0]);
    }
 }
 
@@ -3871,7 +3852,7 @@ void QuatModel::computeVarGradCell(
 
 // Computes gradients at sides.
 
-// diff_id is SideData with NGHOSTS
+// diff_id is SideData with at least 1 ghost layer
 // grad_id is SideData with no ghosts, depth of NDIM
 
 void QuatModel::computeVarGradSide(
@@ -3911,8 +3892,7 @@ void QuatModel::computeVarGradSide(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      assert(diff_data->getGhostCellWidth()[0] > 0);
 
       std::shared_ptr<pdat::SideData<double> > grad_side_data(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -3982,8 +3962,8 @@ void QuatModel::computeVarGradSide(
 // "normal" diffs, and will also compute the symmetry-aware diffs
 // if symmetry is on.
 
-// quat_id is CellData with NGHOSTS
-// diff_id is SideData with NGHOSTS
+// quat_id is CellData with ghosts
+// diff_id is SideData with ghosts
 
 void QuatModel::computeQuatDiffs(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& quat_id,
@@ -4092,7 +4072,7 @@ void QuatModel::computeQuatDiffs(const std::shared_ptr<hier::PatchLevel> level,
 // Computes gradients at cell centers. This will always compute the
 // symmetry-aware gradient if symmetry is on.
 
-// diff_id is SideData with NGHOSTS, depth of NDIM*d_qlen
+// diff_id is SideData with ghosts, depth of NDIM*d_qlen
 // grad_id is CellData with no ghosts
 
 void QuatModel::computeQuatGradCell(
@@ -4134,8 +4114,7 @@ void QuatModel::computeQuatGradCell(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch->getPatchData(quat_diffs_id)));
       assert(diff_data);
-      assert(diff_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      assert(diff_data->getGhostCellWidth()[0] > 0);
 
       std::shared_ptr<pdat::CellData<double> > grad_cell_data(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -4173,7 +4152,7 @@ void QuatModel::computeQuatGradCell(
 
 // Computes gradients at side.
 
-// diff_id is SideData with NGHOSTS, depth of NDIM*d_qlen
+// diff_id is SideData with ghosts, depth of NDIM*d_qlen
 // grad_id is SideData with no ghosts
 
 void QuatModel::computeQuatGradSide(
@@ -4472,7 +4451,7 @@ void QuatModel::normalizeQuat(const std::shared_ptr<hier::PatchLevel> level,
 
 // Computes phase mobility at cell centers.
 
-// phase_id is CellData with NGHOSTS
+// phase_id is CellData with ghosts
 // mobility_id is CellData with no ghosts
 
 void QuatModel::computeUniformPhaseMobility(
@@ -4558,7 +4537,7 @@ void QuatModel::computePhaseMobilityPatch(
 
 // Computes eta mobility at cell centers.
 
-// eta_id is CellData with NGHOSTS
+// eta_id is CellData with ghosts
 // mobility_id is CellData with no ghosts
 
 void QuatModel::computeEtaMobility(
@@ -4709,7 +4688,7 @@ void QuatModel::computeEtaMobilityPatch(
 
 // Computes Quaternion mobility at cell centers.
 
-// phase_id is CellData with NGHOSTS
+// phase_id is CellData with ghosts
 // mobility_id is CellData with no ghosts
 
 void QuatModel::computeQuatMobility(
@@ -4777,7 +4756,7 @@ void QuatModel::computeQuatMobility(
 
 // Computes Derivative of Quaternion mobility versus Phase at cell centers.
 
-// phase_id is CellData with NGHOSTS
+// phase_id is CellData with ghosts
 // mobility_deriv_id is CellData with no ghosts
 
 void QuatModel::computeQuatMobilityDeriv(
@@ -5113,15 +5092,13 @@ void QuatModel::computeSymmetryRotations(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_quat_scratch_id)));
          assert(quat);
-         assert(quat->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+         assert(quat->getGhostCellWidth()[0] > 0);
 
          std::shared_ptr<pdat::SideData<int> > rotation_index(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<int>, hier::PatchData>(
                  patch->getPatchData(d_quat_symm_rotation_id)));
          assert(rotation_index);
-         assert(rotation_index->getGhostCellWidth() ==
-                hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+         assert(rotation_index->getGhostCellWidth()[0] > 0);
 
          QUAT_SYMM_ROTATION(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)

@@ -29,6 +29,7 @@
 
 using namespace SAMRAI;
 
+#define NGHOSTS (1)
 
 int main(int argc, char* argv[])
 {
@@ -62,9 +63,9 @@ int main(int argc, char* argv[])
       hier::Box box(box_lower, box_upper, hier::BlockId(0));
 
       std::shared_ptr<pdat::CellData<double>> quat(
-          new pdat::CellData<double>(box, qlen, hier::IntVector(dim, 1)));
+          new pdat::CellData<double>(box, qlen, hier::IntVector(dim, NGHOSTS)));
       std::shared_ptr<pdat::SideData<double>> quat_diffs(
-          new pdat::SideData<double>(box, qlen, hier::IntVector(dim, 1)));
+          new pdat::SideData<double>(box, qlen, hier::IntVector(dim, NGHOSTS)));
 
       // initialize quat fields as linear functions of x,y,z
       std::vector<double> alpha(NDIM * qlen);

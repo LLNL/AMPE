@@ -10,7 +10,6 @@
 // Please also read AMPE/LICENSE.
 //
 #include "ConcFort.h"
-#include "QuatParams.h"
 #include "KKSdiluteBinary.h"
 #include "xlogx.h"
 #include "MolarVolumeStrategy.h"

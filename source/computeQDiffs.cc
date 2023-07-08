@@ -12,7 +12,6 @@
 #include "SAMRAI/hier/Patch.h"
 
 #include "QuatFort.h"
-#include "QuatParams.h"
 
 using namespace SAMRAI;
 
@@ -181,8 +180,6 @@ void computeQGrad(std::shared_ptr<pdat::SideData<double> > diff_data,
 
    if (isSymmetryAware) {
       assert(rotation_index);
-      assert(rotation_index->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
 
       QUATGRAD_CELL_SYMM(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -238,10 +235,7 @@ void computeQDiffs(std::shared_ptr<pdat::CellData<double> > quat_data,
       assert(2 * quat_data->getDepth() == diff_data->getDepth());
    else
       assert(quat_data->getDepth() == diff_data->getDepth());
-   assert(quat_data->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-   assert(diff_data->getGhostCellWidth() ==
-          hier::IntVector(tbox::Dimension(NDIM), 1));
+   assert(quat_data->getGhostCellWidth()[0] > 0);
 
    const int qlen = quat_data->getDepth();
 

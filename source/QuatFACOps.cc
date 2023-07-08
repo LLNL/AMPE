@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -1999,7 +1998,7 @@ void QuatFACOps::accumulateOperatorOnLevel(const int mobility_id,
     */
 
    /* S1. Fill ghost data for quaternions (component 0). */
-   {
+   if (grad_q_id == -1) {
       if (ln > d_ln_min) {
          /* Fill from current, next coarser level and physical boundary */
          xeqScheduleGhostFill(q_id, ln);
