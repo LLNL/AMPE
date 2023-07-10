@@ -1,62 +1,34 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
-c 
 define(NDIM,3)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 
       subroutine grad_cell(
-     &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   diff_x, diff_y, diff_z,
-     &   dlo0, dhi0, dlo1, dhi1, dlo2, dhi2,
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   diff_x, diff_y, diff_z, ngdiff,
      &   h,
-     &   grad_x, grad_y, grad_z,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2
+     &   grad_x, grad_y, grad_z, nggrad
      &   )
 
       implicit none
 
       integer
-     &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   dlo0, dhi0, dlo1, dhi1, dlo2, dhi2,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   ngdiff, nggrad
 
       double precision
-     &   diff_x(dlo0:dhi0+1,dlo1:dhi1,dlo2:dhi2),
-     &   diff_y(dlo0:dhi0,dlo1:dhi1+1,dlo2:dhi2),
-     &   diff_z(dlo0:dhi0,dlo1:dhi1,dlo2:dhi2+1),
+     &   diff_x(SIDE3d0(ifirst,ilast,ngdiff)),
+     &   diff_y(SIDE3d1(ifirst,ilast,ngdiff)),
+     &   diff_z(SIDE3d2(ifirst,ilast,ngdiff)),
      &   h(3),
-     &   grad_x(glo0:ghi0,glo1:ghi1,glo2:ghi2),
-     &   grad_y(glo0:ghi0,glo1:ghi1,glo2:ghi2),
-     &   grad_z(glo0:ghi0,glo1:ghi1,glo2:ghi2)
+     &   grad_x(CELL3d(ifirst,ilast,nggrad)),
+     &   grad_y(CELL3d(ifirst,ilast,nggrad)),
+     &   grad_z(CELL3d(ifirst,ilast,nggrad))
 
       integer i, j, k
       double precision p5dxinv, p5dyinv, p5dzinv
@@ -65,27 +37,27 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
       p5dyinv = 0.5d0 / h(2)
       p5dzinv = 0.5d0 / h(3)
 
-      do k = lo2, hi2
-         do j = lo1, hi1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
                grad_x(i,j,k) =
      &            ( diff_x(i+1,j,k) + diff_x(i,j,k) ) * p5dxinv
             enddo
          enddo
       enddo
       
-      do k = lo2, hi2
-         do j = lo1, hi1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
                grad_y(i,j,k) =
      &            ( diff_y(i,j+1,k) + diff_y(i,j,k) ) * p5dyinv
             enddo
          enddo
       enddo
 
-      do k = lo2, hi2
-         do j = lo1, hi1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
                grad_z(i,j,k) =
      &            ( diff_z(i,j,k+1) + diff_z(i,j,k) ) * p5dzinv
             enddo
@@ -98,37 +70,35 @@ include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c-----------------------------------------------------------------------
 
       subroutine grad_side(
-     &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   diff_x, diff_y, diff_z,
-     &   dlo0, dhi0, dlo1, dhi1, dlo2, dhi2,
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   diff_x, diff_y, diff_z, ngdiff,
      &   h,
      &   grad_x_xside, grad_y_xside, grad_z_xside,
      &   grad_x_yside, grad_y_yside, grad_z_yside,
      &   grad_x_zside, grad_y_zside, grad_z_zside,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2
+     &   nggrad
      &   )
 
       implicit none
 
       integer
-     &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   dlo0, dhi0, dlo1, dhi1, dlo2, dhi2,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   ngdiff, nggrad
 
       double precision
-     &   diff_x(dlo0:dhi0+1,dlo1:dhi1,dlo2:dhi2),
-     &   diff_y(dlo0:dhi0,dlo1:dhi1+1,dlo2:dhi2),
-     &   diff_z(dlo0:dhi0,dlo1:dhi1,dlo2:dhi2+1),
+     &   diff_x(SIDE3d0(ifirst,ilast,ngdiff)),
+     &   diff_y(SIDE3d1(ifirst,ilast,ngdiff)),
+     &   diff_z(SIDE3d2(ifirst,ilast,ngdiff)),
      &   h(3),
-     &   grad_x_xside(glo0:ghi0+1,glo1:ghi1,glo2:ghi2),
-     &   grad_y_xside(glo0:ghi0+1,glo1:ghi1,glo2:ghi2),
-     &   grad_z_xside(glo0:ghi0+1,glo1:ghi1,glo2:ghi2),
-     &   grad_x_yside(glo0:ghi0,glo1:ghi1+1,glo2:ghi2),
-     &   grad_y_yside(glo0:ghi0,glo1:ghi1+1,glo2:ghi2),
-     &   grad_z_yside(glo0:ghi0,glo1:ghi1+1,glo2:ghi2),
-     &   grad_x_zside(glo0:ghi0,glo1:ghi1,glo2:ghi2+1),
-     &   grad_y_zside(glo0:ghi0,glo1:ghi1,glo2:ghi2+1),
-     &   grad_z_zside(glo0:ghi0,glo1:ghi1,glo2:ghi2+1)
+     &   grad_x_xside(SIDE3d0(ifirst,ilast,nggrad)),
+     &   grad_y_xside(SIDE3d0(ifirst,ilast,nggrad)),
+     &   grad_z_xside(SIDE3d0(ifirst,ilast,nggrad)),
+     &   grad_x_yside(SIDE3d1(ifirst,ilast,nggrad)),
+     &   grad_y_yside(SIDE3d1(ifirst,ilast,nggrad)),
+     &   grad_z_yside(SIDE3d1(ifirst,ilast,nggrad)),
+     &   grad_x_zside(SIDE3d2(ifirst,ilast,nggrad)),
+     &   grad_y_zside(SIDE3d2(ifirst,ilast,nggrad)),
+     &   grad_z_zside(SIDE3d2(ifirst,ilast,nggrad))
 
 c        local variables:
       integer i, j, k
@@ -143,9 +113,9 @@ c        local variables:
       p25_dzinv = 0.25d0 * dzinv
 
 c        Compute gradients on the "X" side of the cell
-      do k = lo2, hi2
-         do j = lo1, hi1
-            do i = lo0, hi0+1
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0+1
 
 c                 X component of gradient at "X" side
                grad_x_xside(i,j,k) = dxinv * diff_x(i,j,k)
@@ -167,9 +137,9 @@ c                 Z component of gradient at "X" side
       enddo
 
 c        Compute gradients on the "Y" side of the cell
-      do k = lo2, hi2
-         do j = lo1, hi1+1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2
+         do j = ifirst1, ilast1+1
+            do i = ifirst0, ilast0
 
 c                 X component of gradient at "Y" side
                grad_x_yside(i,j,k) = p25_dxinv * (
@@ -191,9 +161,9 @@ c                 Z component of gradient at "Y" side
       enddo
 
 c        Compute gradients on the "Z" side of the cell
-      do k = lo2, hi2+1
-         do j = lo1, hi1
-            do i = lo0, hi0
+      do k = ifirst2, ilast2+1
+         do j = ifirst1, ilast1
+            do i = ifirst0, ilast0
                
 c                 X component of gradient at "Z" side
                grad_x_zside(i,j,k) = p25_dxinv * (

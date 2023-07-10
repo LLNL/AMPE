@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -215,20 +214,11 @@ void GRAD_CELL(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
                const double*,
 #endif
-               const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-               const int&, const int&,
-#endif
-               const double*, const double*, const double*,
+               const int&, const double*, const double*, const double*,
 #if (NDIM == 3)
                const double*,
 #endif
-               const int&, const int&, const int&, const int&
-#if (NDIM == 3)
-               ,
-               const int&, const int&
-#endif
-);
+               const int&);
 
 void GRAD_SIDE(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
@@ -737,11 +727,8 @@ void VELOCITY(const int&, const int&, const int&, const int&,
 void COMPUTE_FACE_COEF2D(const int&, const int&, const int&, const int&,
                          const int&, const double&, const double*, const int&,
                          const double*, const int&, const double&,
-                         const double*, const int&, const int&, const int&,
-                         const int&, const double*, const int&, const int&,
-                         const int&, const int&, const double*, const int&,
-                         const int&, const int&, const int&, const double*,
-                         const int&, const int&, const int&, const int&,
+                         const double*, const double*, const int&,
+                         const double*, const double*, const int&,
                          const double&, const char*, const char*, const char*,
                          const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF2D(
@@ -859,21 +846,17 @@ void MULTICOMPONENT_DIVIDE2D(const int&, const int&, const int&, const int&,
 
 // 3d prototypes
 
-void COMPUTE_FACE_COEF3D(
-    const int&, const int&, const int&, const int&, const int&, const int&,
-    const int&, const double&, const double*, const int&, const double*,
-    const int&, const double&,
-    // grad_q_data
-    const double*, const int&, const int&, const int&, const int&, const int&,
-    const int&, const double*, const int&, const int&, const int&, const int&,
-    const int&, const int&, const double*, const int&, const int&, const int&,
-    const int&, const int&, const int&,
-    // face_coef_data
-    const double*, const int&, const int&, const int&, const int&, const int&,
-    const int&, const double*, const int&, const int&, const int&, const int&,
-    const int&, const int&, const double*, const int&, const int&, const int&,
-    const int&, const int&, const int&, const double&, const char*, const char*,
-    const char*, const char*);
+void COMPUTE_FACE_COEF3D(const int&, const int&, const int&, const int&,
+                         const int&, const int&, const int&, const double&,
+                         const double*, const int&, const double*, const int&,
+                         const double&,
+                         // grad_q_data
+                         const double*, const double*, const double*,
+                         const int&,
+                         // face_coef_data
+                         const double*, const double*, const double*,
+                         const int&, const double&, const char*, const char*,
+                         const char*, const char*);
 void COMPUTE_DQUATDPHI_FACE_COEF3D(
     const int&, const int&, const int&, const int&, const int&, const int&,
     const int&, const double*, const int&, const int&, const int&, const int&,

@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -10,7 +9,6 @@
 // Please also read AMPE/LICENSE.
 #include "DerivDiffusionCoeffForQuat.h"
 #include "QuatFort.h"
-#include "QuatParams.h"
 
 #include "SAMRAI/pdat/CellData.h"
 

@@ -11,7 +11,6 @@
 
 // Ref: Eiken, Boettger, Steinbach, PRE 73, 066122 (2006)
 #include "EBSCompositionRHSStrategy.h"
-#include "QuatParams.h"
 #include "ConcFort.h"
 #include "QuatFort.h"
 #include "FuncFort.h"

@@ -39,8 +39,6 @@
 #include "KKSCompositionRHSStrategy.h"
 #include "GradientTemperatureStrategy.h"
 
-#include "QuatParams.h"
-
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/solv/LocationIndexRobinBcCoefs.h"
@@ -725,10 +723,9 @@ void QuatIntegrator::RegisterQuatVariables(
 
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
-   d_quat_id = variable_db->registerVariableAndContext(
-       d_quat_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
-   d_quat_scratch_id = variable_db->registerVariableAndContext(
-       d_quat_var, d_scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+   d_quat_id = variable_db->mapVariableAndContextToIndex(d_quat_var, d_current);
+   d_quat_scratch_id =
+       variable_db->mapVariableAndContextToIndex(d_quat_var, d_scratch);
 
    if (d_evolve_quat) {
       assert(quat_grad_cell_var);
@@ -737,38 +734,37 @@ void QuatIntegrator::RegisterQuatVariables(
       assert(quat_mobility_var);
 
       d_quat_grad_cell_var = quat_grad_cell_var;
-      d_quat_grad_cell_id = variable_db->registerVariableAndContext(
-          d_quat_grad_cell_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
+      d_quat_grad_cell_id =
+          variable_db->mapVariableAndContextToIndex(d_quat_grad_cell_var,
+                                                    d_current);
 
       d_quat_grad_side_var = quat_grad_side_var;
-      d_quat_grad_side_id = variable_db->registerVariableAndContext(
-          d_quat_grad_side_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
+      d_quat_grad_side_id =
+          variable_db->mapVariableAndContextToIndex(d_quat_grad_side_var,
+                                                    d_current);
 
       d_quat_grad_modulus_var = quat_grad_modulus_var;
-      d_quat_grad_modulus_id = variable_db->registerVariableAndContext(
-          d_quat_grad_modulus_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
+      d_quat_grad_modulus_id =
+          variable_db->mapVariableAndContextToIndex(d_quat_grad_modulus_var,
+                                                    d_current);
 
       d_quat_mobility_var = quat_mobility_var;
-      d_quat_mobility_id = variable_db->registerVariableAndContext(
-          d_quat_mobility_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 1));
+      d_quat_mobility_id =
+          variable_db->mapVariableAndContextToIndex(d_quat_mobility_var,
+                                                    d_current);
 
       d_quat_diffs_var = quat_diffs_var;
-      d_quat_diffs_id = variable_db->registerVariableAndContext(
-          d_quat_diffs_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
-
+      d_quat_diffs_id =
+          variable_db->mapVariableAndContextToIndex(d_quat_diffs_var,
+                                                    d_current);
 
       if (d_symmetry_aware) {
          assert(quat_symm_rotation_var);
 
          d_quat_symm_rotation_var = quat_symm_rotation_var;
-         d_quat_symm_rotation_id = variable_db->registerVariableAndContext(
-             d_quat_symm_rotation_var, d_current,
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+         d_quat_symm_rotation_id =
+             variable_db->mapVariableAndContextToIndex(d_quat_symm_rotation_var,
+                                                       d_current);
 
          assert(d_quat_symm_rotation_id >= 0);
       }
@@ -825,11 +821,10 @@ void QuatIntegrator::RegisterVariables(
    d_eta_var = eta_var;
    if (d_with_third_phase) {
       assert(eta_var);
-      d_eta_id = variable_db->registerVariableAndContext(
-          d_eta_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 0));
-      d_eta_scratch_id = variable_db->registerVariableAndContext(
-          d_eta_var, d_scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+      d_eta_id =
+          variable_db->mapVariableAndContextToIndex(d_eta_var, d_current);
+      d_eta_scratch_id =
+          variable_db->mapVariableAndContextToIndex(d_eta_var, d_scratch);
       assert(d_eta_id >= 0);
       assert(d_eta_scratch_id >= 0);
    }
@@ -845,8 +840,7 @@ void QuatIntegrator::RegisterVariables(
    d_cp_var = cp_var;
    if (d_with_unsteady_temperature) {
       assert(d_cp_var);
-      d_cp_id = variable_db->registerVariableAndContext(
-          d_cp_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
+      d_cp_id = variable_db->mapVariableAndContextToIndex(d_cp_var, d_current);
       assert(d_cp_id >= 0);
    }
 
@@ -860,9 +854,9 @@ void QuatIntegrator::RegisterVariables(
    if (d_with_phase) {
       d_phase_mobility_var = phase_mobility_var;
       // 1 ghost layer needed for non-periodic BC
-      d_phase_mobility_id = variable_db->registerVariableAndContext(
-          d_phase_mobility_var, d_current,
-          hier::IntVector(tbox::Dimension(NDIM), 1));
+      d_phase_mobility_id =
+          variable_db->mapVariableAndContextToIndex(d_phase_mobility_var,
+                                                    d_current);
       assert(d_phase_mobility_id >= 0);
 
       if (d_precond_has_dTdphi) {
@@ -1067,8 +1061,7 @@ void QuatIntegrator::RegisterLocalEtaVariables()
                                                       d_name + "_QI_eta_sol_",
                                                       1));
    d_eta_sol_id = variable_db->registerVariableAndContext(
-       d_eta_sol_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_eta_sol_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
    d_local_data.setFlag(d_eta_sol_id);
 
    d_eta_rhs_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -1093,8 +1086,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
                                                                  "sol_",
                                                         nphases));
    d_phase_sol_id = variable_db->registerVariableAndContext(
-       d_phase_sol_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_phase_sol_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
    assert(d_phase_sol_id >= 0);
    d_local_data.setFlag(d_phase_sol_id);
 
@@ -1115,7 +1107,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), name, nphases));
       d_dphidt_scratch_id = variable_db->registerVariableAndContext(
           d_dphidt_scratch_var, d_scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), 1));
       assert(d_dphidt_scratch_id >= 0);
       d_local_data.setFlag(d_dphidt_scratch_id);
    }
@@ -1141,8 +1133,7 @@ void QuatIntegrator::RegisterLocalConcentrationVariables()
                                                        d_name + "_QI_conc_sol_",
                                                        d_ncompositions));
    d_conc_sol_id = variable_db->registerVariableAndContext(
-       d_conc_sol_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_conc_sol_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
    assert(d_conc_sol_id >= 0);
    d_local_data.setFlag(d_conc_sol_id);
 
@@ -1157,8 +1148,7 @@ void QuatIntegrator::RegisterLocalQuatVariables()
                                                        d_name + "_QI_quat_sol_",
                                                        d_qlen));
    d_quat_sol_id = variable_db->registerVariableAndContext(
-       d_quat_sol_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_quat_sol_var, d_current, hier::IntVector(tbox::Dimension(NDIM), 1));
    assert(d_quat_sol_id >= 0);
    d_local_data.setFlag(d_quat_sol_id);
 
@@ -1202,7 +1192,7 @@ void QuatIntegrator::RegisterLocalUnsteadyTemperatureVariables()
                                       d_name + "_QI_temperature_sol_", 1));
    d_temperature_sol_id = variable_db->registerVariableAndContext(
        d_temperature_sol_var, d_current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       hier::IntVector(tbox::Dimension(NDIM), 1));
    assert(d_temperature_sol_id >= 0);
    d_local_data.setFlag(d_temperature_sol_id);
 

@@ -97,25 +97,15 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
    const hier::Index& lower = box.lower();
    const hier::Index& upper = box.upper();
 
-   const hier::Box& gq_gbox = grad_q_data.getGhostBox();
-   const hier::Index& gqlower = gq_gbox.lower();
-   const hier::Index& gqupper = gq_gbox.upper();
-
-   const hier::Box& d_gbox = face_coef_data.getGhostBox();
-   const hier::Index& dlower = d_gbox.lower();
-   const hier::Index& dupper = d_gbox.upper();
-
 #if NDIM == 2
    COMPUTE_FACE_COEF2D(
        lower[0], upper[0], lower[1], upper[1], d_qlen, d_epsilon_q,
        phase_data.getPointer(), phase_data.getGhostCellWidth()[0],
        temp_data.getPointer(), temp_data.getGhostCellWidth()[0],
-       2. * d_Hparameter, grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
-       gqlower[1], gqupper[1], grad_q_data.getPointer(1), gqlower[0],
-       gqupper[0], gqlower[1], gqupper[1] + 1, face_coef_data.getPointer(0),
-       dlower[0], dupper[0] + 1, dlower[1], dupper[1],  // output
-       face_coef_data.getPointer(1), dlower[0], dupper[0], dlower[1],
-       dupper[1] + 1,  // output
+       2. * d_Hparameter, grad_q_data.getPointer(0), grad_q_data.getPointer(1),
+       grad_q_data.getGhostCellWidth()[0], face_coef_data.getPointer(0),
+       face_coef_data.getPointer(1),
+       face_coef_data.getGhostCellWidth()[0],  // output
        d_gradient_floor, d_grad_floor_type.c_str(), d_interp_type1.c_str(),
        d_interp_type2.c_str(), d_avg_type.c_str());
 #endif
@@ -124,16 +114,11 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
        lower[0], upper[0], lower[1], upper[1], lower[2], upper[2], d_qlen,
        d_epsilon_q, phase_data.getPointer(), phase_data.getGhostCellWidth()[0],
        temp_data.getPointer(), temp_data.getGhostCellWidth()[0],
-       2. * d_Hparameter, grad_q_data.getPointer(0), gqlower[0], gqupper[0] + 1,
-       gqlower[1], gqupper[1], gqlower[2], gqupper[2],
-       grad_q_data.getPointer(1), gqlower[0], gqupper[0], gqlower[1],
-       gqupper[1] + 1, gqlower[2], gqupper[2], grad_q_data.getPointer(2),
-       gqlower[0], gqupper[0], gqlower[1], gqupper[1], gqlower[2],
-       gqupper[2] + 1, face_coef_data.getPointer(0), dlower[0], dupper[0] + 1,
-       dlower[1], dupper[1], dlower[2], dupper[2], face_coef_data.getPointer(1),
-       dlower[0], dupper[0], dlower[1], dupper[1] + 1, dlower[2], dupper[2],
-       face_coef_data.getPointer(2), dlower[0], dupper[0], dlower[1], dupper[1],
-       dlower[2], dupper[2] + 1, d_gradient_floor, d_grad_floor_type.c_str(),
-       d_interp_type1.c_str(), d_interp_type2.c_str(), d_avg_type.c_str());
+       2. * d_Hparameter, grad_q_data.getPointer(0), grad_q_data.getPointer(1),
+       grad_q_data.getPointer(2), grad_q_data.getGhostCellWidth()[0],
+       face_coef_data.getPointer(0), face_coef_data.getPointer(1),
+       face_coef_data.getPointer(2), face_coef_data.getGhostCellWidth()[0],
+       d_gradient_floor, d_grad_floor_type.c_str(), d_interp_type1.c_str(),
+       d_interp_type2.c_str(), d_avg_type.c_str());
 #endif
 }

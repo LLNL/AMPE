@@ -18,10 +18,8 @@ c
      &     phi, ngp,
      &     temp, ngt,
      &     misorientation_factor,
-     &     gqx, gqxlo0, gqxhi0, gqxlo1, gqxhi1,
-     &     gqy, gqylo0, gqyhi0, gqylo1, gqyhi1,
-     &     fcx, fcxlo0, fcxhi0, fcxlo1, fcxhi1,
-     &     fcy, fcylo0, fcyhi0, fcylo1, fcyhi1,
+     &     gqx, gqy, nggq,
+     &     fcx, fcy, ngf,
      &     gradient_floor, floor_type,
      &     interp_type1, interp_type2,
      &     avg_type
@@ -30,25 +28,22 @@ c
       implicit none
 c
 c variables in 2d cell indexed
-      integer ngp, ngt
+      integer ngp, ngt, nggq, ngf
       double precision phi(CELL2d(lo,hi,ngp))
       double precision temp(CELL2d(lo,hi,ngt))
+      double precision gqx(SIDE2d0(lo,hi,nggq),depth,NDIM)
+      double precision gqy(SIDE2d1(lo,hi,nggq),depth,NDIM)
+      double precision fcx(SIDE2d0(lo,hi,ngf))
+      double precision fcy(SIDE2d1(lo,hi,ngf))
+
       character*(*) interp_type1, interp_type2
       character*(*) floor_type
       character*(*) avg_type
 
       integer lo0, hi0, lo1, hi1,
-     &        depth,
-     &        gqxlo0, gqxhi0, gqxlo1, gqxhi1,
-     &        gqylo0, gqyhi0, gqylo1, gqyhi1,
-     &        fcxlo0, fcxhi0, fcxlo1, fcxhi1,
-     &        fcylo0, fcyhi0, fcylo1, fcyhi1
+     &        depth
 
       double precision
-     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,depth,NDIM),
-     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,depth,NDIM),
-     &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1),
-     &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1),
      &           gradient_floor, eps_q
 
       double precision eval_grad_normi

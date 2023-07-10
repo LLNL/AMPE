@@ -16,7 +16,6 @@
 
 #include "FuncFort.h"
 #include "ConcFort.h"
-#include "QuatParams.h"
 #include "QuadraticFreeEnergyStrategy.h"
 
 #include "SAMRAI/math/HierarchyCellDataOpsReal.h"

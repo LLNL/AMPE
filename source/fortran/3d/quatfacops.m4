@@ -18,12 +18,8 @@ c
      &     phi, ngp,
      &     temp, ngt,
      &     misorientation_factor,
-     &     gqx, gqxlo0, gqxhi0, gqxlo1, gqxhi1, gqxlo2, gqxhi2,
-     &     gqy, gqylo0, gqyhi0, gqylo1, gqyhi1, gqylo2, gqyhi2,
-     &     gqz, gqzlo0, gqzhi0, gqzlo1, gqzhi1, gqzlo2, gqzhi2,
-     &     fcx, fcxlo0, fcxhi0, fcxlo1, fcxhi1, fcxlo2, fcxhi2,
-     &     fcy, fcylo0, fcyhi0, fcylo1, fcyhi1, fcylo2, fcyhi2,
-     &     fcz, fczlo0, fczhi0, fczlo1, fczhi1, fczlo2, fczhi2,
+     &     gqx, gqy, gqz, nggq,
+     &     fcx, fcy, fcz, ngf,
      &     gradient_floor, floor_type, interp_type1, interp_type2,
      &     avg_type
      &     )
@@ -33,29 +29,23 @@ c
 c variables in 3d cell indexed
       double precision phi(CELL3d(lo,hi,ngp))
       double precision temp(CELL3d(lo,hi,ngt))
+      double precision gqx(SIDE3d0(lo,hi,nggq),depth,NDIM)
+      double precision gqy(SIDE3d1(lo,hi,nggq),depth,NDIM)
+      double precision gqz(SIDE3d2(lo,hi,nggq),depth,NDIM)
+      double precision fcx(SIDE3d0(lo,hi,ngf))
+      double precision fcy(SIDE3d1(lo,hi,ngf))
+      double precision fcz(SIDE3d2(lo,hi,ngf))
 
-      integer ngp, ngt
+      integer ngp, ngt, nggq, ngf
 
       character*(*) interp_type1, interp_type2
       character*(*) floor_type
       character*(*) avg_type
 
       integer lo0, hi0, lo1, hi1, lo2, hi2,
-     &        depth,
-     &        gqxlo0, gqxhi0, gqxlo1, gqxhi1, gqxlo2, gqxhi2,
-     &        gqylo0, gqyhi0, gqylo1, gqyhi1, gqylo2, gqyhi2,
-     &        gqzlo0, gqzhi0, gqzlo1, gqzhi1, gqzlo2, gqzhi2,
-     &        fcxlo0, fcxhi0, fcxlo1, fcxhi1, fcxlo2, fcxhi2,
-     &        fcylo0, fcyhi0, fcylo1, fcyhi1, fcylo2, fcyhi2,
-     &        fczlo0, fczhi0, fczlo1, fczhi1, fczlo2, fczhi2
+     &        depth
 
       double precision
-     &           gqx(gqxlo0:gqxhi0,gqxlo1:gqxhi1,gqxlo2:gqxhi2,depth,NDIM),
-     &           gqy(gqylo0:gqyhi0,gqylo1:gqyhi1,gqylo2:gqyhi2,depth,NDIM),
-     &           gqz(gqzlo0:gqzhi0,gqzlo1:gqzhi1,gqzlo2:gqzhi2,depth,NDIM),
-     &           fcx(fcxlo0:fcxhi0,fcxlo1:fcxhi1,fcxlo2:fcxhi2),
-     &           fcy(fcylo0:fcyhi0,fcylo1:fcyhi1,fcylo2:fcyhi2),
-     &           fcz(fczlo0:fczhi0,fczlo1:fczhi1,fczlo2:fczhi2),
      &           gradient_floor, eps_q
 
       double precision eval_grad_normi
