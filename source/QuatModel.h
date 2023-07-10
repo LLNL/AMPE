@@ -475,9 +475,6 @@ class QuatModel : public PFModel
    std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
    int d_quat_mobility_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
-   int d_quat_diffusion_id;
-
    std::shared_ptr<pdat::SideVariable<double> > d_conc_diffusion_var;
    int d_conc_diffusion_id;
 

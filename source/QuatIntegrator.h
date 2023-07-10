@@ -125,7 +125,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const std::shared_ptr<pdat::CellVariable<double> > phase_mobility_var,
        const std::shared_ptr<pdat::CellVariable<double> > eta_mobility_var,
        const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
        const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
        const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var,
        const std::shared_ptr<pdat::CellVariable<double> > weight_var,
@@ -471,7 +470,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
        const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
        const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
        const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-       const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
        const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
        const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var);
 
@@ -659,8 +657,6 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
    std::shared_ptr<pdat::CellVariable<double> > d_quat_mobility_var;
    int d_quat_mobility_id;
 
-   std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_var;
-   int d_quat_diffusion_id;
    std::shared_ptr<pdat::SideVariable<double> > d_quat_diffusion_deriv_var;
    int d_quat_diffusion_deriv_id;
 
