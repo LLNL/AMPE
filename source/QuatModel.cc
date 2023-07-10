@@ -1646,14 +1646,6 @@ void QuatModel::registerOrientationVariables(void)
       d_quat_mobility_id = variable_db->registerVariableAndContext(
           d_quat_mobility_var, current,
           hier::IntVector(tbox::Dimension(NDIM), 1));
-
-      d_quat_diffusion_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "quat_diffusion"));
-      assert(d_quat_diffusion_var);
-      d_quat_diffusion_id = variable_db->registerVariableAndContext(
-          d_quat_diffusion_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
    }
 }
 
@@ -1777,17 +1769,16 @@ void QuatModel::RegisterVariables(void)
                                    d_quat_grad_cell_var, d_quat_grad_side_var,
                                    d_quat_grad_modulus_var,
                                    d_phase_mobility_var, d_eta_mobility_var,
-                                   d_quat_mobility_var, d_quat_diffusion_var,
-                                   d_quat_diffs_var, d_quat_symm_rotation_var,
-                                   d_weight_var, d_temperature_var, d_cp_var);
+                                   d_quat_mobility_var, d_quat_diffs_var,
+                                   d_quat_symm_rotation_var, d_weight_var,
+                                   d_temperature_var, d_cp_var);
 
    if (d_model_parameters.evolveQuat()) {
       d_integrator_quat_only->RegisterVariables(
           d_phase_var, d_eta_var, d_quat_relax_var, d_quat_grad_cell_var,
           d_quat_grad_side_var, d_quat_grad_modulus_var, d_phase_mobility_var,
-          d_eta_mobility_var, d_quat_mobility_var, d_quat_diffusion_var,
-          d_quat_diffs_var, d_quat_symm_rotation_var, d_weight_var,
-          d_temperature_var, d_cp_var);
+          d_eta_mobility_var, d_quat_mobility_var, d_quat_diffs_var,
+          d_quat_symm_rotation_var, d_weight_var, d_temperature_var, d_cp_var);
    }
 
    //
@@ -2882,9 +2873,6 @@ void QuatModel::AllocateQuatLocalPatchData(
       AllocateAndZeroData<pdat::CellData<double> >(d_quat_relax_scratch_id,
                                                    level, time, zero_data);
       AllocateAndZeroData<pdat::CellData<double> >(d_quat_mobility_id, level,
-                                                   time, zero_data);
-
-      AllocateAndZeroData<pdat::SideData<double> >(d_quat_diffusion_id, level,
                                                    time, zero_data);
 
       AllocateAndZeroData<pdat::CellData<double> >(d_quat_grad_cell_id, level,

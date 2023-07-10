@@ -718,7 +718,6 @@ void QuatIntegrator::RegisterQuatVariables(
     const std::shared_ptr<pdat::SideVariable<double> > quat_grad_side_var,
     const std::shared_ptr<pdat::CellVariable<double> > quat_grad_modulus_var,
     const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-    const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
     const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
     const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var)
 {
@@ -736,7 +735,6 @@ void QuatIntegrator::RegisterQuatVariables(
       assert(quat_grad_side_var);
       assert(quat_grad_modulus_var);
       assert(quat_mobility_var);
-      assert(quat_diffusion_var);
 
       d_quat_grad_cell_var = quat_grad_cell_var;
       d_quat_grad_cell_id = variable_db->registerVariableAndContext(
@@ -797,7 +795,6 @@ void QuatIntegrator::RegisterVariables(
     const std::shared_ptr<pdat::CellVariable<double> > phase_mobility_var,
     const std::shared_ptr<pdat::CellVariable<double> > eta_mobility_var,
     const std::shared_ptr<pdat::CellVariable<double> > quat_mobility_var,
-    const std::shared_ptr<pdat::SideVariable<double> > quat_diffusion_var,
     const std::shared_ptr<pdat::SideVariable<double> > quat_diffs_var,
     const std::shared_ptr<pdat::SideVariable<int> > quat_symm_rotation_var,
     const std::shared_ptr<pdat::CellVariable<double> > weight_var,
@@ -857,8 +854,7 @@ void QuatIntegrator::RegisterVariables(
    if (d_with_orientation) {
       RegisterQuatVariables(quat_var, quat_grad_cell_var, quat_grad_side_var,
                             quat_grad_modulus_var, quat_mobility_var,
-                            quat_diffusion_var, quat_diffs_var,
-                            quat_symm_rotation_var);
+                            quat_diffs_var, quat_symm_rotation_var);
    }
 
    if (d_with_phase) {
