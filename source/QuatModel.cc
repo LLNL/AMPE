@@ -47,6 +47,7 @@
 #include "FieldsWriter.h"
 #include "TwoPhasesEnergyEvaluationStrategy.h"
 #include "computeQDiffs.h"
+#include "HierarchyStencilOps.h"
 
 #ifdef HAVE_THERMO4PFM
 #include "Database2JSON.h"
@@ -3262,16 +3263,17 @@ void QuatModel::applyGradientDetector(
    copyCurrentToScratch(hierarchy, level_number, time,
                         d_all_refine_patch_strategy);
 
-   if (d_tag_phase) {
-      computePhaseDiffs(level, d_phase_scratch_id, d_phase_diffs_id, time);
+   HierarchyStencilOps stencil_ops;
 
-      computePhaseGradCell(level, d_phase_diffs_id, d_phase_grad_cell_id, time);
+   if (d_tag_phase) {
+      stencil_ops.computeDiffs(level, d_phase_scratch_id, d_phase_diffs_id);
+      stencil_ops.computeGradCell(level, d_phase_diffs_id,
+                                  d_phase_grad_cell_id);
    }
 
    if (d_tag_eta) {
-      computeEtaDiffs(level, d_eta_scratch_id, d_eta_diffs_id, time);
-
-      computeEtaGradCell(level, d_eta_diffs_id, d_eta_grad_cell_id, time);
+      stencil_ops.computeDiffs(level, d_eta_scratch_id, d_eta_diffs_id);
+      stencil_ops.computeGradCell(level, d_eta_diffs_id, d_eta_grad_cell_id);
    }
 
    if (d_tag_quat) {
@@ -3454,63 +3456,57 @@ void QuatModel::computePhaseDiffs(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computePhaseDiffs(patch_level, phase_id, phase_diffs_id, time);
-   }
-
-   t_phase_diffs_timer->stop();
-}
-
-void QuatModel::computePhaseDiffs(const std::shared_ptr<hier::PatchLevel> level,
-                                  int& phase_id, int& phase_diffs_id,
-                                  const double time)
-{
    if (phase_id < 0) phase_id = d_phase_scratch_id;
    if (phase_diffs_id < 0) phase_diffs_id = d_phase_diffs_id;
 
-   computeVarDiffs(level, phase_id, phase_diffs_id, time);
+   int maxln = hierarchy->getFinestLevelNumber();
+
+   HierarchyStencilOps stencil_ops;
+
+   stencil_ops.computeDiffs(hierarchy, phase_id, phase_diffs_id);
 
    if (d_model_parameters.with_extra_visit_output()) {
 
-      for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
-           ++p) {
-         std::shared_ptr<hier::Patch> patch = *p;
-         const hier::Box& box = patch->getBox();
+      for (int ln = 0; ln <= maxln; ln++) {
+         std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
 
-         std::shared_ptr<pdat::SideData<double> > diff_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                 patch->getPatchData(phase_diffs_id)));
-         assert(diff_data);
+         for (hier::PatchLevel::Iterator p(level->begin()); p != level->end();
+              ++p) {
+            std::shared_ptr<hier::Patch> patch = *p;
+            const hier::Box& box = patch->getBox();
 
-         std::shared_ptr<pdat::CellData<double> > cell_diffs_data(
-             SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                 patch->getPatchData(d_phase_diffs_cell_id)));
-         assert(cell_diffs_data);
+            std::shared_ptr<pdat::SideData<double> > diff_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
+                    patch->getPatchData(phase_diffs_id)));
+            assert(diff_data);
 
-         pdat::CellIterator iend(pdat::CellGeometry::end(box));
-         for (pdat::CellIterator i(pdat::CellGeometry::begin(box)); i != iend;
-              ++i) {
-            const pdat::CellIndex ccell = *i;
-            const pdat::SideIndex xside(ccell, pdat::SideIndex::X,
-                                        pdat::SideIndex::Lower);
-            const pdat::SideIndex yside(ccell, pdat::SideIndex::Y,
-                                        pdat::SideIndex::Lower);
+            std::shared_ptr<pdat::CellData<double> > cell_diffs_data(
+                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
+                    patch->getPatchData(d_phase_diffs_cell_id)));
+            assert(cell_diffs_data);
+
+            pdat::CellIterator iend(pdat::CellGeometry::end(box));
+            for (pdat::CellIterator i(pdat::CellGeometry::begin(box));
+                 i != iend; ++i) {
+               const pdat::CellIndex ccell = *i;
+               const pdat::SideIndex xside(ccell, pdat::SideIndex::X,
+                                           pdat::SideIndex::Lower);
+               const pdat::SideIndex yside(ccell, pdat::SideIndex::Y,
+                                           pdat::SideIndex::Lower);
 #if (NDIM == 3)
-            const pdat::SideIndex zside(ccell, pdat::SideIndex::Z,
-                                        pdat::SideIndex::Lower);
+               const pdat::SideIndex zside(ccell, pdat::SideIndex::Z,
+                                           pdat::SideIndex::Lower);
 #endif
-            (*cell_diffs_data)(ccell, 0) = (*diff_data)(xside);
-            (*cell_diffs_data)(ccell, 1) = (*diff_data)(yside);
+               (*cell_diffs_data)(ccell, 0) = (*diff_data)(xside);
+               (*cell_diffs_data)(ccell, 1) = (*diff_data)(yside);
 #if (NDIM == 3)
-            (*cell_diffs_data)(ccell, 2) = (*diff_data)(zside);
+               (*cell_diffs_data)(ccell, 2) = (*diff_data)(zside);
 #endif
+            }
          }
       }
    }
+   t_phase_diffs_timer->stop();
 }
 
 //=======================================================================
@@ -3527,23 +3523,12 @@ void QuatModel::computeEtaDiffs(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computeEtaDiffs(patch_level, eta_id, eta_diffs_id, time);
-   }
-}
-
-void QuatModel::computeEtaDiffs(
-    const std::shared_ptr<hier::PatchLevel> patch_level, int& eta_id,
-    int& eta_diffs_id, const double time)
-{
    if (eta_id < 0) eta_id = d_eta_scratch_id;
    if (eta_diffs_id < 0) eta_diffs_id = d_eta_diffs_id;
 
-   computeVarDiffs(patch_level, eta_id, eta_diffs_id, time);
+   HierarchyStencilOps stencil_ops;
+
+   stencil_ops.computeDiffs(hierarchy, eta_id, eta_diffs_id);
 }
 
 //=======================================================================
@@ -3560,13 +3545,12 @@ void QuatModel::computeVarDiffs(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
+   if (var_id < 0) var_id = d_phase_scratch_id;
+   if (diffs_id < 0) diffs_id = d_phase_diffs_id;
 
-      computeVarDiffs(patch_level, var_id, diffs_id, time);
-   }
+   HierarchyStencilOps stencil_ops;
+
+   stencil_ops.computeDiffs(hierarchy, var_id, diffs_id);
 }
 
 void QuatModel::smoothQuat(const std::shared_ptr<hier::PatchLevel> level)
@@ -3635,63 +3619,6 @@ void QuatModel::smoothQuat(
    }
 }
 
-void QuatModel::computeVarDiffs(const std::shared_ptr<hier::PatchLevel> level,
-                                int& var_id, int& diffs_id, const double time)
-{
-   (void)time;
-
-   if (var_id < 0) var_id = d_phase_scratch_id;
-   if (diffs_id < 0) diffs_id = d_phase_diffs_id;
-   assert(var_id >= 0);
-   assert(diffs_id >= 0);
-
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-      std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& box = patch->getBox();
-      const hier::Index& ifirst = box.lower();
-      const hier::Index& ilast = box.upper();
-
-      std::shared_ptr<pdat::CellData<double> > var_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(var_id)));
-      assert(var_data);
-      assert(var_data->getGhostCellWidth()[0] > 0);
-
-      std::shared_ptr<pdat::SideData<double> > diff_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-              patch->getPatchData(diffs_id)));
-      assert(diff_data);
-      assert(diff_data->getGhostCellWidth()[0] > 0);
-
-      const hier::Box& var_gbox = var_data->getGhostBox();
-      const hier::Index& qlower = var_gbox.lower();
-      const hier::Index& qupper = var_gbox.upper();
-
-      const hier::Box& diff_gbox = diff_data->getGhostBox();
-      const hier::Index& dlower = diff_gbox.lower();
-      const hier::Index& dupper = diff_gbox.upper();
-
-      DIFFS(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-            ifirst(2), ilast(2),
-#endif
-            var_data->getPointer(), qlower[0], qupper[0], qlower[1], qupper[1],
-#if (NDIM == 3)
-            qlower[2], qupper[2],
-#endif
-            diff_data->getPointer(0), diff_data->getPointer(1),
-#if (NDIM == 3)
-            diff_data->getPointer(2),
-#endif
-            dlower[0], dupper[0], dlower[1], dupper[1]
-#if (NDIM == 3)
-            ,
-            dlower[2], dupper[2]
-#endif
-      );
-   }
-}
-
 //=======================================================================
 
 // Computes phase gradients at cell centers.
@@ -3708,14 +3635,11 @@ void QuatModel::computePhaseGradCell(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
+   if (phase_diffs_id < 0) phase_diffs_id = d_phase_diffs_id;
+   if (phase_grad_cell_id < 0) phase_grad_cell_id = d_phase_grad_cell_id;
 
-      computePhaseGradCell(patch_level, phase_diffs_id, phase_grad_cell_id,
-                           time);
-   }
+   HierarchyStencilOps stencil_ops;
+   stencil_ops.computeGradCell(hierarchy, phase_diffs_id, phase_grad_cell_id);
 }
 
 void QuatModel::computePhaseGradCell(
@@ -3725,42 +3649,8 @@ void QuatModel::computePhaseGradCell(
    if (phase_diffs_id < 0) phase_diffs_id = d_phase_diffs_id;
    if (phase_grad_cell_id < 0) phase_grad_cell_id = d_phase_grad_cell_id;
 
-   computeVarGradCell(patch_level, phase_diffs_id, phase_grad_cell_id, time);
-}
-
-//=======================================================================
-
-// Computes eta gradients at cell centers.
-
-// eta_diffs_id is SideData
-// eta_grad_id is CellData with no ghosts with depth NDIM
-
-void QuatModel::computeEtaGradCell(
-    const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& eta_diffs_id,
-    int& eta_grad_cell_id, const double time, const CACHE_TYPE cache)
-{
-   static double old_time = tbox::IEEE::getSignalingNaN();
-
-   if (time == old_time && cache == CACHE) return;
-   old_time = time;
-
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computeEtaGradCell(patch_level, eta_diffs_id, eta_grad_cell_id, time);
-   }
-}
-
-void QuatModel::computeEtaGradCell(
-    const std::shared_ptr<hier::PatchLevel> patch_level, int& eta_diffs_id,
-    int& eta_grad_cell_id, const double time)
-{
-   if (eta_diffs_id < 0) eta_diffs_id = d_eta_diffs_id;
-   if (eta_grad_cell_id < 0) eta_grad_cell_id = d_eta_grad_cell_id;
-
-   computeVarGradCell(patch_level, eta_diffs_id, eta_grad_cell_id, time);
+   HierarchyStencilOps stencil_ops;
+   stencil_ops.computeGradCell(patch_level, phase_diffs_id, phase_grad_cell_id);
 }
 
 //=======================================================================
@@ -3779,73 +3669,8 @@ void QuatModel::computeVarGradCell(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computeVarGradCell(patch_level, diffs_id, grad_cell_id, time);
-   }
-}
-
-void QuatModel::computeVarGradCell(
-    const std::shared_ptr<hier::PatchLevel> level, int& diffs_id,
-    int& grad_cell_id, const double time)
-{
-   (void)time;
-
-   assert(diffs_id >= 0);
-   assert(grad_cell_id >= 0);
-
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-      std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
-
-      std::shared_ptr<pdat::SideData<double> > diff_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-              patch->getPatchData(diffs_id)));
-      assert(diff_data);
-
-      std::shared_ptr<pdat::CellData<double> > grad_cell_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(grad_cell_id)));
-      assert(grad_cell_data);
-
-      const hier::Box& diff_gbox = diff_data->getGhostBox();
-      const hier::Index& d_lower = diff_gbox.lower();
-      const hier::Index& d_upper = diff_gbox.upper();
-
-      const hier::Box& grad_gbox = grad_cell_data->getGhostBox();
-      const hier::Index& g_lower = grad_gbox.lower();
-      const hier::Index& g_upper = grad_gbox.upper();
-
-      std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                 hier::PatchGeometry>(
-              patch->getPatchGeometry()));
-      TBOX_ASSERT(patch_geom);
-
-      const double* dx = patch_geom->getDx();
-
-      assert(grad_cell_data->getDepth() == NDIM);
-
-      GRAD_CELL(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                ifirst(2), ilast(2),
-#endif
-                diff_data->getPointer(0), diff_data->getPointer(1),
-#if (NDIM == 3)
-                diff_data->getPointer(2),
-#endif
-                diff_data->getGhostCellWidth()[0], dx,
-                grad_cell_data->getPointer(0), grad_cell_data->getPointer(1),
-#if (NDIM == 3)
-                grad_cell_data->getPointer(2),
-#endif
-                grad_cell_data->getGhostCellWidth()[0]);
-   }
+   HierarchyStencilOps stencil_ops;
+   stencil_ops.computeGradCell(hierarchy, diffs_id, grad_cell_id);
 }
 
 //-----------------------------------------------------------------------
@@ -3864,96 +3689,11 @@ void QuatModel::computeVarGradSide(
    if (time == old_time && cache == CACHE) return;
    old_time = time;
 
-   int maxln = hierarchy->getFinestLevelNumber();
-   for (int ln = 0; ln <= maxln; ln++) {
-      std::shared_ptr<hier::PatchLevel> patch_level =
-          hierarchy->getPatchLevel(ln);
-
-      computeVarGradSide(patch_level, diffs_id, grad_side_id, time);
-   }
-}
-
-void QuatModel::computeVarGradSide(
-    const std::shared_ptr<hier::PatchLevel> level, int& diffs_id,
-    int& grad_side_id, const double time)
-{
-   (void)time;
-
    if (diffs_id < 0) diffs_id = d_phase_diffs_id;
    if (grad_side_id < 0) grad_side_id = d_phase_grad_side_id;
 
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-      std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
-
-      std::shared_ptr<pdat::SideData<double> > diff_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-              patch->getPatchData(diffs_id)));
-      assert(diff_data);
-      assert(diff_data->getGhostCellWidth()[0] > 0);
-
-      std::shared_ptr<pdat::SideData<double> > grad_side_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-              patch->getPatchData(grad_side_id)));
-      assert(grad_side_data);
-      assert(grad_side_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      const hier::Box& diff_gbox = diff_data->getGhostBox();
-      const hier::Index& d_lower = diff_gbox.lower();
-      const hier::Index& d_upper = diff_gbox.upper();
-
-      const hier::Box& grad_gbox = grad_side_data->getGhostBox();
-      const hier::Index& g_lower = grad_gbox.lower();
-      const hier::Index& g_upper = grad_gbox.upper();
-
-      std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                 hier::PatchGeometry>(
-              patch->getPatchGeometry()));
-      TBOX_ASSERT(patch_geom);
-
-      const double* dx = patch_geom->getDx();
-
-      // there is a gradient component for each dimension x,y,z
-      assert(grad_side_data->getDepth() == NDIM);
-
-      GRAD_SIDE(
-          ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-          ifirst(2), ilast(2),
-#endif
-          diff_data->getPointer(0), diff_data->getPointer(1),
-#if (NDIM == 3)
-          diff_data->getPointer(2),
-#endif
-          d_lower[0], d_upper[0], d_lower[1], d_upper[1],
-#if (NDIM == 3)
-          d_lower[2], d_upper[2],
-#endif
-          dx,
-          grad_side_data->getPointer(0, 0),  // side 0, depth 0 (x component)
-          grad_side_data->getPointer(0, 1),  // side 0, depth 1 (y component)
-#if (NDIM == 3)
-          grad_side_data->getPointer(0, 2),
-#endif
-          grad_side_data->getPointer(1, 0), grad_side_data->getPointer(1, 1),
-#if (NDIM == 3)
-          grad_side_data->getPointer(1, 2),
-#endif
-#if (NDIM == 3)
-          grad_side_data->getPointer(2, 0), grad_side_data->getPointer(2, 1),
-          grad_side_data->getPointer(2, 2),
-#endif
-          g_lower[0], g_upper[0], g_lower[1], g_upper[1]
-#if (NDIM == 3)
-          ,
-          g_lower[2], g_upper[2]
-#endif
-      );
-   }
+   HierarchyStencilOps stencil_ops;
+   stencil_ops.computeGradSide(hierarchy, diffs_id, grad_side_id);
 }
 
 //=======================================================================

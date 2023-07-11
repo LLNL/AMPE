@@ -121,14 +121,10 @@ class QuatModel : public PFModel
    void computeEtaDiffs(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int& eta_id, int& eta_diffs_id, const double time,
                         const CACHE_TYPE cache = CACHE);
-   void computeEtaDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
-                        int& eta_id, int& eta_diffs_id, const double time);
 
    void computeVarDiffs(const std::shared_ptr<hier::PatchHierarchy> hierarchy,
                         int& var_id, int& diffs_id, const double time,
                         const CACHE_TYPE cache = CACHE);
-   void computeVarDiffs(const std::shared_ptr<hier::PatchLevel> patch_level,
-                        int& var_id, int& diffs_id, const double time);
 
    void computePhaseGradCell(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
@@ -155,8 +151,6 @@ class QuatModel : public PFModel
    void computeVarGradSide(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy, int& diffs_id,
        int& grad_side_id, const double time, const CACHE_TYPE cache = CACHE);
-   void computeVarGradSide(const std::shared_ptr<hier::PatchLevel> patch_level,
-                           int& diffs_id, int& grad_side_id, const double time);
 
    void computeSymmetryRotations(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,

@@ -191,20 +191,11 @@ void DIFFS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
            const int&, const int&,
 #endif
-           const double*, const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-           const int&, const int&,
-#endif
-           const double*, const double*,
+           const double*, const int&, const double*, const double*,
 #if (NDIM == 3)
            const double*,
 #endif
-           const int&, const int&, const int&, const int&
-#if (NDIM == 3)
-           ,
-           const int&, const int&
-#endif
-);
+           const int&);
 
 void GRAD_CELL(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
