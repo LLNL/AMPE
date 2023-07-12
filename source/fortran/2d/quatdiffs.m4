@@ -8,28 +8,25 @@ c Please also read AMPE/LICENSE.
 define(NDIM,2)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim2d.i)dnl
 
-C        v is CellData with ghosts
-C        diff_x and diff_y are SideData WITH GHOSTS
+C        v is CellData with at least 1 ghost layer
+C        diff_x and diff_y are SideData with at least 1 ghost layer
 
       subroutine diffs(
      &   lo0, hi0, lo1, hi1,
-     &   v,
-     &   vlo0, vhi0, vlo1, vhi1,
-     &   diff_x, diff_y, 
-     &   dlo0, dhi0, dlo1, dhi1
+     &   v, ng,
+     &   diff_x, diff_y, ngd
      &   )
         
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1,
-     &   vlo0, vhi0, vlo1, vhi1,
-     &   dlo0, dhi0, dlo1, dhi1
+     &   ng, ngd
 
       double precision
-     &   v(vlo0:vhi0,vlo1:vhi1),
-     &   diff_x(dlo0:dhi0+1,dlo1:dhi1),
-     &   diff_y(dlo0:dhi0,dlo1:dhi1+1)
+     &   v(CELL2d(lo,hi,ng)),
+     &   diff_x(SIDE2d0(lo,hi,ngd)),
+     &   diff_y(SIDE2d1(lo,hi,ngd))
 
 c        local variables:
       integer i, j
