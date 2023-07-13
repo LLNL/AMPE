@@ -21,8 +21,7 @@ C diff_x, diff_y, and diff_z are SideData with at least 1 ghost layer
 
       integer
      &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   vlo0, vhi0, vlo1, vhi1, vlo2, vhi2,
-     &   dlo0, dhi0, dlo1, dhi1, dlo2, dhi2
+     &   ng, ngd
 
       double precision
      &   v(CELL3d(lo,hi,ng)),
