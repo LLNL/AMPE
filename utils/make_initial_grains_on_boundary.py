@@ -253,25 +253,28 @@ conc  = N.ones( (nspecies,nn[2],nn[1],nn[0]), N.float32 )
 # Fill data arrays
 xx = [0., 0., 0.]
 index = [0,0,0]
-fraction=1./ngrains; 
-for j in range( nn[dir1] ) :
-  #get a y in [0,1]
-  xx[dir1] = (j + 0.5)/(1.*nn[dir1])
-  index[dir1] = j
+fraction=1./ngrains;
 
-  #d is negative for the lowest y
-  #"sf" fraction of domain)
-  d0 = (xx[dir1]-sf)
-  #print("d={}".format(d))
-  for k in range( nn[dir2] ) :
-    xx[dir2] = k + 0.5
-    index[dir2] = k
-    for i in range( nn[dir0] ) :
-      xx[dir0] = i + 0.5
-      index[dir0] = i
+for k in range( nn[dir2] ) :
+  xx[dir2] = k + 0.5
+  index[dir2] = k
 
-      d=d0+noise*random.uniform(-1., 1.)
-      
+  for i in range( nn[dir0] ) :
+    xx[dir0] = i + 0.5
+    index[dir0] = i
+
+    fluctuation = noise*random.uniform(-1., 1.)
+
+    for j in range( nn[dir1] ) :
+      #get a y in [0,1]
+      xx[dir1] = (j + 0.5)/(1.*nn[dir1])
+      index[dir1] = j
+
+      #d is negative for the lowest y
+      #"sf" fraction of domain)
+      d = (xx[dir1]-sf)+fluctuation
+      #print("d={}".format(d))
+
       if( widthy>0. ):
         if( d<0.1 ):
           phase[index[2],index[1],index[0]] = 0.5*(1.+N.tanh(-3.*d/widthy))
