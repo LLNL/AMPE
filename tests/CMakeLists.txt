@@ -371,6 +371,13 @@ add_test(NAME FeNbNiWithNoise
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
+add_test(NAME FeNbNiWithFluctuation
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
+         )
 if(${USE_THERMO4PFM})
   add_test(NAME ThreePhases
            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py

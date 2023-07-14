@@ -47,6 +47,8 @@ parser.add_option( "--solid-fraction", type="float", default=1./60.,
                   help="solid-fraction at bottom")
 parser.add_option( "--noise", type="float", default=0.,
                   help="amplitude of noise in y interface")
+parser.add_option( "--fluctuation", type="float", default=0.,
+                  help="amplitude of fluctuation in y interface")
 parser.add_option( "--plane", type="int", default=1,
                   help="direction orthogonal to plane")
 parser.add_option( "--quatin", type="string", # something like "1,0,0,0",
@@ -90,6 +92,8 @@ ngrains = options.ngrains
 sf      = options.solid_fraction
 widthy  = options.width/nn[1]
 noise   = options.noise
+print( "noise={}".format(noise))
+fluctuation = options.fluctuation
 quatin  = options.quatin
 
 if ( not ( nx and ny and nz ) ) :
@@ -256,14 +260,19 @@ index = [0,0,0]
 fraction=1./ngrains;
 
 for k in range( nn[dir2] ) :
-  xx[dir2] = k + 0.5
+  xx[dir2] = (k + 0.5)/(1.*nn[dir2])
   index[dir2] = k
 
   for i in range( nn[dir0] ) :
-    xx[dir0] = i + 0.5
+    xx[dir0] = (i + 0.5)/(1.*nn[dir0])
     index[dir0] = i
 
-    fluctuation = noise*random.uniform(-1., 1.)
+    delta = 0.
+    if noise>0.:
+      delta = noise*random.uniform(-1., 1.)
+    else:
+      if fluctuation>0.:
+        delta = fluctuation*math.sin(xx[dir0]*2.*math.pi)
 
     for j in range( nn[dir1] ) :
       #get a y in [0,1]
@@ -272,7 +281,7 @@ for k in range( nn[dir2] ) :
 
       #d is negative for the lowest y
       #"sf" fraction of domain)
-      d = (xx[dir1]-sf)+fluctuation
+      d = (xx[dir1]-sf)+delta
       #print("d={}".format(d))
 
       if( widthy>0. ):
@@ -283,9 +292,9 @@ for k in range( nn[dir2] ) :
           phase[index[2],index[1],index[0]] = 1.
 
       for g in range(1,ngrains):
-        dx=abs(xx[dir0]-g*fraction*nn[dir0])
-        if( dx<5 ):
-          s=N.sin(0.5*pi*dx/5)
+        dx=abs(xx[dir0]-g*fraction)
+        if( nn[dir0]*dx<5. ):
+          s=N.sin(0.5*pi*dx*nn[dir0]/5)
           phase[index[2],index[1],index[0]]=phase[index[2],index[1],index[0]]*s*s
 
 
