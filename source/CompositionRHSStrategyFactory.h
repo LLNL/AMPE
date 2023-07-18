@@ -63,7 +63,8 @@ class CompositionRHSStrategyFactory
              temperature_scratch_id, conc_pfm_diffusion_l_id,
              conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
              conc_pfm_diffusion_id, model_parameters.avg_func_type(),
-             free_energy_strategy_for_diffusion, diffusion_for_conc_in_phase));
+             free_energy_strategy_for_diffusion, diffusion_for_conc_in_phase,
+             model_parameters.useEBSisotropicStencil()));
       } else if (model_parameters.concRHSstrategyIsBeckermann()) {
          strategy.reset(new BeckermannCompositionRHSStrategy(
              quatmodel, conc_scratch_id, phase_scratch_id,

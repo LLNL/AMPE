@@ -86,12 +86,9 @@ void QuatFaceCoeff::computeFaceCoefsOnPatch(
 {
    assert(d_Hparameter > 0.);
 
-#ifdef DEBUG_CHECK_ASSERTIONS
    assert(patch.inHierarchy());
-   assert(diffusion_coef_data.getDepth() == 1);
    assert(grad_q_data.getDepth() == NDIM * d_qlen);
-   assert(face_coef_data.getDepth() == d_qlen);
-#endif
+   assert(face_coef_data.getDepth() == 1);
 
    const hier::Box& box = patch.getBox();
    const hier::Index& lower = box.lower();

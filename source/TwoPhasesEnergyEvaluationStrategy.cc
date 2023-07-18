@@ -14,6 +14,10 @@
 #include "SAMRAI/pdat/SideData.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
+#include "SAMRAI/math/PatchSideDataNormOpsReal.h"
+#include "SAMRAI/math/PatchCellDataNormOpsReal.h"
+
+using namespace SAMRAI;
 
 TwoPhasesEnergyEvaluationStrategy::TwoPhasesEnergyEvaluationStrategy(
     const QuatModelParameters& model_parameters, const int qlen,
@@ -105,7 +109,7 @@ void TwoPhasesEnergyEvaluationStrategy::evaluateEnergy(
    assert(fa);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
-   SAMRAI::math::PatchCellDataNormOpsReal<double> ops;
+   math::PatchCellDataNormOpsReal<double> ops;
    double l2phi = ops.L2Norm(phase, pbox);
    assert(l2phi == l2phi);
 

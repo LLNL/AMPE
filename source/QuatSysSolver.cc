@@ -280,7 +280,7 @@ void QuatSysSolver::setOperatorCoefficients(
                                   "initializeSolverState()\n"
                                << "before using this function.\n");
    }
-   if (mobility_id < 0 || diff_coef_id < 0 || grad_q_id < 0 || q_id < 0) {
+   if (mobility_id < 0 || phase_id < 0 || grad_q_id < 0 || q_id < 0) {
       TBOX_ERROR(d_object_name << "::setOperatorCoefficients: Bad patch data "
                                   "id.\n");
    }

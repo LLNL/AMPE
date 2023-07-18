@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -266,6 +265,10 @@ class QuatModelParameters
    bool useIsotropicStencil() const
    {
       return d_stencil_type.compare("isotropic") == 0;
+   }
+   bool useEBSisotropicStencil() const
+   {
+      return d_ebs_stencil_type.compare("isotropic") == 0;
    }
    bool wellBiasBeckermann() const { return d_bias_well_beckermann; }
 
@@ -587,6 +590,7 @@ class QuatModelParameters
     * Specify stencil type to use for grad q at sides ("normal" or "isotropic")
     */
    std::string d_stencil_type;
+   std::string d_ebs_stencil_type;
 
    bool d_extra_visit_output;
    bool d_rhs_visit_output;

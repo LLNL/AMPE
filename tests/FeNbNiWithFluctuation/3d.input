@@ -54,6 +54,7 @@ ModelParameters {
       nspecies = 3
       model    = "calphad"
       rhs_form = "ebs"
+      ebs_stencil = "isotropic"
       molar_volume = 1.e-5 // [m^3/mol]
       Calphad {
          filename ="calphadFeNbNi_Mathon_et_al.dat"
