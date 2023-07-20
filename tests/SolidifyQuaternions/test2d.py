@@ -26,6 +26,7 @@ lines=output.split(b'\n')
 end_reached = False
 volumes=[]
 
+target_fs = 0.42
 for line in lines:
   if line.count(b'cycle'):
     print(line)
@@ -47,8 +48,8 @@ for line in lines:
       print(line)
       words=line.split()
       sfraction=eval(words[6])
-      if abs(sfraction-0.4)>1.e-2:
-        print("Wrong solid fraction")
+      if abs(sfraction-target_fs)>1.e-2:
+        print("Wrong solid fraction, expected {}!".format(target_fs))
         sys.exit(1)
 
 os.remove(initfilename)
