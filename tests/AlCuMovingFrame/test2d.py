@@ -56,9 +56,10 @@ for line in lines:
         print("Solid fraction is still changing!")
         sys.exit(1)
 
+maxc = 0.0211
 print("Max. concentration: {}".format(c0))
-if abs(c0-0.0211)>1.e-4:
-  print("Max. concentration incorrect!!!")
+if abs(c0-maxc)>1.e-4:
+  print("Max. concentration incorrect, expected {}!!!".format(maxc))
   sys.exit(1)
 
 sys.exit(0)

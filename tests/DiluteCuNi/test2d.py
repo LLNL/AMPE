@@ -71,7 +71,7 @@ for line in range(l): ## loop over lines of file
 
 target_time = 7.5e-6
 if time<target_time:
-  print("Target time not reached")
+  print("Target time {} not reached!".format(target_time))
   sys.exit(1)
 
 os.remove(initfilename)

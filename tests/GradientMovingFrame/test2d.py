@@ -27,6 +27,7 @@ lines=input_file.readlines()
 lines=output.split(b'\n')
 
 time=-1.
+fs=-1.
 for line in lines: ## loop over lines of file 
   if line.count(b'cycle'):
     w=line.split()
