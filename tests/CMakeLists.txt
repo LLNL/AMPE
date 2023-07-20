@@ -110,6 +110,9 @@ add_executable(testGradQ
                ${SOURCE_FORTRAN_DIM_DIR}/quatdiffs.f
                ${SOURCE_FORTRAN_DIM_DIR}/quatgrad.f
                ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
+add_executable(testArrayDataOps
+               ${CMAKE_SOURCE_DIR}/tests/testArrayDataOps.cc
+               ${CMAKE_SOURCE_DIR}/source/ArrayOperation.cc )
 add_executable(testAntitrapping3Phases
                ${CMAKE_SOURCE_DIR}/tests/testAntitrapping3Phases.cc
                ${SOURCE_FORTRAN_DIM_DIR}/concentrationrhs.f
@@ -204,6 +207,9 @@ add_test(NAME testPhaseFAC
 add_test(NAME testGradQ
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testGradQ)
+add_test(NAME testArrayDataOps
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+                 ${CMAKE_CURRENT_BINARY_DIR}/testArrayDataOps)
 add_test(NAME testAntitrapping3Phases
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
                  ${CMAKE_CURRENT_BINARY_DIR}/testAntitrapping3Phases)
@@ -449,6 +455,9 @@ target_link_libraries(testPhaseFAC ${PROJECT_LINK_LIBS_SAMRAI}
                                      ${THERMOLIB}
                                      )
 target_link_libraries(testGradQ ${PROJECT_LINK_LIBS_SAMRAI}
+                                ${PROJECT_LINK_LIBS_HDF5}
+                                )
+target_link_libraries(testArrayDataOps ${PROJECT_LINK_LIBS_SAMRAI}
                                 ${PROJECT_LINK_LIBS_HDF5}
                                 )
 target_link_libraries(testAntitrapping3Phases ${PROJECT_LINK_LIBS_SAMRAI}

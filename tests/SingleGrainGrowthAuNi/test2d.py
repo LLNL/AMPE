@@ -33,6 +33,7 @@ lines=output.split(b'\n')
 
 end_reached = False
 oldconcentration=-1.
+end_time = 0.3
 for line in lines:
   num_matches = line.count(b'Integral')
   if num_matches:
@@ -48,7 +49,7 @@ for line in lines:
     print(line)
     words=line.split()
     time=eval(words[6])
-    if time>0.3:
+    if time>end_time:
       end_reached = True
 
   num_matches = line.count(b'fraction')
@@ -66,5 +67,6 @@ os.remove(initfilename)
 if end_reached:
   sys.exit(0)
 else:
+  print("End time {} not reached".format(end_time))
   sys.exit(1)
 
