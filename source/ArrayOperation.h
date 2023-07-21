@@ -7,15 +7,19 @@
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-#ifndef MultiplyOperation_C
-#define MultiplyOperation_C
-
-#include "MultiplyOperation.h"
+#ifndef included_ArrayOperation
+#define included_ArrayOperation
 
 template <class TYPE>
-void MultiplyOperation<TYPE>::operator()(TYPE& vdst, const TYPE& vsrc) const
-{
-   vdst = vdst * vsrc;
-}
+struct MultiplyOperation {
+   void operator()(TYPE& vdst, const TYPE& vsrc) const;
+};
+
+template <class TYPE>
+struct AddOperation {
+   void operator()(TYPE& vdst, const TYPE& vsrc) const;
+};
+
+#include "ArrayOperation.cc"
 
 #endif

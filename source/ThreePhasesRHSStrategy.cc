@@ -10,7 +10,7 @@
 #include "ThreePhasesRHSStrategy.h"
 #include "UniformNoise.h"
 #include "QuatFort.h"
-#include "MultiplyOperation.h"
+#include "ArrayOperation.h"
 
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"

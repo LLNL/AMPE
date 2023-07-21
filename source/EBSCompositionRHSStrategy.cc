@@ -15,11 +15,11 @@
 #include "QuatFort.h"
 #include "FuncFort.h"
 #include "CompositionDiffusionStrategy.h"
+#include "ArrayOperation.h"
 
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/pdat/CellData.h"
 #include "SAMRAI/pdat/SideData.h"
-//#include "SAMRAI/math/PatchSideDataBasicOps.h"
 
 #include <cassert>
 
@@ -276,7 +276,7 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditioner(
             std::shared_ptr<pdat::SideData<double> > diffusion(
                 SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                     patch->getPatchData(d_diffusion_precond_id[ic])));
-            TBOX_ASSERT(diffusion);
+            assert(diffusion);
 
             setDiffusionCoeffForPreconditionerOnPatch(dl, da, db, depth_in_Dmat,
                                                       diffusion,
@@ -302,127 +302,39 @@ void EBSCompositionRHSStrategy::setDiffusionCoeffForPreconditionerOnPatch(
    assert(sd_d_a->getDirectionVector()[1] != 0);
    assert(depth_in_Dmatrix < sd_d_l->getDepth());
 
-   double* ptr_dx_coeff = sd_d_coeff->getPointer(0, depth);
-   double* ptr_dy_coeff = sd_d_coeff->getPointer(1, depth);
-   double* ptr_dz_coeff = nullptr;
-   if (NDIM > 2) {
-      ptr_dz_coeff = sd_d_coeff->getPointer(2, depth);
+   const unsigned int num_depth = 1;
+   const unsigned int src_depth = depth_in_Dmatrix;
+   const unsigned int dst_depth = depth;
+   const hier::IntVector src_shift(pbox.getDim(), 0);
+   AddOperation<double> addop;
+
+   sd_d_coeff->fill(0., pbox);
+
+   // sd_d_* already include the phase fraction weight, so it is a simple sum
+   for (int side_normal = 0; side_normal < NDIM; side_normal++) {
+      // create temporary box to pass data indexes to doArrayDataOperationOnBox
+      hier::Box sbox(pbox);
+      hier::Index up(pbox.upper());
+      up[side_normal]++;
+      sbox.setUpper(up);
+
+      pdat::ArrayDataOperationUtilities<double, AddOperation<double> >::
+          doArrayDataOperationOnBox(sd_d_coeff->getArrayData(side_normal),
+                                    sd_d_l->getArrayData(side_normal), sbox,
+                                    src_shift, dst_depth, src_depth, num_depth,
+                                    addop);
+      pdat::ArrayDataOperationUtilities<double, AddOperation<double> >::
+          doArrayDataOperationOnBox(sd_d_coeff->getArrayData(side_normal),
+                                    sd_d_a->getArrayData(side_normal), sbox,
+                                    src_shift, dst_depth, src_depth, num_depth,
+                                    addop);
+      if (sd_d_b)
+         pdat::ArrayDataOperationUtilities<double, AddOperation<double> >::
+             doArrayDataOperationOnBox(sd_d_coeff->getArrayData(side_normal),
+                                       sd_d_b->getArrayData(side_normal), sbox,
+                                       src_shift, dst_depth, src_depth,
+                                       num_depth, addop);
    }
-
-   double* ptr_dx_l = sd_d_l->getPointer(0, depth_in_Dmatrix);
-   double* ptr_dy_l = sd_d_l->getPointer(1, depth_in_Dmatrix);
-   double* ptr_dz_l = nullptr;
-   if (NDIM > 2) {
-      ptr_dz_l = sd_d_l->getPointer(2, depth_in_Dmatrix);
-   }
-   assert(ptr_dy_l != nullptr);
-
-   double* ptr_dx_a = sd_d_a->getPointer(0, depth_in_Dmatrix);
-   double* ptr_dy_a = sd_d_a->getPointer(1, depth_in_Dmatrix);
-   double* ptr_dz_a = nullptr;
-   if (NDIM > 2) {
-      ptr_dz_a = sd_d_a->getPointer(2, depth_in_Dmatrix);
-   }
-   assert(ptr_dx_a != nullptr);
-   assert(ptr_dy_a != nullptr);
-
-   double* ptr_dx_b = nullptr;
-   double* ptr_dy_b = nullptr;
-   double* ptr_dz_b = nullptr;
-   if (sd_d_b) {
-      ptr_dx_b = sd_d_b->getPointer(0, depth_in_Dmatrix);
-      ptr_dy_b = sd_d_b->getPointer(1, depth_in_Dmatrix);
-      if (NDIM > 2) ptr_dz_b = sd_d_b->getPointer(2, depth_in_Dmatrix);
-   }
-
-   std::vector<double*> ptr_c_b;
-   ptr_c_b.resize(d_ncompositions);
-
-   // Assuming all sd_d_coeff_* have same box
-   const hier::Box& dcoeff_gbox = sd_d_coeff->getGhostBox();
-   int imin_dcoeff = dcoeff_gbox.lower(0);
-   int jmin_dcoeff = dcoeff_gbox.lower(1);
-   int jp_dcoeff = dcoeff_gbox.numberCells(0);
-   int kmin_dcoeff = 0;
-   int kp_dcoeff = 0;
-#if (NDIM == 3)
-   kmin_dcoeff = dcoeff_gbox.lower(2);
-   kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
-#endif
-
-   int imin = pbox.lower(0);
-   int imax = pbox.upper(0);
-   int jmin = pbox.lower(1);
-   int jmax = pbox.upper(1);
-   int kmin = 0;
-   int kmax = 0;
-#if (NDIM == 3)
-   kmin = pbox.lower(2);
-   kmax = pbox.upper(2);
-#endif
-
-   // X-side
-   for (int kk = kmin; kk <= kmax; kk++) {
-      for (int jj = jmin; jj <= jmax; jj++) {
-         for (int ii = imin; ii <= imax + 1; ii++) {
-
-            const int idx_dcoeff =
-                (ii - imin_dcoeff) + (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
-                (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1));
-            TBOX_ASSERT(idx_dcoeff < sd_d_coeff->getArrayData(0).getOffset());
-
-            ptr_dx_coeff[idx_dcoeff] =
-                ptr_dx_l[idx_dcoeff] + ptr_dx_a[idx_dcoeff];
-
-            if (sd_d_b) {
-               ptr_dx_coeff[idx_dcoeff] += ptr_dx_b[idx_dcoeff];
-            }
-         }
-      }
-   }
-
-   // Y-side
-   for (int kk = kmin; kk <= kmax; kk++) {
-      for (int jj = jmin; jj <= jmax + 1; jj++) {
-         for (int ii = imin; ii <= imax; ii++) {
-
-            const int idx_dcoeff = (ii - imin_dcoeff) +
-                                   (jj - jmin_dcoeff) * jp_dcoeff +
-                                   (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
-            TBOX_ASSERT(idx_dcoeff < sd_d_coeff->getArrayData(1).getOffset());
-
-            ptr_dy_coeff[idx_dcoeff] =
-                ptr_dy_l[idx_dcoeff] + ptr_dy_a[idx_dcoeff];
-
-            if (sd_d_b) {
-               ptr_dy_coeff[idx_dcoeff] += ptr_dy_b[idx_dcoeff];
-            }
-         }
-      }
-   }
-
-   if (NDIM > 2) {
-      // Z-side
-      for (int kk = kmin; kk <= kmax + 1; kk++) {
-         for (int jj = jmin; jj <= jmax; jj++) {
-            for (int ii = imin; ii <= imax; ii++) {
-
-               const int idx_dcoeff = (ii - imin_dcoeff) +
-                                      (jj - jmin_dcoeff) * jp_dcoeff +
-                                      (kk - kmin_dcoeff) * kp_dcoeff;
-               TBOX_ASSERT(idx_dcoeff <
-                           sd_d_coeff->getArrayData(2).getOffset());
-
-               ptr_dz_coeff[idx_dcoeff] =
-                   ptr_dz_l[idx_dcoeff] + ptr_dz_a[idx_dcoeff];
-
-               if (sd_d_b) {
-                  ptr_dz_coeff[idx_dcoeff] += ptr_dz_b[idx_dcoeff];
-               }
-            }
-         }
-      }
-   }  // if ( NDIM > 2 )
 }
 
 //-----------------------------------------------------------------------
