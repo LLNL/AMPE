@@ -2,36 +2,11 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met:
-// - Redistributions of source code must retain the above copyright notice,
-//   this list of conditions and the disclaimer below.
-// - Redistributions in binary form must reproduce the above copyright notice,
-//   this list of conditions and the disclaimer (as noted below) in the
-//   documentation and/or other materials provided with the distribution.
-// - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-//   used to endorse or promote products derived from this software without
-//   specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-// LLC, UT BATTELLE, LLC,
-// THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-// DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-// OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-// IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-// POSSIBILITY OF SUCH DAMAGE.
 //
 #include "DiffusionForConcInPhaseStrategy.h"
 #include "CompositionStrategyMobilities.h"
@@ -54,46 +29,29 @@ void small_mat_mult(const short n, const double* const a, const double* const b,
 
 DiffusionForConcInPhaseStrategy::DiffusionForConcInPhaseStrategy(
     const unsigned short ncompositions, const int conc_l_scratch_id,
-    const int conc_a_scratch_id, const int conc_b_scratch_id,
-    const int pfm_diffusion_l_id, const int pfm_diffusion_a_id,
-    const int pfm_diffusion_b_id, const int diffusion_coeff_l_id,
-    const int diffusion_coeff_a_id, const int diffusion_coeff_b_id,
-    const std::string& avg_func_type,
+    const int conc_a_scratch_id, const int pfm_diffusion_l_id,
+    const int pfm_diffusion_a_id, const int diffusion_coeff_l_id,
+    const int diffusion_coeff_a_id, const std::string& avg_func_type,
     DiffusionInterpolationType diff_interp_type,
     CompositionStrategyMobilities* mobilities_strategy,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy)
     : CompositionDiffusionStrategy(diff_interp_type),
+      d_ncompositions(ncompositions),
+      d_conc_l_scratch_id(conc_l_scratch_id),
+      d_conc_a_scratch_id(conc_a_scratch_id),
+      d_pfm_diffusion_l_id(pfm_diffusion_l_id),
+      d_pfm_diffusion_a_id(pfm_diffusion_a_id),
+      d_diffusion_coeff_l_id(diffusion_coeff_l_id),
+      d_diffusion_coeff_a_id(diffusion_coeff_a_id),
       d_mobilities_strategy(mobilities_strategy),
-      d_free_energy_strategy(free_energy_strategy)
+      d_free_energy_strategy(free_energy_strategy),
+      d_avg_func_type(avg_func_type)
 {
-   d_ncompositions = ncompositions;
-
-   d_conc_l_scratch_id = conc_l_scratch_id;
-   d_conc_a_scratch_id = conc_a_scratch_id;
-   d_conc_b_scratch_id = conc_b_scratch_id;
-
-   d_pfm_diffusion_l_id = pfm_diffusion_l_id;
-   d_pfm_diffusion_a_id = pfm_diffusion_a_id;
-   d_pfm_diffusion_b_id = pfm_diffusion_b_id;
-
-   d_diffusion_coeff_l_id = diffusion_coeff_l_id;
-   d_diffusion_coeff_a_id = diffusion_coeff_a_id;
-   d_diffusion_coeff_b_id = diffusion_coeff_b_id;
-
-   d_avg_func_type = avg_func_type;
-
-   d_with_third_phase = (conc_b_scratch_id >= 0);
-
-   d_same_composition_for_third_phase = false;
-
    assert(d_free_energy_strategy);
 
    d_d2f.resize(d_ncompositions * d_ncompositions);
    d_mobmat.resize(d_ncompositions * d_ncompositions);
    d_local_dmat.resize(d_ncompositions * d_ncompositions);
-
-   // not supported for now
-   assert(!d_with_third_phase);
 }
 
 void DiffusionForConcInPhaseStrategy::computeLocalDiffusionMatrixL(
@@ -158,15 +116,8 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
    assert(phase_id >= 0);
    assert(d_pfm_diffusion_l_id >= 0);
    assert(d_pfm_diffusion_a_id >= 0);
-   if (d_with_third_phase) {
-      assert(eta_id >= 0);
-      assert(d_pfm_diffusion_b_id >= 0);
-   }
    assert(d_diffusion_coeff_l_id >= 0);
    assert(d_diffusion_coeff_a_id >= 0);
-   if (d_with_third_phase) {
-      assert(d_diffusion_coeff_b_id >= 0);
-   }
 
    // compute D_L, D_S, ...
    setDiffCoeffInEachPhase(hierarchy, temperature_id, eta_id);
@@ -192,7 +143,6 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
          std::shared_ptr<pdat::SideData<double> > pfm_diffusion_a(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_pfm_diffusion_a_id)));
-         std::shared_ptr<pdat::SideData<double> > pfm_diffusion_b;
 
          std::shared_ptr<pdat::SideData<double> > diff_coeff_l(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -200,24 +150,9 @@ void DiffusionForConcInPhaseStrategy::setDiffusion(
          std::shared_ptr<pdat::SideData<double> > diff_coeff_a(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_a_id)));
-         std::shared_ptr<pdat::SideData<double> > diff_coeff_b;
 
-         std::shared_ptr<pdat::CellData<double> > eta;
-         if (d_with_third_phase) {
-            eta =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_id));
-            pfm_diffusion_b =
-                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                    patch->getPatchData(d_pfm_diffusion_b_id));
-            diff_coeff_b =
-                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                    patch->getPatchData(d_diffusion_coeff_b_id));
-         }
-
-         setPFMDiffOnPatch(phi, eta, diff_coeff_l, diff_coeff_a, diff_coeff_b,
-                           pfm_diffusion_l, pfm_diffusion_a, pfm_diffusion_b,
-                           patch->getBox());
+         setPFMDiffOnPatch(phi, diff_coeff_l, diff_coeff_a, pfm_diffusion_l,
+                           pfm_diffusion_a, patch->getBox());
       }
    }
 }
@@ -228,13 +163,12 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
     const std::shared_ptr<hier::PatchHierarchy> hierarchy,
     const int temperature_id, const int eta_scratch_id)
 {
+   (void)eta_scratch_id;
+
    // tbox::pout<<"DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase"<<endl;
    assert(temperature_id >= 0);
    assert(d_diffusion_coeff_l_id >= 0);
    assert(d_diffusion_coeff_a_id >= 0);
-   if (d_with_third_phase) {
-      assert(d_diffusion_coeff_b_id >= 0);
-   }
 
    const int maxl = hierarchy->getNumberOfLevels();
 
@@ -255,13 +189,10 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_l_scratch_id)));
          assert(cl);
-
          std::shared_ptr<pdat::CellData<double> > ca(
              SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                  patch->getPatchData(d_conc_a_scratch_id)));
          assert(ca);
-
-         std::shared_ptr<pdat::CellData<double> > cb;
 
          std::shared_ptr<pdat::SideData<double> > diff_coeff_l(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -269,25 +200,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
          std::shared_ptr<pdat::SideData<double> > diff_coeff_a(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_diffusion_coeff_a_id)));
-         std::shared_ptr<pdat::SideData<double> > diff_coeff_b;
 
-         std::shared_ptr<pdat::CellData<double> > eta;
-         if (d_with_third_phase) {
-            cb =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(d_conc_b_scratch_id));
-            assert(cb);
-            diff_coeff_b =
-                SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-                    patch->getPatchData(d_diffusion_coeff_b_id));
-            eta =
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(eta_scratch_id));
-         }
-
-         setDiffCoeffInEachPhaseOnPatch(cl, ca, cb, temp, eta, diff_coeff_l,
-                                        diff_coeff_a, diff_coeff_b,
-                                        patch->getBox());
+         setDiffCoeffInEachPhaseOnPatch(cl, ca, temp, diff_coeff_l,
+                                        diff_coeff_a, patch->getBox());
       }
    }
 }
@@ -297,12 +212,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhase(
 void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_c_l,
     std::shared_ptr<pdat::CellData<double> > cd_c_a,
-    std::shared_ptr<pdat::CellData<double> > cd_c_b,
     std::shared_ptr<pdat::CellData<double> > cd_temp,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
     const hier::Box& pbox)
 {
    assert(cd_c_l);
@@ -310,17 +222,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
    std::vector<double*> ptr_c_l(d_ncompositions);
    std::vector<double*> ptr_c_a(d_ncompositions);
-   std::vector<double*> ptr_c_b(d_ncompositions);
    for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
       ptr_c_l[ic] = cd_c_l->getPointer(ic);
       ptr_c_a[ic] = cd_c_a->getPointer(ic);
-   }
-
-   double* ptr_eta = nullptr;
-   if (d_with_third_phase) {
-      for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-         ptr_c_b[ic] = cd_c_b->getPointer(ic);
-      ptr_eta = cd_eta->getPointer();
    }
 
    double* ptr_temp = cd_temp->getPointer();
@@ -351,25 +255,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             ptr_dz_coeff_a[ijc] = sd_d_coeff_a->getPointer(2, ijc);
          }
       }
-
-   std::vector<double*> ptr_dx_coeff_b;
-   std::vector<double*> ptr_dy_coeff_b;
-   std::vector<double*> ptr_dz_coeff_b;
-   if (d_with_third_phase) {
-      ptr_dx_coeff_b.resize(nc2, nullptr);
-      ptr_dy_coeff_b.resize(nc2, nullptr);
-      ptr_dz_coeff_b.resize(nc2, nullptr);
-
-      for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-         for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
-            const unsigned ijc = ic + jc * d_ncompositions;
-            ptr_dx_coeff_b[ijc] = sd_d_coeff_b->getPointer(0, ijc);
-            ptr_dy_coeff_b[ijc] = sd_d_coeff_b->getPointer(1, ijc);
-            if (NDIM > 2) {
-               ptr_dz_coeff_b[ijc] = sd_d_coeff_b->getPointer(2, ijc);
-            }
-         }
-   }
 
    // Assuming all sd_pfmd_* have same box
    const hier::Box& dcoeff_gbox = sd_d_coeff_l->getGhostBox();
@@ -419,8 +304,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
    std::vector<double> c_l(d_ncompositions);
    std::vector<double> c_a(d_ncompositions);
-   std::vector<double> c_b(d_ncompositions);
-   std::vector<double> c_s(d_ncompositions);
 
    // X-side
    for (int kk = kmin; kk <= kmax; kk++) {
@@ -457,36 +340,9 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             for (int ic = 0; ic < nc2; ic++)
                ptr_dx_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
 
-            double eta = 0.;
-            if (d_with_third_phase) {
-               eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-               for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                  c_b[ic] = 0.5 * (ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c]);
-               }
-            }
-
-            if (d_with_third_phase && d_same_composition_for_third_phase) {
-               for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                  c_s[ic] = (1. - eta) * c_a[ic] + eta * c_b[ic];
-               }
-               computeLocalDiffusionMatrixA(temp, c_s);
-               for (int ic = 0; ic < nc2; ic++) {
-                  ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-                  ptr_dx_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-               }
-            } else {
-               computeLocalDiffusionMatrixA(temp, c_a);
-               for (int ic = 0; ic < nc2; ic++)
-                  ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-
-#ifndef HAVE_THERMO4PFM
-               if (d_with_third_phase) {
-                  computeLocalDiffusionMatrixB(temp, c_b);
-                  for (int ic = 0; ic < nc2; ic++)
-                     ptr_dx_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-               }
-#endif
-            }
+            computeLocalDiffusionMatrixA(temp, c_a);
+            for (int ic = 0; ic < nc2; ic++)
+               ptr_dx_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
          }
       }
    }
@@ -511,7 +367,6 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
             for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
                c_l[ic] = 0.5 * (ptr_c_l[ic][idx_c] + ptr_c_l[ic][idxm1_c]);
                c_a[ic] = 0.5 * (ptr_c_a[ic][idx_c] + ptr_c_a[ic][idxm1_c]);
-               c_b[ic] = 0.0;
             }
 
             const int idx_pf = idx_c;
@@ -519,46 +374,13 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
             double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
 
-            if (d_with_third_phase) {
-               for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-                  c_b[ic] = 0.5 * (ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c]);
-            }
-
             computeLocalDiffusionMatrixL(temp, c_l);
             for (int ic = 0; ic < nc2; ic++)
                ptr_dy_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
 
-            double eta = 0.;
-            if (d_with_third_phase) {
-               eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-               for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                  c_b[ic] = 0.5 * (ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c]);
-               }
-            }
-
-            if (d_with_third_phase && d_same_composition_for_third_phase) {
-               for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                  c_s[ic] = (1. - eta) * c_a[ic] + eta * c_b[ic];
-               }
-
-               computeLocalDiffusionMatrixA(temp, c_s);
-               for (int ic = 0; ic < nc2; ic++) {
-                  ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-                  ptr_dy_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-               }
-            } else {
-               computeLocalDiffusionMatrixA(temp, c_a);
-               for (int ic = 0; ic < nc2; ic++)
-                  ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-
-#ifndef HAVE_THERMO4PFM
-               if (d_with_third_phase) {
-                  computeLocalDiffusionMatrixB(temp, c_b);
-                  for (int ic = 0; ic < nc2; ic++)
-                     ptr_dy_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-               }
-#endif
-            }
+            computeLocalDiffusionMatrixA(temp, c_a);
+            for (int ic = 0; ic < nc2; ic++)
+               ptr_dy_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
          }
       }
    }
@@ -588,54 +410,18 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
                for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
                   c_l[ic] = 0.5 * (ptr_c_l[ic][idx_c] + ptr_c_l[ic][idxm1_c]);
                   c_a[ic] = 0.5 * (ptr_c_a[ic][idx_c] + ptr_c_a[ic][idxm1_c]);
-                  c_b[ic] = 0.0;
                }
 
                double temp = 0.5 * (ptr_temp[idx_temp] + ptr_temp[idxm1_temp]);
-
-               if (d_with_third_phase) {
-                  for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-                     c_b[ic] =
-                         0.5 * (ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c]);
-               }
 
                computeLocalDiffusionMatrixL(temp, c_l);
                for (int ic = 0; ic < nc2; ic++)
                   ptr_dz_coeff_l[ic][idx_dcoeff] = d_local_dmat[ic];
 
-               double eta = 0.;
-               if (d_with_third_phase) {
-                  eta = 0.5 * (ptr_eta[idx_pf] + ptr_eta[idxm1_pf]);
-                  for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                     c_b[ic] =
-                         0.5 * (ptr_c_b[ic][idx_c] + ptr_c_b[ic][idxm1_c]);
-                  }
-               }
 
-               if (d_with_third_phase && d_same_composition_for_third_phase) {
-                  for (unsigned short ic = 0; ic < d_ncompositions; ic++) {
-                     c_s[ic] = (1. - eta) * c_a[ic] + eta * c_b[ic];
-                  }
-
-                  computeLocalDiffusionMatrixA(temp, c_s);
-                  for (int ic = 0; ic < nc2; ic++) {
-                     ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-                     ptr_dz_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-                  }
-               } else {
-
-                  computeLocalDiffusionMatrixA(temp, c_a);
-                  for (int ic = 0; ic < nc2; ic++)
-                     ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
-
-#ifndef HAVE_THERMO4PFM
-                  if (d_with_third_phase) {
-                     computeLocalDiffusionMatrixB(temp, c_b);
-                     for (int ic = 0; ic < nc2; ic++)
-                        ptr_dz_coeff_b[ic][idx_dcoeff] = d_local_dmat[ic];
-                  }
-#endif
-               }
+               computeLocalDiffusionMatrixA(temp, c_a);
+               for (int ic = 0; ic < nc2; ic++)
+                  ptr_dz_coeff_a[ic][idx_dcoeff] = d_local_dmat[ic];
             }
          }
       }
@@ -646,13 +432,10 @@ void DiffusionForConcInPhaseStrategy::setDiffCoeffInEachPhaseOnPatch(
 
 void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
     std::shared_ptr<pdat::CellData<double> > cd_phi,
-    std::shared_ptr<pdat::CellData<double> > cd_eta,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_l,
     std::shared_ptr<pdat::SideData<double> > sd_d_coeff_a,
-    std::shared_ptr<pdat::SideData<double> > sd_d_coeff_b,
     std::shared_ptr<pdat::SideData<double> > sd_pfmd_l,  // output
     std::shared_ptr<pdat::SideData<double> > sd_pfmd_a,  // output
-    std::shared_ptr<pdat::SideData<double> > sd_pfmd_b,  // output
     const hier::Box& pbox)
 {
    // tbox::pout<<"DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch"<<endl;
@@ -690,21 +473,6 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
          }
       }
 
-   std::vector<double*> ptr_pfmdx_b(nc2, nullptr);
-   std::vector<double*> ptr_pfmdy_b(nc2, nullptr);
-   std::vector<double*> ptr_pfmdz_b(nc2, nullptr);
-   if (d_with_third_phase) {
-      for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-         for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
-            const unsigned ijc = ic + jc * d_ncompositions;
-            ptr_pfmdx_b[ijc] = sd_pfmd_b->getPointer(0, ijc);
-            ptr_pfmdy_b[ijc] = sd_pfmd_b->getPointer(1, ijc);
-            if (NDIM > 2) {
-               ptr_pfmdz_b[ijc] = sd_pfmd_b->getPointer(2, ijc);
-            }
-         }
-   }
-
    std::vector<double*> ptr_dx_coeff_l(nc2);
    std::vector<double*> ptr_dy_coeff_l(nc2);
    std::vector<double*> ptr_dz_coeff_l(nc2, nullptr);
@@ -731,28 +499,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
          }
       }
 
-   std::vector<double*> ptr_dx_coeff_b(nc2, nullptr);
-   std::vector<double*> ptr_dy_coeff_b(nc2, nullptr);
-   std::vector<double*> ptr_dz_coeff_b(nc2, nullptr);
-   if (d_with_third_phase) {
-      for (unsigned short ic = 0; ic < d_ncompositions; ic++)
-         for (unsigned short jc = 0; jc < d_ncompositions; jc++) {
-            const unsigned ijc = ic + jc * d_ncompositions;
-            ptr_dx_coeff_b[ijc] = sd_d_coeff_b->getPointer(0, ijc);
-            ptr_dy_coeff_b[ijc] = sd_d_coeff_b->getPointer(1, ijc);
-            if (NDIM > 2) {
-               ptr_dz_coeff_b[ijc] = sd_d_coeff_b->getPointer(2, ijc);
-            }
-         }
-   }
-
    double* ptr_phi = cd_phi->getPointer();
-   double* ptr_eta = nullptr;
-   std::vector<double*> ptr_c_b;
-   ptr_c_b.resize(d_ncompositions);
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-   }
 
    // Assuming all sd_pfmd_* have same box
    const hier::Box& dcoeff_gbox = sd_pfmd_l->getGhostBox();
@@ -766,7 +513,6 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
    kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
 #endif
 
-   // Assuming phi and eta have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -807,21 +553,11 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
             double hphi = INTERP_FUNC(phi, &interp_func_char);
 
-            double heta = 0.0;
-            if (d_with_third_phase) {
-               double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = INTERP_FUNC(eta, &interp_func_char);
-            }
-
             for (unsigned int ic = 0; ic < nc2; ic++) {
                ptr_pfmdx_l[ic][idx_dcoeff] =
                    (1. - hphi) * ptr_dx_coeff_l[ic][idx_dcoeff];
                ptr_pfmdx_a[ic][idx_dcoeff] =
-                   hphi * (1.0 - heta) * ptr_dx_coeff_a[ic][idx_dcoeff];
-               if (d_with_third_phase) {
-                  ptr_pfmdx_b[ic][idx_dcoeff] =
-                      hphi * heta * ptr_dx_coeff_b[ic][idx_dcoeff];
-               }
+                   hphi * ptr_dx_coeff_a[ic][idx_dcoeff];
             }
          }
       }
@@ -843,21 +579,11 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
             double hphi = INTERP_FUNC(phi, &interp_func_char);
 
-            double heta = 0.0;
-            if (d_with_third_phase) {
-               double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-               heta = INTERP_FUNC(eta, &interp_func_char);
-            }
-
             for (unsigned int ic = 0; ic < nc2; ic++) {
                ptr_pfmdy_l[ic][idx_dcoeff] =
                    (1. - hphi) * ptr_dy_coeff_l[ic][idx_dcoeff];
                ptr_pfmdy_a[ic][idx_dcoeff] =
-                   hphi * (1.0 - heta) * ptr_dy_coeff_a[ic][idx_dcoeff];
-               if (d_with_third_phase) {
-                  ptr_pfmdy_b[ic][idx_dcoeff] =
-                      hphi * heta * ptr_dy_coeff_b[ic][idx_dcoeff];
-               }
+                   hphi * ptr_dy_coeff_a[ic][idx_dcoeff];
             }
          }
       }
@@ -880,21 +606,11 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
                double phi = average(ptr_phi[idx_pf], ptr_phi[idxm1_pf]);
                double hphi = INTERP_FUNC(phi, &interp_func_char);
 
-               double heta = 0.0;
-               if (d_with_third_phase) {
-                  double eta = average(ptr_eta[idx_pf], ptr_eta[idxm1_pf]);
-                  heta = INTERP_FUNC(eta, &interp_func_char);
-               }
-
                for (unsigned int ic = 0; ic < nc2; ic++) {
                   ptr_pfmdz_l[ic][idx_dcoeff] =
                       (1. - hphi) * ptr_dz_coeff_l[ic][idx_dcoeff];
                   ptr_pfmdz_a[ic][idx_dcoeff] =
-                      hphi * (1.0 - heta) * ptr_dz_coeff_a[ic][idx_dcoeff];
-                  if (d_with_third_phase) {
-                     ptr_pfmdz_b[ic][idx_dcoeff] =
-                         hphi * heta * ptr_dz_coeff_b[ic][idx_dcoeff];
-                  }
+                      hphi * ptr_dz_coeff_a[ic][idx_dcoeff];
                }
             }
          }

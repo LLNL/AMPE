@@ -33,10 +33,9 @@ class CompositionDiffusionStrategyFactory
       if (model_parameters.conDiffusionStrategyIsCTD()) {
          strategy.reset(new DiffusionForConcInPhaseStrategy(
              ncompositions, conc_l_scratch_id, conc_a_scratch_id,
-             conc_b_scratch_id, conc_pfm_diffusion_l_id,
-             conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
+             conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
              conc_diffusion_coeff_l_id, conc_diffusion_coeff_a_id,
-             conc_diffusion_coeff_b_id, model_parameters.avg_func_type(),
+             model_parameters.avg_func_type(),
              model_parameters.diffusion_interp_func_type(),
              composition_strategy_mobilities, free_energy_strategy));
       } else {
