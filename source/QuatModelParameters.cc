@@ -189,6 +189,8 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
          d_conc_rhs_strategy = ConcRHSstrategy::KKS;
       } else if (conc_rhs_strategy.compare("ebs") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::EBS;
+         d_ebs_stencil_type =
+             conc_db->getStringWithDefault("ebs_stencil", "regular");
       } else if (conc_rhs_strategy.compare("spinodal") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||

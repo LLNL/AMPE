@@ -94,7 +94,6 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
          std::shared_ptr<pdat::SideData<double> > pfm_diffusionL(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
                  patch->getPatchData(d_pfm_diffusion_l_id)));
-         assert(pfm_diffusionL->getGhostCellWidth()[0] == 0);
 
          std::shared_ptr<pdat::SideData<double> > pfm_diffusionA(
              SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -122,6 +121,13 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #endif
          }
 
+         // we need at least as many ghost cells for phi and T as in diffusion
+         // to calculate diffusion in ghost cells
+         assert(phi->getGhostCellWidth()[0] >=
+                pfm_diffusionL->getGhostCellWidth()[0]);
+         assert(temperature->getGhostCellWidth()[0] >=
+                pfm_diffusionL->getGhostCellWidth()[0]);
+
          // compute depth 0 of diffusion variables,
          // including phase fraction weight
          if (d_with_three_phases) {
@@ -145,7 +151,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #if (NDIM == 3)
                 diffBptr2,
 #endif
-                0,  // assuming no ghosts for diffusion data
+                pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
                 d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
                 d_Q0_solid_B, gas_constant_R_JpKpmol, &interp_func_type,
@@ -167,7 +173,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 #if (NDIM == 3)
                 pfm_diffusionA->getPointer(2, 0),
 #endif
-                0,  // assuming no ghosts for diffusion data
+                pfm_diffusionL->getGhostCellWidth()[0],
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
                 d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
                 gas_constant_R_JpKpmol, &interp_func_type,

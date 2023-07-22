@@ -502,7 +502,7 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
    double* ptr_phi = cd_phi->getPointer();
 
    // Assuming all sd_pfmd_* have same box
-   const hier::Box& dcoeff_gbox = sd_pfmd_l->getGhostBox();
+   const hier::Box& dcoeff_gbox = sd_d_coeff_l->getGhostBox();
    int imin_dcoeff = dcoeff_gbox.lower(0);
    int jmin_dcoeff = dcoeff_gbox.lower(1);
    int jp_dcoeff = dcoeff_gbox.numberCells(0);
@@ -511,6 +511,17 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
 #if (NDIM == 3)
    kmin_dcoeff = dcoeff_gbox.lower(2);
    kp_dcoeff = jp_dcoeff * dcoeff_gbox.numberCells(1);
+#endif
+
+   const hier::Box& dpf_gbox = sd_pfmd_l->getGhostBox();
+   int imin_dpf = dpf_gbox.lower(0);
+   int jmin_dpf = dpf_gbox.lower(1);
+   int jp_dpf = dpf_gbox.numberCells(0);
+   int kmin_dpf = 0;
+   int kp_dpf = 0;
+#if (NDIM == 3)
+   kmin_dpf = dpf_gbox.lower(2);
+   kp_dpf = jp_dpf * dpf_gbox.numberCells(1);
 #endif
 
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
@@ -545,6 +556,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             const int idx_dcoeff =
                 (ii - imin_dcoeff) + (jj - jmin_dcoeff) * (jp_dcoeff + 1) +
                 (kk - kmin_dcoeff) * (kp_dcoeff + dcoeff_gbox.numberCells(1));
+            const int idx_dpf =
+                (ii - imin_dpf) + (jj - jmin_dpf) * (jp_dpf + 1) +
+                (kk - kmin_dpf) * (kp_dpf + dpf_gbox.numberCells(1));
 
             const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
                                (kk - kmin_pf) * kp_pf;
@@ -554,10 +568,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             double hphi = INTERP_FUNC(phi, &interp_func_char);
 
             for (unsigned int ic = 0; ic < nc2; ic++) {
-               ptr_pfmdx_l[ic][idx_dcoeff] =
+               ptr_pfmdx_l[ic][idx_dpf] =
                    (1. - hphi) * ptr_dx_coeff_l[ic][idx_dcoeff];
-               ptr_pfmdx_a[ic][idx_dcoeff] =
-                   hphi * ptr_dx_coeff_a[ic][idx_dcoeff];
+               ptr_pfmdx_a[ic][idx_dpf] = hphi * ptr_dx_coeff_a[ic][idx_dcoeff];
             }
          }
       }
@@ -571,6 +584,8 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             const int idx_dcoeff = (ii - imin_dcoeff) +
                                    (jj - jmin_dcoeff) * jp_dcoeff +
                                    (kk - kmin_dcoeff) * (kp_dcoeff + jp_dcoeff);
+            const int idx_dpf = (ii - imin_dpf) + (jj - jmin_dpf) * jp_dpf +
+                                (kk - kmin_dpf) * (kp_dpf + jp_dpf);
 
             const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
                                (kk - kmin_pf) * kp_pf;
@@ -580,10 +595,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
             double hphi = INTERP_FUNC(phi, &interp_func_char);
 
             for (unsigned int ic = 0; ic < nc2; ic++) {
-               ptr_pfmdy_l[ic][idx_dcoeff] =
+               ptr_pfmdy_l[ic][idx_dpf] =
                    (1. - hphi) * ptr_dy_coeff_l[ic][idx_dcoeff];
-               ptr_pfmdy_a[ic][idx_dcoeff] =
-                   hphi * ptr_dy_coeff_a[ic][idx_dcoeff];
+               ptr_pfmdy_a[ic][idx_dpf] = hphi * ptr_dy_coeff_a[ic][idx_dcoeff];
             }
          }
       }
@@ -598,6 +612,8 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
                const int idx_dcoeff = (ii - imin_dcoeff) +
                                       (jj - jmin_dcoeff) * jp_dcoeff +
                                       (kk - kmin_dcoeff) * kp_dcoeff;
+               const int idx_dpf = (ii - imin_dpf) + (jj - jmin_dpf) * jp_dpf +
+                                   (kk - kmin_dpf) * kp_dpf;
 
                const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
                                   (kk - kmin_pf) * kp_pf;
@@ -607,9 +623,9 @@ void DiffusionForConcInPhaseStrategy::setPFMDiffOnPatch(
                double hphi = INTERP_FUNC(phi, &interp_func_char);
 
                for (unsigned int ic = 0; ic < nc2; ic++) {
-                  ptr_pfmdz_l[ic][idx_dcoeff] =
+                  ptr_pfmdz_l[ic][idx_dpf] =
                       (1. - hphi) * ptr_dz_coeff_l[ic][idx_dcoeff];
-                  ptr_pfmdz_a[ic][idx_dcoeff] =
+                  ptr_pfmdz_a[ic][idx_dpf] =
                       hphi * ptr_dz_coeff_a[ic][idx_dcoeff];
                }
             }

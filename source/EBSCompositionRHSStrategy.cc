@@ -23,6 +23,61 @@
 
 #include <cassert>
 
+//-----------------------------------------------------------------------
+#if (NDIM == 3)
+void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const int& ifirst2, const int& ilast2,
+                  const double* dx, const double* conc, const int& ngconc,
+                  const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const double* diffconc2,
+                  const int& ngdiffconc, const double* flux0,
+                  const double* flux1, const double* flux2, const int& ngflux)
+{
+   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
+                             diffconc2, ngdiffconc, flux0, flux1, flux2,
+                             ngflux);
+}
+
+void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const int& ifirst2, const int& ilast2,
+                  const double* dx, const double* conc, const int& ngconc,
+                  const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const double* diffconc2,
+                  const int& ngdiffconc, const double* flux0,
+                  const double* flux1, const double* flux2, const int& ngflux)
+{
+   assert(ngdiffconc > 0);
+   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
+                             diffconc2, ngdiffconc, flux0, flux1, flux2,
+                             ngflux);
+}
+#else
+void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const double* dx, const double* conc,
+                  const int& ngconc, const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const int& ngdiffconc,
+                  const double* flux0, const double* flux1, const int& ngflux)
+{
+   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
+                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
+                             flux1, ngflux);
+}
+
+void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const double* dx, const double* conc,
+                  const int& ngconc, const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const int& ngdiffconc,
+                  const double* flux0, const double* flux1, const int& ngflux)
+{
+   //   assert(ngdiffconc > 0);
+   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
+                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
+                             flux1, ngflux);
+}
+#endif
+
 
 EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const int phase_scratch_id, const unsigned short ncompositions,
@@ -32,8 +87,18 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const int diffusion_b_id, const std::vector<int> diffusion_precond_id,
     const std::string& avg_func_type,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
-    std::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase)
+    std::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase,
+    const bool isotropic_flux)
     : CompositionRHSStrategy(avg_func_type),
+      d_ncompositions(ncompositions),
+      d_phase_scratch_id(phase_scratch_id),
+      d_conc_l_scratch_id(conc_l_scratch_id),
+      d_conc_a_scratch_id(conc_a_scratch_id),
+      d_conc_b_scratch_id(conc_b_scratch_id),
+      d_temperature_scratch_id(temperature_scratch_id),
+      d_diffusion_l_id(diffusion_l_id),
+      d_diffusion_a_id(diffusion_a_id),
+      d_diffusion_b_id(diffusion_b_id),
       d_diffusion_for_conc_in_phase(diffusion_for_conc_in_phase),
       d_free_energy_strategy(free_energy_strategy)
 {
@@ -41,28 +106,18 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    assert(temperature_scratch_id >= 0);
    assert(d_free_energy_strategy);
 
-   tbox::plog << "EBSCompositionRHSStrategy without thermal diffusion"
-              << std::endl;
-
-   d_ncompositions = ncompositions;
-
-   d_phase_scratch_id = phase_scratch_id;
-
-   d_conc_l_scratch_id = conc_l_scratch_id;
-   d_conc_a_scratch_id = conc_a_scratch_id;
-   d_conc_b_scratch_id = conc_b_scratch_id;
-
-   d_diffusion_l_id = diffusion_l_id;
-   d_diffusion_a_id = diffusion_a_id;
-   d_diffusion_b_id = diffusion_b_id;
+   tbox::plog << "EBSCompositionRHSStrategy" << std::endl;
 
    d_diffusion_precond_id = diffusion_precond_id;
-
-   d_temperature_scratch_id = temperature_scratch_id;
 
    d_with_three_phases = (conc_b_scratch_id >= 0);
 
    d_with_diffusion_for_preconditioner = (!diffusion_precond_id.empty());
+
+   if (isotropic_flux)
+      d_add_flux = add_flux_iso;
+   else
+      d_add_flux = add_flux_ebs;
 
    if (d_with_three_phases)
       tbox::plog << "EBSCompositionRHSStrategy with three phases" << std::endl;
@@ -123,30 +178,17 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
    assert(conc_a);
    assert(conc_a->getDepth() == d_ncompositions);
 
-   std::shared_ptr<pdat::SideData<double> > conc_diffusionl(
+   std::shared_ptr<pdat::SideData<double> > diffusionl(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion_l_id)));
-   assert(conc_diffusionl);
-   assert(conc_diffusionl->getDepth() == (nc2));
+   assert(diffusionl);
+   assert(diffusionl->getDepth() == (nc2));
 
-   // math::PatchSideDataBasicOps<double> ops;
-   //{
-   // double vmax=ops.max( conc_diffusionl, pbox );
-   // double vmin=ops.min(conc_diffusionl, pbox );
-   // tbox::pout<<"Min-Max. DL on patch="<<vmin<<","<<vmax<<endl;
-   //}
-
-   std::shared_ptr<pdat::SideData<double> > conc_diffusiona(
+   std::shared_ptr<pdat::SideData<double> > diffusiona(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
            patch.getPatchData(d_diffusion_a_id)));
-   assert(conc_diffusiona);
-   assert(conc_diffusiona->getDepth() == (int)nc2);
-
-   //{
-   // double vmax=ops.max( conc_diffusiona, pbox );
-   // double vmin=ops.min(conc_diffusiona, pbox );
-   // tbox::pout<<"Min-Max. DS on patch="<<vmin<<","<<vmax<<endl;
-   //}
+   assert(diffusiona);
+   assert(diffusiona->getDepth() == (int)nc2);
 
    std::shared_ptr<pdat::SideData<double> > flux(
        SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
@@ -158,39 +200,39 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 
    // now add components of concentration flux,
    // one phase at a time
-   ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   d_add_flux(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+              ifirst(2), ilast(2),
 #endif
-                             dx, conc_l->getPointer(),
-                             conc_l->getGhostCellWidth()[0], d_ncompositions,
-                             conc_diffusionl->getPointer(0),
-                             conc_diffusionl->getPointer(1),
+              dx, conc_l->getPointer(), conc_l->getGhostCellWidth()[0],
+              d_ncompositions, diffusionl->getPointer(0),
+              diffusionl->getPointer(1),
 #if (NDIM == 3)
-                             conc_diffusionl->getPointer(2),
+              diffusionl->getPointer(2),
 #endif
-                             0, flux->getPointer(0), flux->getPointer(1),
+              diffusionl->getGhostCellWidth()[0], flux->getPointer(0),
+              flux->getPointer(1),
 #if (NDIM == 3)
-                             flux->getPointer(2),
+              flux->getPointer(2),
 #endif
-                             flux->getGhostCellWidth()[0]);
+              flux->getGhostCellWidth()[0]);
 
-   ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   d_add_flux(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                             ifirst(2), ilast(2),
+              ifirst(2), ilast(2),
 #endif
-                             dx, conc_a->getPointer(),
-                             conc_a->getGhostCellWidth()[0], d_ncompositions,
-                             conc_diffusiona->getPointer(0),
-                             conc_diffusiona->getPointer(1),
+              dx, conc_a->getPointer(), conc_a->getGhostCellWidth()[0],
+              d_ncompositions, diffusiona->getPointer(0),
+              diffusiona->getPointer(1),
 #if (NDIM == 3)
-                             conc_diffusiona->getPointer(2),
+              diffusiona->getPointer(2),
 #endif
-                             0, flux->getPointer(0), flux->getPointer(1),
+              diffusiona->getGhostCellWidth()[0], flux->getPointer(0),
+              flux->getPointer(1),
 #if (NDIM == 3)
-                             flux->getPointer(2),
+              flux->getPointer(2),
 #endif
-                             flux->getGhostCellWidth()[0]);
+              flux->getGhostCellWidth()[0]);
 
    if (d_conc_b_scratch_id >= 0) {
       std::shared_ptr<pdat::CellData<double> > conc_b(
@@ -198,33 +240,33 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
               patch.getPatchData(d_conc_b_scratch_id)));
       assert(conc_b);
 
-      std::shared_ptr<pdat::SideData<double> > conc_diffusionb(
+      std::shared_ptr<pdat::SideData<double> > diffusionb(
           SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
               patch.getPatchData(d_diffusion_b_id)));
-      assert(conc_diffusionb);
+      assert(diffusionb);
 
-      assert(conc_diffusionb->getPointer(0) != nullptr);
-      assert(conc_diffusionb->getPointer(1) != nullptr);
+      assert(diffusionb->getPointer(0) != nullptr);
+      assert(diffusionb->getPointer(1) != nullptr);
 #if (NDIM == 3)
-      assert(conc_diffusionb->getPointer(2) != nullptr);
+      assert(diffusionb->getPointer(2) != nullptr);
 #endif
 
-      ADD_CONCENTRATIONFLUX_EBS(ifirst(0), ilast(0), ifirst(1), ilast(1),
+      d_add_flux(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                                ifirst(2), ilast(2),
+                 ifirst(2), ilast(2),
 #endif
-                                dx, conc_b->getPointer(),
-                                conc_b->getGhostCellWidth()[0], d_ncompositions,
-                                conc_diffusionb->getPointer(0),
-                                conc_diffusionb->getPointer(1),
+                 dx, conc_b->getPointer(), conc_b->getGhostCellWidth()[0],
+                 d_ncompositions, diffusionb->getPointer(0),
+                 diffusionb->getPointer(1),
 #if (NDIM == 3)
-                                conc_diffusionb->getPointer(2),
+                 diffusionb->getPointer(2),
 #endif
-                                0, flux->getPointer(0), flux->getPointer(1),
+                 diffusionb->getGhostCellWidth()[0], flux->getPointer(0),
+                 flux->getPointer(1),
 #if (NDIM == 3)
-                                flux->getPointer(2),
+                 flux->getPointer(2),
 #endif
-                                flux->getGhostCellWidth()[0]);
+                 flux->getGhostCellWidth()[0]);
    }
 }
 

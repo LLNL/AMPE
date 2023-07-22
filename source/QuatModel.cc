@@ -1270,16 +1270,41 @@ void QuatModel::registerConcentrationVariables(void)
               hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(d_conc_phase_coupling_diffusion_id >= 0);
    } else {
-      d_conc_pfm_diffusion_l_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "conc_pfm_diffusion_l",
-                                         d_ncompositions * d_ncompositions));
-      assert(d_conc_pfm_diffusion_l_var);
-      d_conc_pfm_diffusion_l_id = variable_db->registerVariableAndContext(
-          d_conc_pfm_diffusion_l_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-      assert(d_conc_pfm_diffusion_l_id >= 0);
+      {
+         // "isotropic" stencil needs some ghost values for diffusion field
+         const int nghosts =
+             d_model_parameters.useEBSisotropicStencil() ? 1 : 0;
+         d_conc_pfm_diffusion_l_var.reset(
+             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                            "conc_pfm_diffusion_l",
+                                            d_ncompositions * d_ncompositions));
+         assert(d_conc_pfm_diffusion_l_var);
+         d_conc_pfm_diffusion_l_id = variable_db->registerVariableAndContext(
+             d_conc_pfm_diffusion_l_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), nghosts));
+         assert(d_conc_pfm_diffusion_l_id >= 0);
 
+         d_conc_pfm_diffusion_a_var.reset(
+             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
+                                            "conc_pfm_diffusion_a",
+                                            d_ncompositions * d_ncompositions));
+         assert(d_conc_pfm_diffusion_a_var);
+         d_conc_pfm_diffusion_a_id = variable_db->registerVariableAndContext(
+             d_conc_pfm_diffusion_a_var, current,
+             hier::IntVector(tbox::Dimension(NDIM), nghosts));
+         assert(d_conc_pfm_diffusion_a_id >= 0);
+
+         if (d_model_parameters.with_three_phases()) {
+            d_conc_pfm_diffusion_b_var.reset(new pdat::SideVariable<double>(
+                tbox::Dimension(NDIM), "conc_pfm_diffusion_b",
+                d_ncompositions * d_ncompositions));
+            assert(d_conc_pfm_diffusion_b_var);
+            d_conc_pfm_diffusion_b_id = variable_db->registerVariableAndContext(
+                d_conc_pfm_diffusion_b_var, current,
+                hier::IntVector(tbox::Dimension(NDIM), nghosts));
+            assert(d_conc_pfm_diffusion_b_id >= 0);
+         }
+      }
       d_conc_diffusion_coeff_l_var.reset(
           new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                          "conc_diffusion_coeff_l",
@@ -1289,16 +1314,6 @@ void QuatModel::registerConcentrationVariables(void)
           d_conc_diffusion_coeff_l_var, current,
           hier::IntVector(tbox::Dimension(NDIM), 0));
       assert(d_conc_diffusion_coeff_l_id >= 0);
-
-      d_conc_pfm_diffusion_a_var.reset(
-          new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                         "conc_pfm_diffusion_a",
-                                         d_ncompositions * d_ncompositions));
-      assert(d_conc_pfm_diffusion_a_var);
-      d_conc_pfm_diffusion_a_id = variable_db->registerVariableAndContext(
-          d_conc_pfm_diffusion_a_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), 0));
-      assert(d_conc_pfm_diffusion_a_id >= 0);
 
       d_conc_diffusion_coeff_a_var.reset(
           new pdat::SideVariable<double>(tbox::Dimension(NDIM),
@@ -1322,16 +1337,6 @@ void QuatModel::registerConcentrationVariables(void)
       }
 
       if (d_model_parameters.with_three_phases()) {
-         d_conc_pfm_diffusion_b_var.reset(
-             new pdat::SideVariable<double>(tbox::Dimension(NDIM),
-                                            "conc_pfm_diffusion_b",
-                                            d_ncompositions * d_ncompositions));
-         assert(d_conc_pfm_diffusion_b_var);
-         d_conc_pfm_diffusion_b_id = variable_db->registerVariableAndContext(
-             d_conc_pfm_diffusion_b_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-         assert(d_conc_pfm_diffusion_b_id >= 0);
-
          d_conc_diffusion_coeff_b_var.reset(
              new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                             "conc_diffusion_coeff_b",

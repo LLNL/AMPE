@@ -35,7 +35,8 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
        const std::string& avg_func_type,
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        std::shared_ptr<CompositionDiffusionStrategy>
-           diffusion_for_conc_in_phase);
+           diffusion_for_conc_in_phase,
+       const bool isotropic_flux);
 
    ~EBSCompositionRHSStrategy(){};
 
@@ -46,7 +47,6 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
 
    void computeFluxOnPatch(hier::Patch& patch, const int flux_id);
 
- public:
    /*
     * Take sum of diffusion coefficients in each phase
     * to get diffusion used in preconditioner
@@ -70,6 +70,8 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    int d_conc_a_scratch_id;
    int d_conc_b_scratch_id;
 
+   int d_temperature_scratch_id;
+
    /*!
     * holds data for diffusion coefficients in composition equation
     * weighted by phase fraction
@@ -77,8 +79,6 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
    int d_diffusion_l_id;
    int d_diffusion_a_id;
    int d_diffusion_b_id;
-
-   int d_temperature_scratch_id;
 
    bool d_with_three_phases;
 
@@ -97,6 +97,24 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
        const int depth_in_Dmatrix,
        std::shared_ptr<pdat::SideData<double> > sd_d_coeff,
        const hier::Box& pbox, const int depth);
+
+#if (NDIM == 3)
+   void (*d_add_flux)(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                      const int& ilast1, const int& ifirst2, const int& ilast2,
+                      const double* dx, const double* conc, const int& ngconc,
+                      const int& ncomp, const double* diffconc0,
+                      const double* diffconc1, const double* diffconc2,
+                      const int& ngdiffconc, const double* flux0,
+                      const double* flux1, const double* flux2,
+                      const int& ngflux);
+#else
+   void (*d_add_flux)(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                      const int& ilast1, const double* dx, const double* conc,
+                      const int& ngconc, const int& ncomp,
+                      const double* diffconc0, const double* diffconc1,
+                      const int& ngdiffconc, const double* flux0,
+                      const double* flux1, const int& ngflux);
+#endif
 };
 
 #endif

@@ -286,7 +286,7 @@ c
       q0_liquid_invR = q0_liquid / gas_constant_R
       q0_solid_A_invR = q0_solid_A / gas_constant_R
 c
-      do ic1 = ifirst1, ilast1
+      do ic1 = ifirst1-ngdiff, ilast1+ngdiff
          do ic0 = ifirst0, ilast0+1
 
             vphi = average_func(
@@ -308,7 +308,7 @@ c
       end do
 c
       do ic1 = ifirst1, ilast1+1
-         do ic0 = ifirst0, ilast0
+         do ic0 = ifirst0-ngdiff, ilast0+ngdiff
 
             vphi = average_func(
      &         phi(ic0,ic1-1), phi(ic0,ic1), avg_type )

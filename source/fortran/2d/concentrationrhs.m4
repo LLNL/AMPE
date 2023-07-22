@@ -114,21 +114,17 @@ c
       subroutine add_concentrationflux_ebs(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   dx,
-     &   conc, ngconc,
-     &   ncomp,
+     &   conc, ngconc, ncomp,
      &   diffconc0,  diffconc1,  ngdiff,
      &   flux0, flux1, ngflux )
 c***********************************************************************
       implicit none
 c***********************************************************************
-c***********************************************************************
       integer ifirst0, ilast0, ifirst1, ilast1, ngflux
       double precision dx(0:1)
       integer ncomp
-      integer ngconc
-      integer ngdiff
+      integer ngconc, ngdiff
 c
-c variables in 2d cell indexed
       double precision 
      &     flux0(SIDE2d0(ifirst,ilast,ngflux),ncomp),
      &     flux1(SIDE2d1(ifirst,ilast,ngflux),ncomp)
@@ -149,23 +145,88 @@ c
             ijc=ic+(jc-1)*ncomp
             do ic1 = ifirst1, ilast1
                do ic0 = ifirst0, ilast0+1
-                  flux0(ic0,ic1,ic) = flux0(ic0,ic1,ic) + dxinv * (
+                  flux0(ic0,ic1,ic) = flux0(ic0,ic1,ic) + dxinv *
      &              diffconc0(ic0,ic1,ijc) *
      &              ( conc(ic0,ic1,jc) - conc(ic0-1,ic1,jc) )
-     &              )
                enddo
             enddo
 
             do ic1 = ifirst1, ilast1+1
                do ic0 = ifirst0, ilast0
-                  flux1(ic0,ic1,ic) = flux1(ic0,ic1,ic) + dyinv * (
+                  flux1(ic0,ic1,ic) = flux1(ic0,ic1,ic) + dyinv *
      &              diffconc1(ic0,ic1,ijc) *
      &              ( conc(ic0,ic1,jc) - conc(ic0,ic1-1,jc) )
-     &              )
                enddo
             enddo
          enddo
+      enddo
 
+      return
+      end
+c
+c***********************************************************************
+c
+c compute concentration flux using "isotropic" discretization
+c see Shukla and Giri, JCP 276 (2014)
+c
+      subroutine add_concentrationflux_iso(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   conc, ngconc, ncomp,
+     &   d0,  d1,  ngdiff,
+     &   flux0, flux1, ngflux )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+      integer ifirst0, ilast0, ifirst1, ilast1, ngflux
+      double precision dx(0:1)
+      integer ncomp
+      integer ngconc, ngdiff
+c
+      double precision
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux),ncomp),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux),ncomp)
+      double precision conc(CELL2d(ifirst,ilast,ngconc),ncomp)
+      double precision d0(SIDE2d0(ifirst,ilast,ngdiff),
+     &                            ncomp*ncomp)
+      double precision d1(SIDE2d1(ifirst,ilast,ngdiff),
+     &                            ncomp*ncomp)
+c
+      double precision dx10, dx1, dy10, dy1
+      integer          i0, i1, ic, jc, ijc
+
+      dx10 = 10.d0 / (12.d0*dx(0))
+      dx1  = 1.d0  / (12.d0*dx(0))
+      dy10 = 10.d0 / (12.d0*dx(1))
+      dy1  = 1.d0  / (12.d0*dx(1))
+
+      do ic = 1, ncomp
+         do jc = 1, ncomp
+            ijc=ic+(jc-1)*ncomp
+            do i1 = ifirst1, ilast1
+               do i0 = ifirst0, ilast0+1
+                  flux0(i0,i1,ic) = flux0(i0,i1,ic)
+     &              + dx1 * d0(i0,i1+1,ijc) *
+     &              ( conc(i0,i1+1,jc) - conc(i0-1,i1+1,jc) )
+     &              + dx10 * d0(i0,i1,ijc) *
+     &              ( conc(i0,i1,jc) - conc(i0-1,i1,jc) )
+     &              + dx1 * d0(i0,i1-1,ijc) *
+     &              ( conc(i0,i1-1,jc) - conc(i0-1,i1-1,jc) )
+               enddo
+            enddo
+
+            do i1 = ifirst1, ilast1+1
+               do i0 = ifirst0, ilast0
+                  flux1(i0,i1,ic) = flux1(i0,i1,ic)
+     &              + dy1 *d1(i0+1,i1,ijc) *
+     &              ( conc(i0+1,i1,jc) - conc(i0+1,i1-1,jc) )
+     &              + dy10 *d1(i0,i1,ijc) *
+     &              ( conc(i0,i1,jc) - conc(i0,i1-1,jc) )
+     &              + dy1 *d1(i0-1,i1,ijc) *
+     &              ( conc(i0-1,i1,jc) - conc(i0-1,i1-1,jc) )
+               enddo
+            enddo
+         enddo
       enddo
 
       return

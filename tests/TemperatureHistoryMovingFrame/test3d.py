@@ -46,12 +46,14 @@ for line in lines: ## loop over lines of file
 
 target_fs = 0.51
 if abs(target_fs-fs)>0.005:
-  print("Target fs not reached")
+  print("fs = {}".format(fs))
+  print("Target fs {} not reached".format(target_fs))
   sys.exit(1)
 
 target_time = 0.022
 if time<target_time:
-  print("Target time not reached")
+  print("time = {}".format(time))
+  print("Target time {} not reached".format(target_time))
   sys.exit(1)
 
 os.remove(initfilename)
