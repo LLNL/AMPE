@@ -649,38 +649,24 @@ c-----------------------------------------------------------------------
       subroutine quatgrad_modulus_from_sides(
      &   lo0, hi0, lo1, hi1,
      &   depth,
-     &   grad_x, grad_y, 
-     &   glo0, ghi0, glo1, ghi1,
-     &   grad_mod,
-     &   mlo0, mhi0, mlo1, mhi1,
-     &   floor_type,
-     &   grad_floor )
+     &   grad_x, grad_y, nggq,
+     &   grad_mod, ngm)
 
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1,
-     &   depth,
-     &   glo0, ghi0, glo1, ghi1,
-     &   mlo0, mhi0, mlo1, mhi1
+     &   depth, nggq, ngm
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  depth,NDIM),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,depth,NDIM),
-     &   grad_mod(mlo0:mhi0,mlo1:mhi1)
+     &   grad_x(SIDE2d0(lo,hi,nggq),depth,NDIM),
+     &   grad_y(SIDE2d1(lo,hi,nggq),depth,NDIM),
+     &   grad_mod(CELL2d(lo,hi,ngm))
 
-      double precision grad_floor, beta, grad_modulus
-
-      character*(*) floor_type
+      double precision grad_modulus
 
       integer i, j, q, ii, jj, d
       
-      if( floor_type(1:1) .eq. 's' )then
-         beta = grad_floor*grad_floor
-      else
-         beta = 0.d0
-      endif
-
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -697,7 +683,7 @@ c loop over components of nabla q_m
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
-     &                    + 0.25*dsqrt(grad_modulus+beta)
+     &                    + 0.25*dsqrt(grad_modulus)
 
             grad_modulus = 0.d0
             do q = 1, depth
@@ -708,7 +694,7 @@ c loop over components of nabla q_m
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
-     &                    + 0.25*dsqrt(grad_modulus+beta)
+     &                    + 0.25*dsqrt(grad_modulus)
 
             grad_modulus = 0.d0
             do q = 1, depth
@@ -719,7 +705,7 @@ c loop over components of nabla q_m
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
-     &                    + 0.25*dsqrt(grad_modulus+beta)
+     &                    + 0.25*dsqrt(grad_modulus)
 
             grad_modulus = 0.d0
             do q = 1, depth
@@ -730,7 +716,7 @@ c loop over components of nabla q_m
                enddo
             enddo
             grad_mod(i,j) = grad_mod(i,j) 
-     &                    + 0.25*dsqrt(grad_modulus+beta)
+     &                    + 0.25*dsqrt(grad_modulus)
             
          enddo
       enddo
@@ -839,38 +825,24 @@ c-----------------------------------------------------------------------
       subroutine quatgrad_modulus_from_sides_compact(
      &   lo0, hi0, lo1, hi1,
      &   depth,
-     &   grad_x, grad_y, 
-     &   glo0, ghi0, glo1, ghi1,
-     &   grad_mod,
-     &   mlo0, mhi0, mlo1, mhi1,
-     &   floor_type,
-     &   grad_floor )
+     &   grad_x, grad_y, nggq,
+     &   grad_mod, ngm)
 
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1,
-     &   depth,
-     &   glo0, ghi0, glo1, ghi1,
-     &   mlo0, mhi0, mlo1, mhi1
+     &   depth, nggq, ngm
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  depth,NDIM),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,depth,NDIM),
-     &   grad_mod(mlo0:mhi0,mlo1:mhi1)
+     &   grad_x(SIDE2d0(lo,hi,nggq),depth,NDIM),
+     &   grad_y(SIDE2d1(lo,hi,nggq),depth,NDIM),
+     &   grad_mod(CELL2d(lo,hi,ngm))
 
-      double precision grad_floor, beta, grad_modulus
-
-      character*(*) floor_type
+      double precision grad_modulus
 
       integer i, j, q, d
       
-      if( floor_type(1:1) .eq. 's' )then
-         beta = grad_floor*grad_floor
-      else
-         beta = 0.d0
-      endif
-
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -896,7 +868,7 @@ c we average contributions from 4 sides
      &            grad_y(i,j+1,q,2)*grad_y(i,j+1,q,2)
             enddo
 
-            grad_mod(i,j) = dsqrt(0.5d0*grad_modulus+beta)
+            grad_mod(i,j) = dsqrt(0.5d0*grad_modulus)
             
          enddo
       enddo
@@ -910,34 +882,22 @@ c-----------------------------------------------------------------------
       subroutine quatgrad_modulus(
      &   lo0, hi0, lo1, hi1,
      &   depth,
-     &   grad_x, grad_y, 
-     &   glo0, ghi0, glo1, ghi1,
-     &   grad_mod,
-     &   mlo0, mhi0, mlo1, mhi1,
-     &   floor_type,
-     &   grad_floor )
+     &   grad_x, grad_y, nggq,
+     &   grad_mod, ngm)
 
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1,
-     &   depth,
-     &   glo0, ghi0, glo1, ghi1,
-     &   mlo0, mhi0, mlo1, mhi1
+     &   depth, nggq, ngm
 
       double precision
-     &   grad_x(glo0:ghi0,glo1:ghi1,depth),
-     &   grad_y(glo0:ghi0,glo1:ghi1,depth),
-     &   grad_mod(mlo0:mhi0,mlo1:mhi1)
-
-      double precision grad_floor, beta
-
-      character*(*) floor_type
+     &   grad_x(CELL2d(lo,hi,nggq),depth),
+     &   grad_y(CELL2d(lo,hi,nggq),depth),
+     &   grad_mod(CELL2d(lo,hi,ngm))
 
       integer i, j, m
       
-      beta = grad_floor*grad_floor
-
       do j = lo1, hi1
          do i = lo0, hi0
 
@@ -949,9 +909,6 @@ c-----------------------------------------------------------------------
      &            grad_y(i,j,m) * grad_y(i,j,m)
             enddo
             
-            if( floor_type(1:1) .eq. 's' )then
-               grad_mod(i,j) = grad_mod(i,j) + beta
-            endif
             grad_mod(i,j) = dsqrt( grad_mod(i,j) )
 
          enddo

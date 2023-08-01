@@ -12,6 +12,7 @@
 #include "QuatIntegrator.h"
 #include "SimpleGradStrategy.h"
 #include "SimpleQuatGradStrategy.h"
+#include "QuatGradModulusStrategy.h"
 #include "TemperatureFreeEnergyStrategy.h"
 #include "CALPHADFreeEnergyStrategyBinary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
@@ -751,6 +752,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
    }
 
    d_quat_grad_strategy = new SimpleQuatGradStrategy(this);
+   d_quat_grad_modulus_strategy.reset(new QuatGradModulusStrategy(d_qlen));
 
    initializeRHSandEnergyStrategies(input_db);
 
@@ -4023,58 +4025,8 @@ void QuatModel::computeQuatGradModulus(
    if (grad_cell_id < 0) grad_cell_id = d_quat_grad_cell_id;
    if (grad_modulus_id < 0) grad_modulus_id = d_quat_grad_modulus_id;
 
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-      std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
-
-      std::shared_ptr<pdat::CellData<double> > grad_cell_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(grad_cell_id)));
-      assert(grad_cell_data);
-      assert(grad_cell_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      std::shared_ptr<pdat::CellData<double> > grad_modulus_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(grad_modulus_id)));
-      assert(grad_modulus_data);
-      assert(grad_modulus_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      const hier::Box& grad_gbox = grad_cell_data->getGhostBox();
-      const hier::Index& g_lower = grad_gbox.lower();
-      const hier::Index& g_upper = grad_gbox.upper();
-
-      const hier::Box& mod_gbox = grad_modulus_data->getGhostBox();
-      const hier::Index& m_lower = mod_gbox.lower();
-      const hier::Index& m_upper = mod_gbox.upper();
-
-      assert(grad_cell_data->getDepth() == NDIM * d_qlen);
-      assert(grad_modulus_data->getDepth() == 1);
-
-      QUATGRAD_MODULUS(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       d_qlen, grad_cell_data->getPointer(0 * d_qlen),
-                       grad_cell_data->getPointer(1 * d_qlen),
-#if (NDIM == 3)
-                       grad_cell_data->getPointer(2 * d_qlen),
-#endif
-                       g_lower[0], g_upper[0], g_lower[1], g_upper[1],
-#if (NDIM == 3)
-                       g_lower[2], g_upper[2],
-#endif
-                       grad_modulus_data->getPointer(), m_lower[0], m_upper[0],
-                       m_lower[1], m_upper[1],
-#if (NDIM == 3)
-                       m_lower[2], m_upper[2],
-#endif
-                       d_model_parameters.quat_grad_floor_type().c_str(),
-                       d_model_parameters.quat_grad_floor());
-   }
+   d_quat_grad_modulus_strategy->computeQuatGradModulus(level, grad_cell_id,
+                                                        grad_modulus_id);
 }
 
 void QuatModel::computeQuatGradModulusFromSides(
@@ -4087,59 +4039,8 @@ void QuatModel::computeQuatGradModulusFromSides(
    assert(grad_side_id >= 0);
    if (grad_modulus_id < 0) grad_modulus_id = d_quat_grad_modulus_id;
 
-   for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
-      std::shared_ptr<hier::Patch> patch = *p;
-      const hier::Box& pbox = patch->getBox();
-      const hier::Index& ifirst = pbox.lower();
-      const hier::Index& ilast = pbox.upper();
-
-      std::shared_ptr<pdat::SideData<double> > grad_side_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::SideData<double>, hier::PatchData>(
-              patch->getPatchData(grad_side_id)));
-      assert(grad_side_data);
-      assert(grad_side_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      std::shared_ptr<pdat::CellData<double> > grad_modulus_data(
-          SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-              patch->getPatchData(grad_modulus_id)));
-      assert(grad_modulus_data);
-      assert(grad_modulus_data->getGhostCellWidth() ==
-             hier::IntVector(tbox::Dimension(NDIM), 0));
-
-      const hier::Box& grad_gbox = grad_side_data->getGhostBox();
-      const hier::Index& g_lower = grad_gbox.lower();
-      const hier::Index& g_upper = grad_gbox.upper();
-
-      const hier::Box& mod_gbox = grad_modulus_data->getGhostBox();
-      const hier::Index& m_lower = mod_gbox.lower();
-      const hier::Index& m_upper = mod_gbox.upper();
-
-      assert(grad_side_data->getDepth() == NDIM * d_qlen);
-      assert(grad_modulus_data->getDepth() == 1);
-
-      QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
-          //      QUATGRAD_MODULUS_FROM_SIDES(
-          ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-          ifirst(2), ilast(2),
-#endif
-          d_qlen, grad_side_data->getPointer(0), grad_side_data->getPointer(1),
-#if (NDIM == 3)
-          grad_side_data->getPointer(2),
-#endif
-          g_lower[0], g_upper[0], g_lower[1], g_upper[1],
-#if (NDIM == 3)
-          g_lower[2], g_upper[2],
-#endif
-          grad_modulus_data->getPointer(), m_lower[0], m_upper[0], m_lower[1],
-          m_upper[1],
-#if (NDIM == 3)
-          m_lower[2], m_upper[2],
-#endif
-          d_model_parameters.quat_grad_floor_type().c_str(),
-          d_model_parameters.quat_grad_floor());
-   }
+   d_quat_grad_modulus_strategy->computeQuatGradModulusFromSides(
+       level, grad_side_id, grad_modulus_id);
 }
 
 //=======================================================================
