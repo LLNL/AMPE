@@ -6,30 +6,6 @@ c All rights reserved.
 c This file is part of AMPE. 
 c For details, see https://github.com/LLNL/AMPE
 c Please also read AMPE/LICENSE.
-c Redistribution and use in source and binary forms, with or without 
-c modification, are permitted provided that the following conditions are met:
-c - Redistributions of source code must retain the above copyright notice,
-c   this list of conditions and the disclaimer below.
-c - Redistributions in binary form must reproduce the above copyright notice,
-c   this list of conditions and the disclaimer (as noted below) in the
-c   documentation and/or other materials provided with the distribution.
-c - Neither the name of the LLNS/LLNL nor the names of its contributors may be
-c   used to endorse or promote products derived from this software without
-c   specific prior written permission.
-c
-c THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-c AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-c IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-c ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY,
-c LLC, THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY
-c DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-c DAMAGES  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-c OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-c HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-c STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-c IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-c POSSIBILITY OF SUCH DAMAGE.
-c 
 define(NDIM,3)dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 
@@ -750,39 +726,25 @@ c-----------------------------------------------------------------------
       subroutine quatgrad_modulus_from_sides_compact(
      &   lo0, hi0, lo1, hi1, lo2, hi2,
      &   depth,
-     &   grad_x, grad_y, 
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2,
-     &   grad_mod,
-     &   mlo0, mhi0, mlo1, mhi1, mlo2, mhi2,
-     &   floor_type,
-     &   grad_floor )
+     &   grad_x, grad_y, grad_z, nggq,
+     &   grad_mod, ngm)
 
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   depth,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2,
-     &   mlo0, mhi0, mlo1, mhi1, mlo2, mhi2
+     &   depth, nggq, ngm
 
       double precision
-     &   grad_x(glo0:ghi0+1,glo1:ghi1,  glo2:ghi2,  depth,NDIM),
-     &   grad_y(glo0:ghi0,  glo1:ghi1+1,glo2:ghi2,  depth,NDIM),
-     &   grad_z(glo0:ghi0,  glo1:ghi1,  glo2:ghi2+1,depth,NDIM),
-     &   grad_mod(mlo0:mhi0,mlo1:mhi1,mlo2:mhi2)
+     &   grad_x(SIDE3d0(lo,hi,nggq),depth,NDIM),
+     &   grad_y(SIDE3d1(lo,hi,nggq),depth,NDIM),
+     &   grad_z(SIDE3d2(lo,hi,nggq),depth,NDIM),
+     &   grad_mod(CELL3d(lo,hi,ngm))
 
-      double precision grad_floor, beta, grad_modulus
-
-      character*(*) floor_type
+      double precision grad_modulus
 
       integer i, j, k, m, n
       
-      if( floor_type(1:1) .eq. 's' )then
-         beta = grad_floor*grad_floor
-      else
-         beta = 0.d0
-      endif
-
       do k = lo2, hi2
          do j = lo1, hi1
             do i = lo0, hi0
@@ -817,7 +779,7 @@ c we average contributions from 4 sides
      &               grad_z(i,j,k+1,m,3)*grad_z(i,j,k+1,m,3)
                enddo
 
-               grad_mod(i,j,k) = dsqrt(0.5d0*grad_modulus+beta)
+               grad_mod(i,j,k) = dsqrt(0.5d0*grad_modulus)
             
             enddo
          enddo
@@ -832,30 +794,20 @@ c-----------------------------------------------------------------------
       subroutine quatgrad_modulus(
      &   lo0, hi0, lo1, hi1, lo2, hi2,
      &   depth,
-     &   grad_x, grad_y, grad_z,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2,
-     &   grad_mod,
-     &   mlo0, mhi0, mlo1, mhi1, mlo2, mhi2,
-     &   floor_type,
-     &   grad_floor )
+     &   grad_x, grad_y, grad_z, nggq,
+     &   grad_mod, ngm)
 
       implicit none
 
       integer
      &   lo0, hi0, lo1, hi1, lo2, hi2,
-     &   depth,
-     &   glo0, ghi0, glo1, ghi1, glo2, ghi2,
-     &   mlo0, mhi0, mlo1, mhi1, mlo2, mhi2
+     &   depth, nggq, ngm
 
       double precision
-     &   grad_x(glo0:ghi0,glo1:ghi1,glo2:ghi2,depth),
-     &   grad_y(glo0:ghi0,glo1:ghi1,glo2:ghi2,depth),
-     &   grad_z(glo0:ghi0,glo1:ghi1,glo2:ghi2,depth),
-     &   grad_mod(mlo0:mhi0,mlo1:mhi1,mlo2:mhi2)
-
-      double precision grad_floor
-
-      character*(*) floor_type
+     &   grad_x(CELL3d(lo,hi,nggq),depth),
+     &   grad_y(CELL3d(lo,hi,nggq),depth),
+     &   grad_z(CELL3d(lo,hi,nggq),depth),
+     &   grad_mod(CELL3d(lo,hi,ngm))
 
       integer i, j, k, m
 
@@ -872,9 +824,6 @@ c-----------------------------------------------------------------------
      &               grad_z(i,j,k,m) * grad_z(i,j,k,m)
                enddo
             
-               if( floor_type(1:1) .eq. 's' )then
-                  grad_mod(i,j,k) = grad_mod(i,j,k) + grad_floor
-               endif
                grad_mod(i,j,k) = dsqrt( grad_mod(i,j,k) )
 
             enddo

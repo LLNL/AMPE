@@ -458,16 +458,7 @@ void QUATGRAD_MODULUS(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
                       const double*,
 #endif
-                      const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-                      const int&, const int&,
-#endif
-                      const double*, const int&, const int&, const int&,
-                      const int&,
-#if (NDIM == 3)
-                      const int&, const int&,
-#endif
-                      const char*, const double&);
+                      const int&, const double*, const int&);
 
 void QUATGRAD_MODULUS_FROM_SIDES(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
@@ -477,35 +468,19 @@ void QUATGRAD_MODULUS_FROM_SIDES(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)
                                  const double*,
 #endif
-                                 const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-                                 const int&, const int&,
-#endif
-                                 const double*, const int&, const int&,
-                                 const int&, const int&,
-#if (NDIM == 3)
-                                 const int&, const int&,
-#endif
-                                 const char*, const double&);
+                                 const double*, const int&);
 
-void QUATGRAD_MODULUS_FROM_SIDES_COMPACT(
-    const int&, const int&, const int&, const int&,
+void QUATGRAD_MODULUS_FROM_SIDES_COMPACT(const int&, const int&, const int&,
+                                         const int&,
 #if (NDIM == 3)
-    const int&, const int&,
+                                         const int&, const int&,
 #endif
-    const int&, const double*, const double*,
+                                         const int&, const double*,
+                                         const double*,
 #if (NDIM == 3)
-    const double*,
+                                         const double*,
 #endif
-    const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-    const int&, const int&,
-#endif
-    const double*, const int&, const int&, const int&, const int&,
-#if (NDIM == 3)
-    const int&, const int&,
-#endif
-    const char*, const double&);
+                                         const int&, const double*, const int&);
 
 void QUATDIFFUSION(const int&, const int&, const int&, const int&,
 #if (NDIM == 3)

@@ -45,6 +45,7 @@ using namespace SAMRAI;
 
 class GradStrategy;
 class QuatGradStrategy;
+class QuatGradModulusStrategy;
 class FreeEnergyStrategy;
 class CompositionRHSStrategy;
 class QuatVerbosity;
@@ -580,6 +581,7 @@ class QuatModel : public PFModel
        d_curr_to_scr_refine_sched;
 
    QuatGradStrategy* d_quat_grad_strategy;
+   std::shared_ptr<QuatGradModulusStrategy> d_quat_grad_modulus_strategy;
    std::shared_ptr<QuatMobilityStrategy> d_mobility_strategy;
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy;
    std::shared_ptr<FreeEnergyStrategy> d_free_energy_strategy_for_diffusion;
