@@ -46,18 +46,18 @@ class DiffusionForConcInPhaseStrategy : public CompositionDiffusionStrategy
                      const int temperature_id, const int phase_id,
                      const int eta_id);
 
+ private:
+   double average(const double a, const double b) const
+   {
+      return AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
+   }
+
    /*
     * Compute diffusion coefficient in each phase
     */
    void setDiffCoeffInEachPhase(
        const std::shared_ptr<hier::PatchHierarchy> hierarchy,
        const int temperature_id, const int eta_scratch_id);
-
- private:
-   double average(const double a, const double b) const
-   {
-      return AVERAGE_FUNC(a, b, d_avg_func_type.c_str());
-   }
 
    /*
     * compute PFM diffusion in each phase based on diffusion coefficients

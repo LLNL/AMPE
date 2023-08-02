@@ -19,9 +19,9 @@ void QuatGradModulusStrategy::computeQuatGradModulus(
     const std::shared_ptr<hier::PatchLevel> level, int& grad_cell_id,
     int& grad_modulus_id)
 {
-assert(d_qlen>0);
-assert(grad_cell_id>=0);
-assert(grad_modulus_id>=0);
+   assert(d_qlen > 0);
+   assert(grad_cell_id >= 0);
+   assert(grad_modulus_id >= 0);
 
    for (hier::PatchLevel::Iterator p(level->begin()); p != level->end(); ++p) {
       std::shared_ptr<hier::Patch> patch = *p;

@@ -2,7 +2,6 @@
 // UT-Battelle, LLC.
 // Produced at the Lawrence Livermore National Laboratory and
 // the Oak Ridge National Laboratory
-// Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 // LLNL-CODE-747500
 // All rights reserved.
 // This file is part of AMPE.
@@ -31,6 +30,7 @@ class CompositionDiffusionStrategyFactory
       std::shared_ptr<CompositionDiffusionStrategy> strategy;
 
       if (model_parameters.conDiffusionStrategyIsCTD()) {
+         tbox::pout << "Uses composition dependent diffusion" << std::endl;
          strategy.reset(new DiffusionForConcInPhaseStrategy(
              ncompositions, conc_l_scratch_id, conc_a_scratch_id,
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
@@ -42,13 +42,14 @@ class CompositionDiffusionStrategyFactory
          // for T-dependent diffusion, phase fraction weight is
          // included in computation and d_conc_diffusion_coeff_*_id
          // are not set
+         tbox::pout << "Uses temperature based composition diffusion"
+                    << std::endl;
          strategy.reset(new TbasedCompositionDiffusionStrategy(
              conc_pfm_diffusion_l_id, conc_pfm_diffusion_a_id,
-             conc_pfm_diffusion_b_id, conc_diffusion_coeff_l_id,
-             conc_diffusion_coeff_a_id, conc_diffusion_coeff_b_id,
-             model_parameters.D_liquid(), model_parameters.Q0_liquid(),
-             model_parameters.D_solid_A(), model_parameters.Q0_solid_A(),
-             model_parameters.D_solid_B(), model_parameters.Q0_solid_B(),
+             conc_pfm_diffusion_b_id, model_parameters.D_liquid(),
+             model_parameters.Q0_liquid(), model_parameters.D_solid_A(),
+             model_parameters.Q0_solid_A(), model_parameters.D_solid_B(),
+             model_parameters.Q0_solid_B(),
              model_parameters.diffusion_interp_func_type(),
              model_parameters.avg_func_type()));
       }
