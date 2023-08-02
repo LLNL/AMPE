@@ -206,7 +206,11 @@ c=======================================================================
 
       if ( type(1:1) .eq. 'q' ) then
 
-         second_deriv_interp_func = 2.d0
+         if( phi .ge. 0.d0 )then
+            second_deriv_interp_func = 2.d0
+         else
+            second_deriv_interp_func = 0.d0
+         endif
 
       else if ( type(1:1) .eq. 'p' ) then
 
