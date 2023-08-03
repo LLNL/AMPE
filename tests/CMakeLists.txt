@@ -419,6 +419,12 @@ if(${USE_THERMO4PFM})
            ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl
            )
+  add_test(NAME Restart
+           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Restart/test${NDIM}d.py
+           ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+           ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+           ${CMAKE_CURRENT_SOURCE_DIR}/Restart/${NDIM}d.input
+           )
 endif()
 add_test(NAME DumpNetCDF
          COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
