@@ -205,7 +205,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    assert(cd_conc);
    assert(cd_cl);
    assert(cd_ca);
-   assert(!cd_eta);
    assert(d_calphad_fenergy != nullptr);
    assert(cd_conc->getDepth() == cd_cl->getDepth());
    assert(cd_conc->getDepth() == cd_ca->getDepth());
@@ -216,6 +215,7 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    double l2n = cops.L2Norm(cd_conc, patch->getBox());
    assert(l2n == l2n);
 #endif
+   const tbox::SAMRAI_MPI& mpi(tbox::SAMRAI_MPI::getSAMRAIWorld());
 
    const int nphases = cd_pf->getDepth();
    if (nphases == 3) assert(cd_cb);
@@ -244,11 +244,6 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    double* ptr_phi[3];  // up to 3 phases
    for (int i = 0; i < nphases; i++)
       ptr_phi[i] = cd_pf->getPointer(i);
-   double* ptr_eta = nullptr;
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-   }
-   assert(ptr_eta == nullptr);  // not supported
 
    const hier::Box& temp_gbox = cd_te->getGhostBox();
    int imin_te = temp_gbox.lower(0);
@@ -359,15 +354,13 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                double hphi[3];
 #ifdef HAVE_THERMO4PFM
                for (short i = 0; i < nphases; i++)
-                  hphi[i] = interp_func(d_conc_interp_func_type, phi[i]);
+                  hphi[i] =
+                      Thermo4PFM::interp_func(d_conc_interp_func_type, phi[i]);
 #else
             const char conc_inter = concInterpChar(d_conc_interp_func_type);
             for (short i = 0; i < nphases; i++)
                hphi[i] = INTERP_FUNC(phi[i], &conc_inter);
 #endif
-               double eta = 0.0;
-               if (d_with_third_phase) eta = ptr_eta[idx_pf];
-
                double c[2];  // up to 2 components
                for (int ic = 0; ic < nc; ic++) {
                   c[ic] = conc[ic * ncp + idx_pf];
@@ -389,10 +382,9 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
 #ifdef HAVE_THERMO4PFM
                                                                  hphi,
 #else
-                                                              hphi[0], eta,
+                                                              hphi[0], 0.,
 #endif
                                                                  x);
-#ifndef HAVE_THERMO4PFM
                if (status < 0) {
                   std::cerr
                       << "computePhaseConcentrations failed for T=" << temp
@@ -404,9 +396,8 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
                             << cb_ref[0] << std::endl;
                   std::cerr << "x=" << x[0] << "," << x[1] << "," << x[2]
                             << std::endl;
-                  abort();
+                  MPI_Abort(mpi.getCommunicator(), -1);
                }
-#endif
 #ifndef GPU_OFFLOAD
                assert(!std::isnan(x[0]));
                /*
