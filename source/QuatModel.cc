@@ -115,9 +115,6 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_quat_id = -1;
    d_quat_relax_id = -1;
    d_conc_id = -1;
-   d_conc_l_id = -1;
-   d_conc_a_id = -1;
-   d_conc_b_id = -1;
    d_conc_l_ref_id = -1;
    d_conc_a_ref_id = -1;
    d_conc_b_ref_id = -1;
@@ -125,9 +122,9 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
    d_eta_scratch_id = -1;
    d_quat_scratch_id = -1;
    d_conc_scratch_id = -1;
-   d_conc_l_scratch_id = -1;
-   d_conc_a_scratch_id = -1;
-   d_conc_b_scratch_id = -1;
+   d_conc_l_id = -1;
+   d_conc_a_id = -1;
+   d_conc_b_id = -1;
    d_phase_grad_cell_id = -1;
    d_phase_grad_side_id = -1;
    d_phase_diffs_id = -1;
@@ -353,10 +350,9 @@ void QuatModel::initializeRHSandEnergyStrategies(
 
    d_free_energy_strategy =
        FreeEnergyStrategyFactory::create(d_model_parameters, d_ncompositions,
-                                         d_conc_l_scratch_id,
-                                         d_conc_a_scratch_id,
-                                         d_conc_b_scratch_id, d_mvstrategy,
-                                         d_meltingT_strategy, Tref, d_conc_db);
+                                         d_conc_l_id, d_conc_a_id, d_conc_b_id,
+                                         d_mvstrategy, d_meltingT_strategy,
+                                         Tref, d_conc_db);
 
    if (d_model_parameters.with_concentration()) {
 
@@ -388,24 +384,22 @@ void QuatModel::initializeRHSandEnergyStrategies(
                     calphad_db, newton_db,
                     d_model_parameters.energy_interp_func_type(),
                     d_model_parameters.conc_interp_func_type(), d_mvstrategy,
-                    d_conc_l_scratch_id, d_conc_a_scratch_id,
-                    d_conc_b_scratch_id,
+                    d_conc_l_id, d_conc_a_id, d_conc_b_id,
                     d_model_parameters.with_third_phase()));
          }
 #endif
       }
 
       d_phase_conc_strategy = PhaseConcentrationsStrategyFactory::create(
-          d_model_parameters, d_conc_l_scratch_id, d_conc_a_scratch_id,
-          d_conc_b_scratch_id, d_conc_l_ref_id, d_conc_a_ref_id,
-          d_conc_b_ref_id, d_partition_coeff_id, d_ncompositions, d_conc_db,
-          newton_db);
+          d_model_parameters, d_conc_l_id, d_conc_a_id, d_conc_b_id,
+          d_conc_l_ref_id, d_conc_a_ref_id, d_conc_b_ref_id,
+          d_partition_coeff_id, d_ncompositions, d_conc_db, newton_db);
 
-      tbox::pout << "Initialize cl, ca, cb with c..." << std::endl;
-      math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
-      mathops.copyData(d_conc_l_id, d_conc_id);
-      mathops.copyData(d_conc_a_id, d_conc_id);
-      if (d_conc_b_id > -1) mathops.copyData(d_conc_b_id, d_conc_id);
+      // tbox::pout << "Initialize cl, ca, cb with c..." << std::endl;
+      // math::HierarchyCellDataOpsReal<double> mathops(d_patch_hierarchy);
+      // mathops.copyData(d_conc_l_id, d_conc_id);
+      // mathops.copyData(d_conc_a_id, d_conc_id);
+      // if (d_conc_b_id > -1) mathops.copyData(d_conc_b_id, d_conc_id);
 
       std::shared_ptr<tbox::Database> integrator_db =
           input_db->getDatabase("Integrator");
@@ -422,12 +416,12 @@ void QuatModel::initializeRHSandEnergyStrategies(
          d_diffusion_for_conc_in_phase =
              CompositionDiffusionStrategyFactory::create(
                  this, d_model_parameters,
-                 static_cast<unsigned short>(d_ncompositions),
-                 d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-                 d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
-                 d_conc_pfm_diffusion_b_id, d_conc_diffusion_coeff_l_id,
-                 d_conc_diffusion_coeff_a_id, d_conc_diffusion_coeff_b_id,
-                 d_composition_strategy_mobilities, d_free_energy_strategy);
+                 static_cast<unsigned short>(d_ncompositions), d_conc_l_id,
+                 d_conc_a_id, d_conc_b_id, d_conc_pfm_diffusion_l_id,
+                 d_conc_pfm_diffusion_a_id, d_conc_pfm_diffusion_b_id,
+                 d_conc_diffusion_coeff_l_id, d_conc_diffusion_coeff_a_id,
+                 d_conc_diffusion_coeff_b_id, d_composition_strategy_mobilities,
+                 d_free_energy_strategy);
       }
 
       d_composition_rhs_strategy = CompositionRHSStrategyFactory::create(
@@ -436,9 +430,8 @@ void QuatModel::initializeRHSandEnergyStrategies(
           d_temperature_scratch_id, d_conc_pfm_diffusion_id,
           d_conc_pfm_diffusion_l_id, d_conc_pfm_diffusion_a_id,
           d_conc_pfm_diffusion_b_id, d_conc_phase_coupling_diffusion_id,
-          d_eta_scratch_id, d_conc_eta_coupling_diffusion_id,
-          d_conc_l_scratch_id, d_conc_a_scratch_id, d_conc_b_scratch_id,
-          d_partition_coeff_scratch_id, d_conc_Mq_id,
+          d_eta_scratch_id, d_conc_eta_coupling_diffusion_id, d_conc_l_id,
+          d_conc_a_id, d_conc_b_id, d_partition_coeff_scratch_id, d_conc_Mq_id,
           d_composition_strategy_mobilities, d_diffusion_for_conc_in_phase);
 
    }  // d_model_parameters.with_concentration()
@@ -676,7 +669,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                std::shared_ptr<pdat::CellData<double> > cl(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
-                       patch->getPatchData(d_conc_l_scratch_id)));
+                       patch->getPatchData(d_conc_l_id)));
                assert(cl);
                cl->fill(init_cl, depth);
             }
@@ -696,7 +689,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                std::shared_ptr<pdat::CellData<double> > ca(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
-                       patch->getPatchData(d_conc_a_scratch_id)));
+                       patch->getPatchData(d_conc_a_id)));
                assert(ca);
                ca->fill(init_ca, depth);
             }
@@ -716,14 +709,13 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
                std::shared_ptr<pdat::CellData<double> > cb(
                    SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>,
                                           hier::PatchData>(
-                       patch->getPatchData(d_conc_b_scratch_id)));
+                       patch->getPatchData(d_conc_b_id)));
                assert(cb);
                cb->fill(init_cb, depth);
             }
          }
          depth++;
       }
-
 
    } else {
       const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
@@ -789,8 +781,8 @@ void QuatModel::InitializeIntegrator(void)
 
    if (d_model_parameters.with_phase())
       d_mobility_strategy =
-          MobilityFactory::create(this, d_model_parameters, d_conc_l_scratch_id,
-                                  d_conc_a_scratch_id, d_conc_b_scratch_id,
+          MobilityFactory::create(this, d_model_parameters, d_conc_l_id,
+                                  d_conc_a_id, d_conc_b_id,
                                   d_temperature_scratch_id, d_ncompositions,
                                   d_model_parameters.with_three_phases(),
                                   d_conc_db);
@@ -1195,30 +1187,21 @@ void QuatModel::registerPhaseConcentrationVariables(
    // we need internal composition with ghost values for EBS r.h.s.
    // in particular
    d_conc_l_id = variable_db->registerVariableAndContext(
-       d_conc_l_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
-   d_conc_l_scratch_id = variable_db->registerVariableAndContext(
        d_conc_l_var, scratch,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_l_id >= 0);
-   assert(d_conc_l_scratch_id >= 0);
 
    d_conc_a_id = variable_db->registerVariableAndContext(
-       d_conc_a_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
-   d_conc_a_scratch_id = variable_db->registerVariableAndContext(
        d_conc_a_var, scratch,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_a_id >= 0);
-   assert(d_conc_a_scratch_id >= 0);
 
    if (d_model_parameters.with_three_phases()) {
       assert(d_conc_b_var);
       d_conc_b_id = variable_db->registerVariableAndContext(
-          d_conc_b_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
-      d_conc_b_scratch_id = variable_db->registerVariableAndContext(
           d_conc_b_var, scratch,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
       assert(d_conc_b_id >= 0);
-      assert(d_conc_b_scratch_id >= 0);
    }
 }
 
@@ -1686,12 +1669,12 @@ void QuatModel::registerPatchDataForRestart(void)
           d_conc_id);
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
          hier::PatchDataRestartManager::getManager()
-             ->registerPatchDataForRestart(d_conc_l_scratch_id);
+             ->registerPatchDataForRestart(d_conc_l_id);
          hier::PatchDataRestartManager::getManager()
-             ->registerPatchDataForRestart(d_conc_a_scratch_id);
+             ->registerPatchDataForRestart(d_conc_a_id);
          if (d_model_parameters.with_three_phases())
             hier::PatchDataRestartManager::getManager()
-                ->registerPatchDataForRestart(d_conc_b_scratch_id);
+                ->registerPatchDataForRestart(d_conc_b_id);
       }
    }
 }
@@ -1897,20 +1880,19 @@ void QuatModel::RegisterWithVisit(void)
 
          if (d_model_parameters.concentrationModelNeedsPhaseConcentrations() &&
              d_model_parameters.with_extra_visit_output()) {
-            assert(d_conc_l_scratch_id >= 0);
-            assert(d_conc_a_scratch_id >= 0);
+            assert(d_conc_l_id >= 0);
+            assert(d_conc_a_id >= 0);
             std::string visit_namel("conc_l" + std::to_string(n));
             d_visit_data_writer->registerPlotQuantity(visit_namel, "SCALAR",
-                                                      d_conc_l_scratch_id, n);
+                                                      d_conc_l_id, n);
             std::string visit_namea("conc_a" + std::to_string(n));
             d_visit_data_writer->registerPlotQuantity(visit_namea, "SCALAR",
-                                                      d_conc_a_scratch_id, n);
+                                                      d_conc_a_id, n);
             if (d_model_parameters.with_three_phases()) {
                assert(d_conc_b_id >= 0);
                std::string visit_nameb("conc_b" + std::to_string(n));
                d_visit_data_writer->registerPlotQuantity(visit_nameb, "SCALAR",
-                                                         d_conc_b_scratch_id,
-                                                         n);
+                                                         d_conc_b_id, n);
             }
          }
       }
@@ -2317,8 +2299,8 @@ void QuatModel::preRunDiagnostics(void)
 
          if (found_ceq && !d_is_from_restart) {
             setRefPhaseConcentrationsToEquilibrium(ceq);
-            if (d_model_parameters.initPhaseConcAtEq())
-               setPhaseConcentrationsToEquilibrium(ceq);
+            // if (d_model_parameters.initPhaseConcAtEq())
+            //   setPhaseConcentrationsToEquilibrium(ceq);
          }
 
       }  // with_concentration
@@ -3012,15 +2994,6 @@ void QuatModel::AllocateLocalPatchData(
       }
 
       if (d_model_parameters.concentrationModelNeedsPhaseConcentrations()) {
-         if (!level->checkAllocated(d_conc_l_id)) {
-            AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_id, level,
-                                                         time, zero_data);
-            AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_id, level,
-                                                         time, zero_data);
-            if (d_model_parameters.with_three_phases())
-               AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
-                                                            time, zero_data);
-         }
          if (d_model_parameters.isConcentrationModelCALPHAD())
             if (!level->checkAllocated(d_conc_l_ref_id)) {
                AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_ref_id,
@@ -3034,14 +3007,13 @@ void QuatModel::AllocateLocalPatchData(
                                                                level, time,
                                                                zero_data);
             }
-         AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_scratch_id,
-                                                      level, time, zero_data);
-         AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_scratch_id,
-                                                      level, time, zero_data);
+         AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_id, level, time,
+                                                      zero_data);
+         AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_id, level, time,
+                                                      zero_data);
          if (d_model_parameters.with_three_phases())
-            AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_scratch_id,
-                                                         level, time,
-                                                         zero_data);
+            AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
+                                                         time, zero_data);
       }
 
       if (d_model_parameters.with_third_phase()) {
@@ -4951,22 +4923,22 @@ void QuatModel::fillPartitionCoeffGhosts(void)
 
 void QuatModel::resetRefPhaseConcentrations()
 {
-   assert(d_conc_l_scratch_id >= 0);
-   assert(d_conc_a_scratch_id >= 0);
+   assert(d_conc_l_id >= 0);
+   assert(d_conc_a_id >= 0);
    assert(d_conc_l_ref_id >= 0);
    assert(d_conc_a_ref_id >= 0);
 
    // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
-   cellops.copyData(d_conc_l_ref_id, d_conc_l_scratch_id, false);
-   cellops.copyData(d_conc_a_ref_id, d_conc_a_scratch_id, false);
+   cellops.copyData(d_conc_l_ref_id, d_conc_l_id, false);
+   cellops.copyData(d_conc_a_ref_id, d_conc_a_id, false);
    if (d_model_parameters.with_three_phases())
-      cellops.copyData(d_conc_b_ref_id, d_conc_b_scratch_id, false);
+      cellops.copyData(d_conc_b_ref_id, d_conc_b_id, false);
 }
 
 //=======================================================================
-
+/*
 void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
 {
    assert(d_conc_l_id >= 0);
@@ -4974,13 +4946,6 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
 
    tbox::pout << "QuatModel::setPhaseConcentrationsToEquilibrium(ceq)"
               << std::endl;
-#if 0
-   math::HierarchyCellDataOpsReal<double> cellops( d_patch_hierarchy );
-   cellops.setToScalar( d_conc_l_id, ceq[0], false );
-   cellops.setToScalar( d_conc_a_id, ceq[1], false );
-   if( d_model_parameters.with_three_phases() )
-      cellops.setToScalar( d_conc_b_id, ceq[2], false );
-#else
    int offset = d_ncompositions;
    for (int ln = 0; ln <= d_patch_hierarchy->getFinestLevelNumber(); ln++) {
       std::shared_ptr<hier::PatchLevel> level =
@@ -5016,9 +4981,8 @@ void QuatModel::setPhaseConcentrationsToEquilibrium(const double* const ceq)
          }
       }
    }
-#endif
 }
-
+*/
 //=======================================================================
 
 void QuatModel::setRefPhaseConcentrationsToEquilibrium(const double* const ceq)
