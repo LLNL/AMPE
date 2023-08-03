@@ -1,0 +1,73 @@
+// Input file
+model_type = "KWCcomplex"
+
+end_time            = 240.
+max_delta_cycles    = 150
+
+run_name = "test"
+
+Visit {
+   interval = 50
+   interval_type = "step"
+}
+
+TimerManager {
+    timer_list = "AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   H_parameter = -1.
+
+   three_phases = TRUE
+   
+   Temperature{
+      type = "scalar"
+      temperature = 1.e-8
+   }
+   
+   epsilon_phi = 1.77669990185572 // sqrt(6.*delta*L*Gamma/Tm)
+   PhaseMobility{
+      value = 1.985 // muk*Tm/(6.*delta*L)
+   }
+   phi_well_scale =  0.022017765260778047 // ((eps/delta)**2)/32
+
+   molar_volume = 1.e-5 // [m^3/mol]
+
+   BoundaryConditions {
+       Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 20.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner{
+     enabled = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "test.nc"
+}
+
+Restart {  // optional block
+   interval = 50  // optional, default=0
+   interval_type = "step"  // optional
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 32, 32
+   x_lo         =  0.,    0. 
+   x_up         =  100., 100.
+}
