@@ -406,13 +406,10 @@ class QuatModel : public PFModel
    int d_conc_scratch_id;
    std::shared_ptr<pdat::CellVariable<double> > d_conc_l_var;
    int d_conc_l_id;
-   int d_conc_l_scratch_id;
    std::shared_ptr<pdat::CellVariable<double> > d_conc_a_var;
    int d_conc_a_id;
-   int d_conc_a_scratch_id;
    std::shared_ptr<pdat::CellVariable<double> > d_conc_b_var;
    int d_conc_b_id;
-   int d_conc_b_scratch_id;
    std::shared_ptr<pdat::CellVariable<double> > d_conc_l_ref_var;
    int d_conc_l_ref_id;
    std::shared_ptr<pdat::CellVariable<double> > d_conc_a_ref_var;
