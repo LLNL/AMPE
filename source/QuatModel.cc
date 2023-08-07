@@ -650,12 +650,6 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
          d_tag_buffer_array[ll] = 1;
       }
 
-      if (d_model_parameters.isTemperatureUniform() ||
-          d_model_parameters.isTemperatureGaussian() ||
-          d_model_parameters.isTemperatureGradient()) {
-         d_temperature_strategy->setCurrentTemperature(d_patch_hierarchy, 0.0);
-      }
-
       int depth = 0;
       for (auto& init_cl : d_init_cl) {
          std::cout << "Set cl to " << init_cl << std::endl;
@@ -716,12 +710,11 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
          }
          depth++;
       }
+   } else {  // restart case
 
-   } else {
       const int max_levels = d_patch_hierarchy->getMaxNumberOfLevels();
 
       d_patch_hierarchy->initializeHierarchy();
-      // d_patch_hierarchy->getFromRestart();
 
       for (int ll = 0; ll < max_levels; ll++) {
          d_tag_buffer_array[ll] = 1;
@@ -741,6 +734,14 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       tbox::RestartManager::getManager()->closeRestartFile();
 
       d_integrator->setTimestep(d_previous_timestep);
+   }
+
+   // if temperature is a prescribed field, set it here, for restart case
+   // or not
+   if (d_model_parameters.isTemperatureUniform() ||
+       d_model_parameters.isTemperatureGaussian() ||
+       d_model_parameters.isTemperatureGradient()) {
+      d_temperature_strategy->setCurrentTemperature(d_patch_hierarchy, 0.0);
    }
 
    d_quat_grad_strategy = new SimpleQuatGradStrategy(this);
@@ -1181,25 +1182,23 @@ void QuatModel::registerPhaseConcentrationVariables(
 
    std::shared_ptr<hier::VariableContext> current =
        variable_db->getContext("CURRENT");
-   std::shared_ptr<hier::VariableContext> scratch =
-       variable_db->getContext("SCRATCH");
 
    // we need internal composition with ghost values for EBS r.h.s.
    // in particular
    d_conc_l_id = variable_db->registerVariableAndContext(
-       d_conc_l_var, scratch,
+       d_conc_l_var, current,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_l_id >= 0);
 
    d_conc_a_id = variable_db->registerVariableAndContext(
-       d_conc_a_var, scratch,
+       d_conc_a_var, current,
        hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
    assert(d_conc_a_id >= 0);
 
    if (d_model_parameters.with_three_phases()) {
       assert(d_conc_b_var);
       d_conc_b_id = variable_db->registerVariableAndContext(
-          d_conc_b_var, scratch,
+          d_conc_b_var, current,
           hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
       assert(d_conc_b_id >= 0);
    }
@@ -2758,7 +2757,7 @@ void QuatModel::initializeLevelData(
 
 
    if (initial_time) {
-
+      tbox::pout << "Fill data for initial time..." << std::endl;
       if (level_number == d_level_of_init_data) {
 
          d_initial_level =
@@ -2910,7 +2909,9 @@ void QuatModel::AllocateQuatLocalPatchData(
    }
 }
 //=======================================================================
-
+// Some data may already have been initialized with restart data, so we
+// need to check if already allocated. Otherwise that data may be reset
+// to 0.
 void QuatModel::AllocateLocalPatchData(
     const std::shared_ptr<hier::PatchLevel> level, const double time,
     const bool zero_data)
@@ -3007,11 +3008,16 @@ void QuatModel::AllocateLocalPatchData(
                                                                level, time,
                                                                zero_data);
             }
-         AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_id, level, time,
-                                                      zero_data);
-         AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_id, level, time,
-                                                      zero_data);
-         if (d_model_parameters.with_three_phases())
+         if (!level->checkAllocated(d_conc_l_id)) {
+            AllocateAndZeroData<pdat::CellData<double> >(d_conc_l_id, level,
+                                                         time, zero_data);
+         }
+         if (!level->checkAllocated(d_conc_a_id)) {
+            AllocateAndZeroData<pdat::CellData<double> >(d_conc_a_id, level,
+                                                         time, zero_data);
+         }
+         if (d_model_parameters.with_three_phases() &&
+             !level->checkAllocated(d_conc_b_id))
             AllocateAndZeroData<pdat::CellData<double> >(d_conc_b_id, level,
                                                          time, zero_data);
       }
@@ -4931,6 +4937,7 @@ void QuatModel::resetRefPhaseConcentrations()
    // tbox::pout << "QuatModel::resetRefPhaseConcentrations()" << std::endl;
 
    math::HierarchyCellDataOpsReal<double> cellops(d_patch_hierarchy);
+
    cellops.copyData(d_conc_l_ref_id, d_conc_l_id, false);
    cellops.copyData(d_conc_a_ref_id, d_conc_a_id, false);
    if (d_model_parameters.with_three_phases())
