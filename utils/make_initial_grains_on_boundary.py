@@ -90,7 +90,7 @@ if plane==2:
 
 ngrains = options.ngrains
 sf      = options.solid_fraction
-widthy  = options.width/nn[1]
+widthy  = options.width/nn[dir1]
 noise   = options.noise
 print( "noise={}".format(noise))
 fluctuation = options.fluctuation
@@ -313,24 +313,27 @@ offset=0.5*fraction*nn[0]
 if QLEN>0:
   gmin=0
   print("Fill quaternion values...")
-  for i in range( nn[0] ) :
+  for i in range( nn[dir0] ) :
     xx[0] = i + 0.5
+    index[dir0] = i
 
     #select quaternion based on x position
     gmin=0
     for g in range(ngrains):
       dx=abs(xx[0]-g*fraction*nn[dir0]-offset)
-      if dx<0.5*fraction*nn[0]:
+      if dx<0.5*fraction*nn[dir0]:
         gmin=g
     
     print("Plane x={}, grain={}, q={}".format(xx,gmin,quat_inside[gmin]))
-    for j in range( nn[1] ) :
-      for k in range( nn[2] ) :
+    for j in range( nn[dir1] ) :
+      index[dir1] = j
+      for k in range( nn[dir2] ) :
+        index[dir2] = k
 
         qi=quat_inside[gmin]
 
         for m in range(QLEN):
-          quat[m,k,j,i] = qi[m]
+          quat[m,index[2],index[1],index[0]] = qi[m]
 
 for isp in range(nspecies):
   for x,y in N.nditer([conc[isp,:,:,:],phase], op_flags=['readwrite']):
@@ -342,11 +345,11 @@ if smooth_quat:
       smoothQuat(quat[m,:,:,:], options.periodicx, options.periodicy, options.periodicz)
 else:
   #set q to random quaternion in liquid phase
-  for i in range( nn[0] ) :
+  for i in range( nn[dir0] ) :
     index[dir0] = i
-    for j in range( nn[1] ) :
+    for j in range( nn[dir1] ) :
       index[dir1] = j
-      for k in range( nn[2] ) :
+      for k in range( nn[dir2] ) :
         index[dir2] = k
         if ( phase[index[2],index[1],index[0]]<0.1 ) :
           n = random.randint(0,nangles-1)
@@ -354,7 +357,7 @@ else:
           t = n*h
           qq=Q.getQuatRandom(t,QLEN)
           for m in range(QLEN):
-            quat[m,k,j,i] = qq[m]
+            quat[m,index[2],index[1],index[0]] = qq[m]
 
 #-----------------------------------------------------------------------
 # Write data to file and close
@@ -368,5 +371,3 @@ for m in range(QLEN):
   ncquat[m][:,:,:]=quat[m,:,:,:]
 
 f.close()
-
-
