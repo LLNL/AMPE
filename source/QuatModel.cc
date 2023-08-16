@@ -75,7 +75,7 @@ namespace pt = boost::property_tree;
 
 // we need internal composition with ghost values for EBS r.h.s.
 // in particular
-#define NGHOSTS_AUX_CONC (1)
+#define NGHOSTS_AUX_CONC (NGHOSTS)
 
 #ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
@@ -591,7 +591,8 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
           new QuatRefinePatchStrategy("QuatRefinePatchStrategy", bc_db,
                                       phase_id, d_eta_scratch_id,
                                       d_quat_scratch_id, d_conc_scratch_id,
-                                      d_temperature_scratch_id, factor);
+                                      d_temperature_scratch_id, NGHOSTS,
+                                      factor);
 
       if (d_model_parameters.needGhosts4PartitionCoeff())
          d_partition_coeff_refine_patch_strategy =

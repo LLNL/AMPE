@@ -17,14 +17,16 @@
 QuatRefinePatchStrategy::QuatRefinePatchStrategy(
     const std::string& object_name, std::shared_ptr<tbox::Database> input_bc_db,
     const int phase_id, const int eta_id, const int quat_id, const int conc_id,
-    const int temperature_id, const double rescaled_temperature_coeff)
+    const int temperature_id, const int nghosts,
+    const double rescaled_temperature_coeff)
     : xfer::RefinePatchStrategy(),
       d_object_name(object_name),
       d_phase_id(phase_id),
       d_eta_id(eta_id),
       d_quat_id(quat_id),
       d_conc_id(conc_id),
-      d_temperature_id(temperature_id)
+      d_temperature_id(temperature_id),
+      d_nghosts(nghosts)
 {
    assert(!object_name.empty());
 
