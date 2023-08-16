@@ -34,7 +34,7 @@ class QuatRefinePatchStrategy : public xfer::RefinePatchStrategy
                            std::shared_ptr<tbox::Database> input_db,
                            const int phase_id, const int eta_id,
                            const int quat_id, const int conc_id,
-                           const int temperature_id,
+                           const int temperature_id, const int nghosts,
                            const double rescaled_temperature_coeff = -1.);
 
    /**
@@ -94,7 +94,7 @@ class QuatRefinePatchStrategy : public xfer::RefinePatchStrategy
     */
    hier::IntVector getRefineOpStencilWidth(const tbox::Dimension& dim) const
    {
-      return (hier::IntVector(dim, 1));
+      return (hier::IntVector(dim, d_nghosts));
    }
 
    //@}
@@ -126,6 +126,8 @@ class QuatRefinePatchStrategy : public xfer::RefinePatchStrategy
    int d_temperature_id;
    solv::CartesianRobinBcHelper* d_temp_refine_strategy;
    solv::RobinBcCoefStrategy* d_temp_bc_coefs;
+
+   const int d_nghosts;
 };
 
 #endif
