@@ -24,6 +24,7 @@ namespace pt = boost::property_tree;
 #include "FuncFort.h"
 #endif
 
+#include "SAMRAI/geom/CartesianPatchGeometry.h"
 #include "SAMRAI/math/PatchCellDataNormOpsReal.h"
 #include "SAMRAI/tbox/IEEE.h"
 
@@ -316,6 +317,38 @@ int CALPHADequilibriumPhaseConcentrationsStrategy<FreeEnergyType>::
    const int ncp = pf_gbox.size();
    const int ncc = ci_gbox.size();
    const int nct = temp_gbox.size();
+
+   // Limits computation to one ghost cell if the Patch touches a non-periodic
+   // physical boundary.
+   if (cd_cl->getGhostCellWidth()[0] > 1) {
+      // get CartesianPatchGeometry associated with patch
+      std::shared_ptr<geom::CartesianPatchGeometry> pg(
+          SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                                 hier::PatchGeometry>(
+              patch->getPatchGeometry()));
+
+      // The side is specified by an axis direction (direction normal to the
+      // side being checked) and a flag specified the upper (side=1) or lower
+      // side (side=0).
+      if (pg->getTouchesRegularBoundary(0, 0)) {
+         imin[0]++;
+      }
+      if (pg->getTouchesRegularBoundary(0, 1)) {
+         imax[0]--;
+      }
+      if (pg->getTouchesRegularBoundary(1, 0)) {
+         imin[1]++;
+      }
+      if (pg->getTouchesRegularBoundary(1, 1)) {
+         imax[1]--;
+      }
+      if (pg->getTouchesRegularBoundary(2, 0)) {
+         imin[2]++;
+      }
+      if (pg->getTouchesRegularBoundary(2, 1)) {
+         imax[2]--;
+      }
+   }
 
    int nits = 0;
 
