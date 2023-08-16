@@ -33,10 +33,9 @@ void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const int& ngdiffconc, const double* flux0,
                   const double* flux1, const double* flux2, const int& ngflux)
 {
-   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
-                             diffconc2, ngdiffconc, flux0, flux1, flux2,
-                             ngflux);
+   ADD_FLUX(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, dx, conc, ngconc,
+            ncomp, diffconc0, diffconc1, diffconc2, ngdiffconc, flux0, flux1,
+            flux2, ngflux);
 }
 
 void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
@@ -48,10 +47,9 @@ void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const double* flux1, const double* flux2, const int& ngflux)
 {
    assert(ngdiffconc > 0);
-   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
-                             diffconc2, ngdiffconc, flux0, flux1, flux2,
-                             ngflux);
+   ADD_FLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, dx, conc,
+                ngconc, ncomp, diffconc0, diffconc1, diffconc2, ngdiffconc,
+                flux0, flux1, flux2, ngflux);
 }
 #else
 void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
@@ -60,9 +58,8 @@ void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const double* diffconc1, const int& ngdiffconc,
                   const double* flux0, const double* flux1, const int& ngflux)
 {
-   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
-                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
-                             flux1, ngflux);
+   ADD_FLUX(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc, ncomp,
+            diffconc0, diffconc1, ngdiffconc, flux0, flux1, ngflux);
 }
 
 void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
@@ -72,9 +69,8 @@ void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const double* flux0, const double* flux1, const int& ngflux)
 {
    //   assert(ngdiffconc > 0);
-   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
-                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
-                             flux1, ngflux);
+   ADD_FLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc, ncomp,
+                diffconc0, diffconc1, ngdiffconc, flux0, flux1, ngflux);
 }
 #endif
 
