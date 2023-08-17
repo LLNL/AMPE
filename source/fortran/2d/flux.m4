@@ -209,7 +209,8 @@ c y flux
                i1 = ifirst1
                do i0 = ifirst0, ilast0
                   flux1(i0,i1,i) = flux1(i0,i1,i)
-     &              + dyi *( data(i0,i1,j) - data(i0,i1-1,j) )
+     &              + d1(i0,i1,ij) * dyi *( data(i0,i1,j)
+     &                                    - data(i0,i1-1,j) )
                enddo
             else
               if1 = ifirst1
@@ -219,7 +220,8 @@ c y flux
                i1 = ilast1+1
                do i0 = ifirst0, ilast0
                   flux1(i0,i1,i) = flux1(i0,i1,i)
-     &              + dyi *( data(i0,i1,j) - data(i0,i1-1,j) )
+     &              + d1(i0,i1,ij) *dyi *( data(i0,i1,j)
+     &                                   - data(i0,i1-1,j) )
                enddo
             else
                il1 = ilast1+1

@@ -106,14 +106,15 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
                       const double* diffconc1, const double* diffconc2,
                       const int& ngdiffconc, const double* flux0,
                       const double* flux1, const double* flux2,
-                      const int& ngflux);
+                      const int& ngflux, const int* physbc);
 #else
    void (*d_add_flux)(const int& ifirst0, const int& ilast0, const int& ifirst1,
                       const int& ilast1, const double* dx, const double* conc,
                       const int& ngconc, const int& ncomp,
                       const double* diffconc0, const double* diffconc1,
                       const int& ngdiffconc, const double* flux0,
-                      const double* flux1, const int& ngflux);
+                      const double* flux1, const int& ngflux,
+                      const int* physbc);
 #endif
 };
 

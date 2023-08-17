@@ -18,7 +18,8 @@ set(M4FILESDIM ellipticfacops
                phase
                quatdiffs
                quatgrad
-               concentrationrhs)
+               concentrationrhs
+               flux)
 
 foreach(file ${M4FILESDIM})
   message(STATUS ".m4 -> .f: ${file}...")
@@ -44,6 +45,8 @@ set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/quatdiffs.f
 set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/quatgrad.f
                              PROPERTIES GENERATED TRUE)
 set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/concentrationrhs.f
+                             PROPERTIES GENERATED TRUE)
+set_source_files_properties( ${SOURCE_FORTRAN_DIM_DIR}/flux.f
                              PROPERTIES GENERATED TRUE)
 
 add_executable(testNetCDFwrite ${CMAKE_SOURCE_DIR}/tests/simple_xy_wr.cc)
@@ -110,6 +113,9 @@ add_executable(testGradQ
                ${SOURCE_FORTRAN_DIM_DIR}/quatdiffs.f
                ${SOURCE_FORTRAN_DIM_DIR}/quatgrad.f
                ${CMAKE_SOURCE_DIR}/source/fortran/quat.f )
+add_executable(testFlux
+               ${CMAKE_SOURCE_DIR}/tests/testFlux.cc
+               ${SOURCE_FORTRAN_DIM_DIR}/flux.f )
 add_executable(testArrayDataOps
                ${CMAKE_SOURCE_DIR}/tests/testArrayDataOps.cc
                ${CMAKE_SOURCE_DIR}/source/ArrayOperation.cc )
@@ -207,6 +213,9 @@ add_test(NAME testPhaseFAC
 add_test(NAME testGradQ
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testGradQ)
+add_test(NAME testFlux
+         COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 1
+                 ${CMAKE_CURRENT_BINARY_DIR}/testFlux)
 add_test(NAME testArrayDataOps
          COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
                  ${CMAKE_CURRENT_BINARY_DIR}/testArrayDataOps)
@@ -384,6 +393,13 @@ add_test(NAME FeNbNiWithFluctuation
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
+add_test(NAME FeNbNiOrder4
+         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
+         )
 if(${USE_THERMO4PFM})
   add_test(NAME ThreePhases
            COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
@@ -470,6 +486,9 @@ target_link_libraries(testPhaseFAC ${PROJECT_LINK_LIBS_SAMRAI}
 target_link_libraries(testGradQ ${PROJECT_LINK_LIBS_SAMRAI}
                                 ${PROJECT_LINK_LIBS_HDF5}
                                 )
+target_link_libraries(testFlux ${PROJECT_LINK_LIBS_SAMRAI}
+                               ${PROJECT_LINK_LIBS_HDF5}
+                               )
 target_link_libraries(testArrayDataOps ${PROJECT_LINK_LIBS_SAMRAI}
                                 ${PROJECT_LINK_LIBS_HDF5}
                                 )

@@ -231,4 +231,179 @@ c
 
       return
       end
+c
+c***********************************************************************
+c
+c compute flux using fourth-order scheme
+c see Zhang, Johansen, Colella (2012), eq. (2.5)
+c requires two ghost cells for data
+c array physb tells if sides touch physical boundaries
+c
+      subroutine add_flux_4th(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   dx,
+     &   data, ng, depth,
+     &   d0, d1, d2, ngd,
+     &   flux0, flux1, flux2, ngf, physb )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+      double precision dx(0:2)
+      integer depth
+      integer ng, ngd, ngf
+c
+      double precision
+     &     flux0(SIDE3d0(ifirst,ilast,ngf),depth),
+     &     flux1(SIDE3d1(ifirst,ilast,ngf),depth),
+     &     flux2(SIDE3d2(ifirst,ilast,ngf),depth)
+      double precision data(CELL3d(ifirst,ilast,ng),depth)
+      double precision d0(SIDE3d0(ifirst,ilast,ngd),
+     &                            depth*depth)
+      double precision d1(SIDE3d1(ifirst,ilast,ngd),
+     &                            depth*depth)
+      double precision d2(SIDE3d2(ifirst,ilast,ngd),
+     &                            depth*depth)
+      integer physb(6)
+c
+      double precision dx15, dx1, dy15, dy1, dz15, dz1
+      double precision dxi, dyi, dzi
+      integer          i0, i1, i2, i, j, ij
+      integer          if0, il0, if1, il1, if2, il2
+
+      dxi = 1.d0  / dx(0)
+      dyi = 1.d0  / dx(1)
+      dzi = 1.d0  / dx(2)
+
+      dx15 = 15.d0 / (12.d0*dx(0))
+      dx1  = 1.d0  / (12.d0*dx(0))
+      dy15 = 15.d0 / (12.d0*dx(1))
+      dy1  = 1.d0  / (12.d0*dx(1))
+      dz15 = 15.d0 / (12.d0*dx(2))
+      dz1  = 1.d0  / (12.d0*dx(2))
+
+      do i = 1, depth
+         do j = 1, depth
+            ij=i+(j-1)*depth
+            do i2 = ifirst2, ilast2
+               do i1 = ifirst1, ilast1
+                  if( physb(1) .eq. 1 ) then
+                     i0 = ifirst0
+                     flux0(i0,i1,i2,i) = flux0(i0,i1,i2,i)
+     &                  + d0(i0,i1,i2,ij) *
+     &                    dxi *( data(i0,i1,i2,j) - data(i0-1,i1,i2,j) )
+                     if0 = ifirst0+1
+                  else
+                     if0 = ifirst0
+                  endif
+                  if( physb(2) .eq. 1 ) then
+                     i0 = ilast0+1
+                     flux0(i0,i1,i2,i) = flux0(i0,i1,i2,i)
+     &                 + d0(i0,i1,i2,ij) *
+     &                   dxi *( data(i0,i1,i2,j) - data(i0-1,i1,i2,j) )
+                     il0 = ilast0
+                  else
+                     il0 = ilast0+1
+                  endif
+
+                  do i0 = if0, il0
+                     flux0(i0,i1,i2,i) = flux0(i0,i1,i2,i)
+     &                  + d0(i0,i1,i2,ij) * (
+     &                   dx15 *
+     &                   (data(i0,i1,i2,j)-data(i0-1,i1,i2,j))
+     &                 - dx1 *
+     &                   (data(i0+1,i1,i2,j)-data(i0-2,i1,i2,j))
+     &                   )
+                  enddo
+               enddo
+            enddo
+c y flux
+            do i2 = ifirst2, ilast2
+c first special case for physical boundaries in y-direction
+               if( physb(3) .eq. 1 ) then
+                  if1 = ifirst1+1
+                  i1 = ifirst1
+                  do i0 = ifirst0, ilast0
+                     flux1(i0,i1,i2,i) = flux1(i0,i1,i2,i)
+     &                 + d1(i0,i1,i2,ij) * dyi *( data(i0,i1,i2,j)
+     &                                    - data(i0,i1-1,i2,j) )
+                  enddo
+               else
+                 if1 = ifirst1
+               endif
+               if( physb(4) .eq. 1 ) then
+                  il1 = ilast1
+                  i1 = ilast1+1
+                  do i0 = ifirst0, ilast0
+                     flux1(i0,i1,i2,i) = flux1(i0,i1,i2,i)
+     &                 + d1(i0,i1,i2,ij) *dyi *( data(i0,i1,i2,j)
+     &                                      - data(i0,i1-1,i2,j) )
+                  enddo
+               else
+                  il1 = ilast1+1
+               endif
+
+               do i1 = if1, il1
+                  do i0 = ifirst0, ilast0
+                     flux1(i0,i1,i2,i) = flux1(i0,i1,i2,i)
+     &                  +d1(i0,i1,i2,ij) * (
+     &                   dy15 *
+     &                   (data(i0,i1,i2,j)-data(i0,i1-1,i2,j))
+     &                  - dy1 *
+     &                   (data(i0,i1+1,i2,j)-data(i0,i1-2,i2,j))
+     &                   )
+                  enddo
+               enddo
+            enddo
+c z flux
+c first special case for physical boundaries in z-direction
+            if( physb(5) .eq. 1 ) then
+               if2 = ifirst2+1
+               i2 = ifirst2
+               do i1 = ifirst1, ilast1
+                  do i0 = ifirst0, ilast0
+                     flux2(i0,i1,i2,i) = flux2(i0,i1,i2,i)
+     &                  +  d2(i0,i1,i2,ij) * (
+     &                   dzi *
+     &                   (data(i0,i1,i2,j)-data(i0,i1,i2-1,j))
+     &                   )
+                  enddo
+               enddo
+            else
+              if2 = ifirst2
+            endif
+            if( physb(6) .eq. 1 ) then
+               il2 = ilast2
+               i2 = ilast2+1
+               do i1 = ifirst1, ilast1
+                  do i0 = ifirst0, ilast0
+                     flux2(i0,i1,i2,i) = flux2(i0,i1,i2,i)
+     &                  +  d2(i0,i1,i2,ij) * (
+     &                   dzi *
+     &                   (data(i0,i1,i2,j)-data(i0,i1,i2-1,j))
+     &                   )
+                  enddo
+               enddo
+            else
+               il2 = ilast2+1
+            endif
+            do i2 = if2, il2
+               do i1 = ifirst1, ilast1
+                  do i0 = ifirst0, ilast0
+                     flux2(i0,i1,i2,i) = flux2(i0,i1,i2,i)
+     &                  +  d2(i0,i1,i2,ij) * (
+     &                   dz15 *
+     &                   (data(i0,i1,i2,j)-data(i0,i1,i2-1,j))
+     &                  - dz1 *
+     &                   (data(i0,i1,i2+1,j)-data(i0,i1,i2-2,j))
+     &                   )
+                  enddo
+               enddo
+            enddo
+         enddo
+
+      enddo
+
+      return
+      end
 
