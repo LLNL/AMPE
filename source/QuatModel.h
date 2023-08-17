@@ -597,6 +597,16 @@ class QuatModel : public PFModel
 
    std::shared_ptr<EnergyEvaluationStrategy> d_energy_eval_strategy;
 
+   ///
+   /// number of ghost cells for main field: phase, conc, temperature,...
+   ///
+   int d_nghosts;
+
+   ///
+   /// number of ghost cells for auxilliary composition field in KKS model
+   ///
+   int d_nghosts_aux_conc;
+
    bool d_tag_phase;
    bool d_tag_eta;
    bool d_tag_quat;

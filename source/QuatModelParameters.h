@@ -270,6 +270,17 @@ class QuatModelParameters
    {
       return d_ebs_stencil_type.compare("isotropic") == 0;
    }
+   bool useEBS4thOrderStencil() const
+   {
+      return d_ebs_stencil_type.compare("order4") == 0;
+   }
+   int nghosts_required() const
+   {
+      if (useEBS4thOrderStencil())
+         return 2;
+      else
+         return 1;
+   }
    bool wellBiasBeckermann() const { return d_bias_well_beckermann; }
 
    double quatMobilityScaleFactor() const;

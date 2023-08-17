@@ -121,7 +121,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const std::string& avg_func_type,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase,
-    const bool isotropic_flux)
+    const std::string flux_type)
     : CompositionRHSStrategy(avg_func_type),
       d_ncompositions(ncompositions),
       d_phase_scratch_id(phase_scratch_id),
@@ -146,9 +146,10 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    d_with_three_phases = (conc_b_scratch_id >= 0);
 
    d_with_diffusion_for_preconditioner = (!diffusion_precond_id.empty());
-
-   if (isotropic_flux)
+   if (flux_type == "isotropic")
       d_add_flux = add_flux_iso;
+   else if (flux_type == "order4")
+      d_add_flux = add_flux_4th;
    else
       d_add_flux = add_flux_ebs;
 

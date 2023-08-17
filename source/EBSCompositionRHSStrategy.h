@@ -36,7 +36,7 @@ class EBSCompositionRHSStrategy : public CompositionRHSStrategy
        std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
        std::shared_ptr<CompositionDiffusionStrategy>
            diffusion_for_conc_in_phase,
-       const bool isotropic_flux);
+       const std::string flux_type);
 
    ~EBSCompositionRHSStrategy(){};
 

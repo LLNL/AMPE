@@ -71,12 +71,6 @@ namespace pt = boost::property_tree;
 #include <set>
 #include <map>
 
-#define NGHOSTS (1)
-
-// we need internal composition with ghost values for EBS r.h.s.
-// in particular
-#define NGHOSTS_AUX_CONC (NGHOSTS)
-
 #ifdef HAVE_THERMO4PFM
 const double gas_constant_R_JpKpmol = GASCONSTANT_R_JPKPMOL;
 #else
@@ -169,6 +163,9 @@ QuatModel::QuatModel(int ql) : d_qlen(ql), d_ncompositions(-1)
 
    d_number_of_grains = -1;
    d_phase_threshold = 0.85;
+
+   d_nghosts = -1;
+   d_nghosts_aux_conc = -1;
 
    d_use_warm_start = false;
 
@@ -504,6 +501,15 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
 
    d_model_parameters.readModelParameters(model_db);
 
+   d_nghosts = d_model_parameters.nghosts_required();
+   tbox::pout << "QuatModel using " << d_nghosts
+              << " ghost cells for main field" << std::endl;
+   assert(d_nghosts > 0);
+
+   // we need internal composition with ghost values for EBS r.h.s.
+   // in particular
+   d_nghosts_aux_conc = d_nghosts;
+
    d_ncompositions = d_model_parameters.ncompositions();
 
    d_tag_phase = false;
@@ -591,7 +597,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
           new QuatRefinePatchStrategy("QuatRefinePatchStrategy", bc_db,
                                       phase_id, d_eta_scratch_id,
                                       d_quat_scratch_id, d_conc_scratch_id,
-                                      d_temperature_scratch_id, NGHOSTS,
+                                      d_temperature_scratch_id, d_nghosts,
                                       factor);
 
       if (d_model_parameters.needGhosts4PartitionCoeff())
@@ -1174,6 +1180,7 @@ void QuatModel::registerPhaseConcentrationVariables(
 {
    assert(conc_l_var);
    assert(conc_a_var);
+   assert(d_nghosts_aux_conc >= 0);
 
    d_conc_l_var = conc_l_var;
    d_conc_a_var = conc_a_var;
@@ -1188,19 +1195,19 @@ void QuatModel::registerPhaseConcentrationVariables(
    // in particular
    d_conc_l_id = variable_db->registerVariableAndContext(
        d_conc_l_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
    assert(d_conc_l_id >= 0);
 
    d_conc_a_id = variable_db->registerVariableAndContext(
        d_conc_a_var, current,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+       hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
    assert(d_conc_a_id >= 0);
 
    if (d_model_parameters.with_three_phases()) {
       assert(d_conc_b_var);
       d_conc_b_id = variable_db->registerVariableAndContext(
           d_conc_b_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
       assert(d_conc_b_id >= 0);
    }
 }
@@ -1208,6 +1215,8 @@ void QuatModel::registerPhaseConcentrationVariables(
 void QuatModel::registerConcentrationVariables(void)
 {
    tbox::plog << "QuatModel::registerConcentrationVariables()" << std::endl;
+   assert(d_nghosts > 0);
+
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
    std::shared_ptr<hier::VariableContext> current =
@@ -1221,7 +1230,7 @@ void QuatModel::registerConcentrationVariables(void)
    d_conc_id = variable_db->registerVariableAndContext(
        d_conc_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_conc_scratch_id = variable_db->registerVariableAndContext(
-       d_conc_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_conc_var, scratch, hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
    assert(d_conc_id >= 0);
    assert(d_conc_scratch_id >= 0);
 
@@ -1340,6 +1349,7 @@ void QuatModel::registerConcentrationVariables(void)
 
    }  // if d_model_parameters.concentrationModelNeedsPhaseConcentrations()
    if (d_model_parameters.isConcentrationModelCALPHAD()) {
+      assert(d_nghosts_aux_conc >= 0);
       d_conc_l_ref_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM), "conc_l_ref",
                                          d_ncompositions));
@@ -1350,10 +1360,10 @@ void QuatModel::registerConcentrationVariables(void)
       assert(d_conc_a_ref_var);
       d_conc_l_ref_id = variable_db->registerVariableAndContext(
           d_conc_l_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
       d_conc_a_ref_id = variable_db->registerVariableAndContext(
           d_conc_a_ref_var, current,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
       assert(d_conc_l_ref_id >= 0);
       assert(d_conc_a_ref_id >= 0);
       if (d_model_parameters.with_three_phases()) {
@@ -1363,7 +1373,7 @@ void QuatModel::registerConcentrationVariables(void)
          assert(d_conc_b_ref_var);
          d_conc_b_ref_id = variable_db->registerVariableAndContext(
              d_conc_b_ref_var, current,
-             hier::IntVector(tbox::Dimension(NDIM), NGHOSTS_AUX_CONC));
+             hier::IntVector(tbox::Dimension(NDIM), d_nghosts_aux_conc));
          assert(d_conc_b_ref_id >= 0);
       }
 
@@ -1431,7 +1441,7 @@ void QuatModel::registerEtaVariables(void)
    d_eta_id = variable_db->registerVariableAndContext(
        d_eta_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_eta_scratch_id = variable_db->registerVariableAndContext(
-       d_eta_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_eta_var, scratch, hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
 
    d_eta_diffs_var.reset(
        new pdat::SideVariable<double>(tbox::Dimension(NDIM), "eta_diffs"));
@@ -1480,7 +1490,7 @@ void QuatModel::registerPhaseVariables(void)
    d_phase_id = variable_db->registerVariableAndContext(
        d_phase_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_phase_scratch_id = variable_db->registerVariableAndContext(
-       d_phase_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_phase_var, scratch, hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
 
    d_phase_diffs_var.reset(
        new pdat::SideVariable<double>(tbox::Dimension(NDIM), "phase_diffs"));
@@ -1542,7 +1552,7 @@ void QuatModel::registerOrientationVariables(void)
    d_quat_id = variable_db->registerVariableAndContext(
        d_quat_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_quat_scratch_id = variable_db->registerVariableAndContext(
-       d_quat_var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       d_quat_var, scratch, hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
 
    if (d_model_parameters.evolveQuat()) {
       d_quat_relax_var.reset(
@@ -1553,7 +1563,7 @@ void QuatModel::registerOrientationVariables(void)
           d_quat_relax_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
       d_quat_relax_scratch_id = variable_db->registerVariableAndContext(
           d_quat_relax_var, scratch,
-          hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+          hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
 
       d_quat_diffs_var.reset(
           new pdat::SideVariable<double>(tbox::Dimension(NDIM), "quat_diffs",
@@ -1711,7 +1721,7 @@ void QuatModel::RegisterVariables(void)
        d_temperature_var, current, hier::IntVector(tbox::Dimension(NDIM), 0));
    d_temperature_scratch_id = variable_db->registerVariableAndContext(
        d_temperature_var, scratch,
-       hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+       hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
    if (d_model_parameters.with_steady_temperature()) {
       d_temperature_rhs_steady_var.reset(
           new pdat::CellVariable<double>(tbox::Dimension(NDIM),
@@ -2654,7 +2664,8 @@ void QuatModel::Regrid(const std::shared_ptr<hier::PatchHierarchy> hierarchy)
                                                name.str()));
 
             int id = variable_db->registerVariableAndContext(
-                var, scratch, hier::IntVector(tbox::Dimension(NDIM), NGHOSTS));
+                var, scratch,
+                hier::IntVector(tbox::Dimension(NDIM), d_nghosts));
 
             id_map[*it] = id;
          }
