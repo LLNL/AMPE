@@ -189,8 +189,15 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
          d_conc_rhs_strategy = ConcRHSstrategy::KKS;
       } else if (conc_rhs_strategy.compare("ebs") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::EBS;
+         // stencil type can be regular, isotropic, or order4
          d_ebs_stencil_type =
              conc_db->getStringWithDefault("ebs_stencil", "regular");
+         if (d_ebs_stencil_type != "regular" &&
+             d_ebs_stencil_type != "isotropic" &&
+             d_ebs_stencil_type != "order4") {
+            tbox::plog << "EBS stencil: " << d_ebs_stencil_type << std::endl;
+            TBOX_ERROR("Error: unknown stencil type for EBS");
+         }
       } else if (conc_rhs_strategy.compare("spinodal") == 0) {
          d_conc_rhs_strategy = ConcRHSstrategy::SPINODAL;
       } else if (conc_rhs_strategy[0] == 'u' || conc_rhs_strategy[0] == 'B' ||

@@ -1,0 +1,125 @@
+// Input for grain growth
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 2.e-6
+max_timesteps       = 350
+
+Verbosity {  // optional, block
+   level = 3  // optional, default=1
+   initial_energy_diagnostics = TRUE  // optional, default=FALSE
+}
+
+Visit {
+   interval = 1.e-6
+   interval_type = "time"
+}
+
+ModelParameters {
+   H_parameter = 0.
+   orient_mobility = 1.e-3
+   epsilon_orient = 1.
+   epsilon_anisotropy = 0.05 //delta
+
+   Interface {
+      sigma = 0.16  // pJ/um^2 = J/m^2
+      delta = 5.e-3 // um
+   }
+
+   PhaseMobility{
+      type = "kim"
+   }
+   phi_well_func_type = "double"
+
+   phi_interp_func_type ="pbg" // or "lin" for linearized model
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   Temperature {
+      type = "frozen"
+      temperature    = 1615. // [K]
+      dtemperaturedt = -2.6e5 // K/s
+      center =   0., 0.
+      gradient = 0., 2.6 // in [K/um]
+   }
+   
+   ConcentrationModel {
+      antitrapping = TRUE
+      nspecies = 3
+      model    = "calphad"
+      rhs_form = "ebs"
+      ebs_stencil = "order4"
+      molar_volume = 1.e-5 // [m^3/mol]
+      Calphad {
+         filename ="calphadFeNbNi_Mathon_et_al.dat"
+      }
+      diffusion_type = "temperature_dependent"
+      D_solid  =  1.e-8 //um**2/s
+      D_liquid  = 1.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+      NewtonSolver {
+        max_its = 20
+      }
+   }
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+      Quat{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+
+   }
+}
+
+ScalarDiagnostics {
+   interval = 2e-7
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+      enabled = TRUE  // optional, default=TRUE
+   }
+   PhaseSysSolver {  // optional block, only meaningful with precondition_phase
+      coarse_solver_max_iterations = 5
+      coarse_solver_tolerance      = -1. // to get a fixed number of sweeps
+      coarse_solver_choice = "redblack"
+   }
+}
+
+InitialConditions {
+   filename = "test.nc"
+   init_c = 0.6, 0.035
+   init_q = 1., 0., 0., 0.
+}
+
+Geometry{
+   periodic_dimension = 1, 0
+   coarsest_level_resolution = 32, 64
+   x_lo         = 0.0, 0.0  // [um]
+   x_up         = 0.16, 0.32
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_exclusive = TRUE
+    print_threshold = 0.0
+}

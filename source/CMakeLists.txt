@@ -144,6 +144,7 @@ set(SOURCES_FORTRAN
             ${CMAKE_SOURCE_DIR}/source/fortran/functions.f )
 
 set(M4FILESDIM concentrationdiffusion
+              flux
               concentrationrhs
               concentrations
               correctrhsquatforsymmetry

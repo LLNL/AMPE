@@ -57,6 +57,12 @@ class CompositionRHSStrategyFactory
 
          assert(diffusion_for_conc_in_phase);
 
+         std::string stencil_type = model_parameters.useEBSisotropicStencil()
+                                        ? "isotropic"
+                                        : "regular";
+         stencil_type =
+             model_parameters.useEBS4thOrderStencil() ? "order4" : stencil_type;
+
          strategy.reset(new EBSCompositionRHSStrategy(
              phase_scratch_id, static_cast<unsigned short>(ncompositions),
              conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
@@ -64,7 +70,7 @@ class CompositionRHSStrategyFactory
              conc_pfm_diffusion_a_id, conc_pfm_diffusion_b_id,
              conc_pfm_diffusion_id, model_parameters.avg_func_type(),
              free_energy_strategy_for_diffusion, diffusion_for_conc_in_phase,
-             model_parameters.useEBSisotropicStencil()));
+             stencil_type));
       } else if (model_parameters.concRHSstrategyIsBeckermann()) {
          strategy.reset(new BeckermannCompositionRHSStrategy(
              quatmodel, conc_scratch_id, phase_scratch_id,

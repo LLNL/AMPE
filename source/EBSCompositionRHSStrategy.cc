@@ -31,12 +31,14 @@ void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const int& ncomp, const double* diffconc0,
                   const double* diffconc1, const double* diffconc2,
                   const int& ngdiffconc, const double* flux0,
-                  const double* flux1, const double* flux2, const int& ngflux)
+                  const double* flux1, const double* flux2, const int& ngflux,
+                  const int* physb)
 {
-   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
-                             diffconc2, ngdiffconc, flux0, flux1, flux2,
-                             ngflux);
+   (void)physb;
+
+   ADD_FLUX(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, dx, conc, ngconc,
+            ncomp, diffconc0, diffconc1, diffconc2, ngdiffconc, flux0, flux1,
+            flux2, ngflux);
 }
 
 void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
@@ -45,37 +47,68 @@ void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const int& ncomp, const double* diffconc0,
                   const double* diffconc1, const double* diffconc2,
                   const int& ngdiffconc, const double* flux0,
-                  const double* flux1, const double* flux2, const int& ngflux)
+                  const double* flux1, const double* flux2, const int& ngflux,
+                  const int* physb)
 {
+   (void)physb;
    assert(ngdiffconc > 0);
-   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-                             dx, conc, ngconc, ncomp, diffconc0, diffconc1,
-                             diffconc2, ngdiffconc, flux0, flux1, flux2,
-                             ngflux);
+   ADD_FLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, dx, conc,
+                ngconc, ncomp, diffconc0, diffconc1, diffconc2, ngdiffconc,
+                flux0, flux1, flux2, ngflux);
+}
+
+void add_flux_4th(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const int& ifirst2, const int& ilast2,
+                  const double* dx, const double* conc, const int& ngconc,
+                  const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const double* diffconc2,
+                  const int& ngdiffconc, const double* flux0,
+                  const double* flux1, const double* flux2, const int& ngflux,
+                  const int* physb)
+{
+   //   assert(ngdiffconc > 0);
+   ADD_FLUX_4TH(ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2, dx, conc,
+                ngconc, ncomp, diffconc0, diffconc1, diffconc2, ngdiffconc,
+                flux0, flux1, flux2, ngflux, physb);
 }
 #else
 void add_flux_ebs(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const int& ilast1, const double* dx, const double* conc,
                   const int& ngconc, const int& ncomp, const double* diffconc0,
                   const double* diffconc1, const int& ngdiffconc,
-                  const double* flux0, const double* flux1, const int& ngflux)
+                  const double* flux0, const double* flux1, const int& ngflux,
+                  const int* physb)
 {
-   ADD_CONCENTRATIONFLUX_EBS(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
-                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
-                             flux1, ngflux);
+   (void)physb;
+   ADD_FLUX(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc, ncomp,
+            diffconc0, diffconc1, ngdiffconc, flux0, flux1, ngflux);
 }
 
 void add_flux_iso(const int& ifirst0, const int& ilast0, const int& ifirst1,
                   const int& ilast1, const double* dx, const double* conc,
                   const int& ngconc, const int& ncomp, const double* diffconc0,
                   const double* diffconc1, const int& ngdiffconc,
-                  const double* flux0, const double* flux1, const int& ngflux)
+                  const double* flux0, const double* flux1, const int& ngflux,
+                  const int* physb)
+{
+   (void)physb;
+   //   assert(ngdiffconc > 0);
+   ADD_FLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc, ncomp,
+                diffconc0, diffconc1, ngdiffconc, flux0, flux1, ngflux);
+}
+
+void add_flux_4th(const int& ifirst0, const int& ilast0, const int& ifirst1,
+                  const int& ilast1, const double* dx, const double* conc,
+                  const int& ngconc, const int& ncomp, const double* diffconc0,
+                  const double* diffconc1, const int& ngdiffconc,
+                  const double* flux0, const double* flux1, const int& ngflux,
+                  const int* physb)
 {
    //   assert(ngdiffconc > 0);
-   ADD_CONCENTRATIONFLUX_ISO(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc,
-                             ncomp, diffconc0, diffconc1, ngdiffconc, flux0,
-                             flux1, ngflux);
+   ADD_FLUX_4TH(ifirst0, ilast0, ifirst1, ilast1, dx, conc, ngconc, ncomp,
+                diffconc0, diffconc1, ngdiffconc, flux0, flux1, ngflux, physb);
 }
+
 #endif
 
 
@@ -88,7 +121,7 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
     const std::string& avg_func_type,
     std::shared_ptr<FreeEnergyStrategy> free_energy_strategy,
     std::shared_ptr<CompositionDiffusionStrategy> diffusion_for_conc_in_phase,
-    const bool isotropic_flux)
+    const std::string flux_type)
     : CompositionRHSStrategy(avg_func_type),
       d_ncompositions(ncompositions),
       d_phase_scratch_id(phase_scratch_id),
@@ -113,9 +146,10 @@ EBSCompositionRHSStrategy::EBSCompositionRHSStrategy(
    d_with_three_phases = (conc_b_scratch_id >= 0);
 
    d_with_diffusion_for_preconditioner = (!diffusion_precond_id.empty());
-
-   if (isotropic_flux)
+   if (flux_type == "isotropic")
       d_add_flux = add_flux_iso;
+   else if (flux_type == "order4")
+      d_add_flux = add_flux_4th;
    else
       d_add_flux = add_flux_ebs;
 
@@ -198,6 +232,31 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 
    flux->fillAll(0.);
 
+   // get CartesianPatchGeometry associated with patch
+   std::shared_ptr<geom::CartesianPatchGeometry> pg(
+       SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
+                              hier::PatchGeometry>(patch.getPatchGeometry()));
+   int physbc[6] = {0, 0, 0, 0, 0, 0};
+   if (pg->getTouchesRegularBoundary(0, 0)) {
+      physbc[0] = 1;
+   }
+   if (pg->getTouchesRegularBoundary(0, 1)) {
+      physbc[1] = 1;
+   }
+   if (pg->getTouchesRegularBoundary(1, 0)) {
+      physbc[2] = 1;
+   }
+   if (pg->getTouchesRegularBoundary(1, 1)) {
+      physbc[3] = 1;
+   }
+   if (pg->getTouchesRegularBoundary(2, 0)) {
+      physbc[4] = 1;
+   }
+   if (pg->getTouchesRegularBoundary(2, 1)) {
+      physbc[5] = 1;
+   }
+
+
    // now add components of concentration flux,
    // one phase at a time
    d_add_flux(ifirst(0), ilast(0), ifirst(1), ilast(1),
@@ -215,7 +274,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
               flux->getPointer(2),
 #endif
-              flux->getGhostCellWidth()[0]);
+              flux->getGhostCellWidth()[0], physbc);
 
    d_add_flux(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
@@ -232,7 +291,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
               flux->getPointer(2),
 #endif
-              flux->getGhostCellWidth()[0]);
+              flux->getGhostCellWidth()[0], physbc);
 
    if (d_conc_b_scratch_id >= 0) {
       std::shared_ptr<pdat::CellData<double> > conc_b(
@@ -266,7 +325,7 @@ void EBSCompositionRHSStrategy::computeFluxOnPatch(hier::Patch& patch,
 #if (NDIM == 3)
                  flux->getPointer(2),
 #endif
-                 flux->getGhostCellWidth()[0]);
+                 flux->getGhostCellWidth()[0], physbc);
    }
 }
 

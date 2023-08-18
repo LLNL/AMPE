@@ -43,7 +43,7 @@ EBSCompositionRHSStrategyWithGradT::EBSCompositionRHSStrategyWithGradT(
                                 diffusion_l_id, diffusion_a_id, diffusion_b_id,
                                 diffusion_precond_id, avg_func_type,
                                 free_energy_strategy,
-                                diffusion_for_conc_in_phase, false)
+                                diffusion_for_conc_in_phase, "regular")
 {
    assert(Mq_id >= 0);
    assert(Q_heat_transport.size() > 0);
