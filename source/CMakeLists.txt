@@ -52,6 +52,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategyMultipleOrder.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
             ${CMAKE_SOURCE_DIR}/source/tools.cc
