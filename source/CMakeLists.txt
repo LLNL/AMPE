@@ -43,6 +43,7 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/TemperatureRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/SimpleTemperatureRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/ThreePhasesRHSStrategy.cc
+            ${CMAKE_SOURCE_DIR}/source/MultiOrderRHSStrategy.cc
             ${CMAKE_SOURCE_DIR}/source/MovingFrameRHS.cc
             ${CMAKE_SOURCE_DIR}/source/PhaseRHSStrategyWithQ.cc
             ${CMAKE_SOURCE_DIR}/source/diagnostics.cc
@@ -52,6 +53,8 @@ set(SOURCES ${CMAKE_SOURCE_DIR}/source/KKStools.cc
             ${CMAKE_SOURCE_DIR}/source/CompositionStrategyMobilities.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADMobility.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinary.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticFreeEnergyStrategyMultiOrder.cc
+            ${CMAKE_SOURCE_DIR}/source/QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyBinaryThreePhase.cc
             ${CMAKE_SOURCE_DIR}/source/CALPHADFreeEnergyStrategyTernary.cc
             ${CMAKE_SOURCE_DIR}/source/tools.cc
@@ -152,6 +155,7 @@ set(M4FILESDIM concentrationdiffusion
               grad
               hyprepoisson
               mobility
+              multiorder
               phase
               quatcoarsen
               quatdiffs

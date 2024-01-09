@@ -8,7 +8,6 @@
 // For details, see https://github.com/LLNL/AMPE
 // Please also read AMPE/LICENSE.
 //
-//
 #ifndef included_PhaseFluxStrategySimple
 #define included_PhaseFluxStrategySimple
 
@@ -20,6 +19,7 @@ class PhaseFluxStrategySimple : public PhaseFluxStrategy
    PhaseFluxStrategySimple(const double epsilon_phase)
        : d_epsilon_phase(epsilon_phase)
    {
+      assert(d_epsilon_phase > 0.);
    }
 
    void computeFluxes(const std::shared_ptr<hier::PatchLevel> level,

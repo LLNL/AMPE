@@ -1,0 +1,118 @@
+// Units are:
+//   length: um = 10^-6 m
+//   energy: pJ = 10^-12 J
+//
+model_type = "Quat"
+
+end_time            = 2.e-2
+max_timesteps       = 2000
+
+Visit {
+   //extra_output          = TRUE
+   interval = 1.e-3
+   interval_type = "time"
+}
+
+ModelParameters {
+   norderp = 2
+
+   moving_frame_velocity = 2.e3
+
+   Temperature {
+      type = "frozen"
+      temperature    = 1670. // [K]
+      dtemperaturedt = -2.e3 // K/s
+      center =   -5.3174, 0., 0.
+      gradient = 1., 0., 0. // in [K/um]
+   }
+
+   Interface {
+      sigma = 0.36  // pJ/um^2 = J/m^2
+      delta = 0.083 // um
+   }
+
+   PhaseMobility{
+      type = "scalar"
+      value = 1.e4
+   }
+
+   phi_well_func_type = "double"
+
+   phi_interp_func_type ="p"
+   conc_interp_func_type = "l"
+   diffusion_interp_func_type = "l"
+
+   avg_func_type = "arithmetic"
+   
+   ConcentrationModel {
+      model    = "quadratic"
+      antitrapping = TRUE
+      rhs_form = "ebs"
+      diffusion_type = "temperature_dependent"
+
+      // data based on fit from calphad Al-Ni
+      molar_volume = 7.4e-6 // [m^3/mol]
+      D_solid  =  0.e-2 //um**2/s
+      D_liquid  = 3.e3  //um**2/s
+      Q0_solid  = 0.    // [J/mol]
+      Q0_liquid = 0.    // [J/mol]
+      Quadratic {
+         T_ref = 1693.47
+         A_liquid = 143742.0
+         A_solid  = 170630.0
+         Ceq_liquid = 0.174
+         Ceq_solid  = 0.154
+         // from linearized phase diagram
+         m_liquid = -0.0019
+         m_solid  = -0.0016
+      }
+   }
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0."
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+      Conc{
+         boundary_0 = "slope", "0."
+         boundary_1 = "value", "0.147"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+         boundary_4 = "slope", "0"
+         boundary_5 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 1.e-3
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 1.e-5
+   Preconditioner {  // optional block
+      enabled = FALSE
+      precondition_phase = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "512x4x4.nc"  // required
+}
+
+Geometry{
+   periodic_dimension = 0, 0, 0
+   coarsest_level_resolution = 512, 4, 4
+   x_lo         =  0.0,  0.0, 0.0   // [um]
+   x_up         =  42.5392, 0.3323375, 0.3323375 // [um]
+}
+
+TimerManager {    // optional block, see SAMRAI docs
+    timer_list = "AMPE::*::*"
+    print_exclusive = TRUE
+}

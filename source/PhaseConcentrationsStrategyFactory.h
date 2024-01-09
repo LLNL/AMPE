@@ -14,6 +14,7 @@
 #include "CALPHADequilibriumPhaseConcentrationsStrategy.h"
 #include "KKSdiluteEquilibriumPhaseConcentrationsStrategy.h"
 #include "QuadraticEquilibriumPhaseConcentrationsStrategy.h"
+#include "QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder.h"
 #include "PartitionPhaseConcentrationsStrategy.h"
 #include "PhaseIndependentConcentrationsStrategy.h"
 #include "Database2JSON.h"
@@ -63,6 +64,7 @@ class PhaseConcentrationsStrategyFactory
       if (model_parameters.kks_phase_concentration()) {
          tbox::plog << "Phase concentration determined by KKS" << std::endl;
          if (model_parameters.isConcentrationModelCALPHAD()) {
+            tbox::plog << "CALPHAD..." << std::endl;
             if (ncompositions == 1) {
 #ifdef HAVE_THERMO4PFM
                bool subl = checkSublattice(calphad_pt);
@@ -121,7 +123,8 @@ class PhaseConcentrationsStrategyFactory
 #endif
                           newton_db, ncompositions));
                }
-            } else if (ncompositions == 2)
+            } else if (ncompositions == 2) {
+               tbox::plog << "Ternary..." << std::endl;
                phase_conc_strategy.reset(
                    new CALPHADequilibriumPhaseConcentrationsStrategy<
                        CALPHADFreeEnergyFunctionsTernary>(
@@ -136,8 +139,9 @@ class PhaseConcentrationsStrategyFactory
                        calphad_db,
 #endif
                        newton_db, ncompositions));
-
+            }
          } else if (model_parameters.isConcentrationModelKKSdilute()) {
+            tbox::plog << "Dilute..." << std::endl;
             phase_conc_strategy.reset(
                 new KKSdiluteEquilibriumPhaseConcentrationsStrategy(
                     conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
@@ -146,11 +150,20 @@ class PhaseConcentrationsStrategyFactory
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
             if (model_parameters.isConcentrationModelQuadratic())
-               assert(conc_b_scratch_id == -1);
-            phase_conc_strategy.reset(
-                new QuadraticEquilibriumPhaseConcentrationsStrategy(
-                    conc_l_scratch_id, conc_a_scratch_id, model_parameters,
-                    conc_db));
+               if (model_parameters.norderp() > 1) {
+                  tbox::plog << "Quadratic, MultiOrder..." << std::endl;
+                  phase_conc_strategy.reset(
+                      new QuadraticEquilibriumPhaseConcentrationsStrategyMultiOrder(
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          model_parameters, conc_db));
+               } else {
+                  tbox::plog << "Quadratic..." << std::endl;
+                  assert(conc_b_scratch_id == -1);
+                  phase_conc_strategy.reset(
+                      new QuadraticEquilibriumPhaseConcentrationsStrategy(
+                          conc_l_scratch_id, conc_a_scratch_id,
+                          model_parameters, conc_db));
+               }
          }
       } else {
          if (model_parameters.partition_phase_concentration()) {

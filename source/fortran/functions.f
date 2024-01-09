@@ -59,28 +59,12 @@ c Valid values for type are "quadratic", "pbg", "harmonic",...
          phit = min( 1.d0, phit )
          interp_func = phit
 
-      else if ( type(1:1) .eq. 'b' ) then
+      else if ( type(1:1) .eq. 'm' ) then
+c Moleans 2011
+         phit = max( 0.d0, min( 1.d0, phi ) )
 
-         if( phi < 0.99d0 )then
-            interp_func = 0.d0
-         else
-            phit = (phi-0.99d0)*100.d0
-            interp_func =
-     &         phit * phit * ( 3.d0 - 2.d0 * phit )
-         endif
-
-      else if ( type(1:1) .eq. 'a' ) then
-
-         if( phi < 0.08333333333333333d0 )then
-            phit = max( 0.d0, phi )
-            interp_func = 54.d0*phit*phit*phit
-         else if( phi>0.9166666666666666d0 )then
-            phit = min( 1.d0, phi )
-            phit = 1.d0-phit
-            interp_func = 1.d0-54.d0*phit*phit*phit
-         else
-            interp_func = 1.125*phi-0.0625
-         endif
+         interp_func =
+     &      phit * phit / ( 2.d0 * phit * (phit -1.d0) + 1.d0 )
 
       else if ( type(1:1) .eq. '3'  ) then
 
@@ -117,7 +101,7 @@ c-----------------------------------------------------------------------
       
       character*(*) type
 
-      double precision gamma
+      double precision gamma, tmp
       gamma = 10.d0
       
       if ( type(1:1) .eq. 'q' ) then
@@ -156,18 +140,12 @@ c-----------------------------------------------------------------------
              deriv_interp_func = 0.d0
          endif
 
-      else if ( type(1:1) .eq. 'a' ) then
+      else if ( type(1:1) .eq. 'm' ) then
 
-         if( phi < 0.08333333333333333d0 )then
-            phit = max( 0.d0, phi )
-            deriv_interp_func = 162.d0*phit*phit
-         else if( phi>0.9166666666666666d0 )then
-            phit = min( 1.d0, phi )
-            phit = 1.d0-phit
-            deriv_interp_func = 162.d0*phit*phit
-         else
-            deriv_interp_func = 1.125
-         endif
+         phit = max( 0.d0, min( 1.d0, phi ) )
+         tmp =  2.d0*phit*(phit-1.d0)+1.d0
+         deriv_interp_func = 2.d0*phit*(1.d0-phit)
+     &      / (tmp*tmp)
 
       else if ( type(1:1) .eq. '3' ) then
 

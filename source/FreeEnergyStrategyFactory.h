@@ -21,6 +21,7 @@
 #include "CALPHADFreeEnergyStrategyTernary.h"
 #include "CALPHADFreeEnergyStrategyWithPenalty.h"
 #include "CALPHADFreeEnergyStrategyBinaryThreePhase.h"
+#include "QuadraticFreeEnergyStrategyMultiOrder.h"
 #include "KKSdiluteBinary.h"
 #include "QuadraticFreeEnergyStrategy.h"
 #include "BiasDoubleWellBeckermannFreeEnergyStrategy.h"
@@ -208,12 +209,21 @@ class FreeEnergyStrategyFactory
             tbox::pout << "QuatModel: "
                        << "Using Quadratic model for concentration"
                        << std::endl;
-            free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
-                conc_db->getDatabase("Quadratic"),
-                model_parameters.energy_interp_func_type(),
-                model_parameters.molar_volume_liquid(),
-                model_parameters.molar_volume_solid_A(), conc_l_scratch_id,
-                conc_a_scratch_id));
+            if (model_parameters.norderp() > 1)
+               free_energy_strategy.reset(
+                   new QuadraticFreeEnergyStrategyMultiOrder(
+                       conc_db->getDatabase("Quadratic"),
+                       model_parameters.energy_interp_func_type(),
+                       model_parameters.molar_volume_liquid(),
+                       model_parameters.molar_volume_solid_A(),
+                       conc_l_scratch_id, conc_a_scratch_id));
+            else
+               free_energy_strategy.reset(new QuadraticFreeEnergyStrategy(
+                   conc_db->getDatabase("Quadratic"),
+                   model_parameters.energy_interp_func_type(),
+                   model_parameters.molar_volume_liquid(),
+                   model_parameters.molar_volume_solid_A(), conc_l_scratch_id,
+                   conc_a_scratch_id));
          } else if (model_parameters.with_bias_well()) {
             if (model_parameters.wellBiasBeckermann()) {
                free_energy_strategy.reset(

@@ -55,7 +55,7 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
 {
    (void)eta_id;
 
-   // tbox::pout<<"TbasedCompositionDiffusionStrategy::setDiffusion()"<<endl;
+   //   tbox::plog<<"TbasedCompositionDiffusionStrategy::setDiffusion()"<<std::endl;
    assert(temperature_id >= 0);
    assert(phase_id >= 0);
    assert(d_pfm_diffusion_l_id >= 0);
@@ -149,6 +149,28 @@ void TbasedCompositionDiffusionStrategy::setDiffusion(
                 temperature->getPointer(), temperature->getGhostCellWidth()[0],
                 d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A, d_D_solid_B,
                 d_Q0_solid_B, gas_constant_R_JpKpmol, &interp_func_type,
+                d_avg_func_type.c_str());
+         } else if (phi->getDepth() > 1) {
+            CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_MULTIPHASES(
+                ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                ifirst(2), ilast(2),
+#endif
+                phi->getPointer(), phi->getDepth(), phi->getGhostCellWidth()[0],
+                pfm_diffusionL->getPointer(0, 0),
+                pfm_diffusionL->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionL->getPointer(2, 0),
+#endif
+                pfm_diffusionA->getPointer(0, 0),
+                pfm_diffusionA->getPointer(1, 0),
+#if (NDIM == 3)
+                pfm_diffusionA->getPointer(2, 0),
+#endif
+                pfm_diffusionL->getGhostCellWidth()[0],
+                temperature->getPointer(), temperature->getGhostCellWidth()[0],
+                d_D_liquid, d_Q0_liquid, d_D_solid_A, d_Q0_solid_A,
+                gas_constant_R_JpKpmol, &interp_func_type,
                 d_avg_func_type.c_str());
          } else {
             CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(

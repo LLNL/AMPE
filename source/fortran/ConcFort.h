@@ -88,6 +88,21 @@ void ADDCONCENTRATIONFLUXFROMANTITRAPPING3PHASES(
 #endif
     const int& ngflux);
 
+void ADDCONCENTRATIONFLUXFROMANTITRAPPINGMULTIORDERP(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* dx, const double* phase, const int& ngphase,
+    const int& nphases, const double* cl, const double* ca, const int& ngc,
+    const double* dphi, const int& ngdphi, const double& alpha,
+    const double* flux0, const double* flux1,
+#if (NDIM == 3)
+    const double* flux2,
+#endif
+    const int& ngflux);
+
 void ADD_FLUX(const int& ifirst0, const int& ilast0, const int& ifirst1,
               const int& ilast1,
 #if (NDIM == 3)
@@ -178,6 +193,26 @@ void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE(
     const int& ifirst2, const int& ilast2,
 #endif
     const double* phi, const int& ngphi, const double* diffl0,
+    const double* diffl1,
+#if (NDIM == 3)
+    const double* diffl2,
+#endif
+    const double* diffa0, const double* diffa1,
+#if (NDIM == 3)
+    const double* diffa2,
+#endif
+    const int& ngdiff, const double* t, const int& ngt, const double& d_phase0,
+    const double& q0_phase0, const double& d_phase1, const double& q0_phase1,
+    const double& gas_constant_R, const char* phi_interp_type,
+    const char* avg_func_type);
+
+void CONCENTRATION_PFMDIFFUSION_OF_TEMPERATURE_MULTIPHASES(
+    const int& ifirst0, const int& ilast0, const int& ifirst1,
+    const int& ilast1,
+#if (NDIM == 3)
+    const int& ifirst2, const int& ilast2,
+#endif
+    const double* phi, const int& nphi, const int& ngphi, const double* diffl0,
     const double* diffl1,
 #if (NDIM == 3)
     const double* diffl2,

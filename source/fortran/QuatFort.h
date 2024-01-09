@@ -112,6 +112,20 @@ void COMPUTERHSTHREEPHASES(const int& ifirst0, const int& ilast0,
                            const double* phi, const int& ngphi, double* rhs,
                            const int& ngrhs);
 
+void COMPUTERHSMULTIORDER(const int& ifirst0, const int& ilast0,
+                          const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                          const int& ifirst2, const int& ilast2,
+#endif
+                          const int& norder, const double* dx,
+                          const double* phase_flux0, const double* phase_flux1,
+#if (NDIM == 3)
+                          const double* phase_flux2,
+#endif
+                          const int& ngphaseflux, const double& gamma,
+                          const double& m, const double* phi, const int& ngphi,
+                          double* rhs, const int& ngrhs);
+
 void ADDVDPHIDX(const int& ifirst0, const int& ilast0, const int& ifirst1,
                 const int& ilast1,
 #if (NDIM == 3)
