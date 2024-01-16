@@ -212,3 +212,5 @@ target_link_libraries(${MAIN} ${PROJECT_LINK_LIBS_SAMRAI}
                               ${PROJECT_LINK_LIBS_NETCDF}
                               ${PROJECT_LINK_LIBS_HDF5}
                       )
+
+install(TARGETS ${MAIN} DESTINATION bin)

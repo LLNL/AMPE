@@ -10,5 +10,3 @@ set(SOURCES
 add_library(ampe_samrai ${SOURCES})
 
 target_link_libraries(ampe_samrai ${PROJECT_LINK_LIBS_SAMRAI} ${PROJECT_LINK_LIBS_CVODE})
-
-install(TARGETS ampe_samrai DESTINATION lib)

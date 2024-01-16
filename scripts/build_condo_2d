@@ -18,5 +18,6 @@ cmake -DCMAKE_CXX_COMPILER=mpiCC \
       -DCMAKE_PREFIX_PATH=${HOME}/bin \
       -DNDIM="2" \
       -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
+      -DCMAKE_INSTALL_PREFIX=$HOME \
       ..
 
