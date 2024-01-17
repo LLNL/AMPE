@@ -146,10 +146,11 @@ class PhaseConcentrationsStrategyFactory
                     model_parameters.conc_interp_func_type(), conc_db));
          } else {
             if (model_parameters.isConcentrationModelQuadratic())
-               phase_conc_strategy.reset(
-                   new QuadraticEquilibriumPhaseConcentrationsStrategy(
-                       conc_l_scratch_id, conc_a_scratch_id, conc_b_scratch_id,
-                       model_parameters, conc_db));
+               assert(conc_b_scratch_id == -1);
+            phase_conc_strategy.reset(
+                new QuadraticEquilibriumPhaseConcentrationsStrategy(
+                    conc_l_scratch_id, conc_a_scratch_id, model_parameters,
+                    conc_db));
          }
       } else {
          if (model_parameters.partition_phase_concentration()) {

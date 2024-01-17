@@ -22,7 +22,7 @@ class QuadraticEquilibriumPhaseConcentrationsStrategy
 {
  public:
    QuadraticEquilibriumPhaseConcentrationsStrategy(
-       const int conc_l_id, const int conc_a_id, const int conc_b_id,
+       const int conc_l_id, const int conc_a_id,
        const QuatModelParameters& model_parameters,
        std::shared_ptr<tbox::Database> conc_db);
 
