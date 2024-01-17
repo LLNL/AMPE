@@ -15,20 +15,17 @@
 
 QuadraticEquilibriumPhaseConcentrationsStrategy::
     QuadraticEquilibriumPhaseConcentrationsStrategy(
-        const int conc_l_id, const int conc_a_id, const int conc_b_id,
+        const int conc_l_id, const int conc_a_id,
         const QuatModelParameters& model_parameters,
         std::shared_ptr<tbox::Database> conc_db)
     : d_conc_interp_func_type(model_parameters.conc_interp_func_type()),
-      PhaseConcentrationsStrategy(conc_l_id, conc_a_id, conc_b_id,
-                                  model_parameters.with_third_phase())
+      PhaseConcentrationsStrategy(conc_l_id, conc_a_id, -1, false)
 {
    d_fenergy = new QuadraticFreeEnergyStrategy(
        conc_db->getDatabase("Quadratic"),
        model_parameters.energy_interp_func_type(),
        model_parameters.molar_volume_liquid(),
-       model_parameters.molar_volume_solid_A(),
-       model_parameters.molar_volume_solid_B(), conc_l_id, conc_a_id, conc_b_id,
-       model_parameters.with_third_phase());
+       model_parameters.molar_volume_solid_A(), conc_l_id, conc_a_id);
 }
 
 int QuadraticEquilibriumPhaseConcentrationsStrategy::
@@ -48,23 +45,17 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
    assert(cd_c_l);
    assert(cd_c_a);
 
+   (void)cd_eta;
+   (void)cd_c_b;
+
    const hier::Box& pbox = patch->getBox();
 
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_conc = cd_concentration->getPointer();
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
-   double* ptr_c_b = NULL;
 
-   if (d_with_third_phase) {
-      ptr_c_b = cd_c_b->getPointer();
-   }
-   double* ptr_eta = NULL;
-   if (d_with_third_phase) {
-      ptr_eta = cd_eta->getPointer();
-   }
-
-   // Assuming phi, eta, and concentration all have same box
+   // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
    int imin_pf = pf_gbox.lower(0);
    int jmin_pf = pf_gbox.lower(1);
@@ -76,7 +67,7 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
    kp_pf = jp_pf * pf_gbox.numberCells(1);
 #endif
 
-   // Assuming c_l, c_a, and c_b all have same box
+   // Assuming c_l, c_a, have same box
    const hier::Box& c_i_gbox = cd_c_l->getGhostBox();
    int imin_c_i = c_i_gbox.lower(0);
    int jmin_c_i = c_i_gbox.lower(1);
@@ -112,29 +103,15 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
 
             double phi = ptr_phi[idx_pf];
             double c = ptr_conc[idx_pf];
-            double eta = 0.0;
-            if (d_with_third_phase) {
-               eta = ptr_eta[idx_pf];
-            }
 
             double hphi = INTERP_FUNC(phi, &interpf);
-
             double heta = 0.0;
-            if (d_with_third_phase) {
-               heta = INTERP_FUNC(eta, &interpf);
-            }
 
-            double c_l = d_fenergy->computeLiquidConcentration(hphi, heta, c);
-
-            double c_a = d_fenergy->computeSolidAConcentration(hphi, heta, c);
+            double c_l = d_fenergy->computeLiquidConcentration(hphi, c);
+            double c_a = d_fenergy->computeSolidAConcentration(hphi, c);
 
             ptr_c_l[idx_c_i] = c_l;
             ptr_c_a[idx_c_i] = c_a;
-            if (d_with_third_phase) {
-               double c_b =
-                   d_fenergy->computeSolidBConcentration(hphi, heta, c);
-               ptr_c_b[idx_c_i] = c_b;
-            }
          }
       }
    }
