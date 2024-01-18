@@ -59,25 +59,32 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
        const bool use_internal_units = true) override;
 #endif
 
-   double computeLiquidConcentration(const double hphi, const double c) const;
+   double computeLiquidConcentration(const double temp, const double hphi,
+                                     const double c) const;
 
-   double computeSolidAConcentration(const double hphi, const double c) const;
+   double computeSolidAConcentration(const double temp, const double hphi,
+                                     const double c) const;
 
    void preRunDiagnostics(const double temperature) override{};
 
  private:
-   double computeFreeEnergy(const double temperature, const double conc,
-                            const double A, const double Ceq,
+   double computeFreeEnergy(const double conc, const double A, const double Ceq,
                             const double energy_factor,
                             const bool gp = false) const;
+   double computeDerivFreeEnergy(const double conc, const double A,
+                                 const double Ceq,
+                                 const double energy_factor) const;
 
    void computeFreeEnergy(hier::Patch& patch, const int temperature_id,
-                          const double A, const double Ceq, const int f_id,
-                          const int c_i_id, const double energy_factor);
+                          const double A, const double Ceq, const double Tref,
+                          const double m, const int f_id, const int c_i_id,
+                          const double energy_factor);
 
    void computeDerivFreeEnergy(hier::Patch& patch, const int temperature_id,
-                               const double A, const double Ceq, const int f_id,
-                               const int c_i_id, const double energy_factor);
+                               const double A, const double Ceq,
+                               const double Tref, const double m,
+                               const int f_id, const int c_i_id,
+                               const double energy_factor);
 
    double computeLiquidConcentration(const double hphi, const double c,
                                      const double Al, const double Aa,
@@ -91,14 +98,14 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
 
    void computeFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       const double A, const double Ceq,
+       const double A, const double Ceq, const double Tref, const double m,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
 
    void computeDerivFreeEnergy(
        const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-       const double A, const double Ceq,
+       const double A, const double Ceq, const double Tref, const double m,
        std::shared_ptr<pdat::CellData<double> > cd_free_energy,
        std::shared_ptr<pdat::CellData<double> > cd_conc_i,
        const double energy_factor);
@@ -114,10 +121,6 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
 
    double computeMu(const double t, const double c);
 
-   double computeDerivFreeEnergy(const double temperature, const double conc,
-                                 const double A, const double Ceq,
-                                 const double energy_factor) const;
-
    EnergyInterpolationType d_energy_interp_func_type;
 
    double d_vm_L;  // molar volume
@@ -132,6 +135,10 @@ class QuadraticFreeEnergyStrategy : public FreeEnergyStrategy
    double d_A_solid_A;
    double d_Ceq_liquid;
    double d_Ceq_solid_A;
+
+   double d_Tref;
+   double d_m_liquid;
+   double d_m_solid;
 
    int d_conc_l_id;
    int d_conc_a_id;
