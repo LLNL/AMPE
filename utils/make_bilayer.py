@@ -188,6 +188,7 @@ phase_outside = options.phase_out
 
 conc_inside   = options.concentration_in
 conc_outside  = options.concentration_out
+#print("conc_inside : {}".format(conc_inside))
 
 radius_two = 0.
 if ( options.two ) :
@@ -424,7 +425,8 @@ for s in range(nspecies):
 
 phase = N.ones( (nz,ny,nx), N.float32 )
 quat  = N.zeros( (QLEN,nz,ny,nx), N.float32 )
-conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
+if ( nspecies>0 ):
+  conc  = N.ones( (nspecies,nz,ny,nx), N.float32 )
 if ( not temperature0 is None ) :
   temperature = N.zeros( (nz,ny,nx), N.float32 )
 
@@ -563,9 +565,10 @@ for k in range( nz ) :
       
       #smooth interface
       phase[k,j,i] = phi*phase_inside+(1.-phi)*phase_outside
-      
+
+      c=[]
       for s in range(nspecies):
-        c[s] = phi*ci[s]+(1.-phi)*co[s]
+        c.append(phi*ci[s]+(1.-phi)*co[s])
       if ( QLEN == 1 ) :
         q = angle_inside
       else :

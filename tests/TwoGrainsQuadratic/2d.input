@@ -46,10 +46,13 @@ ModelParameters {
       Q0_solid  = 156377.   // Edwards et al. [J/mol]
       Q0_liquid = 55329.    // Wade 1971      [J/mol]
       Quadratic {
+         T_ref = 873.
          A_liquid = 1.e4 
          A_solid  = 1.e4
          Ceq_liquid = 0.05
          Ceq_solid  = 0.10
+         m_liquid = 0.
+         m_solid = 0.
       }
    }
 }

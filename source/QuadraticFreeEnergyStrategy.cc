@@ -52,11 +52,15 @@ QuadraticFreeEnergyStrategy::QuadraticFreeEnergyStrategy(
    tbox::plog << "Molar volume L =" << d_vm_L << std::endl;
    tbox::plog << "Molar volume A =" << d_vm_A << std::endl;
 
+   d_Tref = input_db->getDouble("T_ref");
+
    d_A_liquid = input_db->getDouble("A_liquid");
    d_Ceq_liquid = input_db->getDouble("Ceq_liquid");
+   d_m_liquid = input_db->getDouble("m_liquid");
 
    d_A_solid_A = input_db->getDouble("A_solid");
    d_Ceq_solid_A = input_db->getDouble("Ceq_solid");
+   d_m_solid = input_db->getDouble("m_solid");
 
    // print database just read
    tbox::plog << "Quadratic database..." << std::endl;
@@ -74,11 +78,10 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergyLiquid(
 {
    assert(fl_id >= 0);
    assert(temperature_id >= 0.);
-
    assert(d_conc_l_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, d_A_liquid, d_Ceq_liquid, fl_id,
-                     d_conc_l_id, d_energy_conv_factor_L);
+   computeFreeEnergy(patch, temperature_id, d_A_liquid, d_Ceq_liquid, d_Tref,
+                     d_m_liquid, fl_id, d_conc_l_id, d_energy_conv_factor_L);
 }
 
 //=======================================================================
@@ -89,11 +92,10 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergySolidA(
 {
    assert(fs_id >= 0);
    assert(temperature_id >= 0.);
-
    assert(d_conc_a_id >= 0);
 
-   computeFreeEnergy(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A, fs_id,
-                     d_conc_a_id, d_energy_conv_factor_A);
+   computeFreeEnergy(patch, temperature_id, d_A_solid_A, d_Ceq_solid_A, d_Tref,
+                     d_m_solid, fs_id, d_conc_a_id, d_energy_conv_factor_A);
 }
 
 //=======================================================================
@@ -102,6 +104,7 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergySolidB(
     hier::Patch& patch, const int temperature_id, const int fs_id,
     const bool gp)
 {
+   assert(false);
 }
 
 //=======================================================================
@@ -109,8 +112,8 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergySolidB(
 // \/\/ No temperature dependence yet
 
 double QuadraticFreeEnergyStrategy::computeFreeEnergy(
-    const double temperature, const double conc, const double A,
-    const double Ceq, const double energy_factor, const bool gp) const
+    const double conc, const double A, const double Ceq,
+    const double energy_factor, const bool gp) const
 {
    double d = conc - Ceq;
 
@@ -118,9 +121,7 @@ double QuadraticFreeEnergyStrategy::computeFreeEnergy(
    fe *= energy_factor;
 
    // subtract -mu*c to get grand potential
-   if (gp)
-      fe -= computeDerivFreeEnergy(temperature, conc, A, Ceq, energy_factor) *
-            conc;
+   if (gp) fe -= computeDerivFreeEnergy(conc, A, Ceq, energy_factor) * conc;
 
    return fe;
 }
@@ -128,11 +129,9 @@ double QuadraticFreeEnergyStrategy::computeFreeEnergy(
 //=======================================================================
 
 double QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
-    const double temperature, const double conc, const double A,
-    const double Ceq, const double energy_factor) const
+    const double conc, const double A, const double Ceq,
+    const double energy_factor) const
 {
-   (void)temperature;
-
    double mu = 2. * A * (conc - Ceq);
 
    return mu * energy_factor;
@@ -142,8 +141,8 @@ double QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
 
 void QuadraticFreeEnergyStrategy::computeFreeEnergy(
     hier::Patch& patch, const int temperature_id, const double A,
-    const double Ceq, const int f_id, const int conc_i_id,
-    const double energy_factor)
+    const double Ceq, const double Tref, const double m, const int f_id,
+    const int conc_i_id, const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(f_id >= 0);
@@ -163,15 +162,15 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeFreeEnergy(pbox, temperature, A, Ceq, f, c_i, energy_factor);
+   computeFreeEnergy(pbox, temperature, A, Ceq, Tref, m, f, c_i, energy_factor);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     hier::Patch& patch, const int temperature_id, const double A,
-    const double Ceq, const int df_id, const int conc_i_id,
-    const double energy_factor)
+    const double Ceq, const double Tref, const double m, const int df_id,
+    const int conc_i_id, const double energy_factor)
 {
    assert(temperature_id >= 0);
    assert(df_id >= 0);
@@ -191,14 +190,15 @@ void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
        SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
            patch.getPatchData(conc_i_id)));
 
-   computeDerivFreeEnergy(pbox, temperature, A, Ceq, df, c_i, energy_factor);
+   computeDerivFreeEnergy(pbox, temperature, A, Ceq, Tref, m, df, c_i,
+                          energy_factor);
 }
 
 //=======================================================================
 
 void QuadraticFreeEnergyStrategy::computeFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-    const double A, const double Ceq,
+    const double A, const double Ceq, const double Tref, const double m,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
     const double energy_factor)
@@ -268,7 +268,9 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergy(
 
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] = computeFreeEnergy(t, c_i, A, Ceq, energy_factor);
+            double ceqT = Ceq + (t - Tref) * m;
+
+            ptr_f[idx_f] = computeFreeEnergy(c_i, A, ceqT, energy_factor);
          }
       }
    }
@@ -278,7 +280,7 @@ void QuadraticFreeEnergyStrategy::computeFreeEnergy(
 
 void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
     const hier::Box& pbox, std::shared_ptr<pdat::CellData<double> > cd_temp,
-    const double A, const double Ceq,
+    const double A, const double Ceq, const double Tref, const double m,
     std::shared_ptr<pdat::CellData<double> > cd_free_energy,
     std::shared_ptr<pdat::CellData<double> > cd_conc_i,
     const double energy_factor)
@@ -348,8 +350,9 @@ void QuadraticFreeEnergyStrategy::computeDerivFreeEnergy(
 
             double c_i = ptr_c_i[idx_c_i];
 
-            ptr_f[idx_f] =
-                computeDerivFreeEnergy(t, c_i, A, Ceq, energy_factor);
+            double ceqT = Ceq + (t - Tref) * m;
+
+            ptr_f[idx_f] = computeDerivFreeEnergy(c_i, A, ceqT, energy_factor);
          }
       }
    }
@@ -546,12 +549,8 @@ void QuadraticFreeEnergyStrategy::addDrivingForceOnPatch(
 
 double QuadraticFreeEnergyStrategy::computeMu(const double t, const double c_l)
 {
-   const double A = d_A_liquid;
-   const double Ceq = d_Ceq_liquid;
-
-   double mu = computeDerivFreeEnergy(t, c_l, A, Ceq, d_energy_conv_factor_L);
-
-   return mu;
+   double ceqT = d_Ceq_liquid + (t - d_Tref) * d_m_liquid;
+   return computeDerivFreeEnergy(c_l, d_A_liquid, ceqT, d_energy_conv_factor_L);
 }
 
 //=======================================================================
@@ -589,20 +588,25 @@ double QuadraticFreeEnergyStrategy::computeLocalInvD2fDc2(
 //=======================================================================
 
 double QuadraticFreeEnergyStrategy::computeLiquidConcentration(
-    const double hphi, const double c) const
+    const double temp, const double hphi, const double c) const
 {
-   return (c -
-           hphi * (d_Ceq_solid_A - (d_A_liquid / d_A_solid_A) * d_Ceq_liquid)) /
+   double Ceq_liquid = d_Ceq_liquid + (temp - d_Tref) * d_m_liquid;
+   double Ceq_solid_A = d_Ceq_solid_A + (temp - d_Tref) * d_m_solid;
+
+   return (c - hphi * (Ceq_solid_A - (d_A_liquid / d_A_solid_A) * Ceq_liquid)) /
           ((1.0 - hphi) + hphi * (d_A_liquid / d_A_solid_A));
 }
 
 //=======================================================================
 
 double QuadraticFreeEnergyStrategy::computeSolidAConcentration(
-    const double hphi, const double c) const
+    const double temp, const double hphi, const double c) const
 {
-   return (c - (1.0 - hphi) * (d_Ceq_liquid -
-                               (d_A_solid_A / d_A_liquid) * d_Ceq_solid_A)) /
+   double Ceq_liquid = d_Ceq_liquid + (temp - d_Tref) * d_m_liquid;
+   double Ceq_solid_A = d_Ceq_solid_A + (temp - d_Tref) * d_m_solid;
+
+   return (c - (1.0 - hphi) *
+                   (Ceq_liquid - (d_A_solid_A / d_A_liquid) * Ceq_solid_A)) /
           ((1.0 - hphi) * (d_A_solid_A / d_A_liquid) + hphi);
 }
 

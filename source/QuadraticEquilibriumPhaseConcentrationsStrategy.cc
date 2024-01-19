@@ -50,10 +50,22 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
 
    const hier::Box& pbox = patch->getBox();
 
+   double* ptr_temp = cd_temperature->getPointer();
    double* ptr_phi = cd_phi->getPointer();
    double* ptr_conc = cd_concentration->getPointer();
    double* ptr_c_l = cd_c_l->getPointer();
    double* ptr_c_a = cd_c_a->getPointer();
+
+   const hier::Box& temp_gbox = cd_temperature->getGhostBox();
+   int imin_temp = temp_gbox.lower(0);
+   int jmin_temp = temp_gbox.lower(1);
+   int jp_temp = temp_gbox.numberCells(0);
+   int kmin_temp = 0;
+   int kp_temp = 0;
+#if (NDIM == 3)
+   kmin_temp = temp_gbox.lower(2);
+   kp_temp = jp_temp * temp_gbox.numberCells(1);
+#endif
 
    // Assuming phi and concentration all have same box
    const hier::Box& pf_gbox = cd_phi->getGhostBox();
@@ -95,6 +107,9 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
       for (int jj = jmin; jj <= jmax; jj++) {
          for (int ii = imin; ii <= imax; ii++) {
 
+            const int idx_temp = (ii - imin_temp) + (jj - jmin_temp) * jp_temp +
+                                 (kk - kmin_temp) * kp_temp;
+
             const int idx_pf = (ii - imin_pf) + (jj - jmin_pf) * jp_pf +
                                (kk - kmin_pf) * kp_pf;
 
@@ -105,10 +120,10 @@ int QuadraticEquilibriumPhaseConcentrationsStrategy::
             double c = ptr_conc[idx_pf];
 
             double hphi = INTERP_FUNC(phi, &interpf);
-            double heta = 0.0;
+            double t = ptr_temp[idx_temp];
 
-            double c_l = d_fenergy->computeLiquidConcentration(hphi, c);
-            double c_a = d_fenergy->computeSolidAConcentration(hphi, c);
+            double c_l = d_fenergy->computeLiquidConcentration(t, hphi, c);
+            double c_a = d_fenergy->computeSolidAConcentration(t, hphi, c);
 
             ptr_c_l[idx_c_i] = c_l;
             ptr_c_a[idx_c_i] = c_a;
