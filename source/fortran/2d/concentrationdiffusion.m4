@@ -1,6 +1,5 @@
 c Copyright (c) 2018, Lawrence Livermore National Security, LLC.
 c Produced at the Lawrence Livermore National Laboratory
-c Written by M.R. Dorr, J.-L. Fattebert and M.E. Wickett
 c LLNL-CODE-747500
 c All rights reserved.
 c This file is part of AMPE. 
