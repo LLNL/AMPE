@@ -303,7 +303,9 @@ void QuatModel::initializeRHSandEnergyStrategies(
    std::shared_ptr<tbox::Database> model_db =
        input_db->getDatabase("ModelParameters");
 
-   d_phase_flux_strategy = PhaseFluxStrategyFactory::create(d_model_parameters);
+   if (d_model_parameters.with_phase())
+      d_phase_flux_strategy =
+          PhaseFluxStrategyFactory::create(d_model_parameters);
 
    std::shared_ptr<tbox::MemoryDatabase> calphad_db;
 
@@ -781,23 +783,23 @@ void QuatModel::InitializeIntegrator(void)
 {
    tbox::pout << "QuatModel::InitializeIntegrator()" << std::endl;
 
-   assert(d_phase_flux_strategy != nullptr);
    if (d_model_parameters.with_heat_equation()) {
       assert(d_temperature_strategy);
       assert(d_heat_capacity_strategy);
    }
 
-   if (d_model_parameters.with_phase())
+   if (d_model_parameters.with_phase()) {
       d_mobility_strategy =
           MobilityFactory::create(this, d_model_parameters, d_conc_l_id,
                                   d_conc_a_id, d_conc_b_id,
                                   d_temperature_scratch_id, d_ncompositions,
                                   d_model_parameters.with_three_phases(),
                                   d_conc_db);
+      d_integrator->setPhaseFluxStrategy(d_phase_flux_strategy);
+   }
 
    d_integrator->setQuatGradStrategy(d_quat_grad_strategy);
    d_integrator->setMobilityStrategy(d_mobility_strategy);
-   d_integrator->setPhaseFluxStrategy(d_phase_flux_strategy);
    if (d_model_parameters.with_concentration()) {
       d_integrator->setCompositionDiffusionStrategy(
           d_diffusion_for_conc_in_phase);
