@@ -3388,7 +3388,6 @@ int QuatIntegrator::CVSpgmrPrecondSet(double t, SundialsAbstractVector* y,
       d_phase_sys_solver->setOperatorCoefficients(d_phase_scratch_id,
                                                   d_phase_mobility_id,
                                                   d_epsilon_phase, gamma,
-                                                  d_energy_interp_func_type,
                                                   d_phase_well_scale,
                                                   d_phase_well_func_type);
    }

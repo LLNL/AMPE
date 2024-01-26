@@ -227,8 +227,7 @@ void PhaseFAC::resetHierarchyConfiguration(
  * deallocate the solver state in this example.
  *************************************************************************
  */
-int PhaseFAC::solve(const EnergyInterpolationType phase_interp_func_type,
-                    double phase_well_scale, std::string phase_well_func_type)
+int PhaseFAC::solve(double phase_well_scale, std::string phase_well_func_type)
 {
    assert(d_mobility_id >= 0);
    assert(d_comp_soln_id >= 0);
@@ -285,7 +284,6 @@ int PhaseFAC::solve(const EnergyInterpolationType phase_interp_func_type,
 
    d_poisson_fac_solver->setOperatorCoefficients(d_exact_id, d_mobility_id,
                                                  d_epsilon, d_gamma,
-                                                 phase_interp_func_type,
                                                  phase_well_scale,
                                                  phase_well_func_type);
 

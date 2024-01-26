@@ -31,15 +31,13 @@ class PhaseFACOps : public EllipticFACOps
                const std::shared_ptr<tbox::Database> database =
                    std::shared_ptr<tbox::Database>());
 
-   void setOperatorCoefficients(
-       const int phase_id, const int phase_mobility_id,
-       const double epsilon_phase, const double gamma,
-       const EnergyInterpolationType phase_interp_func_type,
-       const double phase_well_scale, const std::string phase_well_func_type);
+   void setOperatorCoefficients(const int phase_id, const int phase_mobility_id,
+                                const double epsilon_phase, const double gamma,
+                                const double phase_well_scale,
+                                const std::string phase_well_func_type);
 
-   void setC(const int phi_id, const double gamma,
-             const EnergyInterpolationType phi_interp_func_type,
-             const double phi_well_scale, const std::string phi_well_func_type);
+   void setC(const int phi_id, const double gamma, const double phi_well_scale,
+             const std::string phi_well_func_type);
 
  private:
    // Timers
@@ -48,9 +46,7 @@ class PhaseFACOps : public EllipticFACOps
    void setCOnPatchPrivate(std::shared_ptr<pdat::CellData<double> > cd_phi,
                            std::shared_ptr<pdat::CellData<double> > cd_m,
                            std::shared_ptr<pdat::CellData<double> > cd_c,
-                           const double gamma,
-                           const EnergyInterpolationType phi_interp_func_type,
-                           const double phi_well_scale,
+                           const double gamma, const double phi_well_scale,
                            const char* phi_well_func_type,
                            const hier::Box& pbox);
 };
