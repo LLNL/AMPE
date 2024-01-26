@@ -32,8 +32,8 @@ PhaseFACOps::PhaseFACOps(const std::string& object_name,
 
 void PhaseFACOps::setOperatorCoefficients(
     const int phase_id, const int phase_mobility_id, const double epsilon_phase,
-    const double gamma, const EnergyInterpolationType phase_interp_func_type,
-    const double phase_well_scale, const std::string phase_well_func_type)
+    const double gamma, const double phase_well_scale,
+    const std::string phase_well_func_type)
 {
    assert(phase_mobility_id >= 0);
 
@@ -42,8 +42,7 @@ void PhaseFACOps::setOperatorCoefficients(
    setM(phase_mobility_id);
 
    // C to be set after M since it uses M
-   setC(phase_id, gamma, phase_interp_func_type, phase_well_scale,
-        phase_well_func_type);
+   setC(phase_id, gamma, phase_well_scale, phase_well_func_type);
 
    setDConstant(-gamma * epsilon_phase * epsilon_phase);
 
@@ -56,7 +55,6 @@ void PhaseFACOps::setOperatorCoefficients(
 //       phi_well_scale * phi_well_func'' )
 
 void PhaseFACOps::setC(const int phi_id, const double gamma,
-                       const EnergyInterpolationType phi_interp_func_type,
                        const double phi_well_scale,
                        const std::string phi_well_func_type)
 {
@@ -89,8 +87,8 @@ void PhaseFACOps::setC(const int phi_id, const double gamma,
                  patch->getPatchData(d_c_id[0])));
 
          setCOnPatchPrivate(phi_data, local_m_data, cdata, gamma,
-                            phi_interp_func_type, phi_well_scale,
-                            phi_well_func_type.c_str(), patch_box);
+                            phi_well_scale, phi_well_func_type.c_str(),
+                            patch_box);
       }
    }
 
@@ -103,7 +101,6 @@ void PhaseFACOps::setCOnPatchPrivate(
     std::shared_ptr<pdat::CellData<double> > cd_phi,
     std::shared_ptr<pdat::CellData<double> > cd_m,
     std::shared_ptr<pdat::CellData<double> > cd_c, const double gamma,
-    const EnergyInterpolationType phi_interp_func_type,
     const double phi_well_scale, const char* phi_well_func_type,
     const hier::Box& pbox)
 {
@@ -154,7 +151,6 @@ void PhaseFACOps::setCOnPatchPrivate(
    kmin = pbox.lower(2);
    kmax = pbox.upper(2);
 #endif
-   const char interp = energyInterpChar(phi_interp_func_type);
 
    for (int kk = kmin; kk <= kmax; kk++) {
       for (int jj = jmin; jj <= jmax; jj++) {

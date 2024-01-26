@@ -23,8 +23,8 @@ PhaseFACSolver::PhaseFACSolver(const std::string& object_name,
 
 void PhaseFACSolver::setOperatorCoefficients(
     const int phase_id, const int phase_mobility_id, const double epsilon_phase,
-    const double gamma, const EnergyInterpolationType phase_interp_func_type,
-    const double phase_well_scale, const std::string phase_well_func_type)
+    const double gamma, const double phase_well_scale,
+    const std::string phase_well_func_type)
 {
    assert(phase_id >= 0);
    assert(phase_mobility_id >= 0);
@@ -36,7 +36,6 @@ void PhaseFACSolver::setOperatorCoefficients(
 
    phase_fac_ops->setOperatorCoefficients(phase_id, phase_mobility_id,
                                           epsilon_phase, gamma,
-                                          phase_interp_func_type,
                                           phase_well_scale,
                                           phase_well_func_type);
 
