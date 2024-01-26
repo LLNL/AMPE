@@ -25,6 +25,8 @@ Dependencies
 
 * [BOOST] (http://www.boost.org)
 
+* [Thermo4PFM] [https://github.com/ORNL/Thermo4PFM]
+
 References
 ----------
 
