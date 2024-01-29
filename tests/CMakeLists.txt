@@ -1,4 +1,16 @@
-find_package(PythonInterp 3.2 REQUIRED)
+set(USE_PYTHON_ENV "" CACHE STRING "Python environment")
+if(NOT ${USE_PYTHON_ENV} STREQUAL "")
+  find_package (Python3 COMPONENTS Interpreter)
+  message(STATUS "USE_PYTHON_ENV: ${USE_PYTHON_ENV}")
+  execute_process (COMMAND "${Python3_EXECUTABLE}" -m venv "${USE_PYTHON_ENV}")
+  set (ENV{VIRTUAL_ENV} "${USE_PYTHON_ENV}")
+  ## change the context of the search
+  set (Python3_FIND_VIRTUALENV FIRST)
+  ## unset Python3_EXECUTABLE because it is also an input variable (see documentation, Artifacts Specification section)
+  unset (Python3_EXECUTABLE)
+endif(NOT ${USE_PYTHON_ENV} STREQUAL "")
+find_package(Python3 COMPONENTS Interpreter)
+message(STATUS "Python3_EXECUTABLE ${Python3_EXECUTABLE}")
 
 include_directories( ${CMAKE_SOURCE_DIR}/source )
 
@@ -262,34 +274,34 @@ add_test(NAME testTemperatureHistory
 
 #regression tests
 add_test(NAME PlanarFront
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFront/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFront/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}//PlanarFront/${NDIM}d.input
          )
 
 add_test(NAME PlanarFrontMovingFrame
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontMovingFrame/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontMovingFrame/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/PlanarFrontMovingFrame/${NDIM}d.input
          )
 
 add_test(NAME AlCuMovingFrame
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCuMovingFrame/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCuMovingFrame/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCuMovingFrame/${NDIM}d.input
          )
 
 add_test(NAME GradientMovingFrame
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/GradientMovingFrame/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/GradientMovingFrame/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/GradientMovingFrame/${NDIM}d.input
          )
 add_test(NAME TemperatureHistoryMovingFrame
-         COMMAND ${PYTHON_EXECUTABLE}
+         COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/TemperatureHistoryMovingFrame/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
@@ -297,104 +309,104 @@ add_test(NAME TemperatureHistoryMovingFrame
          ${CMAKE_CURRENT_SOURCE_DIR}/TemperatureHistoryMovingFrame
          )
 add_test(NAME ChenShen98
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/${NDIM}d.input
          )
 add_test(NAME HeatFlow
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/test.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/test.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/${NDIM}d.input
          )
 add_test(NAME TimeDependentHeatFlow
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/test.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/test.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/TimeDependentHeatFlow
          )
 add_test(NAME SingleGrainGrowthAuNi
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/SingleGrainGrowthAuNi/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME AlCu
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/AlCu/${NDIM}d.input
          )
 add_test(NAME DiluteCuNi
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DiluteCuNi/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DiluteCuNi/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/DiluteCuNi/${NDIM}d.input
          )
 add_test(NAME GaussianT
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/GaussianT/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/GaussianT/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/GaussianT/${NDIM}d.input
          )
 add_test(NAME TwoBilayers
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME TwoGrainsQuadratic
-         COMMAND ${PYTHON_EXECUTABLE}
+         COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadratic/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadratic/${NDIM}d.input
          )
 add_test(NAME ConservedVolume
-         COMMAND ${PYTHON_EXECUTABLE}
+         COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/ConservedVolume/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/ConservedVolume/${NDIM}d.input
          )
 add_test(NAME FourCorners
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FourCorners/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FourCorners/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/FourCorners/${NDIM}d.input
          )
 add_test(NAME SolidifyQuaternions
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/SolidifyQuaternions/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/SolidifyQuaternions/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/SolidifyQuaternions/${NDIM}d.input
          )
 add_test(NAME Dendrite
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/Dendrite/${NDIM}d.input
          )
 add_test(NAME FeNbNiWithNoise
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithNoise/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME FeNbNiWithFluctuation
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiWithFluctuation/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME FeNbNiOrder4
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/FeNbNiOrder4/${NDIM}d.input
@@ -402,47 +414,47 @@ add_test(NAME FeNbNiOrder4
          )
 if(${USE_THERMO4PFM})
   add_test(NAME ThreePhases
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhases/${NDIM}d.input
            )
   add_test(NAME ThreePhasesCALPHAD
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesCALPHAD
            )
   add_test(NAME ThreePhasesDiffusion
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/ThreePhasesDiffusion
            )
   add_test(NAME 3Ph2Sl
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/3Ph2Sl
            )
   add_test(NAME 2Ph1Sl
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl/${NDIM}d.input
            ${CMAKE_CURRENT_SOURCE_DIR}/2Ph1Sl
            )
   add_test(NAME Restart
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Restart/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/Restart/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/Restart/${NDIM}d.input
            )
   add_test(NAME RestartConc
-           COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/test${NDIM}d.py
+           COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/test${NDIM}d.py
            ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
            ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
            ${CMAKE_CURRENT_SOURCE_DIR}/RestartConc/${NDIM}d.input
@@ -450,7 +462,7 @@ if(${USE_THERMO4PFM})
            )
 endif()
 add_test(NAME DumpNetCDF
-         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/DumpNetCDF/${NDIM}d.input

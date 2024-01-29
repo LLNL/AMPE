@@ -1,0 +1,25 @@
+#!/bin/sh
+source ../scripts/modules.condo-mod
+
+rm -rf CMakeCache.txt
+rm -rf CMakeFiles
+rm cmake_install.cmake
+rm Makefile
+rm -f ../source/fortran/2d/*.f
+
+cmake -DCMAKE_CXX_COMPILER=mpiCC \
+      -DCMAKE_C_COMPILER=mpicc \
+      -DCMAKE_Fortran_COMPILER=mpif77 \
+      -DSAMRAI_DIR=$HOME/SAMRAI/SAMRAI-v4.1.1 \
+      -DHYPRE_DIR=$HOME/hypre/hypre2.28.0 \
+      -DSUNDIALS_DIR=$HOME/sundials/sundials-5.4.0 \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DAMPE_WITH_CLANG_FORMAT=ON \
+      -DCMAKE_PREFIX_PATH="${HOME}/bin;$NETCDF_DIR" \
+      -DHDF5_USE_STATIC_LIBRARIES=OFF \
+      -DNDIM="2" \
+      -DTHERMO4PFM_DIR=$HOME/Thermo4PFM \
+      -DCMAKE_INSTALL_PREFIX=$HOME \
+      -DUSE_PYTHON_ENV=$HOME/my_netcdf_env \
+      ..
+
