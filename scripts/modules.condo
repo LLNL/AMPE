@@ -2,6 +2,6 @@ module load PE-gnu
 module load hdf5
 module load netcdf
 module load boost
-module load cmake
+module load cmake/3.18.4
 module load python
 
