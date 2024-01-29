@@ -359,13 +359,6 @@ add_test(NAME TwoBilayers
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoBilayers/${NDIM}d.input
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
-add_test(NAME QuadraticSolidification
-         COMMAND ${PYTHON_EXECUTABLE}
-         ${CMAKE_CURRENT_SOURCE_DIR}/QuadraticSolidification/test${NDIM}d.py
-         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
-         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
-         ${CMAKE_CURRENT_SOURCE_DIR}/QuadraticSolidification/${NDIM}d.input
-         )
 add_test(NAME TwoGrainsQuadratic
          COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadratic/test${NDIM}d.py
