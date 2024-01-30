@@ -366,6 +366,13 @@ add_test(NAME QuadraticSolidification
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/QuadraticSolidification/${NDIM}d.input
          )
+add_test(NAME OneGrainQuadratic
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/OneGrainQuadratic/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/OneGrainQuadratic/${NDIM}d.input
+         )
 add_test(NAME TwoGrainsQuadratic
          COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadratic/test${NDIM}d.py
