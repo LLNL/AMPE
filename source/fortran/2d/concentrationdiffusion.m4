@@ -330,6 +330,99 @@ c
       end
 c
 c
+      subroutine concentration_pfmdiffusion_of_temperature_multiphases(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   phi, nphi, ngphi,
+     &   diffL0, diffL1,
+     &   diffA0, diffA1, ngdiff,
+     &   temp, ngtemp,
+     &   d_liquid, q0_liquid,
+     &   d_solid, q0_solid,
+     &   gas_constant_R,
+     &   interp_type,
+     &   avg_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer nphi, ngphi, ngdiff, ngtemp
+      character*(*) avg_type, interp_type
+      double precision d_liquid, d_solid
+      double precision q0_liquid, q0_solid
+      double precision gas_constant_R
+c
+c variables in 2d cell indexed
+      double precision phi(CELL2d(ifirst,ilast,ngphi),nphi)
+      double precision temp(CELL2d(ifirst,ilast,ngtemp))
+      double precision diffL0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diffL1(SIDE2d1(ifirst,ilast,ngdiff))
+      double precision diffA0(SIDE2d0(ifirst,ilast,ngdiff))
+      double precision diffA1(SIDE2d1(ifirst,ilast,ngdiff))
+c
+      integer ic0, ic1, ip
+      double precision vphi, phil, phis, invT
+      double precision q0_liquid_invR, q0_solid_invR
+      double precision diff_liquid, diff_solid
+      double precision interp_func
+      double precision average_func
+
+      q0_liquid_invR = q0_liquid / gas_constant_R
+      q0_solid_invR  = q0_solid / gas_constant_R
+c
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0+1
+            vphi = 0.d0
+c assuming the first nphi-1 order parameters are solid phase
+            do ip = 1, nphi-1
+               vphi = vphi + average_func(
+     &            phi(ic0-1,ic1,ip), phi(ic0,ic1,ip), avg_type )
+            enddo
+            phis = interp_func( vphi, interp_type )
+
+            vphi = average_func(
+     &         phi(ic0-1,ic1,nphi), phi(ic0,ic1,nphi), avg_type )
+            phil = interp_func( vphi, interp_type )
+
+            invT = 2.0d0 / ( temp(ic0-1,ic1) + temp(ic0,ic1) )
+
+            diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+            diff_solid  = d_solid * exp( -q0_solid_invR * invT )
+
+            diffL0(ic0,ic1) = phil * diff_liquid
+            diffA0(ic0,ic1) = phis * diff_solid
+         end do
+      end do
+c
+      do ic1 = ifirst1, ilast1+1
+         do ic0 = ifirst0, ilast0
+            vphi = 0.d0
+            do ip = 1, nphi-1
+               vphi = vphi + average_func(
+     &            phi(ic0,ic1-1,ip), phi(ic0,ic1,ip), avg_type )
+            enddo
+            phis = interp_func( vphi, interp_type )
+
+            vphi = average_func(
+     &         phi(ic0,ic1-1,nphi), phi(ic0,ic1-1,nphi), avg_type )
+            phil = interp_func( vphi, interp_type )
+
+            invT = 2.0d0 / ( temp(ic0,ic1-1) + temp(ic0,ic1) )
+
+            diff_liquid = d_liquid * exp( -q0_liquid_invR * invT )
+            diff_solid  = d_solid * exp( -q0_solid_invR * invT )
+
+            diffL1(ic0,ic1) = phil * diff_liquid
+            diffA1(ic0,ic1) = phis * diff_solid
+         end do
+      end do
+c
+      return
+      end
+
+c
+c
       subroutine concentration_pfmdiffusion_of_temperature_threephases(
      &   ifirst0, ilast0, ifirst1, ilast1,
      &   phi, nphi, ngphi,
@@ -364,9 +457,6 @@ c variables in 2d cell indexed
       double precision diffA1(SIDE2d1(ifirst,ilast,ngdiff))
       double precision diffB0(SIDE2d0(ifirst,ilast,ngdiff))
       double precision diffB1(SIDE2d1(ifirst,ilast,ngdiff))
-c
-c***********************************************************************
-c***********************************************************************
 c
       integer ic0, ic1
       double precision vphi, phi0, phi1, phi2, invT

@@ -105,7 +105,7 @@ void PhaseConcentrationsStrategy::computePhaseConcentrations(
          assert(c_a);
 
          std::shared_ptr<pdat::CellData<double> > c_b;
-         if (d_with_third_phase || phi->getDepth() == 3) {
+         if (d_conc_b_id > -1) {
             c_b =
                 SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
                     patch->getPatchData(d_conc_b_id));

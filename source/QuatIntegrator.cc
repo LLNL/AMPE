@@ -38,6 +38,7 @@
 #include "SimpleTemperatureRHSStrategy.h"
 #include "KKSCompositionRHSStrategy.h"
 #include "GradientTemperatureStrategy.h"
+#include "MultiOrderRHSStrategy.h"
 
 #include "SAMRAI/tbox/TimerManager.h"
 #include "SAMRAI/geom/CartesianPatchGeometry.h"
@@ -336,7 +337,7 @@ void QuatIntegrator::setupPreconditionersPhase(
           phase_sys_solver_database->getBoolWithDefault("verbose", false);
    }
 
-   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+   const int nphases = d_model_parameters.norderp();
    std::shared_ptr<PhaseFACOps> d_phase_fac_ops(
        new PhaseFACOps(d_name + "_QIPhaseFACOps", phase_sys_solver_database));
 
@@ -892,7 +893,7 @@ void QuatIntegrator::RegisterVariables(
       RegisterLocalPhaseVariables();
    }
 
-   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+   const int nphases = d_model_parameters.norderp();
    d_flux_var.reset(new pdat::SideVariable<double>(tbox::Dimension(NDIM),
                                                    d_name + "_QUI_flux_",
                                                    nphases));
@@ -987,7 +988,7 @@ void QuatIntegrator::RegisterLocalVisitVariables()
           hier::VariableDatabase::getDatabase();
 
       if (d_with_phase) {
-         const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+         const int nphases = d_model_parameters.norderp();
          d_phase_rhs_visit_var.reset(new pdat::CellVariable<double>(
              tbox::Dimension(NDIM), d_name + "_phase_rhs_visit_", nphases));
          d_phase_rhs_visit_id = variable_db->registerVariableAndContext(
@@ -1079,7 +1080,7 @@ void QuatIntegrator::RegisterLocalPhaseVariables()
 {
    hier::VariableDatabase* variable_db = hier::VariableDatabase::getDatabase();
 
-   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+   const int nphases = d_model_parameters.norderp();
 
    d_phase_sol_var.reset(new pdat::CellVariable<double>(tbox::Dimension(NDIM),
                                                         d_name + "_QI_phase_"
@@ -1966,6 +1967,12 @@ void QuatIntegrator::initialize(
           d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_f_b_id,
           d_phase_mobility_id, d_flux_id, d_sundials_solver,
           d_free_energy_strategy, d_grid_geometry, d_phase_flux_strategy));
+   else if (d_model_parameters.norderp() > 1)
+      d_phase_rhs_strategy.reset(new MultiOrderRHSStrategy(
+          d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
+          d_temperature_scratch_id, d_f_l_id, d_f_a_id, d_phase_mobility_id,
+          d_flux_id, d_sundials_solver, d_free_energy_strategy, d_grid_geometry,
+          d_phase_flux_strategy));
    else
       d_phase_rhs_strategy.reset(new PhaseRHSStrategyWithQ(
           d_model_parameters, d_phase_scratch_id, d_conc_scratch_id,
@@ -2341,7 +2348,8 @@ void QuatIntegrator::setDiffusionCoeffForConcentration(
    assert(hierarchy);
 
    t_set_diffcoeff_conc_timer->start();
-   // tbox::pout<<"QuatIntegrator::setDiffusionCoeffForConcentration"<<endl;
+   // tbox::plog << "QuatIntegrator::setDiffusionCoeffForConcentration"
+   //           << std::endl;
 
    std::shared_ptr<EBSCompositionRHSStrategy> ebs_rhs =
        std::dynamic_pointer_cast<EBSCompositionRHSStrategy>(

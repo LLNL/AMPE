@@ -36,7 +36,8 @@ static void readSpeciesCP(std::shared_ptr<tbox::Database> cp_db,
 
 QuatModelParameters::QuatModelParameters() : d_moving_frame_velocity(def_val)
 {
-
+   d_norderp = 1;
+   d_gamma = 1.5;
    d_H_parameter = def_val;
    d_epsilon_phase = def_val;
    d_epsilon_anisotropy = def_val;
@@ -251,10 +252,6 @@ void QuatModelParameters::readConcDB(std::shared_ptr<tbox::Database> conc_db)
       }
    }
    d_conc_mobility = conc_db->getDoubleWithDefault("mobility", 1.);
-
-   if (d_conc_rhs_strategy == ConcRHSstrategy::SPINODAL) {
-      d_kappa = conc_db->getDouble("kappa");
-   }
 
    d_conc_avg_func_type =
        conc_db->getStringWithDefault("avg_func_type", d_avg_func_type);
@@ -721,6 +718,10 @@ void QuatModelParameters::initializeEta(
 void QuatModelParameters::readModelParameters(
     std::shared_ptr<tbox::Database> model_db)
 {
+   // unless otherwise specifies, we use one order parameter
+   // phi, and define second phase as 1.-phi
+   d_norderp = model_db->getIntegerWithDefault("norderp", 1);
+   tbox::plog << "norderp = " << d_norderp << std::endl;
    // Set d_H_parameter to negative value, to turn off orientation terms
    d_H_parameter = model_db->getDoubleWithDefault("H_parameter", -1.);
 
@@ -823,6 +824,10 @@ void QuatModelParameters::readModelParameters(
          case 'h':
          case 'H':
             d_energy_interp_func_type = EnergyInterpolationType::HARMONIC;
+            break;
+         case 'u':
+         case 'U':
+            d_energy_interp_func_type = EnergyInterpolationType::UNDEFINED;
             break;
          default:
             tbox::plog << "energy_interp_func_type=" << energy_interp_func_type

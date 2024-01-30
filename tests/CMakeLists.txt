@@ -360,7 +360,7 @@ add_test(NAME TwoBilayers
          ${CMAKE_CURRENT_SOURCE_DIR}/../thermodynamic_data
          )
 add_test(NAME QuadraticSolidification
-         COMMAND ${PYTHON_EXECUTABLE}
+         COMMAND ${Python3_EXECUTABLE}
          ${CMAKE_CURRENT_SOURCE_DIR}/QuadraticSolidification/test${NDIM}d.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
@@ -379,6 +379,30 @@ add_test(NAME TwoGrainsQuadratic
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadratic/${NDIM}d.input
+         )
+add_test(NAME OneGrainQuadraticMultiOrderP
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/OneGrainQuadraticMultiOrderP/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/OneGrainQuadraticMultiOrderP/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/OneGrainQuadraticMultiOrderP
+         )
+add_test(NAME DirectionalQuadraticMultiOrderP
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/DirectionalQuadraticMultiOrderP/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/DirectionalQuadraticMultiOrderP/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/DirectionalQuadraticMultiOrderP
+         )
+add_test(NAME TwoGrainsQuadraticMultiOrderP
+         COMMAND ${Python3_EXECUTABLE}
+         ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadraticMultiOrderP/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadraticMultiOrderP/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/TwoGrainsQuadraticMultiOrderP
          )
 add_test(NAME ConservedVolume
          COMMAND ${Python3_EXECUTABLE}

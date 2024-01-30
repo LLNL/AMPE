@@ -154,11 +154,15 @@ void FieldsInitializer::initializeLevelFromData(
       for (int i = 0; i < d_nphases; i++) {
          std::ostringstream o;
          o << "phase";
-         if (d_nphases > 1) o << i;
          ncPhase[i] = ncf->getVar(o.str());
-         if (ncPhase[i].isNull())
-            TBOX_ERROR("Could not read variable "
-                       << o.str() << " from input data" << std::endl);
+         if (ncPhase[i].isNull()) {
+            // add phase id to name
+            o << i;
+            ncPhase[i] = ncf->getVar(o.str());
+            if (ncPhase[i].isNull() && (i == 0 || i < (d_nphases - 1)))
+               TBOX_ERROR("Could not read variable "
+                          << o.str() << " from input data" << std::endl);
+         }
       }
    }
    NcVar ncEta;
@@ -405,7 +409,8 @@ void FieldsInitializer::initializeLevelFromData(
                  patch->getPatchData(d_phase_id)));
          assert(phase_data);
 
-         for (int depth = 0; depth < d_nphases; depth++) {
+         const int max_depth = d_nphases > 1 ? d_nphases - 1 : d_nphases;
+         for (int depth = 0; depth < max_depth; depth++) {
 #ifdef HAVE_NETCDF3
             ncPhase->set_cur(z_lower, y_lower, x_lower);
             if (!ncPhase->get(vals, nz, ny, nx)) {
@@ -430,6 +435,27 @@ void FieldsInitializer::initializeLevelFromData(
             int idx = nx * ny * iz + nx * iy + ix;
 #endif
                (*phase_data)(ccell, depth) = vals[idx];
+            }
+         }
+         // if number of order parameters > 1, set value of last one as
+         // 1. - sum of others
+         if (d_nphases > 1) {
+            pdat::CellIterator iend(pdat::CellGeometry::end(patch_box));
+            for (pdat::CellIterator i(pdat::CellGeometry::begin(patch_box));
+                 i != iend; ++i) {
+               const pdat::CellIndex ccell = *i;
+               int ix = ccell(0) - x_lower;
+               int iy = ccell(1) - y_lower;
+#if (NDIM == 2)
+               int idx = nx * iy + ix;
+#else
+            int iz = ccell(2) - z_lower;
+            int idx = nx * ny * iz + nx * iy + ix;
+#endif
+               double val = 0.;
+               for (int depth = 0; depth < d_nphases - 1; depth++)
+                  val += (*phase_data)(ccell, depth);
+               (*phase_data)(ccell, d_nphases - 1) = 1. - val;
             }
          }
       }

@@ -484,6 +484,7 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
    assert(dphidt->getGhostCellWidth()[0] > 0);
 
    // now compute concentration flux anti-trapping correction
+   const int norderp = phase->getDepth();
    if (d_with_three_phases) {
       std::shared_ptr<pdat::CellData<double> > cb(
           SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
@@ -499,6 +500,20 @@ void EBSCompositionRHSStrategy::addFluxFromAntitrappingonPatch(
           cl->getGhostCellWidth()[0], dphidt->getPointer(),
           dphidt->getGhostCellWidth()[0], alpha, flux->getPointer(0),
           flux->getPointer(1),
+#if (NDIM == 3)
+          flux->getPointer(2),
+#endif
+          flux->getGhostCellWidth()[0]);
+   } else if (norderp > 1) {
+      ADDCONCENTRATIONFLUXFROMANTITRAPPINGMULTIORDERP(
+          ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+          ifirst(2), ilast(2),
+#endif
+          dx, phase->getPointer(), phase->getGhostCellWidth()[0], norderp,
+          cl->getPointer(), ca->getPointer(), cl->getGhostCellWidth()[0],
+          dphidt->getPointer(), dphidt->getGhostCellWidth()[0], alpha,
+          flux->getPointer(0), flux->getPointer(1),
 #if (NDIM == 3)
           flux->getPointer(2),
 #endif

@@ -545,3 +545,142 @@ c factor should be one when only two phases are present
 
       return
       end
+c***********************************************************************
+c
+c compute the concentration flux
+c 0.25 coeff is 0.5 for average over 2 gradients times 0.5
+c for 1./2dx
+c
+      subroutine addconcentrationfluxfromantitrappingmultiorderp(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   dx,
+     &   phase, ngp, norderp,
+     &   cl, ca, ngc,
+     &   dphidt, ngd,
+     &   alpha,
+     &   flux0, flux1, ngflux )
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+      integer ngflux, ngd, ngp, ngc, norderp
+      double precision
+     &     flux0(SIDE2d0(ifirst,ilast,ngflux)),
+     &     flux1(SIDE2d1(ifirst,ilast,ngflux))
+      double precision phase(CELL2d(ifirst,ilast,ngp),norderp)
+      double precision cl(CELL2d(ifirst,ilast,ngc))
+      double precision ca(CELL2d(ifirst,ilast,ngc))
+      double precision dphidt(CELL2d(ifirst,ilast,ngd),norderp)
+      double precision dx(0:1)
+      double precision alpha
+c
+      double precision dxinv, dyinv
+      double precision dphix, dphiy, dphi2, dphin
+      double precision dphipx, dphipy, dphipn, dphip2
+      integer          ic0, ic1, ip
+      double precision tol, tol2, dpdt
+      double precision ac(2)
+      double precision factor
+
+      tol = 1.e-8
+      tol2 = tol*tol
+
+      dxinv = 1.d0 / dx(0)
+      dyinv = 1.d0 / dx(1)
+
+c x-faces
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0+1
+c compute gradient liquid phase first
+            dphix = dxinv * ( phase(ic0,ic1,norderp)
+     &                      - phase(ic0-1,ic1,norderp) )
+            dphiy = dyinv*0.25d0*(phase(ic0-1,ic1+1,norderp)
+     &                           -phase(ic0-1,ic1-1,norderp)
+     &                           +phase(ic0  ,ic1+1,norderp)
+     &                           -phase(ic0  ,ic1-1,norderp)
+     &                          )
+            dphi2 = dphix*dphix+dphiy*dphiy
+            if( dphi2 .gt. tol2 ) then
+               dphin = sqrt(dphi2)
+
+c average compositions to get values on x-face
+               ac(1) = 0.5d0*(cl(ic0-1,ic1)+cl(ic0,ic1))
+               ac(2) = 0.5d0*(ca(ic0-1,ic1)+ca(ic0,ic1))
+
+c loop over solid order parameters
+               dphipx = 0.d0
+               dphipy = 0.d0
+               dpdt   = 0.d0
+               do ip = 1, norderp-1
+                  dphipx = dphipx + dxinv * ( phase(ic0,ic1,ip)
+     &                                      - phase(ic0-1,ic1,ip) )
+                  dphipy = dphipy + dyinv*0.25d0
+     &                   * (phase(ic0-1,ic1+1,ip)
+     &                     -phase(ic0-1,ic1-1,ip)
+     &                     +phase(ic0  ,ic1+1,ip)
+     &                     -phase(ic0  ,ic1-1,ip))
+                  dpdt = dpdt + 0.5d0*( dphidt(ic0-1,ic1,ip)
+     &                                 +dphidt(ic0,ic1,ip) )
+               enddo
+               dphip2 = dphipx*dphipx+dphipy*dphipy
+
+               if( dphip2 .gt. tol2 ) then
+                  dphipn = sqrt(dphip2)
+
+                  flux0(ic0,ic1) = flux0(ic0,ic1) -
+     &               alpha*(dphix/dphin)*(ac(1)-ac(2))*dpdt
+               endif
+            endif
+         enddo
+      enddo
+
+      do ic1 = ifirst1, ilast1+1
+         do ic0 = ifirst0, ilast0
+c compute gradient liquid phase first
+            dphiy = dyinv * ( phase(ic0,ic1,norderp)
+     &                      - phase(ic0,ic1-1,norderp) )
+            dphix = dxinv*0.25d0*(phase(ic0+1,ic1-1,norderp)
+     &                           -phase(ic0-1,ic1-1,norderp)
+     &                           +phase(ic0+1,ic1  ,norderp)
+     &                           -phase(ic0-1,ic1  ,norderp)
+     &                           )
+            dphi2 = dphix*dphix+dphiy*dphiy
+            if( dphi2 .gt. tol2 ) then
+               dphin = sqrt(dphi2)
+
+c average compositions to get values on y-face
+               ac(1) = 0.5d0*(cl(ic0,ic1-1)+cl(ic0,ic1))
+               ac(2) = 0.5d0*(ca(ic0,ic1-1)+ca(ic0,ic1))
+
+c loop over solid order parameters
+               dphipx = 0.d0
+               dphipy = 0.d0
+               dpdt   = 0.d0
+               do ip = 1, norderp-1
+                  dphipy = dphipy + dyinv * ( phase(ic0,ic1,ip)
+     &                                      - phase(ic0,ic1-1,ip) )
+                  dphipx = dphipx + dxinv*0.25d0
+     &                   * (phase(ic0+1,ic1-1,ip)
+     &                     -phase(ic0-1,ic1-1,ip)
+     &                     +phase(ic0+1,ic1  ,ip)
+     &                     -phase(ic0-1,ic1  ,ip))
+                  dpdt =  dpdt + 0.5d0*( dphidt(ic0,ic1-1,ip)
+     &                           +dphidt(ic0,ic1,ip) )
+               enddo
+               dphip2 = dphipx*dphipx+dphipy*dphipy
+
+               if( dphip2 .gt. tol2 ) then
+                  dphipn = sqrt(dphip2)
+
+                  flux1(ic0,ic1) = flux1(ic0,ic1) -
+     &               alpha*(dphiy/dphin)*(ac(1)-ac(2))*dpdt
+               endif
+            endif
+         enddo
+      enddo
+
+      return
+      end
+

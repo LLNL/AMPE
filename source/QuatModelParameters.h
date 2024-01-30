@@ -73,6 +73,7 @@ class QuatModelParameters
    void initializeEta(std::shared_ptr<tbox::Database> quat_db);
 
    // accessors for parameters
+   int norderp() const { return (with_three_phases() ? 3 : d_norderp); }
    double H_parameter() const { return d_H_parameter; }
    bool with_orientation() const { return (d_H_parameter >= 0.); }
    bool evolveQuat() const
@@ -166,6 +167,7 @@ class QuatModelParameters
    }
    EnergyInterpolationType energy_interp_func_type() const
    {
+      assert(d_energy_interp_func_type != EnergyInterpolationType::UNDEFINED);
       return d_energy_interp_func_type;
    }
    EnergyInterpolationType eta_interp_func_type() const
@@ -205,7 +207,7 @@ class QuatModelParameters
       return (d_phi_mobility_type.compare("scalar") == 0);
    }
 
-   double kappa() const { return d_kappa; }
+   double gamma() const { return d_gamma; }
 
    double molar_volume_liquid() const { return d_molar_volume_liquid; }
    double molar_volume_solid_A() const { return d_molar_volume_solid_A; }
@@ -444,6 +446,8 @@ class QuatModelParameters
  private:
    void readNumberSpecies(std::shared_ptr<tbox::Database> conc_db);
 
+   int d_norderp;
+
    // Model parameters
    double d_H_parameter;
    double d_epsilon_phase;
@@ -501,6 +505,9 @@ class QuatModelParameters
    double d_liquidus_slope;
    double d_average_concentration;
 
+   // multiple order model parameters
+   double d_gamma;
+
    /*!
     * polynomial types for phi interpolation in quaternion diffusion
     * coefficient (1st and 2nd order grad q terms)
@@ -547,8 +554,6 @@ class QuatModelParameters
    std::string d_quat_grad_modulus_type;
 
    std::string d_phi_mobility_type;
-
-   double d_kappa;
 
    double d_molar_volume_liquid;
    double d_molar_volume_solid_A;

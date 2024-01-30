@@ -633,7 +633,7 @@ void QuatModel::Initialize(std::shared_ptr<tbox::MemoryDatabase>& input_db,
       int temperature_id =
           d_model_parameters.isTemperatureConstant() ? d_temperature_id : -1;
       int qlen = (d_model_parameters.H_parameter() >= 0.) ? d_qlen : 0;
-      int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+      int nphases = d_model_parameters.norderp();
       initializer.registerFieldsIds(d_phase_id, d_eta_id, temperature_id,
                                     d_quat_id, qlen, d_conc_id, d_ncompositions,
                                     nphases);
@@ -1485,7 +1485,7 @@ void QuatModel::registerPhaseVariables(void)
    std::shared_ptr<hier::VariableContext> scratch =
        variable_db->getContext("SCRATCH");
 
-   const int nphases = d_model_parameters.with_three_phases() ? 3 : 1;
+   const int nphases = d_model_parameters.norderp();
    d_phase_var.reset(
        new pdat::CellVariable<double>(tbox::Dimension(NDIM), "phase", nphases));
    assert(d_phase_var);
@@ -1853,7 +1853,7 @@ void QuatModel::RegisterWithVisit(void)
    assert(d_visit_data_writer);
 
    if (d_model_parameters.with_phase()) {
-      const int n = d_model_parameters.with_three_phases() ? 3 : 1;
+      const int n = d_model_parameters.norderp();
       for (int i = 0; i < n; i++) {
          std::string visit_name("phase" + std::to_string(i));
          d_visit_data_writer->registerPlotQuantity(visit_name, "SCALAR",
@@ -2496,6 +2496,13 @@ void QuatModel::printScalarDiagnostics(void)
             tbox::pout << "  Volume fraction of phase " << i << " = "
                        << vphi / vol << std::endl;
          }
+      } else if (d_model_parameters.norderp() > 1) {
+         for (int i = 0; i < d_model_parameters.norderp() - 1; i++) {
+            vphi = evaluatePhaseFraction(d_patch_hierarchy, d_phase_id, i);
+            tbox::pout << "  Volume fraction of phase " << i << " = "
+                       << vphi / vol << std::endl;
+         }
+
       } else {
          vphi = evaluateVolumeSolid(d_patch_hierarchy, d_phase_id);
          tbox::pout << "  Volume fraction of solid phase = " << vphi / vol
@@ -2531,7 +2538,7 @@ void QuatModel::printScalarDiagnostics(void)
          tbox::pout << "  Max. concentration " << ic << "= " << cmax
                     << std::endl;
 
-         if (!d_model_parameters.with_three_phases()) {
+         if (d_model_parameters.norderp() < 1) {
             // average concentration
             const double c0 = c0V0 / vol;
 
