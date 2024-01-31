@@ -27,32 +27,28 @@ class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
    TemperatureFreeEnergyStrategy(
-       const EnergyInterpolationType phase_interp_func_type,
-       const EnergyInterpolationType eta_interp_func_type, const double fa,
-       const double fb, const double vma, const double vmb,
-       const double latent_heat, const double meltingT,
-       const bool with_third_phase);
+       const EnergyInterpolationType phase_interp_func_type, const double fa,
+       const double vma, const double latent_heat, const double meltingT);
 
    ~TemperatureFreeEnergyStrategy(){};
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp = false);
+                                const int fl_id,
+                                const bool gp = false) override;
 
    void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp = false);
+                                const int fs_id,
+                                const bool gp = false) override;
 
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp = false);
+                                const int fs_id,
+                                const bool gp = false) override;
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
                         const int eta_id, const int conc_id, const int fl_id,
-                        const int fa_id, const int fb_id, const int rhs_id);
-
-   void addDrivingForceEta(const double time, hier::Patch& patch,
-                           const int temperature_id, const int phase_id,
-                           const int eta_id, const int conc_id, const int fl_id,
-                           const int fa_id, const int fb_id, const int rhs_id);
+                        const int fa_id, const int fb_id,
+                        const int rhs_id) override;
 
    void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
@@ -70,12 +66,8 @@ class TemperatureFreeEnergyStrategy : public FreeEnergyStrategy
    double d_meltingT;
    double d_invMeltingT;
    double d_f_a;
-   double d_f_b;
 
    EnergyInterpolationType d_phase_interp_func_type;
-   EnergyInterpolationType d_eta_interp_func_type;
-
-   bool d_with_third_phase;
 
    double computeValFreeEnergyLiquid(const double temperature,
                                      const double conc, const bool gp = false);
