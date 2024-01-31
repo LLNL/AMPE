@@ -248,26 +248,18 @@ class FreeEnergyStrategyFactory
          } else
             free_energy_strategy.reset(new TemperatureFreeEnergyStrategy(
                 model_parameters.energy_interp_func_type(),
-                model_parameters.eta_interp_func_type(),
                 model_parameters.free_energy_solid_A(),
-                model_parameters.free_energy_solid_B(),
                 model_parameters.molar_volume_solid_A(),
-                model_parameters.molar_volume_solid_B(),
-                model_parameters.latent_heat(), Tref,
-                model_parameters.with_third_phase()));
+                model_parameters.latent_heat(), Tref));
 
       } else {  // no composition, no heat equation
          if (model_parameters.free_energy_type()[0] == 's') {
             free_energy_strategy.reset(new PhaseFreeEnergyStrategy(
                 model_parameters.energy_interp_func_type(),
-                model_parameters.eta_interp_func_type(),
                 model_parameters.free_energy_liquid(),
                 model_parameters.free_energy_solid_A(),
-                model_parameters.free_energy_solid_B(),
                 model_parameters.molar_volume_liquid(),
-                model_parameters.molar_volume_solid_A(),
-                model_parameters.molar_volume_solid_B(),
-                model_parameters.with_third_phase()));
+                model_parameters.molar_volume_solid_A()));
          }
       }
       // pure element free energy

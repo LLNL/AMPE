@@ -309,11 +309,9 @@ void PHASERHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
 #if (NDIM == 3)
                       const int& ifirst2, const int& ilast2,
 #endif
-                      const double* fl, const double* fa, const double* fb,
-                      const double* phi, const int& ngphi, const double* eta,
-                      const int& ngeta, const double* rhs, const int& ngrhs,
-                      const char* phi_interp_type, const char* eta_interp_type,
-                      const int& three_phase);
+                      const double* fl, const double* fa, const double* phi,
+                      const int& ngphi, const double* rhs, const int& ngrhs,
+                      const char* phi_interp_type);
 
 void ETARHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                     const int& ilast1,

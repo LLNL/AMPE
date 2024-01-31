@@ -24,52 +24,48 @@ class PhaseFreeEnergyStrategy : public FreeEnergyStrategy
 {
  public:
    PhaseFreeEnergyStrategy(const EnergyInterpolationType phase_interp_func_type,
-                           const EnergyInterpolationType eta_interp_func_type,
-                           const double fl, const double fa, const double fb,
-                           const double vml, const double vma, const double vmb,
-                           const bool with_third_phase);
+                           const double fl, const double fa, const double vml,
+                           const double vma);
 
    ~PhaseFreeEnergyStrategy(){};
 
    void computeFreeEnergyLiquid(hier::Patch& patch, const int temperature_id,
-                                const int fl_id, const bool gp);
+                                const int fl_id, const bool gp) override;
 
    void computeFreeEnergySolidA(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
+                                const int fs_id, const bool gp) override;
 
    void computeFreeEnergySolidB(hier::Patch& patch, const int temperature_id,
-                                const int fs_id, const bool gp);
+                                const int fs_id, const bool gp) override;
 
    void addDrivingForce(const double time, hier::Patch& patch,
                         const int temperature_id, const int phase_id,
                         const int eta_id, const int conc_id, const int fl_id,
-                        const int fa_id, const int fb_id, const int rhs_id);
-
-   void addDrivingForceEta(const double time, hier::Patch& patch,
-                           const int temperature_id, const int phase_id,
-                           const int eta_id, const int conc_id, const int fl_id,
-                           const int fa_id, const int fb_id, const int rhs_id);
+                        const int fa_id, const int fb_id,
+                        const int rhs_id) override;
 
    void computeSecondDerivativeEnergyPhaseL(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
    void computeSecondDerivativeEnergyPhaseA(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
+#ifndef HAVE_THERMO4PFM
    void computeSecondDerivativeEnergyPhaseB(
        const double temperature, const std::vector<double>& c,
-       std::vector<double>& d2fdc2, const bool use_internal_units = true);
+       std::vector<double>& d2fdc2,
+       const bool use_internal_units = true) override;
+#endif
 
-   void preRunDiagnostics(const double temperature){};
+   void preRunDiagnostics(const double temperature) override{};
 
  private:
    double d_f_l;
    double d_f_a;
-   double d_f_b;
-   EnergyInterpolationType d_phase_interp_func_type;
-   EnergyInterpolationType d_eta_interp_func_type;
 
-   bool d_with_third_phase;
+   EnergyInterpolationType d_phase_interp_func_type;
 };
 
 #endif

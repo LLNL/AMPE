@@ -578,41 +578,33 @@ c compute r.h.s. component due to free energy for phase variable phi
 c
       subroutine phaserhs_fenergy(
      &   ifirst0, ilast0, ifirst1, ilast1,
-     &   fl, fa, fb,
+     &   fl, fa,
      &   phi, ngphi,
-     &   eta, ngeta,
      &   rhs, ngrhs,
-     &   energy_interp_type,
-     &   eta_interp_type,
-     &   three_phase )
+     &   energy_interp_type)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1
-      integer three_phase
 
-      integer ngphi, ngeta, ngrhs
+      integer ngphi, ngrhs
       character*(*) energy_interp_type
-      character*(*) eta_interp_type
 c
 c variables in 2d cell indexed
       double precision fl(CELL2d(ifirst,ilast,0))
       double precision fa(CELL2d(ifirst,ilast,0))
-      double precision fb(CELL2d(ifirst,ilast,0))
       double precision phi(CELL2d(ifirst,ilast,ngphi))
-      double precision eta(CELL2d(ifirst,ilast,ngeta))
       double precision rhs(CELL2d(ifirst,ilast,ngrhs))
 c
 c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1
-      double precision f_l, f_a, f_b
+      double precision f_l, f_a
 
-      double precision heta, hphi_prime
-      double precision interp_func
+      double precision hphi_prime
       double precision deriv_interp_func
 c
       do ic1 = ifirst1, ilast1
@@ -627,25 +619,6 @@ c
 
          enddo
       enddo
-
-      if ( three_phase /= 0 ) then
-
-         do ic1 = ifirst1, ilast1
-            do ic0 = ifirst0, ilast0
-
-               hphi_prime =
-     &            deriv_interp_func( phi(ic0,ic1), energy_interp_type )
-
-               heta = interp_func( eta(ic0,ic1), eta_interp_type )
-
-               rhs(ic0,ic1) = rhs(ic0,ic1) +
-     &            hphi_prime * heta *
-     &            ( fa(ic0,ic1) - fb(ic0,ic1) )
-
-            enddo
-         enddo
-
-      endif
 
       return
       end

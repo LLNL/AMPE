@@ -700,41 +700,33 @@ c compute r.h.s. component due to free energy for phase variable phi
 c
       subroutine phaserhs_fenergy(
      &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
-     &   fl, fa, fb,
+     &   fl, fa,
      &   phi, ngphi,
-     &   eta, ngeta,
      &   rhs, ngrhs,
-     &   phi_interp_type,
-     &   eta_interp_type,
-     &   three_phase )
+     &   phi_interp_type)
 c***********************************************************************
       implicit none
 c***********************************************************************
 c***********************************************************************
 c input arrays:
       integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
-      integer three_phase
 
-      integer ngphi, ngeta, ngrhs
+      integer ngphi, ngrhs
       character*(*) phi_interp_type
-      character*(*) eta_interp_type
 c
 c variables in 3d cell indexed
       double precision fl(CELL3d(ifirst,ilast,0))
       double precision fa(CELL3d(ifirst,ilast,0))
-      double precision fb(CELL3d(ifirst,ilast,0))
       double precision phi(CELL3d(ifirst,ilast,ngphi))
-      double precision eta(CELL3d(ifirst,ilast,ngeta))
       double precision rhs(CELL3d(ifirst,ilast,ngrhs))
 c
 c***********************************************************************
 c***********************************************************************     
 c
       integer ic0, ic1, ic2
-      double precision f_l, f_a, f_b
+      double precision f_l, f_a
 
-      double precision heta, hphi_prime
-      double precision interp_func
+      double precision hphi_prime
       double precision deriv_interp_func
 c
       do ic2 = ifirst2, ilast2
@@ -753,30 +745,6 @@ c
             enddo
          enddo
       enddo
-
-      if ( three_phase /= 0 ) then
-
-         do ic2 = ifirst2, ilast2
-            do ic1 = ifirst1, ilast1
-               do ic0 = ifirst0, ilast0
-
-                  hphi_prime =
-     &               deriv_interp_func(
-     &                  phi(ic0,ic1,ic2),
-     &                  phi_interp_type )
-
-                  heta =
-     &               interp_func( eta(ic0,ic1,ic2), eta_interp_type )
-
-                  rhs(ic0,ic1,ic2) = rhs(ic0,ic1,ic2) +
-     &               hphi_prime * heta *
-     &               ( fa(ic0,ic1,ic2) - fb(ic0,ic1,ic2) )
-
-               enddo
-            enddo
-         enddo
-
-      endif
 
       return
       end
