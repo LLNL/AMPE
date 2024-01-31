@@ -30,8 +30,6 @@ usage = "Usage: %prog [options] filename"
 parser = OptionParser( usage = usage )
 
 parser.add_option( "--spheres", type="string", help="csv file with list of spheres" )
-parser.add_option( "-n", "--ncells", type="int",
-                   help="number of cells in x,y,z (will all be equal)" )
 parser.add_option( "-x", "--nx", type="int",
                    help="number of cells in x direction" )
 parser.add_option( "-y", "--ny", type="int",
@@ -58,9 +56,9 @@ filename = args[0]
 spheres_filename =  options.spheres
 nspheres = 0
 
-nx = options.ncells
-ny = options.ncells
-nz = options.ncells
+nx = options.nx
+ny = options.ny
+nz = options.nz
 
 radius = []
 centers = []
@@ -82,16 +80,8 @@ print(centers)
 print("Radius:")
 print(radius)
 
-if ( options.nx ) : nx = options.nx
-if ( options.ny ) : ny = options.ny
-if ( options.nz ) : nz = options.nz
-
 width = 0.
 if ( options.width ) : width = options.width
-
-if ( not ( nx and ny and nz ) ) :
-  print ("Error: either -n or all of -nx -ny -nz are required")
-  sys.exit(1)
 
 nomconc       = options.nomconc
 conc_inside   = options.concentration_in
