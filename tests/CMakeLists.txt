@@ -314,6 +314,13 @@ add_test(NAME ChenShen98
          ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
          ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98/${NDIM}d.input
          )
+add_test(NAME ChenShen98MultiOrderP
+         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98MultiOrderP/test${NDIM}d.py
+         ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4
+         ${CMAKE_CURRENT_BINARY_DIR}/../source/ampe${NDIM}d
+         ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98MultiOrderP/${NDIM}d.input
+         ${CMAKE_CURRENT_SOURCE_DIR}/ChenShen98MultiOrderP
+         )
 add_test(NAME HeatFlow
          COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/HeatFlow/test.py
          ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} 4

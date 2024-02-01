@@ -623,6 +623,63 @@ c
       return
       end
 
+c
+c compute r.h.s. component due to free energy for phase variable phi
+c
+      subroutine phaserhs_fenergy_multiorderp(
+     &   ifirst0, ilast0, ifirst1, ilast1,
+     &   fl, fa,
+     &   phi, ngphi, nphi,
+     &   rhs, ngrhs)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1
+
+      integer ngphi, ngrhs, nphi
+c
+c variables in 2d cell indexed
+      double precision fl(CELL2d(ifirst,ilast,0))
+      double precision fa(CELL2d(ifirst,ilast,0))
+      double precision phi(CELL2d(ifirst,ilast,ngphi),nphi)
+      double precision rhs(CELL2d(ifirst,ilast,ngrhs),nphi)
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ip
+      double precision f_l, f_a
+
+      double precision hphis, hphil, suminv2
+c
+      do ic1 = ifirst1, ilast1
+         do ic0 = ifirst0, ilast0
+            hphis = 0.d0
+            do ip = 1, nphi-1
+               hphis = hphis + phi(ic0,ic1,ip)*phi(ic0,ic1,ip)
+            enddo
+            hphil = phi(ic0,ic1,nphi)*phi(ic0,ic1,nphi)
+            suminv2 = 1.d0/(hphis+hphil)
+            hphis = hphis*suminv2
+            hphil = hphil*suminv2
+
+            do ip = 1, nphi-1
+               rhs(ic0,ic1,ip) = rhs(ic0,ic1,ip) +
+     &            2.d0*phi(ic0,ic1,ip)*hphil*suminv2
+     &            *( fl(ic0,ic1) - fa(ic0,ic1) )
+            enddo
+            rhs(ic0,ic1,nphi) = rhs(ic0,ic1,nphi) +
+     &            2.d0*phi(ic0,ic1,nphi)*hphis*suminv2
+     &            *( fa(ic0,ic1) - fl(ic0,ic1) )
+
+         enddo
+      enddo
+
+      return
+      end
+
 c***********************************************************************
 c
 c compute r.h.s. component due to free energy for phase variable phi

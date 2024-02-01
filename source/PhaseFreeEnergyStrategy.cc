@@ -135,13 +135,26 @@ void PhaseFreeEnergyStrategy::addDrivingForce(
 
    const char interpf = energyInterpChar(d_phase_interp_func_type);
 
-   PHASERHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+   const int norderp = phase->getDepth();
+
+   if (norderp > 1) {
+      PHASERHS_FENERGY_MULTIORDERP(ifirst(0), ilast(0), ifirst(1), ilast(1),
 #if (NDIM == 3)
-                    ifirst(2), ilast(2),
+                                   ifirst(2), ilast(2),
 #endif
-                    fl->getPointer(), fa->getPointer(), phase->getPointer(),
-                    phase->getGhostCellWidth()[0], rhs->getPointer(), 0,
-                    &interpf);
+                                   fl->getPointer(), fa->getPointer(),
+                                   phase->getPointer(),
+                                   phase->getGhostCellWidth()[0], norderp,
+                                   rhs->getPointer(), 0);
+
+   } else
+      PHASERHS_FENERGY(ifirst(0), ilast(0), ifirst(1), ilast(1),
+#if (NDIM == 3)
+                       ifirst(2), ilast(2),
+#endif
+                       fl->getPointer(), fa->getPointer(), phase->getPointer(),
+                       phase->getGhostCellWidth()[0], rhs->getPointer(), 0,
+                       &interpf);
 }
 
 //=======================================================================

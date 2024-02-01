@@ -313,6 +313,16 @@ void PHASERHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                       const int& ngphi, const double* rhs, const int& ngrhs,
                       const char* phi_interp_type);
 
+void PHASERHS_FENERGY_MULTIORDERP(const int& ifirst0, const int& ilast0,
+                                  const int& ifirst1, const int& ilast1,
+#if (NDIM == 3)
+                                  const int& ifirst2, const int& ilast2,
+#endif
+                                  const double* fl, const double* fa,
+                                  const double* phi, const int& ngphi,
+                                  const int& nphi, const double* rhs,
+                                  const int& ngrhs);
+
 void ETARHS_FENERGY(const int& ifirst0, const int& ilast0, const int& ifirst1,
                     const int& ilast1,
 #if (NDIM == 3)
