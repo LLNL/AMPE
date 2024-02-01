@@ -748,6 +748,67 @@ c
 
       return
       end
+c
+c compute r.h.s. component due to free energy for phase variable phi
+c
+      subroutine phaserhs_fenergy_multiorderp(
+     &   ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2,
+     &   fl, fa,
+     &   phi, ngphi, nphi,
+     &   rhs, ngrhs,
+     &   phi_interp_type)
+c***********************************************************************
+      implicit none
+c***********************************************************************
+c***********************************************************************
+c input arrays:
+      integer ifirst0, ilast0, ifirst1, ilast1, ifirst2, ilast2
+
+      integer ngphi, ngrhs, nphi
+      character*(*) phi_interp_type
+c
+c variables in 3d cell indexed
+      double precision fl(CELL3d(ifirst,ilast,0))
+      double precision fa(CELL3d(ifirst,ilast,0))
+      double precision phi(CELL3d(ifirst,ilast,ngphi),nphi)
+      double precision rhs(CELL3d(ifirst,ilast,ngrhs),nphi)
+c
+c***********************************************************************
+c***********************************************************************
+c
+      integer ic0, ic1, ic2, ip
+      double precision f_l, f_a
+
+      double precision hphis, hphil, suminv2
+c
+      do ic2 = ifirst2, ilast2
+         do ic1 = ifirst1, ilast1
+            do ic0 = ifirst0, ilast0
+               hphis = 0.d0
+               do ip = 1, nphi-1
+                  hphis = hphis + phi(ic0,ic1,ic2,ip)
+     &                           *phi(ic0,ic1,ic2,ip)
+               enddo
+               hphil = phi(ic0,ic1,ic2,nphi)*phi(ic0,ic1,ic2,nphi)
+               suminv2 = 1.d0/(hphis+hphil)
+               hphis = hphis*suminv2
+               hphil = hphil*suminv2
+
+               do ip = 1, nphi-1
+                  rhs(ic0,ic1,ic2,ip) = rhs(ic0,ic1,ic2,ip) +
+     &               2.d0*phi(ic0,ic1,ic2,ip)*hphil*suminv2
+     &               *( fl(ic0,ic1,ic2) - fa(ic0,ic1,ic2) )
+               enddo
+               rhs(ic0,ic1,ic2,nphi) = rhs(ic0,ic1,ic2,nphi) +
+     &               2.d0*phi(ic0,ic1,ic2,nphi)*hphis*suminv2
+     &               *( fa(ic0,ic1,ic2) - fl(ic0,ic1,ic2) )
+
+            enddo
+         enddo
+      enddo
+
+      return
+      end
 c***********************************************************************
 c
 c compute r.h.s. component due to free energy for phase variable phi

@@ -1,0 +1,72 @@
+model_type = "Quat"
+
+end_time            = 300.
+max_timesteps       = 700
+
+Visit {
+   interval = 10.
+   interval_type = "time"
+}
+
+TimerManager {
+    timer_list = "solv::*::*","xfer::*::*","AMPE::*::*"
+    print_threshold = 0.0
+}
+
+ModelParameters {
+   norderp = 2
+   
+   temperature        = 873. // [K]
+   
+   Interface{
+      sigma = 0.235702
+      delta = 0.707107
+   }
+
+   PhaseMobility{
+      value = 2.
+   }
+
+   phi_interp_func_type ="pbg"
+   
+   FreeEnergyModel{
+      type = "scalar"
+      free_energy_liquid = 0.
+      free_energy_solid  = 0.
+   }
+
+   molar_volume = 1. // arbitrary value > 0.
+
+   BoundaryConditions {
+      Phase{
+         boundary_0 = "slope", "0"
+         boundary_1 = "slope", "0"
+         boundary_2 = "slope", "0"
+         boundary_3 = "slope", "0"
+      }
+   }
+}
+
+ScalarDiagnostics {
+   interval = 10.
+   interval_type = "time"
+}   
+
+Integrator {
+   atol = 3.e-5
+   Preconditioner{
+      enabled = FALSE
+      precondition_phase = FALSE
+   }
+}
+
+InitialConditions {
+   filename = "32x32.nc"
+}
+
+Geometry{
+   periodic_dimension = 0, 0
+   coarsest_level_resolution = 32, 32
+   x_lo         =  0.,  0.
+   x_up         = 32., 32.
+}
