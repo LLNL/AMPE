@@ -1990,10 +1990,16 @@ void QuatIntegrator::initialize(
                                            d_temperature_scratch_id, d_cp_id));
 
    if (d_model_parameters.inMovingFrame()) {
-      d_movingframe_rhs.reset(new MovingFrameRHS(d_phase_scratch_id));
+      d_movingframe_phi.reset(new MovingFrameRHS(d_phase_scratch_id));
       d_adapt_moving_frame.reset(new AdaptMovingFrame(d_grid_geometry,
                                                       d_quat_model,
                                                       d_frame_velocity));
+      if (d_with_concentration) {
+         d_movingframe_conc.reset(new MovingFrameRHS(d_conc_scratch_id));
+      }
+      if (d_with_unsteady_temperature) {
+         d_movingframe_temp.reset(new MovingFrameRHS(d_temperature_scratch_id));
+      }
    }
 }
 
@@ -2439,8 +2445,8 @@ void QuatIntegrator::evaluatePhaseRHS(
    if (needDphiDt()) fillDphiDt(hierarchy, time, phase_rhs_id);
 
    if (d_model_parameters.inMovingFrame()) {
-      assert(d_movingframe_rhs);
-      d_movingframe_rhs->addRHS(hierarchy, phase_rhs_id, d_frame_velocity);
+      assert(d_movingframe_phi);
+      d_movingframe_phi->addRHS(hierarchy, phase_rhs_id, d_frame_velocity);
    }
 
    if (d_model_parameters.with_rhs_visit_output() && eval_flag) {
@@ -2586,45 +2592,8 @@ void QuatIntegrator::evaluateTemperatureRHS(
 
    // add component related to moving frame if moving velocity!=0
    if (d_model_parameters.inMovingFrame())
-      for (int ln = hierarchy->getFinestLevelNumber(); ln >= 0; --ln) {
-         std::shared_ptr<hier::PatchLevel> level = hierarchy->getPatchLevel(ln);
-
-         for (hier::PatchLevel::Iterator ip(level->begin()); ip != level->end();
-              ++ip) {
-            std::shared_ptr<hier::Patch> patch = *ip;
-
-            const std::shared_ptr<geom::CartesianPatchGeometry> patch_geom(
-                SAMRAI_SHARED_PTR_CAST<geom::CartesianPatchGeometry,
-                                       hier::PatchGeometry>(
-                    patch->getPatchGeometry()));
-            const double* dx = patch_geom->getDx();
-
-            std::shared_ptr<pdat::CellData<double> > temperature(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(temperature_id)));
-            assert(temperature);
-            assert(temperature->getGhostCellWidth()[0] > 0);
-
-            std::shared_ptr<pdat::CellData<double> > temperature_rhs(
-                SAMRAI_SHARED_PTR_CAST<pdat::CellData<double>, hier::PatchData>(
-                    patch->getPatchData(temperature_rhs_id)));
-            assert(temperature_rhs);
-
-            const hier::Box& pbox = patch->getBox();
-            const hier::Index& ifirst = pbox.lower();
-            const hier::Index& ilast = pbox.upper();
-
-            assert(temperature->getGhostCellWidth()[0] > 0);
-            ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                       ifirst(2), ilast(2),
-#endif
-                       dx, temperature->getPointer(),
-                       temperature->getGhostCellWidth()[0], d_frame_velocity,
-                       temperature_rhs->getPointer(),
-                       temperature_rhs->getGhostCellWidth()[0]);
-         }
-      }
+      d_movingframe_temp->addRHS(hierarchy, temperature_rhs_id,
+                                 d_frame_velocity);
 
    if (d_model_parameters.with_rhs_visit_output() && visit_flag) {
       assert(d_temperature_rhs_visit_id >= 0);
@@ -2725,22 +2694,14 @@ void QuatIntegrator::evaluateConcentrationRHS(
                                     flux->getGhostCellWidth()[0],
                                     d_conc_mobility, conc_rhs->getPointer(ic),
                                     0);
-
-            // add component related to moving frame if moving velocity!=0
-            if (d_model_parameters.inMovingFrame()) {
-               assert(conc->getGhostCellWidth()[0] > 0);
-               ADDVDPHIDX(ifirst(0), ilast(0), ifirst(1), ilast(1),
-#if (NDIM == 3)
-                          ifirst(2), ilast(2),
-#endif
-                          dx, conc->getPointer(ic),
-                          conc->getGhostCellWidth()[0], d_frame_velocity,
-                          conc_rhs->getPointer(ic),
-                          conc_rhs->getGhostCellWidth()[0]);
-            }
          }
       }
    }
+
+   // add component related to moving frame if moving velocity!=0
+   if (d_model_parameters.inMovingFrame())
+      d_movingframe_conc->addRHS(hierarchy, conc_rhs_id, d_frame_velocity);
+
    if (d_model_parameters.with_rhs_visit_output() && visit_flag) {
       assert(d_conc_rhs_visit_id >= 0);
       math::HierarchyCellDataOpsReal<double> cellops(hierarchy);

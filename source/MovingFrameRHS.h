@@ -19,10 +19,10 @@ class MovingFrameRHS
    MovingFrameRHS(const int phase_scratch_id);
 
    void addRHS(std::shared_ptr<hier::PatchHierarchy> hierarchy,
-               const int ydot_phase_id, const double frame_velocity);
+               const int ydot_id, const double frame_velocity);
 
  private:
-   const int d_phase_scratch_id;
+   const int d_data_id;
 };
 
 #endif

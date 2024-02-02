@@ -628,7 +628,9 @@ class QuatIntegrator : public mesh::StandardTagAndInitStrategy,
 
    std::shared_ptr<TemperatureRHSStrategy> d_temperature_rhs_strategy;
 
-   std::shared_ptr<MovingFrameRHS> d_movingframe_rhs;
+   std::shared_ptr<MovingFrameRHS> d_movingframe_phi;
+   std::shared_ptr<MovingFrameRHS> d_movingframe_conc;
+   std::shared_ptr<MovingFrameRHS> d_movingframe_temp;
 
    double d_current_time;
    double d_previous_timestep;
